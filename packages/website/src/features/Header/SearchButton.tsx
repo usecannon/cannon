@@ -22,8 +22,7 @@ import {
 } from '@chakra-ui/react';
 import { useQuery } from '@tanstack/react-query';
 import { debounce } from 'lodash';
-import { usePathname } from 'next/navigation';
-import router from 'next/router';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   KeyboardEventHandler,
   useCallback,
@@ -32,13 +31,28 @@ import {
   useState,
 } from 'react';
 import { GoPackage } from 'react-icons/go';
+import { BsBoxes } from 'react-icons/bs';
 import MultiRef from 'react-multi-ref';
 import scrollIntoView from 'scroll-into-view-if-needed';
+import Chain from '../Search/PackageCard/Chain';
 
 // Borrowing some code from https://github.com/chakra-ui/chakra-ui/blob/main/website/src/components/omni-search.tsx
 
 const PLACEHOLDER =
-  'Search for packages, contracts, functions, addresses, and transactions...';
+  'Search for packages, contracts, functions, an addresses...';
+
+const generateLink = (result: any) => {
+  switch (result.type) {
+    case 'package':
+      return `/packages/${result.name}/${result.version}/${result.chainId}-${result.preset}`;
+    case 'namespace':
+    case 'contract':
+    case 'function':
+    case 'address':
+    default:
+      return '/';
+  }
+};
 
 export const SearchButton = () => {
   const pathname = usePathname();
@@ -49,6 +63,7 @@ export const SearchButton = () => {
   const menuRef = useRef<HTMLDivElement>(null);
   const [shouldCloseModal, setShouldCloseModal] = useState(true);
   const [menuNodes] = useState(() => new MultiRef<number, HTMLElement>());
+  const router = useRouter();
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -107,7 +122,7 @@ export const SearchButton = () => {
           }
 
           onClose();
-          void router.push(results[active].url);
+          void router.push(generateLink(results[active]));
           break;
         }
       }
@@ -181,12 +196,7 @@ export const SearchButton = () => {
 
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
-        <ModalContent
-          bg="gray.900"
-          width="100%"
-          maxW="container.md"
-          mx={4}
-        >
+        <ModalContent bg="gray.900" width="100%" maxW="container.md" mx={4}>
           <Flex pos="relative" align="stretch">
             <Input
               maxLength={256}
@@ -234,6 +244,7 @@ export const SearchButton = () => {
                       onClose();
                     }
                   }}
+                  href={generateLink(result)}
                 >
                   {(() => {
                     switch (result.type) {
@@ -253,20 +264,56 @@ export const SearchButton = () => {
                           >
                             <Icon as={GoPackage} boxSize="8" color="gray.300" />
                             <Box>
-                              <Heading fontWeight={600} size="sm">
+                              <Heading fontWeight={600} size="sm" mb={0.5}>
                                 {result.name}
                               </Heading>
-                              <Text fontSize="xs" color="gray.400">
-                                more info here
-                              </Text>
+                              <Flex gap={3.5}>
+                                <Text fontSize="xs" color="gray.400">
+                                  Version: {result.version}
+                                </Text>
+                                <Text fontSize="xs" color="gray.400">
+                                  Preset: {result.preset}
+                                </Text>
+                                <Text
+                                  fontSize="xs"
+                                  color="gray.400"
+                                  as={Flex}
+                                  gap={1.5}
+                                >
+                                  Chain: <Chain id={result.chainId} />
+                                </Text>
+                              </Flex>
                             </Box>
                           </Flex>
                         );
                       case 'namespace':
+                        return (
+                          <Flex
+                            border="1px solid"
+                            bg={index === active ? 'teal.900' : 'gray.800'}
+                            borderColor={
+                              index === active ? 'teal.500' : 'gray.700'
+                            }
+                            borderRadius="md"
+                            mb={4}
+                            p={4}
+                            gap={4}
+                            alignItems="center"
+                          >
+                            <Icon as={BsBoxes} boxSize="8" color="gray.300" />
+                            <Box>
+                              <Heading fontWeight={600} size="sm">
+                                {result.name}
+                              </Heading>
+                              <Text fontSize="xs" color="gray.400">
+                                X packages
+                              </Text>
+                            </Box>
+                          </Flex>
+                        );
                       case 'contract':
                       case 'function':
                       case 'address':
-                      case 'transaction':
                         return <Box key={index}>coming soon</Box>;
                       default:
                         return null;
