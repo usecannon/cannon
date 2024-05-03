@@ -38,14 +38,14 @@ import Chain from '../Search/PackageCard/Chain';
 
 // Borrowing some code from https://github.com/chakra-ui/chakra-ui/blob/main/website/src/components/omni-search.tsx
 
-const PLACEHOLDER =
-  'Search for packages, contracts, functions, and addresses...';
+const PLACEHOLDER = 'Search packages, contracts, functions, and addresses...';
 
 const generateLink = (result: any) => {
   switch (result.type) {
     case 'package':
       return `/packages/${result.name}/${result.version}/${result.chainId}-${result.preset}`;
     case 'namespace':
+      return `/packages/${result.name}`;
     case 'contract':
     case 'function':
     case 'address':
@@ -196,7 +196,14 @@ export const SearchBar = () => {
 
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
-        <ModalContent bg="gray.900" width="100%" maxW="container.md" mx={4}>
+        <ModalContent
+          bg="gray.900"
+          width="100%"
+          maxW="container.md"
+          mx={4}
+          border="1px solid"
+          borderColor="gray.800"
+        >
           <Flex pos="relative" align="stretch">
             <Input
               maxLength={256}
@@ -302,11 +309,12 @@ export const SearchBar = () => {
                           >
                             <Icon as={BsBoxes} boxSize="8" color="gray.300" />
                             <Box>
-                              <Heading fontWeight={600} size="sm">
+                              <Heading fontWeight={600} size="sm" mb={0.5}>
                                 {result.name}
                               </Heading>
                               <Text fontSize="xs" color="gray.400">
-                                X packages
+                                {result.count} package
+                                {result.count != 1 && 's'}
                               </Text>
                             </Box>
                           </Flex>
