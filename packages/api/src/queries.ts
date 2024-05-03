@@ -87,7 +87,7 @@ export async function searchPackages(params: { query: any; chainIds?: number[]; 
 
   const queries: string[] = [];
 
-  if (q) queries.push(`@name:%${q}%`);
+  if (q) queries.push(`(@name:*${q}* | @name:%${q}%)`);
   if (params.chainIds?.length) queries.push(`@chainId:{${params.chainIds.join('|')}}`);
 
   return queryPackages({
