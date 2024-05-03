@@ -40,7 +40,12 @@ search.get('/search', async (req, res) => {
 
   Object.assign(response, results);
 
-  // TODO: search both reg:package and reg:abi for query texts, and abi function selector
+  // TODO: clean query
+  // TODO: namespaces
+  // TODO: fullPackageRef
+  // TODO: contractNames and fnNames and Selectors reg:abi
+  // TODO: address (look for package names) reg:addressToPackage
+  // TODO: tx (look for package names) reg:transactionToPackage
 
   res.json(response);
 });

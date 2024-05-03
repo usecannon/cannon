@@ -1,3 +1,4 @@
+import { distance } from 'fastest-levenshtein';
 import { AggregateGroupByReducers, AggregateSteps } from 'redis';
 import * as db from './db';
 import { NotFoundError } from './errors';
@@ -6,7 +7,6 @@ import { useRedis } from './redis';
 import { ApiPackage, ApiPagination, IpfsUrl } from './types';
 
 import type { Address } from 'viem';
-
 export async function queryPackages(params: { query: string; page: any; per_page?: number }) {
   const page = parsePage(params.page);
   const redis = await useRedis();
@@ -87,13 +87,26 @@ export async function searchPackages(params: { query: any; chainIds?: number[]; 
 
   const queries: string[] = [];
 
-  if (q) queries.push(`(@name:*${q}* | @name:%${q}%)`);
+  if (q) {
+    const words = q.split('-');
+    queries.push(`(${[...words.map((w) => `@name:*${w}*`), ...words.map((w) => `@name:%${w}%`)].join(' | ')})`);
+  }
+
   if (params.chainIds?.length) queries.push(`@chainId:{${params.chainIds.join('|')}}`);
 
-  return queryPackages({
+  const result = await queryPackages({
     query: queries.join(',') || '*',
     page: params.page,
   });
+
+  // Sort results by showing first the more close ones to the expected one
+  if (q) {
+    result.data = result.data.sort((a, b) => {
+      return distance(a.name, q) - distance(b.name, q);
+    });
+  }
+
+  return result;
 }
 
 export async function getChaindIds() {
