@@ -9,12 +9,14 @@ import * as routes from './routes';
 
 const app = express();
 
-app.use(cors());
-app.use(helmet());
-
 if (config.NODE_ENV !== 'production') {
   app.set('json spaces', 2);
 }
+
+app.use(cors());
+app.use(helmet());
+
+app.get('/favicon.ico', (req, res) => res.status(204));
 
 app.use(
   rateLimit({
@@ -25,9 +27,10 @@ app.use(
   })
 );
 
-for (const route of Object.values(routes)) {
-  app.use(route);
-}
+app.use(routes.metrics);
+app.use(routes.chains);
+app.use(routes.packages);
+app.use(routes.search);
 
 app.use(apiErrorHandler);
 

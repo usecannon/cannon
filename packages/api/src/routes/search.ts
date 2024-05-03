@@ -1,9 +1,9 @@
-import { PackageReference } from '@usecannon/builder';
 import express from 'express';
-import { isAddress, isHash } from 'viem';
+import { Address, isAddress, isHash } from 'viem';
 import { BadRequestError } from '../errors';
-import { parseChainIds } from '../helpers';
-import { searchPackages } from '../queries';
+import { isPackageRef, parseChainIds } from '../helpers';
+import { findContractsByAddress, findPackagesByRef, searchPackages } from '../queries/packages';
+import { ApiDocument, ApiDocumentType } from '../types';
 
 const search = express.Router();
 
@@ -14,33 +14,43 @@ search.get('/search', async (req, res) => {
     throw new BadRequestError('Invalid "query" param');
   }
 
+  const { query = '' } = req.query;
+  const types = (typeof req.query.types === 'string' ? req.query.types.split(',') : []) as ApiDocumentType[];
+
   const response = {
     status: 200,
-    query: req.query.query,
-    isAddress: false,
-    isTx: false,
-    isPackage: false,
+    query,
+    isAddress: isAddress(query),
+    isTx: isHash(query),
+    isPackageRef: isPackageRef(query),
+    total: 0,
+    data: [] as ApiDocument[],
   };
 
-  if (req.query.query) {
-    if (isAddress(req.query.query)) {
-      response.isAddress = true;
-    } else if (isHash(req.query.query)) {
-      response.isTx = true;
-    } else if (PackageReference.isValid(req.query.query)) {
-      response.isPackage = true;
-    }
+  if (response.isAddress) {
+    const result = await findContractsByAddress(query as Address);
+    Object.assign(response, result);
+  } else if (response.isTx) {
+    // empty
+  } else if (response.isPackageRef) {
+    const result = await findPackagesByRef({
+      packageRef: query,
+    });
+
+    Object.assign(response, result);
+  } else {
+    const result = await searchPackages({
+      query,
+      chainIds,
+      limit: types.length ? 500 : 20,
+      includeNamespaces: !types.length || types.includes('namespace'),
+    });
+
+    Object.assign(response, result);
   }
 
-  const results = await searchPackages({
-    query: req.query.query,
-    page: req.query.page,
-    chainIds,
-  });
-
-  Object.assign(response, results);
-
-  // TODO: search both reg:package and reg:abi for query texts, and abi function selector
+  // TODO: fnNames or Selectors (reg: abi), responds with 'function'
+  // TODO: tx (look for package names) reg:transactionToPackage
 
   res.json(response);
 });
