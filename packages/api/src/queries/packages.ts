@@ -124,8 +124,6 @@ export async function findPackagesByRef(params: { packageRef: string }) {
 
   const tagsResults: RedisPackage[] = ((await tagsBatch.exec()) as any).filter((doc: any) => !!doc?.name);
 
-  console.log({ results });
-
   const data = results
     .map((doc) => {
       if (doc.type === 'tag') {
