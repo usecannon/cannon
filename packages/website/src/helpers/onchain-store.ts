@@ -86,7 +86,7 @@ export const ABI = [
 
 export const deployTxn = {
   to: '0x4e59b44847b379578588920ca78fbf26c0b4956c' as viem.Hex,
-  data: (viem.pad('0x', { size: 32 }) + bytecode) as viem.Hex,
+  data: (viem.pad('0x', { size: 32 }) + bytecode.split('0x')[1]) as viem.Hex,
 };
 
 export const deployAddress = '0x14570ce88f490a80342cc156a6a0ebc173609f5e';

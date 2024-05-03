@@ -8,7 +8,7 @@ export const bytecode =
 
 export const deployTxn = {
   to: '0x4e59b44847b379578588920ca78fbf26c0b4956c' as viem.Hex,
-  data: ('0xa05e334153147e75f3f416139b5109d1179cb56fef6a4ecb4c4cbc92a7c37b70' + bytecode) as viem.Hex,
+  data: ('0xa05e334153147e75f3f416139b5109d1179cb56fef6a4ecb4c4cbc92a7c37b70' + bytecode.split('0x')[1]) as viem.Hex,
 };
 
 export const deployAddress = '0xE2C5658cC5C448B48141168f3e475dF8f65A1e3e';
