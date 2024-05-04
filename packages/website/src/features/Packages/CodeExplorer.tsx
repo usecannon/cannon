@@ -224,13 +224,12 @@ export const CodeExplorer: FC<{
             setSelectedLine(line);
             urlParams.append('function', functionName);
           }
-
           window.history.pushState(
             null,
             '',
-            `/packages/${name}/${pkg.version}/${pkg.name}/code/${
-              selectedPackage.name
-            }?${urlParams.toString()}`
+            `/packages/${name}/${pkg.version}/${pkg.chainId}-${
+              pkg.preset
+            }/code/${selectedPackage.name}?${urlParams.toString()}`
           );
           return;
         }
@@ -252,26 +251,26 @@ export const CodeExplorer: FC<{
           : [];
 
         if (sortedSources.length) {
-        const [sourceKey, sourceValue] = sortedSources[0];
-        setSelectedCode((sourceValue as any)?.content);
-        setSelectedLanguage('sol');
-        setSelectedKey(sourceKey);
+          const [sourceKey, sourceValue] = sortedSources[0];
+          setSelectedCode((sourceValue as any)?.content);
+          setSelectedLanguage('sol');
+          setSelectedKey(sourceKey);
 
-        window.history.pushState(
-          null,
-          '',
-          `/packages/${name}/${pkg.version}/${pkg.name}/code/${
-            selectedPackage.name
-          }?source=${encodeURIComponent(sourceKey)}`
-        );
+          window.history.pushState(
+            null,
+            '',
+            `/packages/${name}/${pkg.version}/${pkg.chainId}-${
+              pkg.preset
+            }/code/${selectedPackage.name}?source=${encodeURIComponent(
+              sourceKey
+            )}`
+          );
         } else {
-         window.history.pushState(
-          null,
-          '',
-          `/packages/${name}/${pkg.version}/${pkg.name}/code/${
-            selectedPackage.name
-          }`
-        );
+          window.history.pushState(
+            null,
+            '',
+            `/packages/${name}/${pkg.version}/${pkg.chainId}-${pkg.preset}/code/${selectedPackage.name}`
+          );
         }
       }
     }
