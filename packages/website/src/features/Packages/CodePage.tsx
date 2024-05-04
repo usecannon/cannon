@@ -13,8 +13,8 @@ export const CodePage: FC<{
   name: string;
   tag: string;
   variant: string;
-  moduleName: string;
-  contractAddress: Address;
+  moduleName?: string;
+  contractAddress?: Address;
 }> = ({ name, tag, variant, moduleName }) => {
   const { data } = useQueryCannonSubgraphData<any, any>(GET_PACKAGE, {
     variables: { name },

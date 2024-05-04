@@ -8,6 +8,7 @@ export type ChainData = {
   name: string;
   color?: string;
   [key: string]: any; // This allows for additional properties without having to specify each one.
+  hideId?: boolean;
 };
 
 // Also see https://github.com/rainbow-me/rainbowkit/blob/7b31af2431cda62bf215a84b9d40fb7f66f24381/packages/rainbowkit/src/components/RainbowKitProvider/provideRainbowKitChains.ts
@@ -15,7 +16,8 @@ const Chain: FC<{
   id: number;
   isSmall?: boolean;
   chainData?: ChainData;
-}> = ({ id, isSmall }) => {
+  hideId?: boolean;
+}> = ({ id, isSmall, hideId }) => {
   const chain = useMemo(() => chainsById[id], [id]);
 
   const name = chain?.name || 'Unknown Chain';
@@ -38,9 +40,11 @@ const Chain: FC<{
       {!isSmall && (
         <>
           {name}
-          <Text fontSize="xs" color="gray.500" letterSpacing={'-0.3px'}>
-            ID {id}
-          </Text>
+          {!hideId && (
+            <Text fontSize="xs" color="gray.500" letterSpacing={'-0.3px'}>
+              ID {id}
+            </Text>
+          )}
         </>
       )}
     </Flex>

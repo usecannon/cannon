@@ -52,6 +52,7 @@ describe('steps/clone.ts', () => {
         source: 'abc:latest@main',
         sourcePreset: '',
         targetPreset: 'with-who',
+        target: '',
       });
     });
   });
