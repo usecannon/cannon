@@ -1,13 +1,14 @@
 'use client';
+
 import React from 'react';
 import {
   Flex,
   IconButton,
   Image,
   Box,
-  useBreakpointValue,
   Tag,
   Icon,
+  useBreakpoint,
 } from '@chakra-ui/react';
 import { Link } from '@chakra-ui/next-js';
 import NextLink from 'next/link';
@@ -15,13 +16,12 @@ import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
 import { ConnectWallet } from './ConnectWallet';
 import { usePathname } from 'next/navigation';
+import { SearchBar } from './SearchBar';
 
 const NavLinks = () => {
   const pathname = usePathname();
   return (
     <Flex
-      ml={['0', '0', 'auto']}
-      mr={['0', '0', 8]}
       width={['auto', 'auto', 'auto']}
       gap={8}
       alignItems="center"
@@ -71,7 +71,7 @@ const SettingsButton = () => {
 };
 
 export const Header = () => {
-  const isMobile = useBreakpointValue([true, true, false]);
+  const breakpoint = useBreakpoint();
 
   return (
     <Box bg="black" borderBottom="1px solid" borderColor="gray.700">
@@ -105,14 +105,50 @@ export const Header = () => {
         >
           Beta
         </Tag>
-        {!isMobile && <NavLinks />}
-        <Box ml={['auto', 'auto', 0]} display="block">
-          <ConnectWallet />
-        </Box>
-        {isMobile && <NavLinks />}
-        <Box ml={['auto', 'auto', 3]}>
-          <SettingsButton />
-        </Box>
+        {(breakpoint == 'xl' || breakpoint == '2xl') && (
+          <>
+            <Box ml="auto">
+              <SearchBar />
+            </Box>
+            <Box ml="auto" mr="8">
+              <NavLinks />
+            </Box>
+            <ConnectWallet />
+            <Box ml={3}>
+              <SettingsButton />
+            </Box>
+          </>
+        )}
+        {(breakpoint == 'lg' || breakpoint == 'md') && (
+          <>
+            <Box ml="auto" mr="8">
+              <NavLinks />
+            </Box>
+            <ConnectWallet />
+            <Box ml={3}>
+              <SearchBar />
+            </Box>
+            <Box ml={3}>
+              <SettingsButton />
+            </Box>
+          </>
+        )}
+        {(breakpoint == 'base' || breakpoint == 'sm') && (
+          <>
+            <Box ml="auto">
+              <ConnectWallet />
+            </Box>
+            <Flex w="100%" alignItems="center">
+              <NavLinks />
+              <Box ml="auto">
+                <SearchBar />
+              </Box>
+              <Box ml={3}>
+                <SettingsButton />
+              </Box>
+            </Flex>
+          </>
+        )}
       </Flex>
     </Box>
   );
