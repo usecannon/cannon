@@ -266,6 +266,7 @@ export const CodeExplorer: FC<{
             )}`
           );
         } else {
+          setSelectedCode('');
           window.history.pushState(
             null,
             '',
