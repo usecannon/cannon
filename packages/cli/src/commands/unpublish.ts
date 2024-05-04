@@ -189,12 +189,8 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
 
     console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
   } else {
-    const hash = await onChainRegistry.unpublish(
-      selectedDeploys[0].name,
-      selectedDeploys[0].chainId,
-      selectedDeploys[0].url,
-      selectedDeploys[0].metaUrl
-    );
+    const [deploy] = selectedDeploys;
+    const hash = await onChainRegistry.unpublish(deploy.name, deploy.chainId);
 
     console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
   }

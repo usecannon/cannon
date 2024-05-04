@@ -226,7 +226,7 @@ interface PackageData {
   name: string;
   tags: string[];
   variant: string;
-  url: string;
+  url?: string;
   metaUrl?: string;
 }
 
@@ -296,7 +296,7 @@ export class OnChainRegistry extends CannonRegistry {
     }
   }
 
-  private _preparePackageData(packagesNames: string[], chainId: number, url: string, metaUrl?: string): PackageData {
+  private _preparePackageData(packagesNames: string[], chainId: number, url?: string, metaUrl?: string): PackageData {
     const refs = packagesNames.map((name) => new PackageReference(name));
 
     // Sanity check, all package definitions should have the same name
@@ -317,8 +317,13 @@ export class OnChainRegistry extends CannonRegistry {
     if (preset !== PackageReference.DEFAULT_PRESET) {
       console.log(`Preset: ${preset}`);
     }
+
     console.log(`Tags: ${tags.join(', ')}`);
-    console.log(`Package URL: ${url}`);
+
+    if (url) {
+      console.log(`Package URL: ${url}`);
+    }
+
     if (metaUrl) {
       console.log(`Metadata URL: ${metaUrl}`);
     }
@@ -443,15 +448,15 @@ export class OnChainRegistry extends CannonRegistry {
     return [await this._publishPackages(packageDatas)];
   }
 
-  async unpublish(packagesNames: string[], chainId: number, url: string, metaUrl?: string): Promise<string[]> {
+  async unpublish(packagesNames: string[], chainId: number): Promise<string[]> {
     console.log(bold(blueBright('\nUnpublishing package to the registry on-chain...\n')));
-    const packageData = this._preparePackageData(packagesNames, chainId, url, metaUrl);
+    const packageData = this._preparePackageData(packagesNames, chainId);
     return [await this._unpublishPackages([packageData])];
   }
 
-  async unpublishMany(toUnpublish: { name: string[]; chainId: number; url: string; metaUrl?: string }[]): Promise<string[]> {
+  async unpublishMany(toUnpublish: { name: string[]; chainId: number }[]): Promise<string[]> {
     console.log(bold(blueBright('\nUnpublishing packages to the registry on-chain...\n')));
-    const packageDatas = toUnpublish.map((p) => this._preparePackageData(p.name, p.chainId, p.url, p.metaUrl));
+    const packageDatas = toUnpublish.map((p) => this._preparePackageData(p.name, p.chainId));
     return [await this._unpublishPackages(packageDatas)];
   }
 
