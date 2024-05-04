@@ -1,38 +1,43 @@
 import * as viem from 'viem';
-import { RedisPackage, RedisTag } from './db/transformers';
 import { BadRequestError, ServerError } from './errors';
+import { RedisPackage, RedisTag } from './types';
 
-// TODO: replace this function by one exported by @usecannon/builder
-function _validatePackageName(n: string) {
-  if (n.length < 3) {
-    throw new Error('package name must be at least 3 characters long');
-  }
-
-  if (n.length > 31) {
-    throw new Error('package name must be at most 31 characters long');
-  }
-
-  if (n[n.length - 1] === '-' || n[0] === '-') {
-    throw new Error('first and last character of package name must not be dash (-)');
-  }
-
-  if (!/^[0-9a-z-]*$/.test(n)) {
-    throw new Error('cannon packages can only have names connecting lowercase, alphanumeric characters, and dashes');
-  }
+const packageNameRegex = /^[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9]$/;
+export function isPackageName(packageName: any) {
+  return typeof packageName === 'string' && packageNameRegex.test(packageName);
 }
 
 export function parsePackageName(packageName: string) {
-  try {
-    _validatePackageName(packageName);
-    return packageName.replace(/-/g, '\\-');
-  } catch (err) {
+  if (!isPackageName(packageName)) {
     throw new BadRequestError('Invalid package name');
   }
+
+  return packageName.replace(/-/g, '\\-');
 }
 
-const packageRefRegex = /^[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9]:[^@]+(?:@[^\s]+)?$/;
-export function isPackageRef(packageName: string) {
-  return packageRefRegex.test(packageName);
+const partialPackageRefRegex = /^[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9]:[^@]+(?:@[^\s]+)?$/;
+export function isPartialPackageRef(packageName: any) {
+  return typeof packageName === 'string' && partialPackageRefRegex.test(packageName);
+}
+
+const fullPackageRefRegex = /^[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9]:[^@]+@[^\s]+$/;
+export function isFullPackageRef(fullPackageRef: any) {
+  return typeof fullPackageRef === 'string' && fullPackageRefRegex.test(fullPackageRef);
+}
+
+const contractNameRegex = /^[A-Z][A-Za-z0-9_]*$/;
+export function isContractName(contractName: any) {
+  return typeof contractName === 'string' && contractNameRegex.test(contractName);
+}
+
+const functionSelectorRegex = /^0x[0-9a-fA-F]{8}$/;
+export function isFunctionSelector(selector: any) {
+  return typeof selector === 'string' && functionSelectorRegex.test(selector);
+}
+
+const chainIdRegex = /^[0-9]+$/;
+export function isChainId(chainId: any) {
+  return typeof chainId === 'string' && chainIdRegex.test(chainId);
 }
 
 const chainIdListRegex = /^[0-9][0-9,]*(?<!,)$/;
