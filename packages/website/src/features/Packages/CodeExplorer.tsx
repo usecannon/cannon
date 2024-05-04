@@ -82,7 +82,7 @@ const PackageButton: FC<{
 export const CodeExplorer: FC<{
   variant: any;
   name: string;
-  moduleName: string;
+  moduleName?: string;
   source: string;
   functionName?: string;
 }> = ({ variant, name, moduleName, source, functionName }) => {
@@ -312,6 +312,23 @@ export const CodeExplorer: FC<{
     }
   }, [moduleName, source, availablePackages.length, deploymentData?.isLoading]);
 
+  // Select the first provisioned package if the main package has no code
+  useEffect(() => {
+    if (deploymentData.isLoading) return;
+    if (
+      !artifacts?.length &&
+      provisionedPackagesKeys.length &&
+      selectedPackage.key === -1
+    ) {
+      setSelectedPackage(availablePackages[1]);
+    }
+  }, [
+    artifacts?.length,
+    provisionedPackagesKeys?.length,
+    deploymentData?.isLoading,
+    selectedPackage.key,
+  ]);
+
   const handleSelectFile = (sourceKey: string, sourceValue: any) => {
     // We can have these lines to keep SPA navigation
     setSelectedCode(sourceValue.content);
@@ -337,7 +354,7 @@ export const CodeExplorer: FC<{
     <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
       {isLoading ? (
         <CustomSpinner m="auto" />
-      ) : artifacts?.length ? (
+      ) : artifacts?.length || provisionedPackagesKeys.length ? (
         <>
           {!!provisionedPackagesKeys.length && (
             <Flex
