@@ -1,31 +1,6 @@
-import { ApiPackage, IpfsUrl } from '../types';
+import { ApiPackage, IpfsUrl, RedisDocument, RedisPackage, RedisTag } from '../types';
 
 import type { Address } from 'viem';
-
-export interface RedisPackage {
-  type: 'package';
-  name: string;
-  preset: string;
-  chainId: string;
-  version: string;
-  owner: string;
-  deployUrl: string;
-  metaUrl: string;
-  miscUrl?: string;
-  timestamp: string;
-}
-
-export interface RedisTag {
-  type: 'tag';
-  name: string;
-  tag: string;
-  preset: string;
-  chainId: string;
-  versionOfTag: string;
-  timestamp: string;
-}
-
-export type RedisDocument = RedisPackage | RedisTag;
 
 export function findPackageByTag(documents: { value: RedisDocument }[], tag: RedisTag) {
   const result = documents.find(
