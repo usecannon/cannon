@@ -569,13 +569,13 @@ export class OnChainRegistry extends CannonRegistry {
       throw new Error('Missing provider for executing registry operations');
     }
 
-    const registerFee = (await this.provider.readContract({
+    const publishFee = (await this.provider.readContract({
       abi: this.contract.abi,
       address: this.contract.address,
       functionName: 'publishFee',
     })) as bigint;
 
-    return registerFee;
+    return publishFee;
   }
 
   async setPackageOwnership(packageName: string, packageOwner?: viem.Address) {
