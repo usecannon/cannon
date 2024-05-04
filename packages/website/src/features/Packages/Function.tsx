@@ -2,7 +2,12 @@ import { CustomSpinner } from '@/components/CustomSpinner';
 import { FunctionInput } from '@/features/Packages/FunctionInput';
 import { FunctionOutput } from '@/features/Packages/FunctionOutput';
 import { useContractCall, useContractTransaction } from '@/hooks/ethereum';
-import { CheckCircleIcon, WarningIcon } from '@chakra-ui/icons';
+import {
+  CheckCircleIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  WarningIcon,
+} from '@chakra-ui/icons';
 import { FaCode } from 'react-icons/fa6';
 import {
   Alert,
@@ -37,7 +42,6 @@ import {
 } from 'wagmi';
 import { usePathname } from 'next/navigation';
 import { useQueueTxsStore, useStore } from '@/helpers/store';
-import { HiArrowNarrowRight, HiArrowNarrowDown } from 'react-icons/hi';
 
 export const Function: FC<{
   f: AbiFunction;
@@ -483,6 +487,8 @@ export const Function: FC<{
             borderTopRadius={'sm'}
             borderBottomRadius={isOpen ? 'none' : 'sm'}
             id={anchor}
+            onClick={onToggle}
+            cursor="pointer"
           >
             {f.name && (
               <Heading
@@ -501,6 +507,7 @@ export const Function: FC<{
                   textDecoration="none"
                   _hover={{ textDecoration: 'none' }}
                   href={anchor}
+                  onClick={(e) => e.stopPropagation()}
                 >
                   #
                 </Link>
@@ -511,20 +518,18 @@ export const Function: FC<{
                     textDecoration="none"
                     _hover={{ textDecoration: 'none' }}
                     href={getCodeUrl(f.name)}
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <FaCode color="gray.300" />
                   </Link>
                 )}
               </Heading>
             )}
-            <Button
-              onClick={onToggle}
-              variant="outline"
-              colorScheme="teal"
-              size="xs"
-            >
-              {isOpen ? <HiArrowNarrowDown /> : <HiArrowNarrowRight />}
-            </Button>
+            {isOpen ? (
+              <ChevronUpIcon boxSize="5" />
+            ) : (
+              <ChevronDownIcon boxSize="5" />
+            )}
           </Flex>
           {isOpen && renderFunctionContent()}
         </Flex>
