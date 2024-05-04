@@ -13,6 +13,7 @@ import {
 } from '@chakra-ui/react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
+import { useRouter } from 'next/navigation';
 import { CodePreview } from '@/components/CodePreview';
 import { useQueryIpfsData } from '@/hooks/ipfs';
 import { DownloadIcon, InfoOutlineIcon } from '@chakra-ui/icons';
@@ -86,6 +87,18 @@ export const CodeExplorer: FC<{
   source: string;
   functionName?: string;
 }> = ({ pkg, name, moduleName, source, functionName }) => {
+  const isSmall = useBreakpointValue({
+    base: true,
+    sm: true,
+    md: false,
+  });
+
+  const router = useRouter();
+
+  const [selectedCode, setSelectedCode] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState('');
+  const [selectedKey, setSelectedKey] = useState('');
+  const [selectedLine, setSelectedLine] = useState<undefined | number>();
   // For the main package, the key is -1
   const [selectedPackage, setSelectedPackage] = useState<{
     name: string;
@@ -267,11 +280,16 @@ export const CodeExplorer: FC<{
           );
         } else {
           setSelectedCode('');
+          setSelectedLanguage('');
+          setSelectedKey('');
+
+          /*
           window.history.pushState(
             null,
             '',
             `/packages/${name}/${pkg.version}/${pkg.chainId}-${pkg.preset}/code/${selectedPackage.name}`
           );
+          */
         }
       }
     }
@@ -283,17 +301,6 @@ export const CodeExplorer: FC<{
     isLoadingProvisionedMiscData,
     functionName,
   ]);
-
-  const isSmall = useBreakpointValue({
-    base: true,
-    sm: true,
-    md: false,
-  });
-
-  const [selectedCode, setSelectedCode] = useState('');
-  const [selectedLanguage, setSelectedLanguage] = useState('');
-  const [selectedKey, setSelectedKey] = useState('');
-  const [selectedLine, setSelectedLine] = useState<undefined | number>();
 
   const artifacts =
     // If the selected package is the main package, use the misc data
