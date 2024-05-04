@@ -23,19 +23,19 @@ const Chain: FC<{
   const name = chain?.name || 'Unknown Chain';
   const color = chain?.color || 'gray.600';
   return (
-    <Flex gap={1.5} alignItems="baseline">
+    <Flex gap={1.5} alignItems="center">
       {id === 13370 ? (
         <Image
           display="block"
           src="/images/logomark.svg"
           alt="Cannon"
-          h="0.66rem"
-          w="0.66rem"
+          h="0.75rem"
+          w="0.75rem"
           transform="scale(2.1) translateY(-0.01rem)"
           objectFit="cover"
         />
       ) : (
-        <Box h="0.66rem" w="0.66rem" borderRadius={999} bg={color} />
+        <Box h="0.75rem" w="0.75rem" borderRadius={999} bg={color} />
       )}
       {!isSmall && (
         <>
