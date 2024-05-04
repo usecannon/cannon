@@ -136,10 +136,9 @@ export default function PackageLayout({
                   Deployment
                 </NavLink>
                 <NavLink
-                  isActive={
-                    pathname ==
+                  isActive={pathname.startsWith(
                     `/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/code`
-                  }
+                  )}
                   href={`/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/code`}
                   isSmall
                 >
