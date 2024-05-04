@@ -114,29 +114,31 @@ search.get('/search', async (req, res) => {
     _pushResults(response, packagesResult);
   }
 
-  const fuzzyOrder = new Fuse<ApiDocument>(response.data, {
-    keys: [
-      'type',
-      {
-        name: 'name',
-        weight: 2,
-      },
-      {
-        name: 'contractName',
-        weight: 2,
-      },
-      {
-        name: 'selector',
-        weight: 3,
-      },
-      {
-        name: 'address',
-        weight: 3,
-      },
-    ],
-  });
+  if (query) {
+    const fuzzyOrder = new Fuse<ApiDocument>(response.data, {
+      keys: [
+        'type',
+        {
+          name: 'name',
+          weight: 2,
+        },
+        {
+          name: 'contractName',
+          weight: 2,
+        },
+        {
+          name: 'selector',
+          weight: 3,
+        },
+        {
+          name: 'address',
+          weight: 3,
+        },
+      ],
+    });
 
-  response.data = fuzzyOrder.search(query).map(({ item }) => item);
+    response.data = fuzzyOrder.search(query).map(({ item }) => item);
+  }
 
   res.json(response);
 });
