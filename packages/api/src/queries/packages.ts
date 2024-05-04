@@ -124,7 +124,7 @@ export async function findPackageByFullRef(params: { fullPackageRef: string; cha
     `${keys.RKEY_PACKAGE_SEARCHABLE}:${packageRef.fullPackageRef}#${tagDoc.chainId}`
   )) as unknown as RedisPackage;
 
-  if (!packageDoc) return null;
+  if (!packageDoc?.name) return null;
 
   return transformPackageWithTag(packageDoc, tagDoc);
 }
