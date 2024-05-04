@@ -3,11 +3,12 @@ import { blueBright, gray, green } from 'chalk';
 import _ from 'lodash';
 import prompts from 'prompts';
 import * as viem from 'viem';
-import { DEFAULT_REGISTRY_CONFIG } from '../constants';
-import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
+
 import { CliSettings } from '../settings';
+import { DEFAULT_REGISTRY_CONFIG } from '../constants';
 import { resolveRegistryProviders } from '../util/provider';
 import { isPackageRegistered, waitForEvent } from '../util/register';
+import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 
 interface Params {
   cliSettings: CliSettings;
@@ -36,11 +37,10 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
-  const [mainnetRegistryConfig, optimismRegistryConfig] = cliSettings.registries;
-  const [mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
+  const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
+  const [, mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
 
-  const [mainnet] = cliSettings.registries;
-  const isRegistered = await isPackageRegistered([mainnetRegistryProvider], packageRef, mainnet.address);
+  const isRegistered = await isPackageRegistered([mainnetRegistryProvider], packageRef, mainnetRegistryConfig.address);
 
   if (isRegistered) throw new Error(`The package "${new PackageReference(packageRef).name}" is already registered.`);
 
@@ -104,39 +104,50 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   console.log('Submitting transaction...');
 
-  const [hash] = await Promise.all([
-    (async () => {
-      const hash = await mainnetRegistry.setPackageOwnership(packageName);
+  try {
+    const [hash] = await Promise.all([
+      (async () => {
+        const hash = await mainnetRegistry.setPackageOwnership(packageName);
 
-      console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
-      console.log('');
-      console.log(
-        gray('Waiting for the transaction to propagate to Optimism Mainnet... It may take approximately 1-3 minutes.')
-      );
-      console.log('');
-
-      return hash;
-    })(),
-    (async () => {
-      // this should always resolve after the first promise but we want to make sure it runs at the same time
-      await waitForEvent({
-        eventName: 'PackageOwnerChanged',
-        abi: mainnetRegistry.contract.abi, //note: should be the same as OP registry contract
-        chainId: optimismRegistryConfig.chainId!,
-      });
-
-      console.log(green('Success!'));
-      console.log('');
-
-      if (fromPublish) {
-        console.log(gray('We will continue with the publishing process.'));
-      } else {
+        console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+        console.log('');
         console.log(
-          gray(`Run 'cannon publish ${packageName}' (after building a ${packageName} deployment) to publish a package.`)
+          gray('Waiting for the transaction to propagate to Optimism Mainnet... It may take approximately 1-3 minutes.')
         );
-      }
-    })(),
-  ]);
+        console.log('');
 
-  return hash;
+        return hash;
+      })(),
+      (async () => {
+        // this should always resolve after the first promise but we want to make sure it runs at the same time
+        await Promise.all([
+          waitForEvent({
+            eventName: 'PackageOwnerChanged',
+            abi: mainnetRegistry.contract.abi,
+            chainId: optimismRegistryConfig.chainId!,
+          }),
+          waitForEvent({
+            eventName: 'PackagePublishersChanged',
+            abi: mainnetRegistry.contract.abi,
+            chainId: optimismRegistryConfig.chainId!,
+          }),
+        ]);
+
+        console.log(green('Success!'));
+        console.log('');
+
+        if (fromPublish) {
+          console.log(gray('We will continue with the publishing process.'));
+        } else {
+          console.log(
+            gray(`Run 'cannon publish ${packageName}' (after building a ${packageName} deployment) to publish a package.`)
+          );
+        }
+      })(),
+    ]);
+
+    return hash;
+  } catch (e) {
+    throw new Error(`Failed to register package: ${(e as Error).message}`);
+  }
 }

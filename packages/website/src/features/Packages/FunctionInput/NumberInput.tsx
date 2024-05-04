@@ -10,7 +10,7 @@ export const NumberInput: FC<{
   // TODO: Doesn't look a solid approach (parseEther if it has dot)
   const parseValue = (_value = '0'): bigint =>
     _value
-      ? _value.includes('.')
+      ? _value.toString().includes('.')
         ? parseEther(_value)
         : BigInt(_value)
       : BigInt(0);

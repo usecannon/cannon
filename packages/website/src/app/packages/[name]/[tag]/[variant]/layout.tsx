@@ -123,7 +123,7 @@ export default function PackageLayout({
                   <PublishInfo p={currentVariant} />
                 </Box>
                 <Box ml={[0, 0, 'auto']} mt={[6, 6, 0]}>
-                  <VersionSelect pkg={pkg} currentVariant={currentVariant} />
+                  <VersionSelect currentVariant={currentVariant} />
                 </Box>
               </Flex>
               <Flex gap={8} align="center" maxW="100%" overflowX="auto">
@@ -138,10 +138,9 @@ export default function PackageLayout({
                   Deployment
                 </NavLink>
                 <NavLink
-                  isActive={
-                    pathname ==
+                  isActive={pathname.startsWith(
                     `/packages/${pkg.name}/${params.tag}/${params.variant}/code`
-                  }
+                  )}
                   href={`/packages/${pkg.name}/${params.tag}/${params.variant}/code`}
                   isSmall
                 >

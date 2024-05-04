@@ -1,15 +1,13 @@
 'use client';
 
 import GoogleAnalytics from '@/components/GoogleAnalytics';
-import { Console } from '@/features/Console/Console';
+// import { Console } from '@/features/Console/Console';
 import { Footer } from '@/features/Footer/Footer';
 import { Header } from '@/features/Header/Header';
-import { useStore } from '@/helpers/store';
 import { Flex } from '@chakra-ui/react';
-import { isIpfsGateway } from '@usecannon/builder';
 import { Analytics } from '@vercel/analytics/react';
 import { Inter, Miriam_Libre, Roboto_Mono } from 'next/font/google';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode } from 'react';
 import { Providers } from './providers';
 import '@/styles/globals.css';
 
@@ -30,18 +28,6 @@ const mono = Roboto_Mono({
 });
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  const settings = useStore((s) => s.settings);
-  const setSettings = useStore((s) => s.setSettings);
-
-  useEffect(() => {
-    async function fetch() {
-      const isGateway = await isIpfsGateway(settings.ipfsApiUrl);
-      setSettings({ isIpfsGateway: isGateway });
-    }
-
-    void fetch();
-  }, [settings.ipfsApiUrl]);
-
   return (
     <html lang="en">
       <head>
@@ -70,7 +56,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <Header />
             <Flex flex="1">{children}</Flex>
             <Footer />
-            <Console />
+            {/*<Console />*/}
           </Flex>
         </Providers>
         <Analytics />

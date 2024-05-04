@@ -2,12 +2,11 @@
 
 import dynamic from 'next/dynamic';
 import { ReactNode, Suspense } from 'react';
-import { Box, Flex, Spinner, useDisclosure } from '@chakra-ui/react';
+import { Box, Flex, Spinner } from '@chakra-ui/react';
 import { usePathname } from 'next/navigation';
 import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
 import { SafeAddressInput } from '@/features/Deploy/SafeAddressInput';
-import QueueDrawer from '@/features/Deploy/QueueDrawer';
 
 const NoSSRWithSafe = dynamic(() => import('@/features/Deploy/WithSafe'), {
   ssr: false,
@@ -15,7 +14,6 @@ const NoSSRWithSafe = dynamic(() => import('@/features/Deploy/WithSafe'), {
 
 export default function DeployLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
     <Flex flexDir="column" width="100%">
@@ -40,13 +38,6 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
           <Flex gap={6} alignItems="end" justifyContent="end" grow={1} px={4}>
             <NavLink
               isSmall
-              href={links.QUEUEFROMGITOPS}
-              isActive={pathname.startsWith(links.QUEUEFROMGITOPS)}
-            >
-              Stage Transactions
-            </NavLink>
-            <NavLink
-              isSmall
               href={links.DEPLOY}
               isActive={
                 links.DEPLOY == pathname ||
@@ -55,13 +46,24 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
             >
               Sign Transactions
             </NavLink>
+            <NavLink
+              isSmall
+              href={links.QUEUEFROMGITOPS}
+              isActive={pathname.startsWith(links.QUEUEFROMGITOPS)}
+            >
+              Queue Cannonfile
+            </NavLink>
+            <NavLink
+              isSmall
+              href={links.QUEUETXS}
+              isActive={pathname.startsWith(links.QUEUETXS)}
+            >
+              Queue Transactions
+            </NavLink>
           </Flex>
         </Flex>
       </Box>
-      <NoSSRWithSafe>
-        {children}
-        <QueueDrawer isOpen={isOpen} onClose={onClose} onOpen={onOpen} />
-      </NoSSRWithSafe>
+      <NoSSRWithSafe>{children}</NoSSRWithSafe>
     </Flex>
   );
 }

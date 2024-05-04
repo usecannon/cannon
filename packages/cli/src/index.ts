@@ -372,7 +372,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   // if it's using the default config, prompt the user to choose a registry provider
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (isDefaultSettings) {
-    const choices = registryProviders.reverse().map((p) => ({
+    const choices = registryProviders.map((p) => ({
       title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
       value: p,
     }));
@@ -397,9 +397,9 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
   if (isDefaultSettings) {
     // Check if the package is already registered
-    const [mainnet] = DEFAULT_REGISTRY_CONFIG;
+    const [, mainnet] = DEFAULT_REGISTRY_CONFIG;
 
-    const [mainnetProvider, optimismProvider] = await resolveRegistryProviders(cliSettings);
+    const [optimismProvider, mainnetProvider] = await resolveRegistryProviders(cliSettings);
 
     const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, mainnet.address);
 
@@ -473,7 +473,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     chainId: options.chainId ? options.chainId : undefined,
     presetArg: options.preset ? (options.preset as string) : undefined,
     quiet: options.quiet,
-    includeProvisioned: options.includeProvisioned,
+    includeProvisioned: !options.excludeCloned,
     skipConfirm: options.skipConfirm,
   });
 });
@@ -645,11 +645,11 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
     process.stderr.write(data);
   });
 
-  await new Promise((resolve) => {
+  await new Promise(() => {
     forgeProcess.on('close', (code: number) => {
       console.log(`forge exited with code ${code}`);
       node?.kill();
-      resolve({});
+      process.exit(code);
     });
   });
 });

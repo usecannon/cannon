@@ -13,19 +13,19 @@ import NextLink from 'next/link';
 import { FC } from 'react';
 
 interface IPackageCardProps {
-  pkg: Package;
+  pkgs: Package[];
   maxHeight?: string;
 }
 
 export const PackageCardExpandable: FC<IPackageCardProps> = ({
-  pkg,
+  pkgs,
   maxHeight,
 }) => {
   const { isOpen, onToggle } = useDisclosure();
 
   return (
     <Box
-      key={pkg.name}
+      key={pkgs[0].name}
       bg="black"
       display="block"
       borderWidth="1px"
@@ -38,11 +38,11 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
       <Flex bg="gray.800" flexDirection="row" alignItems="center" p={2}>
         <Box px={1}>
           <Heading display="inline-block" as="h4" size="sm">
-            {pkg.name}
+            {pkgs[0].name}
           </Heading>
           <Link
             as={NextLink}
-            href={'/packages/' + pkg.name}
+            href={'/packages/' + pkgs[0].name}
             display="inline-block"
             ml={1.5}
             transform="translateY(-1px)"
@@ -73,7 +73,7 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
         </Box>
       </Flex>
       <Box verticalAlign="middle" overflow="auto" maxHeight={maxHeight}>
-        <PackageTable latestOnly={!isOpen} pkg={pkg} />
+        <PackageTable latestOnly={!isOpen} pkgs={pkgs} />
       </Box>
     </Box>
   );

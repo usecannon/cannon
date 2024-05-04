@@ -11,7 +11,7 @@ source = "greeter-foundry"
 
 [clone.more_greeters]
 source = "greeter-foundry"
-targetPreset = "secondary"
+target = "greeter-foundry2:secondary"
 var.salt = "second"
 var.msg = "a message from second greeter set"
 
