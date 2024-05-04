@@ -90,7 +90,7 @@ export const Interact: FC<{
     findContract(cannonOutputs.contracts, name, cannonOutputs.imports);
   }, [deploymentData.data]);
 
-  const deployUrl = `https://repo.usecannon.com/${packagesQuery.data.data.deploy_url.replace(
+  const deployUrl = `https://repo.usecannon.com/${packagesQuery.data.data.deployUrl.replace(
     'ipfs://',
     ''
   )}`;
@@ -168,11 +168,11 @@ export const Interact: FC<{
                 href={deployUrl}
               >
                 {isMobile
-                  ? `${packagesQuery.data.data.deploy_url.substring(
+                  ? `${packagesQuery.data.data.deployUrl.substring(
                       0,
                       13
-                    )}...${packagesQuery.data.data?.deploy_url.slice(-4)}`
-                  : packagesQuery.data.data?.deploy_url}
+                    )}...${packagesQuery.data.data?.deployUrl.slice(-4)}`
+                  : packagesQuery.data.data?.deployUrl}
               </Link>
             </Text>
           </Flex>
