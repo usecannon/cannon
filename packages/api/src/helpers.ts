@@ -1,6 +1,6 @@
 import * as viem from 'viem';
-import { RedisPackage, RedisTag } from './db/transformers';
 import { BadRequestError, ServerError } from './errors';
+import { RedisPackage, RedisTag } from './types';
 
 const packageNameRegex = /^[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9]$/;
 export function isPackageName(packageName: any) {

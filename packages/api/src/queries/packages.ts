@@ -3,18 +3,11 @@ import { distance } from 'fastest-levenshtein';
 import { AggregateGroupByReducers, AggregateSteps } from 'redis';
 import * as viem from 'viem';
 import * as keys from '../db/keys';
-import {
-  findPackageByTag,
-  RedisDocument,
-  RedisPackage,
-  RedisTag,
-  transformPackage,
-  transformPackageWithTag,
-} from '../db/transformers';
+import { findPackageByTag, transformPackage, transformPackageWithTag } from '../db/transformers';
 import { NotFoundError, ServerError } from '../errors';
 import { isRedisTagOfPackage, parsePackageName, parseTextQuery } from '../helpers';
 import { useRedis } from '../redis';
-import { ApiContract, ApiDocument, ApiNamespace, ApiPackage } from '../types';
+import { ApiContract, ApiDocument, ApiNamespace, ApiPackage, RedisDocument, RedisPackage, RedisTag } from '../types';
 import { getChainIds } from './chains';
 
 const DEFAULT_LIMIT = 500;
