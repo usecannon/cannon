@@ -25,6 +25,17 @@ export interface RedisTag {
   timestamp: string;
 }
 
+export interface RedisFunction {
+  type: 'function';
+  name: string;
+  selector: string;
+  timestamp: string;
+  package: string;
+  chainId: string;
+  address: Address;
+  contractName: string;
+}
+
 export type RedisDocument = RedisPackage | RedisTag;
 
 export interface ApiNamespace {
@@ -49,14 +60,26 @@ export interface ApiPackage {
 export interface ApiContract {
   type: 'contract';
   address: Address;
-  contractName: string;
   name: string;
   chainId: number;
+  packageName: string;
   preset: string;
   version: string;
 }
 
-type ExtractType<T> = T extends { type: infer U } ? U : never;
+export interface ApiFunction {
+  type: 'function';
+  name: string;
+  selector: string;
+  contractName: string;
+  chainId: string;
+  address: Address;
+  packageName: string;
+  preset: string;
+  version: string;
+}
 
-export type ApiDocument = ApiNamespace | ApiPackage;
+export type ApiDocument = ApiNamespace | ApiPackage | ApiContract | ApiFunction;
+
+type ExtractType<T> = T extends { type: infer U } ? U : never;
 export type ApiDocumentType = ExtractType<ApiDocument>;

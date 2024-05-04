@@ -25,6 +25,11 @@ export function isFullPackageRef(fullPackageRef: any) {
   return typeof fullPackageRef === 'string' && fullPackageRefRegex.test(fullPackageRef);
 }
 
+const contractNameRegex = /^[A-Z][A-Za-z0-9_]*$/;
+export function isContractName(contractName: any) {
+  return typeof contractName === 'string' && contractNameRegex.test(contractName);
+}
+
 const chainIdRegex = /^[0-9]+$/;
 export function isChainId(chainId: any) {
   return typeof chainId === 'string' && chainIdRegex.test(chainId);

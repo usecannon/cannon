@@ -198,72 +198,53 @@ export async function searchPackages(params: {
   return result;
 }
 
-export async function findContractsByAddress(address: viem.Address) {
+async function _queryContracts(params: { query: string; limit?: number }) {
   const redis = await useRedis();
-  const contractAddress = viem.getAddress(address);
 
-  const chainIds = await getChainIds();
-
-  const batch = redis.multi();
-
-  for (const chainId of chainIds) {
-    batch.hGet(`${keys.RKEY_ADDRESS_TO_PACKAGE}:${chainId}`, contractAddress.toLowerCase());
-  }
-
-  const results = await batch.exec();
-
-  const contractNameBatch = redis.multi();
-
-  for (const [index, packageRef] of Object.entries(results)) {
-    if (!packageRef) continue;
-    const chainId = chainIds[index as any];
-    contractNameBatch.ft.aggregate(keys.RKEY_ABI_SEARCHABLE, `@address:{${contractAddress}} @chainId:{${chainId}}`, {
-      STEPS: [
-        {
-          type: AggregateSteps.GROUPBY,
-          properties: '@contractName',
-          REDUCE: {
-            type: AggregateGroupByReducers.COUNT_DISTINCT,
-            property: '@contractName',
-          },
+  const results = (await redis.ft.aggregate(keys.RKEY_ABI_SEARCHABLE, params.query, {
+    LOAD: { identifier: '@package' },
+    STEPS: [
+      {
+        type: AggregateSteps.GROUPBY,
+        properties: ['@contractName', '@package', '@chainId', '@address'],
+        REDUCE: {
+          type: AggregateGroupByReducers.FIRST_VALUE,
+          property: '@contractName',
         },
-      ],
-    });
-  }
+      },
+    ],
+  })) as {
+    total: number;
+    results: { contractName: string; package: string; chainId: string; address: string }[];
+  };
 
-  const contractNameResults = (await contractNameBatch.exec()) as any;
-
-  const data: ApiContract[] = [];
-
-  for (const [index, packageRef] of Object.entries(results)) {
-    if (!packageRef) continue;
-    const chainId = chainIds[index as any];
-    const { name, preset, version } = new PackageReference(packageRef.toString());
-
-    const contractName = contractNameResults[index as any]?.results?.[0]?.contractName || 'Contract';
-
-    if (!contractName) {
-      // eslint-disable-next-line no-console
-      console.error(new Error(`ContractName not found for tag "${packageRef.toString()}#${chainId}"`));
-      continue;
-    }
-
-    data.push({
+  const data: ApiContract[] = results.results.map((doc) => {
+    const ref = new PackageReference(doc.package);
+    return {
       type: 'contract',
-      address: contractAddress,
-      contractName,
-      chainId,
-      name,
-      preset,
-      version,
-    });
-  }
+      address: viem.getAddress(doc.address),
+      name: doc.contractName,
+      chainId: Number.parseInt(doc.chainId),
+      packageName: ref.name,
+      preset: ref.preset,
+      version: ref.version,
+    } satisfies ApiContract;
+  });
 
   return {
-    total: 0,
+    total: data.length,
     data,
   } satisfies {
     total: number;
     data: ApiContract[];
   };
+}
+
+export async function findContractsByAddress(params: { address: viem.Address; limit: number }) {
+  const contractAddress = viem.getAddress(params.address);
+  return _queryContracts({ query: `@address:{${contractAddress}}`, limit: params.limit });
+}
+
+export async function searchContracts(params: { query: string; limit: number }) {
+  return _queryContracts({ query: `@contractName:*${params.query}*`, limit: params.limit });
 }
