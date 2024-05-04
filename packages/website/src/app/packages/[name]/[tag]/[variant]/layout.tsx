@@ -170,7 +170,7 @@ export default function PackageLayout({
                   Cannonfile
                 </NavLink>
                 <Box ml="auto">
-                  <IpfsLinks variant={params.variant} />
+                  <IpfsLinks pkg={packagesQuery?.data?.data} />
                 </Box>
               </Flex>
             </Container>
