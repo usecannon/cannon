@@ -1,8 +1,8 @@
 import express from 'express';
 import { Address, isAddress, isHash } from 'viem';
 import { BadRequestError } from '../errors';
-import { isPackageRef, parseChainIds } from '../helpers';
-import { findContractsByAddress, findPackagesByRef, searchPackages } from '../queries/packages';
+import { isPartialPackageRef, parseChainIds } from '../helpers';
+import { findContractsByAddress, findPackagesByPartialRef, searchPackages } from '../queries/packages';
 import { ApiDocument, ApiDocumentType } from '../types';
 
 const search = express.Router();
@@ -22,7 +22,7 @@ search.get('/search', async (req, res) => {
     query,
     isAddress: isAddress(query),
     isTx: isHash(query),
-    isPackageRef: isPackageRef(query),
+    isPackageRef: isPartialPackageRef(query),
     total: 0,
     data: [] as ApiDocument[],
   };
@@ -33,7 +33,7 @@ search.get('/search', async (req, res) => {
   } else if (response.isTx) {
     // empty
   } else if (response.isPackageRef) {
-    const result = await findPackagesByRef({
+    const result = await findPackagesByPartialRef({
       packageRef: query,
     });
 

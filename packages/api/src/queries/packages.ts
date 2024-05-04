@@ -101,7 +101,35 @@ export async function findPackagesByName(params: { packageName: string }) {
   return results;
 }
 
-export async function findPackagesByRef(params: { packageRef: string }) {
+export async function findPackageByFullRef(params: { fullPackageRef: string; chainId: string }) {
+  const redis = await useRedis();
+
+  const ref = new PackageReference(params.fullPackageRef);
+
+  const queryKey = `${keys.RKEY_PACKAGE_SEARCHABLE}:${ref.fullPackageRef}#${params.chainId}`;
+  const tagDoc = (await redis.hGetAll(queryKey)) as unknown as RedisPackage | RedisTag;
+
+  if (!tagDoc?.name) return null;
+
+  if (tagDoc.type === 'package') {
+    return transformPackage(tagDoc);
+  }
+
+  if (tagDoc.type !== 'tag') {
+    throw new Error(`Invalid data found when looking at "${queryKey}"`);
+  }
+
+  const packageRef = PackageReference.from(tagDoc.name, tagDoc.versionOfTag, tagDoc.preset);
+  const packageDoc = (await redis.hGetAll(
+    `${keys.RKEY_PACKAGE_SEARCHABLE}:${packageRef.fullPackageRef}#${tagDoc.chainId}`
+  )) as unknown as RedisPackage;
+
+  if (!packageDoc) return null;
+
+  return transformPackageWithTag(packageDoc, tagDoc);
+}
+
+export async function findPackagesByPartialRef(params: { packageRef: string }) {
   const redis = await useRedis();
   const chainIds = await getChainIds();
 
