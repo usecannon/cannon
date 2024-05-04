@@ -1,12 +1,15 @@
 import {
+  AlertDescription,
   Box,
   Flex,
   FormControl,
   FormLabel,
   Heading,
   Input,
+  Link,
   Text,
 } from '@chakra-ui/react';
+import { useMemo } from 'react';
 import { a11yDark, CopyBlock } from 'react-code-blocks';
 import {
   Address,
@@ -16,12 +19,18 @@ import {
   hexToBytes,
   TransactionRequestBase,
   trim,
+  formatEther,
 } from 'viem';
+import { chainsById } from '@/helpers/chains';
+import { Alert } from '@/components/Alert';
 
 export function DisplayedTransaction(props: {
   contracts?: { [key: string]: { address: Address; abi: any[] } };
   txn?: Omit<TransactionRequestBase, 'from'>;
+  chainId: number;
 }) {
+  const chain = useMemo(() => chainsById[props.chainId], [props.chainId]);
+
   const parsedContractNames =
     props.txn && props.contracts
       ? Object.entries(props.contracts)
@@ -62,21 +71,75 @@ export function DisplayedTransaction(props: {
     ? parsedFunction?.args?.map((v) => v) || [props.txn.data?.slice(10)]
     : [];
 
+  const etherscanUrl =
+    chain.blockExplorers?.default?.url ?? 'https://etherscan.io';
+  const address = (
+    <Link isExternal href={etherscanUrl + '/address/' + props.txn?.to}>
+      {props.txn?.to}
+    </Link>
+  );
+  const selector = props.txn?.data?.slice(0, 10);
+  const value = `${formatEther(props.txn?.value || BigInt(0))} ${
+    chain?.nativeCurrency?.symbol
+  }`;
+
   if (!props.contracts) {
-    return <Text>{props.txn?.data}</Text>;
+    return (
+      <Box p={6} border="1px solid" borderColor="gray.600" bgColor="black">
+        <Box mb={5}>
+          <Alert status="warning">
+            <AlertDescription fontSize="sm" lineHeight="0">
+              Unable to parse transaction data. Try restaging or manually verify
+              this data.
+            </AlertDescription>
+          </Alert>
+        </Box>
+        <Box mb={2}>
+          <Text fontSize="xs" color="gray.300">
+            <Text as="span" mr={3}>
+              Target: {address}
+            </Text>
+            <Text as="span" mr={3}>
+              Selector: {selector}
+            </Text>
+            <Text as="span">Value: {value}</Text>
+          </Text>
+        </Box>
+        <Text fontSize="xs" color="gray.300" mb={0.5}>
+          Transaction Data:
+        </Text>
+        <CopyBlock
+          text={props.txn?.data || ''}
+          language="bash"
+          showLineNumbers={false}
+          codeBlock
+          theme={a11yDark}
+          customStyle={{ fontSize: '14px' }}
+        />
+      </Box>
+    );
   }
 
   return (
     <Box p={6} border="1px solid" borderColor="gray.600" bgColor="black">
       <Box maxW="100%" overflowX="auto">
-        <Flex
-          alignItems="center"
+        <Box
+          whiteSpace="nowrap"
           mb={execFuncFragment?.inputs?.length > 0 ? 4 : 0}
         >
-          <Heading size="sm" fontFamily="mono" fontWeight="semibold" mb={0}>
+          <Heading size="sm" fontFamily="mono" fontWeight="semibold" mb={1}>
             {`${parsedContract}.${execFunc}`}
           </Heading>
-        </Flex>
+          <Text fontSize="xs" color="gray.300">
+            <Text as="span" mr={3}>
+              Target: {address}
+            </Text>
+            <Text as="span" mr={3}>
+              Selector: {selector}
+            </Text>
+            <Text as="span">Value: {value}</Text>
+          </Text>
+        </Box>
         <Flex flexDirection={['column', 'column', 'row']} gap={8} height="100%">
           <Box flex="1" w={['100%', '100%', '50%']}>
             {(execFuncFragment?.inputs || []).map((_arg: any, i: number) => [
