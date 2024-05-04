@@ -19,6 +19,7 @@ import {
   useUpdateEffect,
   Box,
   Link,
+  useBreakpointValue,
 } from '@chakra-ui/react';
 import { useQuery } from '@tanstack/react-query';
 import { debounce } from 'lodash';
@@ -39,8 +40,6 @@ import scrollIntoView from 'scroll-into-view-if-needed';
 import Chain from '../Search/PackageCard/Chain';
 
 // Borrowing some code from https://github.com/chakra-ui/chakra-ui/blob/main/website/src/components/omni-search.tsx
-
-const PLACEHOLDER = 'Search packages, contracts, functions, and addresses...';
 
 const generateLink = (result: any) => {
   switch (result.type) {
@@ -67,6 +66,11 @@ export const SearchBar = () => {
   const [shouldCloseModal, setShouldCloseModal] = useState(true);
   const [menuNodes] = useState(() => new MultiRef<number, HTMLElement>());
   const router = useRouter();
+
+  const PLACEHOLDER = useBreakpointValue({
+    base: 'Search packages, etc.',
+    md: 'Search packages, contracts, functions, and addresses...',
+  });
 
   const handleSearch = (value: string) => {
     setSearchTerm(value.trim());
@@ -204,7 +208,6 @@ export const SearchBar = () => {
           bg="gray.900"
           width="100%"
           maxW="container.md"
-          mx={4}
           border="1px solid"
           borderColor="gray.800"
         >
@@ -264,6 +267,7 @@ export const SearchBar = () => {
                           <Flex
                             border="1px solid"
                             bg={index === active ? 'teal.900' : 'gray.800'}
+                            overflowX="auto"
                             borderColor={
                               index === active ? 'teal.500' : 'gray.700'
                             }
@@ -278,22 +282,40 @@ export const SearchBar = () => {
                               <Heading fontWeight={600} size="sm" mb={0.5}>
                                 {result.name}
                               </Heading>
-                              <Flex gap={3.5}>
-                                <Text fontSize="xs" color="gray.400">
+                              <Box>
+                                <Text
+                                  display="inline-block"
+                                  fontSize="xs"
+                                  color="gray.400"
+                                  mr="2"
+                                >
                                   Version: {result.version}
                                 </Text>
-                                <Text fontSize="xs" color="gray.400">
+                                <Text
+                                  display="inline-block"
+                                  fontSize="xs"
+                                  color="gray.400"
+                                  mr="2"
+                                >
                                   Preset: {result.preset}
                                 </Text>
                                 <Text
+                                  display="inline-block"
                                   fontSize="xs"
                                   color="gray.400"
-                                  as={Flex}
-                                  gap={1.5}
+                                  mr="1"
                                 >
-                                  Chain: <Chain id={result.chainId} />
+                                  Chain:
                                 </Text>
-                              </Flex>
+                                <Text
+                                  display="inline-block"
+                                  fontSize="xs"
+                                  color="gray.400"
+                                  transform="translateY(2px)"
+                                >
+                                  <Chain id={result.chainId} />
+                                </Text>
+                              </Box>
                             </Box>
                           </Flex>
                         );
@@ -302,6 +324,7 @@ export const SearchBar = () => {
                           <Flex
                             border="1px solid"
                             bg={index === active ? 'teal.900' : 'gray.800'}
+                            overflowX="auto"
                             borderColor={
                               index === active ? 'teal.500' : 'gray.700'
                             }
@@ -328,6 +351,7 @@ export const SearchBar = () => {
                           <Flex
                             border="1px solid"
                             bg={index === active ? 'teal.900' : 'gray.800'}
+                            overflowX="auto"
                             borderColor={
                               index === active ? 'teal.500' : 'gray.700'
                             }
@@ -346,16 +370,20 @@ export const SearchBar = () => {
                               <Heading fontWeight={600} size="sm" mb={0.5}>
                                 {result.name}
                               </Heading>
-                              <Text
-                                fontSize="xs"
-                                color="gray.400"
-                                as={Flex}
-                                gap={1.5}
-                              >
+                              <Text fontSize="xs" color="gray.400">
                                 {result.address.substring(0, 6)}...
                                 {result.address.slice(-4)} in{' '}
                                 {result.packageName}:{result.version}@
-                                {result.preset} on <Chain id={result.chainId} />
+                                {result.preset} on{' '}
+                                <Box
+                                  display="inline-block"
+                                  fontSize="xs"
+                                  color="gray.400"
+                                  ml="2"
+                                  transform="translateY(2px)"
+                                >
+                                  <Chain id={result.chainId} />
+                                </Box>
                               </Text>
                             </Box>
                           </Flex>
@@ -365,6 +393,7 @@ export const SearchBar = () => {
                           <Flex
                             border="1px solid"
                             bg={index === active ? 'teal.900' : 'gray.800'}
+                            overflowX="auto"
                             borderColor={
                               index === active ? 'teal.500' : 'gray.700'
                             }
@@ -382,14 +411,22 @@ export const SearchBar = () => {
                               <Text
                                 fontSize="xs"
                                 color="gray.400"
-                                as={Flex}
-                                gap={1.5}
+                                mr="2"
+                                display="inline-block"
                               >
                                 {result.address.substring(0, 6)}...
                                 {result.address.slice(-4)} in{' '}
                                 {result.packageName}:{result.version}@
-                                {result.preset} on <Chain id={result.chainId} />
+                                {result.preset} on
                               </Text>
+                              <Box
+                                display="inline-block"
+                                fontSize="xs"
+                                color="gray.400"
+                                transform="translateY(2px)"
+                              >
+                                <Chain id={result.chainId} />
+                              </Box>
                             </Box>
                           </Flex>
                         );
