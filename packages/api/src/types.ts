@@ -72,7 +72,7 @@ export interface ApiFunction {
   name: string;
   selector: string;
   contractName: string;
-  chainId: string;
+  chainId: number;
   address: Address;
   packageName: string;
   preset: string;

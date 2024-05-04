@@ -1,19 +1,22 @@
 import express from 'express';
-import { Address, isAddress, isHash } from 'viem';
+import * as viem from 'viem';
 import { BadRequestError } from '../errors';
-import { isContractName, isPartialPackageRef, parseChainIds } from '../helpers';
-import { findContractsByAddress, findPackagesByPartialRef, searchContracts, searchPackages } from '../queries/packages';
+import { isContractName, isFunctionSelector, isPartialPackageRef, parseChainIds } from '../helpers';
+import { findContractsByAddress, searchContracts } from '../queries/contracts';
+import { findFunctionsBySelector, searchFunctions } from '../queries/functions';
+import { findPackagesByPartialRef, searchPackages } from '../queries/packages';
 import { ApiDocument, ApiDocumentType } from '../types';
 
 const search = express.Router();
 
-interface SearchResponse {
+export interface SearchResponse {
   status: number;
   query: string;
   isAddress: boolean;
   isTx: boolean;
   isPackageRef: boolean;
   isContractName: boolean;
+  isFunctionSelector: boolean;
   total: number;
   data: ApiDocument[];
 }
@@ -36,18 +39,19 @@ search.get('/search', async (req, res) => {
   const response = {
     status: 200,
     query,
-    isAddress: isAddress(query),
-    isTx: isHash(query),
+    isAddress: viem.isAddress(query),
+    isTx: viem.isHash(query),
     isPackageRef: isPartialPackageRef(query),
     isContractName: isContractName(query),
+    isFunctionSelector: isFunctionSelector(query),
     total: 0,
     data: [] as ApiDocument[],
   } satisfies SearchResponse;
 
   if (response.isAddress) {
     const result = await findContractsByAddress({
-      address: query as Address,
-      limit: 50,
+      address: query as viem.Address,
+      limit: 20,
     });
 
     _pushResults(response, result);
@@ -59,10 +63,27 @@ search.get('/search', async (req, res) => {
     });
 
     _pushResults(response, result);
+  } else if (response.isFunctionSelector) {
+    const result = await findFunctionsBySelector({
+      selector: query as viem.Hex,
+      limit: 20,
+    });
+
+    _pushResults(response, result);
   } else {
     // Search by contractName
     if ((!types.length || types.includes('contract')) && response.isContractName && query.length >= 5) {
       const contractsResults = await searchContracts({
+        query,
+        limit: 20,
+      });
+
+      _pushResults(response, contractsResults);
+    }
+
+    // Search by functionName
+    if ((!types.length || types.includes('function')) && query.length >= 5) {
+      const contractsResults = await searchFunctions({
         query,
         limit: 20,
       });

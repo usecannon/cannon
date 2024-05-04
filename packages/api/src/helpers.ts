@@ -30,6 +30,11 @@ export function isContractName(contractName: any) {
   return typeof contractName === 'string' && contractNameRegex.test(contractName);
 }
 
+const functionSelectorRegex = /^0x[0-9a-fA-F]{8}$/;
+export function isFunctionSelector(selector: any) {
+  return typeof selector === 'string' && functionSelectorRegex.test(selector);
+}
+
 const chainIdRegex = /^[0-9]+$/;
 export function isChainId(chainId: any) {
   return typeof chainId === 'string' && chainIdRegex.test(chainId);
