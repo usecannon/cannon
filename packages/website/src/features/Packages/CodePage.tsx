@@ -35,7 +35,7 @@ export const CodePage: FC<{
     <Flex flexDirection="column" width="100%" flex="1">
       <CodeExplorer
         name={name}
-        variant={packagesQuery.data.data}
+        pkg={packagesQuery.data.data}
         moduleName={moduleName}
         source={source}
         functionName={functionName}
