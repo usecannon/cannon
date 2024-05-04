@@ -1,6 +1,5 @@
 'use client';
 
-import { ReactNode } from 'react';
 import {
   Box,
   Container,
@@ -12,19 +11,22 @@ import {
   Portal,
   Text,
 } from '@chakra-ui/react';
-import { NavLink } from '@/components/NavLink';
-import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
-import { VersionSelect } from '@/features/Packages/VersionSelect';
-import { IpfsLinks } from '@/features/Packages/IpfsLinks';
-import { useEffect, useState } from 'react';
-import { GET_PACKAGE } from '@/graphql/queries';
-import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
-import { CustomSpinner } from '@/components/CustomSpinner';
+import { format } from 'date-fns';
 import { usePathname } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
+import { ReactNode } from 'react';
+
+import { NavLink } from '@/components/NavLink';
+import { CustomSpinner } from '@/components/CustomSpinner';
+
+import { IpfsLinks } from '@/features/Packages/IpfsLinks';
+import { VersionSelect } from '@/features/Packages/VersionSelect';
+import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
+
 import { useQueryIpfsData } from '@/hooks/ipfs';
 import { DeploymentInfo } from '@usecannon/builder';
-import { format } from 'date-fns';
+import { getPackage } from '@/helpers/api';
 
 export default function PackageLayout({
   children,
@@ -33,32 +35,28 @@ export default function PackageLayout({
   children: ReactNode;
   params: { name: string; tag: string; variant: string };
 }) {
-  params = {
+  const [chainId, preset] = decodeURIComponent(params.variant).split('-');
+
+  const additionalParams = {
     name: decodeURIComponent(params.name),
     tag: decodeURIComponent(params.tag),
-    variant: decodeURIComponent(params.variant),
+    preset,
+    chainId,
   };
 
-  const { data } = useQueryCannonSubgraphData<any, any>(GET_PACKAGE, {
-    variables: { name: params.name },
+  const packagesQuery = useQuery({
+    queryKey: [
+      'package',
+      `${additionalParams.name}:${additionalParams.tag}@${additionalParams.preset}/${additionalParams.chainId}`,
+    ],
+    queryFn: getPackage,
   });
-
-  const [pkg, setPackage] = useState<any | null>(null);
-
-  useEffect(() => {
-    if (data?.packages[0]) setPackage(data?.packages[0]);
-  }, [data]);
-
-  const currentVariant = pkg?.variants.find(
-    (variant: any) =>
-      variant.name === params.variant && variant.tag.name === params.tag
-  );
 
   const pathname = usePathname();
 
   const deploymentData = useQueryIpfsData(
-    currentVariant?.deploy_url,
-    !!currentVariant?.deploy_url
+    packagesQuery?.data?.data.deployUrl,
+    !!packagesQuery?.data?.data.deployUrl
   );
 
   const deploymentInfo = deploymentData.data
@@ -67,7 +65,7 @@ export default function PackageLayout({
 
   return (
     <Flex flexDirection="column" width="100%">
-      {pkg ? (
+      {packagesQuery.isSuccess ? (
         <>
           <Box
             bg="black"
@@ -83,7 +81,7 @@ export default function PackageLayout({
               >
                 <Box>
                   <Heading as="h1" size="lg" mb="2">
-                    {pkg?.name}
+                    {packagesQuery.data.data.name}
                     <Popover trigger="hover">
                       <PopoverTrigger>
                         <InfoOutlineIcon boxSize={4} ml={2} color="gray.400" />
@@ -120,42 +118,42 @@ export default function PackageLayout({
                       </Portal>
                     </Popover>
                   </Heading>
-                  <PublishInfo p={currentVariant} />
+                  <PublishInfo p={packagesQuery.data.data} />
                 </Box>
                 <Box ml={[0, 0, 'auto']} mt={[6, 6, 0]}>
-                  <VersionSelect currentVariant={currentVariant} />
+                  <VersionSelect pkg={packagesQuery.data.data} />
                 </Box>
               </Flex>
               <Flex gap={8} align="center" maxW="100%" overflowX="auto">
                 <NavLink
                   isActive={
                     pathname ==
-                    `/packages/${pkg.name}/${params.tag}/${params.variant}`
+                    `/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}`
                   }
-                  href={`/packages/${pkg.name}/${params.tag}/${params.variant}`}
+                  href={`/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}`}
                   isSmall
                 >
                   Deployment
                 </NavLink>
                 <NavLink
                   isActive={pathname.startsWith(
-                    `/packages/${pkg.name}/${params.tag}/${params.variant}/code`
+                    `/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/code`
                   )}
-                  href={`/packages/${pkg.name}/${params.tag}/${params.variant}/code`}
+                  href={`/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/code`}
                   isSmall
                 >
                   Code
                 </NavLink>
                 <NavLink
                   isActive={pathname.startsWith(
-                    `/packages/${pkg.name}/${params.tag}/${params.variant}/interact`
+                    `/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/interact`
                   )}
                   href={
                     pathname.startsWith(
-                      `/packages/${pkg.name}/${params.tag}/${params.variant}/interact`
+                      `/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/interact`
                     )
                       ? pathname
-                      : `/packages/${pkg.name}/${params.tag}/${params.variant}/interact`
+                      : `/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/interact`
                   }
                   isSmall
                 >
@@ -164,15 +162,15 @@ export default function PackageLayout({
                 <NavLink
                   isActive={
                     pathname ==
-                    `/packages/${pkg.name}/${params.tag}/${params.variant}/cannonfile`
+                    `/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/cannonfile`
                   }
-                  href={`/packages/${pkg.name}/${params.tag}/${params.variant}/cannonfile`}
+                  href={`/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/cannonfile`}
                   isSmall
                 >
                   Cannonfile
                 </NavLink>
                 <Box ml="auto">
-                  <IpfsLinks variant={currentVariant} />
+                  <IpfsLinks pkg={packagesQuery?.data?.data} />
                 </Box>
               </Flex>
             </Container>

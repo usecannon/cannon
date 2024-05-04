@@ -1,13 +1,13 @@
 'use client';
 
-import { FC, useEffect, useState } from 'react';
-import { GET_PACKAGE } from '@/graphql/queries';
-import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
+import { FC } from 'react';
 import { Flex } from '@chakra-ui/react';
 import { CodeExplorer } from '@/features/Packages/CodeExplorer';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { Address } from 'viem';
 import { useSearchParams } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import { getPackage } from '@/helpers/api';
 
 export const CodePage: FC<{
   name: string;
@@ -16,37 +16,30 @@ export const CodePage: FC<{
   moduleName?: string;
   contractAddress?: Address;
 }> = ({ name, tag, variant, moduleName }) => {
-  const { data } = useQueryCannonSubgraphData<any, any>(GET_PACKAGE, {
-    variables: { name },
+  const [chainId, preset] = variant.split('-');
+
+  const packagesQuery = useQuery({
+    queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],
+    queryFn: getPackage,
   });
 
   const searchParams = useSearchParams();
   const source = searchParams.get('source') || '';
   const functionName = searchParams.get('function') || '';
 
-  useEffect(() => {
-    if (data?.packages[0]) setPackage(data?.packages[0]);
-  }, [data]);
-
-  const [pkg, setPackage] = useState<any | null>(null);
-
-  const currentVariant = pkg?.variants.find(
-    (v: any) => v.name === variant && v.tag.name === tag
-  );
+  if (packagesQuery.isPending) {
+    return <CustomSpinner m="auto" />;
+  }
 
   return (
     <Flex flexDirection="column" width="100%" flex="1">
-      {currentVariant ? (
-        <CodeExplorer
-          name={name}
-          variant={currentVariant}
-          moduleName={moduleName}
-          source={source}
-          functionName={functionName}
-        />
-      ) : (
-        <CustomSpinner m="auto" />
-      )}
+      <CodeExplorer
+        name={name}
+        pkg={packagesQuery.data.data}
+        moduleName={moduleName}
+        source={source}
+        functionName={functionName}
+      />
     </Flex>
   );
 };

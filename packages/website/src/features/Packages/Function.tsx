@@ -291,7 +291,7 @@ export const Function: FC<{
                   _hover={{ textDecoration: 'underline' }}
                   href={getCodeUrl(f.name)}
                 >
-                  <FaCode color="#fff" />
+                  <FaCode color="gray.300" />
                 </Link>
               )}
             </Heading>
@@ -474,15 +474,14 @@ export const Function: FC<{
         <Flex flexDirection="column">
           <Flex
             flexDirection="row"
-            px="2"
+            px="3"
             py="2"
             alignItems="center"
-            mb="1.5"
             justifyContent="space-between"
             border="1px solid"
             borderColor="gray.600"
-            borderTopRadius={'md'}
-            borderBottomRadius={isOpen ? 'none' : 'md'}
+            borderTopRadius={'sm'}
+            borderBottomRadius={isOpen ? 'none' : 'sm'}
             id={anchor}
           >
             {f.name && (
@@ -500,7 +499,7 @@ export const Function: FC<{
                   color="gray.300"
                   ml={1}
                   textDecoration="none"
-                  _hover={{ textDecoration: 'underline' }}
+                  _hover={{ textDecoration: 'none' }}
                   href={anchor}
                 >
                   #
@@ -510,10 +509,10 @@ export const Function: FC<{
                     color="gray.300"
                     ml={1}
                     textDecoration="none"
-                    _hover={{ textDecoration: 'underline' }}
+                    _hover={{ textDecoration: 'none' }}
                     href={getCodeUrl(f.name)}
                   >
-                    <FaCode color="#fff" />
+                    <FaCode color="gray.300" />
                   </Link>
                 )}
               </Heading>
