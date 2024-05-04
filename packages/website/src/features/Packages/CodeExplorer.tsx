@@ -192,7 +192,7 @@ export const CodeExplorer: FC<{
         return {
           key,
           value,
-          sources: JSON.parse(value.source.input).sources,
+          sources: value.source ? JSON.parse(value.source.input).sources : [],
         };
       });
 
@@ -257,18 +257,26 @@ export const CodeExplorer: FC<{
             })
           : [];
 
-        const [sourceKey, sourceValue] = sortedSources[0];
-        setSelectedCode((sourceValue as any)?.content);
-        setSelectedLanguage('sol');
-        setSelectedKey(sourceKey);
+        if (sortedSources.length) {
+          const [sourceKey, sourceValue] = sortedSources[0];
+          setSelectedCode((sourceValue as any)?.content);
+          setSelectedLanguage('sol');
+          setSelectedKey(sourceKey);
 
-        window.history.pushState(
-          null,
-          '',
-          `/packages/${name}/${variant.tag.name}/${variant.name}/code/${
-            selectedPackage.name
-          }?source=${encodeURIComponent(sourceKey)}`
-        );
+          window.history.pushState(
+            null,
+            '',
+            `/packages/${name}/${variant.tag.name}/${variant.name}/code/${
+              selectedPackage.name
+            }?source=${encodeURIComponent(sourceKey)}`
+          );
+        } else {
+          window.history.pushState(
+            null,
+            '',
+            `/packages/${name}/${variant.tag.name}/${variant.name}/code/${selectedPackage.name}`
+          );
+        }
       }
     }
   }, [
