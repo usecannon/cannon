@@ -83,7 +83,7 @@ export const Abi: FC<{
         const topOffset =
           section.getBoundingClientRect().top + window.scrollY - adjust;
 
-        const button = section.querySelector('button');
+        const button = section.querySelector('h2');
 
         if (button) {
           // open the collapsible
