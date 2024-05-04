@@ -390,7 +390,7 @@ function Option({ children, ...props }: OptionProps<OptionData>) {
     <chakraComponents.Option {...props}>
       <Flex direction="column">
         {children}
-        <Text color="gray.600" fontSize="2xs">
+        <Text color="gray.400" fontSize="2xs">
           {props.data.secondary}
         </Text>
       </Flex>

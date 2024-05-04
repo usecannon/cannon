@@ -25,13 +25,9 @@ import { InvokesTable } from './InvokesTable';
 import { EventsTable } from './EventsTable';
 
 export const DeploymentExplorer: FC<{
-  pkgName: string;
-  variant: any;
-}> = ({ pkgName, variant }) => {
-  const deploymentData = useQueryIpfsData(
-    variant?.deploy_url,
-    !!variant?.deploy_url
-  );
+  pkg: any;
+}> = ({ pkg }) => {
+  const deploymentData = useQueryIpfsData(pkg?.deployUrl, !!pkg?.deployUrl);
 
   const deploymentInfo = deploymentData.data
     ? (deploymentData.data as DeploymentInfo)
@@ -163,7 +159,7 @@ export const DeploymentExplorer: FC<{
     URL.revokeObjectURL(url);
   };
 
-  return variant?.deploy_url ? (
+  return pkg?.deployUrl ? (
     <Box>
       {deploymentData.isLoading ? (
         <Box
@@ -174,7 +170,7 @@ export const DeploymentExplorer: FC<{
         >
           <CustomSpinner mx="auto" mb="2" />
           <Text fontSize="sm" mb="1" color="gray.400">
-            Fetching {variant?.deploy_url}
+            Fetching {pkg?.deployUrl}
           </Text>
           <Text color="gray.500" fontSize="xs">
             This could take a minute. You can also{' '}
@@ -186,7 +182,7 @@ export const DeploymentExplorer: FC<{
         </Box>
       ) : deploymentInfo ? (
         <Box>
-          {variant.chain_id == 13370 && (
+          {pkg.chainId == 13370 && (
             <Container maxW="container.lg" mt={6}>
               <Box
                 bg="blackAlpha.600"
@@ -208,11 +204,9 @@ export const DeploymentExplorer: FC<{
                   </Text>
                 </Box>
                 <CommandPreview
-                  command={`cannon ${pkgName}${
-                    variant?.tag?.name !== 'latest'
-                      ? `:${variant?.tag?.name}`
-                      : ''
-                  }${variant?.preset !== 'main' ? `@${variant?.preset}` : ''}`}
+                  command={`cannon ${pkg.name}${
+                    pkg?.tag !== 'latest' ? `:${pkg.tag}` : ''
+                  }${pkg.preset !== 'main' ? `@${pkg.preset}` : ''}`}
                 />
               </Box>
             </Container>
@@ -245,7 +239,7 @@ export const DeploymentExplorer: FC<{
               <Box maxW="100%" overflowX="auto">
                 <ContractsTable
                   contractState={contractState}
-                  chainId={variant.chain_id}
+                  chainId={pkg.chainId}
                 />
               </Box>
             </Box>
@@ -257,10 +251,7 @@ export const DeploymentExplorer: FC<{
                 Function Calls
               </Heading>
               <Box maxW="100%" overflowX="auto">
-                <InvokesTable
-                  invokeState={invokeState}
-                  chainId={variant.chain_id}
-                />
+                <InvokesTable invokeState={invokeState} chainId={pkg.chainId} />
               </Box>
             </Box>
           )}

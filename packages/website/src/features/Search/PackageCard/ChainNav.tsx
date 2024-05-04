@@ -1,13 +1,12 @@
 import { FC } from 'react';
 import { Button, Tooltip, Flex } from '@chakra-ui/react';
-import { Variant } from '@/types/graphql/graphql';
 import NextLink from 'next/link';
 import Chain from './Chain';
 import { find } from 'lodash';
 import chains from '@/helpers/chains';
 
 const ChainNav: FC<{
-  variants: Variant[];
+  variants: any[];
   packageName: string;
 }> = ({ variants, packageName }) => {
   const sortedVariants = [...variants].sort((a, b) => {
