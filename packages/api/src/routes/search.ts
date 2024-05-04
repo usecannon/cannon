@@ -1,4 +1,5 @@
 import express from 'express';
+import Fuse from 'fuse.js';
 import * as viem from 'viem';
 import { BadRequestError } from '../errors';
 import { isContractName, isFunctionSelector, isPartialPackageRef, parseChainIds } from '../helpers';
@@ -58,7 +59,7 @@ search.get('/search', async (req, res) => {
 
     _pushResults(response, result);
   } else if (response.isTx) {
-    // empty
+    // TODO: tx (look for package names) reg:transactionToPackage
   } else if (response.isPackageRef) {
     const result = await findPackagesByPartialRef({
       packageRef: query,
@@ -113,8 +114,29 @@ search.get('/search', async (req, res) => {
     _pushResults(response, packagesResult);
   }
 
-  // TODO: fnNames or Selectors (reg: abi), responds with 'function'
-  // TODO: tx (look for package names) reg:transactionToPackage
+  const fuzzyOrder = new Fuse<ApiDocument>(response.data, {
+    keys: [
+      'type',
+      {
+        name: 'name',
+        weight: 2,
+      },
+      {
+        name: 'contractName',
+        weight: 2,
+      },
+      {
+        name: 'selector',
+        weight: 3,
+      },
+      {
+        name: 'address',
+        weight: 3,
+      },
+    ],
+  });
+
+  response.data = fuzzyOrder.search(query).map(({ item }) => item);
 
   res.json(response);
 });

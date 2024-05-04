@@ -59,8 +59,8 @@ export interface ApiPackage {
 
 export interface ApiContract {
   type: 'contract';
-  address: Address;
   name: string;
+  address: Address;
   chainId: number;
   packageName: string;
   preset: string;
