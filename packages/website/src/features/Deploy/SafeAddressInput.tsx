@@ -188,6 +188,7 @@ export function SafeAddressInput() {
       ...provided,
       borderColor: 'whiteAlpha.400',
       background: 'black',
+      py: 0,
     }),
     groupHeading: (provided) => ({
       ...provided,
@@ -196,6 +197,15 @@ export function SafeAddressInput() {
     option: (provided) => ({
       ...provided,
       background: 'black',
+      _selected: {
+        bg: 'gray.800',
+      },
+      _hover: {
+        bg: 'gray.900',
+      },
+    }),
+    noOptionsMessage: () => ({
+      height: 2,
     }),
     dropdownIndicator: (provided) => ({
       ...provided,
@@ -218,9 +228,7 @@ export function SafeAddressInput() {
           isClearable
           value={currentSafe ? _safeToOption(currentSafe) : null}
           placeholder="Select a Safe"
-          noOptionsMessage={() =>
-            'Add a safe in the format chainId:safeAddress'
-          }
+          noOptionsMessage={() => ''}
           options={[
             ...safeOptions,
             {
@@ -334,14 +342,8 @@ function CustomMenuList({ children, ...props }: any) {
   return (
     <chakraComponents.MenuList {...props}>
       {children}
-      <Text
-        color="gray.400"
-        fontSize="sm"
-        textAlign="center"
-        mt={2}
-        letterSpacing="1px"
-      >
-        Add a safe in the format chainId:safeAddress
+      <Text color="gray.400" fontSize="xs" textAlign="center" mb={2}>
+        To add a Safe, enter it in the format chainId:safeAddress
       </Text>
     </chakraComponents.MenuList>
   );
