@@ -13,16 +13,13 @@ import { DeploymentInfo } from '@usecannon/builder/src/types';
 import { PiCheckCircleFill, PiMinusCircleFill } from 'react-icons/pi';
 
 export const IpfsLinks: FC<{
-  variant: any;
-}> = ({ variant }) => {
+  pkg: any;
+}> = ({ pkg }) => {
   const theme = useTheme();
   const green500Hex = theme.colors.green[500];
   const yellow400Hex = theme.colors.yellow[400];
 
-  const deploymentData = useQueryIpfsData(
-    variant?.deploy_url,
-    !!variant?.deploy_url
-  );
+  const deploymentData = useQueryIpfsData(pkg?.deployUrl, !!pkg?.deployUrl);
 
   const deploymentInfo = deploymentData.data
     ? (deploymentData.data as DeploymentInfo)
@@ -41,9 +38,9 @@ export const IpfsLinks: FC<{
         fontSize="xs"
         fontFamily="mono"
       >
-        {variant?.deploy_url && (
+        {pkg?.deployUrl && (
           <Link
-            href={convertUrl(variant.deploy_url)}
+            href={convertUrl(pkg.deployUrl)}
             textDecoration="none"
             _hover={{ textDecoration: 'none' }}
             display="flex"
@@ -89,9 +86,9 @@ export const IpfsLinks: FC<{
             </Text>
           </Link>
         )}
-        {variant?.meta_url && (
+        {pkg?.metaUrl && (
           <Link
-            href={convertUrl(variant.meta_url)}
+            href={convertUrl(pkg.metaUrl)}
             textDecoration="none"
             _hover={{ textDecoration: 'none' }}
             display="flex"

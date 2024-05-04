@@ -80,12 +80,12 @@ const PackageButton: FC<{
 };
 
 export const CodeExplorer: FC<{
-  variant: any;
+  pkg: any;
   name: string;
   moduleName?: string;
   source: string;
   functionName?: string;
-}> = ({ variant, name, moduleName, source, functionName }) => {
+}> = ({ pkg, name, moduleName, source, functionName }) => {
   // For the main package, the key is -1
   const [selectedPackage, setSelectedPackage] = useState<{
     name: string;
@@ -94,15 +94,9 @@ export const CodeExplorer: FC<{
     name,
     key: -1,
   });
-  const { data: metadata } = useQueryIpfsData(
-    variant?.meta_url,
-    !!variant?.meta_url
-  );
+  const { data: metadata } = useQueryIpfsData(pkg?.metaUrl, !!pkg?.metaUrl);
 
-  const deploymentData = useQueryIpfsData(
-    variant?.deploy_url,
-    !!variant?.deploy_url
-  );
+  const deploymentData = useQueryIpfsData(pkg?.deployUrl, !!pkg?.deployUrl);
 
   // Provisioned packages could be inside the "provision" (old) or "clone" (current) key
   // So we check both in order to keep backwards compatibility
@@ -234,7 +228,7 @@ export const CodeExplorer: FC<{
           window.history.pushState(
             null,
             '',
-            `/packages/${name}/${variant.tag.name}/${variant.name}/code/${
+            `/packages/${name}/${pkg.version}/${pkg.name}/code/${
               selectedPackage.name
             }?${urlParams.toString()}`
           );
@@ -265,7 +259,7 @@ export const CodeExplorer: FC<{
         window.history.pushState(
           null,
           '',
-          `/packages/${name}/${variant.tag.name}/${variant.name}/code/${
+          `/packages/${name}/${pkg.version}/${pkg.name}/code/${
             selectedPackage.name
           }?source=${encodeURIComponent(sourceKey)}`
         );
@@ -338,7 +332,7 @@ export const CodeExplorer: FC<{
     window.history.pushState(
       null,
       '',
-      `/packages/${name}/${variant.tag.name}/${variant.name}/code/${
+      `/packages/${name}/${pkg.version}/${pkg.name}/code/${
         selectedPackage.name
       }?source=${encodeURIComponent(sourceKey)}`
     );
