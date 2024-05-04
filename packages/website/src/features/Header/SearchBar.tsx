@@ -49,9 +49,9 @@ const generateLink = (result: any) => {
     case 'namespace':
       return `/packages/${result.name}`;
     case 'contract':
-      return `/packages/${result.name}/${result.version}/${result.chainId}-${result.preset}/interact/${result.name}/${result.contractName}/${result.address}`;
+      return `/packages/${result.packageName}/${result.version}/${result.chainId}-${result.preset}/interact/${result.packageName}/${result.name}/${result.address}`;
     case 'function':
-      return `/packages/${result.name}/${result.version}/${result.chainId}-${result.preset}/interact/${result.name}/${result.contractName}/${result.address}/selector-${result.selector}`;
+      return `/packages/${result.packageName}/${result.version}/${result.chainId}-${result.preset}/interact/${result.packageName}/${result.contractName}/${result.address}#selector-${result.selector}`;
     default:
       return '/';
   }
@@ -344,7 +344,7 @@ export const SearchBar = () => {
                             />
                             <Box>
                               <Heading fontWeight={600} size="sm" mb={0.5}>
-                                {result.contractName}
+                                {result.name}
                               </Heading>
                               <Text
                                 fontSize="xs"
@@ -353,9 +353,9 @@ export const SearchBar = () => {
                                 gap={1.5}
                               >
                                 {result.address.substring(0, 6)}...
-                                {result.address.slice(-4)} in {result.name}:
-                                {result.version}@{result.preset} on{' '}
-                                <Chain id={result.chainId} />
+                                {result.address.slice(-4)} in{' '}
+                                {result.packageName}:{result.version}@
+                                {result.preset} on <Chain id={result.chainId} />
                               </Text>
                             </Box>
                           </Flex>
@@ -377,7 +377,7 @@ export const SearchBar = () => {
                             <Icon as={FaCode} boxSize="8" color="gray.300" />
                             <Box>
                               <Heading fontWeight={600} size="sm" mb={0.5}>
-                                {result.contractName}.{result.functionName}
+                                {result.contractName}.{result.name}
                               </Heading>
                               <Text
                                 fontSize="xs"
@@ -386,9 +386,9 @@ export const SearchBar = () => {
                                 gap={1.5}
                               >
                                 {result.address.substring(0, 6)}...
-                                {result.address.slice(-4)} in {result.name}:
-                                {result.version}@{result.preset} on{' '}
-                                <Chain id={result.chainId} />
+                                {result.address.slice(-4)} in{' '}
+                                {result.packageName}:{result.version}@
+                                {result.preset} on <Chain id={result.chainId} />
                               </Text>
                             </Box>
                           </Flex>
