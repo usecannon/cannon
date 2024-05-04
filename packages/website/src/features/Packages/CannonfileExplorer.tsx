@@ -54,13 +54,9 @@ function omitEmptyObjects(config: { [x: string]: any }) {
 }
 
 export const CannonfileExplorer: FC<{
-  pkgName: string;
-  variant: any;
-}> = ({ variant }) => {
-  const deploymentData = useQueryIpfsData(
-    variant?.deploy_url,
-    !!variant?.deploy_url
-  );
+  pkg: any;
+}> = ({ pkg }) => {
+  const deploymentData = useQueryIpfsData(pkg?.deployUrl, !!pkg?.deployUrl);
 
   const deploymentInfo = deploymentData.data
     ? (deploymentData.data as DeploymentInfo)
@@ -116,7 +112,7 @@ export const CannonfileExplorer: FC<{
     ...(deploymentInfo?.def?.deploy || {}),
   };
 
-  return variant?.deploy_url ? (
+  return pkg?.deployUrl ? (
     <Flex flex="1" direction="column">
       {deploymentData.isLoading ? (
         <Box
@@ -127,7 +123,7 @@ export const CannonfileExplorer: FC<{
         >
           <CustomSpinner mx="auto" mb="2" />
           <Text fontSize="sm" mb="1" color="gray.400">
-            Fetching {variant?.deploy_url}
+            Fetching {pkg?.deployUrl}
           </Text>
           <Text color="gray.500" fontSize="xs">
             This could take a minute. You can also{' '}

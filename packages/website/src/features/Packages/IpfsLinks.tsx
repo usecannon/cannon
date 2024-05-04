@@ -20,8 +20,8 @@ export const IpfsLinks: FC<{
   const yellow400Hex = theme.colors.yellow[400];
 
   const deploymentData = useQueryIpfsData(
-    variant?.deploy_url,
-    !!variant?.deploy_url
+    variant?.deployUrl,
+    !!variant?.deployUrl
   );
 
   const deploymentInfo = deploymentData.data
@@ -41,9 +41,9 @@ export const IpfsLinks: FC<{
         fontSize="xs"
         fontFamily="mono"
       >
-        {variant?.deploy_url && (
+        {variant?.deployUrl && (
           <Link
-            href={convertUrl(variant.deploy_url)}
+            href={convertUrl(variant.deployUrl)}
             textDecoration="none"
             _hover={{ textDecoration: 'none' }}
             display="flex"
@@ -89,9 +89,9 @@ export const IpfsLinks: FC<{
             </Text>
           </Link>
         )}
-        {variant?.meta_url && (
+        {variant?.metaUrl && (
           <Link
-            href={convertUrl(variant.meta_url)}
+            href={convertUrl(variant.metaUrl)}
             textDecoration="none"
             _hover={{ textDecoration: 'none' }}
             display="flex"

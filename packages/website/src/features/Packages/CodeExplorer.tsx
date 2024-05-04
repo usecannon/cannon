@@ -95,13 +95,13 @@ export const CodeExplorer: FC<{
     key: -1,
   });
   const { data: metadata } = useQueryIpfsData(
-    variant?.meta_url,
-    !!variant?.meta_url
+    variant?.metaUrl,
+    !!variant?.metaUrl
   );
 
   const deploymentData = useQueryIpfsData(
-    variant?.deploy_url,
-    !!variant?.deploy_url
+    variant?.deployUrl,
+    !!variant?.deployUrl
   );
 
   // Provisioned packages could be inside the "provision" (old) or "clone" (current) key
