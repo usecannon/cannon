@@ -569,14 +569,30 @@ export const CodeExplorer: FC<{
               maxHeight={['none', 'none', 'calc(100vh - 236px)']}
               background="gray.800"
             >
-              {/* Make sure code preview is not rendered if function name exists but no selected line is set yet */}
-              {!selectedLine && functionName ? null : (
-                <CodePreview
-                  code={selectedCode}
-                  language={selectedLanguage}
+              {selectedCode.length ? (
+                <>
+                  {/* Make sure code preview is not rendered if function name exists but no selected line is set yet */}
+                  {!selectedLine && functionName ? null : (
+                    <CodePreview
+                      code={selectedCode}
+                      language={selectedLanguage}
+                      height="100%"
+                      line={selectedLine}
+                    />
+                  )}
+                </>
+              ) : (
+                <Flex
+                  flex="1"
                   height="100%"
-                  line={selectedLine}
-                />
+                  alignItems="center"
+                  justifyContent="center"
+                  p={4}
+                >
+                  <Text color="gray.400">
+                    <InfoOutlineIcon transform="translateY(-1px)" /> Code unavailable
+                  </Text>
+                </Flex>
               )}
             </Box>
           </Flex>
