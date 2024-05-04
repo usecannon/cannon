@@ -13,7 +13,6 @@ import {
 } from '@chakra-ui/react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
-import { useRouter } from 'next/navigation';
 import { CodePreview } from '@/components/CodePreview';
 import { useQueryIpfsData } from '@/hooks/ipfs';
 import { DownloadIcon, InfoOutlineIcon } from '@chakra-ui/icons';
@@ -92,8 +91,6 @@ export const CodeExplorer: FC<{
     sm: true,
     md: false,
   });
-
-  const router = useRouter();
 
   const [selectedCode, setSelectedCode] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('');
