@@ -590,7 +590,8 @@ export const CodeExplorer: FC<{
                   p={4}
                 >
                   <Text color="gray.400">
-                    <InfoOutlineIcon transform="translateY(-1px)" /> Code unavailable
+                    <InfoOutlineIcon transform="translateY(-1px)" /> Code
+                    unavailable
                   </Text>
                 </Flex>
               )}
