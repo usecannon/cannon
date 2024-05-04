@@ -1,7 +1,20 @@
 import axios from 'axios';
 
+export const getSearch = async ({ queryKey }: { queryKey: any[] }) => {
+  const [, searchTerm] = queryKey;
+  try {
+    const response = await axios.get('https://api.usecannon.com/search', {
+      params: {
+        query: searchTerm,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to fetch packages', error as Error);
+  }
+};
+
 export const getPackages = async ({ queryKey }: { queryKey: any[] }) => {
-  // queryKey[1] is searchTerm, queryKey[2] is selectedChains
   const [, searchTerm, selectedChains, types] = queryKey;
   try {
     const response = await axios.get('https://api.usecannon.com/search', {
@@ -11,7 +24,7 @@ export const getPackages = async ({ queryKey }: { queryKey: any[] }) => {
         types,
       },
     });
-    return response.data; // Assuming the API returns data directly
+    return response.data;
   } catch (error) {
     throw new Error('Failed to fetch packages', error as Error);
   }
@@ -20,14 +33,13 @@ export const getPackages = async ({ queryKey }: { queryKey: any[] }) => {
 export const getChains = async () => {
   try {
     const response = await axios.get('https://api.usecannon.com/chains');
-    return response.data; // Assuming the API returns data directly
+    return response.data;
   } catch (error) {
     throw new Error('Failed to fetch chains', error as Error);
   }
 };
 
 export const getPackage = async ({ queryKey }: { queryKey: any[] }) => {
-  // queryKey[1] is name
   const [, name] = queryKey;
   try {
     const response = await axios.get('https://api.usecannon.com/packages/' + name);

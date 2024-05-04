@@ -3,8 +3,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { Box, Link, Text } from '@chakra-ui/react';
 
 type PublishInfo = {
-  last_updated: number;
-  last_publisher?: string;
+  timestamp: number;
+  publisher?: string;
 };
 
 const PublishInfo: FC<{
@@ -13,17 +13,17 @@ const PublishInfo: FC<{
 }> = ({ p, lineBreak = false }) => {
   const timeAgo = useMemo(
     () =>
-      formatDistanceToNow(new Date(p.last_updated * 1000), {
+      formatDistanceToNow(new Date(p.timestamp * 1000), {
         addSuffix: true,
       }),
-    [p.last_updated]
+    [p.timestamp]
   );
 
   return (
     <Box>
       <Text color="gray.300" fontSize="xs" fontFamily="mono">
-        {!p.last_publisher && 'last'} published
-        {p.last_publisher && (
+        {!p.publisher && 'last'} published
+        {p.publisher && (
           <>
             {' '}
             by{' '}
@@ -32,11 +32,9 @@ const PublishInfo: FC<{
               styleConfig={{ 'text-decoration': 'none' }}
               borderBottom="1px dotted"
               borderBottomColor="gray.300"
-              href={`https://etherscan.io/address/${p.last_publisher}`}
+              href={`https://etherscan.io/address/${p.publisher}`}
             >
-              {`${p.last_publisher.substring(0, 6)}...${p.last_publisher.slice(
-                -4
-              )}`}
+              {`${p.publisher.substring(0, 6)}...${p.publisher.slice(-4)}`}
             </Link>
           </>
         )}

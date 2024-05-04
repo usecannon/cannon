@@ -1,8 +1,6 @@
 'use client';
 
 import { FC, ReactNode, useEffect, useState, createContext } from 'react';
-import { GET_PACKAGE } from '@/graphql/queries';
-import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
 import { useQueryIpfsData } from '@/hooks/ipfs';
 import {
   Box,
@@ -21,6 +19,8 @@ import { CustomSpinner } from '@/components/CustomSpinner';
 import { ChainArtifacts } from '@usecannon/builder';
 import { getOutput } from '@/lib/builder';
 import { usePathname, useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import { getPackage } from '@/helpers/api';
 
 type Option = {
   moduleName: string;
@@ -36,8 +36,11 @@ export const InteractTab: FC<{
   variant: string;
   children?: ReactNode;
 }> = ({ name, tag, variant, children }) => {
-  const { data } = useQueryCannonSubgraphData<any, any>(GET_PACKAGE, {
-    variables: { name },
+  const [chainId, preset] = variant.split('-');
+
+  const packagesQuery = useQuery({
+    queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],
+    queryFn: getPackage,
   });
 
   const pathName = usePathname();
@@ -56,18 +59,9 @@ export const InteractTab: FC<{
 
   const router = useRouter();
 
-  const [pkg, setPackage] = useState<any | null>(null);
   const [highlightedOptions, setHighlightedOptions] = useState<Option[]>([]);
   const [otherOptions, setOtherOptions] = useState<Option[]>([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-
-  useEffect(() => {
-    if (data?.packages[0]) setPackage(data?.packages[0]);
-  }, [data]);
-
-  const currentVariant = pkg?.variants.find(
-    (v: any) => v.name === variant && v.tag.name === tag
-  );
 
   const selectContract = (contract: Option) => {
     void router.push(
@@ -86,8 +80,8 @@ export const InteractTab: FC<{
   };
 
   const deploymentData = useQueryIpfsData(
-    currentVariant?.deploy_url,
-    !!currentVariant?.deploy_url
+    packagesQuery?.data?.data.deployUrl,
+    !!packagesQuery?.data?.data.deployUrl
   );
 
   useEffect(() => {
@@ -181,6 +175,10 @@ export const InteractTab: FC<{
   }, [deploymentData.data]);
 
   const hasSubnav = otherOptions.length > 0 || highlightedOptions.length > 1;
+
+  if (packagesQuery.isPending || deploymentData.isLoading) {
+    return <CustomSpinner m="auto" />;
+  }
 
   return (
     <HasSubnavContext.Provider value={hasSubnav}>
@@ -344,12 +342,7 @@ export const InteractTab: FC<{
           )}
         </Flex>
       )}
-
-      {currentVariant && !deploymentData.isLoading ? (
-        <Box>{children}</Box>
-      ) : (
-        <CustomSpinner m="auto" />
-      )}
+      <Box>{children}</Box>
     </HasSubnavContext.Provider>
   );
 };

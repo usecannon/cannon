@@ -1,9 +1,7 @@
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { Abi } from '@/features/Packages/Abi';
-import { GET_PACKAGE } from '@/graphql/queries';
 import chains from '@/helpers/chains';
 import { useQueryIpfsData } from '@/hooks/ipfs';
-import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
 import { getOutput } from '@/lib/builder';
 import {
   Box,
@@ -20,6 +18,8 @@ import { FC, useContext, useEffect, useState } from 'react';
 import { Address } from 'viem';
 import { HasSubnavContext } from './Tabs/InteractTab';
 import QueueDrawer from '@/features/Deploy/QueueDrawer';
+import { useQuery } from '@tanstack/react-query';
+import { getPackage } from '@/helpers/api';
 
 export const Interact: FC<{
   name: string;
@@ -30,33 +30,28 @@ export const Interact: FC<{
   contractAddress: Address;
 }> = ({ name, tag, variant, moduleName, contractName, contractAddress }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { data } = useQueryCannonSubgraphData<any, any>(GET_PACKAGE, {
-    variables: { name },
+
+  const [chainId, preset] = variant.split('-');
+
+  const packagesQuery = useQuery({
+    queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],
+    queryFn: getPackage,
   });
 
-  const [pkg, setPackage] = useState<any | null>(null);
   const [cannonOutputs, setCannonOutputs] = useState<ChainArtifacts>({});
   const [contract, setContract] = useState<ContractData | undefined>();
 
-  useEffect(() => {
-    if (data?.packages[0]) setPackage(data?.packages[0]);
-  }, [data]);
-
-  const currentVariant = pkg?.variants.find(
-    (v: any) => v.name === variant && v.tag.name === tag
-  );
-
-  const { data: ipfs, isLoading } = useQueryIpfsData(
-    currentVariant?.deploy_url,
-    !!currentVariant?.deploy_url
+  const deploymentData = useQueryIpfsData(
+    packagesQuery?.data?.data.deployUrl,
+    !!packagesQuery?.data?.data.deployUrl
   );
 
   useEffect(() => {
-    if (!ipfs) {
+    if (deploymentData.isPending) {
       return;
     }
 
-    const cannonOutputs: ChainArtifacts = getOutput(ipfs);
+    const cannonOutputs: ChainArtifacts = getOutput(deploymentData.data);
     setCannonOutputs(cannonOutputs);
 
     const findContract = (
@@ -93,9 +88,9 @@ export const Interact: FC<{
       }
     };
     findContract(cannonOutputs.contracts, name, cannonOutputs.imports);
-  }, [ipfs]);
+  }, [deploymentData.data]);
 
-  const deployUrl = `https://repo.usecannon.com/${currentVariant?.deploy_url.replace(
+  const deployUrl = `https://repo.usecannon.com/${packagesQuery.data.data.deployUrl.replace(
     'ipfs://',
     ''
   )}`;
@@ -103,100 +98,95 @@ export const Interact: FC<{
   const etherscanUrl =
     (
       Object.values(chains).find(
-        (chain) => chain.id === currentVariant?.chain_id
+        (chain) => chain.id === packagesQuery.data.data?.chainId
       ) as any
     )?.blockExplorers?.default?.url ?? 'https://etherscan.io';
 
-  const isSmall = useBreakpointValue({
-    base: true,
-    sm: true,
-    md: false,
-  });
+  const isMobile = useBreakpointValue([true, true, false]);
 
   const hasSubnav = useContext(HasSubnavContext);
 
+  if (packagesQuery.isPending || deploymentData.isPending) {
+    return (
+      <Box py="20" textAlign="center">
+        <CustomSpinner m="auto" />
+      </Box>
+    );
+  }
+
   return (
     <>
-      {isLoading ? (
-        <Box py="20" textAlign="center">
-          <CustomSpinner mx="auto" />
+      <Flex
+        position={{ md: 'sticky' }}
+        top={hasSubnav ? 65 : 0}
+        zIndex={3}
+        bg="gray.800"
+        p={2}
+        flexDirection={['column', 'column', 'row']}
+        alignItems={['flex-start', 'flex-start', 'center']}
+        borderBottom="1px solid"
+        borderColor="gray.600"
+      >
+        <Box py={2} px={[1, 1, 3]}>
+          <Heading display="inline-block" as="h4" size="md" mb={1.5}>
+            {contract?.contractName}
+          </Heading>
+          <Text color="gray.300" fontSize="xs" fontFamily="mono">
+            <Link
+              isExternal
+              styleConfig={{ 'text-decoration': 'none' }}
+              borderBottom="1px dotted"
+              borderBottomColor="gray.300"
+              href={`${etherscanUrl}/address/${contractAddress}`}
+            >
+              {isMobile
+                ? `${contractAddress.substring(0, 6)}...${contractAddress.slice(
+                    -4
+                  )}`
+                : contractAddress}
+            </Link>
+          </Text>
         </Box>
-      ) : (
-        <>
+        <Box p={1} ml={[0, 0, 'auto']}>
           <Flex
-            position={{ md: 'sticky' }}
-            top={hasSubnav ? 65 : 0}
-            zIndex={3}
-            bg="gray.800"
-            p={2}
-            flexDirection={['column', 'column', 'row']}
-            alignItems={['flex-start', 'flex-start', 'center']}
-            borderBottom="1px solid"
-            borderColor="gray.600"
+            justifyContent={['flex-start', 'flex-start', 'flex-end']}
+            flexDirection="column"
+            textAlign={['left', 'left', 'right']}
           >
-            <Box py={2} px={[1, 1, 3]}>
-              <Heading display="inline-block" as="h4" size="md" mb={1.5}>
-                {contract?.contractName}
-              </Heading>
-              <Text color="gray.300" fontSize="xs" fontFamily="mono">
-                <Link
-                  isExternal
-                  styleConfig={{ 'text-decoration': 'none' }}
-                  borderBottom="1px dotted"
-                  borderBottomColor="gray.300"
-                  href={`${etherscanUrl}/address/${contractAddress}`}
-                >
-                  {isSmall
-                    ? `${contractAddress.substring(
-                        0,
-                        6
-                      )}...${contractAddress.slice(-4)}`
-                    : contractAddress}
-                </Link>
-              </Text>
-            </Box>
-            <Box p={1} ml={[0, 0, 'auto']}>
-              <Flex
-                justifyContent={['flex-start', 'flex-start', 'flex-end']}
-                flexDirection="column"
-                textAlign={['left', 'left', 'right']}
+            <Text fontSize="xs" color="gray.200" display="inline" mb={0.5}>
+              via{' '}
+              <Code fontSize="xs" color="gray.200" pr={0} pl={0.5}>
+                {moduleName}
+              </Code>
+            </Text>
+            <Text color="gray.300" fontSize="xs" fontFamily="mono">
+              <Link
+                isExternal
+                styleConfig={{ 'text-decoration': 'none' }}
+                borderBottom="1px dotted"
+                borderBottomColor="gray.300"
+                href={deployUrl}
               >
-                <Text fontSize="xs" color="gray.200" display="inline" mb={0.5}>
-                  via{' '}
-                  <Code fontSize="xs" color="gray.200" pr={0} pl={0.5}>
-                    {moduleName}
-                  </Code>
-                </Text>
-                <Text color="gray.300" fontSize="xs" fontFamily="mono">
-                  <Link
-                    isExternal
-                    styleConfig={{ 'text-decoration': 'none' }}
-                    borderBottom="1px dotted"
-                    borderBottomColor="gray.300"
-                    href={deployUrl}
-                  >
-                    {isSmall
-                      ? `${currentVariant?.deploy_url.substring(
-                          0,
-                          13
-                        )}...${currentVariant?.deploy_url.slice(-4)}`
-                      : currentVariant?.deploy_url}
-                  </Link>
-                </Text>
-              </Flex>
-            </Box>
+                {isMobile
+                  ? `${packagesQuery.data.data.deployUrl.substring(
+                      0,
+                      13
+                    )}...${packagesQuery.data.data?.deployUrl.slice(-4)}`
+                  : packagesQuery.data.data?.deployUrl}
+              </Link>
+            </Text>
           </Flex>
-          <Abi
-            abi={contract?.abi}
-            contractSource={contract?.sourceName}
-            address={contractAddress}
-            cannonOutputs={cannonOutputs}
-            chainId={currentVariant?.chain_id}
-            onDrawerOpen={onOpen}
-          />
-          <QueueDrawer isOpen={isOpen} onClose={onClose} onOpen={onOpen} />
-        </>
-      )}
+        </Box>
+      </Flex>
+      <Abi
+        abi={contract?.abi}
+        contractSource={contract?.sourceName}
+        address={contractAddress}
+        cannonOutputs={cannonOutputs}
+        chainId={packagesQuery.data.data?.chainId}
+        onDrawerOpen={onOpen}
+      />
+      <QueueDrawer isOpen={isOpen} onClose={onClose} onOpen={onOpen} />
     </>
   );
 };
