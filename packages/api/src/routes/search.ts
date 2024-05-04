@@ -14,6 +14,7 @@ export interface SearchResponse {
   query: string;
   isAddress: boolean;
   isTx: boolean;
+  isHex: boolean;
   isPackageRef: boolean;
   isContractName: boolean;
   isFunctionSelector: boolean;
@@ -41,6 +42,7 @@ search.get('/search', async (req, res) => {
     query,
     isAddress: viem.isAddress(query),
     isTx: viem.isHash(query),
+    isHex: !viem.isHash(query) && viem.isHex(query),
     isPackageRef: isPartialPackageRef(query),
     isContractName: isContractName(query),
     isFunctionSelector: isFunctionSelector(query),
@@ -63,6 +65,16 @@ search.get('/search', async (req, res) => {
     });
 
     _pushResults(response, result);
+  } else if (response.isHex) {
+    if (query.length >= 10) {
+      const selector = query.slice(0, 10);
+      const result = await findFunctionsBySelector({
+        selector: selector as viem.Hex,
+        limit: 20,
+      });
+
+      _pushResults(response, result);
+    }
   } else if (response.isFunctionSelector) {
     const result = await findFunctionsBySelector({
       selector: query as viem.Hex,
