@@ -40,7 +40,6 @@ export const VersionSelect: FC<{
         _hover={{ bg: 'gray.900', borderColor: 'gray.500' }}
       >
         <Flex gap={1} alignItems="baseline">
-          {pkg?.tag}
           <Text fontSize="xs" color="gray.500" letterSpacing={'-0.3px'} mr={1}>
             {pkg?.preset}
           </Text>
