@@ -157,7 +157,7 @@ export const Function: FC<{
   };
 
   const statusIcon = result ? (
-    <Box display="inline-block" mr={3}>
+    <Box display="inline-block" mx={1}>
       {error ? (
         <WarningIcon color="red.700" />
       ) : (
@@ -338,6 +338,7 @@ export const Function: FC<{
                 variant="outline"
                 size="xs"
                 mr={3}
+                mb={3}
                 onClick={() => {
                   void submit(false);
                 }}
@@ -356,6 +357,7 @@ export const Function: FC<{
                   variant="outline"
                   size="xs"
                   mr={3}
+                  mb={3}
                   onClick={() => {
                     void submit(false, true);
                   }}
@@ -371,6 +373,7 @@ export const Function: FC<{
                   variant="outline"
                   size="xs"
                   mr={3}
+                  mb={3}
                   onClick={() => {
                     void submit(false);
                   }}
@@ -385,6 +388,7 @@ export const Function: FC<{
                   variant="outline"
                   size="xs"
                   mr={3}
+                  mb={3}
                   onClick={handleQueueTransaction}
                 >
                   Stage to Safe
