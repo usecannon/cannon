@@ -8,6 +8,8 @@ import * as multicallForwarder from '../../helpers/trusted-multicall-forwarder';
 
 export default function WithSafe({ children }: { children: ReactNode }) {
   const currentSafe = useStore((s) => s.currentSafe);
+  // Uncomment the following line to use test with local network
+  // const currentSafe = { chainId: 31337 };
   const { isConnected } = useAccount();
 
   const onchainStoreBytecode = useBytecode({
@@ -27,6 +29,12 @@ export default function WithSafe({ children }: { children: ReactNode }) {
   const isLoadingNetworkPrepared =
     onchainStoreBytecode.isPending || multicallForwarderBytecode.isPending;
 
+  const handleNetworkPrepared = async () => {
+    // Refresh bytecode
+    await onchainStoreBytecode.refetch();
+    await multicallForwarderBytecode.refetch();
+  };
+
   return (
     <Flex direction="column" flex="1">
       {currentSafe ? (
@@ -35,7 +43,7 @@ export default function WithSafe({ children }: { children: ReactNode }) {
         ) : isNetworkPrepared ? (
           children
         ) : (
-          <PrepareNetwork />
+          <PrepareNetwork onNetworkPrepared={handleNetworkPrepared} />
         )
       ) : (
         <Flex

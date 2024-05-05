@@ -17,6 +17,7 @@ import {
   useAccount,
   useSwitchChain,
 } from 'wagmi';
+import { useStore } from '@/helpers/store';
 import * as onchainStore from '../../helpers/onchain-store';
 import * as multicallForwarder from '../../helpers/trusted-multicall-forwarder';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
@@ -26,11 +27,17 @@ import { useConnectModal } from '@rainbow-me/rainbowkit';
 const ARACHNID_CREATOR = '0x3fab184622dc19b6109349b94811493bf2a45362';
 const DETERMINISTIC_DEPLOYER = '0x4e59b44847b379578588920ca78fbf26c0b4956c';
 
-export default function PrepareNetwork() {
+export default function PrepareNetwork({
+  onNetworkPrepared,
+}: {
+  onNetworkPrepared: () => void;
+}) {
   const { isConnected, chainId } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { switchChain } = useSwitchChain();
-  const currentSafe = { chainId: 31337 }; //useStore((s) => s.currentSafe);
+  const currentSafe = useStore((s) => s.currentSafe);
+  // Uncomment the following line to use test with local network
+  // const currentSafe = { chainId: 31337 };
   const toast = useToast();
 
   useEffect(() => {
@@ -38,8 +45,8 @@ export default function PrepareNetwork() {
       openConnectModal();
     }
 
-    if (chainId !== currentSafe.chainId) {
-      switchChain({ chainId: currentSafe.chainId });
+    if (chainId !== currentSafe?.chainId) {
+      switchChain({ chainId: currentSafe ? currentSafe.chainId : 1 });
     }
   }, [openConnectModal, isConnected, chainId]);
 
@@ -157,6 +164,17 @@ export default function PrepareNetwork() {
       deployMulticallForwarder.data as any
     );
   };
+
+  // Check if all contracts are deployed, then call onNetworkPrepared
+  useEffect(() => {
+    if (
+      arachnidDeployed &&
+      onchainStoreDeployed &&
+      multicallForwarderDeployed
+    ) {
+      onNetworkPrepared();
+    }
+  }, [arachnidDeployed, onchainStoreDeployed, multicallForwarderDeployed]);
 
   return (
     <Flex height="100%" bg="black">
