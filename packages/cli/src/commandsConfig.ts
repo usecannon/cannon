@@ -460,6 +460,57 @@ const commandsConfig = {
       },
     ],
   },
+  unpublish: {
+    description: 'Unpublish a Cannon package to the registry',
+    arguments: [
+      {
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the Cannon package to unpublish (name:version@preset)',
+      },
+    ],
+    options: [
+      {
+        flags: '-n --registry-provider-url [url]',
+        description: 'RPC endpoint to unpublish to',
+      },
+      {
+        flags: '--registry-chain-id <number>',
+        description: 'Registry chain id to unpublish to',
+      },
+      {
+        flags: '--registry-address <address>',
+        description: 'Registry address to unpublish to',
+      },
+      {
+        flags: '--private-key <key>',
+        description: 'Private key of the package owner',
+      },
+      {
+        flags: '--chain-id <number>',
+        description: 'The chain ID of the package to unpublish',
+      },
+      {
+        flags: '-t --tags <tags>',
+        description: 'Comma separated list of labels for your package',
+      },
+      {
+        flags: '--gas-limit <gasLimit>',
+        description: 'The maximum units of gas spent for the registration transaction',
+      },
+      {
+        flags: '--value <value>',
+        description: 'Value in wei to send with the transaction',
+      },
+      {
+        flags: '--max-fee-per-gas <maxFeePerGas>',
+        description: 'The maximum value (in gwei) for the base fee when submitting the registry transaction',
+      },
+      {
+        flags: '--max-priority-fee-per-gas <maxPriorityFeePerGas>',
+        description: 'The maximum value (in gwei) for the miner tip when submitting the registry transaction',
+      },
+    ],
+  },
   register: {
     description: 'Register a Cannon package on the main registry',
     arguments: [

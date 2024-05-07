@@ -226,7 +226,7 @@ interface PackageData {
   name: string;
   tags: string[];
   variant: string;
-  url: string;
+  url?: string;
   metaUrl?: string;
 }
 
@@ -296,7 +296,7 @@ export class OnChainRegistry extends CannonRegistry {
     }
   }
 
-  private _preparePackageData(packagesNames: string[], chainId: number, url: string, metaUrl?: string): PackageData {
+  private _preparePackageData(packagesNames: string[], chainId: number, url?: string, metaUrl?: string): PackageData {
     const refs = packagesNames.map((name) => new PackageReference(name));
 
     // Sanity check, all package definitions should have the same name
@@ -317,8 +317,13 @@ export class OnChainRegistry extends CannonRegistry {
     if (preset !== PackageReference.DEFAULT_PRESET) {
       console.log(`Preset: ${preset}`);
     }
+
     console.log(`Tags: ${tags.join(', ')}`);
-    console.log(`Package URL: ${url}`);
+
+    if (url) {
+      console.log(`Package URL: ${url}`);
+    }
+
     if (metaUrl) {
       console.log(`Metadata URL: ${metaUrl}`);
     }
@@ -326,6 +331,47 @@ export class OnChainRegistry extends CannonRegistry {
     console.log('\n');
 
     return { name, variant, tags, url, metaUrl };
+  }
+
+  private async _unpublishPackages(packages: PackageData[]): Promise<string> {
+    if (!this.signer || !this.provider) {
+      throw new Error('Missing signer for executing registry operations');
+    }
+
+    debug('signer', this.signer);
+
+    const txs: TxData[] = packages.map((data) => ({
+      abi: this.contract.abi,
+      address: this.contract.address,
+      functionName: 'unpublish',
+      value: BigInt(0),
+      args: [
+        viem.stringToHex(data.name, { size: 32 }),
+        viem.stringToHex(data.variant, { size: 32 }),
+        data.tags.map((t) => viem.stringToHex(t, { size: 32 })),
+      ],
+    }));
+
+    const txData = txs.length === 1 ? txs[0] : prepareMulticall(txs);
+
+    const simulatedGas = await this.provider.estimateContractGas({
+      ...txData,
+      account: this.signer.wallet.account || this.signer.address,
+      ...this.overrides,
+    });
+
+    await this._logEstimatedGas(simulatedGas);
+
+    const tx = await this.provider.simulateContract({
+      ...txData,
+      account: this.signer.wallet.account || this.signer.address,
+      ...this.overrides,
+    });
+
+    const hash = await this.signer.wallet.writeContract(tx.request as any);
+    const receipt = await this.provider.waitForTransactionReceipt({ hash });
+
+    return receipt.transactionHash;
   }
 
   private async _publishPackages(packages: PackageData[]): Promise<string> {
@@ -402,6 +448,18 @@ export class OnChainRegistry extends CannonRegistry {
     console.log(bold(blueBright('\nPublishing packages to the registry on-chain...\n')));
     const packageDatas = toPublish.map((p) => this._preparePackageData(p.packagesNames, p.chainId, p.url, p.metaUrl));
     return [await this._publishPackages(packageDatas)];
+  }
+
+  async unpublish(packagesNames: string[], chainId: number): Promise<string[]> {
+    console.log(bold(blueBright('\nUnpublishing package to the registry on-chain...\n')));
+    const packageData = this._preparePackageData(packagesNames, chainId);
+    return [await this._unpublishPackages([packageData])];
+  }
+
+  async unpublishMany(toUnpublish: { name: string[]; chainId: number }[]): Promise<string[]> {
+    console.log(bold(blueBright('\nUnpublishing packages to the registry on-chain...\n')));
+    const packageDatas = toUnpublish.map((p) => this._preparePackageData(p.name, p.chainId));
+    return [await this._unpublishPackages(packageDatas)];
   }
 
   async getUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
