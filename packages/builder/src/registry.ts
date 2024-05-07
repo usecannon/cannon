@@ -383,11 +383,13 @@ export class OnChainRegistry extends CannonRegistry {
 
     const ownerAddress = this.signer.wallet.account?.address || this.signer.address;
 
+    const publishFee = await this.getPublishFee();
+
     const txs: TxData[] = packages.map((data) => ({
       abi: this.contract.abi,
       address: this.contract.address,
       functionName: 'publish',
-      value: BigInt(0),
+      value: publishFee,
       args: [
         viem.stringToHex(data.name, { size: 32 }),
         viem.stringToHex(data.variant, { size: 32 }),
@@ -620,6 +622,20 @@ export class OnChainRegistry extends CannonRegistry {
     return registerFee;
   }
 
+  async getPublishFee() {
+    if (!this.provider) {
+      throw new Error('Missing provider for executing registry operations');
+    }
+
+    const publishFee = (await this.provider.readContract({
+      abi: this.contract.abi,
+      address: this.contract.address,
+      functionName: 'publishFee',
+    })) as bigint;
+
+    return publishFee;
+  }
+
   async setPackageOwnership(packageName: string, packageOwner?: viem.Address) {
     if (!this.signer || !this.provider) {
       throw new Error('Missing signer for executing registry operations');
@@ -662,8 +678,8 @@ export class OnChainRegistry extends CannonRegistry {
       ...this.overrides,
     };
 
-    // increase the gas limit by 10% the estimated gas
-    params.gas = (simulatedGas * BigInt(10)) / BigInt(9);
+    // increase the gas limit by 20% the estimated gas
+    params.gas = (simulatedGas * BigInt(120)) / BigInt(100);
 
     await this._logEstimatedGas(params.gas);
 
@@ -698,8 +714,8 @@ export class OnChainRegistry extends CannonRegistry {
     const simulatedGas = await this.provider.estimateContractGas(params as any);
     const userBalance = await this.provider.getBalance({ address: this.signer.address });
 
-    // increase the gas limit by 10% the estimated gas
-    params.gas = (simulatedGas * BigInt(10)) / BigInt(9);
+    // increase the gas limit by 20% the estimated gas
+    params.gas = (simulatedGas * BigInt(120)) / BigInt(100);
 
     await this._logEstimatedGas(params.gas);
 
