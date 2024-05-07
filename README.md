@@ -10,7 +10,6 @@ For more information, please see documentation in the modules listed below:
 - [`builder`](packages/builder): Builds chain data from cannonfiles. (This is used by the CLI.)
 - [`hardhat-cannon`](packages/hardhat-cannon): Code for the Hardhat plug-in, which wraps the CLI functionality with defaults pulled from a Hardhat project configuration.
 - [`registry`](packages/registry): The smart contract for the package registry.
-- [`registry-subgraph`](packages/registry-subgraph): Indexes the registry contract onto The Graph for display on the website.
 - [`website`](packages/website): The website, hosted at https://usecannon.com
 
 Usage Examples:

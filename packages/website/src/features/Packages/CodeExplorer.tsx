@@ -80,12 +80,22 @@ const PackageButton: FC<{
 };
 
 export const CodeExplorer: FC<{
-  variant: any;
+  pkg: any;
   name: string;
-  moduleName: string;
+  moduleName?: string;
   source: string;
   functionName?: string;
-}> = ({ variant, name, moduleName, source, functionName }) => {
+}> = ({ pkg, name, moduleName, source, functionName }) => {
+  const isSmall = useBreakpointValue({
+    base: true,
+    sm: true,
+    md: false,
+  });
+
+  const [selectedCode, setSelectedCode] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState('');
+  const [selectedKey, setSelectedKey] = useState('');
+  const [selectedLine, setSelectedLine] = useState<undefined | number>();
   // For the main package, the key is -1
   const [selectedPackage, setSelectedPackage] = useState<{
     name: string;
@@ -94,15 +104,9 @@ export const CodeExplorer: FC<{
     name,
     key: -1,
   });
-  const { data: metadata } = useQueryIpfsData(
-    variant?.meta_url,
-    !!variant?.meta_url
-  );
+  const { data: metadata } = useQueryIpfsData(pkg?.metaUrl, !!pkg?.metaUrl);
 
-  const deploymentData = useQueryIpfsData(
-    variant?.deploy_url,
-    !!variant?.deploy_url
-  );
+  const deploymentData = useQueryIpfsData(pkg?.deployUrl, !!pkg?.deployUrl);
 
   // Provisioned packages could be inside the "provision" (old) or "clone" (current) key
   // So we check both in order to keep backwards compatibility
@@ -192,7 +196,7 @@ export const CodeExplorer: FC<{
         return {
           key,
           value,
-          sources: JSON.parse(value.source.input).sources,
+          sources: value.source ? JSON.parse(value.source.input).sources : [],
         };
       });
 
@@ -230,13 +234,12 @@ export const CodeExplorer: FC<{
             setSelectedLine(line);
             urlParams.append('function', functionName);
           }
-
           window.history.pushState(
             null,
             '',
-            `/packages/${name}/${variant.tag.name}/${variant.name}/code/${
-              selectedPackage.name
-            }?${urlParams.toString()}`
+            `/packages/${name}/${pkg.version}/${pkg.chainId}-${
+              pkg.preset
+            }/code/${selectedPackage.name}?${urlParams.toString()}`
           );
           return;
         }
@@ -257,18 +260,34 @@ export const CodeExplorer: FC<{
             })
           : [];
 
-        const [sourceKey, sourceValue] = sortedSources[0];
-        setSelectedCode((sourceValue as any)?.content);
-        setSelectedLanguage('sol');
-        setSelectedKey(sourceKey);
+        if (sortedSources.length) {
+          const [sourceKey, sourceValue] = sortedSources[0];
+          setSelectedCode((sourceValue as any)?.content);
+          setSelectedLanguage('sol');
+          setSelectedKey(sourceKey);
 
-        window.history.pushState(
-          null,
-          '',
-          `/packages/${name}/${variant.tag.name}/${variant.name}/code/${
-            selectedPackage.name
-          }?source=${encodeURIComponent(sourceKey)}`
-        );
+          window.history.pushState(
+            null,
+            '',
+            `/packages/${name}/${pkg.version}/${pkg.chainId}-${
+              pkg.preset
+            }/code/${selectedPackage.name}?source=${encodeURIComponent(
+              sourceKey
+            )}`
+          );
+        } else {
+          setSelectedCode('');
+          setSelectedLanguage('');
+          setSelectedKey('');
+
+          /*
+          window.history.pushState(
+            null,
+            '',
+            `/packages/${name}/${pkg.version}/${pkg.chainId}-${pkg.preset}/code/${selectedPackage.name}`
+          );
+          */
+        }
       }
     }
   }, [
@@ -279,17 +298,6 @@ export const CodeExplorer: FC<{
     isLoadingProvisionedMiscData,
     functionName,
   ]);
-
-  const isSmall = useBreakpointValue({
-    base: true,
-    sm: true,
-    md: false,
-  });
-
-  const [selectedCode, setSelectedCode] = useState('');
-  const [selectedLanguage, setSelectedLanguage] = useState('');
-  const [selectedKey, setSelectedKey] = useState('');
-  const [selectedLine, setSelectedLine] = useState<undefined | number>();
 
   const artifacts =
     // If the selected package is the main package, use the misc data
@@ -312,6 +320,23 @@ export const CodeExplorer: FC<{
     }
   }, [moduleName, source, availablePackages.length, deploymentData?.isLoading]);
 
+  // Select the first provisioned package if the main package has no code
+  useEffect(() => {
+    if (deploymentData.isLoading) return;
+    if (
+      !artifacts?.length &&
+      provisionedPackagesKeys.length &&
+      selectedPackage.key === -1
+    ) {
+      setSelectedPackage(availablePackages[1]);
+    }
+  }, [
+    artifacts?.length,
+    provisionedPackagesKeys?.length,
+    deploymentData?.isLoading,
+    selectedPackage.key,
+  ]);
+
   const handleSelectFile = (sourceKey: string, sourceValue: any) => {
     // We can have these lines to keep SPA navigation
     setSelectedCode(sourceValue.content);
@@ -321,7 +346,7 @@ export const CodeExplorer: FC<{
     window.history.pushState(
       null,
       '',
-      `/packages/${name}/${variant.tag.name}/${variant.name}/code/${
+      `/packages/${name}/${pkg.version}/${pkg.name}/code/${
         selectedPackage.name
       }?source=${encodeURIComponent(sourceKey)}`
     );
@@ -337,7 +362,7 @@ export const CodeExplorer: FC<{
     <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
       {isLoading ? (
         <CustomSpinner m="auto" />
-      ) : artifacts?.length ? (
+      ) : artifacts?.length || provisionedPackagesKeys.length ? (
         <>
           {!!provisionedPackagesKeys.length && (
             <Flex
@@ -544,14 +569,31 @@ export const CodeExplorer: FC<{
               maxHeight={['none', 'none', 'calc(100vh - 236px)']}
               background="gray.800"
             >
-              {/* Make sure code preview is not rendered if function name exists but no selected line is set yet */}
-              {!selectedLine && functionName ? null : (
-                <CodePreview
-                  code={selectedCode}
-                  language={selectedLanguage}
+              {selectedCode.length ? (
+                <>
+                  {/* Make sure code preview is not rendered if function name exists but no selected line is set yet */}
+                  {!selectedLine && functionName ? null : (
+                    <CodePreview
+                      code={selectedCode}
+                      language={selectedLanguage}
+                      height="100%"
+                      line={selectedLine}
+                    />
+                  )}
+                </>
+              ) : (
+                <Flex
+                  flex="1"
                   height="100%"
-                  line={selectedLine}
-                />
+                  alignItems="center"
+                  justifyContent="center"
+                  p={4}
+                >
+                  <Text color="gray.400">
+                    <InfoOutlineIcon transform="translateY(-1px)" /> Code
+                    unavailable
+                  </Text>
+                </Flex>
               )}
             </Box>
           </Flex>

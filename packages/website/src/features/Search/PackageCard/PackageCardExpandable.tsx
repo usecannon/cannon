@@ -1,6 +1,5 @@
 import { LinkIcon } from '@chakra-ui/icons';
 import PackageTable from './PackageTable';
-import { Package } from '@/types/graphql/graphql';
 import {
   Box,
   Flex,
@@ -13,7 +12,7 @@ import NextLink from 'next/link';
 import { FC } from 'react';
 
 interface IPackageCardProps {
-  pkgs: Package[];
+  pkgs: any[];
   maxHeight?: string;
 }
 

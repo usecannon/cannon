@@ -2,7 +2,12 @@ import { CustomSpinner } from '@/components/CustomSpinner';
 import { FunctionInput } from '@/features/Packages/FunctionInput';
 import { FunctionOutput } from '@/features/Packages/FunctionOutput';
 import { useContractCall, useContractTransaction } from '@/hooks/ethereum';
-import { CheckCircleIcon, WarningIcon } from '@chakra-ui/icons';
+import {
+  CheckCircleIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  WarningIcon,
+} from '@chakra-ui/icons';
 import { FaCode } from 'react-icons/fa6';
 import {
   Alert,
@@ -37,7 +42,6 @@ import {
 } from 'wagmi';
 import { usePathname } from 'next/navigation';
 import { useQueueTxsStore, useStore } from '@/helpers/store';
-import { HiArrowNarrowRight, HiArrowNarrowDown } from 'react-icons/hi';
 
 export const Function: FC<{
   f: AbiFunction;
@@ -157,7 +161,7 @@ export const Function: FC<{
   };
 
   const statusIcon = result ? (
-    <Box display="inline-block" mr={3}>
+    <Box display="inline-block" mx={1}>
       {error ? (
         <WarningIcon color="red.700" />
       ) : (
@@ -291,7 +295,7 @@ export const Function: FC<{
                   _hover={{ textDecoration: 'underline' }}
                   href={getCodeUrl(f.name)}
                 >
-                  <FaCode color="#fff" />
+                  <FaCode color="gray.300" />
                 </Link>
               )}
             </Heading>
@@ -338,6 +342,7 @@ export const Function: FC<{
                 variant="outline"
                 size="xs"
                 mr={3}
+                mb={3}
                 onClick={() => {
                   void submit(false);
                 }}
@@ -356,6 +361,7 @@ export const Function: FC<{
                   variant="outline"
                   size="xs"
                   mr={3}
+                  mb={3}
                   onClick={() => {
                     void submit(false, true);
                   }}
@@ -371,6 +377,7 @@ export const Function: FC<{
                   variant="outline"
                   size="xs"
                   mr={3}
+                  mb={3}
                   onClick={() => {
                     void submit(false);
                   }}
@@ -385,6 +392,7 @@ export const Function: FC<{
                   variant="outline"
                   size="xs"
                   mr={3}
+                  mb={3}
                   onClick={handleQueueTransaction}
                 >
                   Stage to Safe
@@ -470,16 +478,17 @@ export const Function: FC<{
         <Flex flexDirection="column">
           <Flex
             flexDirection="row"
-            px="2"
+            px="3"
             py="2"
             alignItems="center"
-            mb="1.5"
             justifyContent="space-between"
             border="1px solid"
             borderColor="gray.600"
-            borderTopRadius={'md'}
-            borderBottomRadius={isOpen ? 'none' : 'md'}
+            borderTopRadius={'sm'}
+            borderBottomRadius={isOpen ? 'none' : 'sm'}
             id={anchor}
+            onClick={onToggle}
+            cursor="pointer"
           >
             {f.name && (
               <Heading
@@ -496,8 +505,9 @@ export const Function: FC<{
                   color="gray.300"
                   ml={1}
                   textDecoration="none"
-                  _hover={{ textDecoration: 'underline' }}
+                  _hover={{ textDecoration: 'none' }}
                   href={anchor}
+                  onClick={(e) => e.stopPropagation()}
                 >
                   #
                 </Link>
@@ -506,22 +516,20 @@ export const Function: FC<{
                     color="gray.300"
                     ml={1}
                     textDecoration="none"
-                    _hover={{ textDecoration: 'underline' }}
+                    _hover={{ textDecoration: 'none' }}
                     href={getCodeUrl(f.name)}
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <FaCode color="#fff" />
+                    <FaCode color="gray.300" />
                   </Link>
                 )}
               </Heading>
             )}
-            <Button
-              onClick={onToggle}
-              variant="outline"
-              colorScheme="teal"
-              size="xs"
-            >
-              {isOpen ? <HiArrowNarrowDown /> : <HiArrowNarrowRight />}
-            </Button>
+            {isOpen ? (
+              <ChevronUpIcon boxSize="5" />
+            ) : (
+              <ChevronDownIcon boxSize="5" />
+            )}
           </Flex>
           {isOpen && renderFunctionContent()}
         </Flex>
