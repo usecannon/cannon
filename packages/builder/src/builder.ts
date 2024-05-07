@@ -438,8 +438,10 @@ export function addOutputsToContext(ctx: ChainBuilderContext, outputs: ChainArti
 // backawrds compatibility, settings was called "extras".
 function assignSettingsToExtras(ctx: ChainBuilderContext) {
   if (ctx.settings) {
-    if (!ctx.extras) ctx.extras = {};
-    Object.assign(ctx.extras, ctx.settings);
+    ctx.extras = {
+      ...(ctx.extras || {}),
+      ...ctx.settings,
+    };
   }
 
   for (const importCtx of Object.values(ctx.imports || {})) {
