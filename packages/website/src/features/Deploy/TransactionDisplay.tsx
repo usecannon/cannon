@@ -256,6 +256,7 @@ export function TransactionDisplay(props: {
             <DisplayedTransaction
               contracts={cannonInfo.contracts as any}
               txn={txn}
+              chainId={props.safe.chainId}
             />
           </Box>
         ))}
