@@ -12,6 +12,7 @@ import { useAccount, useChainId, useReadContract, useReadContracts, useSimulateC
 const SafeABI = SafeABIJSON as viem.Abi;
 
 export function useSafeTransactions(safe?: SafeDefinition) {
+  const [staged, setStaged] = useState<{ txn: SafeTransaction; sigs: string[] }[]>([]);
   const stagingUrl = useStore((s) => s.settings.stagingUrl);
 
   const stagedQuery = useQuery({
@@ -33,13 +34,18 @@ export function useSafeTransactions(safe?: SafeDefinition) {
   // since nonce can be 0, we need to check if the data is defined
   const nonceQueryIsLoaded = nonceQuery.data !== undefined && !nonceQuery.isFetching && !nonceQuery.isError;
 
-  const staged =
-    stagedQuery.data && nonceQueryIsLoaded
-      ? _.sortBy(
+  useEffect(() => {
+    if (stagedQuery.data && nonceQueryIsLoaded) {
+      setStaged(
+        _.sortBy(
           stagedQuery.data.data.filter((t: any) => t.txn._nonce >= (nonceQuery as any).data),
           'txn._nonce'
         )
-      : ([] as { txn: SafeTransaction; sigs: string[] }[]);
+      );
+    } else {
+      setStaged([]);
+    }
+  }, [stagedQuery.data, nonceQueryIsLoaded]);
 
   return {
     nonceQuery,
