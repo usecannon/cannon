@@ -63,7 +63,7 @@ export async function isVerified(address: string, apiUrl: string, apiKey: string
     const sourceCode = json.result[0]?.SourceCode;
     return sourceCode !== undefined && sourceCode !== null && sourceCode !== '';
   } catch (e) {
-    throw new Error(`Failed to send contract verification request: ${e.message}`);
+    throw new Error('Failed to check if contract is verified on Etherscan: ' + (e as Error).message);
   }
 }
 
