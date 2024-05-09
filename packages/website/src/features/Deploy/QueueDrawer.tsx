@@ -197,11 +197,11 @@ export const QueuedTxns = ({
                 key={i}
                 mb={8}
                 p={6}
-                bg="gray.900"
+                bg="gray.800"
                 display="block"
                 borderWidth="1px"
                 borderStyle="solid"
-                borderColor="gray.700"
+                borderColor="gray.600"
                 borderRadius="4px"
                 position="relative"
               >
@@ -469,10 +469,10 @@ const QueueDrawer = ({
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton mt={1} />
-          <DrawerHeader bg="gray.800">
+          <DrawerHeader bg="gray.700">
             Stage Transactions to a Safe
           </DrawerHeader>
-          <DrawerBody bg="gray.800" pt={4}>
+          <DrawerBody bg="gray.700" pt={4}>
             <Suspense fallback={<Spinner />}>
               <SafeAddressInput />
             </Suspense>
