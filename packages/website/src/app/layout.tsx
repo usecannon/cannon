@@ -6,6 +6,7 @@ import { Footer } from '@/features/Footer/Footer';
 import { Header } from '@/features/Header/Header';
 import { Flex } from '@chakra-ui/react';
 import { Analytics } from '@vercel/analytics/react';
+import NextTopLoader from 'nextjs-toploader';
 import { Inter, Miriam_Libre, Roboto_Mono } from 'next/font/google';
 import { ReactNode } from 'react';
 import { Providers } from './providers';
@@ -46,6 +47,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         `}
       </style>
       <body>
+        <NextTopLoader
+          color="#00A7CC"
+          shadow="0 0 10px #00A7CC,0 0 5px #00A7CC"
+          showSpinner={false}
+          height={1}
+        />
         <Providers>
           <Flex
             flexDirection="column"
