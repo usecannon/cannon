@@ -30,8 +30,11 @@ export function useSafeTransactions(safe?: SafeDefinition) {
     functionName: 'nonce',
   });
 
+  // since nonce can be 0, we need to check if the data is defined
+  const nonceQueryIsLoaded = nonceQuery.data !== undefined && !nonceQuery.isFetching && !nonceQuery.isError;
+
   const staged =
-    stagedQuery.data && nonceQuery.data
+    stagedQuery.data && nonceQueryIsLoaded
       ? _.sortBy(
           stagedQuery.data.data.filter((t: any) => t.txn._nonce >= (nonceQuery as any).data),
           'txn._nonce'
@@ -78,7 +81,8 @@ export function useTxnStager(
     gasPrice: txn.gasPrice || '0',
     gasToken: txn.gasToken || viem.zeroAddress,
     refundReceiver: querySafeAddress as any,
-    _nonce: txn._nonce || (staged.length ? _.last(staged).txn._nonce + 1 : Number(nonce || 0)),
+    // Since nonce can be 0, we need to check if the txn._nonce is defined with the nullish coalescing operator
+    _nonce: txn._nonce ?? (staged.length ? _.last(staged).txn._nonce + 1 : Number(nonce || 0)),
   };
 
   // try to match with an existing transaction
