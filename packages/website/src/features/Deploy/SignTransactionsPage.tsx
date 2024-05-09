@@ -36,7 +36,8 @@ function SignTransactions() {
           Sign & Execute Transactions
         </Heading>
         <Text color="gray.300">
-          Make sure you’re using the same <Link href="/settings">Safe Signature Collection Service</Link> as
+          Make sure you’re using the same{' '}
+          <Link href="/settings">Safe Signature Collection Service</Link> as
           other signers.
         </Text>
       </Box>
