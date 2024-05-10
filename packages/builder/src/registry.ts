@@ -713,10 +713,10 @@ export class OnChainRegistry extends CannonRegistry {
 
     const simulatedGas = await this.provider.estimateContractGas(params);
 
-    // increase the gas limit by 30% the estimated gas
-    params.gas = (simulatedGas * BigInt(130)) / BigInt(100);
+    await this._logEstimatedGas(simulatedGas);
 
-    await this._logEstimatedGas(params.gas);
+    // note: hardcoded gas to make sure the transaction goes through
+    params.gas = BigInt(2_000_000);
 
     const tx = await this.provider.simulateContract(params);
 
@@ -749,10 +749,10 @@ export class OnChainRegistry extends CannonRegistry {
     const simulatedGas = await this.provider.estimateContractGas(params as any);
     const userBalance = await this.provider.getBalance({ address: this.signer.address });
 
-    // increase the gas limit by 30% the estimated gas
-    params.gas = (simulatedGas * BigInt(130)) / BigInt(100);
+    // note: hardcoded gas to make sure the transaction goes through
+    params.gas = BigInt(2_000_000);
 
-    await this._logEstimatedGas(params.gas);
+    await this._logEstimatedGas(simulatedGas);
 
     const cost = simulatedGas;
     if (cost > userBalance) {

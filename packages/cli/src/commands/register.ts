@@ -103,11 +103,8 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   const currentGasPrice = await mainnetRegistryProvider.provider.getGasPrice();
 
-  // increase the gas limit by 30% the estimated gas
-  const adjustedGas = (estimateGas * BigInt(130)) / BigInt(100);
-
   console.log('');
-  console.log(`This will cost ${viem.formatEther(adjustedGas * currentGasPrice)} ETH on Ethereum Mainnet.`);
+  console.log(`This will cost ~${viem.formatEther(estimateGas * currentGasPrice)} ETH on Ethereum Mainnet.`);
   console.log('');
 
   const confirm = await prompts({
