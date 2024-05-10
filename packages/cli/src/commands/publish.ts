@@ -44,7 +44,7 @@ export async function publish({
   chainId,
   presetArg,
   quiet = false,
-  includeProvisioned = false,
+  includeProvisioned = true,
   skipConfirm = false,
 }: Params) {
   const { fullPackageRef } = new PackageReference(packageRef);
@@ -169,22 +169,26 @@ export async function publish({
           !curr.packagesNames.some((r) => {
             const { name } = new PackageReference(r);
             parentPackages.some((p) => name === p.name);
-          })
+          }) && !curr.packagesNames.includes(fullPackageRef)
         ) {
           acc.push(curr);
         }
         return acc;
       }, []);
 
+      if (subPackages.length == 0) {
+        console.log(yellow(`\nNo cloned/provisioned packages found, publishing parent packages only...`));
+      }
+
       parentPackages.forEach((deploy) => {
-        console.log(blueBright(`This will publish ${bold(deploy.name)} to the registry:`));
+        console.log(blueBright(`\nThis will publish ${bold(deploy.name)} to the registry:`));
         deploy.versions.concat(tags).map((version) => {
           console.log(` - ${version} (preset: ${deploy.preset})`);
         });
       });
       console.log('\n');
 
-      subPackages!.forEach((pkg: SubPackage, index) => {
+      subPackages.forEach((pkg: SubPackage, index) => {
         console.log(
           blueBright(
             `This will publish ${bold(new PackageReference(pkg.packagesNames[index]).name)} ${bold(
@@ -196,8 +200,8 @@ export async function publish({
           const { version, preset } = new PackageReference(pkgName);
           console.log(` - ${version} (preset: ${preset})`);
         });
+        console.log('\n')
       });
-      console.log('\n');
     } else {
       parentPackages.forEach((deploy) => {
         console.log(blueBright(`This will publish ${bold(deploy.name)}@${deploy.preset} to the registry:`));
