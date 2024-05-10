@@ -354,19 +354,17 @@ export class OnChainRegistry extends CannonRegistry {
 
     const txData = txs.length === 1 ? txs[0] : prepareMulticall(txs);
 
-    const simulatedGas = await this.provider.estimateContractGas({
+    const params = {
       ...txData,
       account: this.signer.wallet.account || this.signer.address,
       ...this.overrides,
-    });
+    };
+
+    const simulatedGas = await this.provider.estimateContractGas(params);
 
     await this._logEstimatedGas(simulatedGas);
 
-    const tx = await this.provider.simulateContract({
-      ...txData,
-      account: this.signer.wallet.account || this.signer.address,
-      ...this.overrides,
-    });
+    const tx = await this.provider.simulateContract(params);
 
     const hash = await this.signer.wallet.writeContract(tx.request as any);
     const receipt = await this.provider.waitForTransactionReceipt({ hash });
@@ -416,19 +414,17 @@ export class OnChainRegistry extends CannonRegistry {
 
     const txData = txs.length === 1 ? txs[0] : prepareMulticall(txs);
 
-    const simulatedGas = await this.provider.estimateContractGas({
+    const params = {
       ...txData,
       account: this.signer.wallet.account || this.signer.address,
       ...this.overrides,
-    });
+    };
+
+    const simulatedGas = await this.provider.estimateContractGas(params);
 
     await this._logEstimatedGas(simulatedGas);
 
-    const tx = await this.provider.simulateContract({
-      ...txData,
-      account: this.signer.wallet.account || this.signer.address,
-      ...this.overrides,
-    });
+    const tx = await this.provider.simulateContract(params);
 
     const hash = await this.signer.wallet.writeContract(tx.request as any);
     const receipt = await this.provider.waitForTransactionReceipt({ hash });
@@ -709,17 +705,13 @@ export class OnChainRegistry extends CannonRegistry {
 
     const txData = prepareMulticall(txs);
 
-    const simulatedGas = await this.provider.estimateContractGas({
-      ...txData,
-      account: this.signer.wallet.account || this.signer.address,
-      ...this.overrides,
-    });
-
     const params = {
       ...txData,
       account: this.signer.wallet.account || this.signer.address,
       ...this.overrides,
     };
+
+    const simulatedGas = await this.provider.estimateContractGas(params);
 
     // increase the gas limit by 30% the estimated gas
     params.gas = (simulatedGas * BigInt(130)) / BigInt(100);
