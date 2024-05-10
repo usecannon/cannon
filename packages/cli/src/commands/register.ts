@@ -88,6 +88,9 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   const registerFee = await mainnetRegistry.getRegisterFee();
 
+  // to migrate a package, we need to nominate the owner first
+  const shouldNominateOwner = isRegisteredOnMainnet && !isRegisteredOnOptimism;
+
   // Note: for some reason, estimate gas is not accurate
   // Note: if the user does not have enough gas, the estimateGasForSetPackageOwnership will throw an error
   const estimateGas = await mainnetRegistry.estimateGasForSetPackageOwnership(packageName, undefined, shouldNominateOwner);
@@ -115,9 +118,6 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   }
 
   console.log('Submitting transaction...');
-
-  // to migrate a package, we need to nominate the owner first
-  const shouldNominateOwner = isRegisteredOnMainnet && !isRegisteredOnOptimism;
 
   try {
     const [hash] = await Promise.all([
