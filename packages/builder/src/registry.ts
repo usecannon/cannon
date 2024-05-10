@@ -584,7 +584,7 @@ export class OnChainRegistry extends CannonRegistry {
     });
   }
 
-  async estimateGasForSetPackageOwnership(packageName: string, packageOwner?: viem.Address) {
+  async estimateGasForSetPackageOwnership(packageName: string, packageOwner?: viem.Address, shouldNominateOwner?: boolean) {
     if (!this.signer || !this.provider) {
       throw new Error('Missing signer for executing registry operations');
     }
@@ -594,16 +594,45 @@ export class OnChainRegistry extends CannonRegistry {
 
     const registerFee = await this.getRegisterFee();
 
-    const params = {
+    const txs: TxData[] = [];
+
+    if (shouldNominateOwner) {
+      const setNominatePackageOwnerParams = {
+        ...this.contract,
+        functionName: 'nominatePackageOwner',
+        args: [packageHash, owner],
+        account: this.signer.wallet.account || this.signer.address,
+      };
+
+      txs.push(setNominatePackageOwnerParams);
+    }
+
+    const setPackageOwnershipParams = {
       ...this.contract,
       functionName: 'setPackageOwnership',
       value: registerFee,
       args: [packageHash, owner],
       account: this.signer.wallet.account || this.signer.address,
-      ...this.overrides,
     };
 
-    const simulatedGas = await this.provider.estimateContractGas(params as any);
+    const setAdditionalPublishersParams = {
+      ...this.contract,
+      functionName: 'setAdditionalPublishers',
+      // mainnet is empty, owner is set as publisher for optimism
+      args: [packageHash, [], [owner]],
+      account: this.signer.wallet.account || this.signer.address,
+    };
+
+    txs.push(setPackageOwnershipParams);
+    txs.push(setAdditionalPublishersParams);
+
+    const txData = prepareMulticall(txs);
+
+    const simulatedGas = await this.provider.estimateContractGas({
+      ...txData,
+      account: this.signer.wallet.account || this.signer.address,
+      ...this.overrides,
+    });
 
     return simulatedGas;
   }

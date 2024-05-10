@@ -90,7 +90,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   // Note: for some reason, estimate gas is not accurate
   // Note: if the user does not have enough gas, the estimateGasForSetPackageOwnership will throw an error
-  const estimateGas = await mainnetRegistry.estimateGasForSetPackageOwnership(packageName);
+  const estimateGas = await mainnetRegistry.estimateGasForSetPackageOwnership(packageName, undefined, shouldNominateOwner);
 
   const cost = estimateGas + registerFee;
 
