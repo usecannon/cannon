@@ -28,7 +28,7 @@ import {
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/cli/src/constants';
+import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/cli/dist/src/constants';
 import { Chain, createPublicClient, http, isAddressEqual } from 'viem';
 import { mainnet, optimism } from 'viem/chains';
 import { useWalletClient } from 'wagmi';

@@ -3,12 +3,11 @@ import { blueBright, gray, green } from 'chalk';
 import _ from 'lodash';
 import prompts from 'prompts';
 import * as viem from 'viem';
-
-import { CliSettings } from '../settings';
 import { DEFAULT_REGISTRY_CONFIG } from '../constants';
+import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
+import { CliSettings } from '../settings';
 import { resolveRegistryProviders } from '../util/provider';
 import { isPackageRegistered, waitForEvent } from '../util/register';
-import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 
 interface Params {
   cliSettings: CliSettings;
@@ -38,11 +37,23 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
   const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
-  const [, mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
+  const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
 
-  const isRegistered = await isPackageRegistered([mainnetRegistryProvider], packageRef, mainnetRegistryConfig.address);
+  const isRegisteredOnMainnet = await isPackageRegistered(
+    [mainnetRegistryProvider],
+    packageRef,
+    mainnetRegistryConfig.address
+  );
 
-  if (isRegistered) throw new Error(`The package "${new PackageReference(packageRef).name}" is already registered.`);
+  const isRegisteredOnOptimism = await isPackageRegistered(
+    [optimismRegistryProvider],
+    packageRef,
+    optimismRegistryConfig.address
+  );
+
+  if (isRegisteredOnMainnet && isRegisteredOnOptimism) {
+    throw new Error(`The package "${new PackageReference(packageRef).name}" is already registered.`);
+  }
 
   const overrides: any = {};
 
@@ -76,20 +87,27 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   const registerFee = await mainnetRegistry.getRegisterFee();
 
+  // to migrate a package, we need to nominate the owner first
+  const shouldNominateOwner = isRegisteredOnMainnet && !isRegisteredOnOptimism;
+
   // Note: for some reason, estimate gas is not accurate
   // Note: if the user does not have enough gas, the estimateGasForSetPackageOwnership will throw an error
-  const estimateGas = await mainnetRegistry.estimateGasForSetPackageOwnership(packageName);
+  const estimateGas = await mainnetRegistry.estimateGasForSetPackageOwnership(packageName, undefined, shouldNominateOwner);
 
   const cost = estimateGas + registerFee;
-
   if (cost > userBalance) {
     throw new Error(
       `Account "${userAddress}" does not have the required ${viem.formatEther(cost)} ETH for gas and registration fee`
     );
   }
 
+  const currentGasPrice = await mainnetRegistryProvider.provider.getGasPrice();
+
+  // increase the gas limit by 30% the estimated gas
+  const adjustedGas = (estimateGas * BigInt(130)) / BigInt(100);
+
   console.log('');
-  console.log(`This will cost ${viem.formatEther(estimateGas)} ETH on Ethereum Mainnet.`);
+  console.log(`This will cost ${viem.formatEther(adjustedGas * currentGasPrice)} ETH on Ethereum Mainnet.`);
   console.log('');
 
   const confirm = await prompts({
@@ -107,7 +125,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   try {
     const [hash] = await Promise.all([
       (async () => {
-        const hash = await mainnetRegistry.setPackageOwnership(packageName);
+        const hash = await mainnetRegistry.setPackageOwnership(packageName, undefined, shouldNominateOwner);
 
         console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
         console.log('');
