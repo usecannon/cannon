@@ -44,7 +44,7 @@ export async function publish({
   chainId,
   presetArg,
   quiet = false,
-  includeProvisioned = true,
+  includeProvisioned = false,
   skipConfirm = false,
 }: Params) {
   const { fullPackageRef } = new PackageReference(packageRef);
