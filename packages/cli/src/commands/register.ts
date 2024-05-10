@@ -96,15 +96,19 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   const estimateGas = await mainnetRegistry.estimateGasForSetPackageOwnership(packageName, undefined, shouldNominateOwner);
 
   const cost = estimateGas + registerFee;
-
   if (cost > userBalance) {
     throw new Error(
       `Account "${userAddress}" does not have the required ${viem.formatEther(cost)} ETH for gas and registration fee`
     );
   }
 
+  const currentGasPrice = await mainnetRegistryProvider.provider.getGasPrice();
+
+  // increase the gas limit by 20% the estimated gas
+  const adjustedGas = (estimateGas * BigInt(120)) / BigInt(100);
+
   console.log('');
-  console.log(`This will cost ${viem.formatEther(estimateGas)} ETH on Ethereum Mainnet.`);
+  console.log(`This will cost ${viem.formatEther(adjustedGas * currentGasPrice)} ETH on Ethereum Mainnet.`);
   console.log('');
 
   const confirm = await prompts({

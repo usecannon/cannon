@@ -789,7 +789,7 @@ export class OnChainRegistry extends CannonRegistry {
 
     if (!userBalance) {
       throw new Error(
-        `Signer at address ${this.signer.address} is not funded with ETH. Please ensure you have ETH in your wallet in order to publish.`
+        `Signer at address ${this.signer.address} is not funded with ETH. Please ensure you have ETH in your wallet in order to perform the operation.`
       );
     }
 
@@ -804,7 +804,7 @@ export class OnChainRegistry extends CannonRegistry {
       console.log(
         bold(
           yellow(
-            `Publishing address "${this.signer.address}" does not have enough funds to pay for the publishing transaction, the transaction will likely revert.\n`
+            `The address "${this.signer.address}" does not have enough funds to pay for the transaction, the transaction will likely revert.\n`
           )
         )
       );
