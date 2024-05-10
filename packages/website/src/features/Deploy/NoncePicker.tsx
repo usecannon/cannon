@@ -27,9 +27,10 @@ export default function NoncePicker(props: {
     (props.safe || currentSafe) as any
   );
 
-  const lastNonce = staged.length
-    ? _.last(staged).txn._nonce
-    : Number(nonce) - 1;
+  const lastNonce =
+    staged && staged?.length
+      ? Number(_.last(staged)?.txn?._nonce)
+      : Number(nonce) - 1;
 
   if (stagedQuery.isSuccess && pickedNonce === null) {
     // default to last nonce--this effectively allows for overriding the most recently staged txn

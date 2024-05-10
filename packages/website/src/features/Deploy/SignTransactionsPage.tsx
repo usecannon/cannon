@@ -22,7 +22,7 @@ export default function SignTransactionsPage() {
 function SignTransactions() {
   const currentSafe = useStore((s) => s.currentSafe);
   const { staged } = useSafeTransactions(currentSafe as any);
-  const history = useExecutedTransactions(currentSafe as any);
+  const { data: history } = useExecutedTransactions(currentSafe as any);
   const [isChecked, setIsChecked] = useState(false);
 
   const handleCheckboxChange = (e: any) => {

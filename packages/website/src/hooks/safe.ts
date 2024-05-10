@@ -115,7 +115,10 @@ export function useExecutedTransactions(safe?: SafeDefinition) {
     },
   });
 
-  return txsQuery?.data || { count: 0, next: null, previous: null, results: [] };
+  return {
+    data: txsQuery?.data || { count: 0, next: null, previous: null, results: [] },
+    refetch: txsQuery.refetch,
+  };
 }
 
 export function usePendingTransactions(safe?: SafeDefinition) {
