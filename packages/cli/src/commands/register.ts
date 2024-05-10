@@ -3,12 +3,11 @@ import { blueBright, gray, green } from 'chalk';
 import _ from 'lodash';
 import prompts from 'prompts';
 import * as viem from 'viem';
-
-import { CliSettings } from '../settings';
 import { DEFAULT_REGISTRY_CONFIG } from '../constants';
+import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
+import { CliSettings } from '../settings';
 import { resolveRegistryProviders } from '../util/provider';
 import { isPackageRegistered, waitForEvent } from '../util/register';
-import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 
 interface Params {
   cliSettings: CliSettings;
@@ -104,8 +103,8 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   const currentGasPrice = await mainnetRegistryProvider.provider.getGasPrice();
 
-  // increase the gas limit by 20% the estimated gas
-  const adjustedGas = (estimateGas * BigInt(120)) / BigInt(100);
+  // increase the gas limit by 30% the estimated gas
+  const adjustedGas = (estimateGas * BigInt(130)) / BigInt(100);
 
   console.log('');
   console.log(`This will cost ${viem.formatEther(adjustedGas * currentGasPrice)} ETH on Ethereum Mainnet.`);
