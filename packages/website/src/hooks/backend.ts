@@ -88,7 +88,7 @@ export function useTxnStager(
     gasToken: txn.gasToken || viem.zeroAddress,
     refundReceiver: querySafeAddress as any,
     // Since nonce can be 0, we need to check if the txn._nonce is defined with the nullish coalescing operator
-    _nonce: txn._nonce ?? (staged.length ? _.last(staged).txn._nonce + 1 : Number(nonce || 0)),
+    _nonce: txn._nonce ?? (staged.length ? Number(_.last(staged)?.txn?._nonce) + 1 : Number(nonce || 0)),
   };
 
   // try to match with an existing transaction

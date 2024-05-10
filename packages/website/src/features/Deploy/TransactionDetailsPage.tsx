@@ -236,7 +236,7 @@ const TransactionDetailsPage: FC<{
           <Text>
             Transaction not found! Current safe nonce:{' '}
             {safeNonce ? safeNonce.toString() : 'none'}, Highest Staged Nonce:{' '}
-            {_.last(staged)?.txn._nonce || safeNonce}
+            {(_.last(staged)?.txn._nonce || safeNonce).toString()}
           </Text>
         </Container>
       )}
