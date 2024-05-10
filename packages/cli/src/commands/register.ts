@@ -38,9 +38,13 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
   const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
-  const [, mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
+  const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
 
-  const isRegistered = await isPackageRegistered([mainnetRegistryProvider], packageRef, mainnetRegistryConfig.address);
+  const isRegistered = await isPackageRegistered(
+    [optimismRegistryProvider, mainnetRegistryProvider],
+    packageRef,
+    mainnetRegistryConfig.address
+  );
 
   if (isRegistered) throw new Error(`The package "${new PackageReference(packageRef).name}" is already registered.`);
 
