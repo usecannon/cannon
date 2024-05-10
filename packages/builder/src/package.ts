@@ -150,7 +150,7 @@ function _deployImports(deployInfo: DeploymentInfo) {
 }
 
 export async function getProvisionedPackages(packageRef: string, chainId: number, tags: string[], storage: CannonStorage) {
-  const { name, version, preset, fullPackageRef } = new PackageReference(packageRef);
+  const { preset, fullPackageRef } = new PackageReference(packageRef);
 
   const uri = await storage.registry.getUrl(fullPackageRef, chainId);
 

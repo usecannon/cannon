@@ -169,7 +169,8 @@ export async function publish({
           !curr.packagesNames.some((r) => {
             const { name } = new PackageReference(r);
             parentPackages.some((p) => name === p.name);
-          }) && !curr.packagesNames.includes(fullPackageRef)
+          }) &&
+          !curr.packagesNames.includes(fullPackageRef)
         ) {
           acc.push(curr);
         }
@@ -177,7 +178,7 @@ export async function publish({
       }, []);
 
       if (subPackages.length == 0) {
-        console.log(yellow(`\nNo cloned/provisioned packages found, publishing parent packages only...`));
+        console.log(yellow('\nNo cloned/provisioned packages found, publishing parent packages only...'));
       }
 
       parentPackages.forEach((deploy) => {
@@ -200,7 +201,7 @@ export async function publish({
           const { version, preset } = new PackageReference(pkgName);
           console.log(` - ${version} (preset: ${preset})`);
         });
-        console.log('\n')
+        console.log('\n');
       });
     } else {
       parentPackages.forEach((deploy) => {
