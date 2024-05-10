@@ -281,6 +281,7 @@ export const Function: FC<{
       borderRight={collapsible ? '1px solid' : 'none'}
       borderLeft={collapsible ? '1px solid' : 'none'}
       borderColor="gray.600"
+      bg="gray.900"
     >
       <Box maxW="container.xl">
         <Flex alignItems="center" mb="4">
@@ -431,7 +432,7 @@ export const Function: FC<{
           <Box
             flex="1"
             w={['100%', '100%', '50%']}
-            background="whiteAlpha.50"
+            background="gray.800"
             borderRadius="md"
             p={4}
             display="flex"
@@ -506,6 +507,7 @@ export const Function: FC<{
             id={anchor}
             onClick={onToggle}
             cursor="pointer"
+            bg="gray.900"
           >
             {f.name && (
               <Heading
