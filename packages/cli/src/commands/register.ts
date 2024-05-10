@@ -49,7 +49,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   const isRegisteredOnOptimism = await isPackageRegistered(
     [optimismRegistryProvider],
     packageRef,
-    mainnetRegistryConfig.address
+    optimismRegistryConfig.address
   );
 
   if (isRegisteredOnMainnet && isRegisteredOnOptimism) {
