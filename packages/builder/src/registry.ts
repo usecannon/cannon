@@ -652,7 +652,7 @@ export class OnChainRegistry extends CannonRegistry {
       const setNominatePackageOwnerParams = {
         ...this.contract,
         functionName: 'nominatePackageOwner',
-        args: [owner],
+        args: [packageHash, owner],
         account: this.signer.wallet.account || this.signer.address,
       };
 
