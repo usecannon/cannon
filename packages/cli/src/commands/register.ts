@@ -40,13 +40,21 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
   const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
 
-  const isRegistered = await isPackageRegistered(
-    [optimismRegistryProvider, mainnetRegistryProvider],
+  const isRegisteredOnMainnet = await isPackageRegistered(
+    [mainnetRegistryProvider],
     packageRef,
     mainnetRegistryConfig.address
   );
 
-  if (isRegistered) throw new Error(`The package "${new PackageReference(packageRef).name}" is already registered.`);
+  const isRegisteredOnOptimism = await isPackageRegistered(
+    [optimismRegistryProvider],
+    packageRef,
+    mainnetRegistryConfig.address
+  );
+
+  if (isRegisteredOnMainnet && isRegisteredOnOptimism) {
+    throw new Error(`The package "${new PackageReference(packageRef).name}" is already registered.`);
+  }
 
   const overrides: any = {};
 
@@ -108,10 +116,13 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   console.log('Submitting transaction...');
 
+  // to migrate a package, we need to nominate the owner first
+  const shouldNominateOwner = isRegisteredOnMainnet && !isRegisteredOnOptimism;
+
   try {
     const [hash] = await Promise.all([
       (async () => {
-        const hash = await mainnetRegistry.setPackageOwnership(packageName);
+        const hash = await mainnetRegistry.setPackageOwnership(packageName, undefined, shouldNominateOwner);
 
         console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
         console.log('');

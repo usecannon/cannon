@@ -636,7 +636,7 @@ export class OnChainRegistry extends CannonRegistry {
     return publishFee;
   }
 
-  async setPackageOwnership(packageName: string, packageOwner?: viem.Address) {
+  async setPackageOwnership(packageName: string, packageOwner?: viem.Address, shouldNominateOwner?: boolean) {
     if (!this.signer || !this.provider) {
       throw new Error('Missing signer for executing registry operations');
     }
@@ -645,6 +645,19 @@ export class OnChainRegistry extends CannonRegistry {
     const owner = packageOwner || this.signer.address;
 
     const registerFee = await this.getRegisterFee();
+
+    const txs: TxData[] = [];
+
+    if (shouldNominateOwner) {
+      const setNominatePackageOwnerParams = {
+        ...this.contract,
+        functionName: 'nominatePackageOwner',
+        args: [owner],
+        account: this.signer.wallet.account || this.signer.address,
+      };
+
+      txs.push(setNominatePackageOwnerParams);
+    }
 
     const setPackageOwnershipParams = {
       ...this.contract,
@@ -662,7 +675,8 @@ export class OnChainRegistry extends CannonRegistry {
       account: this.signer.wallet.account || this.signer.address,
     };
 
-    const txs: TxData[] = [setPackageOwnershipParams, setAdditionalPublishersParams];
+    txs.push(setPackageOwnershipParams);
+    txs.push(setAdditionalPublishersParams);
 
     const txData = prepareMulticall(txs);
 
