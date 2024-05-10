@@ -8,7 +8,7 @@ import { chains } from '@/constants/deployChains';
 import { BuildState } from '@/hooks/cannon';
 import { includes } from '@/helpers/array';
 
-type IdentifiableTxn = {
+export type IdentifiableTxn = {
   txn: Omit<TransactionRequestBase, 'from'>;
   id: string;
   fn?: AbiFunction;
@@ -63,13 +63,23 @@ export interface Actions {
 }
 
 export interface QueueTxsActions {
-  setQueuedIdentifiableTxns: (queuedIdentifiableTxns: QueueTxsState['queuedIdentifiableTxns']) => void;
-  setLastQueuedTxnsId: (lastQueuedTxnsId: Partial<QueueTxsState['lastQueuedTxnsId']>) => void;
+  setLastQueuedTxnsId: ({ lastQueuedTxnsId, safeId }: { lastQueuedTxnsId: number; safeId: string }) => void;
+  setQueuedIdentifiableTxns: ({
+    queuedIdentifiableTxns,
+    safeId,
+  }: {
+    queuedIdentifiableTxns: IdentifiableTxn[];
+    safeId: string;
+  }) => void;
 }
 
 export interface QueueTxsState {
-  lastQueuedTxnsId: number;
-  queuedIdentifiableTxns: IdentifiableTxn[];
+  safes: {
+    [safeId: string]: {
+      lastQueuedTxnsId: number;
+      queuedIdentifiableTxns: IdentifiableTxn[];
+    };
+  };
 }
 
 export type Store = State & Actions;
@@ -103,8 +113,7 @@ export const initialIpfsState = {
 } satisfies IpfsState;
 
 export const initialQueueTxsState = {
-  lastQueuedTxnsId: 0,
-  queuedIdentifiableTxns: [],
+  safes: {},
 } satisfies QueueTxsState;
 
 const useIpfsStore = create<IpfsStore>()(
@@ -197,10 +206,37 @@ const useQueueTxsStore = create<QueueTxsStore>()(
   persist(
     (set) => ({
       ...initialQueueTxsState,
-      setLastQueuedTxnsId: (lastQueuedTxnsId) => set({ lastQueuedTxnsId }),
-      setQueuedIdentifiableTxns: (queuedIdentifiableTxns) => set({ queuedIdentifiableTxns }),
+      setLastQueuedTxnsId: ({ lastQueuedTxnsId, safeId }: { lastQueuedTxnsId: number; safeId: string }) => {
+        set((state) => ({
+          ...state,
+          safes: {
+            ...state.safes,
+            [safeId]: {
+              ...state.safes[safeId],
+              lastQueuedTxnsId,
+            },
+          },
+        }));
+      },
+      setQueuedIdentifiableTxns: ({
+        queuedIdentifiableTxns,
+        safeId,
+      }: {
+        queuedIdentifiableTxns: IdentifiableTxn[];
+        safeId: string;
+      }) => {
+        set((state) => ({
+          ...state,
+          safes: {
+            ...state.safes,
+            [safeId]: {
+              ...state.safes[safeId],
+              queuedIdentifiableTxns,
+            },
+          },
+        }));
+      },
     }),
-    // Persist everything in local storage
     {
       name: 'queue-txs-state',
     }
