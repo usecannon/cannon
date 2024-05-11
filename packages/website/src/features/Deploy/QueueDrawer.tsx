@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useState } from 'react';
 import { links } from '@/constants/links';
 import { makeMultisend } from '@/helpers/multisend';
 import { useQueueTxsStore, useStore } from '@/helpers/store';
@@ -33,7 +33,6 @@ import {
 } from '@chakra-ui/react';
 import { AddIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 import {
   AbiFunction,
   encodeAbiParameters,
@@ -61,12 +60,23 @@ export const QueuedTxns = ({
 
   const currentSafe = useStore((s) => s.currentSafe);
   const router = useRouter();
-  const {
-    queuedIdentifiableTxns,
-    setQueuedIdentifiableTxns,
-    lastQueuedTxnsId,
-    setLastQueuedTxnsId,
-  } = useQueueTxsStore((s) => s);
+  const { safes, setQueuedIdentifiableTxns, setLastQueuedTxnsId } =
+    useQueueTxsStore((s) => s);
+
+  const queuedIdentifiableTxns =
+    currentSafe?.address &&
+    currentSafe?.chainId &&
+    safes[`${currentSafe?.chainId}:${currentSafe?.address}`]
+      ? safes[`${currentSafe?.chainId}:${currentSafe?.address}`]
+          ?.queuedIdentifiableTxns
+      : [];
+  const lastQueuedTxnsId =
+    currentSafe?.address &&
+    currentSafe?.chainId &&
+    safes[`${currentSafe?.chainId}:${currentSafe?.address}`]
+      ? safes[`${currentSafe?.chainId}:${currentSafe?.address}`]
+          ?.lastQueuedTxnsId
+      : 0;
 
   const [target, setTarget] = useState<string>('');
 
@@ -127,8 +137,14 @@ export const QueuedTxns = ({
           isClosable: true,
         });
 
-        setQueuedIdentifiableTxns([]);
-        setLastQueuedTxnsId(0);
+        setQueuedIdentifiableTxns({
+          queuedIdentifiableTxns: [],
+          safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
+        });
+        setLastQueuedTxnsId({
+          lastQueuedTxnsId: 0,
+          safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
+        });
       },
     }
   );
@@ -146,8 +162,8 @@ export const QueuedTxns = ({
     target?: string | null,
     chainId?: number | null
   ) {
-    setQueuedIdentifiableTxns(
-      queuedIdentifiableTxns.map((item, index) =>
+    setQueuedIdentifiableTxns({
+      queuedIdentifiableTxns: queuedIdentifiableTxns.map((item, index) =>
         index === i
           ? {
               ...item,
@@ -159,28 +175,41 @@ export const QueuedTxns = ({
               chainId: chainId || item.chainId,
             }
           : item
-      )
-    );
+      ),
+      safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
+    });
   }
 
   const removeQueuedTxn = (i: number) => {
-    setQueuedIdentifiableTxns(
-      queuedIdentifiableTxns.filter((_, index) => index !== i)
-    );
-    setLastQueuedTxnsId(lastQueuedTxnsId - 1);
+    setQueuedIdentifiableTxns({
+      queuedIdentifiableTxns: queuedIdentifiableTxns.filter(
+        (_, index) => index !== i
+      ),
+      safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
+    });
+    setLastQueuedTxnsId({
+      lastQueuedTxnsId: lastQueuedTxnsId - 1,
+      safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
+    });
   };
 
   const addQueuedTxn = () => {
-    setQueuedIdentifiableTxns([
-      ...queuedIdentifiableTxns,
-      {
-        txn: {},
-        id: String(lastQueuedTxnsId + 1),
-        chainId: currentSafe?.chainId as number,
-        target,
-      },
-    ]);
-    setLastQueuedTxnsId(lastQueuedTxnsId + 1);
+    setQueuedIdentifiableTxns({
+      queuedIdentifiableTxns: [
+        ...queuedIdentifiableTxns,
+        {
+          txn: {},
+          id: String(lastQueuedTxnsId + 1),
+          chainId: currentSafe?.chainId as number,
+          target,
+        },
+      ],
+      safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
+    });
+    setLastQueuedTxnsId({
+      lastQueuedTxnsId: lastQueuedTxnsId + 1,
+      safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
+    });
   };
 
   const txnHasError = !!txnInfo.txnResults.filter((r) => r?.error).length;
