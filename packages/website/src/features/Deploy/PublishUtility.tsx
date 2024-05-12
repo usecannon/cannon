@@ -1,6 +1,7 @@
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { findChain } from '@/helpers/rpc';
 import { useStore } from '@/helpers/store';
+import { useProviders } from '@/hooks/providers';
 import { useCannonPackage } from '@/hooks/cannon';
 import { useCannonPackagePublishers } from '@/hooks/registry';
 import {
@@ -79,6 +80,8 @@ export default function PublishUtility(props: {
     findChain(props.targetChainId).blockExplorers?.default?.url ??
     'https://etherscan.io';
 
+  const { transports } = useProviders();
+
   const prepareAndPublishPackage = async (registryChainId: number) => {
     if (!wc.data) {
       throw new Error('Wallet not connected');
@@ -91,7 +94,7 @@ export default function PublishUtility(props: {
       address: DEFAULT_REGISTRY_ADDRESS,
       provider: createPublicClient({
         chain: findChain(registryChainId) as Chain,
-        transport: http(),
+        transport: transports[registryChainId] || http(),
       }),
     });
 
