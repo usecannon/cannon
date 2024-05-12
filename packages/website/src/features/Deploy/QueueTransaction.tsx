@@ -35,6 +35,8 @@ import {
 } from 'viem';
 import { FunctionInput } from '../Packages/FunctionInput';
 import 'react-diff-view/style/index.css';
+import { useCannonPackageContracts } from '@/hooks/cannon';
+import { formatEther } from 'viem';
 
 type OptionData = {
   value: any;
@@ -124,6 +126,7 @@ export function QueueTransaction({
   target: string;
   chainId: number;
 }) {
+  const [value, setValue] = useState<bigint | undefined>(tx?.value);
   const { contracts } = useCannonPackageContracts(target, chainId);
 
   const [selectedContractName, setSelectedContractName] = useState<
@@ -156,12 +159,15 @@ export function QueueTransaction({
     let _txn: Omit<TransactionRequestBase, 'from'> | null = null;
 
     if (selectedContractName && selectedFunction) {
+      const isPayable = selectedFunction.stateMutability === 'payable';
+
       if (selectedFunction.inputs.length === 0) {
         _txn = {
           to: contracts
             ? contracts[selectedContractName].address
             : (tx?.to as Address),
           data: toFunctionSelector(selectedFunction),
+          value: isPayable ? value : undefined,
         };
       } else {
         try {
@@ -173,6 +179,7 @@ export function QueueTransaction({
               abi: [selectedFunction],
               args: selectedParams,
             }),
+            value: isPayable ? value : undefined,
           };
         } catch (err: any) {
           error =
@@ -192,6 +199,7 @@ export function QueueTransaction({
       selectedContractName
     );
   }, [
+    value,
     selectedContractName,
     selectedFunction,
     selectedParams,
@@ -329,6 +337,32 @@ export function QueueTransaction({
                   />
                 </Box>
               ))}
+            </FormControl>
+          )}
+          {selectedFunction?.stateMutability === 'payable' && (
+            <FormControl mb="4">
+              <FormLabel fontSize="sm" mb={1}>
+                Payment (WEI)
+                <Text fontSize="xs" color="whiteAlpha.700" display="inline">
+                  {' '}
+                  payable function
+                </Text>
+              </FormLabel>
+              <FunctionInput
+                input={{
+                  name: 'value',
+                  type: 'uint256',
+                }}
+                valueUpdated={(value) => {
+                  setValue(value);
+                }}
+                initialValue={value}
+              />
+              {!!value && (
+                <Text fontSize="xs" color="whiteAlpha.700" pt={2}>
+                  ETH: {formatEther(value).toString()}
+                </Text>
+              )}
             </FormControl>
           )}
           {paramsEncodeError && (

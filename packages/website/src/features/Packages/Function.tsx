@@ -33,6 +33,7 @@ import {
   zeroAddress,
   encodeFunctionData,
   TransactionRequestBase,
+  formatEther,
 } from 'viem';
 import {
   useAccount,
@@ -70,6 +71,8 @@ export const Function: FC<{
   const [simulated, setSimulated] = useState(false);
   const [error, setError] = useState<any>(null);
   const [params, setParams] = useState<any[] | any>([]);
+  // for payable functions only
+  const [value, setValue] = useState<any>();
   const toast = useToast();
 
   const { safes, setQueuedIdentifiableTxns, setLastQueuedTxnsId } =
@@ -121,6 +124,11 @@ export const Function: FC<{
 
   const readOnly = useMemo(
     () => f.stateMutability == 'view' || f.stateMutability == 'pure',
+    [f.stateMutability]
+  );
+
+  const isPayable = useMemo(
+    () => f.stateMutability == 'payable',
     [f.stateMutability]
   );
 
@@ -224,6 +232,7 @@ export const Function: FC<{
       _txn = {
         to: address,
         data: toFunctionSelector(f),
+        value: isPayable ? value : undefined,
       };
     } else {
       try {
@@ -233,6 +242,7 @@ export const Function: FC<{
             abi: [f],
             args: params,
           }),
+          value: isPayable ? value : undefined,
         };
       } catch (err: any) {
         setError(err.message);
@@ -350,6 +360,32 @@ export const Function: FC<{
                 </Box>
               );
             })}
+
+            {isPayable && (
+              <FormControl mb="4">
+                <FormLabel fontSize="sm" mb={1}>
+                  Payment (WEI)
+                  <Text fontSize="xs" color="whiteAlpha.700" display="inline">
+                    {' '}
+                    payable function
+                  </Text>
+                </FormLabel>
+                <FunctionInput
+                  input={{
+                    name: 'value',
+                    type: 'uint256',
+                  }}
+                  valueUpdated={(value) => {
+                    setValue(value);
+                  }}
+                />
+                {value && (
+                  <Text fontSize="xs" color="whiteAlpha.700" pt={2}>
+                    ETH: {formatEther(value).toString()}
+                  </Text>
+                )}
+              </FormControl>
+            )}
 
             {readOnly && (
               <Button
