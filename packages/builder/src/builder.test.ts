@@ -8,9 +8,9 @@ import { IPFSLoader } from './loader';
 import { InMemoryRegistry } from './registry';
 import { ChainBuilderRuntime, Events } from './runtime';
 import deployStep from './steps/deploy';
-import varStep from './steps/var';
-import pullStep from './steps/pull';
 import invokeStep from './steps/invoke';
+import pullStep from './steps/pull';
+import varStep from './steps/var';
 import { ChainBuilderContext, ContractArtifact, DeploymentState } from './types';
 
 jest.mock('./steps/deploy');
@@ -81,6 +81,22 @@ describe('builder.ts', () => {
         args: [1, 2, 3, '<%= contracts.Yoop.address %>'],
         from: '0x1234123412341234123412341234123412341234',
         depends: ['deploy.Yoop'],
+        var: {
+          someVarValue: {
+            event: 'TestVarEvent',
+            arg: 0,
+          },
+        },
+        extra: {
+          someVarValue: {
+            event: 'TestExtraOverrideEvent',
+            arg: 0,
+          },
+          someExtraValue: {
+            event: 'TestExtraEvent',
+            arg: 0,
+          },
+        },
       },
     },
     pull: {
@@ -178,7 +194,18 @@ describe('builder.ts', () => {
   jest.mocked(invokeStep.getState).mockResolvedValue([{}] as any);
   jest.mocked(invokeStep.exec).mockResolvedValue({
     txns: {
-      smartFunc: { hash: '0x56785678', events: {}, deployedOn: 'invoke.smartFunc', gasCost: '0', gasUsed: 0, signer: '' },
+      smartFunc: {
+        hash: '0x56785678',
+        events: {
+          TestVarEvent: [{ args: ['1'] }],
+          TestExtraOverrideEvent: [{ args: ['2'] }],
+          TestExtraEvent: [{ args: ['3'] }],
+        },
+        deployedOn: 'invoke.smartFunc',
+        gasCost: '0',
+        gasUsed: 0,
+        signer: '',
+      },
     },
   });
   jest.mocked(invokeStep.getInputs).mockReturnValue({ accesses: [], unableToCompute: false });
