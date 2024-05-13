@@ -37,7 +37,7 @@ export type EtherscanGetSourceCodeResponse = EtherscanGetSourceCodeNotOkResponse
  * @returns True if the contract is verified, false otherwise.
  */
 
-export async function isVerified(address: string, apiUrl: string, apiKey: string) {
+export async function isVerified(address: string, apiUrl: string, apiKey: string): Promise<boolean> {
   const parameters = new URLSearchParams({
     apikey: apiKey,
     module: 'contract',
@@ -65,6 +65,6 @@ export async function isVerified(address: string, apiUrl: string, apiKey: string
     const sourceCode = json.result[0]?.SourceCode;
     return sourceCode !== undefined && sourceCode !== null && sourceCode !== '';
   } catch (e) {
-    throw new Error('Failed to check if contract is verified on Etherscan: ' + (e as Error).message);
+    return false;
   }
 }
