@@ -1,5 +1,6 @@
 import { CannonSigner, OnChainRegistry, PackageReference } from '@usecannon/builder';
 import * as viem from 'viem';
+import _ from 'lodash';
 import { DEFAULT_REGISTRY_ADDRESS } from '../constants';
 import { getChainById } from '../chains';
 
@@ -41,10 +42,21 @@ export const isPackageRegistered = async (
  * @returns {Promise<void>} - A promise that resolves with the event logs when the event is received or rejects with an error on timeout or if an error occurs while watching the event.
  */
 
-export const waitForEvent = ({ eventName, abi, chainId }: { eventName: string; abi: viem.Abi; chainId: number }) => {
+export const waitForEvent = ({
+  eventName,
+  abi,
+  chainId,
+  expectedArgs,
+}: {
+  eventName: string;
+  abi: viem.Abi;
+  chainId: number;
+  expectedArgs: any;
+}) => {
   const event = viem.getAbiItem({ abi, name: eventName }) as viem.AbiEvent;
 
   const chain = getChainById(chainId);
+
   const client = viem.createPublicClient({
     chain,
     transport: viem.http(),
@@ -60,7 +72,11 @@ export const waitForEvent = ({ eventName, abi, chainId }: { eventName: string; a
       address: DEFAULT_REGISTRY_ADDRESS,
       event,
       onLogs: async (logs) => {
-        // TODO: check event arguments
+        const [topics] = viem.parseEventLogs({ abi, eventName, logs });
+
+        // check event arguments, early return if they don't match
+        if (!_.isEqual(topics.args, expectedArgs)) return;
+
         // unwatch the event
         unwatch();
         // Clear the timeout

@@ -140,11 +140,19 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
             eventName: 'PackageOwnerChanged',
             abi: mainnetRegistry.contract.abi,
             chainId: optimismRegistryConfig.chainId!,
+            expectedArgs: {
+              name: viem.stringToHex(packageName, { size: 32 }),
+              owner: userAddress,
+            },
           }),
           waitForEvent({
             eventName: 'PackagePublishersChanged',
             abi: mainnetRegistry.contract.abi,
             chainId: optimismRegistryConfig.chainId!,
+            expectedArgs: {
+              name: viem.stringToHex(packageName, { size: 32 }),
+              publisher: [userAddress],
+            },
           }),
         ]);
 

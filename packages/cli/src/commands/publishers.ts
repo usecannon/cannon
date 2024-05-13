@@ -170,10 +170,11 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     process.exit(1);
   }
 
+  const mainnetPublishers = isMainnet ? publishers : mainnetCurrentPublishers;
+  const optimismPublishers = isMainnet ? optimismCurrentPublishers : publishers;
+
   const [hash] = await Promise.all([
     (async () => {
-      const mainnetPublishers = isMainnet ? publishers : mainnetCurrentPublishers;
-      const optimismPublishers = isMainnet ? optimismCurrentPublishers : publishers;
       const hash = await mainnetRegistry.setAdditionalPublishers(packageName, mainnetPublishers, optimismPublishers);
 
       console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
@@ -187,11 +188,26 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     })(),
     (async () => {
       // this should always resolve after the first promise but we want to make sure it runs at the same time
-      await waitForEvent({
-        eventName: 'PackagePublishersChanged',
-        abi: optimismRegistry.contract.abi,
-        chainId: optimismRegistryConfig.chainId!,
-      });
+      await Promise.all([
+        waitForEvent({
+          eventName: 'PackagePublishersChanged',
+          abi: mainnetRegistry.contract.abi,
+          chainId: mainnetRegistryConfig.chainId!,
+          expectedArgs: {
+            name: viem.stringToHex(packageName, { size: 32 }),
+            publisher: mainnetPublishers,
+          },
+        }),
+        waitForEvent({
+          eventName: 'PackagePublishersChanged',
+          abi: optimismRegistry.contract.abi,
+          chainId: optimismRegistryConfig.chainId!,
+          expectedArgs: {
+            name: viem.stringToHex(packageName, { size: 32 }),
+            publisher: optimismPublishers,
+          },
+        }),
+      ]);
 
       console.log(green('Success!'));
       console.log('');
