@@ -103,7 +103,7 @@ export async function verify(packageRef: string, cliSettings: CliSettings, prese
       }
 
       if (await isVerified(contractInfo.address, etherscanApi, cliSettings.etherscanApiKey)) {
-        console.log(`${c}:\talready verified`);
+        console.log(`✅ ${c}: Contract source code already verified`);
         continue;
       }
 

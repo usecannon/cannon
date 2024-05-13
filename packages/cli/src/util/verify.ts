@@ -50,11 +50,13 @@ export async function isVerified(address: string, apiUrl: string, apiKey: string
 
   try {
     const response = await fetch(url);
-    const json = (await response.json()) as EtherscanGetSourceCodeResponse;
 
-    if (!isSuccessStatusCode(response.status)) {
-      throw new Error(`Failed to send contract verification request: ${url.toString()}`);
+    // checking that status is in the range 200-299 inclusive
+    if (!response.ok) {
+      throw new Error(`Network response failed (${response.status}: ${response.statusText})`);
     }
+
+    const json = (await response.json()) as EtherscanGetSourceCodeResponse;
 
     if (json.message !== 'OK') {
       return false;
@@ -65,14 +67,4 @@ export async function isVerified(address: string, apiUrl: string, apiKey: string
   } catch (e) {
     throw new Error('Failed to check if contract is verified on Etherscan: ' + (e as Error).message);
   }
-}
-
-/**
- * Check if a status code is a success status code.
- * @param statusCode
- * @returns True if the status code is a success status code, false otherwise.
- */
-
-export function isSuccessStatusCode(statusCode: number): boolean {
-  return statusCode >= 200 && statusCode <= 299;
 }
