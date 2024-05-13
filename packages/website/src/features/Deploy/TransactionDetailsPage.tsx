@@ -36,7 +36,7 @@ import {
 } from '@chakra-ui/react';
 import * as chains from '@wagmi/core/chains';
 import _, { find } from 'lodash';
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useState, useRef } from 'react';
 import {
   Address,
   hexToString,
@@ -224,6 +224,8 @@ const TransactionDetailsPage: FC<{
     (chain: any) => chain.id === safe.chainId
   )?.name;
 
+  const gitDiffContainerRef = useRef<HTMLDivElement>();
+
   return (
     <>
       {!hintData && (
@@ -267,6 +269,28 @@ const TransactionDetailsPage: FC<{
           </Box>
 
           <Container maxW="container.lg" mt={[6, 6, 12]}>
+            <Box
+              background="gray.800"
+              p={4}
+              borderWidth="1px"
+              borderColor="gray.700"
+              mb={6}
+            >
+              <Heading
+                size="sm"
+                mb={3}
+                fontWeight="medium"
+                textTransform="uppercase"
+                letterSpacing="1.5px"
+                fontFamily="var(--font-miriam)"
+                textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
+              >
+                Cannonfile Diff
+              </Heading>
+              <Box overflowY="auto" maxH="320px">
+                <Box ref={gitDiffContainerRef} />
+              </Box>
+            </Box>
             <Grid
               templateColumns={{ base: 'repeat(1, 1fr)', lg: '2fr 1fr' }}
               gap={6}
@@ -277,6 +301,7 @@ const TransactionDetailsPage: FC<{
                 queuedWithGitOps={queuedWithGitOps}
                 showQueueSource={true}
                 isTransactionExecuted={isTransactionExecuted}
+                containerRef={gitDiffContainerRef}
               />
               <Box position="relative">
                 <Box position="sticky" top={8}>
