@@ -17,6 +17,7 @@ import {
   InputGroup,
   InputRightAddon,
   Input,
+  FormHelperText,
 } from '@chakra-ui/react';
 import { AbiFunction } from 'abitype/src/abi';
 import {
@@ -357,7 +358,7 @@ export function QueueTransaction({
                 Value
                 <Text fontSize="xs" color="whiteAlpha.700" display="inline">
                   {' '}
-                  payable function
+                  (payable)
                 </Text>
               </FormLabel>
               <InputGroup size="sm">
@@ -377,17 +378,12 @@ export function QueueTransaction({
                   ETH
                 </InputRightAddon>
               </InputGroup>
-              <Text
-                pt={2}
-                fontSize="xs"
-                color="whiteAlpha.700"
-                fontFamily={'monospace'}
-              >
+              <FormHelperText>
                 {value !== undefined
                   ? parseEther(value.toString()).toString()
                   : 0}{' '}
-                WEI
-              </Text>
+                wei
+              </FormHelperText>
             </FormControl>
           )}
           {paramsEncodeError && (

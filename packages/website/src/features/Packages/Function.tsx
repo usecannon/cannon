@@ -24,6 +24,7 @@ import {
   Input,
   InputGroup,
   InputRightAddon,
+  FormHelperText,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
@@ -372,6 +373,13 @@ export const Function: FC<{
 
             {isPayable && (
               <FormControl mb="4">
+                <FormLabel fontSize="sm" mb={1}>
+                  Value
+                  <Text fontSize="xs" color="whiteAlpha.700" display="inline">
+                    {' '}
+                    (payable)
+                  </Text>
+                </FormLabel>
                 <InputGroup size="sm">
                   <Input
                     type="number"
@@ -389,17 +397,12 @@ export const Function: FC<{
                     ETH
                   </InputRightAddon>
                 </InputGroup>
-                <Text
-                  pt={2}
-                  fontSize="xs"
-                  color="whiteAlpha.700"
-                  fontFamily={'monospace'}
-                >
+                <FormHelperText>
                   {value !== undefined
                     ? parseEther(value.toString()).toString()
                     : 0}{' '}
-                  WEI
-                </Text>
+                  wei
+                </FormHelperText>
               </FormControl>
             )}
 
