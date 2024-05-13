@@ -72,12 +72,23 @@ export const Function: FC<{
   const [params, setParams] = useState<any[] | any>([]);
   const toast = useToast();
 
-  const {
-    queuedIdentifiableTxns,
-    setQueuedIdentifiableTxns,
-    lastQueuedTxnsId,
-    setLastQueuedTxnsId,
-  } = useQueueTxsStore((s) => s);
+  const { safes, setQueuedIdentifiableTxns, setLastQueuedTxnsId } =
+    useQueueTxsStore((s) => s);
+
+  const queuedIdentifiableTxns =
+    currentSafe?.address &&
+    currentSafe?.chainId &&
+    safes[`${currentSafe?.chainId}:${currentSafe?.address}`]
+      ? safes[`${currentSafe?.chainId}:${currentSafe?.address}`]
+          ?.queuedIdentifiableTxns
+      : [];
+  const lastQueuedTxnsId =
+    currentSafe?.address &&
+    currentSafe?.chainId &&
+    safes[`${currentSafe?.chainId}:${currentSafe?.address}`]
+      ? safes[`${currentSafe?.chainId}:${currentSafe?.address}`]
+          ?.lastQueuedTxnsId
+      : 0;
 
   const { isConnected, address: from, chain: connectedChain } = useAccount();
   const { openConnectModal } = useConnectModal();
@@ -232,19 +243,25 @@ export const Function: FC<{
     const regex = /\/([^/]+)\.sol$/;
     const contractName = contractSource?.match(regex)?.[1] || 'Unknown';
 
-    setQueuedIdentifiableTxns([
-      ...queuedIdentifiableTxns,
-      {
-        txn: _txn,
-        id: `${lastQueuedTxnsId + 1}`,
-        contractName,
-        target: address,
-        fn: f,
-        params,
-        chainId,
-      },
-    ]);
-    setLastQueuedTxnsId(lastQueuedTxnsId + 1);
+    setQueuedIdentifiableTxns({
+      queuedIdentifiableTxns: [
+        ...queuedIdentifiableTxns,
+        {
+          txn: _txn,
+          id: `${lastQueuedTxnsId + 1}`,
+          contractName,
+          target: address,
+          fn: f,
+          params,
+          chainId,
+        },
+      ],
+      safeId: `${currentSafe.chainId}:${currentSafe.address}`,
+    });
+    setLastQueuedTxnsId({
+      lastQueuedTxnsId: lastQueuedTxnsId + 1,
+      safeId: `${currentSafe.chainId}:${currentSafe.address}`,
+    });
 
     toast({
       title: 'Transaction queued',
@@ -264,6 +281,7 @@ export const Function: FC<{
       borderRight={collapsible ? '1px solid' : 'none'}
       borderLeft={collapsible ? '1px solid' : 'none'}
       borderColor="gray.600"
+      bg="gray.900"
     >
       <Box maxW="container.xl">
         <Flex alignItems="center" mb="4">
@@ -414,7 +432,7 @@ export const Function: FC<{
           <Box
             flex="1"
             w={['100%', '100%', '50%']}
-            background="whiteAlpha.50"
+            background="gray.800"
             borderRadius="md"
             p={4}
             display="flex"
@@ -489,6 +507,7 @@ export const Function: FC<{
             id={anchor}
             onClick={onToggle}
             cursor="pointer"
+            bg="gray.900"
           >
             {f.name && (
               <Heading
