@@ -14,6 +14,9 @@ import {
   IconButton,
   Text,
   Tooltip,
+  InputGroup,
+  InputRightAddon,
+  Input,
 } from '@chakra-ui/react';
 import { AbiFunction } from 'abitype/src/abi';
 import {
@@ -32,11 +35,12 @@ import {
   Hex,
   toFunctionSelector,
   TransactionRequestBase,
+  parseEther,
+  formatEther,
 } from 'viem';
 import { FunctionInput } from '../Packages/FunctionInput';
 import 'react-diff-view/style/index.css';
 import { useCannonPackageContracts } from '@/hooks/cannon';
-import { formatEther } from 'viem';
 
 type OptionData = {
   value: any;
@@ -126,7 +130,9 @@ export function QueueTransaction({
   target: string;
   chainId: number;
 }) {
-  const [value, setValue] = useState<bigint | undefined>(tx?.value);
+  const [value, setValue] = useState<string | undefined>(
+    tx?.value ? formatEther(BigInt(tx?.value)).toString() : undefined
+  );
   const { contracts } = useCannonPackageContracts(target, chainId);
 
   const [selectedContractName, setSelectedContractName] = useState<
@@ -167,7 +173,10 @@ export function QueueTransaction({
             ? contracts[selectedContractName].address
             : (tx?.to as Address),
           data: toFunctionSelector(selectedFunction),
-          value: isPayable ? value : undefined,
+          value:
+            isPayable && value !== undefined
+              ? parseEther(value.toString())
+              : undefined,
         };
       } else {
         try {
@@ -179,7 +188,10 @@ export function QueueTransaction({
               abi: [selectedFunction],
               args: selectedParams,
             }),
-            value: isPayable ? value : undefined,
+            value:
+              isPayable && value !== undefined
+                ? parseEther(value.toString())
+                : undefined,
           };
         } catch (err: any) {
           error =
@@ -342,27 +354,40 @@ export function QueueTransaction({
           {selectedFunction?.stateMutability === 'payable' && (
             <FormControl mb="4">
               <FormLabel fontSize="sm" mb={1}>
-                Payment (WEI)
+                Value
                 <Text fontSize="xs" color="whiteAlpha.700" display="inline">
                   {' '}
                   payable function
                 </Text>
               </FormLabel>
-              <FunctionInput
-                input={{
-                  name: 'value',
-                  type: 'uint256',
-                }}
-                valueUpdated={(value) => {
-                  setValue(value);
-                }}
-                initialValue={value}
-              />
-              {!!value && (
-                <Text fontSize="xs" color="whiteAlpha.700" pt={2}>
-                  ETH: {formatEther(value).toString()}
-                </Text>
-              )}
+              <InputGroup size="sm">
+                <Input
+                  type="number"
+                  size="sm"
+                  bg="black"
+                  borderColor="whiteAlpha.400"
+                  value={value?.toString()}
+                  onChange={(e) => setValue(e.target.value)}
+                />
+                <InputRightAddon
+                  bg="black"
+                  color="whiteAlpha.700"
+                  borderColor="whiteAlpha.400"
+                >
+                  ETH
+                </InputRightAddon>
+              </InputGroup>
+              <Text
+                pt={2}
+                fontSize="xs"
+                color="whiteAlpha.700"
+                fontFamily={'monospace'}
+              >
+                {value !== undefined
+                  ? parseEther(value.toString()).toString()
+                  : 0}{' '}
+                WEI
+              </Text>
             </FormControl>
           )}
           {paramsEncodeError && (

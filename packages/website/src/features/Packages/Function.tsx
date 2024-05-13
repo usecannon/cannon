@@ -21,6 +21,9 @@ import {
   Text,
   useToast,
   useDisclosure,
+  Input,
+  InputGroup,
+  InputRightAddon,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
@@ -33,7 +36,7 @@ import {
   zeroAddress,
   encodeFunctionData,
   TransactionRequestBase,
-  formatEther,
+  parseEther,
 } from 'viem';
 import {
   useAccount,
@@ -232,7 +235,10 @@ export const Function: FC<{
       _txn = {
         to: address,
         data: toFunctionSelector(f),
-        value: isPayable ? value : undefined,
+        value:
+          isPayable && value !== undefined
+            ? parseEther(value.toString())
+            : undefined,
       };
     } else {
       try {
@@ -242,7 +248,10 @@ export const Function: FC<{
             abi: [f],
             args: params,
           }),
-          value: isPayable ? value : undefined,
+          value:
+            isPayable && value !== undefined
+              ? parseEther(value.toString())
+              : undefined,
         };
       } catch (err: any) {
         setError(err.message);
@@ -363,27 +372,34 @@ export const Function: FC<{
 
             {isPayable && (
               <FormControl mb="4">
-                <FormLabel fontSize="sm" mb={1}>
-                  Payment (WEI)
-                  <Text fontSize="xs" color="whiteAlpha.700" display="inline">
-                    {' '}
-                    payable function
-                  </Text>
-                </FormLabel>
-                <FunctionInput
-                  input={{
-                    name: 'value',
-                    type: 'uint256',
-                  }}
-                  valueUpdated={(value) => {
-                    setValue(value);
-                  }}
-                />
-                {value && (
-                  <Text fontSize="xs" color="whiteAlpha.700" pt={2}>
-                    ETH: {formatEther(value).toString()}
-                  </Text>
-                )}
+                <InputGroup size="sm">
+                  <Input
+                    type="number"
+                    size="sm"
+                    bg="black"
+                    borderColor="whiteAlpha.400"
+                    value={value?.toString()}
+                    onChange={(e) => setValue(e.target.value)}
+                  />
+                  <InputRightAddon
+                    bg="black"
+                    color="whiteAlpha.700"
+                    borderColor="whiteAlpha.400"
+                  >
+                    ETH
+                  </InputRightAddon>
+                </InputGroup>
+                <Text
+                  pt={2}
+                  fontSize="xs"
+                  color="whiteAlpha.700"
+                  fontFamily={'monospace'}
+                >
+                  {value !== undefined
+                    ? parseEther(value.toString()).toString()
+                    : 0}{' '}
+                  WEI
+                </Text>
               </FormControl>
             )}
 
