@@ -202,7 +202,7 @@ export interface PackageState {
   currentLabel: string;
 }
 
-export type BundledOutput = { url: string; tags?: string[]; preset?: string } & ChainArtifacts;
+export type BundledOutput = { url: string; tags?: string[]; target?: string; preset?: string } & ChainArtifacts;
 
 export interface BundledChainBuilderOutputs {
   [module: string]: BundledOutput;
