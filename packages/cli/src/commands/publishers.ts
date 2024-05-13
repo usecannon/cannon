@@ -173,6 +173,8 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   const mainnetPublishers = isMainnet ? publishers : mainnetCurrentPublishers;
   const optimismPublishers = isMainnet ? optimismCurrentPublishers : publishers;
 
+  const packageNameHex = viem.stringToHex(packageName, { size: 32 });
+
   const [hash] = await Promise.all([
     (async () => {
       const hash = await mainnetRegistry.setAdditionalPublishers(packageName, mainnetPublishers, optimismPublishers);
@@ -194,7 +196,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
           abi: mainnetRegistry.contract.abi,
           chainId: mainnetRegistryConfig.chainId!,
           expectedArgs: {
-            name: viem.stringToHex(packageName, { size: 32 }),
+            name: packageNameHex,
             publisher: mainnetPublishers,
           },
         }),
@@ -203,7 +205,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
           abi: optimismRegistry.contract.abi,
           chainId: optimismRegistryConfig.chainId!,
           expectedArgs: {
-            name: viem.stringToHex(packageName, { size: 32 }),
+            name: packageNameHex,
             publisher: optimismPublishers,
           },
         }),

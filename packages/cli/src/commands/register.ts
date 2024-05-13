@@ -119,6 +119,8 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   console.log('Submitting transaction...');
 
+  const packageNameHex = viem.stringToHex(packageName, { size: 32 });
+
   try {
     const [hash] = await Promise.all([
       (async () => {
@@ -141,7 +143,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
             abi: mainnetRegistry.contract.abi,
             chainId: optimismRegistryConfig.chainId!,
             expectedArgs: {
-              name: viem.stringToHex(packageName, { size: 32 }),
+              name: packageNameHex,
               owner: userAddress,
             },
           }),
@@ -150,7 +152,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
             abi: mainnetRegistry.contract.abi,
             chainId: optimismRegistryConfig.chainId!,
             expectedArgs: {
-              name: viem.stringToHex(packageName, { size: 32 }),
+              name: packageNameHex,
               publisher: [userAddress],
             },
           }),

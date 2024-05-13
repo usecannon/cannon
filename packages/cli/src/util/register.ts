@@ -35,7 +35,7 @@ export const isPackageRegistered = async (
 };
 
 /**
- * Waits until for a specific event on the OP/OP-Sepolia Cannon Registry or a timeout occurs.
+ * Waits until for a specific event on the Cannon Registry or a timeout occurs.
  *
  * @param {string} params.eventName - The name of the event to wait for.
  * @param {viem.Abi} params.abi - The ABI (Application Binary Interface) that includes the event.
