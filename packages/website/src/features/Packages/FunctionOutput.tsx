@@ -95,7 +95,7 @@ export const FunctionOutput: FC<{
         } else {
           return value.map((val, idx) => (
             <Text fontSize="xs" display="block" key={idx}>
-              {index !== undefined ? String(val[index]) : String(val)}
+              {String(val)}
             </Text>
           ));
         }
