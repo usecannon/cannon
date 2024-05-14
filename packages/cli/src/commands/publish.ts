@@ -216,7 +216,7 @@ export async function publish({
 
     const totalFees = await onChainRegistry.calculatePublishingFee(parentPackages.length);
 
-    console.log(`Total Fees: ${viem.formatEther(totalFees)} ETH`);
+    console.log(`Total publishing fees: ${viem.formatEther(totalFees)} ETH`);
     console.log();
 
     const verification = await prompts({
