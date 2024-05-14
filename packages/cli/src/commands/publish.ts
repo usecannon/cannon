@@ -6,6 +6,7 @@ import {
   PackageReference,
   publishPackage,
 } from '@usecannon/builder';
+import * as viem from 'viem';
 import { blueBright, bold, gray, italic, yellow } from 'chalk';
 import prompts from 'prompts';
 import { getMainLoader } from '../loader';
@@ -212,6 +213,11 @@ export async function publish({
       });
       console.log('\n');
     }
+
+    const totalFees = await onChainRegistry.calculateTotalFees(parentPackages.length);
+
+    console.log(`Total Fees: ${viem.formatEther(totalFees)} ETH`);
+    console.log();
 
     const verification = await prompts({
       type: 'confirm',
