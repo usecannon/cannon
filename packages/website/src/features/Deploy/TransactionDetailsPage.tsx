@@ -2,7 +2,7 @@
 
 import { parseHintedMulticall } from '@/helpers/cannon';
 import { truncateAddress } from '@/helpers/ethereum';
-import { getSafeTransactionHash } from '@/helpers/safe';
+import { createSimulationData, getSafeTransactionHash } from '@/helpers/safe';
 import { SafeDefinition } from '@/helpers/store';
 import { useSafeTransactions, useTxnStager } from '@/hooks/backend';
 import {
@@ -28,6 +28,7 @@ import {
   Flex,
   Grid,
   Heading,
+  Image,
   Link,
   Spinner,
   Text,
@@ -52,7 +53,6 @@ import {
   useWriteContract,
 } from 'wagmi';
 import PublishUtility from './PublishUtility';
-import SimulateTransactionButton from './SimulateTransactionButton';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 import 'react-diff-view/style/index.css';
@@ -554,7 +554,7 @@ function TransactionDetailsPage({
                       p={4}
                       borderWidth="1px"
                       borderColor="gray.700"
-                      mb={6}
+                      mb={8}
                     >
                       <Heading
                         size="sm"
@@ -599,21 +599,44 @@ function TransactionDetailsPage({
                             on-chain record.
                           </Flex>
                         )}
-                    </Box>
-                  )}
-
-                  {!isTransactionExecuted && (
-                    <Box
-                      background="gray.800"
-                      p={4}
-                      borderWidth="1px"
-                      borderColor="gray.700"
-                      mb={6}
-                    >
-                      <SimulateTransactionButton
-                        safe={safe}
-                        safeTxn={safeTxn}
-                      />
+                      {safeTxn && (
+                        <Button
+                          mt={3}
+                          size="xs"
+                          as="a"
+                          href={`https://dashboard.tenderly.co/simulator/new?block=&blockIndex=0&from=${
+                            safe.address
+                          }&gas=${8000000}&gasPrice=0&value=${
+                            safeTxn?.value
+                          }&contractAddress=${
+                            safe?.address
+                          }&rawFunctionInput=${createSimulationData(
+                            safeTxn
+                          )}&network=${
+                            safe.chainId
+                          }&headerBlockNumber=&headerTimestamp=`}
+                          colorScheme="whiteAlpha"
+                          background="whiteAlpha.100"
+                          border="1px solid"
+                          borderColor="whiteAlpha.300"
+                          leftIcon={
+                            <Image
+                              height="14px"
+                              src="/images/tenderly.svg"
+                              alt="Safe"
+                              objectFit="cover"
+                            />
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          _hover={{
+                            bg: 'whiteAlpha.200',
+                            borderColor: 'whiteAlpha.400',
+                          }}
+                        >
+                          Simulate Transaction
+                        </Button>
+                      )}
                     </Box>
                   )}
 
@@ -623,7 +646,7 @@ function TransactionDetailsPage({
                       p={4}
                       borderWidth="1px"
                       borderColor="gray.700"
-                      mb={6}
+                      mb={8}
                     >
                       <Heading
                         size="sm"
