@@ -397,7 +397,7 @@ export const Function: FC<{
                     ETH
                   </InputRightAddon>
                 </InputGroup>
-                <FormHelperText>
+                <FormHelperText color="gray.300">
                   {value !== undefined
                     ? parseEther(value.toString()).toString()
                     : 0}{' '}
