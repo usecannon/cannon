@@ -568,6 +568,11 @@ export const routerSchema = z.object({
    */
   contracts: z.array(z.string()).describe('Set of contracts that will be passed to the router'),
   /**
+   * Include a `receive` function on the router so that it can receive ETH (or, whatever the gas token is on your network).
+   * NOTE: you can always define `payable` functions on your end-functions to receive ETH as well. This is only for receiving ETH like a regular EOA would.
+   */
+  includeReceive: z.boolean().optional(),
+  /**
    *  Address to pass to the from call
    */
   from: z.string().optional().describe('Address to pass to the from call'),

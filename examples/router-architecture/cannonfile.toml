@@ -21,6 +21,7 @@ contracts = [
   "Counter",
   "Greeter",
 ]
+includeReceive = false
 
 # Deploy a new Proxy using as implementation our just craeted Router
 [provision.proxy]
