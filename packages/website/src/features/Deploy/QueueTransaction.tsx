@@ -41,7 +41,6 @@ import {
 } from 'viem';
 import { FunctionInput } from '../Packages/FunctionInput';
 import 'react-diff-view/style/index.css';
-import { useCannonPackageContracts } from '@/hooks/cannon';
 
 type OptionData = {
   value: any;
