@@ -330,7 +330,7 @@ export const QueuedTxns = ({
                     })
                   }
                 />
-                <FormHelperText>
+                <FormHelperText color="gray.300">
                   Amount of ETH to send as part of transaction
                 </FormHelperText>
               </FormControl>
@@ -350,7 +350,7 @@ export const QueuedTxns = ({
                   })
                 }
               />
-              <FormHelperText>
+              <FormHelperText color="gray.300">
                 0x prefixed hex code data to send with transaction
               </FormHelperText>
             </FormControl>
