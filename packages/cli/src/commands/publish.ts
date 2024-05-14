@@ -45,7 +45,7 @@ export async function publish({
   chainId,
   presetArg,
   quiet = false,
-  includeProvisioned = false,
+  includeProvisioned = true,
   skipConfirm = false,
 }: Params) {
   const { fullPackageRef } = new PackageReference(packageRef);
@@ -214,7 +214,7 @@ export async function publish({
       console.log('\n');
     }
 
-    const totalFees = await onChainRegistry.calculatePublishingFee(parentPackages.length);
+    const totalFees = await onChainRegistry.calculatePublishingFee(parentPackages.length + subPackages.length);
 
     console.log(`Total publishing fees: ${viem.formatEther(totalFees)} ETH`);
     console.log();
