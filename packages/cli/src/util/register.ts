@@ -38,6 +38,8 @@ export const isPackageRegistered = async (
  *
  * @param {string} params.eventName - The name of the event to wait for.
  * @param {viem.Abi} params.abi - The ABI (Application Binary Interface) that includes the event.
+ * @param {number} params.chainId - The chain ID of the registry.
+ * @param {any} params.expectedArgs - The expected arguments of the event.
  * @returns {Promise<void>} - A promise that resolves with the event logs when the event is received or rejects with an error on timeout or if an error occurs while watching the event.
  */
 
