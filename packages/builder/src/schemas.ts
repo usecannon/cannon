@@ -494,7 +494,7 @@ export const cloneSchema = z
          */
         chainId: z.number().int().describe('ID of the chain to import the package from. Default - 13370'),
         /**
-         *  Override the preset to use when provisioning this package.
+         *  (DEPRECATED) Use `source` instead. Override the preset to use when provisioning this package.
          * Default - "main"
          */
         sourcePreset: z
@@ -503,7 +503,19 @@ export const cloneSchema = z
             '⚠ Deprecated in favor of appending @PRESET_NAME to source. Override the preset to use when provisioning this package. Default - "main"'
           ),
         /**
-         *  Set the new preset to use for this package.
+         *  Name of the package to write the provisioned package to
+         */
+        target: z
+          .string()
+          .refine(
+            (val) => !!val.match(packageRegex) || !!val.match(interpolatedRegex),
+            (val) => ({
+              message: `Target value: ${val} must match package formats: "package:version" or "package:version@preset" or be an interpolated value`,
+            })
+          )
+          .describe('Name of the package to provision'),
+        /**
+         *  (DEPRECATED) use `target` instead. Set the new preset to use for this package.
          * Default - "main"
          */
         targetPreset: z.string().describe('Set the new preset to use for this package. Default - "main"'),

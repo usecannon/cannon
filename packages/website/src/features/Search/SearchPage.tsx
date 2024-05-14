@@ -49,7 +49,7 @@ export const SearchPage = () => {
   const debouncedHandleSearch = debounce(handleSearch, 300);
 
   const packagesQuery = useQuery({
-    queryKey: ['packages', searchTerm, selectedChains],
+    queryKey: ['packages', searchTerm, selectedChains, 'package'],
     queryFn: getPackages,
   });
 

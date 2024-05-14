@@ -48,6 +48,10 @@ const cloneSpec = {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
     config = _.cloneDeep(config);
 
+    if (config.target && config.targetPreset) {
+      throw new Error(`only one of \`target\` and \`targetPreset\` can specified for ${packageState.name}`);
+    }
+
     const ref = new PackageReference(_.template(config.source)(ctx));
 
     config.source = ref.fullPackageRef;
@@ -58,6 +62,7 @@ const cloneSpec = {
 
     config.sourcePreset = _.template(config.sourcePreset)(ctx);
     config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
+    config.target = _.template(config.target)(ctx);
 
     if (config.var) {
       config.var = _.mapValues(config.var, (v) => {
@@ -78,6 +83,7 @@ const cloneSpec = {
 
   getInputs(config: Config, possibleFields: string[]) {
     let accesses = computeTemplateAccesses(config.source);
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.target, possibleFields));
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.sourcePreset, possibleFields));
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.targetPreset, possibleFields));
 
@@ -115,7 +121,8 @@ const cloneSpec = {
     const sourcePreset = config.sourcePreset;
     const sourceRef = new PackageReference(config.source);
     const source = sourceRef.fullPackageRef;
-    const target = `${sourceRef.name}:${sourceRef.version}@${targetPreset}`;
+    const target = config.target || `${sourceRef.name}:${sourceRef.version}@${targetPreset}`;
+    const targetRef = new PackageReference(target);
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
     // try to read the chain definition we are going to use
@@ -240,7 +247,8 @@ const cloneSpec = {
         [importLabel]: {
           url: newSubDeployUrl || '',
           tags: config.tags || ['latest'],
-          preset: targetPreset,
+          target: targetRef.fullPackageRef,
+          preset: targetRef.preset,
           ...(await getOutputs(importRuntime, def, builtState))!,
         },
       },

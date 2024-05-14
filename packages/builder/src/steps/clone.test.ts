@@ -52,6 +52,7 @@ describe('steps/clone.ts', () => {
         source: 'abc:latest@main',
         sourcePreset: '',
         targetPreset: 'with-who',
+        target: '',
       });
     });
   });
@@ -179,7 +180,7 @@ describe('steps/clone.ts', () => {
       const result = await action.exec(
         fakeRuntime,
         fakeCtx,
-        { source: 'hello:1.0.0' },
+        { source: 'hello:1.0.0', targetPreset: 'woot-y' },
         { name: 'package', version: '1.0.0', currentLabel: 'clone.something' }
       );
 
@@ -187,7 +188,29 @@ describe('steps/clone.ts', () => {
         imports: {
           something: {
             url: 'ipfs://Qmsomething',
-            preset: 'main',
+            target: 'hello:1.0.0@woot-y',
+            preset: 'woot-y',
+            tags: ['latest'],
+            settings: {
+              sophisticated: 'fast',
+            },
+          },
+        },
+      });
+
+      const result2 = await action.exec(
+        fakeRuntime,
+        fakeCtx,
+        { source: 'hello:1.0.0', target: 'where:2.3.4@y-slink' },
+        { name: 'package', version: '1.0.0', currentLabel: 'clone.something' }
+      );
+
+      expect(result2).toStrictEqual({
+        imports: {
+          something: {
+            url: 'ipfs://Qmsomething',
+            target: 'where:2.3.4@y-slink',
+            preset: 'y-slink',
             tags: ['latest'],
             settings: {
               sophisticated: 'fast',

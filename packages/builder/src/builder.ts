@@ -430,9 +430,21 @@ export function addOutputsToContext(ctx: ChainBuilderContext, outputs: ChainArti
     ctx.settings[override] = ctx.overrideSettings[override];
   }
 
-  for (const n in ctx.settings) {
-    ctx.extras[n] = ctx.settings[n];
-  }
+  assignSettingsToExtras(ctx);
 
   ctx = Object.assign(ctx, addSimplifiedAccessSyntax(ctx));
+}
+
+// backawrds compatibility, settings was called "extras".
+function assignSettingsToExtras(ctx: ChainBuilderContext) {
+  if (ctx.settings) {
+    ctx.extras = {
+      ...(ctx.extras || {}),
+      ...ctx.settings,
+    };
+  }
+
+  for (const importCtx of Object.values(ctx.imports || {})) {
+    assignSettingsToExtras(importCtx as unknown as ChainBuilderContext);
+  }
 }

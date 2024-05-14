@@ -1,42 +1,43 @@
 import * as viem from 'viem';
-import { ApiError, BadRequestError } from './errors';
+import { BadRequestError, ServerError } from './errors';
+import { RedisPackage, RedisTag } from './types';
 
-// TODO: replace this function by one exported by @usecannon/builder
-function _validatePackageName(n: string) {
-  if (n.length < 3) {
-    throw new Error('package name must be at least 3 characters long');
-  }
-
-  if (n.length > 31) {
-    throw new Error('package name must be at most 31 characters long');
-  }
-
-  if (n[n.length - 1] === '-' || n[0] === '-') {
-    throw new Error('first and last character of package name must not be dash (-)');
-  }
-
-  if (!/^[0-9a-z-]*$/.test(n)) {
-    throw new Error('cannon packages can only have names connecting lowercase, alphanumeric characters, and dashes');
-  }
+const packageNameRegex = /^[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9]$/;
+export function isPackageName(packageName: any) {
+  return typeof packageName === 'string' && packageNameRegex.test(packageName);
 }
 
 export function parsePackageName(packageName: string) {
-  try {
-    _validatePackageName(packageName);
-    return packageName.replace(/-/g, '\\-');
-  } catch (err) {
+  if (!isPackageName(packageName)) {
     throw new BadRequestError('Invalid package name');
   }
+
+  return packageName.replace(/-/g, '\\-');
 }
 
-export function parsePage(page: any) {
-  const parsed = Number.parseInt(page || '1', 10);
+const partialPackageRefRegex = /^[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9]:[^@]+(?:@[^\s]+)?$/;
+export function isPartialPackageRef(packageName: any) {
+  return typeof packageName === 'string' && partialPackageRefRegex.test(packageName);
+}
 
-  if (!Number.isSafeInteger(parsed) || parsed < 1) {
-    throw new BadRequestError('Invalid page number');
-  }
+const fullPackageRefRegex = /^[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9]:[^@]+@[^\s]+$/;
+export function isFullPackageRef(fullPackageRef: any) {
+  return typeof fullPackageRef === 'string' && fullPackageRefRegex.test(fullPackageRef);
+}
 
-  return parsed;
+const contractNameRegex = /^[A-Z][A-Za-z0-9_]*$/;
+export function isContractName(contractName: any) {
+  return typeof contractName === 'string' && contractNameRegex.test(contractName);
+}
+
+const functionSelectorRegex = /^0x[0-9a-fA-F]{8}$/;
+export function isFunctionSelector(selector: any) {
+  return typeof selector === 'string' && functionSelectorRegex.test(selector);
+}
+
+const chainIdRegex = /^[0-9]+$/;
+export function isChainId(chainId: any) {
+  return typeof chainId === 'string' && chainIdRegex.test(chainId);
 }
 
 const chainIdListRegex = /^[0-9][0-9,]*(?<!,)$/;
@@ -50,15 +51,21 @@ export function parseChainIds(chainIds: any): number[] {
   return chainIds.split(',').map((chainId) => Number.parseInt(chainId, 10));
 }
 
-const queryRegex = /^[a-zA-Z0-9]+[a-zA-Z0-9-]*(?<!-)$/;
-export function parseQuery(query: any): string {
+export function parseTextQuery(query: any): string {
   if (!query) return '';
 
-  if (typeof query !== 'string' || !queryRegex.test(query)) {
+  if (typeof query !== 'string' || query.length > 256) {
     throw new BadRequestError('Invalid query parameter');
   }
 
-  return query.replace(/-/g, '%-%');
+  return (
+    query
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      // only leave valid characters and remove starting or ending '-'s
+      .replace(/^[-]+|[^a-z0-9-]|[-]+$/g, '')
+  );
 }
 
 export function parseAddresses(addresses: any) {
@@ -66,8 +73,12 @@ export function parseAddresses(addresses: any) {
   const result = addresses.split(',');
 
   if (result.some((val) => !viem.isAddress(val))) {
-    throw new ApiError(`Invalid publishers "${addresses}"`);
+    throw new ServerError(`Invalid publishers "${addresses}"`);
   }
 
   return result as viem.Address[];
+}
+
+export function isRedisTagOfPackage(a: RedisPackage, b: RedisTag) {
+  return a.name === b.name && a.version === b.versionOfTag && a.preset === b.preset && a.chainId === b.chainId;
 }

@@ -5,7 +5,7 @@
   "main": "dist/src/index.js",
   "private": true,
   "scripts": {
-    "db-prepare": "cp ../indexer/src/db.ts ./src/",
+    "db-prepare": "cp ../indexer/src/db.ts ./src/db/keys.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/src/index.js",
     "dev": "NODE_ENV=development ts-node-dev src/index.ts"
@@ -13,12 +13,16 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@isaacs/ttlcache": "^1.4.1",
     "@usecannon/builder": "^2.13.0",
     "cors": "^2.8.5",
     "envalid": "^8.0.0",
     "express": "^5.0.0-beta.3",
+    "express-basic-auth": "^1.2.1",
     "express-prom-bundle": "^7.0.0",
     "express-rate-limit": "^7.2.0",
+    "fastest-levenshtein": "^1.0.16",
+    "fuse.js": "^7.0.0",
     "helmet": "^7.1.0",
     "prom-client": "^15.1.2",
     "redis": "^4.6.13",

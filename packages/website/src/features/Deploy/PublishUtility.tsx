@@ -1,6 +1,7 @@
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { findChain } from '@/helpers/rpc';
 import { useStore } from '@/helpers/store';
+import { useProviders } from '@/hooks/providers';
 import { useCannonPackage } from '@/hooks/cannon';
 import { useCannonPackagePublishers } from '@/hooks/registry';
 import {
@@ -28,10 +29,10 @@ import {
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/cli/src/constants';
+import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/cli/dist/src/constants';
 import { Chain, createPublicClient, http, isAddressEqual } from 'viem';
 import { mainnet, optimism } from 'viem/chains';
-import { useWalletClient } from 'wagmi';
+import { useWalletClient, useSwitchChain } from 'wagmi';
 
 export default function PublishUtility(props: {
   deployUrl: string;
@@ -40,6 +41,7 @@ export default function PublishUtility(props: {
   const settings = useStore((s) => s.settings);
 
   const wc = useWalletClient();
+  const { switchChainAsync } = useSwitchChain();
   const toast = useToast();
 
   // get the package referenced by this ipfs package
@@ -79,6 +81,8 @@ export default function PublishUtility(props: {
     findChain(props.targetChainId).blockExplorers?.default?.url ??
     'https://etherscan.io';
 
+  const { transports } = useProviders();
+
   const prepareAndPublishPackage = async (registryChainId: number) => {
     if (!wc.data) {
       throw new Error('Wallet not connected');
@@ -86,13 +90,12 @@ export default function PublishUtility(props: {
 
     const [walletAddress] = await wc.data.getAddresses();
 
-    // TODO: This needs to check both registries? Should it just check subgraph?
     const targetRegistry = new OnChainRegistry({
       signer: { address: walletAddress, wallet: wc.data },
       address: DEFAULT_REGISTRY_ADDRESS,
       provider: createPublicClient({
         chain: findChain(registryChainId) as Chain,
-        transport: http(),
+        transport: transports[registryChainId] || http(),
       }),
     });
 
@@ -286,7 +289,11 @@ export default function PublishUtility(props: {
               }
               mb={2}
               w="full"
-              onClick={() => publishOptimismMutation.mutate()}
+              onClick={() =>
+                switchChainAsync({ chainId: 10 }).then(() =>
+                  publishOptimismMutation.mutate()
+                )
+              }
               isLoading={publishOptimismMutation.isPending}
             >
               Publish to Optimism
@@ -297,7 +304,9 @@ export default function PublishUtility(props: {
                   publishOptimismMutation.isPending ||
                   publishMainnetMutation.isPending
                     ? false
-                    : publishMainnetMutation.mutate()
+                    : switchChainAsync({ chainId: 1 }).then(() =>
+                        publishMainnetMutation.mutate()
+                      )
                 }
               >
                 {publishMainnetMutation.isPending

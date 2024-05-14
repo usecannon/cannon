@@ -77,8 +77,8 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   });
 
   const isMainnet = keyPrompt.value === 'ETH';
-  const [mainnetRegistryConfig, optimismRegistryConfig] = cliSettings.registries;
-  const [mainnetRegistryProvider, optimismRegistryProvider] = await resolveRegistryProviders(cliSettings);
+  const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
+  const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
 
   const overrides: any = {};
   if (options.maxFeePerGas) {
@@ -170,10 +170,13 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     process.exit(1);
   }
 
+  const mainnetPublishers = isMainnet ? publishers : mainnetCurrentPublishers;
+  const optimismPublishers = isMainnet ? optimismCurrentPublishers : publishers;
+
+  const packageNameHex = viem.stringToHex(packageName, { size: 32 });
+
   const [hash] = await Promise.all([
     (async () => {
-      const mainnetPublishers = isMainnet ? publishers : mainnetCurrentPublishers;
-      const optimismPublishers = isMainnet ? optimismCurrentPublishers : publishers;
       const hash = await mainnetRegistry.setAdditionalPublishers(packageName, mainnetPublishers, optimismPublishers);
 
       console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
@@ -187,11 +190,26 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     })(),
     (async () => {
       // this should always resolve after the first promise but we want to make sure it runs at the same time
-      await waitForEvent({
-        eventName: 'PackagePublishersChanged',
-        abi: optimismRegistry.contract.abi,
-        chainId: optimismRegistryConfig.chainId!,
-      });
+      await Promise.all([
+        waitForEvent({
+          eventName: 'PackagePublishersChanged',
+          abi: mainnetRegistry.contract.abi,
+          chainId: mainnetRegistryConfig.chainId!,
+          expectedArgs: {
+            name: packageNameHex,
+            publisher: mainnetPublishers,
+          },
+        }),
+        waitForEvent({
+          eventName: 'PackagePublishersChanged',
+          abi: optimismRegistry.contract.abi,
+          chainId: optimismRegistryConfig.chainId!,
+          expectedArgs: {
+            name: packageNameHex,
+            publisher: optimismPublishers,
+          },
+        }),
+      ]);
 
       console.log(green('Success!'));
       console.log('');

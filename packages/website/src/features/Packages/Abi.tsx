@@ -83,7 +83,7 @@ export const Abi: FC<{
         const topOffset =
           section.getBoundingClientRect().top + window.scrollY - adjust;
 
-        const button = section.querySelector('button');
+        const button = section.querySelector('h2');
 
         if (button) {
           // open the collapsible
@@ -213,7 +213,12 @@ export const Abi: FC<{
         </Flex>
 
         <Box background="black" ref={containerRef} w="100%">
-          <Alert status="warning" bg="gray.900" borderRadius="sm">
+          <Alert
+            status="warning"
+            bg="gray.900"
+            borderBottom="1px solid"
+            borderColor="gray.700"
+          >
             <AlertIcon />
             <Text fontWeight="bold">
               Always review transactions carefully in your wallet application

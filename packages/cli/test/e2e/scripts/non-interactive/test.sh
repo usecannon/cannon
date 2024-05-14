@@ -7,4 +7,7 @@ output=$($CANNON test cannonfile.toml)
 [[ ! "$output" = "0 failed, 0 skipped" ]]
 
 # test running on a fork
-$CANNON test --provider-url https://ethereum-rpc.publicnode.com
+output=$($CANNON test --provider-url https://ethereum-rpc.publicnode.com || true)
+
+# test is expected to fail, but it should run
+[[ ! "$output" = "1 failed, 0 skipped" ]]

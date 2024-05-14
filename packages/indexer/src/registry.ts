@@ -207,7 +207,7 @@ export async function handleCannonPublish(
 ) {
   const deployInfo = (await ctx.readBlob(publishEvent.args.deployUrl)) as DeploymentInfo;
 
-  await redis.hSet(`${rkey.RKEY_PACKAGE_SEARCHABLE}:${packageRef}`, {
+  await redis.hSet(`${rkey.RKEY_PACKAGE_SEARCHABLE}:${packageRef}#${chainId}`, {
     miscUrl: deployInfo.miscUrl,
   });
 
@@ -233,7 +233,7 @@ export async function handleCannonPublish(
       // index: transaction/address resolve to package
       if (state) {
         // TODO: validate that this package is the authoritative source for all things
-        for (const contract of Object.values(state.artifacts.contracts || {})) {
+        for (const [contractName, contract] of Object.entries(state.artifacts.contracts || {})) {
           // note: have to deal with chain id here
           batch.zAdd(
             rkey.RKEY_ADDRESS_TO_PACKAGE,
@@ -263,16 +263,15 @@ export async function handleCannonPublish(
               const selector = functionHash.slice(0, 10);
               const functionSignature = viem.toFunctionSignature(abiItem as viem.AbiFunction);
 
-              batch.hSet(`${rkey.RKEY_ABI_SEARCHABLE}:${chainId}:${contract.address}:${functionSignature}`, {
-                name: abiItem.name,
-                signature: functionSignature,
-                selector: selector,
-                type: abiItem.type,
-                package: packageRef,
-                address: contract.address,
-                chainId: chainId,
-                timestamp,
-              });
+              const abiSearchKey = `${rkey.RKEY_ABI_SEARCHABLE}:${chainId}:${contract.address}:${functionSignature}`;
+              batch.hSetNX(abiSearchKey, 'name', functionSignature);
+              batch.hSetNX(abiSearchKey, 'selector', selector);
+              batch.hSetNX(abiSearchKey, 'type', abiItem.type);
+              batch.hSetNX(abiSearchKey, 'package', packageRef);
+              batch.hSetNX(abiSearchKey, 'address', contract.address.toLowerCase());
+              batch.hSetNX(abiSearchKey, 'contractName', contractName);
+              batch.hSetNX(abiSearchKey, 'chainId', chainId.toString());
+              batch.hSetNX(abiSearchKey, 'timestamp', Math.floor(timestamp / 1000).toString());
             }
           }
         }
@@ -322,10 +321,11 @@ export async function createIndexesIfNedeed(redis: RedisClientType) {
       rkey.RKEY_ABI_SEARCHABLE,
       {
         name: { type: SchemaFieldTypes.TEXT, NOSTEM: true },
+        contractName: { type: SchemaFieldTypes.TEXT, NOSTEM: true },
         selector: { type: SchemaFieldTypes.TAG },
+        address: { type: SchemaFieldTypes.TAG },
+        chainId: { type: SchemaFieldTypes.TAG },
         timestamp: { type: SchemaFieldTypes.NUMERIC, SORTABLE: true },
-        chainId: { type: SchemaFieldTypes.NUMERIC },
-        contract: { type: SchemaFieldTypes.TAG },
       },
       { PREFIX: rkey.RKEY_ABI_SEARCHABLE + ':' }
     );
@@ -556,6 +556,8 @@ export async function scanChain(mainnetClient: viem.PublicClient, optimismClient
               );
 
               await redis.del(`${rkey.RKEY_PACKAGE_SEARCHABLE}:${packageRef}#${chainId}`);
+
+              // TODO: search for tags that depend on this key and delete them as well
 
               break;
             default:
