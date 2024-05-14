@@ -2,38 +2,38 @@
 
 import { CommandPreview } from '@/components/CommandPreview';
 import {
-  Flex,
-  Box,
-  useBreakpointValue,
-  Container,
-  Heading,
-  Link,
-  Text,
-  Code,
-  Tabs,
-  TabList,
-  Tab,
-  TabPanels,
-  TabPanel,
-  Icon,
-  Table,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
   Accordion,
   AccordionButton,
   AccordionIcon,
   AccordionItem,
   AccordionPanel,
+  Box,
   Button,
+  Code,
+  Container,
+  Flex,
+  Heading,
+  Icon,
+  Link,
+  Tab,
+  Table,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  Tbody,
+  Td,
+  Text,
+  Th,
+  Thead,
+  Tr,
+  useBreakpointValue,
 } from '@chakra-ui/react';
+import commandsConfig from '@usecannon/cli/dist/src/commandsConfig';
 import React, { FC } from 'react';
-import { ImNpm } from 'react-icons/im';
 import { FaYarn } from 'react-icons/fa';
+import { ImNpm } from 'react-icons/im';
 import { SiPnpm } from 'react-icons/si';
-import commandsConfig from '@usecannon/cli/src/commandsConfig';
 
 const basicCommands = ['run', 'build', 'verify', 'publish'];
 

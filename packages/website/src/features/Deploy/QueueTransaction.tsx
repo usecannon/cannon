@@ -1,19 +1,20 @@
 import { useStore } from '@/helpers/store';
+import { useCannonPackageContracts } from '@/hooks/cannon';
 import { useSimulatedTxns } from '@/hooks/fork';
+import { CloseIcon } from '@chakra-ui/icons';
 import {
   Alert,
   AlertDescription,
   AlertIcon,
   AlertTitle,
   Box,
-  IconButton,
   Flex,
   FormControl,
   FormLabel,
+  IconButton,
   Text,
   Tooltip,
 } from '@chakra-ui/react';
-import { CloseIcon } from '@chakra-ui/icons';
 import { AbiFunction } from 'abitype/src/abi';
 import {
   chakraComponents,
@@ -28,13 +29,12 @@ import {
   Address,
   decodeErrorResult,
   encodeFunctionData,
-  toFunctionSelector,
   Hex,
+  toFunctionSelector,
   TransactionRequestBase,
 } from 'viem';
 import { FunctionInput } from '../Packages/FunctionInput';
 import 'react-diff-view/style/index.css';
-import { useCannonPackageContracts } from '@/hooks/cannon';
 
 type OptionData = {
   value: any;
@@ -86,7 +86,7 @@ function decodeError(err: Hex, abi: Abi) {
       data: err,
     });
 
-    return `${parsedError.errorName}(${parsedError.args?.join(', ')})`;
+    return `${parsedError.errorName}(${parsedError.args?.join(', ') || ''})`;
   } catch (err) {
     // ignore
   }

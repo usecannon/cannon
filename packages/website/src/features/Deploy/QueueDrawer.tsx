@@ -1,20 +1,29 @@
 'use client';
 
-import React, { Suspense } from 'react';
 import { links } from '@/constants/links';
+import WithSafe from '@/features/Deploy/WithSafe';
 import { makeMultisend } from '@/helpers/multisend';
 import { useQueueTxsStore, useStore } from '@/helpers/store';
 import { useTxnStager } from '@/hooks/backend';
 import { useCannonPackageContracts } from '@/hooks/cannon';
 import { useSimulatedTxns } from '@/hooks/fork';
 import { SafeTransaction } from '@/types/SafeTransaction';
+import { AddIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import {
-  IconButton,
   Box,
+  Button,
+  Drawer,
+  DrawerBody,
+  DrawerCloseButton,
+  DrawerContent,
+  DrawerHeader,
+  DrawerOverlay,
   FormControl,
   FormHelperText,
   FormLabel,
   HStack,
+  Icon,
+  IconButton,
   Input,
   InputGroup,
   InputRightElement,
@@ -22,18 +31,10 @@ import {
   Text,
   Tooltip,
   useToast,
-  Drawer,
-  DrawerOverlay,
-  DrawerContent,
-  DrawerCloseButton,
-  DrawerHeader,
-  DrawerBody,
-  Button,
-  Icon,
 } from '@chakra-ui/react';
-import { AddIcon, InfoOutlineIcon } from '@chakra-ui/icons';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import {
   AbiFunction,
   encodeAbiParameters,
@@ -42,14 +43,11 @@ import {
   TransactionRequestBase,
   zeroAddress,
 } from 'viem';
-import { useWriteContract } from 'wagmi';
+import { useAccount, useWriteContract } from 'wagmi';
 import NoncePicker from './NoncePicker';
 import { QueueTransaction } from './QueueTransaction';
-import 'react-diff-view/style/index.css';
 import { SafeAddressInput } from './SafeAddressInput';
-import WithSafe from '@/features/Deploy/WithSafe';
-import { useAccount } from 'wagmi';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
+import 'react-diff-view/style/index.css';
 
 export const QueuedTxns = ({
   onDrawerClose,
@@ -61,12 +59,23 @@ export const QueuedTxns = ({
 
   const currentSafe = useStore((s) => s.currentSafe);
   const router = useRouter();
-  const {
-    queuedIdentifiableTxns,
-    setQueuedIdentifiableTxns,
-    lastQueuedTxnsId,
-    setLastQueuedTxnsId,
-  } = useQueueTxsStore((s) => s);
+  const { safes, setQueuedIdentifiableTxns, setLastQueuedTxnsId } =
+    useQueueTxsStore((s) => s);
+
+  const queuedIdentifiableTxns =
+    currentSafe?.address &&
+    currentSafe?.chainId &&
+    safes[`${currentSafe?.chainId}:${currentSafe?.address}`]
+      ? safes[`${currentSafe?.chainId}:${currentSafe?.address}`]
+          ?.queuedIdentifiableTxns
+      : [];
+  const lastQueuedTxnsId =
+    currentSafe?.address &&
+    currentSafe?.chainId &&
+    safes[`${currentSafe?.chainId}:${currentSafe?.address}`]
+      ? safes[`${currentSafe?.chainId}:${currentSafe?.address}`]
+          ?.lastQueuedTxnsId
+      : 0;
 
   const [target, setTarget] = useState<string>('');
 
@@ -127,8 +136,14 @@ export const QueuedTxns = ({
           isClosable: true,
         });
 
-        setQueuedIdentifiableTxns([]);
-        setLastQueuedTxnsId(0);
+        setQueuedIdentifiableTxns({
+          queuedIdentifiableTxns: [],
+          safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
+        });
+        setLastQueuedTxnsId({
+          lastQueuedTxnsId: 0,
+          safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
+        });
       },
     }
   );
@@ -146,8 +161,8 @@ export const QueuedTxns = ({
     target?: string | null,
     chainId?: number | null
   ) {
-    setQueuedIdentifiableTxns(
-      queuedIdentifiableTxns.map((item, index) =>
+    setQueuedIdentifiableTxns({
+      queuedIdentifiableTxns: queuedIdentifiableTxns.map((item, index) =>
         index === i
           ? {
               ...item,
@@ -159,28 +174,41 @@ export const QueuedTxns = ({
               chainId: chainId || item.chainId,
             }
           : item
-      )
-    );
+      ),
+      safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
+    });
   }
 
   const removeQueuedTxn = (i: number) => {
-    setQueuedIdentifiableTxns(
-      queuedIdentifiableTxns.filter((_, index) => index !== i)
-    );
-    setLastQueuedTxnsId(lastQueuedTxnsId - 1);
+    setQueuedIdentifiableTxns({
+      queuedIdentifiableTxns: queuedIdentifiableTxns.filter(
+        (_, index) => index !== i
+      ),
+      safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
+    });
+    setLastQueuedTxnsId({
+      lastQueuedTxnsId: lastQueuedTxnsId - 1,
+      safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
+    });
   };
 
   const addQueuedTxn = () => {
-    setQueuedIdentifiableTxns([
-      ...queuedIdentifiableTxns,
-      {
-        txn: {},
-        id: String(lastQueuedTxnsId + 1),
-        chainId: currentSafe?.chainId as number,
-        target,
-      },
-    ]);
-    setLastQueuedTxnsId(lastQueuedTxnsId + 1);
+    setQueuedIdentifiableTxns({
+      queuedIdentifiableTxns: [
+        ...queuedIdentifiableTxns,
+        {
+          txn: {},
+          id: String(lastQueuedTxnsId + 1),
+          chainId: currentSafe?.chainId as number,
+          target,
+        },
+      ],
+      safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
+    });
+    setLastQueuedTxnsId({
+      lastQueuedTxnsId: lastQueuedTxnsId + 1,
+      safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
+    });
   };
 
   const txnHasError = !!txnInfo.txnResults.filter((r) => r?.error).length;
@@ -197,11 +225,11 @@ export const QueuedTxns = ({
                 key={i}
                 mb={8}
                 p={6}
-                bg="gray.900"
+                bg="gray.800"
                 display="block"
                 borderWidth="1px"
                 borderStyle="solid"
-                borderColor="gray.700"
+                borderColor="gray.600"
                 borderRadius="4px"
                 position="relative"
               >
@@ -331,6 +359,7 @@ export const QueuedTxns = ({
 
         {queuedIdentifiableTxns.length > 0 && (
           <Box>
+            <NoncePicker safe={currentSafe} handleChange={setPickedNonce} />
             <>
               {!account.isConnected ? (
                 <Button
@@ -343,10 +372,6 @@ export const QueuedTxns = ({
                 </Button>
               ) : (
                 <>
-                  <NoncePicker
-                    safe={currentSafe as any}
-                    onPickedNonce={setPickedNonce}
-                  />
                   <HStack gap="6">
                     {disableExecute ? (
                       <Tooltip label={stager.signConditionFailed}>
@@ -469,10 +494,10 @@ const QueueDrawer = ({
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton mt={1} />
-          <DrawerHeader bg="gray.800">
+          <DrawerHeader bg="gray.700">
             Stage Transactions to a Safe
           </DrawerHeader>
-          <DrawerBody bg="gray.800" pt={4}>
+          <DrawerBody bg="gray.700" pt={4}>
             <Suspense fallback={<Spinner />}>
               <SafeAddressInput />
             </Suspense>
