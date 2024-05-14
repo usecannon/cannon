@@ -1,4 +1,3 @@
-import { createSimulationData } from '@/helpers/safe';
 import { SafeDefinition } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { Button, Image } from '@chakra-ui/react';
@@ -6,9 +5,14 @@ import { Button, Image } from '@chakra-ui/react';
 interface Props {
   safe: SafeDefinition;
   safeTxn: SafeTransaction | null;
+  execTransactionData?: string;
 }
 
-export default function SimulateTransactionButton({ safe, safeTxn }: Props) {
+export function SimulateTransactionButton({
+  safe,
+  safeTxn,
+  execTransactionData,
+}: Props) {
   if (!safeTxn) return null;
 
   const queryParams = {
@@ -17,13 +21,13 @@ export default function SimulateTransactionButton({ safe, safeTxn }: Props) {
     from: safe.address,
     gas: '8000000',
     gasPrice: '0',
-    value: safeTxn.value || '0',
+    value: Number(safeTxn.value).toString() || '0',
     contractAddress: safe.address,
-    rawFunctionInput: createSimulationData(safeTxn),
+    rawFunctionInput: execTransactionData || '',
     network: `${safe.chainId}`,
     headerBlockNumber: '',
     headerTimestamp: '',
-    // set Safe signers threshold to 0
+    // set Safe signers threshold to 1
     stateOverrides: JSON.stringify([
       {
         contractAddress: safe.address,
