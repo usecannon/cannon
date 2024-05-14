@@ -1,15 +1,18 @@
-import { ChainDefinition, getOutputs, ChainBuilderRuntime, DeploymentInfo } from '@usecannon/builder';
-import * as viem from 'viem';
 import axios from 'axios';
-import { createDefaultReadRegistry } from '../registry';
-import { getProvider, runRpc } from '../rpc';
-import { CliSettings } from '../settings';
 import Debug from 'debug';
+import * as viem from 'viem';
+import { bold, yellow } from 'chalk';
+import { ChainDefinition, getOutputs, ChainBuilderRuntime, DeploymentInfo } from '@usecannon/builder';
 import { forPackageTree, PackageReference } from '@usecannon/builder/dist/src/package';
+
+import { CliSettings } from '../settings';
+import { getProvider, runRpc } from '../rpc';
+import { createDefaultReadRegistry } from '../registry';
+
+import { getChainById } from '../chains';
 import { getMainLoader } from '../loader';
 
-import { bold, yellow } from 'chalk';
-import { getChainById } from '../chains';
+import { isVerified } from '../util/verify';
 
 const debug = Debug('cannon:cli:verify');
 
@@ -96,6 +99,11 @@ export async function verify(packageRef: string, cliSettings: CliSettings, prese
 
       if (!contractArtifact.source) {
         console.log(`${c}: cannot verify: no source code recorded in deploy data`);
+        continue;
+      }
+
+      if (await isVerified(contractInfo.address, etherscanApi, cliSettings.etherscanApiKey)) {
+        console.log(`✅ ${c}: Contract source code already verified`);
         continue;
       }
 

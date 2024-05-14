@@ -103,11 +103,8 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   const currentGasPrice = await mainnetRegistryProvider.provider.getGasPrice();
 
-  // increase the gas limit by 30% the estimated gas
-  const adjustedGas = (estimateGas * BigInt(130)) / BigInt(100);
-
   console.log('');
-  console.log(`This will cost ${viem.formatEther(adjustedGas * currentGasPrice)} ETH on Ethereum Mainnet.`);
+  console.log(`This will cost ~${viem.formatEther(estimateGas * currentGasPrice)} ETH on Ethereum Mainnet.`);
   console.log('');
 
   const confirm = await prompts({
@@ -121,6 +118,8 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   }
 
   console.log('Submitting transaction...');
+
+  const packageNameHex = viem.stringToHex(packageName, { size: 32 });
 
   try {
     const [hash] = await Promise.all([
@@ -143,11 +142,19 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
             eventName: 'PackageOwnerChanged',
             abi: mainnetRegistry.contract.abi,
             chainId: optimismRegistryConfig.chainId!,
+            expectedArgs: {
+              name: packageNameHex,
+              owner: userAddress,
+            },
           }),
           waitForEvent({
             eventName: 'PackagePublishersChanged',
             abi: mainnetRegistry.contract.abi,
             chainId: optimismRegistryConfig.chainId!,
+            expectedArgs: {
+              name: packageNameHex,
+              publisher: [userAddress],
+            },
           }),
         ]);
 

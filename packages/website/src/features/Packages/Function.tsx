@@ -21,6 +21,10 @@ import {
   Text,
   useToast,
   useDisclosure,
+  Input,
+  InputGroup,
+  InputRightAddon,
+  FormHelperText,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
@@ -33,6 +37,7 @@ import {
   zeroAddress,
   encodeFunctionData,
   TransactionRequestBase,
+  parseEther,
 } from 'viem';
 import {
   useAccount,
@@ -70,14 +75,27 @@ export const Function: FC<{
   const [simulated, setSimulated] = useState(false);
   const [error, setError] = useState<any>(null);
   const [params, setParams] = useState<any[] | any>([]);
+  // for payable functions only
+  const [value, setValue] = useState<any>();
   const toast = useToast();
 
-  const {
-    queuedIdentifiableTxns,
-    setQueuedIdentifiableTxns,
-    lastQueuedTxnsId,
-    setLastQueuedTxnsId,
-  } = useQueueTxsStore((s) => s);
+  const { safes, setQueuedIdentifiableTxns, setLastQueuedTxnsId } =
+    useQueueTxsStore((s) => s);
+
+  const queuedIdentifiableTxns =
+    currentSafe?.address &&
+    currentSafe?.chainId &&
+    safes[`${currentSafe?.chainId}:${currentSafe?.address}`]
+      ? safes[`${currentSafe?.chainId}:${currentSafe?.address}`]
+          ?.queuedIdentifiableTxns
+      : [];
+  const lastQueuedTxnsId =
+    currentSafe?.address &&
+    currentSafe?.chainId &&
+    safes[`${currentSafe?.chainId}:${currentSafe?.address}`]
+      ? safes[`${currentSafe?.chainId}:${currentSafe?.address}`]
+          ?.lastQueuedTxnsId
+      : 0;
 
   const { isConnected, address: from, chain: connectedChain } = useAccount();
   const { openConnectModal } = useConnectModal();
@@ -110,6 +128,11 @@ export const Function: FC<{
 
   const readOnly = useMemo(
     () => f.stateMutability == 'view' || f.stateMutability == 'pure',
+    [f.stateMutability]
+  );
+
+  const isPayable = useMemo(
+    () => f.stateMutability == 'payable',
     [f.stateMutability]
   );
 
@@ -213,6 +236,10 @@ export const Function: FC<{
       _txn = {
         to: address,
         data: toFunctionSelector(f),
+        value:
+          isPayable && value !== undefined
+            ? parseEther(value.toString())
+            : undefined,
       };
     } else {
       try {
@@ -222,6 +249,10 @@ export const Function: FC<{
             abi: [f],
             args: params,
           }),
+          value:
+            isPayable && value !== undefined
+              ? parseEther(value.toString())
+              : undefined,
         };
       } catch (err: any) {
         setError(err.message);
@@ -232,19 +263,25 @@ export const Function: FC<{
     const regex = /\/([^/]+)\.sol$/;
     const contractName = contractSource?.match(regex)?.[1] || 'Unknown';
 
-    setQueuedIdentifiableTxns([
-      ...queuedIdentifiableTxns,
-      {
-        txn: _txn,
-        id: `${lastQueuedTxnsId + 1}`,
-        contractName,
-        target: address,
-        fn: f,
-        params,
-        chainId,
-      },
-    ]);
-    setLastQueuedTxnsId(lastQueuedTxnsId + 1);
+    setQueuedIdentifiableTxns({
+      queuedIdentifiableTxns: [
+        ...queuedIdentifiableTxns,
+        {
+          txn: _txn,
+          id: `${lastQueuedTxnsId + 1}`,
+          contractName,
+          target: address,
+          fn: f,
+          params,
+          chainId,
+        },
+      ],
+      safeId: `${currentSafe.chainId}:${currentSafe.address}`,
+    });
+    setLastQueuedTxnsId({
+      lastQueuedTxnsId: lastQueuedTxnsId + 1,
+      safeId: `${currentSafe.chainId}:${currentSafe.address}`,
+    });
 
     toast({
       title: 'Transaction queued',
@@ -333,6 +370,41 @@ export const Function: FC<{
                 </Box>
               );
             })}
+
+            {isPayable && (
+              <FormControl mb="4">
+                <FormLabel fontSize="sm" mb={1}>
+                  Value
+                  <Text fontSize="xs" color="whiteAlpha.700" display="inline">
+                    {' '}
+                    (payable)
+                  </Text>
+                </FormLabel>
+                <InputGroup size="sm">
+                  <Input
+                    type="number"
+                    size="sm"
+                    bg="black"
+                    borderColor="whiteAlpha.400"
+                    value={value?.toString()}
+                    onChange={(e) => setValue(e.target.value)}
+                  />
+                  <InputRightAddon
+                    bg="black"
+                    color="whiteAlpha.700"
+                    borderColor="whiteAlpha.400"
+                  >
+                    ETH
+                  </InputRightAddon>
+                </InputGroup>
+                <FormHelperText color="gray.300">
+                  {value !== undefined
+                    ? parseEther(value.toString()).toString()
+                    : 0}{' '}
+                  wei
+                </FormHelperText>
+              </FormControl>
+            )}
 
             {readOnly && (
               <Button

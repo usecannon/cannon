@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useStore } from '@/helpers/store';
+import { useSafeTransactions } from '@/hooks/backend';
+import { useExecutedTransactions } from '@/hooks/safe';
 import {
   Box,
   Checkbox,
@@ -10,9 +12,7 @@ import {
   Link,
   Text,
 } from '@chakra-ui/react';
-import { useSafeTransactions } from '@/hooks/backend';
-import { useExecutedTransactions } from '@/hooks/safe';
-import { useStore } from '@/helpers/store';
+import { useState } from 'react';
 import { Transaction } from './Transaction';
 
 export default function SignTransactionsPage() {
@@ -22,7 +22,7 @@ export default function SignTransactionsPage() {
 function SignTransactions() {
   const currentSafe = useStore((s) => s.currentSafe);
   const { staged } = useSafeTransactions(currentSafe as any);
-  const history = useExecutedTransactions(currentSafe as any);
+  const { data: history } = useExecutedTransactions(currentSafe as any);
   const [isChecked, setIsChecked] = useState(false);
 
   const handleCheckboxChange = (e: any) => {

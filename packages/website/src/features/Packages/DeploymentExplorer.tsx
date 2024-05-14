@@ -159,6 +159,8 @@ export const DeploymentExplorer: FC<{
     URL.revokeObjectURL(url);
   };
 
+  const pkgDef = deploymentData?.data?.def;
+
   return pkg?.deployUrl ? (
     <Box>
       {deploymentData.isLoading ? (
@@ -205,8 +207,8 @@ export const DeploymentExplorer: FC<{
                 </Box>
                 <CommandPreview
                   command={`cannon ${pkg.name}${
-                    pkg?.tag !== 'latest' ? `:${pkg.tag}` : ''
-                  }${pkg.preset !== 'main' ? `@${pkg.preset}` : ''}`}
+                    pkg?.tag !== 'latest' ? `:${pkgDef.version}` : ''
+                  }${pkg.preset !== 'main' ? `@${pkgDef.preset}` : ''}`}
                 />
               </Box>
             </Container>
