@@ -43,7 +43,7 @@ import {
   TransactionRequestBase,
   zeroAddress,
 } from 'viem';
-import { useAccount, useWriteContract } from 'wagmi';
+import { useAccount, useWriteContract, useSwitchChain } from 'wagmi';
 import NoncePicker from './NoncePicker';
 import { QueueTransaction } from './QueueTransaction';
 import { SafeAddressInput } from './SafeAddressInput';
@@ -55,6 +55,7 @@ export const QueuedTxns = ({
   onDrawerClose?: () => void;
 }) => {
   const account = useAccount();
+  const { switchChainAsync } = useSwitchChain();
   const { openConnectModal } = useConnectModal();
 
   const currentSafe = useStore((s) => s.currentSafe);
@@ -385,7 +386,26 @@ export const QueuedTxns = ({
                             !!stager.signConditionFailed ||
                             queuedIdentifiableTxns.length === 0
                           }
-                          onClick={() => stager.sign()}
+                          onClick={async () => {
+                            if (currentSafe?.chainId !== account.chainId) {
+                              try {
+                                await switchChainAsync({
+                                  chainId: currentSafe?.chainId as number,
+                                });
+                                await stager.sign();
+                              } catch (e: any) {
+                                toast({
+                                  title:
+                                    e.message || 'Failed to sign transaction.',
+                                  status: 'error',
+                                  duration: 5000,
+                                  isClosable: true,
+                                });
+                              }
+                            } else {
+                              await stager.sign();
+                            }
+                          }}
                         >
                           Stage &amp; Sign
                         </Button>

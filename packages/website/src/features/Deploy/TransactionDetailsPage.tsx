@@ -49,12 +49,14 @@ import {
   useChainId,
   useWriteContract,
   usePublicClient,
+  useSwitchChain,
 } from 'wagmi';
 import PublishUtility from './PublishUtility';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 import 'react-diff-view/style/index.css';
 import { truncateAddress } from '@/helpers/ethereum';
+import { useStore } from '@/helpers/store';
 
 const TransactionDetailsPage: FC<{
   safeAddress: string;
@@ -66,6 +68,8 @@ const TransactionDetailsPage: FC<{
   const publicClient = usePublicClient();
   const walletChainId = useChainId();
   const account = useAccount();
+  const currentSafe = useStore((s) => s.currentSafe);
+  const { switchChainAsync } = useSwitchChain();
 
   const parsedChainId = parseInt(chainId ?? '0') || 0;
   const parsedNonce = parseInt(nonce ?? '0') || 0;
@@ -395,7 +399,29 @@ const TransactionDetailsPage: FC<{
                                   ((safeTxn &&
                                     !!stager.signConditionFailed) as any)
                                 }
-                                onClick={() => stager.sign()}
+                                onClick={async () => {
+                                  if (
+                                    currentSafe?.chainId !== account.chainId
+                                  ) {
+                                    try {
+                                      await switchChainAsync({
+                                        chainId: currentSafe?.chainId as number,
+                                      });
+                                      await stager.sign();
+                                    } catch (e: any) {
+                                      toast({
+                                        title:
+                                          e.message ||
+                                          'Failed to sign transaction.',
+                                        status: 'error',
+                                        duration: 5000,
+                                        isClosable: true,
+                                      });
+                                    }
+                                  } else {
+                                    await stager.sign();
+                                  }
+                                }}
                               >
                                 Sign
                               </Button>

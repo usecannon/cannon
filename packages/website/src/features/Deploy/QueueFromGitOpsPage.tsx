@@ -52,7 +52,7 @@ import {
   TransactionRequestBase,
   zeroAddress,
 } from 'viem';
-import { useWriteContract } from 'wagmi';
+import { useWriteContract, useSwitchChain, useAccount } from 'wagmi';
 import pkg from '../../../package.json';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
@@ -65,7 +65,8 @@ export default function QueueFromGitOpsPage() {
 function QueueFromGitOps() {
   const router = useRouter();
   const currentSafe = useStore((s) => s.currentSafe);
-
+  const account = useAccount();
+  const { switchChainAsync } = useSwitchChain();
   const [cannonfileUrlInput, setCannonfileUrlInput] = useState('');
   const [previousPackageInput, setPreviousPackageInput] = useState('');
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
@@ -589,7 +590,25 @@ function QueueFromGitOps() {
                       isDisabled={!!stager.signConditionFailed}
                       size="lg"
                       w="100%"
-                      onClick={() => stager.sign()}
+                      onClick={async () => {
+                        if (currentSafe?.chainId !== account.chainId) {
+                          try {
+                            await switchChainAsync({
+                              chainId: currentSafe?.chainId as number,
+                            });
+                            await stager.sign();
+                          } catch (e: any) {
+                            toast({
+                              title: e.message || 'Failed to sign transaction.',
+                              status: 'error',
+                              duration: 5000,
+                              isClosable: true,
+                            });
+                          }
+                        } else {
+                          await stager.sign();
+                        }
+                      }}
                     >
                       Queue &amp; Sign
                     </Button>
