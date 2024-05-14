@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useStore } from '@/helpers/store';
+import { useSafeTransactions } from '@/hooks/backend';
+import { useExecutedTransactions } from '@/hooks/safe';
 import {
   Box,
   Checkbox,
@@ -10,9 +12,7 @@ import {
   Link,
   Text,
 } from '@chakra-ui/react';
-import { useSafeTransactions } from '@/hooks/backend';
-import { useExecutedTransactions } from '@/hooks/safe';
-import { useStore } from '@/helpers/store';
+import { useState } from 'react';
 import { Transaction } from './Transaction';
 
 export default function SignTransactionsPage() {
