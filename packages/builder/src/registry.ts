@@ -633,14 +633,14 @@ export class OnChainRegistry extends CannonRegistry {
     return simulatedGas;
   }
 
-  async calculateTotalFees(packagesLength: number) {
+  async calculatePublishingFee(packageCount: number) {
     if (!this.provider) {
       throw new Error('Missing provider for executing registry operations');
     }
 
     const publishFee = await this.getPublishFee();
 
-    return BigInt(packagesLength) * publishFee;
+    return BigInt(packageCount) * publishFee;
   }
 
   async getRegisterFee() {
