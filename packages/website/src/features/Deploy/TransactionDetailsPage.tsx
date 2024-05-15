@@ -580,7 +580,7 @@ const TransactionDetailsPage: FC<{
                         textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
                       >
                         Cannon Package
-                        <Tooltip label="Packages includes data about this deployment (including smart contract addresses, ABIs, and source code).">
+                        <Tooltip label="Packages include data about this deployment (including smart contract addresses, ABIs, and source code). When publishing, the registry collects some ETH (indicated as the 'value' for the transaction in your wallet) to support an IPFS cluster that pins package data.">
                           <InfoOutlineIcon ml={1.5} opacity={0.8} mt={-0.5} />
                         </Tooltip>
                       </Heading>
