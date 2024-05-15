@@ -86,6 +86,16 @@ export const CodeExplorer: FC<{
   source: string;
   functionName?: string;
 }> = ({ pkg, name, moduleName, source, functionName }) => {
+  const isSmall = useBreakpointValue({
+    base: true,
+    sm: true,
+    md: false,
+  });
+
+  const [selectedCode, setSelectedCode] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState('');
+  const [selectedKey, setSelectedKey] = useState('');
+  const [selectedLine, setSelectedLine] = useState<undefined | number>();
   // For the main package, the key is -1
   const [selectedPackage, setSelectedPackage] = useState<{
     name: string;
@@ -186,7 +196,7 @@ export const CodeExplorer: FC<{
         return {
           key,
           value,
-          sources: JSON.parse(value.source.input).sources,
+          sources: value.source ? JSON.parse(value.source.input).sources : [],
         };
       });
 
@@ -224,13 +234,12 @@ export const CodeExplorer: FC<{
             setSelectedLine(line);
             urlParams.append('function', functionName);
           }
-
           window.history.pushState(
             null,
             '',
-            `/packages/${name}/${pkg.version}/${pkg.name}/code/${
-              selectedPackage.name
-            }?${urlParams.toString()}`
+            `/packages/${name}/${pkg.version}/${pkg.chainId}-${
+              pkg.preset
+            }/code/${selectedPackage.name}?${urlParams.toString()}`
           );
           return;
         }
@@ -251,18 +260,34 @@ export const CodeExplorer: FC<{
             })
           : [];
 
-        const [sourceKey, sourceValue] = sortedSources[0];
-        setSelectedCode((sourceValue as any)?.content);
-        setSelectedLanguage('sol');
-        setSelectedKey(sourceKey);
+        if (sortedSources.length) {
+          const [sourceKey, sourceValue] = sortedSources[0];
+          setSelectedCode((sourceValue as any)?.content);
+          setSelectedLanguage('sol');
+          setSelectedKey(sourceKey);
 
-        window.history.pushState(
-          null,
-          '',
-          `/packages/${name}/${pkg.version}/${pkg.name}/code/${
-            selectedPackage.name
-          }?source=${encodeURIComponent(sourceKey)}`
-        );
+          window.history.pushState(
+            null,
+            '',
+            `/packages/${name}/${pkg.version}/${pkg.chainId}-${
+              pkg.preset
+            }/code/${selectedPackage.name}?source=${encodeURIComponent(
+              sourceKey
+            )}`
+          );
+        } else {
+          setSelectedCode('');
+          setSelectedLanguage('');
+          setSelectedKey('');
+
+          /*
+          window.history.pushState(
+            null,
+            '',
+            `/packages/${name}/${pkg.version}/${pkg.chainId}-${pkg.preset}/code/${selectedPackage.name}`
+          );
+          */
+        }
       }
     }
   }, [
@@ -273,17 +298,6 @@ export const CodeExplorer: FC<{
     isLoadingProvisionedMiscData,
     functionName,
   ]);
-
-  const isSmall = useBreakpointValue({
-    base: true,
-    sm: true,
-    md: false,
-  });
-
-  const [selectedCode, setSelectedCode] = useState('');
-  const [selectedLanguage, setSelectedLanguage] = useState('');
-  const [selectedKey, setSelectedKey] = useState('');
-  const [selectedLine, setSelectedLine] = useState<undefined | number>();
 
   const artifacts =
     // If the selected package is the main package, use the misc data
@@ -555,14 +569,31 @@ export const CodeExplorer: FC<{
               maxHeight={['none', 'none', 'calc(100vh - 236px)']}
               background="gray.800"
             >
-              {/* Make sure code preview is not rendered if function name exists but no selected line is set yet */}
-              {!selectedLine && functionName ? null : (
-                <CodePreview
-                  code={selectedCode}
-                  language={selectedLanguage}
+              {selectedCode.length ? (
+                <>
+                  {/* Make sure code preview is not rendered if function name exists but no selected line is set yet */}
+                  {!selectedLine && functionName ? null : (
+                    <CodePreview
+                      code={selectedCode}
+                      language={selectedLanguage}
+                      height="100%"
+                      line={selectedLine}
+                    />
+                  )}
+                </>
+              ) : (
+                <Flex
+                  flex="1"
                   height="100%"
-                  line={selectedLine}
-                />
+                  alignItems="center"
+                  justifyContent="center"
+                  p={4}
+                >
+                  <Text color="gray.400">
+                    <InfoOutlineIcon transform="translateY(-1px)" /> Code
+                    unavailable
+                  </Text>
+                </Flex>
               )}
             </Box>
           </Flex>

@@ -226,7 +226,7 @@ interface PackageData {
   name: string;
   tags: string[];
   variant: string;
-  url: string;
+  url?: string;
   metaUrl?: string;
 }
 
@@ -296,7 +296,7 @@ export class OnChainRegistry extends CannonRegistry {
     }
   }
 
-  private _preparePackageData(packagesNames: string[], chainId: number, url: string, metaUrl?: string): PackageData {
+  private _preparePackageData(packagesNames: string[], chainId: number, url?: string, metaUrl?: string): PackageData {
     const refs = packagesNames.map((name) => new PackageReference(name));
 
     // Sanity check, all package definitions should have the same name
@@ -317,8 +317,13 @@ export class OnChainRegistry extends CannonRegistry {
     if (preset !== PackageReference.DEFAULT_PRESET) {
       console.log(`Preset: ${preset}`);
     }
+
     console.log(`Tags: ${tags.join(', ')}`);
-    console.log(`Package URL: ${url}`);
+
+    if (url) {
+      console.log(`Package URL: ${url}`);
+    }
+
     if (metaUrl) {
       console.log(`Metadata URL: ${metaUrl}`);
     }
@@ -326,6 +331,45 @@ export class OnChainRegistry extends CannonRegistry {
     console.log('\n');
 
     return { name, variant, tags, url, metaUrl };
+  }
+
+  private async _unpublishPackages(packages: PackageData[]): Promise<string> {
+    if (!this.signer || !this.provider) {
+      throw new Error('Missing signer for executing registry operations');
+    }
+
+    debug('signer', this.signer);
+
+    const txs: TxData[] = packages.map((data) => ({
+      abi: this.contract.abi,
+      address: this.contract.address,
+      functionName: 'unpublish',
+      value: BigInt(0),
+      args: [
+        viem.stringToHex(data.name, { size: 32 }),
+        viem.stringToHex(data.variant, { size: 32 }),
+        data.tags.map((t) => viem.stringToHex(t, { size: 32 })),
+      ],
+    }));
+
+    const txData = txs.length === 1 ? txs[0] : prepareMulticall(txs);
+
+    const params = {
+      ...txData,
+      account: this.signer.wallet.account || this.signer.address,
+      ...this.overrides,
+    };
+
+    const simulatedGas = await this.provider.estimateContractGas(params);
+
+    await this._logEstimatedGas(simulatedGas);
+
+    const tx = await this.provider.simulateContract(params);
+
+    const hash = await this.signer.wallet.writeContract(tx.request as any);
+    const receipt = await this.provider.waitForTransactionReceipt({ hash });
+
+    return receipt.transactionHash;
   }
 
   private async _publishPackages(packages: PackageData[]): Promise<string> {
@@ -337,11 +381,13 @@ export class OnChainRegistry extends CannonRegistry {
 
     const ownerAddress = this.signer.wallet.account?.address || this.signer.address;
 
+    const publishFee = await this.getPublishFee();
+
     const txs: TxData[] = packages.map((data) => ({
       abi: this.contract.abi,
       address: this.contract.address,
       functionName: 'publish',
-      value: BigInt(0),
+      value: publishFee,
       args: [
         viem.stringToHex(data.name, { size: 32 }),
         viem.stringToHex(data.variant, { size: 32 }),
@@ -368,19 +414,17 @@ export class OnChainRegistry extends CannonRegistry {
 
     const txData = txs.length === 1 ? txs[0] : prepareMulticall(txs);
 
-    const simulatedGas = await this.provider.estimateContractGas({
+    const params = {
       ...txData,
       account: this.signer.wallet.account || this.signer.address,
       ...this.overrides,
-    });
+    };
+
+    const simulatedGas = await this.provider.estimateContractGas(params);
 
     await this._logEstimatedGas(simulatedGas);
 
-    const tx = await this.provider.simulateContract({
-      ...txData,
-      account: this.signer.wallet.account || this.signer.address,
-      ...this.overrides,
-    });
+    const tx = await this.provider.simulateContract(params);
 
     const hash = await this.signer.wallet.writeContract(tx.request as any);
     const receipt = await this.provider.waitForTransactionReceipt({ hash });
@@ -400,6 +444,18 @@ export class OnChainRegistry extends CannonRegistry {
     console.log(bold(blueBright('\nPublishing packages to the registry on-chain...\n')));
     const packageDatas = toPublish.map((p) => this._preparePackageData(p.packagesNames, p.chainId, p.url, p.metaUrl));
     return [await this._publishPackages(packageDatas)];
+  }
+
+  async unpublish(packagesNames: string[], chainId: number): Promise<string[]> {
+    console.log(bold(blueBright('\nUnpublishing package to the registry on-chain...\n')));
+    const packageData = this._preparePackageData(packagesNames, chainId);
+    return [await this._unpublishPackages([packageData])];
+  }
+
+  async unpublishMany(toUnpublish: { name: string[]; chainId: number }[]): Promise<string[]> {
+    console.log(bold(blueBright('\nUnpublishing packages to the registry on-chain...\n')));
+    const packageDatas = toUnpublish.map((p) => this._preparePackageData(p.name, p.chainId));
+    return [await this._unpublishPackages(packageDatas)];
   }
 
   async getUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
@@ -524,7 +580,7 @@ export class OnChainRegistry extends CannonRegistry {
     });
   }
 
-  async estimateGasForSetPackageOwnership(packageName: string, packageOwner?: viem.Address) {
+  async estimateGasForSetPackageOwnership(packageName: string, packageOwner?: viem.Address, shouldNominateOwner?: boolean) {
     if (!this.signer || !this.provider) {
       throw new Error('Missing signer for executing registry operations');
     }
@@ -534,16 +590,45 @@ export class OnChainRegistry extends CannonRegistry {
 
     const registerFee = await this.getRegisterFee();
 
-    const params = {
+    const txs: TxData[] = [];
+
+    if (shouldNominateOwner) {
+      const setNominatePackageOwnerParams = {
+        ...this.contract,
+        functionName: 'nominatePackageOwner',
+        args: [packageHash, owner],
+        account: this.signer.wallet.account || this.signer.address,
+      };
+
+      txs.push(setNominatePackageOwnerParams);
+    }
+
+    const setPackageOwnershipParams = {
       ...this.contract,
       functionName: 'setPackageOwnership',
       value: registerFee,
       args: [packageHash, owner],
       account: this.signer.wallet.account || this.signer.address,
-      ...this.overrides,
     };
 
-    const simulatedGas = await this.provider.estimateContractGas(params as any);
+    const setAdditionalPublishersParams = {
+      ...this.contract,
+      functionName: 'setAdditionalPublishers',
+      // mainnet is empty, owner is set as publisher for optimism
+      args: [packageHash, [], [owner]],
+      account: this.signer.wallet.account || this.signer.address,
+    };
+
+    txs.push(setPackageOwnershipParams);
+    txs.push(setAdditionalPublishersParams);
+
+    const txData = prepareMulticall(txs);
+
+    const simulatedGas = await this.provider.estimateContractGas({
+      ...txData,
+      account: this.signer.wallet.account || this.signer.address,
+      ...this.overrides,
+    });
 
     return simulatedGas;
   }
@@ -562,7 +647,21 @@ export class OnChainRegistry extends CannonRegistry {
     return registerFee;
   }
 
-  async setPackageOwnership(packageName: string, packageOwner?: viem.Address) {
+  async getPublishFee() {
+    if (!this.provider) {
+      throw new Error('Missing provider for executing registry operations');
+    }
+
+    const publishFee = (await this.provider.readContract({
+      abi: this.contract.abi,
+      address: this.contract.address,
+      functionName: 'publishFee',
+    })) as bigint;
+
+    return publishFee;
+  }
+
+  async setPackageOwnership(packageName: string, packageOwner?: viem.Address, shouldNominateOwner?: boolean) {
     if (!this.signer || !this.provider) {
       throw new Error('Missing signer for executing registry operations');
     }
@@ -571,6 +670,19 @@ export class OnChainRegistry extends CannonRegistry {
     const owner = packageOwner || this.signer.address;
 
     const registerFee = await this.getRegisterFee();
+
+    const txs: TxData[] = [];
+
+    if (shouldNominateOwner) {
+      const setNominatePackageOwnerParams = {
+        ...this.contract,
+        functionName: 'nominatePackageOwner',
+        args: [packageHash, owner],
+        account: this.signer.wallet.account || this.signer.address,
+      };
+
+      txs.push(setNominatePackageOwnerParams);
+    }
 
     const setPackageOwnershipParams = {
       ...this.contract,
@@ -588,15 +700,10 @@ export class OnChainRegistry extends CannonRegistry {
       account: this.signer.wallet.account || this.signer.address,
     };
 
-    const txs: TxData[] = [setPackageOwnershipParams, setAdditionalPublishersParams];
+    txs.push(setPackageOwnershipParams);
+    txs.push(setAdditionalPublishersParams);
 
     const txData = prepareMulticall(txs);
-
-    const simulatedGas = await this.provider.estimateContractGas({
-      ...txData,
-      account: this.signer.wallet.account || this.signer.address,
-      ...this.overrides,
-    });
 
     const params = {
       ...txData,
@@ -604,10 +711,12 @@ export class OnChainRegistry extends CannonRegistry {
       ...this.overrides,
     };
 
-    // increase the gas limit by 10% the estimated gas
-    params.gas = (simulatedGas * BigInt(10)) / BigInt(9);
+    const simulatedGas = await this.provider.estimateContractGas(params);
 
-    await this._logEstimatedGas(params.gas);
+    await this._logEstimatedGas(simulatedGas);
+
+    // note: hardcoded gas to make sure the transaction goes through
+    params.gas = BigInt(2_000_000);
 
     const tx = await this.provider.simulateContract(params);
 
@@ -640,10 +749,10 @@ export class OnChainRegistry extends CannonRegistry {
     const simulatedGas = await this.provider.estimateContractGas(params as any);
     const userBalance = await this.provider.getBalance({ address: this.signer.address });
 
-    // increase the gas limit by 10% the estimated gas
-    params.gas = (simulatedGas * BigInt(10)) / BigInt(9);
+    // note: hardcoded gas to make sure the transaction goes through
+    params.gas = BigInt(2_000_000);
 
-    await this._logEstimatedGas(params.gas);
+    await this._logEstimatedGas(simulatedGas);
 
     const cost = simulatedGas;
     if (cost > userBalance) {
@@ -672,7 +781,7 @@ export class OnChainRegistry extends CannonRegistry {
 
     if (!userBalance) {
       throw new Error(
-        `Signer at address ${this.signer.address} is not funded with ETH. Please ensure you have ETH in your wallet in order to publish.`
+        `Signer at address ${this.signer.address} is not funded with ETH. Please ensure you have ETH in your wallet in order to perform the operation.`
       );
     }
 
@@ -687,7 +796,7 @@ export class OnChainRegistry extends CannonRegistry {
       console.log(
         bold(
           yellow(
-            `Publishing address "${this.signer.address}" does not have enough funds to pay for the publishing transaction, the transaction will likely revert.\n`
+            `The address "${this.signer.address}" does not have enough funds to pay for the transaction, the transaction will likely revert.\n`
           )
         )
       );

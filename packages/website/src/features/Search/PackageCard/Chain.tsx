@@ -23,7 +23,7 @@ const Chain: FC<{
   const name = chain?.name || 'Unknown Chain';
   const color = chain?.color || 'gray.600';
   return (
-    <Flex gap={1.5} alignItems="center">
+    <Flex gap={1.5} alignItems={isSmall ? 'center' : 'baseline'}>
       {id === 13370 ? (
         <Image
           display="block"

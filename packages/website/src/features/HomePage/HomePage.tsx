@@ -76,7 +76,7 @@ video.alt {
 }
 `;
 
-const CustomLinkButton = ({
+export const CustomLinkButton = ({
   href,
   children,
 }: {
