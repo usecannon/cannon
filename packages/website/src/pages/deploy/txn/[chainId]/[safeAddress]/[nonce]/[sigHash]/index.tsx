@@ -1,0 +1,33 @@
+//import { Metadata } from 'next';
+import dynamic from 'next/dynamic';
+import { useRouter } from 'next/router';
+
+const NoSSR = dynamic(
+  async () => {
+    return import('@/features/Deploy/TransactionDetailsPage');
+  },
+  {
+    ssr: false,
+  }
+);
+
+/*export const metadata: Metadata = {
+  title: 'Cannon | Transaction Details',
+  description: 'Transaction Details',
+  openGraph: {
+    title: 'Cannon | Transaction Details',
+    description: 'Transaction Details',
+  },
+  };*/
+
+export default function TransactionDetails() {
+  const params = useRouter().query;
+  return (
+    <NoSSR
+      safeAddress={params.safeAddress as string}
+      chainId={params.chainId as string}
+      nonce={params.nonce as string}
+      sigHash={params.sigHash as string}
+    />
+  );
+}

@@ -5,7 +5,7 @@ import { Flex } from '@chakra-ui/react';
 import { CodeExplorer } from '@/features/Packages/CodeExplorer';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { Address } from 'viem';
-import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
 import { getPackage } from '@/helpers/api';
 
@@ -23,9 +23,9 @@ export const CodePage: FC<{
     queryFn: getPackage,
   });
 
-  const searchParams = useSearchParams();
-  const source = searchParams.get('source') || '';
-  const functionName = searchParams.get('function') || '';
+  const searchParams = useRouter().query;
+  const source = (searchParams.source as string) || '';
+  const functionName = (searchParams.function as string) || '';
 
   if (packagesQuery.isPending) {
     return <CustomSpinner m="auto" />;

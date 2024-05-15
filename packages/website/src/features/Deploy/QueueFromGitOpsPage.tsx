@@ -41,7 +41,7 @@ import {
 import { ChainBuilderContext } from '@usecannon/builder';
 import _ from 'lodash';
 import NextLink from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 import {
   encodeAbiParameters,
@@ -338,8 +338,8 @@ function QueueFromGitOps() {
       : {},
     {
       safe: currentSafe,
-      onSignComplete() {
-        router.push(links.DEPLOY);
+      async onSignComplete() {
+        await router.push(links.DEPLOY);
         toast({
           title: 'You successfully signed the transaction.',
           status: 'success',
@@ -604,8 +604,8 @@ function QueueFromGitOps() {
                     w="100%"
                     onClick={() => {
                       execTxn.writeContract(stager.executeTxnConfig!, {
-                        onSuccess: () => {
-                          router.push(links.DEPLOY);
+                        onSuccess: async () => {
+                          await router.push(links.DEPLOY);
 
                           toast({
                             title: 'You successfully executed the transaction.',

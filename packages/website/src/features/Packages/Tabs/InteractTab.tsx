@@ -18,7 +18,7 @@ import {
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { ChainArtifacts } from '@usecannon/builder';
 import { getOutput } from '@/lib/builder';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
 import { getPackage } from '@/helpers/api';
 
@@ -43,7 +43,7 @@ export const InteractTab: FC<{
     queryFn: getPackage,
   });
 
-  const pathName = usePathname();
+  const pathName = useRouter().pathname;
 
   let activeContractOption: Option | undefined;
   const activeContractPath = pathName.split('interact/')[1];
