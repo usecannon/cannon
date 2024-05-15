@@ -18,7 +18,7 @@ interface CannonSafeTransaction {
 
 export function useSafeTransactions(safe: SafeDefinition | null) {
   const [staged, setStaged] = useState<CannonSafeTransaction[]>([]);
-  const [nextNonce, setNextNonce] = useState<number | null>(null);
+  const [nextNonce, setNextNonce] = useState(1);
   const stagingUrl = useStore((s) => s.settings.stagingUrl);
 
   const stagedQuery = useQuery({
@@ -47,7 +47,7 @@ export function useSafeTransactions(safe: SafeDefinition | null) {
       !stagedQuery.data.data.length
     ) {
       setStaged([]);
-      setNextNonce(null);
+      setNextNonce(1);
       return;
     }
 
@@ -63,7 +63,7 @@ export function useSafeTransactions(safe: SafeDefinition | null) {
     const lastNonce = stagedQueries.length ? _.last(stagedQueries)?.txn._nonce : safeNonce + 1;
 
     setStaged(stagedQueries);
-    setNextNonce(lastNonce ? lastNonce + 1 : null);
+    setNextNonce((lastNonce || 0) + 1);
   }, [stagedQuery.isSuccess, nonceQuery.isSuccess]);
 
   return {

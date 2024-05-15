@@ -14,12 +14,12 @@ import { useEffect, useState } from 'react';
 
 interface Params {
   safe: SafeDefinition | null;
-  handleChange: (nonce: number | null) => void;
+  handleChange: (nonce: number) => void;
 }
 
 export default function NoncePicker({ safe, handleChange }: Params) {
   const [isOverridingNonce, setNonceOverride] = useState(false);
-  const [currentNonce, setCurrentNonce] = useState<number | null>(null);
+  const [currentNonce, setCurrentNonce] = useState<number>(1);
 
   const safeTxs = useSafeTransactions(safe);
 
@@ -32,10 +32,10 @@ export default function NoncePicker({ safe, handleChange }: Params) {
   }, [safeTxs.nextNonce]);
 
   useEffect(() => {
-    if (!safeTxs.nextNonce) return setCurrentNonce(null);
+    if (!safeTxs.isSuccess) return setCurrentNonce(1);
     const nonce = isOverridingNonce ? safeTxs.nextNonce - 1 : safeTxs.nextNonce;
     setCurrentNonce(nonce);
-  }, [isOverridingNonce, safeTxs.nextNonce]);
+  }, [isOverridingNonce, safeTxs.isSuccess, safeTxs.nextNonce]);
 
   return (
     <FormControl mb={4}>
@@ -49,11 +49,11 @@ export default function NoncePicker({ safe, handleChange }: Params) {
         </Checkbox>
         {isOverridingNonce && (
           <NumberInput
-            min={Number(safeTxs.nonce)}
-            value={currentNonce || 0}
+            min={Number(safeTxs.nextNonce - 1 || 1)}
+            value={currentNonce || 1}
             onChange={(n) => {
               const newVal = Number.parseInt(n);
-              if (!Number.isSafeInteger(newVal)) return;
+              if (!Number.isSafeInteger(newVal) || newVal < 1) return;
               setCurrentNonce(newVal);
             }}
           >

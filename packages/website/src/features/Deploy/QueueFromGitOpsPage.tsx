@@ -6,12 +6,7 @@ import { makeMultisend } from '@/helpers/multisend';
 import * as onchainStore from '@/helpers/onchain-store';
 import { useStore } from '@/helpers/store';
 import { useTxnStager } from '@/hooks/backend';
-import {
-  useCannonBuild,
-  useCannonPackage,
-  useCannonWriteDeployToIpfs,
-  useLoadCannonDefinition,
-} from '@/hooks/cannon';
+import { useCannonBuild, useCannonPackage, useCannonWriteDeployToIpfs, useLoadCannonDefinition } from '@/hooks/cannon';
 import { useGitRefsList } from '@/hooks/git';
 import { useGetPreviousGitInfoQuery } from '@/hooks/safe';
 import { SafeTransaction } from '@/types/SafeTransaction';
@@ -69,7 +64,7 @@ function QueueFromGitOps() {
   const [cannonfileUrlInput, setCannonfileUrlInput] = useState('');
   const [previousPackageInput, setPreviousPackageInput] = useState('');
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
-  const [pickedNonce, setPickedNonce] = useState<number | null>(null);
+  const [pickedNonce, setPickedNonce] = useState(1);
 
   const cannonfileUrlRegex =
     // eslint-disable-next-line no-useless-escape

@@ -35,14 +35,7 @@ import {
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useRouter } from 'next/navigation';
 import React, { Suspense, useState } from 'react';
-import {
-  AbiFunction,
-  encodeAbiParameters,
-  Hex,
-  isAddress,
-  TransactionRequestBase,
-  zeroAddress,
-} from 'viem';
+import { AbiFunction, encodeAbiParameters, Hex, isAddress, TransactionRequestBase, zeroAddress } from 'viem';
 import { useAccount, useWriteContract } from 'wagmi';
 import NoncePicker from './NoncePicker';
 import { QueueTransaction } from './QueueTransaction';
@@ -79,7 +72,7 @@ export const QueuedTxns = ({
 
   const [target, setTarget] = useState<string>('');
 
-  const [pickedNonce, setPickedNonce] = useState<number | null>(null);
+  const [pickedNonce, setPickedNonce] = useState(1);
 
   const cannonInfo = useCannonPackageContracts(target, currentSafe?.chainId);
 
@@ -121,7 +114,7 @@ export const QueuedTxns = ({
                 ?.gasUsed.toString()
             : undefined,
           operation: '1',
-          _nonce: pickedNonce === null ? undefined : pickedNonce,
+          _nonce: pickedNonce,
         }
       : {},
     {
