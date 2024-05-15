@@ -24,12 +24,8 @@ export default function NoncePicker({ safe, handleChange }: Params) {
   const safeTxs = useSafeTransactions(safe);
 
   useEffect(() => {
-    if (isOverridingNonce) {
-      handleChange(currentNonce);
-    } else {
-      handleChange(null);
-    }
-  }, [currentNonce, isOverridingNonce]);
+    handleChange(currentNonce);
+  }, [currentNonce]);
 
   useEffect(() => {
     setCurrentNonce(safeTxs.nextNonce);
@@ -37,8 +33,7 @@ export default function NoncePicker({ safe, handleChange }: Params) {
 
   useEffect(() => {
     if (!safeTxs.nextNonce) return setCurrentNonce(null);
-    const nonce = isOverridingNonce ? safeTxs.nextNonce - 1 : safeTxs.nextNonce;
-    setCurrentNonce(nonce);
+    setCurrentNonce(isOverridingNonce ? safeTxs.nextNonce - 1 : null);
   }, [isOverridingNonce, safeTxs.nextNonce]);
 
   return (
@@ -53,11 +48,11 @@ export default function NoncePicker({ safe, handleChange }: Params) {
         </Checkbox>
         {isOverridingNonce && (
           <NumberInput
-            min={Number(safeTxs.nonce)}
-            value={currentNonce || 0}
+            min={Number(safeTxs.nonce) || 1}
+            value={currentNonce || 1}
             onChange={(n) => {
               const newVal = Number.parseInt(n);
-              if (!Number.isSafeInteger(newVal)) return;
+              if (!Number.isSafeInteger(newVal) || newVal < 1) return;
               setCurrentNonce(newVal);
             }}
           >
