@@ -9,6 +9,7 @@ import {
   NumberInput,
   NumberInputField,
   NumberInputStepper,
+  Tooltip,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 
@@ -23,6 +24,8 @@ export default function NoncePicker({ safe, handleChange }: Params) {
 
   const safeTxs = useSafeTransactions(safe);
 
+  console.log('safeTxs', safeTxs);
+
   useEffect(() => {
     handleChange(currentNonce);
   }, [currentNonce]);
@@ -35,13 +38,24 @@ export default function NoncePicker({ safe, handleChange }: Params) {
   return (
     <FormControl mb={4}>
       <HStack>
-        <Checkbox
-          disabled={!safeTxs.isSuccess}
-          isChecked={isOverridingNonce}
-          onChange={(e) => setNonceOverride(e.target.checked)}
+        <Tooltip
+          label={
+            safeTxs.staged.length === 0
+              ? 'To override nonce, you must have at least one transaction staged'
+              : ''
+          }
+          placement="top"
+          aria-label="Override Previously Staged Transaction"
+          shouldWrapChildren
         >
-          Override Previously Staged Transaction{' '}
-        </Checkbox>
+          <Checkbox
+            disabled={!safeTxs.isSuccess || safeTxs.staged.length === 0}
+            isChecked={isOverridingNonce}
+            onChange={(e) => setNonceOverride(e.target.checked)}
+          >
+            Override Previously Staged Transaction{' '}
+          </Checkbox>
+        </Tooltip>
         {isOverridingNonce && (
           <NumberInput
             min={Number(safeTxs.nonce) || 0}
