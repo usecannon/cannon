@@ -36,6 +36,13 @@ video.alt {
 }
 `;
 
+const linkStyle = {
+  textDecoration: 'none',
+  borderBottom: '1px solid',
+  borderBottomColor: 'gray.500',
+  _hover: { borderBottomColor: 'gray.400' },
+};
+
 export const DocsLandingPage = () => {
   const isLargeScreen = useBreakpointValue({ base: false, md: true });
 
@@ -80,7 +87,7 @@ export const DocsLandingPage = () => {
         <Text mb={4}>
           Drawing inspiration from <em>Infrastructure as Code</em> tools like
           Terraform and CloudFormation, Cannon replaces deploy scripts with{' '}
-          <Link href={links.CANNONFILE} as={NextLink}>
+          <Link {...linkStyle} href={links.CANNONFILE} as={NextLink}>
             Cannonfiles
           </Link>
           .
@@ -94,16 +101,16 @@ export const DocsLandingPage = () => {
         <Text mb={4}>
           Then you can <strong>build</strong> the chain into this state using
           the{' '}
-          <Link href={links.CLI} as={NextLink}>
+          <Link {...linkStyle} href={links.CLI} as={NextLink}>
             command-line interface
           </Link>{' '}
           or the{' '}
-          <Link href={links.DEPLOY} as={NextLink}>
+          <Link {...linkStyle} href={links.DEPLOY} as={NextLink}>
             deployer
           </Link>
           . This generates a package with information related to the deployment.
           Packages can be published to the{' '}
-          <Link href={links.EXPLORE} as={NextLink}>
+          <Link {...linkStyle} href={links.EXPLORE} as={NextLink}>
             registry
           </Link>
           .
@@ -112,6 +119,7 @@ export const DocsLandingPage = () => {
           Packages enable composability in Cannonfiles. If a package includes a
           ”Cannon” deployment, it can be <em>cloned</em> to{' '}
           <Link
+            {...linkStyle}
             isExternal
             href="https://github.com/Synthetixio/synthetix-sandbox/blob/main/cannonfile.toml#L27"
           >
@@ -120,6 +128,7 @@ export const DocsLandingPage = () => {
           . Packages with live network deployments can be <em>pulled</em>,
           allowing protocols to connect with{' '}
           <Link
+            {...linkStyle}
             isExternal
             href="https://github.com/Synthetixio/synthetix-sandbox/blob/main/cannonfile.prod.toml#L5"
           >
@@ -157,7 +166,7 @@ export const DocsLandingPage = () => {
             <Text fontSize="xs">
               Developers can specify a chain state like ordering a sandwich. The
               ingredients of a{' '}
-              <Link href={links.CANNONFILE} as={NextLink}>
+              <Link {...linkStyle} href={links.CANNONFILE} as={NextLink}>
                 cannonfile
               </Link>{' '}
               may include existing protocols, dynamic function calls, and the
@@ -186,7 +195,7 @@ export const DocsLandingPage = () => {
             </Heading>
             <Text fontSize="xs">
               The{' '}
-              <Link href={links.CLI} as={NextLink}>
+              <Link {...linkStyle} href={links.CLI} as={NextLink}>
                 CLI
               </Link>{' '}
               runs cannonfiles locally. Protocol engineers can publish
@@ -248,6 +257,7 @@ export const DocsLandingPage = () => {
               during development can be built on live networks. Cannon also
               enables a{' '}
               <Link
+                {...linkStyle}
                 isExternal
                 href="https://github.com/Synthetixio/synthetix-deployments"
               >
@@ -258,7 +268,12 @@ export const DocsLandingPage = () => {
           </Box>
         </SimpleGrid>
 
-        <Link href={links.GETSTARTED} color="white" as={NextLink}>
+        <Link
+          {...linkStyle}
+          href={links.GETSTARTED}
+          color="white"
+          as={NextLink}
+        >
           <Button
             colorScheme="teal"
             size={['sm', 'sm', 'md']}

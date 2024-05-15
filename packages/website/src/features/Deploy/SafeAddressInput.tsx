@@ -1,10 +1,8 @@
-import { Alert } from '@/components/Alert';
 import { links } from '@/constants/links';
 import { includes } from '@/helpers/array';
 import { State, useStore } from '@/helpers/store';
 import {
   getSafeFromString,
-  getSafeUrl,
   isValidSafe,
   isValidSafeString,
   parseSafe,
@@ -13,15 +11,8 @@ import {
   usePendingTransactions,
   useWalletPublicSafes,
 } from '@/hooks/safe';
-import { CloseIcon, ExternalLinkIcon } from '@chakra-ui/icons';
-import {
-  FormControl,
-  IconButton,
-  Link,
-  Text,
-  Flex,
-  Tooltip,
-} from '@chakra-ui/react';
+import { CloseIcon, WarningIcon } from '@chakra-ui/icons';
+import { FormControl, IconButton, Text, Flex, Tooltip } from '@chakra-ui/react';
 import {
   chakraComponents,
   ChakraStylesConfig,
@@ -220,7 +211,7 @@ export function SafeAddressInput() {
   };
 
   return (
-    <>
+    <Flex alignItems="center" gap={3}>
       <FormControl>
         <CreatableSelect
           instanceId={'safe-address-select'}
@@ -256,24 +247,17 @@ export function SafeAddressInput() {
         />
       </FormControl>
       {currentSafe && pendingServiceTransactions.count > 0 && (
-        <Alert status="warning">
-          There
-          {pendingServiceTransactions.count === 1
-            ? ' is 1 pending transaction'
-            : ` are ${pendingServiceTransactions.count} pending transactions`}
-          {' on the '}
-          <Link
-            href={getSafeUrl(currentSafe, '/transactions/queue')}
-            isExternal
-          >
-            <Text as="b">Safe App</Text>
-            <ExternalLinkIcon transform="translate(4px,-2px)" />
-          </Link>
-          &nbsp; Keep in mind that any transactions executed on this app will
-          override the ones on Safe.
-        </Alert>
+        <Tooltip
+          label={`There ${
+            pendingServiceTransactions.count === 1
+              ? ' is 1 pending transaction'
+              : ` are ${pendingServiceTransactions.count} pending transactions`
+          } on the Safe{Wallet} app. Any transactions executed using Cannon will override transactions there.`}
+        >
+          <WarningIcon color="orange.400" boxSize="5" />
+        </Tooltip>
       )}
-    </>
+    </Flex>
   );
 }
 

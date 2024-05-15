@@ -1,20 +1,12 @@
 import { PackageReference } from '@usecannon/builder';
 import { distance } from 'fastest-levenshtein';
 import { AggregateGroupByReducers, AggregateSteps } from 'redis';
-import * as viem from 'viem';
 import * as keys from '../db/keys';
-import {
-  findPackageByTag,
-  RedisDocument,
-  RedisPackage,
-  RedisTag,
-  transformPackage,
-  transformPackageWithTag,
-} from '../db/transformers';
+import { findPackageByTag, transformPackage, transformPackageWithTag } from '../db/transformers';
 import { NotFoundError, ServerError } from '../errors';
 import { isRedisTagOfPackage, parsePackageName, parseTextQuery } from '../helpers';
 import { useRedis } from '../redis';
-import { ApiContract, ApiDocument, ApiNamespace, ApiPackage } from '../types';
+import { ApiDocument, ApiNamespace, ApiPackage, RedisDocument, RedisPackage, RedisTag } from '../types';
 import { getChainIds } from './chains';
 
 const DEFAULT_LIMIT = 500;
@@ -101,7 +93,35 @@ export async function findPackagesByName(params: { packageName: string }) {
   return results;
 }
 
-export async function findPackagesByRef(params: { packageRef: string }) {
+export async function findPackageByFullRef(params: { fullPackageRef: string; chainId: string }) {
+  const redis = await useRedis();
+
+  const ref = new PackageReference(params.fullPackageRef);
+
+  const queryKey = `${keys.RKEY_PACKAGE_SEARCHABLE}:${ref.fullPackageRef}#${params.chainId}`;
+  const tagDoc = (await redis.hGetAll(queryKey)) as unknown as RedisPackage | RedisTag;
+
+  if (!tagDoc?.name) return null;
+
+  if (tagDoc.type === 'package') {
+    return transformPackage(tagDoc);
+  }
+
+  if (tagDoc.type !== 'tag') {
+    throw new Error(`Invalid data found when looking at "${queryKey}"`);
+  }
+
+  const packageRef = PackageReference.from(tagDoc.name, tagDoc.versionOfTag, tagDoc.preset);
+  const packageDoc = (await redis.hGetAll(
+    `${keys.RKEY_PACKAGE_SEARCHABLE}:${packageRef.fullPackageRef}#${tagDoc.chainId}`
+  )) as unknown as RedisPackage;
+
+  if (!packageDoc?.name) return null;
+
+  return transformPackageWithTag(packageDoc, tagDoc);
+}
+
+export async function findPackagesByPartialRef(params: { packageRef: string }) {
   const redis = await useRedis();
   const chainIds = await getChainIds();
 
@@ -175,68 +195,4 @@ export async function searchPackages(params: {
   }
 
   return result;
-}
-
-export async function findContractsByAddress(address: viem.Address) {
-  const redis = await useRedis();
-  const contractAddress = viem.getAddress(address);
-
-  const chainIds = await getChainIds();
-
-  const batch = redis.multi();
-
-  for (const chainId of chainIds) {
-    batch.hGet(`${keys.RKEY_ADDRESS_TO_PACKAGE}:${chainId}`, contractAddress.toLowerCase());
-  }
-
-  const results = await batch.exec();
-
-  const contractNameBatch = redis.multi();
-
-  for (const [index, packageRef] of Object.entries(results)) {
-    if (!packageRef) continue;
-    const chainId = chainIds[index as any];
-    contractNameBatch.ft.aggregate(keys.RKEY_ABI_SEARCHABLE, `@address:{${contractAddress}} @chainId:{${chainId}}`, {
-      STEPS: [
-        {
-          type: AggregateSteps.GROUPBY,
-          properties: '@contractName',
-          REDUCE: {
-            type: AggregateGroupByReducers.COUNT_DISTINCT,
-            property: '@contractName',
-          },
-        },
-      ],
-    });
-  }
-
-  const contractNameResults = (await contractNameBatch.exec()) as any;
-
-  const data: ApiContract[] = [];
-
-  for (const [index, packageRef] of Object.entries(results)) {
-    if (!packageRef) continue;
-    const chainId = chainIds[index as any];
-    const { name, preset, version } = new PackageReference(packageRef.toString());
-
-    const contractName = contractNameResults[index as any]?.results?.[0]?.contractName || 'Contract';
-
-    data.push({
-      type: 'contract',
-      address: contractAddress,
-      contractName,
-      chainId,
-      name,
-      preset,
-      version,
-    });
-  }
-
-  return {
-    total: 0,
-    data,
-  } satisfies {
-    total: number;
-    data: ApiContract[];
-  };
 }

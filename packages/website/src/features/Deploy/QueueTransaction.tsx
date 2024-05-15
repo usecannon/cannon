@@ -1,19 +1,24 @@
 import { useStore } from '@/helpers/store';
+import { useCannonPackageContracts } from '@/hooks/cannon';
 import { useSimulatedTxns } from '@/hooks/fork';
+import { CloseIcon } from '@chakra-ui/icons';
 import {
   Alert,
   AlertDescription,
   AlertIcon,
   AlertTitle,
   Box,
-  IconButton,
   Flex,
   FormControl,
   FormLabel,
+  IconButton,
   Text,
   Tooltip,
+  InputGroup,
+  InputRightAddon,
+  Input,
+  FormHelperText,
 } from '@chakra-ui/react';
-import { CloseIcon } from '@chakra-ui/icons';
 import { AbiFunction } from 'abitype/src/abi';
 import {
   chakraComponents,
@@ -28,13 +33,14 @@ import {
   Address,
   decodeErrorResult,
   encodeFunctionData,
-  toFunctionSelector,
   Hex,
+  toFunctionSelector,
   TransactionRequestBase,
+  parseEther,
+  formatEther,
 } from 'viem';
 import { FunctionInput } from '../Packages/FunctionInput';
 import 'react-diff-view/style/index.css';
-import { useCannonPackageContracts } from '@/hooks/cannon';
 
 type OptionData = {
   value: any;
@@ -86,7 +92,7 @@ function decodeError(err: Hex, abi: Abi) {
       data: err,
     });
 
-    return `${parsedError.errorName}(${parsedError.args?.join(', ')})`;
+    return `${parsedError.errorName}(${parsedError.args?.join(', ') || ''})`;
   } catch (err) {
     // ignore
   }
@@ -124,6 +130,9 @@ export function QueueTransaction({
   target: string;
   chainId: number;
 }) {
+  const [value, setValue] = useState<string | undefined>(
+    tx?.value ? formatEther(BigInt(tx?.value)).toString() : undefined
+  );
   const { contracts } = useCannonPackageContracts(target, chainId);
 
   const [selectedContractName, setSelectedContractName] = useState<
@@ -156,12 +165,18 @@ export function QueueTransaction({
     let _txn: Omit<TransactionRequestBase, 'from'> | null = null;
 
     if (selectedContractName && selectedFunction) {
+      const isPayable = selectedFunction.stateMutability === 'payable';
+
       if (selectedFunction.inputs.length === 0) {
         _txn = {
           to: contracts
             ? contracts[selectedContractName].address
             : (tx?.to as Address),
           data: toFunctionSelector(selectedFunction),
+          value:
+            isPayable && value !== undefined
+              ? parseEther(value.toString())
+              : undefined,
         };
       } else {
         try {
@@ -173,6 +188,10 @@ export function QueueTransaction({
               abi: [selectedFunction],
               args: selectedParams,
             }),
+            value:
+              isPayable && value !== undefined
+                ? parseEther(value.toString())
+                : undefined,
           };
         } catch (err: any) {
           error =
@@ -192,6 +211,7 @@ export function QueueTransaction({
       selectedContractName
     );
   }, [
+    value,
     selectedContractName,
     selectedFunction,
     selectedParams,
@@ -329,6 +349,40 @@ export function QueueTransaction({
                   />
                 </Box>
               ))}
+            </FormControl>
+          )}
+          {selectedFunction?.stateMutability === 'payable' && (
+            <FormControl mb="4">
+              <FormLabel fontSize="sm" mb={1}>
+                Value
+                <Text fontSize="xs" color="whiteAlpha.700" display="inline">
+                  {' '}
+                  (payable)
+                </Text>
+              </FormLabel>
+              <InputGroup size="sm">
+                <Input
+                  type="number"
+                  size="sm"
+                  bg="black"
+                  borderColor="whiteAlpha.400"
+                  value={value?.toString()}
+                  onChange={(e) => setValue(e.target.value)}
+                />
+                <InputRightAddon
+                  bg="black"
+                  color="whiteAlpha.700"
+                  borderColor="whiteAlpha.400"
+                >
+                  ETH
+                </InputRightAddon>
+              </InputGroup>
+              <FormHelperText color="gray.300">
+                {value !== undefined
+                  ? parseEther(value.toString()).toString()
+                  : 0}{' '}
+                wei
+              </FormHelperText>
             </FormControl>
           )}
           {paramsEncodeError && (
