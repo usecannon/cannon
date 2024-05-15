@@ -53,11 +53,10 @@ import {
   zeroAddress,
 } from 'viem';
 import { useWriteContract } from 'wagmi';
+import pkg from '../../../package.json';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
 import 'react-diff-view/style/index.css';
-
-import pkg from '../../../package.json';
 
 export default function QueueFromGitOpsPage() {
   return <QueueFromGitOps />;
@@ -582,10 +581,7 @@ function QueueFromGitOps() {
           )}
           {uploadToPublishIpfs.deployedIpfsHash && multicallTxn.data && (
             <Box>
-              <NoncePicker
-                safe={currentSafe as any}
-                onPickedNonce={setPickedNonce}
-              />
+              <NoncePicker safe={currentSafe} handleChange={setPickedNonce} />
               <HStack gap="6">
                 {stager.execConditionFailed ? (
                   <Tooltip label={stager.signConditionFailed}>
