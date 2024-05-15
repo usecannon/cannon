@@ -122,6 +122,7 @@ const cloneSpec = {
     const sourceRef = new PackageReference(config.source);
     const source = sourceRef.fullPackageRef;
     const target = config.target || `${sourceRef.name}:${sourceRef.version}@${targetPreset}`;
+    const targetRef = new PackageReference(target);
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
     // try to read the chain definition we are going to use
@@ -246,7 +247,8 @@ const cloneSpec = {
         [importLabel]: {
           url: newSubDeployUrl || '',
           tags: config.tags || ['latest'],
-          preset: targetPreset,
+          target: targetRef.fullPackageRef,
+          preset: targetRef.preset,
           ...(await getOutputs(importRuntime, def, builtState))!,
         },
       },
