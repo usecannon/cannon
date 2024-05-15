@@ -48,11 +48,11 @@ export default function NoncePicker({ safe, handleChange }: Params) {
         </Checkbox>
         {isOverridingNonce && (
           <NumberInput
-            min={Number(safeTxs.nonce) || 1}
-            value={currentNonce || 1}
+            min={Number(safeTxs.nonce) || 0}
+            value={currentNonce || 0}
             onChange={(n) => {
               const newVal = Number.parseInt(n);
-              if (!Number.isSafeInteger(newVal) || newVal < 1) return;
+              if (!Number.isSafeInteger(newVal) || newVal < 0) return;
               setCurrentNonce(newVal);
             }}
           >
