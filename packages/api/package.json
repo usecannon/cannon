@@ -22,6 +22,7 @@
     "express-prom-bundle": "^7.0.0",
     "express-rate-limit": "^7.2.0",
     "fastest-levenshtein": "^1.0.16",
+    "fuse.js": "^7.0.0",
     "helmet": "^7.1.0",
     "prom-client": "^15.1.2",
     "redis": "^4.6.13",

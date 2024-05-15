@@ -16,7 +16,7 @@ const QueueTransactions = () => {
     <Container maxWidth="container.md" py={8}>
       <Box mb={6}>
         <Heading size="lg" mb={2}>
-          Queue Transactions
+          Stage Transactions
         </Heading>
       </Box>
       <QueuedTxns />

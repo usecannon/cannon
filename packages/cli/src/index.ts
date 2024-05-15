@@ -57,6 +57,7 @@ export { build } from './commands/build';
 export { clean } from './commands/clean';
 export { inspect } from './commands/inspect';
 export { publish } from './commands/publish';
+export { unpublish } from './commands/unpublish';
 export { publishers } from './commands/publishers';
 export { run } from './commands/run';
 export { verify } from './commands/verify';
@@ -476,6 +477,14 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     includeProvisioned: !options.excludeCloned,
     skipConfirm: options.skipConfirm,
   });
+});
+
+applyCommandsConfig(program.command('unpublish'), commandsConfig.unpublish).action(async function (packageRef, options) {
+  const { unpublish } = await import('./commands/unpublish');
+
+  const cliSettings = resolveCliSettings(options);
+
+  await unpublish({ cliSettings, options, packageRef });
 });
 
 applyCommandsConfig(program.command('register'), commandsConfig.register).action(async function (packageRef, options) {

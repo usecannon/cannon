@@ -11,14 +11,23 @@ import { useAccount, useChainId, useReadContract, useReadContracts, useSimulateC
 
 const SafeABI = SafeABIJSON as viem.Abi;
 
-export function useSafeTransactions(safe?: SafeDefinition) {
+interface CannonSafeTransaction {
+  txn: SafeTransaction;
+  sigs: string[];
+}
+
+export function useSafeTransactions(safe: SafeDefinition | null) {
+  const [staged, setStaged] = useState<CannonSafeTransaction[]>([]);
+  const [nextNonce, setNextNonce] = useState<number | null>(null);
   const stagingUrl = useStore((s) => s.settings.stagingUrl);
 
   const stagedQuery = useQuery({
     queryKey: ['staged', safe?.chainId, safe?.address],
+    enabled: !!safe,
     queryFn: async () => {
       if (!safe) return;
-      return axios.get(`${stagingUrl}/${safe.chainId}/${safe.address}`);
+      const res = await axios.get(`${stagingUrl}/${safe.chainId}/${safe.address}`);
+      return res as { data: CannonSafeTransaction[] };
     },
     refetchInterval: 10000,
   });
@@ -30,19 +39,40 @@ export function useSafeTransactions(safe?: SafeDefinition) {
     functionName: 'nonce',
   });
 
-  const staged =
-    stagedQuery.data && nonceQuery.data
-      ? _.sortBy(
-          stagedQuery.data.data.filter((t: any) => t.txn._nonce >= (nonceQuery as any).data),
-          'txn._nonce'
-        )
-      : ([] as { txn: SafeTransaction; sigs: string[] }[]);
+  useEffect(() => {
+    if (
+      !nonceQuery.isSuccess ||
+      !stagedQuery.isSuccess ||
+      !Array.isArray(stagedQuery?.data?.data) ||
+      !stagedQuery.data.data.length
+    ) {
+      setStaged([]);
+      setNextNonce(null);
+      return;
+    }
+
+    const safeNonce = Number(nonceQuery.data || 0);
+
+    const stagedQueries = _.sortBy(
+      stagedQuery.data.data.filter((t: any) => {
+        return t.txn._nonce >= safeNonce;
+      }),
+      'txn._nonce'
+    );
+
+    const lastNonce = stagedQueries.length ? _.last(stagedQueries)?.txn._nonce : safeNonce + 1;
+
+    setStaged(stagedQueries);
+    setNextNonce(lastNonce ? lastNonce + 1 : null);
+  }, [stagedQuery.isSuccess, stagedQuery.data, nonceQuery.isSuccess, nonceQuery.data]);
 
   return {
+    isSuccess: nonceQuery.isSuccess && stagedQuery.isSuccess,
     nonceQuery,
     stagedQuery,
     nonce: nonceQuery.data as bigint,
     staged,
+    nextNonce,
   };
 }
 
@@ -78,7 +108,8 @@ export function useTxnStager(
     gasPrice: txn.gasPrice || '0',
     gasToken: txn.gasToken || viem.zeroAddress,
     refundReceiver: querySafeAddress as any,
-    _nonce: txn._nonce || (staged.length ? _.last(staged).txn._nonce + 1 : Number(nonce || 0)),
+    // Since nonce can be 0, we need to check if the txn._nonce is defined with the nullish coalescing operator
+    _nonce: txn._nonce ?? (staged.length ? Number(_.last(staged)?.txn?._nonce) + 1 : Number(nonce || 0)),
   };
 
   // try to match with an existing transaction

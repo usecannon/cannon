@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/builder",
-  "version": "2.13.2",
+  "version": "2.13.6",
   "description": "Assembles cannonfile.toml manifests into cannon packages.",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -21,26 +21,26 @@
   "author": "Cannon",
   "license": "MIT",
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^24.0.1",
-    "@rollup/plugin-json": "^6.0.0",
-    "@rollup/plugin-node-resolve": "^15.0.1",
-    "@rollup/plugin-terser": "^0.4.0",
-    "@types/debug": "^4.1.7",
-    "@types/jest": "^29.4.0",
-    "@types/lodash": "^4.14.183",
-    "@types/pako": "^2.0.0",
-    "chalk": "^4.1.2",
-    "jest": "^29.5.0",
-    "rollup": "^3.19.1",
-    "ts-jest": "^29.0.5",
-    "typedoc": "^0.25.7",
-    "typedoc-plugin-zod": "^1.0.2"
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@types/debug": "^4.1.12",
+    "@types/jest": "^29.5.12",
+    "@types/lodash": "^4.17.1",
+    "@types/pako": "^2.0.3",
+    "jest": "^29.7.0",
+    "rollup": "^4.17.2",
+    "ts-jest": "^29.1.2",
+    "typedoc": "^0.25.13",
+    "typedoc-plugin-zod": "^1.1.2"
   },
   "dependencies": {
-    "@synthetixio/router": "^3.3.7",
-    "axios": "^1.6.7",
-    "axios-retry": "^4.0.0",
+    "@synthetixio/router": "^3.3.8",
+    "axios": "^1.6.8",
+    "axios-retry": "^4.1.0",
     "buffer": "^6.0.3",
+    "chalk": "^4.1.2",
     "debug": "^4.3.4",
     "form-data": "^4.0.0",
     "lodash": "^4.17.21",
@@ -48,8 +48,8 @@
     "promise-events": "^0.2.4",
     "typedoc-plugin-markdown": "^3.17.1",
     "typestub-ipfs-only-hash": "^4.0.0",
-    "viem": "^2.9.26",
-    "zod": "^3.22.4"
+    "viem": "^2.9.31",
+    "zod": "^3.23.6"
   },
   "engines": {
     "node": ">=16.0.0"
