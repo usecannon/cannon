@@ -2,13 +2,14 @@ import { ChildProcess, spawn } from 'node:child_process';
 import http from 'node:http';
 import { Readable } from 'node:stream';
 import { CANNON_CHAIN_ID } from '@usecannon/builder';
-import { gray } from 'chalk';
+import chalk from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { cannonChain, getChainById } from './chains';
 import { execPromise, toArgs } from './helpers';
 import { AnvilOptions } from './util/anvil';
+const { gray } = chalk;
 
 const debug = Debug('cannon:cli:rpc');
 

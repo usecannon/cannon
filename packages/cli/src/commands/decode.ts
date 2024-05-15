@@ -1,7 +1,8 @@
 import * as viem from 'viem';
 import { AbiFunction, AbiEvent } from 'abitype';
-import { bold, gray, green, italic, yellow } from 'chalk';
+import chalk from 'chalk';
 import { ContractData, DeploymentInfo, decodeTxError } from '@usecannon/builder';
+const { bold, gray, green, italic, yellow } = chalk;
 
 import { resolveCliSettings } from '../../src/settings';
 

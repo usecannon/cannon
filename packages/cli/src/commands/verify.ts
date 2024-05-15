@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Debug from 'debug';
 import * as viem from 'viem';
-import { bold, yellow } from 'chalk';
+import chalk from 'chalk';
 import { ChainDefinition, getOutputs, ChainBuilderRuntime, DeploymentInfo } from '@usecannon/builder';
 import { forPackageTree, PackageReference } from '@usecannon/builder/dist/src/package';
 
@@ -13,6 +13,8 @@ import { getChainById } from '../chains';
 import { getMainLoader } from '../loader';
 
 import { isVerified } from '../util/verify';
+
+const { bold, yellow } = chalk;
 
 const debug = Debug('cannon:cli:verify');
 

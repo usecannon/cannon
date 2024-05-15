@@ -13,7 +13,7 @@ import {
   publishPackage,
   traceActions,
 } from '@usecannon/builder';
-import { bold, gray, green, red, yellow } from 'chalk';
+import  chalk from 'chalk';
 import { Command } from 'commander';
 import Debug from 'debug';
 import _ from 'lodash';
@@ -68,6 +68,8 @@ export { resolveProviderAndSigners } from './util/provider';
 export { resolveCliSettings } from './settings';
 export { getFoundryArtifact } from './foundry';
 export { loadCannonfile } from './helpers';
+
+const { bold, gray, green, red, yellow } = chalk;
 
 const program = new Command();
 

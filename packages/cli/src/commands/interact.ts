@@ -1,8 +1,9 @@
 import _ from 'lodash';
 import * as viem from 'viem';
 import prompts, { Choice } from 'prompts';
-import { red, bold, gray, green, yellow, cyan } from 'chalk';
+import chalk from 'chalk';
 import { CannonSigner, ChainArtifacts, Contract, ContractMap, traceActions } from '@usecannon/builder';
+const { red, bold, gray, green, yellow, cyan } = chalk;
 
 import { formatAbiFunction } from '../helpers';
 import { PackageSpecification } from '../types';

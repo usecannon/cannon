@@ -1,12 +1,14 @@
 import Debug from 'debug';
 import * as viem from 'viem';
-import { bold, red, grey } from 'chalk';
+import chalk from 'chalk';
 import provider from 'eth-provider';
 import { privateKeyToAccount } from 'viem/accounts';
 import { CannonSigner, traceActions } from '@usecannon/builder';
 
 import { getChainById } from '../chains';
 import { CliSettings } from '../settings';
+
+const { bold, red, grey } = chalk;
 
 const debug = Debug('cannon:cli:provider');
 

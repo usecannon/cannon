@@ -3,7 +3,7 @@ import { CANNON_CHAIN_ID, CannonSigner } from '@usecannon/builder';
 import { build, createDryRunRegistry, loadCannonfile, parseSettings, resolveCliSettings } from '@usecannon/cli';
 import { getChainById } from '@usecannon/cli/dist/src/chains';
 import { getProvider } from '@usecannon/cli/dist/src/rpc';
-import { bold, yellow, yellowBright } from 'chalk';
+import chalk from 'chalk';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { task } from 'hardhat/config';
 import { HttpNetworkConfig } from 'hardhat/types';
@@ -14,6 +14,7 @@ import { loadPackageJson } from '../internal/load-pkg-json';
 import { parseAnvilOptions } from '../internal/parse-anvil-options';
 import { SubtaskRunAnvilNodeResult } from '../subtasks/run-anvil-node';
 import { SUBTASK_GET_ARTIFACT, SUBTASK_RUN_ANVIL_NODE, TASK_BUILD } from '../task-names';
+const { bold, yellow, yellowBright } = chalk;
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')

@@ -1,5 +1,5 @@
 import { OnChainRegistry, PackageReference } from '@usecannon/builder';
-import { blueBright, gray, green } from 'chalk';
+import chalk from 'chalk';
 import _ from 'lodash';
 import prompts from 'prompts';
 import * as viem from 'viem';
@@ -8,6 +8,7 @@ import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '
 import { CliSettings } from '../settings';
 import { resolveRegistryProviders } from '../util/provider';
 import { isPackageRegistered, waitForEvent } from '../util/register';
+const { blueBright, gray, green } = chalk;
 
 interface Params {
   cliSettings: CliSettings;

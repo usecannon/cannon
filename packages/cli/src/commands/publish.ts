@@ -6,11 +6,12 @@ import {
   PackageReference,
   publishPackage,
 } from '@usecannon/builder';
-import { blueBright, bold, gray, italic, yellow } from 'chalk';
+import chalk from 'chalk';
 import prompts from 'prompts';
 import { getMainLoader } from '../loader';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';
+const { blueBright, bold, gray, italic, yellow } = chalk;
 
 interface Params {
   packageRef: string;

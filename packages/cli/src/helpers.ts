@@ -10,7 +10,7 @@ import {
   RawChainDefinition,
 } from '@usecannon/builder';
 import { AbiEvent } from 'abitype';
-import { bold, magentaBright, red, yellow, yellowBright } from 'chalk';
+import chalk from 'chalk';
 import { exec, spawnSync } from 'child_process';
 import Debug from 'debug';
 import fs from 'fs-extra';
@@ -25,6 +25,7 @@ import { cannonChain, chains } from './chains';
 import { resolveCliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 import { getChainIdFromProviderUrl, isURL } from './util/provider';
+const { bold, magentaBright, red, yellow, yellowBright } = chalk;
 
 const debug = Debug('cannon:cli:helpers');
 

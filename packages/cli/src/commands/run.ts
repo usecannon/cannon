@@ -14,7 +14,7 @@ import { TraceEntry } from '@usecannon/builder/src';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { bold, gray, green, greenBright, yellow } from 'chalk';
+import chalk from 'chalk';
 
 import { setupAnvil } from '../helpers';
 import { getMainLoader } from '../loader';
@@ -46,6 +46,8 @@ export interface RunOptions {
   build?: boolean;
   nonInteractive?: boolean;
 }
+
+const { bold, gray, green, greenBright, yellow } = chalk;
 
 const INITIAL_INSTRUCTIONS = green(`Press ${bold('h')} to see help information for this command.`);
 const INSTRUCTIONS = green(

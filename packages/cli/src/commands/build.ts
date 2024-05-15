@@ -15,7 +15,7 @@ import {
   traceActions,
 } from '@usecannon/builder';
 import { CannonSigner } from '@usecannon/builder/src';
-import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
+import chalk from 'chalk';
 import _ from 'lodash';
 import { table } from 'table';
 import * as viem from 'viem';
@@ -28,6 +28,7 @@ import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
+const { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } = chalk;
 
 interface Params {
   provider: viem.PublicClient;

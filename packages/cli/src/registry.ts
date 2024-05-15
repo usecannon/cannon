@@ -1,5 +1,5 @@
 import { CannonRegistry, FallbackRegistry, InMemoryRegistry, OnChainRegistry, PackageReference } from '@usecannon/builder';
-import { yellowBright } from 'chalk';
+import chalk from 'chalk';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
@@ -9,6 +9,7 @@ import * as viem from 'viem';
 import { CliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 import { resolveRegistryProviders } from './util/provider';
+const { yellowBright } = chalk;
 
 const debug = Debug('cannon:cli:registry');
 
