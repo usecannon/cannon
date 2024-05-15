@@ -81,14 +81,13 @@ describe('publish command', () => {
     jest.clearAllMocks();
 
     // @ts-ignore
-    jest
-      .spyOn(fs, 'readdir')
-      .mockResolvedValue([
-        deployDataLocalFileName,
-        deployDataLocalFileName + '.meta',
-        deployDataLocalFileNameLatest,
-        deployDataLocalFileNameLatest + '.meta',
-      ] as unknown as Dirent[]);
+    jest.spyOn(fs, 'readdir').mockResolvedValue([
+      deployDataLocalFileName,
+      deployDataLocalFileName + '.meta',
+      deployDataLocalFileNameLatest,
+      deployDataLocalFileNameLatest + '.meta',
+      // casting to as never here because the types for fs-extra seem to be borked up atm (they partially inherit from node types, which breaks everything)
+    ] as never);
 
     const cliSettings = resolveCliSettings();
 
