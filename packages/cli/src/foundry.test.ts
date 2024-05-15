@@ -38,17 +38,16 @@ describe('getFoundryArtifact', () => {
         })
       );
 
-    jest.mocked(fs.readFile).mockReturnValue(
-      Promise.resolve(
-        Buffer.from(
-          JSON.stringify({
-            ast: { absolutePath: 'test.sol' },
-            abi: [],
-            bytecode: { object: '0x1234', linkReferences: {} },
-            deployedBytecode: { object: '0x1234' },
-          })
-        )
-      )
+    jest.mocked(fs.readFile).mockResolvedValue(
+      Buffer.from(
+        JSON.stringify({
+          ast: { absolutePath: 'test.sol' },
+          abi: [],
+          bytecode: { object: '0x1234', linkReferences: {} },
+          deployedBytecode: { object: '0x1234' },
+        })
+        // casting to as never here because the types for fs-extra seem to be borked up atm (they partially inherit from node types, which breaks everything)
+      ) as never
     );
 
     jest.mocked(fs.readFileSync).mockReturnValue('test contract');
