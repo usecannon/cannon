@@ -1,16 +1,6 @@
 import { SafeDefinition } from '@/helpers/store';
 import { useSafeTransactions } from '@/hooks/backend';
-import {
-  Checkbox,
-  FormControl,
-  HStack,
-  NumberDecrementStepper,
-  NumberIncrementStepper,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  Tooltip,
-} from '@chakra-ui/react';
+import { Checkbox, FormControl, Flex, Select, Tooltip } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 
 interface Params {
@@ -24,8 +14,6 @@ export default function NoncePicker({ safe, handleChange }: Params) {
 
   const safeTxs = useSafeTransactions(safe);
 
-  console.log('safeTxs', safeTxs);
-
   useEffect(() => {
     handleChange(currentNonce);
   }, [currentNonce]);
@@ -37,11 +25,17 @@ export default function NoncePicker({ safe, handleChange }: Params) {
 
   return (
     <FormControl mb={4}>
-      <HStack>
+      <Flex
+        justify="space-between"
+        align="center"
+        direction="row"
+        wrap="wrap"
+        gap={4}
+      >
         <Tooltip
           label={
             safeTxs.staged.length === 0
-              ? 'To override nonce, you must have at least one transaction staged'
+              ? 'You must have at least one transaction staged to override'
               : ''
           }
           placement="top"
@@ -57,23 +51,27 @@ export default function NoncePicker({ safe, handleChange }: Params) {
           </Checkbox>
         </Tooltip>
         {isOverridingNonce && (
-          <NumberInput
-            min={Number(safeTxs.nonce) || 0}
-            value={currentNonce || 0}
-            onChange={(n) => {
-              const newVal = Number.parseInt(n);
-              if (!Number.isSafeInteger(newVal) || newVal < 0) return;
-              setCurrentNonce(newVal);
-            }}
-          >
-            <NumberInputField />
-            <NumberInputStepper>
-              <NumberIncrementStepper />
-              <NumberDecrementStepper />
-            </NumberInputStepper>
-          </NumberInput>
+          <Flex direction="row" align="center" justify="space-between" grow={1}>
+            <Select
+              value={currentNonce ?? undefined}
+              onChange={(e) => {
+                const newVal = Number(e.target.value);
+                if (!Number.isSafeInteger(newVal) || newVal < 0) {
+                  setCurrentNonce(null);
+                } else {
+                  setCurrentNonce(newVal);
+                }
+              }}
+            >
+              {safeTxs.staged.map(({ txn }) => (
+                <option key={txn._nonce} value={txn._nonce}>
+                  {txn._nonce}
+                </option>
+              ))}
+            </Select>
+          </Flex>
         )}
-      </HStack>
+      </Flex>
     </FormControl>
   );
 }
