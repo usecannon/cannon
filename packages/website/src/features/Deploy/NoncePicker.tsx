@@ -28,10 +28,6 @@ export default function NoncePicker({ safe, handleChange }: Params) {
   }, [currentNonce]);
 
   useEffect(() => {
-    setCurrentNonce(safeTxs.nextNonce);
-  }, [safeTxs.nextNonce]);
-
-  useEffect(() => {
     if (!safeTxs.nextNonce) return setCurrentNonce(null);
     setCurrentNonce(isOverridingNonce ? safeTxs.nextNonce - 1 : null);
   }, [isOverridingNonce, safeTxs.nextNonce]);
