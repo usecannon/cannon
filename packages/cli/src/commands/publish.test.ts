@@ -8,7 +8,7 @@ import {
 } from '@usecannon/builder';
 import * as viem from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import fs, { Dirent } from 'fs-extra';
+import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
 import { dirSync } from 'tmp-promise';
