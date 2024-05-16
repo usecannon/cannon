@@ -1,8 +1,12 @@
 //import { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 import { Address } from 'viem';
+import { ReactElement } from 'react';
 
 import { useRouter } from 'next/router';
+
+import Layout from '../../../../_layout';
+import NestedLayout from '../../../_layout';
 
 const NoSSR = dynamic(() => import('@/features/Packages/InteractPage'), {
   ssr: false,
@@ -41,3 +45,10 @@ export default function Interact() {
     />
   );
 }
+Interact.getLayout = function getLayout(page: ReactElement) {
+  return (
+    <Layout>
+      <NestedLayout>{page}</NestedLayout>
+    </Layout>
+  );
+};

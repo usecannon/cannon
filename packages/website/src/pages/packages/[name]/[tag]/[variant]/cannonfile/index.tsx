@@ -1,6 +1,8 @@
 //import { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
+import Layout from '../_layout';
+import { ReactElement } from 'react';
 
 const NoSSR = dynamic(
   async () => {
@@ -38,3 +40,7 @@ export default function Cannonfile() {
     />
   );
 }
+
+Cannonfile.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>;
+};
