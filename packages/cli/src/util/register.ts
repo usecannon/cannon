@@ -72,18 +72,19 @@ export const waitForEvent = ({
       address: DEFAULT_REGISTRY_ADDRESS,
       event,
       onLogs: async (logs) => {
-        const [topics] = viem.parseEventLogs({ abi, eventName, logs });
-        console.log('topics: ', topics);
+        const topics = viem.parseEventLogs({ abi, eventName, logs });
 
-        // check event arguments, early return if they don't match
-        if (!_.isEqual(topics.args, expectedArgs)) return;
+        for (const topic of topics) {
+          // check event arguments, early return if they don't match
+          if (!_.isEqual(topic.args, expectedArgs)) continue;
 
-        // unwatch the event
-        unwatch();
-        // Clear the timeout
-        clearTimeout(timeoutId);
-        // Resolve the promise
-        resolve(logs);
+          // unwatch the event
+          unwatch();
+          // Clear the timeout
+          clearTimeout(timeoutId);
+          // Resolve the promise
+          resolve(logs);
+        }
       },
       onError: (err) => {
         // unwatch the event
