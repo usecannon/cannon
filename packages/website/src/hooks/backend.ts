@@ -1,5 +1,6 @@
 import SafeABIJSON from '@/abi/Safe.json';
 import { SafeDefinition, useStore } from '@/helpers/store';
+import { useToast } from '@chakra-ui/react';
 import { useSafeAddress } from '@/hooks/safe';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -7,7 +8,15 @@ import axios from 'axios';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import * as viem from 'viem';
-import { useAccount, useChainId, useReadContract, useReadContracts, useSimulateContract, useWalletClient } from 'wagmi';
+import {
+  useAccount,
+  useChainId,
+  useReadContract,
+  useReadContracts,
+  useSimulateContract,
+  useWalletClient,
+  useSwitchChain,
+} from 'wagmi';
 
 const SafeABI = SafeABIJSON as viem.Abi;
 
@@ -87,16 +96,15 @@ export function useTxnStager(
   const account = useAccount();
   const walletClient = useWalletClient();
   const safeAddress = useSafeAddress();
-
+  const [signing, setSigning] = useState(false);
+  const toast = useToast();
   const [alreadyStagedSigners, setAlreadyStagedSigners] = useState<viem.Address[]>([]);
-
   const queryChainId = options.safe?.chainId || chainId.toString();
   const querySafeAddress = options.safe?.address || safeAddress;
-
   const stagingUrl = useStore((s) => s.settings.stagingUrl);
   const currentSafe = useStore((s) => s.currentSafe);
-
   const { nonce, staged, stagedQuery } = useSafeTransactions((options.safe || currentSafe) as any);
+  const { switchChainAsync } = useSwitchChain();
 
   const safeTxn: SafeTransaction = {
     to: txn.to || viem.zeroAddress,
@@ -261,35 +269,57 @@ export function useTxnStager(
     safeTxn,
 
     sign: async () => {
-      const signature = await walletClient.data!.signMessage({
-        account: account.address,
-        message: { raw: hashToSign as any },
-      });
+      if (signing) return;
 
-      const gnosisSignature = viem.toBytes(signature);
-
-      // sometimes the signature comes back with a `v` of 0 or 1 when when it should 27 or 28, called a "recid" apparently
-      // Allow a recid to be used as the v
-      if (gnosisSignature[gnosisSignature.length - 1] < 27) {
-        if (gnosisSignature[gnosisSignature.length - 1] === 0 || gnosisSignature[gnosisSignature.length - 1] === 1) {
-          gnosisSignature[gnosisSignature.length - 1] += 27;
-        } else {
-          throw new Error(`signature invalid v byte ${signature}`);
+      setSigning(true);
+      try {
+        if (currentSafe?.chainId !== account.chainId) {
+          await switchChainAsync({
+            chainId: currentSafe?.chainId as number,
+          });
         }
-      }
 
-      // gnosis for some reason requires adding 4 to the signature version code
-      gnosisSignature[gnosisSignature.length - 1] += 4;
+        const signature = await walletClient.data!.signMessage({
+          account: account.address,
+          message: { raw: hashToSign as any },
+        });
 
-      await mutation.mutateAsync({
-        txn: safeTxn,
-        sig: viem.toHex(gnosisSignature),
-      });
+        const gnosisSignature = viem.toBytes(signature);
 
-      if (options.onSignComplete) {
-        options.onSignComplete();
+        // sometimes the signature comes back with a `v` of 0 or 1 when when it should 27 or 28, called a "recid" apparently
+        // Allow a recid to be used as the v
+        if (gnosisSignature[gnosisSignature.length - 1] < 27) {
+          if (gnosisSignature[gnosisSignature.length - 1] === 0 || gnosisSignature[gnosisSignature.length - 1] === 1) {
+            gnosisSignature[gnosisSignature.length - 1] += 27;
+          } else {
+            throw new Error(`signature invalid v byte ${signature}`);
+          }
+        }
+
+        // gnosis for some reason requires adding 4 to the signature version code
+        gnosisSignature[gnosisSignature.length - 1] += 4;
+
+        await mutation.mutateAsync({
+          txn: safeTxn,
+          sig: viem.toHex(gnosisSignature),
+        });
+
+        if (options.onSignComplete) {
+          options.onSignComplete();
+        }
+      } catch (e: any) {
+        toast({
+          title: e.message || 'Failed to sign transaction.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+      } finally {
+        setSigning(false);
       }
     },
+
+    signing,
 
     signMutation: mutation,
 
