@@ -220,7 +220,7 @@ function QueueFromGitOps() {
     const version = 'latest';
     const preset = cannonDefInfo.def.getPreset(ctx);
     setPreviousPackageInput(`${name}:${version}@${preset}`);
-    setSelectedDeployType('2');
+    if (selectedDeployType == '1') setSelectedDeployType('2');
   }, [cannonDefInfo.def]);
 
   // run the build and get the list of transactions we need to run
