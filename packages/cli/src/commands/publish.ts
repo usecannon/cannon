@@ -169,7 +169,7 @@ export async function publish({
       }));
 
       if (subPackages.length == 0) {
-        console.log(yellow('\nNo cloned/provisioned packages found, publishing parent packages only...'));
+        console.log(yellow('\nNo cloned packages found, publishing parent packages only...'));
       }
 
       parentPackages.forEach((deploy) => {
@@ -185,7 +185,7 @@ export async function publish({
         console.log(
           blueBright(
             `This will publish ${bold(new PackageReference(packageName).name)} ${bold(
-              italic('(Provisioned)')
+              italic('(Cloned Package)')
             )} to the registry:`
           )
         );
