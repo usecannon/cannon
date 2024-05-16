@@ -39,14 +39,14 @@ import {
   Stack,
   Text,
   Tooltip,
-  Link,
   useToast,
+  VStack,
 } from '@chakra-ui/react';
 import { ChainBuilderContext } from '@usecannon/builder';
 import _ from 'lodash';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   encodeAbiParameters,
   encodeFunctionData,
@@ -56,7 +56,7 @@ import {
   TransactionRequestBase,
   zeroAddress,
 } from 'viem';
-import { useWriteContract } from 'wagmi';
+import { useWriteContract, useChainId } from 'wagmi';
 import pkg from '../../../package.json';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
@@ -70,7 +70,7 @@ function QueueFromGitOps() {
   const [selectedDeployType, setSelectedDeployType] = useState('1');
   const router = useRouter();
   const currentSafe = useStore((s) => s.currentSafe);
-
+  const chainId = useChainId();
   const [cannonfileUrlInput, setCannonfileUrlInput] = useState('');
   const [previousPackageInput, setPreviousPackageInput] = useState('');
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
@@ -153,7 +153,6 @@ function QueueFromGitOps() {
   };
 
   const settings = useStore((s) => s.settings);
-  const chainId = currentSafe?.chainId;
 
   const previousName = useMemo(() => {
     if (previousPackageInput) {
@@ -363,28 +362,58 @@ function QueueFromGitOps() {
       (s) => s.name.includes('contract') || s.name.includes('router')
     ).length > 0;
 
-  let alertMessage;
-  if (chainId !== currentSafe?.chainId) {
-    alertMessage =
-      'Your wallet must be connected to the same network as the selected Safe.';
-  } else if (settings.isIpfsGateway) {
-    alertMessage = (
-      <>
-        Update your IPFS URL to an API endpoint where you can pin files in{' '}
-        <Link href="/settings">settings</Link>.
-      </>
-    );
-  }
-
-  const wrongIpfsSettings =
-    settings.isIpfsGateway ||
-    settings.ipfsApiUrl.includes('https://repo.usecannon.com');
-
   const loadingDataForDeploy =
     cannonPkgPreviousInfo.isFetching ||
     partialDeployInfo.isFetching ||
     cannonPkgVersionInfo.isFetching ||
     buildInfo.isBuilding;
+
+  const renderAlertMessages = () => {
+    const alertMessages: React.ReactNode[] = [];
+
+    if (chainId !== currentSafe?.chainId) {
+      alertMessages.push(
+        'Your wallet must be connected to the same network as the selected Safe.'
+      );
+    }
+
+    if (!cannonDefInfo.def && !cannonDefInfo.isFetching) {
+      alertMessages.push('Please enter a valid cannonfile URL to continue.');
+    }
+
+    if (settings.isIpfsGateway) {
+      alertMessages.push(
+        <>
+          Your current IPFS URL is set to a gateway. Update your IPFS URL to an
+          API endpoint where you can pin files in.
+          <Link href="/settings">settings</Link>.
+        </>
+      );
+    }
+
+    if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
+      alertMessages.push(
+        <Text>
+          You must set a Kubo RPC API URL in your{' '}
+          <Link as={NextLink} href="/settings">
+            settings
+          </Link>
+          .
+        </Text>
+      );
+    }
+
+    return alertMessages.length > 0 ? (
+      <VStack mt="6" spacing={2} mb={6}>
+        {alertMessages.map((m, key) => (
+          <Alert status="warning" bg="gray.700" key={key}>
+            <AlertIcon mr={3} />
+            {m}
+          </Alert>
+        ))}
+      </VStack>
+    ) : null;
+  };
 
   return (
     <>
@@ -547,30 +576,14 @@ function QueueFromGitOps() {
               </FormHelperText>
             </FormControl>
           )}
-          {alertMessage && (
-            <Alert mb="6" status="warning" bg="gray.700">
-              <AlertIcon mr={3} />
-              <Text>{alertMessage}</Text>
-            </Alert>
-          )}
-          {wrongIpfsSettings && (
-            <Alert mt="6" status="error" bg="red.700">
-              <AlertIcon mr={3} />
-              <strong>
-                You must set a Kubo RPC API URL in your{' '}
-                <Link as={NextLink} href="/settings">
-                  settings
-                </Link>
-                .
-              </strong>
-            </Alert>
-          )}
+          {renderAlertMessages()}
           <Button
             width="100%"
             colorScheme="teal"
             isDisabled={
               chainId !== currentSafe?.chainId ||
-              wrongIpfsSettings ||
+              settings.isIpfsGateway ||
+              settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
               !cannonDefInfo.def ||
               loadingDataForDeploy
             }
