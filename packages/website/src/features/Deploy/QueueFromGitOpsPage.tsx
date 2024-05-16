@@ -39,6 +39,7 @@ import {
   Stack,
   Text,
   Tooltip,
+  Link,
   useToast,
 } from '@chakra-ui/react';
 import { ChainBuilderContext } from '@usecannon/builder';
@@ -469,7 +470,7 @@ function QueueFromGitOps() {
             </RadioGroup>
           </FormControl>
 
-          {selectedDeployType == '1' && (<Box mb={6}/> )}
+          {selectedDeployType == '1' && <Box mb={6} />}
 
           {selectedDeployType == '2' && (
             <FormControl mb="6">
@@ -552,32 +553,31 @@ function QueueFromGitOps() {
               <Text>{alertMessage}</Text>
             </Alert>
           )}
-          <Tooltip
-            label={!cannonDefInfo.def ? 'Please enter a valid cannonfile.' : ''}
-          >
-            <Button
-              width="100%"
-              colorScheme="teal"
-              isDisabled={
-                chainId !== currentSafe?.chainId ||
-                wrongIpfsSettings ||
-                !cannonDefInfo.def ||
-                loadingDataForDeploy
-              }
-              onClick={() => buildInfo.doBuild()}
-            >
-              Preview Transactions to Queue
-            </Button>
-          </Tooltip>
           {wrongIpfsSettings && (
             <Alert mt="6" status="error" bg="red.700">
               <AlertIcon mr={3} />
               <strong>
-                Your IPFS settings are incorrect. Please update them in the
-                settings page.
+                You must set a Kubo RPC API URL in your{' '}
+                <Link as={NextLink} href="/settings">
+                  settings
+                </Link>
+                .
               </strong>
             </Alert>
           )}
+          <Button
+            width="100%"
+            colorScheme="teal"
+            isDisabled={
+              chainId !== currentSafe?.chainId ||
+              wrongIpfsSettings ||
+              !cannonDefInfo.def ||
+              loadingDataForDeploy
+            }
+            onClick={() => buildInfo.doBuild()}
+          >
+            Preview Transactions to Queue
+          </Button>
           {buildInfo.buildStatus && (
             <Alert mt="6" status="info" bg="gray.800">
               <Spinner mr={3} boxSize={4} />
