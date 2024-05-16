@@ -8,11 +8,11 @@ import { Flex } from '@chakra-ui/react';
 import { Analytics } from '@vercel/analytics/react';
 import NextTopLoader from 'nextjs-toploader';
 import { Inter, Miriam_Libre, Roboto_Mono } from 'next/font/google';
-//import { ReactNode } from 'react';
+import { ReactElement } from 'react';
 import Providers from './_providers';
 import '@/styles/globals.css';
 
-import Head from 'next/head';
+//import Head from 'next/head';
 
 const miriam = Miriam_Libre({
   subsets: ['latin'],
@@ -37,11 +37,12 @@ export default function RootLayout({
   Component: any;
   pageProps: any;
 }) {
+  const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
   return (
     <html lang="en">
-      <Head>
+      <head>
         <GoogleAnalytics measurementId="G-C96791F6NC" />
-      </Head>
+      </head>
       <style jsx global>
         {`
           :root {
@@ -69,9 +70,7 @@ export default function RootLayout({
             position="relative"
           >
             <Header />
-            <Flex flex="1">
-              <Component {...pageProps} />
-            </Flex>
+            <Flex flex="1">{getLayout(<Component {...pageProps} />)}</Flex>
             <Footer />
             {/*<Console />*/}
           </Flex>

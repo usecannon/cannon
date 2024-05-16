@@ -5,6 +5,9 @@ import { useRouter } from 'next/router';
 import { find } from 'lodash';
 import { ChainData } from '@/features/Search/PackageCard/Chain';*/
 
+import Layout from './_layout';
+import { ReactElement } from 'react';
+
 const NoSSR = dynamic(
   async () => {
     return import('@/features/Packages/Tabs/DeploymentTab');
@@ -64,3 +67,7 @@ export default function Deployment() {
     />
   );
 }
+
+Deployment.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>;
+};
