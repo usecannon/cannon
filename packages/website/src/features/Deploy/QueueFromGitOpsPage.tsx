@@ -432,27 +432,31 @@ function QueueFromGitOps() {
             ) : undefined}
           </FormControl>
 
-          <RadioGroup
-            mb={4}
-            value={selectedDeployType}
-            onChange={setSelectedDeployType}
-          >
-            <Stack
-              direction={['column', 'column', 'row']}
-              spacing={['1', '1', '6']}
-              width="100%"
+          <FormControl mb="4">
+            <FormLabel>Deployment Type</FormLabel>
+            <RadioGroup
+              value={selectedDeployType}
+              onChange={setSelectedDeployType}
             >
-              <Radio colorScheme="teal" value="1">
-                New deployment
-              </Radio>
-              <Radio colorScheme="teal" value="2">
-                Upgrade existing package
-              </Radio>
-              <Radio colorScheme="teal" value="3">
-                Complete partial deployment
-              </Radio>
-            </Stack>
-          </RadioGroup>
+              <Stack
+                direction={['column', 'column', 'row']}
+                spacing={['1', '1', '6']}
+                width="100%"
+              >
+                <Radio colorScheme="teal" value="1">
+                  New deployment
+                </Radio>
+                <Radio colorScheme="teal" value="2">
+                  Upgrade existing package
+                </Radio>
+                <Radio colorScheme="teal" value="3">
+                  Complete partial deployment
+                </Radio>
+              </Stack>
+            </RadioGroup>
+          </FormControl>
+
+          {selectedDeployType == '1' && (<Box mb={6}/> )}
 
           {selectedDeployType == '2' && (
             <FormControl mb="6">
