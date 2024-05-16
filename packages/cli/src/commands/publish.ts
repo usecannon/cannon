@@ -162,23 +162,14 @@ export async function publish({
         }
       }
 
-      // dedupe and reduce to subPackages
-      subPackages = subPackages.reduce<SubPackage[]>((acc, curr) => {
-        if (
-          !acc.some((item) => item.packagesNames !== curr.packagesNames && item.chainId === curr.chainId) &&
-          !curr.packagesNames.some((r) => {
-            const { name } = new PackageReference(r);
-            parentPackages.some((p) => name === p.name);
-          }) &&
-          !curr.packagesNames.includes(fullPackageRef)
-        ) {
-          acc.push(curr);
-        }
-        return acc;
-      }, []);
+      // filter out duplicates names
+      subPackages = subPackages.map((pkg) => ({
+        ...pkg,
+        packagesNames: Array.from(new Set(pkg.packagesNames)),
+      }));
 
       if (subPackages.length == 0) {
-        console.log(yellow('\nNo cloned/provisioned packages found, publishing parent packages only...'));
+        console.log(yellow('\nNo cloned packages found, publishing parent packages only...'));
       }
 
       parentPackages.forEach((deploy) => {
@@ -189,11 +180,12 @@ export async function publish({
       });
       console.log('\n');
 
-      subPackages.forEach((pkg: SubPackage, index) => {
+      subPackages.forEach((pkg: SubPackage) => {
+        const [packageName] = pkg.packagesNames;
         console.log(
           blueBright(
-            `This will publish ${bold(new PackageReference(pkg.packagesNames[index]).name)} ${bold(
-              italic('(Provisioned)')
+            `This will publish ${bold(new PackageReference(packageName).name)} ${bold(
+              italic('(Cloned Package)')
             )} to the registry:`
           )
         );
