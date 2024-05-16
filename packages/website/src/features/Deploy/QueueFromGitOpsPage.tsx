@@ -375,6 +375,16 @@ function QueueFromGitOps() {
     );
   }
 
+  const wrongIpfsSettings =
+    settings.isIpfsGateway ||
+    settings.ipfsApiUrl.includes('https://repo.usecannon.com');
+
+  const loadingDataForDeploy =
+    cannonPkgPreviousInfo.isFetching ||
+    partialDeployInfo.isFetching ||
+    cannonPkgVersionInfo.isFetching ||
+    buildInfo.isBuilding;
+
   return (
     <>
       <Container maxWidth="container.md" py={8}>
@@ -416,8 +426,11 @@ function QueueFromGitOps() {
                   }
                 />
                 <InputRightElement>
-                  {cannonDefInfo.isFetching && <Spinner />}
-                  {cannonDefInfo.def && <CheckIcon color="green.500" />}
+                  {cannonDefInfo.isFetching ? (
+                    <Spinner />
+                  ) : cannonDefInfo.def ? (
+                    <CheckIcon color="green.500" />
+                  ) : null}
                 </InputRightElement>
               </InputGroup>
             </HStack>
@@ -473,8 +486,11 @@ function QueueFromGitOps() {
                   }
                 />
                 <InputRightElement>
-                  {cannonPkgPreviousInfo.isFetching && <Spinner />}
-                  {cannonPkgPreviousInfo.pkg && <CheckIcon color="green.500" />}
+                  {cannonPkgPreviousInfo.isFetching ? (
+                    <Spinner />
+                  ) : cannonPkgPreviousInfo.pkg ? (
+                    <CheckIcon color="green.500" />
+                  ) : null}
                 </InputRightElement>
               </InputGroup>
               <FormHelperText color="gray.300">
@@ -532,23 +548,32 @@ function QueueFromGitOps() {
               <Text>{alertMessage}</Text>
             </Alert>
           )}
-          <Button
-            width="100%"
-            colorScheme="teal"
-            isDisabled={
-              chainId !== currentSafe?.chainId ||
-              settings.isIpfsGateway ||
-              settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
-              !cannonDefInfo.def ||
-              cannonPkgPreviousInfo.isFetching ||
-              partialDeployInfo.isFetching ||
-              cannonPkgVersionInfo.isFetching ||
-              buildInfo.isBuilding
-            }
-            onClick={() => buildInfo.doBuild()}
+          <Tooltip
+            label={!cannonDefInfo.def ? 'Please enter a valid cannonfile.' : ''}
           >
-            Preview Transactions to Queue
-          </Button>
+            <Button
+              width="100%"
+              colorScheme="teal"
+              isDisabled={
+                chainId !== currentSafe?.chainId ||
+                wrongIpfsSettings ||
+                !cannonDefInfo.def ||
+                loadingDataForDeploy
+              }
+              onClick={() => buildInfo.doBuild()}
+            >
+              Preview Transactions to Queue
+            </Button>
+          </Tooltip>
+          {wrongIpfsSettings && (
+            <Alert mt="6" status="error" bg="red.700">
+              <AlertIcon mr={3} />
+              <strong>
+                Your IPFS settings are incorrect. Please update them in the
+                settings page.
+              </strong>
+            </Alert>
+          )}
           {buildInfo.buildStatus && (
             <Alert mt="6" status="info" bg="gray.800">
               <Spinner mr={3} boxSize={4} />
