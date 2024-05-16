@@ -222,7 +222,6 @@ export const QueuedTxns = ({
         {queuedIdentifiableTxns.length > 0
           ? queuedIdentifiableTxns.map((queuedIdentifiableTxn, i) => (
               <Box
-                overflow="hidden"
                 key={i}
                 mb={8}
                 p={0}
