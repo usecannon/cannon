@@ -713,7 +713,7 @@ export class OnChainRegistry extends CannonRegistry {
     await this._logEstimatedGas(simulatedGas);
 
     // note: hardcoded gas to make sure the transaction goes through
-    // params.gas = BigInt(2_000_000);
+    params.gas = BigInt(2_000_000);
 
     const tx = await this.provider.simulateContract(params);
 
