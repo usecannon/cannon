@@ -33,7 +33,10 @@ import {
   InputGroup,
   InputRightElement,
   Link,
+  Radio,
+  RadioGroup,
   Spinner,
+  Stack,
   Text,
   Tooltip,
   useToast,
@@ -63,6 +66,7 @@ export default function QueueFromGitOpsPage() {
 }
 
 function QueueFromGitOps() {
+  const [selectedDeployType, setSelectedDeployType] = useState('1');
   const router = useRouter();
   const currentSafe = useStore((s) => s.currentSafe);
 
@@ -216,6 +220,7 @@ function QueueFromGitOps() {
     const version = 'latest';
     const preset = cannonDefInfo.def.getPreset(ctx);
     setPreviousPackageInput(`${name}:${version}@${preset}`);
+    setSelectedDeployType('2');
   }, [cannonDefInfo.def]);
 
   // run the build and get the list of transactions we need to run
@@ -394,7 +399,7 @@ function QueueFromGitOps() {
           borderColor="gray.600"
           borderRadius="4px"
         >
-          <FormControl mb="6">
+          <FormControl mb="4">
             <FormLabel>Cannonfile</FormLabel>
             <HStack>
               <InputGroup>
@@ -427,75 +432,102 @@ function QueueFromGitOps() {
             ) : undefined}
           </FormControl>
 
-          <FormControl mb="6">
-            <FormLabel>Previous Package</FormLabel>
-            <InputGroup>
-              <Input
-                placeholder="name:version@preset"
-                type="text"
-                value={previousPackageInput}
-                borderColor={
-                  !previousPackageInput.length || !cannonPkgPreviousInfo.error
-                    ? 'whiteAlpha.400'
-                    : 'red.500'
-                }
-                background="black"
-                onChange={(evt: any) =>
-                  setPreviousPackageInput(evt.target.value)
-                }
-              />
-              <InputRightElement>
-                {cannonPkgPreviousInfo.isFetching && <Spinner />}
-                {cannonPkgPreviousInfo.pkg && <CheckIcon color="green.500" />}
-              </InputRightElement>
-            </InputGroup>
-            <FormHelperText color="gray.300">
-              <strong>Optional.</strong> Specify the package this cannonfile is
-              extending. See{' '}
-              <Link as={NextLink} href="/learn/cli#build">
-                <Code>--upgrade-from</Code>
-              </Link>
-            </FormHelperText>
-            {cannonPkgPreviousInfo.error ? (
-              <Alert mt="6" status="error" bg="red.700">
-                <AlertIcon mr={3} />
-                <strong>{cannonPkgPreviousInfo.error.toString()}</strong>
-              </Alert>
-            ) : undefined}
-          </FormControl>
+          <RadioGroup
+            mb={4}
+            value={selectedDeployType}
+            onChange={setSelectedDeployType}
+          >
+            <Stack
+              direction={['column', 'column', 'row']}
+              spacing={['1', '1', '6']}
+              width="100%"
+            >
+              <Radio colorScheme="teal" value="1">
+                New deployment
+              </Radio>
+              <Radio colorScheme="teal" value="2">
+                Upgrade existing package
+              </Radio>
+              <Radio colorScheme="teal" value="3">
+                Complete partial deployment
+              </Radio>
+            </Stack>
+          </RadioGroup>
+
+          {selectedDeployType == '2' && (
+            <FormControl mb="6">
+              <FormLabel>Previous Package</FormLabel>
+              <InputGroup>
+                <Input
+                  placeholder="name:version@preset"
+                  type="text"
+                  value={previousPackageInput}
+                  borderColor={
+                    !previousPackageInput.length || !cannonPkgPreviousInfo.error
+                      ? 'whiteAlpha.400'
+                      : 'red.500'
+                  }
+                  background="black"
+                  onChange={(evt: any) =>
+                    setPreviousPackageInput(evt.target.value)
+                  }
+                />
+                <InputRightElement>
+                  {cannonPkgPreviousInfo.isFetching && <Spinner />}
+                  {cannonPkgPreviousInfo.pkg && <CheckIcon color="green.500" />}
+                </InputRightElement>
+              </InputGroup>
+              <FormHelperText color="gray.300">
+                <strong>Optional.</strong> Specify the package this cannonfile
+                is extending. See{' '}
+                <Link as={NextLink} href="/learn/cli#build">
+                  <Code>--upgrade-from</Code>
+                </Link>
+              </FormHelperText>
+              {cannonPkgPreviousInfo.error ? (
+                <Alert mt="6" status="error" bg="red.700">
+                  <AlertIcon mr={3} />
+                  <strong>{cannonPkgPreviousInfo.error.toString()}</strong>
+                </Alert>
+              ) : undefined}
+            </FormControl>
+          )}
+
           {/* TODO: insert/load override settings here */}
-          <FormControl mb="6">
-            <FormLabel>Partial Deployment Data</FormLabel>
-            <InputGroup>
-              <Input
-                placeholder="Qm..."
-                type="text"
-                value={partialDeployIpfs}
-                borderColor={
-                  !partialDeployIpfs.length ||
-                  partialDeployInfo.isFetching ||
-                  partialDeployInfo.pkg
-                    ? 'whiteAlpha.400'
-                    : 'red.500'
-                }
-                background="black"
-                onChange={(evt: any) =>
-                  setPartialDeployIpfs(parseIpfsHash(evt.target.value))
-                }
-              />
-              <InputRightElement>
-                {partialDeployInfo.isFetching && <Spinner />}
-                {partialDeployInfo.pkg && <CheckIcon color="green.500" />}
-              </InputRightElement>
-            </InputGroup>
-            <FormHelperText color="gray.300">
-              <strong>Optional.</strong> If this deployment requires
-              transactions executed in other contexts (e.g. contract deployments
-              or function calls using other signers), provide the IPFS hash
-              generated from executing that partial deployment using the build
-              command in the CLI.
-            </FormHelperText>
-          </FormControl>
+          {selectedDeployType == '3' && (
+            <FormControl mb="6">
+              <FormLabel>Partial Deployment Data</FormLabel>
+              <InputGroup>
+                <Input
+                  placeholder="Qm..."
+                  type="text"
+                  value={partialDeployIpfs}
+                  borderColor={
+                    !partialDeployIpfs.length ||
+                    partialDeployInfo.isFetching ||
+                    partialDeployInfo.pkg
+                      ? 'whiteAlpha.400'
+                      : 'red.500'
+                  }
+                  background="black"
+                  onChange={(evt: any) =>
+                    setPartialDeployIpfs(parseIpfsHash(evt.target.value))
+                  }
+                />
+                <InputRightElement>
+                  {partialDeployInfo.isFetching && <Spinner />}
+                  {partialDeployInfo.pkg && <CheckIcon color="green.500" />}
+                </InputRightElement>
+              </InputGroup>
+              <FormHelperText color="gray.300">
+                <strong>Optional.</strong> If this deployment requires
+                transactions executed in other contexts (e.g. contract
+                deployments or function calls using other signers), provide the
+                IPFS hash generated from executing that partial deployment using
+                the build command in the CLI.
+              </FormHelperText>
+            </FormControl>
+          )}
           {alertMessage && (
             <Alert mb="6" status="warning" bg="gray.700">
               <AlertIcon mr={3} />
