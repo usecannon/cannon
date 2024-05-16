@@ -17,6 +17,8 @@ interface Params {
 }
 
 export async function register({ cliSettings, options, packageRef, fromPublish }: Params) {
+  const packageRefs = packageRef.split(',');
+
   if (!cliSettings.privateKey) {
     const keyPrompt = await prompts({
       type: 'text',
@@ -39,21 +41,30 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
   const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
 
-  const isRegisteredOnMainnet = await isPackageRegistered(
-    [mainnetRegistryProvider],
-    packageRef,
-    mainnetRegistryConfig.address
-  );
+  // if any of the packages are registered, throw an error
+  const isRegistered = await Promise.all(
+    packageRefs.map(async (packageRef) => {
+      const packageName = new PackageReference(packageRef).name;
 
-  const isRegisteredOnOptimism = await isPackageRegistered(
-    [optimismRegistryProvider],
-    packageRef,
-    optimismRegistryConfig.address
-  );
+      const isRegisteredOnMainnet = await isPackageRegistered(
+        [mainnetRegistryProvider],
+        packageName,
+        mainnetRegistryConfig.address
+      );
 
-  if (isRegisteredOnMainnet && isRegisteredOnOptimism) {
-    throw new Error(`The package "${new PackageReference(packageRef).name}" is already registered.`);
-  }
+      const isRegisteredOnOptimism = await isPackageRegistered(
+        [optimismRegistryProvider],
+        packageName,
+        optimismRegistryConfig.address
+      );
+
+      if (isRegisteredOnMainnet && isRegisteredOnOptimism) {
+        throw new Error(`The package "${new PackageReference(packageName).name}" is already registered.`);
+      }
+
+      return [isRegisteredOnMainnet, isRegisteredOnOptimism];
+    })
+  );
 
   const overrides: any = {};
 
@@ -77,7 +88,6 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   });
 
   const userAddress = mainnetRegistryProvider.signers[0].address;
-  const packageName = new PackageReference(packageRef).name;
 
   const userBalance = await mainnetRegistryProvider.provider.getBalance({ address: userAddress });
 
@@ -87,12 +97,21 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   const registerFee = await mainnetRegistry.getRegisterFee();
 
-  // to migrate a package, we need to nominate the owner first
-  const shouldNominateOwner = isRegisteredOnMainnet && !isRegisteredOnOptimism;
+  const transactions = await Promise.all(
+    packageRefs.map((packageRef, index) => {
+      const packageName = new PackageReference(packageRef).name;
+      const [isRegisteredOnMainnet, isRegisteredOnOptimism] = isRegistered[index];
+      const shouldNominateOwner = isRegisteredOnMainnet && !isRegisteredOnOptimism;
+
+      return mainnetRegistry.prepareSetPackageOwnership(packageName, undefined, shouldNominateOwner);
+    })
+  );
+
+  const sequentialTransactions = mainnetRegistry.prepareSequentialMulticall(transactions.flat());
 
   // Note: for some reason, estimate gas is not accurate
   // Note: if the user does not have enough gas, the estimateGasForSetPackageOwnership will throw an error
-  const estimateGas = await mainnetRegistry.estimateGasForSetPackageOwnership(packageName, undefined, shouldNominateOwner);
+  const estimateGas = await mainnetRegistry.estimateGasForSetPackageOwnership(sequentialTransactions);
 
   const cost = estimateGas + registerFee;
   if (cost > userBalance) {
@@ -104,7 +123,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   const currentGasPrice = await mainnetRegistryProvider.provider.getGasPrice();
 
   console.log('');
-  console.log(`This will cost ~${viem.formatEther(estimateGas * currentGasPrice)} ETH on Ethereum Mainnet.`);
+  console.log(`This will cost ~${viem.formatEther(estimateGas * currentGasPrice)} ETH on ${mainnetRegistryConfig.name}.`);
   console.log('');
 
   const confirm = await prompts({
@@ -119,17 +138,17 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   console.log('Submitting transaction...');
 
-  const packageNameHex = viem.stringToHex(packageName, { size: 32 });
-
   try {
     const [hash] = await Promise.all([
       (async () => {
-        const hash = await mainnetRegistry.setPackageOwnership(packageName, undefined, shouldNominateOwner);
+        const hash = await mainnetRegistry.setPackageOwnership(sequentialTransactions);
 
         console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
         console.log('');
         console.log(
-          gray('Waiting for the transaction to propagate to Optimism Mainnet... It may take approximately 1-3 minutes.')
+          gray(
+            `Waiting for the transaction to propagate to ${optimismRegistryConfig.name}... It may take approximately 1-3 minutes.`
+          )
         );
         console.log('');
 
@@ -137,39 +156,44 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
       })(),
       (async () => {
         // this should always resolve after the first promise but we want to make sure it runs at the same time
-        await Promise.all([
-          waitForEvent({
-            eventName: 'PackageOwnerChanged',
-            abi: mainnetRegistry.contract.abi,
-            chainId: optimismRegistryConfig.chainId!,
-            expectedArgs: {
-              name: packageNameHex,
-              owner: userAddress,
-            },
-          }),
-          waitForEvent({
-            eventName: 'PackagePublishersChanged',
-            abi: mainnetRegistry.contract.abi,
-            chainId: optimismRegistryConfig.chainId!,
-            expectedArgs: {
-              name: packageNameHex,
-              publisher: [userAddress],
-            },
-          }),
-        ]);
+        return Promise.all(
+          packageRefs.map((packageRef) => {
+            const packageName = new PackageReference(packageRef).name;
+            const packageNameHex = viem.stringToHex(packageName, { size: 32 });
 
-        console.log(green('Success!'));
-        console.log('');
-
-        if (fromPublish) {
-          console.log(gray('We will continue with the publishing process.'));
-        } else {
-          console.log(
-            gray(`Run 'cannon publish ${packageName}' (after building a ${packageName} deployment) to publish a package.`)
-          );
-        }
+            return Promise.all([
+              waitForEvent({
+                eventName: 'PackageOwnerChanged',
+                abi: mainnetRegistry.contract.abi,
+                chainId: optimismRegistryConfig.chainId!,
+                expectedArgs: {
+                  name: packageNameHex,
+                  owner: userAddress,
+                },
+              }),
+              waitForEvent({
+                eventName: 'PackagePublishersChanged',
+                abi: mainnetRegistry.contract.abi,
+                chainId: optimismRegistryConfig.chainId!,
+                expectedArgs: {
+                  name: packageNameHex,
+                  publisher: [userAddress],
+                },
+              }),
+            ]);
+          })
+        );
       })(),
     ]);
+
+    if (fromPublish) {
+      console.log(gray('We will continue with the publishing process.'));
+    } else {
+      packageRefs.map(async (packageRef) => {
+        const packageName = new PackageReference(packageRef).name;
+        console.log(green(`Success - Package "${packageName}" has been registered.`));
+      });
+    }
 
     return hash;
   } catch (e) {

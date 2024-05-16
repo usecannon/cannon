@@ -73,6 +73,7 @@ export const waitForEvent = ({
       event,
       onLogs: async (logs) => {
         const [topics] = viem.parseEventLogs({ abi, eventName, logs });
+        console.log('topics: ', topics);
 
         // check event arguments, early return if they don't match
         if (!_.isEqual(topics.args, expectedArgs)) return;
