@@ -478,8 +478,7 @@ function QueueFromGitOps() {
                 </InputRightElement>
               </InputGroup>
               <FormHelperText color="gray.300">
-                <strong>Optional.</strong> Specify the package this cannonfile
-                is extending. See{' '}
+                Specify the package this cannonfile is extending. See{' '}
                 <Link as={NextLink} href="/learn/cli#build">
                   <Code>--upgrade-from</Code>
                 </Link>
@@ -520,11 +519,10 @@ function QueueFromGitOps() {
                 </InputRightElement>
               </InputGroup>
               <FormHelperText color="gray.300">
-                <strong>Optional.</strong> If this deployment requires
-                transactions executed in other contexts (e.g. contract
-                deployments or function calls using other signers), provide the
-                IPFS hash generated from executing that partial deployment using
-                the build command in the CLI.
+                If this deployment requires transactions executed in other
+                contexts (e.g. contract deployments or function calls using
+                other signers), provide the IPFS hash generated from executing
+                that partial deployment using the build command in the CLI.
               </FormHelperText>
             </FormControl>
           )}
