@@ -27,7 +27,7 @@ export async function buildContracts(): Promise<void> {
   await execPromise('forge build');
 }
 
-export async function getFoundryArtifact(name: string, baseDir = '', includeSourceCode: boolean): Promise<ContractArtifact> {
+export async function getFoundryArtifact(name: string, baseDir = '', includeSourceCode = true): Promise<ContractArtifact> {
   // TODO: Theres a bug that if the file has a different name than the contract it would not work
   const foundryOpts = await getFoundryOpts();
 
