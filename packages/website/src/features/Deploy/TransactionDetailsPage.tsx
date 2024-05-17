@@ -66,7 +66,6 @@ const TransactionDetailsPage: FC<{
   const publicClient = usePublicClient();
   const walletChainId = useChainId();
   const account = useAccount();
-
   const parsedChainId = parseInt(chainId ?? '0') || 0;
   const parsedNonce = parseInt(nonce ?? '0') || 0;
 
@@ -390,14 +389,24 @@ const TransactionDetailsPage: FC<{
                                 mb={3}
                                 w="100%"
                                 isDisabled={
+                                  stager.signing ||
                                   stager.alreadySigned ||
                                   executionTxnHash ||
                                   ((safeTxn &&
                                     !!stager.signConditionFailed) as any)
                                 }
-                                onClick={() => stager.sign()}
+                                onClick={async () => {
+                                  await stager.sign();
+                                }}
                               >
-                                Sign
+                                {stager.signing ? (
+                                  <>
+                                    Currently Signing
+                                    <Spinner size="sm" ml={2} />
+                                  </>
+                                ) : (
+                                  'Sign'
+                                )}
                               </Button>
                             </Tooltip>
                             <Tooltip label={stager.execConditionFailed}>
