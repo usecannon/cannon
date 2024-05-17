@@ -56,10 +56,11 @@ import {
   TransactionRequestBase,
   zeroAddress,
 } from 'viem';
-import { useWriteContract, useChainId } from 'wagmi';
+import { useWriteContract, useAccount, useSwitchChain } from 'wagmi';
 import pkg from '../../../package.json';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import 'react-diff-view/style/index.css';
 
 export default function QueueFromGitOpsPage() {
@@ -70,11 +71,13 @@ function QueueFromGitOps() {
   const [selectedDeployType, setSelectedDeployType] = useState('1');
   const router = useRouter();
   const currentSafe = useStore((s) => s.currentSafe);
-  const chainId = useChainId();
+  const { chainId, isConnected } = useAccount();
+  const { switchChainAsync } = useSwitchChain();
   const [cannonfileUrlInput, setCannonfileUrlInput] = useState('');
   const [previousPackageInput, setPreviousPackageInput] = useState('');
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
+  const { openConnectModal } = useConnectModal();
 
   const cannonfileUrlRegex =
     // eslint-disable-next-line no-useless-escape
@@ -188,7 +191,7 @@ function QueueFromGitOps() {
         previousPreset ? '@' + previousPreset : ''
       }`) ??
       '',
-    chainId
+    currentSafe?.chainId || 1
   );
   const preset = cannonDefInfo.def && cannonDefInfo.def.getPreset(ctx);
   const cannonPkgVersionInfo = useCannonPackage(
@@ -197,7 +200,7 @@ function QueueFromGitOps() {
         preset ? '@' + preset : ''
       }`) ??
       '',
-    chainId
+    currentSafe?.chainId || 1
   );
 
   const prevDeployLocation =
@@ -368,31 +371,53 @@ function QueueFromGitOps() {
     cannonPkgVersionInfo.isFetching ||
     buildInfo.isBuilding;
 
-  const renderAlertMessages = () => {
-    const alertMessages: React.ReactNode[] = [];
+  const handlePreviewTxnsClick = async () => {
+    if (!isConnected) {
+      if (openConnectModal) {
+        openConnectModal();
+      }
+      toast({
+        title:
+          'In order to queue transactions, you must connect your wallet first.',
+        status: 'warning',
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
 
     if (chainId !== currentSafe?.chainId) {
-      alertMessages.push(
-        'Your wallet must be connected to the same network as the selected Safe.'
-      );
+      try {
+        await switchChainAsync({ chainId: currentSafe?.chainId || 1 });
+        buildInfo.doBuild();
+      } catch (e) {
+        toast({
+          title:
+            'Failed to switch chain, Your wallet must be connected to the same network as the selected Safe.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
     }
 
-    if (!cannonDefInfo.def && !cannonDefInfo.isFetching) {
-      alertMessages.push('Please enter a valid cannonfile URL to continue.');
-    }
+    buildInfo.doBuild();
+  };
+
+  const renderAlertMessage = () => {
+    let alertMessage: React.ReactNode;
 
     if (settings.isIpfsGateway) {
-      alertMessages.push(
+      alertMessage = (
         <>
           Your current IPFS URL is set to a gateway. Update your IPFS URL to an
           API endpoint where you can pin files in.
           <Link href="/settings">settings</Link>.
         </>
       );
-    }
-
-    if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
-      alertMessages.push(
+    } else if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
+      alertMessage = (
         <Text>
           You must set a Kubo RPC API URL in your{' '}
           <Link as={NextLink} href="/settings">
@@ -403,14 +428,12 @@ function QueueFromGitOps() {
       );
     }
 
-    return alertMessages.length > 0 ? (
+    return alertMessage ? (
       <VStack mt="6" spacing={2} mb={6}>
-        {alertMessages.map((m, key) => (
-          <Alert status="warning" bg="gray.700" key={key}>
-            <AlertIcon mr={3} />
-            {m}
-          </Alert>
-        ))}
+        <Alert status="error" bg="gray.700">
+          <AlertIcon mr={3} />
+          {alertMessage}
+        </Alert>
       </VStack>
     ) : null;
   };
@@ -576,20 +599,25 @@ function QueueFromGitOps() {
               </FormHelperText>
             </FormControl>
           )}
-          {renderAlertMessages()}
+          {renderAlertMessage()}
           <Button
             width="100%"
             colorScheme="teal"
             isDisabled={
-              chainId !== currentSafe?.chainId ||
               settings.isIpfsGateway ||
               settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
               !cannonDefInfo.def ||
               loadingDataForDeploy
             }
-            onClick={() => buildInfo.doBuild()}
+            onClick={handlePreviewTxnsClick}
           >
-            Preview Transactions to Queue
+            {loadingDataForDeploy ? (
+              <>
+                Loading required data <Spinner size="sm" ml={2} />
+              </>
+            ) : (
+              'Preview Transactions to Queue'
+            )}
           </Button>
           {buildInfo.buildStatus && (
             <Alert mt="6" status="info" bg="gray.800">
