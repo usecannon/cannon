@@ -25,7 +25,7 @@ import {
 } from '@usecannon/builder';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { Abi, Address, createPublicClient, createWalletClient, custom, isAddressEqual, PublicClient } from 'viem';
+import { Abi, Address, Hex, createPublicClient, createWalletClient, custom, isAddressEqual, PublicClient } from 'viem';
 import { useChainId } from 'wagmi';
 
 export type BuildState =
@@ -188,8 +188,8 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     const steps = await Promise.all(
       simulatedTxs.map(async (executedTx) => {
         if (!executedTx) throw new Error('Invalid operation');
-        const tx = await provider.getTransaction({ hash: executedTx.hash });
-        const rx = await provider.getTransactionReceipt({ hash: executedTx.hash });
+        const tx = await provider.getTransaction({ hash: executedTx.hash as Hex });
+        const rx = await provider.getTransactionReceipt({ hash: executedTx.hash as Hex });
         return {
           name: (executedTx as any).deployedOn,
           gas: rx.gasUsed,
