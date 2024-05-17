@@ -1,5 +1,7 @@
 //import { Metadata } from 'next';
 import dynamic from 'next/dynamic';
+import { ReactElement } from 'react';
+import Layout from '../_layout';
 
 const NoSSR = dynamic(
   async () => {
@@ -22,3 +24,6 @@ const NoSSR = dynamic(
 export default function QueueFromGitOps() {
   return <NoSSR />;
 }
+QueueFromGitOps.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>;
+};

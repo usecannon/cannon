@@ -1,6 +1,8 @@
 //import { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
+import { ReactElement } from 'react';
+import Layout from '../../../../../_layout';
 
 const NoSSR = dynamic(
   async () => {
@@ -31,3 +33,6 @@ export default function TransactionDetails() {
     />
   );
 }
+TransactionDetails.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>;
+};

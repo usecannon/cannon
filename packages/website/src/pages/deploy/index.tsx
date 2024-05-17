@@ -1,5 +1,7 @@
 //import { Metadata } from 'next';
 import dynamic from 'next/dynamic';
+import { ReactElement } from 'react';
+import Layout from './_layout';
 
 const NoSSR = dynamic(() => import('@/features/Deploy/SignTransactionsPage'), {
   ssr: false,
@@ -17,3 +19,6 @@ const NoSSR = dynamic(() => import('@/features/Deploy/SignTransactionsPage'), {
 export default function SignTransactions() {
   return <NoSSR />;
 }
+SignTransactions.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>;
+};

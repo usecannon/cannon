@@ -1,5 +1,7 @@
 //import { QueuedTxns } from '@/features/Deploy/QueueDrawer';
 import { Box, Container, Heading } from '@chakra-ui/react';
+import { ReactElement } from 'react';
+import Layout from '../_layout';
 //import { Metadata } from 'next';
 
 /*export const metadata: Metadata = {
@@ -21,6 +23,9 @@ const QueueTransactions = () => {
       </Box>
     </Container>
   );
+};
+QueueTransactions.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>;
 };
 
 export default QueueTransactions;
