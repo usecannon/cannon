@@ -64,7 +64,7 @@ export function useSafeTransactions(safe: SafeDefinition | null) {
 
     setStaged(stagedQueries);
     setNextNonce(lastNonce ? lastNonce + 1 : null);
-  }, [stagedQuery.isSuccess, nonceQuery.isSuccess]);
+  }, [stagedQuery.isSuccess, stagedQuery.data, nonceQuery.isSuccess, nonceQuery.data]);
 
   return {
     isSuccess: nonceQuery.isSuccess && stagedQuery.isSuccess,
