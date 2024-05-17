@@ -21,6 +21,10 @@ import {
   Text,
   useToast,
   useDisclosure,
+  Input,
+  InputGroup,
+  InputRightAddon,
+  FormHelperText,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
@@ -33,6 +37,7 @@ import {
   zeroAddress,
   encodeFunctionData,
   TransactionRequestBase,
+  parseEther,
 } from 'viem';
 import {
   useAccount,
@@ -70,6 +75,8 @@ export const Function: FC<{
   const [simulated, setSimulated] = useState(false);
   const [error, setError] = useState<any>(null);
   const [params, setParams] = useState<any[] | any>([]);
+  // for payable functions only
+  const [value, setValue] = useState<any>();
   const toast = useToast();
 
   const { safes, setQueuedIdentifiableTxns, setLastQueuedTxnsId } =
@@ -121,6 +128,11 @@ export const Function: FC<{
 
   const readOnly = useMemo(
     () => f.stateMutability == 'view' || f.stateMutability == 'pure',
+    [f.stateMutability]
+  );
+
+  const isPayable = useMemo(
+    () => f.stateMutability == 'payable',
     [f.stateMutability]
   );
 
@@ -224,6 +236,10 @@ export const Function: FC<{
       _txn = {
         to: address,
         data: toFunctionSelector(f),
+        value:
+          isPayable && value !== undefined
+            ? parseEther(value.toString())
+            : undefined,
       };
     } else {
       try {
@@ -233,6 +249,10 @@ export const Function: FC<{
             abi: [f],
             args: params,
           }),
+          value:
+            isPayable && value !== undefined
+              ? parseEther(value.toString())
+              : undefined,
         };
       } catch (err: any) {
         setError(err.message);
@@ -350,6 +370,41 @@ export const Function: FC<{
                 </Box>
               );
             })}
+
+            {isPayable && (
+              <FormControl mb="4">
+                <FormLabel fontSize="sm" mb={1}>
+                  Value
+                  <Text fontSize="xs" color="whiteAlpha.700" display="inline">
+                    {' '}
+                    (payable)
+                  </Text>
+                </FormLabel>
+                <InputGroup size="sm">
+                  <Input
+                    type="number"
+                    size="sm"
+                    bg="black"
+                    borderColor="whiteAlpha.400"
+                    value={value?.toString()}
+                    onChange={(e) => setValue(e.target.value)}
+                  />
+                  <InputRightAddon
+                    bg="black"
+                    color="whiteAlpha.700"
+                    borderColor="whiteAlpha.400"
+                  >
+                    ETH
+                  </InputRightAddon>
+                </InputGroup>
+                <FormHelperText color="gray.300">
+                  {value !== undefined
+                    ? parseEther(value.toString()).toString()
+                    : 0}{' '}
+                  wei
+                </FormHelperText>
+              </FormControl>
+            )}
 
             {readOnly && (
               <Button
