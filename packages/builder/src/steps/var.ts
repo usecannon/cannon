@@ -30,7 +30,7 @@ const varSpec = {
   async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const cfg = this.configInject(ctx, config);
 
-    return [{ value: cfg.value }];
+    return [_.omit(cfg, 'depends')];
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
@@ -42,11 +42,11 @@ const varSpec = {
     return config;
   },
 
-  getInputs(config: Config) {
-    let accesses = computeTemplateAccesses('');
+  getInputs(config: Config, possibleFields: string[]) {
+    let accesses = computeTemplateAccesses('', possibleFields);
 
     for (const c in _.omit(config, 'depends')) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config[c]));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config[c], possibleFields));
     }
 
     return accesses;

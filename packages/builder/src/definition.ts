@@ -318,7 +318,20 @@ export class ChainDefinition {
     }
 
     if (ActionKinds[n].getInputs) {
-      const accessComputationResults = ActionKinds[n].getInputs!(_.get(this.raw, node), {
+      const possibleFields: string[] = [];
+      for (const k of this.dependencyFor.keys()) {
+        const baseName = k.split('.')[0];
+        if (
+          baseName !== 'contracts' &&
+          baseName !== 'imports' &&
+          baseName !== 'settings' &&
+          baseName !== 'extras' &&
+          baseName !== 'txns'
+        ) {
+          possibleFields.push(baseName);
+        }
+      }
+      const accessComputationResults = ActionKinds[n].getInputs!(_.get(this.raw, node), possibleFields, {
         name: '',
         version: '',
         currentLabel: node,

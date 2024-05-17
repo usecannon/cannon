@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import {
@@ -14,21 +13,23 @@ import {
   publishPackage,
   traceActions,
 } from '@usecannon/builder';
-import { blueBright, bold, gray, green, red, yellow } from 'chalk';
+import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
 import Debug from 'debug';
+import _ from 'lodash';
 import prompts from 'prompts';
 import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
+import { DEFAULT_REGISTRY_CONFIG } from './constants';
 import {
   checkAndNormalizePrivateKey,
-  normalizePrivateKey,
   checkCannonVersion,
   checkForgeAstSupport,
   ensureChainIdConsistency,
   isPrivateKey,
+  normalizePrivateKey,
 } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
@@ -40,7 +41,8 @@ import { pickAnvilOptions } from './util/anvil';
 import { doBuild } from './util/build';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { parsePackageArguments, parsePackagesArguments } from './util/params';
-import { resolveRegistryProviders, resolveWriteProvider, getChainIdFromProviderUrl, isURL } from './util/provider';
+import { getChainIdFromProviderUrl, isURL, resolveRegistryProviders, resolveWriteProvider } from './util/provider';
+import { isPackageRegistered } from './util/register';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
 
@@ -55,6 +57,8 @@ export { build } from './commands/build';
 export { clean } from './commands/clean';
 export { inspect } from './commands/inspect';
 export { publish } from './commands/publish';
+export { unpublish } from './commands/unpublish';
+export { publishers } from './commands/publishers';
 export { run } from './commands/run';
 export { verify } from './commands/verify';
 export { setup } from './commands/setup';
@@ -215,14 +219,16 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
           } else {
             console.log(red('forge build failed'));
             console.log(red('Make sure "forge build" runs successfully or use the --skip-compile flag.'));
-            reject(new Error(`forge build failed with exit code "${code}"`));
+            return reject(new Error(`forge build failed with exit code "${code}"`));
           }
+
           resolve(null);
         });
       });
     } else {
       console.log(yellow('Skipping forge build...'));
     }
+
     console.log(''); // Linebreak in CLI to signify end of compilation.
 
     // Override options with CLI settings
@@ -249,6 +255,9 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
 
 applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(async function (packageName, options) {
   const { verify } = await import('./commands/verify');
+
+  // Override CLI settings with --api-key value
+  options.etherscanApiKey = options.apiKey;
 
   const cliSettings = resolveCliSettings(options);
 
@@ -333,49 +342,93 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     });
 
     if (!chainIdPrompt.value) {
-      console.log('Chain ID is required.');
-      process.exit(1);
+      throw new Error('A valid Chain Id is required.');
     }
 
-    options.chainId = chainIdPrompt.value;
+    options.chainId = Number(chainIdPrompt.value);
   }
 
   if (!cliSettings.privateKey) {
     const keyPrompt = await prompts({
       type: 'text',
       name: 'value',
-      message: 'Provide a private key with gas on ETH mainnet to publish this package on the registry',
+      message: 'Enter the private key for an address that has permission to publish',
       style: 'password',
       validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
     });
 
     if (!keyPrompt.value) {
-      console.log('A valid private key is required.');
-      process.exit(1);
+      throw new Error('A valid private key is required.');
     }
 
     cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
   }
 
   const registryProviders = await resolveRegistryProviders(cliSettings);
-  let pickedRegistryProvider = registryProviders[0];
 
-  if (registryProviders.length > 1) {
+  // Initialize pickedRegistryProvider with the first provider
+  let [pickedRegistryProvider] = registryProviders;
+
+  // if it's using the default config, prompt the user to choose a registry provider
+  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
+  if (isDefaultSettings) {
     const choices = registryProviders.map((p) => ({
       title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
       value: p,
     }));
 
+    // Override pickedRegistryProvider with the selected provider
     pickedRegistryProvider = (
-      await prompts.prompt([
+      await prompts([
         {
           type: 'select',
           name: 'pickedRegistryProvider',
-          message: 'Please choose a registry to publish to:',
+          message: 'Which registry would you like to use? (Cannon will find the package on either.):',
           choices,
         },
       ])
     ).pickedRegistryProvider;
+  } else {
+    // the user has customized the provider and chain id, verify inputs
+    console.log(
+      `You are about to publish a package to a custom registry on: ${pickedRegistryProvider.provider.chain?.name}`
+    );
+  }
+
+  if (isDefaultSettings) {
+    // Check if the package is already registered
+    const [, mainnet] = DEFAULT_REGISTRY_CONFIG;
+
+    const [optimismProvider, mainnetProvider] = await resolveRegistryProviders(cliSettings);
+
+    const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, mainnet.address);
+
+    if (!isRegistered) {
+      console.log();
+      console.log(
+        gray(
+          `Package "${
+            packageRef.split(':')[0]
+          }" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
+        )
+      );
+      console.log();
+
+      const registerPrompt = await prompts({
+        type: 'confirm',
+        name: 'value',
+        message: 'Would you like to register the package now?',
+        initial: true,
+      });
+
+      if (!registerPrompt.value) {
+        return process.exit(0);
+      }
+
+      const { register } = await import('./commands/register');
+
+      await register({ cliSettings, options, packageRef, fromPublish: true });
+    }
   }
 
   const overrides: any = {};
@@ -392,10 +445,14 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     overrides.value = options.value;
   }
 
+  const registryAddress =
+    cliSettings.registries.find((registry) => registry.chainId === pickedRegistryProvider.provider.chain?.id)?.address ||
+    DEFAULT_REGISTRY_CONFIG[0].address;
+
   const onChainRegistry = new OnChainRegistry({
     signer: pickedRegistryProvider.signers[0],
     provider: pickedRegistryProvider.provider,
-    address: cliSettings.registries[0].address,
+    address: registryAddress,
     overrides,
   });
 
@@ -410,14 +467,23 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
   await publish({
     packageRef,
+    cliSettings,
     onChainRegistry,
     tags: options.tags ? options.tags.split(',') : undefined,
-    chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
+    chainId: options.chainId ? options.chainId : undefined,
     presetArg: options.preset ? (options.preset as string) : undefined,
     quiet: options.quiet,
-    includeProvisioned: options.includeProvisioned,
+    includeProvisioned: !options.excludeCloned,
     skipConfirm: options.skipConfirm,
   });
+});
+
+applyCommandsConfig(program.command('unpublish'), commandsConfig.unpublish).action(async function (packageRef, options) {
+  const { unpublish } = await import('./commands/unpublish');
+
+  const cliSettings = resolveCliSettings(options);
+
+  await unpublish({ cliSettings, options, packageRef });
 });
 
 applyCommandsConfig(program.command('register'), commandsConfig.register).action(async function (packageRef, options) {
@@ -425,57 +491,15 @@ applyCommandsConfig(program.command('register'), commandsConfig.register).action
 
   const cliSettings = resolveCliSettings(options);
 
-  if (!options.privateKey && !cliSettings.privateKey) {
-    const keyPrompt = await prompts({
-      type: 'text',
-      name: 'value',
-      message: 'Provide a private key with gas on ETH mainnet to publish this package on the registry',
-      style: 'password',
-      validate: (key) => isPrivateKey(key) || 'Private key is not valid',
-    });
+  await register({ cliSettings, options, packageRef, fromPublish: false });
+});
 
-    if (!keyPrompt.value) {
-      console.log('A valid private key is required.');
-      process.exit(1);
-    }
+applyCommandsConfig(program.command('publishers'), commandsConfig.publishers).action(async function (packageRef, options) {
+  const { publishers } = await import('./commands/publishers');
 
-    options.privateKey = keyPrompt.value;
-  }
+  const cliSettings = resolveCliSettings(options);
 
-  if (options.privateKey) {
-    cliSettings.privateKey = options.privateKey;
-  }
-
-  const [mainRegistryProvider] = await resolveRegistryProviders(cliSettings);
-
-  const overrides: any = {};
-
-  if (options.maxFeePerGas) {
-    overrides.maxFeePerGas = viem.parseGwei(options.maxFeePerGas);
-  }
-
-  if (options.gasLimit) {
-    overrides.gasLimit = options.gasLimit;
-  }
-
-  if (options.value) {
-    overrides.value = options.value;
-  }
-
-  const mainRegistry = new OnChainRegistry({
-    signer: mainRegistryProvider.signers[0],
-    provider: mainRegistryProvider.provider,
-    address: cliSettings.registries[0].address,
-    overrides,
-  });
-
-  const hash = await register({
-    packageRef,
-    mainRegistry,
-  });
-
-  console.log(blueBright('Transaction:'));
-  console.log(`  - ${hash}`);
+  await publishers({ cliSettings, options, packageRef });
 });
 
 applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(async function (packageName, options) {
@@ -605,7 +629,7 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
 
   const cliSettings = resolveCliSettings(options);
 
-  if (cliSettings.providerUrl) {
+  if (cliSettings.providerUrl.startsWith('https')) {
     options.dryRun = true;
   }
 
@@ -629,11 +653,11 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
     process.stderr.write(data);
   });
 
-  await new Promise((resolve) => {
+  await new Promise(() => {
     forgeProcess.on('close', (code: number) => {
       console.log(`forge exited with code ${code}`);
       node?.kill();
-      resolve({});
+      process.exit(code);
     });
   });
 });

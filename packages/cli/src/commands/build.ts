@@ -47,7 +47,7 @@ interface Params {
   plugins?: boolean;
   publicSourceCode?: boolean;
   providerUrl?: string;
-  registryPriority?: 'local' | 'onchain';
+  registryPriority?: 'local' | 'onchain' | 'offline';
   gasPrice?: string;
   gasFee?: string;
   priorityGasFee?: string;
@@ -92,7 +92,8 @@ export async function build({
   const packageRef = PackageReference.from(packageDefinition.name, packageDefinition.version, packageDefinition.preset);
 
   const { name, version } = packageRef;
-  let { preset } = packageRef;
+  const preset = presetArg || packageRef.preset;
+  const { fullPackageRef } = PackageReference.from(name, version, preset);
 
   // Handle deprecated preset specification
   if (presetArg) {
@@ -103,13 +104,7 @@ export async function build({
         )
       )
     );
-    preset = presetArg;
   }
-
-  const { fullPackageRef } = packageRef;
-
-  let pkgName = name;
-  let pkgVersion = version;
 
   const cliSettings = resolveCliSettings({ registryPriority });
 
@@ -130,9 +125,11 @@ export async function build({
     getSigner:
       getSigner ||
       async function (addr: viem.Address) {
+        const client = provider as unknown as viem.TestClient;
+
         // on test network any user can be conjured
-        await (provider as unknown as viem.TestClient).impersonateAccount({ address: addr });
-        await (provider as unknown as viem.TestClient).setBalance({ address: addr, value: viem.parseEther('10000') });
+        await client.impersonateAccount({ address: addr });
+        await client.setBalance({ address: addr, value: viem.parseEther('10000') });
 
         return {
           address: addr,
@@ -156,7 +153,12 @@ export async function build({
 
   const resolver = overrideResolver || (await createDefaultReadRegistry(cliSettings));
 
-  const runtime = new ChainBuilderRuntime(runtimeOptions, resolver, getMainLoader(cliSettings), 'ipfs');
+  const runtime = new ChainBuilderRuntime(
+    runtimeOptions,
+    resolver,
+    getMainLoader(cliSettings, { writeToIpfs: false }),
+    'ipfs'
+  );
 
   const dump = writeScript ? await createWriteScript(runtime, writeScript, writeScriptFormat) : null;
 
@@ -195,13 +197,8 @@ export async function build({
 
   const initialCtx = await createInitialContext(def, pkgInfo, chainId, resolvedSettings);
 
-  if (!pkgName) {
-    pkgName = def.getName(initialCtx);
-  }
-
-  if (!pkgVersion) {
-    pkgVersion = def.getVersion(initialCtx);
-  }
+  const pkgName = name || def.getName(initialCtx);
+  const pkgVersion = version || def.getVersion(initialCtx);
 
   console.log('');
   if (oldDeployData && wipe) {
@@ -240,7 +237,7 @@ export async function build({
 
   let defaultSignerAddress: string;
   if (getDefaultSigner) {
-    const defaultSigner = await getDefaultSigner!();
+    const defaultSigner = await getDefaultSigner();
     if (defaultSigner) {
       defaultSignerAddress = defaultSigner.address;
       console.log(`Using ${defaultSignerAddress}`);

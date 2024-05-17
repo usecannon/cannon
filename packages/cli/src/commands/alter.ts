@@ -8,8 +8,8 @@ import {
   getOutputs,
   StepState,
 } from '@usecannon/builder';
-import { ActionKinds } from '@usecannon/builder/dist/actions';
-import { PackageReference } from '@usecannon/builder/dist/package';
+import { ActionKinds } from '@usecannon/builder/dist/src/actions';
+import { PackageReference } from '@usecannon/builder/dist/src/package';
 import { bold, yellow } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';

@@ -1,7 +1,7 @@
-name = "consumer"
+name = "greeter-consumer"
 version = "0.0.1"
 description = "Simple project to verify the functionality of cannon"
-keywords = ["sample", "consumer"]
+keywords = ["sample", "greeter", "consumer"]
 
 [var.change_greeting2]
 change_greeting2 = "new greeting!"
@@ -15,13 +15,13 @@ options.salt = "second"
 options.msg = "a message from second greeter set"
 
 [invoke.do_change_greeting2]
-target = ["greeters.greeter"]
+target = ["greeters.Greeter"]
 func = "setGreeting"
 args = ["<%= settings.change_greeting2 %>"]
 
 # test for factory functionality
 [invoke.clone]
-target = ["greeters.greeter"]
+target = ["greeters.Greeter"]
 func = "doCloning"
 
 factory.cloned.event = "NewClonedGreeter"
@@ -31,10 +31,10 @@ factory.cloned.artifact = "Greeter"
 # test for multiple event emmission and extras functionality
 
 
-# Change clone greeting lets use change greetings for greeter clones 
+# Change clone greeting lets use change greetings for greeter clones
 # At specified addresses
 [invoke.change_clone_greeting]
-target = ["greeters.greeter"]
+target = ["greeters.Greeter"]
 func = "changeCloneGreeting"
 args = ["<%= contracts.cloned.address %>", "<%= formatBytes32String('New Greeting!') %>"]
 
@@ -48,14 +48,14 @@ var.OldCloneGreeting.artifact = "Greeter"
 
 # test to parse through previous emitted event values
 [invoke.set_new_greeting_for_next_clones]
-target = ["greeters.greeter"]
+target = ["greeters.Greeter"]
 func = "setGreeting"
 args = ["<%= settings.NewCloneGreeting %>"]
 
 # Clone 2 greeters iteratively (used to test multiple emissions of the same event)
-# Testing this using extras object instead of factory 
+# Testing this using extras object instead of factory
 [invoke.clone_iterative]
-target = ["greeters.greeter"]
+target = ["greeters.Greeter"]
 func = "doCloningIteratively"
 args = ["2"]
 
@@ -70,6 +70,6 @@ var.NewClonedGreeterEvent.expectCount = 2
 
 # Change clone greeting enables changing greetings for greeter clones at specified addresses
 [invoke.change_last_clone_greeting]
-target = ["greeters.greeter"]
+target = ["greeters.Greeter"]
 func = "changeCloneGreeting"
 args = ["<%= settings.NewClonedGreeterEvent_1 %>", "<%= formatBytes32String('Newest Greeting!') %>"]

@@ -400,11 +400,11 @@ const invokeSpec = {
     return config;
   },
 
-  getInputs(config: Config) {
-    let accesses = computeTemplateAccesses(config.abi);
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.func));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.from));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.value));
+  getInputs(config: Config, possibleFields: string[]) {
+    let accesses = computeTemplateAccesses(config.abi, possibleFields);
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.func, possibleFields));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.from, possibleFields));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.value, possibleFields));
 
     for (const target of config.target) {
       if (!viem.isAddress(target)) {
@@ -419,36 +419,36 @@ const invokeSpec = {
     if (config.args) {
       _.forEach(
         config.args,
-        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(a))))
+        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(a), possibleFields)))
       );
     }
 
     if (config.fromCall) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.fromCall.func));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.fromCall.func, possibleFields));
 
       _.forEach(
         config.fromCall.args,
-        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(a))))
+        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(a), possibleFields)))
       );
     }
 
     if (config?.overrides) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit, possibleFields));
     }
 
     for (const name in config.factory) {
       const f = config.factory[name];
 
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.event));
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.artifact));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.event, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.artifact, possibleFields));
 
-      _.forEach(f.abiOf, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
+      _.forEach(f.abiOf, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))));
     }
 
     const varsConfig = config.var || config.extra;
     for (const name in varsConfig) {
       const f = varsConfig[name];
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.event));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.event, possibleFields));
     }
 
     return accesses;
@@ -463,9 +463,11 @@ const invokeSpec = {
         if ((config.factory[k].expectCount || 1) > 1) {
           for (let i = 0; i < config.factory[k].expectCount!; i++) {
             outputs.push(`contracts.${k}_${i}`);
+            outputs.push(`${k}_${i}`);
           }
         } else {
           outputs.push(`contracts.${k}`);
+          outputs.push(k);
         }
       }
     }

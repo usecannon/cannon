@@ -10,10 +10,11 @@ import { blueBright, bold, gray, italic, yellow } from 'chalk';
 import prompts from 'prompts';
 import { getMainLoader } from '../loader';
 import { LocalRegistry } from '../registry';
-import { resolveCliSettings } from '../settings';
+import { CliSettings } from '../settings';
 
 interface Params {
   packageRef: string;
+  cliSettings: CliSettings;
   tags: string[];
   onChainRegistry: OnChainRegistry;
   chainId?: number;
@@ -37,6 +38,7 @@ interface SubPackage {
 
 export async function publish({
   packageRef,
+  cliSettings,
   onChainRegistry,
   tags = ['latest'],
   chainId,
@@ -46,9 +48,7 @@ export async function publish({
   skipConfirm = false,
 }: Params) {
   const { fullPackageRef } = new PackageReference(packageRef);
-
   // Ensure publish ipfs url is set
-  const cliSettings = resolveCliSettings();
   if (!cliSettings.publishIpfsUrl) {
     throw new Error(
       `In order to publish, a publishIpfsUrl setting must be set in your Cannon configuration. Use '${process.argv[0]} setup' to configure.`
@@ -162,33 +162,30 @@ export async function publish({
         }
       }
 
-      // dedupe and reduce to subPackages
-      subPackages = subPackages.reduce<SubPackage[]>((acc, curr) => {
-        if (
-          !acc.some((item) => item.packagesNames !== curr.packagesNames && item.chainId === curr.chainId) &&
-          !curr.packagesNames.some((r) => {
-            const { name } = new PackageReference(r);
-            parentPackages.some((p) => name === p.name);
-          })
-        ) {
-          acc.push(curr);
-        }
-        return acc;
-      }, []);
+      // filter out duplicates names
+      subPackages = subPackages.map((pkg) => ({
+        ...pkg,
+        packagesNames: Array.from(new Set(pkg.packagesNames)),
+      }));
+
+      if (subPackages.length == 0) {
+        console.log(yellow('\nNo cloned packages found, publishing parent packages only...'));
+      }
 
       parentPackages.forEach((deploy) => {
-        console.log(blueBright(`This will publish ${bold(deploy.name)} to the registry:`));
+        console.log(blueBright(`\nThis will publish ${bold(deploy.name)} to the registry:`));
         deploy.versions.concat(tags).map((version) => {
           console.log(` - ${version} (preset: ${deploy.preset})`);
         });
       });
       console.log('\n');
 
-      subPackages!.forEach((pkg: SubPackage, index) => {
+      subPackages.forEach((pkg: SubPackage) => {
+        const [packageName] = pkg.packagesNames;
         console.log(
           blueBright(
-            `This will publish ${bold(new PackageReference(pkg.packagesNames[index]).name)} ${bold(
-              italic('(Provisioned)')
+            `This will publish ${bold(new PackageReference(packageName).name)} ${bold(
+              italic('(Cloned Package)')
             )} to the registry:`
           )
         );
@@ -196,8 +193,8 @@ export async function publish({
           const { version, preset } = new PackageReference(pkgName);
           console.log(` - ${version} (preset: ${preset})`);
         });
+        console.log('\n');
       });
-      console.log('\n');
     } else {
       parentPackages.forEach((deploy) => {
         console.log(blueBright(`This will publish ${bold(deploy.name)}@${deploy.preset} to the registry:`));

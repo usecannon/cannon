@@ -10,7 +10,7 @@ export const DiscordButton: FC = () => {
       border="1px solid #303539"
       borderRadius=".25em"
       isExternal
-      href="https://discord.gg/RcMG8g3Gmv"
+      href="https://discord.gg/QwarFMb3dS"
       _hover={{
         background: '#292e33',
         borderColor: '#8b949e',

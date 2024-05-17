@@ -27,7 +27,7 @@ export interface CannonAction {
   /**
    * Returns a list of state keys that this operation consumes (used for dependency inference)
    */
-  getInputs?: (config: any, packageState: PackageState) => AccessComputationResult;
+  getInputs?: (config: any, possibleFields: string[], packageState: PackageState) => AccessComputationResult;
 
   /**
    * Returns a list of state keys this operation produces (used for dependency inference)

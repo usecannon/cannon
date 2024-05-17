@@ -42,6 +42,7 @@ export const versionCheck = _.once(async () => {
 });
 
 export async function runRpc(anvilOptions: AnvilOptions, rpcOptions: RpcOptions = {}): Promise<CannonRpcNode> {
+  debug('run rpc', anvilOptions, rpcOptions);
   const { forkProvider } = rpcOptions;
 
   await versionCheck();

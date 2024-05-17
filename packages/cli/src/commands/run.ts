@@ -40,7 +40,7 @@ export interface RunOptions {
   privateKey?: viem.Hash;
   upgradeFrom?: string;
   getArtifact?: (name: string) => Promise<ContractArtifact>;
-  registryPriority: 'local' | 'onchain';
+  registryPriority: 'local' | 'onchain' | 'offline';
   fundAddresses?: string[];
   helpInformation?: string;
   build?: boolean;

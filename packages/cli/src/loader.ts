@@ -1,5 +1,5 @@
-import { CannonLoader, IPFSLoader, getCannonRepoRegistryUrl } from '@usecannon/builder';
-import { compress, getContentCID } from '@usecannon/builder/dist/ipfs';
+import { CannonLoader, getCannonRepoRegistryUrl, IPFSLoader } from '@usecannon/builder';
+import { compress, getContentCID } from '@usecannon/builder/dist/src/ipfs';
 import crypto from 'crypto';
 import Debug from 'debug';
 import fs from 'fs-extra';
@@ -67,11 +67,13 @@ export class CliLoader implements CannonLoader {
   ipfs?: IPFSLoader;
   repo: IPFSLoader;
   dir: string;
+  writeToIpfs = true;
 
-  constructor(ipfsLoader: IPFSLoader | undefined, repoLoader: IPFSLoader, fileCacheDir: string) {
+  constructor(ipfsLoader: IPFSLoader | undefined, repoLoader: IPFSLoader, fileCacheDir: string, writeToIpfs = true) {
     this.ipfs = ipfsLoader;
     this.repo = repoLoader;
     this.dir = fileCacheDir;
+    this.writeToIpfs = writeToIpfs;
   }
 
   getLabel() {
@@ -79,7 +81,7 @@ export class CliLoader implements CannonLoader {
   }
 
   getCacheFilePath(url: string) {
-    return path.join(this.dir, `qmhash-${CliLoader.getCacheHash(url)}.json`);
+    return path.join(this.dir, `${CliLoader.getCacheHash(url)}.json`);
   }
 
   async put(misc: any): Promise<string> {
@@ -93,7 +95,8 @@ export class CliLoader implements CannonLoader {
     await fs.mkdirp(this.dir);
     await fs.writeFile(this.getCacheFilePath(url), data);
 
-    if (this.ipfs) {
+    if (this.writeToIpfs) {
+      if (!this.ipfs) throw new Error('Missing IPFS loader');
       await this.ipfs.put(misc);
     }
 
@@ -145,7 +148,11 @@ export class CliLoader implements CannonLoader {
   }
 
   static getCacheHash(url: string) {
-    return crypto.createHash('md5').update(url.replace(IPFSLoader.PREFIX, '')).digest('hex');
+    const qmhash = url.replace(IPFSLoader.PREFIX, '');
+    const md5 = crypto.createHash('md5').update(qmhash).digest('hex');
+    // Whe need to add an md5 to make sure that there are not collisions,
+    // And we CANNOT use directly the Qm... hash because files are not case sensitive.
+    return `${md5}-${qmhash.toLowerCase()}`;
   }
 }
 
@@ -189,12 +196,15 @@ export class IPFSLoaderWithRetries extends IPFSLoader {
   }
 }
 
-export function getMainLoader(cliSettings: CliSettings) {
+export function getMainLoader(cliSettings: CliSettings, { writeToIpfs = true } = {}) {
   return {
     ipfs: new CliLoader(
-      cliSettings.ipfsUrl ? new IPFSLoaderWithRetries(cliSettings.ipfsUrl, {}, 30000, cliSettings.ipfsRetries) : undefined,
-      new IPFSLoaderWithRetries(getCannonRepoRegistryUrl(), {}, 30000, cliSettings.ipfsRetries),
-      path.join(cliSettings.cannonDirectory, 'ipfs_cache')
+      cliSettings.ipfsUrl
+        ? new IPFSLoaderWithRetries(cliSettings.ipfsUrl, {}, cliSettings.ipfsTimeout, cliSettings.ipfsRetries)
+        : undefined,
+      new IPFSLoaderWithRetries(getCannonRepoRegistryUrl(), {}, cliSettings.ipfsTimeout, cliSettings.ipfsRetries),
+      path.join(cliSettings.cannonDirectory, 'ipfs_cache'),
+      writeToIpfs
     ),
     file: new LocalLoader(path.join(cliSettings.cannonDirectory, 'blobs')),
   };

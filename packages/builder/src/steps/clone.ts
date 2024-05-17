@@ -17,6 +17,8 @@ import {
   PackageState,
 } from '../types';
 
+import pkg from '../../package.json';
+
 const debug = Debug('cannon:builder:clone');
 
 /**
@@ -46,6 +48,10 @@ const cloneSpec = {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
     config = _.cloneDeep(config);
 
+    if (config.target && config.targetPreset) {
+      throw new Error(`only one of \`target\` and \`targetPreset\` can specified for ${packageState.name}`);
+    }
+
     const ref = new PackageReference(_.template(config.source)(ctx));
 
     config.source = ref.fullPackageRef;
@@ -56,6 +62,7 @@ const cloneSpec = {
 
     config.sourcePreset = _.template(config.sourcePreset)(ctx);
     config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
+    config.target = _.template(config.target)(ctx);
 
     if (config.var) {
       config.var = _.mapValues(config.var, (v) => {
@@ -74,24 +81,31 @@ const cloneSpec = {
     return config;
   },
 
-  getInputs(config: Config) {
+  getInputs(config: Config, possibleFields: string[]) {
     let accesses = computeTemplateAccesses(config.source);
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.sourcePreset));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.targetPreset));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.target, possibleFields));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.sourcePreset, possibleFields));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.targetPreset, possibleFields));
 
     if (config.options) {
-      _.forEach(config.options, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
+      _.forEach(
+        config.options,
+        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields)))
+      );
     }
 
     if (config.tags) {
-      _.forEach(config.tags, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
+      _.forEach(
+        config.tags,
+        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields)))
+      );
     }
 
     return accesses;
   },
 
   getOutputs(_: Config, packageState: PackageState) {
-    return [`imports.${packageState.currentLabel.split('.')[1]}`];
+    return [`imports.${packageState.currentLabel.split('.')[1]}`, `${packageState.currentLabel.split('.')[1]}`];
   },
 
   async exec(
@@ -101,13 +115,14 @@ const cloneSpec = {
     packageState: PackageState
   ): Promise<ChainArtifacts> {
     const importLabel = packageState.currentLabel.split('.')[1] || '';
-    debug('exec', config);
+    debug(`[clone.${importLabel}]`, 'exec', config);
 
     const targetPreset = config.targetPreset ?? 'main';
     const sourcePreset = config.sourcePreset;
     const sourceRef = new PackageReference(config.source);
     const source = sourceRef.fullPackageRef;
-    const target = `${sourceRef.name}:${sourceRef.version}@${targetPreset}`;
+    const target = config.target || `${sourceRef.name}:${sourceRef.version}@${targetPreset}`;
+    const targetRef = new PackageReference(target);
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
     // try to read the chain definition we are going to use
@@ -122,7 +137,7 @@ const cloneSpec = {
 
     const importPkgOptions = { ...(deployInfo?.options || {}), ...(config.var || config.options || {}) };
 
-    debug('cloning package options', importPkgOptions);
+    debug(`[clone.${importLabel}]`, 'cloning package options', importPkgOptions);
 
     const def = new ChainDefinition(deployInfo.def);
 
@@ -130,9 +145,11 @@ const cloneSpec = {
     // if all else fails, we can load from scratch (aka this is first deployment)
     let prevState: DeploymentState = {};
     let prevMiscUrl = null;
-    if (ctx.imports[importLabel]?.url) {
+
+    // also do not restore previous state for any network that snapshots--its not possible to restore state snapshots, so we have to rebuild
+    if (!runtime.snapshots && ctx.imports[importLabel]?.url) {
       const prevUrl = ctx.imports[importLabel].url!;
-      debug(`using state from previous deploy: ${prevUrl}`);
+      debug(`[clone.${importLabel}]`, `using state from previous deploy: ${prevUrl}`);
       const prevDeployInfo = await runtime.readBlob(prevUrl);
       prevState = prevDeployInfo!.state;
       prevMiscUrl = prevDeployInfo!.miscUrl;
@@ -141,13 +158,14 @@ const cloneSpec = {
       // if there is, we need to overwrite it. print out a warning.
       if (await runtime.readDeploy(source, runtime.chainId)) {
         debug(
+          `[clone.${importLabel}]`,
           yellow(
             'There is a pre-existing deployment for this preset and chain id. This build will overwrite. Did you mean `import`?'
           )
         );
       }
 
-      debug('no previous state found, deploying from scratch');
+      debug(`[clone.${importLabel}]`, 'no previous state found, deploying from scratch');
     }
 
     // TODO: needs npm package from the manifest
@@ -170,20 +188,24 @@ const cloneSpec = {
 
     // need to import the misc data for the imported package
     if (prevMiscUrl) {
-      debug('load misc');
+      debug(`[clone.${importLabel}]`, 'load misc');
       await importRuntime.restoreMisc(prevMiscUrl);
     }
 
-    debug('start build');
+    debug(`[clone.${importLabel}]`, 'start build');
     const builtState = await build(importRuntime, def, prevState, initialCtx);
     if (importRuntime.isCancelled()) {
       partialDeploy = true;
     }
 
-    debug('finish build. is partial:', partialDeploy);
+    debug(`[clone.${importLabel}]`, 'finish build. is partial:', partialDeploy);
 
     if (!_.isEmpty(prevState) && _.isEqual(builtState, prevState)) {
-      debug('built state is exactly equal to previous state. skip generation of new deploy url');
+      debug(
+        `[clone.${importLabel}]`,
+        'built state is exactly equal to previous state. skip generation of new deploy url',
+        importLabel
+      );
       return {
         imports: {
           [importLabel]: ctx.imports[importLabel],
@@ -193,12 +215,12 @@ const cloneSpec = {
 
     const newMiscUrl = await importRuntime.recordMisc();
 
-    debug('new misc:', newMiscUrl);
+    debug(`[clone.${importLabel}]`, 'new misc:', newMiscUrl);
 
     // need to save state to IPFS now so we can access it in future builds
     const newSubDeployUrl = await runtime.putDeploy({
       // TODO: add cannon version number?
-      generator: 'cannon clone',
+      generator: `cannon clone ${pkg.version}`,
       timestamp: Math.floor(Date.now() / 1000),
       def: def.toJson(),
       miscUrl: newMiscUrl || '',
@@ -210,7 +232,7 @@ const cloneSpec = {
     });
 
     if (!newSubDeployUrl) {
-      debug('warn: cannot record built state for import nested state');
+      debug(`[clone.${importLabel}]`, 'warn: cannot record built state for import nested state');
     } else {
       await runtime.registry.publish(
         [target, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
@@ -225,7 +247,8 @@ const cloneSpec = {
         [importLabel]: {
           url: newSubDeployUrl || '',
           tags: config.tags || ['latest'],
-          preset: targetPreset,
+          target: targetRef.fullPackageRef,
+          preset: targetRef.preset,
           ...(await getOutputs(importRuntime, def, builtState))!,
         },
       },

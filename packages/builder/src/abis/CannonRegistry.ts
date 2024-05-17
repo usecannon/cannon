@@ -1,6 +1,27 @@
-import * as viem from 'viem';
+import type { Abi } from 'viem';
 
 export default [
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_optimismMessenger',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: '_optimismReceiver',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: '_l1ChainId',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'constructor',
+  },
   {
     inputs: [
       {
@@ -228,8 +249,33 @@ export default [
         name: 'owner',
         type: 'address',
       },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'feePaid',
+        type: 'uint256',
+      },
     ],
-    name: 'PackagePublish',
+    name: 'PackagePublishWithFee',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'name',
+        type: 'bytes32',
+      },
+      {
+        indexed: false,
+        internalType: 'address[]',
+        name: 'publisher',
+        type: 'address[]',
+      },
+    ],
+    name: 'PackagePublishersChanged',
     type: 'event',
   },
   {
@@ -325,6 +371,37 @@ export default [
     inputs: [
       {
         indexed: true,
+        internalType: 'bytes32',
+        name: 'name',
+        type: 'bytes32',
+      },
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'variant',
+        type: 'bytes32',
+      },
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'tag',
+        type: 'bytes32',
+      },
+      {
+        indexed: false,
+        internalType: 'bytes32',
+        name: 'versionOfTag',
+        type: 'bytes32',
+      },
+    ],
+    name: 'TagPublish',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
         internalType: 'address',
         name: 'self',
         type: 'address',
@@ -371,7 +448,7 @@ export default [
     outputs: [
       {
         internalType: 'address[]',
-        name: 'additionalDeployers',
+        name: 'additionalPublishers',
         type: 'address[]',
       },
     ],
@@ -619,7 +696,12 @@ export default [
       },
       {
         internalType: 'address[]',
-        name: '_additionalDeployers',
+        name: '_additionalPublishersEthereum',
+        type: 'address[]',
+      },
+      {
+        internalType: 'address[]',
+        name: '_additionalPublishersOptimism',
         type: 'address[]',
       },
     ],
@@ -701,6 +783,32 @@ export default [
     type: 'function',
   },
   {
+    inputs: [],
+    name: 'unused',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'unused2',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
     inputs: [
       {
         internalType: 'bytes32',
@@ -758,4 +866,4 @@ export default [
     stateMutability: 'nonpayable',
     type: 'function',
   },
-] satisfies viem.Abi;
+] satisfies Abi;

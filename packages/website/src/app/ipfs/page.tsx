@@ -7,6 +7,11 @@ const NoSSR = dynamic(() => import('@/features/Ipfs/Download'), {
 
 export const metadata: Metadata = {
   title: 'Cannon | IPFS Download',
+  description: 'IPFS Download',
+  openGraph: {
+    title: 'Cannon | IPFS Download',
+    description: 'IPFS Download',
+  },
 };
 
 export default function IpfsDownload() {

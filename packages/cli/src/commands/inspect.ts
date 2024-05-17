@@ -1,8 +1,8 @@
 import _ from 'lodash';
 import { ContractData, ChainArtifacts, ChainDefinition, DeploymentState } from '@usecannon/builder';
 import { bold, cyan, green, yellow } from 'chalk';
-import { PackageReference } from '@usecannon/builder/dist/package';
-import { fetchIPFSAvailability } from '@usecannon/builder/dist/ipfs';
+import { PackageReference } from '@usecannon/builder/dist/src/package';
+import { fetchIPFSAvailability } from '@usecannon/builder/dist/src/ipfs';
 import { createDefaultReadRegistry } from '../registry';
 import { CliSettings } from '../settings';
 import fs from 'fs-extra';

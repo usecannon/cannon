@@ -1,4 +1,3 @@
-import { Package } from '@/types/graphql/graphql';
 import { FC } from 'react';
 import {
   Button,
@@ -12,12 +11,23 @@ import {
 import { ArrowUpDownIcon } from '@chakra-ui/icons';
 import { PackageCard } from '@/features/Search/PackageCard/PackageCard';
 import Chain from '@/features/Search/PackageCard/Chain';
+import { useQuery } from '@tanstack/react-query';
+import { getPackage } from '@/helpers/api';
+import { CustomSpinner } from '@/components/CustomSpinner';
 
 export const VersionSelect: FC<{
-  pkg: Package;
-  currentVariant: any;
-}> = ({ pkg, currentVariant }) => {
+  pkg: any;
+}> = ({ pkg }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const packagesQuery = useQuery({
+    queryKey: ['package', pkg.name],
+    queryFn: getPackage,
+  });
+
+  if (packagesQuery.isPending) {
+    return <CustomSpinner m="auto" />;
+  }
 
   return (
     <>
@@ -30,18 +40,19 @@ export const VersionSelect: FC<{
         _hover={{ bg: 'gray.900', borderColor: 'gray.500' }}
       >
         <Flex gap={1} alignItems="baseline">
-          {currentVariant?.tag.name}
+          {pkg.version}
+          {pkg?.tag}
           <Text fontSize="xs" color="gray.500" letterSpacing={'-0.3px'} mr={1}>
-            {currentVariant?.preset}
+            {pkg?.preset}
           </Text>
-          <Chain id={currentVariant?.chain_id} />
+          <Chain id={pkg?.chainId} />
         </Flex>
       </Button>
 
       <Modal isCentered isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent maxW="container.lg">
-          <PackageCard pkg={pkg} maxHeight={'75vh'} />
+          <PackageCard pkgs={packagesQuery.data.data} maxHeight={'75vh'} />
         </ModalContent>
       </Modal>
     </>

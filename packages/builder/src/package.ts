@@ -175,7 +175,10 @@ export async function getProvisionedPackages(packageRef: string, chainId: number
 
     return {
       packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
-        (t: string) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : preset || 'main'}`
+        (t: string) =>
+          // backwards compatibility: use target if its defined in context first; otherwise, revert to old way
+          (context && context.target) ||
+          `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : preset || 'main'}`
       ),
       chainId: chainId,
       url: context?.url,
@@ -209,7 +212,9 @@ export async function publishPackage({
 
   // this internal function will copy one package's ipfs records and return a publish call, without recursing
   const copyIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
-    const checkKey = deployInfo.def.name + ':' + deployInfo.def.version + ':' + deployInfo.timestamp;
+    const checkKey =
+      deployInfo.def.name + ':' + deployInfo.def.version + ':' + deployInfo.def.preset + ':' + deployInfo.timestamp;
+
     if (alreadyCopiedIpfs.has(checkKey)) {
       return alreadyCopiedIpfs.get(checkKey);
     }
