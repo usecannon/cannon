@@ -6,6 +6,7 @@ import {
   PackageReference,
   publishPackage,
 } from '@usecannon/builder';
+import * as viem from 'viem';
 import { blueBright, bold, gray, italic, yellow } from 'chalk';
 import prompts from 'prompts';
 import { getMainLoader } from '../loader';
@@ -44,7 +45,7 @@ export async function publish({
   chainId,
   presetArg,
   quiet = false,
-  includeProvisioned = false,
+  includeProvisioned = true,
   skipConfirm = false,
 }: Params) {
   const { fullPackageRef } = new PackageReference(packageRef);
@@ -162,23 +163,14 @@ export async function publish({
         }
       }
 
-      // dedupe and reduce to subPackages
-      subPackages = subPackages.reduce<SubPackage[]>((acc, curr) => {
-        if (
-          !acc.some((item) => item.packagesNames !== curr.packagesNames && item.chainId === curr.chainId) &&
-          !curr.packagesNames.some((r) => {
-            const { name } = new PackageReference(r);
-            parentPackages.some((p) => name === p.name);
-          }) &&
-          !curr.packagesNames.includes(fullPackageRef)
-        ) {
-          acc.push(curr);
-        }
-        return acc;
-      }, []);
+      // filter out duplicates names
+      subPackages = subPackages.map((pkg) => ({
+        ...pkg,
+        packagesNames: Array.from(new Set(pkg.packagesNames)),
+      }));
 
       if (subPackages.length == 0) {
-        console.log(yellow('\nNo cloned/provisioned packages found, publishing parent packages only...'));
+        console.log(yellow('\nNo cloned packages found, publishing parent packages only...'));
       }
 
       parentPackages.forEach((deploy) => {
@@ -189,11 +181,12 @@ export async function publish({
       });
       console.log('\n');
 
-      subPackages.forEach((pkg: SubPackage, index) => {
+      subPackages.forEach((pkg: SubPackage) => {
+        const [packageName] = pkg.packagesNames;
         console.log(
           blueBright(
-            `This will publish ${bold(new PackageReference(pkg.packagesNames[index]).name)} ${bold(
-              italic('(Provisioned)')
+            `This will publish ${bold(new PackageReference(packageName).name)} ${bold(
+              italic('(Cloned Package)')
             )} to the registry:`
           )
         );
@@ -212,6 +205,11 @@ export async function publish({
       });
       console.log('\n');
     }
+
+    const totalFees = await onChainRegistry.calculatePublishingFee(parentPackages.length + subPackages.length);
+
+    console.log(`Total publishing fees: ${viem.formatEther(totalFees)} ETH`);
+    console.log();
 
     const verification = await prompts({
       type: 'confirm',

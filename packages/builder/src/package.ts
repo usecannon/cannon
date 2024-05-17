@@ -197,7 +197,7 @@ export async function publishPackage({
   chainId,
   fromStorage,
   toStorage,
-  includeProvisioned = false,
+  includeProvisioned = true,
 }: CopyPackageOpts) {
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
 

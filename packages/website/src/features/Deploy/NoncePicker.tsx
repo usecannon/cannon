@@ -1,15 +1,6 @@
 import { SafeDefinition } from '@/helpers/store';
 import { useSafeTransactions } from '@/hooks/backend';
-import {
-  Checkbox,
-  FormControl,
-  HStack,
-  NumberDecrementStepper,
-  NumberIncrementStepper,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-} from '@chakra-ui/react';
+import { Checkbox, FormControl, Flex, Select, Tooltip } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 
 interface Params {
@@ -28,43 +19,59 @@ export default function NoncePicker({ safe, handleChange }: Params) {
   }, [currentNonce]);
 
   useEffect(() => {
-    setCurrentNonce(safeTxs.nextNonce);
-  }, [safeTxs.nextNonce]);
-
-  useEffect(() => {
     if (!safeTxs.nextNonce) return setCurrentNonce(null);
-    const nonce = isOverridingNonce ? safeTxs.nextNonce - 1 : safeTxs.nextNonce;
-    setCurrentNonce(nonce);
+    setCurrentNonce(isOverridingNonce ? safeTxs.nextNonce - 1 : null);
   }, [isOverridingNonce, safeTxs.nextNonce]);
 
   return (
     <FormControl mb={4}>
-      <HStack>
-        <Checkbox
-          disabled={!safeTxs.isSuccess}
-          isChecked={isOverridingNonce}
-          onChange={(e) => setNonceOverride(e.target.checked)}
+      <Flex
+        justify="space-between"
+        align="center"
+        direction="row"
+        wrap="wrap"
+        gap={4}
+      >
+        <Tooltip
+          label={
+            safeTxs.staged.length === 0
+              ? 'You must have at least one transaction staged to override'
+              : ''
+          }
+          placement="top"
+          aria-label="Override Previously Staged Transaction"
+          shouldWrapChildren
         >
-          Override Previously Staged Transaction{' '}
-        </Checkbox>
-        {isOverridingNonce && (
-          <NumberInput
-            min={Number(safeTxs.nonce)}
-            value={currentNonce || 0}
-            onChange={(n) => {
-              const newVal = Number.parseInt(n);
-              if (!Number.isSafeInteger(newVal)) return;
-              setCurrentNonce(newVal);
-            }}
+          <Checkbox
+            disabled={!safeTxs.isSuccess || safeTxs.staged.length === 0}
+            isChecked={isOverridingNonce}
+            onChange={(e) => setNonceOverride(e.target.checked)}
           >
-            <NumberInputField />
-            <NumberInputStepper>
-              <NumberIncrementStepper />
-              <NumberDecrementStepper />
-            </NumberInputStepper>
-          </NumberInput>
+            Override Previously Staged Transaction{' '}
+          </Checkbox>
+        </Tooltip>
+        {isOverridingNonce && (
+          <Flex direction="row" align="center" justify="space-between" grow={1}>
+            <Select
+              value={currentNonce ?? undefined}
+              onChange={(e) => {
+                const newVal = Number(e.target.value);
+                if (!Number.isSafeInteger(newVal) || newVal < 0) {
+                  setCurrentNonce(null);
+                } else {
+                  setCurrentNonce(newVal);
+                }
+              }}
+            >
+              {safeTxs.staged.map(({ txn }) => (
+                <option key={txn._nonce} value={txn._nonce}>
+                  {txn._nonce}
+                </option>
+              ))}
+            </Select>
+          </Flex>
         )}
-      </HStack>
+      </Flex>
     </FormControl>
   );
 }
