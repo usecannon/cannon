@@ -224,7 +224,7 @@ export const QueuedTxns = ({
               <Box
                 key={i}
                 mb={8}
-                p={6}
+                p={0}
                 bg="gray.800"
                 display="block"
                 borderWidth="1px"
