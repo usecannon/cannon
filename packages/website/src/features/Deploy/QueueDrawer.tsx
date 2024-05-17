@@ -294,114 +294,124 @@ export const QueuedTxns = ({
               </Box>
             ))
           : null}
-
-        <FormControl>
-          <FormLabel>
-            Add a transaction from a Cannon package or contract address
-          </FormLabel>
-          <InputGroup>
-            <Input
-              type="text"
-              borderColor="whiteAlpha.400"
-              background="black"
-              onChange={(event: any) => setTarget(event.target.value)}
-              value={target}
-            />
-            {!isAddress(target) &&
-              target.length >= 3 &&
-              cannonInfo.registryQuery.status === 'pending' && (
-                <InputRightElement>
-                  <Spinner />
-                </InputRightElement>
-              )}
-            {!isAddress(target) && cannonInfo.contracts && (
-              <InputRightElement>
-                <IconButton
-                  size="xs"
-                  colorScheme="teal"
-                  onClick={() => addQueuedTxn()}
-                  icon={<AddIcon />}
-                  aria-label="Add Transaction"
-                />
-              </InputRightElement>
-            )}
-          </InputGroup>
-          {!isAddress(target) &&
-            target.length >= 3 &&
-            cannonInfo.registryQuery.status === 'error' && (
-              <FormHelperText color="gray.300">
-                Failed to find this package on the registry.
-              </FormHelperText>
-            )}
-          {!isAddress(target) &&
-            cannonInfo.pkgUrl &&
-            cannonInfo.ipfsQuery.status === 'pending' && (
-              <FormHelperText color="gray.300">
-                Downloading {cannonInfo.pkgUrl}
-              </FormHelperText>
-            )}
-          {!isAddress(target) &&
-            cannonInfo.pkgUrl &&
-            cannonInfo.ipfsQuery.status === 'error' && (
-              <FormHelperText color="gray.300">
-                Failed to load {cannonInfo.pkgUrl}
-              </FormHelperText>
-            )}
-        </FormControl>
-      </Box>
-      <Box mb={4}>
-        {isAddress(target) && (
-          <Box mb="6">
-            {funcIsPayable && (
-              <FormControl>
-                <FormLabel>Value</FormLabel>
-                <Input
-                  type="text"
-                  borderColor="whiteAlpha.400"
-                  background="black"
-                  onChange={(event: any) =>
-                    updateQueuedTxn(0, {
-                      ...queuedTxns[0],
-                      value: BigInt(event.target.value),
-                    })
-                  }
-                />
-                <FormHelperText color="gray.300">
-                  Amount of ETH to send as part of transaction
-                </FormHelperText>
-              </FormControl>
-            )}
-
-            <FormControl mb="4">
-              <FormLabel>Transaction Data</FormLabel>
+        <Box
+          mb={8}
+          p={6}
+          bg="gray.800"
+          display="block"
+          borderWidth="1px"
+          borderStyle="solid"
+          borderColor="gray.600"
+          borderRadius="4px"
+        >
+          <FormControl>
+            <FormLabel>
+              Add a transaction from a Cannon package or contract address
+            </FormLabel>
+            <InputGroup>
               <Input
                 type="text"
                 borderColor="whiteAlpha.400"
                 background="black"
-                placeholder="0x"
-                onChange={(e) => setCustomTxnData(e.target.value as Address)}
+                onChange={(event: any) => setTarget(event.target.value)}
+                value={target}
               />
-              {customTxnData && !customTxnDataIsValid && (
-                <FormHelperText color="red.300">
-                  Invalid transaction data
+              {!isAddress(target) &&
+                target.length >= 3 &&
+                cannonInfo.registryQuery.status === 'pending' && (
+                  <InputRightElement>
+                    <Spinner />
+                  </InputRightElement>
+                )}
+              {!isAddress(target) && cannonInfo.contracts && (
+                <InputRightElement>
+                  <IconButton
+                    size="xs"
+                    colorScheme="teal"
+                    onClick={() => addQueuedTxn()}
+                    icon={<AddIcon />}
+                    aria-label="Add Transaction"
+                  />
+                </InputRightElement>
+              )}
+            </InputGroup>
+            {!isAddress(target) &&
+              target.length >= 3 &&
+              cannonInfo.registryQuery.status === 'error' && (
+                <FormHelperText color="gray.300">
+                  Failed to find this package on the registry.
                 </FormHelperText>
               )}
-              <FormHelperText color="gray.300">
-                0x prefixed hex code data to send with transaction
-              </FormHelperText>
-              <Box py={4}>
-                <CustomButton
-                  href="#"
-                  onClick={handleAddCustomTxn}
-                  disabled={!customTxnData || !customTxnDataIsValid}
-                >
-                  Add Transaction
-                </CustomButton>
-              </Box>
-            </FormControl>
-          </Box>
-        )}
+            {!isAddress(target) &&
+              cannonInfo.pkgUrl &&
+              cannonInfo.ipfsQuery.status === 'pending' && (
+                <FormHelperText color="gray.300">
+                  Downloading {cannonInfo.pkgUrl}
+                </FormHelperText>
+              )}
+            {!isAddress(target) &&
+              cannonInfo.pkgUrl &&
+              cannonInfo.ipfsQuery.status === 'error' && (
+                <FormHelperText color="gray.300">
+                  Failed to load {cannonInfo.pkgUrl}
+                </FormHelperText>
+              )}
+          </FormControl>
 
+          {isAddress(target) && (
+            <Box mt="4">
+              {funcIsPayable && (
+                <FormControl>
+                  <FormLabel>Value</FormLabel>
+                  <Input
+                    type="text"
+                    borderColor="whiteAlpha.400"
+                    background="black"
+                    onChange={(event: any) =>
+                      updateQueuedTxn(0, {
+                        ...queuedTxns[0],
+                        value: BigInt(event.target.value),
+                      })
+                    }
+                  />
+                  <FormHelperText color="gray.300">
+                    Amount of ETH to send as part of transaction
+                  </FormHelperText>
+                </FormControl>
+              )}
+
+              <FormControl>
+                <FormLabel>Transaction Data</FormLabel>
+                <Input
+                  type="text"
+                  borderColor="whiteAlpha.400"
+                  background="black"
+                  placeholder="0x"
+                  onChange={(e) => setCustomTxnData(e.target.value as Address)}
+                />
+                {customTxnData && !customTxnDataIsValid && (
+                  <FormHelperText color="red.300">
+                    Invalid transaction data
+                  </FormHelperText>
+                )}
+                <FormHelperText color="gray.300">
+                  0x prefixed hex code data to send with transaction
+                </FormHelperText>
+                <Box py={4}>
+                  <CustomButton
+                    href="#"
+                    onClick={handleAddCustomTxn}
+                    disabled={!customTxnData || !customTxnDataIsValid}
+                  >
+                    Add Transaction
+                  </CustomButton>
+                </Box>
+              </FormControl>
+            </Box>
+          )}
+        </Box>
+      </Box>
+      <Box mb={4}>
         {queuedIdentifiableTxns.length > 0 && (
           <Box>
             <NoncePicker safe={currentSafe} handleChange={setPickedNonce} />
