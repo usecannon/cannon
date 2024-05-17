@@ -512,11 +512,11 @@ const commandsConfig = {
     ],
   },
   register: {
-    description: 'Register a Cannon package on the main registry',
+    description: 'Register a Cannon package on the Cannon Registry',
     arguments: [
       {
-        flags: '<packageRef>',
-        description: 'Name, version and preset of the Cannon package to publish (name:version@preset)',
+        flags: '<packageRefs...>',
+        description: 'List of packages you want to register on the Cannon Registry',
       },
     ],
     options: [
