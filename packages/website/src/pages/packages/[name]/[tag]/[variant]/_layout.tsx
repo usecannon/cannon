@@ -49,7 +49,7 @@ export default function PackageLayout({ children }: { children: ReactNode }) {
     queryFn: getPackage,
   });
 
-  const pathname = useRouter().pathname;
+  const { pathname, asPath } = useRouter();
 
   const deploymentData = useQueryIpfsData(
     packagesQuery?.data?.data.deployUrl,
@@ -123,10 +123,7 @@ export default function PackageLayout({ children }: { children: ReactNode }) {
               </Flex>
               <Flex gap={8} align="center" maxW="100%" overflowX="auto">
                 <NavLink
-                  isActive={
-                    pathname ==
-                    `/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}`
-                  }
+                  isActive={pathname == '/packages/[name]/[tag]/[variant]'}
                   href={`/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}`}
                   isSmall
                 >
@@ -134,7 +131,7 @@ export default function PackageLayout({ children }: { children: ReactNode }) {
                 </NavLink>
                 <NavLink
                   isActive={pathname.startsWith(
-                    `/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/code`
+                    '/packages/[name]/[tag]/[variant]/code'
                   )}
                   href={`/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/code`}
                   isSmall
@@ -143,13 +140,13 @@ export default function PackageLayout({ children }: { children: ReactNode }) {
                 </NavLink>
                 <NavLink
                   isActive={pathname.startsWith(
-                    `/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/interact`
+                    '/packages/[name]/[tag]/[variant]/interact'
                   )}
                   href={
                     pathname.startsWith(
-                      `/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/interact`
+                      '/packages/[name]/[tag]/[variant]/interact'
                     )
-                      ? pathname
+                      ? asPath
                       : `/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/interact`
                   }
                   isSmall
@@ -158,8 +155,7 @@ export default function PackageLayout({ children }: { children: ReactNode }) {
                 </NavLink>
                 <NavLink
                   isActive={
-                    pathname ==
-                    `/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/cannonfile`
+                    pathname == '/packages/[name]/[tag]/[variant]/cannonfile'
                   }
                   href={`/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/cannonfile`}
                   isSmall
