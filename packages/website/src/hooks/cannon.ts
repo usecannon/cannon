@@ -1,18 +1,12 @@
-import _ from 'lodash';
-import { useChainId } from 'wagmi';
-import { useEffect, useState } from 'react';
-import { BaseTransaction } from '@safe-global/safe-apps-sdk';
-import { useMutation, UseMutationOptions, useQuery } from '@tanstack/react-query';
-import { Abi, Address, createPublicClient, createWalletClient, custom, isAddressEqual, PublicClient } from 'viem';
-
-import { useGitRepo } from '@/hooks/git';
+import { inMemoryLoader, loadCannonfile, StepExecutionError } from '@/helpers/cannon';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
-import { useLogs } from '@/providers/logsProvider';
-import { useCannonRegistry } from '@/hooks/registry';
 import { createFork, findChain } from '@/helpers/rpc';
 import { SafeDefinition, useStore } from '@/helpers/store';
-import { inMemoryLoader, loadCannonfile, StepExecutionError } from '@/helpers/cannon';
-
+import { useGitRepo } from '@/hooks/git';
+import { useCannonRegistry } from '@/hooks/registry';
+import { useLogs } from '@/providers/logsProvider';
+import { BaseTransaction } from '@safe-global/safe-apps-sdk';
+import { useMutation, UseMutationOptions, useQuery } from '@tanstack/react-query';
 import {
   build as cannonBuild,
   CannonStorage,
@@ -26,8 +20,13 @@ import {
   Events,
   getOutputs,
   InMemoryRegistry,
+  PackageReference,
   publishPackage,
 } from '@usecannon/builder';
+import _ from 'lodash';
+import { useEffect, useState } from 'react';
+import { Abi, Address, createPublicClient, createWalletClient, custom, isAddressEqual, PublicClient } from 'viem';
+import { useChainId } from 'wagmi';
 
 export type BuildState =
   | {
@@ -353,10 +352,11 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
         const resolvedName = def.getName(ctx);
         const resolvedVersion = def.getVersion(ctx);
         const resolvedPreset = def.getPreset(ctx);
+        const { fullPackageRef } = PackageReference.from(resolvedName, resolvedVersion, resolvedPreset);
 
         if (deployInfo) {
           addLog(`Loaded ${resolvedName}:${resolvedVersion}@${resolvedPreset} from IPFS`);
-          return { deployInfo, ctx, resolvedName, resolvedVersion, resolvedPreset };
+          return { deployInfo, ctx, resolvedName, resolvedVersion, resolvedPreset, fullPackageRef };
         } else {
           throw new Error('failed to download package data');
         }
@@ -380,6 +380,7 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
     resolvedName: ipfsQuery.data?.resolvedName,
     resolvedVersion: ipfsQuery.data?.resolvedVersion,
     resolvedPreset: ipfsQuery.data?.resolvedPreset,
+    fullPackageRef: ipfsQuery.data?.fullPackageRef,
   };
 }
 

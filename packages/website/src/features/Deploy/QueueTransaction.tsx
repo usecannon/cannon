@@ -1,7 +1,7 @@
 import { useStore } from '@/helpers/store';
-import { useCannonPackageContracts } from '@/hooks/cannon';
+import { useCannonPackage, useCannonPackageContracts } from '@/hooks/cannon';
 import { useSimulatedTxns } from '@/hooks/fork';
-import { CloseIcon } from '@chakra-ui/icons';
+import { DeleteIcon } from '@chakra-ui/icons';
 import {
   Alert,
   AlertDescription,
@@ -10,14 +10,14 @@ import {
   Box,
   Flex,
   FormControl,
+  FormHelperText,
   FormLabel,
   IconButton,
-  Text,
-  Tooltip,
+  Input,
   InputGroup,
   InputRightAddon,
-  Input,
-  FormHelperText,
+  Text,
+  Tooltip,
 } from '@chakra-ui/react';
 import { AbiFunction } from 'abitype/src/abi';
 import {
@@ -33,11 +33,11 @@ import {
   Address,
   decodeErrorResult,
   encodeFunctionData,
+  formatEther,
   Hex,
+  parseEther,
   toFunctionSelector,
   TransactionRequestBase,
-  parseEther,
-  formatEther,
 } from 'viem';
 import { FunctionInput } from '../Packages/FunctionInput';
 import 'react-diff-view/style/index.css';
@@ -133,6 +133,7 @@ export function QueueTransaction({
   const [value, setValue] = useState<string | undefined>(
     tx?.value ? formatEther(BigInt(tx?.value)).toString() : undefined
   );
+  const pkg = useCannonPackage(target, chainId);
   const { contracts } = useCannonPackageContracts(target, chainId);
 
   const [selectedContractName, setSelectedContractName] = useState<
@@ -224,12 +225,43 @@ export function QueueTransaction({
 
   return (
     <Flex direction="column">
+      <Flex
+        flexDirection="row"
+        alignItems="center"
+        justifyContent="space-between"
+        backgroundColor="gray.700"
+        p={3}
+        pl={6}
+        pr={6}
+      >
+        <Text fontWeight={600} fontSize="sm" color="gray.300">
+          {pkg.fullPackageRef}
+        </Text>
+        {isDeletable && (
+          <Tooltip label="Remove transaction">
+            <IconButton
+              variant="outline"
+              border="none"
+              _hover={{ bg: 'gray.700' }}
+              size="xs"
+              colorScheme="red"
+              color="gray.300"
+              onClick={onDelete}
+              aria-label="Remove transaction"
+              icon={<DeleteIcon />}
+            />
+          </Tooltip>
+        )}
+      </Flex>
       <Flex alignItems="center">
         <Flex
           flexDirection="column"
           flex="1"
           w={['100%', '100%', '50%']}
           gap="10px"
+          p={6}
+          pt={4}
+          pb={4}
         >
           <FormControl mb={2}>
             <FormLabel>Contract</FormLabel>
@@ -415,24 +447,6 @@ export function QueueTransaction({
                 </Box>
               </Alert>
             )}
-          {isDeletable && (
-            <Tooltip label="Remove transaction">
-              <IconButton
-                position="absolute"
-                top={3}
-                right={3}
-                variant="outline"
-                border="none"
-                _hover={{ bg: 'gray.700' }}
-                size="xs"
-                colorScheme="red"
-                color="red.400"
-                onClick={onDelete}
-                aria-label="Remove transaction"
-                icon={<CloseIcon />}
-              />
-            </Tooltip>
-          )}
         </Flex>
       </Flex>
     </Flex>
