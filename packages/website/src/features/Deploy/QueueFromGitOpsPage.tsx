@@ -594,7 +594,14 @@ function QueueFromGitOps() {
                         await stager.sign();
                       }}
                     >
-                      Queue &amp; Sign
+                      {stager.signing ? (
+                        <>
+                          Currently Signing
+                          <Spinner size="sm" ml={2} />
+                        </>
+                      ) : (
+                        'Queue & Sign'
+                      )}
                     </Button>
                   </Tooltip>
                 ) : null}

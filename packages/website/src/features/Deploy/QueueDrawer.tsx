@@ -390,7 +390,14 @@ export const QueuedTxns = ({
                             await stager.sign();
                           }}
                         >
-                          Stage &amp; Sign
+                          {stager.signing ? (
+                            <>
+                              Currently Signing
+                              <Spinner size="sm" ml={2} />
+                            </>
+                          ) : (
+                            'Stage & Sign'
+                          )}
                         </Button>
                       </Tooltip>
                     ) : null}

@@ -399,7 +399,14 @@ const TransactionDetailsPage: FC<{
                                   await stager.sign();
                                 }}
                               >
-                                Sign
+                                {stager.signing ? (
+                                  <>
+                                    Currently Signing
+                                    <Spinner size="sm" ml={2} />
+                                  </>
+                                ) : (
+                                  'Sign'
+                                )}
                               </Button>
                             </Tooltip>
                             <Tooltip label={stager.execConditionFailed}>
