@@ -2,10 +2,12 @@ import {
   CannonStorage,
   getProvisionedPackages,
   IPFSLoader,
+  CannonRegistry,
   OnChainRegistry,
   PackageReference,
   publishPackage,
 } from '@usecannon/builder';
+import * as viem from 'viem';
 import { blueBright, bold, gray, italic, yellow } from 'chalk';
 import prompts from 'prompts';
 import { getMainLoader } from '../loader';
@@ -16,7 +18,7 @@ interface Params {
   packageRef: string;
   cliSettings: CliSettings;
   tags: string[];
-  onChainRegistry: OnChainRegistry;
+  onChainRegistry: CannonRegistry;
   chainId?: number;
   presetArg?: string;
   quiet?: boolean;
@@ -44,7 +46,7 @@ export async function publish({
   chainId,
   presetArg,
   quiet = false,
-  includeProvisioned = false,
+  includeProvisioned = true,
   skipConfirm = false,
 }: Params) {
   const { fullPackageRef } = new PackageReference(packageRef);
@@ -68,13 +70,14 @@ export async function publish({
     packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
 
-  if (!onChainRegistry.signer) {
-    throw new Error('signer not provided in registry');
-  }
-
-  if (!quiet) {
-    console.log(blueBright(`Publishing with ${onChainRegistry.signer!.address}`));
-    console.log();
+  if (onChainRegistry instanceof OnChainRegistry) {
+    if (!onChainRegistry.signer) {
+      throw new Error('signer not provided in registry');
+    }
+    if (!quiet) {
+      console.log(blueBright(`Publishing with ${onChainRegistry.signer!.address}`));
+      console.log();
+    }
   }
   // Generate CannonStorage to publish ipfs remotely and write to the registry
   const toStorage = new CannonStorage(onChainRegistry, {
@@ -203,6 +206,13 @@ export async function publish({
         });
       });
       console.log('\n');
+    }
+
+    if (onChainRegistry instanceof OnChainRegistry) {
+      const totalFees = await onChainRegistry.calculatePublishingFee(parentPackages.length + subPackages.length);
+
+      console.log(`Total publishing fees: ${viem.formatEther(totalFees)} ETH`);
+      console.log();
     }
 
     const verification = await prompts({
