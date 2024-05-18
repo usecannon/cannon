@@ -15,17 +15,22 @@ import { getChainById } from '../chains';
 export const isPackageRegistered = async (
   registryProviders: { provider: viem.PublicClient; signers: CannonSigner[] }[],
   packageRef: string,
-  contractAddress: viem.Address
+  contractAddress: viem.Address[]
 ) => {
   const packageName = new PackageReference(packageRef).name;
 
-  const onChainRegistries = registryProviders.map(({ provider, signers }) => {
-    return new OnChainRegistry({
-      signer: signers[0],
-      provider,
-      address: contractAddress,
-    });
-  });
+  if (contractAddress.length !== registryProviders.length) {
+    throw new Error('Registry providers and contract addresses must have the same length.');
+  }
+
+  const onChainRegistries = registryProviders.map(
+    ({ provider, signers }, index) =>
+      new OnChainRegistry({
+        signer: signers[0],
+        provider,
+        address: contractAddress[index],
+      })
+  );
 
   const packageOwners = await Promise.all(
     onChainRegistries.map((onChainRegistry) => onChainRegistry.getPackageOwner(packageName))

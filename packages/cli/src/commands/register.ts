@@ -2,7 +2,7 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import prompts from 'prompts';
 import { blueBright, gray, green } from 'chalk';
-import { OnChainRegistry } from '@usecannon/builder';
+import { OnChainRegistry, prepareMulticall } from '@usecannon/builder';
 
 import { CliSettings } from '../settings';
 import { PackageSpecification } from '../types';
@@ -44,18 +44,13 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   // if any of the packages are registered, throw an error
   const isRegistered = await Promise.all(
     packageRef.map(async (pkg: PackageSpecification) => {
-      const isRegisteredOnMainnet = await isPackageRegistered(
-        [mainnetRegistryProvider],
-        pkg.name,
-        mainnetRegistryConfig.address
-      );
+      // Run the two registry checks in parallel
+      const [isRegisteredOnMainnet, isRegisteredOnOptimism] = await Promise.all([
+        isPackageRegistered([mainnetRegistryProvider, optimismRegistryProvider], pkg.name, [mainnetRegistryConfig.address]),
+        isPackageRegistered([optimismRegistryProvider], pkg.name, [optimismRegistryConfig.address]),
+      ]);
 
-      const isRegisteredOnOptimism = await isPackageRegistered(
-        [optimismRegistryProvider],
-        pkg.name,
-        optimismRegistryConfig.address
-      );
-
+      // Throw an error if the package is registered on both
       if (isRegisteredOnMainnet && isRegisteredOnOptimism) {
         throw new Error(`The package "${pkg.name}" is already registered.`);
       }
@@ -104,11 +99,11 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
     })
   );
 
-  const sequentialTransactions = mainnetRegistry.prepareSequentialMulticall(transactions.flat());
+  const multicallTx = prepareMulticall(transactions.flat());
 
   // Note: for some reason, estimate gas is not accurate
   // Note: if the user does not have enough gas, the estimateGasForSetPackageOwnership will throw an error
-  const estimateGas = await mainnetRegistry.estimateGasForSetPackageOwnership(sequentialTransactions);
+  const estimateGas = await mainnetRegistry.estimateGasForSetPackageOwnership(multicallTx);
 
   const cost = estimateGas + registerFee;
   if (cost > userBalance) {
@@ -143,7 +138,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   try {
     const [hash] = await Promise.all([
       (async () => {
-        const hash = await mainnetRegistry.setPackageOwnership(sequentialTransactions);
+        const hash = await mainnetRegistry.setPackageOwnership(multicallTx);
 
         console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
         console.log('');

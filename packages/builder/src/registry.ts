@@ -670,33 +670,6 @@ export class OnChainRegistry extends CannonRegistry {
     return transactions;
   }
 
-  prepareSequentialMulticall(transactions: any): TxData {
-    const nominatePackageOwnerTxs = [];
-    const setPackageOwnershipTxs = [];
-    const setAdditionalPublishersTxs = [];
-
-    for (const txn of transactions) {
-      switch (txn.functionName) {
-        case 'nominatePackageOwner': {
-          nominatePackageOwnerTxs.push(txn);
-          break;
-        }
-        case 'setPackageOwnership': {
-          setPackageOwnershipTxs.push(txn);
-          break;
-        }
-        case 'setAdditionalPublishers': {
-          setAdditionalPublishersTxs.push(txn);
-          break;
-        }
-        default:
-          throw new Error(`Unknown function name: ${txn.functionName}`);
-      }
-    }
-
-    return prepareMulticall([...nominatePackageOwnerTxs, ...setPackageOwnershipTxs, ...setAdditionalPublishersTxs]);
-  }
-
   async setPackageOwnership(transactions: TxData) {
     if (!this.signer || !this.provider) {
       throw new Error('Missing signer for executing registry operations');
