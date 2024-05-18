@@ -224,7 +224,7 @@ const TransactionDetailsPage: FC<{
     (chain: any) => chain.id === safe.chainId
   )?.name;
 
-  const gitDiffContainerRef = useRef<HTMLDivElement>();
+  const gitDiffContainerRef = useRef<HTMLDivElement>(null);
 
   return (
     <>
