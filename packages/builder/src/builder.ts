@@ -136,7 +136,7 @@ ${printChainDefinitionProblems(problems)}`);
             const newStates = await def.getState(n, runtime, ctx, depsTainted);
             state[n] = {
               artifacts: newArtifacts,
-              hash: newStates ? newStates[0] : null,
+              hash: newStates && newStates.length ? newStates[0] : null,
               version: BUILD_VERSION,
             };
             tainted.add(n);
@@ -298,7 +298,7 @@ export async function buildLayer(
       const newHashes = await def.getState(action, runtime, ctx, false);
       state[action] = {
         artifacts: newArtifacts,
-        hash: newHashes ? newHashes[0] : null,
+        hash: newHashes && newHashes.length ? newHashes[0] : null,
         version: BUILD_VERSION,
         // add the chain dump later once all steps have been executed
       };

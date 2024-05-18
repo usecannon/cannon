@@ -27,7 +27,7 @@ export async function buildContracts(): Promise<void> {
   await execPromise('forge build');
 }
 
-export async function getFoundryArtifact(name: string, baseDir = ''): Promise<ContractArtifact> {
+export async function getFoundryArtifact(name: string, baseDir = '', includeSourceCode = true): Promise<ContractArtifact> {
   // TODO: Theres a bug that if the file has a different name than the contract it would not work
   const foundryOpts = await getFoundryOpts();
 
@@ -64,43 +64,56 @@ export async function getFoundryArtifact(name: string, baseDir = ''): Promise<Co
   const artifactBuffer = await fs.readFile(artifactPath);
   const artifact = JSON.parse(artifactBuffer.toString()) as any;
 
-  const isAstFlagSupported = await checkForgeAstSupport();
-  // save build metadata
-  const foundryInfo = JSON.parse(
-    await execPromise(
-      `forge inspect ${name} metadata  ${baseDir ? `--root ${baseDir}` : ''} ${isAstFlagSupported ? '--ast' : ''}`
-    )
-  );
+  // if source code is not included, we can skip here for a massive speed boost by not executing the inspect commands
+  if (includeSourceCode) {
+    const isAstFlagSupported = await checkForgeAstSupport();
+    // save build metadata
+    const foundryInfo = JSON.parse(
+      await execPromise(
+        `forge inspect ${name} metadata  ${baseDir ? `--root ${baseDir}` : ''} ${isAstFlagSupported ? '--ast' : ''}`
+      )
+    );
 
-  const evmVersionInfo = JSON.parse(await execPromise('forge config --json')).evm_version;
+    const evmVersionInfo = JSON.parse(await execPromise('forge config --json')).evm_version;
 
-  debug('detected foundry info', foundryInfo);
-  debug('evm version', evmVersionInfo);
+    debug('detected foundry info', foundryInfo);
+    debug('evm version', evmVersionInfo);
 
-  const solcVersion = foundryInfo.compiler.version;
-  const sources = _.mapValues(foundryInfo.sources, (v, sourcePath) => {
-    return {
-      content: fs.readFileSync(path.join(baseDir, sourcePath)).toString(),
-    };
-  });
+    const solcVersion = foundryInfo.compiler.version;
+    const sources = _.mapValues(foundryInfo.sources, (v, sourcePath) => {
+      return {
+        content: fs.readFileSync(path.join(baseDir, sourcePath)).toString(),
+      };
+    });
 
-  const source = {
-    solcVersion: solcVersion,
-    input: JSON.stringify({
-      language: 'Solidity',
-      sources,
-      settings: {
-        optimizer: foundryInfo.settings.optimizer,
-        evmVersion: evmVersionInfo,
-        remappings: foundryInfo.settings.remappings,
-        outputSelection: {
-          '*': {
-            '*': ['*'],
+    const source = {
+      solcVersion: solcVersion,
+      input: JSON.stringify({
+        language: 'Solidity',
+        sources,
+        settings: {
+          optimizer: foundryInfo.settings.optimizer,
+          evmVersion: evmVersionInfo,
+          remappings: foundryInfo.settings.remappings,
+          outputSelection: {
+            '*': {
+              '*': ['*'],
+            },
           },
         },
-      },
-    }),
-  };
+      }),
+    };
+
+    return {
+      contractName: name,
+      sourceName: artifact.ast.absolutePath,
+      abi: artifact.abi,
+      bytecode: artifact.bytecode.object,
+      deployedBytecode: artifact.deployedBytecode.object,
+      linkReferences: artifact.bytecode.linkReferences,
+      source,
+    };
+  }
 
   return {
     contractName: name,
@@ -109,6 +122,5 @@ export async function getFoundryArtifact(name: string, baseDir = ''): Promise<Co
     bytecode: artifact.bytecode.object,
     deployedBytecode: artifact.deployedBytecode.object,
     linkReferences: artifact.bytecode.linkReferences,
-    source,
   };
 }
