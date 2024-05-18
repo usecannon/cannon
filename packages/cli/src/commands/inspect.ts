@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { ContractData, ChainArtifacts, ChainDefinition, DeploymentState } from '@usecannon/builder';
-import chalk from 'chalk';
+import { bold, cyan, green, yellow } from 'chalk';
 import { PackageReference } from '@usecannon/builder/dist/src/package';
 import { fetchIPFSAvailability } from '@usecannon/builder/dist/src/ipfs';
 import { createDefaultReadRegistry } from '../registry';
@@ -9,7 +9,6 @@ import fs from 'fs-extra';
 import path from 'path';
 import { getMainLoader } from '../loader';
 import { getContractsAndDetails, getSourceFromRegistry } from '../helpers';
-const { bold, cyan, green, yellow } = chalk;
 
 export async function inspect(
   packageRef: string,

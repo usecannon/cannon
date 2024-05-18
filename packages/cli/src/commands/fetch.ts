@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import { blueBright } from 'chalk';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import {
@@ -14,7 +14,6 @@ import Debug from 'debug';
 import fs from 'node:fs';
 import path from 'path';
 import util from 'util';
-const { blueBright } = chalk;
 
 const debug = Debug('cannon:cli:clean');
 

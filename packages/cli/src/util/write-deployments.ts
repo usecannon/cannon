@@ -1,8 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'path';
 import { ChainArtifacts } from '@usecannon/builder';
-import chalk from 'chalk';
-const { green } = chalk;
+import { green } from 'chalk';
 
 /**
  * Recursively writes all deployments for a chainbuilder output

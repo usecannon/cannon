@@ -1,5 +1,5 @@
 import { ChainArtifacts, ChainDefinition, findContract, getArtifacts, renderTrace, TraceEntry } from '@usecannon/builder';
-import chalk from 'chalk';
+import { bold, gray, green, red, yellow } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
@@ -8,7 +8,6 @@ import { getProvider, runRpc } from '../rpc';
 import { CliSettings } from '../settings';
 import { resolveWriteProvider } from '../util/provider';
 import { ANVIL_FIRST_ADDRESS } from '../constants';
-const { bold, gray, green, red, yellow } = chalk;
 
 const debug = Debug('cannon:cli:trace');
 

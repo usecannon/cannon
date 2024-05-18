@@ -6,8 +6,7 @@ import prompts from 'prompts';
 import { CLI_SETTINGS_STORE } from '../constants';
 import { resolveCliSettings } from '../settings';
 import _ from 'lodash';
-import chalk from 'chalk';
-const { bold, italic, yellow } = chalk;
+import { bold, italic, yellow } from 'chalk';
 
 export async function setup() {
   // Setup Anvil

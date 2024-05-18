@@ -1,10 +1,8 @@
 import { PackageReference } from '@usecannon/builder';
 import { inspect, PackageSpecification, resolveCliSettings } from '@usecannon/cli';
-import chalk from 'chalk';
+import { bold, yellow } from 'chalk';
 import { task } from 'hardhat/config';
 import { SUBTASK_LOAD_PACKAGE_DEFINITION, TASK_INSPECT } from '../task-names';
-
-const { bold, yellow } = chalk;
 
 task(TASK_INSPECT, 'Inspect the details of a Cannon package')
   .addOptionalPositionalParam('packageName', 'Name and version of the cannon package to inspect')

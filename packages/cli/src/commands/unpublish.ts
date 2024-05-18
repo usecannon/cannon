@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import * as viem from 'viem';
-import chalk from 'chalk';
+import { green, blueBright } from 'chalk';
 import prompts from 'prompts';
 import { OnChainRegistry, PackageReference } from '@usecannon/builder';
 
@@ -15,8 +15,6 @@ interface Params {
   options: any;
   packageRef: string;
 }
-
-const { green, blueBright } = chalk;
 
 export async function unpublish({ cliSettings, options, packageRef }: Params) {
   if (!options.chainId) {

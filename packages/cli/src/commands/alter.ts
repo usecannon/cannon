@@ -10,7 +10,7 @@ import {
 } from '@usecannon/builder';
 import { ActionKinds } from '@usecannon/builder/dist/src/actions';
 import { PackageReference } from '@usecannon/builder/dist/src/package';
-import chalk from 'chalk';
+import { bold, yellow } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
@@ -18,7 +18,6 @@ import { getMainLoader } from '../loader';
 import { createDefaultReadRegistry } from '../registry';
 import { CliSettings } from '../settings';
 import { resolveWriteProvider } from '../util/provider';
-const { bold, yellow } = chalk;
 
 const debug = Debug('cannon:cli:alter');
 
