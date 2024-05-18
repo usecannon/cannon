@@ -44,7 +44,7 @@
     "@iarna/toml": "^3.0.0",
     "@usecannon/builder": "2.13.6",
     "@usecannon/cli": "2.13.6",
-    "chalk": "^5.3.0",
+    "chalk": "^4.1.2",
     "debug": "^4.3.4",
     "fs-extra": "^11.2.0",
     "viem": "^2.9.31"
