@@ -2,6 +2,7 @@
 import { Box, Container, Heading } from '@chakra-ui/react';
 import { ReactElement } from 'react';
 import Layout from '../_layout';
+import { QueuedTxns } from '@/features/Deploy/QueueDrawer';
 //import { Metadata } from 'next';
 
 /*export const metadata: Metadata = {
@@ -21,6 +22,7 @@ const QueueTransactions = () => {
           Stage Transactions
         </Heading>
       </Box>
+      <QueuedTxns />
     </Container>
   );
 };

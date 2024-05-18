@@ -1,7 +1,5 @@
 'use client';
 
-import GoogleAnalytics from '@/components/GoogleAnalytics';
-// import { Console } from '@/features/Console/Console';
 import { Footer } from '@/features/Footer/Footer';
 import { Header } from '@/features/Header/Header';
 import { Flex } from '@chakra-ui/react';
@@ -11,8 +9,6 @@ import { Inter, Miriam_Libre, Roboto_Mono } from 'next/font/google';
 import { ReactElement } from 'react';
 import Providers from './_providers';
 import '@/styles/globals.css';
-
-//import Head from 'next/head';
 
 const miriam = Miriam_Libre({
   subsets: ['latin'],
@@ -39,10 +35,7 @@ export default function RootLayout({
 }) {
   const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
   return (
-    <html lang="en">
-      <head>
-        <GoogleAnalytics measurementId="G-C96791F6NC" />
-      </head>
+    <>
       <style jsx global>
         {`
           :root {
@@ -55,28 +48,26 @@ export default function RootLayout({
           }
         `}
       </style>
-      <body>
-        <NextTopLoader
-          color="#00A7CC"
-          shadow="0 0 10px #00A7CC,0 0 5px #00A7CC"
-          showSpinner={false}
-          height={1}
-        />
-        <Providers>
-          <Flex
-            flexDirection="column"
-            backgroundColor="gray.900"
-            minHeight="100vh"
-            position="relative"
-          >
-            <Header />
-            <Flex flex="1">{getLayout(<Component {...pageProps} />)}</Flex>
-            <Footer />
-            {/*<Console />*/}
-          </Flex>
-        </Providers>
-        <Analytics />
-      </body>
-    </html>
+      <NextTopLoader
+        color="#00A7CC"
+        shadow="0 0 10px #00A7CC,0 0 5px #00A7CC"
+        showSpinner={false}
+        height={1}
+      />
+      <Providers>
+        <Flex
+          flexDirection="column"
+          backgroundColor="gray.900"
+          minHeight="100vh"
+          position="relative"
+        >
+          <Header />
+          <Flex flex="1">{getLayout(<Component {...pageProps} />)}</Flex>
+          <Footer />
+          {/*<Console />*/}
+        </Flex>
+      </Providers>
+      <Analytics />
+    </>
   );
 }
