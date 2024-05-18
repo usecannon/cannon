@@ -380,14 +380,24 @@ export const QueuedTxns = ({
                           colorScheme="teal"
                           w="100%"
                           isDisabled={
+                            stager.signing ||
                             !targetTxn ||
                             txnHasError ||
                             !!stager.signConditionFailed ||
                             queuedIdentifiableTxns.length === 0
                           }
-                          onClick={() => stager.sign()}
+                          onClick={async () => {
+                            await stager.sign();
+                          }}
                         >
-                          Stage &amp; Sign
+                          {stager.signing ? (
+                            <>
+                              Currently Signing
+                              <Spinner size="sm" ml={2} />
+                            </>
+                          ) : (
+                            'Stage & Sign'
+                          )}
                         </Button>
                       </Tooltip>
                     ) : null}
