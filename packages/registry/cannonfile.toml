@@ -1,11 +1,21 @@
 name = "registry"
-version = "<%= package.version %>"
+version = "2.13.1"
 
 [setting.salt]
 defaultValue = "official-registry"
 
 [setting.initialOwner]
 defaultValue = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+
+[setting.l1ChainId]
+defaultValue = "1"
+
+# Optimism messenger addresses, taken from: https://docs.optimism.io/chain/addresses
+[setting.optimismL1Sender]
+defaultValue = "0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1"
+
+[setting.optimismL2Receiver]
+defaultValue = "0x4200000000000000000000000000000000000007"
 
 [contract.InitialImpl]
 artifact = "OwnedUpgradable"
@@ -22,6 +32,11 @@ depends = ["contract.InitialImpl"]
 
 [contract.Implementation]
 artifact = "CannonRegistry"
+args = [
+  "<%= settings.optimismL1Sender %>",   # OptimismL1Sender
+  "<%= settings.optimismL2Receiver %>", # OptimismL2Receiver
+  "<%= settings.l1ChainId %>", # _L1_CHAIN_ID
+]
 
 [invoke.upgrade_proxy]
 target = ["InitialProxy"]

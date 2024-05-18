@@ -46,7 +46,7 @@ export type ContractMap = {
 
 export type TransactionMap = {
   [label: string]: {
-    hash: Hash;
+    hash: Hash | '';
     events: EventMap;
     deployedOn: string;
     gasUsed: number;
@@ -149,6 +149,11 @@ export const CannonHelperContext = {
   soliditySha256: (a: string[], v: any[]) => viem.sha256(viem.encodePacked(a, v)),
   serializeTransaction: viem.serializeTransaction,
   parseTransaction: viem.parseTransaction,
+
+  encodeFunctionData: viem.encodeFunctionData,
+  decodeFunctionData: viem.decodeFunctionData,
+  encodeFunctionResult: viem.encodeFunctionResult,
+  decodeFunctionResult: viem.decodeFunctionResult,
 };
 
 export type ChainBuilderContextWithHelpers = ChainBuilderContext & typeof CannonHelperContext;
@@ -197,7 +202,7 @@ export interface PackageState {
   currentLabel: string;
 }
 
-export type BundledOutput = { url: string; tags?: string[]; preset?: string } & ChainArtifacts;
+export type BundledOutput = { url: string; tags?: string[]; target?: string; preset?: string } & ChainArtifacts;
 
 export interface BundledChainBuilderOutputs {
   [module: string]: BundledOutput;

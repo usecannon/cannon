@@ -1,16 +1,13 @@
-import fs from 'fs-extra';
 import crypto from 'crypto';
+import fs from 'fs-extra';
 import path from 'path';
-import { CliLoader, LocalLoader, getMainLoader } from './loader'; // assuming the module's name is "module.ts"
+import { CliLoader, getMainLoader, LocalLoader } from './loader'; // assuming the module's name is "module.ts"
 import { CliSettings } from './settings';
 
 jest.mock('fs-extra');
 jest.mock('crypto');
 
-describe('LocalLoader', LocalLoaderTestCases);
-describe('getMainLoader', getMainLoaderTestCases);
-
-function LocalLoaderTestCases() {
+describe('LocalLoader', function LocalLoaderTestCases() {
   const dir = 'directory';
   const loader = new LocalLoader(dir);
 
@@ -45,12 +42,13 @@ function LocalLoaderTestCases() {
     expect(fs.writeFile).toHaveBeenCalledWith(path.join(dir, `${hash}.json`), json);
     expect(result).toEqual(`file://${hash}.json`);
   });
-}
+});
 
-function getMainLoaderTestCases() {
+describe('getMainLoader', function getMainLoaderTestCases() {
   beforeEach(() => {
     jest.clearAllMocks();
   });
+
   it('should return object with instances of loaders', () => {
     const settings: CliSettings = {
       providerUrl: '',
@@ -84,4 +82,4 @@ function getMainLoaderTestCases() {
     const loaders = getMainLoader(settings);
     expect(loaders.ipfs).toBeInstanceOf(CliLoader); // Changed this line
   });
-}
+});

@@ -1,38 +1,31 @@
 'use client';
 
-import { FC, useEffect, useState } from 'react';
-import { GET_PACKAGE } from '@/graphql/queries';
-import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
+import { FC } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Flex } from '@chakra-ui/react';
 import { DeploymentExplorer } from '@/features/Packages/DeploymentExplorer';
 import { CustomSpinner } from '@/components/CustomSpinner';
+import { getPackage } from '@/helpers/api';
 
 export const DeploymentTab: FC<{
   name: string;
   tag: string;
   variant: string;
 }> = ({ name, tag, variant }) => {
-  const { data } = useQueryCannonSubgraphData<any, any>(GET_PACKAGE, {
-    variables: { name },
+  const [chainId, preset] = decodeURIComponent(variant).split('-');
+
+  const packagesQuery = useQuery({
+    queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],
+    queryFn: getPackage,
   });
 
-  useEffect(() => {
-    if (data?.packages[0]) setPackage(data?.packages[0]);
-  }, [data]);
-
-  const [pkg, setPackage] = useState<any | null>(null);
-
-  const currentVariant = pkg?.variants.find(
-    (v: any) => v.name === variant && v.tag.name === tag
-  );
+  if (packagesQuery.isPending) {
+    return <CustomSpinner m="auto" />;
+  }
 
   return (
     <Flex flexDirection="column" width="100%">
-      {currentVariant ? (
-        <DeploymentExplorer pkgName={pkg.name} variant={currentVariant} />
-      ) : (
-        <CustomSpinner m="auto" />
-      )}
+      <DeploymentExplorer pkg={packagesQuery.data.data} />
     </Flex>
   );
 };

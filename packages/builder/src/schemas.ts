@@ -4,13 +4,9 @@ import { z } from 'zod';
 /// ================================ INPUT CONFIG SCHEMAS ================================ \\\
 
 // Different types that can be passed into the args schema property
-// Basically just a union as follows:
-// string | number | (string | number)[] | Record<string, string | number>
-const argtype = z.union([z.string(), z.number(), z.boolean()]);
-const argtype2 = z.array(argtype);
-const argtype3 = z.record(z.string(), argtype);
-const argtype4 = z.array(argtype3);
-const argsUnion = z.union([argtype, argtype2, argtype3, argtype4]);
+const argtype: z.ZodLazy<any> = z.lazy(() =>
+  z.union([z.string(), z.number(), z.boolean(), z.record(z.string(), argtype), z.array(argtype)])
+);
 
 // Different regular expressions used to validate formats like
 // <%=  string interpolation %>, step.names or property.names, packages:versions
@@ -142,7 +138,7 @@ export const deploySchema = z
         /**
          *  Constructor or initializer args
          */
-        args: z.array(argsUnion).describe('Constructor or initializer args'),
+        args: z.array(argtype).describe('Constructor or initializer args'),
         /**
          *  An array of contract operation names that deploy libraries this contract depends on.
          */
@@ -316,7 +312,7 @@ export const invokeSchema = z
         /**
          *  Arguments to use when invoking this call.
          */
-        args: z.array(argsUnion).describe('Arguments to use when invoking this call.'),
+        args: z.array(argtype).describe('Arguments to use when invoking this call.'),
         /**
          *  The calling address to use when invoking this call.
          */
@@ -342,7 +338,7 @@ export const invokeSchema = z
             /**
              *  The arguments to pass into the function being called.
              */
-            args: z.array(argsUnion).optional().describe('The arguments to pass into the function being called.'),
+            args: z.array(argtype).optional().describe('The arguments to pass into the function being called.'),
           })
           .describe("Specify a function to use as the 'from' value in a function call. Example `owner()`."),
         /**
@@ -433,7 +429,7 @@ export const invokeSchema = z
               /**
                *   Constructor or initializer args
                */
-              constructorArgs: z.array(argsUnion).optional().describe('Constructor or initializer args'),
+              constructorArgs: z.array(argtype).optional().describe('Constructor or initializer args'),
 
               /**
                *   Bypass error messages if an event is expected in the invoke operation but none are emitted in the transaction.
@@ -498,7 +494,7 @@ export const cloneSchema = z
          */
         chainId: z.number().int().describe('ID of the chain to import the package from. Default - 13370'),
         /**
-         *  Override the preset to use when provisioning this package.
+         *  (DEPRECATED) Use `source` instead. Override the preset to use when provisioning this package.
          * Default - "main"
          */
         sourcePreset: z
@@ -507,7 +503,19 @@ export const cloneSchema = z
             '⚠ Deprecated in favor of appending @PRESET_NAME to source. Override the preset to use when provisioning this package. Default - "main"'
           ),
         /**
-         *  Set the new preset to use for this package.
+         *  Name of the package to write the provisioned package to
+         */
+        target: z
+          .string()
+          .refine(
+            (val) => !!val.match(packageRegex) || !!val.match(interpolatedRegex),
+            (val) => ({
+              message: `Target value: ${val} must match package formats: "package:version" or "package:version@preset" or be an interpolated value`,
+            })
+          )
+          .describe('Name of the package to provision'),
+        /**
+         *  (DEPRECATED) use `target` instead. Set the new preset to use for this package.
          * Default - "main"
          */
         targetPreset: z.string().describe('Set the new preset to use for this package. Default - "main"'),

@@ -1,73 +1,77 @@
-import { useState } from 'react';
-import _ from 'lodash';
-import {
-  Checkbox,
-  FormControl,
-  HStack,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  NumberIncrementStepper,
-  NumberDecrementStepper,
-} from '@chakra-ui/react';
+import { SafeDefinition } from '@/helpers/store';
 import { useSafeTransactions } from '@/hooks/backend';
-import { SafeDefinition, useStore } from '@/helpers/store';
+import { Checkbox, FormControl, Flex, Select, Tooltip } from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
 
-export default function NoncePicker(props: {
-  safe?: SafeDefinition;
-  onPickedNonce: (nonce: number | null) => void;
-}) {
-  const currentSafe = useStore((s) => s.currentSafe);
+interface Params {
+  safe: SafeDefinition | null;
+  handleChange: (nonce: number | null) => void;
+}
 
-  const [isCustomNonce, setUseCustomNonce] = useState(false);
+export default function NoncePicker({ safe, handleChange }: Params) {
+  const [isOverridingNonce, setNonceOverride] = useState(false);
+  const [currentNonce, setCurrentNonce] = useState<number | null>(null);
 
-  const [pickedNonce, pickNonce] = useState<number | null>(null);
+  const safeTxs = useSafeTransactions(safe);
 
-  const { nonce, staged, stagedQuery } = useSafeTransactions(
-    (props.safe || currentSafe) as any
-  );
+  useEffect(() => {
+    handleChange(currentNonce);
+  }, [currentNonce]);
 
-  const lastNonce = staged.length
-    ? _.last(staged).txn._nonce
-    : Number(nonce) - 1;
-
-  if (stagedQuery.isSuccess && pickedNonce === null) {
-    // default to last nonce--this effectively allows for overriding the most recently staged txn
-    pickNonce(lastNonce);
-    props.onPickedNonce(Number(lastNonce) + 1);
-  }
+  useEffect(() => {
+    if (!safeTxs.nextNonce) return setCurrentNonce(null);
+    setCurrentNonce(isOverridingNonce ? safeTxs.nextNonce - 1 : null);
+  }, [isOverridingNonce, safeTxs.nextNonce]);
 
   return (
     <FormControl mb={4}>
-      <HStack>
-        <Checkbox
-          disabled={!staged?.length}
-          isChecked={isCustomNonce}
-          onChange={(e) => {
-            props.onPickedNonce(e.target.checked ? pickedNonce : lastNonce + 1);
-            setUseCustomNonce(e.target.checked);
-          }}
+      <Flex
+        justify="space-between"
+        align="center"
+        direction="row"
+        wrap="wrap"
+        gap={4}
+      >
+        <Tooltip
+          label={
+            safeTxs.staged.length === 0
+              ? 'You must have at least one transaction staged to override'
+              : ''
+          }
+          placement="top"
+          aria-label="Override Previously Staged Transaction"
+          shouldWrapChildren
         >
-          Override Previously Staged Transaction
-        </Checkbox>
-        {isCustomNonce && (
-          <NumberInput
-            min={Number(nonce)}
-            max={lastNonce}
-            value={pickedNonce as any}
-            onChange={(n) => {
-              pickNonce(parseInt(n));
-              return props.onPickedNonce(parseInt(n));
-            }}
+          <Checkbox
+            disabled={!safeTxs.isSuccess || safeTxs.staged.length === 0}
+            isChecked={isOverridingNonce}
+            onChange={(e) => setNonceOverride(e.target.checked)}
           >
-            <NumberInputField />
-            <NumberInputStepper>
-              <NumberIncrementStepper />
-              <NumberDecrementStepper />
-            </NumberInputStepper>
-          </NumberInput>
+            Override Previously Staged Transaction{' '}
+          </Checkbox>
+        </Tooltip>
+        {isOverridingNonce && (
+          <Flex direction="row" align="center" justify="space-between" grow={1}>
+            <Select
+              value={currentNonce ?? undefined}
+              onChange={(e) => {
+                const newVal = Number(e.target.value);
+                if (!Number.isSafeInteger(newVal) || newVal < 0) {
+                  setCurrentNonce(null);
+                } else {
+                  setCurrentNonce(newVal);
+                }
+              }}
+            >
+              {safeTxs.staged.map(({ txn }) => (
+                <option key={txn._nonce} value={txn._nonce}>
+                  {txn._nonce}
+                </option>
+              ))}
+            </Select>
+          </Flex>
         )}
-      </HStack>
+      </Flex>
     </FormControl>
   );
 }

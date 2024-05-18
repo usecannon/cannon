@@ -150,3 +150,14 @@ export async function contractTransaction(
 
   return hash;
 }
+/**
+ * Truncate an address to a given length
+ * @param address The address to truncate
+ * @param length The length to truncate to
+ * @returns The truncated address
+ * @example
+ * truncateAddress('0x1234567890abcdef1234567890abcdef12345678') // '0x123456...12345678'
+ */
+export const truncateAddress = (address: string, length = 6) => {
+  return `${address.slice(0, length)}...${address.slice(-length)}`;
+};

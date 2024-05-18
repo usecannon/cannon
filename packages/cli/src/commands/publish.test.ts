@@ -1,14 +1,13 @@
 import {
-  CannonSigner,
   CannonStorage,
   DeploymentInfo,
   IPFSLoader,
   OnChainRegistry,
+  InMemoryRegistry,
   publishPackage,
 } from '@usecannon/builder';
 import * as viem from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
-import fs, { Dirent } from 'fs-extra';
+import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
 import { dirSync } from 'tmp-promise';
@@ -24,9 +23,7 @@ describe('publish command', () => {
   const fullPackageRef = `package:1.2.3@${preset}`;
   const basePackageRef = 'package:1.2.3';
   const otherPreset = 'other';
-  let signer: CannonSigner;
-  let provider: viem.PublicClient;
-  let onChainRegistry: OnChainRegistry;
+  let onChainRegistry: InMemoryRegistry;
   const deployDataLocalFileName = `${basePackageRef.replace(':', '_')}_${chainId}-${preset}.txt`;
   const deployDataLocalFileNameLatest = `package_latest_${chainId}-${preset}.txt`;
   const miscData = { misc: 'info' };
@@ -71,9 +68,7 @@ describe('publish command', () => {
       })
     );
 
-    const privateKey = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
-    signer = { address: privateKeyToAccount(privateKey).address, wallet: {} as any };
-    onChainRegistry = new OnChainRegistry({ signer, provider, address: '0x' });
+    onChainRegistry = new InMemoryRegistry();
   });
 
   beforeEach(() => {
@@ -81,14 +76,13 @@ describe('publish command', () => {
     jest.clearAllMocks();
 
     // @ts-ignore
-    jest
-      .spyOn(fs, 'readdir')
-      .mockResolvedValue([
-        deployDataLocalFileName,
-        deployDataLocalFileName + '.meta',
-        deployDataLocalFileNameLatest,
-        deployDataLocalFileNameLatest + '.meta',
-      ] as unknown as Dirent[]);
+    jest.spyOn(fs, 'readdir').mockResolvedValue([
+      deployDataLocalFileName,
+      deployDataLocalFileName + '.meta',
+      deployDataLocalFileNameLatest,
+      deployDataLocalFileNameLatest + '.meta',
+      // casting to as never here because the types for fs-extra seem to be borked up atm (they partially inherit from node types, which breaks everything)
+    ] as never);
 
     const cliSettings = resolveCliSettings();
 
@@ -146,26 +140,24 @@ describe('publish command', () => {
     // jest spy on fs readdir which return string[] of package.json
     await publish({
       packageRef: fullPackageRef,
+      cliSettings: resolveCliSettings(),
       onChainRegistry,
       tags,
       chainId,
       quiet: true,
+      includeProvisioned: false,
       skipConfirm: true,
     });
 
-    expect(OnChainRegistry.prototype.publish as jest.Mock).toHaveBeenCalledTimes(1);
-    expect(OnChainRegistry.prototype.publish as jest.Mock).toHaveBeenCalledWith(
-      [fullPackageRef, ...tags.map((tag) => `package:${tag}@${preset}`)],
-      chainId,
-      testPkgDataNewIpfsUrl,
-      testPkgNewMetaIpfsUrl
-    );
+    expect(await onChainRegistry.getUrl(fullPackageRef, chainId)).toEqual(testPkgDataNewIpfsUrl);
+    expect(await onChainRegistry.getUrl(`package:tag0@${preset}`, chainId)).toEqual(testPkgDataNewIpfsUrl);
   });
 
   it('should publish the package to the registry with no tags', async () => {
     tags = [];
     await publish({
       packageRef: fullPackageRef,
+      cliSettings: resolveCliSettings(),
       onChainRegistry,
       tags,
       chainId,
@@ -174,10 +166,7 @@ describe('publish command', () => {
       includeProvisioned: true,
     });
 
-    expect(OnChainRegistry.prototype.publishMany as jest.Mock).toHaveBeenCalledTimes(1);
-    // the first call to publishMany first argument has a property packagesNames which is an array of strings
-    // the first element is the package name and the rest are the tags
-    expect((OnChainRegistry.prototype.publishMany as jest.Mock).mock.calls[0][0][0].packagesNames).toEqual([fullPackageRef]);
+    expect(await onChainRegistry.getUrl(fullPackageRef, chainId)).toEqual(testPkgDataNewIpfsUrl);
   });
 
   describe('scanDeploys', () => {
@@ -199,6 +188,7 @@ describe('publish command', () => {
     it('should only find single deploy file on chainId and preset set', async () => {
       await publish({
         packageRef: fullPackageRef,
+        cliSettings: resolveCliSettings(),
         onChainRegistry,
         tags,
         chainId,
@@ -217,6 +207,7 @@ describe('publish command', () => {
     it('should find multiple deploy files on chainId set', async () => {
       await publish({
         packageRef: fullPackageRef,
+        cliSettings: resolveCliSettings(),
         onChainRegistry,
         tags,
         chainId,
@@ -235,6 +226,7 @@ describe('publish command', () => {
     it('should find multiple deploy files on preset set', async () => {
       await publish({
         packageRef: fullPackageRef,
+        cliSettings: resolveCliSettings(),
         onChainRegistry,
         tags,
         chainId: 0,

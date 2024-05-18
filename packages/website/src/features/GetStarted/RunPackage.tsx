@@ -1,6 +1,6 @@
 import { CommandPreview } from '@/components/CommandPreview';
 import { links } from '@/constants/links';
-import { Heading, Text, Box, Link } from '@chakra-ui/react';
+import { Heading, Text, Box, Link, Kbd } from '@chakra-ui/react';
 import NextLink from 'next/link';
 
 export const RunPackage = () => {
@@ -56,38 +56,30 @@ export const RunPackage = () => {
           Anvil node
         </Link>{' '}
         with{' '}
-        <Link
-          isExternal
-          href="https://github.com/synthetixio/synthetix-deployments"
-        >
-          a deployment of Synthetix V3
+        <Link isExternal href="/packages/greeter/latest/13370-main">
+          a deployment of the greeter package
         </Link>{' '}
-        for local testing and development. For example, run a development
-        version of{' '}
-        <Link href="/packages/synthetix-omnibus/latest/13370-andromeda">
-          Synthetix’s Andromeda deployment
-        </Link>
-        :
+        for local testing and development:
       </Text>
       <Box mb={4}>
-        <CommandPreview command="cannon synthetix-omnibus@andromeda" />
+        <CommandPreview command="cannon greeter" />
       </Box>
       <Text mb={4}>
         Export the contract addresses and ABIs as a folder of JSON files. For
         example:
       </Text>
       <Box mb={4}>
-        <CommandPreview command="cannon inspect synthetix-omnibus@andromeda --write-deployments ./deployments" />
+        <CommandPreview command="cannon inspect greeter --write-deployments ./deployments" />
       </Box>
       <Text mb={4}>
         The command-line tool has a lot of additional functionality, including
         the ability to run packages on local forks and interact with deployments
-        on remote networks.{' '}
+        on remote networks. For example, press the <Kbd>I</Kbd> key after
+        running a package to interact directly with the contracts using the CLI.
         <Link href={links.CLI} as={NextLink}>
           Learn more
         </Link>
       </Text>
-
       <Text>
         Next,{' '}
         <Link href={links.BUILD} as={NextLink}>

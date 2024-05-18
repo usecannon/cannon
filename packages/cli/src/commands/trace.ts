@@ -64,7 +64,7 @@ export async function trace({
       // this is a transaction hash
       console.log(gray('Detected transaction hash'));
 
-      data = (txData as any).data;
+      data = txData.input;
       value = value || txData.value;
       block = block || txReceipt.blockNumber.toString();
       from = from || txData.from;

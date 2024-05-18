@@ -1,10 +1,8 @@
-import { Alert } from '@/components/Alert';
 import { links } from '@/constants/links';
 import { includes } from '@/helpers/array';
 import { State, useStore } from '@/helpers/store';
 import {
   getSafeFromString,
-  getSafeUrl,
   isValidSafe,
   isValidSafeString,
   parseSafe,
@@ -13,19 +11,22 @@ import {
   usePendingTransactions,
   useWalletPublicSafes,
 } from '@/hooks/safe';
-import { CloseIcon, ExternalLinkIcon } from '@chakra-ui/icons';
-import { FormControl, IconButton, Link, Spacer, Text } from '@chakra-ui/react';
+import { CloseIcon, WarningIcon } from '@chakra-ui/icons';
+import { FormControl, IconButton, Text, Flex, Tooltip } from '@chakra-ui/react';
 import {
   chakraComponents,
   ChakraStylesConfig,
   CreatableSelect,
   GroupBase,
   OptionProps,
+  SingleValueProps,
 } from 'chakra-react-select';
 import deepEqual from 'fast-deep-equal';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { useSwitchChain } from 'wagmi';
+import Chain from '@/features/Search/PackageCard/Chain';
+import { truncateAddress } from '@/helpers/ethereum';
 
 type SafeOption = {
   value: SafeString;
@@ -178,6 +179,7 @@ export function SafeAddressInput() {
       ...provided,
       borderColor: 'whiteAlpha.400',
       background: 'black',
+      py: 0,
     }),
     groupHeading: (provided) => ({
       ...provided,
@@ -186,6 +188,15 @@ export function SafeAddressInput() {
     option: (provided) => ({
       ...provided,
       background: 'black',
+      _selected: {
+        bg: 'gray.800',
+      },
+      _hover: {
+        bg: 'gray.900',
+      },
+    }),
+    noOptionsMessage: () => ({
+      height: 2,
     }),
     dropdownIndicator: (provided) => ({
       ...provided,
@@ -200,7 +211,7 @@ export function SafeAddressInput() {
   };
 
   return (
-    <>
+    <Flex alignItems="center" gap={3}>
       <FormControl>
         <CreatableSelect
           instanceId={'safe-address-select'}
@@ -208,9 +219,7 @@ export function SafeAddressInput() {
           isClearable
           value={currentSafe ? _safeToOption(currentSafe) : null}
           placeholder="Select a Safe"
-          noOptionsMessage={() =>
-            'Add a safe in the format chainId:safeAddress'
-          }
+          noOptionsMessage={() => ''}
           options={[
             ...safeOptions,
             {
@@ -230,58 +239,97 @@ export function SafeAddressInput() {
           isValidNewOption={(input: any) => {
             return isValidSafeString(input);
           }}
-          components={{ Option: DeletableOption }}
+          components={{
+            Option: DeletableOption,
+            SingleValue: SelectedOption,
+            MenuList: CustomMenuList,
+          }}
         />
       </FormControl>
       {currentSafe && pendingServiceTransactions.count > 0 && (
-        <Alert status="warning">
-          There
-          {pendingServiceTransactions.count === 1
-            ? ' is 1 pending transaction'
-            : ` are ${pendingServiceTransactions.count} pending transactions`}
-          {' on the '}
-          <Link
-            href={getSafeUrl(currentSafe, '/transactions/queue')}
-            isExternal
-          >
-            <Text as="b">Safe App</Text>
-            <ExternalLinkIcon transform="translate(4px,-2px)" />
-          </Link>
-          &nbsp; Keep in mind that any transactions executed on this app will
-          override the ones on Safe.
-        </Alert>
+        <Tooltip
+          label={`There ${
+            pendingServiceTransactions.count === 1
+              ? ' is 1 pending transaction'
+              : ` are ${pendingServiceTransactions.count} pending transactions`
+          } on the Safe{Wallet} app. Any transactions executed using Cannon will override transactions there.`}
+        >
+          <WarningIcon color="orange.400" boxSize="5" />
+        </Tooltip>
       )}
-    </>
+    </Flex>
+  );
+}
+
+function SelectedOption({
+  ...props
+}: SingleValueProps<SafeOption> & { selectProps?: { onDeleteOption?: any } }) {
+  return (
+    <chakraComponents.SingleValue {...props}>
+      <Flex justifyContent="space-between">
+        {/* @notice: Tooltip is not working for this component */}
+        <Tooltip
+          label={props.data.value}
+          aria-label="Safe Address"
+          maxW="fit-content"
+        >
+          <Text letterSpacing="1px" fontFamily="monospace">
+            {truncateAddress(props.data.value.split(':')[1], 10)}
+          </Text>
+        </Tooltip>
+        <Chain id={parseInt(props.data.value.split(':')[0])} />
+      </Flex>
+    </chakraComponents.SingleValue>
   );
 }
 
 function DeletableOption({
-  children,
   ...props
 }: OptionProps<SafeOption> & {
   selectProps?: { onDeleteOption?: (value: SafeOption) => void };
 }) {
   const onDelete = props.selectProps?.onDeleteOption;
+  const chainId = parseInt(props.data.value.split(':')[0]);
+  const address = props.data.value.split(':')[1];
   return (
     <chakraComponents.Option {...props}>
-      {children}
-      {onDelete && props.data.isDeletable && (
-        <>
-          <Spacer />
-          <IconButton
-            size="xs"
-            variant="ghost"
-            aria-label="Delete Option"
-            icon={<CloseIcon />}
-            onClick={(evt) => {
-              evt.preventDefault();
-              evt.stopPropagation();
-              onDelete(props.data);
-            }}
-          />
-        </>
-      )}
+      <Flex alignItems="center" width="100%">
+        <Tooltip label={address} aria-label="Safe Address" maxW="fit-content">
+          <Text letterSpacing="1px" fontFamily="monospace">
+            {truncateAddress(address, 10)}
+          </Text>
+        </Tooltip>
+        <Flex grow={1} justifyContent="flex-end">
+          <Chain id={chainId} hideId />
+          {onDelete && props.data.isDeletable && (
+            <IconButton
+              _hover={{ bg: 'gray.300' }}
+              ml={2}
+              size="xs"
+              variant="ghost"
+              aria-label="Delete Option"
+              icon={<CloseIcon color={'white'} />}
+              onClick={(evt) => {
+                evt.preventDefault();
+                evt.stopPropagation();
+                onDelete(props.data);
+              }}
+            />
+          )}
+        </Flex>
+      </Flex>
     </chakraComponents.Option>
+  );
+}
+
+function CustomMenuList({ children, ...props }: any) {
+  return (
+    <chakraComponents.MenuList {...props}>
+      {children}
+      <Text color="gray.400" fontSize="xs" textAlign="center" mb={2}>
+        To add a Safe, enter it in the format chainId:safeAddress
+      </Text>
+    </chakraComponents.MenuList>
   );
 }
 

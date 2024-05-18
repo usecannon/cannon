@@ -1,23 +1,31 @@
 import { useStore } from '@/helpers/store';
+import { useCannonPackage, useCannonPackageContracts } from '@/hooks/cannon';
 import { useSimulatedTxns } from '@/hooks/fork';
+import { DeleteIcon } from '@chakra-ui/icons';
 import {
   Alert,
+  AlertDescription,
   AlertIcon,
+  AlertTitle,
   Box,
   Flex,
-  FormLabel,
-  Text,
   FormControl,
-  AlertTitle,
-  AlertDescription,
-  Button,
+  FormHelperText,
+  FormLabel,
+  IconButton,
+  Input,
+  InputGroup,
+  InputRightAddon,
+  Text,
+  Tooltip,
 } from '@chakra-ui/react';
+import { AbiFunction } from 'abitype/src/abi';
 import {
+  chakraComponents,
   ChakraStylesConfig,
   GroupBase,
   OptionProps,
   Select,
-  chakraComponents,
 } from 'chakra-react-select';
 import { useEffect, useState } from 'react';
 import {
@@ -25,13 +33,14 @@ import {
   Address,
   decodeErrorResult,
   encodeFunctionData,
-  getFunctionSelector,
+  formatEther,
   Hex,
+  parseEther,
+  toFunctionSelector,
   TransactionRequestBase,
 } from 'viem';
-import 'react-diff-view/style/index.css';
-import { AbiFunction } from 'abitype/src/abi';
 import { FunctionInput } from '../Packages/FunctionInput';
+import 'react-diff-view/style/index.css';
 
 type OptionData = {
   value: any;
@@ -83,7 +92,7 @@ function decodeError(err: Hex, abi: Abi) {
       data: err,
     });
 
-    return `${parsedError.errorName}(${parsedError.args?.join(', ')})`;
+    return `${parsedError.errorName}(${parsedError.args?.join(', ') || ''})`;
   } catch (err) {
     // ignore
   }
@@ -92,23 +101,51 @@ function decodeError(err: Hex, abi: Abi) {
 }
 
 export function QueueTransaction({
-  contracts,
   onChange,
   isDeletable,
   onDelete,
+  txn: tx,
+  fn,
+  params,
+  contractName,
+  contractAddress,
+  target,
+  chainId,
 }: {
-  contracts: { [key: string]: { address: Address; abi: any[] } };
-  onChange: (txn: Omit<TransactionRequestBase, 'from'> | null) => void;
+  onChange: (
+    txn: Omit<TransactionRequestBase, 'from'> | null,
+    fn: AbiFunction,
+    params: any[] | any,
+    contractName: string | null,
+    target?: string,
+    chainId?: number
+  ) => void;
   isDeletable: boolean;
   onDelete: () => void;
+  txn: Omit<TransactionRequestBase, 'from'> | null;
+  fn?: AbiFunction;
+  contractName?: string;
+  contractAddress?: string;
+  params?: any[] | any;
+  target: string;
+  chainId: number;
 }) {
+  const [value, setValue] = useState<string | undefined>(
+    tx?.value ? formatEther(BigInt(tx?.value)).toString() : undefined
+  );
+  const pkg = useCannonPackage(target, chainId);
+  const { contracts } = useCannonPackageContracts(target, chainId);
+
   const [selectedContractName, setSelectedContractName] = useState<
     string | null
-  >();
-  const [selectedFunction, setSelectedFunction] =
-    useState<AbiFunction | null>();
-  const [selectedParams, setSelectedParams] = useState<any[]>([]);
-  const [txn, setTxn] = useState<Omit<TransactionRequestBase, 'from'> | null>();
+  >(contractName || null);
+  const [selectedFunction, setSelectedFunction] = useState<AbiFunction | null>(
+    fn || null
+  );
+  const [selectedParams, setSelectedParams] = useState<any[]>(params || []);
+  const [txn, setTxn] = useState<Omit<TransactionRequestBase, 'from'> | null>(
+    tx || null
+  );
   const [paramsEncodeError, setParamsEncodeError] = useState<string | null>();
 
   useEffect(() => {
@@ -129,19 +166,33 @@ export function QueueTransaction({
     let _txn: Omit<TransactionRequestBase, 'from'> | null = null;
 
     if (selectedContractName && selectedFunction) {
+      const isPayable = selectedFunction.stateMutability === 'payable';
+
       if (selectedFunction.inputs.length === 0) {
         _txn = {
-          to: contracts[selectedContractName].address,
-          data: getFunctionSelector(selectedFunction),
+          to: contracts
+            ? contracts[selectedContractName].address
+            : (tx?.to as Address),
+          data: toFunctionSelector(selectedFunction),
+          value:
+            isPayable && value !== undefined
+              ? parseEther(value.toString())
+              : undefined,
         };
       } else {
         try {
           _txn = {
-            to: contracts[selectedContractName].address,
+            to: contracts
+              ? contracts[selectedContractName].address
+              : (tx?.to as Address),
             data: encodeFunctionData({
               abi: [selectedFunction],
               args: selectedParams,
             }),
+            value:
+              isPayable && value !== undefined
+                ? parseEther(value.toString())
+                : undefined,
           };
         } catch (err: any) {
           error =
@@ -154,20 +205,63 @@ export function QueueTransaction({
 
     setParamsEncodeError(error);
     setTxn(_txn);
-    onChange(_txn);
-  }, [selectedContractName, selectedFunction, selectedParams]);
+    onChange(
+      _txn,
+      selectedFunction as any,
+      selectedParams,
+      selectedContractName
+    );
+  }, [
+    value,
+    selectedContractName,
+    selectedFunction,
+    selectedParams,
+    contractAddress,
+    txn?.to,
+  ]);
 
   const currentSafe = useStore((s) => s.currentSafe);
   const txnInfo = useSimulatedTxns(currentSafe as any, txn ? [txn] : []);
 
   return (
     <Flex direction="column">
+      <Flex
+        flexDirection="row"
+        alignItems="center"
+        justifyContent="space-between"
+        backgroundColor="gray.700"
+        p={3}
+        pl={6}
+        pr={6}
+      >
+        <Text fontWeight={600} fontSize="sm" color="gray.300">
+          {pkg.fullPackageRef}
+        </Text>
+        {isDeletable && (
+          <Tooltip label="Remove transaction">
+            <IconButton
+              variant="outline"
+              border="none"
+              _hover={{ bg: 'gray.700' }}
+              size="xs"
+              colorScheme="red"
+              color="gray.300"
+              onClick={onDelete}
+              aria-label="Remove transaction"
+              icon={<DeleteIcon />}
+            />
+          </Tooltip>
+        )}
+      </Flex>
       <Flex alignItems="center">
         <Flex
           flexDirection="column"
           flex="1"
           w={['100%', '100%', '50%']}
           gap="10px"
+          p={6}
+          pt={4}
+          pb={4}
         >
           <FormControl mb={2}>
             <FormLabel>Contract</FormLabel>
@@ -180,56 +274,83 @@ export function QueueTransaction({
                   ? {
                       value: selectedContractName,
                       label: selectedContractName,
-                      secondary: contracts[selectedContractName].address,
+                      secondary: `${chainId}:${
+                        contracts
+                          ? contracts[selectedContractName].address
+                          : (txn?.to as Address)
+                      }`,
                     }
                   : null
               }
               placeholder="Choose a contract..."
-              options={Object.entries(contracts).map(([name, contract]) => ({
-                value: name,
-                label: name,
-                secondary: contract.address,
-              }))}
+              options={
+                contracts
+                  ? Object.entries(contracts).map(([name, contract]) => ({
+                      value: name,
+                      label: name,
+                      secondary: `${chainId}:${contract.address}`,
+                    }))
+                  : selectedContractName && txn?.to
+                  ? [
+                      {
+                        value: selectedContractName,
+                        label: selectedContractName,
+                        secondary: `${chainId}:${txn.to}`,
+                      },
+                    ]
+                  : []
+              }
               onChange={(selected: any) =>
                 setSelectedContractName(selected?.value || null)
               }
               components={{ Option: Option }}
             ></Select>
           </FormControl>
-          {selectedContractName && (
-            <FormControl mb={2}>
-              <FormLabel>Function</FormLabel>
-              <Select
-                instanceId={'function-name'}
-                chakraStyles={chakraStyles}
-                isClearable
-                value={
-                  selectedFunction
-                    ? {
+          <FormControl mb={2}>
+            <FormLabel>Function</FormLabel>
+            <Select
+              instanceId={'function-name'}
+              chakraStyles={chakraStyles}
+              isClearable
+              value={
+                selectedFunction
+                  ? {
+                      value: selectedFunction,
+                      label: selectedFunction.name,
+                      secondary: toFunctionSelector(selectedFunction),
+                    }
+                  : null
+              }
+              placeholder="Choose a function..."
+              options={
+                contracts && selectedContractName
+                  ? (contracts[selectedContractName].abi as AbiFunction[])
+                      .filter(
+                        (abi) =>
+                          abi.type === 'function' &&
+                          abi.stateMutability !== 'view'
+                      )
+                      .map((abi: AbiFunction) => ({
+                        value: abi,
+                        label: abi.name,
+                        secondary: toFunctionSelector(abi),
+                      }))
+                  : selectedFunction
+                  ? [
+                      {
                         value: selectedFunction,
                         label: selectedFunction.name,
-                        secondary: getFunctionSelector(selectedFunction),
-                      }
-                    : null
-                }
-                placeholder="Choose a function..."
-                options={contracts[selectedContractName].abi
-                  .filter(
-                    (abi) =>
-                      abi.type === 'function' && abi.stateMutability !== 'view'
-                  )
-                  .map((abi) => ({
-                    value: abi,
-                    label: abi.name,
-                    secondary: getFunctionSelector(abi),
-                  }))}
-                onChange={(selected: any) =>
-                  setSelectedFunction(selected?.value || null)
-                }
-                components={{ Option: Option }}
-              ></Select>
-            </FormControl>
-          )}
+                        secondary: toFunctionSelector(selectedFunction),
+                      },
+                    ]
+                  : []
+              }
+              onChange={(selected: any) =>
+                setSelectedFunction(selected?.value || null)
+              }
+              components={{ Option: Option }}
+            ></Select>
+          </FormControl>
           {!!selectedFunction?.inputs?.length && (
             <FormControl mb={2}>
               <FormLabel>Parameters</FormLabel>
@@ -256,9 +377,44 @@ export function QueueTransaction({
                       params[index] = value;
                       setSelectedParams(params);
                     }}
+                    initialValue={params[index]}
                   />
                 </Box>
               ))}
+            </FormControl>
+          )}
+          {selectedFunction?.stateMutability === 'payable' && (
+            <FormControl mb="4">
+              <FormLabel fontSize="sm" mb={1}>
+                Value
+                <Text fontSize="xs" color="whiteAlpha.700" display="inline">
+                  {' '}
+                  (payable)
+                </Text>
+              </FormLabel>
+              <InputGroup size="sm">
+                <Input
+                  type="number"
+                  size="sm"
+                  bg="black"
+                  borderColor="whiteAlpha.400"
+                  value={value?.toString()}
+                  onChange={(e) => setValue(e.target.value)}
+                />
+                <InputRightAddon
+                  bg="black"
+                  color="whiteAlpha.700"
+                  borderColor="whiteAlpha.400"
+                >
+                  ETH
+                </InputRightAddon>
+              </InputGroup>
+              <FormHelperText color="gray.300">
+                {value !== undefined
+                  ? parseEther(value.toString()).toString()
+                  : 0}{' '}
+                wei
+              </FormHelperText>
             </FormControl>
           )}
           {paramsEncodeError && (
@@ -274,7 +430,8 @@ export function QueueTransaction({
           )}
           {txnInfo.txnResults &&
             txnInfo.txnResults[0] &&
-            txnInfo.txnResults[0]?.error && (
+            txnInfo.txnResults[0]?.error &&
+            contracts && (
               <Alert bg="gray.900" status="error">
                 <AlertIcon />
                 <Box>
@@ -290,22 +447,6 @@ export function QueueTransaction({
                 </Box>
               </Alert>
             )}
-          {isDeletable && (
-            <Box>
-              <Button
-                mt="3"
-                variant="outline"
-                size="xs"
-                colorScheme="red"
-                color="red.400"
-                borderColor="red.400"
-                _hover={{ bg: 'red.900' }}
-                onClick={onDelete}
-              >
-                Remove Transaction
-              </Button>
-            </Box>
-          )}
         </Flex>
       </Flex>
     </Flex>
@@ -317,7 +458,7 @@ function Option({ children, ...props }: OptionProps<OptionData>) {
     <chakraComponents.Option {...props}>
       <Flex direction="column">
         {children}
-        <Text color="gray.600" fontSize="2xs">
+        <Text color="gray.400" fontSize="2xs">
           {props.data.secondary}
         </Text>
       </Flex>

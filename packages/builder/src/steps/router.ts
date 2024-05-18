@@ -68,9 +68,9 @@ const routerStep = {
     return config;
   },
 
-  getInputs(config: Config) {
+  getInputs(config: Config, possibleFields: string[]) {
     let accesses = computeTemplateAccesses(config.from);
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt, possibleFields));
     accesses.accesses.push(
       ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`))
     );
@@ -79,7 +79,7 @@ const routerStep = {
   },
 
   getOutputs(_: Config, packageState: PackageState) {
-    return [`contracts.${packageState.currentLabel.split('.')[1]}`];
+    return [`contracts.${packageState.currentLabel.split('.')[1]}`, `${packageState.currentLabel.split('.')[1]}`];
   },
 
   async exec(

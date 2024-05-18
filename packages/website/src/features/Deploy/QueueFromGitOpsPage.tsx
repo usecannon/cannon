@@ -38,7 +38,7 @@ import {
   Tooltip,
   useToast,
 } from '@chakra-ui/react';
-import { ChainBuilderContext, DeploymentInfo } from '@usecannon/builder';
+import { ChainBuilderContext } from '@usecannon/builder';
 import _ from 'lodash';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -52,12 +52,8 @@ import {
   TransactionRequestBase,
   zeroAddress,
 } from 'viem';
-import {
-  useChainId,
-  useEstimateGas,
-  useSendTransaction,
-  useWriteContract,
-} from 'wagmi';
+import { useWriteContract } from 'wagmi';
+import pkg from '../../../package.json';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
 import 'react-diff-view/style/index.css';
@@ -69,17 +65,6 @@ export default function QueueFromGitOpsPage() {
 function QueueFromGitOps() {
   const router = useRouter();
   const currentSafe = useStore((s) => s.currentSafe);
-
-  const { data: gasData, refetch } = useEstimateGas(onchainStore.deployTxn);
-
-  const deployOnChainStore = useSendTransaction({
-    mutation: {
-      onSuccess: async () => {
-        await refetch();
-      },
-    },
-  });
-
   const [cannonfileUrlInput, setCannonfileUrlInput] = useState('');
   const [previousPackageInput, setPreviousPackageInput] = useState('');
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
@@ -101,7 +86,7 @@ function QueueFromGitOps() {
     return cannonfileUrlInput.split('/blob/')[0];
   }, [cannonfileUrlInput]);
 
-  const gitBranch = useMemo(() => {
+  const gitRef = useMemo(() => {
     if (!cannonfileUrlRegex.test(cannonfileUrlInput)) {
       return '';
     }
@@ -120,7 +105,7 @@ function QueueFromGitOps() {
       return '';
     }
 
-    return `refs/heads/${branchName}`;
+    return branchName;
   }, [cannonfileUrlInput]);
 
   const gitFile = useMemo(() => {
@@ -142,7 +127,7 @@ function QueueFromGitOps() {
     return urlComponents.join('/');
   }, [cannonfileUrlInput]);
 
-  const cannonDefInfo = useLoadCannonDefinition(gitUrl, gitBranch, gitFile);
+  const cannonDefInfo = useLoadCannonDefinition(gitUrl, gitRef, gitFile);
 
   const cannonDefInfoError: string = gitUrl
     ? (cannonDefInfo.error as any)?.toString()
@@ -162,7 +147,7 @@ function QueueFromGitOps() {
   };
 
   const settings = useStore((s) => s.settings);
-  const chainId = useChainId();
+  const chainId = currentSafe?.chainId;
 
   const previousName = useMemo(() => {
     if (previousPackageInput) {
@@ -242,13 +227,15 @@ function QueueFromGitOps() {
   const uploadToPublishIpfs = useCannonWriteDeployToIpfs(
     buildInfo.buildResult?.runtime,
     cannonDefInfo.def
-      ? ({
+      ? {
+          generator: `cannon website ${pkg.version}`,
+          timestamp: Math.floor(Date.now() / 1000),
           def: cannonDefInfo.def?.toJson(),
-          state: buildInfo.buildResult?.state,
-          options: prevCannonDeployInfo.pkg?.options,
+          state: buildInfo.buildResult?.state || {},
+          options: prevCannonDeployInfo.pkg?.options || {},
           meta: prevCannonDeployInfo.pkg?.meta,
-          miscUrl: prevCannonDeployInfo.pkg?.miscUrl,
-        } as DeploymentInfo)
+          miscUrl: prevCannonDeployInfo.pkg?.miscUrl || '',
+        }
       : undefined,
     prevCannonDeployInfo.metaUrl || undefined
   );
@@ -260,7 +247,12 @@ function QueueFromGitOps() {
   }, [buildInfo.buildResult?.steps]);
 
   const refsInfo = useGitRefsList(gitUrl);
-  const gitHash = refsInfo.refs?.find((r) => r.ref === gitBranch)?.oid;
+  const foundRef = refsInfo.refs?.find(
+    (r) =>
+      (r.ref.startsWith('refs/heads/') || r.ref.startsWith('refs/tags/')) &&
+      r.ref.endsWith(gitRef)
+  )?.oid;
+  const gitHash = gitRef.match(/^[0-9a-f]+$/) ? foundRef || gitRef : foundRef;
 
   const prevInfoQuery = useGetPreviousGitInfoQuery(
     currentSafe as any,
@@ -285,6 +277,7 @@ function QueueFromGitOps() {
                     `${gitUrl}:${gitFile}`,
                     gitHash,
                     prevInfoQuery.data &&
+                    Array.isArray(prevInfoQuery.data?.[0].result) &&
                     (prevInfoQuery.data[0].result as any).length > 2
                       ? ((prevInfoQuery.data[0].result as any).slice(2) as any)
                       : '',
@@ -373,50 +366,6 @@ function QueueFromGitOps() {
         Update your IPFS URL to an API endpoint where you can pin files in{' '}
         <Link href="/settings">settings</Link>.
       </>
-    );
-  } else if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
-    alertMessage = (
-      <>
-        Update your IPFS URL to an API endpoint where you can pin files in{' '}
-        <Link href="/settings">settings</Link>.
-      </>
-    );
-  }
-
-  if (
-    deployOnChainStore.isSuccess &&
-    !deployOnChainStore.isPending &&
-    !deployOnChainStore.isError
-  ) {
-    return (
-      <Container maxWidth="container.sm">
-        <Box
-          bg="blackAlpha.600"
-          border="1px solid"
-          borderColor="gray.900"
-          borderRadius="md"
-          p={6}
-          my={16}
-        >
-          <Text mb={4}>
-            To use this tool, you need to deploy the on-chain store contract.
-            This is a one time (per network) operation and will cost a small
-            amount of gas.
-          </Text>
-          <Button
-            colorScheme="teal"
-            w="100%"
-            onClick={() =>
-              deployOnChainStore.sendTransaction({
-                gas: gasData,
-                ...onchainStore.deployTxn,
-              })
-            }
-          >
-            Deploy On-Chain Store Contract
-          </Button>
-        </Box>
-      </Container>
     );
   }
 
@@ -631,20 +580,28 @@ function QueueFromGitOps() {
           )}
           {uploadToPublishIpfs.deployedIpfsHash && multicallTxn.data && (
             <Box>
-              <NoncePicker
-                safe={currentSafe as any}
-                onPickedNonce={setPickedNonce}
-              />
+              <NoncePicker safe={currentSafe} handleChange={setPickedNonce} />
               <HStack gap="6">
                 {stager.execConditionFailed ? (
                   <Tooltip label={stager.signConditionFailed}>
                     <Button
-                      isDisabled={!!stager.signConditionFailed}
+                      isDisabled={
+                        !!stager.signConditionFailed || stager.signing
+                      }
                       size="lg"
                       w="100%"
-                      onClick={() => stager.sign()}
+                      onClick={async () => {
+                        await stager.sign();
+                      }}
                     >
-                      Queue &amp; Sign
+                      {stager.signing ? (
+                        <>
+                          Currently Signing
+                          <Spinner size="sm" ml={2} />
+                        </>
+                      ) : (
+                        'Queue & Sign'
+                      )}
                     </Button>
                   </Tooltip>
                 ) : null}

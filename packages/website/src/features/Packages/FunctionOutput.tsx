@@ -3,6 +3,9 @@ import { Box, Text, Flex } from '@chakra-ui/react';
 import { AbiParameter } from 'abitype';
 import { isArray, isObject } from 'lodash';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
+import { HiCalculator } from 'react-icons/hi';
+import { Tooltip } from '@chakra-ui/react';
+import { formatEther } from 'viem';
 
 export const FunctionOutput: FC<{
   output: AbiParameter | readonly AbiParameter[];
@@ -33,7 +36,11 @@ export const FunctionOutput: FC<{
     </Box>
   );
 
-  const renderOutput = (item: AbiParameter, value: { [key: string]: any }) => {
+  const renderOutput = (
+    item: AbiParameter,
+    value: { [key: string]: any },
+    index?: number
+  ) => {
     if (item.type === 'tuple' && hasComponents(item) && value) {
       return (
         <Box pl="4">
@@ -79,22 +86,54 @@ export const FunctionOutput: FC<{
           </Text>
         );
       } else if (isArray(value)) {
-        return value.map((val, idx) => (
-          <Text fontSize="xs" display="block" key={idx}>
-            {String(val)}
-          </Text>
-        ));
+        if (index !== undefined) {
+          return (
+            <Text fontSize="xs" display="block">
+              {String(value[index])}
+            </Text>
+          );
+        } else {
+          return value.map((val, idx) => (
+            <Text fontSize="xs" display="block" key={idx}>
+              {String(val)}
+            </Text>
+          ));
+        }
       } else {
         return (
-          <Text
-            display="block"
-            pt="1"
-            pb="2"
-            fontSize="xs"
-            color="whiteAlpha.900"
+          <Flex
+            alignItems="center"
+            gap={2}
+            justifyItems="center"
+            py={2}
+            data-tooltip-id={`${item.name}${item.type}`}
+            data-tooltip-float
           >
-            {result !== null || undefined ? String(result) : '---'}
-          </Text>
+            {(item.type.includes('int128') || item.type.includes('int256')) &&
+            result ? (
+              <>
+                <Tooltip
+                  label={formatEther(result).toString()}
+                  aria-label="Decimal Representation"
+                >
+                  <Flex gap={2} alignItems="center">
+                    <Text
+                      fontSize="xs"
+                      color="whiteAlpha.900"
+                      verticalAlign="center"
+                    >
+                      {result !== null || undefined ? String(result) : '---'}
+                    </Text>
+                    <HiCalculator color="#0092b4" size={18} />
+                  </Flex>
+                </Tooltip>
+              </>
+            ) : (
+              <Text fontSize="xs" color="whiteAlpha.900" verticalAlign="center">
+                {result !== null || undefined ? String(result) : '---'}
+              </Text>
+            )}
+          </Flex>
         );
       }
     }
@@ -114,7 +153,7 @@ export const FunctionOutput: FC<{
         output.map((item, index) => (
           <Box overflowX={'scroll'} p={2} key={index}>
             <ItemLabel name={item.name || ''} type={item.internalType || ''} />
-            {renderOutput(item, result)}
+            {renderOutput(item, result, index)}
           </Box>
         ))
       ) : (

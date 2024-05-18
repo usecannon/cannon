@@ -1,19 +1,18 @@
 import { LinkIcon } from '@chakra-ui/icons';
 import PackageTable from './PackageTable';
-import { Package } from '@/types/graphql/graphql';
 import { Box, Flex, Heading, Link } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { FC } from 'react';
 
 interface IPackageCardProps {
-  pkg: Package;
+  pkgs: any[];
   maxHeight?: string;
 }
 
-export const PackageCard: FC<IPackageCardProps> = ({ pkg, maxHeight }) => {
+export const PackageCard: FC<IPackageCardProps> = ({ pkgs, maxHeight }) => {
   return (
     <Box
-      key={pkg.name}
+      key={pkgs[0].name}
       bg="black"
       display="block"
       borderWidth="1px"
@@ -36,11 +35,11 @@ export const PackageCard: FC<IPackageCardProps> = ({ pkg, maxHeight }) => {
     >
       <Flex bg="gray.800" p={2}>
         <Heading as="h4" p={1} size="sm">
-          {pkg.name}
+          {pkgs[0].name}
         </Heading>
         <Link
           as={NextLink}
-          href={'/packages/' + pkg.name}
+          href={'/packages/' + pkgs[0].name}
           display="inline-block"
           ml="auto"
           mr={1}
@@ -50,7 +49,7 @@ export const PackageCard: FC<IPackageCardProps> = ({ pkg, maxHeight }) => {
       </Flex>
 
       <Box verticalAlign="middle" overflow="auto" maxHeight={maxHeight}>
-        <PackageTable latestOnly={false} pkg={pkg} />
+        <PackageTable latestOnly={false} pkgs={pkgs} />
       </Box>
     </Box>
   );
