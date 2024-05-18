@@ -75,6 +75,7 @@ program
   .name('cannon')
   .version(pkg.version)
   .description('Run a cannon package on a local node')
+  .enablePositionalOptions()
   .hook('preAction', async (thisCommand) => {
     await checkCannonVersion(pkg.version);
     setDebugLevel(thisCommand.opts());
