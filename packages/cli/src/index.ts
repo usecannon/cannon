@@ -398,11 +398,14 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
   if (isDefaultSettings) {
     // Check if the package is already registered
-    const [, mainnet] = DEFAULT_REGISTRY_CONFIG;
+    const [optimism, mainnet] = DEFAULT_REGISTRY_CONFIG;
 
     const [optimismProvider, mainnetProvider] = await resolveRegistryProviders(cliSettings);
 
-    const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, mainnet.address);
+    const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, [
+      mainnet.address,
+      optimism.address,
+    ]);
 
     if (!isRegistered) {
       console.log();
