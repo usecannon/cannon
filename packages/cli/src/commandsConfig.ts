@@ -160,7 +160,7 @@ const anvilOptions = [
 
 const commandsConfig = {
   run: {
-    description: 'Utility for instantly loading cannon packages in standalone contexts',
+    description: 'Run a local Cannon package (Chain ID: 13370) on a local node for development and testing',
     usage: '[global options] ...[<name>[:<semver>] ...[<key>=<value>]]',
     arguments: [
       {
@@ -390,7 +390,8 @@ const commandsConfig = {
     ],
   },
   publish: {
-    description: 'Publish a Cannon package to the registry',
+    description:
+      'Publish a Cannon package to the registry (Note that the registry collects some ETH, indicated in the CLI output, to support an IPFS cluster that automatically pins package data.)',
     arguments: [
       {
         flags: '<packageRef>',

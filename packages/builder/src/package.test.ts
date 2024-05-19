@@ -80,7 +80,7 @@ describe('package.ts', () => {
       options: {},
     };
 
-    beforeAll(async () => {
+    beforeEach(async () => {
       toRegistry = new InMemoryRegistry();
       toLoader = new IPFSLoader('world');
       toStorage = new CannonStorage(toRegistry, { https: toLoader }, 'https');

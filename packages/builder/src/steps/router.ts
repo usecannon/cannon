@@ -114,6 +114,7 @@ const routerStep = {
     const sourceCode = generateRouter({
       contractName,
       contracts: contracts as any,
+      canReceivePlainETH: config.includeReceive,
     });
 
     debug('router source code', sourceCode);
