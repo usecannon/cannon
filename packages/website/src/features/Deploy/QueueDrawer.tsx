@@ -1,20 +1,29 @@
 'use client';
 
-import React, { Suspense, useState } from 'react';
 import { links } from '@/constants/links';
+import WithSafe from '@/features/Deploy/WithSafe';
 import { makeMultisend } from '@/helpers/multisend';
 import { useQueueTxsStore, useStore } from '@/helpers/store';
 import { useTxnStager } from '@/hooks/backend';
 import { useCannonPackageContracts } from '@/hooks/cannon';
 import { useSimulatedTxns } from '@/hooks/fork';
 import { SafeTransaction } from '@/types/SafeTransaction';
+import { AddIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import {
-  IconButton,
   Box,
+  Button,
+  Drawer,
+  DrawerBody,
+  DrawerCloseButton,
+  DrawerContent,
+  DrawerHeader,
+  DrawerOverlay,
   FormControl,
   FormHelperText,
   FormLabel,
   HStack,
+  Icon,
+  IconButton,
   Input,
   InputGroup,
   InputRightElement,
@@ -22,17 +31,10 @@ import {
   Text,
   Tooltip,
   useToast,
-  Drawer,
-  DrawerOverlay,
-  DrawerContent,
-  DrawerCloseButton,
-  DrawerHeader,
-  DrawerBody,
-  Button,
-  Icon,
 } from '@chakra-ui/react';
-import { AddIcon, InfoOutlineIcon } from '@chakra-ui/icons';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useRouter } from 'next/navigation';
+import React, { Suspense, useState } from 'react';
 import {
   AbiFunction,
   encodeAbiParameters,
@@ -41,14 +43,11 @@ import {
   TransactionRequestBase,
   zeroAddress,
 } from 'viem';
-import { useWriteContract } from 'wagmi';
+import { useAccount, useWriteContract } from 'wagmi';
 import NoncePicker from './NoncePicker';
 import { QueueTransaction } from './QueueTransaction';
-import 'react-diff-view/style/index.css';
 import { SafeAddressInput } from './SafeAddressInput';
-import WithSafe from '@/features/Deploy/WithSafe';
-import { useAccount } from 'wagmi';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
+import 'react-diff-view/style/index.css';
 
 export const QueuedTxns = ({
   onDrawerClose,
@@ -225,7 +224,7 @@ export const QueuedTxns = ({
               <Box
                 key={i}
                 mb={8}
-                p={6}
+                p={0}
                 bg="gray.800"
                 display="block"
                 borderWidth="1px"
@@ -331,7 +330,7 @@ export const QueuedTxns = ({
                     })
                   }
                 />
-                <FormHelperText>
+                <FormHelperText color="gray.300">
                   Amount of ETH to send as part of transaction
                 </FormHelperText>
               </FormControl>
@@ -351,7 +350,7 @@ export const QueuedTxns = ({
                   })
                 }
               />
-              <FormHelperText>
+              <FormHelperText color="gray.300">
                 0x prefixed hex code data to send with transaction
               </FormHelperText>
             </FormControl>
@@ -360,6 +359,7 @@ export const QueuedTxns = ({
 
         {queuedIdentifiableTxns.length > 0 && (
           <Box>
+            <NoncePicker safe={currentSafe} handleChange={setPickedNonce} />
             <>
               {!account.isConnected ? (
                 <Button
@@ -372,10 +372,6 @@ export const QueuedTxns = ({
                 </Button>
               ) : (
                 <>
-                  <NoncePicker
-                    safe={currentSafe as any}
-                    onPickedNonce={setPickedNonce}
-                  />
                   <HStack gap="6">
                     {disableExecute ? (
                       <Tooltip label={stager.signConditionFailed}>
@@ -384,14 +380,24 @@ export const QueuedTxns = ({
                           colorScheme="teal"
                           w="100%"
                           isDisabled={
+                            stager.signing ||
                             !targetTxn ||
                             txnHasError ||
                             !!stager.signConditionFailed ||
                             queuedIdentifiableTxns.length === 0
                           }
-                          onClick={() => stager.sign()}
+                          onClick={async () => {
+                            await stager.sign();
+                          }}
                         >
-                          Stage &amp; Sign
+                          {stager.signing ? (
+                            <>
+                              Currently Signing
+                              <Spinner size="sm" ml={2} />
+                            </>
+                          ) : (
+                            'Stage & Sign'
+                          )}
                         </Button>
                       </Tooltip>
                     ) : null}

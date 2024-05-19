@@ -119,6 +119,8 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   console.log('Submitting transaction...');
 
+  const packageNameHex = viem.stringToHex(packageName, { size: 32 });
+
   try {
     const [hash] = await Promise.all([
       (async () => {
@@ -140,11 +142,19 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
             eventName: 'PackageOwnerChanged',
             abi: mainnetRegistry.contract.abi,
             chainId: optimismRegistryConfig.chainId!,
+            expectedArgs: {
+              name: packageNameHex,
+              owner: userAddress,
+            },
           }),
           waitForEvent({
             eventName: 'PackagePublishersChanged',
             abi: mainnetRegistry.contract.abi,
             chainId: optimismRegistryConfig.chainId!,
+            expectedArgs: {
+              name: packageNameHex,
+              publisher: [userAddress],
+            },
           }),
         ]);
 

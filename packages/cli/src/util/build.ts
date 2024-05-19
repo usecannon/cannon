@@ -238,7 +238,13 @@ async function prepareBuildConfig(
     settings: parseSettings(settings),
   };
 
-  const getArtifact = (name: string) => getFoundryArtifact(name, projectDirectory);
+  // TODO: `isPublicSourceCode` on def is not the most reliable way to
+  // determine if source code should be public or not
+  // ideally we find out from the runtime, which is the final source. however, its unlikely this
+  // will become a problem because the runtime auto deletes any sources that may be included
+  // anyway, and it requires a lot of refactoring,
+  // so not refactoring this
+  const getArtifact = (name: string) => getFoundryArtifact(name, projectDirectory, def.isPublicSourceCode());
   const overrideResolver = opts.dryRun ? await createDryRunRegistry(cliSettings) : undefined;
 
   return {

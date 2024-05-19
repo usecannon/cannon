@@ -46,7 +46,7 @@ export type ContractMap = {
 
 export type TransactionMap = {
   [label: string]: {
-    hash: Hash;
+    hash: Hash | '';
     events: EventMap;
     deployedOn: string;
     gasUsed: number;
