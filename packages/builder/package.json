@@ -36,7 +36,7 @@
     "typedoc-plugin-zod": "^1.1.2"
   },
   "dependencies": {
-    "@synthetixio/router": "^3.3.8",
+    "@synthetixio/router": "^3.4.0",
     "axios": "^1.6.8",
     "axios-retry": "^4.1.0",
     "buffer": "^6.0.3",
