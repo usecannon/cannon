@@ -470,7 +470,7 @@ export async function scanChain(mainnetClient: viem.PublicClient, optimismClient
               batch.hSet(`${rkey.RKEY_PACKAGE_SEARCHABLE}:${packageRef}#${chainId}`, {
                 name: viem.hexToString(event.args.name, { size: 32 }),
                 version: viem.hexToString(event.args.tag, { size: 32 }),
-                preset: preset,
+                preset,
                 chainId: chainId,
                 type: 'package',
                 deployUrl: event.args.deployUrl,
