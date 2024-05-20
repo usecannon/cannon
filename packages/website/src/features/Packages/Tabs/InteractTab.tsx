@@ -36,7 +36,7 @@ export const InteractTab: FC<{
   variant: string;
   children?: ReactNode;
 }> = ({ name, tag, variant, children }) => {
-  const [chainId, preset] = variant.split('-');
+  const [chainId, preset] = variant.split(/-(.*)/s);
 
   const packagesQuery = useQuery({
     queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],

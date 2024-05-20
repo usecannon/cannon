@@ -31,7 +31,7 @@ export const Interact: FC<{
 }> = ({ name, tag, variant, moduleName, contractName, contractAddress }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [chainId, preset] = variant.split('-');
+  const [chainId, preset] = variant.split(/-(.*)/s);
 
   const packagesQuery = useQuery({
     queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],

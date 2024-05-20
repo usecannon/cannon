@@ -16,7 +16,7 @@ export const CodePage: FC<{
   moduleName?: string;
   contractAddress?: Address;
 }> = ({ name, tag, variant, moduleName }) => {
-  const [chainId, preset] = variant.split('-');
+  const [chainId, preset] = variant.split(/-(.*)/s);
 
   const packagesQuery = useQuery({
     queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],

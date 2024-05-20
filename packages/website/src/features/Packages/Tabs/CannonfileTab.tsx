@@ -12,7 +12,7 @@ export const CannonfileTab: FC<{
   tag: string;
   variant: string;
 }> = ({ name, tag, variant }) => {
-  const [chainId, preset] = variant.split('-');
+  const [chainId, preset] = variant.split(/-(.*)/s);
 
   const packagesQuery = useQuery({
     queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],
