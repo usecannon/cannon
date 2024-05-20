@@ -8,6 +8,7 @@ import { Address } from 'viem';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getPackage } from '@/helpers/api';
+import { parseVariant } from '@usecannon/builder/src';
 
 export const CodePage: FC<{
   name: string;
@@ -16,7 +17,7 @@ export const CodePage: FC<{
   moduleName?: string;
   contractAddress?: Address;
 }> = ({ name, tag, variant, moduleName }) => {
-  const [chainId, preset] = variant.split(/-(.*)/s);
+  const [chainId, preset] = parseVariant(variant);
 
   const packagesQuery = useQuery({
     queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],
