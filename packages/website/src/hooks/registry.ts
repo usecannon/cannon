@@ -8,7 +8,7 @@ import { mainnet } from 'viem/chains';
 
 export function useCannonRegistry() {
   return useMemo(() => {
-    const registryChainIds = DEFAULT_REGISTRY_CONFIG.reverse().map((registry) => registry.chainId);
+    const registryChainIds = DEFAULT_REGISTRY_CONFIG.map((registry) => registry.chainId);
 
     const onChainRegistries = registryChainIds.map(
       (chainId: number) =>
