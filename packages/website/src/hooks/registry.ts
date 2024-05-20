@@ -50,27 +50,22 @@ export function useCannonPackagePublishers(packageName: string) {
     );
 
     const fetchPublishers = async () => {
-      const results = await Promise.all(
-        onChainRegistries.map(async (registry, index) => {
-          const [owner, additionalPublishers] = await Promise.all([
-            registry.getPackageOwner(packageName),
-            registry.getAdditionalPublishers(packageName),
-          ]);
-          return {
-            owner,
-            additionalPublishers,
-            chainName: findChain(registryChainIds[index])?.name || 'Unknown Network',
-          };
-        })
-      );
+      const [optimismRegistry, mainnetRegistry] = onChainRegistries;
 
-      // Format the results
-      const formattedPublishers = results.flatMap(({ owner, additionalPublishers, chainName }) => [
-        { publisher: owner, chainName },
-        ...additionalPublishers.map((publisher) => ({ publisher, chainName })),
+      // note: optimism owner can't publish packages
+      const [mainnetOwner, mainnetPublishers, optimismPublishers] = await Promise.all([
+        mainnetRegistry.getPackageOwner(packageName),
+        mainnetRegistry.getAdditionalPublishers(packageName),
+        optimismRegistry.getAdditionalPublishers(packageName),
       ]);
 
-      setPublishers(formattedPublishers);
+      const publishers = [
+        { publisher: mainnetOwner, chainName: 'Ethereum' },
+        ...mainnetPublishers.map((publisher) => ({ publisher, chainName: 'Ethereum' })),
+        ...optimismPublishers.map((publisher) => ({ publisher, chainName: 'Optimism' })),
+      ];
+
+      setPublishers(publishers);
     };
 
     void fetchPublishers();
