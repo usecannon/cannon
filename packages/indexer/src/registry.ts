@@ -531,8 +531,8 @@ export async function scanChain(mainnetClient: viem.PublicClient, optimismClient
               await redis.hSet(`${rkey.RKEY_PACKAGE_SEARCHABLE}:${packageRef}#${chainId}`, {
                 name: viem.hexToString(event.args.name, { size: 32 }),
                 tag: viem.hexToString(event.args.tag, { size: 32 }),
-                preset: preset,
-                chainId: chainId,
+                preset,
+                chainId,
                 versionOfTag: viem.hexToString(event.args.versionOfTag, { size: 32 }),
                 type: 'tag',
                 timestamp: event.timestamp,
