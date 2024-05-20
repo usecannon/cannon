@@ -13,11 +13,8 @@ import {
   useBreakpointValue,
   useDisclosure,
 } from '@chakra-ui/react';
-import {
-  ChainArtifacts,
-  ContractData,
-  parseVariant,
-} from '@usecannon/builder/src';
+import { ChainArtifacts, ContractData } from '@usecannon/builder/src';
+import { parseVariant } from '@usecannon/builder';
 import { FC, useContext, useEffect, useState } from 'react';
 import { Address } from 'viem';
 import { HasSubnavContext } from './Tabs/InteractTab';
