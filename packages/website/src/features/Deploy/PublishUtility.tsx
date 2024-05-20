@@ -29,6 +29,7 @@ import {
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
+import { truncateAddress } from '@/helpers/ethereum';
 import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/cli/dist/src/constants';
 import { Chain, createPublicClient, http, isAddressEqual } from 'viem';
 import { mainnet, optimism } from 'viem/chains';
@@ -237,9 +238,7 @@ export default function PublishUtility(props: {
                     fontSize="xs"
                     key={`publisher-${publisher}`}
                   >
-                    {`${publisher.substring(0, 8)}...${publisher.slice(
-                      -6
-                    )} (${chainName})`}
+                    {`${truncateAddress(publisher)} (${chainName})`}
                     <Link
                       isExternal
                       styleConfig={{ 'text-decoration': 'none' }}
