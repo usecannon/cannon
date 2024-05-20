@@ -87,6 +87,10 @@ export const QueuedTxns = ({
     .map((item) => item.txn)
     .filter((txn) => !!txn);
 
+  const pkgUrlString = queuedIdentifiableTxns
+    .map((txn) => txn.pkgUrl)
+    .join(',');
+
   const targetTxn: Partial<SafeTransaction> =
     queuedTxns.length > 0
       ? makeMultisend([
@@ -94,7 +98,7 @@ export const QueuedTxns = ({
             to: zeroAddress,
             data: encodeAbiParameters(
               [{ type: 'string[]' }],
-              [['invoke', cannonInfo.pkgUrl || '']]
+              [['invoke', pkgUrlString]]
             ),
           } as Partial<TransactionRequestBase>,
           ...queuedTxns,
@@ -201,6 +205,7 @@ export const QueuedTxns = ({
           id: String(lastQueuedTxnsId + 1),
           chainId: currentSafe?.chainId as number,
           target,
+          pkgUrl: cannonInfo.pkgUrl || '',
         },
       ],
       safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
