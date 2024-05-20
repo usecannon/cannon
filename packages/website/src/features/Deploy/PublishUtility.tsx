@@ -234,6 +234,7 @@ export default function PublishUtility(props: {
                     fontFamily="mono"
                     fontWeight={200}
                     color="gray.200"
+                    fontSize="xs"
                     key={`publisher-${publisher}`}
                   >
                     {`${publisher.substring(0, 8)}...${publisher.slice(
