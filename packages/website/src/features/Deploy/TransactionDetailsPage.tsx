@@ -66,7 +66,6 @@ const TransactionDetailsPage: FC<{
   const publicClient = usePublicClient();
   const walletChainId = useChainId();
   const account = useAccount();
-
   const parsedChainId = parseInt(chainId ?? '0') || 0;
   const parsedNonce = parseInt(nonce ?? '0') || 0;
 
@@ -415,14 +414,24 @@ const TransactionDetailsPage: FC<{
                                 mb={3}
                                 w="100%"
                                 isDisabled={
+                                  stager.signing ||
                                   stager.alreadySigned ||
                                   executionTxnHash ||
                                   ((safeTxn &&
                                     !!stager.signConditionFailed) as any)
                                 }
-                                onClick={() => stager.sign()}
+                                onClick={async () => {
+                                  await stager.sign();
+                                }}
                               >
-                                Sign
+                                {stager.signing ? (
+                                  <>
+                                    Currently Signing
+                                    <Spinner size="sm" ml={2} />
+                                  </>
+                                ) : (
+                                  'Sign'
+                                )}
                               </Button>
                             </Tooltip>
                             <Tooltip label={stager.execConditionFailed}>
@@ -605,7 +614,7 @@ const TransactionDetailsPage: FC<{
                         textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
                       >
                         Cannon Package
-                        <Tooltip label="Packages includes data about this deployment (including smart contract addresses, ABIs, and source code).">
+                        <Tooltip label="Packages include data about this deployment (including smart contract addresses, ABIs, and source code). When publishing, the registry collects some ETH (indicated as the 'value' for the transaction in your wallet) to support an IPFS cluster that pins package data.">
                           <InfoOutlineIcon ml={1.5} opacity={0.8} mt={-0.5} />
                         </Tooltip>
                       </Heading>

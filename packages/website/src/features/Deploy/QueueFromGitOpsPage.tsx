@@ -53,11 +53,10 @@ import {
   zeroAddress,
 } from 'viem';
 import { useWriteContract } from 'wagmi';
+import pkg from '../../../package.json';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
 import 'react-diff-view/style/index.css';
-
-import pkg from '../../../package.json';
 
 export default function QueueFromGitOpsPage() {
   return <QueueFromGitOps />;
@@ -66,7 +65,6 @@ export default function QueueFromGitOpsPage() {
 function QueueFromGitOps() {
   const router = useRouter();
   const currentSafe = useStore((s) => s.currentSafe);
-
   const [cannonfileUrlInput, setCannonfileUrlInput] = useState('');
   const [previousPackageInput, setPreviousPackageInput] = useState('');
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
@@ -582,20 +580,28 @@ function QueueFromGitOps() {
           )}
           {uploadToPublishIpfs.deployedIpfsHash && multicallTxn.data && (
             <Box>
-              <NoncePicker
-                safe={currentSafe as any}
-                onPickedNonce={setPickedNonce}
-              />
+              <NoncePicker safe={currentSafe} handleChange={setPickedNonce} />
               <HStack gap="6">
                 {stager.execConditionFailed ? (
                   <Tooltip label={stager.signConditionFailed}>
                     <Button
-                      isDisabled={!!stager.signConditionFailed}
+                      isDisabled={
+                        !!stager.signConditionFailed || stager.signing
+                      }
                       size="lg"
                       w="100%"
-                      onClick={() => stager.sign()}
+                      onClick={async () => {
+                        await stager.sign();
+                      }}
                     >
-                      Queue &amp; Sign
+                      {stager.signing ? (
+                        <>
+                          Currently Signing
+                          <Spinner size="sm" ml={2} />
+                        </>
+                      ) : (
+                        'Queue & Sign'
+                      )}
                     </Button>
                   </Tooltip>
                 ) : null}
