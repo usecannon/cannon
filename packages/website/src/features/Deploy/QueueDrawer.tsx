@@ -9,6 +9,7 @@ import { useCannonPackageContracts } from '@/hooks/cannon';
 import { useSimulatedTxns } from '@/hooks/fork';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { AddIcon, InfoOutlineIcon } from '@chakra-ui/icons';
+import CustomButton from '@/features/Deploy/CustomButton';
 import {
   Box,
   Button,
@@ -37,8 +38,8 @@ import { useRouter } from 'next/navigation';
 import React, { Suspense, useState } from 'react';
 import {
   AbiFunction,
+  Address,
   encodeAbiParameters,
-  Hex,
   isAddress,
   TransactionRequestBase,
   zeroAddress,
@@ -47,6 +48,7 @@ import { useAccount, useWriteContract } from 'wagmi';
 import NoncePicker from './NoncePicker';
 import { QueueTransaction } from './QueueTransaction';
 import { SafeAddressInput } from './SafeAddressInput';
+import { isValidHex } from '@/helpers/ethereum';
 import 'react-diff-view/style/index.css';
 
 export const QueuedTxns = ({
@@ -56,7 +58,8 @@ export const QueuedTxns = ({
 }) => {
   const account = useAccount();
   const { openConnectModal } = useConnectModal();
-
+  const [customTxnData, setCustomTxnData] = useState<string>();
+  const customTxnDataIsValid = isValidHex(customTxnData || '');
   const currentSafe = useStore((s) => s.currentSafe);
   const router = useRouter();
   const { safes, setQueuedIdentifiableTxns, setLastQueuedTxnsId } =
@@ -216,6 +219,33 @@ export const QueuedTxns = ({
     });
   };
 
+  const handleAddCustomTxn = () => {
+    if (customTxnData && customTxnDataIsValid) {
+      setQueuedIdentifiableTxns({
+        queuedIdentifiableTxns: [
+          ...queuedIdentifiableTxns,
+          {
+            txn: {
+              to: target as Address,
+              data: customTxnData as Address,
+            },
+            id: String(lastQueuedTxnsId + 1),
+            chainId: currentSafe?.chainId as number,
+            target,
+            pkgUrl: '',
+          },
+        ],
+        safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
+      });
+      setLastQueuedTxnsId({
+        lastQueuedTxnsId: lastQueuedTxnsId + 1,
+        safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
+      });
+      setCustomTxnData('');
+      setTarget('');
+    }
+  };
+
   const txnHasError = !!txnInfo.txnResults.filter((r) => r?.error).length;
 
   const disableExecute =
@@ -258,6 +288,7 @@ export const QueuedTxns = ({
                   contractName={queuedIdentifiableTxn.contractName}
                   target={queuedIdentifiableTxn.target}
                   chainId={queuedIdentifiableTxn.chainId}
+                  isCustom={queuedIdentifiableTxn.pkgUrl === ''}
                   isDeletable
                 />
               </Box>
@@ -348,16 +379,25 @@ export const QueuedTxns = ({
                 borderColor="whiteAlpha.400"
                 background="black"
                 placeholder="0x"
-                onChange={(event: any) =>
-                  updateQueuedTxn(0, {
-                    ...queuedTxns[0],
-                    data: (event.target.value as Hex) || '0x',
-                  })
-                }
+                onChange={(e) => setCustomTxnData(e.target.value as Address)}
               />
+              {customTxnData && !customTxnDataIsValid && (
+                <FormHelperText color="red.300">
+                  Invalid transaction data
+                </FormHelperText>
+              )}
               <FormHelperText color="gray.300">
                 0x prefixed hex code data to send with transaction
               </FormHelperText>
+              <Box py={4}>
+                <CustomButton
+                  href="#"
+                  onClick={handleAddCustomTxn}
+                  disabled={!customTxnData || !customTxnDataIsValid}
+                >
+                  Add Transaction
+                </CustomButton>
+              </Box>
             </FormControl>
           </Box>
         )}
