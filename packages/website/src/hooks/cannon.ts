@@ -25,7 +25,7 @@ import {
 } from '@usecannon/builder';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { Abi, Address, Hex, createPublicClient, createWalletClient, custom, isAddressEqual, PublicClient } from 'viem';
+import { Abi, Address, createPublicClient, createWalletClient, custom, Hex, isAddressEqual, PublicClient } from 'viem';
 import { useChainId } from 'wagmi';
 
 export type BuildState =
@@ -151,11 +151,6 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
           `cannon.ts: on Events.PostStepExecute operation ${stepType}.${stepLabel} output: ${JSON.stringify(stepOutput)}`
         );
 
-        for (const txn in stepOutput.txns || {}) {
-          // clean out txn hash
-          stepOutput.txns![txn].hash = '';
-        }
-
         simulatedSteps.push(stepOutput);
         setBuildStatus(`Building ${stepType}.${stepLabel}...`);
       }
@@ -221,6 +216,8 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
         setBuildResult(res);
       })
       .catch((err) => {
+        // eslint-disable-next-line no-console
+        console.error(err);
         addLog(`cannon.ts: full build error ${err.toString()}`);
         setBuildError(err.toString());
       })
