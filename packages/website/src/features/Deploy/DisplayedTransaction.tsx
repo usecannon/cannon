@@ -7,6 +7,7 @@ import {
   Heading,
   Input,
   Link,
+  Spinner,
   Text,
 } from '@chakra-ui/react';
 import { useMemo } from 'react';
@@ -23,28 +24,58 @@ import {
 } from 'viem';
 import { chainsById } from '@/helpers/chains';
 import { Alert } from '@/components/Alert';
+import { useCannonPackageContracts } from '@/hooks/cannon';
 
 export function DisplayedTransaction(props: {
-  contracts?: { [key: string]: { address: Address; abi: any[] } };
   txn?: Omit<TransactionRequestBase, 'from'>;
   chainId: number;
+  pkgUrl: string;
 }) {
   const chain = useMemo(() => chainsById[props.chainId], [props.chainId]);
 
+  const cannonInfo = useCannonPackageContracts(
+    props.pkgUrl ? '@' + props.pkgUrl.replace('://', ':') : ''
+  );
+
+  if (cannonInfo.isFetching) {
+    return (
+      <Box p={6} border="1px solid" borderColor="gray.600" bgColor="black">
+        <Flex alignItems="center" justifyContent="center" height="100%">
+          <Spinner />
+        </Flex>
+      </Box>
+    );
+  }
+
+  if (cannonInfo.isError) {
+    return (
+      <Box p={6} border="1px solid" borderColor="gray.600" bgColor="black">
+        <Alert status="error">
+          <AlertDescription fontSize="sm" lineHeight="0">
+            Unable to fetch cannon package contracts.
+          </AlertDescription>
+        </Alert>
+      </Box>
+    );
+  }
+
+  const contracts = cannonInfo.contracts as {
+    [key: string]: { address: Address; abi: any[] };
+  };
   const parsedContractNames =
-    props.txn && props.contracts
-      ? Object.entries(props.contracts)
+    props.txn && contracts
+      ? Object.entries(contracts)
           .filter((c) => c[1].address === props.txn?.to)
           .map((v) => v[0])
       : '';
 
   let parsedContract = props.txn ? props.txn.to : '';
   let parsedFunction = null;
-  if (props.contracts) {
+  if (contracts) {
     for (const n of parsedContractNames) {
       try {
         parsedFunction = decodeFunctionData({
-          abi: props.contracts[n].abi,
+          abi: contracts[n].abi,
           data: props.txn?.data as any,
         });
         parsedContract = n;
@@ -61,9 +92,9 @@ export function DisplayedTransaction(props: {
     : '';
 
   const execContractInfo =
-    props.contracts && parsedContract ? props.contracts[parsedContract] : null;
+    contracts && parsedContract ? contracts[parsedContract] : null;
   const execFuncFragment =
-    props.contracts && execContractInfo && execFunc
+    contracts && execContractInfo && execFunc
       ? execContractInfo.abi.find((f) => f.name === execFunc)
       : null;
 
@@ -83,7 +114,7 @@ export function DisplayedTransaction(props: {
     chain?.nativeCurrency?.symbol
   }`;
 
-  if (!props.contracts) {
+  if (!contracts && !cannonInfo.isFetching) {
     return (
       <Box p={6} border="1px solid" borderColor="gray.600" bgColor="black">
         <Box mb={5}>
