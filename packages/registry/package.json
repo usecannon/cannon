@@ -24,13 +24,13 @@
     "@typechain/hardhat": "6.1.2",
     "@types/mocha": "9.1.1",
     "@types/node": "18.0.0",
-    "@usecannon/builder": "^2.13.6",
-    "@usecannon/cli": "^2.13.6",
+    "@usecannon/builder": "^2.14.1",
+    "@usecannon/cli": "^2.14.1",
     "chai": "4.3.6",
     "dotenv": "16.0.1",
     "ethers": "5.7.1",
     "hardhat": "^2.22.3",
-    "hardhat-cannon": "^2.13.6",
+    "hardhat-cannon": "^2.14.1",
     "hardhat-contract-sizer": "^2.7.0",
     "hardhat-gas-reporter": "^1.0.9",
     "mocha": "10.0.0",
@@ -38,5 +38,8 @@
     "ts-node": "10.8.1",
     "typechain": "8.1.0",
     "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "at-least-node": "^1.0.0"
   }
 }
