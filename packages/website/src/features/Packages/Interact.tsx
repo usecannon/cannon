@@ -185,6 +185,7 @@ export const Interact: FC<{
         cannonOutputs={cannonOutputs}
         chainId={packagesQuery.data.data?.chainId}
         onDrawerOpen={onOpen}
+        packageUrl={packagesQuery.data.data.deployUrl}
       />
       <QueueDrawer isOpen={isOpen} onClose={onClose} onOpen={onOpen} />
     </>

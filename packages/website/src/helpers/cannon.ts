@@ -99,7 +99,16 @@ async function loadChainDefinitionToml(
   return [assembledDef, buf];
 }
 
-export function parseHintedMulticall(data: Hex) {
+export function parseHintedMulticall(data: Hex): {
+  txns: { to: Address; data: Hex; value: bigint }[];
+  type: string;
+  cannonPackage: string;
+  cannonUpgradeFromPackage: string;
+  gitRepoUrl: string;
+  gitRepoHash: string;
+  prevGitRepoHash: string;
+  isSinglePackage: boolean;
+} | null {
   let decoded = null;
 
   // see what we can parse out of the data
@@ -118,6 +127,7 @@ export function parseHintedMulticall(data: Hex) {
   let gitRepoUrl = '';
   let gitRepoHash = '';
   let prevGitRepoHash = '';
+
   if (
     (decoded?.functionName === 'aggregate3' || decoded?.functionName === 'aggregate3Value') &&
     ((decoded?.args![0] as any)[0] as any).target === zeroAddress
@@ -142,13 +152,20 @@ export function parseHintedMulticall(data: Hex) {
 
   if (!type) return null;
 
+  const isSinglePackage = cannonPackage?.split(',').every(
+    (p) =>
+      // check all items in the array to see if they are the same
+      p === cannonPackage?.split(',')[0]
+  );
+
   return {
     txns,
     type,
-    cannonPackage,
+    cannonPackage: isSinglePackage ? cannonPackage.split(',')[0] : cannonPackage,
     cannonUpgradeFromPackage,
     gitRepoHash,
     gitRepoUrl,
     prevGitRepoHash,
+    isSinglePackage,
   };
 }
