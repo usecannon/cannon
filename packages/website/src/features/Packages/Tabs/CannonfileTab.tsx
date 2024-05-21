@@ -6,14 +6,14 @@ import { CannonfileExplorer } from '@/features/Packages/CannonfileExplorer';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { useQuery } from '@tanstack/react-query';
 import { getPackage } from '@/helpers/api';
-import { parseVariant } from '@usecannon/builder/src';
+import { PackageReference } from '@usecannon/builder/src';
 
 export const CannonfileTab: FC<{
   name: string;
   tag: string;
   variant: string;
 }> = ({ name, tag, variant }) => {
-  const [chainId, preset] = parseVariant(variant);
+  const [chainId, preset] = PackageReference.parseVariant(variant);
 
   const packagesQuery = useQuery({
     queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],

@@ -16,7 +16,7 @@ import {
 import {
   ChainArtifacts,
   ContractData,
-  parseVariant,
+  PackageReference,
 } from '@usecannon/builder/src';
 import { FC, useContext, useEffect, useState } from 'react';
 import { Address } from 'viem';
@@ -35,7 +35,7 @@ export const Interact: FC<{
 }> = ({ name, tag, variant, moduleName, contractName, contractAddress }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [chainId, preset] = parseVariant(variant);
+  const [chainId, preset] = PackageReference.parseVariant(variant);
 
   const packagesQuery = useQuery({
     queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],

@@ -173,13 +173,3 @@ export function encodeDeployData(...args: Parameters<typeof viem.encodeDeployDat
   const data = viem.encodeDeployData(...args);
   return data.startsWith('0x') ? data : (`0x${data}` as viem.Hex);
 }
-
-/**
- * Parse variant string into chainId and preset
- * @param variant string
- * @returns chainId and preset
- */
-export function parseVariant(variant: string): [number, string] {
-  const [chainId, preset] = variant.split(/-(.*)/s);
-  return [Number(chainId), preset];
-}

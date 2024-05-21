@@ -21,7 +21,7 @@ import { getOutput } from '@/lib/builder';
 import { usePathname, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getPackage } from '@/helpers/api';
-import { parseVariant } from '@usecannon/builder/src';
+import { PackageReference } from '@usecannon/builder/src';
 
 type Option = {
   moduleName: string;
@@ -37,7 +37,7 @@ export const InteractTab: FC<{
   variant: string;
   children?: ReactNode;
 }> = ({ name, tag, variant, children }) => {
-  const [chainId, preset] = parseVariant(variant);
+  const [chainId, preset] = PackageReference.parseVariant(variant);
 
   const packagesQuery = useQuery({
     queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],

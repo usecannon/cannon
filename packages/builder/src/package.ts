@@ -91,6 +91,16 @@ export class PackageReference {
     return new PackageReference(`${name}:${version}@${preset}`);
   }
 
+  /**
+   * Parse variant string into chainId and preset
+   * @param variant string
+   * @returns chainId and preset
+   */
+  static parseVariant(variant: string): [number, string] {
+    const [chainId, preset] = variant.split(/-(.*)/s);
+    return [Number(chainId), preset];
+  }
+
   constructor(ref: string) {
     const parsed = PackageReference.parse(ref);
     const { name, version = PackageReference.DEFAULT_TAG, preset = PackageReference.DEFAULT_PRESET } = parsed;

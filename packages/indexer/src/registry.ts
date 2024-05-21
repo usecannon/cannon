@@ -9,7 +9,6 @@ import {
   OnChainRegistry,
   PackageReference,
   StepState,
-  parseVariant,
 } from '@usecannon/builder';
 import { createClient, RedisClientType, SchemaFieldTypes } from 'redis';
 /* eslint no-console: "off" */
@@ -454,7 +453,7 @@ export async function scanChain(mainnetClient: viem.PublicClient, optimismClient
       for (const event of _.sortBy(usableEvents, 'timestamp') as any[]) {
         try {
           const variant = viem.hexToString(event.args.variant || '0x', { size: 32 });
-          const [chainId, preset] = parseVariant(variant);
+          const [chainId, preset] = PackageReference.parseVariant(variant);
 
           const packageRef = `${viem.hexToString(event.args.name, { size: 32 })}:${viem.hexToString(event.args.tag || '0x', {
             size: 32,

@@ -9,7 +9,6 @@ import * as viem from 'viem';
 import { CliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 import { resolveRegistryProviders } from './util/provider';
-import { parseVariant } from '@usecannon/builder';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -103,7 +102,7 @@ export class LocalRegistry extends CannonRegistry {
           debug(`checking ${packageRef}, ${chainId} for a match with ${t}`);
 
           const [tagName, tagVersion, tagVariant] = t.replace('.txt', '').split('_');
-          const [tagChainId, tagPreset] = parseVariant(tagVariant);
+          const [tagChainId, tagPreset] = PackageReference.parseVariant(tagVariant);
 
           if (chainId && tagChainId !== chainId) return false;
 
@@ -125,7 +124,7 @@ export class LocalRegistry extends CannonRegistry {
       })
       .map((t) => {
         const [name, version, tagVariant] = t.replace('.txt', '').split('_');
-        const [chainId, preset] = parseVariant(tagVariant);
+        const [chainId, preset] = PackageReference.parseVariant(tagVariant);
         return { name: `${name}:${version}@${preset}`, chainId };
       });
   }
