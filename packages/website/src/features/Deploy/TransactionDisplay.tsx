@@ -15,6 +15,7 @@ import {
   AlertTitle,
   Box,
   Flex,
+  Image,
   Link,
   Modal,
   ModalBody,
@@ -24,7 +25,6 @@ import {
   Spinner,
   Text,
   useDisclosure,
-  Image,
 } from '@chakra-ui/react';
 import { uniq } from 'lodash';
 import { Diff, parseDiff } from 'react-diff-view';
@@ -298,6 +298,8 @@ export function TransactionDisplay(props: {
                 pkgUrl={
                   hintData.isSinglePackage ? hintData.cannonPackage : pkgUrl
                 }
+                cannonInfo={cannonInfo}
+                isPreloaded={hintData.isSinglePackage}
               />
             </Box>
           );

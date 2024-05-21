@@ -26,15 +26,29 @@ import { chainsById } from '@/helpers/chains';
 import { Alert } from '@/components/Alert';
 import { useCannonPackageContracts } from '@/hooks/cannon';
 
+const useCannonPreloadedContracts = (
+  url: string,
+  cannonInfo?: any,
+  isPreloaded?: boolean
+) => {
+  const useCannonContracts =
+    isPreloaded && cannonInfo ? () => cannonInfo : useCannonPackageContracts;
+  return useCannonContracts(url);
+};
+
 export function DisplayedTransaction(props: {
   txn?: Omit<TransactionRequestBase, 'from'>;
   chainId: number;
   pkgUrl: string;
+  cannonInfo?: any;
+  isPreloaded?: boolean;
 }) {
   const chain = useMemo(() => chainsById[props.chainId], [props.chainId]);
 
-  const cannonInfo = useCannonPackageContracts(
-    props.pkgUrl ? '@' + props.pkgUrl.replace('://', ':') : ''
+  const cannonInfo = useCannonPreloadedContracts(
+    props.pkgUrl ? '@' + props.pkgUrl.replace('://', ':') : '',
+    props.cannonInfo,
+    props.isPreloaded
   );
 
   if (cannonInfo.isFetching) {
