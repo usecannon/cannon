@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import chains from '@/helpers/chains';
 import { find } from 'lodash';
 import { ChainData } from '@/features/Search/PackageCard/Chain';
+import { PackageReference } from '@usecannon/builder/src';
 
 const NoSSR = dynamic(
   async () => {
@@ -18,7 +19,7 @@ export async function generateMetadata({
 }: {
   params: { name: string; tag: string; variant: string };
 }) {
-  const [chainId, preset] = params.variant.split('-');
+  const [chainId, preset] = PackageReference.parseVariant(params.variant);
   const chain: { name: string; id: number } =
     Number(chainId) == 13370
       ? { id: 13370, name: 'Cannon' }
