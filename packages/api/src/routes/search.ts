@@ -13,7 +13,7 @@ import {
 import { findContractsByAddress, searchContracts } from '../queries/contracts';
 import { findFunctionsBySelector, searchFunctions } from '../queries/functions';
 import { findPackagesByPartialRef, searchPackages } from '../queries/packages';
-import { ApiDocument, ApiDocumentType } from '../types';
+import { ApiDocument } from '../types';
 
 const search = express.Router();
 
