@@ -396,12 +396,12 @@ export const QueuedTxns = ({
                 <FormHelperText color="gray.300">
                   0x prefixed hex code data to send with transaction
                 </FormHelperText>
-                <Box py={4}>
+                <Box pt={6}>
                   <Button
                     colorScheme="teal"
-                    href="#"
                     onClick={handleAddCustomTxn}
                     disabled={!customTxnData || !customTxnDataIsValid}
+                    w="100%"
                   >
                     Add Transaction
                   </Button>
