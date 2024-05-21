@@ -9,7 +9,6 @@ import { useCannonPackageContracts } from '@/hooks/cannon';
 import { useSimulatedTxns } from '@/hooks/fork';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { AddIcon, InfoOutlineIcon } from '@chakra-ui/icons';
-import CustomButton from '@/features/Deploy/CustomButton';
 import {
   Box,
   Button,
@@ -398,13 +397,14 @@ export const QueuedTxns = ({
                   0x prefixed hex code data to send with transaction
                 </FormHelperText>
                 <Box py={4}>
-                  <CustomButton
+                  <Button
+                    colorScheme="teal"
                     href="#"
                     onClick={handleAddCustomTxn}
                     disabled={!customTxnData || !customTxnDataIsValid}
                   >
                     Add Transaction
-                  </CustomButton>
+                  </Button>
                 </Box>
               </FormControl>
             </Box>
