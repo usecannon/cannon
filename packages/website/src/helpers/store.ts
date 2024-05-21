@@ -16,6 +16,7 @@ export type IdentifiableTxn = {
   contractName?: string;
   target: string;
   chainId: number;
+  pkgUrl: string;
 };
 
 export type ChainId = (typeof chains)[number]['id'];
