@@ -1,6 +1,6 @@
 import * as viem from 'viem';
 import { BadRequestError, ServerError } from './errors';
-import { RedisPackage, RedisTag } from './types';
+import { ApiDocumentType, RedisPackage, RedisTag } from './types';
 
 const packageNameRegex = /^[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9]$/;
 export function isPackageName(packageName: any) {
@@ -54,7 +54,7 @@ export function parseChainIds(chainIds: any): number[] {
 export function parseTextQuery(query: any): string {
   if (!query) return '';
 
-  if (typeof query !== 'string' || query.length > 256) {
+  if (typeof query !== 'string' || query.length > 2048) {
     throw new BadRequestError('Invalid query parameter');
   }
 
@@ -64,8 +64,22 @@ export function parseTextQuery(query: any): string {
       .toLowerCase()
       .replace(/\s+/g, '-')
       // only leave valid characters and remove starting or ending '-'s
-      .replace(/^[-]+|[^a-z0-9-]|[-]+$/g, '')
+      .replace(/^[-_]+|[^a-z0-9-_]|[-_]+$/g, '') || ''
   );
+}
+
+export function parseQueryTypes(type: any): ApiDocumentType[] {
+  if (!type) return [];
+
+  if (typeof type !== 'string' || type.length > 512) {
+    throw new BadRequestError('Invalid type parameter');
+  }
+
+  return type
+    .trim()
+    .toLowerCase()
+    .replace(/^[^a-z]+|[^a-z,]+|[^a-z]+$/g, '')
+    .split(',') as ApiDocumentType[];
 }
 
 export function parseAddresses(addresses: any) {
