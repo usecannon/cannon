@@ -15,17 +15,22 @@ import { getChainById } from '../chains';
 export const isPackageRegistered = async (
   registryProviders: { provider: viem.PublicClient; signers: CannonSigner[] }[],
   packageRef: string,
-  contractAddress: viem.Address
+  contractAddress: viem.Address[]
 ) => {
   const packageName = new PackageReference(packageRef).name;
 
-  const onChainRegistries = registryProviders.map(({ provider, signers }) => {
-    return new OnChainRegistry({
-      signer: signers[0],
-      provider,
-      address: contractAddress,
-    });
-  });
+  if (contractAddress.length !== registryProviders.length) {
+    throw new Error('Registry providers and contract addresses must have the same length.');
+  }
+
+  const onChainRegistries = registryProviders.map(
+    ({ provider, signers }, index) =>
+      new OnChainRegistry({
+        signer: signers[0],
+        provider,
+        address: contractAddress[index],
+      })
+  );
 
   const packageOwners = await Promise.all(
     onChainRegistries.map((onChainRegistry) => onChainRegistry.getPackageOwner(packageName))
@@ -74,17 +79,19 @@ export const waitForEvent = ({
       address: DEFAULT_REGISTRY_ADDRESS,
       event,
       onLogs: async (logs) => {
-        const [topics] = viem.parseEventLogs({ abi, eventName, logs });
+        const topics = viem.parseEventLogs({ abi, eventName, logs });
 
-        // check event arguments, early return if they don't match
-        if (!_.isEqual(topics.args, expectedArgs)) return;
+        for (const topic of topics) {
+          // check event arguments, early return if they don't match
+          if (!_.isEqual(topic.args, expectedArgs)) continue;
 
-        // unwatch the event
-        unwatch();
-        // Clear the timeout
-        clearTimeout(timeoutId);
-        // Resolve the promise
-        resolve(logs);
+          // unwatch the event
+          unwatch();
+          // Clear the timeout
+          clearTimeout(timeoutId);
+          // Resolve the promise
+          resolve(logs);
+        }
       },
       onError: (err) => {
         // unwatch the event

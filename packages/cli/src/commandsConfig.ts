@@ -8,15 +8,15 @@ const debugVerbosity = [
   {
     flags: '-vv',
     description:
-      'Print logs for builder and its definition section, equivalent to DEBUG=cannon:builder,cannon:builder:definition',
+      'Print logs for builder and its definition section, equivalent to DEBUG=cannon:builder, cannon:builder:definition',
   },
   {
     flags: '-vvv',
-    description: 'Print logs for builder and its all sub sections,equivalent to DEBUG=cannon:builder*',
+    description: 'Print logs for builder and its all sub sections, equivalent to DEBUG=cannon:builder*',
   },
   {
     flags: '-vvvv',
-    description: 'print all cannon logs,equivalent to DEBUG=cannon:*',
+    description: 'Print all cannon logs, equivalent to DEBUG=cannon:*',
   },
 ];
 
@@ -541,11 +541,11 @@ const commandsConfig = {
     ],
   },
   register: {
-    description: 'Register a Cannon package on the main registry',
+    description: 'Register a Cannon package on the Cannon Registry',
     arguments: [
       {
-        flags: '<packageRef>',
-        description: 'Name, version and preset of the Cannon package to publish (name:version@preset)',
+        flags: '<packageRefs...>',
+        description: 'List of packages you want to register on the Cannon Registry',
       },
     ],
     options: [
