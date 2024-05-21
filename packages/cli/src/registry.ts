@@ -105,7 +105,7 @@ export class LocalRegistry extends CannonRegistry {
           const [tagName, tagVersion, tagVariant] = t.replace('.txt', '').split('_');
           const [tagChainId, tagPreset] = parseVariant(tagVariant);
 
-          if (chainId && tagChainId !== chainId.toString()) return false;
+          if (chainId && tagChainId !== chainId) return false;
 
           let tag: PackageReference;
           try {
@@ -126,7 +126,7 @@ export class LocalRegistry extends CannonRegistry {
       .map((t) => {
         const [name, version, tagVariant] = t.replace('.txt', '').split('_');
         const [chainId, preset] = parseVariant(tagVariant);
-        return { name: `${name}:${version}@${preset}`, chainId: Number.parseInt(chainId) };
+        return { name: `${name}:${version}@${preset}`, chainId };
       });
   }
 
