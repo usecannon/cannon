@@ -63,8 +63,6 @@ interface Props {
   sigHash: string;
 }
 
-let renderCount = 0;
-
 function TransactionDetailsPage({
   safeAddress,
   chainId,
@@ -236,11 +234,6 @@ function TransactionDetailsPage({
   const remainingSignatures = threshold - signers.length;
 
   const chainName = safeChain?.name;
-
-  if (Math.random()) {
-    console.log({ render: ++renderCount });
-    // return null;
-  }
 
   return (
     <>
