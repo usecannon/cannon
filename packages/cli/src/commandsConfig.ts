@@ -8,15 +8,15 @@ const debugVerbosity = [
   {
     flags: '-vv',
     description:
-      'Print logs for builder and its definition section, equivalent to DEBUG=cannon:builder,cannon:builder:definition',
+      'Print logs for builder and its definition section, equivalent to DEBUG=cannon:builder, cannon:builder:definition',
   },
   {
     flags: '-vvv',
-    description: 'Print logs for builder and its all sub sections,equivalent to DEBUG=cannon:builder*',
+    description: 'Print logs for builder and its all sub sections, equivalent to DEBUG=cannon:builder*',
   },
   {
     flags: '-vvvv',
-    description: 'print all cannon logs,equivalent to DEBUG=cannon:*',
+    description: 'Print all cannon logs, equivalent to DEBUG=cannon:*',
   },
 ];
 
