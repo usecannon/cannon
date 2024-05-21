@@ -1,4 +1,5 @@
 import { cleanEnv, EnvError, makeValidator, str } from 'envalid';
+import 'dotenv/config';
 
 const int = makeValidator<number>((input: string) => {
   const coerced = Number.parseInt(input, 10);
