@@ -46,7 +46,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
     packageRef.map(async (pkg: PackageSpecification) => {
       // Run the two registry checks in parallel
       const [isRegisteredOnMainnet, isRegisteredOnOptimism] = await Promise.all([
-        isPackageRegistered([mainnetRegistryProvider, optimismRegistryProvider], pkg.name, [mainnetRegistryConfig.address]),
+        isPackageRegistered([mainnetRegistryProvider], pkg.name, [mainnetRegistryConfig.address]),
         isPackageRegistered([optimismRegistryProvider], pkg.name, [optimismRegistryConfig.address]),
       ]);
 
