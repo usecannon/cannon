@@ -1,10 +1,13 @@
+import debug from 'debug';
 import {
-  ReactNode,
   createContext,
+  ReactNode,
   useContext,
   useEffect,
   useState,
 } from 'react';
+
+debug.disable();
 
 export type Log = {
   date: Date;

@@ -121,7 +121,7 @@ function TransactionDetailsPage({
           txn._nonce.toString() === nonce &&
           (!sigHash || sigHash === getSafeTransactionHash(safe, txn))
       ) || null;
-  } else if (staged) {
+  } else if (Array.isArray(staged) && staged.length) {
     safeTxn =
       staged.find(
         (s) =>
@@ -239,7 +239,7 @@ function TransactionDetailsPage({
 
   if (Math.random()) {
     console.log({ render: ++renderCount });
-    return null;
+    // return null;
   }
 
   return (
@@ -289,13 +289,13 @@ function TransactionDetailsPage({
               templateColumns={{ base: 'repeat(1, 1fr)', lg: '2fr 1fr' }}
               gap={6}
             >
-              {/* <TransactionDisplay
+              <TransactionDisplay
                 safe={safe}
                 safeTxn={safeTxn as any}
                 queuedWithGitOps={queuedWithGitOps}
                 showQueueSource={true}
                 isTransactionExecuted={isTransactionExecuted}
-              /> */}
+              />
               <Box position="relative">
                 <Box position="sticky" top={8}>
                   <Box
