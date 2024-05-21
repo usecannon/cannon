@@ -14,8 +14,8 @@
   "license": "MIT",
   "dependencies": {
     "@isaacs/ttlcache": "^1.4.1",
-    "@usecannon/builder": "^2.14.1",
-    "@usecannon/cli": "^2.14.1",
+    "@usecannon/builder": "^2.14.2",
+    "@usecannon/cli": "^2.14.2",
     "cors": "^2.8.5",
     "envalid": "^8.0.0",
     "express": "5.0.0-beta.3",
