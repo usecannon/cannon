@@ -285,6 +285,8 @@ export function TransactionDisplay(props: {
                 pkgUrl={
                   hintData.isSinglePackage ? hintData.cannonPackage : pkgUrl
                 }
+                cannonInfo={cannonInfo}
+                isPreloaded={hintData.isSinglePackage}
               />
             </Box>
           );
