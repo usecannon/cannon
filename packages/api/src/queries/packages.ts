@@ -65,7 +65,7 @@ async function _queryPackages(params: { query: string; limit?: number; includeNa
 
       if (!pkg) {
         // eslint-disable-next-line no-console
-        console.error(new Error(`Package not found for tag "${JSON.stringify(item)}"`));
+        console.warn(new Error(`Package not found for tag "${JSON.stringify(item)}"`));
         continue;
       }
 

@@ -237,7 +237,20 @@ export function TransactionDisplay(props: {
                 src="/images/cannon-logomark.svg"
               />
             </Box>
-            {hintData.isSinglePackage ? (
+            {!hintData.cannonPackage ? (
+              <Box ml={[0, 3]}>
+                <AlertTitle lineHeight={1} fontSize="sm" mb={1.5}>
+                  Unknown source
+                </AlertTitle>
+                <AlertDescription
+                  display="block"
+                  lineHeight={1.4}
+                  fontSize="sm"
+                >
+                  These transactions were queued without a source package.
+                </AlertDescription>
+              </Box>
+            ) : hintData.isSinglePackage ? (
               <Box ml={[0, 3]}>
                 <AlertTitle lineHeight={1} fontSize="sm" mb={1.5}>
                   Queued from Package
