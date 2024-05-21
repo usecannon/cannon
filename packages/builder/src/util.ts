@@ -179,7 +179,7 @@ export function encodeDeployData(...args: Parameters<typeof viem.encodeDeployDat
  * @param variant string
  * @returns chainId and preset
  */
-export function parseVariant(variant: string) {
+export function parseVariant(variant: string): [number, string] {
   const [chainId, preset] = variant.split(/-(.*)/s);
-  return [chainId, preset];
+  return [Number(chainId), preset];
 }
