@@ -1,8 +1,9 @@
+import { truncateAddress } from '@/helpers/ethereum';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { findChain } from '@/helpers/rpc';
 import { useStore } from '@/helpers/store';
-import { useProviders } from '@/hooks/providers';
 import { useCannonPackage } from '@/hooks/cannon';
+import { useProviders } from '@/hooks/providers';
 import { useCannonPackagePublishers } from '@/hooks/registry';
 import {
   ExternalLinkIcon,
@@ -32,7 +33,7 @@ import {
 import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/cli/dist/src/constants';
 import { Chain, createPublicClient, http, isAddressEqual } from 'viem';
 import { mainnet, optimism } from 'viem/chains';
-import { useWalletClient, useSwitchChain } from 'wagmi';
+import { useSwitchChain, useWalletClient } from 'wagmi';
 
 export default function PublishUtility(props: {
   deployUrl: string;
@@ -72,7 +73,7 @@ export default function PublishUtility(props: {
   const publishers = useCannonPackagePublishers(resolvedName!);
 
   const canPublish = publishers.some(
-    (publisher) =>
+    ({ publisher }) =>
       wc.data?.account.address &&
       isAddressEqual(publisher, wc.data?.account.address)
   );
@@ -227,16 +228,17 @@ export default function PublishUtility(props: {
               to Ethereum or OP Mainnet to publish this package:
             </Text>
             <UnorderedList mb={4}>
-              {publishers.map((publisher) => (
-                <ListItem key={publisher} mb={1}>
+              {publishers.map(({ publisher, chainName }) => (
+                <ListItem key={publisher + chainName} mb={1}>
                   <Text
                     display="inline"
                     fontFamily="mono"
                     fontWeight={200}
                     color="gray.200"
+                    fontSize="xs"
                     key={`publisher-${publisher}`}
                   >
-                    {`${publisher.substring(0, 8)}...${publisher.slice(-6)}`}
+                    {`${truncateAddress(publisher)} (${chainName})`}
                     <Link
                       isExternal
                       styleConfig={{ 'text-decoration': 'none' }}
@@ -290,7 +292,7 @@ export default function PublishUtility(props: {
               mb={2}
               w="full"
               onClick={() =>
-                switchChainAsync({ chainId: 10 }).then(() =>
+                switchChainAsync({ chainId: optimism.id }).then(() =>
                   publishOptimismMutation.mutate()
                 )
               }
@@ -304,7 +306,7 @@ export default function PublishUtility(props: {
                   publishOptimismMutation.isPending ||
                   publishMainnetMutation.isPending
                     ? false
-                    : switchChainAsync({ chainId: 1 }).then(() =>
+                    : switchChainAsync({ chainId: mainnet.id }).then(() =>
                         publishMainnetMutation.mutate()
                       )
                 }

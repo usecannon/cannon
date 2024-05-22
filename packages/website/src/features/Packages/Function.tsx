@@ -58,6 +58,7 @@ export const Function: FC<{
   onDrawerOpen?: () => void;
   collapsible?: boolean;
   showFunctionSelector: boolean;
+  packageUrl?: string;
 }> = ({
   f,
   abi /*, cannonOutputs */,
@@ -67,6 +68,7 @@ export const Function: FC<{
   onDrawerOpen,
   collapsible,
   showFunctionSelector,
+  packageUrl,
 }) => {
   const { isOpen, onToggle } = useDisclosure();
   const currentSafe = useStore((s) => s.currentSafe);
@@ -274,6 +276,7 @@ export const Function: FC<{
           fn: f,
           params,
           chainId,
+          pkgUrl: packageUrl || '',
         },
       ],
       safeId: `${currentSafe.chainId}:${currentSafe.address}`,

@@ -452,10 +452,13 @@ export async function scanChain(mainnetClient: viem.PublicClient, optimismClient
       // for now process logs sequentially. In the future this could be paralellized
       for (const event of _.sortBy(usableEvents, 'timestamp') as any[]) {
         try {
+          const variant = viem.hexToString(event.args.variant || '0x', { size: 32 });
+          const [chainId, preset] = PackageReference.parseVariant(variant);
+
           const packageRef = `${viem.hexToString(event.args.name, { size: 32 })}:${viem.hexToString(event.args.tag || '0x', {
             size: 32,
-          })}@${viem.hexToString(event.args.variant || '0x', { size: 32 }).split('-')[1]}`;
-          const chainId = parseInt(viem.hexToString(event.args.variant || '0x', { size: 32 }).split('-')[0]);
+          })}@${preset}`;
+
           const feePaid = event.args.feePaid || 0n;
 
           const batch = redis.multi();
@@ -466,7 +469,7 @@ export async function scanChain(mainnetClient: viem.PublicClient, optimismClient
               batch.hSet(`${rkey.RKEY_PACKAGE_SEARCHABLE}:${packageRef}#${chainId}`, {
                 name: viem.hexToString(event.args.name, { size: 32 }),
                 version: viem.hexToString(event.args.tag, { size: 32 }),
-                preset: viem.hexToString(event.args.variant, { size: 32 }).split('-')[1],
+                preset,
                 chainId: chainId,
                 type: 'package',
                 deployUrl: event.args.deployUrl,
@@ -527,8 +530,8 @@ export async function scanChain(mainnetClient: viem.PublicClient, optimismClient
               await redis.hSet(`${rkey.RKEY_PACKAGE_SEARCHABLE}:${packageRef}#${chainId}`, {
                 name: viem.hexToString(event.args.name, { size: 32 }),
                 tag: viem.hexToString(event.args.tag, { size: 32 }),
-                preset: viem.hexToString(event.args.variant, { size: 32 }).split('-')[1],
-                chainId: viem.hexToString(event.args.variant, { size: 32 }).split('-')[0],
+                preset,
+                chainId,
                 versionOfTag: viem.hexToString(event.args.versionOfTag, { size: 32 }),
                 type: 'tag',
                 timestamp: event.timestamp,
@@ -575,7 +578,7 @@ export async function scanChain(mainnetClient: viem.PublicClient, optimismClient
       await redis.set(rkey.RKEY_LAST_IDX + ':' + 10, optimismScan.scanToBlock);
       consecutiveFailures = 0;
     } catch (err) {
-      console.error('failure while scannong cannon publishes:', err);
+      console.error('failure while scanning cannon publishes:', err);
       consecutiveFailures++;
     }
 

@@ -22,7 +22,7 @@ const NoSSR = dynamic(
 }: {
   params: { name: string; tag: string; variant: string };
 }) {
-  const [chainId, preset] = params.variant.split('-');
+  const [chainId, preset] = PackageReference.parseVariant(params.variant);
   const chain: { name: string; id: number } =
     Number(chainId) == 13370
       ? { id: 13370, name: 'Cannon' }

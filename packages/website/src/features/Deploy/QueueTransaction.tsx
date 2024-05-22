@@ -40,6 +40,7 @@ import {
   TransactionRequestBase,
 } from 'viem';
 import { FunctionInput } from '../Packages/FunctionInput';
+import { isValidHex } from '@/helpers/ethereum';
 import 'react-diff-view/style/index.css';
 
 type OptionData = {
@@ -111,6 +112,7 @@ export function QueueTransaction({
   contractAddress,
   target,
   chainId,
+  isCustom,
 }: {
   onChange: (
     txn: Omit<TransactionRequestBase, 'from'> | null,
@@ -120,6 +122,7 @@ export function QueueTransaction({
     target?: string,
     chainId?: number
   ) => void;
+  isCustom?: boolean;
   isDeletable: boolean;
   onDelete: () => void;
   txn: Omit<TransactionRequestBase, 'from'> | null;
@@ -162,6 +165,8 @@ export function QueueTransaction({
   }, [selectedFunction]);
 
   useEffect(() => {
+    if (isCustom) return;
+
     let error: string | null = null;
     let _txn: Omit<TransactionRequestBase, 'from'> | null = null;
 
@@ -222,6 +227,79 @@ export function QueueTransaction({
 
   const currentSafe = useStore((s) => s.currentSafe);
   const txnInfo = useSimulatedTxns(currentSafe as any, txn ? [txn] : []);
+
+  if (isCustom) {
+    const isValid = isValidHex(tx?.data || '');
+    return (
+      <Flex direction="column">
+        <Flex
+          flexDirection="row"
+          alignItems="center"
+          justifyContent="space-between"
+          backgroundColor="gray.700"
+          p={3}
+          pl={6}
+          pr={6}
+        >
+          <Text fontWeight={600} fontSize="sm" color="gray.300">
+            Contract Address: {tx?.to}
+          </Text>
+          {isDeletable && (
+            <Tooltip label="Remove transaction">
+              <IconButton
+                variant="outline"
+                border="none"
+                _hover={{ bg: 'gray.700' }}
+                size="xs"
+                colorScheme="red"
+                color="gray.300"
+                onClick={onDelete}
+                aria-label="Remove transaction"
+                icon={<DeleteIcon />}
+              />
+            </Tooltip>
+          )}
+        </Flex>
+        <Flex alignItems="center">
+          <Flex
+            flexDirection="column"
+            flex="1"
+            w={['100%', '100%', '50%']}
+            gap="10px"
+            p={6}
+            pt={4}
+            pb={4}
+          >
+            <FormControl mb={2}>
+              <FormLabel>Data</FormLabel>
+              <Input
+                value={tx?.data}
+                onChange={(e) =>
+                  onChange(
+                    {
+                      ...tx,
+                      data: e.target.value as Address,
+                    },
+                    selectedFunction as any,
+                    selectedParams,
+                    selectedContractName
+                  )
+                }
+              />
+              {!isValid && (
+                <FormHelperText color="red.300">
+                  Invalid transaction data
+                </FormHelperText>
+              )}
+              <FormHelperText color="gray.300">
+                Data field for custom transaction
+              </FormHelperText>
+            </FormControl>
+          </Flex>
+        </Flex>
+      </Flex>
+    );
+  }
 
   return (
     <Flex direction="column">

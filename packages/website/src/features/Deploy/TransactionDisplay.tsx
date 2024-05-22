@@ -15,6 +15,7 @@ import {
   AlertTitle,
   Box,
   Flex,
+  Image,
   Link,
   Modal,
   ModalBody,
@@ -24,7 +25,6 @@ import {
   Spinner,
   Text,
   useDisclosure,
-  Image,
 } from '@chakra-ui/react';
 import { uniq } from 'lodash';
 import { Diff, parseDiff } from 'react-diff-view';
@@ -52,7 +52,7 @@ export function TransactionDisplay(props: {
   const hintData = parseHintedMulticall(props.safeTxn?.data);
 
   const cannonInfo = useCannonPackageContracts(
-    hintData?.cannonPackage
+    hintData?.cannonPackage && hintData.isSinglePackage
       ? '@' + hintData.cannonPackage.replace('://', ':')
       : ''
   );
@@ -96,7 +96,12 @@ export function TransactionDisplay(props: {
 
   const diffFiles = uniq(patches.map(parseDiffFileNames).flat());
 
-  if (hintData?.cannonPackage && !cannonInfo.contracts) {
+  // This is just needed for single package transactions
+  if (
+    hintData?.cannonPackage &&
+    !cannonInfo.contracts &&
+    hintData.isSinglePackage
+  ) {
     return (
       <Box
         py="20"
@@ -232,34 +237,73 @@ export function TransactionDisplay(props: {
                 src="/images/cannon-logomark.svg"
               />
             </Box>
-            <Box ml={[0, 3]}>
-              <AlertTitle lineHeight={1} fontSize="sm" mb={1.5}>
-                Queued from Package
-              </AlertTitle>
-              <AlertDescription display="block" lineHeight={1.4} fontSize="sm">
-                These transactions were queued using the{' '}
-                <Link
-                  isExternal
-                  href={`/packages/${cannonInfo.resolvedName}/${cannonInfo.resolvedVersion}/${props.safe.chainId}-${cannonInfo.resolvedPreset}`}
+            {!hintData.cannonPackage ? (
+              <Box ml={[0, 3]}>
+                <AlertTitle lineHeight={1} fontSize="sm" mb={1.5}>
+                  Unknown source
+                </AlertTitle>
+                <AlertDescription
+                  display="block"
+                  lineHeight={1.4}
+                  fontSize="sm"
                 >
-                  {cannonInfo.resolvedName}
-                </Link>{' '}
-                package.
-              </AlertDescription>
-            </Box>
+                  These transactions were queued without a source package.
+                </AlertDescription>
+              </Box>
+            ) : hintData.isSinglePackage ? (
+              <Box ml={[0, 3]}>
+                <AlertTitle lineHeight={1} fontSize="sm" mb={1.5}>
+                  Queued from Package
+                </AlertTitle>
+                <AlertDescription
+                  display="block"
+                  lineHeight={1.4}
+                  fontSize="sm"
+                >
+                  These transactions were queued using the{' '}
+                  <Link
+                    isExternal
+                    href={`/packages/${cannonInfo.resolvedName}/${cannonInfo.resolvedVersion}/${props.safe.chainId}-${cannonInfo.resolvedPreset}`}
+                  >
+                    {cannonInfo.resolvedName}
+                  </Link>{' '}
+                  package.
+                </AlertDescription>
+              </Box>
+            ) : (
+              <Box ml={[0, 3]}>
+                <AlertTitle lineHeight={1} fontSize="sm" mb={1.5}>
+                  Queued from multiple packages
+                </AlertTitle>
+                <AlertDescription
+                  display="block"
+                  lineHeight={1.4}
+                  fontSize="sm"
+                >
+                  These transactions were queued using multiple packages.
+                </AlertDescription>
+              </Box>
+            )}
           </ChakraAlert>
         ))}
 
       <Box maxW="100%" overflowX="scroll">
-        {hintData.txns.map((txn, i) => (
-          <Box key={`tx-${i}`} mb={8}>
-            <DisplayedTransaction
-              contracts={cannonInfo.contracts as any}
-              txn={txn}
-              chainId={props.safe.chainId}
-            />
-          </Box>
-        ))}
+        {hintData.txns.map((txn, i) => {
+          const pkgUrl = hintData.cannonPackage.split(',')[i];
+          return (
+            <Box key={`tx-${i}`} mb={8}>
+              <DisplayedTransaction
+                txn={txn}
+                chainId={props.safe.chainId}
+                pkgUrl={
+                  hintData.isSinglePackage ? hintData.cannonPackage : pkgUrl
+                }
+                cannonInfo={cannonInfo}
+                isPreloaded={hintData.isSinglePackage}
+              />
+            </Box>
+          );
+        })}
       </Box>
     </Box>
   );

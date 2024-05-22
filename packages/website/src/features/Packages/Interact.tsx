@@ -13,7 +13,11 @@ import {
   useBreakpointValue,
   useDisclosure,
 } from '@chakra-ui/react';
-import { ChainArtifacts, ContractData } from '@usecannon/builder/src';
+import {
+  ChainArtifacts,
+  ContractData,
+  PackageReference,
+} from '@usecannon/builder';
 import { FC, useContext, useEffect, useState } from 'react';
 import { Address } from 'viem';
 import { HasSubnavContext } from './Tabs/InteractTab';
@@ -31,7 +35,7 @@ export const Interact: FC<{
 }> = ({ name, tag, variant, moduleName, contractName, contractAddress }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [chainId, preset] = variant.split('-');
+  const [chainId, preset] = PackageReference.parseVariant(variant);
 
   const packagesQuery = useQuery({
     queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],
@@ -185,6 +189,7 @@ export const Interact: FC<{
         cannonOutputs={cannonOutputs}
         chainId={packagesQuery.data.data?.chainId}
         onDrawerOpen={onOpen}
+        packageUrl={packagesQuery.data.data.deployUrl}
       />
       <QueueDrawer isOpen={isOpen} onClose={onClose} onOpen={onOpen} />
     </>

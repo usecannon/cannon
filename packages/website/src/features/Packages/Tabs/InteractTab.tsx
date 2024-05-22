@@ -16,7 +16,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { CustomSpinner } from '@/components/CustomSpinner';
-import { ChainArtifacts } from '@usecannon/builder';
+import { ChainArtifacts, PackageReference } from '@usecannon/builder';
 import { getOutput } from '@/lib/builder';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
@@ -36,7 +36,7 @@ export const InteractTab: FC<{
   variant: string;
   children?: ReactNode;
 }> = ({ name, tag, variant, children }) => {
-  const [chainId, preset] = variant.split('-');
+  const [chainId, preset] = PackageReference.parseVariant(variant);
 
   const packagesQuery = useQuery({
     queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],

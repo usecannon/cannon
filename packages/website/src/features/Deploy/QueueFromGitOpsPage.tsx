@@ -369,6 +369,57 @@ function QueueFromGitOps() {
     );
   }
 
+  const disablePreviewButton =
+    chainId !== currentSafe?.chainId ||
+    !cannonDefInfo.def ||
+    cannonPkgPreviousInfo.isFetching ||
+    partialDeployInfo.isFetching ||
+    cannonPkgVersionInfo.isFetching ||
+    buildInfo.isBuilding;
+
+  function PreviewButton(props: any) {
+    return (
+      <Tooltip label={props.message}>
+        <Button
+          width="100%"
+          colorScheme="teal"
+          isDisabled={disablePreviewButton}
+          onClick={() => buildInfo.doBuild()}
+        >
+          Preview Transactions to Queue
+        </Button>
+      </Tooltip>
+    );
+  }
+
+  function RenderPreviewButtonTooltip() {
+    if (chainId !== currentSafe?.chainId) {
+      return (
+        <PreviewButton message="Deployment Chain ID does not match Safe Chain ID" />
+      );
+    }
+
+    if (
+      cannonPkgPreviousInfo.isFetching ||
+      partialDeployInfo.isFetching ||
+      cannonPkgVersionInfo.isFetching
+    ) {
+      return <PreviewButton message="Fetching package info, please wait..." />;
+    }
+
+    if (buildInfo.isBuilding) {
+      return <PreviewButton message="Generating build info, please wait..." />;
+    }
+
+    if (!cannonDefInfo.def) {
+      return (
+        <PreviewButton message="No cannonfile definition found, please input the link to the cannonfile to build" />
+      );
+    }
+
+    return <PreviewButton />;
+  }
+
   return (
     <>
       <Container maxWidth="container.md" py={8}>
@@ -501,23 +552,7 @@ function QueueFromGitOps() {
               <Text>{alertMessage}</Text>
             </Alert>
           )}
-          <Button
-            width="100%"
-            colorScheme="teal"
-            isDisabled={
-              chainId !== currentSafe?.chainId ||
-              settings.isIpfsGateway ||
-              settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
-              !cannonDefInfo.def ||
-              cannonPkgPreviousInfo.isFetching ||
-              partialDeployInfo.isFetching ||
-              cannonPkgVersionInfo.isFetching ||
-              buildInfo.isBuilding
-            }
-            onClick={() => buildInfo.doBuild()}
-          >
-            Preview Transactions to Queue
-          </Button>
+          <RenderPreviewButtonTooltip />
           {buildInfo.buildStatus && (
             <Alert mt="6" status="info" bg="gray.800">
               <Spinner mr={3} boxSize={4} />
