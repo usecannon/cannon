@@ -2,7 +2,6 @@ import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
-import { bold } from 'chalk';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { deploySchema } from '../schemas';
 import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn, ARACHNID_DEFAULT_DEPLOY_ADDR } from '../create2';
@@ -15,6 +14,7 @@ import {
   PackageState,
 } from '../types';
 import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
+import { handleTxnError } from '../error';
 
 const debug = Debug('cannon:builder:contract');
 
@@ -341,23 +341,18 @@ const deploySpec = {
         }
       }
     } catch (error: any) {
-      let decodedError;
-      if (error.error.data) {
-        try {
-          decodedError = viem.decodeErrorResult({
-            abi: artifactData.abi,
-            data: error.error.data,
-          });
-          debug('Succesfully decoded abi error');
-        } catch (decodeErr) {
-          throw new Error('Failed to decode the error using the ABI' + decodeErr);
-        }
-      } else {
-        throw new Error('An error occurred, but no error data is available for decoding.');
-      }
+      // we need to get the contract artifact to decode the error
+      const contractArtifact = generateOutputs(
+        config,
+        ctx,
+        artifactData,
+        receipt,
+        // note: send zero address since there is no contract address
+        viem.zeroAddress,
+        packageState.currentLabel
+      );
 
-      const errorString = JSON.stringify(decodedError, null, 2);
-      throw new Error(bold('Error in contract\nDecoded error:') + ' ' + errorString);
+      return await handleTxnError(contractArtifact, runtime.provider, error);
     }
 
     return generateOutputs(config, ctx, artifactData, receipt, deployAddress, packageState.currentLabel);
