@@ -233,8 +233,11 @@ const TransactionDetailsPage: FC<{
 
   const gitDiffContainerRef = useRef<HTMLDivElement>(null);
 
-  console.log(patches)
-  console.log(cannonDefInfo)
+  console.log(gitUrl),
+  console.log(prevDeployGitHash),
+  console.log(hintData?.gitRepoHash),
+  console.log("PATCHES", patches)
+  console.log("CANNONFILE INFO", cannonDefInfo)
   
   return (
     <>
