@@ -56,14 +56,13 @@ import { useWriteContract } from 'wagmi';
 import pkg from '../../../package.json';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
+import { PackageReference } from '@usecannon/builder/src';
+
 import 'react-diff-view/style/index.css';
 
 export default function QueueFromGitOpsPage() {
   return <QueueFromGitOps />;
 }
-// Regex to match this pattern:
-// <package-name>:<version> or <package-name>:<version>@<preset>
-const PackageRegex = /^([a-z0-9-]+):([a-z0-9-]+)(@([a-z0-9-]+))?$/;
 
 function QueueFromGitOps() {
   const router = useRouter();
@@ -181,7 +180,7 @@ function QueueFromGitOps() {
   }, [previousPackageInput, cannonDefInfo.def?.getPreset(ctx)]);
 
   const cannonPkgPreviousInfo = useCannonPackage(
-    cannonDefInfo.def && PackageRegex.test(previousPackageInput)
+    cannonDefInfo.def && PackageReference.isValid(previousPackageInput)
       ? `${previousName}:${previousVersion}${
           previousPreset ? '@' + previousPreset : ''
         }`
@@ -460,7 +459,7 @@ function QueueFromGitOps() {
             </FormHelperText>
             {cannonPkgPreviousInfo.error ||
             (previousPackageInput.length > 0 &&
-              !PackageRegex.test(previousPackageInput)) ? (
+              !PackageReference.isValid(previousPackageInput)) ? (
               <Alert mt="6" status="error" bg="red.700">
                 <AlertIcon mr={3} />
                 <strong>
@@ -468,7 +467,7 @@ function QueueFromGitOps() {
                     'Invalid package name. Should be of the format <package-name>:<version> or <package-name>:<version>@<preset>'}
                 </strong>
               </Alert>
-            ) : undefined}
+            ) : null}
           </FormControl>
           {/* TODO: insert/load override settings here */}
           <FormControl mb="6">
