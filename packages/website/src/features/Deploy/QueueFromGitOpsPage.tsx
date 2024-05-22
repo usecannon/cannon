@@ -371,7 +371,6 @@ function QueueFromGitOps() {
 
   const disablePreviewButton =
     chainId !== currentSafe?.chainId ||
-    settings.isIpfsGateway ||
     !cannonDefInfo.def ||
     cannonPkgPreviousInfo.isFetching ||
     partialDeployInfo.isFetching ||
@@ -394,12 +393,6 @@ function QueueFromGitOps() {
   }
 
   function RenderPreviewButtonTooltip() {
-    if (settings.isIpfsGateway) {
-      return (
-        <PreviewButton message="Cannot write to IPFS endpoint as gateway, please change the IPFS Url in your settings." />
-      );
-    }
-
     if (chainId !== currentSafe?.chainId) {
       return (
         <PreviewButton message="Deployment Chain ID does not match Safe Chain ID" />
