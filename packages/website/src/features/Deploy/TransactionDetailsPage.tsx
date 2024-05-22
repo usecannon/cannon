@@ -1,7 +1,7 @@
 'use client';
 
-import { links } from '@/constants/links';
 import { parseHintedMulticall } from '@/helpers/cannon';
+import { truncateAddress } from '@/helpers/ethereum';
 import { createSimulationData, getSafeTransactionHash } from '@/helpers/safe';
 import { SafeDefinition } from '@/helpers/store';
 import { useSafeTransactions, useTxnStager } from '@/hooks/backend';
@@ -22,24 +22,22 @@ import {
   WarningIcon,
 } from '@chakra-ui/icons';
 import {
-  Alert,
   Box,
   Button,
   Container,
+  Flex,
   Grid,
   Heading,
+  Image,
   Link,
   Spinner,
   Text,
   Tooltip,
   useToast,
-  Image,
-  Flex,
 } from '@chakra-ui/react';
 import * as chains from '@wagmi/core/chains';
 import _, { find } from 'lodash';
-import { useRouter } from 'next/navigation';
-import { FC, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Address,
   hexToString,
@@ -47,45 +45,66 @@ import {
   TransactionRequestBase,
   zeroAddress,
 } from 'viem';
-import { useAccount, useChainId, useWriteContract } from 'wagmi';
+import {
+  useAccount,
+  useChainId,
+  usePublicClient,
+  useWriteContract,
+} from 'wagmi';
+import PublishUtility from './PublishUtility';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 import 'react-diff-view/style/index.css';
-import PublishUtility from './PublishUtility';
 
-const TransactionDetailsPage: FC<{
+interface Props {
   safeAddress: string;
   chainId: string;
   nonce: string;
   sigHash: string;
-}> = ({ safeAddress, chainId, nonce, sigHash }) => {
+}
+
+function TransactionDetailsPage({
+  safeAddress,
+  chainId,
+  nonce,
+  sigHash,
+}: Props) {
+  const [executionTxnHash, setExecutionTxnHash] = useState<string | null>(null);
+  const publicClient = usePublicClient();
   const walletChainId = useChainId();
   const account = useAccount();
-
-  let parsedChainId = 0;
-  let parsedNonce = 0;
-
-  try {
-    parsedChainId = parseInt(chainId ?? '');
-    parsedNonce = parseInt(nonce ?? '');
-  } catch (e) {
-    // nothing
-  }
+  const parsedChainId = parseInt(chainId ?? '0') || 0;
+  const parsedNonce = parseInt(nonce ?? '0') || 0;
 
   if (!isAddress(safeAddress ?? '')) {
     safeAddress = zeroAddress;
   }
 
-  const safe: SafeDefinition = {
-    chainId: parsedChainId,
-    address: safeAddress as Address,
-  };
+  const safe = useMemo(
+    () =>
+      ({
+        chainId: parsedChainId,
+        address: safeAddress as Address,
+      } as SafeDefinition),
+    [parsedChainId, safeAddress]
+  );
 
-  const { nonce: safeNonce, staged, stagedQuery } = useSafeTransactions(safe);
+  const safeChain = useMemo(() => {
+    if (!safe) return;
+    return find(chains, (chain: any) => chain.id === safe.chainId);
+  }, [safe]);
 
-  const verify = parsedNonce >= safeNonce;
+  const {
+    nonce: safeNonce,
+    staged,
+    stagedQuery,
+    nonceQuery,
+  } = useSafeTransactions(safe);
 
-  const history = useExecutedTransactions(safe);
+  const isTransactionExecuted = parsedNonce < safeNonce;
+
+  const { data: history, refetch: refetchHistory } =
+    useExecutedTransactions(safe);
 
   // get the txn we want, we can just pluck it out of staged transactions if its there
   let safeTxn: SafeTransaction | null = null;
@@ -100,7 +119,7 @@ const TransactionDetailsPage: FC<{
           txn._nonce.toString() === nonce &&
           (!sigHash || sigHash === getSafeTransactionHash(safe, txn))
       ) || null;
-  } else if (staged) {
+  } else if (Array.isArray(staged) && staged.length) {
     safeTxn =
       staged.find(
         (s) =>
@@ -111,7 +130,7 @@ const TransactionDetailsPage: FC<{
 
   const hintData = parseHintedMulticall(safeTxn?.data as any);
 
-  const allowPublishing = hintData?.type == 'deploy';
+  const queuedWithGitOps = hintData?.type == 'deploy';
 
   const cannonPackage = useCannonPackage(
     hintData?.cannonPackage
@@ -127,7 +146,6 @@ const TransactionDetailsPage: FC<{
 
   const stager = useTxnStager(safeTxn || {}, { safe: safe });
   const execTxn = useWriteContract();
-  const router = useRouter();
   const toast = useToast();
 
   // git stuff
@@ -141,7 +159,7 @@ const TransactionDetailsPage: FC<{
   );
 
   let prevDeployGitHash: string;
-  if (allowPublishing) {
+  if (queuedWithGitOps) {
     prevDeployGitHash =
       (hintData?.prevGitRepoHash || hintData?.gitRepoHash) ?? '';
   } else {
@@ -179,10 +197,13 @@ const TransactionDetailsPage: FC<{
     prevCannonDeployInfo.pkg
   );
 
-  useEffect(
-    () => buildInfo.doBuild(),
-    [verify && (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched)]
-  );
+  useEffect(() => {
+    if (!safe || !cannonDefInfo.def || !prevCannonDeployInfo.pkg) return;
+    buildInfo.doBuild();
+  }, [
+    !isTransactionExecuted &&
+      (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
+  ]);
 
   // compare proposed build info with expected transaction batch
   const expectedTxns = buildInfo.buildResult?.steps?.map(
@@ -201,28 +222,24 @@ const TransactionDetailsPage: FC<{
       }));
 
   const etherscanUrl =
-    (Object.values(chains).find((chain) => chain.id == safe.chainId) as any)
-      ?.blockExplorers?.default?.url ?? 'https://etherscan.io';
+    safeChain?.blockExplorers?.default.url || 'https://etherscan.io';
 
   const signers: Array<string> = stager.existingSigners.length
     ? stager.existingSigners
     : safeTxn?.confirmedSigners || [];
 
-  const threshold: number =
+  const threshold =
     Number(stager.requiredSigners) || safeTxn?.confirmationsRequired || 0;
 
   const remainingSignatures = threshold - signers.length;
 
-  const chainName = find(
-    chains,
-    (chain: any) => chain.id === safe.chainId
-  )?.name;
+  const chainName = safeChain?.name;
 
   return (
     <>
       {!hintData && (
-        <Container p={16}>
-          <Spinner m="auto" />
+        <Container p={24} textAlign="center">
+          <Spinner />
         </Container>
       )}
       {hintData && !safeTxn && stagedQuery.isFetched && (
@@ -230,7 +247,7 @@ const TransactionDetailsPage: FC<{
           <Text>
             Transaction not found! Current safe nonce:{' '}
             {safeNonce ? safeNonce.toString() : 'none'}, Highest Staged Nonce:{' '}
-            {_.last(staged)?.txn._nonce || safeNonce}
+            {(_.last(staged)?.txn._nonce || safeNonce).toString()}
           </Text>
         </Container>
       )}
@@ -251,7 +268,7 @@ const TransactionDetailsPage: FC<{
                     cannonPackage={cannonPackage}
                     safeTxn={safeTxn}
                     published={existingRegistryUrl == hintData?.cannonPackage}
-                    publishable={allowPublishing}
+                    publishable={queuedWithGitOps}
                     signers={signers}
                     threshold={threshold}
                   />
@@ -268,7 +285,9 @@ const TransactionDetailsPage: FC<{
               <TransactionDisplay
                 safe={safe}
                 safeTxn={safeTxn as any}
-                allowPublishing={allowPublishing}
+                queuedWithGitOps={queuedWithGitOps}
+                showQueueSource={true}
+                isTransactionExecuted={isTransactionExecuted}
               />
               <Box position="relative">
                 <Box position="sticky" top={8}>
@@ -279,64 +298,99 @@ const TransactionDetailsPage: FC<{
                     borderColor="gray.700"
                     mb={6}
                   >
-                    <Heading
-                      size="sm"
-                      mb="3"
-                      fontWeight="medium"
-                      textTransform="uppercase"
-                      letterSpacing="1.5px"
-                      fontFamily="var(--font-miriam)"
-                      textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                    >
-                      Signatures
-                    </Heading>
+                    {!executionTxnHash ? (
+                      <>
+                        <Heading
+                          size="sm"
+                          mb="3"
+                          fontWeight="medium"
+                          textTransform="uppercase"
+                          letterSpacing="1.5px"
+                          fontFamily="var(--font-miriam)"
+                          textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
+                        >
+                          Signatures
+                        </Heading>
 
-                    {signers?.map((s, index) => (
-                      <Box mt={2.5} key={index}>
-                        <Box
-                          backgroundColor="teal.500"
-                          borderRadius="full"
-                          display="inline-flex"
-                          alignItems="center"
-                          justifyContent="center"
-                          boxSize={5}
-                          mr={2.5}
+                        {signers?.map((s) => (
+                          <Box mt={2.5} key={s}>
+                            <Box
+                              backgroundColor="teal.500"
+                              borderRadius="full"
+                              display="inline-flex"
+                              alignItems="center"
+                              justifyContent="center"
+                              boxSize={5}
+                              mr={2.5}
+                            >
+                              <CheckIcon color="white" boxSize={2.5} />
+                            </Box>
+                            <Text
+                              display="inline"
+                              fontFamily="mono"
+                              fontWeight={200}
+                              color="gray.200"
+                            >
+                              {`${s.substring(0, 8)}...${s.slice(-6)}`}
+                              <Link
+                                isExternal
+                                styleConfig={{ 'text-decoration': 'none' }}
+                                href={`${etherscanUrl}/address/${s}`}
+                                ml={1}
+                              >
+                                <ExternalLinkIcon transform="translateY(-1px)" />
+                              </Link>
+                            </Text>
+                          </Box>
+                        ))}
+
+                        {!isTransactionExecuted && remainingSignatures > 0 && (
+                          <Text fontWeight="bold" mt="3">
+                            {remainingSignatures} additional{' '}
+                            {remainingSignatures === 1
+                              ? 'signature'
+                              : 'signatures'}{' '}
+                            required
+                          </Text>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <Heading
+                          size="sm"
+                          mb="3"
+                          fontWeight="medium"
+                          textTransform="uppercase"
+                          letterSpacing="1.5px"
+                          fontFamily="var(--font-miriam)"
+                          textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
                         >
-                          <CheckIcon color="white" boxSize={2.5} />
-                        </Box>
-                        <Text
-                          display="inline"
-                          fontFamily="mono"
-                          fontWeight={200}
-                          color="gray.200"
-                        >
-                          {`${s.substring(0, 8)}...${s.slice(-6)}`}
-                          <Link
-                            isExternal
-                            styleConfig={{ 'text-decoration': 'none' }}
-                            href={`${etherscanUrl}/address/${s}`}
-                            ml={1}
-                          >
-                            <ExternalLinkIcon transform="translateY(-1px)" />
-                          </Link>
+                          Execution
+                        </Heading>
+
+                        <Text fontSize="sm" fontWeight="medium" mt={3}>
+                          Transaction pending on network
                         </Text>
-                      </Box>
-                    ))}
-
-                    {verify && remainingSignatures > 0 && (
-                      <Text fontWeight="bold" mt="3">
-                        {remainingSignatures} additional{' '}
-                        {remainingSignatures === 1 ? 'signature' : 'signatures'}{' '}
-                        required
-                      </Text>
+                        <Link
+                          href={`${etherscanUrl}/tx/${executionTxnHash}`}
+                          isExternal
+                          fontSize="sm"
+                          fontWeight="medium"
+                          mt={3}
+                        >
+                          {truncateAddress(
+                            (executionTxnHash || '') as string,
+                            8
+                          )}
+                          <ExternalLinkIcon
+                            transform="translateY(-1px)"
+                            ml={1}
+                          />
+                        </Link>
+                      </>
                     )}
 
-                    {verify && stager.alreadySigned && (
-                      <Box mt={4}>
-                        <Alert status="success">Transaction signed</Alert>
-                      </Box>
-                    )}
-                    {verify && !stager.alreadySigned && (
+                    {!isTransactionExecuted && !executionTxnHash && (
                       <Flex mt={4} gap={4}>
                         {account.isConnected &&
                         walletChainId === safe.chainId ? (
@@ -347,12 +401,24 @@ const TransactionDetailsPage: FC<{
                                 mb={3}
                                 w="100%"
                                 isDisabled={
-                                  (safeTxn &&
-                                    !!stager.signConditionFailed) as any
+                                  stager.signing ||
+                                  stager.alreadySigned ||
+                                  executionTxnHash ||
+                                  ((safeTxn &&
+                                    !!stager.signConditionFailed) as any)
                                 }
-                                onClick={() => stager.sign()}
+                                onClick={async () => {
+                                  await stager.sign();
+                                }}
                               >
-                                Sign
+                                {stager.signing ? (
+                                  <>
+                                    Currently Signing
+                                    <Spinner size="sm" ml={2} />
+                                  </>
+                                ) : (
+                                  'Sign'
+                                )}
                               </Button>
                             </Tooltip>
                             <Tooltip label={stager.execConditionFailed}>
@@ -360,15 +426,39 @@ const TransactionDetailsPage: FC<{
                                 colorScheme="teal"
                                 w="100%"
                                 isDisabled={
-                                  (safeTxn &&
-                                    !!stager.execConditionFailed) as any
+                                  !stager.executeTxnConfig ||
+                                  executionTxnHash ||
+                                  ((safeTxn &&
+                                    !!stager.execConditionFailed) as any)
                                 }
                                 onClick={() => {
+                                  if (!stager.executeTxnConfig) {
+                                    throw new Error(
+                                      'Missing execution tx configuration'
+                                    );
+                                  }
+
                                   execTxn.writeContract(
-                                    stager.executeTxnConfig!,
+                                    stager.executeTxnConfig,
                                     {
-                                      onSuccess: () => {
-                                        router.push(links.DEPLOY);
+                                      onSuccess: async (hash) => {
+                                        setExecutionTxnHash(hash);
+                                        toast({
+                                          title: 'Transaction sent to network',
+                                          status: 'info',
+                                          duration: 5000,
+                                          isClosable: true,
+                                        });
+
+                                        // wait for the transaction to be mined
+                                        await publicClient!.waitForTransactionReceipt(
+                                          { hash }
+                                        );
+
+                                        await stagedQuery.refetch();
+                                        await nonceQuery.refetch();
+                                        await refetchHistory();
+
                                         toast({
                                           title:
                                             'You successfully executed the transaction.',
@@ -376,6 +466,8 @@ const TransactionDetailsPage: FC<{
                                           duration: 5000,
                                           isClosable: true,
                                         });
+
+                                        setExecutionTxnHash(null);
                                       },
                                     }
                                   );
@@ -399,7 +491,7 @@ const TransactionDetailsPage: FC<{
                     )}
                   </Box>
 
-                  {verify && allowPublishing && (
+                  {!isTransactionExecuted && queuedWithGitOps && (
                     <Box
                       background="gray.800"
                       p={4}
@@ -407,7 +499,15 @@ const TransactionDetailsPage: FC<{
                       borderColor="gray.700"
                       mb={8}
                     >
-                      <Heading size="sm" mb="2">
+                      <Heading
+                        size="sm"
+                        mb={3}
+                        fontWeight="medium"
+                        textTransform="uppercase"
+                        letterSpacing="1.5px"
+                        fontFamily="var(--font-miriam)"
+                        textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
+                      >
                         Verify Transactions
                       </Heading>
                       {buildInfo.buildStatus && (
@@ -483,7 +583,7 @@ const TransactionDetailsPage: FC<{
                     </Box>
                   )}
 
-                  {allowPublishing && (
+                  {queuedWithGitOps && (
                     <Box
                       background="gray.800"
                       p={4}
@@ -493,7 +593,7 @@ const TransactionDetailsPage: FC<{
                     >
                       <Heading
                         size="sm"
-                        mb={2}
+                        mb={3}
                         fontWeight="medium"
                         textTransform="uppercase"
                         letterSpacing="1.5px"
@@ -501,7 +601,7 @@ const TransactionDetailsPage: FC<{
                         textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
                       >
                         Cannon Package
-                        <Tooltip label="Packages includes data about this deployment (including smart contract addresses, ABIs, and source code).">
+                        <Tooltip label="Packages include data about this deployment (including smart contract addresses, ABIs, and source code). When publishing, the registry collects some ETH (indicated as the 'value' for the transaction in your wallet) to support an IPFS cluster that pins package data.">
                           <InfoOutlineIcon ml={1.5} opacity={0.8} mt={-0.5} />
                         </Tooltip>
                       </Heading>
@@ -520,6 +620,6 @@ const TransactionDetailsPage: FC<{
       )}
     </>
   );
-};
+}
 
 export default TransactionDetailsPage;

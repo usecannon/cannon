@@ -36,7 +36,7 @@ export async function getExecutionSigner(
   const address = ('0x' + hash.slice(0, 40)) as viem.Address;
 
   await provider.impersonateAccount({ address });
-  await provider.setBalance({ address, value: BigInt(1e22) });
+  await provider.setBalance({ address, value: viem.parseEther('10000') });
 
   const client = viem.createWalletClient({
     account: address,
@@ -147,17 +147,19 @@ export function printChainDefinitionProblems(problems: ChainDefinitionProblems, 
   const str: string[] = [];
 
   for (const missing of problems.missing) {
-    str.push(`${counter}: In action "${missing.action}", the dependency "${missing.dependency}" is not defined elsewhere.`);
+    str.push(
+      `${counter}: In operation "${missing.action}", the dependency "${missing.dependency}" is not defined elsewhere.`
+    );
     counter++;
   }
 
   if (problems.missing.length && def) {
-    str.push(`HELP: The following is the full list of known actions:
+    str.push(`HELP: The following is the full list of known operations:
 ${def.allActionNames.join('\n')}`);
   }
 
   for (const cycle of problems.cycles) {
-    str.push(`${counter}: The actions ${cycle.join(', ')} form a dependency cycle and therefore cannot be deployed.`);
+    str.push(`${counter}: The operations ${cycle.join(', ')} form a dependency cycle and therefore cannot be deployed.`);
 
     counter++;
   }

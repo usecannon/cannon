@@ -9,6 +9,7 @@ import { InMemoryRegistry } from './registry';
 import { ChainBuilderRuntime, Events } from './runtime';
 import deployStep from './steps/deploy';
 import varStep from './steps/var';
+import pullStep from './steps/pull';
 import invokeStep from './steps/invoke';
 import { ChainBuilderContext, ContractArtifact, DeploymentState } from './types';
 
@@ -45,13 +46,13 @@ describe('builder.ts', () => {
     jest.mocked(provider.extend).mockReturnThis();
     deployStep.validate = { safeParse: jest.fn().mockReturnValue({ success: true } as any) } as any;
     varStep.validate = { safeParse: jest.fn().mockReturnValue({ success: true } as any) } as any;
+    pullStep.validate = { safeParse: jest.fn().mockReturnValue({ success: true } as any) } as any;
     invokeStep.validate = { safeParse: jest.fn().mockReturnValue({ success: true } as any) } as any;
     runtime = new ChainBuilderRuntime(
       {
         allowPartialDeploy: true,
         provider: provider,
         chainId: 1234,
-        publicSourceCode: true,
         snapshots: false,
         getSigner,
         getDefaultSigner,
@@ -80,6 +81,14 @@ describe('builder.ts', () => {
         args: [1, 2, 3, '<%= contracts.Yoop.address %>'],
         from: '0x1234123412341234123412341234123412341234',
         depends: ['deploy.Yoop'],
+      },
+    },
+    pull: {
+      thePackage: {
+        source: 'source',
+        chainId: 1234,
+        preset: 'preset',
+        depends: [],
       },
     },
   } as RawChainDefinition;
@@ -121,6 +130,18 @@ describe('builder.ts', () => {
       hash: '56786789',
       chainDump: '0x5678',
     },
+    'pull.thePackage': {
+      artifacts: {
+        imports: {
+          thePackage: {
+            url: '0x1234',
+          },
+        },
+      },
+      version: BUILD_VERSION,
+      hash: '79797979',
+      chainDump: '0x7979',
+    },
     'var.setStuff': {
       artifacts: {
         settings: {
@@ -151,7 +172,7 @@ describe('builder.ts', () => {
       },
     },
   });
-  jest.mocked(deployStep.getInputs).mockReturnValue([]);
+  jest.mocked(deployStep.getInputs).mockReturnValue({ accesses: [], unableToCompute: false });
   jest.mocked(deployStep.getOutputs).mockReturnValue([]);
 
   jest.mocked(invokeStep.getState).mockResolvedValue([{}] as any);
@@ -160,7 +181,7 @@ describe('builder.ts', () => {
       smartFunc: { hash: '0x56785678', events: {}, deployedOn: 'invoke.smartFunc', gasCost: '0', gasUsed: 0, signer: '' },
     },
   });
-  jest.mocked(invokeStep.getInputs).mockReturnValue([]);
+  jest.mocked(invokeStep.getInputs).mockReturnValue({ accesses: [], unableToCompute: false });
   jest.mocked(invokeStep.getOutputs).mockReturnValue([]);
 
   describe('build()', () => {
@@ -268,7 +289,7 @@ describe('builder.ts', () => {
 
       // should only be called for the leaf
       expect(provider.loadState).toBeCalledWith({ state: '0x5678' });
-      expect(provider.loadState).toBeCalledTimes(2);
+      expect(provider.loadState).toBeCalledTimes(3);
     });
   });
 

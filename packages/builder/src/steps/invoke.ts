@@ -3,7 +3,7 @@ import * as viem from 'viem';
 import { AbiFunction } from 'viem';
 import _ from 'lodash';
 import { z } from 'zod';
-import { computeTemplateAccesses } from '../access-recorder';
+import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { invokeSchema } from '../schemas';
 import {
   CannonSigner,
@@ -25,7 +25,7 @@ import {
 const debug = Debug('cannon:builder:invoke');
 
 /**
- *  Available properties for invoke step
+ *  Available properties for invoke operation
  *  @public
  *  @group Invoke
  */
@@ -400,49 +400,55 @@ const invokeSpec = {
     return config;
   },
 
-  getInputs(config: Config) {
-    const accesses: string[] = [];
+  getInputs(config: Config, possibleFields: string[]) {
+    let accesses = computeTemplateAccesses(config.abi, possibleFields);
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.func, possibleFields));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.from, possibleFields));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.value, possibleFields));
 
     for (const target of config.target) {
       if (!viem.isAddress(target)) {
         if (target.includes('.')) {
-          accesses.push(`imports.${target.split('.')[0]}`);
+          accesses.accesses.push(`imports.${target.split('.')[0]}`);
         } else {
-          accesses.push(`contracts.${target}`);
+          accesses.accesses.push(`contracts.${target}`);
         }
       }
     }
 
-    accesses.push(...computeTemplateAccesses(config.abi));
-    accesses.push(...computeTemplateAccesses(config.func));
-    accesses.push(...computeTemplateAccesses(config.from));
-    accesses.push(...computeTemplateAccesses(config.value));
-
     if (config.args) {
-      _.forEach(config.args, (a) => accesses.push(...computeTemplateAccesses(JSON.stringify(a))));
+      _.forEach(
+        config.args,
+        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(a), possibleFields)))
+      );
     }
 
     if (config.fromCall) {
-      accesses.push(...computeTemplateAccesses(config.fromCall.func));
-      _.forEach(config.fromCall.args, (a) => accesses.push(...computeTemplateAccesses(JSON.stringify(a))));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.fromCall.func, possibleFields));
+
+      _.forEach(
+        config.fromCall.args,
+        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(a), possibleFields)))
+      );
     }
 
     if (config?.overrides) {
-      accesses.push(...computeTemplateAccesses(config.overrides.gasLimit));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit, possibleFields));
     }
 
     for (const name in config.factory) {
       const f = config.factory[name];
 
-      accesses.push(...computeTemplateAccesses(f.event));
-      accesses.push(...computeTemplateAccesses(f.artifact));
-      _.forEach(f.abiOf, (a) => accesses.push(...computeTemplateAccesses(a)));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.event, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.artifact, possibleFields));
+
+      _.forEach(f.abiOf, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))));
     }
 
     const varsConfig = config.var || config.extra;
     for (const name in varsConfig) {
       const f = varsConfig[name];
-      accesses.push(...computeTemplateAccesses(f.event));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.event, possibleFields));
     }
 
     return accesses;
@@ -457,9 +463,11 @@ const invokeSpec = {
         if ((config.factory[k].expectCount || 1) > 1) {
           for (let i = 0; i < config.factory[k].expectCount!; i++) {
             outputs.push(`contracts.${k}_${i}`);
+            outputs.push(`${k}_${i}`);
           }
         } else {
           outputs.push(`contracts.${k}`);
+          outputs.push(k);
         }
       }
     }
@@ -470,9 +478,13 @@ const invokeSpec = {
         if ((varsConfig[k].expectCount || 1) > 1) {
           for (let i = 0; i < varsConfig[k].expectCount!; i++) {
             outputs.push(`settings.${k}_${i}`);
+            // backwards compatibility
+            outputs.push(`extras.${k}_${i}`);
           }
         } else {
           outputs.push(`settings.${k}`);
+          //backwards compatibility
+          outputs.push(`extras.${k}`);
         }
       }
     }

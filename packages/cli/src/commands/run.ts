@@ -10,20 +10,24 @@ import {
   PackageReference,
   renderTrace,
 } from '@usecannon/builder';
-import { bold, gray, green, greenBright, yellow } from 'chalk';
-import * as viem from 'viem';
+import { TraceEntry } from '@usecannon/builder/src';
 import _ from 'lodash';
+import * as viem from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { bold, gray, green, greenBright, yellow } from 'chalk';
+
 import { setupAnvil } from '../helpers';
 import { getMainLoader } from '../loader';
-import { createDefaultReadRegistry } from '../registry';
-import { CannonRpcNode, getProvider } from '../rpc';
-import { resolveCliSettings } from '../settings';
-import { PackageSpecification } from '../types';
-import { getContractsRecursive } from '../util/contracts-recursive';
 import onKeypress from '../util/on-keypress';
+import { PackageSpecification } from '../types';
+import { resolveCliSettings } from '../settings';
+import { ANVIL_FIRST_ADDRESS } from '../constants';
+import { CannonRpcNode, getProvider } from '../rpc';
+import { createDefaultReadRegistry } from '../registry';
+import { getContractsRecursive } from '../util/contracts-recursive';
+
 import { build } from './build';
 import { interact } from './interact';
-import { TraceEntry } from '@usecannon/builder/src';
 
 export interface RunOptions {
   node: CannonRpcNode;
@@ -36,7 +40,7 @@ export interface RunOptions {
   privateKey?: viem.Hash;
   upgradeFrom?: string;
   getArtifact?: (name: string) => Promise<ContractArtifact>;
-  registryPriority: 'local' | 'onchain';
+  registryPriority: 'local' | 'onchain' | 'offline';
   fundAddresses?: string[];
   helpInformation?: string;
   build?: boolean;
@@ -57,30 +61,38 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
   // Start the rpc server
   const node = options.node;
+
   const provider = getProvider(node)!;
   const nodeLogging = await createLoggingInterface(node);
 
   if (options.fundAddresses && options.fundAddresses.length) {
     for (const fundAddress of options.fundAddresses) {
-      await provider?.setBalance({ address: fundAddress as viem.Address, value: BigInt(1e22) });
+      await provider?.setBalance({ address: fundAddress as viem.Address, value: viem.parseEther('10000') });
     }
   }
 
   const cliSettings = resolveCliSettings(options);
+
   const resolver = options.resolver || (await createDefaultReadRegistry(cliSettings));
 
   const buildOutputs: { pkg: PackageSpecification; outputs: ChainArtifacts }[] = [];
 
-  let signers: CannonSigner[] = [];
+  const signers: CannonSigner[] = [];
 
   // set up signers
-  for (const addr of (options.impersonate || '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266').split(',')) {
+
+  const accounts = cliSettings.privateKey
+    ? cliSettings.privateKey.split(',').map((pk) => privateKeyToAccount(pk as viem.Hex).address)
+    : (options.impersonate || ANVIL_FIRST_ADDRESS).split(',');
+
+  for (const addr of accounts) {
     await provider.impersonateAccount({ address: addr as viem.Address });
-    await provider.setBalance({ address: addr as viem.Address, value: BigInt(1e22) });
-    signers = [{ address: addr as viem.Address, wallet: provider }];
+    await provider.setBalance({ address: addr as viem.Address, value: viem.parseEther('10000') });
+    signers.push({ address: addr as viem.Address, wallet: provider });
   }
 
   const chainId = await provider.getChainId();
+
   const basicRuntime = new ChainBuilderRuntime(
     {
       provider: provider,
@@ -88,7 +100,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       async getSigner(addr: viem.Address) {
         // on test network any user can be conjured
         await provider.impersonateAccount({ address: addr });
-        await provider.setBalance({ address: addr, value: BigInt(1e22) });
+        await provider.setBalance({ address: addr, value: viem.parseEther('10000') });
         return { address: addr, wallet: provider };
       },
       snapshots: chainId === CANNON_CHAIN_ID,

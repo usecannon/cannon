@@ -1,10 +1,14 @@
+/* eslint-disable no-console */
+
 import { blueBright, bold, yellow } from 'chalk';
 import Debug from 'debug';
+import _ from 'lodash';
 import EventEmitter from 'promise-events';
 import * as viem from 'viem';
 import CannonRegistryAbi from './abis/CannonRegistry';
+import { prepareMulticall, TxData } from './multicall';
 import { PackageReference } from './package';
-import { CannonSigner, Contract } from './types';
+import { CannonSigner } from './types';
 
 const debug = Debug('cannon:builder:registry');
 
@@ -218,10 +222,18 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
   }
 }
 
+interface PackageData {
+  name: string;
+  tags: string[];
+  variant: string;
+  url?: string;
+  metaUrl?: string;
+}
+
 export class OnChainRegistry extends CannonRegistry {
   provider?: viem.PublicClient | null;
   signer?: CannonSigner | null;
-  contract: Contract;
+  contract: { address: viem.Address; abi: typeof CannonRegistryAbi };
   overrides: any;
 
   constructor({
@@ -240,7 +252,7 @@ export class OnChainRegistry extends CannonRegistry {
     this.signer = signer;
     this.provider = provider;
 
-    this.contract = { address, abi: CannonRegistryAbi as viem.Abi };
+    this.contract = { address, abi: CannonRegistryAbi };
     this.overrides = overrides;
 
     debug(`created registry on address "${address}"`);
@@ -250,151 +262,200 @@ export class OnChainRegistry extends CannonRegistry {
     return `${this.contract.address}`;
   }
 
-  private async checkSigner() {
-    if (!this.signer) {
-      throw new Error('Missing signer needed for publishing');
-    }
-
-    if (!(await this.provider?.getBalance({ address: this.signer.address }))) {
-      throw new Error(
-        `Signer at address ${this.signer.address} is not funded with ETH. Please ensure you have ETH in your wallet in order to publish.`
-      );
-    }
+  /**
+   * Checks if package needs to be registered before publishing.
+   * @param packageName
+   * @returns Boolean
+   */
+  async _isPackageRegistered(packageName: string) {
+    const packageOwner = await this.getPackageOwner(packageName);
+    return !viem.isAddressEqual(packageOwner, viem.zeroAddress);
   }
 
-  private async checkPackageOwnership(packageName: string) {
-    const packageHash = viem.stringToHex(packageName, { size: 32 });
-
-    const packageOwner = (await this.provider?.readContract({
-      ...this.contract,
-      functionName: 'getPackageOwner',
-      args: [packageHash],
-    })) as viem.Address;
-
-    const signer = viem.getAddress(this.signer!.address);
-
-    if (viem.isAddressEqual(packageOwner, viem.zeroAddress)) return;
-    if (viem.isAddressEqual(signer, packageOwner)) return;
-
-    const additionalDeployers = (await this.provider?.readContract({
-      ...this.contract,
-      functionName: 'getAdditionalDeployers',
-      args: [packageHash],
-    })) as viem.Address[];
-
-    if (!additionalDeployers.some((deployer) => viem.isAddressEqual(signer, deployer))) {
-      throw new Error(`Signer at address "${signer}" is not the owner of the "${packageName}" package`);
-    }
-  }
-
-  private generatePublishTransactionData(
-    packagesName: string,
-    packageTags: string[],
-    variant: string,
-    url: string,
-    metaUrl?: string
-  ) {
-    return viem.encodeFunctionData({
-      ...this.contract,
-      functionName: 'publish',
-      args: [
-        viem.stringToHex(packagesName, { size: 32 }),
-        viem.stringToHex(variant, { size: 32 }),
-        packageTags.map((t) => viem.stringToHex(t, { size: 32 })),
-        url,
-        metaUrl || '',
-      ],
-    });
-  }
-
-  private async doMulticall(datas: string[]): Promise<string> {
+  async _checkPackageOwnership(packageName: string) {
     if (!this.signer || !this.provider) {
       throw new Error('Missing signer for executing registry operations');
     }
 
-    const tx = await this.provider?.simulateContract({
-      ...this.contract,
-      account: this.signer.wallet.account || this.signer.address,
-      functionName: 'multicall',
-      args: [datas],
-      ...this.overrides,
-    });
+    const packageOwner = await this.getPackageOwner(packageName);
 
-    // Loose typing necessary because of this.overrides above?
-    const hash = await this.signer?.wallet.writeContract(tx.request as any);
-    const receipt = await this.provider?.waitForTransactionReceipt({ hash });
+    const signer = viem.getAddress(this.signer.address);
+
+    if (viem.isAddressEqual(packageOwner, viem.zeroAddress)) {
+      throw new Error(
+        `The package "${packageName}" is not registered to be owned by anyone. Please register the package before publishing for the first time.`
+      );
+    }
+
+    if (viem.isAddressEqual(signer, packageOwner)) return;
+
+    const additionalPublishers = await this.getAdditionalPublishers(packageName);
+
+    if (!additionalPublishers.some((deployer) => viem.isAddressEqual(signer, deployer))) {
+      throw new Error(`Signer "${signer}" does not have publishing permissions on the "${packageName}" package`);
+    }
+  }
+
+  private _preparePackageData(packagesNames: string[], chainId: number, url?: string, metaUrl?: string): PackageData {
+    const refs = packagesNames.map((name) => new PackageReference(name));
+
+    // Sanity check, all package definitions should have the same name
+    if (_.uniq(refs.map((r) => r.name)).length !== 1) {
+      throw new Error(`packages should have the same name: ${packagesNames.join(', ')}`);
+    }
+
+    // Sanity check, all package definitions should have the same preset
+    if (_.uniq(refs.map((r) => r.preset)).length !== 1) {
+      throw new Error(`packages should have the same preset: ${packagesNames.join(', ')}`);
+    }
+
+    const { name, preset } = refs[0];
+    const variant = `${chainId}-${preset}`;
+    const tags = refs.map((ref) => ref.version);
+
+    console.log(`Package: ${name}`);
+    if (preset !== PackageReference.DEFAULT_PRESET) {
+      console.log(`Preset: ${preset}`);
+    }
+
+    console.log(`Tags: ${tags.join(', ')}`);
+
+    if (url) {
+      console.log(`Package URL: ${url}`);
+    }
+
+    if (metaUrl) {
+      console.log(`Metadata URL: ${metaUrl}`);
+    }
+
+    console.log('\n');
+
+    return { name, variant, tags, url, metaUrl };
+  }
+
+  private async _unpublishPackages(packages: PackageData[]): Promise<string> {
+    if (!this.signer || !this.provider) {
+      throw new Error('Missing signer for executing registry operations');
+    }
+
+    debug('signer', this.signer);
+
+    const txs: TxData[] = packages.map((data) => ({
+      abi: this.contract.abi,
+      address: this.contract.address,
+      functionName: 'unpublish',
+      value: BigInt(0),
+      args: [
+        viem.stringToHex(data.name, { size: 32 }),
+        viem.stringToHex(data.variant, { size: 32 }),
+        data.tags.map((t) => viem.stringToHex(t, { size: 32 })),
+      ],
+    }));
+
+    const txData = txs.length === 1 ? txs[0] : prepareMulticall(txs);
+
+    const params = {
+      ...txData,
+      account: this.signer.wallet.account || this.signer.address,
+      ...this.overrides,
+    };
+
+    const simulatedGas = await this.provider.estimateContractGas(params);
+
+    await this._logEstimatedGas(simulatedGas);
+
+    const tx = await this.provider.simulateContract(params);
+
+    const hash = await this.signer.wallet.writeContract(tx.request as any);
+    const receipt = await this.provider.waitForTransactionReceipt({ hash });
 
     return receipt.transactionHash;
   }
 
-  // TODO: in time remove this
-  /* eslint no-console: "off" */
-
-  // this is sort of confusing to have two publish functions that are both used to publish multiple packages
-  async publish(packagesNames: string[], chainId: number, url: string, metaUrl?: string): Promise<string[]> {
-    await this.checkSigner();
-    const datas: string[] = [];
-
-    console.log(bold(blueBright('\nPublishing packages to the registry on-chain...\n')));
-    for (const registerPackage of packagesNames) {
-      const versions = packagesNames.filter((pkg) => pkg === registerPackage).map((p) => new PackageReference(p).version);
-
-      const ref = new PackageReference(registerPackage);
-      const { name, preset } = new PackageReference(registerPackage);
-
-      await this.checkPackageOwnership(name);
-      const variant = `${chainId}-${preset}`;
-
-      console.log(`Package: ${ref.fullPackageRef}`);
-      console.log(`Tags: ${versions}`);
-      console.log(`Package URL: ${url}`);
-
-      if (!metaUrl) {
-        console.log(`Package Metadata URL: ${metaUrl}`);
-      }
-
-      console.log('\n');
-
-      const tx = this.generatePublishTransactionData(name, versions, variant, url, metaUrl);
-      datas.push(tx);
+  private async _publishPackages(packages: PackageData[]): Promise<string> {
+    if (!this.signer || !this.provider) {
+      throw new Error('Missing signer for executing registry operations');
     }
-    await this.logMultiCallEstimatedGas(datas);
-    return [await this.doMulticall(datas)];
+
+    debug('signer', this.signer);
+
+    const ownerAddress = this.signer.wallet.account?.address || this.signer.address;
+
+    const publishFee = await this.getPublishFee();
+
+    const txs: TxData[] = packages.map((data) => ({
+      abi: this.contract.abi,
+      address: this.contract.address,
+      functionName: 'publish',
+      value: publishFee,
+      args: [
+        viem.stringToHex(data.name, { size: 32 }),
+        viem.stringToHex(data.variant, { size: 32 }),
+        data.tags.map((t) => viem.stringToHex(t, { size: 32 })),
+        data.url,
+        data.metaUrl || '',
+      ],
+    }));
+
+    await Promise.all(
+      packages.map(async ({ name }) => {
+        if (await this._isPackageRegistered(name)) {
+          await this._checkPackageOwnership(name);
+        } else {
+          txs.unshift({
+            abi: this.contract.abi,
+            address: this.contract.address,
+            functionName: 'setPackageOwnership',
+            args: [viem.stringToHex(name, { size: 32 }), ownerAddress],
+          });
+        }
+      })
+    );
+
+    const txData = txs.length === 1 ? txs[0] : prepareMulticall(txs);
+
+    const params = {
+      ...txData,
+      account: this.signer.wallet.account || this.signer.address,
+      ...this.overrides,
+    };
+
+    const simulatedGas = await this.provider.estimateContractGas(params);
+
+    await this._logEstimatedGas(simulatedGas);
+
+    const tx = await this.provider.simulateContract(params);
+
+    const hash = await this.signer.wallet.writeContract(tx.request as any);
+    const receipt = await this.provider.waitForTransactionReceipt({ hash });
+
+    return receipt.transactionHash;
+  }
+
+  async publish(packagesNames: string[], chainId: number, url: string, metaUrl?: string): Promise<string[]> {
+    console.log(bold(blueBright('\nPublishing package to the registry on-chain...\n')));
+    const packageData = this._preparePackageData(packagesNames, chainId, url, metaUrl);
+    return [await this._publishPackages([packageData])];
   }
 
   async publishMany(
-    toPublish: { packagesNames: string[]; chainId: number; url: string; metaUrl: string }[]
+    toPublish: { packagesNames: string[]; chainId: number; url: string; metaUrl?: string }[]
   ): Promise<string[]> {
-    debug('Checking signer');
-    await this.checkSigner();
-    debug('signer', this.signer);
-    const datas: string[] = [];
-    console.log(bold(blueBright('\nPublishing packages to the On-Chain registry...\n')));
-    for (const pub of toPublish) {
-      for (const registerPackage of pub.packagesNames) {
-        const versions = pub.packagesNames
-          .filter((pkg) => pkg === registerPackage)
-          .map((p) => new PackageReference(p).version);
+    console.log(bold(blueBright('\nPublishing packages to the registry on-chain...\n')));
+    const packageDatas = toPublish.map((p) => this._preparePackageData(p.packagesNames, p.chainId, p.url, p.metaUrl));
+    return [await this._publishPackages(packageDatas)];
+  }
 
-        const { name, preset } = new PackageReference(registerPackage);
+  async unpublish(packagesNames: string[], chainId: number): Promise<string[]> {
+    console.log(bold(blueBright('\nUnpublishing package to the registry on-chain...\n')));
+    const packageData = this._preparePackageData(packagesNames, chainId);
+    return [await this._unpublishPackages([packageData])];
+  }
 
-        await this.checkPackageOwnership(name);
-        const variant = `${pub.chainId}-${preset}`;
-
-        console.log(`Package: ${name}`);
-        console.log(`Tags: ${versions}`);
-        console.log(`Package URL: ${pub.url}`);
-        pub.metaUrl ? console.log(`Package Metadata URL: ${pub.metaUrl}`) : null;
-
-        console.log('\n-----');
-
-        const tx = this.generatePublishTransactionData(name, versions, variant, pub.url, pub.metaUrl);
-
-        datas.push(tx);
-      }
-    }
-    await this.logMultiCallEstimatedGas(datas);
-    return [await this.doMulticall(datas)];
+  async unpublishMany(toUnpublish: { name: string[]; chainId: number }[]): Promise<string[]> {
+    console.log(bold(blueBright('\nUnpublishing packages to the registry on-chain...\n')));
+    const packageDatas = toUnpublish.map((p) => this._preparePackageData(p.name, p.chainId));
+    return [await this._unpublishPackages(packageDatas)];
   }
 
   async getUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
@@ -403,7 +464,6 @@ export class OnChainRegistry extends CannonRegistry {
     }
 
     const baseResolved = await super.getUrl(packageOrServiceRef, chainId);
-
     if (baseResolved) return baseResolved;
 
     const { name, version, preset } = new PackageReference(packageOrServiceRef);
@@ -434,7 +494,7 @@ export class OnChainRegistry extends CannonRegistry {
     const { name, version, preset } = new PackageReference(packageOrServiceRef);
     const variant = `${chainId}-${preset}`;
 
-    const { result: url } = await this.provider.simulateContract({
+    const url = await this.provider.readContract({
       ...this.contract,
       functionName: 'getPackageMeta',
       args: [
@@ -492,45 +552,234 @@ export class OnChainRegistry extends CannonRegistry {
     return new Set(decodedEvents.flatMap((e) => [(e.args as any).deployUrl, (e.args as any).metaUrl]));
   }
 
-  private async logMultiCallEstimatedGas(datas: any): Promise<void> {
+  async getPackageOwner(packageName: string): Promise<viem.Address> {
     if (!this.provider) {
-      throw new Error('provider not required for estimating gas');
+      throw new Error('Missing signer for executing registry operations');
     }
 
-    try {
-      console.log(bold(blueBright('\nCalculating Transaction cost...')));
+    const packageHash = viem.stringToHex(packageName, { size: 32 });
 
-      const simulatedGas = await this.provider.estimateContractGas({
-        address: this.contract.address,
-        account: this.signer?.wallet.account,
-        abi: this.contract.abi,
-        functionName: 'multicall',
-        args: [datas],
-        ...this.overrides,
-      });
+    return this.provider.readContract({
+      ...this.contract,
+      functionName: 'getPackageOwner',
+      args: [packageHash],
+    });
+  }
 
-      console.log(`\nEstimated gas: ${simulatedGas} wei`);
-      const gasPrice = BigInt(this.overrides.maxFeePerGas || this.overrides.gasPrice || (await this.provider.getGasPrice()));
-      console.log(`\nGas price: ${viem.formatEther(gasPrice)} ETH`);
-      const transactionFeeWei = simulatedGas * gasPrice;
-      // Convert the transaction fee from wei to ether
-      const transactionFeeEther = viem.formatEther(transactionFeeWei);
+  async getAdditionalPublishers(packageName: string): Promise<viem.Address[]> {
+    if (!this.provider) {
+      throw new Error('Missing signer for executing registry operations');
+    }
 
-      console.log(`\nEstimated transaction Fee: ${transactionFeeEther} ETH\n\n`);
+    const packageHash = viem.stringToHex(packageName, { size: 32 });
 
-      const userBalance = await this.provider.getBalance({ address: this.signer!.address });
+    return await this.provider?.readContract({
+      ...this.contract,
+      functionName: 'getAdditionalPublishers',
+      args: [packageHash],
+    });
+  }
 
-      if (this.signer && userBalance < transactionFeeWei) {
-        console.log(
-          bold(
-            yellow(
-              `Publishing address "${this.signer?.address}" does not have enough funds to pay for the publishing transaction, the transaction will likely revert.\n`
-            )
+  async estimateGasForSetPackageOwnership(transactions: TxData) {
+    if (!this.signer || !this.provider) {
+      throw new Error('Missing signer for executing registry operations');
+    }
+
+    const simulatedGas = await this.provider.estimateContractGas({
+      ...transactions,
+      account: this.signer.wallet.account || this.signer.address,
+      ...this.overrides,
+    });
+
+    return simulatedGas;
+  }
+
+  async calculatePublishingFee(packageCount: number) {
+    if (!this.provider) {
+      throw new Error('Missing provider for executing registry operations');
+    }
+
+    const publishFee = await this.getPublishFee();
+
+    return BigInt(packageCount) * publishFee;
+  }
+
+  async getRegisterFee() {
+    if (!this.provider) {
+      throw new Error('Missing provider for executing registry operations');
+    }
+
+    const registerFee = (await this.provider.readContract({
+      abi: this.contract.abi,
+      address: this.contract.address,
+      functionName: 'registerFee',
+    })) as bigint;
+
+    return registerFee;
+  }
+
+  async getPublishFee() {
+    if (!this.provider) {
+      throw new Error('Missing provider for executing registry operations');
+    }
+
+    const publishFee = (await this.provider.readContract({
+      abi: this.contract.abi,
+      address: this.contract.address,
+      functionName: 'publishFee',
+    })) as bigint;
+
+    return publishFee;
+  }
+
+  async prepareSetPackageOwnership(packageName: string, packageOwner?: viem.Address, shouldNominateOwner?: boolean) {
+    if (!this.signer || !this.provider) {
+      throw new Error('Missing signer for executing registry operations');
+    }
+
+    const packageHash = viem.stringToHex(packageName, { size: 32 });
+    const owner = packageOwner || this.signer.address;
+
+    const registerFee = await this.getRegisterFee();
+
+    const transactions = [];
+
+    // first step: nominate the owner if needed
+    if (shouldNominateOwner) {
+      const setNominatePackageOwnerParams = {
+        ...this.contract,
+        functionName: 'nominatePackageOwner',
+        args: [packageHash, owner],
+        account: this.signer.wallet.account || this.signer.address,
+      };
+
+      transactions.push(setNominatePackageOwnerParams);
+    }
+
+    // second step: set the package ownership
+    const setPackageOwnershipParams = {
+      ...this.contract,
+      functionName: 'setPackageOwnership',
+      value: registerFee,
+      args: [packageHash, owner],
+      account: this.signer.wallet.account || this.signer.address,
+    };
+
+    // third step: set the additional publishers
+    const setAdditionalPublishersParams = {
+      ...this.contract,
+      functionName: 'setAdditionalPublishers',
+      // mainnet is empty, owner is set as publisher for optimism
+      args: [packageHash, [], [owner]],
+      account: this.signer.wallet.account || this.signer.address,
+    };
+
+    transactions.push(setPackageOwnershipParams);
+    transactions.push(setAdditionalPublishersParams);
+
+    return transactions;
+  }
+
+  async setPackageOwnership(transactions: TxData) {
+    if (!this.signer || !this.provider) {
+      throw new Error('Missing signer for executing registry operations');
+    }
+
+    const params = {
+      ...transactions,
+      account: this.signer.wallet.account || this.signer.address,
+      ...this.overrides,
+    };
+
+    const simulatedGas = await this.provider.estimateContractGas(params);
+
+    await this._logEstimatedGas(simulatedGas);
+
+    // note: hardcoded gas to make sure the transaction goes through
+    params.gas = BigInt(2_500_000);
+
+    const tx = await this.provider.simulateContract(params);
+
+    const hash = await this.signer.wallet.writeContract(tx.request as any);
+
+    const receipt = await this.provider.waitForTransactionReceipt({ hash });
+
+    if (receipt.status !== 'success') {
+      throw new Error(`Something went wrong. Transaction failed: ${receipt.transactionHash}`);
+    }
+
+    return receipt.transactionHash;
+  }
+
+  async setAdditionalPublishers(packageName: string, mainnetPublishers: viem.Address[], optimismPublishers: viem.Address[]) {
+    if (!this.signer || !this.provider) {
+      throw new Error('Missing signer for executing registry operations');
+    }
+
+    const packageHash = viem.stringToHex(packageName, { size: 32 });
+
+    const params = {
+      ...this.contract,
+      functionName: 'setAdditionalPublishers',
+      args: [packageHash, mainnetPublishers, optimismPublishers],
+      account: this.signer.wallet.account || this.signer.address,
+      ...this.overrides,
+    };
+
+    const simulatedGas = await this.provider.estimateContractGas(params as any);
+    const userBalance = await this.provider.getBalance({ address: this.signer.address });
+
+    // note: hardcoded gas to make sure the transaction goes through
+    params.gas = BigInt(2_000_000);
+
+    await this._logEstimatedGas(simulatedGas);
+
+    const cost = simulatedGas;
+    if (cost > userBalance) {
+      throw new Error(`Account "${this.signer.address}" does not have the required ${viem.formatEther(cost)} ETH for gas`);
+    }
+
+    const tx = await this.provider.simulateContract(params);
+
+    const hash = await this.signer.wallet.writeContract(tx.request as any);
+
+    const rx = await this.provider.waitForTransactionReceipt({ hash });
+
+    if (rx.status !== 'success') {
+      throw new Error(`Something went wrong. Transaction failed: ${rx.transactionHash}`);
+    }
+
+    return rx.transactionHash;
+  }
+
+  private async _logEstimatedGas(simulatedGas: bigint): Promise<void> {
+    if (!this.signer || !this.provider) {
+      throw new Error('Missing signer for executing registry operations');
+    }
+
+    const userBalance = await this.provider.getBalance({ address: this.signer.address });
+
+    if (!userBalance) {
+      throw new Error(
+        `Signer at address ${this.signer.address} is not funded with ETH. Please ensure you have ETH in your wallet in order to perform the operation.`
+      );
+    }
+
+    console.log(`\nEstimated gas: ${simulatedGas} wei`);
+
+    const gasPrice = BigInt(this.overrides.maxFeePerGas || this.overrides.gasPrice || (await this.provider.getGasPrice()));
+    console.log(`\nGas price: ${viem.formatEther(gasPrice)} ETH`);
+    const transactionFeeWei = simulatedGas * gasPrice;
+    console.log(`\nEstimated transaction Fee: ${viem.formatEther(transactionFeeWei)} ETH\n\n`);
+
+    if (this.signer && userBalance < transactionFeeWei) {
+      console.log(
+        bold(
+          yellow(
+            `The address "${this.signer.address}" does not have enough funds to pay for the transaction, the transaction will likely revert.\n`
           )
-        );
-      }
-    } catch (e: any) {
-      console.log(yellow('\n Error in calculating estimated transaction fee for publishing packages: '), e);
+        )
+      );
     }
   }
 }

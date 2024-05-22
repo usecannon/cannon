@@ -1,9 +1,10 @@
+import _ from 'lodash';
 import { ContractData, ChainArtifacts, ChainDefinition, DeploymentState } from '@usecannon/builder';
 import { bold, cyan, green, yellow } from 'chalk';
-import { PackageReference } from '@usecannon/builder/dist/package';
-import { fetchIPFSAvailability } from '@usecannon/builder/dist/ipfs';
+import { PackageReference } from '@usecannon/builder/dist/src/package';
+import { fetchIPFSAvailability } from '@usecannon/builder/dist/src/ipfs';
 import { createDefaultReadRegistry } from '../registry';
-import { resolveCliSettings } from '../settings';
+import { CliSettings } from '../settings';
 import fs from 'fs-extra';
 import path from 'path';
 import { getMainLoader } from '../loader';
@@ -11,6 +12,7 @@ import { getContractsAndDetails, getSourceFromRegistry } from '../helpers';
 
 export async function inspect(
   packageRef: string,
+  cliSettings: CliSettings,
   chainId: number,
   presetArg: string,
   json: boolean,
@@ -31,9 +33,9 @@ export async function inspect(
 
   const { fullPackageRef } = new PackageReference(packageRef);
 
-  const resolver = await createDefaultReadRegistry(resolveCliSettings());
+  const resolver = await createDefaultReadRegistry(cliSettings);
 
-  const loader = getMainLoader(resolveCliSettings());
+  const loader = getMainLoader(cliSettings);
 
   const deployUrl = await resolver.getUrl(fullPackageRef, chainId);
 
@@ -82,9 +84,11 @@ export async function inspect(
     const metaUrl = await resolver.getMetaUrl(fullPackageRef, chainId);
     const packageOwner = deployData.def.setting?.owner?.defaultValue;
     const localSource = getSourceFromRegistry(resolver.registries);
-    const ipfsUrl = resolveCliSettings().ipfsUrl;
+    const ipfsUrl = cliSettings.ipfsUrl;
     const ipfsAvailabilityScore = await fetchIPFSAvailability(ipfsUrl, deployUrl.replace('ipfs://', ''));
     const contractsAndDetails = getContractsAndDetails(deployData.state);
+    const miscData = await loader.ipfs.read(deployData.miscUrl);
+    const contractSources = _listSourceCodeContracts(miscData);
 
     console.log(green(bold(`\n=============== ${fullPackageRef} ===============`)));
     console.log();
@@ -104,8 +108,12 @@ export async function inspect(
     console.log('     Package URL:', deployUrl);
     console.log('        Misc URL:', deployData.miscUrl);
     console.log('Package Info URL:', metaUrl || '(none)');
-    console.log('Cannon generator:', deployData.generator);
-    console.log('       timestamp:', deployData.timestamp);
+    console.log('Cannon Generator:', deployData.generator);
+    console.log('       Timestamp:', new Date(deployData.timestamp * 1000).toLocaleString());
+    console.log(
+      'Contract Sources:',
+      bold((contractSources.length ? yellow : green)(contractSources.length + ' sources included'))
+    );
     console.log();
     console.log('IPFS Availability Score(# of nodes): ', ipfsAvailabilityScore || 'Run IPFS Locally to get this score');
     console.log();
@@ -121,7 +129,7 @@ export async function inspect(
     console.log('-------------------');
     console.log();
     if (sources) {
-      console.log('Contract Sources:');
+      console.log('Contract Info:');
       console.log('-------------------');
       for (const contractName in contractsAndDetails) {
         const { sourceName, highlight } = contractsAndDetails[contractName];
@@ -131,11 +139,6 @@ export async function inspect(
         }
       }
       console.log('-------------------');
-    } else {
-      const hasContractSources = Object.values(contractsAndDetails).some((contract) => 'sourceName' in contract);
-      if (hasContractSources) {
-        console.log('Contract sources are available. Run inspect command with --sources flag to display');
-      }
     }
     console.log();
     console.log(cyan(bold('Cannonfile Topology')));
@@ -168,4 +171,9 @@ function _getNestedStateFiles(artifacts: ChainArtifacts, pathname: string, resul
   }
 
   return result;
+}
+
+// TODO: types
+function _listSourceCodeContracts(miscData: any) {
+  return Object.keys(_.pickBy(miscData.artifacts, (v) => v.source));
 }

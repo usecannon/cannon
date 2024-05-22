@@ -32,15 +32,15 @@ export const ImportProvisionPackages = () => {
   return (
     <>
       <Heading size="md" mb={3} mt={8}>
-        Import and Provision Packages
+        Pull and Clone Packages
       </Heading>
       <Text mb={4}>
-        You can use packages in your Cannonfiles with the import and provision
-        actions.
+        You can use packages in your Cannonfiles with the pull and clone
+        operations.
       </Text>
       <Text mb={4}>
         <Code colorScheme="blackAlpha" variant="solid">
-          import
+          pull
         </Code>
         &nbsp; packages to reference the addresses in their deployment data.
         Find which networks each package has deployment data for on the&nbsp;
@@ -62,14 +62,14 @@ export const ImportProvisionPackages = () => {
       </Box>
       <Text mb={4}>
         <Code colorScheme="blackAlpha" variant="solid">
-          provision
+          clone
         </Code>{' '}
         packages to deploy new instances of their protocol&apos;s contracts.
       </Text>
       <Text mb={4}>
         For example, the Synthetix Sandbox contains a&nbsp;
         <ChakraLink href="https://github.com/Synthetixio/synthetix-sandbox/blob/main/cannonfile.toml">
-          Cannonfile that provisions a new instance of Synthetix
+          Cannonfile that clones a new instance of Synthetix
         </ChakraLink>
         &nbsp;and sets up a custom development environment. This is a simplified
         version of the relevant code:

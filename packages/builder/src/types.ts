@@ -31,8 +31,6 @@ export type ContractData = {
   abi: Abi;
   constructorArgs?: any[]; // only needed for external verification
   linkedLibraries?: { [sourceName: string]: { [libName: string]: string } }; // only needed for external verification
-  // only should be supplied when generated solidity as a single file
-  sourceCode?: string;
   deployTxnHash: string;
   contractName: string;
   sourceName: string;
@@ -48,7 +46,7 @@ export type ContractMap = {
 
 export type TransactionMap = {
   [label: string]: {
-    hash: Hash;
+    hash: Hash | '';
     events: EventMap;
     deployedOn: string;
     gasUsed: number;
@@ -80,7 +78,12 @@ export interface ChainBuilderContext extends PreChainBuilderContext {
 
   settings: { [label: string]: string };
 
+  // Legacy
+  extras?: { [label: string]: string };
+
   imports: BundledChainBuilderOutputs;
+
+  [shortContract: string]: any;
 }
 
 const etherUnitNames = ['wei', 'kwei', 'mwei', 'gwei', 'szabo', 'finney', 'ether'];
@@ -146,6 +149,11 @@ export const CannonHelperContext = {
   soliditySha256: (a: string[], v: any[]) => viem.sha256(viem.encodePacked(a, v)),
   serializeTransaction: viem.serializeTransaction,
   parseTransaction: viem.parseTransaction,
+
+  encodeFunctionData: viem.encodeFunctionData,
+  decodeFunctionData: viem.decodeFunctionData,
+  encodeFunctionResult: viem.encodeFunctionResult,
+  decodeFunctionResult: viem.decodeFunctionResult,
 };
 
 export type ChainBuilderContextWithHelpers = ChainBuilderContext & typeof CannonHelperContext;
@@ -180,9 +188,6 @@ export interface ChainBuilderRuntimeInfo {
   // Should gracefully continue after failures and return a partial release?
   allowPartialDeploy: boolean;
 
-  // Should publish contract sources along with bytecode?
-  publicSourceCode?: boolean;
-
   // Gas price to use for transactions
   gasPrice?: string;
 
@@ -197,13 +202,13 @@ export interface PackageState {
   currentLabel: string;
 }
 
-export type BundledOutput = { url: string; tags?: string[]; preset?: string } & ChainArtifacts;
+export type BundledOutput = { url: string; tags?: string[]; target?: string; preset?: string } & ChainArtifacts;
 
 export interface BundledChainBuilderOutputs {
   [module: string]: BundledOutput;
 }
 
-export type ChainArtifacts = Partial<Pick<ChainBuilderContext, 'imports' | 'contracts' | 'txns' | 'settings'>>;
+export type ChainArtifacts = Partial<Pick<ChainBuilderContext, 'imports' | 'contracts' | 'txns' | 'settings' | 'extras'>>;
 
 export interface ChainBuilderOptions {
   [key: string]: string;

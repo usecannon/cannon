@@ -12,8 +12,7 @@ contract ContractTest is Test {
   Greeter greeter;
 
   function setUp() public {
-    // greeter = Greeter(vm.getAddress("greeter")); ====> This is causing revert and EVMError on foundry test
-    greeter = new Greeter("Hello World");
+    greeter = Greeter(vm.getAddress("greeter"));
   }
 
   function testExample() public {

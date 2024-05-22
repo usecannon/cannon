@@ -12,6 +12,11 @@ const NoSSR = dynamic(
 
 export const metadata: Metadata = {
   title: 'Cannon | Queue From GitOps',
+  description: 'Queue From GitOps',
+  openGraph: {
+    title: 'Cannon | Queue From GitOps',
+    description: 'Queue From GitOps',
+  },
 };
 
 export default function QueueFromGitOps() {

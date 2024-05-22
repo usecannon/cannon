@@ -76,33 +76,31 @@ video.alt {
 }
 `;
 
-const CustomLinkButton = ({
+export const CustomLinkButton = ({
   href,
   children,
 }: {
   href: string;
   children: ReactNode;
 }) => (
-  <>
-    <Button
-      as={NextLink}
-      variant="outline"
-      colorScheme="white"
-      size="sm"
-      bg="teal.900"
-      borderColor="teal.500"
-      _hover={{ bg: 'teal.800' }}
-      textTransform="uppercase"
-      letterSpacing="1px"
-      fontFamily="var(--font-miriam)"
-      color="gray.200"
-      fontWeight={500}
-      mb={[4, 4, 0]}
-      href={href}
-    >
-      {children}
-    </Button>
-  </>
+  <Button
+    as={NextLink}
+    variant="outline"
+    colorScheme="white"
+    size="sm"
+    bg="teal.900"
+    borderColor="teal.500"
+    _hover={{ bg: 'teal.800' }}
+    textTransform="uppercase"
+    letterSpacing="1px"
+    fontFamily="var(--font-miriam)"
+    color="gray.200"
+    fontWeight={500}
+    mb={[4, 4, 0]}
+    href={href}
+  >
+    {children}
+  </Button>
 );
 
 export default function HomePage() {
@@ -194,7 +192,7 @@ export default function HomePage() {
             letterSpacing={['-0.8px', '-0.8px', '-1.6px']}
             color="gray.300"
           >
-            A DevOps tool for building on Ethereum.
+            A DevOps tool for building on Ethereum
           </Heading>
           <Link href={links.LEARN} color="white" as={NextLink}>
             <Button
@@ -291,7 +289,7 @@ export default function HomePage() {
               single command.
             </Text>
             <CustomLinkButton href={links.GETSTARTED}>
-              Run Synthetix for Development
+              Run a Cannon Package
             </CustomLinkButton>
           </Box>
           <Box pl={[0, 0, 8]}>

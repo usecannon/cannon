@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderRuntimeInfo } from '../types';
 
 /**
- *  Available properties for keeper step (Not yet implemented)
+ *  Available properties for keeper operation (Not yet implemented)
  *  @internal
  *  @group Keeper
  */

@@ -1,6 +1,7 @@
-import Debug from 'debug';
 import _ from 'lodash';
 import { CannonHelperContext } from './types';
+
+import Debug from 'debug';
 
 const debug = Debug('cannon:builder:access-recorder');
 
@@ -16,7 +17,16 @@ class ExtendableProxy {
         if (!this.accessed.has(prop)) {
           this.accessed.set(prop, new AccessRecorder());
         }
-        return typeof prop === 'symbol' ? () => '' : this.accessed.get(prop);
+
+        if (typeof prop === 'symbol') {
+          return () => '';
+        } else if ((CannonHelperContext as any)[prop]) {
+          // return a dummy function which returns nothing.
+          // this increases the probability that an expression will work out in the template
+          return _.noop;
+        }
+
+        return this.accessed.get(prop);
       },
     });
   }
@@ -41,12 +51,13 @@ export class AccessRecorder extends ExtendableProxy {
     return acc;
   }
 }
+export type AccessComputationResult = { accesses: string[]; unableToCompute: boolean };
 
-export function computeTemplateAccesses(str?: string) {
+export function computeTemplateAccesses(str?: string, possibleNames: string[] = []): AccessComputationResult {
   if (!str) {
-    return [];
+    return { accesses: [], unableToCompute: false };
   }
-  //const recorder = new AccessRecorder();
+
   const recorders: { [k: string]: AccessRecorder } = {
     contracts: new AccessRecorder(),
     imports: new AccessRecorder(),
@@ -55,29 +66,48 @@ export function computeTemplateAccesses(str?: string) {
     settings: new AccessRecorder(),
   };
 
+  for (const n in CannonHelperContext) {
+    if (typeof (CannonHelperContext as any)[n] === 'function') {
+      // the types have been a massive unsolvableseeming pain here
+      recorders[n] = _.noop as unknown as AccessRecorder;
+    }
+    recorders[n] = (CannonHelperContext as any)[n] as unknown as AccessRecorder;
+  }
+
+  for (const n of possibleNames) {
+    recorders[n] = new AccessRecorder();
+  }
+
   const baseTemplate = _.template(str, {
-    imports: {
-      ...recorders,
-      // TODO: replace with cannon "standard template library" after the refactor
-      // for now we are just using ethers so its fine to just put here
-      ...CannonHelperContext,
-    },
+    imports: recorders,
   });
 
+  let unableToCompute = false;
   try {
     baseTemplate();
   } catch (err) {
-    debug('encountered error while parsing template for dependencies:', err);
-    debug(
-      'usually this happens because the access recorder is getting passed into a function that expects certain types. If you are finding some of your dependencies are not being resolved, please add them manually to `depends`.'
-    );
+    debug('ran into template processing error, mark unable to compute', err);
+    unableToCompute = true;
   }
 
   const accesses: string[] = [];
 
-  for (const recorder of Object.keys(recorders)) {
-    accesses.push(...Array.from(recorders[recorder].accessed.keys()).map((a: string) => `${recorder}.${a}`));
+  for (const recorder of _.difference(Object.keys(recorders), Object.keys(CannonHelperContext))) {
+    if (recorders[recorder] instanceof AccessRecorder) {
+      if (possibleNames.includes(recorder) && recorders[recorder].accessed.size > 0) {
+        accesses.push(recorder);
+      } else {
+        accesses.push(...Array.from(recorders[recorder].accessed.keys()).map((a: string) => `${recorder}.${a}`));
+      }
+    }
   }
 
-  return accesses;
+  return { accesses, unableToCompute };
+}
+
+export function mergeTemplateAccesses(r1: AccessComputationResult, r2: AccessComputationResult): AccessComputationResult {
+  return {
+    accesses: [...r1.accesses, ...r2.accesses],
+    unableToCompute: r1.unableToCompute || r2.unableToCompute,
+  };
 }

@@ -1,18 +1,12 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { supportedChains, useProviders } from '@/hooks/providers';
-import {
-  darkTheme,
-  getDefaultWallets,
-  RainbowKitProvider,
-} from '@rainbow-me/rainbowkit';
-import { createConfig } from '@wagmi/core';
+import { darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { ReactNode } from 'react';
 import { WagmiProvider } from 'wagmi';
 import '@rainbow-me/rainbowkit/styles.css';
 
-const { connectors } = getDefaultWallets({
-  appName: 'Cannon',
-  projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',
-});
+const queryClient = new QueryClient();
 
 interface IWalletProvider {
   children: ReactNode;
@@ -20,10 +14,10 @@ interface IWalletProvider {
 
 function WalletProvider({ children }: IWalletProvider) {
   const { transports } = useProviders();
-
-  const wagmiConfig = createConfig({
-    chains: supportedChains,
-    connectors,
+  const config = getDefaultConfig({
+    appName: 'Cannon',
+    projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',
+    chains: [...supportedChains],
     transports,
   });
 
@@ -31,20 +25,22 @@ function WalletProvider({ children }: IWalletProvider) {
   // hopefully the class name doesnt change from compile to compile lol
   // related issue: https://github.com/rainbow-me/rainbowkit/issues/1007
   return (
-    <WagmiProvider config={wagmiConfig}>
-      <RainbowKitProvider theme={darkTheme()}>
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider theme={darkTheme()}>
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `
              div.ju367v1i {
                max-height: 90vh;
                overflow: auto;
              }
            `,
-          }}
-        />
-        {children}
-      </RainbowKitProvider>
+            }}
+          />
+          {children}
+        </RainbowKitProvider>
+      </QueryClientProvider>
     </WagmiProvider>
   );
 }

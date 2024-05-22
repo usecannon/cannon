@@ -1,23 +1,22 @@
-import _ from 'lodash';
-import Debug from 'debug';
-import * as viem from 'viem';
-
-import { bold, yellow } from 'chalk';
-
-import { ActionKinds } from '@usecannon/builder/dist/actions';
-import { PackageReference } from '@usecannon/builder/dist/package';
-
-import { createDefaultReadRegistry } from '../registry';
 import {
-  createInitialContext,
-  ChainDefinition,
-  ChainBuilderRuntime,
-  getOutputs,
+  BUILD_VERSION,
   CANNON_CHAIN_ID,
+  ChainBuilderRuntime,
+  ChainDefinition,
+  createInitialContext,
   DeploymentInfo,
+  getOutputs,
+  StepState,
 } from '@usecannon/builder';
+import { ActionKinds } from '@usecannon/builder/dist/src/actions';
+import { PackageReference } from '@usecannon/builder/dist/src/package';
+import { bold, yellow } from 'chalk';
+import Debug from 'debug';
+import _ from 'lodash';
+import * as viem from 'viem';
 import { getMainLoader } from '../loader';
-import { resolveCliSettings } from '../settings';
+import { createDefaultReadRegistry } from '../registry';
+import { CliSettings } from '../settings';
 import { resolveWriteProvider } from '../util/provider';
 
 const debug = Debug('cannon:cli:alter');
@@ -25,7 +24,7 @@ const debug = Debug('cannon:cli:alter');
 export async function alter(
   packageRef: string,
   chainId: number,
-  providerUrl: string,
+  cliSettings: CliSettings,
   presetArg: string,
   meta: any,
   command: 'set-url' | 'set-contract-address' | 'import' | 'mark-complete' | 'mark-incomplete' | 'migrate-212',
@@ -47,8 +46,6 @@ export async function alter(
     );
   }
 
-  const cliSettings = resolveCliSettings({ providerUrl });
-
   const { provider } = await resolveWriteProvider(cliSettings, chainId);
   const resolver = await createDefaultReadRegistry(cliSettings);
   const loader = getMainLoader(cliSettings);
@@ -65,7 +62,7 @@ export async function alter(
       async getSigner(addr: viem.Address) {
         // on test network any user can be conjured
         //await provider.impersonateAccount({ address: addr });
-        //await provider.setBalance({ address: addr, value: BigInt(1e22) });
+        //await provider.setBalance({ address: addr, value: viem.parseEther('10000') });
         return { address: addr, wallet: provider as viem.WalletClient };
       },
       snapshots: false,
@@ -145,7 +142,7 @@ export async function alter(
     case 'import':
       if (targets.length !== 2) {
         throw new Error(
-          'incorrect number of arguments for import. Should be <stepName> <existingArtifacts (comma separated)>'
+          'incorrect number of arguments for import. Should be <operationName> <existingArtifacts (comma separated)>'
         );
       }
 
@@ -157,7 +154,7 @@ export async function alter(
 
         if (!stepAction.importExisting) {
           throw new Error(
-            `the given step ${stepName} does not support import. Consider using mark-complete, mark-incomplete`
+            `The given operation ${stepName} does not support import. Consider using mark-complete, mark-incomplete`
           );
         }
 
@@ -166,13 +163,48 @@ export async function alter(
 
         // some steps may require access to misc artifacts
         await runtime.restoreMisc(deployInfo.miscUrl);
-        deployInfo.state[stepName].artifacts = await stepAction.importExisting(
+
+        const importExisting = await stepAction.importExisting(
           runtime,
           ctx,
           config,
           { currentLabel: stepName, name: def.getName(ctx), version: def.getVersion(ctx) },
           existingKeys
         );
+
+        if (deployInfo.state[stepName]) {
+          deployInfo.state[stepName].artifacts = importExisting;
+        } else {
+          debug(`Operation ${stepName} not found, populating...`);
+          try {
+            deployInfo.state[stepName] = {} as StepState;
+
+            const ctx = await createInitialContext(new ChainDefinition(deployInfo.def), meta, chainId, deployInfo.options);
+            const outputs = await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state);
+
+            _.assign(ctx, outputs);
+
+            deployInfo.state[stepName].artifacts = await stepAction.importExisting(
+              runtime,
+              ctx,
+              config,
+              { currentLabel: stepName, name: def.getName(ctx), version: def.getVersion(ctx) },
+              existingKeys
+            );
+
+            // Recompute hash for this step in case there is a mismatch
+            const h = await new ChainDefinition(deployInfo.def).getState(stepName, runtime, ctx, false);
+            deployInfo.state[stepName].hash = h ? h[0] : null;
+          } catch (err) {
+            throw new Error(
+              `Operation ${stepName} not found in deployment state and could not be populated by Cannon, here are the available operation options: \n ${Object.keys(
+                deployInfo.state
+              )
+                .map((s) => `\n ${s}`)
+                .join('\n')}`
+            );
+          }
+        }
       }
 
       break;
@@ -193,7 +225,16 @@ export async function alter(
       // compute the state hash for the step
       for (const target of targets) {
         const h = await new ChainDefinition(deployInfo.def).getState(target, runtime, ctx, false);
-        deployInfo.state[targets[0]].hash = h ? h[0] : null;
+
+        if (!deployInfo.state[target]) {
+          deployInfo.state[target] = {
+            artifacts: { contracts: {}, txns: {}, extras: {} },
+            hash: h ? h[0] : null,
+            version: BUILD_VERSION,
+          };
+        } else {
+          deployInfo.state[target].hash = h ? h[0] : null;
+        }
       }
       // clear txn hash if we have it
       break;
@@ -210,7 +251,7 @@ export async function alter(
           const newUrl = await alter(
             `@${oldUrl.split(':')[0]}:${_.last(oldUrl.split('/'))}`,
             chainId,
-            providerUrl,
+            cliSettings,
             presetArg,
             meta,
             'migrate-212',

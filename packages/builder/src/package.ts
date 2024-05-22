@@ -5,7 +5,7 @@ import { ChainDefinition } from './definition';
 import { CannonStorage } from './runtime';
 import { BundledOutput, ChainArtifacts, DeploymentInfo, StepState } from './types';
 
-const debug = Debug('cannon:cli:publish');
+const debug = Debug('cannon:builder:package');
 
 interface PartialRefValues {
   name: string;
@@ -24,12 +24,14 @@ export type CopyPackageOpts = {
   includeProvisioned?: boolean;
 };
 
-export const PKG_REG_EXP = /^(?<name>@?[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
-
 /**
  * Used to format any reference to a cannon package and split it into it's core parts
  */
 export class PackageReference {
+  static DEFAULT_TAG = 'latest';
+  static DEFAULT_PRESET = 'main';
+  static PACKAGE_REGEX = /^(?<name>@?[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
+
   /**
    * Anything before the colon or an @ (if no version is present) is the package name.
    */
@@ -63,7 +65,7 @@ export class PackageReference {
    * Parse package reference without normalizing it
    */
   static parse(ref: string) {
-    const match = ref.match(PKG_REG_EXP);
+    const match = ref.match(PackageReference.PACKAGE_REGEX);
 
     if (!match || !match.groups?.name) {
       throw new Error(
@@ -80,18 +82,28 @@ export class PackageReference {
   }
 
   static isValid(ref: string) {
-    return !!PKG_REG_EXP.test(ref);
+    return !!PackageReference.PACKAGE_REGEX.test(ref);
   }
 
   static from(name: string, version?: string, preset?: string) {
-    version = version || 'latest';
-    preset = preset || 'main';
+    version = version || PackageReference.DEFAULT_TAG;
+    preset = preset || PackageReference.DEFAULT_PRESET;
     return new PackageReference(`${name}:${version}@${preset}`);
+  }
+
+  /**
+   * Parse variant string into chainId and preset
+   * @param variant string
+   * @returns chainId and preset
+   */
+  static parseVariant(variant: string): [number, string] {
+    const [chainId, preset] = variant.split(/-(.*)/s);
+    return [Number(chainId), preset];
   }
 
   constructor(ref: string) {
     const parsed = PackageReference.parse(ref);
-    const { name, version = 'latest', preset = 'main' } = parsed;
+    const { name, version = PackageReference.DEFAULT_TAG, preset = PackageReference.DEFAULT_PRESET } = parsed;
 
     this.name = name;
     this.version = version;
@@ -120,7 +132,7 @@ export async function forPackageTree<T extends { url?: string; artifacts?: Chain
     const nestedDeployInfo = await store.readBlob(importArtifact.url);
     const result = await forPackageTree(store, nestedDeployInfo, action, importArtifact, onlyResultProvisioned);
 
-    const newUrl = _.last(result)!.url;
+    const newUrl = _.last(result)?.url;
     if (newUrl && newUrl !== importArtifact.url) {
       importArtifact.url = newUrl!;
       const updatedNestedDeployInfo = await store.readBlob(newUrl);
@@ -173,7 +185,10 @@ export async function getProvisionedPackages(packageRef: string, chainId: number
 
     return {
       packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
-        (t: string) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : preset || 'main'}`
+        (t: string) =>
+          // backwards compatibility: use target if its defined in context first; otherwise, revert to old way
+          (context && context.target) ||
+          `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : preset || 'main'}`
       ),
       chainId: chainId,
       url: context?.url,
@@ -192,7 +207,7 @@ export async function publishPackage({
   chainId,
   fromStorage,
   toStorage,
-  includeProvisioned = false,
+  includeProvisioned = true,
 }: CopyPackageOpts) {
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
 
@@ -207,16 +222,37 @@ export async function publishPackage({
 
   // this internal function will copy one package's ipfs records and return a publish call, without recursing
   const copyIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
-    const checkKey = deployInfo.def.name + ':' + deployInfo.def.version + ':' + deployInfo.timestamp;
+    const checkKey =
+      deployInfo.def.name + ':' + deployInfo.def.version + ':' + deployInfo.def.preset + ':' + deployInfo.timestamp;
+
     if (alreadyCopiedIpfs.has(checkKey)) {
       return alreadyCopiedIpfs.get(checkKey);
     }
+
+    const def = new ChainDefinition(deployInfo.def);
+
+    const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId!, deployInfo.options);
+
+    const curFullPackageRef = `${def.getName(preCtx)}:${def.getVersion(preCtx)}@${
+      context && context.preset ? context.preset : presetRef
+    }`;
+
+    // if the package has already been published to the registry and it has the same ipfs hash, skip.
+    const oldUrl = await toStorage.registry.getUrl(curFullPackageRef, chainId);
+    const newUrl = await fromStorage.registry.getUrl(curFullPackageRef, chainId);
+    if (oldUrl === newUrl) {
+      debug('package already published... skip!', curFullPackageRef);
+      alreadyCopiedIpfs.set(checkKey, null);
+      return null;
+    }
+
+    debug('copy ipfs for', curFullPackageRef, oldUrl, newUrl);
 
     const newMiscUrl = await toStorage.putBlob(await fromStorage.readBlob(deployInfo!.miscUrl));
 
     // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
     //       Should it be called outside the scoped copyIpfs() function?
-    const metaUrl = await fromStorage.registry.getMetaUrl(fullPackageRef, chainId);
+    const metaUrl = await fromStorage.registry.getMetaUrl(curFullPackageRef, chainId);
     let newMetaUrl = metaUrl;
 
     if (metaUrl) {
@@ -234,10 +270,6 @@ export async function publishPackage({
     if (!url) {
       throw new Error('uploaded url is invalid');
     }
-
-    const def = new ChainDefinition(deployInfo.def);
-
-    const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId!, deployInfo.options);
 
     const returnVal = {
       packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
@@ -262,7 +294,7 @@ export async function publishPackage({
   }
 
   // We call this regardless of includeProvisioned because we want to ALWAYS upload the subpackages ipfs data.
-  const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
+  const calls = (await forPackageTree(fromStorage, deployData, copyIpfs)).filter((v: any) => v !== null);
 
   if (includeProvisioned) {
     debug('publishing with provisioned');

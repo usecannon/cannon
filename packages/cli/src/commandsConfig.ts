@@ -1,3 +1,25 @@
+import { ANVIL_FIRST_ADDRESS } from './constants';
+
+const debugVerbosity = [
+  {
+    flags: '-v',
+    description: 'Print logs for builder, equivalent to DEBUG=cannon:builder',
+  },
+  {
+    flags: '-vv',
+    description:
+      'Print logs for builder and its definition section, equivalent to DEBUG=cannon:builder, cannon:builder:definition',
+  },
+  {
+    flags: '-vvv',
+    description: 'Print logs for builder and its all sub sections, equivalent to DEBUG=cannon:builder*',
+  },
+  {
+    flags: '-vvvv',
+    description: 'Print all cannon logs, equivalent to DEBUG=cannon:*',
+  },
+];
+
 const anvilOptions = [
   {
     flags: '-p --port <number>',
@@ -158,7 +180,7 @@ const anvilOptions = [
 
 const commandsConfig = {
   run: {
-    description: 'Utility for instantly loading cannon packages in standalone contexts',
+    description: 'Run a local Cannon package (Chain ID: 13370) on a local node for development and testing',
     usage: '[global options] ...[<name>[:<semver>] ...[<key>=<value>]]',
     arguments: [
       {
@@ -199,7 +221,7 @@ const commandsConfig = {
       {
         flags: '--impersonate <address>',
         description: 'Impersonate all calls from the given signer instead of a real wallet. Only works with --fork',
-        defaultValue: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+        defaultValue: ANVIL_FIRST_ADDRESS,
       },
       {
         flags: '--mnemonic <phrase>',
@@ -213,6 +235,7 @@ const commandsConfig = {
         flags: '--non-interactive',
         description: 'Do not prompt for any user input. Useful for scripts and CI processes.',
       },
+      ...debugVerbosity,
     ],
   },
   build: {
@@ -297,6 +320,7 @@ const commandsConfig = {
         flags: '-q --quiet',
         description: 'Suppress extra logging',
       },
+      ...debugVerbosity,
     ],
   },
   verify: {
@@ -321,6 +345,7 @@ const commandsConfig = {
         flags: '-p --preset <preset>',
         description: '(DEPRECATED) Preset of the deployment to verify',
       },
+      ...debugVerbosity,
     ],
   },
   alter: {
@@ -353,6 +378,7 @@ const commandsConfig = {
         flags: '-p --preset <preset>',
         description: '(DEPRECATED) Preset of the deployment to alter',
       },
+      ...debugVerbosity,
     ],
   },
   fetch: {
@@ -376,6 +402,7 @@ const commandsConfig = {
         flags: '--meta-hash <metaHash>',
         description: 'IPFS hash to fetch deployment metadata from',
       },
+      ...debugVerbosity,
     ],
   },
   pin: {
@@ -386,9 +413,11 @@ const commandsConfig = {
         description: 'IPFS hash to write deployment data for',
       },
     ],
+    options: [...debugVerbosity],
   },
   publish: {
-    description: 'Publish a Cannon package to the registry',
+    description:
+      'Publish a Cannon package to the registry (Note that the registry collects some ETH, indicated in the CLI output, to support an IPFS cluster that automatically pins package data.)',
     arguments: [
       {
         flags: '<packageRef>',
@@ -399,6 +428,14 @@ const commandsConfig = {
       {
         flags: '-n --registry-provider-url [url]',
         description: 'RPC endpoint to publish to',
+      },
+      {
+        flags: '--registry-chain-id <number>',
+        description: 'Registry chain id to publish to',
+      },
+      {
+        flags: '--registry-address <address>',
+        description: 'Registry address to publish to',
       },
       {
         flags: '--private-key <key>',
@@ -438,12 +475,157 @@ const commandsConfig = {
       },
       {
         flags: '--include-provisioned',
-        description: 'Includes provisioned packages when publishing to the registry',
+        description: '(DEPRECATED) Includes provisioned packages when publishing to the registry',
+      },
+      {
+        flags: '--exclude-cloned',
+        description: 'Excludes cloned packages when publishing to the registry',
       },
       {
         flags: '--skip-confirm',
         description: 'Skip confirmation and package selection prompts',
       },
+      ...debugVerbosity,
+    ],
+  },
+  unpublish: {
+    description: 'Unpublish a Cannon package to the registry',
+    arguments: [
+      {
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the Cannon package to unpublish (name:version@preset)',
+      },
+    ],
+    options: [
+      {
+        flags: '-n --registry-provider-url [url]',
+        description: 'RPC endpoint to unpublish to',
+      },
+      {
+        flags: '--registry-chain-id <number>',
+        description: 'Registry chain id to unpublish to',
+      },
+      {
+        flags: '--registry-address <address>',
+        description: 'Registry address to unpublish to',
+      },
+      {
+        flags: '--private-key <key>',
+        description: 'Private key of the package owner',
+      },
+      {
+        flags: '--chain-id <number>',
+        description: 'The chain ID of the package to unpublish',
+      },
+      {
+        flags: '-t --tags <tags>',
+        description: 'Comma separated list of labels for your package',
+      },
+      {
+        flags: '--gas-limit <gasLimit>',
+        description: 'The maximum units of gas spent for the registration transaction',
+      },
+      {
+        flags: '--value <value>',
+        description: 'Value in wei to send with the transaction',
+      },
+      {
+        flags: '--max-fee-per-gas <maxFeePerGas>',
+        description: 'The maximum value (in gwei) for the base fee when submitting the registry transaction',
+      },
+      {
+        flags: '--max-priority-fee-per-gas <maxPriorityFeePerGas>',
+        description: 'The maximum value (in gwei) for the miner tip when submitting the registry transaction',
+      },
+      ...debugVerbosity,
+    ],
+  },
+  register: {
+    description: 'Register a Cannon package on the Cannon Registry',
+    arguments: [
+      {
+        flags: '<packageRefs...>',
+        description: 'List of packages you want to register on the Cannon Registry',
+      },
+    ],
+    options: [
+      {
+        flags: '-n --registry-provider-url [url]',
+        description: 'RPC endpoint to register your package to',
+      },
+      {
+        flags: '-c --registry-chain-id <chainId>',
+        description: 'Chain ID of the package to register',
+      },
+      {
+        flags: '--private-key <key>',
+        description: 'Private key to use for publishing the registry package',
+      },
+      {
+        flags: '--gas-limit <gasLimit>',
+        description: 'The maximum units of gas spent for the registration transaction',
+      },
+      {
+        flags: '--value <value>',
+        description: 'Value in wei to send with the transaction (defaults to registerFee)',
+      },
+      {
+        flags: '--max-fee-per-gas <maxFeePerGas>',
+        description: 'The maximum value (in gwei) for the base fee when submitting the registry transaction',
+      },
+      {
+        flags: '--max-priority-fee-per-gas <maxPriorityFeePerGas>',
+        description: 'The maximum value (in gwei) for the miner tip when submitting the registry transaction',
+      },
+      ...debugVerbosity,
+    ],
+  },
+  publishers: {
+    description: 'Add a new publisher to your Cannon package',
+    arguments: [
+      {
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the Cannon package (name:version@preset)',
+      },
+    ],
+    options: [
+      {
+        flags: '-a --add <address>',
+        description: 'Specify a comma separated list of addresses to add as publishers',
+      },
+      {
+        flags: '-r --remove <address>',
+        description: 'Specify a comma separated list of addresses to add as publishers',
+      },
+      {
+        flags: '-n --registry-provider-url [url]',
+        description: 'RPC endpoint to add a publisher to your package',
+      },
+      {
+        flags: '-c --registry-chain-id <chainId>',
+        description: 'Chain ID of the package to add a publisher to',
+      },
+      {
+        flags: '--private-key <key>',
+        description: 'Private key of the package owner',
+      },
+      {
+        flags: '--gas-limit <gasLimit>',
+        description: 'The maximum units of gas spent for the registration transaction',
+      },
+      {
+        flags: '--value <value>',
+        description: 'Value in wei to send with the transaction (defaults to registerFee)',
+      },
+      {
+        flags: '--max-fee-per-gas <maxFeePerGas>',
+        description: 'The maximum value (in gwei) for the base fee when submitting the registry transaction',
+      },
+      {
+        flags: '--max-priority-fee-per-gas <maxPriorityFeePerGas>',
+        description: 'The maximum value (in gwei) for the miner tip when submitting the registry transaction',
+      },
+      ...debugVerbosity,
     ],
   },
   inspect: {
@@ -480,6 +662,7 @@ const commandsConfig = {
         flags: '-s --sources',
         description: 'Show contract sources',
       },
+      ...debugVerbosity,
     ],
   },
   prune: {
@@ -506,6 +689,7 @@ const commandsConfig = {
         flags: '-y --yes',
         description: 'Skip confirmation prompt',
       },
+      ...debugVerbosity,
     ],
   },
   trace: {
@@ -553,6 +737,7 @@ const commandsConfig = {
         flags: '-j --json',
         description: 'Output as JSON',
       },
+      ...debugVerbosity,
     ],
   },
   decode: {
@@ -581,6 +766,7 @@ const commandsConfig = {
         flags: '-j --json',
         description: 'Output as JSON',
       },
+      ...debugVerbosity,
     ],
   },
   test: {
@@ -622,6 +808,12 @@ const commandsConfig = {
         flags: '--registry-priority <registry>',
         description: 'Change the default registry to read from first. Default: onchain',
       },
+      {
+        flags: '--forge-cmd <command>',
+        description: 'Use an alternative forge call, such as "coverage"',
+        defaultValue: 'test',
+      },
+      ...debugVerbosity,
     ],
   },
   interact: {
@@ -636,7 +828,6 @@ const commandsConfig = {
       {
         flags: '-c --chain-id <chainId>',
         description: 'Chain ID of deployment to interact with ',
-        required: true,
       },
       {
         flags: '-n --provider-url [url]',
@@ -666,6 +857,7 @@ const commandsConfig = {
         flags: '--max-priority-gas-fee <maxpriorityGasFee>',
         description: 'Specify max fee per gas (EIP-1559) for deployment',
       },
+      ...debugVerbosity,
     ],
   },
   setup: {

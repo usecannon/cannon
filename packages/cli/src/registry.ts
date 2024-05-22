@@ -1,13 +1,14 @@
-import os from 'node:os';
-import path from 'node:path';
 import { CannonRegistry, FallbackRegistry, InMemoryRegistry, OnChainRegistry, PackageReference } from '@usecannon/builder';
 import { yellowBright } from 'chalk';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
+import os from 'os';
+import path from 'path';
+import * as viem from 'viem';
 import { CliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
-import { resolveRegistryProvider } from './util/provider';
+import { resolveRegistryProviders } from './util/provider';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -101,9 +102,9 @@ export class LocalRegistry extends CannonRegistry {
           debug(`checking ${packageRef}, ${chainId} for a match with ${t}`);
 
           const [tagName, tagVersion, tagVariant] = t.replace('.txt', '').split('_');
-          const [tagChainId, tagPreset] = tagVariant.split(/-(.*)/s); // split on first ocurrance only (because the preset can have -)
+          const [tagChainId, tagPreset] = PackageReference.parseVariant(tagVariant);
 
-          if (chainId && tagChainId !== chainId.toString()) return false;
+          if (chainId && tagChainId !== chainId) return false;
 
           let tag: PackageReference;
           try {
@@ -123,8 +124,8 @@ export class LocalRegistry extends CannonRegistry {
       })
       .map((t) => {
         const [name, version, tagVariant] = t.replace('.txt', '').split('_');
-        const [chainId, preset] = tagVariant.split(/-(.*)/s);
-        return { name: `${name}:${version}@${preset}`, chainId: Number.parseInt(chainId) };
+        const [chainId, preset] = PackageReference.parseVariant(tagVariant);
+        return { name: `${name}:${version}@${preset}`, chainId };
       });
   }
 
@@ -140,6 +141,20 @@ export class LocalRegistry extends CannonRegistry {
       .map((f) => fs.readFileSync(path.join(this.packagesDir, f)).toString('utf8'));
 
     return new Set(urls);
+  }
+}
+
+export class ReadOnlyOnChainRegistry extends OnChainRegistry {
+  async publish(): Promise<string[]> {
+    throw new Error('Cannot execute write operations on ReadOnlyOnChainRegistry');
+  }
+
+  async publishMany(): Promise<string[]> {
+    throw new Error('Cannot execute write operations on ReadOnlyOnChainRegistry');
+  }
+
+  async setPackageOwnership(): Promise<viem.Hash> {
+    throw new Error('Cannot execute write operations on ReadOnlyOnChainRegistry');
   }
 }
 
@@ -170,22 +185,27 @@ export async function createDefaultReadRegistry(
   settings: CliSettings,
   additionalRegistries: CannonRegistry[] = []
 ): Promise<FallbackRegistry> {
-  const { provider } = await resolveRegistryProvider(settings);
+  const registryProviders = await resolveRegistryProviders(settings);
 
   const localRegistry = new LocalRegistry(settings.cannonDirectory);
-  const onChainRegistry = new OnChainRegistry({ provider, address: settings.registryAddress });
+  const onChainRegistries = registryProviders.map(
+    (p, i) => new ReadOnlyOnChainRegistry({ provider: p.provider, address: settings.registries[i].address })
+  );
 
-  if (!(await isConnectedToInternet())) {
+  if (settings.registryPriority === 'offline') {
+    debug('running in offline mode, using local registry only');
+    return new FallbackRegistry([...additionalRegistries, localRegistry]);
+  } else if (!(await isConnectedToInternet())) {
     debug('not connected to internet, using local registry only');
     // When not connected to the internet, we don't want to check the on-chain registry version to not throw an error
     console.log(yellowBright('⚠️  You are not connected to the internet. Using local registry only'));
     return new FallbackRegistry([...additionalRegistries, localRegistry]);
   } else if (settings.registryPriority === 'local') {
     debug('local registry is the priority, using local registry first');
-    return new FallbackRegistry([...additionalRegistries, localRegistry, onChainRegistry]);
+    return new FallbackRegistry([...additionalRegistries, localRegistry, ...onChainRegistries]);
   } else {
     debug('on-chain registry is the priority, using on-chain registry first');
-    const fallbackRegistry = new FallbackRegistry([...additionalRegistries, onChainRegistry, localRegistry]);
+    const fallbackRegistry = new FallbackRegistry([...additionalRegistries, ...onChainRegistries, localRegistry]);
 
     if (!settings.quiet) {
       fallbackRegistry.on('getUrl', checkLocalRegistryOverride).catch((err: Error) => {

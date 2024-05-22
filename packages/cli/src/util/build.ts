@@ -10,7 +10,8 @@ import { CliSettings, resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { pickAnvilOptions } from './anvil';
 import { parseSettings } from './params';
-import { resolveWriteProvider } from './provider';
+import { resolveWriteProvider, isURL, getChainIdFromProviderUrl } from './provider';
+import { ANVIL_FIRST_ADDRESS } from '../constants';
 
 const debug = Debug('cannon:cli');
 
@@ -43,7 +44,7 @@ export async function doBuild(
 
   // Set up signers
   // TODO: why are the provider types borked up here (like they are everywhere)
-  const { getSigner, getDefaultSigner } = await configureSigners(opts, provider as any, signers);
+  const { getSigner, getDefaultSigner } = await configureSigners(opts, cliSettings, provider as any, signers);
 
   // Prepare pre-build config
   const buildConfig = await prepareBuildConfig(
@@ -116,16 +117,15 @@ async function configureProvider(opts: any, cliSettings: CliSettings) {
   let chainId: number | undefined = undefined;
 
   if (!opts.chainId) {
-    if (!opts.providerUrl) {
+    if (isURL(cliSettings.providerUrl)) {
+      chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
+    } else {
       node = await runRpc({
         ...pickAnvilOptions(opts),
       });
 
       chainId = node.chainId;
       provider = getProvider(node)!;
-    } else {
-      const _provider = viem.createPublicClient({ transport: viem.http(opts.providerUrl) });
-      chainId = await _provider.getChainId();
     }
   } else {
     chainId = parseInt(opts.chainId);
@@ -165,35 +165,38 @@ async function configureProvider(opts: any, cliSettings: CliSettings) {
  */
 async function configureSigners(
   opts: any,
+  cliSettings: CliSettings,
   provider: viem.PublicClient & viem.TestClient & viem.WalletClient,
-  signers?: CannonSigner[]
+  signers: CannonSigner[] | undefined
 ) {
-  let getSigner: ((s: string) => Promise<CannonSigner>) | undefined = undefined;
+  let getSigner: ((s: viem.Hex) => Promise<CannonSigner>) | undefined = undefined;
   let getDefaultSigner: (() => Promise<CannonSigner>) | undefined = undefined;
 
   // Early return, we don't need to configure signers
-  if (!opts.chainId && !opts.providerUrl) return { getSigner, getDefaultSigner };
+  const isProviderUrl = isURL(cliSettings.providerUrl);
+
+  if (!opts.chainId && !isProviderUrl) return { getSigner, getDefaultSigner };
 
   if (opts.dryRun) {
     // Setup for dry run
     getDefaultSigner = async () => {
-      const addr = signers && signers.length > 0 ? signers[0].address : '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
+      const addr = signers && signers.length > 0 ? signers[0].address : ANVIL_FIRST_ADDRESS;
       await provider.impersonateAccount({ address: addr });
-      await provider.setBalance({ address: addr, value: BigInt(1e22) });
+      await provider.setBalance({ address: addr, value: viem.parseEther('10000') });
       return { address: addr, wallet: provider };
     };
   } else {
-    getSigner = async (address: string) => {
-      const s = viem.getAddress(address);
-
+    getSigner = async (address: viem.Hex) => {
       for (const signer of signers || []) {
-        if (signer.address === s) {
+        if (viem.isAddressEqual(signer.address, address)) {
           return signer;
         }
       }
 
       throw new Error(
-        `signer not found for address ${s}. Please add the private key for this address to your command line.`
+        `signer not found for address ${viem.getAddress(
+          address
+        )}. Please add the private key for this address to your command line.`
       );
     };
 
@@ -223,7 +226,7 @@ async function prepareBuildConfig(
   settings: string[],
   cliSettings: CliSettings,
   provider: viem.PublicClient,
-  getSigner: ((address: string) => Promise<CannonSigner>) | undefined,
+  getSigner: ((address: viem.Hex) => Promise<CannonSigner>) | undefined,
   getDefaultSigner: (() => Promise<CannonSigner>) | undefined
 ) {
   const { name, version, preset, def } = await loadCannonfile(cannonfile);
@@ -235,7 +238,13 @@ async function prepareBuildConfig(
     settings: parseSettings(settings),
   };
 
-  const getArtifact = (name: string) => getFoundryArtifact(name, projectDirectory);
+  // TODO: `isPublicSourceCode` on def is not the most reliable way to
+  // determine if source code should be public or not
+  // ideally we find out from the runtime, which is the final source. however, its unlikely this
+  // will become a problem because the runtime auto deletes any sources that may be included
+  // anyway, and it requires a lot of refactoring,
+  // so not refactoring this
+  const getArtifact = (name: string) => getFoundryArtifact(name, projectDirectory, def.isPublicSourceCode());
   const overrideResolver = opts.dryRun ? await createDryRunRegistry(cliSettings) : undefined;
 
   return {
@@ -251,7 +260,6 @@ async function prepareBuildConfig(
     wipe: opts.wipe,
     persist: !opts.dryRun,
     overrideResolver,
-    publicSourceCode: true, // TODO: foundry doesn't really have a way to specify whether the contract sources should be public or private
     providerUrl: cliSettings.providerUrl,
     writeScript: opts.writeScript,
     writeScriptFormat: opts.writeScriptFormat,

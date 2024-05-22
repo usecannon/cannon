@@ -10,21 +10,35 @@ import { CliSettings } from '../settings';
 
 const debug = Debug('cannon:cli:provider');
 
-function normalizePrivateKey(pkey: string): viem.Hash {
-  return (pkey.startsWith('0x') ? pkey : `0x${pkey}`) as viem.Hash;
-}
-
-enum ProviderOrigin {
+export enum ProviderOrigin {
   Registry = 'registry',
   Write = 'write',
 }
+
+export const isURL = (url: string): boolean => {
+  try {
+    const tmpUrl = new URL(url);
+    return ['http:', 'https:'].includes(tmpUrl.protocol);
+  } catch {
+    return false;
+  }
+};
+
+export const getChainIdFromProviderUrl = async (providerUrl: string) => {
+  if (!isURL(providerUrl)) throw new Error('Provider URL has not a valid format');
+
+  const provider = viem.createPublicClient({ transport: viem.http(providerUrl) });
+  return provider.getChainId();
+};
 
 export async function resolveWriteProvider(
   settings: CliSettings,
   chainId: number
 ): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
   // Check if the first provider URL doesn't start with 'http'
-  if (!settings.providerUrl.split(',')[0].startsWith('http')) {
+  const isProviderUrl = isURL(settings.providerUrl.split(',')[0]);
+
+  if (!isProviderUrl) {
     const chainData = getChainById(chainId);
 
     // If privateKey is present or no valid http URLs are available in rpcUrls
@@ -67,15 +81,22 @@ export async function resolveWriteProvider(
   }) as any;
 }
 
-export async function resolveRegistryProvider(
-  settings: CliSettings
-): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }> {
-  return resolveProviderAndSigners({
-    chainId: parseInt(settings.registryChainId),
-    checkProviders: settings.registryProviderUrl?.split(','),
-    privateKey: settings.privateKey,
-    origin: ProviderOrigin.Registry,
-  });
+export async function resolveRegistryProviders(
+  cliSettings: CliSettings
+): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }[]> {
+  const resolvedProviders = [];
+  for (const registryInfo of cliSettings.registries) {
+    resolvedProviders.push(
+      await resolveProviderAndSigners({
+        chainId: registryInfo.chainId!,
+        checkProviders: registryInfo.providerUrl,
+        privateKey: cliSettings.privateKey,
+        origin: ProviderOrigin.Registry,
+      })
+    );
+  }
+
+  return resolvedProviders;
 }
 
 export async function resolveProviderAndSigners({
@@ -115,7 +136,7 @@ export async function resolveProviderAndSigners({
   // TODO: if at any point we let users provide multiple urls, this will have to be changed.
   // force provider to use JSON-RPC instead of Web3Provider for local http urls
   const signers: CannonSigner[] = [];
-  if (checkProviders[0].startsWith('http')) {
+  if (isURL(checkProviders[0])) {
     debug(
       'use explicit provider url',
       checkProviders.map((p) => (p ? p.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32)) : p))
@@ -150,7 +171,7 @@ export async function resolveProviderAndSigners({
     if (privateKey) {
       signers.push(
         ...privateKey.split(',').map((k: string) => {
-          const account = privateKeyToAccount(normalizePrivateKey(k));
+          const account = privateKeyToAccount(k as viem.Hex);
           return {
             address: account.address,
             wallet: viem.createWalletClient({

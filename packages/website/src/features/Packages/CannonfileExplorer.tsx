@@ -54,13 +54,9 @@ function omitEmptyObjects(config: { [x: string]: any }) {
 }
 
 export const CannonfileExplorer: FC<{
-  pkgName: string;
-  variant: any;
-}> = ({ variant }) => {
-  const deploymentData = useQueryIpfsData(
-    variant?.deploy_url,
-    !!variant?.deploy_url
-  );
+  pkg: any;
+}> = ({ pkg }) => {
+  const deploymentData = useQueryIpfsData(pkg?.deployUrl, !!pkg?.deployUrl);
 
   const deploymentInfo = deploymentData.data
     ? (deploymentData.data as DeploymentInfo)
@@ -101,7 +97,22 @@ export const CannonfileExplorer: FC<{
     ? omitEmptyObjects(clonedDeploymentInfoDef)
     : null;
 
-  return variant?.deploy_url ? (
+  const pulls = {
+    ...(deploymentInfo?.def?.import || {}),
+    ...(deploymentInfo?.def?.pull || {}),
+  };
+
+  const clones = {
+    ...(deploymentInfo?.def?.provision || {}),
+    ...(deploymentInfo?.def?.clone || {}),
+  };
+
+  const deploys = {
+    ...(deploymentInfo?.def?.contract || {}),
+    ...(deploymentInfo?.def?.deploy || {}),
+  };
+
+  return pkg?.deployUrl ? (
     <Flex flex="1" direction="column">
       {deploymentData.isLoading ? (
         <Box
@@ -112,7 +123,7 @@ export const CannonfileExplorer: FC<{
         >
           <CustomSpinner mx="auto" mb="2" />
           <Text fontSize="sm" mb="1" color="gray.400">
-            Fetching {variant?.deploy_url}
+            Fetching {pkg?.deployUrl}
           </Text>
           <Text color="gray.500" fontSize="xs">
             This could take a minute. You can also{' '}
@@ -186,7 +197,7 @@ export const CannonfileExplorer: FC<{
               <CannonfileGraph deploymentInfo={deploymentInfo} />
             </Flex>
             <Container
-              maxW="container.xl"
+              maxW="container.lg"
               py={14}
               display={displayMode == 2 ? 'block' : 'none'}
             >
@@ -283,26 +294,31 @@ export const CannonfileExplorer: FC<{
                   </Box>
                 </Box>
               )}
-              {deploymentInfo?.def?.import && (
+              {deploymentInfo?.def?.var && (
                 <Box mt={4}>
                   <Heading size="md" mb={3}>
-                    Package Data Imports
+                    Variable Setting
                   </Heading>
                   <ChainDefinitionSteps
-                    name="import"
-                    modules={deploymentInfo.def.import}
+                    name="var"
+                    modules={deploymentInfo?.def?.var}
                   />
                 </Box>
               )}
-              {deploymentInfo?.def?.provision && (
+              {!isEmpty(pulls) && (
                 <Box mt={4}>
                   <Heading size="md" mb={3}>
-                    Package Provisioning
+                    Pulled Packages
                   </Heading>
-                  <ChainDefinitionSteps
-                    name="provision"
-                    modules={deploymentInfo.def.provision}
-                  />
+                  <ChainDefinitionSteps name="pull" modules={pulls} />
+                </Box>
+              )}
+              {!isEmpty(clones) && (
+                <Box mt={4}>
+                  <Heading size="md" mb={3}>
+                    Cloned Package
+                  </Heading>
+                  <ChainDefinitionSteps name="clone" modules={clones} />
                 </Box>
               )}
               {deploymentInfo?.def?.router && (
@@ -316,15 +332,12 @@ export const CannonfileExplorer: FC<{
                   />
                 </Box>
               )}
-              {deploymentInfo?.def?.contract && (
+              {!isEmpty(deploys) && (
                 <Box mt={4} maxW="100%" overflowX="auto">
                   <Heading size="md" mb={3}>
                     Contract Deployments
                   </Heading>
-                  <ChainDefinitionSteps
-                    name="contract"
-                    modules={deploymentInfo.def.contract}
-                  />
+                  <ChainDefinitionSteps name="deploy" modules={deploys} />
                 </Box>
               )}
               {deploymentInfo?.def?.invoke && (

@@ -5,13 +5,13 @@ keywords = ["sample", "greeter"]
 
 [var.main]
 salt = "greeter"
-msg = "my library was deployed in txn <%= contracts.library.deployTxnHash %>"
+msg = "Hello world!"
 
 [deploy.library]
 artifact = "Library"
 value = "2929372"
 
-[deploy.greeter]
+[deploy.Greeter]
 artifact = "Greeter"
 args = ["<%= settings.msg %>"]
 libraries.Library = "<%= contracts.library.address %>"

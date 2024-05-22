@@ -34,11 +34,11 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
   .addOptionalParam('impersonate', '(Optional) When dry running, uses forked signers rather than actual signing keys')
   .addOptionalParam(
     'writeScript',
-    '(Experimental) Path to write all the actions taken as a script that can be later executed'
+    '(Experimental) Path to write all the operations taken as a script that can be later executed'
   )
   .addOptionalParam(
     'writeScriptFormat',
-    '(Experimental) Format in which to write the actions script (Options: json, ethers)'
+    '(Experimental) Format in which to write the operations script (Options: json, ethers)'
   )
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
   .setAction(
@@ -136,7 +136,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       if (hre.network.name !== 'cannon') {
         if (impersonate) {
           await provider.impersonateAccount({ address: impersonate });
-          await provider.setBalance({ address: impersonate, value: BigInt(1e22) });
+          await provider.setBalance({ address: impersonate, value: viem.parseEther('10000') });
           defaultSigner = getSigner(impersonate) || null;
           // Add the impersonated signer if it is not part of the hardhat config
           if (!defaultSigner) {
@@ -174,7 +174,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
             const signer = getSigner(addr);
             if (signer) return signer;
             throw new Error(
-              `the current step requests usage of the signer with address ${addr}, but this signer is not found. Please either supply the private key, or change the cannon configuration to use a different signer.`
+              `The current operation requests usage of the signer with address ${addr}, but this signer is not found. Please either supply the private key, or change the cannon configuration to use a different signer.`
             );
           }
         },
