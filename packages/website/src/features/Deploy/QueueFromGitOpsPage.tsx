@@ -56,6 +56,8 @@ import { useWriteContract } from 'wagmi';
 import pkg from '../../../package.json';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
+import { PackageReference } from '@usecannon/builder/src';
+
 import 'react-diff-view/style/index.css';
 
 export default function QueueFromGitOpsPage() {
@@ -178,11 +180,11 @@ function QueueFromGitOps() {
   }, [previousPackageInput, cannonDefInfo.def?.getPreset(ctx)]);
 
   const cannonPkgPreviousInfo = useCannonPackage(
-    (cannonDefInfo.def &&
-      `${previousName}:${previousVersion}${
-        previousPreset ? '@' + previousPreset : ''
-      }`) ??
-      '',
+    cannonDefInfo.def && PackageReference.isValid(previousPackageInput)
+      ? `${previousName}:${previousVersion}${
+          previousPreset ? '@' + previousPreset : ''
+        }`
+      : '',
     chainId
   );
   const preset = cannonDefInfo.def && cannonDefInfo.def.getPreset(ctx);
@@ -506,12 +508,17 @@ function QueueFromGitOps() {
                 <Code>--upgrade-from</Code>
               </Link>
             </FormHelperText>
-            {cannonPkgPreviousInfo.error ? (
+            {cannonPkgPreviousInfo.error ||
+            (previousPackageInput.length > 0 &&
+              !PackageReference.isValid(previousPackageInput)) ? (
               <Alert mt="6" status="error" bg="red.700">
                 <AlertIcon mr={3} />
-                <strong>{cannonPkgPreviousInfo.error.toString()}</strong>
+                <strong>
+                  {cannonPkgPreviousInfo?.error?.toString() ||
+                    'Invalid package name. Should be of the format <package-name>:<version> or <package-name>:<version>@<preset>'}
+                </strong>
               </Alert>
-            ) : undefined}
+            ) : null}
           </FormControl>
           {/* TODO: insert/load override settings here */}
           <FormControl mb="6">
