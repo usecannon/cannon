@@ -263,12 +263,14 @@ export async function handleCannonPublish(
               const selector = functionHash.slice(0, 10);
               const functionSignature = viem.toFunctionSignature(abiItem as viem.AbiFunction);
 
-              const abiSearchKey = `${rkey.RKEY_ABI_SEARCHABLE}:${chainId}:${contract.address.trim()}:${functionSignature}`;
+              const contractAddress = contract.address.trim().toLowerCase();
+
+              const abiSearchKey = `${rkey.RKEY_ABI_SEARCHABLE}:${chainId}:${contractAddress}:${functionSignature}`;
               batch.hSetNX(abiSearchKey, 'name', functionSignature);
               batch.hSetNX(abiSearchKey, 'selector', selector);
               batch.hSetNX(abiSearchKey, 'type', abiItem.type);
               batch.hSetNX(abiSearchKey, 'package', packageRef);
-              batch.hSetNX(abiSearchKey, 'address', contract.address.toLowerCase());
+              batch.hSetNX(abiSearchKey, 'address', contractAddress);
               batch.hSetNX(abiSearchKey, 'contractName', contractName);
               batch.hSetNX(abiSearchKey, 'chainId', chainId.toString());
               batch.hSetNX(abiSearchKey, 'timestamp', Math.floor(timestamp / 1000).toString());
