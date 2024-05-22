@@ -1,15 +1,14 @@
+import { ChildProcess, spawn } from 'node:child_process';
 import http from 'node:http';
 import { Readable } from 'node:stream';
-import { spawn, ChildProcess } from 'node:child_process';
 import { CANNON_CHAIN_ID } from '@usecannon/builder';
-import * as viem from 'viem';
+import { gray } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
+import * as viem from 'viem';
+import { cannonChain, getChainById } from './chains';
 import { execPromise, toArgs } from './helpers';
 import { AnvilOptions } from './util/anvil';
-import { gray } from 'chalk';
-
-import { cannonChain, getChainById } from './chains';
 
 const debug = Debug('cannon:cli:rpc');
 
@@ -43,6 +42,7 @@ export const versionCheck = _.once(async () => {
 });
 
 export async function runRpc(anvilOptions: AnvilOptions, rpcOptions: RpcOptions = {}): Promise<CannonRpcNode> {
+  debug('run rpc', anvilOptions, rpcOptions);
   const { forkProvider } = rpcOptions;
 
   await versionCheck();
@@ -69,16 +69,20 @@ export async function runRpc(anvilOptions: AnvilOptions, rpcOptions: RpcOptions 
   if (anvilInstance && anvilInstance.exitCode === null) {
     console.log('shutting down existing anvil subprocess', anvilInstance.pid);
 
-    return Promise.race([
-      new Promise<CannonRpcNode>((resolve) => {
-        anvilInstance!.once('close', async () => {
-          anvilInstance = null;
-          resolve(await runRpc(anvilOptions, rpcOptions));
-        });
-        anvilInstance!.kill();
-      }),
-      timeout(ANVIL_OP_TIMEOUT, 'could not shut down previous anvil') as Promise<CannonRpcNode>,
-    ]);
+    return viem.withTimeout(
+      () =>
+        new Promise<CannonRpcNode>((resolve) => {
+          anvilInstance!.once('close', async () => {
+            anvilInstance = null;
+            resolve(await runRpc(anvilOptions, rpcOptions));
+          });
+          anvilInstance!.kill();
+        }),
+      {
+        timeout: ANVIL_OP_TIMEOUT,
+        errorInstance: new Error('could not shut down previous anvil'),
+      }
+    );
   }
 
   let opts = toArgs(anvilOptions);
@@ -91,26 +95,27 @@ export async function runRpc(anvilOptions: AnvilOptions, rpcOptions: RpcOptions 
 
   debug('starting anvil instance with options: ', anvilOptions);
 
-  return Promise.race<Promise<CannonRpcNode>>([
-    new Promise<CannonRpcNode>((resolve, reject) => {
-      anvilInstance = spawn('anvil', opts) as CannonRpcNode;
+  return viem.withTimeout(
+    () =>
+      new Promise<CannonRpcNode>((resolve, reject) => {
+        anvilInstance = spawn('anvil', opts) as CannonRpcNode;
 
-      anvilInstance.port = anvilOptions.port!;
-      anvilInstance.forkProvider = forkProvider;
-      anvilInstance.chainId = anvilOptions.chainId!;
+        anvilInstance.port = anvilOptions.port!;
+        anvilInstance.forkProvider = forkProvider;
+        anvilInstance.chainId = anvilOptions.chainId!;
 
-      process.once('exit', () => anvilInstance?.kill());
+        process.once('exit', () => anvilInstance?.kill());
 
-      let state: 'spawning' | 'running' | 'listening' = 'spawning';
+        let state: 'spawning' | 'running' | 'listening' = 'spawning';
 
-      anvilInstance?.on('spawn', () => {
-        state = 'running';
-      });
+        anvilInstance?.on('spawn', () => {
+          state = 'running';
+        });
 
-      anvilInstance?.on('error', (err) => {
-        if (state == 'spawning') {
-          reject(
-            new Error(`Anvil failed to start: ${err}
+        anvilInstance?.on('error', (err) => {
+          if (state == 'spawning') {
+            reject(
+              new Error(`Anvil failed to start: ${err}
 
 Though it is not necessary for your hardhat project, Foundry is required to use Cannon.
 
@@ -121,47 +126,46 @@ foundryup
 
 For more info, see https://book.getfoundry.sh/getting-started/installation.html
           `)
-          );
-        }
-      });
+            );
+          }
+        });
 
-      anvilInstance?.stdout?.on('data', (rawChunk) => {
-        // right now check for expected output string to connect to node
-        const chunk = rawChunk.toString('utf8');
-        const m = chunk.match(/Listening on (.*)/);
-        if (m) {
-          const host = 'http://' + m[1];
-          state = 'listening';
-          console.log(gray('Anvil instance running on:', host, '\n'));
+        anvilInstance?.stdout?.on('data', (rawChunk) => {
+          // right now check for expected output string to connect to node
+          const chunk = rawChunk.toString('utf8');
+          const m = chunk.match(/Listening on (.*)/);
+          if (m) {
+            const host = 'http://' + m[1];
+            state = 'listening';
+            console.log(gray('Anvil instance running on:', host, '\n'));
 
-          // TODO: why is this type not working out? (something about mode being wrong?)
-          anvilProvider = viem
-            .createTestClient({
-              mode: 'anvil',
-              chain: anvilOptions.chainId ? getChainById(anvilOptions.chainId) || cannonChain : cannonChain,
-              transport: viem.http(host),
-            })
-            .extend(viem.publicActions)
-            .extend(viem.walletActions) as any;
+            // TODO: why is this type not working out? (something about mode being wrong?)
+            anvilProvider = viem
+              .createTestClient({
+                mode: 'anvil',
+                chain: anvilOptions.chainId ? getChainById(anvilOptions.chainId) || cannonChain : cannonChain,
+                transport: viem.http(host),
+              })
+              .extend(viem.publicActions)
+              .extend(viem.walletActions) as any;
 
-          anvilInstance!.host = host;
-          resolve(anvilInstance!);
-        }
+            anvilInstance!.host = host;
+            resolve(anvilInstance!);
+          }
 
-        debug(chunk);
-      });
+          debug(chunk);
+        });
 
-      anvilInstance.stderr?.on('data', (rawChunk) => {
-        const chunk = rawChunk.toString('utf8');
-        console.error(chunk.split('\n').map((m: string) => 'anvil: ' + m));
-      });
-    }),
-    timeout(ANVIL_OP_TIMEOUT, 'anvil failed to start') as Promise<CannonRpcNode>,
-  ]);
-}
-
-function timeout(period: number, msg: string) {
-  return new Promise<ChildProcess>((_, reject) => setTimeout(() => reject(new Error(msg)), period));
+        anvilInstance.stderr?.on('data', (rawChunk) => {
+          const chunk = rawChunk.toString('utf8');
+          console.error(chunk.split('\n').map((m: string) => 'anvil: ' + m));
+        });
+      }),
+    {
+      timeout: ANVIL_OP_TIMEOUT,
+      errorInstance: new Error('anvil failed to start'),
+    }
+  );
 }
 
 export function getProvider(expectedAnvilInstance: ChildProcess): typeof anvilProvider {

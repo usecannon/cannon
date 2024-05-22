@@ -1,8 +1,9 @@
-import { inMemoryLoader, inMemoryRegistry, loadCannonfile, StepExecutionError } from '@/helpers/cannon';
+import { inMemoryLoader, loadCannonfile, StepExecutionError } from '@/helpers/cannon';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { createFork, findChain } from '@/helpers/rpc';
 import { SafeDefinition, useStore } from '@/helpers/store';
 import { useGitRepo } from '@/hooks/git';
+import { useCannonRegistry } from '@/hooks/registry';
 import { useLogs } from '@/providers/logsProvider';
 import { BaseTransaction } from '@safe-global/safe-apps-sdk';
 import { useMutation, UseMutationOptions, useQuery } from '@tanstack/react-query';
@@ -17,25 +18,14 @@ import {
   DeploymentInfo,
   DeploymentState,
   Events,
-  FallbackRegistry,
   getOutputs,
   InMemoryRegistry,
-  OnChainRegistry,
+  PackageReference,
   publishPackage,
 } from '@usecannon/builder';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import {
-  Abi,
-  Address,
-  Chain,
-  createPublicClient,
-  createWalletClient,
-  custom,
-  http,
-  isAddressEqual,
-  PublicClient,
-} from 'viem';
+import { Abi, Address, createPublicClient, createWalletClient, custom, Hex, isAddressEqual, PublicClient } from 'viem';
 import { useChainId } from 'wagmi';
 
 export type BuildState =
@@ -93,11 +83,10 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
   const [buildSkippedSteps, setBuildSkippedSteps] = useState<StepExecutionError[]>([]);
 
-  const buildFn = async () => {
-    if (settings.isIpfsGateway || settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
-      throw new Error('Update your IPFS URL to a Kubo RPC API URL to publish in the settings page.');
-    }
+  const fallbackRegistry = useCannonRegistry();
 
+  const buildFn = async () => {
+    // Wait until finished loading
     if (!safe || !def || !prevDeploy) {
       throw new Error('Missing required parameters');
     }
@@ -132,18 +121,6 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
     const getDefaultSigner = async () => ({ address: safe.address, wallet });
 
-    const readOnlyRegistry = new OnChainRegistry({
-      address: settings.registryAddress,
-      provider: createPublicClient({
-        chain: findChain(Number.parseInt(settings.registryChainId)) as Chain,
-        transport: http(),
-      }),
-    });
-
-    // Create a regsitry that loads data first from Memory to be able to utilize
-    // the locally built data
-    const fallbackRegistry = new FallbackRegistry([inMemoryRegistry, readOnlyRegistry]);
-
     const loaders = { mem: inMemoryLoader, ipfs: ipfsLoader };
 
     currentRuntime = new ChainBuilderRuntime(
@@ -160,7 +137,6 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
         getDefaultSigner,
         snapshots: false,
         allowPartialDeploy: true,
-        publicSourceCode: true,
       },
       fallbackRegistry,
       loaders
@@ -172,14 +148,23 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     currentRuntime.on(
       Events.PostStepExecute,
       (stepType: string, stepLabel: string, stepConfig: any, stepCtx: ChainBuilderContext, stepOutput: ChainArtifacts) => {
-        addLog(`cannon.ts: on Events.PostStepExecute step ${stepType}.${stepLabel} output: ${JSON.stringify(stepOutput)}`);
-        simulatedSteps.push(stepOutput);
+        addLog(
+          `cannon.ts: on Events.PostStepExecute operation ${stepType}.${stepLabel} output: ${JSON.stringify(stepOutput)}`
+        );
+
+        simulatedSteps.push(_.cloneDeep(stepOutput));
+
+        for (const txn in stepOutput.txns || {}) {
+          // clean out txn hash
+          stepOutput.txns![txn].hash = '';
+        }
+
         setBuildStatus(`Building ${stepType}.${stepLabel}...`);
       }
     );
 
     currentRuntime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
-      addLog(`cannon.ts: on Events.SkipDeploy error ${err.toString()} happened on the step ${stepName}`);
+      addLog(`cannon.ts: on Events.SkipDeploy error ${err.toString()} happened on the operation ${stepName}`);
       skippedSteps.push({ name: stepName, err });
     });
 
@@ -204,9 +189,9 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
     const steps = await Promise.all(
       simulatedTxs.map(async (executedTx) => {
-        if (!executedTx) throw new Error('Invalid step');
-        const tx = await provider.getTransaction({ hash: executedTx.hash });
-        const rx = await provider.getTransactionReceipt({ hash: executedTx.hash });
+        if (!executedTx) throw new Error('Invalid operation');
+        const tx = await provider.getTransaction({ hash: executedTx.hash as Hex });
+        const rx = await provider.getTransactionReceipt({ hash: executedTx.hash as Hex });
         return {
           name: (executedTx as any).deployedOn,
           gas: rx.gasUsed,
@@ -233,11 +218,14 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     setBuildError(null);
     setBuildSkippedSteps([]);
     setIsBuilding(true);
+
     buildFn()
       .then((res) => {
         setBuildResult(res);
       })
       .catch((err) => {
+        // eslint-disable-next-line no-console
+        console.error(err);
         addLog(`cannon.ts: full build error ${err.toString()}`);
         setBuildError(err.toString());
       })
@@ -259,7 +247,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
 export function useCannonWriteDeployToIpfs(
   runtime?: ChainBuilderRuntime,
-  deployInfo?: DeploymentInfo,
+  deployInfo?: DeploymentInfo | undefined,
   metaUrl?: string,
   mutationOptions: Partial<UseMutationOptions> = {}
 ) {
@@ -333,20 +321,14 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
 
   const settings = useStore((s) => s.settings);
 
+  const registry = useCannonRegistry();
+
   const registryQuery = useQuery({
     queryKey: ['cannon', 'registry', packageRef, packageChainId],
     queryFn: async () => {
       if (!packageRef || packageRef.length < 3) {
         return null;
       }
-
-      const registry = new OnChainRegistry({
-        address: settings.registryAddress,
-        provider: createPublicClient({
-          chain: findChain(Number.parseInt(settings.registryChainId)) as Chain,
-          transport: http(),
-        }),
-      });
 
       const url = await registry.getUrl(packageRef, packageChainId);
       const metaUrl = await registry.getMetaUrl(packageRef, packageChainId);
@@ -381,10 +363,11 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
         const resolvedName = def.getName(ctx);
         const resolvedVersion = def.getVersion(ctx);
         const resolvedPreset = def.getPreset(ctx);
+        const { fullPackageRef } = PackageReference.from(resolvedName, resolvedVersion, resolvedPreset);
 
         if (deployInfo) {
           addLog(`Loaded ${resolvedName}:${resolvedVersion}@${resolvedPreset} from IPFS`);
-          return { deployInfo, ctx, resolvedName, resolvedVersion, resolvedPreset };
+          return { deployInfo, ctx, resolvedName, resolvedVersion, resolvedPreset, fullPackageRef };
         } else {
           throw new Error('failed to download package data');
         }
@@ -408,6 +391,7 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
     resolvedName: ipfsQuery.data?.resolvedName,
     resolvedVersion: ipfsQuery.data?.resolvedVersion,
     resolvedPreset: ipfsQuery.data?.resolvedPreset,
+    fullPackageRef: ipfsQuery.data?.fullPackageRef,
   };
 }
 

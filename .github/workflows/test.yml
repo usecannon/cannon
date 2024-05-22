@@ -12,14 +12,15 @@ jobs:
     env:
       NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID: ${{secrets.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID}}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          cache: npm
           node-version: '20.5.1'
+          cache: 'npm'
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-      - run: |
-          npm ci
-          npm run build
+      - run: npm ci
+      - run: npm run build
+        env:
+          NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
       - run: npm run test

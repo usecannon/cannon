@@ -10,6 +10,7 @@ import { getContractFromPath } from './util';
 export function getDefaultStorage() {
   return new CannonStorage(new InMemoryRegistry(), { ipfs: new IPFSLoader(getCannonRepoRegistryUrl()) });
 }
+
 export async function getCannonContract(args: {
   package: string | PackageReference;
   chainId?: number;

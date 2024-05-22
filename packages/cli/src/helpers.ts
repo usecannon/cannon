@@ -1,6 +1,3 @@
-import { exec, spawnSync } from 'node:child_process';
-import os from 'node:os';
-import path from 'node:path';
 import toml from '@iarna/toml';
 import {
   CANNON_CHAIN_ID,
@@ -12,19 +9,22 @@ import {
   ContractMap,
   RawChainDefinition,
 } from '@usecannon/builder';
-import { bold, magentaBright, yellow, yellowBright, red } from 'chalk';
+import { AbiEvent } from 'abitype';
+import { bold, magentaBright, red, yellow, yellowBright } from 'chalk';
+import { exec, spawnSync } from 'child_process';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
+import os from 'os';
+import path from 'path';
 import prompts from 'prompts';
 import semver from 'semver';
 import * as viem from 'viem';
-import { AbiEvent } from 'abitype';
-import { AbiFunction, Chain } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
+import { cannonChain, chains } from './chains';
 import { resolveCliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
-import { chains, cannonChain } from './chains';
+import { getChainIdFromProviderUrl, isURL } from './util/provider';
 
 const debug = Debug('cannon:cli:helpers');
 
@@ -85,7 +85,7 @@ export async function setupAnvil(): Promise<void> {
   }
 }
 
-export function getSighash(fragment: AbiFunction | AbiEvent) {
+export function getSighash(fragment: viem.AbiFunction | AbiEvent) {
   let sighash = '';
 
   switch (fragment.type) {
@@ -194,8 +194,10 @@ export async function loadCannonfile(filepath: string) {
 
     [rawDef, buf] = (await loadChainDefinitionToml(filepath, [])) as [RawChainDefinition, Buffer];
   }
-  const def = new ChainDefinition(rawDef);
-  const pkg = loadPackageJson(path.join(path.dirname(filepath), 'package.json'));
+
+  // second argument ensures "sensitive" dependency verification--which ensures users are always specifying dependencies when they cant be reliably determined
+  const def = new ChainDefinition(rawDef, true);
+  const pkg = loadPackageJson(path.join(path.dirname(path.resolve(filepath)), 'package.json'));
 
   const ctx: ChainBuilderContext = {
     package: pkg,
@@ -212,6 +214,14 @@ export async function loadCannonfile(filepath: string) {
   const name = def.getName(ctx);
   const version = def.getVersion(ctx);
   const preset = def.getPreset(ctx);
+
+  if (!name) {
+    throw new Error('missing "name" on cannon package');
+  }
+
+  if (!version) {
+    throw new Error('missing "version" on cannon package');
+  }
 
   return { def, name, version, preset, cannonfile: buf.toString() };
 }
@@ -276,7 +286,7 @@ export function getChainName(chainId: number): string {
 export function getChainId(chainName: string): number {
   if (chainName == 'cannon') return CANNON_CHAIN_ID;
   if (chainName == 'hardhat') return 31337;
-  const chainData = chains.find((c: Chain) => c.name === chainName);
+  const chainData = chains.find((c: viem.Chain) => c.name === chainName);
   if (!chainData) {
     throw new Error(`Invalid chain "${chainName}"`);
   } else {
@@ -284,35 +294,36 @@ export function getChainId(chainName: string): number {
   }
 }
 
-export function getChainDataFromId(chainId: number): Chain | null {
+export function getChainDataFromId(chainId: number): viem.Chain | null {
   if (chainId == CANNON_CHAIN_ID) {
     return cannonChain;
   }
-  return chains.find((c: Chain) => c.id == chainId) || null;
+
+  return chains.find((c: viem.Chain) => c.id == chainId) || null;
 }
 
 export async function ensureChainIdConsistency(providerUrl?: string, chainId?: number): Promise<void> {
   // only if both are defined
   if (providerUrl && chainId) {
-    const provider = viem.createPublicClient({
-      transport: viem.http(providerUrl),
-    });
+    const isProviderUrl = isURL(providerUrl);
 
-    const providerChainId = await provider.getChainId();
+    if (isProviderUrl) {
+      const providerChainId = await getChainIdFromProviderUrl(providerUrl);
 
-    // throw an expected error if the chainId is not consistent with the provider's chainId
-    if (Number(chainId) !== Number(providerChainId)) {
-      console.log(
-        red(
-          `Error: The chainId (${providerChainId}) obtained from the ${bold('--provider-url')} does not match with ${bold(
-            '--chain-id'
-          )} value (${chainId}). Please ensure that the ${bold(
-            '--chain-id'
-          )} value matches the network your provider is connected to.`
-        )
-      );
+      // throw an expected error if the chainId is not consistent with the provider's chainId
+      if (Number(chainId) !== Number(providerChainId)) {
+        console.log(
+          red(
+            `Error: The chainId (${providerChainId}) obtained from the ${bold('--provider-url')} does not match with ${bold(
+              '--chain-id'
+            )} value (${chainId}). Please ensure that the ${bold(
+              '--chain-id'
+            )} value matches the network your provider is connected to.`
+          )
+        );
 
-      process.exit(1);
+        process.exit(1);
+      }
     }
   }
 }
@@ -390,12 +401,10 @@ export function getContractsAndDetails(state: {
   const contractsAndDetails: { [contractName: string]: ContractData } = {};
 
   for (const key in state) {
-    if (key.startsWith('contract.')) {
-      const contracts = state[key]?.artifacts?.contracts;
-      if (contracts) {
-        for (const contractName in contracts) {
-          contractsAndDetails[contractName] = contracts[contractName];
-        }
+    const contracts = state[key]?.artifacts?.contracts;
+    if (contracts) {
+      for (const contractName in contracts) {
+        contractsAndDetails[contractName] = contracts[contractName];
       }
     }
   }
@@ -418,11 +427,43 @@ export function getSourceFromRegistry(registries: CannonRegistry[]): string | un
  * @param privateKey The private key to verify
  * @returns boolean If the private key is valid
  */
-export function isPrivateKey(privateKey: viem.Hex) {
+export function isPrivateKey(privateKey: viem.Hex): boolean {
   try {
     privateKeyToAccount(privateKey);
     return true;
   } catch (e) {
     return false;
   }
+}
+
+/**
+ * Normalizes a private key
+ * @param privateKey The private key to normalize
+ * @returns The normalized private key
+ */
+export function normalizePrivateKey(privateKey: string | viem.Hex): viem.Hex {
+  return (privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`) as viem.Hex;
+}
+
+/**
+ * Checks and normalizes a private key
+ * @param privateKey
+ * @returnsThe normalized private keys
+ */
+export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | undefined): viem.Hex | undefined {
+  if (!privateKey) return undefined;
+
+  const privateKeys = privateKey.split(',').map((pk) => pk.trim());
+
+  const normalizedPrivateKeys = privateKeys.map((key: string | viem.Hex) => normalizePrivateKey(key));
+
+  normalizedPrivateKeys.forEach((key: viem.Hex) => {
+    if (!isPrivateKey(key)) {
+      throw new Error(
+        'Invalid private key found. Please verify the CANNON_PRIVATE_KEY environment variable, review your settings file, or check the value supplied to the --private-key flag'
+      );
+    }
+  });
+
+  return normalizedPrivateKeys.join(',') as viem.Hex;
 }

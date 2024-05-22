@@ -7,6 +7,7 @@ import {
   computeTemplateAccesses,
   PackageState,
   registerAction,
+  mergeTemplateAccesses,
 } from '@usecannon/builder';
 import crypto from 'crypto';
 import Debug from 'debug';
@@ -59,7 +60,7 @@ export function hashFs(path: string): Buffer {
 }
 
 /**
- *  Available properties for run step
+ *  Available properties for run operation
  *  @public
  *  @group Run
 
@@ -81,7 +82,7 @@ const runAction = {
 
     const auxHashes = newConfig.modified.map((pathToScan: string) => {
       if (!fs.statSync(pathToScan).isFile() && !fs.statSync(pathToScan).isDirectory()) {
-        throw new Error(`Invalid element in "modified" for "run" step. Path ${pathToScan} not found.`);
+        throw new Error(`Invalid element in "modified" for "run" operation. Path ${pathToScan} not found.`);
       }
 
       try {
@@ -136,12 +137,11 @@ const runAction = {
   },
 
   getInputs(config: Config) {
-    const accesses: string[] = [];
+    let accesses = computeTemplateAccesses(config.exec);
 
-    accesses.push(...computeTemplateAccesses(config.exec));
-    _.forEach(config.modified, (a) => accesses.push(...computeTemplateAccesses(a)));
-    _.forEach(config.args, (a) => accesses.push(...computeTemplateAccesses(a)));
-    _.forEach(config.env, (a) => accesses.push(...computeTemplateAccesses(a)));
+    _.forEach(config.modified, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
+    _.forEach(config.args, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
+    _.forEach(config.env, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
 
     return accesses;
   },
@@ -159,7 +159,7 @@ const runAction = {
     debug('exec', config);
 
     if (!fs.statSync(config.exec).isFile()) {
-      throw new Error(`Invalid "exec" value for "run" step. Path "${config.exec}" not found.`);
+      throw new Error(`Invalid "exec" value for "run" operation. Path "${config.exec}" not found.`);
     }
 
     const runfile = await importFrom(process.cwd(), config.exec);

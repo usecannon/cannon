@@ -5,8 +5,9 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import { readDeployRecursive } from '../package';
 import { getProvider, runRpc } from '../rpc';
-import { resolveCliSettings } from '../settings';
+import { CliSettings } from '../settings';
 import { resolveWriteProvider } from '../util/provider';
+import { ANVIL_FIRST_ADDRESS } from '../constants';
 
 const debug = Debug('cannon:cli:trace');
 
@@ -14,7 +15,7 @@ export async function trace({
   packageRef,
   data,
   chainId,
-  providerUrl,
+  cliSettings,
   from,
   to,
   value,
@@ -25,14 +26,13 @@ export async function trace({
   data: viem.Hex;
   chainId: number;
   preset: string;
-  providerUrl: string;
+  cliSettings: CliSettings;
   from?: viem.Address;
   to?: viem.Address;
   block?: string;
   value?: bigint;
   json: boolean;
 }) {
-  const cliSettings = resolveCliSettings({ providerUrl });
   // data can be:
   // 1. on-chain transaction hash
   // 2. calldata (will automatically detect contract to execute on)
@@ -43,13 +43,8 @@ export async function trace({
   // will call `trace_transaction`, and decode as much data from the trace
   // as possible, the same way that an error occurs
 
-  // get transaction data from the provider
-  const { provider } = await resolveWriteProvider(cliSettings, chainId);
-
   // if chain id is not specified, get it from the provider
-  if (!chainId) {
-    chainId = await provider.getChainId();
-  }
+  const { provider } = await resolveWriteProvider(cliSettings, chainId);
 
   const deployInfos = await readDeployRecursive(packageRef, chainId);
 
@@ -69,7 +64,7 @@ export async function trace({
       // this is a transaction hash
       console.log(gray('Detected transaction hash'));
 
-      data = (txData as any).data;
+      data = txData.input;
       value = value || txData.value;
       block = block || txReceipt.blockNumber.toString();
       from = from || txData.from;
@@ -136,7 +131,7 @@ export async function trace({
   // now we should be able to run the transaction. force it through
   let txnHash: viem.Hash;
   try {
-    const signer = (fullTxn.from || '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266') as viem.Address;
+    const signer = (fullTxn.from || ANVIL_FIRST_ADDRESS) as viem.Address;
     if (fullTxn.from) {
       await simulateProvider.impersonateAccount({ address: fullTxn.from });
       await simulateProvider.setBalance({ address: fullTxn.from, value: viem.parseEther('10000') });

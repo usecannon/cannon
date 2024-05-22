@@ -1,5 +1,5 @@
 import { PackageReference } from '@usecannon/builder';
-import { inspect, PackageSpecification } from '@usecannon/cli';
+import { inspect, PackageSpecification, resolveCliSettings } from '@usecannon/cli';
 import { bold, yellow } from 'chalk';
 import { task } from 'hardhat/config';
 import { SUBTASK_LOAD_PACKAGE_DEFINITION, TASK_INSPECT } from '../task-names';
@@ -15,6 +15,8 @@ task(TASK_INSPECT, 'Inspect the details of a Cannon package')
     const packageSpec: PackageSpecification = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
       packageWithSettingsParams: packageName ? [packageName] : [],
     });
+
+    const cliSettings = resolveCliSettings();
 
     if (!chainId) {
       chainId = hre?.network?.config?.chainId || 13370;
@@ -39,5 +41,5 @@ task(TASK_INSPECT, 'Inspect the details of a Cannon package')
 
     preset = presetArg || packageSpec.preset;
 
-    await inspect(packageRef, chainId, preset, json, writeDeployments, sources);
+    await inspect(packageRef, cliSettings, chainId, preset, json, writeDeployments, sources);
   });

@@ -25,13 +25,9 @@ import { InvokesTable } from './InvokesTable';
 import { EventsTable } from './EventsTable';
 
 export const DeploymentExplorer: FC<{
-  pkgName: string;
-  variant: any;
-}> = ({ pkgName, variant }) => {
-  const deploymentData = useQueryIpfsData(
-    variant?.deploy_url,
-    !!variant?.deploy_url
-  );
+  pkg: any;
+}> = ({ pkg }) => {
+  const deploymentData = useQueryIpfsData(pkg?.deployUrl, !!pkg?.deployUrl);
 
   const deploymentInfo = deploymentData.data
     ? (deploymentData.data as DeploymentInfo)
@@ -54,37 +50,41 @@ export const DeploymentExplorer: FC<{
     }
   }
 
-  function mergeArtifactsContracts(deploymentInfo: any): any {
-    const mergedContracts: any = {};
-
-    for (const key of Object.keys(deploymentInfo?.state)) {
-      if (key.startsWith('contract.') || key.startsWith('router.')) {
-        const artifactsContracts =
-          deploymentInfo.state[key].artifacts.contracts;
-
-        for (const contractKey of Object.keys(artifactsContracts)) {
-          mergedContracts[contractKey] = artifactsContracts[contractKey];
+  function mergeArtifactsContracts(obj: any, mergedContracts: any = {}): any {
+    for (const key in obj) {
+      if (obj[key] && typeof obj[key] === 'object') {
+        // If the current object has both address and abi keys
+        if (obj[key].address && obj[key].abi) {
+          if (
+            obj[key].deployedOn.startsWith('deploy') ||
+            obj[key].deployedOn.startsWith('contract') ||
+            obj[key].deployedOn.includes('router')
+          ) {
+            mergedContracts[obj[key].contractName] = obj[key];
+          }
         }
+        // Recursively search through nested objects
+        mergeArtifactsContracts(obj[key], mergedContracts);
       }
     }
-
     return mergedContracts;
   }
 
   const contractState: ChainBuilderContext['contracts'] = deploymentInfo?.state
-    ? mergeArtifactsContracts(deploymentInfo)
+    ? mergeArtifactsContracts(deploymentInfo.state)
     : {};
 
-  function mergeInvoke(deploymentInfo: any): any {
-    const mergedInvokes: any = {};
-
-    for (const key of Object.keys(deploymentInfo?.state)) {
-      if (key.startsWith('invoke.')) {
-        const txns = deploymentInfo.state[key].artifacts.txns;
-
-        for (const contractKey of Object.keys(txns)) {
-          mergedInvokes[contractKey] = txns[contractKey];
+  function mergeInvoke(obj: any, mergedInvokes: any = {}): any {
+    for (const key in obj) {
+      if (obj[key] && typeof obj[key] === 'object') {
+        // If the current object has both address and abi keys
+        if (key === 'txns') {
+          for (const key2 in obj[key]) {
+            mergedInvokes[obj[key][key2].deployedOn] = obj[key][key2];
+          }
         }
+        // Recursively search through nested objects
+        mergeInvoke(obj[key], mergedInvokes);
       }
     }
 
@@ -92,7 +92,7 @@ export const DeploymentExplorer: FC<{
   }
 
   const invokeState: ChainBuilderContext['txns'] = deploymentInfo?.state
-    ? mergeInvoke(deploymentInfo)
+    ? mergeInvoke(deploymentInfo.state)
     : {};
 
   function extractAddressesAbis(obj: any, result: any = {}) {
@@ -112,7 +112,9 @@ export const DeploymentExplorer: FC<{
     return result;
   }
 
-  const addressesAbis = extractAddressesAbis(deploymentInfo);
+  const addressesAbis = deploymentInfo?.state
+    ? extractAddressesAbis(deploymentInfo.state)
+    : {};
 
   type NestedObject = { [key: string]: any };
   function mergeExtras(obj: NestedObject): NestedObject {
@@ -157,7 +159,9 @@ export const DeploymentExplorer: FC<{
     URL.revokeObjectURL(url);
   };
 
-  return variant?.deploy_url ? (
+  const pkgDef = deploymentData?.data?.def;
+
+  return pkg?.deployUrl ? (
     <Box>
       {deploymentData.isLoading ? (
         <Box
@@ -168,7 +172,7 @@ export const DeploymentExplorer: FC<{
         >
           <CustomSpinner mx="auto" mb="2" />
           <Text fontSize="sm" mb="1" color="gray.400">
-            Fetching {variant?.deploy_url}
+            Fetching {pkg?.deployUrl}
           </Text>
           <Text color="gray.500" fontSize="xs">
             This could take a minute. You can also{' '}
@@ -180,7 +184,7 @@ export const DeploymentExplorer: FC<{
         </Box>
       ) : deploymentInfo ? (
         <Box>
-          {variant.chain_id == 13370 && (
+          {pkg.chainId == 13370 && (
             <Container maxW="container.lg" mt={6}>
               <Box
                 bg="blackAlpha.600"
@@ -202,11 +206,9 @@ export const DeploymentExplorer: FC<{
                   </Text>
                 </Box>
                 <CommandPreview
-                  command={`cannon ${pkgName}${
-                    variant?.tag?.name !== 'latest'
-                      ? `:${variant?.tag?.name}`
-                      : ''
-                  }${variant?.preset !== 'main' ? `@${variant?.preset}` : ''}`}
+                  command={`cannon ${pkg.name}${
+                    pkg?.tag !== 'latest' ? `:${pkgDef.version}` : ''
+                  }${pkg.preset !== 'main' ? `@${pkgDef.preset}` : ''}`}
                 />
               </Box>
             </Container>
@@ -239,7 +241,7 @@ export const DeploymentExplorer: FC<{
               <Box maxW="100%" overflowX="auto">
                 <ContractsTable
                   contractState={contractState}
-                  chainId={variant.chain_id}
+                  chainId={pkg.chainId}
                 />
               </Box>
             </Box>
@@ -251,10 +253,7 @@ export const DeploymentExplorer: FC<{
                 Function Calls
               </Heading>
               <Box maxW="100%" overflowX="auto">
-                <InvokesTable
-                  invokeState={invokeState}
-                  chainId={variant.chain_id}
-                />
+                <InvokesTable invokeState={invokeState} chainId={pkg.chainId} />
               </Box>
             </Box>
           )}
@@ -264,7 +263,7 @@ export const DeploymentExplorer: FC<{
               <Heading size="md" px={4} mb={3}>
                 Event Data{' '}
                 <Tooltip
-                  label="This includes event data captured during the build, to be referenced in dependent steps."
+                  label="This includes event data captured during the build, to be referenced in dependent operations."
                   placement="right"
                   hasArrow
                 >

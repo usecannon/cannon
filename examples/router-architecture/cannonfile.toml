@@ -1,5 +1,5 @@
 name = "examples-router-architecture"
-description = "Cannon Router step example usage"
+description = "Cannon Router operation example usage"
 version = "0.0.1"
 
 # Configurable Proxy admin, this will be the account that will be able to upgrade
@@ -21,6 +21,7 @@ contracts = [
   "Counter",
   "Greeter",
 ]
+includeReceive = false
 
 # Deploy a new Proxy using as implementation our just craeted Router
 [provision.proxy]

@@ -6,34 +6,49 @@ import { AddressInput } from '@/features/Packages/FunctionInput/AddressInput';
 import { NumberInput } from '@/features/Packages/FunctionInput/NumberInput';
 import { DefaultInput } from '@/features/Packages/FunctionInput/DefaultInput';
 import { AddIcon, CloseIcon } from '@chakra-ui/icons';
+import TupleInput from './FunctionInput/TupleInput';
 
 export const FunctionInput: FC<{
   input: AbiParameter;
   valueUpdated: (value: any) => void;
-}> = ({ input, valueUpdated }) => {
+  initialValue?: any;
+}> = ({ input, valueUpdated, initialValue }) => {
   const getDefaultValue = () => {
     if (input.type.startsWith('int')) return '0';
     if (input.type.startsWith('uint')) return '0';
     return '';
   };
   const isArray = useMemo(() => !!input?.type?.endsWith('[]'), [input]);
-  const [dataArray, setDataArray] = useState<{ id: number; val: any | null }[]>(
-    [{ id: Date.now(), val: getDefaultValue() }]
-  );
+  const [dataArray, setDataArray] = useState<{ val: any | null }[]>([
+    { val: getDefaultValue() },
+  ]);
 
   // const getValue = (index: number) => (isArray ? dataArray[index] : input);
 
   const add = () => {
-    setDataArray([...dataArray, { id: Date.now(), val: getDefaultValue() }]);
+    setDataArray([...dataArray, { val: getDefaultValue() }]);
   };
 
   const remove = (index: number) => {
-    setDataArray(dataArray.splice(index, 1));
+    setDataArray(dataArray.slice(0, index).concat(dataArray.slice(index + 1)));
   };
 
   useEffect(() => {
+    if (!isArray) return;
     valueUpdated(dataArray.map((item) => item.val));
-  }, [dataArray]);
+  }, [dataArray, isArray]);
+
+  useEffect(() => {
+    if (initialValue && !isArray) {
+      valueUpdated(initialValue);
+    } else if (initialValue && isArray) {
+      setDataArray(
+        initialValue.map((val: any) => {
+          return { val };
+        })
+      );
+    }
+  }, []);
 
   const handleUpdate = (index: number | null, value: any) => {
     if (isArray) {
@@ -45,17 +60,35 @@ export const FunctionInput: FC<{
     }
   };
 
-  const getInputComponent = (_handleUpdate: (value: any) => void) => {
+  const getInputComponent = (
+    _handleUpdate: (value: any) => void,
+    index?: number
+  ) => {
+    const _initialValue =
+      initialValue && isArray && index !== undefined
+        ? initialValue[index]
+        : initialValue;
     switch (true) {
       case input.type.startsWith('bool'):
-        return <BoolInput handleUpdate={_handleUpdate} />;
+        return <BoolInput handleUpdate={_handleUpdate} value={_initialValue} />;
       case input.type.startsWith('address'):
-        return <AddressInput handleUpdate={_handleUpdate} />;
+        return (
+          <AddressInput handleUpdate={_handleUpdate} value={_initialValue} />
+        );
       case input.type.startsWith('int') || input.type.startsWith('uint'):
-        return <NumberInput handleUpdate={_handleUpdate} />;
+        return (
+          <NumberInput handleUpdate={_handleUpdate} value={_initialValue} />
+        );
+      case input.type === 'tuple':
+        // TODO: implement value prop for TupleInput
+        return <TupleInput input={input} handleUpdate={_handleUpdate} />;
       default:
         return (
-          <DefaultInput handleUpdate={_handleUpdate} inputType={input.type} />
+          <DefaultInput
+            handleUpdate={_handleUpdate}
+            inputType={input.type}
+            value={_initialValue}
+          />
         );
     }
   };
@@ -76,8 +109,11 @@ export const FunctionInput: FC<{
         <Box>
           {dataArray.map((inp, index) => {
             return (
-              <Flex flex="1" alignItems="center" mb="4" key={inp.id}>
-                {getInputComponent((value: any) => handleUpdate(index, value))}
+              <Flex flex="1" alignItems="center" mb="4" key={index}>
+                {getInputComponent(
+                  (value: any) => handleUpdate(index, value),
+                  index
+                )}
                 {dataArray.length > 1 && (
                   <Box onClick={() => remove(index)} ml="4">
                     <CloseIcon name="close" color="red.500" />{' '}

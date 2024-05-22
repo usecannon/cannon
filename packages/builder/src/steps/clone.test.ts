@@ -18,7 +18,7 @@ describe('steps/clone.ts', () => {
     jest.mocked(fakeRuntime.derive).mockReturnThis();
 
     jest.mocked(deployAction.getOutputs).mockReturnValue([]);
-    jest.mocked(deployAction.getInputs).mockReturnValue([]);
+    jest.mocked(deployAction.getInputs).mockReturnValue({ accesses: [], unableToCompute: false });
 
     jest.mocked(deployAction.exec).mockResolvedValue({
       contracts: {
@@ -52,47 +52,23 @@ describe('steps/clone.ts', () => {
         source: 'abc:latest@main',
         sourcePreset: '',
         targetPreset: 'with-who',
+        target: '',
       });
     });
   });
 
   describe('getState()', () => {
-    it('resolves correct properties with minimal config', async () => {
+    it('always resolves to reexecute', async () => {
       await registry.publish(['hello:1.0.0@main'], 13370, 'https://something.com', '');
-
-      const result = await action.getState(
-        fakeRuntime,
-        fakeCtx,
-        { source: 'hello:1.0.0' },
-        { name: 'who', version: '1.0.0', currentLabel: 'clone.whatever' }
-      );
-
-      expect(result).toContainEqual({
-        url: 'https://something.com',
-        options: undefined,
-        targetPreset: 'with-who',
-      });
-    });
-
-    it('resolves correct properties with maximal config', async () => {
-      await registry.publish(['hello:1.0.0@main'], 1234, 'https://something-else.com', '');
-
-      const result = await action.getState(
-        fakeRuntime,
-        fakeCtx,
-        { source: 'hello:1.0.0', sourcePreset: 'main', chainId: 1234, targetPreset: 'voop', options: { bar: 'baz' } },
-        { name: 'who', version: '1.0.0', currentLabel: 'clone.whatever' }
-      );
-
-      expect(result).toContainEqual({
-        url: 'https://something-else.com',
-        options: { bar: 'baz' },
-        targetPreset: 'voop',
-      });
+      const result = await action.getState();
+      expect(result).toEqual([]);
     });
   });
 
   describe('exec()', () => {
+    beforeEach(() => {
+      jest.mocked(fakeRuntime.isCancelled).mockReturnValue(false);
+    });
     it('throws if deployment not found', async () => {
       await expect(() =>
         action.exec(
@@ -134,8 +110,10 @@ describe('steps/clone.ts', () => {
         def: {
           name: 'hello',
           version: '1.0.0',
-          contract: {
-            Woot: { artifact: 'Woot' },
+          var: {
+            main: {
+              sophisticated: 'fast',
+            },
           },
         } as any,
         meta: {},
@@ -155,8 +133,6 @@ describe('steps/clone.ts', () => {
       expect(result.imports!['something'].url).toEqual('ipfs://Qmsomething');
 
       expect(jest.mocked(fakeRuntime.putDeploy).mock.calls[0][0].status).toEqual('partial');
-
-      jest.mocked(fakeRuntime.isCancelled).mockReturnValue(false);
     });
 
     it('works with complete deployment', async () => {
@@ -189,8 +165,10 @@ describe('steps/clone.ts', () => {
         def: {
           name: 'hello',
           version: '1.0.0',
-          contract: {
-            Woot: { artifact: 'Woot' },
+          var: {
+            main: {
+              sophisticated: 'fast',
+            },
           },
         } as any,
         meta: {},
@@ -202,7 +180,7 @@ describe('steps/clone.ts', () => {
       const result = await action.exec(
         fakeRuntime,
         fakeCtx,
-        { source: 'hello:1.0.0' },
+        { source: 'hello:1.0.0', targetPreset: 'woot-y' },
         { name: 'package', version: '1.0.0', currentLabel: 'clone.something' }
       );
 
@@ -210,23 +188,63 @@ describe('steps/clone.ts', () => {
         imports: {
           something: {
             url: 'ipfs://Qmsomething',
-            preset: 'main',
+            target: 'hello:1.0.0@woot-y',
+            preset: 'woot-y',
             tags: ['latest'],
-            contracts: {
-              Woot: {
-                address: '0xfoobar',
-                abi: [],
-                deployTxnHash: '0x',
-                contractName: 'Woot',
-                sourceName: 'Woot.sol',
-                deployedOn: 'deploy.Woot',
-                gasCost: '0',
-                gasUsed: 0,
-              },
+            settings: {
+              sophisticated: 'fast',
             },
           },
         },
       });
+
+      const result2 = await action.exec(
+        fakeRuntime,
+        fakeCtx,
+        { source: 'hello:1.0.0', target: 'where:2.3.4@y-slink' },
+        { name: 'package', version: '1.0.0', currentLabel: 'clone.something' }
+      );
+
+      expect(result2).toStrictEqual({
+        imports: {
+          something: {
+            url: 'ipfs://Qmsomething',
+            target: 'where:2.3.4@y-slink',
+            preset: 'y-slink',
+            tags: ['latest'],
+            settings: {
+              sophisticated: 'fast',
+            },
+          },
+        },
+      });
+    });
+
+    it('if deployment comes back the same, does not change deployment url', async () => {
+      jest.mocked(fakeRuntime.putDeploy).mockResolvedValue('ipfs://Qmdoit');
+
+      const firstResult = await action.exec(
+        fakeRuntime,
+        fakeCtx,
+        { source: 'hello:1.0.0' },
+        { name: 'package', version: '1.0.0', currentLabel: 'clone.something' }
+      );
+
+      const savedData = jest.mocked(fakeRuntime.putDeploy).mock.calls[0][0];
+
+      jest.mocked(fakeRuntime.readBlob).mockResolvedValue(savedData);
+      jest.mocked(fakeRuntime.putDeploy).mockResolvedValue('ipfs://Qmdoitelse');
+
+      const newCtx = Object.assign({}, fakeCtx, firstResult);
+
+      const finalResult = await action.exec(
+        fakeRuntime,
+        newCtx,
+        { source: 'hello:1.0.0' },
+        { name: 'package', version: '1.0.0', currentLabel: 'clone.something' }
+      );
+
+      expect(finalResult.imports?.something?.url).toEqual('ipfs://Qmdoit');
     });
   });
 });

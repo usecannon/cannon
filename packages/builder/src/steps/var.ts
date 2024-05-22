@@ -1,15 +1,15 @@
 import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
-import { computeTemplateAccesses } from '../access-recorder';
+import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { ChainBuilderRuntime } from '../runtime';
 import { varSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
 
-const debug = Debug('cannon:builder:import');
+const debug = Debug('cannon:builder:var');
 
 /**
- *  Available properties for var step
+ *  Available properties for var operation
  *  @public
  *  @group Var
  */
@@ -30,7 +30,7 @@ const varSpec = {
   async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const cfg = this.configInject(ctx, config);
 
-    return [{ value: cfg.value }];
+    return [_.omit(cfg, 'depends')];
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
@@ -42,11 +42,11 @@ const varSpec = {
     return config;
   },
 
-  getInputs(config: Config) {
-    const accesses: string[] = [];
+  getInputs(config: Config, possibleFields: string[]) {
+    let accesses = computeTemplateAccesses('', possibleFields);
 
     for (const c in _.omit(config, 'depends')) {
-      accesses.push(...computeTemplateAccesses(config[c]));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config[c], possibleFields));
     }
 
     return accesses;
@@ -69,14 +69,15 @@ const varSpec = {
     packageState: PackageState
   ): Promise<ChainArtifacts> {
     const varLabel = packageState.currentLabel?.split('.')[1] || '';
-    debug('exec', config);
+    debug('exec', config, ctx);
 
     // backwards compatibility
     if (packageState.currentLabel.startsWith('setting.')) {
-      const value = config.value || config.defaultValue;
+      const stepName = packageState.currentLabel.split('.')[1];
+      let value = config.value || config.defaultValue || ctx.overrideSettings[stepName];
 
       if (!value) {
-        throw new Error('at least one of `value` or `defaultValue` must be specified');
+        value = '';
       }
 
       return {

@@ -1,8 +1,6 @@
 'use client';
 
-import { FC, ReactNode, useEffect, useState } from 'react';
-import { GET_PACKAGE } from '@/graphql/queries';
-import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
+import { FC, ReactNode, useEffect, useState, createContext } from 'react';
 import { useQueryIpfsData } from '@/hooks/ipfs';
 import {
   Box,
@@ -14,12 +12,16 @@ import {
   PopoverBody,
   PopoverContent,
   PopoverTrigger,
+  Portal,
   Text,
 } from '@chakra-ui/react';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { ChainArtifacts } from '@usecannon/builder';
 import { getOutput } from '@/lib/builder';
 import { usePathname, useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import { getPackage } from '@/helpers/api';
+import { PackageReference } from '@usecannon/builder/src';
 
 type Option = {
   moduleName: string;
@@ -27,14 +29,19 @@ type Option = {
   contractAddress: string;
 };
 
+export const HasSubnavContext = createContext(false);
+
 export const InteractTab: FC<{
   name: string;
   tag: string;
   variant: string;
   children?: ReactNode;
 }> = ({ name, tag, variant, children }) => {
-  const { data } = useQueryCannonSubgraphData<any, any>(GET_PACKAGE, {
-    variables: { name },
+  const [chainId, preset] = PackageReference.parseVariant(variant);
+
+  const packagesQuery = useQuery({
+    queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],
+    queryFn: getPackage,
   });
 
   const pathName = usePathname();
@@ -53,18 +60,9 @@ export const InteractTab: FC<{
 
   const router = useRouter();
 
-  const [pkg, setPackage] = useState<any | null>(null);
   const [highlightedOptions, setHighlightedOptions] = useState<Option[]>([]);
   const [otherOptions, setOtherOptions] = useState<Option[]>([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-
-  useEffect(() => {
-    if (data?.packages[0]) setPackage(data?.packages[0]);
-  }, [data]);
-
-  const currentVariant = pkg?.variants.find(
-    (v: any) => v.name === variant && v.tag.name === tag
-  );
 
   const selectContract = (contract: Option) => {
     void router.push(
@@ -83,8 +81,8 @@ export const InteractTab: FC<{
   };
 
   const deploymentData = useQueryIpfsData(
-    currentVariant?.deploy_url,
-    !!currentVariant?.deploy_url
+    packagesQuery?.data?.data.deployUrl,
+    !!packagesQuery?.data?.data.deployUrl
   );
 
   useEffect(() => {
@@ -177,11 +175,22 @@ export const InteractTab: FC<{
     }
   }, [deploymentData.data]);
 
+  const hasSubnav = otherOptions.length > 0 || highlightedOptions.length > 1;
+
+  if (packagesQuery.isPending || deploymentData.isLoading) {
+    return <CustomSpinner m="auto" />;
+  }
+
   return (
-    <>
-      {(otherOptions.length > 0 || highlightedOptions.length > 1) && (
+    <HasSubnavContext.Provider value={hasSubnav}>
+      {hasSubnav && (
         <Flex
+          top="0"
+          zIndex={3}
+          bg="gray.900"
+          position={{ md: 'sticky' }}
           overflowX="scroll"
+          overflowY="hidden"
           maxW="100%"
           p={2}
           borderBottom="1px solid"
@@ -279,66 +288,63 @@ export const InteractTab: FC<{
                   </Icon>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent
-                maxHeight={'45vh'}
-                overflowY={'auto'}
-                overflowX={'hidden'}
-                width="auto"
-                bg="gray.900"
-                borderColor="gray.700"
-              >
-                <PopoverBody p={0}>
-                  {otherOptions.map((option, i) => (
-                    <Box
-                      key={i}
-                      cursor={'pointer'}
-                      textAlign="left"
-                      p={2}
-                      background={
-                        isActiveContract(option) ? 'gray.800' : 'transparent'
-                      }
-                      _hover={{
-                        background: 'gray.800',
-                      }}
-                      borderBottom="1px solid"
-                      borderColor="gray.700"
-                      onClick={() => {
-                        setIsPopoverOpen(false);
-                        selectContract(option);
-                      }}
-                    >
-                      <Text
-                        fontSize="xs"
-                        display="block"
-                        fontWeight="normal"
-                        color="gray.400"
-                        mb="1px"
+              <Portal>
+                <PopoverContent
+                  maxHeight={'45vh'}
+                  overflowY={'auto'}
+                  overflowX={'hidden'}
+                  width="auto"
+                  bg="gray.900"
+                  borderColor="gray.700"
+                >
+                  <PopoverBody p={0}>
+                    {otherOptions.map((option, i) => (
+                      <Box
+                        key={i}
+                        cursor={'pointer'}
+                        textAlign="left"
+                        p={2}
+                        background={
+                          isActiveContract(option) ? 'gray.800' : 'transparent'
+                        }
+                        _hover={{
+                          background: 'gray.800',
+                        }}
+                        borderBottom="1px solid"
+                        borderColor="gray.700"
+                        onClick={() => {
+                          setIsPopoverOpen(false);
+                          selectContract(option);
+                        }}
                       >
-                        {option.moduleName}
-                      </Text>
-                      <Heading
-                        fontWeight="500"
-                        size="sm"
-                        color="gray.200"
-                        letterSpacing="0.1px"
-                      >
-                        {option.contractName}
-                      </Heading>
-                    </Box>
-                  ))}
-                </PopoverBody>
-              </PopoverContent>
+                        <Text
+                          fontSize="xs"
+                          display="block"
+                          fontWeight="normal"
+                          color="gray.400"
+                          mb="1px"
+                        >
+                          {option.moduleName}
+                        </Text>
+                        <Heading
+                          fontWeight="500"
+                          size="sm"
+                          color="gray.200"
+                          letterSpacing="0.1px"
+                        >
+                          {option.contractName}
+                        </Heading>
+                      </Box>
+                    ))}
+                  </PopoverBody>
+                </PopoverContent>
+              </Portal>
             </Popover>
           )}
         </Flex>
       )}
-
-      {currentVariant && !deploymentData.isLoading ? (
-        <Box>{children}</Box>
-      ) : (
-        <CustomSpinner m="auto" />
-      )}
-    </>
+      <Box>{children}</Box>
+    </HasSubnavContext.Provider>
   );
 };
 

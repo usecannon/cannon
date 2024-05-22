@@ -1,12 +1,23 @@
-import { deepmerge } from 'deepmerge-ts';
+import merge from 'deepmerge';
 import deepEqual from 'fast-deep-equal';
 import uniqWith from 'lodash/uniqWith';
-import { Address } from 'viem';
+import { Address, TransactionRequestBase, AbiFunction } from 'viem';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { chains } from '@/constants/deployChains';
 import { BuildState } from '@/hooks/cannon';
 import { includes } from '@/helpers/array';
+
+export type IdentifiableTxn = {
+  txn: Omit<TransactionRequestBase, 'from'>;
+  id: string;
+  fn?: AbiFunction;
+  params?: any[] | any;
+  contractName?: string;
+  target: string;
+  chainId: number;
+  pkgUrl: string;
+};
 
 export type ChainId = (typeof chains)[number]['id'];
 
@@ -26,8 +37,6 @@ export interface State {
     ipfsApiUrl: string;
     isIpfsGateway: boolean;
     stagingUrl: string;
-    registryAddress: Address;
-    registryChainId: string;
     customProviders: string[];
     pythUrl: string;
   };
@@ -54,8 +63,29 @@ export interface Actions {
   prependSafeAddress: (safeToPrepend: State['currentSafe']) => void;
 }
 
+export interface QueueTxsActions {
+  setLastQueuedTxnsId: ({ lastQueuedTxnsId, safeId }: { lastQueuedTxnsId: number; safeId: string }) => void;
+  setQueuedIdentifiableTxns: ({
+    queuedIdentifiableTxns,
+    safeId,
+  }: {
+    queuedIdentifiableTxns: IdentifiableTxn[];
+    safeId: string;
+  }) => void;
+}
+
+export interface QueueTxsState {
+  safes: {
+    [safeId: string]: {
+      lastQueuedTxnsId: number;
+      queuedIdentifiableTxns: IdentifiableTxn[];
+    };
+  };
+}
+
 export type Store = State & Actions;
 export type IpfsStore = IpfsState & ipfsActions;
+export type QueueTxsStore = QueueTxsState & QueueTxsActions;
 
 export const initialState = {
   currentSafe: null,
@@ -71,8 +101,6 @@ export const initialState = {
     ipfsApiUrl: 'https://repo.usecannon.com/',
     isIpfsGateway: false,
     stagingUrl: 'https://cannon-safe-app.external.dbeal.dev',
-    registryAddress: '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba',
-    registryChainId: '1',
     customProviders: [],
     pythUrl: 'https://hermes.pyth.network',
   },
@@ -84,6 +112,10 @@ export const initialIpfsState = {
   compression: false,
   format: 'text',
 } satisfies IpfsState;
+
+export const initialQueueTxsState = {
+  safes: {},
+} satisfies QueueTxsState;
 
 const useIpfsStore = create<IpfsStore>()(
   persist(
@@ -166,9 +198,50 @@ const useStore = create<Store>()(
         currentSafe: state.currentSafe,
         safeAddresses: state.safeAddresses,
       }),
-      merge: (persisted, initial) => deepmerge(initial, persisted) as Store,
+      merge: (persisted, initial) => merge(initial, persisted as Store) as Store,
     }
   )
 );
 
-export { useStore, useIpfsStore };
+const useQueueTxsStore = create<QueueTxsStore>()(
+  persist(
+    (set) => ({
+      ...initialQueueTxsState,
+      setLastQueuedTxnsId: ({ lastQueuedTxnsId, safeId }: { lastQueuedTxnsId: number; safeId: string }) => {
+        set((state) => ({
+          ...state,
+          safes: {
+            ...state.safes,
+            [safeId]: {
+              ...state.safes[safeId],
+              lastQueuedTxnsId,
+            },
+          },
+        }));
+      },
+      setQueuedIdentifiableTxns: ({
+        queuedIdentifiableTxns,
+        safeId,
+      }: {
+        queuedIdentifiableTxns: IdentifiableTxn[];
+        safeId: string;
+      }) => {
+        set((state) => ({
+          ...state,
+          safes: {
+            ...state.safes,
+            [safeId]: {
+              ...state.safes[safeId],
+              queuedIdentifiableTxns,
+            },
+          },
+        }));
+      },
+    }),
+    {
+      name: 'queue-txs-state',
+    }
+  )
+);
+
+export { useStore, useIpfsStore, useQueueTxsStore };

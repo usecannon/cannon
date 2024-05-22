@@ -2,7 +2,7 @@ import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
-import { computeTemplateAccesses } from '../access-recorder';
+import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { encodeDeployData } from '../util';
 import { ChainBuilderRuntime } from '../runtime';
 import { routerSchema } from '../schemas';
@@ -12,7 +12,7 @@ import { getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '..
 const debug = Debug('cannon:builder:router');
 
 /**
- *  Available properties for router step
+ *  Available properties for router operation
  *  @public
  *  @group Router
  */
@@ -68,17 +68,18 @@ const routerStep = {
     return config;
   },
 
-  getInputs(config: Config) {
-    const accesses: string[] = [];
+  getInputs(config: Config, possibleFields: string[]) {
+    let accesses = computeTemplateAccesses(config.from);
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt, possibleFields));
+    accesses.accesses.push(
+      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`))
+    );
 
-    accesses.push(...computeTemplateAccesses(config.from));
-    accesses.push(...computeTemplateAccesses(config.salt));
-
-    return config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`));
+    return accesses;
   },
 
   getOutputs(_: Config, packageState: PackageState) {
-    return [`contracts.${packageState.currentLabel.split('.')[1]}`];
+    return [`contracts.${packageState.currentLabel.split('.')[1]}`, `${packageState.currentLabel.split('.')[1]}`];
   },
 
   async exec(
@@ -113,6 +114,7 @@ const routerStep = {
     const sourceCode = generateRouter({
       contractName,
       contracts: contracts as any,
+      canReceivePlainETH: config.includeReceive,
     });
 
     debug('router source code', sourceCode);

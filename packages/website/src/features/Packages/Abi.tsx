@@ -8,62 +8,108 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
+import _ from 'lodash';
 import * as viem from 'viem';
 import NextLink from 'next/link';
+import { useParams } from 'next/navigation';
 import { ChainArtifacts } from '@usecannon/builder';
-import { FC, useEffect, useMemo, useRef } from 'react';
-import { Abi as AbiType, AbiFunction } from 'abitype/src/abi';
-
+import { FC, useContext, useEffect, useMemo, useRef } from 'react';
+import { AbiFunction, Abi as AbiType } from 'abitype/src/abi';
 import { Function } from '@/features/Packages/Function';
+import { HasSubnavContext } from './Tabs/InteractTab';
 
 export const Abi: FC<{
-  abi: AbiType;
+  abi?: AbiType;
   address: viem.Address;
   cannonOutputs: ChainArtifacts;
   chainId: number;
-}> = ({ abi, address, cannonOutputs, chainId }) => {
+  contractSource?: string;
+  onDrawerOpen?: () => void;
+  packageUrl?: string;
+}> = ({
+  abi,
+  contractSource,
+  address,
+  cannonOutputs,
+  chainId,
+  onDrawerOpen,
+  packageUrl,
+}) => {
+  const params = useParams();
+
   const functions = useMemo<AbiFunction[]>(
-    () => abi?.filter((a) => a.type === 'function') as AbiFunction[],
+    () =>
+      _.sortBy(abi?.filter((a) => a.type === 'function') as AbiFunction[], [
+        'name',
+      ]),
     [abi]
   );
 
-  const readFunctions = functions
-    ?.filter((func) => ['view', 'pure'].includes(func.stateMutability))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const readFunctions = useMemo<AbiFunction[]>(
+    () =>
+      _.sortBy(
+        functions?.filter((func) =>
+          ['view', 'pure'].includes(func.stateMutability)
+        ),
+        ['name']
+      ),
+    [functions]
+  );
 
-  const writeFunctions = functions
-    ?.filter((func) => !['view', 'pure'].includes(func.stateMutability))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const writeFunctions = useMemo<AbiFunction[]>(
+    () =>
+      _.sortBy(
+        functions?.filter(
+          (func) => !['view', 'pure'].includes(func.stateMutability)
+        ),
+        ['name']
+      ),
+    [functions]
+  );
 
-  const isSmall = useBreakpointValue({
-    base: true,
-    sm: true,
-    md: false,
-  });
+  const isSmall = useBreakpointValue([true, true, false]);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    function handleHashChange() {
-      const hash = window.location.hash.substring(1);
-      if (hash) {
-        const section = document.querySelector(
-          `#${hash}`
-        ) as HTMLElement | null;
-        if (section) {
-          // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
-          window.scrollTo(0, section.offsetTop - 80);
+  const hasSubnav = useContext(HasSubnavContext);
+
+  const handleHashChange = (firstRender: boolean) => {
+    const hash = window.location.hash;
+
+    if (hash) {
+      const section = document.getElementById(`${hash}`);
+
+      if (section) {
+        const adjust = firstRender ? 162 : 102;
+
+        const topOffset =
+          section.getBoundingClientRect().top + window.scrollY - adjust;
+
+        const button = section.querySelector('h2');
+
+        if (button) {
+          // open the collapsible
+          button.click();
         }
+
+        window.scrollTo(0, topOffset - (hasSubnav ? 65 : 0));
       }
     }
+  };
 
-    window.addEventListener('hashchange', handleHashChange, false);
+  // hash changed
+  useEffect(() => {
+    handleHashChange(false);
+  }, [params]);
 
-    const timerId = setTimeout(handleHashChange, 100); // Delay by 100ms
+  // first render
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      handleHashChange(true);
+    }, 1000);
 
     return () => {
-      window.removeEventListener('hashchange', handleHashChange, false);
-      clearTimeout(timerId); // Clear the timeout when the component unmounts
+      clearTimeout(timeoutId);
     };
   }, []);
 
@@ -84,7 +130,7 @@ export const Abi: FC<{
             px={3}
             pb={2}
             position={{ md: 'sticky' }}
-            top="81"
+            top={hasSubnav ? 81 + 65 : 81}
             maxHeight={{ base: '100%', md: 'calc(100vh - 81px)' }}
             overflowY="auto"
           >
@@ -115,7 +161,8 @@ export const Abi: FC<{
                   overflow="hidden"
                   textOverflow="ellipsis"
                   key={index}
-                  href={`#selector=${viem.toFunctionSelector(f)}`}
+                  href={`#selector-${viem.toFunctionSelector(f)}`}
+                  scroll={false}
                   textDecoration="none"
                 >
                   {f.name}(
@@ -152,7 +199,8 @@ export const Abi: FC<{
                   overflow="hidden"
                   textOverflow="ellipsis"
                   key={index}
-                  href={`#selector=${viem.toFunctionSelector(f)}`}
+                  href={`#selector-${viem.toFunctionSelector(f)}`}
+                  scroll={false}
                   textDecoration="none"
                 >
                   {f.name}(
@@ -167,7 +215,12 @@ export const Abi: FC<{
         </Flex>
 
         <Box background="black" ref={containerRef} w="100%">
-          <Alert status="warning" bg="gray.900" borderRadius="sm">
+          <Alert
+            status="warning"
+            bg="gray.900"
+            borderBottom="1px solid"
+            borderColor="gray.700"
+          >
             <AlertIcon />
             <Text fontWeight="bold">
               Always review transactions carefully in your wallet application
@@ -175,16 +228,30 @@ export const Abi: FC<{
             </Text>
           </Alert>
 
-          {functions?.map((f, index) => (
-            <Function
-              key={index}
-              f={f}
-              abi={abi}
-              address={address}
-              cannonOutputs={cannonOutputs}
-              chainId={chainId}
-            />
-          ))}
+          <Flex
+            direction="column"
+            px={4}
+            py={4}
+            borderBottom="1px solid"
+            borderColor="gray.700"
+            gap={4}
+          >
+            {functions?.map((f, index) => (
+              <Function
+                key={index}
+                f={f}
+                abi={abi as AbiType}
+                address={address}
+                cannonOutputs={cannonOutputs}
+                chainId={chainId}
+                contractSource={contractSource}
+                onDrawerOpen={onDrawerOpen}
+                collapsible
+                showFunctionSelector={false}
+                packageUrl={packageUrl}
+              />
+            ))}
+          </Flex>
         </Box>
       </Flex>
     </Flex>

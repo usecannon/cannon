@@ -1,13 +1,12 @@
-import Wei, { wei } from '@synthetixio/wei';
-import { CannonSigner, ChainArtifacts, Contract, ContractMap, traceActions } from '@usecannon/builder';
-import chalk from 'chalk';
 import _ from 'lodash';
-import prompts, { Choice } from 'prompts';
 import * as viem from 'viem';
+import prompts, { Choice } from 'prompts';
+import { red, bold, gray, green, yellow, cyan } from 'chalk';
+import { CannonSigner, ChainArtifacts, Contract, ContractMap, traceActions } from '@usecannon/builder';
+
 import { formatAbiFunction } from '../helpers';
 import { PackageSpecification } from '../types';
-
-const { red, bold, gray, green, yellow, cyan } = chalk;
+import { getChainById } from '../chains';
 
 const PROMPT_BACK_OPTION = { title: '↩ BACK' };
 
@@ -16,7 +15,6 @@ type InteractTaskArgs = {
   packagesArtifacts?: ChainArtifacts[];
   contracts: { [name: string]: Contract }[];
   provider: viem.PublicClient;
-
   signer?: CannonSigner;
   blockTag?: number;
 };
@@ -32,7 +30,7 @@ export async function interact(ctx: InteractTaskArgs) {
   let pickedContract: string | null = null;
   let pickedFunction: viem.AbiFunction | null = null;
   let currentArgs: any[] | null = null;
-  let txnValue: Wei = wei(0);
+  let txnValue = BigInt(0);
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
@@ -77,7 +75,7 @@ export async function interact(ctx: InteractTaskArgs) {
         pickedFunction = null;
       } else {
         currentArgs = argData.args;
-        txnValue = wei(argData.value.toString());
+        txnValue = argData.value;
       }
     } else {
       const contract = ctx.contracts[pickedPackage][pickedContract!];
@@ -104,7 +102,7 @@ export async function interact(ctx: InteractTaskArgs) {
           contract,
           functionAbi: pickedFunction,
           args: currentArgs,
-          value: txnValue.toBN(),
+          value: txnValue,
         });
 
         if (receipt?.status === 'success') {
@@ -262,7 +260,7 @@ async function pickFunctionArgs({ func }: { func: viem.AbiFunction }) {
   for (const input of func.inputs) {
     const rawValue = await promptInputValue(input);
 
-    if (!rawValue && rawValue !== false) {
+    if (_.isNil(rawValue)) {
       return null;
     }
 
@@ -309,12 +307,12 @@ async function query({
     return null;
   }
 
-  for (let i = 0; i < (functionAbi.outputs?.length || 0); i++) {
-    const output = functionAbi.outputs![i];
+  for (let i = 0; i < functionAbi.outputs.length; i++) {
+    const output = functionAbi.outputs[i];
 
     console.log(
       cyan(`  ↪ ${output.name || ''}(${output.type}):`),
-      printReturnedValue(output, functionAbi.outputs!.length > 1 ? result[i] : result)
+      renderArgs(output, functionAbi.outputs.length > 1 ? result[i] : result)
     );
   }
 
@@ -346,12 +344,13 @@ async function execTxn({
 
   // estimate gas
   try {
+    const chain = getChainById(await provider.getChainId());
     txn = (await provider.prepareTransactionRequest({
       account: signer.wallet.account || signer.address,
-      chain: provider.chain,
+      chain,
       to: contract.address,
       data: callData,
-      value: viem.parseEther(value.toString() || '0'),
+      value: value.toString() || '0',
     })) as any;
 
     console.log(gray(`  > calldata: ${txn!.data}`));
@@ -417,10 +416,6 @@ async function promptInputValue(input: viem.AbiParameter): Promise<any> {
         },
       ]);
 
-      if (!answer[name]) {
-        return null;
-      }
-
       // if there is a problem this will throw and user will be forced to re-enter data
       return parseInput(input, answer[name]);
     } catch (err) {
@@ -439,7 +434,7 @@ function parseInput(input: viem.AbiParameter, rawValue: string): any {
   let processed = isArray || isTuple ? JSON.parse(rawValue) : rawValue;
   if (isBytes32 && !viem.isHex(processed)) {
     if (isArray) {
-      processed = processed.map((item: string) => viem.stringToHex(item));
+      processed = processed.map((item: string) => viem.stringToHex(item, { size: 32 }));
     } else {
       processed = viem.stringToHex(processed, { size: 32 });
     }
@@ -493,26 +488,66 @@ function parseWeiValue(v: string): bigint {
   }
 }
 
-function printReturnedValue(output: viem.AbiParameter, value: any): string {
-  if (output.type === 'tuple') {
-    // handle structs
-    // TODO: for some reason viem's types die here
-    return (
-      '\n' +
-      (output as any).components
-        .map((comp: viem.AbiParameter, ind: number) => `${comp.name}: ${printReturnedValue(comp, value[ind])}`)
-        .join('\n')
-    );
-  } else if (output.type === 'array' && Array.isArray(value)) {
-    // handle arrays
-    return value.map((item) => printReturnedValue((output as any).arrayChildren, item)).join(', ');
-  } else if (output.type.startsWith('uint') || output.type.startsWith('int')) {
-    return `${value.toString()} (${wei(value).toString(5)})`;
-  } else if (output.type.startsWith('bytes')) {
-    return `${value} (${Buffer.from(value.slice(2), 'hex').toString('utf8')})`;
-  } else {
-    return value;
+/**
+ * Checks if a given ABI parameter is a tuple with components.
+ *
+ * This function acts as a type guard, allowing TypeScript to understand
+ * that the parameter passed to it, if the function returns true,
+ * is not just any AbiParameter, but specifically one that includes
+ * the 'components' property.
+ *
+ * @param {viem.AbiParameter} parameter - The ABI parameter to check.
+ * @returns {boolean} - True if the parameter is a tuple with components, false otherwise.
+ */
+function _isTupleParameter(
+  parameter: viem.AbiParameter
+): parameter is viem.AbiParameter & { components: readonly viem.AbiParameter[] } {
+  return 'components' in parameter && parameter.type.startsWith('tuple');
+}
+
+/**
+ * Converts an object to a prettified JSON string with a specified indentation and offset.
+ *
+ * @param {any} obj - The object to be converted into a JSON string.
+ * @param {number} offsetSpaces - The number of spaces to offset the entire JSON string. Default is 4.
+ * @param {number} indentSpaces - The number of spaces used for indentation in the JSON string. Default is 2.
+ * @returns {string} - The prettified and offset JSON string.
+ */
+export function stringifyWithOffset(obj: any, offsetSpaces = 4, indentSpaces = 2) {
+  const jsonString = JSON.stringify(obj, null, indentSpaces);
+  const offset = ' '.repeat(offsetSpaces);
+  return jsonString
+    .split('\n')
+    .map((line) => offset + line)
+    .join('\n');
+}
+
+/**
+ * Renders the arguments for a given ABI parameter and its associated value.
+ * This function handles different data structures (tuples, arrays, uint, int, etc).
+ *
+ * @param {viem.AbiParameter} input - The ABI parameter describing the type and structure of the value.
+ * @param {any} value - The value associated with the ABI parameter.
+ * @param {string} offset - A string used for initial indentation, facilitating readable output formatting.
+ * @returns {string} - A string representation of the argument, formatted for readability.
+ */
+export function renderArgs(input: viem.AbiParameter, value: any, offset = ' '): string {
+  const lines: string[] = [];
+
+  switch (true) {
+    case _isTupleParameter(input):
+      lines.push('', stringifyWithOffset(value));
+      break;
+
+    case input.type.endsWith('[]') && Array.isArray(value):
+      lines.push('', stringifyWithOffset(value));
+      break;
+
+    default:
+      lines.push(`${offset}${value.toString()}`);
   }
+
+  return lines.join('\n');
 }
 
 // Avoid 'false' and '0' being interpreted as bool = true
@@ -556,7 +591,7 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: viem.TransactionRece
           for (const [a, arg] of ((eventAbiDef.inputs || []) as viem.AbiParameter[]).entries()) {
             const output = parsedLog.args![arg.name || (`${a}` as any)];
 
-            console.log(cyan(`  ↪ ${arg.name || ''}(${arg.type}):`), printReturnedValue(arg, output));
+            console.log(cyan(`  ↪ ${arg.name || ''}(${arg.type}):`), renderArgs(arg, output));
           }
 
           break;

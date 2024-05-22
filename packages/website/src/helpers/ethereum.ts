@@ -150,3 +150,23 @@ export async function contractTransaction(
 
   return hash;
 }
+/**
+ * Truncate an address to a given length
+ * @param address The address to truncate
+ * @param length The length to truncate to
+ * @returns The truncated address
+ * @example
+ * truncateAddress('0x1234567890abcdef1234567890abcdef12345678') // '0x123456...12345678'
+ */
+export const truncateAddress = (address: string, length = 6) => {
+  return `${address.slice(0, length)}...${address.slice(-length)}`;
+};
+
+/**
+ * Check if a string is a valid hex string
+ * @param data The string to check
+ * @returns Whether the string is a valid hex string
+ */
+export const isValidHex = (data: string) => {
+  return data ? data.startsWith('0x') && data.length % 2 === 0 && /^[0-9a-fA-F]*$/.test(data.slice(2)) : false;
+};
