@@ -1,28 +1,36 @@
-import { PackageReference } from '@usecannon/builder';
 import * as viem from 'viem';
 import * as keys from '../db/keys';
+import { transformFunction } from '../db/transformers';
 import { useRedis } from '../redis';
-import { ApiFunction } from '../types';
+import { ApiFunction, RedisFunction } from '../types';
 
-async function _queryContracts(params: { query: string; limit?: number }) {
+async function _queryAbiFunctions(params: { query: string; limit?: number }) {
   const redis = await useRedis();
 
-  const results = (await redis.ft.search(keys.RKEY_ABI_SEARCHABLE, params.query)) as any;
+  const results = (await redis.ft.search(keys.RKEY_ABI_SEARCHABLE, params.query)) as unknown as {
+    total: number;
+    documents: { value: RedisFunction }[];
+  };
 
-  const data: ApiFunction[] = results.documents.map(({ value }: any) => {
-    const ref = new PackageReference(value.package);
-    return {
-      type: 'function',
-      name: value.name,
-      selector: value.selector,
-      contractName: value.contractName,
-      chainId: Number.parseInt(value.chainId),
-      address: viem.getAddress(value.address),
-      packageName: ref.name,
-      preset: ref.preset,
-      version: ref.version,
-    } satisfies ApiFunction;
-  });
+  const data: ApiFunction[] = [];
+
+  for (const { value } of results.documents) {
+    const parsed = transformFunction(value);
+
+    if (!parsed) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        new Error(
+          `Could not parse "${value && JSON.stringify(value)}" on query "FT.SEARCH ${keys.RKEY_ABI_SEARCHABLE} ${
+            params.query
+          }"`
+        )
+      );
+      continue;
+    }
+
+    data.push(parsed);
+  }
 
   return {
     total: data.length,
@@ -34,11 +42,11 @@ async function _queryContracts(params: { query: string; limit?: number }) {
 }
 
 export async function findFunctionsBySelector(params: { selector: viem.Hex; limit: number }) {
-  return _queryContracts({ query: `@selector:{${params.selector}}`, limit: params.limit });
+  return _queryAbiFunctions({ query: `@selector:{${params.selector}}`, limit: params.limit });
 }
 
 export async function searchFunctions(params: { query: string; limit: number }) {
-  return _queryContracts({
+  return _queryAbiFunctions({
     query: `@name:'${params.query}' | @name:${params.query}* | @name:*${params.query}*`,
     limit: params.limit,
   });

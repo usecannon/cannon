@@ -2,11 +2,18 @@ import express from 'express';
 import Fuse from 'fuse.js';
 import * as viem from 'viem';
 import { BadRequestError } from '../errors';
-import { isContractName, isFunctionSelector, isPartialPackageRef, parseChainIds } from '../helpers';
+import {
+  isContractName,
+  isFunctionSelector,
+  isPartialPackageRef,
+  parseChainIds,
+  parseQueryTypes,
+  parseTextQuery,
+} from '../helpers';
 import { findContractsByAddress, searchContracts } from '../queries/contracts';
 import { findFunctionsBySelector, searchFunctions } from '../queries/functions';
 import { findPackagesByPartialRef, searchPackages } from '../queries/packages';
-import { ApiDocument, ApiDocumentType } from '../types';
+import { ApiDocument } from '../types';
 
 const search = express.Router();
 
@@ -35,8 +42,8 @@ search.get('/search', async (req, res) => {
     throw new BadRequestError('Invalid "query" param');
   }
 
-  const { query = '' } = req.query;
-  const types = (typeof req.query.types === 'string' ? req.query.types.split(',') : []) as ApiDocumentType[];
+  const query = parseTextQuery(req.query.query);
+  const types = parseQueryTypes(req.query.types);
 
   const response = {
     status: 200,

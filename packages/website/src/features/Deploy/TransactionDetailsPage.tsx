@@ -1,6 +1,7 @@
 'use client';
 
 import { parseHintedMulticall } from '@/helpers/cannon';
+import { truncateAddress } from '@/helpers/ethereum';
 import { createSimulationData, getSafeTransactionHash } from '@/helpers/safe';
 import { SafeDefinition } from '@/helpers/store';
 import { useSafeTransactions, useTxnStager } from '@/hooks/backend';
@@ -36,7 +37,7 @@ import {
 } from '@chakra-ui/react';
 import * as chains from '@wagmi/core/chains';
 import _, { find } from 'lodash';
-import { FC, useEffect, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import {
   Address,
   hexToString,
@@ -47,22 +48,29 @@ import {
 import {
   useAccount,
   useChainId,
-  useWriteContract,
   usePublicClient,
+  useWriteContract,
 } from 'wagmi';
 import PublishUtility from './PublishUtility';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 import 'react-diff-view/style/index.css';
-import { truncateAddress } from '@/helpers/ethereum';
 import { useGitDiff } from '@/hooks/git';
 
-const TransactionDetailsPage: FC<{
+
+interface Props {
   safeAddress: string;
   chainId: string;
   nonce: string;
   sigHash: string;
-}> = ({ safeAddress, chainId, nonce, sigHash }) => {
+}
+
+function TransactionDetailsPage({
+  safeAddress,
+  chainId,
+  nonce,
+  sigHash,
+}: Props) {
   const [executionTxnHash, setExecutionTxnHash] = useState<string | null>(null);
   const publicClient = usePublicClient();
   const walletChainId = useChainId();
@@ -74,10 +82,19 @@ const TransactionDetailsPage: FC<{
     safeAddress = zeroAddress;
   }
 
-  const safe: SafeDefinition = {
-    chainId: parsedChainId,
-    address: safeAddress as Address,
-  };
+  const safe = useMemo(
+    () =>
+      ({
+        chainId: parsedChainId,
+        address: safeAddress as Address,
+      } as SafeDefinition),
+    [parsedChainId, safeAddress]
+  );
+
+  const safeChain = useMemo(() => {
+    if (!safe) return;
+    return find(chains, (chain: any) => chain.id === safe.chainId);
+  }, [safe]);
 
   const {
     nonce: safeNonce,
@@ -104,7 +121,7 @@ const TransactionDetailsPage: FC<{
           txn._nonce.toString() === nonce &&
           (!sigHash || sigHash === getSafeTransactionHash(safe, txn))
       ) || null;
-  } else if (staged) {
+  } else if (Array.isArray(staged) && staged.length) {
     safeTxn =
       staged.find(
         (s) =>
@@ -182,13 +199,13 @@ const TransactionDetailsPage: FC<{
     prevCannonDeployInfo.pkg
   );
 
-  useEffect(
-    () => buildInfo.doBuild(),
-    [
-      !isTransactionExecuted &&
+  useEffect(() => {
+    if (!safe || !cannonDefInfo.def || !prevCannonDeployInfo.pkg) return;
+    buildInfo.doBuild();
+  }, [
+    !isTransactionExecuted &&
       (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
-    ]
-  );
+  ]);
 
   // compare proposed build info with expected transaction batch
   const expectedTxns = buildInfo.buildResult?.steps?.map(
@@ -207,37 +224,20 @@ const TransactionDetailsPage: FC<{
       }));
 
   const etherscanUrl =
-    (Object.values(chains).find((chain) => chain.id == safe.chainId) as any)
-      ?.blockExplorers?.default?.url ?? 'https://etherscan.io';
+    safeChain?.blockExplorers?.default.url || 'https://etherscan.io';
 
   const signers: Array<string> = stager.existingSigners.length
     ? stager.existingSigners
     : safeTxn?.confirmedSigners || [];
 
-  const threshold: number =
+  const threshold =
     Number(stager.requiredSigners) || safeTxn?.confirmationsRequired || 0;
 
   const remainingSignatures = threshold - signers.length;
 
-  const chainName = find(
-    chains,
-    (chain: any) => chain.id === safe.chainId
-  )?.name;
-
-  const { patches } = useGitDiff(
-    gitUrl ?? '',
-    prevDeployGitHash,
-    hintData?.gitRepoHash ?? '',
-    cannonDefInfo.filesList ? Array.from(cannonDefInfo.filesList) : []
-  );
+  const chainName = safeChain?.name;
 
   const gitDiffContainerRef = useRef<HTMLDivElement>(null);
-
-  console.log(gitUrl),
-  console.log(prevDeployGitHash),
-  console.log(hintData?.gitRepoHash),
-  console.log("PATCHES", patches)
-  console.log("CANNONFILE INFO", cannonDefInfo)
   
   return (
     <>
@@ -282,7 +282,6 @@ const TransactionDetailsPage: FC<{
           </Box>
 
           <Container maxW="container.lg" mt={[6, 6, 12]}>
-            {patches && patches.length !== 0 && (
               <Box
                 background="gray.800"
                 p={4}
@@ -305,7 +304,6 @@ const TransactionDetailsPage: FC<{
                   <Box ref={gitDiffContainerRef} />
                 </Box>
               </Box>
-            )}
             <Grid
               templateColumns={{ base: 'repeat(1, 1fr)', lg: '2fr 1fr' }}
               gap={6}
@@ -341,8 +339,8 @@ const TransactionDetailsPage: FC<{
                           Signatures
                         </Heading>
 
-                        {signers?.map((s, index) => (
-                          <Box mt={2.5} key={index}>
+                        {signers?.map((s) => (
+                          <Box mt={2.5} key={s}>
                             <Box
                               backgroundColor="teal.500"
                               borderRadius="full"
@@ -645,6 +643,6 @@ const TransactionDetailsPage: FC<{
       )}
     </>
   );
-};
+}
 
 export default TransactionDetailsPage;

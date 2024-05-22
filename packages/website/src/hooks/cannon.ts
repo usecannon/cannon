@@ -86,6 +86,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
   const fallbackRegistry = useCannonRegistry();
 
   const buildFn = async () => {
+    // Wait until finished loading
     if (!safe || !def || !prevDeploy) {
       throw new Error('Missing required parameters');
     }
@@ -151,7 +152,13 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
           `cannon.ts: on Events.PostStepExecute operation ${stepType}.${stepLabel} output: ${JSON.stringify(stepOutput)}`
         );
 
-        simulatedSteps.push(stepOutput);
+        simulatedSteps.push(_.cloneDeep(stepOutput));
+
+        for (const txn in stepOutput.txns || {}) {
+          // clean out txn hash
+          stepOutput.txns![txn].hash = '';
+        }
+
         setBuildStatus(`Building ${stepType}.${stepLabel}...`);
       }
     );
@@ -211,6 +218,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     setBuildError(null);
     setBuildSkippedSteps([]);
     setIsBuilding(true);
+
     buildFn()
       .then((res) => {
         setBuildResult(res);
