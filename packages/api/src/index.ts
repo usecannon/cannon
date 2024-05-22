@@ -13,6 +13,10 @@ if (config.NODE_ENV !== 'production') {
   app.set('json spaces', 2);
 }
 
+if (config.TRUST_PROXY) {
+  app.enable('trust proxy');
+}
+
 app.use(cors());
 app.use(helmet());
 
