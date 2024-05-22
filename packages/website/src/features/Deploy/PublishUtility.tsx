@@ -1,8 +1,9 @@
+import { truncateAddress } from '@/helpers/ethereum';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { findChain } from '@/helpers/rpc';
 import { useStore } from '@/helpers/store';
-import { useProviders } from '@/hooks/providers';
 import { useCannonPackage } from '@/hooks/cannon';
+import { useProviders } from '@/hooks/providers';
 import { useCannonPackagePublishers } from '@/hooks/registry';
 import {
   ExternalLinkIcon,
@@ -29,11 +30,10 @@ import {
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { truncateAddress } from '@/helpers/ethereum';
 import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/cli/dist/src/constants';
 import { Chain, createPublicClient, http, isAddressEqual } from 'viem';
 import { mainnet, optimism } from 'viem/chains';
-import { useWalletClient, useSwitchChain } from 'wagmi';
+import { useSwitchChain, useWalletClient } from 'wagmi';
 
 export default function PublishUtility(props: {
   deployUrl: string;
@@ -229,7 +229,7 @@ export default function PublishUtility(props: {
             </Text>
             <UnorderedList mb={4}>
               {publishers.map(({ publisher, chainName }) => (
-                <ListItem key={publisher} mb={1}>
+                <ListItem key={publisher + chainName} mb={1}>
                   <Text
                     display="inline"
                     fontFamily="mono"
