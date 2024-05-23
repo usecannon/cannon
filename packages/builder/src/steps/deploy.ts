@@ -14,6 +14,7 @@ import {
   PackageState,
 } from '../types';
 import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
+import { handleTxnError } from '../error';
 
 const debug = Debug('cannon:builder:contract');
 
@@ -269,71 +270,89 @@ const deploySpec = {
     let receipt: viem.TransactionReceipt | null = null;
     let deployAddress: viem.Address;
 
-    if (config.create2) {
-      const arachnidDeployerAddress = await ensureArachnidCreate2Exists(
-        runtime,
-        typeof config.create2 === 'string' ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR
-      );
+    try {
+      if (config.create2) {
+        const arachnidDeployerAddress = await ensureArachnidCreate2Exists(
+          runtime,
+          typeof config.create2 === 'string' ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR
+        );
 
-      debug('performing arachnid create2');
-      const [create2Txn, addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!, arachnidDeployerAddress);
-      debug(`create2: deploy ${addr} by ${arachnidDeployerAddress}`);
+        debug('performing arachnid create2');
+        const [create2Txn, addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!, arachnidDeployerAddress);
+        debug(`create2: deploy ${addr} by ${arachnidDeployerAddress}`);
 
-      const bytecode = await runtime.provider.getBytecode({ address: addr });
+        const bytecode = await runtime.provider.getBytecode({ address: addr });
 
-      if (bytecode && bytecode !== '0x') {
-        debug('create2 contract already completed');
-        // our work is done for us. unfortunately, its not easy to figure out what the transaction hash was
+        if (bytecode && bytecode !== '0x') {
+          debug('create2 contract already completed');
+          // our work is done for us. unfortunately, its not easy to figure out what the transaction hash was
+        } else {
+          const signer = config.from
+            ? await runtime.getSigner(config.from as viem.Address)
+            : await runtime.getDefaultSigner!(txn, config.salt);
+
+          const fullCreate2Txn = _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
+          debug('final create2 txn', fullCreate2Txn);
+
+          const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
+          const hash = await signer.wallet.sendTransaction(preparedTxn as any);
+          receipt = await runtime.provider.waitForTransactionReceipt({ hash });
+          debug('arachnid create2 complete', receipt);
+        }
+        deployAddress = addr;
       } else {
-        const signer = config.from
-          ? await runtime.getSigner(config.from as viem.Address)
-          : await runtime.getDefaultSigner!(txn, config.salt);
+        const curAccountNonce = config.from
+          ? await runtime.provider.getTransactionCount({ address: config.from as viem.Address })
+          : 0;
+        if (config.from && config.nonce?.length && parseInt(config.nonce) < curAccountNonce) {
+          const contractAddress = viem.getContractAddress({
+            from: config.from as viem.Address,
+            nonce: BigInt(config.nonce),
+          });
 
-        const fullCreate2Txn = _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
-        debug('final create2 txn', fullCreate2Txn);
+          debug(`contract appears already deployed to address ${contractAddress} (nonce too high)`);
 
-        const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
-        const hash = await signer.wallet.sendTransaction(preparedTxn as any);
-        receipt = await runtime.provider.waitForTransactionReceipt({ hash });
-        debug('arachnid create2 complete', receipt);
-      }
-      deployAddress = addr;
-    } else {
-      const curAccountNonce = config.from
-        ? await runtime.provider.getTransactionCount({ address: config.from as viem.Address })
-        : 0;
-      if (config.from && config.nonce?.length && parseInt(config.nonce) < curAccountNonce) {
-        const contractAddress = viem.getContractAddress({ from: config.from as viem.Address, nonce: BigInt(config.nonce) });
-
-        debug(`contract appears already deployed to address ${contractAddress} (nonce too high)`);
-
-        // check that the contract bytecode that was deployed matches the requested
-        const actualBytecode = await runtime.provider.getBytecode({ address: contractAddress });
-        // we only check the length because solidity puts non-substantial changes (ex. comments) in bytecode and that
-        // shouldn't trigger any significant change. And also this is just kind of a sanity check so just verifying the
-        // length should be sufficient
-        if (!actualBytecode || artifactData.deployedBytecode.length !== actualBytecode.length) {
-          debug('bytecode does not match up', artifactData.deployedBytecode, actualBytecode);
-          // this can happen normally. for now lets just disable it for now
-          /*throw new Error(
+          // check that the contract bytecode that was deployed matches the requested
+          const actualBytecode = await runtime.provider.getBytecode({ address: contractAddress });
+          // we only check the length because solidity puts non-substantial changes (ex. comments) in bytecode and that
+          // shouldn't trigger any significant change. And also this is just kind of a sanity check so just verifying the
+          // length should be sufficient
+          if (!actualBytecode || artifactData.deployedBytecode.length !== actualBytecode.length) {
+            debug('bytecode does not match up', artifactData.deployedBytecode, actualBytecode);
+            // this can happen normally. for now lets just disable it for now
+            /*throw new Error(
             `the address at ${config.from!} should have deployed a contract at nonce ${config.nonce!} at address ${contractAddress}, but the bytecode does not match up. actual bytecode length: ${
               (actualBytecode || '').length
             }`
           );*/
-        }
+          }
 
-        deployAddress = contractAddress;
-      } else {
-        const signer = config.from
-          ? await runtime.getSigner(config.from as viem.Address)
-          : await runtime.getDefaultSigner!(txn, config.salt);
-        const preparedTxn = await runtime.provider.prepareTransactionRequest(
-          _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
-        );
-        const hash = await signer.wallet.sendTransaction(preparedTxn as any);
-        receipt = await runtime.provider.waitForTransactionReceipt({ hash });
-        deployAddress = receipt.contractAddress!;
+          deployAddress = contractAddress;
+        } else {
+          const signer = config.from
+            ? await runtime.getSigner(config.from as viem.Address)
+            : await runtime.getDefaultSigner!(txn, config.salt);
+          const preparedTxn = await runtime.provider.prepareTransactionRequest(
+            _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
+          );
+          const hash = await signer.wallet.sendTransaction(preparedTxn as any);
+          receipt = await runtime.provider.waitForTransactionReceipt({ hash });
+          deployAddress = receipt.contractAddress!;
+        }
       }
+    } catch (error: any) {
+      // we need to get the contract artifact to decode the error
+      const contractArtifact = generateOutputs(
+        config,
+        ctx,
+        artifactData,
+        receipt,
+        // note: send zero address since there is no contract address
+        viem.zeroAddress,
+        packageState.currentLabel
+      );
+
+      return await handleTxnError(contractArtifact, runtime.provider, error);
     }
 
     return generateOutputs(config, ctx, artifactData, receipt, deployAddress, packageState.currentLabel);
