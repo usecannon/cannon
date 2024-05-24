@@ -56,6 +56,8 @@ import { useWriteContract } from 'wagmi';
 import pkg from '../../../package.json';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
+import { PackageReference } from '@usecannon/builder/src';
+
 import 'react-diff-view/style/index.css';
 
 export default function QueueFromGitOpsPage() {
@@ -178,10 +180,11 @@ function QueueFromGitOps() {
   }, [previousPackageInput, cannonDefInfo.def?.getPreset(ctx)]);
 
   const cannonPkgPreviousInfo = useCannonPackage(
-    (cannonDefInfo.def &&
-      `${previousName}:${previousVersion}${previousPreset ? '@' + previousPreset : ''
-      }`) ??
-    '',
+    cannonDefInfo.def && PackageReference.isValid(previousPackageInput)
+      ? `${previousName}:${previousVersion}${
+          previousPreset ? '@' + previousPreset : ''
+        }`
+      : '',
     chainId
   );
   const preset = cannonDefInfo.def && cannonDefInfo.def.getPreset(ctx);
@@ -367,52 +370,55 @@ function QueueFromGitOps() {
     );
   }
 
-  const disablePreviewButton = chainId !== currentSafe?.chainId ||
-    settings.isIpfsGateway ||
+  const disablePreviewButton =
+    chainId !== currentSafe?.chainId ||
     !cannonDefInfo.def ||
     cannonPkgPreviousInfo.isFetching ||
     partialDeployInfo.isFetching ||
     cannonPkgVersionInfo.isFetching ||
-    buildInfo.isBuilding
+    buildInfo.isBuilding;
 
-  function PreviewButton() {
-    return (<Button
-      width="100%"
-      colorScheme="teal"
-
-      isDisabled={disablePreviewButton}
-      onClick={() => buildInfo.doBuild()}
-    >
-      Preview Transactions to Queue
-    </Button>)
+  function PreviewButton(props: any) {
+    return (
+      <Tooltip label={props.message}>
+        <Button
+          width="100%"
+          colorScheme="teal"
+          isDisabled={disablePreviewButton}
+          onClick={() => buildInfo.doBuild()}
+        >
+          Preview Transactions to Queue
+        </Button>
+      </Tooltip>
+    );
   }
 
   function RenderPreviewButtonTooltip() {
-    if (settings.isIpfsGateway) {
-      return (<Tooltip label="Cannot write to IPFS endpoint as gateway, please change the IPFS Url in your settings.">
-        <PreviewButton/>
-      </Tooltip>)
+    if (chainId !== currentSafe?.chainId) {
+      return (
+        <PreviewButton message="Deployment Chain ID does not match Safe Chain ID" />
+      );
     }
 
-    if(chainId !== currentSafe?.chainId) {
-      <Tooltip label="Deployment Chain ID does not match Safe Chain ID">
-        <PreviewButton/>
-      </Tooltip>
+    if (
+      cannonPkgPreviousInfo.isFetching ||
+      partialDeployInfo.isFetching ||
+      cannonPkgVersionInfo.isFetching
+    ) {
+      return <PreviewButton message="Fetching package info, please wait..." />;
     }
 
-    if (cannonPkgVersionInfo.isFetching) (
-      <Tooltip label="Fetching package info, please wait...">
-        <PreviewButton/>
-      </Tooltip>
-    )
+    if (buildInfo.isBuilding) {
+      return <PreviewButton message="Generating build info, please wait..." />;
+    }
 
-    if (buildInfo.isBuilding) (
-      <Tooltip label="Generating build info, please wait...">
-        <PreviewButton/>
-      </Tooltip>
-    )
+    if (!cannonDefInfo.def) {
+      return (
+        <PreviewButton message="No cannonfile definition found, please input the link to the cannonfile to build" />
+      );
+    }
 
-    return (<PreviewButton/>)
+    return <PreviewButton />;
   }
 
   return (
@@ -501,12 +507,17 @@ function QueueFromGitOps() {
                 <Code>--upgrade-from</Code>
               </Link>
             </FormHelperText>
-            {cannonPkgPreviousInfo.error ? (
+            {cannonPkgPreviousInfo.error ||
+            (previousPackageInput.length > 0 &&
+              !PackageReference.isValid(previousPackageInput)) ? (
               <Alert mt="6" status="error" bg="red.700">
                 <AlertIcon mr={3} />
-                <strong>{cannonPkgPreviousInfo.error.toString()}</strong>
+                <strong>
+                  {cannonPkgPreviousInfo?.error?.toString() ||
+                    'Invalid package name. Should be of the format <package-name>:<version> or <package-name>:<version>@<preset>'}
+                </strong>
               </Alert>
-            ) : undefined}
+            ) : null}
           </FormControl>
           {/* TODO: insert/load override settings here */}
           <FormControl mb="6">
