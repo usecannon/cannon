@@ -56,7 +56,6 @@ import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 import 'react-diff-view/style/index.css';
 
-
 interface Props {
   safeAddress: string;
   chainId: string;
@@ -83,10 +82,10 @@ function TransactionDetailsPage({
 
   const safe = useMemo(
     () =>
-    ({
-      chainId: parsedChainId,
-      address: safeAddress as Address,
-    } as SafeDefinition),
+      ({
+        chainId: parsedChainId,
+        address: safeAddress as Address,
+      } as SafeDefinition),
     [parsedChainId, safeAddress]
   );
 
@@ -166,8 +165,8 @@ function TransactionDetailsPage({
   } else {
     prevDeployGitHash =
       prevDeployHashQuery.data &&
-        prevDeployHashQuery.data[0].result &&
-        ((prevDeployHashQuery.data[0].result as any).length as number) > 2
+      prevDeployHashQuery.data[0].result &&
+      ((prevDeployHashQuery.data[0].result as any).length as number) > 2
         ? ((prevDeployHashQuery.data[0].result as any).slice(2) as any)
         : hintData?.gitRepoHash;
   }
@@ -179,10 +178,10 @@ function TransactionDetailsPage({
   const prevCannonDeployInfo = useCannonPackage(
     (hintData?.cannonUpgradeFromPackage || prevDeployPackageUrl
       ? `@ipfs:${_.last(
-        (hintData?.cannonUpgradeFromPackage || prevDeployPackageUrl).split(
-          '/'
-        )
-      )}`
+          (hintData?.cannonUpgradeFromPackage || prevDeployPackageUrl).split(
+            '/'
+          )
+        )}`
       : null) || ''
   );
 
@@ -203,7 +202,7 @@ function TransactionDetailsPage({
     buildInfo.doBuild();
   }, [
     !isTransactionExecuted &&
-    (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
+      (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
   ]);
 
   // compare proposed build info with expected transaction batch
@@ -419,7 +418,7 @@ function TransactionDetailsPage({
                     {!isTransactionExecuted && !executionTxnHash && (
                       <Flex mt={4} gap={4}>
                         {account.isConnected &&
-                          walletChainId === safe.chainId ? (
+                        walletChainId === safe.chainId ? (
                           <>
                             <Tooltip label={stager.signConditionFailed}>
                               <Button
@@ -561,7 +560,7 @@ function TransactionDetailsPage({
                       )}
                       {prevDeployPackageUrl &&
                         hintData.cannonUpgradeFromPackage !==
-                        prevDeployPackageUrl && (
+                          prevDeployPackageUrl && (
                           <Flex fontSize="xs" fontWeight="medium" align="top">
                             <InfoOutlineIcon mt="3px" mr={1.5} />
                             The previous deploy hash does not derive from an
@@ -573,13 +572,17 @@ function TransactionDetailsPage({
                           mt={3}
                           size="xs"
                           as="a"
-                          href={`https://dashboard.tenderly.co/simulator/new?block=&blockIndex=0&from=${safe.address
-                            }&gas=${8000000}&gasPrice=0&value=${safeTxn?.value
-                            }&contractAddress=${safe?.address
-                            }&rawFunctionInput=${createSimulationData(
-                              safeTxn
-                            )}&network=${safe.chainId
-                            }&headerBlockNumber=&headerTimestamp=`}
+                          href={`https://dashboard.tenderly.co/simulator/new?block=&blockIndex=0&from=${
+                            safe.address
+                          }&gas=${8000000}&gasPrice=0&value=${
+                            safeTxn?.value
+                          }&contractAddress=${
+                            safe?.address
+                          }&rawFunctionInput=${createSimulationData(
+                            safeTxn
+                          )}&network=${
+                            safe.chainId
+                          }&headerBlockNumber=&headerTimestamp=`}
                           colorScheme="whiteAlpha"
                           background="whiteAlpha.100"
                           border="1px solid"

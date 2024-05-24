@@ -25,7 +25,6 @@ import {
 import { Diff, parseDiff, Hunk } from 'react-diff-view';
 import { GitHub } from 'react-feather';
 import { DisplayedTransaction } from './DisplayedTransaction';
-import { uniq } from 'lodash';
 
 const parseDiffFileNames = (diffString: string): string[] => {
   const regExp = /[-|+]{3}\s[ab]\/\.(.*?)\n/g;
@@ -154,14 +153,18 @@ export function TransactionDisplay(props: {
                       {toFileName}
                     </Box>
                   </Flex>
-                    <Diff
-                      key={oldRevision + '-' + newRevision}
-                      viewType="split"
-                      diffType={type}
-                      hunks={hunks}
-                    >
-                      {hunks => hunks.map(hunk => <Hunk key={hunk.content} hunk={hunk} />)}
-                    </Diff>
+                  <Diff
+                    key={oldRevision + '-' + newRevision}
+                    viewType="split"
+                    diffType={type}
+                    hunks={hunks}
+                  >
+                    {(hunks) =>
+                      hunks.map((hunk) => (
+                        <Hunk key={hunk.content} hunk={hunk} />
+                      ))
+                    }
+                  </Diff>
                 </Box>
               );
             })}

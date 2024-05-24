@@ -209,7 +209,7 @@ export default function PublishUtility(props: {
 
         {props.gitUrl && (
           <Link
-            href={props.gitUrl}
+            href={`https:` + props.gitUrl.split(':')[1]}
             textDecoration="none"
             _hover={{ textDecoration: 'none' }}
             display="flex"
@@ -223,12 +223,8 @@ export default function PublishUtility(props: {
               height="14px"
               mr={1.5}
             />
-            <Text
-              fontSize="xs"
-              display="inline"
-              borderBottomColor="gray.300"
-            >
-              {`Github Repository`}
+            <Text fontSize="xs" display="inline" borderBottomColor="gray.300">
+              {'Github Repository'}
             </Text>
           </Link>
         )}
