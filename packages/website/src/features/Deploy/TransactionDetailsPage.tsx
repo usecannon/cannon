@@ -55,7 +55,6 @@ import PublishUtility from './PublishUtility';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 import 'react-diff-view/style/index.css';
-import { useGitDiff } from '@/hooks/git';
 
 
 interface Props {
@@ -84,10 +83,10 @@ function TransactionDetailsPage({
 
   const safe = useMemo(
     () =>
-      ({
-        chainId: parsedChainId,
-        address: safeAddress as Address,
-      } as SafeDefinition),
+    ({
+      chainId: parsedChainId,
+      address: safeAddress as Address,
+    } as SafeDefinition),
     [parsedChainId, safeAddress]
   );
 
@@ -204,7 +203,7 @@ function TransactionDetailsPage({
     buildInfo.doBuild();
   }, [
     !isTransactionExecuted &&
-      (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
+    (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
   ]);
 
   // compare proposed build info with expected transaction batch
@@ -238,7 +237,7 @@ function TransactionDetailsPage({
   const chainName = safeChain?.name;
 
   const gitDiffContainerRef = useRef<HTMLDivElement>(null);
-  
+
   return (
     <>
       {!hintData && (
@@ -282,28 +281,28 @@ function TransactionDetailsPage({
           </Box>
 
           <Container maxW="container.lg" mt={[6, 6, 12]}>
-              <Box
-                background="gray.800"
-                p={4}
-                borderWidth="1px"
-                borderColor="gray.700"
-                mb={6}
+            <Box
+              background="gray.800"
+              p={4}
+              borderWidth="1px"
+              borderColor="gray.700"
+              mb={6}
+            >
+              <Heading
+                size="sm"
+                mb={3}
+                fontWeight="medium"
+                textTransform="uppercase"
+                letterSpacing="1.5px"
+                fontFamily="var(--font-miriam)"
+                textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
               >
-                <Heading
-                  size="sm"
-                  mb={3}
-                  fontWeight="medium"
-                  textTransform="uppercase"
-                  letterSpacing="1.5px"
-                  fontFamily="var(--font-miriam)"
-                  textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                >
-                  Cannonfile Diff
-                </Heading>
-                <Box overflowY="auto" maxH="320px">
-                  <Box ref={gitDiffContainerRef} />
-                </Box>
+                Cannonfile Diff
+              </Heading>
+              <Box overflowY="auto" maxH="320px">
+                <Box ref={gitDiffContainerRef} />
               </Box>
+            </Box>
             <Grid
               templateColumns={{ base: 'repeat(1, 1fr)', lg: '2fr 1fr' }}
               gap={6}
@@ -631,6 +630,7 @@ function TransactionDetailsPage({
 
                       <PublishUtility
                         deployUrl={hintData.cannonPackage}
+                        gitUrl={hintData.gitRepoUrl}
                         targetChainId={safe.chainId}
                       />
                     </Box>

@@ -37,6 +37,7 @@ import { useSwitchChain, useWalletClient } from 'wagmi';
 
 export default function PublishUtility(props: {
   deployUrl: string;
+  gitUrl: string;
   targetChainId: number;
 }) {
   const settings = useStore((s) => s.settings);
@@ -63,12 +64,10 @@ export default function PublishUtility(props: {
     props.targetChainId
   );
 
-  const packageUrl = `/packages/${resolvedName}/${
-    resolvedVersion || 'latest'
-  }/${props.targetChainId}-${resolvedPreset || 'main'}`;
-  const packageDisplay = `${resolvedName}${
-    resolvedVersion ? ':' + resolvedVersion : ''
-  }${resolvedPreset ? '@' + resolvedPreset : ''}`;
+  const packageUrl = `/packages/${resolvedName}/${resolvedVersion || 'latest'
+    }/${props.targetChainId}-${resolvedPreset || 'main'}`;
+  const packageDisplay = `${resolvedName}${resolvedVersion ? ':' + resolvedVersion : ''
+    }${resolvedPreset ? '@' + resolvedPreset : ''}`;
 
   const publishers = useCannonPackagePublishers(resolvedName!);
 
@@ -208,6 +207,32 @@ export default function PublishUtility(props: {
           </Link>
         )}
 
+        {props.gitUrl && (
+          <Link
+            href={props.gitUrl}
+            textDecoration="none"
+            _hover={{ textDecoration: 'none' }}
+            display="flex"
+            alignItems="center"
+            mb={4}
+          >
+            <Image
+              display="inline-block"
+              src="/images/github-mark-white.svg"
+              alt="github"
+              height="14px"
+              mr={1.5}
+            />
+            <Text
+              fontSize="xs"
+              display="inline"
+              borderBottomColor="gray.300"
+            >
+              {`Github Repository`}
+            </Text>
+          </Link>
+        )}
+
         {!!existingRegistryUrl && (
           <Alert mb={4} status="warning" bg="gray.700" fontSize="sm">
             <AlertIcon boxSize={4} mr={3} />
@@ -304,11 +329,11 @@ export default function PublishUtility(props: {
               <Link
                 onClick={() =>
                   publishOptimismMutation.isPending ||
-                  publishMainnetMutation.isPending
+                    publishMainnetMutation.isPending
                     ? false
                     : switchChainAsync({ chainId: mainnet.id }).then(() =>
-                        publishMainnetMutation.mutate()
-                      )
+                      publishMainnetMutation.mutate()
+                    )
                 }
               >
                 {publishMainnetMutation.isPending

@@ -21,7 +21,6 @@ import {
   Text,
   Image,
   Portal,
-  useDisclosure,
 } from '@chakra-ui/react';
 import { Diff, parseDiff, Hunk } from 'react-diff-view';
 import { GitHub } from 'react-feather';
@@ -91,8 +90,6 @@ export function TransactionDisplay(props: {
     cannonDefInfo.filesList ? Array.from(cannonDefInfo.filesList) : []
   );
 
-  const diffFiles = uniq(patches.map(parseDiffFileNames).flat());
-
   // This is just needed for single package transactions
   if (
     hintData?.cannonPackage &&
@@ -157,14 +154,14 @@ export function TransactionDisplay(props: {
                       {toFileName}
                     </Box>
                   </Flex>
-                  <Diff
-                    key={oldRevision + '-' + newRevision}
-                    viewType="split"
-                    diffType={type}
-                    hunks={hunks}
-                  >
-                     {hunks => hunks.map(hunk => <Hunk key={hunk.content} hunk={hunk} />)}
-                  </Diff>
+                    <Diff
+                      key={oldRevision + '-' + newRevision}
+                      viewType="split"
+                      diffType={type}
+                      hunks={hunks}
+                    >
+                      {hunks => hunks.map(hunk => <Hunk key={hunk.content} hunk={hunk} />)}
+                    </Diff>
                 </Box>
               );
             })}
