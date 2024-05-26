@@ -38,7 +38,7 @@ import {
   Tooltip,
   useToast,
 } from '@chakra-ui/react';
-import { ChainBuilderContext } from '@usecannon/builder';
+import { ChainBuilderContext, PackageReference } from '@usecannon/builder';
 import _ from 'lodash';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
@@ -56,7 +56,6 @@ import { useWriteContract } from 'wagmi';
 import pkg from '../../../package.json';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
-import { PackageReference } from '@usecannon/builder/src';
 
 import 'react-diff-view/style/index.css';
 
