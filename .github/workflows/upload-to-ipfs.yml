@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  lint:
+  upload-ipfs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -17,6 +17,8 @@ jobs:
           node-version: '20.5.1'
       - run: npm ci
       - run: npm run build
+        env:
+          NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
       - run: echo "${{ env.NEXT_ENV }}" > .env.local
       - run: cd packages/website && npm run build
       - run: echo "${{ env.PYTHON_UPLOAD_TO_IPFS }}" > upload-to-ipfs.py
