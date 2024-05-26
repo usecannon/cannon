@@ -21,7 +21,9 @@ jobs:
           NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
       - run: echo "${{ vars.NEXT_ENV }}" > .env.local
       - run: cd packages/website && npm run build
-      - run: echo "${{ vars.PYTHON_UPLOAD_TO_IPFS }}" > upload-to-ipfs.py
+      - env:
+          PYTHON_UPLOAD_TO_IPFS: ${{ vars.PYTHON_UPLOAD_TO_IPFS }}
+        run: echo "$PYTHON_UPLOAD_TO_IPFS" > upload-to-ipfs.py
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
