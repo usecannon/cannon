@@ -1,14 +1,14 @@
 name: Upload Website to IPFS
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
   upload-ipfs:
     runs-on: ubuntu-latest
+    permissions: 
+       pull-requests: write
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
