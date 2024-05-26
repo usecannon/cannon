@@ -28,4 +28,13 @@ jobs:
         with:
           python-version: '3.10'
       - run: pip install simplejson requests-toolbelt
-      - run: cd packages/website && python3 ../../upload-to-ipfs.py "${{ secrets.IPFS_URL }}" out
+      - run: |
+          echo 'UPLOAD_RESULT<<EOF' >> $GITHUB_OUTPUT
+          cd packages/website && python3 ../../upload-to-ipfs.py "${{ secrets.IPFS_URL }}" out >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+        id: upload
+      - name: Comment on the result
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: ${{ steps.upload.outputs.UPLOAD_RESULT }}
+          comment_tag: ipfs_upload_result
