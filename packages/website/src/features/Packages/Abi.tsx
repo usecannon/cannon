@@ -25,6 +25,7 @@ export const Abi: FC<{
   chainId: number;
   contractSource?: string;
   onDrawerOpen?: () => void;
+  packageUrl?: string;
 }> = ({
   abi,
   contractSource,
@@ -32,6 +33,7 @@ export const Abi: FC<{
   cannonOutputs,
   chainId,
   onDrawerOpen,
+  packageUrl,
 }) => {
   const params = useParams();
 
@@ -246,6 +248,7 @@ export const Abi: FC<{
                 onDrawerOpen={onDrawerOpen}
                 collapsible
                 showFunctionSelector={false}
+                packageUrl={packageUrl}
               />
             ))}
           </Flex>

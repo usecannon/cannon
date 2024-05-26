@@ -18,7 +18,7 @@
     "version-major": "lerna version major --no-private",
     "publish": "lerna publish from-package --no-private",
     "publish-alpha": "lerna publish from-package --no-private --preid alpha --dist-tag alpha",
-    "update-stables": "npm i @usecannon/builder@latest @usecannon/cli@latest -w indexer -w cannon-registry -w cannon-website && npm i hardhat-cannon@latest -w cannon-registry",
+    "update-stables": "npm i @usecannon/builder@latest @usecannon/cli@latest -w @usecannon/indexer -w cannon-registry -w cannon-website -w @usecannon/api && npm i hardhat-cannon@latest -w cannon-registry",
     "test": "npm run test --workspaces --if-present",
     "docgen-md": "cd ./packages/builder && npm run docgen && cd - && cd ./packages/cli && npm run docgen",
     "website-dev": "npm run dev --workspace=packages/website",

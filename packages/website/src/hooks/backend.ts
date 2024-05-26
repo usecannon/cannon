@@ -1,8 +1,8 @@
 import SafeABIJSON from '@/abi/Safe.json';
 import { SafeDefinition, useStore } from '@/helpers/store';
-import { useToast } from '@chakra-ui/react';
 import { useSafeAddress } from '@/hooks/safe';
 import { SafeTransaction } from '@/types/SafeTransaction';
+import { useToast } from '@chakra-ui/react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import _ from 'lodash';
@@ -14,8 +14,8 @@ import {
   useReadContract,
   useReadContracts,
   useSimulateContract,
-  useWalletClient,
   useSwitchChain,
+  useWalletClient,
 } from 'wagmi';
 
 const SafeABI = SafeABIJSON as viem.Abi;

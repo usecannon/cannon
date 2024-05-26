@@ -53,6 +53,7 @@ export type CliSettings = {
    */
   registries: {
     chainId?: number;
+    name: string;
     providerUrl?: string[];
     address: viem.Address;
   }[];
@@ -214,6 +215,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
         CANNON_REGISTRY_ADDRESS && (CANNON_REGISTRY_PROVIDER_URL || CANNON_REGISTRY_CHAIN_ID)
           ? [
               {
+                name: 'Custom Network',
                 providerUrl: CANNON_REGISTRY_PROVIDER_URL ? [CANNON_REGISTRY_PROVIDER_URL] : undefined,
                 chainId: CANNON_REGISTRY_CHAIN_ID ? Number(CANNON_REGISTRY_CHAIN_ID) : undefined,
                 address: CANNON_REGISTRY_ADDRESS as viem.Address,
@@ -235,6 +237,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
   if (overrides.registryAddress && (overrides.registryProviderUrl || overrides.registryChainId)) {
     finalSettings.registries = [
       {
+        name: 'Custom Network',
         providerUrl: overrides.registryProviderUrl ? [overrides.registryProviderUrl] : undefined,
         chainId: overrides.registryChainId ? Number(overrides.registryChainId) : undefined,
         address: overrides.registryAddress ? overrides.registryAddress : (CANNON_REGISTRY_ADDRESS as viem.Address),

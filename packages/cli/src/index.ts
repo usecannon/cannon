@@ -76,13 +76,6 @@ program
   .version(pkg.version)
   .description('Run a cannon package on a local node')
   .enablePositionalOptions()
-  .option('-v', 'print logs for builder,equivalent to DEBUG=cannon:builder')
-  .option(
-    '-vv',
-    'print logs for builder and its definition section,equivalent to DEBUG=cannon:builder,cannon:builder:definition'
-  )
-  .option('-vvv', 'print logs for builder and its all sub sections,equivalent to DEBUG=cannon:builder*')
-  .option('-vvvv', 'print all cannon logs,equivalent to DEBUG=cannon:*')
   .hook('preAction', async (thisCommand) => {
     await checkCannonVersion(pkg.version);
     setDebugLevel(thisCommand.opts());
@@ -398,11 +391,14 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
   if (isDefaultSettings) {
     // Check if the package is already registered
-    const [, mainnet] = DEFAULT_REGISTRY_CONFIG;
+    const [optimism, mainnet] = DEFAULT_REGISTRY_CONFIG;
 
     const [optimismProvider, mainnetProvider] = await resolveRegistryProviders(cliSettings);
 
-    const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, mainnet.address);
+    const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, [
+      mainnet.address,
+      optimism.address,
+    ]);
 
     if (!isRegistered) {
       console.log();
