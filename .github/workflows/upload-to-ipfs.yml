@@ -1,0 +1,24 @@
+name: Upload Website to IPFS
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          cache: npm
+          node-version: '20.5.1'
+      - run: apt-get install python3-simplejson python3-requests-toolbelt
+      - run: npm ci
+      - run: npm run build
+      - run: echo "${{ env.NEXT_ENV }}" > .env.local
+      - run: cd packages/website && npm run build
+      - run: echo "${{ env.PYTHON_UPLOAD_TO_IPFS }}" > upload-to-ipfs.py
+      - run: python3 upload-to-ipfs.py "${{ secrets.IPFS_URL }}" out
