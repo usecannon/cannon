@@ -19,11 +19,11 @@ jobs:
       - run: npm run build
         env:
           NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
-      - run: echo "${{ env.NEXT_ENV }}" > .env.local
+      - run: echo "${{ vars.NEXT_ENV }}" > .env.local
       - run: cd packages/website && npm run build
-      - run: echo "${{ env.PYTHON_UPLOAD_TO_IPFS }}" > upload-to-ipfs.py
+      - run: echo "${{ vars.PYTHON_UPLOAD_TO_IPFS }}" > upload-to-ipfs.py
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - run: pip install python3-simplejson python3-requests-toolbelt
-      - run: python3 upload-to-ipfs.py "${{ secrets.IPFS_URL }}" out
+      - run: pip install simplejson requests-toolbelt
+      - run: cd packages/website && python3 ../../upload-to-ipfs.py "${{ secrets.IPFS_URL }}" out
