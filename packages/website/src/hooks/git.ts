@@ -88,6 +88,8 @@ export function useGitDiff(url: string, fromRef: string, toRef: string, files: s
     const fromFiles = fromQuery.data;
     const toFiles = toQuery.data;
 
+    if (fromFiles === toFiles) return patches;
+
     for (let i = 0; i < fromFiles.length; i++) {
       const p = createTwoFilesPatch(`a/${files[i]}`, `b/${files[i]}`, fromFiles[i], toFiles[i], undefined, undefined);
       patches.push(p.slice(p.indexOf('\n')));
