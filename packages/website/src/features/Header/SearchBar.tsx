@@ -23,7 +23,7 @@ import {
 } from '@chakra-ui/react';
 import { useQuery } from '@tanstack/react-query';
 import { debounce } from 'lodash';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import {
   KeyboardEventHandler,
   useCallback,
@@ -57,7 +57,7 @@ const generateLink = (result: any) => {
 };
 
 export const SearchBar = () => {
-  const pathname = usePathname();
+  const pathname = useRouter().pathname;
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [active, setActive] = useState<number>(0);
