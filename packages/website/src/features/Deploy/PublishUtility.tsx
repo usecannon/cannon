@@ -64,10 +64,12 @@ export default function PublishUtility(props: {
     props.targetChainId
   );
 
-  const packageUrl = `/packages/${resolvedName}/${resolvedVersion || 'latest'
-    }/${props.targetChainId}-${resolvedPreset || 'main'}`;
-  const packageDisplay = `${resolvedName}${resolvedVersion ? ':' + resolvedVersion : ''
-    }${resolvedPreset ? '@' + resolvedPreset : ''}`;
+  const packageUrl = `/packages/${resolvedName}/${
+    resolvedVersion || 'latest'
+  }/${props.targetChainId}-${resolvedPreset || 'main'}`;
+  const packageDisplay = `${resolvedName}${
+    resolvedVersion ? ':' + resolvedVersion : ''
+  }${resolvedPreset ? '@' + resolvedPreset : ''}`;
 
   const publishers = useCannonPackagePublishers(resolvedName!);
 
@@ -209,7 +211,7 @@ export default function PublishUtility(props: {
 
         {props.gitUrl && (
           <Link
-            href={`https:` + props.gitUrl.split(':')[1]}
+            href={'https:' + props.gitUrl.split(':')[1]}
             textDecoration="none"
             _hover={{ textDecoration: 'none' }}
             display="flex"
@@ -325,11 +327,11 @@ export default function PublishUtility(props: {
               <Link
                 onClick={() =>
                   publishOptimismMutation.isPending ||
-                    publishMainnetMutation.isPending
+                  publishMainnetMutation.isPending
                     ? false
                     : switchChainAsync({ chainId: mainnet.id }).then(() =>
-                      publishMainnetMutation.mutate()
-                    )
+                        publishMainnetMutation.mutate()
+                      )
                 }
               >
                 {publishMainnetMutation.isPending

@@ -119,68 +119,69 @@ export function TransactionDisplay(props: {
       <Portal containerRef={props.containerRef}>
         {prevDeployGitHash === hintData?.gitRepoHash && (
           <Box>
-          <Flex>
-            <Box w="50%" px={2} py={1} fontWeight="semibold">
-              No cannonfile changes detected
-            </Box>
-          </Flex>
-          </Box>
-        )}
-        {props.showQueueSource && props.queuedWithGitOps && prevDeployGitHash !== hintData?.gitRepoHash && (
-          <Box>
             <Flex>
               <Box w="50%" px={2} py={1} fontWeight="semibold">
-                {prevDeployGitHash}
-              </Box>
-              <Box w="50%" px={2} py={1} fontWeight="semibold">
-                {hintData?.gitRepoHash}
+                No cannonfile changes detected
               </Box>
             </Flex>
-            {patches.map((p, i) => {
-              const { oldRevision, newRevision, type, hunks } = parseDiff(p)[0];
-              const [fromFileName, toFileName] = parseDiffFileNames(p);
-
-              console.log(patches)
-
-              return (
-                <Box
-                  bg="gray.900"
-                  borderRadius="sm"
-                  overflow="hidden"
-                  fontSize="xs"
-                  mb={2}
-                  key={i}
-                >
-                  <Flex
-                    bg="blackAlpha.300"
-                    direction="row"
-                    py="1"
-                    fontWeight="semibold"
-                  >
-                    <Box w="50%" px={2} py={1}>
-                      {fromFileName}
-                    </Box>
-                    <Box w="50%" px={2} py={1}>
-                      {toFileName}
-                    </Box>
-                  </Flex>
-                  <Diff
-                    key={oldRevision + '-' + newRevision}
-                    viewType="split"
-                    diffType={type}
-                    hunks={hunks}
-                  >
-                    {(hunks) =>
-                      hunks.map((hunk) => (
-                        <Hunk key={hunk.content} hunk={hunk} />
-                      ))
-                    }
-                  </Diff>
-                </Box>
-              );
-            })}
           </Box>
         )}
+        {props.showQueueSource &&
+          props.queuedWithGitOps &&
+          prevDeployGitHash !== hintData?.gitRepoHash && (
+            <Box>
+              <Flex>
+                <Box w="50%" px={2} py={1} fontWeight="semibold">
+                  {prevDeployGitHash}
+                </Box>
+                <Box w="50%" px={2} py={1} fontWeight="semibold">
+                  {hintData?.gitRepoHash}
+                </Box>
+              </Flex>
+              {patches.map((p, i) => {
+                const { oldRevision, newRevision, type, hunks } =
+                  parseDiff(p)[0];
+                const [fromFileName, toFileName] = parseDiffFileNames(p);
+
+                return (
+                  <Box
+                    bg="gray.900"
+                    borderRadius="sm"
+                    overflow="hidden"
+                    fontSize="xs"
+                    mb={2}
+                    key={i}
+                  >
+                    <Flex
+                      bg="blackAlpha.300"
+                      direction="row"
+                      py="1"
+                      fontWeight="semibold"
+                    >
+                      <Box w="50%" px={2} py={1}>
+                        {fromFileName}
+                      </Box>
+                      <Box w="50%" px={2} py={1}>
+                        {toFileName}
+                      </Box>
+                    </Flex>
+                    <Diff
+                      key={oldRevision + '-' + newRevision}
+                      viewType="split"
+                      diffType={type}
+                      hunks={hunks}
+                    >
+                      {(hunks) =>
+                        hunks.map((hunk) => (
+                          <Hunk key={hunk.content} hunk={hunk} />
+                        ))
+                      }
+                    </Diff>
+                  </Box>
+                );
+              })}
+            </Box>
+          )}
       </Portal>
       {props.showQueueSource &&
         (props.queuedWithGitOps ? (
