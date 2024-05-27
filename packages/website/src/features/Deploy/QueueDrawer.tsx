@@ -33,7 +33,7 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import React, { Suspense, useState } from 'react';
 import {
   AbiFunction,
@@ -132,9 +132,9 @@ export const QueuedTxns = ({
       : {},
     {
       safe: currentSafe!,
-      onSignComplete() {
+      async onSignComplete() {
         if (onDrawerClose) onDrawerClose();
-        router.push(links.DEPLOY);
+        await router.push(links.DEPLOY);
         toast({
           title: 'You successfully signed the transaction.',
           status: 'success',
@@ -464,8 +464,8 @@ export const QueuedTxns = ({
                         isDisabled={disableExecute}
                         onClick={() => {
                           execTxn.writeContract(stager.executeTxnConfig!, {
-                            onSuccess: () => {
-                              router.push(links.DEPLOY);
+                            onSuccess: async () => {
+                              await router.push(links.DEPLOY);
 
                               toast({
                                 title:
