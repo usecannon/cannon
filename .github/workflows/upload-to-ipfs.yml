@@ -30,7 +30,7 @@ jobs:
       - run: pip install simplejson requests-toolbelt
       - run: |
           echo 'UPLOAD_RESULT<<EOF' >> $GITHUB_OUTPUT
-          cd packages/website && python3 ../../upload-to-ipfs.py "${{ secrets.IPFS_URL }}" out >> $GITHUB_OUTPUT
+          cd packages/website && python3 ../../upload-to-ipfs.py "${{ secrets.IPFS_URL }}" out | tee -a $GITHUB_OUTPUT
           echo 'EOF' >> $GITHUB_OUTPUT
         id: upload
       - name: Comment on the result
