@@ -16,7 +16,7 @@ import {
   Link,
   Button,
 } from '@chakra-ui/react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { useQueryIpfsData } from '@/hooks/ipfs';
 import { CodePreview } from '@/components/CodePreview';
 import { useStore } from '@/helpers/store';
@@ -36,14 +36,14 @@ export default function Download() {
   const [cid, setCid] = useState('');
   const [decompress, setDecompress] = useState(false);
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const pathname = router.pathname;
+  const searchParams = router.query;
   const ipfsApiUrl = useStore((s) => s.settings.ipfsApiUrl);
   const [encoding, setEncoding] = useState('utf8');
 
   useEffect(() => {
-    const queryCid = searchParams.get('cid');
-    const queryCompressed = searchParams.get('compressed');
+    const queryCid = searchParams.cid;
+    const queryCompressed = searchParams.compressed;
 
     if (queryCid && typeof queryCid === 'string') {
       setCid(queryCid);
@@ -54,8 +54,10 @@ export default function Download() {
     }
   }, [searchParams]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const current = new URLSearchParams(Array.from(searchParams.entries()));
+  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const current = new URLSearchParams(
+      Array.from(Object.entries(searchParams)) as any
+    );
 
     const value = e.target.value.trim();
 
@@ -68,7 +70,7 @@ export default function Download() {
     const search = current.toString();
     const query = search ? `?${search}` : '';
 
-    router.push(`${pathname}${query}`);
+    await router.push(`${pathname}${query}`);
   };
 
   const handleEncodingChange = (e: {

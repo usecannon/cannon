@@ -45,7 +45,7 @@ import {
   useSwitchChain,
   useWalletClient,
 } from 'wagmi';
-import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { useQueueTxsStore, useStore } from '@/helpers/store';
 
 export const Function: FC<{
@@ -72,7 +72,7 @@ export const Function: FC<{
 }) => {
   const { isOpen, onToggle } = useDisclosure();
   const currentSafe = useStore((s) => s.currentSafe);
-  const pathName = usePathname();
+  const pathName = useRouter().pathname;
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
   const [error, setError] = useState<any>(null);
