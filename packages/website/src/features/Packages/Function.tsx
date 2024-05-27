@@ -287,12 +287,11 @@ export const Function: FC<{
     });
 
     toast({
-      title: 'Transaction queued',
+      title: `Total transactions queued: ${lastQueuedTxnsId + 1}`,
       status: 'success',
       duration: 5000,
       isClosable: true,
     });
-    onDrawerOpen?.();
   };
 
   const renderFunctionContent = () => (
