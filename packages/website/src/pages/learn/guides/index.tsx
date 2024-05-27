@@ -1,19 +1,10 @@
-//import { Metadata } from 'next';
 import { useEffect, ReactElement } from 'react';
 import { useRouter } from 'next/router';
 import { links } from '@/constants/links';
-
 import Layout from '../_layout';
 import NestedLayout from './_layout';
-
-/*export const metadata: Metadata = {
-  title: 'Cannon | Guides',
-  description: 'Guides',
-  openGraph: {
-    title: 'Cannon | Guides',
-    description: 'Guides',
-  },
-  };*/
+import { NextSeo } from 'next-seo';
+import defaultSEO from '@/constants/defaultSeo';
 
 export default function Home() {
   const router = useRouter();
@@ -27,6 +18,21 @@ export default function Home() {
         // do nothing
       });
   }, []);
+
+  return (
+    <>
+      <NextSeo
+        {...defaultSEO}
+        title="Cannon | Guides"
+        description="Guides"
+        openGraph={{
+          ...defaultSEO.openGraph,
+          title: 'Cannon | Guides',
+          description: 'Guides',
+        }}
+      />
+    </>
+  );
 }
 Home.getLayout = function getLayout(page: ReactElement) {
   return (

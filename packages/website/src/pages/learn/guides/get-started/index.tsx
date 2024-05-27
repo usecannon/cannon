@@ -1,20 +1,26 @@
 import { GetStartedPage } from '@/features/GetStarted/GetStartedPage';
-//import { Metadata } from 'next';
 import { ReactElement } from 'react';
 import Layout from '../../_layout';
 import NestedLayout from '../_layout';
-
-/*export const metadata: Metadata = {
-  title: 'Cannon | Get Started',
-  description: 'Get Started',
-  openGraph: {
-    title: 'Cannon | Get Started',
-    description: 'Get Started',
-  },
-  };*/
+import { NextSeo } from 'next-seo';
+import defaultSEO from '@/constants/defaultSeo';
 
 export default function Home() {
-  return <GetStartedPage />;
+  return (
+    <>
+      <NextSeo
+        {...defaultSEO}
+        title="Cannon | Get Started"
+        description="Get Started"
+        openGraph={{
+          ...defaultSEO.openGraph,
+          title: 'Cannon | Get Started',
+          description: 'Get Started',
+        }}
+      />
+      <GetStartedPage />
+    </>
+  );
 }
 Home.getLayout = function getLayout(page: ReactElement) {
   return (
