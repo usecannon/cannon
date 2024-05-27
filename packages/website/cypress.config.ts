@@ -7,6 +7,8 @@ export default defineConfig({
   e2e: {
     specPattern: '**/*.feature',
     baseUrl: 'http://localhost:3000',
+    video: false, // GH provides 2 CPUs, and cypress video eats one up, ref https://github.com/cypress-io/cypress/issues/20468#issuecomment-1307608025
+    experimentalMemoryManagement: true, // better memory management, ref https://github.com/cypress-io/cypress/pull/2546
     supportFile: false,
     async setupNodeEvents(
       on: Cypress.PluginEvents,
@@ -18,6 +20,7 @@ export default defineConfig({
       on(
         'file:preprocessor',
         createBundler({
+          // @ts-ignore: cypress-cucumber-preprocessor types are not up to date
           plugins: [createEsbuildPlugin(config)],
         })
       );
