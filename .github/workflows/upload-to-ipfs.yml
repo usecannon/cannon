@@ -21,20 +21,12 @@ jobs:
           NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
       - run: echo "${{ vars.NEXT_ENV }}" > packages/website/.env.local
       - run: cd packages/website && npm run build
-      - env:
-          PYTHON_UPLOAD_TO_IPFS: ${{ vars.PYTHON_UPLOAD_TO_IPFS }}
-        run: echo "$PYTHON_UPLOAD_TO_IPFS" > upload-to-ipfs.py
-      - uses: actions/setup-python@v5
+      - uses: ipfs-shipyard/ipfs-github-action@v2
+        id: ipfs
         with:
-          python-version: '3.10'
-      - run: pip install simplejson requests-toolbelt
-      - run: |
-          echo 'UPLOAD_RESULT<<EOF' >> $GITHUB_OUTPUT
-          cd packages/website && python3 ../../upload-to-ipfs.py "${{ secrets.IPFS_URL }}" out | tee -a $GITHUB_OUTPUT
-          echo 'EOF' >> $GITHUB_OUTPUT
-        id: upload
-      - name: Comment on the result
-        uses: thollander/actions-comment-pull-request@v2
-        with:
-          message: ${{ steps.upload.outputs.UPLOAD_RESULT }}
-          comment_tag: ipfs_upload_result
+          path_to_add: packages/website/out
+          cluster_host: ${{ secrets.IPFS_CLUSTER_ADDR }}
+          cluster_user: ${{ secrets.IPFS_CLUSTER_USER }}
+          cluster_password: ${{ secrets.IPFS_CLUSTER_PASSWORD }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
