@@ -68,10 +68,26 @@ export const theme = extendTheme({
     },
   },
   styles: {
-    global: {
+    global: (props: any) => ({
       'html, body': {
         color: 'gray.100',
         backgroundColor: 'black',
+      },
+      // Custom Scrollbar for non-webkit browsers
+      '*': {
+        scrollbarWidth: 'thin',
+        scrollbarColor: `${props.theme.colors.gray[600]} ${props.theme.colors.gray[200]}`,
+      },
+      // Custom Scrollbar for webkit browsers
+      'body::-webkit-scrollbar': {
+        width: '8px',
+      },
+      'body::-webkit-scrollbar-track': {
+        background: props.theme.colors.gray[200],
+      },
+      'body::-webkit-scrollbar-thumb': {
+        background: props.theme.colors.gray[600],
+        borderRadius: '8px',
       },
       ':root': {
         '--diff-gutter-insert-background-color': '#1c4532 !important',
@@ -79,7 +95,7 @@ export const theme = extendTheme({
         '--diff-code-insert-background-color': '#1c4532 !important',
         '--diff-code-delete-background-color': '#63171b !important',
       },
-    },
+    }),
   },
   gradients: {
     dark: 'linear-gradient(45deg, #000F14 0%, #140014 100%);',
