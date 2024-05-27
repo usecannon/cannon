@@ -21,7 +21,7 @@ jobs:
           NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
       - run: echo "${{ vars.NEXT_ENV }}" > packages/website/.env.local
       - run: cd packages/website && npm run build
-      - uses: ipfs-shipyard/ipfs-github-action@v2.1.1
+      - uses: dbeal-eth/ipfs-github-action@master
         id: ipfs
         with:
           path_to_add: packages/website/out
