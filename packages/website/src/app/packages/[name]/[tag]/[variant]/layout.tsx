@@ -25,7 +25,7 @@ import { VersionSelect } from '@/features/Packages/VersionSelect';
 import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
 
 import { useQueryIpfsData } from '@/hooks/ipfs';
-import { DeploymentInfo } from '@usecannon/builder';
+import { DeploymentInfo, PackageReference } from '@usecannon/builder';
 import { getPackage } from '@/helpers/api';
 
 export default function PackageLayout({
@@ -35,7 +35,9 @@ export default function PackageLayout({
   children: ReactNode;
   params: { name: string; tag: string; variant: string };
 }) {
-  const [chainId, preset] = decodeURIComponent(params.variant).split('-');
+  const [chainId, preset] = PackageReference.parseVariant(
+    decodeURIComponent(params.variant)
+  );
 
   const additionalParams = {
     name: decodeURIComponent(params.name),
