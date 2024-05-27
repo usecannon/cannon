@@ -3,6 +3,7 @@
 import { FC } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Flex } from '@chakra-ui/react';
+import { PackageReference } from '@usecannon/builder';
 import { DeploymentExplorer } from '@/features/Packages/DeploymentExplorer';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { getPackage } from '@/helpers/api';
@@ -12,7 +13,9 @@ export const DeploymentTab: FC<{
   tag: string;
   variant: string;
 }> = ({ name, tag, variant }) => {
-  const [chainId, preset] = decodeURIComponent(variant).split('-');
+  const [chainId, preset] = PackageReference.parseVariant(
+    decodeURIComponent(variant)
+  );
 
   const packagesQuery = useQuery({
     queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],

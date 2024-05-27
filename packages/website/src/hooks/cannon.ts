@@ -86,6 +86,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
   const fallbackRegistry = useCannonRegistry();
 
   const buildFn = async () => {
+    // Wait until finished loading
     if (!safe || !def || !prevDeploy) {
       throw new Error('Missing required parameters');
     }
@@ -217,6 +218,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     setBuildError(null);
     setBuildSkippedSteps([]);
     setIsBuilding(true);
+
     buildFn()
       .then((res) => {
         setBuildResult(res);
