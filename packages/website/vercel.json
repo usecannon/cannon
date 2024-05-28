@@ -17,6 +17,6 @@
     }
   ],
   "framework": null,
-  "buildCommand": "next build",
+  "buildCommand": "cd ../.. && npm run build && cd packages/website && next build",
   "outputDirectory": "out"
 }
