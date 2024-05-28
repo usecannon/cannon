@@ -23,7 +23,6 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           install: false
-          project: ./packages/website
           auto-cancel-after-failures: 2
-          command: npm run e2e
+          command: cd ./packages/website && npm run e2e
           wait-on: 'http://localhost:3000'
