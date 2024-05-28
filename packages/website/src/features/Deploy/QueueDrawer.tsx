@@ -34,7 +34,7 @@ import {
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useRouter } from 'next/router';
-import React, { Suspense, useState } from 'react';
+import React, { useState } from 'react';
 import {
   AbiFunction,
   Address,
@@ -49,6 +49,7 @@ import { QueueTransaction } from './QueueTransaction';
 import { SafeAddressInput } from './SafeAddressInput';
 import { isValidHex } from '@/helpers/ethereum';
 import 'react-diff-view/style/index.css';
+import ClientOnly from '@/components/ClientOnly';
 
 export const QueuedTxns = ({
   onDrawerClose,
@@ -563,9 +564,9 @@ const QueueDrawer = ({
             Stage Transactions to a Safe
           </DrawerHeader>
           <DrawerBody bg="gray.700" pt={4}>
-            <Suspense fallback={<Spinner />}>
+            <ClientOnly>
               <SafeAddressInput />
-            </Suspense>
+            </ClientOnly>
             <WithSafe>
               <QueuedTxns onDrawerClose={onClose} />
             </WithSafe>
