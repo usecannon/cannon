@@ -24,4 +24,4 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v6
         with:
-          command: cd ./packages/website && npm run e2e
+          command: npm run website:e2e
