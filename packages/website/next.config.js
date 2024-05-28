@@ -14,6 +14,12 @@ const nextConfig = {
   experimental: {
     urlImports: ['https://unpkg.com'],
   },
+  rewrites: [
+    {
+      source: '/packages/:name',
+      destination: '/packages/[name].html',
+    },
+  ],
 };
 
 module.exports = nextConfig;
