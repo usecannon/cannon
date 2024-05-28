@@ -24,6 +24,7 @@
     "website-dev": "npm run dev --workspace=packages/website",
     "website": "npm run start --workspace=packages/website",
     "website:e2e": "npm run e2e --workspace=packages/website",
+    "website:e2e:ci": "npm run e2e:headless --workspace=packages/website",
     "changeset": "changeset"
   },
   "devDependencies": {
