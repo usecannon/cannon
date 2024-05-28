@@ -22,7 +22,7 @@ import {
   SingleValueProps,
 } from 'chakra-react-select';
 import deepEqual from 'fast-deep-equal';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useSwitchChain } from 'wagmi';
 import Chain from '@/features/Search/PackageCard/Chain';
@@ -46,8 +46,8 @@ export function SafeAddressInput() {
 
   const { switchChain } = useSwitchChain();
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const pathname = useRouter().pathname;
+  const searchParams = useRouter().query;
 
   const safeOptions = _safesToOptions(safeAddresses, { isDeletable: true });
   const walletSafeOptions = _safesToOptions(
@@ -56,9 +56,9 @@ export function SafeAddressInput() {
 
   // Load the safe address from url
   useEffect(() => {
-    if (searchParams.has('address') || searchParams.has('chainId')) {
-      const chainId = searchParams.get('chainId');
-      const address = searchParams.get('address');
+    if (searchParams.address || searchParams.chainId) {
+      const chainId = searchParams.chainId;
+      const address = searchParams.address;
       const newSafe = parseSafe(`${chainId}:${address}`);
 
       if (isValidSafe(newSafe)) {
@@ -75,13 +75,20 @@ export function SafeAddressInput() {
         }
       } else {
         const newSearchParams = new URLSearchParams(
-          Array.from(searchParams.entries())
+          Array.from(Object.entries(searchParams)) as any
         );
         newSearchParams.delete('chainId');
         newSearchParams.delete('address');
         const search = newSearchParams.toString();
         const query = `${'?'.repeat(search.length && 1)}${search}`;
-        router.push(`${pathname}${query}`);
+        router
+          .push(`${pathname}${query}`)
+          .then(() => {
+            // do nothing
+          })
+          .catch(() => {
+            // do nothing
+          });
       }
     }
   }, []);
@@ -91,31 +98,38 @@ export function SafeAddressInput() {
     if (
       pathname.startsWith(links.DEPLOY) &&
       currentSafe &&
-      !searchParams.has('address') &&
-      !searchParams.has('chainId')
+      !searchParams.address &&
+      !searchParams.chainId
     ) {
       const newSearchParams = new URLSearchParams(
-        Array.from(searchParams.entries())
+        Array.from(Object.entries(searchParams)) as any
       );
       newSearchParams.set('chainId', currentSafe.chainId.toString());
       newSearchParams.set('address', currentSafe.address);
       const search = newSearchParams.toString();
       const query = `${'?'.repeat(search.length && 1)}${search}`;
-      router.push(`${pathname}${query}`);
+      router
+        .push(`${pathname}${query}`)
+        .then(() => {
+          // do nothing
+        })
+        .catch(() => {
+          // do nothing
+        });
     }
   }, [pathname]);
 
   // If the user puts a correct address in the input, update the url
-  function handleSafeChange(safeString: SafeString) {
+  async function handleSafeChange(safeString: SafeString) {
     if (!safeString) {
       const newSearchParams = new URLSearchParams(
-        Array.from(searchParams.entries())
+        Array.from(Object.entries(searchParams)) as any
       );
       newSearchParams.delete('chainId');
       newSearchParams.delete('address');
       const search = newSearchParams.toString();
       const query = `${'?'.repeat(search.length && 1)}${search}`;
-      router.push(`${pathname}${query}`);
+      await router.push(`${pathname}${query}`);
       setState({ currentSafe: null });
       return;
     }
@@ -124,33 +138,33 @@ export function SafeAddressInput() {
 
     setCurrentSafe(selectedSafe);
     const newSearchParams = new URLSearchParams(
-      Array.from(searchParams.entries())
+      Array.from(Object.entries(searchParams)) as any
     );
     newSearchParams.set('chainId', selectedSafe.chainId.toString());
     newSearchParams.set('address', selectedSafe.address);
     const search = newSearchParams.toString();
     const query = `${'?'.repeat(search.length && 1)}${search}`;
-    router.push(`${pathname}${query}`);
+    await router.push(`${pathname}${query}`);
 
     if (switchChain) {
       switchChain({ chainId: selectedSafe.chainId });
     }
   }
 
-  function handleSafeCreate(newSafeAddress: string) {
+  async function handleSafeCreate(newSafeAddress: string) {
     const newSafe = getSafeFromString(newSafeAddress);
     if (newSafe) {
       prependSafeAddress(newSafe);
       setState({ currentSafe: newSafe });
 
       const newSearchParams = new URLSearchParams(
-        Array.from(searchParams.entries())
+        Array.from(Object.entries(searchParams)) as any
       );
       newSearchParams.set('chainId', newSafe.chainId.toString());
       newSearchParams.set('address', newSafe.address);
       const search = newSearchParams.toString();
       const query = `${'?'.repeat(search.length && 1)}${search}`;
-      router.push(`${pathname}${query}`);
+      await router.push(`${pathname}${query}`);
 
       if (switchChain) {
         switchChain({ chainId: newSafe.chainId });

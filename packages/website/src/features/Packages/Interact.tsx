@@ -17,7 +17,7 @@ import {
   ChainArtifacts,
   ContractData,
   PackageReference,
-} from '@usecannon/builder/src';
+} from '@usecannon/builder';
 import { FC, useContext, useEffect, useState } from 'react';
 import { Address } from 'viem';
 import { HasSubnavContext } from './Tabs/InteractTab';

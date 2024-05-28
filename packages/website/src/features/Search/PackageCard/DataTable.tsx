@@ -27,7 +27,7 @@ import {
 } from '@tanstack/react-table';
 import Chain from './Chain';
 import { format, formatDistanceToNow } from 'date-fns';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 
 export type DataTableProps<Data extends object> = {
   data: Data[];
@@ -137,9 +137,9 @@ export function DataTable<Data extends object>({
             key={row.id}
             _hover={{ backgroundColor: 'gray.900' }} // hover state
             cursor="pointer"
-            onClick={() => {
+            onClick={async () => {
               const variant = `${row.original.chain}-${row.original.preset}`;
-              router.push(
+              await router.push(
                 `/packages/${packageName}/${row.original.version}/${variant}`
               );
             }}
