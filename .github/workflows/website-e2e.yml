@@ -13,15 +13,12 @@ jobs:
       NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID: ${{secrets.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID}}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20.5.1'
-          cache: 'npm'
-
-      - name: Install Dependencies
-        run: npm ci
 
       - name: Cypress run
         uses: cypress-io/github-action@v6
         with:
           command: npm run website:e2e
+          config-file: ./packages/website/cypress.config.ts
+        env:
+          # pass GitHub token to allow accurately detecting a build vs a re-run build
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
