@@ -582,30 +582,16 @@ describe('CannonRegistry', function () {
 
     it('reverts when trying to withdraw not being the owner', async function () {
       await assertRevert(async () => {
-        await CannonRegistry.connect(user2).withdraw(1);
+        await CannonRegistry.connect(user2).withdraw();
       }, `Unauthorized("${await user2.getAddress()}")`);
     });
 
-    it('reverts when trying to withdraw 0', async function () {
-      await assertRevert(async () => {
-        await CannonRegistry.connect(owner).withdraw(0);
-      }, 'WithdrawFail(0)');
-    });
-
-    it('reverts when trying to withdraw more than balance', async function () {
-      await setBalance('1');
-      const amount = parseEther('2');
-      await assertRevert(async () => {
-        await CannonRegistry.connect(owner).withdraw(amount);
-      }, `WithdrawFail(${amount})`);
-    });
-
-    it('be able to withdraw a portion of the balance', async function () {
+    it('is able to withdraw the balance', async function () {
       await setBalance('2');
-      const amount = parseEther('0.5');
       const ownerBalance = await owner.getBalance();
-      await CannonRegistry.connect(owner).withdraw(amount);
-      equal((await getBalance()).toString(), parseEther('1.5').toString());
+      const tx = await CannonRegistry.connect(owner).withdraw();
+      await tx.wait();
+      equal((await getBalance()).toString(), parseEther('0').toString());
       ok((await owner.getBalance()).gte(ownerBalance));
     });
   });
