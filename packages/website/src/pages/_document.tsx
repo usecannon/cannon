@@ -39,12 +39,15 @@ export default class CustomDocument extends Document {
         <Head>
           <GoogleAnalytics measurementId="G-C96791F6NC" />
           <style>{`
-            body {
+            body.fouc-prevention {
               background-color: rgb(14, 17, 22);
+            }
+            body.fouc-prevention * {
+              display: none !important;
             }
           `}</style>
         </Head>
-        <body>
+        <body className="fouc-prevention">
           <ColorModeScript />
           <Main />
           <NextScript />
