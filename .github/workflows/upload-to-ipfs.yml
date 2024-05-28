@@ -1,0 +1,32 @@
+name: Upload Website to IPFS
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  upload-ipfs:
+    runs-on: ubuntu-latest
+    permissions: 
+       pull-requests: write
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          cache: npm
+          node-version: '20.5.1'
+      - run: npm ci
+      - run: npm run build
+        env:
+          NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+      - run: echo "${{ vars.NEXT_ENV }}" > packages/website/.env.local
+      - run: cd packages/website && npm run build
+      - uses: dbeal-eth/ipfs-github-action@master
+        id: ipfs
+        with:
+          path_to_add: packages/website/out
+          cluster_host: ${{ secrets.IPFS_CLUSTER_ADDR }}
+          cluster_user: ${{ secrets.IPFS_CLUSTER_USER }}
+          cluster_password: ${{ secrets.IPFS_CLUSTER_PASSWORD }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
