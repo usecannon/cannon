@@ -18,6 +18,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   error PackageNotFound();
   error FeeRequired(uint256 amount);
   error WrongChain();
+  error WithdrawFail(uint256 amount);
 
   event PackageRegistered(bytes32 indexed name, address registrant);
   event PackageOwnerNominated(bytes32 indexed name, address currentOwner, address nominatedOwner);
@@ -51,9 +52,10 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     _L1_CHAIN_ID = _l1ChainId; // 1
   }
 
-  function withdraw() external onlyOwner returns (bool) {
-    (bool success, ) = msg.sender.call{value: address(this).balance}("");
-    return success;
+  function withdraw() external onlyOwner {
+    uint256 amount = address(this).balance;
+    (bool success, ) = msg.sender.call{value: amount}("");
+    if (!success) revert WithdrawFail(amount);
   }
 
   function validatePackageName(bytes32 _name) public pure returns (bool) {
