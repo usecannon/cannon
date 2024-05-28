@@ -6,6 +6,7 @@ import { MockOptimismBridge as TMockOptimismBridge } from '../../typechain-types
 import assertRevert from '../helpers/assert-revert';
 
 const toBytes32 = ethers.utils.formatBytes32String;
+const parseEther = ethers.utils.parseEther;
 
 describe('CannonRegistry', function () {
   let l1ChainId: number;
@@ -200,32 +201,39 @@ describe('CannonRegistry', function () {
   describe('publish()', function () {
     it('should fail when not paying any fee', async function () {
       await CannonRegistry.setFees(100, 0);
-      await assertRevert(async () => {
-        await CannonRegistry.publish(
-          toBytes32('some-module-'),
-          toBytes32('1337-main'),
-          [toBytes32('0.0.1')],
-          '',
-          'ipfs://some-module-meta@0.0.1',
-          { value: 0 }
-        );
-      }, 'FeeRequired(100)');
-      await CannonRegistry.setFees(0, 0);
+      try {
+        await assertRevert(async () => {
+          await CannonRegistry.publish(
+            toBytes32('some-module-'),
+            toBytes32('1337-main'),
+            [toBytes32('0.0.1')],
+            '',
+            'ipfs://some-module-meta@0.0.1',
+            { value: 0 }
+          );
+        }, 'FeeRequired(100)');
+      } finally {
+        await CannonRegistry.setFees(0, 0);
+      }
     });
 
     it('should fail when paying insufficient amount of fee', async function () {
       await CannonRegistry.setFees(100, 0);
-      await assertRevert(async () => {
-        await CannonRegistry.publish(
-          toBytes32('some-module-'),
-          toBytes32('1337-main'),
-          [toBytes32('0.0.1')],
-          '',
-          'ipfs://some-module-meta@0.0.1',
-          { value: 80 }
-        );
-      }, 'FeeRequired(100)');
-      await CannonRegistry.setFees(0, 0);
+
+      try {
+        await assertRevert(async () => {
+          await CannonRegistry.publish(
+            toBytes32('some-module-'),
+            toBytes32('1337-main'),
+            [toBytes32('0.0.1')],
+            '',
+            'ipfs://some-module-meta@0.0.1',
+            { value: 80 }
+          );
+        }, 'FeeRequired(100)');
+      } finally {
+        await CannonRegistry.setFees(0, 0);
+      }
     });
 
     it('should not allow to publish empty url', async function () {
@@ -555,6 +563,50 @@ describe('CannonRegistry', function () {
       equal(event, 'PackageUnverify');
       equal(args!.name, toBytes32('some-module'));
       equal(args!.verifier, await user2.getAddress());
+    });
+  });
+
+  describe('withdraw()', function () {
+    async function setBalance(balance: string) {
+      await ethers.provider.send('hardhat_setBalance', [
+        CannonRegistry.address,
+        parseEther(balance.toString()).toHexString(),
+      ]);
+    }
+
+    async function getBalance() {
+      return ethers.provider.getBalance(CannonRegistry.address);
+    }
+
+    after(() => setBalance('0'));
+
+    it('reverts when trying to withdraw not being the owner', async function () {
+      await assertRevert(async () => {
+        await CannonRegistry.connect(user2).withdraw(1);
+      }, `Unauthorized("${await user2.getAddress()}")`);
+    });
+
+    it('reverts when trying to withdraw 0', async function () {
+      await assertRevert(async () => {
+        await CannonRegistry.connect(owner).withdraw(0);
+      }, 'WithdrawFail(0)');
+    });
+
+    it('reverts when trying to withdraw more than balance', async function () {
+      await setBalance('1');
+      const amount = parseEther('2');
+      await assertRevert(async () => {
+        await CannonRegistry.connect(owner).withdraw(amount);
+      }, `WithdrawFail(${amount})`);
+    });
+
+    it('be able to withdraw a portion of the balance', async function () {
+      await setBalance('2');
+      const amount = parseEther('0.5');
+      const ownerBalance = await owner.getBalance();
+      await CannonRegistry.connect(owner).withdraw(amount);
+      equal((await getBalance()).toString(), parseEther('1.5').toString());
+      ok((await owner.getBalance()).gte(ownerBalance));
     });
   });
 });
