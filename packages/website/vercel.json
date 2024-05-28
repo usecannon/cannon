@@ -1,0 +1,40 @@
+{
+  "rewrites": [
+    {
+      "source": "/packages/:name",
+      "destination": "/packages/[name]"
+    },
+    {
+      "source": "/packages/:name/:tag/:variant",
+      "destination": "/packages/[name]/[tag]/[variant]"
+    },
+    {
+      "source": "/packages/:name/:tag/:variant/code",
+      "destination": "/packages/[name]/[tag]/[variant]/code"
+    },
+    {
+      "source": "/packages/:name/:tag/:variant/code/:moduleName",
+      "destination": "/packages/[name]/[tag]/[variant]/code/[moduleName]"
+    },
+    {
+      "source": "/packages/:name/:tag/:variant/interact",
+      "destination": "/packages/[name]/[tag]/[variant]/interact"
+    },
+    {
+      "source": "/packages/:name/:tag/:variant/interact/:moduleName",
+      "destination": "/packages/[name]/[tag]/[variant]/interact/[moduleName]"
+    },
+    {
+      "source": "/packages/:name/:tag/:variant/cannonfile",
+      "destination": "/packages/[name]/[tag]/[variant]/cannonfile"
+    },
+    {
+      "source": "/deploy/txn/:chainId/:safeAddress/:nonce/:sigHash",
+      "destination": "/deploy/txn/[chainId]/[safeAddress]/[nonce]/[sigHash]"
+    }
+  ],
+  "framework": null,
+  "buildCommand": "cd ../.. && npm run build && cd packages/website && next build",
+  "outputDirectory": "out",
+  "cleanUrls": true
+}

@@ -1,4 +1,4 @@
-/packages/:name /packages/[name]/index.html 200
+/packages/:name /packages/[name].html 200
 /packages/:name/:tag/:variant /packages/[name]/[tag]/[variant].html 200
 /packages/:name/:tag/:variant/code /packages/[name]/[tag]/[variant]/code.html 200
 /packages/:name/:tag/:variant/code/:moduleName /packages/[name]/[tag]/[variant]/code/[moduleName].html 200
