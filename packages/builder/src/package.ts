@@ -248,24 +248,26 @@ export async function publishPackage({
 
     debug('copy ipfs for', curFullPackageRef, oldUrl, newUrl);
 
+    const url = await toStorage.putBlob(deployInfo!);
     const newMiscUrl = await toStorage.putBlob(await fromStorage.readBlob(deployInfo!.miscUrl));
+
+    if (newMiscUrl !== deployInfo.miscUrl) {
+      debug(`WARN new misc url does not match recorded one: ${newMiscUrl} vs ${deployInfo.miscUrl}`);
+    }
 
     // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
     //       Should it be called outside the scoped copyIpfs() function?
     const metaUrl = await fromStorage.registry.getMetaUrl(curFullPackageRef, chainId);
-    let newMetaUrl = metaUrl;
+    //let newMetaUrl = metaUrl;
 
     if (metaUrl) {
-      newMetaUrl = await toStorage.putBlob(await fromStorage.readBlob(metaUrl));
+      // TODO: figure out metaurl handling
+      /*newMetaUrl = await toStorage.putBlob(await fromStorage.readBlob(metaUrl));
 
       if (!newMetaUrl) {
         throw new Error('error while writing new misc blob');
-      }
+      }*/
     }
-
-    deployInfo.miscUrl = newMiscUrl || '';
-
-    const url = await toStorage.putBlob(deployInfo!);
 
     if (!url) {
       throw new Error('uploaded url is invalid');
@@ -277,7 +279,7 @@ export async function publishPackage({
       ),
       chainId,
       url,
-      metaUrl: newMetaUrl || '',
+      metaUrl: '',
     };
 
     alreadyCopiedIpfs.set(checkKey, returnVal);

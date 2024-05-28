@@ -47,9 +47,9 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   error WrongChain(uint256 expectedChainId);
   
   /**
-   * @notice Thrown when the specified amount of tokens are not able to be withdrawn
+   * @notice Thrown when there was a problem withdrawing collected fees from the contract
    */
-  error WithdrawFail(uint256 amount);
+  error WithdrawFail(uint256 withdrawAmount);
 
   /**
    * @notice Emitted when `setPackageOwnership` is called and a package is registered for the first time
@@ -129,10 +129,10 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   /**
    * @notice Allows for owner to withdraw collected fees.
    */
-  function withdraw(uint256 _amount) external onlyOwner {
-    if (_amount == 0) revert WithdrawFail(_amount);
-    (bool success, ) = msg.sender.call{value: _amount}("");
-    if (!success) revert WithdrawFail(_amount);
+  function withdraw() external onlyOwner {
+    uint256 amount = address(this).balance;
+    (bool success, ) = msg.sender.call{value: amount}("");
+    if (!success) revert WithdrawFail(amount);
   }
 
   /**
@@ -476,7 +476,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
 
   /**
    * @notice Determines if the given _publisher is allowed to publish for the given _package
-   * @param _packageName The package namespace to check
+   * @param _package The package namespace to check
    * @param _publisher The address to check
    */
   function _canPublishPackage(Package storage _package, address _publisher) internal view returns (bool) {
@@ -496,7 +496,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   function _checkCrossDomainSender() internal {
     // we can only receive change ownership requests from our counterpart on mainnnet
     if (_OPTIMISM_RECEIVER.xDomainMessageSender() != address(this)) {
-      revert WrongChain(_l1ChainId);
+      revert WrongChain(_L1_CHAIN_ID);
     }
   }
 
