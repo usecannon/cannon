@@ -18,12 +18,12 @@ export default function Deployment() {
     <>
       <NextSeo
         {...defaultSEO}
-        title={`Cannon | ${params.name}`}
-        description="Package"
+        title={`Cannon | Package | ${params.name}`}
+        description={`Cannon | Package | ${params.name}`}
         openGraph={{
           ...defaultSEO.openGraph,
-          title: `Cannon | ${params.name}`,
-          description: 'Package',
+          title: `Cannon | Package | ${params.name}`,
+          description: `Cannon | Package | ${params.name}`,
         }}
       />
       <NoSSR name={params.name as string} />
