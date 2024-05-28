@@ -350,7 +350,7 @@ async function execTxn({
       chain,
       to: contract.address,
       data: callData,
-      value: value.toString() || '0',
+      value: value || 0,
     })) as any;
 
     console.log(gray(`  > calldata: ${txn!.data}`));

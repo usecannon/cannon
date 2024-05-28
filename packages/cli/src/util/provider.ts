@@ -192,6 +192,7 @@ export async function resolveProviderAndSigners({
       publicClient = (
         viem
           .createPublicClient({
+            chain: getChainById(chainId),
             transport: viem.custom(rawProvider),
           })
           .extend(viem.walletActions) as any
