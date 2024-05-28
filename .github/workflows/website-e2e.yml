@@ -2,7 +2,7 @@ name: Website-e2e
 
 on:
   push:
-    branches: [add/website-e2e-ci]
+    branches: [main]
   pull_request:
     branches: [main]
 
