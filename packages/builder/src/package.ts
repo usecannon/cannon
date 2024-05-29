@@ -246,7 +246,7 @@ export async function publishPackage({
     if (urlsExist && toUrl === fromUrl) {
       debug('package already published... skip!', curFullPackageRef);
       alreadyCopiedIpfs.set(checkKey, null);
-      return;
+      return null;
     }
 
     debug('copy ipfs for', curFullPackageRef, toUrl, fromUrl);
@@ -299,7 +299,7 @@ export async function publishPackage({
   }
 
   // We call this regardless of includeProvisioned because we want to ALWAYS upload the subpackages ipfs data.
-  const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
+  const calls = (await forPackageTree(fromStorage, deployData, copyIpfs)).filter((v: any) => v !== null);
 
   if (includeProvisioned) {
     debug('publishing with provisioned');
