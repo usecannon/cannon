@@ -67,13 +67,11 @@ export class CliLoader implements CannonLoader {
   ipfs?: IPFSLoader;
   repo: IPFSLoader;
   dir: string;
-  writeToIpfs = true;
 
-  constructor(ipfsLoader: IPFSLoader | undefined, repoLoader: IPFSLoader, fileCacheDir: string, writeToIpfs = true) {
+  constructor(ipfsLoader: IPFSLoader | undefined, repoLoader: IPFSLoader, fileCacheDir: string) {
     this.ipfs = ipfsLoader;
     this.repo = repoLoader;
     this.dir = fileCacheDir;
-    this.writeToIpfs = writeToIpfs;
   }
 
   getLabel() {
@@ -95,8 +93,7 @@ export class CliLoader implements CannonLoader {
     await fs.mkdirp(this.dir);
     await fs.writeFile(this.getCacheFilePath(url), data);
 
-    if (this.writeToIpfs) {
-      if (!this.ipfs) throw new Error('Missing IPFS loader');
+    if (this.ipfs) {
       await this.ipfs.put(misc);
     }
 
@@ -196,15 +193,14 @@ export class IPFSLoaderWithRetries extends IPFSLoader {
   }
 }
 
-export function getMainLoader(cliSettings: CliSettings, { writeToIpfs = true } = {}) {
+export function getMainLoader(cliSettings: CliSettings) {
   return {
     ipfs: new CliLoader(
       cliSettings.ipfsUrl
         ? new IPFSLoaderWithRetries(cliSettings.ipfsUrl, {}, cliSettings.ipfsTimeout, cliSettings.ipfsRetries)
         : undefined,
       new IPFSLoaderWithRetries(getCannonRepoRegistryUrl(), {}, cliSettings.ipfsTimeout, cliSettings.ipfsRetries),
-      path.join(cliSettings.cannonDirectory, 'ipfs_cache'),
-      writeToIpfs
+      path.join(cliSettings.cannonDirectory, 'ipfs_cache')
     ),
     file: new LocalLoader(path.join(cliSettings.cannonDirectory, 'blobs')),
   };
