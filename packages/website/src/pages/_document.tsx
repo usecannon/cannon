@@ -38,6 +38,11 @@ export default class CustomDocument extends Document {
       <Html lang="en">
         <Head>
           <GoogleAnalytics measurementId="G-C96791F6NC" />
+          <style>{`
+            body {
+              background-color: rgb(14, 17, 22);
+            }
+          `}</style>
         </Head>
         <body>
           <ColorModeScript />
