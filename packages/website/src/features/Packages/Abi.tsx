@@ -14,7 +14,7 @@ import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { ChainArtifacts } from '@usecannon/builder';
 import { FC, useContext, useEffect, useMemo, useRef } from 'react';
-import { AbiFunction, Abi as AbiType } from 'abitype/src/abi';
+import { AbiFunction, Abi as AbiType } from 'abitype';
 import { Function } from '@/features/Packages/Function';
 import { HasSubnavContext } from './Tabs/InteractTab';
 

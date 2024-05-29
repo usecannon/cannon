@@ -19,7 +19,7 @@ import {
   Text,
   Tooltip,
 } from '@chakra-ui/react';
-import { AbiFunction } from 'abitype/src/abi';
+import { AbiFunction } from 'abitype';
 import {
   chakraComponents,
   ChakraStylesConfig,
