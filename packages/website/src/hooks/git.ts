@@ -1,6 +1,6 @@
 import * as git from '@/helpers/git';
 import { useQuery } from '@tanstack/react-query';
-import { createTwoFilesPatch } from 'diff';
+import { createTwoFilesPatch, createPatch} from 'diff';
 import { listServerRefs, ServerRef } from 'isomorphic-git';
 import http from 'isomorphic-git/http/web';
 import { useMemo } from 'react';
@@ -79,20 +79,29 @@ export function useGitRepo(url: string, ref: string, files: string[]) {
 export function useGitDiff(url: string, fromRef: string, toRef: string, files: string[]) {
   const fromQuery = useGitRepo(url, fromRef, files);
   const toQuery = useGitRepo(url, toRef, files);
+  
+  console.log("TO", toQuery.data)
 
   const patches = useMemo(() => {
     const patches: string[] = [];
 
-    if (!fromQuery.data || !toQuery.data) return patches;
+    if (!fromQuery.data && !toQuery.data) return patches;
 
     const fromFiles = fromQuery.data;
     const toFiles = toQuery.data;
 
     if (fromFiles === toFiles) return patches;
 
-    for (let i = 0; i < fromFiles.length; i++) {
-      const p = createTwoFilesPatch(`a/${files[i]}`, `b/${files[i]}`, fromFiles[i], toFiles[i], undefined, undefined);
-      patches.push(p.slice(p.indexOf('\n')));
+    if(fromFiles) {
+      for (let i = 0; i < fromFiles!.length; i++) {
+        const p = createTwoFilesPatch(`a/${files[i]}`, `b/${files[i]}`, fromFiles![i], toFiles![i], undefined, undefined);
+        patches.push(p.slice(p.indexOf('\n')));
+      }
+    } else {
+      for (let i = 0; i < toFiles!.length; i++) {
+        const p = createTwoFilesPatch(`a/${files[i]}`, `b/${files[i]}`, '', toFiles![i], undefined, undefined);
+        patches.push(p.slice(p.indexOf('\n')));
+      }
     }
 
     return patches;

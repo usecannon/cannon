@@ -89,6 +89,8 @@ export function TransactionDisplay(props: {
     cannonDefInfo.filesList ? Array.from(cannonDefInfo.filesList) : []
   );
 
+  console.log("PATCHES", patches)
+
   // This is just needed for single package transactions
   if (
     hintData?.cannonPackage &&
@@ -132,7 +134,7 @@ export function TransactionDisplay(props: {
             <Box>
               <Flex>
                 <Box w="50%" px={2} py={1} fontWeight="semibold">
-                  {prevDeployGitHash}
+                  {prevDeployGitHash || 'previous deploy hash does not exist'}
                 </Box>
                 <Box w="50%" px={2} py={1} fontWeight="semibold">
                   {hintData?.gitRepoHash}
