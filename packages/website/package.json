@@ -49,6 +49,7 @@
     "just-entries": "^2.3.0",
     "lodash": "^4.17.21",
     "next": "^14.2.1",
+    "next-seo": "^6.5.0",
     "nextjs-toploader": "^1.6.12",
     "pako": "^2.1.0",
     "react": "^18.2.0",

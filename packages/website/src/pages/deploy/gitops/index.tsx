@@ -1,7 +1,8 @@
-//import { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 import { ReactElement } from 'react';
 import Layout from '../_layout';
+import { NextSeo } from 'next-seo';
+import defaultSEO from '@/constants/defaultSeo';
 
 const NoSSR = dynamic(
   async () => {
@@ -22,7 +23,21 @@ const NoSSR = dynamic(
   };*/
 
 export default function QueueFromGitOps() {
-  return <NoSSR />;
+  return (
+    <>
+      <NextSeo
+        {...defaultSEO}
+        title="Cannon | Queue From GitOps"
+        description="Queue From GitOps"
+        openGraph={{
+          ...defaultSEO.openGraph,
+          title: 'Cannon | Queue From GitOps',
+          description: 'Queue From GitOps',
+        }}
+      />
+      <NoSSR />
+    </>
+  );
 }
 QueueFromGitOps.getLayout = function getLayout(page: ReactElement) {
   return <Layout>{page}</Layout>;

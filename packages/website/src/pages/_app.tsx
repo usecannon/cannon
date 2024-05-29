@@ -8,7 +8,9 @@ import NextTopLoader from 'nextjs-toploader';
 import { Inter, Miriam_Libre, Roboto_Mono } from 'next/font/google';
 import { ReactElement } from 'react';
 import Providers from './_providers';
+import { DefaultSeo } from 'next-seo';
 import '@/styles/globals.css';
+import defaultSEO from '@/constants/defaultSeo';
 
 const miriam = Miriam_Libre({
   subsets: ['latin'],
@@ -36,6 +38,7 @@ export default function RootLayout({
   const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
   return (
     <>
+      <DefaultSeo {...defaultSEO} />
       <style jsx global>
         {`
           :root {
