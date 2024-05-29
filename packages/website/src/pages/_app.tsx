@@ -36,11 +36,11 @@ export default function RootLayout({
   pageProps: any;
 }) {
   const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
-  
+
   useEffect(() => {
     document.body.classList.remove('fouc-prevention');
   }, []);
-  
+
   return (
     <>
       <DefaultSeo {...defaultSEO} />
