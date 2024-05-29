@@ -238,15 +238,18 @@ export async function publishPackage({
     }`;
 
     // if the package has already been published to the registry and it has the same ipfs hash, skip.
-    const oldUrl = await toStorage.registry.getUrl(curFullPackageRef, chainId);
-    const newUrl = await fromStorage.registry.getUrl(curFullPackageRef, chainId);
-    if (oldUrl === newUrl) {
+    const toUrl = await toStorage.registry.getUrl(curFullPackageRef, chainId);
+    const fromUrl = await fromStorage.registry.getUrl(curFullPackageRef, chainId);
+
+    const areBothNull = [toUrl, fromUrl].every((x) => _.isNull(x));
+
+    if (!areBothNull && toUrl === fromUrl) {
       debug('package already published... skip!', curFullPackageRef);
       alreadyCopiedIpfs.set(checkKey, null);
-      return null;
+      return;
     }
 
-    debug('copy ipfs for', curFullPackageRef, oldUrl, newUrl);
+    debug('copy ipfs for', curFullPackageRef, toUrl, fromUrl);
 
     const url = await toStorage.putBlob(deployInfo!);
     const newMiscUrl = await toStorage.putBlob(await fromStorage.readBlob(deployInfo!.miscUrl));
@@ -296,7 +299,7 @@ export async function publishPackage({
   }
 
   // We call this regardless of includeProvisioned because we want to ALWAYS upload the subpackages ipfs data.
-  const calls = (await forPackageTree(fromStorage, deployData, copyIpfs)).filter((v: any) => v !== null);
+  const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
 
   if (includeProvisioned) {
     debug('publishing with provisioned');
