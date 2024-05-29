@@ -43,6 +43,7 @@ export default class CustomDocument extends Document {
               background-color: rgb(14, 17, 22);
             }
           `}</style>
+          <link rel="icon" href="/favicon.ico" sizes="any" />
         </Head>
         <body>
           <ColorModeScript />
