@@ -1,6 +1,6 @@
 import * as git from '@/helpers/git';
 import { useQuery } from '@tanstack/react-query';
-import { createTwoFilesPatch, createPatch} from 'diff';
+import { createTwoFilesPatch } from 'diff';
 import { listServerRefs, ServerRef } from 'isomorphic-git';
 import http from 'isomorphic-git/http/web';
 import { useMemo } from 'react';
@@ -79,8 +79,6 @@ export function useGitRepo(url: string, ref: string, files: string[]) {
 export function useGitDiff(url: string, fromRef: string, toRef: string, files: string[]) {
   const fromQuery = useGitRepo(url, fromRef, files);
   const toQuery = useGitRepo(url, toRef, files);
-  
-  console.log("TO", toQuery.data)
 
   const patches = useMemo(() => {
     const patches: string[] = [];
@@ -92,7 +90,7 @@ export function useGitDiff(url: string, fromRef: string, toRef: string, files: s
 
     if (fromFiles === toFiles) return patches;
 
-    if(fromFiles) {
+    if (fromFiles) {
       for (let i = 0; i < fromFiles!.length; i++) {
         const p = createTwoFilesPatch(`a/${files[i]}`, `b/${files[i]}`, fromFiles![i], toFiles![i], undefined, undefined);
         patches.push(p.slice(p.indexOf('\n')));

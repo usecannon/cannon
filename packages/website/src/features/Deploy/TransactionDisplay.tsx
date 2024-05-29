@@ -89,8 +89,6 @@ export function TransactionDisplay(props: {
     cannonDefInfo.filesList ? Array.from(cannonDefInfo.filesList) : []
   );
 
-  console.log("PATCHES", patches)
-
   // This is just needed for single package transactions
   if (
     hintData?.cannonPackage &&
