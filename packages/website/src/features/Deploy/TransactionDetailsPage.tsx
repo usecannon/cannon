@@ -280,28 +280,59 @@ function TransactionDetailsPage({
           </Box>
 
           <Container maxW="container.lg" mt={[6, 6, 12]}>
-            <Box
-              background="gray.800"
-              p={4}
-              borderWidth="1px"
-              borderColor="gray.700"
-              mb={6}
-            >
-              <Heading
-                size="sm"
-                mb={3}
-                fontWeight="medium"
-                textTransform="uppercase"
-                letterSpacing="1.5px"
-                fontFamily="var(--font-miriam)"
-                textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
+            {queuedWithGitOps && (
+              <Box
+                background="gray.800"
+                p={4}
+                borderWidth="1px"
+                borderColor="gray.700"
+                mb={6}
               >
-                Cannonfile Diff
-              </Heading>
-              <Box overflowY="auto" maxH="320px">
-                <Box ref={gitDiffContainerRef} />
+                <Flex mb={3} alignItems="center">
+                  <Heading
+                    size="sm"
+                    fontWeight="medium"
+                    textTransform="uppercase"
+                    letterSpacing="1.5px"
+                    fontFamily="var(--font-miriam)"
+                    textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
+                  >
+                    Cannonfile Diff
+                  </Heading>
+
+                  {hintData.gitRepoUrl && (
+                    <Link
+                      ml="auto"
+                      href={'https:' + hintData.gitRepoUrl.split(':')[1]}
+                      textDecoration="none"
+                      _hover={{ textDecoration: 'none' }}
+                      display="flex"
+                      alignItems="center"
+                    >
+                      <Image
+                        display="inline-block"
+                        src="/images/github-mark-white.svg"
+                        alt="github"
+                        height="14px"
+                        mr={1.5}
+                      />
+                      <Text
+                        fontSize="xs"
+                        display="inline"
+                        borderBottom="1px solid"
+                        borderBottomColor="gray.500"
+                      >
+                        View Repo
+                      </Text>
+                    </Link>
+                  )}
+                </Flex>
+
+                <Box overflowY="auto" maxH="345px">
+                  <Box ref={gitDiffContainerRef} />
+                </Box>
               </Box>
-            </Box>
+            )}
             <Grid
               templateColumns={{ base: 'repeat(1, 1fr)', lg: '2fr 1fr' }}
               gap={6}
@@ -633,7 +664,6 @@ function TransactionDetailsPage({
 
                       <PublishUtility
                         deployUrl={hintData.cannonPackage}
-                        gitUrl={hintData.gitRepoUrl}
                         targetChainId={safe.chainId}
                       />
                     </Box>
