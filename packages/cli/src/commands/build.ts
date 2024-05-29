@@ -21,7 +21,7 @@ import { table } from 'table';
 import * as viem from 'viem';
 import pkg from '../../package.json';
 import { getChainById } from '../chains';
-import { readMetadataCache } from '../helpers';
+import { readMetadataCache, saveToMetadataCache } from '../helpers';
 import { getMainLoader } from '../loader';
 import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { createDefaultReadRegistry } from '../registry';
@@ -400,6 +400,10 @@ export async function build({
       miscUrl: miscUrl,
       chainId: runtime.chainId,
     });
+
+    await saveToMetadataCache(`${pkgName}:${pkgVersion}`, 'gitUrl', pkgInfo.gitUrl);
+    await saveToMetadataCache(`${pkgName}:${pkgVersion}`, 'commitHash', pkgInfo.commitHash);
+    await saveToMetadataCache(`${pkgName}:${pkgVersion}`, 'readme', pkgInfo.readme);
 
     const metadata = await readMetadataCache(`${pkgName}:${pkgVersion}`);
 

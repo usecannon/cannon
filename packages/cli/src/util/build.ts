@@ -3,7 +3,7 @@ import { CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/bu
 import Debug from 'debug';
 import * as viem from 'viem';
 import { getFoundryArtifact } from '../foundry';
-import { filterSettings, loadCannonfile } from '../helpers';
+import { execPromise, filterSettings, loadCannonfile } from '../helpers';
 import { createDryRunRegistry } from '../registry';
 import { CannonRpcNode, getProvider, runRpc } from '../rpc';
 import { CliSettings, resolveCliSettings } from '../settings';
@@ -38,7 +38,6 @@ export async function doBuild(
   const projectDirectory = path.resolve(cannonfilePath);
 
   const cliSettings = resolveCliSettings(opts);
-
   // Set up provider
   const { provider, signers, node } = await configureProvider(opts, cliSettings);
 
@@ -238,6 +237,15 @@ async function prepareBuildConfig(
     settings: parseSettings(settings),
   };
 
+  const pkgInfo: { gitUrl: string; commitHash: string; readme: string } = { gitUrl: '', commitHash: '', readme: '' };
+
+  pkgInfo.gitUrl = (await execPromise('git config --get remote.origin.url'))
+    .replace(':', '/')
+    .replace('git@', 'https://')
+    .replace('.git', '');
+  pkgInfo.commitHash = await execPromise('git rev-parse HEAD');
+  pkgInfo.readme = pkgInfo.gitUrl + '/blob/main/README.md';
+
   // TODO: `isPublicSourceCode` on def is not the most reliable way to
   // determine if source code should be public or not
   // ideally we find out from the runtime, which is the final source. however, its unlikely this
@@ -251,7 +259,7 @@ async function prepareBuildConfig(
     provider,
     def,
     packageDefinition: packageSpecification,
-    pkgInfo: {},
+    pkgInfo,
     getArtifact,
     getSigner,
     getDefaultSigner,
