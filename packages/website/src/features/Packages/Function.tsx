@@ -28,7 +28,7 @@ import {
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
-import { Abi, AbiFunction } from 'abitype/src/abi';
+import { Abi, AbiFunction } from 'abitype';
 import React, { FC, useMemo, useState } from 'react';
 import {
   Address,
