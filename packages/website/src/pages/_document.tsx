@@ -46,6 +46,7 @@ export default class CustomDocument extends Document {
               display: none !important;
             }
           `}</style>
+          <link rel="icon" href="/favicon.ico" sizes="any" />
         </Head>
         <body className="fouc-prevention">
           <ColorModeScript />
