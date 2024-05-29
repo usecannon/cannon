@@ -241,9 +241,9 @@ export async function publishPackage({
     const toUrl = await toStorage.registry.getUrl(curFullPackageRef, chainId);
     const fromUrl = await fromStorage.registry.getUrl(curFullPackageRef, chainId);
 
-    const areBothNull = [toUrl, fromUrl].every((x) => _.isNull(x));
+    const urlsExist = !!toUrl && !!fromUrl;
 
-    if (!areBothNull && toUrl === fromUrl) {
+    if (urlsExist && toUrl === fromUrl) {
       debug('package already published... skip!', curFullPackageRef);
       alreadyCopiedIpfs.set(checkKey, null);
       return;
