@@ -194,6 +194,7 @@ export class IPFSLoaderWithRetries extends IPFSLoader {
 }
 
 export function getMainLoader(cliSettings: CliSettings) {
+  console.log('GOT IPFS URL', cliSettings.ipfsUrl);
   return {
     ipfs: new CliLoader(
       cliSettings.ipfsUrl
