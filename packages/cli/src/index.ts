@@ -343,7 +343,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       throw new Error('A valid Chain Id is required.');
     }
 
-    options.chainId = Number(chainIdPrompt.value);
+    options.chainId = chainIdPrompt.value;
   }
 
   if (!cliSettings.privateKey) {
