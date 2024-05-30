@@ -35,7 +35,8 @@ export class IPFSLoader implements CannonLoader {
   }
 
   getLabel() {
-    return `ipfs ${this.ipfsUrl}`;
+    debug(`IPFSLoader.getLabel() ${this.ipfsUrl}`);
+    return this.ipfsUrl;
   }
 
   async put(misc: any): Promise<string> {
