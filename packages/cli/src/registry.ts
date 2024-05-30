@@ -104,7 +104,7 @@ export class LocalRegistry extends CannonRegistry {
           const [tagName, tagVersion, tagVariant] = t.replace('.txt', '').split('_');
           const [tagChainId, tagPreset] = PackageReference.parseVariant(tagVariant);
 
-          if (chainId && tagChainId.toString() !== chainId.toString()) {
+          if (chainId && tagChainId !== Number(chainId)) {
             return false;
           }
 
