@@ -428,7 +428,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
       const { register } = await import('./commands/register');
 
-      await register({ cliSettings, options, packageRef, fromPublish: true });
+      await register({ cliSettings, options, packageRefs: [new PackageReference(packageRef)], fromPublish: true });
     }
   }
 
@@ -492,7 +492,7 @@ applyCommandsConfig(program.command('register'), commandsConfig.register).action
 
   const cliSettings = resolveCliSettings(options);
 
-  await register({ cliSettings, options, packageRef, fromPublish: false });
+  await register({ cliSettings, options, packageRefs: [new PackageReference(packageRef)], fromPublish: false });
 });
 
 applyCommandsConfig(program.command('publishers'), commandsConfig.publishers).action(async function (packageRef, options) {
