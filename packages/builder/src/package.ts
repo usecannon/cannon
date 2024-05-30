@@ -238,15 +238,19 @@ export async function publishPackage({
     }`;
 
     // if the package has already been published to the registry and it has the same ipfs hash, skip.
-    const oldUrl = await toStorage.registry.getUrl(curFullPackageRef, chainId);
-    const newUrl = await fromStorage.registry.getUrl(curFullPackageRef, chainId);
-    if (oldUrl === newUrl) {
+    const toUrl = await toStorage.registry.getUrl(curFullPackageRef, chainId);
+    debug('toStorage.getLabel: ' + toStorage.getLabel() + ' toUrl: ' + toUrl);
+
+    const fromUrl = await fromStorage.registry.getUrl(curFullPackageRef, chainId);
+    debug('fromStorage.getLabel: ' + fromStorage.getLabel() + ' fromUrl: ' + fromUrl);
+
+    if (toUrl === fromUrl) {
       debug('package already published... skip!', curFullPackageRef);
       alreadyCopiedIpfs.set(checkKey, null);
       return null;
     }
 
-    debug('copy ipfs for', curFullPackageRef, oldUrl, newUrl);
+    debug('copy ipfs for', curFullPackageRef, toUrl, fromUrl);
 
     const url = await toStorage.putBlob(deployInfo!);
     const newMiscUrl = await toStorage.putBlob(await fromStorage.readBlob(deployInfo!.miscUrl));
