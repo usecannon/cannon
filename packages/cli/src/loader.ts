@@ -75,7 +75,8 @@ export class CliLoader implements CannonLoader {
   }
 
   getLabel() {
-    return `cli ${this.ipfs ? this.ipfs.getLabel() + ' + ' + this.repo.getLabel() : this.repo.getLabel()}`;
+    debug(`cli ${this.ipfs ? this.ipfs.getLabel() + ' + ' + this.repo.getLabel() : this.repo.getLabel()}`);
+    return this.ipfs ? this.ipfs.getLabel() : this.repo.getLabel();
   }
 
   getCacheFilePath(url: string) {
