@@ -72,7 +72,6 @@ export const InteractTab: FC<{
   };
 
   const isActiveContract = (contract: Option) => {
-    console.log('activeContractOption: ', activeContractOption);
     if (!activeContractOption) return false;
 
     return (
@@ -200,8 +199,6 @@ export const InteractTab: FC<{
           flexWrap="nowrap"
         >
           {highlightedOptions.map((option, i) => {
-            console.log('option: ', option);
-            console.log('isActiveContract(option): ', isActiveContract(option));
             return (
               <Button
                 key={i}
