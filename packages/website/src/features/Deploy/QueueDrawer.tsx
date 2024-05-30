@@ -33,8 +33,8 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { useRouter } from 'next/navigation';
-import React, { Suspense, useState } from 'react';
+import { useRouter } from 'next/router';
+import React, { useState } from 'react';
 import {
   AbiFunction,
   Address,
@@ -49,6 +49,7 @@ import { QueueTransaction } from './QueueTransaction';
 import { SafeAddressInput } from './SafeAddressInput';
 import { isValidHex } from '@/helpers/ethereum';
 import 'react-diff-view/style/index.css';
+import ClientOnly from '@/components/ClientOnly';
 
 export const QueuedTxns = ({
   onDrawerClose,
@@ -132,9 +133,9 @@ export const QueuedTxns = ({
       : {},
     {
       safe: currentSafe!,
-      onSignComplete() {
+      async onSignComplete() {
         if (onDrawerClose) onDrawerClose();
-        router.push(links.DEPLOY);
+        await router.push(links.DEPLOY);
         toast({
           title: 'You successfully signed the transaction.',
           status: 'success',
@@ -464,8 +465,8 @@ export const QueuedTxns = ({
                         isDisabled={disableExecute}
                         onClick={() => {
                           execTxn.writeContract(stager.executeTxnConfig!, {
-                            onSuccess: () => {
-                              router.push(links.DEPLOY);
+                            onSuccess: async () => {
+                              await router.push(links.DEPLOY);
 
                               toast({
                                 title:
@@ -563,9 +564,9 @@ const QueueDrawer = ({
             Stage Transactions to a Safe
           </DrawerHeader>
           <DrawerBody bg="gray.700" pt={4}>
-            <Suspense fallback={<Spinner />}>
+            <ClientOnly>
               <SafeAddressInput />
-            </Suspense>
+            </ClientOnly>
             <WithSafe>
               <QueuedTxns onDrawerClose={onClose} />
             </WithSafe>

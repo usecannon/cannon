@@ -1,4 +1,3 @@
-import { getCannonRepoRegistryUrl } from '@usecannon/builder';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
@@ -144,9 +143,8 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .default(fileSettings.ipfsRetries || 3),
     CANNON_IPFS_URL: z
       .string()
-      .url()
       .optional()
-      .default(fileSettings.ipfsUrl || getCannonRepoRegistryUrl()),
+      .default(fileSettings.ipfsUrl || ''),
     CANNON_PUBLISH_IPFS_URL: z
       .string()
       .url()

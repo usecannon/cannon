@@ -16,12 +16,11 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { CustomSpinner } from '@/components/CustomSpinner';
-import { ChainArtifacts } from '@usecannon/builder';
+import { ChainArtifacts, PackageReference } from '@usecannon/builder';
 import { getOutput } from '@/lib/builder';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
 import { getPackage } from '@/helpers/api';
-import { PackageReference } from '@usecannon/builder/src';
 
 type Option = {
   moduleName: string;
@@ -44,13 +43,15 @@ export const InteractTab: FC<{
     queryFn: getPackage,
   });
 
-  const pathName = usePathname();
+  const pathName = useRouter().asPath;
 
   let activeContractOption: Option | undefined;
   const activeContractPath = pathName.split('interact/')[1];
+
   if (activeContractPath) {
     const [moduleName, contractName, contractAddress] =
       activeContractPath.split('/');
+
     activeContractOption = {
       moduleName,
       contractName,

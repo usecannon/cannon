@@ -6,7 +6,7 @@ import { CannonfileExplorer } from '@/features/Packages/CannonfileExplorer';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { useQuery } from '@tanstack/react-query';
 import { getPackage } from '@/helpers/api';
-import { PackageReference } from '@usecannon/builder/src';
+import { PackageReference } from '@usecannon/builder';
 
 export const CannonfileTab: FC<{
   name: string;

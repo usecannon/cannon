@@ -238,34 +238,40 @@ export async function publishPackage({
     }`;
 
     // if the package has already been published to the registry and it has the same ipfs hash, skip.
-    const oldUrl = await toStorage.registry.getUrl(curFullPackageRef, chainId);
-    const newUrl = await fromStorage.registry.getUrl(curFullPackageRef, chainId);
-    if (oldUrl === newUrl) {
+    const toUrl = await toStorage.registry.getUrl(curFullPackageRef, chainId);
+    debug('toStorage.getLabel: ' + toStorage.getLabel() + ' toUrl: ' + toUrl);
+
+    const fromUrl = await fromStorage.registry.getUrl(curFullPackageRef, chainId);
+    debug('fromStorage.getLabel: ' + fromStorage.getLabel() + ' fromUrl: ' + fromUrl);
+
+    if (toUrl === fromUrl) {
       debug('package already published... skip!', curFullPackageRef);
       alreadyCopiedIpfs.set(checkKey, null);
       return null;
     }
 
-    debug('copy ipfs for', curFullPackageRef, oldUrl, newUrl);
+    debug('copy ipfs for', curFullPackageRef, toUrl, fromUrl);
 
+    const url = await toStorage.putBlob(deployInfo!);
     const newMiscUrl = await toStorage.putBlob(await fromStorage.readBlob(deployInfo!.miscUrl));
+
+    if (newMiscUrl !== deployInfo.miscUrl) {
+      debug(`WARN new misc url does not match recorded one: ${newMiscUrl} vs ${deployInfo.miscUrl}`);
+    }
 
     // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
     //       Should it be called outside the scoped copyIpfs() function?
     const metaUrl = await fromStorage.registry.getMetaUrl(curFullPackageRef, chainId);
-    let newMetaUrl = metaUrl;
+    //let newMetaUrl = metaUrl;
 
     if (metaUrl) {
-      newMetaUrl = await toStorage.putBlob(await fromStorage.readBlob(metaUrl));
+      // TODO: figure out metaurl handling
+      /*newMetaUrl = await toStorage.putBlob(await fromStorage.readBlob(metaUrl));
 
       if (!newMetaUrl) {
         throw new Error('error while writing new misc blob');
-      }
+      }*/
     }
-
-    deployInfo.miscUrl = newMiscUrl || '';
-
-    const url = await toStorage.putBlob(deployInfo!);
 
     if (!url) {
       throw new Error('uploaded url is invalid');
@@ -277,7 +283,7 @@ export async function publishPackage({
       ),
       chainId,
       url,
-      metaUrl: newMetaUrl || '',
+      metaUrl: '',
     };
 
     alreadyCopiedIpfs.set(checkKey, returnVal);

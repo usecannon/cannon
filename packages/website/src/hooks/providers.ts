@@ -1,9 +1,10 @@
-import * as viem from 'viem';
-import { http } from '@wagmi/core';
-import { useState, useEffect } from 'react';
-import * as chains from '@wagmi/core/chains';
-
 import { useStore } from '@/helpers/store';
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
+import { http } from '@wagmi/core';
+import * as chains from '@wagmi/core/chains';
+import { useEffect, useState } from 'react';
+import * as viem from 'viem';
+import { WagmiProviderProps } from 'wagmi';
 
 interface VerifiedProviders {
   provider: string;
@@ -24,6 +25,14 @@ export const defaultTransports = supportedChains.reduce((prev, curr) => {
 }, {} as Record<number, viem.HttpTransport>);
 
 export function useProviders() {
+  const [wagmiConfig, setWagmiConfig] = useState<WagmiProviderProps['config']>(() =>
+    getDefaultConfig({
+      appName: 'Cannon',
+      projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',
+      chains: [...supportedChains],
+    })
+  );
+
   const [verifiedProviders, setVerifiedProviders] = useState<VerifiedProviders[]>([]);
   const [transports, setTransports] = useState<Record<number, viem.HttpTransport>>(defaultTransports);
   const customProviders = useStore((state) => state.settings.customProviders);
@@ -74,5 +83,16 @@ export function useProviders() {
     setTransports(_transports);
   }, [verifiedProviders]);
 
-  return { verifiedProviders, transports };
+  useEffect(() => {
+    setWagmiConfig(
+      getDefaultConfig({
+        appName: 'Cannon',
+        projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',
+        chains: [...supportedChains],
+        transports,
+      })
+    );
+  }, [transports]);
+
+  return { verifiedProviders, transports, wagmiConfig };
 }
