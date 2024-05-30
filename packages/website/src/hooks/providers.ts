@@ -1,10 +1,10 @@
-import * as viem from 'viem';
-import { http } from '@wagmi/core';
-import { useState, useEffect } from 'react';
-import * as chains from '@wagmi/core/chains';
-import { getDefaultConfig } from '@rainbow-me/rainbowkit';
-
 import { useStore } from '@/helpers/store';
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
+import { http } from '@wagmi/core';
+import * as chains from '@wagmi/core/chains';
+import { useEffect, useState } from 'react';
+import * as viem from 'viem';
+import { WagmiProviderProps } from 'wagmi';
 
 interface VerifiedProviders {
   provider: string;
@@ -25,7 +25,7 @@ export const defaultTransports = supportedChains.reduce((prev, curr) => {
 }, {} as Record<number, viem.HttpTransport>);
 
 export function useProviders() {
-  const [wagmiConfig, setWagmiConfig] = useState<any>(() =>
+  const [wagmiConfig, setWagmiConfig] = useState<WagmiProviderProps['config']>(() =>
     getDefaultConfig({
       appName: 'Cannon',
       projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',
