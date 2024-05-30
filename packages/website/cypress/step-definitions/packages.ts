@@ -14,7 +14,6 @@ When('User clicks on the element with version {string} and chain {string}', (ver
 
 When('User types {string} for {string} function param', (inputValue: string, functionName: string) => {
   const selector = `//p[contains(text(), '${functionName}')]//ancestor::div[@role='group']//input`;
-
-  // Type into the input field
+  cy.xpath(selector).clear();
   cy.xpath(selector).type(inputValue);
 });

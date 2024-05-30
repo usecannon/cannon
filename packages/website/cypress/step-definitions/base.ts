@@ -16,12 +16,20 @@ When('User clicks on the button with id {string}', (id: string) => {
   cy.get(`#${id}`).click();
 });
 
+When('User clicks on the button with {string} {string}', (property: string, label: string) => {
+  cy.get(`button[${property}="${label}"]`).click();
+});
+
 When('User clicks on the {string} element with text {string}', (element: string, text: string) => {
   cy.get(element).contains(text).click();
 });
 
 When('User types {string} in the {string} input', (text: string, input: string) => {
   cy.get(`input[name="${input}"]`).type(text);
+});
+
+When('User types {string} in the input with placeholder {string}', (text: string, placeholder: string) => {
+  cy.get(`input[placeholder="${placeholder}"]`).type(text);
 });
 
 Then('URL includes {string}', (path: string) => {
