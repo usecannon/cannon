@@ -29,7 +29,8 @@ import { DeploymentInfo, PackageReference } from '@usecannon/builder';
 import { getPackage } from '@/helpers/api';
 
 export default function PackageLayout({ children }: { children: ReactNode }) {
-  const params = useRouter().query;
+  const { query: params, pathname, asPath } = useRouter();
+
   const [chainId, preset] = PackageReference.parseVariant(
     decodeURIComponent(params.variant as string)
   );
@@ -47,9 +48,12 @@ export default function PackageLayout({ children }: { children: ReactNode }) {
       `${additionalParams.name}:${additionalParams.tag}@${additionalParams.preset}/${additionalParams.chainId}`,
     ],
     queryFn: getPackage,
+    enabled:
+      !!additionalParams.name &&
+      !!additionalParams.tag &&
+      !!additionalParams.preset &&
+      !!additionalParams.chainId,
   });
-
-  const { pathname, asPath } = useRouter();
 
   const deploymentData = useQueryIpfsData(
     packagesQuery?.data?.data.deployUrl,
