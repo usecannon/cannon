@@ -43,13 +43,15 @@ export const InteractTab: FC<{
     queryFn: getPackage,
   });
 
-  const pathName = useRouter().pathname;
+  const pathName = useRouter().asPath;
 
   let activeContractOption: Option | undefined;
   const activeContractPath = pathName.split('interact/')[1];
+
   if (activeContractPath) {
     const [moduleName, contractName, contractAddress] =
       activeContractPath.split('/');
+
     activeContractOption = {
       moduleName,
       contractName,
@@ -70,6 +72,7 @@ export const InteractTab: FC<{
   };
 
   const isActiveContract = (contract: Option) => {
+    console.log('activeContractOption: ', activeContractOption);
     if (!activeContractOption) return false;
 
     return (
@@ -196,55 +199,59 @@ export const InteractTab: FC<{
           borderColor="gray.800"
           flexWrap="nowrap"
         >
-          {highlightedOptions.map((option, i) => (
-            <Button
-              key={i}
-              color="white"
-              borderWidth="2px"
-              borderRadius="md"
-              variant="outline"
-              aria-label="contract name"
-              boxShadow="lg"
-              flexShrink={0}
-              background={isActiveContract(option) ? 'teal.900' : 'gray.700'}
-              borderColor={isActiveContract(option) ? 'teal.600' : 'gray.600'}
-              _hover={
-                isActiveContract(option)
-                  ? {
-                      background: 'teal.800',
-                      borderColor: 'teal.500',
-                    }
-                  : {
-                      background: 'gray.600',
-                      borderColor: 'teal.500',
-                    }
-              }
-              mr={4}
-              height="48px"
-              px={2}
-              onClick={() => selectContract(option)}
-            >
-              <Box textAlign="left">
-                <Text
-                  fontSize="xs"
-                  display="block"
-                  fontWeight="normal"
-                  color="gray.400"
-                  mb="1px"
-                >
-                  {option.moduleName}
-                </Text>
-                <Heading
-                  fontWeight="500"
-                  size="sm"
-                  color="gray.200"
-                  letterSpacing="0.1px"
-                >
-                  {option.contractName}
-                </Heading>
-              </Box>
-            </Button>
-          ))}
+          {highlightedOptions.map((option, i) => {
+            console.log('option: ', option);
+            console.log('isActiveContract(option): ', isActiveContract(option));
+            return (
+              <Button
+                key={i}
+                color="white"
+                borderWidth="2px"
+                borderRadius="md"
+                variant="outline"
+                aria-label="contract name"
+                boxShadow="lg"
+                flexShrink={0}
+                background={isActiveContract(option) ? 'teal.900' : 'gray.700'}
+                borderColor={isActiveContract(option) ? 'teal.600' : 'gray.600'}
+                _hover={
+                  isActiveContract(option)
+                    ? {
+                        background: 'teal.800',
+                        borderColor: 'teal.500',
+                      }
+                    : {
+                        background: 'gray.600',
+                        borderColor: 'teal.500',
+                      }
+                }
+                mr={4}
+                height="48px"
+                px={2}
+                onClick={() => selectContract(option)}
+              >
+                <Box textAlign="left">
+                  <Text
+                    fontSize="xs"
+                    display="block"
+                    fontWeight="normal"
+                    color="gray.400"
+                    mb="1px"
+                  >
+                    {option.moduleName}
+                  </Text>
+                  <Heading
+                    fontWeight="500"
+                    size="sm"
+                    color="gray.200"
+                    letterSpacing="0.1px"
+                  >
+                    {option.contractName}
+                  </Heading>
+                </Box>
+              </Button>
+            );
+          })}
           {otherOptions.length > 0 && (
             <Popover
               placement="bottom-start"
