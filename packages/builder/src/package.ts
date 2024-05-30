@@ -172,7 +172,7 @@ export async function preparePublishPackage({
   chainId,
   fromStorage,
   toStorage,
-  includeProvisioned,
+  includeProvisioned = true,
 }: CopyPackageOpts) {
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
 
