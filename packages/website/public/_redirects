@@ -4,6 +4,6 @@
 /packages/:name/:tag/:variant/code/:moduleName /packages/[name]/[tag]/[variant]/code/[moduleName].html 200
 /packages/:name/:tag/:variant/interact /packages/[name]/[tag]/[variant]/interact.html 200
 /packages/:name/:tag/:variant/interact/:moduleName /packages/[name]/[tag]/[variant]/interact/[moduleName].html 200
+/packages/:name/:tag/:variant/interact/:moduleName/:contractName/:contractAddress /packages/[name]/[tag]/[variant]/interact/[moduleName]/[contractName]/[contractAddress].html 200
 /packages/:name/:tag/:variant/cannonfile /packages/[name]/[tag]/[variant]/cannonfile.html 200
 /deploy/txn/:chainId/:safeAddress/:nonce/:sigHash /deploy/txn/[chainId]/[safeAddress]/[nonce]/[sigHash].html 200
-/* /:splat.html 200

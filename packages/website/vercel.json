@@ -25,6 +25,10 @@
       "destination": "/packages/[name]/[tag]/[variant]/interact/[moduleName]"
     },
     {
+      "source": "/packages/:name/:tag/:variant/interact/:moduleName/:contractName/:contractAddress",
+      "destination": "/packages/[name]/[tag]/[variant]/interact/[moduleName]/[contractName]/[contractAddress]"
+    },
+    {
       "source": "/packages/:name/:tag/:variant/cannonfile",
       "destination": "/packages/[name]/[tag]/[variant]/cannonfile"
     },
