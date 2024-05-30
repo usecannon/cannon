@@ -6,7 +6,7 @@ import { Flex } from '@chakra-ui/react';
 import { Analytics } from '@vercel/analytics/react';
 import NextTopLoader from 'nextjs-toploader';
 import { Inter, Miriam_Libre, Roboto_Mono } from 'next/font/google';
-import { ReactElement } from 'react';
+import { ReactElement, useEffect } from 'react';
 import Providers from './_providers';
 import { DefaultSeo } from 'next-seo';
 import '@/styles/globals.css';
@@ -36,6 +36,11 @@ export default function RootLayout({
   pageProps: any;
 }) {
   const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
+
+  useEffect(() => {
+    document.body.classList.remove('fouc-prevention');
+  }, []);
+
   return (
     <>
       <DefaultSeo {...defaultSEO} />
