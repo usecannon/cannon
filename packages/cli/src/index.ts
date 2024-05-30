@@ -304,7 +304,8 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
 
   ipfsHash = ipfsHash.replace(/^ipfs:\/\//, '');
 
-  const fromStorage = new CannonStorage(new InMemoryRegistry(), getMainLoader(cliSettings));
+  const fromStorage = new CannonStorage(await createDefaultReadRegistry(cliSettings), getMainLoader(cliSettings));
+
   const toStorage = new CannonStorage(new InMemoryRegistry(), {
     ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
   });

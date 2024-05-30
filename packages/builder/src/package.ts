@@ -239,11 +239,12 @@ export async function publishPackage({
 
     // if the package has already been published to the registry and it has the same ipfs hash, skip.
     const toUrl = await toStorage.registry.getUrl(curFullPackageRef, chainId);
+    debug('toStorage.getLabel: ' + toStorage.getLabel() + ' toUrl: ' + toUrl);
+
     const fromUrl = await fromStorage.registry.getUrl(curFullPackageRef, chainId);
+    debug('fromStorage.getLabel: ' + fromStorage.getLabel() + ' fromUrl: ' + fromUrl);
 
-    const urlsExist = !!toUrl && !!fromUrl;
-
-    if (urlsExist && toUrl === fromUrl) {
+    if (toUrl === fromUrl) {
       debug('package already published... skip!', curFullPackageRef);
       alreadyCopiedIpfs.set(checkKey, null);
       return null;
