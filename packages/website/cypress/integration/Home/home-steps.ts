@@ -1,17 +1,17 @@
 import { Given, Then, When } from '@badeball/cypress-cucumber-preprocessor';
 
-Given('I open the {string} page', (path: string) => {
+Given('User opens the {string} page', (path: string) => {
   cy.visit(path);
 });
 
-When('I click on the {string} link', (link: string) => {
+When('User clicks on the {string} link', (link: string) => {
   cy.get(`a[href*="${link}"]`).click();
 });
 
-Then('I see {string} in the url', (path: string) => {
+Then('URL includes {string} string', (path: string) => {
   cy.url().should('include', path);
 });
 
-Then('I see {string} in the {string}', (text: string, element: string) => {
+Then('View renders a {string} displaying the text {string}', (element: string, text: string) => {
   cy.get(element).contains(text);
 });
