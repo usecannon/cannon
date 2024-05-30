@@ -1,7 +1,6 @@
-import { CannonSigner, OnChainRegistry, PackageReference } from '@usecannon/builder';
+import { CannonSigner, OnChainRegistry, PackageReference, DEFAULT_REGISTRY_ADDRESS } from '@usecannon/builder';
 import * as viem from 'viem';
 import _ from 'lodash';
-import { DEFAULT_REGISTRY_ADDRESS } from '../constants';
 import { getChainById } from '../chains';
 
 /**

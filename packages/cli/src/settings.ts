@@ -6,7 +6,8 @@ import untildify from 'untildify';
 import * as viem from 'viem';
 import { parseEnv } from 'znv';
 import { z } from 'zod';
-import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_CONFIG } from './constants';
+import { DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
+import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY } from './constants';
 import { checkAndNormalizePrivateKey, filterSettings } from './helpers';
 
 const debug = Debug('cannon:cli:settings');

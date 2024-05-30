@@ -12,6 +12,7 @@ import {
   PackageReference,
   publishPackage,
   traceActions,
+  DEFAULT_REGISTRY_CONFIG,
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
@@ -22,7 +23,6 @@ import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
-import { DEFAULT_REGISTRY_CONFIG } from './constants';
 import {
   checkAndNormalizePrivateKey,
   checkCannonVersion,
@@ -428,7 +428,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
       const { register } = await import('./commands/register');
 
-      await register({ cliSettings, options, packageRef, fromPublish: true });
+      await register({ cliSettings, options, packageRefs: [new PackageReference(packageRef)], fromPublish: true });
     }
   }
 
@@ -492,7 +492,7 @@ applyCommandsConfig(program.command('register'), commandsConfig.register).action
 
   const cliSettings = resolveCliSettings(options);
 
-  await register({ cliSettings, options, packageRef, fromPublish: false });
+  await register({ cliSettings, options, packageRefs: packageRef, fromPublish: false });
 });
 
 applyCommandsConfig(program.command('publishers'), commandsConfig.publishers).action(async function (packageRef, options) {
