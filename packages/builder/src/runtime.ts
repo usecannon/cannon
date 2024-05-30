@@ -49,6 +49,12 @@ export class CannonStorage extends EventEmitter {
     return this.loaders[loaderScheme];
   }
 
+  getLabel() {
+    return ` registry ${this.registry.getLabel()} loader ${Object.values(this.loaders)
+      .map((loader) => loader.getLabel())
+      .join(', ')}`;
+  }
+
   readBlob(url: string) {
     const loader = this.lookupLoader(url);
     let loaderLabel;
