@@ -1,14 +1,13 @@
-import _ from 'lodash';
-import * as viem from 'viem';
-import { green, blueBright } from 'chalk';
-import prompts from 'prompts';
 import { OnChainRegistry, PackageReference } from '@usecannon/builder';
-
-import { CliSettings } from '../settings';
-import { LocalRegistry } from '../registry';
+import { blueBright, green } from 'chalk';
+import _ from 'lodash';
+import prompts from 'prompts';
+import * as viem from 'viem';
 import { DEFAULT_REGISTRY_CONFIG } from '../constants';
+import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
+import { LocalRegistry } from '../registry';
+import { CliSettings } from '../settings';
 import { resolveRegistryProviders } from '../util/provider';
-import { isPrivateKey, normalizePrivateKey, checkAndNormalizePrivateKey } from '../helpers';
 
 interface Params {
   cliSettings: CliSettings;
@@ -114,7 +113,7 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     deploys = [{ name: fullPackageRef, chainId: options.chainId }];
   } else {
     // Check for deployments that are relevant to the provided packageRef
-    deploys = await localRegistry.scanDeploys(packageRef, options.chainId);
+    deploys = await localRegistry.scanDeploys(packageRef, Number(options.chainId));
   }
 
   if (!deploys || deploys.length === 0) {
