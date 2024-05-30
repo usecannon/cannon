@@ -1,7 +1,6 @@
 import { inMemoryRegistry } from '@/helpers/cannon';
 import { findChain } from '@/helpers/rpc';
-import { FallbackRegistry, OnChainRegistry } from '@usecannon/builder';
-import { DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_CONFIG } from '@usecannon/cli/dist/src/constants';
+import { FallbackRegistry, OnChainRegistry, DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 import { useEffect, useMemo, useState } from 'react';
 import * as viem from 'viem';
 
