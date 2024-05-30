@@ -1,15 +1,15 @@
 import {
+  CannonRegistry,
   CannonStorage,
   getProvisionedPackages,
   IPFSLoader,
-  CannonRegistry,
   OnChainRegistry,
   PackageReference,
   publishPackage,
 } from '@usecannon/builder';
-import * as viem from 'viem';
 import { blueBright, bold, gray, italic, yellow } from 'chalk';
 import prompts from 'prompts';
+import * as viem from 'viem';
 import { getMainLoader } from '../loader';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';
@@ -17,7 +17,7 @@ import { CliSettings } from '../settings';
 interface Params {
   packageRef: string;
   cliSettings: CliSettings;
-  tags: string[];
+  tags?: string[];
   onChainRegistry: CannonRegistry;
   chainId?: number;
   presetArg?: string;
