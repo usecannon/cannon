@@ -5,6 +5,7 @@ import {
   OnChainRegistry,
   PackagePublishCall,
   PackageReference,
+  getCannonRepoRegistryUrl,
   preparePublishPackage,
 } from '@usecannon/builder';
 import { blueBright, bold, gray, yellow } from 'chalk';
@@ -45,12 +46,6 @@ export async function publish({
   skipConfirm = false,
 }: Params) {
   const { fullPackageRef } = new PackageReference(packageRef);
-  // Ensure publish ipfs url is set
-  if (!cliSettings.publishIpfsUrl) {
-    throw new Error(
-      `In order to publish, a publishIpfsUrl setting must be set in your Cannon configuration. Use '${process.argv[0]} setup' to configure.`
-    );
-  }
 
   // Handle deprecated preset specification
   if (presetArg && !packageRef.startsWith('@')) {
@@ -76,7 +71,7 @@ export async function publish({
   }
   // Generate CannonStorage to publish ipfs remotely and write to the registry
   const toStorage = new CannonStorage(onChainRegistry, {
-    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl),
+    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || getCannonRepoRegistryUrl()),
   });
 
   // Generate CannonStorage to retrieve the local instance of the package
