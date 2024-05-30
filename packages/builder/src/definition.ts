@@ -299,13 +299,16 @@ export class ChainDefinition {
   computeDependencies(node: string) {
     if (!_.get(this.raw, node)) {
       const stepName = node.split('.')[0];
-      const stepList: string[] = [];
-      Object.keys(_.get(this.raw, stepName)).forEach((dep) => {
-        stepList.push(dep);
-      });
+      const possibleSteps = _.get(this.raw, stepName);
+
+      if (!possibleSteps) {
+        throw new Error(`invalid dependency: ${node}`);
+      }
 
       throw new Error(`invalid dependency: ${node}. Available "${stepName}" operations:
-          ${stepList.map((dep) => `\n - ${stepName}.${dep}`).join('')}
+          ${Object.keys(possibleSteps)
+            .map((dep) => `\n - ${stepName}.${dep}`)
+            .join('')}
         `);
     }
 
