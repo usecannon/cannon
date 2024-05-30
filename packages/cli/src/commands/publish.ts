@@ -17,7 +17,7 @@ import { CliSettings } from '../settings';
 interface Params {
   packageRef: string;
   cliSettings: CliSettings;
-  tags: string[];
+  tags?: string[];
   onChainRegistry: CannonRegistry;
   chainId?: number;
   presetArg?: string;

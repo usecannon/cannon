@@ -323,7 +323,10 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
   console.log('Done!');
 });
 
-applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (packageRef, options) {
+applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (
+  packageRef,
+  options: { [opt: string]: string }
+) {
   const { publish } = await import('./commands/publish');
 
   const cliSettings = resolveCliSettings(options);
@@ -340,7 +343,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       throw new Error('A valid Chain Id is required.');
     }
 
-    options.chainId = Number(chainIdPrompt.value);
+    options.chainId = chainIdPrompt.value;
   }
 
   if (!cliSettings.privateKey) {
@@ -468,11 +471,11 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     cliSettings,
     onChainRegistry,
     tags: options.tags ? options.tags.split(',') : undefined,
-    chainId: options.chainId ? options.chainId : undefined,
+    chainId: options.chainId ? Number(options.chainId) : undefined,
     presetArg: options.preset ? (options.preset as string) : undefined,
-    quiet: options.quiet,
+    quiet: !!options.quiet,
     includeProvisioned: !options.excludeCloned,
-    skipConfirm: options.skipConfirm,
+    skipConfirm: !!options.skipConfirm,
   });
 });
 
