@@ -492,7 +492,7 @@ applyCommandsConfig(program.command('register'), commandsConfig.register).action
 
   const cliSettings = resolveCliSettings(options);
 
-  await register({ cliSettings, options, packageRefs: [new PackageReference(packageRef)], fromPublish: false });
+  await register({ cliSettings, options, packageRefs: packageRef, fromPublish: false });
 });
 
 applyCommandsConfig(program.command('publishers'), commandsConfig.publishers).action(async function (packageRef, options) {
