@@ -2,10 +2,9 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import prompts from 'prompts';
 import { blueBright, gray, green } from 'chalk';
-import { OnChainRegistry, prepareMulticall, PackageReference } from '@usecannon/builder';
+import { OnChainRegistry, prepareMulticall, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 
 import { CliSettings } from '../settings';
-import { DEFAULT_REGISTRY_CONFIG } from '../constants';
 import { resolveRegistryProviders } from '../util/provider';
 import { isPackageRegistered, waitForEvent } from '../util/register';
 import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';

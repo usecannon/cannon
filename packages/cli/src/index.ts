@@ -12,6 +12,7 @@ import {
   PackageReference,
   publishPackage,
   traceActions,
+  DEFAULT_REGISTRY_CONFIG,
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
@@ -22,7 +23,6 @@ import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
-import { DEFAULT_REGISTRY_CONFIG } from './constants';
 import {
   checkAndNormalizePrivateKey,
   checkCannonVersion,
