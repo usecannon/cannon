@@ -1,5 +1,5 @@
 Feature: Home page
 
   Scenario: Navigating to the home page
-    Given I open the "/" page
-    Then I see "Cannon manages protocol deployments on blockchains" in the "h1"
+    Given User opens the "/" page
+    Then View renders a "h1" displaying the text "Cannon manages protocol deployments on blockchains"

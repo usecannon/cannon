@@ -460,6 +460,7 @@ export const Function: FC<{
                   Submit using wallet {!simulated && statusIcon}
                 </Button>
                 <Button
+                  id={`${f.name}-stage-to-safe`}
                   isLoading={loading}
                   colorScheme="teal"
                   bg="teal.900"
