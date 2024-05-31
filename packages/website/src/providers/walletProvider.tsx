@@ -14,6 +14,9 @@ interface IWalletProvider {
 function WalletProvider({ children }: IWalletProvider) {
   const { wagmiConfig } = useProviders();
 
+  // wait til we have the wagmi config before rendering
+  if (!wagmiConfig) return;
+
   // NOTE: have to hack the style below becuase otherwise it overflows the page.
   // hopefully the class name doesnt change from compile to compile lol
   // related issue: https://github.com/rainbow-me/rainbowkit/issues/1007
