@@ -79,6 +79,7 @@ export const Function: FC<{
   const [params, setParams] = useState<any[] | any>([]);
   // for payable functions only
   const [value, setValue] = useState<any>();
+  const [valueIsValid, setValueIsValid] = useState<boolean>(true);
   const toast = useToast();
 
   const { safes, setQueuedIdentifiableTxns, setLastQueuedTxnsId } =
@@ -389,7 +390,15 @@ export const Function: FC<{
                     bg="black"
                     borderColor="whiteAlpha.400"
                     value={value?.toString()}
-                    onChange={(e) => setValue(e.target.value)}
+                    onChange={(e) => {
+                      setValue(e.target.value);
+                      try {
+                        parseEther(e.target.value);
+                        setValueIsValid(true);
+                      } catch (err) {
+                        setValueIsValid(false);
+                      }
+                    }}
                   />
                   <InputRightAddon
                     bg="black"
@@ -399,12 +408,18 @@ export const Function: FC<{
                     ETH
                   </InputRightAddon>
                 </InputGroup>
-                <FormHelperText color="gray.300">
-                  {value !== undefined
-                    ? parseEther(value.toString()).toString()
-                    : 0}{' '}
-                  wei
-                </FormHelperText>
+                {valueIsValid ? (
+                  <FormHelperText color="gray.300">
+                    {value !== undefined
+                      ? parseEther(value.toString()).toString()
+                      : 0}{' '}
+                    wei
+                  </FormHelperText>
+                ) : (
+                  <FormHelperText color="red.300">
+                    Invalid BigNumber value
+                  </FormHelperText>
+                )}
               </FormControl>
             )}
 
