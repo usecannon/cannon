@@ -25,13 +25,7 @@ export const defaultTransports = supportedChains.reduce((prev, curr) => {
 }, {} as Record<number, viem.HttpTransport>);
 
 export function useProviders() {
-  const [wagmiConfig, setWagmiConfig] = useState<WagmiProviderProps['config']>(() =>
-    getDefaultConfig({
-      appName: 'Cannon',
-      projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',
-      chains: [...supportedChains],
-    })
-  );
+  const [wagmiConfig, setWagmiConfig] = useState<WagmiProviderProps['config'] | null>(null);
 
   const [verifiedProviders, setVerifiedProviders] = useState<VerifiedProviders[]>([]);
   const [transports, setTransports] = useState<Record<number, viem.HttpTransport>>(defaultTransports);

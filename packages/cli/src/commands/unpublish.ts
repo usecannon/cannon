@@ -1,9 +1,8 @@
-import { OnChainRegistry, PackageReference } from '@usecannon/builder';
+import { OnChainRegistry, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 import { blueBright, green } from 'chalk';
 import _ from 'lodash';
 import prompts from 'prompts';
 import * as viem from 'viem';
-import { DEFAULT_REGISTRY_CONFIG } from '../constants';
 import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';

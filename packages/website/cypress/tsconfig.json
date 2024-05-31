@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES6",
     "lib": ["ES6", "dom"],
-    "types": ["cypress", "node"],
+    "types": ["cypress", "node", "cypress-wait-until"],
     "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
