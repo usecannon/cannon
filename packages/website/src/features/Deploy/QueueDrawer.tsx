@@ -10,6 +10,10 @@ import { useSimulatedTxns } from '@/hooks/fork';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { AddIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
+  AlertTitle,
   Box,
   Button,
   Drawer,
@@ -31,6 +35,7 @@ import {
   Text,
   Tooltip,
   useToast,
+  Flex,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useRouter } from 'next/router';
@@ -246,7 +251,10 @@ export const QueuedTxns = ({
     }
   };
 
-  const txnHasError = !!txnInfo.txnResults.filter((r) => r?.error).length;
+  const txnsWithErrorIndexes = txnInfo.txnResults
+    .map((r, idx) => (r?.error ? idx : -1))
+    .filter((i) => i !== -1);
+  const txnHasError = txnsWithErrorIndexes.length > 0;
 
   const disableExecute =
     !targetTxn || txnHasError || !!stager.execConditionFailed;
@@ -254,8 +262,9 @@ export const QueuedTxns = ({
   return (
     <>
       <Box mt={6} mb={8} display="block">
-        {queuedIdentifiableTxns.length > 0
-          ? queuedIdentifiableTxns.map((queuedIdentifiableTxn, i) => (
+        {queuedIdentifiableTxns.length > 0 ? (
+          <>
+            {queuedIdentifiableTxns.map((queuedIdentifiableTxn, i) => (
               <Box
                 key={i}
                 mb={8}
@@ -290,12 +299,64 @@ export const QueuedTxns = ({
                   chainId={queuedIdentifiableTxn.chainId}
                   isCustom={queuedIdentifiableTxn.pkgUrl === ''}
                   isDeletable
+                  // simulate single transaction if there is only one
+                  simulate={queuedIdentifiableTxns.length === 1}
                 />
               </Box>
-            ))
-          : null}
+            ))}
+            {txnInfo.loading ? (
+              <Flex
+                w="full"
+                justifyContent="center"
+                alignItems="center"
+                gap={4}
+              >
+                <Text fontSize="sm" color="gray.300">
+                  Simulating transactions
+                </Text>
+                <Spinner />
+              </Flex>
+            ) : txnsWithErrorIndexes.length > 0 &&
+              queuedIdentifiableTxns.length > 1 ? (
+              txnsWithErrorIndexes.map((idx) => (
+                /* This error messages just show up when simulated txns are more than 1 */
+                <Alert key={idx} bg="gray.900" status="error">
+                  <AlertIcon />
+                  <Box>
+                    <AlertTitle>
+                      Simulation Error In Transaction # {idx + 1}
+                    </AlertTitle>
+                    <AlertDescription fontSize="sm">
+                      {/* TODO: decode error - for this we need to have the abi of the contract */}
+                      {txnInfo.txnResults[idx]?.error}
+                    </AlertDescription>
+                  </Box>
+                </Alert>
+              ))
+            ) : (
+              (txnsWithErrorIndexes.length === 0 &&
+                queuedIdentifiableTxns.length > 1 && (
+                  <Alert bg="green.600" status="success">
+                    <AlertIcon color="white" />
+                    <Box>
+                      <AlertTitle>
+                        All Transactions Simulated Successfully
+                      </AlertTitle>
+                      <AlertDescription fontSize="sm">
+                        {queuedIdentifiableTxns.length} simulated transaction
+                        {queuedIdentifiableTxns.length > 1 ? 's ' : ' '}
+                        went through successfully.
+                      </AlertDescription>
+                    </Box>
+                  </Alert>
+                )) ||
+              null
+            )}
+          </>
+        ) : null}
         <Box
           mb={8}
+          mt={8}
           p={6}
           bg="gray.800"
           display="block"
