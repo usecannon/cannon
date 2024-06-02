@@ -153,12 +153,7 @@ export async function build({
 
   const resolver = overrideResolver || (await createDefaultReadRegistry(cliSettings));
 
-  const runtime = new ChainBuilderRuntime(
-    runtimeOptions,
-    resolver,
-    getMainLoader(cliSettings, { writeToIpfs: false }),
-    'ipfs'
-  );
+  const runtime = new ChainBuilderRuntime(runtimeOptions, resolver, getMainLoader(cliSettings), 'ipfs');
 
   const dump = writeScript ? await createWriteScript(runtime, writeScript, writeScriptFormat) : null;
 

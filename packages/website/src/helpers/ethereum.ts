@@ -1,5 +1,5 @@
 import MulticallABI from '@/abi/Multicall.json';
-import { Abi } from 'abitype/src/abi';
+import { Abi } from 'abitype';
 import { EIP7412 } from 'erc7412';
 import { PythAdapter } from 'erc7412/dist/src/adapters/pyth';
 import {

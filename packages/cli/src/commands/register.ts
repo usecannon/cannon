@@ -2,11 +2,9 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import prompts from 'prompts';
 import { blueBright, gray, green } from 'chalk';
-import { OnChainRegistry, prepareMulticall } from '@usecannon/builder';
+import { OnChainRegistry, prepareMulticall, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 
 import { CliSettings } from '../settings';
-import { PackageSpecification } from '../types';
-import { DEFAULT_REGISTRY_CONFIG } from '../constants';
 import { resolveRegistryProviders } from '../util/provider';
 import { isPackageRegistered, waitForEvent } from '../util/register';
 import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
@@ -14,11 +12,11 @@ import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '
 interface Params {
   cliSettings: CliSettings;
   options: any;
-  packageRef: PackageSpecification[];
+  packageRefs: PackageReference[];
   fromPublish: boolean;
 }
 
-export async function register({ cliSettings, options, packageRef, fromPublish }: Params) {
+export async function register({ cliSettings, options, packageRefs, fromPublish }: Params) {
   if (!cliSettings.privateKey) {
     const keyPrompt = await prompts({
       type: 'text',
@@ -43,7 +41,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   // if any of the packages are registered, throw an error
   const isRegistered = await Promise.all(
-    packageRef.map(async (pkg: PackageSpecification) => {
+    packageRefs.map(async (pkg: PackageReference) => {
       // Run the two registry checks in parallel
       const [isRegisteredOnMainnet, isRegisteredOnOptimism] = await Promise.all([
         isPackageRegistered([mainnetRegistryProvider], pkg.name, [mainnetRegistryConfig.address]),
@@ -91,7 +89,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   const registerFee = await mainnetRegistry.getRegisterFee();
 
   const transactions = await Promise.all(
-    packageRef.map((pkg: PackageSpecification, index: number) => {
+    packageRefs.map((pkg: PackageReference, index: number) => {
       const [isRegisteredOnMainnet, isRegisteredOnOptimism] = isRegistered[index];
       const shouldNominateOwner = isRegisteredOnMainnet && !isRegisteredOnOptimism;
 
@@ -116,7 +114,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   console.log('');
   console.log('You are about to register the following packages:');
-  packageRef.forEach((pkg: PackageSpecification) => console.log(' - Package:', blueBright(pkg.name)));
+  packageRefs.forEach((pkg: PackageReference) => console.log(' - Package:', blueBright(pkg.name)));
   console.log();
   console.log(
     `The transaction will cost ~${viem.formatEther(estimateGas * currentGasPrice)} ETH on ${mainnetRegistryConfig.name}.`
@@ -154,7 +152,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
       (async () => {
         // this should always resolve after the first promise but we want to make sure it runs at the same time
         return Promise.all(
-          packageRef.map((pkg: PackageSpecification) => {
+          packageRefs.map((pkg: PackageReference) => {
             const packageNameHex = viem.stringToHex(pkg.name, { size: 32 });
 
             return Promise.all([
@@ -185,7 +183,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
     if (fromPublish) {
       console.log(gray('We will continue with the publishing process.'));
     } else {
-      packageRef.map(async (pkg) => {
+      packageRefs.map(async (pkg) => {
         console.log(green(`Success - Package "${pkg.name}" has been registered.`));
       });
     }
