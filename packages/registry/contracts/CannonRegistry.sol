@@ -8,6 +8,10 @@ import {ERC2771Context} from "./ERC2771Context.sol";
 import {IOptimismL1Sender} from "./IOptimismL1Sender.sol";
 import {IOptimismL2Receiver} from "./IOptimismL2Receiver.sol";
 
+/**
+ * @title An on-chain record of contract deployments with Cannon
+ * See https://usecannon.com
+ */
 contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   using SetUtil for SetUtil.Bytes32Set;
 
@@ -107,6 +111,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   event PackageUnverify(bytes32 indexed name, address indexed verifier);
 
   uint256 public constant MIN_PACKAGE_NAME_LENGTH = 3;
+  uint256 public constant MAX_PACKAGE_PUBLISH_TAGS = 5;
   uint256 public unused = 0 wei;
   uint256 public unused2 = 0 wei;
 
@@ -127,10 +132,16 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   }
 
   /**
-   * @notice Allows for owner to withdraw collected fees.
+   * @notice Allows for owner to withdraw all collected fees.
    */
   function withdraw() external onlyOwner {
     uint256 amount = address(this).balance;
+
+    // we check that the send amount is not 0 just in case, the contract is unexpectedly empty, would save the owner some gas.
+    if (amount == 0) {
+      revert WithdrawFail(0);
+    }
+
     (bool success, ) = msg.sender.call{value: amount}("");
     if (!success) revert WithdrawFail(amount);
   }
@@ -163,34 +174,42 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   ) external payable {
     Store storage store = _store();
 
+    // has the required fee been supplied
     if (msg.value < store.publishFee) {
       revert FeeRequired(store.publishFee);
     }
 
-    if (_packageTags.length == 0 || _packageTags.length > 5) {
+    // do we have tags for the package, and not an excessive number
+    if (_packageTags.length == 0 || _packageTags.length > MAX_PACKAGE_PUBLISH_TAGS) {
       revert InvalidTags();
     }
 
+    // the deploy url must not be unset (its ok if meta is empty)
     if (bytes(_packageDeployUrl).length == 0) {
       revert InvalidUrl(_packageDeployUrl);
     }
 
+    // load data related to the package
     Package storage _p = store.packages[_packageName];
     address sender = ERC2771Context.msgSender();
 
+    // must have permission for this package
     if (!_canPublishPackage(_p, sender)) {
       revert Unauthorized();
     }
 
+    // write the deploy and meta urls to the strings storage--we will reference indirectly with their bytes16 accessor
     bytes16 packageDeployString = bytes16(_writeString(_packageDeployUrl));
     bytes16 packageMetaString = bytes16(_writeString(_packageMetaUrl));
 
+    // set the first package deploy version info (always the first tag)
     bytes32 _firstTag = _packageTags[0];
     _p.deployments[_firstTag][_variant] = CannonDeployInfo({deploy: packageDeployString, meta: packageMetaString});
     CannonDeployInfo storage _deployInfo = _p.deployments[_firstTag][_variant];
     emit PackagePublishWithFee(_packageName, _firstTag, _variant, _packageDeployUrl, _packageMetaUrl, sender, msg.value);
 
     if (_packageTags.length > 1) {
+      // all the tags should get the same deploy info, but the event will be different
       for (uint256 i = 1; i < _packageTags.length; i++) {
         bytes32 _tag = _packageTags[i];
         _p.deployments[_tag][_variant] = _deployInfo;
@@ -201,21 +220,26 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   }
 
   /**
-   * @notice Removes a package from the registry
+   * @notice Removes a package from the registry. This can be useful if a package on ethereum or optimism is taking undesired precedence, or 
+   * if the owner simply wants to clean up the display of their protocol on the website
    * @param _packageName The namespace to remove the package from
    * @param _variant The variant to remove (see publish)
    * @param _packageTags A list of tags to deregister
    */
   function unpublish(bytes32 _packageName, bytes32 _variant, bytes32[] memory _packageTags) external {
+    // load data related to the package
     Package storage _p = _store().packages[_packageName];
     address sender = ERC2771Context.msgSender();
 
+    // must have permission
     if (!_canPublishPackage(_p, sender)) {
       revert Unauthorized();
     }
 
     for (uint256 i = 0; i < _packageTags.length; i++) {
       bytes32 _tag = _packageTags[i];
+
+      // zero out package data (basically empty strings)
       _p.deployments[_tag][_variant] = CannonDeployInfo({deploy: "", meta: ""});
 
       emit PackageUnpublish(_packageName, _tag, _variant, sender);
@@ -223,7 +247,8 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   }
 
   /**
-   * @notice Changes the ownership of a package, or registers it if the package does not exist.
+   * @notice Changes the ownership of a package, or registers it if the package does not exist. This function can only be generally accessed on the L1 
+   * (on L2, only the brideg may call this function)
    * @param _packageName The namespace to change ownership or register
    * @param _owner The new owner of this package.
    */
@@ -232,37 +257,49 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     Package storage _p = store.packages[_packageName];
     address sender = ERC2771Context.msgSender();
 
+    // this function can only be called by the bridge on L2, so separate that right off the bat
+    // all the other checks are not needed on L2
+    // the condition is built the way it is to make testing much easier
     if (sender == address(_OPTIMISM_RECEIVER)) {
       _checkCrossDomainSender();
     } else if (block.chainid == _L1_CHAIN_ID) {
+      // load the package owner
       address owner = _p.owner;
-      // we cannot change owner if its already owned and the nominated owner is incorrect
-      if (owner != address(0) && (sender != _owner || _owner != _p.nominatedOwner)) {
-        revert Unauthorized();
-      }
 
-      // package new or old check
-      if (owner == address(0) && msg.value < store.registerFee) {
-        revert FeeRequired(store.registerFee);
-      } else if (owner == address(0)) {
+      // is package already registered or not? what we do depends on that
+      if (owner == address(0)) {
+        // new packages may need to pay a fee
+        if (msg.value < store.registerFee) {
+          revert FeeRequired(store.registerFee);
+        }
+
+        // name must be valid in order to register package
+        if (!validatePackageName(_packageName)) {
+          revert InvalidName(_packageName);
+        }
+
+        // emit the proper event here (yes not standard check-write-event pattern)
         emit PackageRegistered(_packageName, sender);
+      } else {
+        if (sender != _owner || _owner != _p.nominatedOwner) {
+          revert Unauthorized();
+        }
       }
 
-      // name must be valid in order to register package
-      if (owner == address(0) && !validatePackageName(_packageName)) {
-        revert InvalidName(_packageName);
-      }
-
+      // once everything is confirmed, we need to send a message to L2 to ensure it gets the same setting
       _OPTIMISM_MESSENGER.sendMessage(
         address(this),
         abi.encodeWithSelector(this.setPackageOwnership.selector, _packageName, _owner),
         200000
       );
     } else {
-      revert Unauthorized();
+      revert WrongChain(_L1_CHAIN_ID);
     }
 
+    // set the data
     _p.owner = _owner;
+    
+    // we also want to clear out any data that may remain from the previous owner
     _p.additionalPublishersLength = 0;
     _p.nominatedOwner = address(0);
 
@@ -283,13 +320,18 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     Package storage _p = _store().packages[_packageName];
     address owner = _p.owner;
 
+    // this function can only be called by the bridge on L2, so separate that right off the bat
+    // all the other checks are not needed on L2
+    // the condition is built the way it is to make testing much easier
     if (ERC2771Context.msgSender() == address(_OPTIMISM_RECEIVER)) {
       _checkCrossDomainSender();
     } else if (block.chainid == _L1_CHAIN_ID) {
+      // only owner can set additonal publishers
       if (owner != ERC2771Context.msgSender()) {
         revert Unauthorized();
       }
 
+      // sync with optimism
       _OPTIMISM_MESSENGER.sendMessage(
         address(this),
         abi.encodeWithSelector(
@@ -301,13 +343,15 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
         uint32(30000 * _additionalPublishersOptimism.length + 200000)
       );
     } else {
-      revert Unauthorized();
+      revert WrongChain(_L1_CHAIN_ID);
     }
 
+    // which additonal publishers list we use depends on the chain
     address[] memory additionalPublishers = block.chainid == _L1_CHAIN_ID
       ? _additionalPublishersEthereum
       : _additionalPublishersOptimism;
 
+    // replace each additional publisher one at a time
     for (uint256 i = 0; i < additionalPublishers.length; i++) {
       _p.additionalPublishers[i] = additionalPublishers[i];
     }
@@ -327,10 +371,12 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     address owner = _p.owner;
     address sender = ERC2771Context.msgSender();
 
+    // only the package owner can nominate a new owner
     if (owner != sender) {
       revert Unauthorized();
     }
 
+    // set the requested data
     _p.nominatedOwner = _newPackageOwner;
     emit PackageOwnerNominated(_packageName, sender, _newPackageOwner);
   }
@@ -340,6 +386,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
    * @param _packageName The package to endorse
    */
   function verifyPackage(bytes32 _packageName) external {
+    // only registered packages can be verified
     if (_store().packages[_packageName].owner == address(0)) {
       revert PackageNotFound();
     }
@@ -352,6 +399,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
    * @param _packageName The package to revoke endorsement
    */
   function unverifyPackage(bytes32 _packageName) external {
+    // only registered packages can be verified (and correspondingly, unverified)
     if (_store().packages[_packageName].owner == address(0)) {
       revert PackageNotFound();
     }
@@ -504,8 +552,11 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
    * @notice Used to more efficiently store longer strings by generating a pointer to them
    */
   function _writeString(string memory str) internal returns (bytes32) {
+    // to ensure that the same string is always stored in the same slot, we hash it and concat to a bytes16 so it can be fit into a storage slot easier
     bytes16 k = bytes16(keccak256(bytes(str)));
 
+    // save some gas by not rewriting all the slots. also prevents some future url which is intentionally
+    // gennerated to match a previously set hash (unlikely and expensive, but not impossible) from rewriting the data
     if (bytes(_store().strings[k]).length == 0) {
       _store().strings[k] = str;
     }

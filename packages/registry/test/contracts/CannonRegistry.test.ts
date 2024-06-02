@@ -177,7 +177,7 @@ describe('CannonRegistry', function () {
               await user2.getAddress(),
             ])
           );
-        }, 'Unauthorized()');
+        }, 'WrongChain(1)');
       });
 
       it('works', async () => {
@@ -494,7 +494,7 @@ describe('CannonRegistry', function () {
               [],
             ])
           );
-        }, 'Unauthorized()');
+        }, 'WrongChain(1)');
       });
 
       it('works', async () => {
@@ -584,6 +584,12 @@ describe('CannonRegistry', function () {
       await assertRevert(async () => {
         await CannonRegistry.connect(user2).withdraw();
       }, `Unauthorized("${await user2.getAddress()}")`);
+    });
+
+    it('reverts if there is no ETH in the contract to withdraw', async function () {
+      await assertRevert(async () => {
+        await CannonRegistry.connect(owner).withdraw();
+      }, 'WithdrawFail(0)');
     });
 
     it('is able to withdraw the balance', async function () {
