@@ -1,19 +1,25 @@
-//import { Metadata } from 'next';
 import { DocsLandingPage } from '@/features/Docs/DocsLandingPage';
 import { ReactElement } from 'react';
 import Layout from './_layout';
-
-/*export const metadata: Metadata = {
-  title: 'Cannon | Docs',
-  description: 'Docs',
-  openGraph: {
-    title: 'Cannon | Docs',
-    description: 'Docs',
-  },
-  };*/
+import { NextSeo } from 'next-seo';
+import defaultSEO from '@/constants/defaultSeo';
 
 export default function Docs() {
-  return <DocsLandingPage />;
+  return (
+    <>
+      <NextSeo
+        {...defaultSEO}
+        title="Cannon | Docs"
+        description="Docs"
+        openGraph={{
+          ...defaultSEO.openGraph,
+          title: 'Cannon | Docs',
+          description: 'Docs',
+        }}
+      />
+      <DocsLandingPage />
+    </>
+  );
 }
 Docs.getLayout = function getLayout(page: ReactElement) {
   return <Layout>{page}</Layout>;

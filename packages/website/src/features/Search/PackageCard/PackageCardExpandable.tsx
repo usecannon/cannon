@@ -66,6 +66,7 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
               background: 'gray.800',
             }}
             onClick={onToggle}
+            id={`${pkgs[0].name}-expandable-button`}
           >
             {isOpen ? 'Show Less' : 'Show More'}
           </Button>

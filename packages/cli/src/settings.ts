@@ -1,4 +1,3 @@
-import { getCannonRepoRegistryUrl } from '@usecannon/builder';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
@@ -7,7 +6,8 @@ import untildify from 'untildify';
 import * as viem from 'viem';
 import { parseEnv } from 'znv';
 import { z } from 'zod';
-import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_CONFIG } from './constants';
+import { DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
+import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY } from './constants';
 import { checkAndNormalizePrivateKey, filterSettings } from './helpers';
 
 const debug = Debug('cannon:cli:settings');
@@ -144,9 +144,8 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .default(fileSettings.ipfsRetries || 3),
     CANNON_IPFS_URL: z
       .string()
-      .url()
       .optional()
-      .default(fileSettings.ipfsUrl || getCannonRepoRegistryUrl()),
+      .default(fileSettings.ipfsUrl || ''),
     CANNON_PUBLISH_IPFS_URL: z
       .string()
       .url()

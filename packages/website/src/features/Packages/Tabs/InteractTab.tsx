@@ -43,13 +43,15 @@ export const InteractTab: FC<{
     queryFn: getPackage,
   });
 
-  const pathName = useRouter().pathname;
+  const pathName = useRouter().asPath;
 
   let activeContractOption: Option | undefined;
   const activeContractPath = pathName.split('interact/')[1];
+
   if (activeContractPath) {
     const [moduleName, contractName, contractAddress] =
       activeContractPath.split('/');
+
     activeContractOption = {
       moduleName,
       contractName,

@@ -1,16 +1,16 @@
 import {
   CannonStorage,
   DeploymentInfo,
+  InMemoryRegistry,
   IPFSLoader,
   OnChainRegistry,
-  InMemoryRegistry,
-  publishPackage,
+  preparePublishPackage,
 } from '@usecannon/builder';
-import * as viem from 'viem';
 import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
 import { dirSync } from 'tmp-promise';
+import * as viem from 'viem';
 import { publish } from '../commands/publish';
 import { LocalLoader } from '../loader';
 import { resolveCliSettings } from '../settings';
@@ -180,7 +180,7 @@ describe('publish command', () => {
       jest.spyOn(fs, 'readdir').mockResolvedValue(_deployDataLocalFileNames);
 
       const builder = await import('@usecannon/builder');
-      jest.spyOn(builder, 'publishPackage').mockImplementation(async () => {
+      jest.spyOn(builder, 'preparePublishPackage').mockImplementation(async () => {
         return [];
       });
     });
@@ -197,9 +197,9 @@ describe('publish command', () => {
         includeProvisioned: true,
       });
 
-      expect(publishPackage as jest.Mock).toHaveBeenCalledTimes(1);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
+      expect(preparePublishPackage as jest.Mock).toHaveBeenCalledTimes(1);
+      expect((preparePublishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
+      expect((preparePublishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
     });
 
     // Not sure if it's the expected behavior to match multiple deploy files on preset is empty
@@ -216,9 +216,9 @@ describe('publish command', () => {
         skipConfirm: true,
       });
 
-      expect(publishPackage as jest.Mock).toHaveBeenCalledTimes(1);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
+      expect(preparePublishPackage as jest.Mock).toHaveBeenCalledTimes(1);
+      expect((preparePublishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
+      expect((preparePublishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
     });
 
     // Not sure if it's the expected behavior to match multiple deploy files on chainId is zero
@@ -235,9 +235,9 @@ describe('publish command', () => {
         skipConfirm: true,
       });
 
-      expect(publishPackage as jest.Mock).toHaveBeenCalledTimes(1);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
+      expect(preparePublishPackage as jest.Mock).toHaveBeenCalledTimes(1);
+      expect((preparePublishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
+      expect((preparePublishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
     });
   });
 });
