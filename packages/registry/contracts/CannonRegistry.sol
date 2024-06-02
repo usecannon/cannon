@@ -34,7 +34,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
    * @notice Thrown when the number of tags to register for a package is too small or too large
    */
   error InvalidTags();
-  
+
   /**
    * @notice Thrown when the specified package has not been registered or has not been published
    */
@@ -44,12 +44,12 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
    * @notice See ERC7412. Thrown when the supplied payable amount is insufficient for the current operation. Can be used to discover the required fee/payment
    */
   error FeeRequired(uint256 amount);
-  
+
   /**
    * @notice Thrown when the operation cannot be performed on the current chain
    */
   error WrongChain(uint256 expectedChainId);
-  
+
   /**
    * @notice Thrown when there was a problem withdrawing collected fees from the contract
    */
@@ -220,7 +220,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   }
 
   /**
-   * @notice Removes a package from the registry. This can be useful if a package on ethereum or optimism is taking undesired precedence, or 
+   * @notice Removes a package from the registry. This can be useful if a package on ethereum or optimism is taking undesired precedence, or
    * if the owner simply wants to clean up the display of their protocol on the website
    * @param _packageName The namespace to remove the package from
    * @param _variant The variant to remove (see publish)
@@ -247,7 +247,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   }
 
   /**
-   * @notice Changes the ownership of a package, or registers it if the package does not exist. This function can only be generally accessed on the L1 
+   * @notice Changes the ownership of a package, or registers it if the package does not exist. This function can only be generally accessed on the L1
    * (on L2, only the brideg may call this function)
    * @param _packageName The namespace to change ownership or register
    * @param _owner The new owner of this package.
@@ -298,7 +298,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
 
     // set the data
     _p.owner = _owner;
-    
+
     // we also want to clear out any data that may remain from the previous owner
     _p.additionalPublishersLength = 0;
     _p.nominatedOwner = address(0);
