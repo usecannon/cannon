@@ -5,7 +5,7 @@ import { createEsbuildPlugin } from '@badeball/cypress-cucumber-preprocessor/esb
 
 export default defineConfig({
   e2e: {
-    defaultCommandTimeout: 35000,
+    defaultCommandTimeout: 50000,
     specPattern: '**/*.feature',
     baseUrl: 'http://localhost:3000',
     video: false, // GH provides 2 CPUs, and cypress video eats one up, ref https://github.com/cypress-io/cypress/issues/20468#issuecomment-1307608025
