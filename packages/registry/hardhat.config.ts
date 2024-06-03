@@ -12,7 +12,30 @@ import 'hardhat-cannon';
 dotenv.config();
 
 const config: HardhatUserConfig = {
-  solidity: '0.8.17',
+  solidity: {
+    compilers: [
+      {
+        version: '0.8.24',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+    ],
+    overrides: {
+      'contracts/Proxy.sol': {
+        version: '0.8.17',
+        settings: {
+          optimizer: {
+            enabled: false,
+            runs: 200,
+          },
+        },
+      },
+    },
+  },
   defaultNetwork: 'cannon',
   networks: {
     hardhat: {
