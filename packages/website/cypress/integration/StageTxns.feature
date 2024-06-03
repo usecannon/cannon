@@ -1,10 +1,4 @@
-Feature: Packages Page - Explore Tab
-
-  Scenario: Navigating to the explore page from the home page
-    Given User opens the "/" page
-    When User clicks on the "packages" link
-    Then URL includes "packages"
-
+Feature: Stage Transactions
   Scenario: User stages transactions from the interact page
     Given User opens the "/packages" page
     When User types "owned-greeter" in the "search" input
