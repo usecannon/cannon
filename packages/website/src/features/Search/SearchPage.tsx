@@ -131,7 +131,10 @@ export const SearchPage = () => {
               <InputLeftElement pointerEvents="none">
                 <SearchIcon color="gray.500" />
               </InputLeftElement>
-              <Input onChange={(e) => debouncedHandleSearch(e.target.value)} />
+              <Input
+                onChange={(e) => debouncedHandleSearch(e.target.value)}
+                name="search"
+              />
             </InputGroup>
 
             <Text mb={1.5} color="gray.200" fontSize="sm" fontWeight={500}>

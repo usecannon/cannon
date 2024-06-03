@@ -1,15 +1,16 @@
 import {
-  CannonStorage,
-  getProvisionedPackages,
-  IPFSLoader,
   CannonRegistry,
+  CannonStorage,
+  IPFSLoader,
   OnChainRegistry,
+  PackagePublishCall,
   PackageReference,
-  publishPackage,
+  getCannonRepoRegistryUrl,
+  preparePublishPackage,
 } from '@usecannon/builder';
-import * as viem from 'viem';
-import { blueBright, bold, gray, italic, yellow } from 'chalk';
+import { blueBright, bold, gray, yellow } from 'chalk';
 import prompts from 'prompts';
+import * as viem from 'viem';
 import { getMainLoader } from '../loader';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';
@@ -17,7 +18,7 @@ import { CliSettings } from '../settings';
 interface Params {
   packageRef: string;
   cliSettings: CliSettings;
-  tags: string[];
+  tags?: string[];
   onChainRegistry: CannonRegistry;
   chainId?: number;
   presetArg?: string;
@@ -33,11 +34,6 @@ interface DeployList {
   chainId: number;
 }
 
-interface SubPackage {
-  packagesNames: string[];
-  chainId: number;
-}
-
 export async function publish({
   packageRef,
   cliSettings,
@@ -50,12 +46,6 @@ export async function publish({
   skipConfirm = false,
 }: Params) {
   const { fullPackageRef } = new PackageReference(packageRef);
-  // Ensure publish ipfs url is set
-  if (!cliSettings.publishIpfsUrl) {
-    throw new Error(
-      `In order to publish, a publishIpfsUrl setting must be set in your Cannon configuration. Use '${process.argv[0]} setup' to configure.`
-    );
-  }
 
   // Handle deprecated preset specification
   if (presetArg && !packageRef.startsWith('@')) {
@@ -81,7 +71,7 @@ export async function publish({
   }
   // Generate CannonStorage to publish ipfs remotely and write to the registry
   const toStorage = new CannonStorage(onChainRegistry, {
-    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl),
+    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || getCannonRepoRegistryUrl()),
   });
 
   // Generate CannonStorage to retrieve the local instance of the package
@@ -150,66 +140,37 @@ export async function publish({
     return result;
   }, []);
 
-  let subPackages: SubPackage[] = [];
+  const publishCalls: PackagePublishCall[] = [];
+
+  for (const pkg of parentPackages) {
+    const publishTags: string[] = pkg.versions.concat(tags);
+
+    const calls = await preparePublishPackage({
+      packageRef: PackageReference.from(pkg.name, pkg.versions[0], pkg.preset).fullPackageRef,
+      chainId: deploys[0].chainId,
+      fromStorage,
+      toStorage,
+      tags: publishTags!,
+      includeProvisioned,
+    });
+
+    publishCalls.push(...calls);
+  }
+
   if (!skipConfirm) {
-    if (includeProvisioned) {
-      for (const pkg of parentPackages) {
-        for (const version of pkg.versions) {
-          const provisionedPackages = await getProvisionedPackages(
-            `${pkg.name}:${version}@${pkg.preset}`,
-            pkg.chainId,
-            tags,
-            fromStorage
-          );
-          subPackages.push(...provisionedPackages);
-        }
+    for (const publishCall of publishCalls) {
+      const packageName = new PackageReference(publishCall.packagesNames[0]).name;
+      console.log(blueBright(`\nThis will publish ${bold(packageName)} to the registry:`));
+      for (const fullPackageRef of publishCall.packagesNames) {
+        const { version, preset } = new PackageReference(fullPackageRef);
+        console.log(` - ${version} (preset: ${preset})`);
       }
-
-      // filter out duplicates names
-      subPackages = subPackages.map((pkg) => ({
-        ...pkg,
-        packagesNames: Array.from(new Set(pkg.packagesNames)),
-      }));
-
-      if (subPackages.length == 0) {
-        console.log(yellow('\nNo cloned packages found, publishing parent packages only...'));
-      }
-
-      parentPackages.forEach((deploy) => {
-        console.log(blueBright(`\nThis will publish ${bold(deploy.name)} to the registry:`));
-        deploy.versions.concat(tags).map((version) => {
-          console.log(` - ${version} (preset: ${deploy.preset})`);
-        });
-      });
-      console.log('\n');
-
-      subPackages.forEach((pkg: SubPackage) => {
-        const [packageName] = pkg.packagesNames;
-        console.log(
-          blueBright(
-            `This will publish ${bold(new PackageReference(packageName).name)} ${bold(
-              italic('(Cloned Package)')
-            )} to the registry:`
-          )
-        );
-        pkg.packagesNames.forEach((pkgName) => {
-          const { version, preset } = new PackageReference(pkgName);
-          console.log(` - ${version} (preset: ${preset})`);
-        });
-        console.log('\n');
-      });
-    } else {
-      parentPackages.forEach((deploy) => {
-        console.log(blueBright(`This will publish ${bold(deploy.name)}@${deploy.preset} to the registry:`));
-        deploy.versions.concat(tags).forEach((version) => {
-          console.log(` - ${version}`);
-        });
-      });
-      console.log('\n');
     }
 
+    console.log('\n');
+
     if (onChainRegistry instanceof OnChainRegistry) {
-      const totalFees = await onChainRegistry.calculatePublishingFee(parentPackages.length + subPackages.length);
+      const totalFees = await onChainRegistry.calculatePublishingFee(publishCalls.length);
 
       console.log(`Total publishing fees: ${viem.formatEther(totalFees)} ETH`);
       console.log();
@@ -232,51 +193,10 @@ export async function publish({
   console.log(gray('This may take a few minutes.'));
   console.log();
 
-  const registrationReceipts = [];
-
-  for (const pkg of parentPackages) {
-    const publishTags: string[] = pkg.versions.concat(tags);
-
-    const newReceipts = await publishPackage({
-      packageRef: PackageReference.from(pkg.name, pkg.versions[0], pkg.preset).fullPackageRef,
-      chainId: deploys[0].chainId,
-      fromStorage,
-      toStorage,
-      tags: publishTags!,
-      includeProvisioned,
-    });
-
-    registrationReceipts.push(...newReceipts);
-  }
+  const registrationReceipts = await toStorage.registry.publishMany(publishCalls);
 
   if (!quiet) {
-    console.log(bold(blueBright('Packages published:')));
-    if (includeProvisioned) {
-      parentPackages.forEach((deploy) => {
-        deploy.versions.concat(tags).forEach((ver) => {
-          const { fullPackageRef } = PackageReference.from(deploy.name, ver, deploy.preset);
-          console.log(`- ${fullPackageRef}`);
-        });
-      });
-      subPackages!.forEach((pkg) => {
-        pkg.packagesNames.forEach((pkgName) => {
-          const { fullPackageRef } = new PackageReference(pkgName);
-          console.log(`- ${fullPackageRef}`);
-        });
-      });
-    } else {
-      parentPackages.forEach((deploy) => {
-        deploy.versions.concat(tags).forEach((ver) => {
-          const { fullPackageRef } = PackageReference.from(deploy.name, ver, deploy.preset);
-          console.log(`  - ${fullPackageRef}`);
-        });
-      });
-    }
-
-    const txs = registrationReceipts.filter((tx) => !!tx);
-    if (txs.length) {
-      console.log(blueBright('Transactions:'));
-      for (const tx of txs) console.log(`  - ${tx}`);
-    }
+    console.log(blueBright('Transactions:'));
+    for (const tx of registrationReceipts) console.log(`  - ${tx}`);
   }
 }

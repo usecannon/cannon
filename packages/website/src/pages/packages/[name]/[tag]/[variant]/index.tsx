@@ -1,9 +1,11 @@
-//import { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-/*import chains from '@/helpers/chains';
+import { NextSeo } from 'next-seo';
+import defaultSEO from '@/constants/defaultSeo';
+import chains from '@/helpers/chains';
 import { find } from 'lodash';
-import { ChainData } from '@/features/Search/PackageCard/Chain';*/
+import { ChainData } from '@/features/Search/PackageCard/Chain';
+import { PackageReference } from '@usecannon/builder';
 
 import Layout from './_layout';
 import { ReactElement } from 'react';
@@ -17,7 +19,7 @@ const NoSSR = dynamic(
   }
 );
 
-/*export async function generateMetadata({
+function generateMetadata({
   params,
 }: {
   params: { name: string; tag: string; variant: string };
@@ -37,7 +39,7 @@ const NoSSR = dynamic(
     params.tag !== 'latest' ? `:${params.tag}` : ''
   }${preset !== 'main' ? `@${preset}` : ''} on ${chain.name} (ID: ${chain.id})`;
 
-  const metadata: Metadata = {
+  const metadata = {
     title,
     description,
     openGraph: {
@@ -55,16 +57,29 @@ const NoSSR = dynamic(
     },
   };
   return metadata;
-  }*/
+}
 
 export default function Deployment() {
   const params = useRouter().query;
+  const metadata = generateMetadata({ params: params as any });
   return (
-    <NoSSR
-      name={decodeURIComponent(params.name as string)}
-      tag={decodeURIComponent(params.tag as string)}
-      variant={decodeURIComponent(params.variant as string)}
-    />
+    <>
+      <NextSeo
+        {...defaultSEO}
+        title={metadata.title}
+        description={metadata.description}
+        openGraph={{
+          ...defaultSEO.openGraph,
+          title: metadata.title,
+          description: metadata.description,
+        }}
+      />
+      <NoSSR
+        name={decodeURIComponent(params.name as string)}
+        tag={decodeURIComponent(params.tag as string)}
+        variant={decodeURIComponent(params.variant as string)}
+      />
+    </>
   );
 }
 

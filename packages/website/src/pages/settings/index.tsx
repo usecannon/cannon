@@ -1,19 +1,25 @@
-//import { Metadata } from 'next';
 import dynamic from 'next/dynamic';
-
-/*export const metadata: Metadata = {
-  title: 'Cannon | Settings',
-  description: 'Settings',
-  openGraph: {
-    title: 'Cannon | Settings',
-    description: 'Settings',
-  },
-  };*/
+import { NextSeo } from 'next-seo';
+import defaultSEO from '@/constants/defaultSeo';
 
 const NoSSR = dynamic(() => import('@/features/Settings/SettingsPage'), {
   ssr: false,
 });
 
 export default function Settings() {
-  return <NoSSR />;
+  return (
+    <>
+      <NextSeo
+        {...defaultSEO}
+        title="Cannon | Settings"
+        description="Settings"
+        openGraph={{
+          ...defaultSEO.openGraph,
+          title: 'Cannon | Settings',
+          description: 'Settings',
+        }}
+      />
+      <NoSSR />
+    </>
+  );
 }
