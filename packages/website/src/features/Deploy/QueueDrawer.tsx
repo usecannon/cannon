@@ -310,6 +310,7 @@ export const QueuedTxns = ({
             </FormLabel>
             <InputGroup>
               <Input
+                name="target-input"
                 type="text"
                 borderColor="whiteAlpha.400"
                 background="black"
