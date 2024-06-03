@@ -1,8 +1,8 @@
-import { http, createConfig } from '@wagmi/core';
+import { http, createConfig, Config } from '@wagmi/core';
 import { mainnet, sepolia } from 'wagmi/chains';
 import { mock } from 'wagmi/connectors';
 
-let instance = null;
+let instance: Config | null = null;
 
 export const getE2eWagmiConfig = () => {
   if (!instance) {
