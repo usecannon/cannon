@@ -86,6 +86,13 @@ teardown() {
   assert_success
 }
 
+@test "Decode - TMF tuple array (stress)" {
+  run decode.sh 5
+  echo $output
+  assert_output --partial 'calls'
+  assert_success
+}
+
 @test "Alter - Import contract " {
   run alter-import-contract.sh
   echo $output
