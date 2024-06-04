@@ -256,8 +256,7 @@ export const QueuedTxns = ({
     .filter((i) => i !== -1);
   const txnHasError = txnsWithErrorIndexes.length > 0;
 
-  const disableExecute =
-    !targetTxn || txnHasError || !!stager.execConditionFailed;
+  const disableExecute = !targetTxn || !!stager.execConditionFailed;
 
   const renderSimulationStatus = () => {
     // if there is only one transaction or zero, we don't need to show the status
@@ -517,7 +516,6 @@ export const QueuedTxns = ({
                           isDisabled={
                             stager.signing ||
                             !targetTxn ||
-                            txnHasError ||
                             !!stager.signConditionFailed ||
                             queuedIdentifiableTxns.length === 0
                           }
@@ -562,7 +560,15 @@ export const QueuedTxns = ({
                       </Button>
                     </Tooltip>
                   </HStack>
-
+                  {txnHasError && (
+                    <Alert mt={1} status="warning" bg={'grey.900'}>
+                      <AlertIcon />
+                      <AlertDescription>
+                        Some transactions failed to simulate. You can still
+                        execute / stage the transactions.
+                      </AlertDescription>
+                    </Alert>
+                  )}
                   {stager.signConditionFailed && (
                     <Text fontSize="sm" mt={2} color="gray.300">
                       Can’t Sign: {stager.signConditionFailed}
