@@ -118,18 +118,8 @@ export function TransactionDisplay(props: {
   return (
     <Box maxW="100%" overflowX="auto">
       <Portal containerRef={props.containerRef}>
-        {prevDeployGitHash === hintData?.gitRepoHash && (
-          <Box>
-            <Flex>
-              <Box w="50%" px={2} py={1} fontWeight="semibold">
-                No cannonfile changes detected
-              </Box>
-            </Flex>
-          </Box>
-        )}
         {props.showQueueSource &&
-          props.queuedWithGitOps &&
-          prevDeployGitHash !== hintData?.gitRepoHash && (
+          props.queuedWithGitOps && (
             <Box>
               <Flex>
                 <Code w="50%" px={2} py={1}>
