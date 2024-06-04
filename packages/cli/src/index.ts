@@ -644,15 +644,8 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
 
   // after the build is done we can run the forge tests for the user
   await getProvider(node!)!.mine({ blocks: 1 });
-  const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeOpts]);
 
-  forgeProcess.stdout.on('data', (data: Buffer) => {
-    process.stdout.write(data);
-  });
-
-  forgeProcess.stderr.on('data', (data: Buffer) => {
-    process.stderr.write(data);
-  });
+  const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeOpts], { stdio: 'inherit' });
 
   await new Promise(() => {
     forgeProcess.on('close', (code: number) => {
