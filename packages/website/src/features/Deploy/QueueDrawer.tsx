@@ -285,20 +285,19 @@ export const QueuedTxns = ({
         ) : txnsWithErrorIndexes.length > 0 &&
           queuedIdentifiableTxns.length > 1 ? (
           <Flex direction={'column'} gap={4}>
-            {txnsWithErrorIndexes.map((idx) => (
-              /* This error messages just show up when simulated txns are more than 1 */
-              <Alert key={idx} bg="gray.900" status="error">
-                <AlertIcon />
-                <Box>
-                  <AlertTitle>Transaction Simulation Failed</AlertTitle>
-                  <AlertDescription fontSize="sm">
-                    {/* TODO: decode error - for this we need to have the abi of the contract */}
-                    Transaction #{idx + 1} failed with error:{' '}
-                    {txnInfo.txnResults[idx]?.error}
-                  </AlertDescription>
-                </Box>
-              </Alert>
-            ))}
+            {/* This error messages just show up when simulated txns are more
+            than 1, and just shows up the first error */}
+            <Alert bg="gray.900" status="error">
+              <AlertIcon />
+              <Box>
+                <AlertTitle>Transaction Simulation Failed</AlertTitle>
+                <AlertDescription fontSize="sm">
+                  {/* TODO: decode error - for this we need to have the abi of the contract */}
+                  Transaction #{txnsWithErrorIndexes[0] + 1} failed with error:{' '}
+                  {txnInfo.txnResults[txnsWithErrorIndexes[0]]?.error}
+                </AlertDescription>
+              </Box>
+            </Alert>
           </Flex>
         ) : (
           (txnsWithErrorIndexes.length === 0 &&
