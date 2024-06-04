@@ -12,7 +12,7 @@ export default function E2EWalletConnector() {
   const { isConnected, isConnecting } = useAccount();
 
   const shouldConnect =
-    localStorage.getItem('e2e-allet-connected') === 'true' &&
+    localStorage.getItem('e2e-wallet-connected') === 'true' &&
     !isConnected &&
     !isConnecting;
 
