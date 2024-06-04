@@ -139,6 +139,11 @@ const cloneSpec = {
 
     debug(`[clone.${importLabel}]`, 'cloning package options', importPkgOptions);
 
+    // prior to importing the name, ensure the target names/version fields are set on the definition
+    deployInfo.def.name = targetRef.name;
+    deployInfo.def.version = targetRef.version;
+    deployInfo.def.preset = targetRef.preset;
+
     const def = new ChainDefinition(deployInfo.def);
 
     // always treat upstream state as what is used if its available. otherwise, we might have a state from a previous upgrade.

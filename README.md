@@ -1,4 +1,7 @@
 # Cannon
+![Cannon](packages/website/public/images/terminal-example.svg)
+
+Cannon is a DevOps tool for EVM chains. It's a tool for testing, deploying, and publishing of smart contracts.
 
 This is the monorepo for Cannon. If you're just interested in using the project, [visit the website](https://usecannon.com).
 
@@ -6,17 +9,22 @@ This is the monorepo for Cannon. If you're just interested in using the project,
 
 For more information, please see documentation in the modules listed below:
 
+- [`api`](packages/api): Backend for the website.
 - [`cli`](packages/cli): The command-line interface. Run `npx @usecannon/cli --help` for usage information.
 - [`builder`](packages/builder): Builds chain data from cannonfiles. (This is used by the CLI.)
 - [`hardhat-cannon`](packages/hardhat-cannon): Code for the Hardhat plug-in, which wraps the CLI functionality with defaults pulled from a Hardhat project configuration.
+- [`indexer`](packages/indexer): Processes all data for cannon into a Redis database. Used on the website.
 - [`registry`](packages/registry): The smart contract for the package registry.
-- [`website`](packages/website): The website, hosted at https://usecannon.com
+- [`repo`](packages/repo): Backend for our homegrown IPFS hosting service.
+- [`website`](packages/website): The website, hosted at https://usecannon.com.
 
 Usage Examples:
 
 - [`router-architecture`](examples/router-architecture): Project demonstrating how to setup an upgradable [Router Architecture](https://www.npmjs.com/package/@synthetixio/router).
 - [`sample-hardhat-project`](examples/sample-hardhat-project): Hardhat project that demonstrates the core functionality of the `hardhat-cannon` module
 - [`sample-foundry-project`](examples/sample-hardhat-project): Foundry project that demonstrates the core functionality of the `cli` module
+
+Cannon is 100% open-source, from the dev tooling to our hosted infrastructure.
 
 ## Development
 
@@ -101,4 +109,4 @@ To trigger a new version bump run the following command (from the root of the re
 
 This project is licensed under the terms of the GNU General Public License v3.0.
 
-Copyright (C) 2023 Daniel Beal, Noah Litvin, Matías Lescano
+Copyright (C) 2024 Taihou Technologies

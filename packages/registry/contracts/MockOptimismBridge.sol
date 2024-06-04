@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.24;
 
 import {IOptimismL1Sender} from "./IOptimismL1Sender.sol";
 import {IOptimismL2Receiver} from "./IOptimismL2Receiver.sol";
