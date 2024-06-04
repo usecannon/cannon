@@ -88,6 +88,9 @@ ${printChainDefinitionProblems(problems)}`);
     } else {
       debug('building individual');
       doActions: for (const n of topologicalActions) {
+        const [type, label] = n.split('.') as [keyof typeof ActionKinds, string];
+        runtime.emit(Events.PreStepExecute, type, label, {}, 0);
+
         debug(`check action ${n}`);
         if (runtime.isCancelled()) {
           debug('runtime cancelled');
@@ -273,6 +276,9 @@ export async function buildLayer(
     }
 
     for (const action of layer.actions) {
+      const [type, label] = action.split('.') as [keyof typeof ActionKinds, string];
+      runtime.emit(Events.PreStepExecute, type, label, {}, 0);
+
       const ctx = _.cloneDeep(baseCtx);
 
       const depArtifacts: ChainArtifacts = {};
@@ -329,8 +335,6 @@ export async function buildLayer(
 
 export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageState, cfg: any, ctx: ChainBuilderContext) {
   const [type, label] = pkgState.currentLabel.split('.') as [keyof typeof ActionKinds, string];
-
-  runtime.emit(Events.PreStepExecute, type, label, cfg, 0);
 
   debugVerbose('ctx for operation', pkgState.currentLabel, ctx);
 
