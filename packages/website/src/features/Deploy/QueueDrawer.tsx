@@ -277,10 +277,10 @@ export const QueuedTxns = ({
       >
         {txnInfo.loading ? (
           <Flex w="full" justifyContent="left" alignItems="center" gap={4}>
+            <Spinner />
             <Text fontSize="sm" color="gray.300">
               Simulating transactions
             </Text>
-            <Spinner />
           </Flex>
         ) : txnsWithErrorIndexes.length > 0 &&
           queuedIdentifiableTxns.length > 1 ? (
