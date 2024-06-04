@@ -22,12 +22,14 @@ function useFork({ chainId, impersonate = [] }: { chainId: number; impersonate: 
 }
 
 export function useSimulatedTxns(safe: SafeDefinition, txns: (Omit<TransactionRequestBase, 'from'> | null)[]) {
+  const [loading, setLoading] = useState(false);
   const [txnResults, setTxnResults] = useState<(SimulatedTransactionResult | null)[]>([]);
   const [cleanStateSnapshot, setCleanStateSnapshot] = useState<string | null>(null);
   const [computedTxns, setComputedTxns] = useState<string | null>(null);
   const fork = useFork({ chainId: safe.chainId, impersonate: [safe.address] });
 
   const runTxns = async () => {
+    setLoading(true);
     if (!fork) throw new Error('Fork not loaded');
 
     const results: (SimulatedTransactionResult | null)[] = [];
@@ -70,6 +72,7 @@ export function useSimulatedTxns(safe: SafeDefinition, txns: (Omit<TransactionRe
     }
 
     setTxnResults(results);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -101,10 +104,12 @@ export function useSimulatedTxns(safe: SafeDefinition, txns: (Omit<TransactionRe
         setCleanStateSnapshot(newCleanState ?? '');
       });
     }
+
     // cant do anything until its done with current simulation
   }, [fork, txns, cleanStateSnapshot]);
 
   return {
     txnResults,
+    loading,
   };
 }
