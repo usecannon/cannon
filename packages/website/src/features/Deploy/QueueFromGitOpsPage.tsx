@@ -262,7 +262,7 @@ function QueueFromGitOps() {
 
   const multicallTxn: /*Partial<TransactionRequestBase>*/ any =
     buildInfo.buildResult &&
-    !prevInfoQuery.isLoading && 
+    !prevInfoQuery.isLoading &&
     buildInfo.buildResult.steps.indexOf(null as any) === -1
       ? makeMultisend(
           [

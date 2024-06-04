@@ -77,7 +77,6 @@ export function useGitRepo(url: string, ref: string, files: string[]) {
  * @param files the files to be included in the diff (files not part of this array are not included)
  */
 export function useGitDiff(url: string, fromRef: string, toRef: string, files: string[]) {
-
   const fromQuery = useGitRepo(url, fromRef, files);
   const toQuery = useGitRepo(url, toRef, files);
 
