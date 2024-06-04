@@ -291,11 +291,10 @@ export const QueuedTxns = ({
               <Alert key={idx} bg="gray.900" status="error">
                 <AlertIcon />
                 <Box>
-                  <AlertTitle>
-                    Simulation Error In Transaction # {idx + 1}
-                  </AlertTitle>
+                  <AlertTitle>Transaction Simulation Failed</AlertTitle>
                   <AlertDescription fontSize="sm">
                     {/* TODO: decode error - for this we need to have the abi of the contract */}
+                    Transaction #{idx + 1} failed with error:{' '}
                     {txnInfo.txnResults[idx]?.error}
                   </AlertDescription>
                 </Box>
