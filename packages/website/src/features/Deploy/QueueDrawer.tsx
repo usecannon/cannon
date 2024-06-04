@@ -304,54 +304,66 @@ export const QueuedTxns = ({
                 />
               </Box>
             ))}
-            {txnInfo.loading ? (
-              <Flex
-                w="full"
-                justifyContent="center"
-                alignItems="center"
-                gap={4}
-              >
-                <Text fontSize="sm" color="gray.300">
-                  Simulating transactions
-                </Text>
-                <Spinner />
-              </Flex>
-            ) : txnsWithErrorIndexes.length > 0 &&
-              queuedIdentifiableTxns.length > 1 ? (
-              txnsWithErrorIndexes.map((idx) => (
-                /* This error messages just show up when simulated txns are more than 1 */
-                <Alert key={idx} bg="gray.900" status="error">
-                  <AlertIcon />
-                  <Box>
-                    <AlertTitle>
-                      Simulation Error In Transaction # {idx + 1}
-                    </AlertTitle>
-                    <AlertDescription fontSize="sm">
-                      {/* TODO: decode error - for this we need to have the abi of the contract */}
-                      {txnInfo.txnResults[idx]?.error}
-                    </AlertDescription>
-                  </Box>
-                </Alert>
-              ))
-            ) : (
-              (txnsWithErrorIndexes.length === 0 &&
-                queuedIdentifiableTxns.length > 1 && (
-                  <Alert bg="green.600" status="success">
-                    <AlertIcon color="white" />
+            <Box
+              mb={8}
+              mt={8}
+              p={6}
+              bg="gray.800"
+              display="block"
+              borderWidth="1px"
+              borderStyle="solid"
+              borderColor="gray.600"
+              borderRadius="4px"
+            >
+              {txnInfo.loading ? (
+                <Flex
+                  w="full"
+                  justifyContent="left"
+                  alignItems="center"
+                  gap={4}
+                >
+                  <Text fontSize="sm" color="gray.300">
+                    Simulating transactions
+                  </Text>
+                  <Spinner />
+                </Flex>
+              ) : txnsWithErrorIndexes.length > 0 &&
+                queuedIdentifiableTxns.length > 1 ? (
+                txnsWithErrorIndexes.map((idx) => (
+                  /* This error messages just show up when simulated txns are more than 1 */
+                  <Alert key={idx} bg="gray.900" status="error">
+                    <AlertIcon />
                     <Box>
                       <AlertTitle>
-                        All Transactions Simulated Successfully
+                        Simulation Error In Transaction # {idx + 1}
                       </AlertTitle>
                       <AlertDescription fontSize="sm">
-                        {queuedIdentifiableTxns.length} simulated transaction
-                        {queuedIdentifiableTxns.length > 1 ? 's ' : ' '}
-                        went through successfully.
+                        {/* TODO: decode error - for this we need to have the abi of the contract */}
+                        {txnInfo.txnResults[idx]?.error}
                       </AlertDescription>
                     </Box>
                   </Alert>
-                )) ||
-              null
-            )}
+                ))
+              ) : (
+                (txnsWithErrorIndexes.length === 0 &&
+                  queuedIdentifiableTxns.length > 1 && (
+                    <Alert bg="grey.900" status="success">
+                      <AlertIcon />
+                      <Box>
+                        <AlertTitle>
+                          All Transactions Simulated Successfully
+                        </AlertTitle>
+                        <AlertDescription fontSize="sm">
+                          {queuedIdentifiableTxns.length} simulated transaction
+                          {queuedIdentifiableTxns.length > 1 ? 's ' : ' '}
+                          went through successfully.
+                        </AlertDescription>
+                      </Box>
+                    </Alert>
+                  )) ||
+                null
+              )}
+            </Box>
           </>
         ) : null}
         <Box
