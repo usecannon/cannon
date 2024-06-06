@@ -6,52 +6,51 @@ import prompts from 'prompts';
 import { CLI_SETTINGS_STORE } from '../constants';
 import { resolveCliSettings } from '../settings';
 import _ from 'lodash';
-import { bold, italic, yellow } from 'chalk';
+import { bold, gray, green, italic, yellow } from 'chalk';
 
 export async function setup() {
   // Setup Anvil
   await setupAnvil();
 
   const settings = resolveCliSettings();
+  const cliSettingsStore = untildify(path.join(settings.cannonDirectory, CLI_SETTINGS_STORE));
 
   // Exit if settings is already configured
   if (settings.cannonSettings) {
-    console.log('Your Cannon settings are configured in the environmental variable ____, as follows:');
+    console.log('Your Cannon settings are being explicitly defined as follows:');
     console.log(JSON.stringify(settings.cannonSettings));
     return;
   }
-
-  // Configure settings.json
   console.log(
-    'Cannon can retrieve and run packages from the registry using public Ethereum and IPFS endpoints, but you need to set custom endpoints to build and publish packages.'
+    'Cannon’s settings are optional. They can be defined in a JSON file and overridden with environment variables.\n'
   );
-
-  const cliSettingsStore = untildify(path.join(settings.cannonDirectory, CLI_SETTINGS_STORE));
+  console.log(`This will update your settings stored in ${cliSettingsStore}`);
 
   const configExists = fs.existsSync(cliSettingsStore);
   let fileSettings = configExists ? fs.readJsonSync(cliSettingsStore) : {};
 
-  if (configExists) {
-    console.log(`\nThis will update your configuration at ${cliSettingsStore} with current value:`);
-    console.dir(fileSettings);
-  } else {
-    console.log(`\nThis will store your configuration at ${cliSettingsStore} which will be created\n`);
-  }
+  Object.entries(fileSettings).map(([k, v]: [string, any]) => console.log(`${gray('›')} ${bold(k)} - ${v}`));
+  console.log('');
 
   const questions: prompts.PromptObject[] = [
     {
       type: 'text',
       name: 'publishIpfsUrl',
       message:
-        'What IPFS endpoint would you like to use when publishing packages? Avoid using Infura, as pinned files can’t be reliably accessed from other gateways. You can leave this blank and set it later.\n',
+        'Enter an IPFS URL for uploading packages when using the publish and pin commands (instead of the Cannon IPFS cluster)\n',
       initial: fileSettings.publishIpfsUrl,
     },
     {
       type: 'text',
-      name: 'ipfsUrl',
-      message:
-        'What IPFS endpoint would you like to use when building? This can be local (e.g. http://localhost:5001 when running a local IPFS daemon) or remote.\n',
-      initial: fileSettings.ipfsUrl || fileSettings.publishIpfsUrl || '',
+      name: 'readIpfsUrl',
+      message: 'Enter an IPFS URL for reading package data (in addition to the Cannon IPFS cluster)\n',
+      initial: fileSettings.readIpfsUrl,
+    },
+    {
+      type: 'text',
+      name: 'writeIpfsUrl',
+      message: 'Enter an IPFS URL for writing package data during builds (in addition to your local filesystem)\n',
+      initial: fileSettings.writeIpfsUrl,
     },
   ];
 
@@ -67,13 +66,17 @@ export async function setup() {
     fileSettings.publishIpfsUrl = response.publishIpfsUrl;
   }
 
-  if (response.ipfsUrl) {
-    fileSettings.ipfsUrl = response.ipfsUrl;
+  if (response.readIpfsUrl) {
+    fileSettings.readIpfsUrl = response.readIpfsUrl;
   }
 
-  console.log(`Writing configuration to ${cliSettingsStore}...`);
+  if (response.writeIpfsUrl) {
+    fileSettings.writeIpfsUrl = response.writeIpfsUrl;
+  }
+
+  console.log(`\nSaving ${cliSettingsStore}`);
   fileSettings = _.omitBy(fileSettings, _.isEmpty);
   await fs.mkdirp(path.dirname(cliSettingsStore));
   fs.writeFileSync(cliSettingsStore, JSON.stringify(fileSettings), 'utf8');
-  console.log('Done!');
+  console.log(green('Cannon settings updated successfully'));
 }
