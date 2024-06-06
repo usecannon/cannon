@@ -48,9 +48,8 @@ export function SimulateTransactionButton({
 
   return (
     <Button
-      w="100%"
-      size="lg"
-      fontSize="base"
+      size="sm"
+      fontSize="sm"
       as="a"
       href={`https://dashboard.tenderly.co/simulator/new?${searchParams}`}
       colorScheme="white"
