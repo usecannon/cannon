@@ -2,7 +2,7 @@
 
 import { parseHintedMulticall } from '@/helpers/cannon';
 import { truncateAddress } from '@/helpers/ethereum';
-import { createSimulationData, getSafeTransactionHash } from '@/helpers/safe';
+import { getSafeTransactionHash } from '@/helpers/safe';
 import { SafeDefinition } from '@/helpers/store';
 import { useSafeTransactions, useTxnStager } from '@/hooks/backend';
 import {
@@ -52,6 +52,7 @@ import {
   useWriteContract,
 } from 'wagmi';
 import PublishUtility from './PublishUtility';
+import { SimulateTransactionButton } from './SimulateTransactionButton';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 import 'react-diff-view/style/index.css';
@@ -347,6 +348,74 @@ function TransactionDetailsPage({
               />
               <Box position="relative">
                 <Box position="sticky" top={8}>
+                  {!isTransactionExecuted && (
+                    <Box
+                      background="gray.800"
+                      p={4}
+                      borderWidth="1px"
+                      borderColor="gray.700"
+                      mb={8}
+                    >
+                      <Heading
+                        size="sm"
+                        mb={3}
+                        fontWeight="medium"
+                        textTransform="uppercase"
+                        letterSpacing="1.5px"
+                        fontFamily="var(--font-miriam)"
+                        textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
+                      >
+                        Verify Transactions
+                      </Heading>
+                      {queuedWithGitOps && (
+                        <Box>
+                          {buildInfo.buildStatus && (
+                            <Text fontSize="sm" mb="2">
+                              {buildInfo.buildStatus}
+                            </Text>
+                          )}
+                          {buildInfo.buildError && (
+                            <Text fontSize="sm" mb="2">
+                              {buildInfo.buildError}
+                            </Text>
+                          )}
+                          {buildInfo.buildResult && !unequalTransaction && (
+                            <Text fontSize="sm" mb="2">
+                              The transactions queued to the Safe match the Git
+                              Target
+                            </Text>
+                          )}
+                          {buildInfo.buildResult && unequalTransaction && (
+                            <Text fontSize="sm" mb="2">
+                              <WarningIcon />
+                              &nbsp;Proposed Transactions Do not Match Git Diff.
+                              Could be an attack.
+                            </Text>
+                          )}
+                          {prevDeployPackageUrl &&
+                            hintData.cannonUpgradeFromPackage !==
+                              prevDeployPackageUrl && (
+                              <Flex
+                                fontSize="xs"
+                                fontWeight="medium"
+                                align="top"
+                              >
+                                <InfoOutlineIcon mt="3px" mr={1.5} />
+                                The previous deploy hash does not derive from an
+                                on-chain record.
+                              </Flex>
+                            )}
+                        </Box>
+                      )}
+                      <SimulateTransactionButton
+                        // signer is the one who queued the transaction
+                        signer={signers[0]}
+                        safe={safe}
+                        safeTxn={safeTxn}
+                        execTransactionData={stager.execTransactionData}
+                      />
+                    </Box>
+                  )}
                   <Box
                     background="gray.800"
                     p={4}
@@ -546,99 +615,6 @@ function TransactionDetailsPage({
                       </Flex>
                     )}
                   </Box>
-
-                  {!isTransactionExecuted && queuedWithGitOps && (
-                    <Box
-                      background="gray.800"
-                      p={4}
-                      borderWidth="1px"
-                      borderColor="gray.700"
-                      mb={8}
-                    >
-                      <Heading
-                        size="sm"
-                        mb={3}
-                        fontWeight="medium"
-                        textTransform="uppercase"
-                        letterSpacing="1.5px"
-                        fontFamily="var(--font-miriam)"
-                        textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                      >
-                        Verify Transactions
-                      </Heading>
-                      {buildInfo.buildStatus && (
-                        <Text fontSize="sm" mb="2">
-                          {buildInfo.buildStatus}
-                        </Text>
-                      )}
-                      {buildInfo.buildError && (
-                        <Text fontSize="sm" mb="2">
-                          {buildInfo.buildError}
-                        </Text>
-                      )}
-                      {buildInfo.buildResult && !unequalTransaction && (
-                        <Text fontSize="sm" mb="2">
-                          The transactions queued to the Safe match the Git
-                          Target
-                        </Text>
-                      )}
-                      {buildInfo.buildResult && unequalTransaction && (
-                        <Text fontSize="sm" mb="2">
-                          <WarningIcon />
-                          &nbsp;Proposed Transactions Do not Match Git Diff.
-                          Could be an attack.
-                        </Text>
-                      )}
-                      {prevDeployPackageUrl &&
-                        hintData.cannonUpgradeFromPackage !==
-                          prevDeployPackageUrl && (
-                          <Flex fontSize="xs" fontWeight="medium" align="top">
-                            <InfoOutlineIcon mt="3px" mr={1.5} />
-                            The previous deploy hash does not derive from an
-                            on-chain record.
-                          </Flex>
-                        )}
-                      {safeTxn && (
-                        <Button
-                          mt={3}
-                          size="xs"
-                          as="a"
-                          href={`https://dashboard.tenderly.co/simulator/new?block=&blockIndex=0&from=${
-                            safe.address
-                          }&gas=${8000000}&gasPrice=0&value=${
-                            safeTxn?.value
-                          }&contractAddress=${
-                            safe?.address
-                          }&rawFunctionInput=${createSimulationData(
-                            safeTxn
-                          )}&network=${
-                            safe.chainId
-                          }&headerBlockNumber=&headerTimestamp=`}
-                          colorScheme="whiteAlpha"
-                          background="whiteAlpha.100"
-                          border="1px solid"
-                          borderColor="whiteAlpha.300"
-                          leftIcon={
-                            <Image
-                              height="14px"
-                              src="/images/tenderly.svg"
-                              alt="Safe"
-                              objectFit="cover"
-                            />
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          _hover={{
-                            bg: 'whiteAlpha.200',
-                            borderColor: 'whiteAlpha.400',
-                          }}
-                        >
-                          Simulate Transaction
-                        </Button>
-                      )}
-                    </Box>
-                  )}
-
                   {queuedWithGitOps && (
                     <Box
                       background="gray.800"
