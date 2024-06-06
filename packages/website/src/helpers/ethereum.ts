@@ -1,5 +1,5 @@
 import MulticallABI from '@/abi/Multicall.json';
-import { Abi } from 'abitype/src/abi';
+import { Abi } from 'abitype';
 import { EIP7412 } from 'erc7412';
 import { PythAdapter } from 'erc7412/dist/src/adapters/pyth';
 import {
@@ -160,4 +160,13 @@ export async function contractTransaction(
  */
 export const truncateAddress = (address: string, length = 6) => {
   return `${address.slice(0, length)}...${address.slice(-length)}`;
+};
+
+/**
+ * Check if a string is a valid hex string
+ * @param data The string to check
+ * @returns Whether the string is a valid hex string
+ */
+export const isValidHex = (data: string) => {
+  return data ? data.startsWith('0x') && data.length % 2 === 0 && /^[0-9a-fA-F]*$/.test(data.slice(2)) : false;
 };

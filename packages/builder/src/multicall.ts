@@ -1,7 +1,7 @@
 import * as viem from 'viem';
 import MulticallABI from './abis/Multicall';
 
-const MULTICALL_ADDRESS = '0xE2C5658cC5C448B48141168f3e475dF8f65A1e3e';
+const MULTICALL_ADDRESS: viem.Address = '0xE2C5658cC5C448B48141168f3e475dF8f65A1e3e';
 
 export interface TxData {
   abi: viem.Abi;
@@ -12,6 +12,7 @@ export interface TxData {
 }
 
 export function prepareMulticall(txns: TxData[]) {
+  // Calculate the total value of all transactions
   const value = txns.reduce((val, txn) => {
     return val + (BigInt(txn.value || 0) || BigInt(0));
   }, BigInt(0));

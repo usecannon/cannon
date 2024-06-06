@@ -1,4 +1,3 @@
-import { getCannonRepoRegistryUrl } from '@usecannon/builder';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
@@ -7,7 +6,8 @@ import untildify from 'untildify';
 import * as viem from 'viem';
 import { parseEnv } from 'znv';
 import { z } from 'zod';
-import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_CONFIG } from './constants';
+import { DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
+import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY } from './constants';
 import { checkAndNormalizePrivateKey, filterSettings } from './helpers';
 
 const debug = Debug('cannon:cli:settings');
@@ -53,6 +53,7 @@ export type CliSettings = {
    */
   registries: {
     chainId?: number;
+    name: string;
     providerUrl?: string[];
     address: viem.Address;
   }[];
@@ -143,9 +144,8 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .default(fileSettings.ipfsRetries || 3),
     CANNON_IPFS_URL: z
       .string()
-      .url()
       .optional()
-      .default(fileSettings.ipfsUrl || getCannonRepoRegistryUrl()),
+      .default(fileSettings.ipfsUrl || ''),
     CANNON_PUBLISH_IPFS_URL: z
       .string()
       .url()
@@ -214,6 +214,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
         CANNON_REGISTRY_ADDRESS && (CANNON_REGISTRY_PROVIDER_URL || CANNON_REGISTRY_CHAIN_ID)
           ? [
               {
+                name: 'Custom Network',
                 providerUrl: CANNON_REGISTRY_PROVIDER_URL ? [CANNON_REGISTRY_PROVIDER_URL] : undefined,
                 chainId: CANNON_REGISTRY_CHAIN_ID ? Number(CANNON_REGISTRY_CHAIN_ID) : undefined,
                 address: CANNON_REGISTRY_ADDRESS as viem.Address,
@@ -235,6 +236,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
   if (overrides.registryAddress && (overrides.registryProviderUrl || overrides.registryChainId)) {
     finalSettings.registries = [
       {
+        name: 'Custom Network',
         providerUrl: overrides.registryProviderUrl ? [overrides.registryProviderUrl] : undefined,
         chainId: overrides.registryChainId ? Number(overrides.registryChainId) : undefined,
         address: overrides.registryAddress ? overrides.registryAddress : (CANNON_REGISTRY_ADDRESS as viem.Address),

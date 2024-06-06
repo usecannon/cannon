@@ -1,7 +1,8 @@
 'use client';
 
 import { parseHintedMulticall } from '@/helpers/cannon';
-import { createSimulationData, getSafeTransactionHash } from '@/helpers/safe';
+import { truncateAddress } from '@/helpers/ethereum';
+import { getSafeTransactionHash } from '@/helpers/safe';
 import { SafeDefinition } from '@/helpers/store';
 import { useSafeTransactions, useTxnStager } from '@/hooks/backend';
 import {
@@ -36,7 +37,7 @@ import {
 } from '@chakra-ui/react';
 import * as chains from '@wagmi/core/chains';
 import _, { find } from 'lodash';
-import { FC, useEffect, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import {
   Address,
   hexToString,
@@ -47,26 +48,32 @@ import {
 import {
   useAccount,
   useChainId,
-  useWriteContract,
   usePublicClient,
+  useWriteContract,
 } from 'wagmi';
 import PublishUtility from './PublishUtility';
+import { SimulateTransactionButton } from './SimulateTransactionButton';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 import 'react-diff-view/style/index.css';
-import { truncateAddress } from '@/helpers/ethereum';
 
-const TransactionDetailsPage: FC<{
+interface Props {
   safeAddress: string;
   chainId: string;
   nonce: string;
   sigHash: string;
-}> = ({ safeAddress, chainId, nonce, sigHash }) => {
+}
+
+function TransactionDetailsPage({
+  safeAddress,
+  chainId,
+  nonce,
+  sigHash,
+}: Props) {
   const [executionTxnHash, setExecutionTxnHash] = useState<string | null>(null);
   const publicClient = usePublicClient();
   const walletChainId = useChainId();
   const account = useAccount();
-
   const parsedChainId = parseInt(chainId ?? '0') || 0;
   const parsedNonce = parseInt(nonce ?? '0') || 0;
 
@@ -74,10 +81,19 @@ const TransactionDetailsPage: FC<{
     safeAddress = zeroAddress;
   }
 
-  const safe: SafeDefinition = {
-    chainId: parsedChainId,
-    address: safeAddress as Address,
-  };
+  const safe = useMemo(
+    () =>
+      ({
+        chainId: parsedChainId,
+        address: safeAddress as Address,
+      } as SafeDefinition),
+    [parsedChainId, safeAddress]
+  );
+
+  const safeChain = useMemo(() => {
+    if (!safe) return;
+    return find(chains, (chain: any) => chain.id === safe.chainId);
+  }, [safe]);
 
   const {
     nonce: safeNonce,
@@ -104,7 +120,7 @@ const TransactionDetailsPage: FC<{
           txn._nonce.toString() === nonce &&
           (!sigHash || sigHash === getSafeTransactionHash(safe, txn))
       ) || null;
-  } else if (staged) {
+  } else if (Array.isArray(staged) && staged.length) {
     safeTxn =
       staged.find(
         (s) =>
@@ -182,13 +198,13 @@ const TransactionDetailsPage: FC<{
     prevCannonDeployInfo.pkg
   );
 
-  useEffect(
-    () => buildInfo.doBuild(),
-    [
-      !isTransactionExecuted &&
-        (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
-    ]
-  );
+  useEffect(() => {
+    if (!safe || !cannonDefInfo.def || !prevCannonDeployInfo.pkg) return;
+    buildInfo.doBuild();
+  }, [
+    !isTransactionExecuted &&
+      (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
+  ]);
 
   // compare proposed build info with expected transaction batch
   const expectedTxns = buildInfo.buildResult?.steps?.map(
@@ -207,22 +223,20 @@ const TransactionDetailsPage: FC<{
       }));
 
   const etherscanUrl =
-    (Object.values(chains).find((chain) => chain.id == safe.chainId) as any)
-      ?.blockExplorers?.default?.url ?? 'https://etherscan.io';
+    safeChain?.blockExplorers?.default.url || 'https://etherscan.io';
 
   const signers: Array<string> = stager.existingSigners.length
     ? stager.existingSigners
     : safeTxn?.confirmedSigners || [];
 
-  const threshold: number =
+  const threshold =
     Number(stager.requiredSigners) || safeTxn?.confirmationsRequired || 0;
 
   const remainingSignatures = threshold - signers.length;
 
-  const chainName = find(
-    chains,
-    (chain: any) => chain.id === safe.chainId
-  )?.name;
+  const chainName = safeChain?.name;
+
+  const gitDiffContainerRef = useRef<HTMLDivElement>(null);
 
   return (
     <>
@@ -267,6 +281,59 @@ const TransactionDetailsPage: FC<{
           </Box>
 
           <Container maxW="container.lg" mt={[6, 6, 12]}>
+            {queuedWithGitOps && (
+              <Box
+                background="gray.800"
+                p={4}
+                borderWidth="1px"
+                borderColor="gray.700"
+                mb={6}
+              >
+                <Flex mb={3} alignItems="center">
+                  <Heading
+                    size="sm"
+                    fontWeight="medium"
+                    textTransform="uppercase"
+                    letterSpacing="1.5px"
+                    fontFamily="var(--font-miriam)"
+                    textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
+                  >
+                    Cannonfile Diff
+                  </Heading>
+
+                  {hintData.gitRepoUrl && (
+                    <Link
+                      ml="auto"
+                      href={'https:' + hintData.gitRepoUrl.split(':')[1]}
+                      textDecoration="none"
+                      _hover={{ textDecoration: 'none' }}
+                      display="flex"
+                      alignItems="center"
+                    >
+                      <Image
+                        display="inline-block"
+                        src="/images/github-mark-white.svg"
+                        alt="github"
+                        height="14px"
+                        mr={1.5}
+                      />
+                      <Text
+                        fontSize="xs"
+                        display="inline"
+                        borderBottom="1px solid"
+                        borderBottomColor="gray.500"
+                      >
+                        View Repo
+                      </Text>
+                    </Link>
+                  )}
+                </Flex>
+
+                <Box overflowY="auto" maxH="345px">
+                  <Box ref={gitDiffContainerRef} />
+                </Box>
+              </Box>
+            )}
             <Grid
               templateColumns={{ base: 'repeat(1, 1fr)', lg: '2fr 1fr' }}
               gap={6}
@@ -277,9 +344,78 @@ const TransactionDetailsPage: FC<{
                 queuedWithGitOps={queuedWithGitOps}
                 showQueueSource={true}
                 isTransactionExecuted={isTransactionExecuted}
+                containerRef={gitDiffContainerRef}
               />
               <Box position="relative">
                 <Box position="sticky" top={8}>
+                  {!isTransactionExecuted && (
+                    <Box
+                      background="gray.800"
+                      p={4}
+                      borderWidth="1px"
+                      borderColor="gray.700"
+                      mb={8}
+                    >
+                      <Heading
+                        size="sm"
+                        mb={3}
+                        fontWeight="medium"
+                        textTransform="uppercase"
+                        letterSpacing="1.5px"
+                        fontFamily="var(--font-miriam)"
+                        textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
+                      >
+                        Verify Transactions
+                      </Heading>
+                      {queuedWithGitOps && (
+                        <Box>
+                          {buildInfo.buildStatus && (
+                            <Text fontSize="sm" mb="2">
+                              {buildInfo.buildStatus}
+                            </Text>
+                          )}
+                          {buildInfo.buildError && (
+                            <Text fontSize="sm" mb="2">
+                              {buildInfo.buildError}
+                            </Text>
+                          )}
+                          {buildInfo.buildResult && !unequalTransaction && (
+                            <Text fontSize="sm" mb="2">
+                              The transactions queued to the Safe match the Git
+                              Target
+                            </Text>
+                          )}
+                          {buildInfo.buildResult && unequalTransaction && (
+                            <Text fontSize="sm" mb="2">
+                              <WarningIcon />
+                              &nbsp;Proposed Transactions Do not Match Git Diff.
+                              Could be an attack.
+                            </Text>
+                          )}
+                          {prevDeployPackageUrl &&
+                            hintData.cannonUpgradeFromPackage !==
+                              prevDeployPackageUrl && (
+                              <Flex
+                                fontSize="xs"
+                                fontWeight="medium"
+                                align="top"
+                              >
+                                <InfoOutlineIcon mt="3px" mr={1.5} />
+                                The previous deploy hash does not derive from an
+                                on-chain record.
+                              </Flex>
+                            )}
+                        </Box>
+                      )}
+                      <SimulateTransactionButton
+                        // signer is the one who queued the transaction
+                        signer={signers[0]}
+                        safe={safe}
+                        safeTxn={safeTxn}
+                        execTransactionData={stager.execTransactionData}
+                      />
+                    </Box>
+                  )}
                   <Box
                     background="gray.800"
                     p={4}
@@ -301,8 +437,8 @@ const TransactionDetailsPage: FC<{
                           Signatures
                         </Heading>
 
-                        {signers?.map((s, index) => (
-                          <Box mt={2.5} key={index}>
+                        {signers?.map((s) => (
+                          <Box mt={2.5} key={s}>
                             <Box
                               backgroundColor="teal.500"
                               borderRadius="full"
@@ -390,14 +526,24 @@ const TransactionDetailsPage: FC<{
                                 mb={3}
                                 w="100%"
                                 isDisabled={
+                                  stager.signing ||
                                   stager.alreadySigned ||
                                   executionTxnHash ||
                                   ((safeTxn &&
                                     !!stager.signConditionFailed) as any)
                                 }
-                                onClick={() => stager.sign()}
+                                onClick={async () => {
+                                  await stager.sign();
+                                }}
                               >
-                                Sign
+                                {stager.signing ? (
+                                  <>
+                                    Currently Signing
+                                    <Spinner size="sm" ml={2} />
+                                  </>
+                                ) : (
+                                  'Sign'
+                                )}
                               </Button>
                             </Tooltip>
                             <Tooltip label={stager.execConditionFailed}>
@@ -469,99 +615,6 @@ const TransactionDetailsPage: FC<{
                       </Flex>
                     )}
                   </Box>
-
-                  {!isTransactionExecuted && queuedWithGitOps && (
-                    <Box
-                      background="gray.800"
-                      p={4}
-                      borderWidth="1px"
-                      borderColor="gray.700"
-                      mb={8}
-                    >
-                      <Heading
-                        size="sm"
-                        mb={3}
-                        fontWeight="medium"
-                        textTransform="uppercase"
-                        letterSpacing="1.5px"
-                        fontFamily="var(--font-miriam)"
-                        textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                      >
-                        Verify Transactions
-                      </Heading>
-                      {buildInfo.buildStatus && (
-                        <Text fontSize="sm" mb="2">
-                          {buildInfo.buildStatus}
-                        </Text>
-                      )}
-                      {buildInfo.buildError && (
-                        <Text fontSize="sm" mb="2">
-                          {buildInfo.buildError}
-                        </Text>
-                      )}
-                      {buildInfo.buildResult && !unequalTransaction && (
-                        <Text fontSize="sm" mb="2">
-                          The transactions queued to the Safe match the Git
-                          Target
-                        </Text>
-                      )}
-                      {buildInfo.buildResult && unequalTransaction && (
-                        <Text fontSize="sm" mb="2">
-                          <WarningIcon />
-                          &nbsp;Proposed Transactions Do not Match Git Diff.
-                          Could be an attack.
-                        </Text>
-                      )}
-                      {prevDeployPackageUrl &&
-                        hintData.cannonUpgradeFromPackage !==
-                          prevDeployPackageUrl && (
-                          <Flex fontSize="xs" fontWeight="medium" align="top">
-                            <InfoOutlineIcon mt="3px" mr={1.5} />
-                            The previous deploy hash does not derive from an
-                            on-chain record.
-                          </Flex>
-                        )}
-                      {safeTxn && (
-                        <Button
-                          mt={3}
-                          size="xs"
-                          as="a"
-                          href={`https://dashboard.tenderly.co/simulator/new?block=&blockIndex=0&from=${
-                            safe.address
-                          }&gas=${8000000}&gasPrice=0&value=${
-                            safeTxn?.value
-                          }&contractAddress=${
-                            safe?.address
-                          }&rawFunctionInput=${createSimulationData(
-                            safeTxn
-                          )}&network=${
-                            safe.chainId
-                          }&headerBlockNumber=&headerTimestamp=`}
-                          colorScheme="whiteAlpha"
-                          background="whiteAlpha.100"
-                          border="1px solid"
-                          borderColor="whiteAlpha.300"
-                          leftIcon={
-                            <Image
-                              height="14px"
-                              src="/images/tenderly.svg"
-                              alt="Safe"
-                              objectFit="cover"
-                            />
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          _hover={{
-                            bg: 'whiteAlpha.200',
-                            borderColor: 'whiteAlpha.400',
-                          }}
-                        >
-                          Simulate Transaction
-                        </Button>
-                      )}
-                    </Box>
-                  )}
-
                   {queuedWithGitOps && (
                     <Box
                       background="gray.800"
@@ -599,6 +652,6 @@ const TransactionDetailsPage: FC<{
       )}
     </>
   );
-};
+}
 
 export default TransactionDetailsPage;

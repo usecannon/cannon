@@ -6,3 +6,4 @@ local.graphql
 
 # next.js build output
 .next/
+out/

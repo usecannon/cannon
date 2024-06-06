@@ -28,7 +28,7 @@ import {
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
-import { Abi, AbiFunction } from 'abitype/src/abi';
+import { Abi, AbiFunction } from 'abitype';
 import React, { FC, useMemo, useState } from 'react';
 import {
   Address,
@@ -45,7 +45,7 @@ import {
   useSwitchChain,
   useWalletClient,
 } from 'wagmi';
-import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { useQueueTxsStore, useStore } from '@/helpers/store';
 
 export const Function: FC<{
@@ -58,6 +58,7 @@ export const Function: FC<{
   onDrawerOpen?: () => void;
   collapsible?: boolean;
   showFunctionSelector: boolean;
+  packageUrl?: string;
 }> = ({
   f,
   abi /*, cannonOutputs */,
@@ -67,10 +68,11 @@ export const Function: FC<{
   onDrawerOpen,
   collapsible,
   showFunctionSelector,
+  packageUrl,
 }) => {
   const { isOpen, onToggle } = useDisclosure();
   const currentSafe = useStore((s) => s.currentSafe);
-  const pathName = usePathname();
+  const pathName = useRouter().pathname;
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
   const [error, setError] = useState<any>(null);
@@ -274,6 +276,7 @@ export const Function: FC<{
           fn: f,
           params,
           chainId,
+          pkgUrl: packageUrl || '',
         },
       ],
       safeId: `${currentSafe.chainId}:${currentSafe.address}`,
@@ -284,12 +287,11 @@ export const Function: FC<{
     });
 
     toast({
-      title: 'Transaction queued',
+      title: `Total transactions queued: ${lastQueuedTxnsId + 1}`,
       status: 'success',
       duration: 5000,
       isClosable: true,
     });
-    onDrawerOpen?.();
   };
 
   const renderFunctionContent = () => (
@@ -458,6 +460,7 @@ export const Function: FC<{
                   Submit using wallet {!simulated && statusIcon}
                 </Button>
                 <Button
+                  id={`${f.name}-stage-to-safe`}
                   isLoading={loading}
                   colorScheme="teal"
                   bg="teal.900"

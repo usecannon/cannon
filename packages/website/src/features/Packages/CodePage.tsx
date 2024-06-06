@@ -5,9 +5,10 @@ import { Flex } from '@chakra-ui/react';
 import { CodeExplorer } from '@/features/Packages/CodeExplorer';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { Address } from 'viem';
-import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
 import { getPackage } from '@/helpers/api';
+import { PackageReference } from '@usecannon/builder';
 
 export const CodePage: FC<{
   name: string;
@@ -16,16 +17,16 @@ export const CodePage: FC<{
   moduleName?: string;
   contractAddress?: Address;
 }> = ({ name, tag, variant, moduleName }) => {
-  const [chainId, preset] = variant.split('-');
+  const [chainId, preset] = PackageReference.parseVariant(variant);
 
   const packagesQuery = useQuery({
     queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],
     queryFn: getPackage,
   });
 
-  const searchParams = useSearchParams();
-  const source = searchParams.get('source') || '';
-  const functionName = searchParams.get('function') || '';
+  const searchParams = useRouter().query;
+  const source = (searchParams.source as string) || '';
+  const functionName = (searchParams.function as string) || '';
 
   if (packagesQuery.isPending) {
     return <CustomSpinner m="auto" />;

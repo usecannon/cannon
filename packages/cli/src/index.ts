@@ -12,6 +12,7 @@ import {
   PackageReference,
   publishPackage,
   traceActions,
+  DEFAULT_REGISTRY_CONFIG,
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
@@ -22,7 +23,6 @@ import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
-import { DEFAULT_REGISTRY_CONFIG } from './constants';
 import {
   checkAndNormalizePrivateKey,
   checkCannonVersion,
@@ -76,13 +76,6 @@ program
   .version(pkg.version)
   .description('Run a cannon package on a local node')
   .enablePositionalOptions()
-  .option('-v', 'print logs for builder,equivalent to DEBUG=cannon:builder')
-  .option(
-    '-vv',
-    'print logs for builder and its definition section,equivalent to DEBUG=cannon:builder,cannon:builder:definition'
-  )
-  .option('-vvv', 'print logs for builder and its all sub sections,equivalent to DEBUG=cannon:builder*')
-  .option('-vvvv', 'print all cannon logs,equivalent to DEBUG=cannon:*')
   .hook('preAction', async (thisCommand) => {
     await checkCannonVersion(pkg.version);
     setDebugLevel(thisCommand.opts());
@@ -311,7 +304,8 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
 
   ipfsHash = ipfsHash.replace(/^ipfs:\/\//, '');
 
-  const fromStorage = new CannonStorage(new InMemoryRegistry(), getMainLoader(cliSettings));
+  const fromStorage = new CannonStorage(await createDefaultReadRegistry(cliSettings), getMainLoader(cliSettings));
+
   const toStorage = new CannonStorage(new InMemoryRegistry(), {
     ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
   });
@@ -329,7 +323,10 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
   console.log('Done!');
 });
 
-applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (packageRef, options) {
+applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (
+  packageRef,
+  options: { [opt: string]: string }
+) {
   const { publish } = await import('./commands/publish');
 
   const cliSettings = resolveCliSettings(options);
@@ -346,7 +343,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       throw new Error('A valid Chain Id is required.');
     }
 
-    options.chainId = Number(chainIdPrompt.value);
+    options.chainId = chainIdPrompt.value;
   }
 
   if (!cliSettings.privateKey) {
@@ -398,11 +395,14 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
   if (isDefaultSettings) {
     // Check if the package is already registered
-    const [, mainnet] = DEFAULT_REGISTRY_CONFIG;
+    const [optimism, mainnet] = DEFAULT_REGISTRY_CONFIG;
 
     const [optimismProvider, mainnetProvider] = await resolveRegistryProviders(cliSettings);
 
-    const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, mainnet.address);
+    const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, [
+      mainnet.address,
+      optimism.address,
+    ]);
 
     if (!isRegistered) {
       console.log();
@@ -428,7 +428,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
       const { register } = await import('./commands/register');
 
-      await register({ cliSettings, options, packageRef, fromPublish: true });
+      await register({ cliSettings, options, packageRefs: [new PackageReference(packageRef)], fromPublish: true });
     }
   }
 
@@ -471,11 +471,11 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     cliSettings,
     onChainRegistry,
     tags: options.tags ? options.tags.split(',') : undefined,
-    chainId: options.chainId ? options.chainId : undefined,
+    chainId: options.chainId ? Number(options.chainId) : undefined,
     presetArg: options.preset ? (options.preset as string) : undefined,
-    quiet: options.quiet,
+    quiet: !!options.quiet,
     includeProvisioned: !options.excludeCloned,
-    skipConfirm: options.skipConfirm,
+    skipConfirm: !!options.skipConfirm,
   });
 });
 
@@ -492,7 +492,7 @@ applyCommandsConfig(program.command('register'), commandsConfig.register).action
 
   const cliSettings = resolveCliSettings(options);
 
-  await register({ cliSettings, options, packageRef, fromPublish: false });
+  await register({ cliSettings, options, packageRefs: packageRef, fromPublish: false });
 });
 
 applyCommandsConfig(program.command('publishers'), commandsConfig.publishers).action(async function (packageRef, options) {
@@ -644,15 +644,8 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
 
   // after the build is done we can run the forge tests for the user
   await getProvider(node!)!.mine({ blocks: 1 });
-  const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeOpts]);
 
-  forgeProcess.stdout.on('data', (data: Buffer) => {
-    process.stdout.write(data);
-  });
-
-  forgeProcess.stderr.on('data', (data: Buffer) => {
-    process.stderr.write(data);
-  });
+  const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeOpts], { stdio: 'inherit' });
 
   await new Promise(() => {
     forgeProcess.on('close', (code: number) => {

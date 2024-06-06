@@ -1,17 +1,16 @@
 import {
-  CannonSigner,
   CannonStorage,
   DeploymentInfo,
+  InMemoryRegistry,
   IPFSLoader,
   OnChainRegistry,
-  publishPackage,
+  preparePublishPackage,
 } from '@usecannon/builder';
-import * as viem from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
 import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
 import { dirSync } from 'tmp-promise';
+import * as viem from 'viem';
 import { publish } from '../commands/publish';
 import { LocalLoader } from '../loader';
 import { resolveCliSettings } from '../settings';
@@ -24,9 +23,7 @@ describe('publish command', () => {
   const fullPackageRef = `package:1.2.3@${preset}`;
   const basePackageRef = 'package:1.2.3';
   const otherPreset = 'other';
-  let signer: CannonSigner;
-  let provider: viem.PublicClient;
-  let onChainRegistry: OnChainRegistry;
+  let onChainRegistry: InMemoryRegistry;
   const deployDataLocalFileName = `${basePackageRef.replace(':', '_')}_${chainId}-${preset}.txt`;
   const deployDataLocalFileNameLatest = `package_latest_${chainId}-${preset}.txt`;
   const miscData = { misc: 'info' };
@@ -71,9 +68,7 @@ describe('publish command', () => {
       })
     );
 
-    const privateKey = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
-    signer = { address: privateKeyToAccount(privateKey).address, wallet: {} as any };
-    onChainRegistry = new OnChainRegistry({ signer, provider, address: '0x' });
+    onChainRegistry = new InMemoryRegistry();
   });
 
   beforeEach(() => {
@@ -154,13 +149,8 @@ describe('publish command', () => {
       skipConfirm: true,
     });
 
-    expect(OnChainRegistry.prototype.publish as jest.Mock).toHaveBeenCalledTimes(1);
-    expect(OnChainRegistry.prototype.publish as jest.Mock).toHaveBeenCalledWith(
-      [fullPackageRef, ...tags.map((tag) => `package:${tag}@${preset}`)],
-      chainId,
-      testPkgDataNewIpfsUrl,
-      testPkgNewMetaIpfsUrl
-    );
+    expect(await onChainRegistry.getUrl(fullPackageRef, chainId)).toEqual(testPkgDataNewIpfsUrl);
+    expect(await onChainRegistry.getUrl(`package:tag0@${preset}`, chainId)).toEqual(testPkgDataNewIpfsUrl);
   });
 
   it('should publish the package to the registry with no tags', async () => {
@@ -176,10 +166,7 @@ describe('publish command', () => {
       includeProvisioned: true,
     });
 
-    expect(OnChainRegistry.prototype.publishMany as jest.Mock).toHaveBeenCalledTimes(1);
-    // the first call to publishMany first argument has a property packagesNames which is an array of strings
-    // the first element is the package name and the rest are the tags
-    expect((OnChainRegistry.prototype.publishMany as jest.Mock).mock.calls[0][0][0].packagesNames).toEqual([fullPackageRef]);
+    expect(await onChainRegistry.getUrl(fullPackageRef, chainId)).toEqual(testPkgDataNewIpfsUrl);
   });
 
   describe('scanDeploys', () => {
@@ -193,7 +180,7 @@ describe('publish command', () => {
       jest.spyOn(fs, 'readdir').mockResolvedValue(_deployDataLocalFileNames);
 
       const builder = await import('@usecannon/builder');
-      jest.spyOn(builder, 'publishPackage').mockImplementation(async () => {
+      jest.spyOn(builder, 'preparePublishPackage').mockImplementation(async () => {
         return [];
       });
     });
@@ -210,9 +197,9 @@ describe('publish command', () => {
         includeProvisioned: true,
       });
 
-      expect(publishPackage as jest.Mock).toHaveBeenCalledTimes(1);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
+      expect(preparePublishPackage as jest.Mock).toHaveBeenCalledTimes(1);
+      expect((preparePublishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
+      expect((preparePublishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
     });
 
     // Not sure if it's the expected behavior to match multiple deploy files on preset is empty
@@ -229,9 +216,9 @@ describe('publish command', () => {
         skipConfirm: true,
       });
 
-      expect(publishPackage as jest.Mock).toHaveBeenCalledTimes(1);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
+      expect(preparePublishPackage as jest.Mock).toHaveBeenCalledTimes(1);
+      expect((preparePublishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
+      expect((preparePublishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
     });
 
     // Not sure if it's the expected behavior to match multiple deploy files on chainId is zero
@@ -248,9 +235,9 @@ describe('publish command', () => {
         skipConfirm: true,
       });
 
-      expect(publishPackage as jest.Mock).toHaveBeenCalledTimes(1);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
+      expect(preparePublishPackage as jest.Mock).toHaveBeenCalledTimes(1);
+      expect((preparePublishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
+      expect((preparePublishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
     });
   });
 });

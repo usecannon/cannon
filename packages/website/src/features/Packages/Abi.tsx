@@ -11,10 +11,10 @@ import {
 import _ from 'lodash';
 import * as viem from 'viem';
 import NextLink from 'next/link';
-import { useParams } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { ChainArtifacts } from '@usecannon/builder';
 import { FC, useContext, useEffect, useMemo, useRef } from 'react';
-import { AbiFunction, Abi as AbiType } from 'abitype/src/abi';
+import { AbiFunction, Abi as AbiType } from 'abitype';
 import { Function } from '@/features/Packages/Function';
 import { HasSubnavContext } from './Tabs/InteractTab';
 
@@ -25,6 +25,7 @@ export const Abi: FC<{
   chainId: number;
   contractSource?: string;
   onDrawerOpen?: () => void;
+  packageUrl?: string;
 }> = ({
   abi,
   contractSource,
@@ -32,8 +33,9 @@ export const Abi: FC<{
   cannonOutputs,
   chainId,
   onDrawerOpen,
+  packageUrl,
 }) => {
-  const params = useParams();
+  const params = useRouter().query;
 
   const functions = useMemo<AbiFunction[]>(
     () =>
@@ -246,6 +248,7 @@ export const Abi: FC<{
                 onDrawerOpen={onDrawerOpen}
                 collapsible
                 showFunctionSelector={false}
+                packageUrl={packageUrl}
               />
             ))}
           </Flex>

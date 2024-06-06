@@ -10,6 +10,10 @@ import { useSimulatedTxns } from '@/hooks/fork';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { AddIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
+  AlertTitle,
   Box,
   Button,
   Drawer,
@@ -31,14 +35,15 @@ import {
   Text,
   Tooltip,
   useToast,
+  Flex,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { useRouter } from 'next/navigation';
-import React, { Suspense, useState } from 'react';
+import { useRouter } from 'next/router';
+import React, { useState } from 'react';
 import {
   AbiFunction,
+  Address,
   encodeAbiParameters,
-  Hex,
   isAddress,
   TransactionRequestBase,
   zeroAddress,
@@ -47,7 +52,9 @@ import { useAccount, useWriteContract } from 'wagmi';
 import NoncePicker from './NoncePicker';
 import { QueueTransaction } from './QueueTransaction';
 import { SafeAddressInput } from './SafeAddressInput';
+import { isValidHex } from '@/helpers/ethereum';
 import 'react-diff-view/style/index.css';
+import ClientOnly from '@/components/ClientOnly';
 
 export const QueuedTxns = ({
   onDrawerClose,
@@ -56,7 +63,8 @@ export const QueuedTxns = ({
 }) => {
   const account = useAccount();
   const { openConnectModal } = useConnectModal();
-
+  const [customTxnData, setCustomTxnData] = useState<string>();
+  const customTxnDataIsValid = isValidHex(customTxnData || '');
   const currentSafe = useStore((s) => s.currentSafe);
   const router = useRouter();
   const { safes, setQueuedIdentifiableTxns, setLastQueuedTxnsId } =
@@ -87,6 +95,10 @@ export const QueuedTxns = ({
     .map((item) => item.txn)
     .filter((txn) => !!txn);
 
+  const pkgUrlString = queuedIdentifiableTxns
+    .map((txn) => txn.pkgUrl)
+    .join(',');
+
   const targetTxn: Partial<SafeTransaction> =
     queuedTxns.length > 0
       ? makeMultisend([
@@ -94,7 +106,7 @@ export const QueuedTxns = ({
             to: zeroAddress,
             data: encodeAbiParameters(
               [{ type: 'string[]' }],
-              [['invoke', cannonInfo.pkgUrl || '']]
+              [['invoke', pkgUrlString]]
             ),
           } as Partial<TransactionRequestBase>,
           ...queuedTxns,
@@ -126,9 +138,9 @@ export const QueuedTxns = ({
       : {},
     {
       safe: currentSafe!,
-      onSignComplete() {
+      async onSignComplete() {
         if (onDrawerClose) onDrawerClose();
-        router.push(links.DEPLOY);
+        await router.push(links.DEPLOY);
         toast({
           title: 'You successfully signed the transaction.',
           status: 'success',
@@ -201,6 +213,7 @@ export const QueuedTxns = ({
           id: String(lastQueuedTxnsId + 1),
           chainId: currentSafe?.chainId as number,
           target,
+          pkgUrl: cannonInfo.pkgUrl || '',
         },
       ],
       safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
@@ -211,16 +224,110 @@ export const QueuedTxns = ({
     });
   };
 
-  const txnHasError = !!txnInfo.txnResults.filter((r) => r?.error).length;
+  const handleAddCustomTxn = () => {
+    if (customTxnData && customTxnDataIsValid) {
+      setQueuedIdentifiableTxns({
+        queuedIdentifiableTxns: [
+          ...queuedIdentifiableTxns,
+          {
+            txn: {
+              to: target as Address,
+              data: customTxnData as Address,
+            },
+            id: String(lastQueuedTxnsId + 1),
+            chainId: currentSafe?.chainId as number,
+            target,
+            pkgUrl: '',
+          },
+        ],
+        safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
+      });
+      setLastQueuedTxnsId({
+        lastQueuedTxnsId: lastQueuedTxnsId + 1,
+        safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
+      });
+      setCustomTxnData('');
+      setTarget('');
+    }
+  };
 
-  const disableExecute =
-    !targetTxn || txnHasError || !!stager.execConditionFailed;
+  const txnsWithErrorIndexes = txnInfo.txnResults
+    .map((r, idx) => (r?.error ? idx : -1))
+    .filter((i) => i !== -1);
+  const txnHasError = txnsWithErrorIndexes.length > 0;
+
+  const disableExecute = !targetTxn || !!stager.execConditionFailed;
+
+  const renderSimulationStatus = () => {
+    // if there is only one transaction or zero, we don't need to show the status
+    if (queuedIdentifiableTxns.length <= 1) {
+      return null;
+    }
+    return (
+      <Box
+        mb={8}
+        mt={8}
+        p={6}
+        bg="gray.800"
+        display="block"
+        borderWidth="1px"
+        borderStyle="solid"
+        borderColor="gray.600"
+        borderRadius="4px"
+      >
+        {txnInfo.loading ? (
+          <Flex w="full" justifyContent="left" alignItems="center" gap={4}>
+            <Spinner />
+            <Text fontSize="sm" color="gray.300">
+              Simulating transactions
+            </Text>
+          </Flex>
+        ) : txnsWithErrorIndexes.length > 0 &&
+          queuedIdentifiableTxns.length > 1 ? (
+          <Flex direction={'column'} gap={4}>
+            {/* This error messages just show up when simulated txns are more
+            than 1, and just shows up the first error */}
+            <Alert bg="gray.900" status="error">
+              <AlertIcon />
+              <Box>
+                <AlertTitle>Transaction Simulation Failed</AlertTitle>
+                <AlertDescription fontSize="sm">
+                  {/* TODO: decode error - for this we need to have the abi of the contract */}
+                  Transaction #{txnsWithErrorIndexes[0] + 1} failed with error:{' '}
+                  {txnInfo.txnResults[txnsWithErrorIndexes[0]]?.error}
+                </AlertDescription>
+              </Box>
+            </Alert>
+          </Flex>
+        ) : (
+          (txnsWithErrorIndexes.length === 0 &&
+            queuedIdentifiableTxns.length > 1 && (
+              <Alert bg="grey.900" status="success">
+                <AlertIcon />
+                <Box>
+                  <AlertTitle>
+                    All Transactions Simulated Successfully
+                  </AlertTitle>
+                  <AlertDescription fontSize="sm">
+                    {queuedIdentifiableTxns.length} simulated transaction
+                    {queuedIdentifiableTxns.length > 1 ? 's ' : ' '}
+                    went through successfully.
+                  </AlertDescription>
+                </Box>
+              </Alert>
+            )) ||
+          null
+        )}
+      </Box>
+    );
+  };
 
   return (
     <>
       <Box mt={6} mb={8} display="block">
-        {queuedIdentifiableTxns.length > 0
-          ? queuedIdentifiableTxns.map((queuedIdentifiableTxn, i) => (
+        {queuedIdentifiableTxns.length > 0 ? (
+          <>
+            {queuedIdentifiableTxns.map((queuedIdentifiableTxn, i) => (
               <Box
                 key={i}
                 mb={8}
@@ -253,110 +360,137 @@ export const QueuedTxns = ({
                   contractName={queuedIdentifiableTxn.contractName}
                   target={queuedIdentifiableTxn.target}
                   chainId={queuedIdentifiableTxn.chainId}
+                  isCustom={queuedIdentifiableTxn.pkgUrl === ''}
                   isDeletable
+                  // simulate single transaction if there is only one
+                  simulate={queuedIdentifiableTxns.length === 1}
                 />
               </Box>
-            ))
-          : null}
-
-        <FormControl>
-          <FormLabel>
-            Add a transaction from a Cannon package or contract address
-          </FormLabel>
-          <InputGroup>
-            <Input
-              type="text"
-              borderColor="whiteAlpha.400"
-              background="black"
-              onChange={(event: any) => setTarget(event.target.value)}
-              value={target}
-            />
-            {!isAddress(target) &&
-              target.length >= 3 &&
-              cannonInfo.registryQuery.status === 'pending' && (
+            ))}
+            {renderSimulationStatus()}
+          </>
+        ) : null}
+        <Box
+          mb={8}
+          mt={8}
+          p={6}
+          bg="gray.800"
+          display="block"
+          borderWidth="1px"
+          borderStyle="solid"
+          borderColor="gray.600"
+          borderRadius="4px"
+        >
+          <FormControl>
+            <FormLabel>
+              Add a transaction from a Cannon package or contract address
+            </FormLabel>
+            <InputGroup>
+              <Input
+                name="target-input"
+                type="text"
+                borderColor="whiteAlpha.400"
+                background="black"
+                onChange={(event: any) => setTarget(event.target.value)}
+                value={target}
+              />
+              {!isAddress(target) &&
+                target.length >= 3 &&
+                cannonInfo.registryQuery.status === 'pending' && (
+                  <InputRightElement>
+                    <Spinner />
+                  </InputRightElement>
+                )}
+              {!isAddress(target) && cannonInfo.contracts && (
                 <InputRightElement>
-                  <Spinner />
+                  <IconButton
+                    size="xs"
+                    colorScheme="teal"
+                    onClick={() => addQueuedTxn()}
+                    icon={<AddIcon />}
+                    aria-label="Add Transaction"
+                  />
                 </InputRightElement>
               )}
-            {!isAddress(target) && cannonInfo.contracts && (
-              <InputRightElement>
-                <IconButton
-                  size="xs"
-                  colorScheme="teal"
-                  onClick={() => addQueuedTxn()}
-                  icon={<AddIcon />}
-                  aria-label="Add Transaction"
-                />
-              </InputRightElement>
-            )}
-          </InputGroup>
-          {!isAddress(target) &&
-            target.length >= 3 &&
-            cannonInfo.registryQuery.status === 'error' && (
-              <FormHelperText color="gray.300">
-                Failed to find this package on the registry.
-              </FormHelperText>
-            )}
-          {!isAddress(target) &&
-            cannonInfo.pkgUrl &&
-            cannonInfo.ipfsQuery.status === 'pending' && (
-              <FormHelperText color="gray.300">
-                Downloading {cannonInfo.pkgUrl}
-              </FormHelperText>
-            )}
-          {!isAddress(target) &&
-            cannonInfo.pkgUrl &&
-            cannonInfo.ipfsQuery.status === 'error' && (
-              <FormHelperText color="gray.300">
-                Failed to load {cannonInfo.pkgUrl}
-              </FormHelperText>
-            )}
-        </FormControl>
-      </Box>
-      <Box mb={4}>
-        {isAddress(target) && (
-          <Box mb="6">
-            {funcIsPayable && (
+            </InputGroup>
+            {!isAddress(target) &&
+              target.length >= 3 &&
+              cannonInfo.registryQuery.status === 'error' && (
+                <FormHelperText color="gray.300">
+                  Failed to find this package on the registry.
+                </FormHelperText>
+              )}
+            {!isAddress(target) &&
+              cannonInfo.pkgUrl &&
+              cannonInfo.ipfsQuery.status === 'pending' && (
+                <FormHelperText color="gray.300">
+                  Downloading {cannonInfo.pkgUrl}
+                </FormHelperText>
+              )}
+            {!isAddress(target) &&
+              cannonInfo.pkgUrl &&
+              cannonInfo.ipfsQuery.status === 'error' && (
+                <FormHelperText color="gray.300">
+                  Failed to load {cannonInfo.pkgUrl}
+                </FormHelperText>
+              )}
+          </FormControl>
+
+          {isAddress(target) && (
+            <Box mt="4">
+              {funcIsPayable && (
+                <FormControl>
+                  <FormLabel>Value</FormLabel>
+                  <Input
+                    type="text"
+                    borderColor="whiteAlpha.400"
+                    background="black"
+                    onChange={(event: any) =>
+                      updateQueuedTxn(0, {
+                        ...queuedTxns[0],
+                        value: BigInt(event.target.value),
+                      })
+                    }
+                  />
+                  <FormHelperText color="gray.300">
+                    Amount of ETH to send as part of transaction
+                  </FormHelperText>
+                </FormControl>
+              )}
+
               <FormControl>
-                <FormLabel>Value</FormLabel>
+                <FormLabel>Transaction Data</FormLabel>
                 <Input
                   type="text"
                   borderColor="whiteAlpha.400"
                   background="black"
-                  onChange={(event: any) =>
-                    updateQueuedTxn(0, {
-                      ...queuedTxns[0],
-                      value: BigInt(event.target.value),
-                    })
-                  }
+                  placeholder="0x"
+                  onChange={(e) => setCustomTxnData(e.target.value as Address)}
                 />
+                {customTxnData && !customTxnDataIsValid && (
+                  <FormHelperText color="red.300">
+                    Invalid transaction data
+                  </FormHelperText>
+                )}
                 <FormHelperText color="gray.300">
-                  Amount of ETH to send as part of transaction
+                  0x prefixed hex code data to send with transaction
                 </FormHelperText>
+                <Box pt={6}>
+                  <Button
+                    colorScheme="teal"
+                    onClick={handleAddCustomTxn}
+                    disabled={!customTxnData || !customTxnDataIsValid}
+                    w="100%"
+                  >
+                    Add Transaction
+                  </Button>
+                </Box>
               </FormControl>
-            )}
-
-            <FormControl mb="4">
-              <FormLabel>Transaction Data</FormLabel>
-              <Input
-                type="text"
-                borderColor="whiteAlpha.400"
-                background="black"
-                placeholder="0x"
-                onChange={(event: any) =>
-                  updateQueuedTxn(0, {
-                    ...queuedTxns[0],
-                    data: (event.target.value as Hex) || '0x',
-                  })
-                }
-              />
-              <FormHelperText color="gray.300">
-                0x prefixed hex code data to send with transaction
-              </FormHelperText>
-            </FormControl>
-          </Box>
-        )}
-
+            </Box>
+          )}
+        </Box>
+      </Box>
+      <Box mb={4}>
         {queuedIdentifiableTxns.length > 0 && (
           <Box>
             <NoncePicker safe={currentSafe} handleChange={setPickedNonce} />
@@ -380,14 +514,23 @@ export const QueuedTxns = ({
                           colorScheme="teal"
                           w="100%"
                           isDisabled={
+                            stager.signing ||
                             !targetTxn ||
-                            txnHasError ||
                             !!stager.signConditionFailed ||
                             queuedIdentifiableTxns.length === 0
                           }
-                          onClick={() => stager.sign()}
+                          onClick={async () => {
+                            await stager.sign();
+                          }}
                         >
-                          Stage &amp; Sign
+                          {stager.signing ? (
+                            <>
+                              Currently Signing
+                              <Spinner size="sm" ml={2} />
+                            </>
+                          ) : (
+                            'Stage & Sign'
+                          )}
                         </Button>
                       </Tooltip>
                     ) : null}
@@ -399,8 +542,8 @@ export const QueuedTxns = ({
                         isDisabled={disableExecute}
                         onClick={() => {
                           execTxn.writeContract(stager.executeTxnConfig!, {
-                            onSuccess: () => {
-                              router.push(links.DEPLOY);
+                            onSuccess: async () => {
+                              await router.push(links.DEPLOY);
 
                               toast({
                                 title:
@@ -417,7 +560,15 @@ export const QueuedTxns = ({
                       </Button>
                     </Tooltip>
                   </HStack>
-
+                  {txnHasError && (
+                    <Alert mt={1} status="warning" bg={'grey.900'}>
+                      <AlertIcon />
+                      <AlertDescription>
+                        Some transactions failed to simulate. You can still
+                        execute / stage the transactions.
+                      </AlertDescription>
+                    </Alert>
+                  )}
                   {stager.signConditionFailed && (
                     <Text fontSize="sm" mt={2} color="gray.300">
                       Can’t Sign: {stager.signConditionFailed}
@@ -498,9 +649,9 @@ const QueueDrawer = ({
             Stage Transactions to a Safe
           </DrawerHeader>
           <DrawerBody bg="gray.700" pt={4}>
-            <Suspense fallback={<Spinner />}>
+            <ClientOnly>
               <SafeAddressInput />
-            </Suspense>
+            </ClientOnly>
             <WithSafe>
               <QueuedTxns onDrawerClose={onClose} />
             </WithSafe>

@@ -1,9 +1,8 @@
-import { OnChainRegistry, PackageReference } from '@usecannon/builder';
+import { OnChainRegistry, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 import { blueBright, gray, green } from 'chalk';
 import _ from 'lodash';
 import prompts from 'prompts';
 import * as viem from 'viem';
-import { DEFAULT_REGISTRY_CONFIG } from '../constants';
 import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 import { CliSettings } from '../settings';
 import { resolveRegistryProviders } from '../util/provider';
@@ -182,7 +181,9 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
       console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
       console.log('');
       console.log(
-        gray('Waiting for the transaction to propagate to Optimism Mainnet... It may take approximately 1-3 minutes.')
+        gray(
+          `Waiting for the transaction to propagate to ${optimismRegistryConfig.name}... It may take approximately 1-3 minutes.`
+        )
       );
       console.log('');
 

@@ -1,5 +1,25 @@
 import { ANVIL_FIRST_ADDRESS } from './constants';
 
+const debugVerbosity = [
+  {
+    flags: '-v',
+    description: 'Print logs for builder, equivalent to DEBUG=cannon:builder',
+  },
+  {
+    flags: '-vv',
+    description:
+      'Print logs for builder and its definition section, equivalent to DEBUG=cannon:builder, cannon:builder:definition',
+  },
+  {
+    flags: '-vvv',
+    description: 'Print logs for builder and its all sub sections, equivalent to DEBUG=cannon:builder*',
+  },
+  {
+    flags: '-vvvv',
+    description: 'Print all cannon logs, equivalent to DEBUG=cannon:*',
+  },
+];
+
 const anvilOptions = [
   {
     flags: '-p --port <number>',
@@ -215,6 +235,7 @@ const commandsConfig = {
         flags: '--non-interactive',
         description: 'Do not prompt for any user input. Useful for scripts and CI processes.',
       },
+      ...debugVerbosity,
     ],
   },
   build: {
@@ -299,6 +320,7 @@ const commandsConfig = {
         flags: '-q --quiet',
         description: 'Suppress extra logging',
       },
+      ...debugVerbosity,
     ],
   },
   verify: {
@@ -323,6 +345,7 @@ const commandsConfig = {
         flags: '-p --preset <preset>',
         description: '(DEPRECATED) Preset of the deployment to verify',
       },
+      ...debugVerbosity,
     ],
   },
   alter: {
@@ -355,6 +378,7 @@ const commandsConfig = {
         flags: '-p --preset <preset>',
         description: '(DEPRECATED) Preset of the deployment to alter',
       },
+      ...debugVerbosity,
     ],
   },
   fetch: {
@@ -378,6 +402,7 @@ const commandsConfig = {
         flags: '--meta-hash <metaHash>',
         description: 'IPFS hash to fetch deployment metadata from',
       },
+      ...debugVerbosity,
     ],
   },
   pin: {
@@ -388,6 +413,7 @@ const commandsConfig = {
         description: 'IPFS hash to write deployment data for',
       },
     ],
+    options: [...debugVerbosity],
   },
   publish: {
     description:
@@ -459,6 +485,7 @@ const commandsConfig = {
         flags: '--skip-confirm',
         description: 'Skip confirmation and package selection prompts',
       },
+      ...debugVerbosity,
     ],
   },
   unpublish: {
@@ -510,14 +537,15 @@ const commandsConfig = {
         flags: '--max-priority-fee-per-gas <maxPriorityFeePerGas>',
         description: 'The maximum value (in gwei) for the miner tip when submitting the registry transaction',
       },
+      ...debugVerbosity,
     ],
   },
   register: {
-    description: 'Register a Cannon package on the main registry',
+    description: 'Register a Cannon package on the Cannon Registry',
     arguments: [
       {
-        flags: '<packageRef>',
-        description: 'Name, version and preset of the Cannon package to publish (name:version@preset)',
+        flags: '<packageRefs...>',
+        description: 'List of packages you want to register on the Cannon Registry',
       },
     ],
     options: [
@@ -549,6 +577,7 @@ const commandsConfig = {
         flags: '--max-priority-fee-per-gas <maxPriorityFeePerGas>',
         description: 'The maximum value (in gwei) for the miner tip when submitting the registry transaction',
       },
+      ...debugVerbosity,
     ],
   },
   publishers: {
@@ -596,6 +625,7 @@ const commandsConfig = {
         flags: '--max-priority-fee-per-gas <maxPriorityFeePerGas>',
         description: 'The maximum value (in gwei) for the miner tip when submitting the registry transaction',
       },
+      ...debugVerbosity,
     ],
   },
   inspect: {
@@ -632,6 +662,7 @@ const commandsConfig = {
         flags: '-s --sources',
         description: 'Show contract sources',
       },
+      ...debugVerbosity,
     ],
   },
   prune: {
@@ -658,6 +689,7 @@ const commandsConfig = {
         flags: '-y --yes',
         description: 'Skip confirmation prompt',
       },
+      ...debugVerbosity,
     ],
   },
   trace: {
@@ -705,6 +737,7 @@ const commandsConfig = {
         flags: '-j --json',
         description: 'Output as JSON',
       },
+      ...debugVerbosity,
     ],
   },
   decode: {
@@ -733,6 +766,7 @@ const commandsConfig = {
         flags: '-j --json',
         description: 'Output as JSON',
       },
+      ...debugVerbosity,
     ],
   },
   test: {
@@ -779,6 +813,7 @@ const commandsConfig = {
         description: 'Use an alternative forge call, such as "coverage"',
         defaultValue: 'test',
       },
+      ...debugVerbosity,
     ],
   },
   interact: {
@@ -822,6 +857,7 @@ const commandsConfig = {
         flags: '--max-priority-gas-fee <maxpriorityGasFee>',
         description: 'Specify max fee per gas (EIP-1559) for deployment',
       },
+      ...debugVerbosity,
     ],
   },
   setup: {

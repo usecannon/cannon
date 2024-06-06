@@ -42,7 +42,7 @@ import {
   useToast,
   VStack,
 } from '@chakra-ui/react';
-import { ChainBuilderContext } from '@usecannon/builder';
+import { ChainBuilderContext, PackageReference } from '@usecannon/builder';
 import _ from 'lodash';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -186,12 +186,12 @@ function QueueFromGitOps() {
   }, [previousPackageInput, cannonDefInfo.def?.getPreset(ctx)]);
 
   const cannonPkgPreviousInfo = useCannonPackage(
-    (cannonDefInfo.def &&
-      `${previousName}:${previousVersion}${
-        previousPreset ? '@' + previousPreset : ''
-      }`) ??
-      '',
-    currentSafe?.chainId || 1
+    cannonDefInfo.def && PackageReference.isValid(previousPackageInput)
+      ? `${previousName}:${previousVersion}${
+          previousPreset ? '@' + previousPreset : ''
+        }`
+      : '',
+    chainId
   );
   const preset = cannonDefInfo.def && cannonDefInfo.def.getPreset(ctx);
   const cannonPkgVersionInfo = useCannonPackage(
@@ -270,6 +270,7 @@ function QueueFromGitOps() {
 
   const multicallTxn: /*Partial<TransactionRequestBase>*/ any =
     buildInfo.buildResult &&
+    !prevInfoQuery.isLoading &&
     buildInfo.buildResult.steps.indexOf(null as any) === -1
       ? makeMultisend(
           [
@@ -286,7 +287,7 @@ function QueueFromGitOps() {
                     `${gitUrl}:${gitFile}`,
                     gitHash,
                     prevInfoQuery.data &&
-                    Array.isArray(prevInfoQuery.data?.[0].result) &&
+                    typeof prevInfoQuery.data?.[0].result == 'string' &&
                     (prevInfoQuery.data[0].result as any).length > 2
                       ? ((prevInfoQuery.data[0].result as any).slice(2) as any)
                       : '',
@@ -346,8 +347,8 @@ function QueueFromGitOps() {
       : {},
     {
       safe: currentSafe,
-      onSignComplete() {
-        router.push(links.DEPLOY);
+      async onSignComplete() {
+        await router.push(links.DEPLOY);
         toast({
           title: 'You successfully signed the transaction.',
           status: 'success',
@@ -437,6 +438,57 @@ function QueueFromGitOps() {
       </VStack>
     ) : null;
   };
+
+  const disablePreviewButton =
+    chainId !== currentSafe?.chainId ||
+    !cannonDefInfo.def ||
+    cannonPkgPreviousInfo.isFetching ||
+    partialDeployInfo.isFetching ||
+    cannonPkgVersionInfo.isFetching ||
+    buildInfo.isBuilding;
+
+  function PreviewButton(props: any) {
+    return (
+      <Tooltip label={props.message}>
+        <Button
+          width="100%"
+          colorScheme="teal"
+          isDisabled={disablePreviewButton}
+          onClick={() => buildInfo.doBuild()}
+        >
+          Preview Transactions to Queue
+        </Button>
+      </Tooltip>
+    );
+  }
+
+  function RenderPreviewButtonTooltip() {
+    if (chainId !== currentSafe?.chainId) {
+      return (
+        <PreviewButton message="Deployment Chain ID does not match Safe Chain ID" />
+      );
+    }
+
+    if (
+      cannonPkgPreviousInfo.isFetching ||
+      partialDeployInfo.isFetching ||
+      cannonPkgVersionInfo.isFetching
+    ) {
+      return <PreviewButton message="Fetching package info, please wait..." />;
+    }
+
+    if (buildInfo.isBuilding) {
+      return <PreviewButton message="Generating build info, please wait..." />;
+    }
+
+    if (!cannonDefInfo.def) {
+      return (
+        <PreviewButton message="No cannonfile definition found, please input the link to the cannonfile to build" />
+      );
+    }
+
+    return <PreviewButton />;
+  }
 
   return (
     <>
@@ -619,6 +671,7 @@ function QueueFromGitOps() {
               'Preview Transactions to Queue'
             )}
           </Button>
+          <RenderPreviewButtonTooltip />
           {buildInfo.buildStatus && (
             <Alert mt="6" status="info" bg="gray.800">
               <Spinner mr={3} boxSize={4} />
@@ -686,12 +739,23 @@ function QueueFromGitOps() {
                 {stager.execConditionFailed ? (
                   <Tooltip label={stager.signConditionFailed}>
                     <Button
-                      isDisabled={!!stager.signConditionFailed}
+                      isDisabled={
+                        !!stager.signConditionFailed || stager.signing
+                      }
                       size="lg"
                       w="100%"
-                      onClick={() => stager.sign()}
+                      onClick={async () => {
+                        await stager.sign();
+                      }}
                     >
-                      Queue &amp; Sign
+                      {stager.signing ? (
+                        <>
+                          Currently Signing
+                          <Spinner size="sm" ml={2} />
+                        </>
+                      ) : (
+                        'Queue & Sign'
+                      )}
                     </Button>
                   </Tooltip>
                 ) : null}
@@ -704,8 +768,8 @@ function QueueFromGitOps() {
                     w="100%"
                     onClick={() => {
                       execTxn.writeContract(stager.executeTxnConfig!, {
-                        onSuccess: () => {
-                          router.push(links.DEPLOY);
+                        onSuccess: async () => {
+                          await router.push(links.DEPLOY);
 
                           toast({
                             title: 'You successfully executed the transaction.',

@@ -1,6 +1,7 @@
-import { ApiPackage, IpfsUrl, RedisDocument, RedisPackage, RedisTag } from '../types';
-
-import type { Address } from 'viem';
+import { PackageReference } from '@usecannon/builder';
+import * as viem from 'viem';
+import { isChainId, isContractName, isFunctionSelector } from '../helpers';
+import { ApiFunction, ApiPackage, IpfsUrl, RedisDocument, RedisFunction, RedisPackage, RedisTag } from '../types';
 
 export function findPackageByTag(documents: { value: RedisDocument }[], tag: RedisTag) {
   const result = documents.find(
@@ -12,7 +13,7 @@ export function findPackageByTag(documents: { value: RedisDocument }[], tag: Red
       item.value.version === tag.versionOfTag
   );
 
-  if (!result) return undefined;
+  if (!result) return;
 
   return result.value as RedisPackage;
 }
@@ -28,7 +29,7 @@ export function transformPackage(value: RedisPackage): ApiPackage {
     metaUrl: value.metaUrl as IpfsUrl,
     miscUrl: value.miscUrl as IpfsUrl,
     timestamp: Number.parseInt(value.timestamp as string),
-    publisher: value.owner as Address,
+    publisher: value.owner as viem.Address,
   };
 }
 
@@ -43,6 +44,30 @@ export function transformPackageWithTag(pkg: RedisPackage, tag: RedisTag): ApiPa
     metaUrl: pkg.metaUrl as IpfsUrl,
     miscUrl: pkg.miscUrl as IpfsUrl,
     timestamp: Number.parseInt(tag.timestamp as string),
-    publisher: pkg.owner as Address,
+    publisher: pkg.owner as viem.Address,
   };
+}
+
+export function transformFunction(value: RedisFunction) {
+  if (!value) return;
+  if (typeof value.name !== 'string' || !value.name) return;
+  if (!isFunctionSelector(value.selector)) return;
+  if (typeof value.timestamp !== 'string' || !value.timestamp) return;
+  if (!PackageReference.isValid(value.package)) return;
+  if (!isChainId(value.chainId)) return;
+  if (!viem.isAddress(value.address)) return;
+  if (!isContractName(value.contractName)) return;
+
+  const ref = new PackageReference(value.package);
+  return {
+    type: 'function',
+    name: value.name,
+    selector: value.selector,
+    contractName: value.contractName,
+    chainId: Number.parseInt(value.chainId),
+    address: viem.getAddress(value.address),
+    packageName: ref.name,
+    preset: ref.preset,
+    version: ref.version,
+  } satisfies ApiFunction;
 }

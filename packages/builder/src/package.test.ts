@@ -80,7 +80,7 @@ describe('package.ts', () => {
       options: {},
     };
 
-    beforeAll(async () => {
+    beforeEach(async () => {
       toRegistry = new InMemoryRegistry();
       toLoader = new IPFSLoader('world');
       toStorage = new CannonStorage(toRegistry, { https: toLoader }, 'https');
@@ -146,7 +146,8 @@ describe('package.ts', () => {
       expect(toLoader.put).toBeCalledWith(testPkgData);
       expect(toLoader.put).toBeCalledWith({ misc: 'info' });
       expect(await toRegistry.getUrl(testPkg, 1)).toStrictEqual('https://usecannon.com');
-      expect(await toRegistry.getMetaUrl(testPkg, 1)).toStrictEqual('https://usecannon.com/meta');
+      // TODO: temp meta url is disabled due to cannon registry support
+      //expect(await toRegistry.getMetaUrl(testPkg, 1)).toStrictEqual('https://usecannon.com/meta');
 
       // didnt recurse
       expect(await toRegistry.getUrl(nestedPkg, 1)).toBeFalsy();
