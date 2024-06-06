@@ -151,10 +151,10 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .string()
       .optional()
       .default(fileSettings.readIpfsUrl || ''),
-      CANNON_WRITE_IPFS_URL: z
-        .string()
-        .optional()
-        .default(fileSettings.writeIpfsUrl || ''),
+    CANNON_WRITE_IPFS_URL: z
+      .string()
+      .optional()
+      .default(fileSettings.writeIpfsUrl || ''),
     CANNON_PUBLISH_IPFS_URL: z
       .string()
       .url()

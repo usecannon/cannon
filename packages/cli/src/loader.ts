@@ -69,7 +69,12 @@ export class CliLoader implements CannonLoader {
   repo: IPFSLoader;
   dir: string;
 
-  constructor(opts: { readIpfs: IPFSLoader | undefined, writeIpfs: IPFSLoader | undefined, repoLoader: IPFSLoader, fileCacheDir: string }) {
+  constructor(opts: {
+    readIpfs: IPFSLoader | undefined;
+    writeIpfs: IPFSLoader | undefined;
+    repoLoader: IPFSLoader;
+    fileCacheDir: string;
+  }) {
     this.readIpfs = opts.readIpfs;
     this.writeIpfs = opts.writeIpfs;
     this.repo = opts.repoLoader;
@@ -77,7 +82,12 @@ export class CliLoader implements CannonLoader {
   }
 
   getLabel() {
-    return `cli ${(this.readIpfs ? 'READ ' + this.readIpfs.getLabel() + ' + ' : '') + (this.writeIpfs ? 'READ ' + this.writeIpfs.getLabel() + ' + ' : '') + 'REPO ' + this.repo.getLabel()}`;
+    return `cli ${
+      (this.readIpfs ? 'READ ' + this.readIpfs.getLabel() + ' + ' : '') +
+      (this.writeIpfs ? 'READ ' + this.writeIpfs.getLabel() + ' + ' : '') +
+      'REPO ' +
+      this.repo.getLabel()
+    }`;
   }
 
   getCacheFilePath(url: string) {
@@ -204,10 +214,14 @@ export function getMainLoader(cliSettings: CliSettings) {
       writeIpfs: cliSettings.writeIpfsUrl
         ? new IPFSLoaderWithRetries(cliSettings.writeIpfsUrl, {}, cliSettings.ipfsTimeout, cliSettings.ipfsRetries)
         : undefined,
-      repoLoader: new IPFSLoaderWithRetries(getCannonRepoRegistryUrl(), {}, cliSettings.ipfsTimeout, cliSettings.ipfsRetries),
-      fileCacheDir: path.join(cliSettings.cannonDirectory, 'ipfs_cache')
-    }
-    ),
+      repoLoader: new IPFSLoaderWithRetries(
+        getCannonRepoRegistryUrl(),
+        {},
+        cliSettings.ipfsTimeout,
+        cliSettings.ipfsRetries
+      ),
+      fileCacheDir: path.join(cliSettings.cannonDirectory, 'ipfs_cache'),
+    }),
     file: new LocalLoader(path.join(cliSettings.cannonDirectory, 'blobs')),
   };
 }
