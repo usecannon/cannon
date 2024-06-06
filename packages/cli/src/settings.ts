@@ -37,9 +37,14 @@ export type CliSettings = {
   ipfsTimeout?: number;
 
   /**
-   * the url of the IPFS endpoint to use as a storage base. defaults to localhost IPFS
+   * the url of the IPFS endpoint to use as a storage base, only for reading data
    */
-  ipfsUrl?: string;
+  readIpfsUrl?: string;
+
+  /**
+   * the url of the IPFS endpoint to use as a storage base, only for writing data
+   */
+  writeIpfsUrl?: string;
 
   /**
    * the IPFS url to use when publishing. If you have an IPFS cluster, or a pinning service, this is a good place to put its IPFS Proxy publish endpoint. If not specified, your packages wont be uploaded to remote ipfs.
@@ -142,10 +147,14 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .number()
       .optional()
       .default(fileSettings.ipfsRetries || 3),
-    CANNON_IPFS_URL: z
+    CANNON_READ_IPFS_URL: z
       .string()
       .optional()
-      .default(fileSettings.ipfsUrl || ''),
+      .default(fileSettings.readIpfsUrl || ''),
+      CANNON_WRITE_IPFS_URL: z
+        .string()
+        .optional()
+        .default(fileSettings.writeIpfsUrl || ''),
     CANNON_PUBLISH_IPFS_URL: z
       .string()
       .url()
@@ -188,7 +197,8 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     CANNON_PRIVATE_KEY,
     CANNON_IPFS_TIMEOUT,
     CANNON_IPFS_RETRIES,
-    CANNON_IPFS_URL,
+    CANNON_READ_IPFS_URL,
+    CANNON_WRITE_IPFS_URL,
     CANNON_PUBLISH_IPFS_URL,
     CANNON_REGISTRY_PROVIDER_URL,
     CANNON_REGISTRY_CHAIN_ID,
@@ -208,7 +218,8 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       privateKey: CANNON_PRIVATE_KEY,
       ipfsTimeout: CANNON_IPFS_TIMEOUT,
       ipfsRetries: CANNON_IPFS_RETRIES,
-      ipfsUrl: CANNON_IPFS_URL,
+      readIpfsUrl: CANNON_READ_IPFS_URL,
+      writeIpfsUrl: CANNON_WRITE_IPFS_URL,
       publishIpfsUrl: CANNON_PUBLISH_IPFS_URL,
       registries:
         CANNON_REGISTRY_ADDRESS && (CANNON_REGISTRY_PROVIDER_URL || CANNON_REGISTRY_CHAIN_ID)
