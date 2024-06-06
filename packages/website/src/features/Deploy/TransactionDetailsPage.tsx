@@ -599,14 +599,15 @@ function TransactionDetailsPage({
                             on-chain record.
                           </Flex>
                         )}
-                      <SimulateTransactionButton
-                        safe={safe}
-                        safeTxn={safeTxn}
-                        execTransactionData={stager.execTransactionData}
-                      />
                     </Box>
                   )}
-
+                  <SimulateTransactionButton
+                    // signer is the one who queued the transaction
+                    signer={signers[0]}
+                    safe={safe}
+                    safeTxn={safeTxn}
+                    execTransactionData={stager.execTransactionData}
+                  />
                   {queuedWithGitOps && (
                     <Box
                       background="gray.800"

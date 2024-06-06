@@ -6,19 +6,21 @@ interface Props {
   safe: SafeDefinition;
   safeTxn: SafeTransaction | null;
   execTransactionData?: string;
+  signer: string;
 }
 
 export function SimulateTransactionButton({
   safe,
   safeTxn,
   execTransactionData,
+  signer,
 }: Props) {
   if (!safeTxn) return null;
 
   const queryParams = {
     block: '',
     blockIndex: '0',
-    from: safe.address,
+    from: signer,
     gas: '8000000',
     gasPrice: '0',
     value: Number(safeTxn.value).toString() || '0',
@@ -46,13 +48,16 @@ export function SimulateTransactionButton({
 
   return (
     <Button
-      size="xs"
+      w="100%"
+      size="lg"
+      fontSize="base"
       as="a"
       href={`https://dashboard.tenderly.co/simulator/new?${searchParams}`}
-      colorScheme="whiteAlpha"
+      colorScheme="white"
       background="whiteAlpha.100"
       border="1px solid"
       borderColor="whiteAlpha.300"
+      fontWeight={400}
       leftIcon={
         <Image
           height="14px"
