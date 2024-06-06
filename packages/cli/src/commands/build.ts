@@ -154,6 +154,7 @@ export async function build({
   const resolver = overrideResolver || (await createDefaultReadRegistry(cliSettings));
 
   const runtime = new ChainBuilderRuntime(runtimeOptions, resolver, getMainLoader(cliSettings), 'ipfs');
+  const loader = getMainLoader(cliSettings);
 
   const dump = writeScript ? await createWriteScript(runtime, writeScript, writeScriptFormat) : null;
 
@@ -441,7 +442,11 @@ export async function build({
       }
       console.log();
 
-      console.log(`The following package data has been stored locally${writeIpfs && ' and pinned to ' + writeIpfs}`);
+      console.log(
+        `The following package data has been stored locally${
+          cliSettings.writeIpfsUrl && ' and pinned to ' + cliSettings.writeIpfsUrl
+        }`
+      );
       console.log(
         table([
           ['Deployment Data', deployUrl],
@@ -449,7 +454,9 @@ export async function build({
           ['Metadata', metaUrl],
         ])
       );
-      console.log(bold(`Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${publishIpfs}`));
+      console.log(
+        bold(`Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${cliSettings.publishIpfsUrl}`)
+      );
       console.log(`> ${`cannon publish ${fullPackageRef} --chain-id ${chainId}`}`);
       console.log('');
       if (chainId == 13370) {
