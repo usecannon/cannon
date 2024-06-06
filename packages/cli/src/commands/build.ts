@@ -441,9 +441,7 @@ export async function build({
       }
       console.log();
 
-      console.log(
-        `The following package data has been stored to ${runtime.loaders[runtime.defaultLoaderScheme].getLabel()}`
-      );
+      console.log(`The following package data has been stored locally${writeIpfs && ' and pinned to ' + writeIpfs}`);
       console.log(
         table([
           ['Deployment Data', deployUrl],
@@ -451,7 +449,7 @@ export async function build({
           ['Metadata', metaUrl],
         ])
       );
-      console.log(bold(`Publish ${bold(fullPackageRef)}`));
+      console.log(bold(`Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${publishIpfs}`));
       console.log(`> ${`cannon publish ${fullPackageRef} --chain-id ${chainId}`}`);
       console.log('');
       if (chainId == 13370) {
