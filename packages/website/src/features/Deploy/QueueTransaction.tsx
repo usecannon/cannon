@@ -113,6 +113,7 @@ export function QueueTransaction({
   target,
   chainId,
   isCustom,
+  simulate = true,
 }: {
   onChange: (
     txn: Omit<TransactionRequestBase, 'from'> | null,
@@ -132,6 +133,7 @@ export function QueueTransaction({
   params?: any[] | any;
   target: string;
   chainId: number;
+  simulate?: boolean;
 }) {
   const [value, setValue] = useState<string | undefined>(
     tx?.value ? formatEther(BigInt(tx?.value)).toString() : undefined
@@ -227,7 +229,10 @@ export function QueueTransaction({
   ]);
 
   const currentSafe = useStore((s) => s.currentSafe);
-  const txnInfo = useSimulatedTxns(currentSafe as any, txn ? [txn] : []);
+  const txnInfo = useSimulatedTxns(
+    currentSafe as any,
+    txn && simulate ? [txn] : []
+  );
 
   if (isCustom) {
     const isValid = isValidHex(tx?.data || '');
@@ -514,7 +519,7 @@ export function QueueTransaction({
             <Alert bg="gray.900" status="error">
               <AlertIcon />
               <Box>
-                <AlertTitle>Transaction Simulation Error</AlertTitle>
+                <AlertTitle>Params Encode Error</AlertTitle>
                 <AlertDescription fontSize="sm">
                   {paramsEncodeError}
                 </AlertDescription>

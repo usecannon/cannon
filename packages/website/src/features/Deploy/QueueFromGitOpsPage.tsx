@@ -262,6 +262,7 @@ function QueueFromGitOps() {
 
   const multicallTxn: /*Partial<TransactionRequestBase>*/ any =
     buildInfo.buildResult &&
+    !prevInfoQuery.isLoading &&
     buildInfo.buildResult.steps.indexOf(null as any) === -1
       ? makeMultisend(
           [
@@ -278,7 +279,7 @@ function QueueFromGitOps() {
                     `${gitUrl}:${gitFile}`,
                     gitHash,
                     prevInfoQuery.data &&
-                    Array.isArray(prevInfoQuery.data?.[0].result) &&
+                    typeof prevInfoQuery.data?.[0].result == 'string' &&
                     (prevInfoQuery.data[0].result as any).length > 2
                       ? ((prevInfoQuery.data[0].result as any).slice(2) as any)
                       : '',

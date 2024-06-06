@@ -4,6 +4,9 @@ pragma solidity ^0.8.4;
 /* solhint-disable meta-transactions/no-msg-sender */
 /* solhint-disable meta-transactions/no-msg-data */
 
+/**
+ * @title Used by packages to enable compatibility with ERC2771 trusted forwarder
+ */
 library ERC2771Context {
   // This is the trusted-multicall-forwarder. The address is constant due to CREATE2.
   address private constant _TRUSTED_FORWARDER = 0xE2C5658cC5C448B48141168f3e475dF8f65A1e3e;
