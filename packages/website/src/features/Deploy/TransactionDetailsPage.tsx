@@ -5,6 +5,7 @@ import { truncateAddress } from '@/helpers/ethereum';
 import { getSafeTransactionHash } from '@/helpers/safe';
 import { SafeDefinition } from '@/helpers/store';
 import { useSafeTransactions, useTxnStager } from '@/hooks/backend';
+import { useStore } from '@/helpers/store';
 import {
   useCannonBuild,
   useCannonPackage,
@@ -50,11 +51,13 @@ import {
   useChainId,
   usePublicClient,
   useWriteContract,
+  useSwitchChain,
 } from 'wagmi';
 import PublishUtility from './PublishUtility';
 import { SimulateTransactionButton } from './SimulateTransactionButton';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import 'react-diff-view/style/index.css';
 
 interface Props {
@@ -70,12 +73,16 @@ function TransactionDetailsPage({
   nonce,
   sigHash,
 }: Props) {
+  const { openConnectModal } = useConnectModal();
+  const currentSafe = useStore((s) => s.currentSafe);
+  const { switchChainAsync } = useSwitchChain();
   const [executionTxnHash, setExecutionTxnHash] = useState<string | null>(null);
   const publicClient = usePublicClient();
   const walletChainId = useChainId();
   const account = useAccount();
   const parsedChainId = parseInt(chainId ?? '0') || 0;
   const parsedNonce = parseInt(nonce ?? '0') || 0;
+  const accountAlreadyConnected = useRef(account.isConnected);
 
   if (!isAddress(safeAddress ?? '')) {
     safeAddress = zeroAddress;
@@ -132,6 +139,29 @@ function TransactionDetailsPage({
   const hintData = parseHintedMulticall(safeTxn?.data as any);
 
   const queuedWithGitOps = hintData?.type == 'deploy';
+
+  useEffect(() => {
+    const switchChain = async () => {
+      if (account.isConnected && !accountAlreadyConnected.current) {
+        accountAlreadyConnected.current = true;
+        if (account.chainId !== currentSafe?.chainId.toString()) {
+          try {
+            await switchChainAsync({ chainId: currentSafe?.chainId || 1 });
+          } catch (e) {
+            toast({
+              title:
+                'Failed to switch chain, Your wallet must be connected to the same network as the selected Safe.',
+              status: 'error',
+              duration: 5000,
+              isClosable: true,
+            });
+            return;
+          }
+        }
+      }
+    };
+    void switchChain();
+  }, [account.isConnected, currentSafe?.chainId]);
 
   const cannonPackage = useCannonPackage(
     hintData?.cannonPackage
@@ -234,9 +264,37 @@ function TransactionDetailsPage({
 
   const remainingSignatures = threshold - signers.length;
 
-  const chainName = safeChain?.name;
-
   const gitDiffContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleConnectAndSignClick = async () => {
+    if (!account.isConnected) {
+      if (openConnectModal) {
+        openConnectModal();
+      }
+      toast({
+        title: 'In order to sign you must connect your wallet first.',
+        status: 'warning',
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    if (account.chainId !== currentSafe?.chainId.toString()) {
+      try {
+        await switchChainAsync({ chainId: currentSafe?.chainId || 1 });
+      } catch (e) {
+        toast({
+          title:
+            'Failed to switch chain, Your wallet must be connected to the same network as the selected Safe.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+    }
+  };
 
   return (
     <>
@@ -603,14 +661,13 @@ function TransactionDetailsPage({
                             </Tooltip>
                           </>
                         ) : (
-                          <Text fontSize="xs" fontWeight="medium" mt={3}>
-                            <InfoOutlineIcon
-                              transform="translateY(-1.5px)"
-                              mr={1.5}
-                            />
-                            Connect your wallet {chainName && `to ${chainName}`}{' '}
-                            to sign
-                          </Text>
+                          <Button
+                            colorScheme="teal"
+                            w="100%"
+                            onClick={handleConnectAndSignClick}
+                          >
+                            Sign
+                          </Button>
                         )}
                       </Flex>
                     )}
