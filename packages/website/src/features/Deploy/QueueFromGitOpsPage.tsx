@@ -652,25 +652,6 @@ function QueueFromGitOps() {
             </FormControl>
           )}
           {renderAlertMessage()}
-          <Button
-            width="100%"
-            colorScheme="teal"
-            isDisabled={
-              settings.isIpfsGateway ||
-              settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
-              !cannonDefInfo.def ||
-              loadingDataForDeploy
-            }
-            onClick={handlePreviewTxnsClick}
-          >
-            {loadingDataForDeploy ? (
-              <>
-                Loading required data <Spinner size="sm" ml={2} />
-              </>
-            ) : (
-              'Preview Transactions to Queue'
-            )}
-          </Button>
           <RenderPreviewButtonTooltip />
           {buildInfo.buildStatus && (
             <Alert mt="6" status="info" bg="gray.800">
