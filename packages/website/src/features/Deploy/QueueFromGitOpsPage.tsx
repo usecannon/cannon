@@ -200,7 +200,7 @@ function QueueFromGitOps() {
         preset ? '@' + preset : ''
       }`) ??
       '',
-    currentSafe?.chainId || 1
+    currentSafe?.chainId
   );
 
   const prevDeployLocation =
