@@ -454,9 +454,15 @@ function QueueFromGitOps() {
           width="100%"
           colorScheme="teal"
           isDisabled={disablePreviewButton}
-          onClick={() => buildInfo.doBuild()}
+          onClick={handlePreviewTxnsClick}
         >
-          Preview Transactions to Queue
+          {loadingDataForDeploy ? (
+            <>
+              Loading required data <Spinner size="sm" ml={2} />
+            </>
+          ) : (
+            'Preview Transactions to Queue'
+          )}
         </Button>
       </Tooltip>
     );
