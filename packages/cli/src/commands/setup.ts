@@ -42,9 +42,9 @@ export async function setup() {
     },
     {
       type: 'text',
-      name: 'readIpfsUrl',
+      name: 'ipfsUrl',
       message: 'Enter an IPFS URL for reading package data (in addition to the Cannon IPFS cluster)\n',
-      initial: fileSettings.readIpfsUrl,
+      initial: fileSettings.ipfsUrl,
     },
     {
       type: 'text',
@@ -66,8 +66,8 @@ export async function setup() {
     fileSettings.publishIpfsUrl = response.publishIpfsUrl;
   }
 
-  if (response.readIpfsUrl) {
-    fileSettings.readIpfsUrl = response.readIpfsUrl;
+  if (response.ipfsUrl) {
+    fileSettings.ipfsUrl = response.ipfsUrl;
   }
 
   if (response.writeIpfsUrl) {

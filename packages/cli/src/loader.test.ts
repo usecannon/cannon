@@ -53,7 +53,7 @@ describe('getMainLoader', function getMainLoaderTestCases() {
     const settings: CliSettings = {
       providerUrl: '',
       registries: [],
-      readIpfsUrl: 'ipfs',
+      ipfsUrl: 'ipfs',
       cannonDirectory: 'directory',
       registryPriority: 'onchain',
       etherscanApiUrl: 'etherscanApiUrl',

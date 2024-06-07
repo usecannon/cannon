@@ -208,8 +208,8 @@ export class IPFSLoaderWithRetries extends IPFSLoader {
 export function getMainLoader(cliSettings: CliSettings) {
   return {
     ipfs: new CliLoader({
-      readIpfs: cliSettings.readIpfsUrl
-        ? new IPFSLoaderWithRetries(cliSettings.readIpfsUrl, {}, cliSettings.ipfsTimeout, cliSettings.ipfsRetries)
+      readIpfs: cliSettings.ipfsUrl
+        ? new IPFSLoaderWithRetries(cliSettings.ipfsUrl, {}, cliSettings.ipfsTimeout, cliSettings.ipfsRetries)
         : undefined,
       writeIpfs: cliSettings.writeIpfsUrl
         ? new IPFSLoaderWithRetries(cliSettings.writeIpfsUrl, {}, cliSettings.ipfsTimeout, cliSettings.ipfsRetries)
