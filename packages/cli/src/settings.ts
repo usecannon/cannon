@@ -37,7 +37,7 @@ export type CliSettings = {
   ipfsTimeout?: number;
 
   /**
-   * DEPRECATED: fallback for readIpfsUrl
+   * @deprecated: fallback for readIpfsUrl
    */
   ipfsUrl?: string;
 
