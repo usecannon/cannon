@@ -391,6 +391,7 @@ function QueueFromGitOps() {
       try {
         await switchChainAsync({ chainId: currentSafe?.chainId || 1 });
         buildInfo.doBuild();
+        return;
       } catch (e) {
         toast({
           title:
