@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { ChevronRightIcon, ExternalLinkIcon } from '@chakra-ui/icons';
+import { useCannonPackage } from '@/hooks/cannon';
 import {
   Box,
   Flex,
@@ -42,6 +43,11 @@ export function Transaction({ safe, tx, hideExternal, fetchMeta }: Params) {
   const stager = useTxnAdditionalData({ safe, tx, fetchMeta });
   const hintData = parseHintedMulticall(tx.data);
 
+  // get the package referenced by this ipfs package
+  const { resolvedName, resolvedVersion, resolvedPreset } = useCannonPackage(
+    '@' + hintData?.cannonPackage.replace('://', ':')
+  );
+
   const sigHash = useMemo(
     () => hintData && getSafeTransactionHash(safe, tx),
     [safe, tx]
@@ -66,7 +72,22 @@ export function Transaction({ safe, tx, hideExternal, fetchMeta }: Params) {
       minHeight="74px"
     >
       <Box alignContent={'center'} minWidth={0}>
-        <Heading size="md">Transaction #{tx._nonce}</Heading>
+        <Heading size="md">
+          Transaction #{tx._nonce}
+          <Box>
+            {hintData?.cannonPackage ? (
+              <Box fontSize="sm" color="gray.300">
+                {hintData.isSinglePackage && resolvedName
+                  ? `${resolvedName}:${resolvedVersion}@${resolvedPreset}`
+                  : 'Multiple packages'}
+              </Box>
+            ) : (
+              <Box fontSize="sm" color="gray.300">
+                Unknown source
+              </Box>
+            )}
+          </Box>
+        </Heading>
         {fetchMeta && Object.keys(stager).length && (
           <>
             {stager.alreadySigned ? (
