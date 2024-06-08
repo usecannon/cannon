@@ -15,14 +15,31 @@ import { SafeDefinition } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { parseHintedMulticall } from '@/helpers/cannon';
 import { getSafeTransactionHash } from '@/helpers/safe';
+import { useTxnStager } from '@/hooks/backend';
 
 interface Params {
   safe: SafeDefinition;
   tx: SafeTransaction;
   hideExternal: boolean;
+  fetchMeta?: boolean;
 }
 
-export function Transaction({ safe, tx, hideExternal }: Params) {
+const useTxnAdditionalData = ({
+  safe,
+  tx,
+  fetchMeta,
+}: {
+  safe: SafeDefinition;
+  tx: SafeTransaction;
+  fetchMeta?: boolean;
+}) => {
+  const useTxnData = fetchMeta ? useTxnStager : () => ({});
+  return useTxnData(tx, { safe: safe }) as any;
+};
+
+// Note: If signatures is provided, additional data will be fetched
+export function Transaction({ safe, tx, hideExternal, fetchMeta }: Params) {
+  const stager = useTxnAdditionalData({ safe, tx, fetchMeta });
   const hintData = parseHintedMulticall(tx.data);
 
   const sigHash = useMemo(
@@ -50,6 +67,34 @@ export function Transaction({ safe, tx, hideExternal }: Params) {
     >
       <Box alignContent={'center'} minWidth={0}>
         <Heading size="md">Transaction #{tx._nonce}</Heading>
+        {fetchMeta && Object.keys(stager).length && (
+          <>
+            {stager.alreadySigned ? (
+              <>
+                <Box fontSize="sm" color="gray.300">
+                  Ready to execute
+                </Box>
+                {stager.isSigner && (
+                  <Box fontSize="sm" color="gray.300">
+                    You can execute this transaction
+                  </Box>
+                )}
+              </>
+            ) : (
+              <>
+                <Box fontSize="sm" color="gray.300">
+                  {stager.existingSigners.length} of{' '}
+                  {stager.requiredSigners.toString()} signatures
+                </Box>
+                {stager.isSigner && (
+                  <Box fontSize="sm" color="gray.300">
+                    You can sign this transaction
+                  </Box>
+                )}
+              </>
+            )}
+          </>
+        )}
       </Box>
       <Box ml="auto" pl="2">
         {isLink ? (

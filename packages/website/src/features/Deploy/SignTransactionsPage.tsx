@@ -62,6 +62,7 @@ function SignTransactions() {
               safe={currentSafe}
               tx={tx.txn}
               hideExternal={false}
+              fetchMeta
             />
           ))}
         {currentSafe && staged.length === 0 && (
