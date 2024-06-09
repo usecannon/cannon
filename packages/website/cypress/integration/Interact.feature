@@ -7,16 +7,35 @@ Feature: Interact page
     * User clicks on the "a" element with text "Interact"
 
   Scenario: Selecting Modules on the interact page 
-    Given User opens the "/packages/synthetix/latest/5-main/interact" page
+    Given User opens the "/packages/synthetix/latest/1-main/interact" page
     * Wallet is connected
     * View renders a "button" displaying the text "InitialCoreProxy"
     * User clicks on the "button" element with text "AccountProxy"
+    Then URL includes "/synthetix/AccountProxy/0x0E429603D3Cb1DFae4E6F52Add5fE82d96d77Dac"
     * User clicks on the "button" element with text "InitialProxy"
 
-  Scenario: Executing read functions on the interact page
+  Scenario: Executing read function with string output
     Given User opens the "/packages/synthetix/latest/1-main/interact" page
     * Wallet is connected
     * User clicks on the "button" element with text "InitialCoreProxy"
+    Then URL includes "/synthetix/InitialCoreProxy/0xffffffaEff0B96Ea8e4f94b2253f31abdD875847"
+    * User clicks on the "a" element with text "owner()"
+    * User clicks on the "h2" element with text "owner()"
+    * User clicks on the "button" element with text "Call view function"
+    * View renders a "div" displaying the text "0xEb3107117FEAd7de89Cd14D463D340A2E6917769"
+    
+  Scenario: Executing read function with string output
+    Given User opens the "/packages/synthetix/latest/1-main/interact" page
+    * Wallet is connected
+    * User clicks on the "button" element with text "InitialCoreProxy"
+    Then URL includes "/synthetix/InitialCoreProxy/0xffffffaEff0B96Ea8e4f94b2253f31abdD875847"
+    * User clicks on the "a" element with text "owner()"
+    * User clicks on the "h2" element with text "owner()"
+    * User clicks on the "button" element with text "Call view function"
+    * View renders a "div" displaying the text "0xEb3107117FEAd7de89Cd14D463D340A2E6917769"
+    # Read function with struct output
+    * User clicks on the "button" element with text "AccountModule"
+    Then URL includes "/synthetix/AccountProxy/0x0E429603D3Cb1DFae4E6F52Add5fE82d96d77Dac"
     * User clicks on the "a" element with text "owner()"
     * User clicks on the "h2" element with text "owner()"
     * User clicks on the "button" element with text "Call view function"
