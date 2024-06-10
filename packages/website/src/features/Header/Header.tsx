@@ -79,7 +79,8 @@ export const Header = () => {
       bg="black"
       borderBottom="1px solid"
       borderColor="gray.700"
-      height="56px"
+      height={breakpoint == 'base' || breakpoint == 'sm' ? 106 : 56 + 'px'}
+      marginBottom={breakpoint == 'base' || breakpoint == 'sm' ? 0 : 50 + 'px'}
     >
       <Flex align="center" pt={[4, 4, 0]} px={3} flexWrap="wrap">
         <Link
