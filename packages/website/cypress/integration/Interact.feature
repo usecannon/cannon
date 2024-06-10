@@ -45,9 +45,9 @@ Feature: Interact page
     Then URL includes "multicall/Multicall/0xcA11bde05977b3631167028862bE2a173976CA11"
     * User clicks on the "a" element with text "getBlockHash(uint256 blockNumber)"
     * User clicks on the "h2" element with text "getBlockHash(uint256)"
-    * User types "6077924" for "blockNumber" function param
+    * User types "607818" for "blockNumber" function param
     * User clicks on the "button" element with text "Call view function"
-    Then View renders a "div" displaying the text "0xa1d87356cf0f7ba88907efe6f1a764c734f42e4f4506db5f3f45208f2c4d78a4"
+    Then View renders a "div" displaying the text "0xe20ea4f73d17ff02e633305befcdf70162cc16fad876c6f9fe2d9acfd7f36e78"
 
     # Read function with contract output
     Given User opens the "packages/aave-v3-pool/latest/11155111-main/interact" page
@@ -58,7 +58,9 @@ Feature: Interact page
     Then View renders a "div" displaying the text "0x012bAC54348C0E635dCAc9D5FB99f06F24136C9A"
 
     # Read function with struct output
-    * User clicks on the "a" element with text "getConfiguration(address)"
+    Given User opens the "packages/aave-v3-pool/latest/11155111-main/interact" page
+    Then URL includes "aave-v3-pool/InitializableImmutableAdminUpgradeabilityProxy/0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951"
+    * User clicks on the "a" element with text "getConfiguration(address asset)"
     * User clicks on the "h2" element with text "getConfiguration(address)"
     * User types "0xf8Fb3713D459D7C1018BD0A49D19b4C44290EBE5" for "asset" function param
     * User clicks on the "button" element with text "Call view function"
