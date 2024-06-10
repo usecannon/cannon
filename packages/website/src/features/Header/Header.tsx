@@ -79,7 +79,7 @@ export const Header = () => {
       bg="black"
       borderBottom="1px solid"
       borderColor="gray.700"
-      minHeight={breakpoint == 'base' || breakpoint == 'sm' ? 106 : 56 + 'px'}
+      minHeight={(breakpoint == 'base' || breakpoint == 'sm' ? 106 : 56) + 'px'}
     >
       <Flex align="center" pt={[4, 4, 0]} px={3} flexWrap="wrap">
         <Link
