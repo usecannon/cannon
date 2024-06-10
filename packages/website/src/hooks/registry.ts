@@ -29,6 +29,7 @@ export function useCannonRegistry() {
 type Publishers = {
   publisher: viem.Address;
   chainName: string;
+  chainId: number;
 };
 
 export function useCannonPackagePublishers(packageName: string) {
@@ -59,9 +60,9 @@ export function useCannonPackagePublishers(packageName: string) {
       ]);
 
       const publishers = [
-        { publisher: mainnetOwner, chainName: 'Ethereum' },
-        ...mainnetPublishers.map((publisher) => ({ publisher, chainName: 'Ethereum' })),
-        ...optimismPublishers.map((publisher) => ({ publisher, chainName: 'Optimism' })),
+        { publisher: mainnetOwner, chainName: 'Ethereum', chainId: 1 },
+        ...mainnetPublishers.map((publisher) => ({ publisher, chainName: 'Ethereum', chainId: 1 })),
+        ...optimismPublishers.map((publisher) => ({ publisher, chainName: 'Optimism', chainId: 10 })),
       ];
 
       setPublishers(publishers);

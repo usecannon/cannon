@@ -106,7 +106,12 @@ describe('inspect', () => {
     localSource = 'on chain 0x1AAAAAAAA';
 
     localLoader = new LocalLoader('path');
-    ipfsLoader = new CliLoader(new IPFSLoader('ipfs'), new IPFSLoader('ipfs'), 'path');
+    ipfsLoader = new CliLoader({
+      readIpfs: new IPFSLoader('ipfs'),
+      writeIpfs: new IPFSLoader('ipfs'),
+      repoLoader: new IPFSLoader('ipfs'),
+      fileCacheDir: 'path',
+    });
 
     jest.mocked(getMainLoader).mockReturnValueOnce({
       file: localLoader,
@@ -140,7 +145,6 @@ describe('inspect', () => {
     expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(getSourceFromRegistry).toHaveBeenCalledWith(mockedFallBackRegistry.registries);
-    expect(fetchIPFSAvailability).toHaveBeenCalledWith('ipfsUrl', 'file:/usecannon.com/url');
     expect(getContractsAndDetails).toHaveBeenCalledWith(testPkgData.state);
 
     expect(localLoader.read).toHaveBeenCalledWith('file:/usecannon.com/url');
@@ -163,7 +167,6 @@ describe('inspect', () => {
     expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(getSourceFromRegistry).toHaveBeenCalledWith(mockedFallBackRegistry.registries);
-    expect(fetchIPFSAvailability).toHaveBeenCalledWith('ipfsUrl', 'file:/usecannon.com/url');
     expect(getContractsAndDetails).toHaveBeenCalledWith(testPkgData.state);
 
     expect(localLoader.read).toHaveBeenCalledWith('file:/usecannon.com/url');
