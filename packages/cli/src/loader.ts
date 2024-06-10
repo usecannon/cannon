@@ -64,19 +64,30 @@ export class LocalLoader implements CannonLoader {
 }
 
 export class CliLoader implements CannonLoader {
-  ipfs?: IPFSLoader;
+  readIpfs?: IPFSLoader;
+  writeIpfs?: IPFSLoader;
   repo: IPFSLoader;
   dir: string;
 
-  constructor(ipfsLoader: IPFSLoader | undefined, repoLoader: IPFSLoader, fileCacheDir: string) {
-    this.ipfs = ipfsLoader;
-    this.repo = repoLoader;
-    this.dir = fileCacheDir;
+  constructor(opts: {
+    readIpfs: IPFSLoader | undefined;
+    writeIpfs: IPFSLoader | undefined;
+    repoLoader: IPFSLoader;
+    fileCacheDir: string;
+  }) {
+    this.readIpfs = opts.readIpfs;
+    this.writeIpfs = opts.writeIpfs;
+    this.repo = opts.repoLoader;
+    this.dir = opts.fileCacheDir;
   }
 
   getLabel() {
-    debug(`cli ${this.ipfs ? this.ipfs.getLabel() + ' + ' + this.repo.getLabel() : this.repo.getLabel()}`);
-    return this.ipfs ? this.ipfs.getLabel() : this.repo.getLabel();
+    return `cli ${
+      (this.readIpfs ? 'READ ' + this.readIpfs.getLabel() + ' + ' : '') +
+      (this.writeIpfs ? 'READ ' + this.writeIpfs.getLabel() + ' + ' : '') +
+      'REPO ' +
+      this.repo.getLabel()
+    }`;
   }
 
   getCacheFilePath(url: string) {
@@ -94,8 +105,8 @@ export class CliLoader implements CannonLoader {
     await fs.mkdirp(this.dir);
     await fs.writeFile(this.getCacheFilePath(url), data);
 
-    if (this.ipfs) {
-      await this.ipfs.put(misc);
+    if (this.writeIpfs) {
+      await this.writeIpfs.put(misc);
     }
 
     return url;
@@ -113,7 +124,7 @@ export class CliLoader implements CannonLoader {
     }
 
     // If its configured, try to get it from the settings ipfs
-    const ipfsData = await (this.ipfs || this.repo).read(url);
+    const ipfsData = await (this.readIpfs || this.repo).read(url);
     await fs.mkdirp(this.dir);
     // NOTE: would be nice if we could just get the raw data here so we dont have to restringify
     const rawIpfsData = JSON.stringify(ipfsData);
@@ -134,15 +145,15 @@ export class CliLoader implements CannonLoader {
     }
 
     // If its configured, try to remove it from the settings ipfs
-    if (this.ipfs) {
-      return this.ipfs.remove(url);
+    if (this.writeIpfs) {
+      return this.writeIpfs.remove(url);
     }
 
     // Notice: Never try to remove from the repo
   }
 
   async list() {
-    return this.ipfs ? this.ipfs.list() : [];
+    return this.readIpfs ? this.readIpfs.list() : [];
   }
 
   static getCacheHash(url: string) {
@@ -196,13 +207,21 @@ export class IPFSLoaderWithRetries extends IPFSLoader {
 
 export function getMainLoader(cliSettings: CliSettings) {
   return {
-    ipfs: new CliLoader(
-      cliSettings.ipfsUrl
+    ipfs: new CliLoader({
+      readIpfs: cliSettings.ipfsUrl
         ? new IPFSLoaderWithRetries(cliSettings.ipfsUrl, {}, cliSettings.ipfsTimeout, cliSettings.ipfsRetries)
         : undefined,
-      new IPFSLoaderWithRetries(getCannonRepoRegistryUrl(), {}, cliSettings.ipfsTimeout, cliSettings.ipfsRetries),
-      path.join(cliSettings.cannonDirectory, 'ipfs_cache')
-    ),
+      writeIpfs: cliSettings.writeIpfsUrl
+        ? new IPFSLoaderWithRetries(cliSettings.writeIpfsUrl, {}, cliSettings.ipfsTimeout, cliSettings.ipfsRetries)
+        : undefined,
+      repoLoader: new IPFSLoaderWithRetries(
+        getCannonRepoRegistryUrl(),
+        {},
+        cliSettings.ipfsTimeout,
+        cliSettings.ipfsRetries
+      ),
+      fileCacheDir: path.join(cliSettings.cannonDirectory, 'ipfs_cache'),
+    }),
     file: new LocalLoader(path.join(cliSettings.cannonDirectory, 'blobs')),
   };
 }
