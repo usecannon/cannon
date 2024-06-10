@@ -84,7 +84,7 @@ export async function inspect(
     const metaUrl = await resolver.getMetaUrl(fullPackageRef, chainId);
     const packageOwner = deployData.def.setting?.owner?.defaultValue;
     const localSource = getSourceFromRegistry(resolver.registries);
-    const ipfsUrl = cliSettings.readIpfsUrl;
+    const ipfsUrl = cliSettings.ipfsUrl;
     const ipfsAvailabilityScore = await fetchIPFSAvailability(ipfsUrl, deployUrl.replace('ipfs://', ''));
     const contractsAndDetails = getContractsAndDetails(deployData.state);
     const miscData = await loader.ipfs.read(deployData.miscUrl);

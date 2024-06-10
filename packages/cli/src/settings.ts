@@ -37,9 +37,10 @@ export type CliSettings = {
   ipfsTimeout?: number;
 
   /**
+
    * the url of the IPFS endpoint to use as a storage base, only for reading data
    */
-  readIpfsUrl?: string;
+  ipfsUrl?: string;
 
   /**
    * the url of the IPFS endpoint to use as a storage base, only for writing data
@@ -147,10 +148,10 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .number()
       .optional()
       .default(fileSettings.ipfsRetries || 3),
-    CANNON_READ_IPFS_URL: z
+    CANNON_IPFS_URL: z
       .string()
       .optional()
-      .default(fileSettings.readIpfsUrl || ''),
+      .default(fileSettings.ipfsUrl || ''),
     CANNON_WRITE_IPFS_URL: z
       .string()
       .optional()
@@ -197,7 +198,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     CANNON_PRIVATE_KEY,
     CANNON_IPFS_TIMEOUT,
     CANNON_IPFS_RETRIES,
-    CANNON_READ_IPFS_URL,
+    CANNON_IPFS_URL,
     CANNON_WRITE_IPFS_URL,
     CANNON_PUBLISH_IPFS_URL,
     CANNON_REGISTRY_PROVIDER_URL,
@@ -218,7 +219,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       privateKey: CANNON_PRIVATE_KEY,
       ipfsTimeout: CANNON_IPFS_TIMEOUT,
       ipfsRetries: CANNON_IPFS_RETRIES,
-      readIpfsUrl: CANNON_READ_IPFS_URL,
+      ipfsUrl: CANNON_IPFS_URL,
       writeIpfsUrl: CANNON_WRITE_IPFS_URL,
       publishIpfsUrl: CANNON_PUBLISH_IPFS_URL,
       registries:
