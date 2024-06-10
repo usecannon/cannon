@@ -51,6 +51,26 @@ describe('ChainDefinition', () => {
     });
   });
 
+  describe.only('computeDependencies()', () => {
+    it('does not modify the underlying `raw` data structure', () => {
+      const rawDef: RawChainDefinition = {
+        name: 'test',
+        version: '1.0.0',
+        var: {
+          a: { b: '<%= settings.c %>' },
+          d: { c: '1234' },
+        },
+        deploy: {
+          woot: { artifact: 'wohoo', args: ['<%= settings.b %>'], depends: [] },
+        },
+      };
+
+      const def = new ChainDefinition(_.cloneDeep(rawDef));
+
+      expect((def as any).raw).toEqual(rawDef);
+    });
+  });
+
   describe('checkCycles()', () => {
     it('works when there are 0 nodes', async () => {
       const def = makeFakeChainDefinition({});
