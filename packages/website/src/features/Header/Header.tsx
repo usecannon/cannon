@@ -71,17 +71,10 @@ const SettingsButton = () => {
 };
 
 export const Header = () => {
-  const breakpoint = useBreakpoint();
+  const breakpoint = useBreakpoint({ ssr: false });
 
   return (
-    // height is statically set here to prevent cls
-    <Box
-      bg="black"
-      borderBottom="1px solid"
-      borderColor="gray.700"
-      height={breakpoint == 'base' || breakpoint == 'sm' ? 106 : 56 + 'px'}
-      marginBottom={breakpoint == 'base' || breakpoint == 'sm' ? 0 : 50 + 'px'}
-    >
+    <Box bg="black" borderBottom="1px solid" borderColor="gray.700">
       <Flex align="center" pt={[4, 4, 0]} px={3} flexWrap="wrap">
         <Link
           href={links.HOMEPAGE}
