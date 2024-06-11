@@ -74,7 +74,6 @@ export const Header = () => {
   const breakpoint = useBreakpoint({ ssr: false });
 
   return (
-    // minHeight is set here to prevent cls
     <Box bg="black" borderBottom="1px solid" borderColor="gray.700">
       <Flex align="center" pt={[4, 4, 0]} px={3} flexWrap="wrap">
         <Link
