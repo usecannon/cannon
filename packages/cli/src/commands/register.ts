@@ -50,7 +50,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
   debug('Registries list: ', cliSettings.registries);
 
   const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
-  const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders({ cliSettings });
+  const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
 
   // if any of the packages are registered, throw an error
   const isRegistered = await Promise.all(

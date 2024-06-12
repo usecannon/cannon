@@ -369,7 +369,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
   }
 
-  const registryProviders = await resolveRegistryProviders({ cliSettings });
+  const registryProviders = await resolveRegistryProviders(cliSettings);
 
   // Initialize pickedRegistryProvider with the first provider
   let [pickedRegistryProvider] = registryProviders;
@@ -404,7 +404,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     // Check if the package is already registered
     const [optimism, mainnet] = DEFAULT_REGISTRY_CONFIG;
 
-    const [optimismProvider, mainnetProvider] = await resolveRegistryProviders({ cliSettings });
+    const [optimismProvider, mainnetProvider] = await resolveRegistryProviders(cliSettings);
 
     const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, [
       mainnet.address,

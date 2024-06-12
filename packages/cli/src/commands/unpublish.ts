@@ -67,7 +67,7 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     overrides.value = options.value;
   }
 
-  const registryProviders = await resolveRegistryProviders({ cliSettings });
+  const registryProviders = await resolveRegistryProviders(cliSettings);
 
   // Initialize pickedRegistryProvider with the first provider
   let [pickedRegistryProvider] = registryProviders;

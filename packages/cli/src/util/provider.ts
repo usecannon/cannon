@@ -81,11 +81,9 @@ export async function resolveWriteProvider(
   }) as any;
 }
 
-export async function resolveRegistryProviders({
-  cliSettings,
-}: {
-  cliSettings: CliSettings;
-}): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }[]> {
+export async function resolveRegistryProviders(
+  cliSettings: CliSettings
+): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }[]> {
   const resolvedProviders = [];
   for (const registryInfo of cliSettings.registries) {
     resolvedProviders.push(
