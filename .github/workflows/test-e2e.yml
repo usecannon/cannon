@@ -2,7 +2,7 @@ name: Test-e2e
 
 on:
   push:
-    branches: [add/register-e2e-tests]
+    branches: [main]
   pull_request:
     branches: [main]
 
