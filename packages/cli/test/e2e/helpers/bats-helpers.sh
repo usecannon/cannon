@@ -9,6 +9,8 @@ _setup_file() {
   export WORKDIR="$(mktemp -d)"
   export CANNON_DIRECTORY="$WORKDIR/cannondir"
 
+  export CANNON_OP_EMITTER="node $CANNON_REPO_DIR/packages/cli/test/e2e/scripts/optimism/cross-domain-messenger.js"
+
   #Creating cannon directory structure
   mkdir $CANNON_DIRECTORY $CANNON_DIRECTORY/tags/ $CANNON_DIRECTORY/ipfs_cache/ $CANNON_DIRECTORY/metadata_cache/
 
@@ -59,7 +61,8 @@ set_custom_config() {
   cp "$DIR/config/settings.json" "$CANNON_DIRECTORY/settings.json"
 }
 
+# Start the listening and propagate messages to anvil optimism fork
 start_optimism_emitter() {
-  # Start the listening and propagate messages to anvil optimism fork
-  run $CANNON_OP_EMITTER
+  $CANNON_OP_EMITTER &
+  EMITTER_PID=$!
 }

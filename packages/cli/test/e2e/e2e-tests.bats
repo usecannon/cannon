@@ -11,6 +11,14 @@ setup_file() {
   export CANNON="node $CANNON_REPO_DIR/packages/cli/bin/cannon.js"
 
   cd $CANNON_DIRECTORY
+
+  # Fork Mainnet to run tests against forked node
+  anvil --fork-url https://ethereum.publicnode.com --port 9545 --silent --accounts 1 &
+  export ANVIL_PID="$!"
+
+  # Fork OP to run tests against forked node
+  anvil --fork-url https://optimism-rpc.publicnode.com --port 9546 --silent --accounts 1 --optimism &
+  export ANVIL_PID_1="$!"
 }
 
 # File post-run hook
@@ -18,8 +26,8 @@ teardown_file() {
   load helpers/bats-helpers.sh
   _teardown_file
 
-  kill -15 "$ANVIL_MAINNET_PID"
-  kill -15 "$ANVIL_OPTIMISM_PID"
+  kill -15 "$ANVIL_PID"
+  kill -15 "$ANVIL_PID_1"
 }
 
 # Test pre-hook
@@ -36,11 +44,12 @@ teardown() {
 
 
 @test "Register - Register multiple packages" {
+  set_custom_config
   start_optimism_emitter
   run register.sh 2
   echo $output
-  assert_output --partial 'Success - Package "package-one" has been registered'
-  assert_output --partial 'Success - Package "package-two" has been registered'
+  assert_output --partial 'Success - Package "first-package" has been registered'
+  assert_output --partial 'Success - Package "second-package" has been registered'
   assert_success
 }
 
