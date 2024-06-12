@@ -11,18 +11,12 @@ setup_file() {
   export CANNON="node $CANNON_REPO_DIR/packages/cli/bin/cannon.js"
 
   cd $CANNON_DIRECTORY
-
-  # Fork Mainnet to run tests against forked node
-  anvil --fork-url https://ethereum.publicnode.com --port 9545 --silent --accounts 1 &
-  export ANVIL_PID="$!"
 }
 
 # File post-run hook
 teardown_file() {
   load helpers/bats-helpers.sh
   _teardown_file
-
-  kill -15 "$ANVIL_PID"
 }
 
 # Test pre-hook
@@ -35,6 +29,16 @@ setup() {
 teardown() {
   load helpers/bats-helpers.sh
   _teardown
+}
+
+
+@test "Register - Register multiple packages" {
+  set_custom_config
+  run register.sh 2
+  echo $output
+  assert_output --partial 'Success - Package "package-one" has been registered'
+  assert_output --partial 'Success - Package "package-two" has been registered'
+  assert_success
 }
 
 @test "Decode - Cannon Registry publish transaction" {

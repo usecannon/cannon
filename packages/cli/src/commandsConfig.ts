@@ -502,7 +502,7 @@ const commandsConfig = {
         description: 'RPC endpoint to unpublish to',
       },
       {
-        flags: '--registry-chain-id <number>',
+        flags: '-c --registry-chain-id <number>',
         description: 'Registry chain id to unpublish to',
       },
       {
@@ -558,8 +558,16 @@ const commandsConfig = {
         description: 'Chain ID of the package to register',
       },
       {
+        flags: '-a --registry-address <address>',
+        description: 'Custom address of the registry contract to register the package to',
+      },
+      {
         flags: '--private-key <key>',
         description: 'Private key to use for publishing the registry package',
+      },
+      {
+        flags: '--skip-confirm',
+        description: 'Skip confirmation to register the package',
       },
       {
         flags: '--gas-limit <gasLimit>',

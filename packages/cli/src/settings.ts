@@ -99,6 +99,11 @@ export type CliSettings = {
   etherscanApiKey: string;
 
   /**
+   * Whether to run in E2E mode
+   */
+  isE2E: boolean;
+
+  /**
    * Whether to suppress extra output
    */
   quiet: boolean;
@@ -165,6 +170,7 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .default(fileSettings.etherscanApiUrl as string),
     CANNON_ETHERSCAN_API_KEY: z.string().length(34).optional().default(fileSettings.etherscanApiKey),
     CANNON_QUIET: z.boolean().default(fileSettings.quiet || false),
+    CANNON_E2E: z.boolean().default(false),
     TRACE: z.boolean().default(false),
   };
 }
@@ -197,6 +203,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     CANNON_ETHERSCAN_API_URL,
     CANNON_ETHERSCAN_API_KEY,
     CANNON_QUIET,
+    CANNON_E2E,
     TRACE,
   } = parseEnv(process.env, cannonSettingsSchema(fileSettings));
 
@@ -225,6 +232,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       etherscanApiUrl: CANNON_ETHERSCAN_API_URL,
       etherscanApiKey: CANNON_ETHERSCAN_API_KEY,
       quiet: CANNON_QUIET,
+      isE2E: CANNON_E2E,
       trace: TRACE,
     },
     _.pickBy(overrides)

@@ -77,7 +77,9 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
 
   const isMainnet = keyPrompt.value === 'ETH';
   const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
-  const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
+  const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders({
+    cliSettings,
+  });
 
   const overrides: any = {};
   if (options.maxFeePerGas) {
@@ -195,7 +197,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         waitForEvent({
           eventName: 'PackagePublishersChanged',
           abi: mainnetRegistry.contract.abi,
-          chainId: mainnetRegistryConfig.chainId!,
+          providerUrl: optimismRegistryConfig.providerUrl![0],
           expectedArgs: {
             name: packageNameHex,
             publisher: mainnetPublishers,
@@ -204,7 +206,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         waitForEvent({
           eventName: 'PackagePublishersChanged',
           abi: optimismRegistry.contract.abi,
-          chainId: optimismRegistryConfig.chainId!,
+          providerUrl: optimismRegistryConfig.providerUrl![0],
           expectedArgs: {
             name: packageNameHex,
             publisher: optimismPublishers,
