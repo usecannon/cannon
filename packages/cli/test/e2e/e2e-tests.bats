@@ -12,13 +12,15 @@ setup_file() {
 
   cd $CANNON_DIRECTORY
 
-  # Fork Mainnet to run tests against forked node
-  anvil --fork-url https://ethereum.publicnode.com --port 9545 --silent --accounts 1 &
-  export ANVIL_PID="$!"
-
   # Fork OP to run tests against forked node
-  anvil --fork-url https://optimism-rpc.publicnode.com --port 9546 --silent --accounts 1 --optimism &
-  export ANVIL_PID_1="$!"
+  anvil --fork-url https://optimism-rpc.publicnode.com --port 9546 --accounts 1 --optimism &
+  export ANVIL_PID_OP="$!"
+  sleep 1
+
+  # Fork Mainnet to run tests against forked node
+  anvil --fork-url https://ethereum.publicnode.com --port 9545 --accounts 1 &
+  export ANVIL_PID="$!"
+  sleep 1
 }
 
 # File post-run hook
@@ -27,7 +29,7 @@ teardown_file() {
   _teardown_file
 
   kill -15 "$ANVIL_PID"
-  kill -15 "$ANVIL_PID_1"
+  kill -15 "$ANVIL_PID_OP"
 }
 
 # Test pre-hook
@@ -40,17 +42,6 @@ setup() {
 teardown() {
   load helpers/bats-helpers.sh
   _teardown
-}
-
-
-@test "Register - Register multiple packages" {
-  set_custom_config
-  start_optimism_emitter
-  run register.sh 2
-  echo $output
-  assert_output --partial 'Success - Package "first-package" has been registered'
-  assert_output --partial 'Success - Package "second-package" has been registered'
-  assert_success
 }
 
 @test "Decode - Cannon Registry publish transaction" {
@@ -188,6 +179,25 @@ teardown() {
   assert_output --partial 'Successfully fetched and saved deployment data for the following package: synthetix:3.3.4@main'
   assert_success
   assert_file_exists "$CANNON_DIRECTORY/tags/synthetix_3.3.4_13370-main.txt"
+}
+
+@test "Register - Register a single package" {
+  set_custom_config
+  start_optimism_emitter
+  run register.sh 1
+  echo $output
+  assert_output --partial 'Success - Package "package-one" has been registered'
+  assert_success
+}
+
+@test "Register - Register multiple packages" {
+  set_custom_config
+  start_optimism_emitter
+  run register.sh 2
+  echo $output
+  assert_output --partial 'Success - Package "first-package" has been registered'
+  assert_output --partial 'Success - Package "second-package" has been registered'
+  assert_success
 }
 
 @test "Publish - Publishing greeter package" {
