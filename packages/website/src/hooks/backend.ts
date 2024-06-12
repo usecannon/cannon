@@ -214,13 +214,13 @@ export function useTxnStager(
     execSig.splice(sigInsertIdx, 0, `${params}01`);
   }
 
-  const stageTxnMutate = useSimulateContract({
+  const execTransactionData = {
     abi: SafeABI,
     address: querySafeAddress as any,
     functionName: 'execTransaction',
     args: [
       safeTxn.to,
-      safeTxn.value,
+      Number(safeTxn.value).toString() || '0',
       safeTxn.data,
       safeTxn.operation,
       safeTxn.safeTxGas,
@@ -230,7 +230,9 @@ export function useTxnStager(
       safeTxn.refundReceiver,
       '0x' + execSig.map((s) => s.slice(2)).join(''),
     ],
-  });
+  };
+
+  const stageTxnMutate = useSimulateContract(execTransactionData);
 
   // must not have already signed in order to sign
   const existingSigsCount = alreadyStaged ? alreadyStaged.sigs.length : 0;
@@ -328,5 +330,7 @@ export function useTxnStager(
     requiredSigners: requiredSigs,
 
     executeTxnConfig: stageTxnMutate.data?.request,
+
+    execTransactionData: viem.encodeFunctionData(execTransactionData),
   };
 }

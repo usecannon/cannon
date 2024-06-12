@@ -11,6 +11,7 @@ import Providers from './_providers';
 import { DefaultSeo } from 'next-seo';
 import '@/styles/globals.css';
 import defaultSEO from '@/constants/defaultSeo';
+import E2EWalletConnector from '../../cypress/utils/E2EWalletConnector';
 
 const miriam = Miriam_Libre({
   subsets: ['latin'],
@@ -65,7 +66,7 @@ export default function RootLayout({
       <Providers>
         <Flex
           flexDirection="column"
-          backgroundColor="gray.900"
+          backgroundColor="black"
           minHeight="100vh"
           position="relative"
         >
@@ -73,6 +74,7 @@ export default function RootLayout({
           <Flex flex="1">{getLayout(<Component {...pageProps} />)}</Flex>
           <Footer />
           {/*<Console />*/}
+          <E2EWalletConnector />
         </Flex>
       </Providers>
       <Analytics />

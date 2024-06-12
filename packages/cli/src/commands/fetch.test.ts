@@ -149,7 +149,12 @@ describe('fetch', () => {
     };
 
     localLoader = new LocalLoader('path');
-    ipfsLoader = new CliLoader(new IPFSLoader('ipfs'), new IPFSLoader('ipfs'), 'path');
+    ipfsLoader = new CliLoader({
+      readIpfs: new IPFSLoader('ipfs'),
+      writeIpfs: undefined,
+      repoLoader: new IPFSLoader('ipfs'),
+      fileCacheDir: 'path',
+    });
 
     jest.mocked(getMainLoader).mockReturnValueOnce({
       file: localLoader,

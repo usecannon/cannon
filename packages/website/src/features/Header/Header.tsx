@@ -71,7 +71,7 @@ const SettingsButton = () => {
 };
 
 export const Header = () => {
-  const breakpoint = useBreakpoint();
+  const breakpoint = useBreakpoint({ ssr: false });
 
   return (
     <Box bg="black" borderBottom="1px solid" borderColor="gray.700">

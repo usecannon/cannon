@@ -312,7 +312,7 @@ export class ChainDefinition {
         `);
     }
 
-    const deps = (_.get(this.raw, node)!.depends || []) as string[];
+    const deps = _.clone(_.get(this.raw, node)!.depends || []) as string[];
 
     const n = node.split('.')[0];
 

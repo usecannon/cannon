@@ -54,7 +54,7 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
               href={links.QUEUEFROMGITOPS}
               isActive={pathname.startsWith(links.QUEUEFROMGITOPS)}
             >
-              Queue{isLarge && ' Cannonfile'}
+              {isLarge && 'Queue '} Cannonfile
             </NavLink>
             <NavLink
               isSmall

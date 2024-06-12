@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint --fix",
-    "e2e": "start-server-and-test dev http://localhost:3000 \"cypress open --e2e\"",
-    "e2e:headless": "start-server-and-test dev http://localhost:3000 \"cypress run --e2e\"",
+    "e2e": "NEXT_PUBLIC_E2E_TESTING_MODE=true start-server-and-test dev http://localhost:3000 \"cypress open --e2e\"",
+    "e2e:headless": "NEXT_PUBLIC_E2E_TESTING_MODE=true start-server-and-test dev http://localhost:3000 \"cypress run --e2e\"",
     "component": "cypress open --component",
     "component:headless": "cypress run --component"
   },
@@ -23,6 +23,7 @@
     "@iarna/toml": "^3.0.0",
     "@isomorphic-git/lightning-fs": "^4.6.0",
     "@monaco-editor/react": "^4.6.0",
+    "@next/third-parties": "^14.2.3",
     "@rainbow-me/rainbowkit": "^2.1.2",
     "@safe-global/api-kit": "^2.2.0",
     "@safe-global/protocol-kit": "^1.2.0",

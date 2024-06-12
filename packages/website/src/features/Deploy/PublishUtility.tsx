@@ -28,6 +28,7 @@ import {
   CannonStorage,
   InMemoryRegistry,
   OnChainRegistry,
+  FallbackRegistry,
   publishPackage,
   DEFAULT_REGISTRY_ADDRESS,
 } from '@usecannon/builder';
@@ -78,27 +79,35 @@ export default function PublishUtility(props: {
       isAddressEqual(publisher, wc.data?.account.address)
   );
 
-  const etherscanUrl =
-    findChain(props.targetChainId).blockExplorers?.default?.url ??
-    'https://etherscan.io';
-
   const { transports } = useProviders();
 
-  const prepareAndPublishPackage = async (registryChainId: number) => {
+  const prepareAndPublishPackage = async (
+    registryChainId: number,
+    roChainId: number
+  ) => {
     if (!wc.data) {
       throw new Error('Wallet not connected');
     }
 
     const [walletAddress] = await wc.data.getAddresses();
 
-    const targetRegistry = new OnChainRegistry({
-      signer: { address: walletAddress, wallet: wc.data },
-      address: DEFAULT_REGISTRY_ADDRESS,
-      provider: createPublicClient({
-        chain: findChain(registryChainId) as Chain,
-        transport: transports[registryChainId] || http(),
+    const targetRegistry = new FallbackRegistry([
+      new OnChainRegistry({
+        signer: { address: walletAddress, wallet: wc.data },
+        address: DEFAULT_REGISTRY_ADDRESS,
+        provider: createPublicClient({
+          chain: findChain(registryChainId) as Chain,
+          transport: transports[registryChainId] || http(),
+        }),
       }),
-    });
+      new OnChainRegistry({
+        address: DEFAULT_REGISTRY_ADDRESS,
+        provider: createPublicClient({
+          chain: findChain(roChainId) as Chain,
+          transport: transports[roChainId] || http(),
+        }),
+      }),
+    ]);
 
     const fakeLocalRegistry = new InMemoryRegistry();
 
@@ -137,7 +146,7 @@ export default function PublishUtility(props: {
 
   const publishMainnetMutation = useMutation({
     mutationFn: async () => {
-      await prepareAndPublishPackage(mainnet.id);
+      await prepareAndPublishPackage(mainnet.id, optimism.id);
     },
     onSuccess: async () => {
       await registryQuery.refetch();
@@ -154,7 +163,7 @@ export default function PublishUtility(props: {
 
   const publishOptimismMutation = useMutation({
     mutationFn: async () => {
-      await prepareAndPublishPackage(optimism.id);
+      await prepareAndPublishPackage(optimism.id, mainnet.id);
     },
     onSuccess: async () => {
       await registryQuery.refetch();
@@ -228,7 +237,7 @@ export default function PublishUtility(props: {
               to Ethereum or OP Mainnet to publish this package:
             </Text>
             <UnorderedList mb={4}>
-              {publishers.map(({ publisher, chainName }) => (
+              {publishers.map(({ publisher, chainName, chainId }) => (
                 <ListItem key={publisher + chainName} mb={1}>
                   <Text
                     display="inline"
@@ -242,7 +251,10 @@ export default function PublishUtility(props: {
                     <Link
                       isExternal
                       styleConfig={{ 'text-decoration': 'none' }}
-                      href={`${etherscanUrl}/address/${publisher}`}
+                      href={`${
+                        findChain(chainId).blockExplorers?.default?.url ||
+                        'https://etherscan.io'
+                      }/address/${publisher}`}
                       ml={1}
                     >
                       <ExternalLinkIcon transform="translateY(-1px)" />
