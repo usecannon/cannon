@@ -59,7 +59,7 @@ set_custom_config() {
   cp "$DIR/config/settings.json" "$CANNON_DIRECTORY/settings.json"
 }
 
-start_propagation_keeper() {
-  # Start the propagation keeper
-  $CANNON_KEEPER
+start_optimism_emitter() {
+  # Start the listening and propagate messages to anvil optimism fork
+  run $CANNON_OP_EMITTER
 }

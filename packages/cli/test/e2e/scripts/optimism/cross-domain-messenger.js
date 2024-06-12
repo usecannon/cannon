@@ -1,18 +1,15 @@
 const viem = require('viem');
 const { optimism } = require('viem/chains');
-const { privateKeyToAccount } = require('viem/accounts');
 
 const {
   OptimismEmitter,
   SentMessageEvent,
   StoppedEvent,
-} = require('./optimism_keeper');
+} = require('./emitter');
 
-const abi = require('./op-messanger-abi.json');
+const CrossDomainMessengerABI = require('./CrossDomainMessenger.json');
 
-const L1CrossDomainMessengerAddress =
-  '0x36BDE71C97B33Cc4729cf772aE268934f7AB70B2';
-
+const L1CrossDomainMessenger = '0x36BDE71C97B33Cc4729cf772aE268934f7AB70B2';
 const L2CrossDomainMessenger = '0x4200000000000000000000000000000000000007';
 
 const optimismForkProviderUrl = 'http://127.0.0.1:9546';
@@ -31,11 +28,11 @@ const setupTestClient = async () => {
     .extend(viem.walletActions);
 
   await testClient.impersonateAccount({
-    address: L1CrossDomainMessengerAddress,
+    address: L1CrossDomainMessenger,
   });
   await testClient.setBalance({
-    address: L1CrossDomainMessengerAddress,
-    value: viem.parseEther('10000'),
+    address: L1CrossDomainMessenger,
+    value: viem.parseEther('420'),
   });
 
   return testClient;
@@ -44,10 +41,10 @@ const setupTestClient = async () => {
 /*
  * This function handles the SentMessage event and creates transaction data to relay the message
  */
-const handleSentMessageEvent = (transactionDatas) => async (topic) => {
+const handleSentMessageEvent = (transactionDatas) => (topic) => {
   transactionDatas.push({
-    abi,
-    account: L1CrossDomainMessengerAddress,
+    abi: CrossDomainMessengerABI,
+    account: L1CrossDomainMessenger,
     address: L2CrossDomainMessenger,
     functionName: 'relayMessage',
     args: [
@@ -67,9 +64,11 @@ const handleSentMessageEvent = (transactionDatas) => async (topic) => {
 const processTransactions = async (testClient, transactionDatas) => {
   for (const transactionData of transactionDatas) {
     const { request } = await testClient.simulateContract(transactionData);
-    const hash = await testClient.writeContract(request);
 
-    console.log(`Transaction hash: ${hash}`);
+    // hardcode gas limit to 2.5M wei
+    request.gas = BigInt(2_500_000);
+
+    await testClient.writeContract(request);
   }
 };
 
@@ -91,9 +90,6 @@ const main = async () => {
   OPEmitter.on(SentMessageEvent, handleSentMessageEvent(transactionDatas));
 
   await new Promise((resolve) => OPEmitter.on(StoppedEvent, resolve));
-
-  // wait 5 seconds to ensure all events are processed
-  await new Promise((resolve) => setTimeout(resolve, 5000));
 
   await processTransactions(testClient, transactionDatas);
 };

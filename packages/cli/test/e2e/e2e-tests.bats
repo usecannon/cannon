@@ -17,6 +17,9 @@ setup_file() {
 teardown_file() {
   load helpers/bats-helpers.sh
   _teardown_file
+
+  kill -15 "$ANVIL_MAINNET_PID"
+  kill -15 "$ANVIL_OPTIMISM_PID"
 }
 
 # Test pre-hook
@@ -33,7 +36,7 @@ teardown() {
 
 
 @test "Register - Register multiple packages" {
-  set_custom_config
+  start_optimism_emitter
   run register.sh 2
   echo $output
   assert_output --partial 'Success - Package "package-one" has been registered'
