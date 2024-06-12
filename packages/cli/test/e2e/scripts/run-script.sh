@@ -8,6 +8,7 @@
 
 export CANNON_REPO_DIR="$(git rev-parse --show-toplevel)"
 export CANNON="node $CANNON_REPO_DIR/packages/cli/bin/cannon.js"
+export CANNON_KEEPER = "node ./propagation_keeper.js"
 
 # Create temporary directory for tests
 export WORKDIR="$(mktemp -d)"
