@@ -1,8 +1,8 @@
+import { CannonStorage } from './';
 import { IPFSLoader } from './loader';
-import { InMemoryRegistry } from './registry';
 import { PackageReference, publishPackage } from './package';
+import { InMemoryRegistry } from './registry';
 import { DeploymentInfo } from './types';
-import { CannonStorage } from '.';
 
 jest.mock('./loader');
 
@@ -27,7 +27,7 @@ describe('package.ts', () => {
       expect(ref).toHaveProperty('fullPackageRef', fullPackageRef);
     });
 
-    test.each([['a'], ['aa'], ['-aa'], ['some_package'], ['super-long-package-invalid-namee']])(
+    test.each([['a'], ['aa'], ['-aa'], ['some_package'], ['super-long-package-invalid-nameee']])(
       'throws an error with "%s"',
       (packageRef) => {
         expect(() => {
