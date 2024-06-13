@@ -249,11 +249,11 @@ export async function alter(
         if (!deployInfo.state[target]) {
           deployInfo.state[target] = {
             artifacts: { contracts: {}, txns: {}, extras: {} },
-            hash: h ? h[0] : null,
+            hash: 'SKIP',
             version: BUILD_VERSION,
           };
         } else {
-          deployInfo.state[target].hash = h ? h[0] : null;
+          deployInfo.state[target].hash = 'SKIP';
         }
       }
       // clear txn hash if we have it
