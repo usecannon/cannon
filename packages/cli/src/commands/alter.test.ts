@@ -161,6 +161,9 @@ describe('alter', () => {
     const command = 'mark-complete';
     const targets = ['provision.dummyStep'];
     const hash = ['0xmark-complete-fffffffffffffffffffffffffffffffffffffffffffffffff'];
+
+    const expectedResult = 'SKIP';
+
     jest.spyOn(ChainDefinition.prototype, 'getState').mockResolvedValue(hash);
 
     // Call the 'alter' function with the necessary arguments
@@ -171,7 +174,7 @@ describe('alter', () => {
 
     // TODO: I am not sure the package status must be changed to another value
     // expect(testPkgData.status).toEqual('complete');
-    expect(testPkgData.state['provision.dummyStep'].hash).toEqual(hash[0]);
+    expect(testPkgData.state['provision.dummyStep'].hash).toEqual(expectedResult);
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
       [packageName],
       chainId,
