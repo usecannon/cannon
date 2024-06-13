@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import {
+  getCannonRepoRegistryUrl,
   CANNON_CHAIN_ID,
   CannonStorage,
   ChainBuilderRuntime,
@@ -316,13 +317,8 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
 
   const fromStorage = new CannonStorage(await createDefaultReadRegistry(cliSettings), getMainLoader(cliSettings));
 
-  // TODO: need to do better UX
-  if (!cliSettings.publishIpfsUrl) {
-    throw new Error('please set CANNON_PUBLISH_IPFS_URL to the URL of your IPFS node');
-  }
-
   const toStorage = new CannonStorage(new InMemoryRegistry(), {
-    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl),
+    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || getCannonRepoRegistryUrl()),
   });
 
   console.log('Uploading package data for pinning...');
