@@ -244,8 +244,6 @@ export async function alter(
       await runtime.restoreMisc(deployInfo.miscUrl);
       // compute the state hash for the step
       for (const target of targets) {
-        const h = await new ChainDefinition(deployInfo.def).getState(target, runtime, ctx, false);
-
         if (!deployInfo.state[target]) {
           deployInfo.state[target] = {
             artifacts: { contracts: {}, txns: {}, extras: {} },
