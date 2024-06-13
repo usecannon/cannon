@@ -94,12 +94,14 @@ export class ChainDefinition {
         actions.push(fullActionName);
 
         if (ActionKinds[action] && ActionKinds[action].getOutputs) {
-          for (const output of ActionKinds[action].getOutputs!(_.get(def, fullActionName), {
+          const actionOutputs = ActionKinds[action].getOutputs!(_.get(def, fullActionName), {
             // TODO: what to do about name and version? do they even matter?
             name: '',
             version: '',
             currentLabel: fullActionName,
-          })) {
+          });
+
+          for (const output of actionOutputs) {
             debug(`deps: ${fullActionName} provides ${output}`);
             if (!this.dependencyFor.has(output)) {
               this.dependencyFor.set(output, fullActionName);
