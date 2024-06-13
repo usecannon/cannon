@@ -32,14 +32,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     '(Optional) Wipe the deployment files, and use the deployment files from another cannon package as base'
   )
   .addOptionalParam('impersonate', '(Optional) When dry running, uses forked signers rather than actual signing keys')
-  .addOptionalParam(
-    'writeScript',
-    '(Experimental) Path to write all the operations taken as a script that can be later executed'
-  )
-  .addOptionalParam(
-    'writeScriptFormat',
-    '(Experimental) Format in which to write the operations script (Options: json, ethers)'
-  )
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
   .setAction(
     async (
@@ -55,8 +47,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         dryRun,
         anvilOptions: anvilOptionsParam,
         impersonate,
-        writeScript,
-        writeScriptFormat,
       },
       hre
     ) => {
@@ -189,8 +179,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         overrideResolver: dryRun ? await createDryRunRegistry(resolveCliSettings()) : undefined,
         plugins: !!usePlugins,
         publicSourceCode: hre.config.cannon.publicSourceCode,
-        writeScript,
-        writeScriptFormat,
       } as const;
 
       const { outputs } = await build(params);
