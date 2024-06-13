@@ -288,7 +288,6 @@ export async function alter(
       // `import` steps renamed to `pull`
       // `provision` steps renamed to `clone`
       // we just need to update the key that the state for these releases is stored on
-      console.log('GOT DEPLOY INFO STATE', deployInfo.state);
       deployInfo.state = _.mapKeys(deployInfo.state, (_v, k) => {
         return k
           .replace(/^contract\./, 'deploy.')
