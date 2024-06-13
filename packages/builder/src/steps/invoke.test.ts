@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import '../actions';
+import { validateConfig } from '../actions';
 import action from './invoke';
 import { fakeCtx, fakeRuntime } from './utils.test.helper';
 
@@ -57,6 +57,18 @@ describe('steps/invoke.ts', () => {
       },
     },
   };
+
+  describe('validate', () => {
+    it('fails when not setting values', () => {
+      expect(() => validateConfig(action.validate, {})).toThrow('Field: target');
+    });
+
+    it('fails when setting invalid value', () => {
+      expect(() => validateConfig(action.validate, { target: 'owner()', invalid: ['something'] })).toThrow(
+        "Unrecognized key(s) in object: 'invalid'"
+      );
+    });
+  });
 
   describe('configInject()', () => {
     it('injects all fields', async () => {

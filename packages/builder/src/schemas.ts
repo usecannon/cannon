@@ -186,7 +186,8 @@ export const deploySchema = z
           ),
       })
       .deepPartial()
-  );
+  )
+  .strict();
 
 export const pullSchema = z
   .object({
@@ -235,40 +236,43 @@ export const pullSchema = z
           ),
       })
       .deepPartial()
-  );
+  )
+  .strict();
 
 const invokeVarRecord = z
   .record(
-    z.object({
-      /**
-       *   Name of the event to get data for
-       */
-      event: z.string().describe('Name of the event to get data for'),
-      /**
-       *   Data argument of the event output
-       */
-      arg: z.number().int().describe('Data argument of the event output'),
-      /**
-       *   Number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)
-       */
-      expectCount: z
-        .number()
-        .int()
-        .optional()
-        .describe(
-          'Number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)'
-        ),
+    z
+      .object({
+        /**
+         *   Name of the event to get data for
+         */
+        event: z.string().describe('Name of the event to get data for'),
+        /**
+         *   Data argument of the event output
+         */
+        arg: z.number().int().describe('Data argument of the event output'),
+        /**
+         *   Number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)
+         */
+        expectCount: z
+          .number()
+          .int()
+          .optional()
+          .describe(
+            'Number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)'
+          ),
 
-      /**
-       *   Bypass error messages if an event is expected in the invoke operation but none are emitted in the transaction.
-       */
-      allowEmptyEvents: z
-        .boolean()
-        .optional()
-        .describe(
-          'Bypass error messages if an event is expected in the invoke operation but none are emitted in the transaction.'
-        ),
-    })
+        /**
+         *   Bypass error messages if an event is expected in the invoke operation but none are emitted in the transaction.
+         */
+        allowEmptyEvents: z
+          .boolean()
+          .optional()
+          .describe(
+            'Bypass error messages if an event is expected in the invoke operation but none are emitted in the transaction.'
+          ),
+      })
+      .strict()
   )
   .describe(
     'Object defined to hold transaction result data in a setting. For now its limited to getting event data so it can be reused in other operations'
@@ -468,7 +472,8 @@ export const invokeSchema = z
           ),
       })
       .partial()
-  );
+  )
+  .strict();
 
 export const cloneSchema = z
   .object({
@@ -560,36 +565,39 @@ export const cloneSchema = z
           ),
       })
       .deepPartial()
-  );
+  )
+  .strict();
 
-export const routerSchema = z.object({
-  /**
-   * Set of contracts that will be passed to the router
-   */
-  contracts: z.array(z.string()).describe('Set of contracts that will be passed to the router'),
-  /**
-   * Include a `receive` function on the router so that it can receive ETH (or, whatever the gas token is on your network).
-   * NOTE: you can always define `payable` functions on your end-functions to receive ETH as well. This is only for receiving ETH like a regular EOA would.
-   */
-  includeReceive: z.boolean().optional(),
-  /**
-   *  Address to pass to the from call
-   */
-  from: z.string().optional().describe('Address to pass to the from call'),
-  /**
-   *   Used to force new copy of a contract (not actually used)
-   */
-  salt: z.string().optional().describe('Used to force new copy of a contract (not actually used)'),
-  /**
-   *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
-   */
-  depends: z
-    .array(z.string())
-    .optional()
-    .describe(
-      'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
-    ),
-});
+export const routerSchema = z
+  .object({
+    /**
+     * Set of contracts that will be passed to the router
+     */
+    contracts: z.array(z.string()).describe('Set of contracts that will be passed to the router'),
+    /**
+     * Include a `receive` function on the router so that it can receive ETH (or, whatever the gas token is on your network).
+     * NOTE: you can always define `payable` functions on your end-functions to receive ETH as well. This is only for receiving ETH like a regular EOA would.
+     */
+    includeReceive: z.boolean().optional(),
+    /**
+     *  Address to pass to the from call
+     */
+    from: z.string().optional().describe('Address to pass to the from call'),
+    /**
+     *   Used to force new copy of a contract (not actually used)
+     */
+    salt: z.string().optional().describe('Used to force new copy of a contract (not actually used)'),
+    /**
+     *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
+     */
+    depends: z
+      .array(z.string())
+      .optional()
+      .describe(
+        'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+      ),
+  })
+  .strict();
 
 export const varSchema = z
   .object({

@@ -208,24 +208,21 @@ export class ChainDefinition {
     }
 
     const kind = n.split('.')[0] as keyof typeof ActionKinds;
+    const action = ActionKinds[kind];
 
-    if (!ActionKinds[kind]) {
+    if (!action) {
       throw new Error(
         `action kind plugin not installed: "${kind}" (for action: "${n}"). please install the plugin necessary to build this package.`
       );
     }
 
-    validateConfig(ActionKinds[kind].validate, _.get(this.raw, n));
+    validateConfig(action.validate, _.get(this.raw, n));
 
-    return ActionKinds[n.split('.')[0] as keyof typeof ActionKinds].configInject(
-      { ...ctx, ...CannonHelperContext },
-      _.get(this.raw, n),
-      {
-        name: this.getName(ctx),
-        version: this.getVersion(ctx),
-        currentLabel: n,
-      }
-    );
+    return action.configInject({ ...ctx, ...CannonHelperContext }, _.get(this.raw, n), {
+      name: this.getName(ctx),
+      version: this.getVersion(ctx),
+      currentLabel: n,
+    });
   }
 
   /**
