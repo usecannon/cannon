@@ -371,6 +371,11 @@ const commandsConfig = {
         description: 'Chain ID of deployment to alter',
       },
       {
+        flags: '-s --subpkg <subpackagePath>',
+        description:
+          'When the change needs to be made in a subpackage, specify the step names leading to the subpackage, comma separated.',
+      },
+      {
         flags: '-n --provider-url [url]',
         description: 'RPC endpoint to alter to',
       },

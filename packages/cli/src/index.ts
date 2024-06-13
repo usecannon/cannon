@@ -272,7 +272,18 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
   await ensureChainIdConsistency(cliSettings.providerUrl, flags.chainId);
 
   // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
-  const newUrl = await alter(packageName, parseInt(flags.chainId), cliSettings, flags.preset, {}, command, options, {});
+  console.log('flags', flags.subpkg, 'options', options.subpkg);
+  const newUrl = await alter(
+    packageName,
+    flags.subpkg ? flags.subpkg.split(',') : [],
+    parseInt(flags.chainId),
+    cliSettings,
+    flags.preset,
+    {},
+    command,
+    options,
+    {}
+  );
 
   console.log(newUrl);
 });
