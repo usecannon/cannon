@@ -28,7 +28,7 @@ export async function alter(
   cliSettings: CliSettings,
   presetArg: string,
   meta: any,
-  command: 'set-url' | 'set-contract-address' | 'import' | 'mark-complete' | 'mark-incomplete' | 'migrate-212',
+  command: 'set-url' | 'set-misc' | 'set-contract-address' | 'import' | 'mark-complete' | 'mark-incomplete' | 'migrate-212',
   targets: string[],
   runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
@@ -106,7 +106,6 @@ export async function alter(
   debug('alter with ctx', ctx);
 
   // get a list of all deployments the user is requesting
-  console.log('some thing should happen', subpkg);
   switch (command) {
     case 'set-url':
       deployInfo = (await runtime.readBlob(targets[0])) as DeploymentInfo;
@@ -149,6 +148,13 @@ export async function alter(
         }
       }
       // clear transaction hash for all contracts and transactions
+      break;
+
+    case 'set-misc':
+      if (targets.length !== 1) {
+        throw new Error('incorrect number of arguments for set-misc. Should be the new misc url');
+      }
+      deployInfo.miscUrl = targets[0];
       break;
 
     case 'import':
