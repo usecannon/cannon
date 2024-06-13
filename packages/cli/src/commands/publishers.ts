@@ -1,12 +1,16 @@
 import { OnChainRegistry, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
-import { blueBright, gray, green } from 'chalk';
 import _ from 'lodash';
-import prompts from 'prompts';
+import Debug from 'debug';
 import * as viem from 'viem';
+import prompts from 'prompts';
+import { blueBright, gray, green } from 'chalk';
+
 import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 import { CliSettings } from '../settings';
 import { resolveRegistryProviders } from '../util/provider';
 import { waitForEvent } from '../util/register';
+
+const debug = Debug('cannon:cli:publishers');
 
 interface Params {
   cliSettings: CliSettings;
@@ -19,6 +23,15 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   if (!options.add && !options.remove) {
     throw new Error('Please provide either --add or --remove option');
   }
+
+  if (cliSettings.isE2E) {
+    // anvil optimism fork
+    cliSettings.registries[0].providerUrl = ['http://127.0.0.1:9546'];
+    // anvil mainnet fork
+    cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
+  }
+
+  debug('Registries list: ', cliSettings.registries);
 
   const publishersToAdd: viem.Address[] = options.add
     ? options.add.split(',').map((p: string) => viem.getAddress(p.trim()))
@@ -64,18 +77,26 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
-  const keyPrompt = await prompts({
-    type: 'select',
-    name: 'value',
-    message: 'Where do you want to add or remove publishers?',
-    choices: [
-      { title: 'Optimism', value: 'OP' },
-      { title: 'Ethereum Mainnet', value: 'ETH' },
-    ],
-    initial: 0,
-  });
+  let selectedNetwork = '';
 
-  const isMainnet = keyPrompt.value === 'ETH';
+  if (!options.optimism && !options.mainnet) {
+    selectedNetwork = (
+      await prompts({
+        type: 'select',
+        name: 'value',
+        message: 'Where do you want to add or remove publishers?',
+        choices: [
+          { title: 'Optimism', value: 'OP' },
+          { title: 'Ethereum Mainnet', value: 'ETH' },
+        ],
+        initial: 0,
+      })
+    ).value;
+  } else {
+    selectedNetwork = options.optimism ? 'OP' : 'ETH';
+  }
+
+  const isMainnet = selectedNetwork === 'ETH';
   const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
   const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
 
@@ -157,16 +178,16 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   );
   console.log();
 
-  const verification = await prompts({
-    type: 'confirm',
-    name: 'confirmation',
-    message: 'Proceed?',
-    initial: true,
-  });
+  if (!options.skipConfirm) {
+    const confirm = await prompts({
+      type: 'confirm',
+      name: 'confirmation',
+      message: 'Proceed?',
+    });
 
-  if (!verification.confirmation) {
-    console.log('Cancelled');
-    process.exit(1);
+    if (!confirm.confirmation) {
+      process.exit(0);
+    }
   }
 
   const mainnetPublishers = isMainnet ? publishers : mainnetCurrentPublishers;
