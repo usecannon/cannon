@@ -209,7 +209,7 @@ export async function preparePublishPackage({
     const fromUrl = await fromStorage.registry.getUrl(curFullPackageRef, chainId);
     debug('fromStorage.getLabel: ' + fromStorage.getLabel() + ' fromUrl: ' + fromUrl);
 
-    if (toUrl === fromUrl) {
+    if (fromUrl && toUrl === fromUrl) {
       debug('package already published... skip!', curFullPackageRef);
       alreadyCopiedIpfs.set(checkKey, null);
       return null;
