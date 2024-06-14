@@ -308,15 +308,6 @@ const commandsConfig = {
         description: 'Skip the compilation step and use the existing artifacts',
       },
       {
-        flags: '--write-script <writeScript>',
-        description: '(Experimental) Path to write all the actions taken as a script that can be later executed',
-      },
-      {
-        flags: '--write-script-format <writeScriptFormat>',
-        description: '(Experimental) Format in which to write the actions script (Options: json, ethers)',
-        defaultValue: 'ethers',
-      },
-      {
         flags: '-q --quiet',
         description: 'Suppress extra logging',
       },
