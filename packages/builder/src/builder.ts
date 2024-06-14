@@ -127,7 +127,7 @@ ${printChainDefinitionProblems(problems)}`);
           const curHashes = await def.getState(n, runtime, ctx, depsTainted);
 
           debug('comparing states', state[n] ? state[n].hash : null, curHashes);
-          if (!state[n] || (curHashes && !curHashes.includes(state[n].hash || ''))) {
+          if (!state[n] || (state[n].hash !== 'SKIP' && curHashes && !curHashes.includes(state[n].hash || ''))) {
             debug('run isolated', n);
             const newArtifacts = await runStep(runtime, { name, version, currentLabel: n }, def.getConfig(n, ctx), ctx);
 

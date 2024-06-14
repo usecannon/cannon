@@ -23,11 +23,12 @@ const debug = Debug('cannon:cli:alter');
 
 export async function alter(
   packageRef: string,
+  subpkg: string[],
   chainId: number,
   cliSettings: CliSettings,
   presetArg: string,
   meta: any,
-  command: 'set-url' | 'set-contract-address' | 'import' | 'mark-complete' | 'mark-incomplete' | 'migrate-212',
+  command: 'set-url' | 'set-misc' | 'set-contract-address' | 'import' | 'mark-complete' | 'mark-incomplete' | 'migrate-212',
   targets: string[],
   runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
@@ -73,19 +74,29 @@ export async function alter(
     loader
   );
 
-  let startDeployInfo = await runtime.readDeploy(fullPackageRef, chainId);
+  const startDeployInfo = [await runtime.readDeploy(fullPackageRef, chainId)];
   const metaUrl = await resolver.getMetaUrl(fullPackageRef, chainId);
 
-  if (!startDeployInfo) {
+  if (!startDeployInfo[0]) {
     // try loading against the basic deploy
-    startDeployInfo = await runtime.readDeploy(fullPackageRef, CANNON_CHAIN_ID);
+    startDeployInfo[0] = await runtime.readDeploy(fullPackageRef, CANNON_CHAIN_ID);
 
     if (!startDeployInfo) {
       throw new Error(`deployment not found: ${fullPackageRef} (${chainId})`);
     }
   }
 
-  let deployInfo = startDeployInfo;
+  for (const pathItem of subpkg) {
+    debug('load subpkg', pathItem);
+    if (!_.last(startDeployInfo)?.state[pathItem]) {
+      throw new Error('subpkg path name not found: ' + pathItem);
+    }
+    startDeployInfo.push(
+      await runtime.readBlob(_.last(startDeployInfo)!.state[pathItem].artifacts.imports![pathItem.split('.')[1]].url)
+    );
+  }
+
+  let deployInfo = startDeployInfo.pop()!;
 
   const ctx = await createInitialContext(new ChainDefinition(deployInfo.def), meta, chainId, deployInfo.options);
   const outputs = await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state);
@@ -137,6 +148,13 @@ export async function alter(
         }
       }
       // clear transaction hash for all contracts and transactions
+      break;
+
+    case 'set-misc':
+      if (targets.length !== 1) {
+        throw new Error('incorrect number of arguments for set-misc. Should be the new misc url');
+      }
+      deployInfo.miscUrl = targets[0];
       break;
 
     case 'import':
@@ -222,18 +240,18 @@ export async function alter(
 
       break;
     case 'mark-complete':
+      // some steps may require access to misc artifacts
+      await runtime.restoreMisc(deployInfo.miscUrl);
       // compute the state hash for the step
       for (const target of targets) {
-        const h = await new ChainDefinition(deployInfo.def).getState(target, runtime, ctx, false);
-
         if (!deployInfo.state[target]) {
           deployInfo.state[target] = {
             artifacts: { contracts: {}, txns: {}, extras: {} },
-            hash: h ? h[0] : null,
+            hash: 'SKIP',
             version: BUILD_VERSION,
           };
         } else {
-          deployInfo.state[target].hash = h ? h[0] : null;
+          deployInfo.state[target].hash = 'SKIP';
         }
       }
       // clear txn hash if we have it
@@ -250,6 +268,7 @@ export async function alter(
 
           const newUrl = await alter(
             `@${oldUrl.split(':')[0]}:${_.last(oldUrl.split('/'))}`,
+            [],
             chainId,
             cliSettings,
             presetArg,
@@ -276,13 +295,26 @@ export async function alter(
       break;
   }
 
-  const newUrl = await runtime.putDeploy(deployInfo);
+  let subpkgUrl = await runtime.putDeploy(deployInfo);
 
-  if (!newUrl) {
+  if (!subpkgUrl) {
     throw new Error('loader is not writable');
   }
 
-  await resolver.publish([fullPackageRef], chainId, newUrl, metaUrl || '');
+  let superPkgDeployInfo;
+  while ((superPkgDeployInfo = startDeployInfo.pop())) {
+    debug('write subpkg to ipfs', subpkgUrl);
+    superPkgDeployInfo.state[subpkg[startDeployInfo.length]].artifacts.imports![
+      subpkg[startDeployInfo.length].split('.')[1]
+    ].url = subpkgUrl;
+    subpkgUrl = await runtime.putDeploy(superPkgDeployInfo);
 
-  return newUrl;
+    if (!subpkgUrl) {
+      throw new Error('error writing subpkg to loader');
+    }
+  }
+
+  await resolver.publish([fullPackageRef], chainId, subpkgUrl, metaUrl || '');
+
+  return subpkgUrl;
 }
