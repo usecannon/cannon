@@ -200,6 +200,42 @@ teardown() {
   assert_success
 }
 
+@test "Publishers - Add a publisher on Optimism network" {
+  set_custom_config
+  start_optimism_emitter
+  run publishers.sh 1
+  echo $output
+  assert_output --partial 'Success - The publishers list has been updated!'
+  assert_success
+}
+
+@test "Publishers - Remove a publisher on Optimism network" {
+  set_custom_config
+  start_optimism_emitter
+  run publishers.sh 2
+  echo $output
+  assert_output --partial 'Success - The publishers list has been updated!'
+  assert_success
+}
+
+@test "Publishers - Add a publisher on Mainnet network" {
+  set_custom_config
+  start_optimism_emitter
+  run publishers.sh 3
+  echo $output
+  assert_output --partial 'Success - The publishers list has been updated!'
+  assert_success
+}
+
+@test "Publishers - Remove a publisher on Mainnet network" {
+  set_custom_config
+  start_optimism_emitter
+  run publishers.sh 4
+  echo $output
+  assert_output --partial 'Success - The publishers list has been updated!'
+  assert_success
+}
+
 @test "Publish - Publishing greeter package" {
   set_custom_config
   run publish.sh

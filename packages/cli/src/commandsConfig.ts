@@ -623,6 +623,18 @@ const commandsConfig = {
         description: 'Private key of the package owner',
       },
       {
+        flags: '--optimism',
+        description: 'Change publishers on the Optimism network',
+      },
+      {
+        flags: '--mainnet',
+        description: 'Change publishers on the Mainnet network',
+      },
+      {
+        flags: '--skip-confirm',
+        description: 'Skip confirmation to change the publishers',
+      },
+      {
         flags: '--gas-limit <gasLimit>',
         description: 'The maximum units of gas spent for the registration transaction',
       },
