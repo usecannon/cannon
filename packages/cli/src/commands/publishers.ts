@@ -18,6 +18,11 @@ interface Params {
   packageRef: string;
 }
 
+enum Network {
+  OP = 'OP',
+  MAINNET = 'ETH',
+}
+
 export async function publishers({ cliSettings, options, packageRef }: Params) {
   // throw an error if the user has not provided any addresses
   if (!options.add && !options.remove) {
@@ -86,17 +91,17 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         name: 'value',
         message: 'Where do you want to add or remove publishers?',
         choices: [
-          { title: 'Optimism', value: 'OP' },
-          { title: 'Ethereum Mainnet', value: 'ETH' },
+          { title: 'Optimism', value: Network.OP },
+          { title: 'Ethereum Mainnet', value: Network.MAINNET },
         ],
         initial: 0,
       })
     ).value;
   } else {
-    selectedNetwork = options.optimism ? 'OP' : 'ETH';
+    selectedNetwork = options.optimism ? Network.OP : Network.MAINNET;
   }
 
-  const isMainnet = selectedNetwork === 'ETH';
+  const isMainnet = selectedNetwork === Network.MAINNET;
   const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
   const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
 
@@ -216,7 +221,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         waitForEvent({
           eventName: 'PackagePublishersChanged',
           abi: mainnetRegistry.contract.abi,
-          providerUrl: optimismRegistryConfig.providerUrl![0],
+          providerUrl: mainnetRegistryConfig.providerUrl![0],
           expectedArgs: {
             name: packageNameHex,
             publisher: mainnetPublishers,
@@ -233,7 +238,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         }),
       ]);
 
-      console.log(green('Success!'));
+      console.log(green('Success - The publishers list has been updated!'));
       console.log('');
     })(),
   ]);

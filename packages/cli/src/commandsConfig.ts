@@ -618,11 +618,11 @@ const commandsConfig = {
         description: 'Private key of the package owner',
       },
       {
-        flags: '--optimism <key>',
+        flags: '--optimism',
         description: 'Change publishers on the Optimism network',
       },
       {
-        flags: '--mainnet <key>',
+        flags: '--mainnet',
         description: 'Change publishers on the Mainnet network',
       },
       {
