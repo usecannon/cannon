@@ -145,6 +145,9 @@ ${printChainDefinitionProblems(problems)}`);
           }
 
           built.set(n, _.merge(artifacts, state[n].artifacts));
+
+          // if there is an error then this will ensure the stack trace is printed with the latest
+          runtime.updateProviderArtifacts(state[n].artifacts);
         } catch (err: any) {
           debug('got error', err);
           if (runtime.allowPartialDeploy) {
@@ -322,9 +325,6 @@ export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageSta
   runtime.emit(Events.PreStepExecute, type, label, cfg, 0);
 
   debugVerbose('ctx for operation', pkgState.currentLabel, ctx);
-
-  // if there is an error then this will ensure the stack trace is printed with the latest
-  runtime.updateProviderArtifacts(ctx);
 
   const result = await viem.withTimeout(
     () => {
