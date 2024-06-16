@@ -32,6 +32,8 @@ export type ContractData = {
   constructorArgs?: any[]; // only needed for external verification
   linkedLibraries?: { [sourceName: string]: { [libName: string]: string } }; // only needed for external verification
   deployTxnHash: string;
+  deployTxnBlockNumber: string?;
+  deployTimestamp: string?;
   contractName: string;
   sourceName: string;
   deployedOn: string;
