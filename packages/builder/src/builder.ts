@@ -154,6 +154,9 @@ ${printChainDefinitionProblems(problems)}`);
             runtime.emit(Events.SkipDeploy, n, err, 0);
             continue; // will skip saving the build artifacts, which should block any future jobs from finishing
           } else {
+            // fake emit the pre step execute so its easier to see what is going on
+            const [type, label] = n.split('.') as [keyof typeof ActionKinds, string];
+            runtime.emit(Events.PreStepExecute, type, label, {}, 0);
             // make sure its possible to debug the original error
             debug('error', err);
             debugVerbose('context', JSON.stringify(ctx, null, 2));
@@ -247,8 +250,10 @@ export async function buildLayer(
       // make sure its possible to debug the original error
       debug('error', err);
 
-      // now log a more friendly message
-      throw new Error(`Failure on operation ${action}: ${(err as Error).toString()}`);
+      // fake emit the pre step execute so its easier to see what is going on
+      const [type, label] = action.split('.') as [keyof typeof ActionKinds, string];
+      runtime.emit(Events.PreStepExecute, type, label, {}, 0);
+      throw err;
     }
   }
 
@@ -308,6 +313,9 @@ export async function buildLayer(
 
       tainted.add(action);
       built.set(action, _.merge(depArtifacts, state[action].artifacts));
+
+      // if there is an error then this will ensure the stack trace is printed with the latest
+      runtime.updateProviderArtifacts(state[action].artifacts);
     }
 
     // after all contexts are built, save all of them at the same time
