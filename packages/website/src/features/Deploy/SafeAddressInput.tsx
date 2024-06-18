@@ -60,7 +60,7 @@ export function SafeAddressInput() {
   useEffect(() => {
     const { safeAddress: address, chainId } = searchParams;
 
-    if (isNaN(Number(chainId))) return;
+    if (!Number.isSafeInteger(Number(chainId))) return;
     if (!viem.isAddress(address as string)) return;
 
     const newSafe = parseSafe(`${chainId}:${address}`);
