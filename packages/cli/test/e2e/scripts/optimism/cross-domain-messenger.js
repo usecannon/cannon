@@ -5,7 +5,7 @@ const {
   OptimismEmitter,
   SentMessageEvent,
   StoppedEvent,
-} = require('./emitter');
+} = require('./optimism-emitter');
 
 const CrossDomainMessengerABI = require('./CrossDomainMessenger.json');
 

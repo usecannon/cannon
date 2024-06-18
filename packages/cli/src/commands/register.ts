@@ -158,7 +158,8 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
     });
 
     if (!confirm.confirmation) {
-      process.exit(0);
+      console.log('Cancelled');
+      process.exit(1);
     }
   }
 

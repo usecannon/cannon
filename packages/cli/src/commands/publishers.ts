@@ -191,7 +191,8 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     });
 
     if (!confirm.confirmation) {
-      process.exit(0);
+      console.log('Cancelled');
+      process.exit(1);
     }
   }
 

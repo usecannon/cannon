@@ -200,7 +200,7 @@ teardown() {
   assert_success
 }
 
-@test "Publishers - Add a publisher on Optimism network" {
+@test "Publishers - Add a publisher on the Optimism network" {
   set_custom_config
   start_optimism_emitter
   run publishers.sh 1
@@ -209,7 +209,7 @@ teardown() {
   assert_success
 }
 
-@test "Publishers - Remove a publisher on Optimism network" {
+@test "Publishers - Remove a publisher on the Optimism network" {
   set_custom_config
   start_optimism_emitter
   run publishers.sh 2
@@ -218,7 +218,7 @@ teardown() {
   assert_success
 }
 
-@test "Publishers - Add a publisher on Mainnet network" {
+@test "Publishers - Add a publisher on the Mainnet network" {
   set_custom_config
   start_optimism_emitter
   run publishers.sh 3
@@ -227,7 +227,7 @@ teardown() {
   assert_success
 }
 
-@test "Publishers - Remove a publisher on Mainnet network" {
+@test "Publishers - Remove a publisher on the Mainnet network" {
   set_custom_config
   start_optimism_emitter
   run publishers.sh 4
