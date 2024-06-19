@@ -6,9 +6,12 @@ import { Flex } from '@chakra-ui/react';
 import { Analytics } from '@vercel/analytics/react';
 import NextTopLoader from 'nextjs-toploader';
 import { Inter, Miriam_Libre, Roboto_Mono } from 'next/font/google';
-import { ReactElement } from 'react';
+import { ReactElement, useEffect } from 'react';
 import Providers from './_providers';
+import { DefaultSeo } from 'next-seo';
 import '@/styles/globals.css';
+import defaultSEO from '@/constants/defaultSeo';
+import E2EWalletConnector from '../../cypress/utils/E2EWalletConnector';
 
 const miriam = Miriam_Libre({
   subsets: ['latin'],
@@ -34,8 +37,14 @@ export default function RootLayout({
   pageProps: any;
 }) {
   const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
+
+  useEffect(() => {
+    document.body.classList.remove('fouc-prevention');
+  }, []);
+
   return (
     <>
+      <DefaultSeo {...defaultSEO} />
       <style jsx global>
         {`
           :root {
@@ -57,7 +66,7 @@ export default function RootLayout({
       <Providers>
         <Flex
           flexDirection="column"
-          backgroundColor="gray.900"
+          backgroundColor="black"
           minHeight="100vh"
           position="relative"
         >
@@ -65,6 +74,7 @@ export default function RootLayout({
           <Flex flex="1">{getLayout(<Component {...pageProps} />)}</Flex>
           <Footer />
           {/*<Console />*/}
+          <E2EWalletConnector />
         </Flex>
       </Providers>
       <Analytics />

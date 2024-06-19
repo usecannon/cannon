@@ -87,17 +87,20 @@ export async function decode({
         console.log(renderParam(offset, input));
         // @ts-ignore: TODO - figure out how to type this
         const components = input.components;
-        for (let i = 0; i < components.length; i++) {
-          renderArgs(
-            {
-              ...components[i],
-              name: `[${i}]`,
-            },
-            value[i],
-            offset.repeat(2)
-          );
+        const values = input.type.endsWith('[]') ? value.map(Object.values) : [value];
+        for (const v of values) {
+          for (let i = 0; i < components.length; i++) {
+            renderArgs(
+              {
+                ...components[i],
+                name: `[${i}]`,
+              },
+              v[i],
+              offset.repeat(2)
+            );
+          }
+          console.log();
         }
-
         break;
       }
 
@@ -148,7 +151,7 @@ function _renderValue(type: viem.AbiParameter, value: string | bigint) {
       return viem.getAddress(value);
 
     case type.type == 'bool':
-      return viem.hexToBool(value as viem.Hex);
+      return typeof value == 'string' && value.startsWith('0x') ? viem.hexToBool(value as viem.Hex) : value;
 
     case type.type.startsWith('bytes'):
       try {

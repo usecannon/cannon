@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import {
+  getCannonRepoRegistryUrl,
   CANNON_CHAIN_ID,
   CannonStorage,
   ChainBuilderRuntime,
@@ -12,6 +13,7 @@ import {
   PackageReference,
   publishPackage,
   traceActions,
+  DEFAULT_REGISTRY_CONFIG,
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
@@ -22,7 +24,6 @@ import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
-import { DEFAULT_REGISTRY_CONFIG } from './constants';
 import {
   checkAndNormalizePrivateKey,
   checkCannonVersion,
@@ -49,6 +50,8 @@ import './custom-steps/run';
 export * from './types';
 export * from './constants';
 export * from './util/params';
+export * from './util/register';
+export * from './util/provider';
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export type { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
@@ -272,7 +275,17 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
   await ensureChainIdConsistency(cliSettings.providerUrl, flags.chainId);
 
   // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
-  const newUrl = await alter(packageName, parseInt(flags.chainId), cliSettings, flags.preset, {}, command, options, {});
+  const newUrl = await alter(
+    packageName,
+    flags.subpkg ? flags.subpkg.split(',') : [],
+    parseInt(flags.chainId),
+    cliSettings,
+    flags.preset,
+    {},
+    command,
+    options,
+    {}
+  );
 
   console.log(newUrl);
 });
@@ -304,9 +317,10 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
 
   ipfsHash = ipfsHash.replace(/^ipfs:\/\//, '');
 
-  const fromStorage = new CannonStorage(new InMemoryRegistry(), getMainLoader(cliSettings));
+  const fromStorage = new CannonStorage(await createDefaultReadRegistry(cliSettings), getMainLoader(cliSettings));
+
   const toStorage = new CannonStorage(new InMemoryRegistry(), {
-    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
+    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || getCannonRepoRegistryUrl()),
   });
 
   console.log('Uploading package data for pinning...');
@@ -322,7 +336,10 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
   console.log('Done!');
 });
 
-applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (packageRef, options) {
+applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (
+  packageRef,
+  options: { [opt: string]: string }
+) {
   const { publish } = await import('./commands/publish');
 
   const cliSettings = resolveCliSettings(options);
@@ -339,7 +356,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       throw new Error('A valid Chain Id is required.');
     }
 
-    options.chainId = Number(chainIdPrompt.value);
+    options.chainId = chainIdPrompt.value;
   }
 
   if (!cliSettings.privateKey) {
@@ -424,7 +441,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
       const { register } = await import('./commands/register');
 
-      await register({ cliSettings, options, packageRef, fromPublish: true });
+      await register({ cliSettings, options, packageRefs: [new PackageReference(packageRef)], fromPublish: true });
     }
   }
 
@@ -467,11 +484,11 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     cliSettings,
     onChainRegistry,
     tags: options.tags ? options.tags.split(',') : undefined,
-    chainId: options.chainId ? options.chainId : undefined,
+    chainId: options.chainId ? Number(options.chainId) : undefined,
     presetArg: options.preset ? (options.preset as string) : undefined,
-    quiet: options.quiet,
+    quiet: !!options.quiet,
     includeProvisioned: !options.excludeCloned,
-    skipConfirm: options.skipConfirm,
+    skipConfirm: !!options.skipConfirm,
   });
 });
 
@@ -488,7 +505,7 @@ applyCommandsConfig(program.command('register'), commandsConfig.register).action
 
   const cliSettings = resolveCliSettings(options);
 
-  await register({ cliSettings, options, packageRef, fromPublish: false });
+  await register({ cliSettings, options, packageRefs: packageRef, fromPublish: false });
 });
 
 applyCommandsConfig(program.command('publishers'), commandsConfig.publishers).action(async function (packageRef, options) {
@@ -640,15 +657,8 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
 
   // after the build is done we can run the forge tests for the user
   await getProvider(node!)!.mine({ blocks: 1 });
-  const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeOpts]);
 
-  forgeProcess.stdout.on('data', (data: Buffer) => {
-    process.stdout.write(data);
-  });
-
-  forgeProcess.stderr.on('data', (data: Buffer) => {
-    process.stderr.write(data);
-  });
+  const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeOpts], { stdio: 'inherit' });
 
   await new Promise(() => {
     forgeProcess.on('close', (code: number) => {

@@ -3,6 +3,7 @@ artifacts
 cache
 coverage*
 dist
+out
 gasReporterOutput.json
 next.lock
 node_modules

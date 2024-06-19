@@ -1,6 +1,6 @@
 import { getDefaultStorage, getCannonContract } from './helpers';
 import { IPFSLoader, InMemoryLoader } from './loader';
-import { InMemoryRegistry } from './registry';
+import { InMemoryRegistry, FallbackRegistry } from './registry';
 import { CannonStorage } from './runtime';
 
 describe('helpers.test.ts', () => {
@@ -9,7 +9,7 @@ describe('helpers.test.ts', () => {
       const storage = getDefaultStorage();
 
       expect(storage.loaders.ipfs).toBeInstanceOf(IPFSLoader);
-      expect(storage.registry).toBeInstanceOf(InMemoryRegistry);
+      expect(storage.registry).toBeInstanceOf(FallbackRegistry);
     });
   });
 

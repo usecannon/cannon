@@ -13,7 +13,7 @@ interface PartialRefValues {
   preset?: string;
 }
 
-export type CopyPackageOpts = {
+type CopyPackageOpts = {
   packageRef: string;
   chainId: number;
   tags: string[];
@@ -24,13 +24,20 @@ export type CopyPackageOpts = {
   includeProvisioned?: boolean;
 };
 
+export interface PackagePublishCall {
+  packagesNames: string[];
+  chainId: number;
+  url: string;
+  metaUrl: string;
+}
+
 /**
  * Used to format any reference to a cannon package and split it into it's core parts
  */
 export class PackageReference {
   static DEFAULT_TAG = 'latest';
   static DEFAULT_PRESET = 'main';
-  static PACKAGE_REGEX = /^(?<name>@?[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
+  static PACKAGE_REGEX = /^(?<name>@?[a-z0-9][A-Za-z0-9-]{1,30}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
 
   /**
    * Anything before the colon or an @ (if no version is present) is the package name.
@@ -159,49 +166,7 @@ function _deployImports(deployInfo: DeploymentInfo) {
   return _.flatMap(_.values(deployInfo.state), (state: StepState) => Object.values(state.artifacts.imports || {}));
 }
 
-export async function getProvisionedPackages(packageRef: string, chainId: number, tags: string[], storage: CannonStorage) {
-  const { preset, fullPackageRef } = new PackageReference(packageRef);
-
-  const uri = await storage.registry.getUrl(fullPackageRef, chainId);
-
-  const deployInfo: DeploymentInfo = await storage.readBlob(uri!);
-
-  if (!deployInfo) {
-    throw new Error(
-      `could not find deployment artifact for ${fullPackageRef} with chain id "${chainId}" while checking for provisioned packages. Please double check your settings, and rebuild your package.`
-    );
-  }
-
-  const getPackages = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
-    debug('create chain definition');
-
-    const def = new ChainDefinition(deployInfo.def);
-
-    debug('create initial ctx with deploy info', deployInfo);
-
-    const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId!, deployInfo.options);
-
-    debug('created initial ctx with deploy info');
-
-    return {
-      packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
-        (t: string) =>
-          // backwards compatibility: use target if its defined in context first; otherwise, revert to old way
-          (context && context.target) ||
-          `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : preset || 'main'}`
-      ),
-      chainId: chainId,
-      url: context?.url,
-    };
-  };
-
-  return await forPackageTree(storage, deployInfo, getPackages);
-}
-
-/**
- * Copies package info from one storage medium to another (usually local to IPFS) and publishes it to the registry.
- */
-export async function publishPackage({
+export async function preparePublishPackage({
   packageRef,
   tags,
   chainId,
@@ -238,15 +203,19 @@ export async function publishPackage({
     }`;
 
     // if the package has already been published to the registry and it has the same ipfs hash, skip.
-    const oldUrl = await toStorage.registry.getUrl(curFullPackageRef, chainId);
-    const newUrl = await fromStorage.registry.getUrl(curFullPackageRef, chainId);
-    if (oldUrl === newUrl) {
+    const toUrl = await toStorage.registry.getUrl(curFullPackageRef, chainId);
+    debug('toStorage.getLabel: ' + toStorage.getLabel() + ' toUrl: ' + toUrl);
+
+    const fromUrl = await fromStorage.registry.getUrl(curFullPackageRef, chainId);
+    debug('fromStorage.getLabel: ' + fromStorage.getLabel() + ' fromUrl: ' + fromUrl);
+
+    if (fromUrl && toUrl === fromUrl) {
       debug('package already published... skip!', curFullPackageRef);
       alreadyCopiedIpfs.set(checkKey, null);
       return null;
     }
 
-    debug('copy ipfs for', curFullPackageRef, oldUrl, newUrl);
+    debug('copy ipfs for', curFullPackageRef, toUrl, fromUrl);
 
     const url = await toStorage.putBlob(deployInfo!);
     const newMiscUrl = await toStorage.putBlob(await fromStorage.readBlob(deployInfo!.miscUrl));
@@ -296,15 +265,30 @@ export async function publishPackage({
   }
 
   // We call this regardless of includeProvisioned because we want to ALWAYS upload the subpackages ipfs data.
-  const calls = (await forPackageTree(fromStorage, deployData, copyIpfs)).filter((v: any) => v !== null);
+  const calls: PackagePublishCall[] = (await forPackageTree(fromStorage, deployData, copyIpfs)).filter((v: any) => !!v);
 
-  if (includeProvisioned) {
-    debug('publishing with provisioned');
-    return toStorage.registry.publishMany(calls);
-  } else {
-    debug('publishing without provisioned');
-    const call = _.last(calls)!;
+  return includeProvisioned ? calls : [_.last(calls)!];
+}
 
-    return toStorage.registry.publish(call.packagesNames, call.chainId, call.url, call.metaUrl);
-  }
+/**
+ * Copies package info from one storage medium to another (usually local to IPFS) and publishes it to the registry.
+ */
+export async function publishPackage({
+  packageRef,
+  tags,
+  chainId,
+  fromStorage,
+  toStorage,
+  includeProvisioned = true,
+}: CopyPackageOpts) {
+  const calls = await preparePublishPackage({
+    packageRef,
+    tags,
+    chainId,
+    fromStorage,
+    toStorage,
+    includeProvisioned,
+  });
+
+  return toStorage.registry.publishMany(calls);
 }
