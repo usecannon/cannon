@@ -15,12 +15,15 @@ const debug = Debug('cannon:builder:registry');
 export abstract class CannonRegistry {
   abstract publish(packagesNames: string[], chainId: number, url: string, metaUrl: string): Promise<string[]>;
 
-  // note: this can't be abstract because it's not used in the InMemoryRegistry and that would cause a TS error
   async publishMany(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     toPublish: { packagesNames: string[]; chainId: number; url: string; metaUrl: string }[]
   ): Promise<string[]> {
-    throw new Error('Not implemented');
+    const receipts: string[] = [];
+    for (const pub of toPublish) {
+      await this.publish(pub.packagesNames, pub.chainId, pub.url, pub.metaUrl);
+    }
+
+    return receipts;
   }
 
   // in general a "catchall" is that if the fullPackageRef is in format "@service:path", then
