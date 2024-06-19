@@ -15,10 +15,11 @@ const debug = Debug('cannon:builder:registry');
 export abstract class CannonRegistry {
   abstract publish(packagesNames: string[], chainId: number, url: string, metaUrl: string): Promise<string[]>;
 
+  // note: this can't be abstract because it's not used in the InMemoryRegistry and that would cause a TS error
   async publishMany(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     toPublish: { packagesNames: string[]; chainId: number; url: string; metaUrl: string }[]
   ): Promise<string[]> {
-    debug('toPublish', toPublish);
     throw new Error('Not implemented');
   }
 
