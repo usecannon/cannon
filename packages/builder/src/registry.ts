@@ -15,17 +15,6 @@ const debug = Debug('cannon:builder:registry');
 export abstract class CannonRegistry {
   abstract publish(packagesNames: string[], chainId: number, url: string, metaUrl: string): Promise<string[]>;
 
-  async publishMany(
-    toPublish: { packagesNames: string[]; chainId: number; url: string; metaUrl: string }[]
-  ): Promise<string[]> {
-    const receipts: string[] = [];
-    for (const pub of toPublish) {
-      await this.publish(pub.packagesNames, pub.chainId, pub.url, pub.metaUrl);
-    }
-
-    return receipts;
-  }
-
   // in general a "catchall" is that if the fullPackageRef is in format "@service:path", then
   // that is a direct service resolve
   // ex @ipfs:Qm... is ipfs://Qm...
@@ -213,12 +202,18 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
   async publishMany(
     toPublish: { packagesNames: string[]; chainId: number; url: string; metaUrl: string }[]
   ): Promise<string[]> {
-    const receipts: string[] = [];
-    for (const pub of toPublish) {
-      await this.publish(pub.packagesNames, pub.chainId, pub.url, pub.metaUrl);
+    const errors = [];
+    for (const registry of this.registries) {
+      try {
+        debug('try publish to registry', registry.getLabel());
+        return await registry.publishMany(toPublish);
+      } catch (err: any) {
+        debug('error caught in registry while publishing (may be normal):', err);
+        errors.push(err);
+      }
     }
 
-    return receipts;
+    throw new Error('no registry succeeded in publishing:\n' + errors.map((e) => e.message).join('\n'));
   }
 }
 
