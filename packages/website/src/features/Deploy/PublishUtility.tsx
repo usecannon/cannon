@@ -151,7 +151,10 @@ export default function PublishUtility(props: {
     onSuccess: async () => {
       await registryQuery.refetch();
     },
-    onError() {
+    onError(e: Error) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+
       toast({
         title: 'Error Publishing Package',
         status: 'error',
@@ -168,7 +171,10 @@ export default function PublishUtility(props: {
     onSuccess: async () => {
       await registryQuery.refetch();
     },
-    onError() {
+    onError(e: Error) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+
       toast({
         title: 'Error Publishing Package',
         status: 'error',

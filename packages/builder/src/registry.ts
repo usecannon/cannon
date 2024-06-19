@@ -15,6 +15,13 @@ const debug = Debug('cannon:builder:registry');
 export abstract class CannonRegistry {
   abstract publish(packagesNames: string[], chainId: number, url: string, metaUrl: string): Promise<string[]>;
 
+  async publishMany(
+    toPublish: { packagesNames: string[]; chainId: number; url: string; metaUrl: string }[]
+  ): Promise<string[]> {
+    debug('toPublish', toPublish);
+    throw new Error('Not implemented');
+  }
+
   // in general a "catchall" is that if the fullPackageRef is in format "@service:path", then
   // that is a direct service resolve
   // ex @ipfs:Qm... is ipfs://Qm...
