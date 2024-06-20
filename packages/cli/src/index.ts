@@ -50,6 +50,8 @@ import './custom-steps/run';
 export * from './types';
 export * from './constants';
 export * from './util/params';
+export * from './util/register';
+export * from './util/provider';
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export type { ChainDefinition, DeploymentInfo } from '@usecannon/builder';

@@ -2,7 +2,7 @@
 pragma solidity 0.8.24;
 
 import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
-import {OwnedUpgradable} from "./OwnedUpgradable.sol";
+import {OwnedUpgradableUpdated} from "./OwnedUpgradableUpdated.sol";
 import {EfficientStorage} from "./EfficientStorage.sol";
 import {ERC2771Context} from "./ERC2771Context.sol";
 import {IOptimismL1Sender} from "./IOptimismL1Sender.sol";
@@ -12,7 +12,7 @@ import {IOptimismL2Receiver} from "./IOptimismL2Receiver.sol";
  * @title An on-chain record of contract deployments with Cannon
  * See https://usecannon.com
  */
-contract CannonRegistry is EfficientStorage, OwnedUpgradable {
+contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
   using SetUtil for SetUtil.Bytes32Set;
 
   /**

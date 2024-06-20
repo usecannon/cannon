@@ -58,6 +58,7 @@ describe('getMainLoader', function getMainLoaderTestCases() {
       registryPriority: 'onchain',
       etherscanApiUrl: 'etherscanApiUrl',
       etherscanApiKey: 'etherscanApiKey',
+      isE2E: false,
       quiet: true,
       trace: false,
     };
@@ -76,6 +77,7 @@ describe('getMainLoader', function getMainLoaderTestCases() {
       registryPriority: 'onchain',
       etherscanApiUrl: 'etherscanApiUrl',
       etherscanApiKey: 'etherscanApiKey',
+      isE2E: false,
       quiet: true,
       trace: false,
     };
