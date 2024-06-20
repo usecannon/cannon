@@ -247,7 +247,7 @@ async function prepareBuildConfig(
     pkgInfo.commitHash = await execPromise('git rev-parse HEAD');
     pkgInfo.readme = pkgInfo.gitUrl + '/blob/main/README.md';
   } catch (err) {
-    console.log("FAILED TO FETCH GIT DATA FOR PACKAGE METADATA:", err);
+    console.log('Failed to populate metadata:\n', err);
   }
 
   // TODO: `isPublicSourceCode` on def is not the most reliable way to
