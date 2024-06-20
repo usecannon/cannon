@@ -1,5 +1,6 @@
 import { truncateAddress } from '@/helpers/ethereum';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
+import { sleep } from '@/helpers/misc';
 import { findChain } from '@/helpers/rpc';
 import { useStore } from '@/helpers/store';
 import { useCannonPackage } from '@/hooks/cannon';
@@ -309,25 +310,29 @@ export default function PublishUtility(props: {
               }
               mb={2}
               w="full"
-              onClick={() =>
-                switchChainAsync({ chainId: optimism.id }).then(() =>
-                  publishOptimismMutation.mutate()
-                )
-              }
+              onClick={async () => {
+                await switchChainAsync({ chainId: optimism.id });
+                await sleep(100);
+                publishOptimismMutation.mutate();
+              }}
               isLoading={publishOptimismMutation.isPending}
             >
               Publish to Optimism
             </Button>
             <Text fontSize="xs" textAlign="center">
               <Link
-                onClick={() =>
-                  publishOptimismMutation.isPending ||
-                  publishMainnetMutation.isPending
-                    ? false
-                    : switchChainAsync({ chainId: mainnet.id }).then(() =>
-                        publishMainnetMutation.mutate()
-                      )
-                }
+                onClick={async () => {
+                  if (
+                    publishOptimismMutation.isPending ||
+                    publishMainnetMutation.isPending
+                  ) {
+                    return false;
+                  }
+
+                  await switchChainAsync({ chainId: mainnet.id });
+                  await sleep(100);
+                  publishMainnetMutation.mutate();
+                }}
               >
                 {publishMainnetMutation.isPending
                   ? 'Publishing...'
