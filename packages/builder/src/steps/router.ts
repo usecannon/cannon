@@ -8,6 +8,7 @@ import { ChainBuilderRuntime } from '../runtime';
 import { routerSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, ContractMap, PackageState } from '../types';
 import { getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
+import { getAddress } from 'viem';
 
 const debug = Debug('cannon:builder:router');
 
@@ -162,7 +163,7 @@ const routerStep = {
     return {
       contracts: {
         [contractName]: {
-          address: receipt.contractAddress,
+          address: receipt.contractAddress ? getAddress(receipt.contractAddress) : receipt.contractAddress, // Make sure address is checksum encoded
           abi: routableAbi,
           deployedOn: packageState.currentLabel,
           deployTxnHash: receipt.transactionHash,
