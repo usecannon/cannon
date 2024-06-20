@@ -239,12 +239,16 @@ async function prepareBuildConfig(
 
   const pkgInfo: { gitUrl: string; commitHash: string; readme: string } = { gitUrl: '', commitHash: '', readme: '' };
 
-  pkgInfo.gitUrl = (await execPromise('git config --get remote.origin.url'))
-    .replace(':', '/')
-    .replace('git@', 'https://')
-    .replace('.git', '');
-  pkgInfo.commitHash = await execPromise('git rev-parse HEAD');
-  pkgInfo.readme = pkgInfo.gitUrl + '/blob/main/README.md';
+  try {
+    pkgInfo.gitUrl = (await execPromise('git config --get remote.origin.url'))
+      .replace(':', '/')
+      .replace('git@', 'https://')
+      .replace('.git', '');
+    pkgInfo.commitHash = await execPromise('git rev-parse HEAD');
+    pkgInfo.readme = pkgInfo.gitUrl + '/blob/main/README.md';
+  } catch (err) {
+    console.log("FAILED TO FETCH GIT DATA FOR PACKAGE METADATA:", err);
+  }
 
   // TODO: `isPublicSourceCode` on def is not the most reliable way to
   // determine if source code should be public or not
