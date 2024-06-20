@@ -3,7 +3,7 @@
 import { parseHintedMulticall } from '@/helpers/cannon';
 import { truncateAddress } from '@/helpers/ethereum';
 import { getSafeTransactionHash } from '@/helpers/safe';
-import { sleep } from '@/helpers/mics';
+import { sleep } from '@/helpers/misc';
 import { SafeDefinition } from '@/helpers/store';
 import { useSafeTransactions, useTxnStager } from '@/hooks/backend';
 import { useStore } from '@/helpers/store';
