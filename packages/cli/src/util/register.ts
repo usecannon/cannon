@@ -1,7 +1,13 @@
 import { CannonSigner, OnChainRegistry, PackageReference, DEFAULT_REGISTRY_ADDRESS } from '@usecannon/builder';
 import * as viem from 'viem';
 import _ from 'lodash';
-import { getChainById } from '../chains';
+
+type WaitForEventProps = {
+  eventName: string;
+  abi: viem.Abi;
+  providerUrl: string;
+  expectedArgs: any;
+};
 
 /**
  * Checks if a package is registered on a registry provider.
@@ -48,24 +54,11 @@ export const isPackageRegistered = async (
  * @returns {Promise<void>} - A promise that resolves with the event logs when the event is received or rejects with an error on timeout or if an error occurs while watching the event.
  */
 
-export const waitForEvent = ({
-  eventName,
-  abi,
-  chainId,
-  expectedArgs,
-}: {
-  eventName: string;
-  abi: viem.Abi;
-  chainId: number;
-  expectedArgs: any;
-}) => {
+export const waitForEvent = ({ eventName, abi, providerUrl, expectedArgs }: WaitForEventProps) => {
   const event = viem.getAbiItem({ abi, name: eventName }) as viem.AbiEvent;
 
-  const chain = getChainById(chainId);
-
   const client = viem.createPublicClient({
-    chain,
-    transport: viem.http(),
+    transport: viem.http(providerUrl),
   });
 
   let timeoutId: ReturnType<typeof setTimeout>;
@@ -73,7 +66,7 @@ export const waitForEvent = ({
   return new Promise((resolve, reject) => {
     const onTimeout = () => reject(new Error(`Timed out waiting for ${eventName} event`));
 
-    // Start watching for the event
+    // start watching for the event
     const unwatch = client.watchEvent({
       address: DEFAULT_REGISTRY_ADDRESS,
       event,
@@ -86,18 +79,18 @@ export const waitForEvent = ({
 
           // unwatch the event
           unwatch();
-          // Clear the timeout
+          // clear the timeout
           clearTimeout(timeoutId);
-          // Resolve the promise
+          // resolve the promise
           resolve(logs);
         }
       },
       onError: (err) => {
         // unwatch the event
         unwatch();
-        // Clear the timeout
+        // clear the timeout
         clearTimeout(timeoutId);
-        // Reject the promise
+        // reject the promise
         reject(new Error(`Error watching for ${eventName} event: ${err}`));
       },
     });

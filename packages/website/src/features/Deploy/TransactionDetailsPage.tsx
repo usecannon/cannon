@@ -266,23 +266,29 @@ function TransactionDetailsPage({
 
   const gitDiffContainerRef = useRef<HTMLDivElement>(null);
 
-  const handleConnectAndSignClick = async () => {
+  const handleConnectWalletAndSign = async () => {
     if (!account.isConnected) {
       if (openConnectModal) {
         openConnectModal();
       }
+
       toast({
         title: 'In order to sign you must connect your wallet first.',
         status: 'warning',
         duration: 5000,
         isClosable: true,
       });
+
       return;
     }
 
     if (account.chainId !== currentSafe?.chainId.toString()) {
       try {
-        await switchChainAsync({ chainId: currentSafe?.chainId || 1 });
+        await switchChainAsync({ chainId: currentSafe?.chainId || 1 }).then(
+          async () => {
+            await stager.sign();
+          }
+        );
       } catch (e) {
         toast({
           title:
@@ -664,9 +670,9 @@ function TransactionDetailsPage({
                           <Button
                             colorScheme="teal"
                             w="100%"
-                            onClick={handleConnectAndSignClick}
+                            onClick={handleConnectWalletAndSign}
                           >
-                            Sign
+                            {account.isConnected ? 'Sign' : 'Connect wallet'}
                           </Button>
                         )}
                       </Flex>

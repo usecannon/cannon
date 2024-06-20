@@ -184,17 +184,17 @@ async function checkLocalRegistryOverride({
 }
 
 export async function createDefaultReadRegistry(
-  settings: CliSettings,
+  cliSettings: CliSettings,
   additionalRegistries: CannonRegistry[] = []
 ): Promise<FallbackRegistry> {
-  const registryProviders = await resolveRegistryProviders(settings);
+  const registryProviders = await resolveRegistryProviders(cliSettings);
 
-  const localRegistry = new LocalRegistry(settings.cannonDirectory);
+  const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
   const onChainRegistries = registryProviders.map(
-    (p, i) => new ReadOnlyOnChainRegistry({ provider: p.provider, address: settings.registries[i].address })
+    (p, i) => new ReadOnlyOnChainRegistry({ provider: p.provider, address: cliSettings.registries[i].address })
   );
 
-  if (settings.registryPriority === 'offline') {
+  if (cliSettings.registryPriority === 'offline') {
     debug('running in offline mode, using local registry only');
     return new FallbackRegistry([...additionalRegistries, localRegistry]);
   } else if (!(await isConnectedToInternet())) {
@@ -202,14 +202,14 @@ export async function createDefaultReadRegistry(
     // When not connected to the internet, we don't want to check the on-chain registry version to not throw an error
     console.log(yellowBright('⚠️  You are not connected to the internet. Using local registry only'));
     return new FallbackRegistry([...additionalRegistries, localRegistry]);
-  } else if (settings.registryPriority === 'local') {
+  } else if (cliSettings.registryPriority === 'local') {
     debug('local registry is the priority, using local registry first');
     return new FallbackRegistry([...additionalRegistries, localRegistry, ...onChainRegistries]);
   } else {
     debug('on-chain registry is the priority, using on-chain registry first');
     const fallbackRegistry = new FallbackRegistry([...additionalRegistries, ...onChainRegistries, localRegistry]);
 
-    if (!settings.quiet) {
+    if (!cliSettings.quiet) {
       fallbackRegistry.on('getUrl', checkLocalRegistryOverride).catch((err: Error) => {
         throw err;
       });
@@ -219,6 +219,6 @@ export async function createDefaultReadRegistry(
   }
 }
 
-export async function createDryRunRegistry(settings: CliSettings): Promise<FallbackRegistry> {
-  return createDefaultReadRegistry(settings, [new InMemoryRegistry()]);
+export async function createDryRunRegistry(cliSettings: CliSettings): Promise<FallbackRegistry> {
+  return createDefaultReadRegistry(cliSettings, [new InMemoryRegistry()]);
 }
