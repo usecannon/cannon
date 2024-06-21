@@ -26,11 +26,11 @@ import {
 import { useMutation } from '@tanstack/react-query';
 import {
   CannonStorage,
+  DEFAULT_REGISTRY_ADDRESS,
+  FallbackRegistry,
   InMemoryRegistry,
   OnChainRegistry,
-  FallbackRegistry,
   publishPackage,
-  DEFAULT_REGISTRY_ADDRESS,
 } from '@usecannon/builder';
 import { Chain, createPublicClient, http, isAddressEqual } from 'viem';
 import { mainnet, optimism } from 'viem/chains';
@@ -151,7 +151,9 @@ export default function PublishUtility(props: {
     onSuccess: async () => {
       await registryQuery.refetch();
     },
-    onError() {
+    onError(err) {
+      // eslint-disable-next-line no-console
+      console.error(err);
       toast({
         title: 'Error Publishing Package',
         status: 'error',
@@ -168,7 +170,9 @@ export default function PublishUtility(props: {
     onSuccess: async () => {
       await registryQuery.refetch();
     },
-    onError() {
+    onError(err) {
+      // eslint-disable-next-line no-console
+      console.error(err);
       toast({
         title: 'Error Publishing Package',
         status: 'error',
