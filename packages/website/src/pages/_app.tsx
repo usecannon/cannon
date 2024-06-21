@@ -66,7 +66,7 @@ export default function RootLayout({
       <Providers>
         <Flex
           flexDirection="column"
-          backgroundColor="gray.900"
+          backgroundColor="black"
           minHeight="100vh"
           position="relative"
         >

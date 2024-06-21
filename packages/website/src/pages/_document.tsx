@@ -1,6 +1,5 @@
 'use client';
 
-import GoogleAnalytics from '@/components/GoogleAnalytics';
 import { Analytics } from '@vercel/analytics/react';
 import { ColorModeScript } from '@chakra-ui/react';
 import createEmotionServer from '@emotion/server/create-instance';
@@ -13,6 +12,8 @@ import Document, {
 } from 'next/document';
 
 import emotionCache from '@/lib/emotion-cache';
+
+import { GoogleAnalytics } from '@next/third-parties/google';
 
 const { extractCritical } = createEmotionServer(emotionCache);
 
@@ -37,7 +38,6 @@ export default class CustomDocument extends Document {
     return (
       <Html lang="en">
         <Head>
-          <GoogleAnalytics measurementId="G-C96791F6NC" />
           <style>{`
             body.fouc-prevention {
               background-color: rgb(14, 17, 22);
@@ -54,6 +54,7 @@ export default class CustomDocument extends Document {
           <NextScript />
           <Analytics />
         </body>
+        <GoogleAnalytics gaId="G-C96791F6NC" />
       </Html>
     );
   }
