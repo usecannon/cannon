@@ -164,7 +164,6 @@ export async function checkCannonVersion(currentVersion: string): Promise<void> 
 
   if (latestVersion && currentVersion && semver.lt(currentVersion, latestVersion)) {
     console.warn(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
-    console.warn(yellow('Upgrade with ' + bold('npm install -g @usecannon/cli\n')));
   }
 }
 
