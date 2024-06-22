@@ -3,6 +3,7 @@
 import { parseHintedMulticall } from '@/helpers/cannon';
 import { truncateAddress } from '@/helpers/ethereum';
 import { getSafeTransactionHash } from '@/helpers/safe';
+import { sleep } from '@/helpers/misc';
 import { SafeDefinition } from '@/helpers/store';
 import { useSafeTransactions, useTxnStager } from '@/hooks/backend';
 import { useStore } from '@/helpers/store';
@@ -284,11 +285,11 @@ function TransactionDetailsPage({
 
     if (account.chainId !== currentSafe?.chainId.toString()) {
       try {
-        await switchChainAsync({ chainId: currentSafe?.chainId || 1 }).then(
-          async () => {
-            await stager.sign();
-          }
-        );
+        await switchChainAsync({ chainId: currentSafe?.chainId || 1 });
+
+        await sleep(100);
+
+        await stager.sign();
       } catch (e) {
         toast({
           title:
