@@ -479,7 +479,7 @@ export async function build({
   }
 
   if (!stepsExecuted) {
-    console.log(bold('No operations were executed during the build.'));
+    console.log(bold('\nNo operations were executed during the build.'));
   }
 
   console.log('');
