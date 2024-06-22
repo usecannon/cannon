@@ -33,7 +33,7 @@ import {
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { Chain, createPublicClient, http, isAddressEqual } from 'viem';
+import { createPublicClient, http, isAddressEqual } from 'viem';
 import { mainnet, optimism } from 'viem/chains';
 import { useSwitchChain, useWalletClient } from 'wagmi';
 
@@ -82,33 +82,34 @@ export default function PublishUtility(props: {
 
   const { transports } = useProviders();
 
-  const prepareAndPublishPackage = async (
-    registryChainId: number,
-    roChainId: number
-  ) => {
+  const prepareAndPublishPackage = async (publishChainId: number) => {
     if (!wc.data) {
       throw new Error('Wallet not connected');
     }
 
     const [walletAddress] = await wc.data.getAddresses();
 
-    const targetRegistry = new FallbackRegistry([
-      new OnChainRegistry({
-        signer: { address: walletAddress, wallet: wc.data },
-        address: DEFAULT_REGISTRY_ADDRESS,
-        provider: createPublicClient({
-          chain: findChain(registryChainId) as Chain,
-          transport: transports[registryChainId] || http(),
+    const targetRegistry = new FallbackRegistry(
+      [
+        new OnChainRegistry({
+          signer: { address: walletAddress, wallet: wc.data },
+          address: DEFAULT_REGISTRY_ADDRESS,
+          provider: createPublicClient({
+            chain: optimism,
+            transport: transports[optimism.id] || http(),
+          }),
         }),
-      }),
-      new OnChainRegistry({
-        address: DEFAULT_REGISTRY_ADDRESS,
-        provider: createPublicClient({
-          chain: findChain(roChainId) as Chain,
-          transport: transports[roChainId] || http(),
+        new OnChainRegistry({
+          signer: { address: walletAddress, wallet: wc.data },
+          address: DEFAULT_REGISTRY_ADDRESS,
+          provider: createPublicClient({
+            chain: mainnet,
+            transport: transports[mainnet.id] || http(),
+          }),
         }),
-      }),
-    ]);
+      ],
+      publishChainId === 10 ? 0 : 1
+    );
 
     const fakeLocalRegistry = new InMemoryRegistry();
 
@@ -147,7 +148,7 @@ export default function PublishUtility(props: {
 
   const publishMainnetMutation = useMutation({
     mutationFn: async () => {
-      await prepareAndPublishPackage(mainnet.id, optimism.id);
+      await prepareAndPublishPackage(mainnet.id);
     },
     onSuccess: async () => {
       await registryQuery.refetch();
@@ -166,7 +167,7 @@ export default function PublishUtility(props: {
 
   const publishOptimismMutation = useMutation({
     mutationFn: async () => {
-      await prepareAndPublishPackage(optimism.id, mainnet.id);
+      await prepareAndPublishPackage(optimism.id);
     },
     onSuccess: async () => {
       await registryQuery.refetch();
