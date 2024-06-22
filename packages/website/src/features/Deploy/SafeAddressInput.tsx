@@ -1,3 +1,4 @@
+import { links } from '@/constants/links';
 import { includes } from '@/helpers/array';
 import { State, useStore } from '@/helpers/store';
 import {
@@ -20,6 +21,7 @@ import {
   OptionProps,
   SingleValueProps,
 } from 'chakra-react-select';
+import _ from 'lodash';
 import * as viem from 'viem';
 import deepEqual from 'fast-deep-equal';
 import { useRouter } from 'next/router';
@@ -94,6 +96,37 @@ export function SafeAddressInput() {
         });
     }
   }, [searchParams]);
+
+  // Keep the current safe in the url params
+  useEffect(() => {
+    // can't do it with router().query because it is empty on first render
+    const queryStrings = pathname.split('?').pop();
+    const formattedQueryStrings = new URLSearchParams(queryStrings);
+    const address = formattedQueryStrings.get('address');
+    const chainId = formattedQueryStrings.get('chainId');
+
+    if (
+      pathname.startsWith(links.DEPLOY) &&
+      currentSafe &&
+      !address &&
+      !chainId
+    ) {
+      const newSearchParams = new URLSearchParams();
+      newSearchParams.set('chainId', currentSafe.chainId.toString());
+      newSearchParams.set('address', currentSafe.address);
+      const search = newSearchParams.toString();
+      const query = `${'?'.repeat(search.length && 1)}${search}`;
+
+      router
+        .push(`${pathname}${query}`)
+        .then(() => {
+          // do nothing
+        })
+        .catch(() => {
+          // do nothing
+        });
+    }
+  }, [pathname]);
 
   // If the user puts a correct address in the input, update the url
   async function handleSafeChange(safeString: SafeString) {
