@@ -58,7 +58,7 @@ export function SafeAddressInput() {
 
   // Load the safe address from url
   useEffect(() => {
-    const { safeAddress: address, chainId } = searchParams;
+    const { address, chainId } = searchParams;
 
     if (!Number.isSafeInteger(Number(chainId))) return;
     if (!viem.isAddress(address as string)) return;
@@ -95,32 +95,6 @@ export function SafeAddressInput() {
         });
     }
   }, [searchParams]);
-
-  // Keep the current safe in the url params
-  useEffect(() => {
-    if (
-      pathname.startsWith(links.DEPLOY) &&
-      currentSafe &&
-      !searchParams.address &&
-      !searchParams.chainId
-    ) {
-      const newSearchParams = new URLSearchParams(
-        Array.from(Object.entries(searchParams)) as any
-      );
-      newSearchParams.set('chainId', currentSafe.chainId.toString());
-      newSearchParams.set('address', currentSafe.address);
-      const search = newSearchParams.toString();
-      const query = `${'?'.repeat(search.length && 1)}${search}`;
-      router
-        .push(`${pathname}${query}`)
-        .then(() => {
-          // do nothing
-        })
-        .catch(() => {
-          // do nothing
-        });
-    }
-  }, [pathname]);
 
   // If the user puts a correct address in the input, update the url
   async function handleSafeChange(safeString: SafeString) {
