@@ -434,7 +434,7 @@ export async function build({
     } else {
       if (chainId == 13370) {
         console.log(bold(`💥 ${fullPackageRef} built for Cannon (Chain ID: ${chainId})`));
-        console.log(gray('This package can be run locally using the CLI and cloned by Cannonfiles.'));
+        console.log(gray('This package can be run locally and cloned in cannonfiles.'));
       } else {
         console.log(bold(`💥 ${fullPackageRef} built on ${chainName} (Chain ID: ${chainId})`));
         console.log(gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
