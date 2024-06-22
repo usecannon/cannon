@@ -33,7 +33,7 @@ import {
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { createPublicClient, http, isAddressEqual } from 'viem';
+import { PublicClient, createPublicClient, http, isAddressEqual } from 'viem';
 import { mainnet, optimism } from 'viem/chains';
 import { useSwitchChain, useWalletClient } from 'wagmi';
 
@@ -97,7 +97,7 @@ export default function PublishUtility(props: {
           provider: createPublicClient({
             chain: optimism,
             transport: transports[optimism.id] || http(),
-          }),
+          }) as PublicClient,
         }),
         new OnChainRegistry({
           signer: { address: walletAddress, wallet: wc.data },
