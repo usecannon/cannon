@@ -30,7 +30,7 @@ function SignTransactions() {
   };
 
   return (
-    <Container maxW="container.md" py={8}>
+    <Container maxW="container.lg" py={8}>
       <Box mb={6}>
         <Heading size="lg" mb={2}>
           Sign & Execute Transactions
