@@ -9,6 +9,13 @@ export class ServerError extends Error {
   }
 }
 
+export class ServiceUnavailableError extends ServerError {
+  constructor(message = 'Server Unavailable', status = 503) {
+    super(message);
+    this.status = status;
+  }
+}
+
 export class BadRequestError extends ServerError {
   constructor(message = 'Bad Request', status = 400) {
     super(message);
