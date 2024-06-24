@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import {
+  getCannonRepoRegistryUrl,
   CANNON_CHAIN_ID,
   CannonStorage,
   ChainBuilderRuntime,
@@ -49,6 +50,8 @@ import './custom-steps/run';
 export * from './types';
 export * from './constants';
 export * from './util/params';
+export * from './util/register';
+export * from './util/provider';
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export type { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
@@ -272,7 +275,17 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
   await ensureChainIdConsistency(cliSettings.providerUrl, flags.chainId);
 
   // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
-  const newUrl = await alter(packageName, parseInt(flags.chainId), cliSettings, flags.preset, {}, command, options, {});
+  const newUrl = await alter(
+    packageName,
+    flags.subpkg ? flags.subpkg.split(',') : [],
+    parseInt(flags.chainId),
+    cliSettings,
+    flags.preset,
+    {},
+    command,
+    options,
+    {}
+  );
 
   console.log(newUrl);
 });
@@ -307,7 +320,7 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
   const fromStorage = new CannonStorage(await createDefaultReadRegistry(cliSettings), getMainLoader(cliSettings));
 
   const toStorage = new CannonStorage(new InMemoryRegistry(), {
-    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
+    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || getCannonRepoRegistryUrl()),
   });
 
   console.log('Uploading package data for pinning...');

@@ -21,10 +21,12 @@ import {
   OptionProps,
   SingleValueProps,
 } from 'chakra-react-select';
+import * as viem from 'viem';
 import deepEqual from 'fast-deep-equal';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useSwitchChain } from 'wagmi';
+
 import Chain from '@/features/Search/PackageCard/Chain';
 import { truncateAddress } from '@/helpers/ethereum';
 
@@ -45,9 +47,9 @@ export function SafeAddressInput() {
   const pendingServiceTransactions = usePendingTransactions(currentSafe);
 
   const { switchChain } = useSwitchChain();
+
   const router = useRouter();
-  const pathname = useRouter().pathname;
-  const searchParams = useRouter().query;
+  const { asPath: pathname, query: searchParams } = router;
 
   const safeOptions = _safesToOptions(safeAddresses, { isDeletable: true });
   const walletSafeOptions = _safesToOptions(
@@ -56,42 +58,43 @@ export function SafeAddressInput() {
 
   // Load the safe address from url
   useEffect(() => {
-    if (searchParams.address || searchParams.chainId) {
-      const chainId = searchParams.chainId;
-      const address = searchParams.address;
-      const newSafe = parseSafe(`${chainId}:${address}`);
+    const { safeAddress: address, chainId } = searchParams;
 
-      if (isValidSafe(newSafe)) {
-        if (!deepEqual(currentSafe, newSafe)) {
-          setState({ currentSafe: newSafe });
-        }
+    if (!Number.isSafeInteger(Number(chainId))) return;
+    if (!viem.isAddress(address as string)) return;
 
-        if (!includes(safeAddresses, newSafe)) {
-          prependSafeAddress(newSafe);
-        }
+    const newSafe = parseSafe(`${chainId}:${address}`);
 
-        if (switchChain) {
-          switchChain({ chainId: newSafe.chainId });
-        }
-      } else {
-        const newSearchParams = new URLSearchParams(
-          Array.from(Object.entries(searchParams)) as any
-        );
-        newSearchParams.delete('chainId');
-        newSearchParams.delete('address');
-        const search = newSearchParams.toString();
-        const query = `${'?'.repeat(search.length && 1)}${search}`;
-        router
-          .push(`${pathname}${query}`)
-          .then(() => {
-            // do nothing
-          })
-          .catch(() => {
-            // do nothing
-          });
+    if (isValidSafe(newSafe)) {
+      if (!deepEqual(currentSafe, newSafe)) {
+        setState({ currentSafe: newSafe });
       }
+
+      if (!includes(safeAddresses, newSafe)) {
+        prependSafeAddress(newSafe);
+      }
+
+      if (switchChain) {
+        switchChain({ chainId: newSafe.chainId });
+      }
+    } else {
+      const newSearchParams = new URLSearchParams(
+        Array.from(Object.entries(searchParams)) as any
+      );
+      newSearchParams.delete('chainId');
+      newSearchParams.delete('address');
+      const search = newSearchParams.toString();
+      const query = `${'?'.repeat(search.length && 1)}${search}`;
+      router
+        .push(`${pathname}${query}`)
+        .then(() => {
+          // do nothing
+        })
+        .catch(() => {
+          // do nothing
+        });
     }
-  }, []);
+  }, [searchParams]);
 
   // Keep the current safe in the url params
   useEffect(() => {
