@@ -28,6 +28,7 @@ app.use(
     limit: 100,
     standardHeaders: 'draft-7',
     legacyHeaders: false,
+    validate: { trustProxy: !config.TRUST_PROXY },
   })
 );
 
@@ -40,5 +41,5 @@ app.use(apiErrorHandler);
 
 app.listen(config.PORT, () => {
   // eslint-disable-next-line no-console
-  console.log(`\n · status: running · version: ${packageJson.version} · port ${config.PORT} ·\n`);
+  console.log(`\n · status: running · version: ${packageJson.version} · port ${config.PORT} ·`);
 });

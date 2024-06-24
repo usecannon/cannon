@@ -1,6 +1,6 @@
 {
   "name": "hardhat-cannon",
-  "version": "2.15.2",
+  "version": "2.15.3",
   "description": "Agnostic chain construction. Select the protocols and configuration you need to quickly and easily verify your project",
   "repository": "github:usecannon/cannon",
   "author": "Synthetix",
@@ -30,6 +30,7 @@
   ],
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@types/debug": "^4.1.12",
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.12.8",
     "bn.js": "^5.2.1",
@@ -42,8 +43,8 @@
   },
   "dependencies": {
     "@iarna/toml": "^3.0.0",
-    "@usecannon/builder": "2.15.2",
-    "@usecannon/cli": "2.15.2",
+    "@usecannon/builder": "2.15.3",
+    "@usecannon/cli": "2.15.3",
     "chalk": "^4.1.2",
     "debug": "^4.3.4",
     "fs-extra": "^11.2.0",
