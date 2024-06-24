@@ -21,7 +21,6 @@ import {
   OptionProps,
   SingleValueProps,
 } from 'chakra-react-select';
-import _ from 'lodash';
 import * as viem from 'viem';
 import deepEqual from 'fast-deep-equal';
 import { useRouter } from 'next/router';
