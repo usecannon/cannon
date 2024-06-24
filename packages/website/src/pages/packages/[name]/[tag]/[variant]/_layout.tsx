@@ -176,6 +176,15 @@ export default function PackageLayout({ children }: { children: ReactNode }) {
           </Box>
           {children}
         </>
+      ) : packagesQuery.isError ? (
+        <Text
+          textTransform="uppercase"
+          letterSpacing="1px"
+          m="auto"
+          fontFamily="var(--font-miriam)"
+        >
+          Package Not Found
+        </Text>
       ) : (
         <CustomSpinner m="auto" />
       )}
