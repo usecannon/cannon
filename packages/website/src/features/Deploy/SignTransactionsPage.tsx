@@ -23,7 +23,7 @@ function SignTransactions() {
   const currentSafe = useStore((s) => s.currentSafe);
   const { staged } = useSafeTransactions(currentSafe as any);
   const { data: history } = useExecutedTransactions(currentSafe as any);
-  const [isChecked, setIsChecked] = useState(false);
+  const [isChecked, setIsChecked] = useState(true);
 
   const handleCheckboxChange = (e: any) => {
     setIsChecked(e.target.checked);
@@ -62,7 +62,7 @@ function SignTransactions() {
               safe={currentSafe}
               tx={tx.txn}
               hideExternal={false}
-              fetchMeta
+              isStaged
             />
           ))}
         {currentSafe && staged.length === 0 && (
@@ -82,7 +82,7 @@ function SignTransactions() {
           borderColor="gray.600"
           borderRadius="4px"
         >
-          <Flex mb="4">
+          <Flex mb="5">
             <Heading size="md" mb={0}>
               Executed Transactions
             </Heading>
@@ -94,7 +94,7 @@ function SignTransactions() {
               isChecked={isChecked}
               onChange={handleCheckboxChange}
             >
-              Hide {'Safe{Wallet}'} Transactions
+              Show Cannon transactions only
             </Checkbox>
           </Flex>
           {history.results.map((tx: any) => (

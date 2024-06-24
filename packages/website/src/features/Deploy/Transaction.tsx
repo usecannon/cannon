@@ -9,6 +9,8 @@ import {
   Link as ChakraLink,
   LinkBox,
   LinkOverlay,
+  Image,
+  Spinner,
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { getSafeUrl } from '@/hooks/safe';
@@ -17,30 +19,31 @@ import { SafeTransaction } from '@/types/SafeTransaction';
 import { parseHintedMulticall } from '@/helpers/cannon';
 import { getSafeTransactionHash } from '@/helpers/safe';
 import { useTxnStager } from '@/hooks/backend';
+import { GitHub } from 'react-feather';
 
 interface Params {
   safe: SafeDefinition;
   tx: SafeTransaction;
   hideExternal: boolean;
-  fetchMeta?: boolean;
+  isStaged?: boolean;
 }
 
 const useTxnAdditionalData = ({
   safe,
   tx,
-  fetchMeta,
+  isStaged,
 }: {
   safe: SafeDefinition;
   tx: SafeTransaction;
-  fetchMeta?: boolean;
+  isStaged?: boolean;
 }) => {
-  const useTxnData = fetchMeta ? useTxnStager : () => ({});
+  const useTxnData = isStaged ? useTxnStager : () => ({});
   return useTxnData(tx, { safe: safe }) as any;
 };
 
 // Note: If signatures is provided, additional data will be fetched
-export function Transaction({ safe, tx, hideExternal, fetchMeta }: Params) {
-  const stager = useTxnAdditionalData({ safe, tx, fetchMeta });
+export function Transaction({ safe, tx, hideExternal, isStaged }: Params) {
+  const stager = useTxnAdditionalData({ safe, tx, isStaged });
   const hintData = parseHintedMulticall(tx.data);
 
   // get the package referenced by this ipfs package
@@ -60,35 +63,62 @@ export function Transaction({ safe, tx, hideExternal, fetchMeta }: Params) {
       as={Flex}
       display={hideExternal && !isLink ? 'none' : 'flex'}
       mb="4"
-      p="5"
+      p="4"
       border="1px solid"
       bg="blackAlpha.500"
-      borderColor={isLink ? 'gray.600' : 'gray.700'}
+      borderColor="gray.600"
       borderRadius="md"
       alignItems="center"
-      shadow={isLink ? 'lg' : ''}
+      shadow="lg"
       transition="all 0.2s"
-      _hover={isLink ? { shadow: 'xl', bg: 'blackAlpha.600' } : {}}
-      minHeight="74px"
+      _hover={{ shadow: 'xl', bg: 'blackAlpha.600' }}
+      minHeight="66px"
     >
-      <Box alignContent={'center'} minWidth={0}>
-        <Heading size="md">
-          Transaction #{tx._nonce}
-          <Box>
-            {hintData?.cannonPackage ? (
-              <Box fontSize="sm" color="gray.300">
-                {hintData.isSinglePackage && resolvedName
-                  ? `${resolvedName}:${resolvedVersion}@${resolvedPreset}`
-                  : 'Multiple packages'}
-              </Box>
-            ) : (
-              <Box fontSize="sm" color="gray.300">
-                Unknown source
-              </Box>
-            )}
-          </Box>
+      <Flex alignContent={'center'} gap={4}>
+        <Box>
+          {hintData?.type === 'deploy' ? (
+            <GitHub size="24" strokeWidth={1} />
+          ) : hintData?.type === 'invoke' ? (
+            <Image
+              alt="Cannon Logomark"
+              height="24px"
+              src="/images/cannon-logomark.svg"
+            />
+          ) : (
+            <Image
+              alt="Safe Logomark"
+              height="24px"
+              src="/images/safe-logomark.svg"
+            />
+          )}
+        </Box>
+        <Heading size="md" display="inline-block" minWidth="40px">
+          #{tx._nonce}
         </Heading>
-        {fetchMeta && Object.keys(stager).length && (
+        <Box color="gray.300">
+          {hintData?.cannonPackage ? (
+            <>
+              {hintData.isSinglePackage &&
+                (!resolvedName ? (
+                  <Spinner size="xs" />
+                ) : (
+                  <>
+                    {hintData.type == 'deploy' ? 'Built ' : 'Executed with '}
+                    {`${resolvedName}:${resolvedVersion}@${resolvedPreset}`}
+                  </>
+                ))}
+            </>
+          ) : (
+            <>Executed without Cannon</>
+          )}
+        </Box>
+        {isStaged && <></>}
+        {/*
+        Remember to check "build/building" "execute"/"executing"
+        <Box ml="auto">4/3</Box>
+        <Box ml="auto">tag - you can sign</Box>
+        */}
+        {isStaged && Object.keys(stager).length && (
           <>
             {stager.alreadySigned ? (
               <>
@@ -116,7 +146,7 @@ export function Transaction({ safe, tx, hideExternal, fetchMeta }: Params) {
             )}
           </>
         )}
-      </Box>
+      </Flex>
       <Box ml="auto" pl="2">
         {isLink ? (
           <LinkOverlay
@@ -126,17 +156,19 @@ export function Transaction({ safe, tx, hideExternal, fetchMeta }: Params) {
             <ChevronRightIcon boxSize={8} mr={1} />
           </LinkOverlay>
         ) : (
-          <ChakraLink
+          <LinkOverlay
+            as={ChakraLink}
             href={`${getSafeUrl(safe, '/transactions/tx')}&id=${tx.safeTxHash}`}
             isExternal
           >
             <IconButton
+              color="white"
               variant="link"
               transform="translateY(1px)"
               aria-label={`View Transaction #${tx._nonce}`}
               icon={<ExternalLinkIcon />}
             />
-          </ChakraLink>
+          </LinkOverlay>
         )}
       </Box>
     </LinkBox>
