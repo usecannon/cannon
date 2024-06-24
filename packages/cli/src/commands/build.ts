@@ -27,6 +27,7 @@ import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
+import { createWriteScript, WriteScriptFormat } from '../write-script/write';
 
 interface Params {
   provider: viem.PublicClient;
@@ -50,6 +51,8 @@ interface Params {
   gasPrice?: string;
   gasFee?: string;
   priorityGasFee?: string;
+  writeScript?: string;
+  writeScriptFormat?: WriteScriptFormat;
 }
 
 export async function build({
@@ -72,6 +75,8 @@ export async function build({
   gasPrice,
   gasFee,
   priorityGasFee,
+  writeScript,
+  writeScriptFormat = 'ethers',
 }: Params): Promise<{ outputs: ChainArtifacts; provider: viem.PublicClient; runtime: ChainBuilderRuntime }> {
   if (wipe && upgradeFrom) {
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
@@ -149,6 +154,8 @@ export async function build({
   const resolver = overrideResolver || (await createDefaultReadRegistry(cliSettings));
 
   const runtime = new ChainBuilderRuntime(runtimeOptions, resolver, getMainLoader(cliSettings), 'ipfs');
+
+  const dump = writeScript ? await createWriteScript(runtime, writeScript, writeScriptFormat) : null;
 
   // Check for existing package
   let oldDeployData: DeploymentInfo | null = null;
@@ -362,6 +369,10 @@ export async function build({
   }
 
   const newState = await cannonBuild(runtime, def, oldDeployData && !wipe ? oldDeployData.state : {}, initialCtx);
+
+  if (writeScript) {
+    await dump!.end();
+  }
 
   const outputs = (await getOutputs(runtime, def, newState))!;
 

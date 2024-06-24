@@ -30,6 +30,7 @@
   ],
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@types/debug": "^4.1.12",
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.12.8",
     "bn.js": "^5.2.1",
