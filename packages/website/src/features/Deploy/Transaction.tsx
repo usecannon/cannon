@@ -137,11 +137,6 @@ export function Transaction({ safe, tx, hideExternal, isStaged }: Params) {
                   {stager.existingSigners.length} of{' '}
                   {stager.requiredSigners.toString()} signatures
                 </Box>
-                {stager.isSigner && (
-                  <Box fontSize="sm" color="gray.300">
-                    You can sign this transaction
-                  </Box>
-                )}
               </>
             )}
           </>
