@@ -418,16 +418,6 @@ function QueueFromGitOps() {
           <Link href="/settings">settings</Link>.
         </>
       );
-    } else if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
-      alertMessage = (
-        <Text>
-          You must set a Kubo RPC API URL in your{' '}
-          <Link as={NextLink} href="/settings">
-            settings
-          </Link>
-          .
-        </Text>
-      );
     }
 
     return alertMessage ? (
