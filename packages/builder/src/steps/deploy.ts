@@ -249,7 +249,7 @@ const deploySpec = {
       }),
     };
 
-    const overrides: any = {}; // TODO
+    const overrides: any = {};
 
     if (config.overrides?.gasLimit) {
       overrides.gasLimit = config.overrides.gasLimit;
@@ -341,18 +341,32 @@ const deploySpec = {
         }
       }
     } catch (error: any) {
-      // we need to get the contract artifact to decode the error
-      const contractArtifact = generateOutputs(
-        config,
-        ctx,
-        artifactData,
-        receipt,
-        // note: send zero address since there is no contract address
-        viem.zeroAddress,
-        packageState.currentLabel
-      );
+      // catch an error when it comes from create2 deployer
+      if (config.create2) {
+        // arachnid create2 does not return the underlying revert message.
+        // ref: https://github.com/Arachnid/deterministic-deployment-proxy/blob/master/source/deterministic-deployment-proxy.yul#L13
 
-      return await handleTxnError(contractArtifact, runtime.provider, error);
+        // in order to get the underlying revert message, try perform a normal deployment
+        const simulateConfig = {
+          ...config,
+          create2: false,
+        };
+
+        return await this.exec(runtime, ctx, simulateConfig, packageState);
+      } else {
+        // catch an error when it comes from normal deployment
+        const contractArtifact = generateOutputs(
+          config,
+          ctx,
+          artifactData,
+          receipt,
+          // note: send zero address since there is no contract address
+          viem.zeroAddress,
+          packageState.currentLabel
+        );
+
+        return await handleTxnError(contractArtifact, runtime.provider, error);
+      }
     }
 
     return generateOutputs(config, ctx, artifactData, receipt, deployAddress, packageState.currentLabel);
