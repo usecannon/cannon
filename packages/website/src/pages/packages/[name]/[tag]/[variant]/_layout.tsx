@@ -142,21 +142,23 @@ export default function PackageLayout({ children }: { children: ReactNode }) {
                 >
                   Code
                 </NavLink>
-                <NavLink
-                  isActive={pathname.startsWith(
-                    '/packages/[name]/[tag]/[variant]/interact'
-                  )}
-                  href={
-                    pathname.startsWith(
+                {chainId != 13370 && (
+                  <NavLink
+                    isActive={pathname.startsWith(
                       '/packages/[name]/[tag]/[variant]/interact'
-                    )
-                      ? asPath
-                      : `/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/interact`
-                  }
-                  isSmall
-                >
-                  Interact
-                </NavLink>
+                    )}
+                    href={
+                      pathname.startsWith(
+                        '/packages/[name]/[tag]/[variant]/interact'
+                      )
+                        ? asPath
+                        : `/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/interact`
+                    }
+                    isSmall
+                  >
+                    Interact
+                  </NavLink>
+                )}
                 <NavLink
                   isActive={
                     pathname == '/packages/[name]/[tag]/[variant]/cannonfile'
@@ -174,6 +176,15 @@ export default function PackageLayout({ children }: { children: ReactNode }) {
           </Box>
           {children}
         </>
+      ) : packagesQuery.isError ? (
+        <Text
+          textTransform="uppercase"
+          letterSpacing="1px"
+          m="auto"
+          fontFamily="var(--font-miriam)"
+        >
+          Package Not Found
+        </Text>
       ) : (
         <CustomSpinner m="auto" />
       )}
