@@ -1,21 +1,36 @@
 import { createClient } from 'redis';
 import { config } from './config';
+import { ServiceUnavailableError } from './errors';
 
-type RedisClient = ReturnType<typeof createClient>;
+const client = createClient({
+  url: config.REDIS_URL,
+  socket: {
+    reconnectStrategy: (retries, err) => {
+      // After 5 retries, halt the server
+      if (retries > 5) {
+        // eslint-disable-next-line no-console
+        console.error(err);
+        process.exit(1);
+      }
 
-const clientGetter = new Promise<RedisClient>((resolve) => {
-  const client = createClient({ url: config.REDIS_URL });
-
-  client.on('ready', () => {
-    resolve(client);
-  });
-
-  client.connect().catch((err) => {
-    // eslint-disable-next-line no-console
-    console.error(err);
-  });
+      return 5_000; // retry after 5 secs
+    },
+  },
 });
 
-export async function useRedis(): Promise<RedisClient> {
-  return await clientGetter;
+client.on('ready', () => {
+  // eslint-disable-next-line no-console
+  console.log(' · redis connected ·');
+});
+
+client.on('error', (err) => {
+  // eslint-disable-next-line no-console
+  console.error(err);
+});
+
+void client.connect();
+
+export async function useRedis() {
+  if (!client.isReady) throw new ServiceUnavailableError();
+  return client;
 }
