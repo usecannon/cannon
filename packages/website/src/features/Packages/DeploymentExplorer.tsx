@@ -185,32 +185,24 @@ export const DeploymentExplorer: FC<{
       ) : deploymentInfo ? (
         <Box>
           {pkg.chainId == 13370 && (
-            <Container maxW="container.lg" mt={6}>
-              <Box
-                bg="blackAlpha.600"
-                border="1px solid"
-                borderColor="gray.900"
-                borderRadius="md"
-                p={6}
-              >
-                <Box mb={4}>
-                  <Heading size="md" mb={2}>
-                    Run Package
-                  </Heading>
-                  <Text fontSize="sm" color="gray.300">
-                    <Link as={NextLink} href="/learn/cli/">
-                      Install the CLI
-                    </Link>{' '}
-                    and then use the following command to run a local node for
-                    development with this package:
-                  </Text>
-                </Box>
-                <CommandPreview
-                  command={`cannon ${pkg.name}${
-                    pkg?.tag !== 'latest' ? `:${pkgDef.version}` : ''
-                  }${pkg.preset !== 'main' ? `@${pkgDef.preset}` : ''}`}
-                />
+            <Container maxW="container.lg" mt={9} mb={12}>
+              <Box mb={4}>
+                <Heading size="md" mb={2}>
+                  Run Package
+                </Heading>
+                <Text fontSize="sm" color="gray.300">
+                  <Link as={NextLink} href="/learn/cli/">
+                    Install the CLI
+                  </Link>{' '}
+                  and then use the following command to run a local node for
+                  development with this package:
+                </Text>
               </Box>
+              <CommandPreview
+                command={`cannon ${pkg.name}${
+                  pkg?.tag !== 'latest' ? `:${pkgDef.version}` : ''
+                }${pkg.preset !== 'main' ? `@${pkgDef.preset}` : ''}`}
+              />
             </Container>
           )}
           {(!isEmpty(addressesAbis) || !isEmpty(contractState)) && (
