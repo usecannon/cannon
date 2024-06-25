@@ -72,7 +72,7 @@ export const Function: FC<{
 }) => {
   const { isOpen, onToggle } = useDisclosure();
   const currentSafe = useStore((s) => s.currentSafe);
-  const pathName = useRouter().pathname;
+  const { asPath: pathname } = useRouter();
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
   const [error, setError] = useState<any>(null);
@@ -198,8 +198,8 @@ export const Function: FC<{
   const anchor = `#selector-${toFunctionSelector(f)}`;
 
   const getCodeUrl = (functionName: string) => {
-    const base = pathName.split('/interact')[0];
-    const activeContractPath = pathName.split('interact/')[1];
+    const base = pathname.split('/interact')[0];
+    const activeContractPath = pathname.split('interact/')[1];
     if (activeContractPath && contractSource) {
       const [moduleName] = activeContractPath.split('/');
 
