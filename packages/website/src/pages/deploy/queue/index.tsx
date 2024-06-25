@@ -1,5 +1,5 @@
 //import { QueuedTxns } from '@/features/Deploy/QueueDrawer';
-import { Box, Container, Heading } from '@chakra-ui/react';
+import { Box, Container, Heading, Text } from '@chakra-ui/react';
 import { ReactElement } from 'react';
 import Layout from '../_layout';
 import { QueuedTxns } from '@/features/Deploy/QueueDrawer';
@@ -33,6 +33,11 @@ const QueueTransactions = () => {
           <Heading size="lg" mb={2}>
             Stage Transactions
           </Heading>
+          <Text color="gray.300">
+            Queue transactions from a package on the Cannon registry.
+            Transactions executed after being staged with this tool will not
+            result in a package to publish.
+          </Text>
         </Box>
         <QueuedTxns />
       </Container>
