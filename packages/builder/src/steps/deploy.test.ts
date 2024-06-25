@@ -7,7 +7,7 @@ import '../actions';
 
 const DEFAULT_ARACHNID_ADDRESS = '0x4e59b44847b379578588920cA78FbF26c0B4956C';
 
-describe('steps/contract.ts', () => {
+describe('steps/deploy.ts', () => {
   const fakeAbi = [
     {
       inputs: [
@@ -193,6 +193,8 @@ describe('steps/contract.ts', () => {
               ],
               contractName: undefined,
               deployTxnHash: '',
+              deployTxnBlockNumber: '',
+              deployTimestamp: '',
               deployedOn: 'contract.Woot',
               gasCost: '0',
               gasUsed: 0,
@@ -238,6 +240,8 @@ describe('steps/contract.ts', () => {
               ],
               contractName: undefined,
               deployTxnHash: fakeRx.transactionHash,
+              deployTxnBlockNumber: '0',
+              deployTimestamp: '',
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
               sourceName: undefined,
@@ -279,6 +283,8 @@ describe('steps/contract.ts', () => {
               ],
               contractName: undefined,
               deployTxnHash: fakeRx.transactionHash,
+              deployTxnBlockNumber: '0',
+              deployTimestamp: '',
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
               sourceName: undefined,
@@ -325,6 +331,8 @@ describe('steps/contract.ts', () => {
               contractName: undefined,
               deployTxnHash: fakeRx.transactionHash,
               deployedOn: 'contract.Woot',
+              deployTxnBlockNumber: '0',
+              deployTimestamp: '',
               linkedLibraries: {},
               sourceName: undefined,
               highlight: undefined,
@@ -361,6 +369,8 @@ describe('steps/contract.ts', () => {
               contractName: undefined,
               deployTxnHash: fakeRx.transactionHash,
               deployedOn: 'contract.Woot',
+              deployTxnBlockNumber: '0',
+              deployTimestamp: '',
               linkedLibraries: {},
               sourceName: undefined,
               highlight: undefined,
