@@ -10,7 +10,6 @@ import {
   Heading,
   Link,
   Text,
-  Code,
   Table,
   Tbody,
   Td,
@@ -18,6 +17,7 @@ import {
   Thead,
   Tr,
   Badge,
+  Code,
 } from '@chakra-ui/react';
 import React, { FC } from 'react';
 
@@ -204,27 +204,37 @@ export const DocsCannonfilesPage: FC = () => {
                 Cannonfile Documentation
               </Heading>
               <Text mb={4}>
-                Cannonfiles include operations that specify the desired state of
-                a blockchain. They are typically{' '}
-                <Link isExternal href="https://toml.io/en/">
-                  TOML files
-                </Link>
-                .
+                Cannonfiles are like deployment plans. They include operations
+                that specify the desired state of a blockchain. The web app and
+                the CLI can be used to <Code>build</Code> the blockchain into
+                this state. This results in a package of data pertaining to the
+                deployment, which can be uploaded using IPFS and published to
+                the registry on Ethereum. Deployments that upgrade from existing
+                packages will recognize which operations have been completed,
+                executing only those that have been added or changed.
               </Text>
               <Text mb={4}>
-                Each operation has a type and a name. Each type accepts a
-                specific set of inputs (documented below) and modifies a return
-                object. The return object is accessible in operations executed
-                at later operations. The resulting return object is provided to
-                any cannonfile that imports it with the <Code>pull</Code> or{' '}
-                <Code>clone</Code> operations.
+                Each operation has a type and a name, like{' '}
+                <Code>[deploy.MyContract]</Code>. Each type accepts a specific
+                set of inputs (documented below) and can modify{' '}
+                <Code>settings</Code> and <Code>imports</Code> objects (which
+                can be referenced in{' '}
+                <Link
+                  href="https://lodash.com/docs/4.17.15#template"
+                  isExternal
+                >
+                  templates
+                </Link>{' '}
+                like
+                <Code>name=&lt;%= settings.name %&gt;</Code>). The objects are
+                also passed into cannonfiles that reference them with the{' '}
+                <Code>pull</Code> and <Code>clone</Code> operations.
               </Text>
               <Text mb={4}>
-                Cannonfiles are used to <strong>build</strong> chains into the
-                desired state. This results in a package, which can be published
-                to the registry. Packages contain three files:{' '}
+                Packages that result from <Code>build</Code>s consist of three
+                JSON files, which are compressed and uploaded using IPFS:{' '}
                 <Link href="#deployment-data">deployment data</Link>,{' '}
-                <Link href="#package-code">package code</Link>, and{' '}
+                <Link href="#package-code">code</Link>, and{' '}
                 <Link href="#metadata">metadata</Link>.
               </Text>
             </Box>

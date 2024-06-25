@@ -218,6 +218,16 @@ export async function preparePublishPackage({
     debug('copy ipfs for', curFullPackageRef, toUrl, fromUrl);
 
     const url = await toStorage.putBlob(deployInfo!);
+
+    // sometimes the from url is not set because only the top level package exists. If that is the case,
+    // we want to check the uploaded ipfs blob and if it matches up, then we should cancel
+    debug('got updated fromUrl:' + url);
+    if (toUrl === url) {
+      debug('package already published (via post ipfs upload url)... skip!', curFullPackageRef);
+      alreadyCopiedIpfs.set(checkKey, null);
+      return null;
+    }
+
     const newMiscUrl = await toStorage.putBlob(await fromStorage.readBlob(deployInfo!.miscUrl));
 
     if (newMiscUrl !== deployInfo.miscUrl) {
