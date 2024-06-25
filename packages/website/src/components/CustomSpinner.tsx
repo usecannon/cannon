@@ -6,13 +6,13 @@ type ImageProps = ComponentProps<typeof Image>;
 
 const pulse = keyframes`
   0% {
-    opacity: 0.08;
+    opacity: 0.25;
   }
   50% {
-    opacity: 0.16;
+    opacity: 0.5;
   }
   100% {
-    opacity: 0.08;
+    opacity: 0.25;
   }
 `;
 
@@ -25,7 +25,7 @@ export const CustomSpinner: FC<ImageProps> = (props) => {
       h="64px"
       w="64px"
       objectFit="cover"
-      animation={`${pulse} 3s infinite`}
+      animation={`${pulse} 2.5s infinite`}
       {...props}
     />
   );

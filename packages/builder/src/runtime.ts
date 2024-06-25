@@ -127,6 +127,9 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   private cleanSnapshot: any;
 
   private loadedMisc: string | null = null;
+
+  private traceArtifacts: ChainArtifacts = {};
+
   misc: {
     artifacts: { [label: string]: any };
   };
@@ -266,7 +269,8 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   }
 
   updateProviderArtifacts(artifacts: ChainArtifacts) {
-    this.provider = this.provider.extend(traceActions(artifacts) as any);
+    this.traceArtifacts = _.merge(this.traceArtifacts, artifacts);
+    this.provider = this.provider.extend(traceActions(this.traceArtifacts) as any);
   }
 
   setPublicSourceCode(isPublic: boolean) {
