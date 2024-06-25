@@ -569,7 +569,7 @@ function QueueFromGitOps() {
                   Upgrade existing package
                 </Radio>
                 <Radio colorScheme="teal" value="3">
-                  Complete partial deployment
+                  Finish partial deployment
                 </Radio>
               </Stack>
             </RadioGroup>
