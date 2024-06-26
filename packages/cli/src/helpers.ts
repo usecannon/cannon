@@ -10,7 +10,7 @@ import {
   RawChainDefinition,
 } from '@usecannon/builder';
 import { AbiEvent } from 'abitype';
-import { bold, magentaBright, red, yellow, yellowBright } from 'chalk';
+import { bold, magentaBright, red, yellowBright } from 'chalk';
 import { exec, spawnSync } from 'child_process';
 import Debug from 'debug';
 import fs from 'fs-extra';
