@@ -214,7 +214,7 @@ export function createProviderProxy(provider: viem.Client): Promise<string> {
       resolve(`http://127.0.0.1:${addrInfo.port}`);
     });
 
-    server.listen(3000);
+    server.listen();
   });
 }
 
