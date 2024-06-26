@@ -1,12 +1,12 @@
 import { yellow } from 'chalk';
 import Debug from 'debug';
-import * as viem from 'viem';
 import { EventEmitter } from 'events';
 import _ from 'lodash';
+import * as viem from 'viem';
 import { CannonSigner, ChainArtifacts, PackageReference } from './';
+import { traceActions } from './error';
 import { CannonLoader, IPFSLoader } from './loader';
 import { CannonRegistry } from './registry';
-import { traceActions } from './error';
 import { ChainBuilderRuntimeInfo, ContractArtifact, DeploymentInfo } from './types';
 import { getExecutionSigner } from './util';
 
