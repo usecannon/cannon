@@ -1,9 +1,9 @@
+import { validateConfig } from '../actions';
 import { BUILD_VERSION } from '../constants';
 import { InMemoryRegistry } from '../registry';
-import deployAction from './deploy';
 import action from './clone';
+import deployAction from './deploy';
 import { fakeCtx, fakeRuntime } from './utils.test.helper';
-import '../actions';
 
 jest.mock('../loader');
 jest.mock('./deploy');
@@ -36,6 +36,18 @@ describe('steps/clone.ts', () => {
     });
 
     jest.mocked(deployAction.validate.safeParse).mockReturnValue({ success: true } as any);
+  });
+
+  describe('validate', () => {
+    it('fails when not setting values', () => {
+      expect(() => validateConfig(action.validate, {})).toThrow('Field: source');
+    });
+
+    it('fails when setting invalid value', () => {
+      expect(() => validateConfig(action.validate, { source: 'greeter', invalid: ['something'] })).toThrow(
+        "Unrecognized key(s) in object: 'invalid'"
+      );
+    });
   });
 
   describe('configInject()', () => {
