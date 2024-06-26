@@ -163,7 +163,9 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
       }),
     {
       timeout: ANVIL_OP_TIMEOUT,
-      errorInstance: new Error('anvil failed to start'),
+      errorInstance: new Error(
+        `Timeout - Anvil failed to start. If you are using a VPN or firewall, it might be causing a connection issue. Try disabling them.`
+      ),
     }
   );
 }
