@@ -16,7 +16,8 @@ export const DefaultInput: FC<{
         handleUpdate(updateValue);
       } else {
         handleUpdate(stringToHex(updateValue, { size: 32 }));
-      }    } else if (inputType == 'tuple') {
+      }
+    } else if (inputType == 'tuple') {
       try {
         handleUpdate(JSON.parse(updateValue));
       } catch (err) {
