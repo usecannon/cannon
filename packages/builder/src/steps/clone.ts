@@ -2,6 +2,7 @@ import { yellow } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
+import pkg from '../../package.json';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { build, createInitialContext, getOutputs } from '../builder';
 import { CANNON_CHAIN_ID } from '../constants';
@@ -16,8 +17,6 @@ import {
   DeploymentState,
   PackageState,
 } from '../types';
-
-import pkg from '../../package.json';
 
 const debug = Debug('cannon:builder:clone');
 
@@ -138,6 +137,11 @@ const cloneSpec = {
     const importPkgOptions = { ...(deployInfo?.options || {}), ...(config.var || config.options || {}) };
 
     debug(`[clone.${importLabel}]`, 'cloning package options', importPkgOptions);
+
+    // prior to importing the name, ensure the target names/version fields are set on the definition
+    deployInfo.def.name = targetRef.name;
+    deployInfo.def.version = targetRef.version;
+    deployInfo.def.preset = targetRef.preset;
 
     const def = new ChainDefinition(deployInfo.def);
 

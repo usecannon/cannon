@@ -1,6 +1,6 @@
 import { fixtureCtx } from '../../test/fixtures';
-import action from './var';
 import { fakeRuntime } from './utils.test.helper';
+import action from './var';
 
 describe('steps/var.ts', () => {
   describe('configInject()', () => {

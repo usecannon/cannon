@@ -37,7 +37,7 @@ export interface PackagePublishCall {
 export class PackageReference {
   static DEFAULT_TAG = 'latest';
   static DEFAULT_PRESET = 'main';
-  static PACKAGE_REGEX = /^(?<name>@?[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
+  static PACKAGE_REGEX = /^(?<name>@?[a-z0-9][A-Za-z0-9-]{1,30}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
 
   /**
    * Anything before the colon or an @ (if no version is present) is the package name.
@@ -209,7 +209,7 @@ export async function preparePublishPackage({
     const fromUrl = await fromStorage.registry.getUrl(curFullPackageRef, chainId);
     debug('fromStorage.getLabel: ' + fromStorage.getLabel() + ' fromUrl: ' + fromUrl);
 
-    if (toUrl === fromUrl) {
+    if (fromUrl && toUrl === fromUrl) {
       debug('package already published... skip!', curFullPackageRef);
       alreadyCopiedIpfs.set(checkKey, null);
       return null;
@@ -218,6 +218,16 @@ export async function preparePublishPackage({
     debug('copy ipfs for', curFullPackageRef, toUrl, fromUrl);
 
     const url = await toStorage.putBlob(deployInfo!);
+
+    // sometimes the from url is not set because only the top level package exists. If that is the case,
+    // we want to check the uploaded ipfs blob and if it matches up, then we should cancel
+    debug('got updated fromUrl:' + url);
+    if (toUrl === url) {
+      debug('package already published (via post ipfs upload url)... skip!', curFullPackageRef);
+      alreadyCopiedIpfs.set(checkKey, null);
+      return null;
+    }
+
     const newMiscUrl = await toStorage.putBlob(await fromStorage.readBlob(deployInfo!.miscUrl));
 
     if (newMiscUrl !== deployInfo.miscUrl) {

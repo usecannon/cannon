@@ -74,7 +74,7 @@ export function useGitRepo(url: string, ref: string, files: string[]) {
  * @param url the git repository to generate the diff from
  * @param fromRef the branch or git commit has the diff starts from
  * @param toRef the branch or git commit hash the diff ends at
- * @param files the files to be includedi n the diff (files not part of this array are not included)
+ * @param files the files to be included in the diff (files not part of this array are not included)
  */
 export function useGitDiff(url: string, fromRef: string, toRef: string, files: string[]) {
   const fromQuery = useGitRepo(url, fromRef, files);
@@ -89,10 +89,7 @@ export function useGitDiff(url: string, fromRef: string, toRef: string, files: s
     const toFiles = toQuery.data;
 
     for (let i = 0; i < fromFiles.length; i++) {
-      if (fromFiles[i] === toFiles[i]) continue;
-      const p = createTwoFilesPatch(`a/${files[i]}`, `b/${files[i]}`, fromFiles[i], toFiles[i], undefined, undefined, {
-        ignoreWhitespace: false,
-      });
+      const p = createTwoFilesPatch(`a/${files[i]}`, `b/${files[i]}`, fromFiles![i], toFiles![i], undefined, undefined);
       patches.push(p.slice(p.indexOf('\n')));
     }
 

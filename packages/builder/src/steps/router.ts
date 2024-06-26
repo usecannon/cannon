@@ -3,11 +3,10 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
-import { encodeDeployData } from '../util';
 import { ChainBuilderRuntime } from '../runtime';
 import { routerSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, ContractMap, PackageState } from '../types';
-import { getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
+import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 
 const debug = Debug('cannon:builder:router');
 
@@ -101,8 +100,10 @@ const routerStep = {
       return {
         constructorArgs: contract.constructorArgs,
         abi: contract.abi,
-        deployedAddress: contract.address,
+        deployedAddress: contract.address ? viem.getAddress(contract.address) : contract.address, // Make sure address is checksum encoded
         deployTxnHash: contract.deployTxnHash,
+        deployTxnBlockNumber: '',
+        deployTimestamp: '',
         contractName: contract.contractName,
         sourceName: contract.sourceName,
         contractFullyQualifiedName: `${contract.sourceName}:${contract.contractName}`,
@@ -159,6 +160,8 @@ const routerStep = {
 
     const receipt = await runtime.provider.waitForTransactionReceipt({ hash });
 
+    const block = await runtime.provider.getBlock({ blockHash: receipt.blockHash });
+
     return {
       contracts: {
         [contractName]: {
@@ -166,6 +169,8 @@ const routerStep = {
           abi: routableAbi,
           deployedOn: packageState.currentLabel,
           deployTxnHash: receipt.transactionHash,
+          deployTxnBlockNumber: receipt.blockNumber.toString(),
+          deployTimestamp: block.timestamp.toString(),
           contractName,
           sourceName: contractName + '.sol',
           gasUsed: Number(receipt.gasUsed),

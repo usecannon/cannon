@@ -5,6 +5,8 @@ import {
   CannonStorage,
   ChainBuilderRuntime,
   ChainDefinition,
+  DEFAULT_REGISTRY_CONFIG,
+  getCannonRepoRegistryUrl,
   getOutputs,
   InMemoryRegistry,
   IPFSLoader,
@@ -12,7 +14,6 @@ import {
   PackageReference,
   publishPackage,
   traceActions,
-  DEFAULT_REGISTRY_CONFIG,
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
@@ -30,6 +31,7 @@ import {
   ensureChainIdConsistency,
   isPrivateKey,
   normalizePrivateKey,
+  setupAnvil,
 } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
@@ -49,6 +51,8 @@ import './custom-steps/run';
 export * from './types';
 export * from './constants';
 export * from './util/params';
+export * from './util/register';
+export * from './util/provider';
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export type { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
@@ -189,6 +193,8 @@ function configureRun(program: Command) {
 applyCommandsConfig(program.command('build'), commandsConfig.build)
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, options) => {
+    await setupAnvil();
+
     const cannonfilePath = path.resolve(cannonfile);
     const projectDirectory = path.dirname(cannonfilePath);
 
@@ -272,7 +278,17 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
   await ensureChainIdConsistency(cliSettings.providerUrl, flags.chainId);
 
   // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
-  const newUrl = await alter(packageName, parseInt(flags.chainId), cliSettings, flags.preset, {}, command, options, {});
+  const newUrl = await alter(
+    packageName,
+    flags.subpkg ? flags.subpkg.split(',') : [],
+    parseInt(flags.chainId),
+    cliSettings,
+    flags.preset,
+    {},
+    command,
+    options,
+    {}
+  );
 
   console.log(newUrl);
 });
@@ -307,7 +323,7 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
   const fromStorage = new CannonStorage(await createDefaultReadRegistry(cliSettings), getMainLoader(cliSettings));
 
   const toStorage = new CannonStorage(new InMemoryRegistry(), {
-    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
+    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || getCannonRepoRegistryUrl()),
   });
 
   console.log('Uploading package data for pinning...');
@@ -644,15 +660,8 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
 
   // after the build is done we can run the forge tests for the user
   await getProvider(node!)!.mine({ blocks: 1 });
-  const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeOpts]);
 
-  forgeProcess.stdout.on('data', (data: Buffer) => {
-    process.stdout.write(data);
-  });
-
-  forgeProcess.stderr.on('data', (data: Buffer) => {
-    process.stderr.write(data);
-  });
+  const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeOpts], { stdio: 'inherit' });
 
   await new Promise(() => {
     forgeProcess.on('close', (code: number) => {

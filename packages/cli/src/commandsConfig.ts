@@ -371,6 +371,11 @@ const commandsConfig = {
         description: 'Chain ID of deployment to alter',
       },
       {
+        flags: '-s --subpkg <subpackagePath>',
+        description:
+          'When the change needs to be made in a subpackage, specify the step names leading to the subpackage, comma separated.',
+      },
+      {
         flags: '-n --provider-url [url]',
         description: 'RPC endpoint to alter to',
       },
@@ -502,7 +507,7 @@ const commandsConfig = {
         description: 'RPC endpoint to unpublish to',
       },
       {
-        flags: '--registry-chain-id <number>',
+        flags: '-c --registry-chain-id <number>',
         description: 'Registry chain id to unpublish to',
       },
       {
@@ -558,8 +563,16 @@ const commandsConfig = {
         description: 'Chain ID of the package to register',
       },
       {
+        flags: '-a --registry-address <address>',
+        description: 'Custom address of the registry contract to register the package to',
+      },
+      {
         flags: '--private-key <key>',
         description: 'Private key to use for publishing the registry package',
+      },
+      {
+        flags: '--skip-confirm',
+        description: 'Skip confirmation to register the package',
       },
       {
         flags: '--gas-limit <gasLimit>',
@@ -608,6 +621,18 @@ const commandsConfig = {
       {
         flags: '--private-key <key>',
         description: 'Private key of the package owner',
+      },
+      {
+        flags: '--optimism',
+        description: 'Change publishers on the Optimism network',
+      },
+      {
+        flags: '--mainnet',
+        description: 'Change publishers on the Mainnet network',
+      },
+      {
+        flags: '--skip-confirm',
+        description: 'Skip confirmation to change the publishers',
       },
       {
         flags: '--gas-limit <gasLimit>',

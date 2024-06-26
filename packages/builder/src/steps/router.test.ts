@@ -1,8 +1,21 @@
 import { fixtureContractData, fixtureCtx, fixtureSigner, fixtureTransactionReceipt } from '../../test/fixtures';
+import { validateConfig } from '../actions';
 import action from './router';
 import { fakeRuntime } from './utils.test.helper';
 
 describe('steps/router.ts', () => {
+  describe('validate', () => {
+    it('fails when not setting values', () => {
+      expect(() => validateConfig(action.validate, {})).toThrow('Field: contracts');
+    });
+
+    it('fails when setting invalid value', () => {
+      expect(() => validateConfig(action.validate, { contracts: [], invalid: ['something'] })).toThrow(
+        "Unrecognized key(s) in object: 'invalid'"
+      );
+    });
+  });
+
   describe('configInject()', () => {
     it('injects all fields', async () => {
       const result = action.configInject(
@@ -86,6 +99,7 @@ describe('steps/router.ts', () => {
       const rx = fixtureTransactionReceipt();
 
       jest.mocked(runtime.provider.waitForTransactionReceipt).mockResolvedValue(rx);
+      jest.mocked(runtime.provider.getBlock).mockResolvedValue({ timestamp: BigInt(123444) } as any);
 
       const res = await action.exec(runtime, ctx, config, step);
 
@@ -97,6 +111,8 @@ describe('steps/router.ts', () => {
           abi: contracts.Greeter.abi,
           deployedOn: step.currentLabel,
           deployTxnHash: rx.transactionHash,
+          deployTxnBlockNumber: '0',
+          deployTimestamp: '123444',
           contractName: 'Router',
           sourceName: 'Router.sol',
           gasCost: rx.effectiveGasPrice.toString(),

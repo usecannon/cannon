@@ -94,12 +94,14 @@ export class ChainDefinition {
         actions.push(fullActionName);
 
         if (ActionKinds[action] && ActionKinds[action].getOutputs) {
-          for (const output of ActionKinds[action].getOutputs!(_.get(def, fullActionName), {
+          const actionOutputs = ActionKinds[action].getOutputs!(_.get(def, fullActionName), {
             // TODO: what to do about name and version? do they even matter?
             name: '',
             version: '',
             currentLabel: fullActionName,
-          })) {
+          });
+
+          for (const output of actionOutputs) {
             debug(`deps: ${fullActionName} provides ${output}`);
             if (!this.dependencyFor.has(output)) {
               this.dependencyFor.set(output, fullActionName);
@@ -206,24 +208,21 @@ export class ChainDefinition {
     }
 
     const kind = n.split('.')[0] as keyof typeof ActionKinds;
+    const action = ActionKinds[kind];
 
-    if (!ActionKinds[kind]) {
+    if (!action) {
       throw new Error(
         `action kind plugin not installed: "${kind}" (for action: "${n}"). please install the plugin necessary to build this package.`
       );
     }
 
-    validateConfig(ActionKinds[kind].validate, _.get(this.raw, n));
+    validateConfig(action.validate, _.get(this.raw, n));
 
-    return ActionKinds[n.split('.')[0] as keyof typeof ActionKinds].configInject(
-      { ...ctx, ...CannonHelperContext },
-      _.get(this.raw, n),
-      {
-        name: this.getName(ctx),
-        version: this.getVersion(ctx),
-        currentLabel: n,
-      }
-    );
+    return action.configInject({ ...ctx, ...CannonHelperContext }, _.get(this.raw, n), {
+      name: this.getName(ctx),
+      version: this.getVersion(ctx),
+      currentLabel: n,
+    });
   }
 
   /**
@@ -312,7 +311,7 @@ export class ChainDefinition {
         `);
     }
 
-    const deps = (_.get(this.raw, node)!.depends || []) as string[];
+    const deps = _.clone(_.get(this.raw, node)!.depends || []) as string[];
 
     const n = node.split('.')[0];
 

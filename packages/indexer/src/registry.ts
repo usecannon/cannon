@@ -1,22 +1,24 @@
-import _ from 'lodash';
 import {
   CannonStorage,
   ChainDefinition,
+  Contract as CannonContract,
   createInitialContext,
+  DEFAULT_REGISTRY_ADDRESS,
   DeploymentInfo,
-  getCannonContract,
   IPFSLoader,
   OnChainRegistry,
   PackageReference,
   StepState,
 } from '@usecannon/builder';
-import { createClient, RedisClientType, SchemaFieldTypes } from 'redis';
+import CannonRegistryAbi from '@usecannon/builder/dist/src/abis/CannonRegistry';
+import _ from 'lodash';
+import { RedisClientType, SchemaFieldTypes } from 'redis';
 /* eslint no-console: "off" */
 import * as viem from 'viem';
 import * as viemChains from 'viem/chains';
-import { mainnet, optimism } from 'viem/chains';
-
+import { config } from './config';
 import * as rkey from './db';
+import { ActualRedisClientType, useRedis } from './redis';
 
 const BLOCK_BATCH_SIZE = 5000;
 
@@ -26,8 +28,6 @@ const START_IDS = {
   '1': 16490000,
   '10': 119000000,
 };
-
-type ActualRedisClientType = ReturnType<typeof createClient>;
 
 const LEGACY_PACKAGE_PUBLISH_EVENT = {
   anonymous: false,
@@ -129,9 +129,9 @@ const recordDeployStep: {
   ) => {
     const batch = redis.multi();
 
-    const config = def.getConfig(name, await createInitialContext(def, pkg, 0, {}));
+    const cfg = def.getConfig(name, await createInitialContext(def, pkg, 0, {}));
 
-    const importedPackageRef = new PackageReference(config.source).fullPackageRef;
+    const importedPackageRef = new PackageReference(cfg.source).fullPackageRef;
 
     // index: packages depending on/depended upon by package
     addHexastoreToBatch(batch, rkey.RKEY_PACKAGE_RELATION, packageRef, 'imports', importedPackageRef);
@@ -151,9 +151,9 @@ const recordDeployStep: {
   ) => {
     const batch = redis.multi();
 
-    const config = def.getConfig(name, await createInitialContext(def, pkg, 0, {}));
+    const cfg = def.getConfig(name, await createInitialContext(def, pkg, 0, {}));
 
-    const importedPackageRef = new PackageReference(config.source).fullPackageRef;
+    const importedPackageRef = new PackageReference(cfg.source).fullPackageRef;
 
     // index: packages depending on/depended upon by package
     addHexastoreToBatch(batch, rkey.RKEY_PACKAGE_RELATION, packageRef, 'imports', importedPackageRef);
@@ -170,7 +170,7 @@ export async function notify(rawPackageRef: string, chainId: number) {
   if (packageRef.version === 'latest') {
     return;
   }
-  const notifyPkgs = _.chunk((process.env.NOTIFY_PKGS || '').split(','), 2);
+  const notifyPkgs = _.chunk((config.NOTIFY_PKGS || '').split(','), 2);
   const notifyPkg = notifyPkgs.find((n) => n[0] === packageRef.name);
   if (notifyPkg) {
     // send notification for this built package
@@ -338,7 +338,7 @@ export async function getNewEvents(
   client: viem.PublicClient,
   registryChainId: number,
   redis: RedisClientType,
-  registryContract: any
+  registryContract: CannonContract
 ) {
   const currentBlock = Number(await client.getBlockNumber()) - 5;
   const lastIndexedBlock =
@@ -382,17 +382,20 @@ export async function getNewEvents(
   return { scanToBlock: Number(scanToBlock), currentBlock, scanToTimestamp: lastBlockTimestamp, events };
 }
 
-export async function scanChain(mainnetClient: viem.PublicClient, optimismClient: viem.PublicClient, registryContract: any) {
-  const redis = createClient({ url: process.env.REDIS_URL! });
-  redis.on('error', (err: any) => console.error('redis error:', err));
-  await redis.connect();
+export async function scanChain(
+  mainnetClient: viem.PublicClient,
+  optimismClient: viem.PublicClient,
+  registryContract: CannonContract
+) {
+  const redis = await useRedis();
+
   await createIndexesIfNedeed(redis as any);
 
   const storageCtx = new CannonStorage(
-    new OnChainRegistry({ address: '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba', provider: optimismClient }),
+    new OnChainRegistry({ address: DEFAULT_REGISTRY_ADDRESS, provider: optimismClient }),
     {
       // shorter than usual timeout becuase we need to move on if its not resolving well
-      ipfs: new IPFSLoader(process.env.IPFS_URL!, {}, 15000),
+      ipfs: new IPFSLoader(config.IPFS_URL, {}, 15000),
     }
   );
 
@@ -590,44 +593,21 @@ export async function scanChain(mainnetClient: viem.PublicClient, optimismClient
 }
 
 export async function loop() {
-  if (!process.env.REDIS_URL) {
-    throw new Error('REDIS_URL required environment variable is not defined');
-  }
-  if (!process.env.IPFS_URL) {
-    throw new Error('IPFS_URL required environment variable is not defined');
-  }
-  if (!process.env.MAINNET_PROVIDER_URL) {
-    throw new Error('MAINNET_PROVIDER_URL required environment variable is not defined');
-  }
-  if (!process.env.OPTIMISM_PROVIDER_URL) {
-    throw new Error('OPTIMISM_PROVIDER_URL required environment variable is not defined');
-  }
-
-  const mainnetClient = viem.createPublicClient({ chain: mainnet, transport: viem.http(process.env.MAINNET_PROVIDER_URL) });
-  const optimismClient = viem.createPublicClient({
-    chain: optimism,
-    transport: viem.http(process.env.OPTIMISM_PROVIDER_URL),
+  const mainnetClient = viem.createPublicClient({
+    chain: viemChains.mainnet,
+    transport: viem.http(config.MAINNET_PROVIDER_URL),
   });
-
-  const storageCtx = new CannonStorage(
-    new OnChainRegistry({ address: '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba', provider: optimismClient as any }),
-    {
-      // shorter than usual timeout becuase we need to move on if its not resolving well
-      ipfs: new IPFSLoader(process.env.IPFS_URL!, {}, 15000),
-    }
-  );
-
-  console.log('fetching registry contract...');
-
-  const registryContract = await getCannonContract({
-    storage: storageCtx,
-    package: 'registry',
-    contractName: 'Proxy',
-    chainId: 10,
+  const optimismClient = viem.createPublicClient({
+    chain: viemChains.optimism,
+    transport: viem.http(config.OPTIMISM_PROVIDER_URL),
   });
 
   console.log('start scan loop');
-  await scanChain(mainnetClient, optimismClient as any, registryContract);
+
+  await scanChain(mainnetClient, optimismClient as any, {
+    address: DEFAULT_REGISTRY_ADDRESS,
+    abi: CannonRegistryAbi,
+  });
 
   console.error('error limit exceeded');
   process.exit(1);

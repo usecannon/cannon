@@ -69,6 +69,7 @@ function generateOutputs(
   ctx: ChainBuilderContext,
   artifactData: ContractArtifact,
   deployTxn: viem.TransactionReceipt | null,
+  deployTxnBlock: viem.Block | null,
   deployAddress: viem.Address,
   currentLabel: string
 ): ChainArtifacts {
@@ -102,6 +103,8 @@ function generateOutputs(
         constructorArgs: config.args || [],
         linkedLibraries,
         deployTxnHash: deployTxn?.transactionHash || '',
+        deployTxnBlockNumber: deployTxn?.blockNumber.toString() || '',
+        deployTimestamp: deployTxnBlock?.timestamp.toString() || '',
         sourceName: artifactData.sourceName,
         contractName: artifactData.contractName,
         deployedOn: currentLabel!,
@@ -347,6 +350,7 @@ const deploySpec = {
         ctx,
         artifactData,
         receipt,
+        null,
         // note: send zero address since there is no contract address
         viem.zeroAddress,
         packageState.currentLabel
@@ -355,7 +359,9 @@ const deploySpec = {
       return await handleTxnError(contractArtifact, runtime.provider, error);
     }
 
-    return generateOutputs(config, ctx, artifactData, receipt, deployAddress, packageState.currentLabel);
+    const block = await runtime.provider.getBlock({ blockNumber: receipt?.blockNumber });
+
+    return generateOutputs(config, ctx, artifactData, receipt, block, deployAddress, packageState.currentLabel);
   },
 
   async importExisting(
@@ -379,7 +385,9 @@ const deploySpec = {
       throw new Error('imported txn does not appear to deploy a contract');
     }
 
-    return generateOutputs(config, ctx, artifactData, txn, txn.contractAddress!, packageState.currentLabel);
+    const block = await runtime.provider.getBlock({ blockNumber: txn?.blockNumber });
+
+    return generateOutputs(config, ctx, artifactData, txn, block, txn.contractAddress!, packageState.currentLabel);
   },
 };
 

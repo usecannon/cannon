@@ -118,11 +118,13 @@ export class InMemoryRegistry extends CannonRegistry {
 export class FallbackRegistry extends EventEmitter implements CannonRegistry {
   readonly memoryCacheRegistry: InMemoryRegistry;
   readonly registries: any[];
+  readonly publishRegistry: any;
 
-  constructor(registries: any[]) {
+  constructor(registries: any[], publishRegistryIndex = 0) {
     super();
     this.memoryCacheRegistry = new InMemoryRegistry();
     this.registries = registries;
+    this.publishRegistry = registries[publishRegistryIndex];
   }
 
   getLabel() {
@@ -213,12 +215,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
   async publishMany(
     toPublish: { packagesNames: string[]; chainId: number; url: string; metaUrl: string }[]
   ): Promise<string[]> {
-    const receipts: string[] = [];
-    for (const pub of toPublish) {
-      await this.publish(pub.packagesNames, pub.chainId, pub.url, pub.metaUrl);
-    }
-
-    return receipts;
+    return this.publishRegistry.publishMany(toPublish);
   }
 }
 

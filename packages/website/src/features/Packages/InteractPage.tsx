@@ -20,7 +20,7 @@ export const InteractPage: FC<{
       moduleName={moduleName}
       contractName={contractName}
       contractAddress={contractAddress}
-    ></Interact>
+    />
   );
 };
 
