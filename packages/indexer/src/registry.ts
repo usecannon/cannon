@@ -16,6 +16,7 @@ import { createClient, RedisClientType, SchemaFieldTypes } from 'redis';
 /* eslint no-console: "off" */
 import * as viem from 'viem';
 import * as viemChains from 'viem/chains';
+import { config } from './config';
 import * as rkey from './db';
 
 const BLOCK_BATCH_SIZE = 5000;
@@ -129,9 +130,9 @@ const recordDeployStep: {
   ) => {
     const batch = redis.multi();
 
-    const config = def.getConfig(name, await createInitialContext(def, pkg, 0, {}));
+    const cfg = def.getConfig(name, await createInitialContext(def, pkg, 0, {}));
 
-    const importedPackageRef = new PackageReference(config.source).fullPackageRef;
+    const importedPackageRef = new PackageReference(cfg.source).fullPackageRef;
 
     // index: packages depending on/depended upon by package
     addHexastoreToBatch(batch, rkey.RKEY_PACKAGE_RELATION, packageRef, 'imports', importedPackageRef);
@@ -151,9 +152,9 @@ const recordDeployStep: {
   ) => {
     const batch = redis.multi();
 
-    const config = def.getConfig(name, await createInitialContext(def, pkg, 0, {}));
+    const cfg = def.getConfig(name, await createInitialContext(def, pkg, 0, {}));
 
-    const importedPackageRef = new PackageReference(config.source).fullPackageRef;
+    const importedPackageRef = new PackageReference(cfg.source).fullPackageRef;
 
     // index: packages depending on/depended upon by package
     addHexastoreToBatch(batch, rkey.RKEY_PACKAGE_RELATION, packageRef, 'imports', importedPackageRef);
@@ -170,7 +171,7 @@ export async function notify(rawPackageRef: string, chainId: number) {
   if (packageRef.version === 'latest') {
     return;
   }
-  const notifyPkgs = _.chunk((process.env.NOTIFY_PKGS || '').split(','), 2);
+  const notifyPkgs = _.chunk((config.NOTIFY_PKGS || '').split(','), 2);
   const notifyPkg = notifyPkgs.find((n) => n[0] === packageRef.name);
   if (notifyPkg) {
     // send notification for this built package
@@ -385,7 +386,7 @@ export async function scanChain(
   optimismClient: viem.PublicClient,
   registryContract: CannonContract
 ) {
-  const redis = createClient({ url: process.env.REDIS_URL! });
+  const redis = createClient({ url: config.REDIS_URL });
   redis.on('error', (err: any) => console.error('redis error:', err));
   await redis.connect();
 
@@ -395,7 +396,7 @@ export async function scanChain(
     new OnChainRegistry({ address: DEFAULT_REGISTRY_ADDRESS, provider: optimismClient }),
     {
       // shorter than usual timeout becuase we need to move on if its not resolving well
-      ipfs: new IPFSLoader(process.env.IPFS_URL!, {}, 15000),
+      ipfs: new IPFSLoader(config.IPFS_URL, {}, 15000),
     }
   );
 
@@ -593,26 +594,13 @@ export async function scanChain(
 }
 
 export async function loop() {
-  if (!process.env.REDIS_URL) {
-    throw new Error('REDIS_URL required environment variable is not defined');
-  }
-  if (!process.env.IPFS_URL) {
-    throw new Error('IPFS_URL required environment variable is not defined');
-  }
-  if (!process.env.MAINNET_PROVIDER_URL) {
-    throw new Error('MAINNET_PROVIDER_URL required environment variable is not defined');
-  }
-  if (!process.env.OPTIMISM_PROVIDER_URL) {
-    throw new Error('OPTIMISM_PROVIDER_URL required environment variable is not defined');
-  }
-
   const mainnetClient = viem.createPublicClient({
     chain: viemChains.mainnet,
-    transport: viem.http(process.env.MAINNET_PROVIDER_URL),
+    transport: viem.http(config.MAINNET_PROVIDER_URL),
   });
   const optimismClient = viem.createPublicClient({
     chain: viemChains.optimism,
-    transport: viem.http(process.env.OPTIMISM_PROVIDER_URL),
+    transport: viem.http(config.OPTIMISM_PROVIDER_URL),
   });
 
   console.log('start scan loop');
