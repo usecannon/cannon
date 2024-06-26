@@ -12,12 +12,13 @@ import {
 } from '@usecannon/builder';
 import CannonRegistryAbi from '@usecannon/builder/dist/src/abis/CannonRegistry';
 import _ from 'lodash';
-import { createClient, RedisClientType, SchemaFieldTypes } from 'redis';
+import { RedisClientType, SchemaFieldTypes } from 'redis';
 /* eslint no-console: "off" */
 import * as viem from 'viem';
 import * as viemChains from 'viem/chains';
 import { config } from './config';
 import * as rkey from './db';
+import { ActualRedisClientType, useRedis } from './redis';
 
 const BLOCK_BATCH_SIZE = 5000;
 
@@ -27,8 +28,6 @@ const START_IDS = {
   '1': 16490000,
   '10': 119000000,
 };
-
-type ActualRedisClientType = ReturnType<typeof createClient>;
 
 const LEGACY_PACKAGE_PUBLISH_EVENT = {
   anonymous: false,
@@ -386,9 +385,7 @@ export async function scanChain(
   optimismClient: viem.PublicClient,
   registryContract: CannonContract
 ) {
-  const redis = createClient({ url: config.REDIS_URL });
-  redis.on('error', (err: any) => console.error('redis error:', err));
-  await redis.connect();
+  const redis = await useRedis();
 
   await createIndexesIfNedeed(redis as any);
 
