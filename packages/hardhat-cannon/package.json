@@ -43,21 +43,12 @@
   },
   "dependencies": {
     "@iarna/toml": "^3.0.0",
-<<<<<<< HEAD
     "@usecannon/builder": "2.15.3",
     "@usecannon/cli": "2.15.3",
     "chalk": "^5.3.0",
     "debug": "^4.3.5",
     "fs-extra": "^11.2.0",
     "viem": "^2.16.2"
-=======
-    "@usecannon/builder": "2.15.1",
-    "@usecannon/cli": "2.15.1",
-    "chalk": "^5.3.0",
-    "debug": "^4.3.5",
-    "fs-extra": "^11.2.0",
-    "viem": "^2.13.10"
->>>>>>> origin/dependabot/npm_and_yarn/packages/hardhat-cannon/prod-deps-5fceedd48b
   },
   "gitHead": "3821671c95145a55b84c5873a719f6cd5962e592"
 }
