@@ -58,7 +58,7 @@
       }
     },
     {
-      "files": ["packages/api/**/*.ts"],
+      "files": ["packages/{api,indexer}/**/*.ts"],
       "rules": {
         "react-hooks/rules-of-hooks": "off"
       }

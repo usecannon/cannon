@@ -1,8 +1,21 @@
 import { fixtureContractData, fixtureCtx, fixtureSigner, fixtureTransactionReceipt } from '../../test/fixtures';
+import { validateConfig } from '../actions';
 import action from './router';
 import { fakeRuntime } from './utils.test.helper';
 
 describe('steps/router.ts', () => {
+  describe('validate', () => {
+    it('fails when not setting values', () => {
+      expect(() => validateConfig(action.validate, {})).toThrow('Field: contracts');
+    });
+
+    it('fails when setting invalid value', () => {
+      expect(() => validateConfig(action.validate, { contracts: [], invalid: ['something'] })).toThrow(
+        "Unrecognized key(s) in object: 'invalid'"
+      );
+    });
+  });
+
   describe('configInject()', () => {
     it('injects all fields', async () => {
       const result = action.configInject(
