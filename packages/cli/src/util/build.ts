@@ -240,14 +240,13 @@ async function prepareBuildConfig(
   const pkgInfo: { [key: string]: string } = {};
 
   try {
-    pkgInfo.gitUrl = (await execPromise('git config --get remote.origin.url'))
-      .trim()
-      .replace(':', '/')
-      .replace('git@', 'https://')
-      .replace('.git', '');
+    const [rawCommitHash, rawGitUrl] = await Promise.all([
+      execPromise('git rev-parse HEAD'),
+      execPromise('git config --get remote.origin.url'),
+    ]);
 
-    pkgInfo.commitHash = await execPromise('git rev-parse HEAD');
-
+    pkgInfo.gitUrl = rawGitUrl.trim().replace(':', '/').replace('git@', 'https://').replace('.git', '');
+    pkgInfo.commitHash = rawCommitHash.trim();
     pkgInfo.readme = pkgInfo.gitUrl + '/blob/main/README.md';
   } catch (err) {
     // fail silently
