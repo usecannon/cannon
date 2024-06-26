@@ -29,6 +29,9 @@ import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
 
+import fs from 'fs-extra';
+import path from 'path';
+
 interface Params {
   provider: viem.PublicClient;
   def?: ChainDefinition;
@@ -368,7 +371,27 @@ export async function build({
     process.on('SIGQUIT', handler);
   }
 
-  const newState = await cannonBuild(runtime, def, oldDeployData && !wipe ? oldDeployData.state : {}, initialCtx);
+  let newState;
+
+  try {
+    newState = await cannonBuild(runtime, def, oldDeployData && !wipe ? oldDeployData.state : {}, initialCtx);
+  } catch (err: any) {
+    const dumpData = {
+      def,
+      initialCtx,
+      oldState: oldDeployData?.state || null,
+      activeCtx: runtime.ctx,
+      error: err.toJson(),
+    };
+
+    const dumpFilePath = path.join(cliSettings.cannonDirectory, 'dumps', new Date().toISOString() + '.json');
+    await fs.mkdirp(path.basename(dumpFilePath));
+    await fs.writeJson(dumpFilePath, dumpData);
+
+    throw new Error(
+      '${err.toString()}\n\nA build failure has occured. A dump file has been written to ${dumpFilePath}. Please include this file if you are reporting a problem with Cannon.'
+    );
+  }
 
   if (writeScript) {
     await dump!.end();
