@@ -409,6 +409,9 @@ export async function build({
     process.off('SIGTERM', handler);
     process.off('SIGQUIT', handler);
 
+    const filteredWriteIpfsUrl = cliSettings.writeIpfsUrl?.replace(RegExp(/:[a-zA-Z0-9]+@/), `:${'*'.repeat(20)}@`);
+    const filteredPublishIpfsUrl = cliSettings.publishIpfsUrl?.replace(RegExp(/:[a-zA-Z0-9]+@/), `:${'*'.repeat(20)}@`);
+
     if (partialDeploy) {
       console.log(
         yellowBright(
@@ -443,7 +446,7 @@ export async function build({
 
       console.log(
         `The following package data has been stored locally${
-          cliSettings.writeIpfsUrl && ' and pinned to ' + cliSettings.writeIpfsUrl
+          filteredWriteIpfsUrl && ' and pinned to ' + filteredWriteIpfsUrl
         }`
       );
       console.log(
@@ -454,7 +457,7 @@ export async function build({
         ])
       );
       console.log(
-        bold(`Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${cliSettings.publishIpfsUrl}`)
+        bold(`Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${filteredPublishIpfsUrl}`)
       );
       console.log(`> ${`cannon publish ${fullPackageRef} --chain-id ${chainId}`}`);
       console.log('');
