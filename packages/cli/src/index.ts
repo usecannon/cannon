@@ -238,7 +238,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     const [node, pkgSpec, , runtime] = await doBuild(cannonfile, settings, mergedOptions);
 
     if (options.keepAlive && node) {
-      console.log(`Built package RPC URL available at ${node.host}`);
+      console.log(`The local node will continue running at ${node.host}`);
 
       const { run } = await import('./commands/run');
 
