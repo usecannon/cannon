@@ -396,18 +396,19 @@ export async function build({
       chainId: runtime.chainId,
     });
 
-    const metadataCache = {
-      gitUrl: pkgInfo.gitUrl,
-      commitHash: pkgInfo.commitHash,
-      readme: pkgInfo.readme,
-    };
+    const metadataCache: { [key: string]: string } = {};
 
-    // store metadata to /matadata_cache folder
+    if (!_.isEmpty(pkgInfo)) {
+      metadataCache.gitUrl = pkgInfo.gitUrl;
+      metadataCache.commitHash = pkgInfo.commitHash;
+      metadataCache.readme = pkgInfo.readme;
+    }
+
+    // store metadata to /metadata_cache folder
     const metadata = await saveToMetadataCache(`${pkgName}_${pkgVersion}_${runtime.chainId}-${preset}`, metadataCache);
 
     const metaUrl = await runtime.putBlob(metadata);
 
-    // locally store cannon packages (version + latest)
     await resolver.publish([fullPackageRef, `${name}:latest@${preset}`], runtime.chainId, deployUrl!, metaUrl!);
 
     // detach the process handler
