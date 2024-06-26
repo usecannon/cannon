@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "test": "forge test",
-    "build-cannonfile": "node ./node_modules/@usecannon/cli/bin/cannon.js build cannonfile.toml && node ./node_modules/@usecannon/cli/bin/cannon.js build cannonfile.consumer.toml",
-    "run": "node ./node_modules/@usecannon/cli/bin/cannon.js greeter",
-    "run-synthetix": "node ./node_modules/@usecannon/cli/bin/cannon.js synthetix"
+    "build-cannonfile": "npx cannon build cannonfile.toml && npx cannon build cannonfile.consumer.toml",
+    "run": "npx cannon greeter",
+    "run-synthetix": "npx cannon synthetix"
   },
   "devDependencies": {
     "@usecannon/cli": "file:../../packages/cli"
