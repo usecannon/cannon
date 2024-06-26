@@ -164,7 +164,7 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
     {
       timeout: ANVIL_OP_TIMEOUT,
       errorInstance: new Error(
-        `Timeout - Anvil failed to start. If you are using a VPN or firewall, it might be causing a connection issue. Try disabling them.`
+        'Timeout - Anvil failed to start. If you are using a VPN or firewall, it might be causing a connection issue. Try disabling them.'
       ),
     }
   );
@@ -214,7 +214,7 @@ export function createProviderProxy(provider: viem.Client): Promise<string> {
       resolve(`http://127.0.0.1:${addrInfo.port}`);
     });
 
-    server.listen();
+    server.listen(3000);
   });
 }
 
