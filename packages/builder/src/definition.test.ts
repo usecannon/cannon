@@ -1,8 +1,6 @@
-import { ChainDefinition, validatePackageName, validatePackageVersion } from './definition';
-
-import 'jest';
 import _ from 'lodash';
 import { RawChainDefinition } from './actions';
+import { ChainDefinition, validatePackageName, validatePackageVersion } from './definition';
 
 function makeFakeChainDefinition(nodes: { [n: string]: any }) {
   const rawDef: RawChainDefinition = {
@@ -18,6 +16,20 @@ function makeFakeChainDefinition(nodes: { [n: string]: any }) {
 }
 
 describe('ChainDefinition', () => {
+  describe('constructor()', () => {
+    it('throws an error when trying to use a definition with invalid action name', () => {
+      const rawDef = {
+        name: 'test',
+        version: '1.0.0',
+        invalid: {
+          saturday: { target: '420' },
+        },
+      };
+
+      expect(() => new ChainDefinition(rawDef)).toThrow('Unrecognized action type invalid at [invalid.saturday]');
+    });
+  });
+
   describe('validatePackageName()', () => {
     it('verifies the name is not too short', () => {
       expect(() => validatePackageName('hh')).toThrowError('must be at least');
@@ -51,7 +63,7 @@ describe('ChainDefinition', () => {
     });
   });
 
-  describe.only('computeDependencies()', () => {
+  describe('computeDependencies()', () => {
     it('does not modify the underlying `raw` data structure', () => {
       const rawDef: RawChainDefinition = {
         name: 'test',
