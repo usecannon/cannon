@@ -2,6 +2,7 @@ import { yellow } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
+import pkg from '../../package.json';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { build, createInitialContext, getOutputs } from '../builder';
 import { CANNON_CHAIN_ID } from '../constants';
@@ -16,8 +17,6 @@ import {
   DeploymentState,
   PackageState,
 } from '../types';
-
-import pkg from '../../package.json';
 
 const debug = Debug('cannon:builder:clone');
 

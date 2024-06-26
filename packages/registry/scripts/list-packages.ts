@@ -3,11 +3,15 @@
 /* eslint-disable no-console */
 
 import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/builder';
-import CannonRegistryAbi from '@usecannon/builder/src/abis/CannonRegistry';
+import CannonRegistryAbi from '@usecannon/builder/dist/src/abis/CannonRegistry';
 import * as viem from 'viem';
-import { mainnet } from 'viem/chains';
+import { mainnet, optimism } from 'viem/chains';
 
 const { PROVIDER_URL } = process.env;
+
+// Used only for getting additional publishers
+const OPTIMISM_PROVIDER_URL = 'wss://optimism-rpc.publicnode.com';
+
 // const REGISTRY_DEPLOY_BLOCK = 16493645; // Contract deployment block
 const REGISTRY_DEPLOY_BLOCK = 19543644; // First publish event emitted
 
@@ -27,13 +31,29 @@ async function main() {
     client,
   });
 
+  const opContract = viem.getContract({
+    address: DEFAULT_REGISTRY_ADDRESS,
+    abi: CannonRegistryAbi,
+    client: viem.createPublicClient({
+      chain: optimism,
+      transport: OPTIMISM_PROVIDER_URL?.startsWith('wss://')
+        ? viem.webSocket(OPTIMISM_PROVIDER_URL)
+        : viem.http(OPTIMISM_PROVIDER_URL),
+    }),
+  });
+
   const packageNames = await getPackageNames(client);
 
   console.log('{');
-  for (const [i, name] of Object.entries(packageNames)) {
-    const owner = await contract.read.getPackageOwner([viem.stringToHex(name, { size: 32 })]);
+  for (const [i, [bytes32name, name]] of Object.entries(packageNames)) {
+    const owner = await contract.read.getPackageOwner([bytes32name]);
+
+    const ethPublishers = await contract.read.getAdditionalPublishers([bytes32name]);
+    const opPublishers = await opContract.read.getAdditionalPublishers([bytes32name]);
+    const publishers = Array.from(new Set([...ethPublishers, ...opPublishers]));
+
     const comma = Number.parseInt(i) === packageNames.length - 1 ? '' : ',';
-    console.log(`  "${name}": "${owner}"${comma}`);
+    console.log(`  "${name}": { "owner:": "${owner}", "publishers": ${JSON.stringify(publishers)} }${comma}`);
   }
   console.log('}');
 }
@@ -47,7 +67,7 @@ const _packagePublishEvents = viem.parseAbi([
 ]);
 
 async function getPackageNames(client: viem.PublicClient) {
-  const names = new Set<string>();
+  const names = new Set<[string, string]>();
 
   const latestBlock = Number((await client.getBlockNumber()).toString());
 
@@ -66,7 +86,7 @@ async function getPackageNames(client: viem.PublicClient) {
         throw new Error('Invalid event');
       }
       const name = viem.hexToString(log.args.name, { size: 32 });
-      names.add(name);
+      names.add([log.args.name, name]);
     }
   }
 

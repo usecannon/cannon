@@ -1,4 +1,4 @@
-import '../actions';
+import { validateConfig } from '../actions';
 import { BUILD_VERSION } from '../constants';
 import { InMemoryRegistry } from '../registry';
 import action from './pull';
@@ -12,6 +12,18 @@ describe('steps/pull.ts', () => {
   beforeAll(async () => {
     (fakeRuntime.registry as any) = registry;
     (fakeRuntime.chainId as any) = 1234;
+  });
+
+  describe('validate', () => {
+    it('fails when not setting values', () => {
+      expect(() => validateConfig(action.validate, {})).toThrow('Field: source');
+    });
+
+    it('fails when setting invalid value', () => {
+      expect(() => validateConfig(action.validate, { source: 'somesource:1.0.0', invalid: ['something'] })).toThrow(
+        "Unrecognized key(s) in object: 'invalid'"
+      );
+    });
   });
 
   describe('configInject()', () => {

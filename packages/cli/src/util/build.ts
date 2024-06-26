@@ -2,7 +2,6 @@ import path from 'node:path';
 import { CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
 import Debug from 'debug';
 import * as viem from 'viem';
-import { ANVIL_FIRST_ADDRESS } from '../constants';
 import { getFoundryArtifact } from '../foundry';
 import { execPromise, filterSettings, loadCannonfile } from '../helpers';
 import { createDryRunRegistry } from '../registry';
@@ -11,7 +10,8 @@ import { CliSettings, resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { pickAnvilOptions } from './anvil';
 import { parseSettings } from './params';
-import { getChainIdFromProviderUrl, isURL, resolveWriteProvider } from './provider';
+import { resolveWriteProvider, isURL, getChainIdFromProviderUrl } from './provider';
+import { ANVIL_FIRST_ADDRESS } from '../constants';
 
 const debug = Debug('cannon:cli');
 
@@ -273,6 +273,8 @@ async function prepareBuildConfig(
     persist: !opts.dryRun,
     overrideResolver,
     providerUrl: cliSettings.providerUrl,
+    writeScript: opts.writeScript,
+    writeScriptFormat: opts.writeScriptFormat,
     gasPrice: opts.gasPrice,
     gasFee: opts.maxGasFee,
     priorityGasFee: opts.maxPriorityGasFee,
