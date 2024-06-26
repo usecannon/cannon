@@ -396,11 +396,14 @@ export async function build({
       chainId: runtime.chainId,
     });
 
-    await saveToMetadataCache(`${pkgName}:${pkgVersion}`, 'gitUrl', pkgInfo.gitUrl);
-    await saveToMetadataCache(`${pkgName}:${pkgVersion}`, 'commitHash', pkgInfo.commitHash);
-    await saveToMetadataCache(`${pkgName}:${pkgVersion}`, 'readme', pkgInfo.readme);
+    const metadataCache = {
+      gitUrl: pkgInfo.gitUrl,
+      commitHash: pkgInfo.commitHash,
+      readme: pkgInfo.readme,
+    };
 
-    const metadata = await readMetadataCache(`${pkgName}:${pkgVersion}`);
+    // store metadata to /matadata_cache folder
+    const metadata = await saveToMetadataCache(`${pkgName}:${pkgVersion}`, metadataCache);
 
     const metaUrl = await runtime.putBlob(metadata);
 

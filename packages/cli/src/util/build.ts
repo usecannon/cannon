@@ -237,17 +237,21 @@ async function prepareBuildConfig(
     settings: parseSettings(settings),
   };
 
-  const pkgInfo: { gitUrl: string; commitHash: string; readme: string } = { gitUrl: '', commitHash: '', readme: '' };
+  let pkgInfo: { [key: string]: string } = {};
 
   try {
     pkgInfo.gitUrl = (await execPromise('git config --get remote.origin.url'))
+      .trim()
       .replace(':', '/')
       .replace('git@', 'https://')
       .replace('.git', '');
+
     pkgInfo.commitHash = await execPromise('git rev-parse HEAD');
+
     pkgInfo.readme = pkgInfo.gitUrl + '/blob/main/README.md';
   } catch (err) {
-    console.log('Failed to populate metadata:\n', err);
+    // fail silently
+    debug(`Failed to populate metadata: ${err}`);
   }
 
   // TODO: `isPublicSourceCode` on def is not the most reliable way to
