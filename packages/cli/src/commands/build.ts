@@ -21,7 +21,7 @@ import { table } from 'table';
 import * as viem from 'viem';
 import pkg from '../../package.json';
 import { getChainById } from '../chains';
-import { readMetadataCache, saveToMetadataCache } from '../helpers';
+import { saveToMetadataCache } from '../helpers';
 import { getMainLoader } from '../loader';
 import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { createDefaultReadRegistry } from '../registry';

@@ -237,7 +237,7 @@ async function prepareBuildConfig(
     settings: parseSettings(settings),
   };
 
-  let pkgInfo: { [key: string]: string } = {};
+  const pkgInfo: { [key: string]: string } = {};
 
   try {
     pkgInfo.gitUrl = (await execPromise('git config --get remote.origin.url'))
