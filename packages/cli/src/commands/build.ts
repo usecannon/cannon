@@ -403,7 +403,7 @@ export async function build({
     };
 
     // store metadata to /matadata_cache folder
-    const metadata = await saveToMetadataCache(`${pkgName}:${pkgVersion}`, metadataCache);
+    const metadata = await saveToMetadataCache(`${pkgName}_${pkgVersion}_${runtime.chainId}-${preset}`, metadataCache);
 
     const metaUrl = await runtime.putBlob(metadata);
 
