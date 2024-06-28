@@ -332,12 +332,13 @@ function getMetadataPath(packageName: string): string {
   return path.join(cliSettings.cannonDirectory, 'metadata_cache', `${packageName.replace(':', '_')}.json`);
 }
 
-export async function saveToMetadataCache(packageName: string, metadata: { [key: string]: string }) {
+export async function saveToMetadataCache(packageName: string, updatedMetadata: { [key: string]: string }) {
   const metadataCache = await readMetadataCache(packageName);
 
+  // merge metadatas
   const updatedMetadataCache = {
     ...metadataCache,
-    metadata,
+    ...updatedMetadata,
   };
 
   // create directory if not exists
@@ -346,6 +347,7 @@ export async function saveToMetadataCache(packageName: string, metadata: { [key:
   // save metadata to cache
   await fs.writeJson(getMetadataPath(packageName), updatedMetadataCache);
 
+  // return updated metadata cache
   return updatedMetadataCache;
 }
 
