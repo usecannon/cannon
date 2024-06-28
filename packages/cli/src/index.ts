@@ -75,6 +75,8 @@ export { loadCannonfile } from './helpers';
 
 const program = new Command();
 
+const removeMe = '';
+
 program
   .name('cannon')
   .version(pkg.version)
