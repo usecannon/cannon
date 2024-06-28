@@ -12,7 +12,11 @@ export const DefaultInput: FC<{
   useEffect(() => {
     const bytes32Regex = /^0x[0-9a-fA-F]{64}$/;
     if (inputType == 'bytes32' && !bytes32Regex.test(updateValue)) {
-      handleUpdate(stringToHex(updateValue, { size: 32 }));
+      if (updateValue.startsWith('0x')) {
+        handleUpdate(updateValue);
+      } else {
+        handleUpdate(stringToHex(updateValue, { size: 32 }));
+      }
     } else if (inputType == 'tuple') {
       try {
         handleUpdate(JSON.parse(updateValue));
