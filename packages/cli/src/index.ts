@@ -1,11 +1,12 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import {
-  getCannonRepoRegistryUrl,
   CANNON_CHAIN_ID,
   CannonStorage,
   ChainBuilderRuntime,
   ChainDefinition,
+  DEFAULT_REGISTRY_CONFIG,
+  getCannonRepoRegistryUrl,
   getOutputs,
   InMemoryRegistry,
   IPFSLoader,
@@ -13,7 +14,6 @@ import {
   PackageReference,
   publishPackage,
   traceActions,
-  DEFAULT_REGISTRY_CONFIG,
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
@@ -31,6 +31,7 @@ import {
   ensureChainIdConsistency,
   isPrivateKey,
   normalizePrivateKey,
+  setupAnvil,
 } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
@@ -192,6 +193,8 @@ function configureRun(program: Command) {
 applyCommandsConfig(program.command('build'), commandsConfig.build)
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, options) => {
+    await setupAnvil();
+
     const cannonfilePath = path.resolve(cannonfile);
     const projectDirectory = path.dirname(cannonfilePath);
 
@@ -235,7 +238,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     const [node, pkgSpec, , runtime] = await doBuild(cannonfile, settings, mergedOptions);
 
     if (options.keepAlive && node) {
-      console.log(`Built package RPC URL available at ${node.host}`);
+      console.log(`The local node will continue running at ${node.host}`);
 
       const { run } = await import('./commands/run');
 

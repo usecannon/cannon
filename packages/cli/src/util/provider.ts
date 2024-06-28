@@ -6,7 +6,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { CannonSigner, traceActions } from '@usecannon/builder';
 
 import { getChainById } from '../chains';
-import { CliSettings } from '../settings';
+import { CliSettings, PROVIDER_URL_DEFAULT } from '../settings';
 
 const debug = Debug('cannon:cli:provider');
 
@@ -35,12 +35,12 @@ export async function resolveWriteProvider(
   settings: CliSettings,
   chainId: number
 ): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
+  const chainData = getChainById(chainId);
+  console.log(bold(`Resolving connection to ${getChainById(chainId)} (Chain ID: ${chainId})...`));
   // Check if the first provider URL doesn't start with 'http'
   const isProviderUrl = isURL(settings.providerUrl.split(',')[0]);
 
   if (!isProviderUrl) {
-    const chainData = getChainById(chainId);
-
     // If privateKey is present or no valid http URLs are available in rpcUrls
     if (settings.privateKey || chainData.rpcUrls.default.http.length === 0) {
       if (chainData.rpcUrls.default.http.length === 0) {
@@ -62,15 +62,8 @@ export async function resolveWriteProvider(
     }
   }
 
-  if (settings.providerUrl.split(',')[0] === 'frame' && !settings.quiet) {
-    console.warn(
-      "\nUsing Frame as the default provider. If you don't have Frame installed, Cannon defaults first to http://localhost:8545, then to Viem's default RPCs.\n\n"
-    );
-    console.warn(
-      `Set a custom provider url in your settings (run ${bold('cannon setup')}) or pass it as an env variable (${bold(
-        'CANNON_PROVIDER_URL'
-      )}).\n\n`
-    );
+  if (settings.providerUrl == PROVIDER_URL_DEFAULT && !settings.quiet) {
+    console.warn(grey('Set a RPC URL by passing --provider-url or setting the ENV variable CANNON_PROVIDER_URL.\n'));
   }
 
   return resolveProviderAndSigners({
@@ -110,8 +103,19 @@ export async function resolveProviderAndSigners({
   privateKey?: string;
   origin: ProviderOrigin;
 }): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }> {
+  const providerDisplayName = (provider: string) => {
+    switch (provider) {
+      case 'frame':
+        return 'Frame (frame.sh) if running';
+      case 'direct':
+        return 'default IPC paths, ws://127.0.0.1:8546, or http://127.0.0.1:8545';
+      default:
+        return provider;
+    }
+  };
+
   if (origin === ProviderOrigin.Write) {
-    console.log(grey(`Initiating connection attempt to: ${bold(checkProviders[0])}`));
+    console.log(grey(`Attempting to find connection via ${bold(providerDisplayName(checkProviders[0]))}`));
     if (checkProviders.length === 1) console.log('');
   }
 
