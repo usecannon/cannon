@@ -10,7 +10,7 @@ import {
   RawChainDefinition,
 } from '@usecannon/builder';
 import { AbiEvent } from 'abitype';
-import { bold, magentaBright, red, yellow, yellowBright } from 'chalk';
+import { bold, magentaBright, red, yellowBright } from 'chalk';
 import { exec, spawnSync } from 'child_process';
 import Debug from 'debug';
 import fs from 'fs-extra';
@@ -164,7 +164,6 @@ export async function checkCannonVersion(currentVersion: string): Promise<void> 
 
   if (latestVersion && currentVersion && semver.lt(currentVersion, latestVersion)) {
     console.warn(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
-    console.warn(yellow('Upgrade with ' + bold('npm install -g @usecannon/cli\n')));
   }
 }
 
