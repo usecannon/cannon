@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/cli",
-  "version": "2.15.3",
+  "version": "2.15.4",
   "description": "Utility for instantly loading cannon packages in standalone contexts",
   "main": "dist/src/index.js",
   "scripts": {
@@ -46,9 +46,9 @@
     "tmp-promise": "^3.0.3",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
-    "typedoc": "^0.25.13",
-    "typedoc-plugin-markdown": "^4.0.1",
-    "typedoc-plugin-zod": "^1.1.2",
+    "typedoc": "^0.26.3",
+    "typedoc-plugin-markdown": "^4.1.0",
+    "typedoc-plugin-zod": "^1.2.0",
     "typescript": "^5.4.5"
   },
   "bin": {
@@ -56,7 +56,7 @@
   },
   "dependencies": {
     "@iarna/toml": "^3.0.0",
-    "@usecannon/builder": "2.15.3",
+    "@usecannon/builder": "2.15.4",
     "abitype": "^1.0.2",
     "chalk": "^4.1.2",
     "commander": "^9.5.0",
