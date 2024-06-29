@@ -102,6 +102,8 @@ const routerStep = {
         abi: contract.abi,
         deployedAddress: contract.address ? viem.getAddress(contract.address) : contract.address, // Make sure address is checksum encoded
         deployTxnHash: contract.deployTxnHash,
+        deployTxnBlockNumber: '',
+        deployTimestamp: '',
         contractName: contract.contractName,
         sourceName: contract.sourceName,
         contractFullyQualifiedName: `${contract.sourceName}:${contract.contractName}`,
@@ -158,6 +160,8 @@ const routerStep = {
 
     const receipt = await runtime.provider.waitForTransactionReceipt({ hash });
 
+    const block = await runtime.provider.getBlock({ blockHash: receipt.blockHash });
+
     return {
       contracts: {
         [contractName]: {
@@ -165,6 +169,8 @@ const routerStep = {
           abi: routableAbi,
           deployedOn: packageState.currentLabel,
           deployTxnHash: receipt.transactionHash,
+          deployTxnBlockNumber: receipt.blockNumber.toString(),
+          deployTimestamp: block.timestamp.toString(),
           contractName,
           sourceName: contractName + '.sol',
           gasUsed: Number(receipt.gasUsed),

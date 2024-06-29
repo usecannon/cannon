@@ -1,12 +1,12 @@
 import { yellow } from 'chalk';
 import Debug from 'debug';
-import * as viem from 'viem';
 import { EventEmitter } from 'events';
 import _ from 'lodash';
+import * as viem from 'viem';
 import { CannonSigner, ChainArtifacts, PackageReference } from './';
+import { traceActions } from './error';
 import { CannonLoader, IPFSLoader } from './loader';
 import { CannonRegistry } from './registry';
-import { traceActions } from './error';
 import { ChainBuilderRuntimeInfo, ContractArtifact, DeploymentInfo } from './types';
 import { getExecutionSigner } from './util';
 
@@ -127,6 +127,9 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   private cleanSnapshot: any;
 
   private loadedMisc: string | null = null;
+
+  private traceArtifacts: ChainArtifacts = {};
+
   misc: {
     artifacts: { [label: string]: any };
   };
@@ -266,7 +269,8 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   }
 
   updateProviderArtifacts(artifacts: ChainArtifacts) {
-    this.provider = this.provider.extend(traceActions(artifacts) as any);
+    this.traceArtifacts = _.merge(this.traceArtifacts, artifacts);
+    this.provider = this.provider.extend(traceActions(this.traceArtifacts) as any);
   }
 
   setPublicSourceCode(isPublic: boolean) {

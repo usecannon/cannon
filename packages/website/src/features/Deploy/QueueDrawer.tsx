@@ -383,7 +383,7 @@ export const QueuedTxns = ({
         >
           <FormControl>
             <FormLabel>
-              Add a transaction from a Cannon package or contract address
+              Add a transaction using a Cannon package or contract address
             </FormLabel>
             <InputGroup>
               <Input

@@ -2,7 +2,6 @@ import path from 'node:path';
 import { CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
 import Debug from 'debug';
 import * as viem from 'viem';
-import { ANVIL_FIRST_ADDRESS } from '../constants';
 import { getFoundryArtifact } from '../foundry';
 import { execPromise, filterSettings, loadCannonfile } from '../helpers';
 import { createDryRunRegistry } from '../registry';
@@ -11,7 +10,8 @@ import { CliSettings, resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { pickAnvilOptions } from './anvil';
 import { parseSettings } from './params';
-import { getChainIdFromProviderUrl, isURL, resolveWriteProvider } from './provider';
+import { resolveWriteProvider, isURL, getChainIdFromProviderUrl } from './provider';
+import { ANVIL_FIRST_ADDRESS } from '../constants';
 
 const debug = Debug('cannon:cli');
 
@@ -237,17 +237,20 @@ async function prepareBuildConfig(
     settings: parseSettings(settings),
   };
 
-  const pkgInfo: { gitUrl: string; commitHash: string; readme: string } = { gitUrl: '', commitHash: '', readme: '' };
+  const pkgInfo: { [key: string]: string } = {};
 
   try {
-    pkgInfo.gitUrl = (await execPromise('git config --get remote.origin.url'))
-      .replace(':', '/')
-      .replace('git@', 'https://')
-      .replace('.git', '');
-    pkgInfo.commitHash = await execPromise('git rev-parse HEAD');
+    const [rawCommitHash, rawGitUrl] = await Promise.all([
+      execPromise('git rev-parse HEAD'),
+      execPromise('git config --get remote.origin.url'),
+    ]);
+
+    pkgInfo.gitUrl = rawGitUrl.trim().replace(':', '/').replace('git@', 'https://').replace('.git', '');
+    pkgInfo.commitHash = rawCommitHash.trim();
     pkgInfo.readme = pkgInfo.gitUrl + '/blob/main/README.md';
   } catch (err) {
-    console.log('Failed to populate metadata:\n', err);
+    // fail silently
+    debug(`Failed to populate metadata: ${err}`);
   }
 
   // TODO: `isPublicSourceCode` on def is not the most reliable way to
@@ -273,6 +276,8 @@ async function prepareBuildConfig(
     persist: !opts.dryRun,
     overrideResolver,
     providerUrl: cliSettings.providerUrl,
+    writeScript: opts.writeScript,
+    writeScriptFormat: opts.writeScriptFormat,
     gasPrice: opts.gasPrice,
     gasFee: opts.maxGasFee,
     priorityGasFee: opts.maxPriorityGasFee,

@@ -21,12 +21,13 @@ import { table } from 'table';
 import * as viem from 'viem';
 import pkg from '../../package.json';
 import { getChainById } from '../chains';
-import { readMetadataCache, saveToMetadataCache } from '../helpers';
+import { saveToMetadataCache } from '../helpers';
 import { getMainLoader } from '../loader';
 import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
+import { createWriteScript, WriteScriptFormat } from '../write-script/write';
 
 interface Params {
   provider: viem.PublicClient;
@@ -50,6 +51,8 @@ interface Params {
   gasPrice?: string;
   gasFee?: string;
   priorityGasFee?: string;
+  writeScript?: string;
+  writeScriptFormat?: WriteScriptFormat;
 }
 
 export async function build({
@@ -72,6 +75,8 @@ export async function build({
   gasPrice,
   gasFee,
   priorityGasFee,
+  writeScript,
+  writeScriptFormat = 'ethers',
 }: Params): Promise<{ outputs: ChainArtifacts; provider: viem.PublicClient; runtime: ChainBuilderRuntime }> {
   if (wipe && upgradeFrom) {
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
@@ -149,6 +154,8 @@ export async function build({
   const resolver = overrideResolver || (await createDefaultReadRegistry(cliSettings));
 
   const runtime = new ChainBuilderRuntime(runtimeOptions, resolver, getMainLoader(cliSettings), 'ipfs');
+
+  const dump = writeScript ? await createWriteScript(runtime, writeScript, writeScriptFormat) : null;
 
   // Check for existing package
   let oldDeployData: DeploymentInfo | null = null;
@@ -321,9 +328,9 @@ export async function build({
     }
     for (const setting in o.settings) {
       if (ctx.overrideSettings[setting]) {
-        console.log(red(`${'  '.repeat(d)}  Overridden Setting: ${setting} = ${ctx.overrideSettings[setting]}`));
+        console.log(`${'  '.repeat(d)} Setting (Override): ${setting} = ${ctx.overrideSettings[setting]}`);
       } else {
-        console.log(gray(`${'  '.repeat(d)}  Setting: ${setting} = ${o.settings[setting]}`));
+        console.log(`${'  '.repeat(d)}  Setting: ${setting} = ${o.settings[setting]}`);
       }
     }
     stepsExecuted = true;
@@ -363,6 +370,10 @@ export async function build({
 
   const newState = await cannonBuild(runtime, def, oldDeployData && !wipe ? oldDeployData.state : {}, initialCtx);
 
+  if (writeScript) {
+    await dump!.end();
+  }
+
   const outputs = (await getOutputs(runtime, def, newState))!;
 
   // save the state to ipfs
@@ -385,15 +396,19 @@ export async function build({
       chainId: runtime.chainId,
     });
 
-    await saveToMetadataCache(`${pkgName}:${pkgVersion}`, 'gitUrl', pkgInfo.gitUrl);
-    await saveToMetadataCache(`${pkgName}:${pkgVersion}`, 'commitHash', pkgInfo.commitHash);
-    await saveToMetadataCache(`${pkgName}:${pkgVersion}`, 'readme', pkgInfo.readme);
+    const metadataCache: { [key: string]: string } = {};
 
-    const metadata = await readMetadataCache(`${pkgName}:${pkgVersion}`);
+    if (!_.isEmpty(pkgInfo)) {
+      metadataCache.gitUrl = pkgInfo.gitUrl;
+      metadataCache.commitHash = pkgInfo.commitHash;
+      metadataCache.readme = pkgInfo.readme;
+    }
+
+    // store metadata to /metadata_cache folder
+    const metadata = await saveToMetadataCache(`${pkgName}_${pkgVersion}_${runtime.chainId}-${preset}`, metadataCache);
 
     const metaUrl = await runtime.putBlob(metadata);
 
-    // locally store cannon packages (version + latest)
     await resolver.publish([fullPackageRef, `${name}:latest@${preset}`], runtime.chainId, deployUrl!, metaUrl!);
 
     // detach the process handler
@@ -427,7 +442,7 @@ export async function build({
     } else {
       if (chainId == 13370) {
         console.log(bold(`💥 ${fullPackageRef} built for Cannon (Chain ID: ${chainId})`));
-        console.log(gray('This package can be run locally using the CLI and provisioned by Cannonfiles.'));
+        console.log(gray('This package can be run locally and cloned in cannonfiles.'));
       } else {
         console.log(bold(`💥 ${fullPackageRef} built on ${chainName} (Chain ID: ${chainId})`));
         console.log(gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
@@ -435,9 +450,9 @@ export async function build({
       console.log();
 
       console.log(
-        `The following package data has been stored locally${
-          cliSettings.writeIpfsUrl && ' and pinned to ' + cliSettings.writeIpfsUrl
-        }`
+        bold(
+          `Package data has been stored locally${cliSettings.writeIpfsUrl && ' and pinned to ' + cliSettings.writeIpfsUrl}`
+        )
       );
       console.log(
         table([
@@ -472,7 +487,7 @@ export async function build({
   }
 
   if (!stepsExecuted) {
-    console.log(bold('No operations were executed during the build.'));
+    console.log(bold('\nNo operations were executed during the build.'));
   }
 
   console.log('');

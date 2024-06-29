@@ -265,6 +265,8 @@ async function importTxnData(
         abi,
         //deployTxnHash: txns[0].hash, // TODO: find the hash for the actual txn we are reading?
         deployTxnHash: '',
+        deployTxnBlockNumber: '',
+        deployTimestamp: '',
         constructorArgs: factoryInfo.constructorArgs,
         sourceName: sourceName,
         contractName: contractName,
@@ -538,6 +540,8 @@ ${getAllContractPaths(ctx).join('\n')}`);
 
       const [receipt, txnEvents] = await runTxn(runtime, config, contract, mainSigner, packageState);
 
+      const block = await runtime.provider.getBlock({ blockHash: receipt.blockHash });
+
       const splitLabel = packageState.currentLabel.split('.')[1];
 
       const label = config.target?.length === 1 ? splitLabel || '' : `${splitLabel}_${t}`;
@@ -547,6 +551,8 @@ ${getAllContractPaths(ctx).join('\n')}`);
 
       txns[label] = {
         hash: receipt.transactionHash,
+        blockNumber: receipt.blockNumber.toString(),
+        timestamp: block.timestamp.toString(),
         events: txnEvents,
         deployedOn: packageState.currentLabel,
         gasUsed: Number(receipt.gasUsed),
