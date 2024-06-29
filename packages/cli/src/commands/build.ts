@@ -445,9 +445,7 @@ export async function build({
       console.log();
 
       console.log(
-        bold(
-          `Package data has been stored locally${filteredWriteIpfsUrl && ' and pinned to ' + filteredWriteIpfsUrl}`
-        )
+        bold(`Package data has been stored locally${filteredWriteIpfsUrl && ' and pinned to ' + filteredWriteIpfsUrl}`)
       );
       console.log(
         table([
