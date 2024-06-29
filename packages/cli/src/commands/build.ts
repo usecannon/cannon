@@ -328,9 +328,9 @@ export async function build({
     }
     for (const setting in o.settings) {
       if (ctx.overrideSettings[setting]) {
-        console.log(red(`${'  '.repeat(d)}  Overridden Setting: ${setting} = ${ctx.overrideSettings[setting]}`));
+        console.log(`${'  '.repeat(d)} Setting (Override): ${setting} = ${ctx.overrideSettings[setting]}`);
       } else {
-        console.log(gray(`${'  '.repeat(d)}  Setting: ${setting} = ${o.settings[setting]}`));
+        console.log(`${'  '.repeat(d)}  Setting: ${setting} = ${o.settings[setting]}`);
       }
     }
     stepsExecuted = true;
@@ -437,7 +437,7 @@ export async function build({
     } else {
       if (chainId == 13370) {
         console.log(bold(`💥 ${fullPackageRef} built for Cannon (Chain ID: ${chainId})`));
-        console.log(gray('This package can be run locally using the CLI and provisioned by Cannonfiles.'));
+        console.log(gray('This package can be run locally and cloned in cannonfiles.'));
       } else {
         console.log(bold(`💥 ${fullPackageRef} built on ${chainName} (Chain ID: ${chainId})`));
         console.log(gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
@@ -445,9 +445,9 @@ export async function build({
       console.log();
 
       console.log(
-        `The following package data has been stored locally${
-          filteredWriteIpfsUrl && ' and pinned to ' + filteredWriteIpfsUrl
-        }`
+        bold(
+          `Package data has been stored locally${filteredWriteIpfsUrl && ' and pinned to ' + filteredWriteIpfsUrl}`
+        )
       );
       console.log(
         table([
@@ -482,7 +482,7 @@ export async function build({
   }
 
   if (!stepsExecuted) {
-    console.log(bold('No operations were executed during the build.'));
+    console.log(bold('\nNo operations were executed during the build.'));
   }
 
   console.log('');
