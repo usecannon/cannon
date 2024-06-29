@@ -58,7 +58,7 @@
     "@iarna/toml": "^3.0.0",
     "@usecannon/builder": "2.15.3",
     "abitype": "^1.0.4",
-    "chalk": "^5.3.0",
+    "chalk": "^4.1.2",
     "commander": "^12.1.0",
     "debug": "^4.3.5",
     "eth-provider": "^0.13.6",
