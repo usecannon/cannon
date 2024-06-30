@@ -123,6 +123,8 @@ ${printChainDefinitionProblems(problems)}`);
           addOutputsToContext(ctx, state[n].artifacts);
         }
 
+        runtime.reportOperatingContext(ctx);
+
         try {
           const curHashes = await def.getState(n, runtime, ctx, depsTainted);
 
@@ -171,6 +173,8 @@ ${printChainDefinitionProblems(problems)}`);
     debugVerbose('context', JSON.stringify(ctx, null, 2));
     throw err;
   }
+
+  runtime.reportOperatingContext(null);
 
   return state;
 }
@@ -231,6 +235,8 @@ export async function buildLayer(
       // also add self artifacts here so that we can self-reference from inside the step
       addOutputsToContext(ctx, state[action].artifacts);
     }
+
+    runtime.reportOperatingContext(ctx);
 
     try {
       const curHashes = await def.getState(action, runtime, ctx, false);

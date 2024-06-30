@@ -29,6 +29,9 @@ import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
 
+import fs from 'fs-extra';
+import path from 'path';
+
 interface Params {
   provider: viem.PublicClient;
   def?: ChainDefinition;
@@ -199,6 +202,7 @@ export async function build({
   if (oldDeployData && wipe) {
     console.log('Wiping existing package...');
     console.log(bold('Initializing new package...'));
+    oldDeployData = null;
   } else if (oldDeployData && !upgradeFrom) {
     console.log(bold('Continuing with existing package...'));
   } else {
@@ -368,7 +372,29 @@ export async function build({
     process.on('SIGQUIT', handler);
   }
 
-  const newState = await cannonBuild(runtime, def, oldDeployData && !wipe ? oldDeployData.state : {}, initialCtx);
+  let newState;
+  try {
+    newState = await cannonBuild(runtime, def, oldDeployData && !wipe ? oldDeployData.state : {}, initialCtx);
+  } catch (err: any) {
+    const dumpData = {
+      def: def.toJson(),
+      initialCtx,
+      oldState: oldDeployData?.state || null,
+      activeCtx: runtime.ctx,
+      error: _.pick(err, Object.getOwnPropertyNames(err)),
+    };
+
+    const dumpFilePath = path.join(cliSettings.cannonDirectory, 'dumps', new Date().toISOString() + '.json');
+
+    await fs.mkdirp(path.dirname(dumpFilePath));
+    await fs.writeJson(dumpFilePath, dumpData, {
+      spaces: 2,
+    });
+
+    throw new Error(
+      `${err.toString()}\n\nAn error occured during build. A dump file has been written to ${dumpFilePath}. Please include this file if you are reporting a problem with Cannon.`
+    );
+  }
 
   if (writeScript) {
     await dump!.end();
