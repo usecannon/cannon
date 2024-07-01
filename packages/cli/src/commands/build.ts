@@ -109,7 +109,6 @@ export async function build({
   const cliSettings = resolveCliSettings({ registryPriority });
   const filteredSettings = await filterSettings(cliSettings);
 
-
   if (plugins) {
     await loadPlugins();
   }
@@ -444,7 +443,11 @@ export async function build({
       console.log();
 
       console.log(
-        bold(`Package data has been stored locally${filteredSettings.writeIpfsUrl && ' and pinned to ' + filteredSettings.writeIpfsUrl}`)
+        bold(
+          `Package data has been stored locally${
+            filteredSettings.writeIpfsUrl && ' and pinned to ' + filteredSettings.writeIpfsUrl
+          }`
+        )
       );
       console.log(
         table([

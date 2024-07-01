@@ -39,9 +39,15 @@ export async function filterSettings(settings: any) {
     RegExp(/[=A-Za-z0-9_-]{32,}/),
     '*'.repeat(32)
   );
-  filteredSettings.publishIpfsUrl = filteredSettings.publishIpfsUrl?.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32)).replace(RegExp(/:[a-zA-Z0-9]+@/), `:${'*'.repeat(20)}@`);
-  filteredSettings.ipfsUrl = filteredSettings.ipfsUrl?.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32)).replace(RegExp(/:[a-zA-Z0-9]+@/), `:${'*'.repeat(20)}@`);
-  filteredSettings.writeIpfsUrl = filteredSettings.writeIpfsUrl?.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32)).replace(RegExp(/:[a-zA-Z0-9]+@/), `:${'*'.repeat(20)}@`);
+  filteredSettings.publishIpfsUrl = filteredSettings.publishIpfsUrl
+    ?.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32))
+    .replace(RegExp(/:[a-zA-Z0-9]+@/), `:${'*'.repeat(20)}@`);
+  filteredSettings.ipfsUrl = filteredSettings.ipfsUrl
+    ?.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32))
+    .replace(RegExp(/:[a-zA-Z0-9]+@/), `:${'*'.repeat(20)}@`);
+  filteredSettings.writeIpfsUrl = filteredSettings.writeIpfsUrl
+    ?.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32))
+    .replace(RegExp(/:[a-zA-Z0-9]+@/), `:${'*'.repeat(20)}@`);
 
   return filteredSettings;
 }
