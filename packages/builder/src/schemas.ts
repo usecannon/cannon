@@ -51,6 +51,8 @@ function tryParseJson(jsonString: string) {
   return undefined;
 }
 
+// Note: The first schema defined contains required properties, we then merge a schema with the `deepPartial` function which contains the optional properties
+
 const targetSchema = targetString.or(z.array(targetString).nonempty());
 
 export const deploySchema = z
@@ -72,7 +74,7 @@ export const deploySchema = z
         /**
          * Description of the operation
          */
-        description: z.string().optional().describe('Description of the operation'),
+        description: z.string().describe('Description of the operation'),
         /**
          *    Determines whether contract should get priority in displays
          */
@@ -215,7 +217,7 @@ export const pullSchema = z
         /**
          * Description of the operation
          */
-        description: z.string().optional().describe('Description of the operation'),
+        description: z.string().describe('Description of the operation'),
         /**
          *  ID of the chain to import the package from
          */
@@ -303,7 +305,7 @@ export const invokeSchema = z
         /**
          * Description of the operation
          */
-        description: z.string().optional().describe('Description of the operation'),
+        description: z.string().describe('Description of the operation'),
         /**
          *  JSON file of the contract ABI.
          *  Required if the target contains an address rather than a contract operation name.
@@ -508,7 +510,7 @@ export const cloneSchema = z
         /**
          * Description of the operation
          */
-        description: z.string().optional().describe('Description of the operation'),
+        description: z.string().describe('Description of the operation'),
         /**
          *  ID of the chain to import the package from.
          * Default - 13370
@@ -718,7 +720,7 @@ export const chainDefinitionSchema = z
                 /**
                  * Description of the operation
                  */
-                description: z.string().optional().describe('Description of the operation'),
+                description: z.string().describe('Description of the operation'),
                 /**
                  * Data type of the value being stored
                  */
