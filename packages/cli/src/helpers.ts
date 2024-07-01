@@ -39,15 +39,21 @@ export async function filterSettings(settings: any) {
     RegExp(/[=A-Za-z0-9_-]{32,}/),
     '*'.repeat(32)
   );
-  filteredSettings.publishIpfsUrl = filteredSettings.publishIpfsUrl
-    ?.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32))
-    .replace(RegExp(/:[a-zA-Z0-9]+@/), `:${'*'.repeat(20)}@`);
-  filteredSettings.ipfsUrl = filteredSettings.ipfsUrl
-    ?.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32))
-    .replace(RegExp(/:[a-zA-Z0-9]+@/), `:${'*'.repeat(20)}@`);
-  filteredSettings.writeIpfsUrl = filteredSettings.writeIpfsUrl
-    ?.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32))
-    .replace(RegExp(/:[a-zA-Z0-9]+@/), `:${'*'.repeat(20)}@`);
+
+  const filterUrlPassword = (uri: string) => { 
+    try {
+      const res = new URL(uri); 
+      res.password = '*'.repeat(10); 
+      return res.toString();
+    } catch (err) {
+      debug('Invalid URL', uri)
+      return '';
+    }
+   }
+
+  filteredSettings.publishIpfsUrl = filterUrlPassword(filteredSettings.publishIpfsUrl!);
+  filteredSettings.ipfsUrl = filterUrlPassword(filteredSettings.ipfsUrl!);
+  filteredSettings.writeIpfsUrl = filterUrlPassword(filteredSettings.writeIpfsUrl!);
 
   return filteredSettings;
 }
