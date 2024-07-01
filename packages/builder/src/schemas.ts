@@ -51,6 +51,8 @@ function tryParseJson(jsonString: string) {
   return undefined;
 }
 
+// Note: The first schema defined contains required properties, we then merge a schema with the `deepPartial` function which contains the optional properties
+
 const targetSchema = targetString.or(z.array(targetString).nonempty());
 
 export const deploySchema = z
@@ -69,6 +71,10 @@ export const deploySchema = z
   .merge(
     z
       .object({
+        /**
+         * Description of the operation
+         */
+        description: z.string().describe('Description of the operation'),
         /**
          *    Determines whether contract should get priority in displays
          */
@@ -209,6 +215,10 @@ export const pullSchema = z
     z
       .object({
         /**
+         * Description of the operation
+         */
+        description: z.string().describe('Description of the operation'),
+        /**
          *  ID of the chain to import the package from
          */
         chainId: z.number().int().describe('ID of the chain to import the package from'),
@@ -292,6 +302,10 @@ export const invokeSchema = z
   .merge(
     z
       .object({
+        /**
+         * Description of the operation
+         */
+        description: z.string().describe('Description of the operation'),
         /**
          *  JSON file of the contract ABI.
          *  Required if the target contains an address rather than a contract operation name.
@@ -494,6 +508,10 @@ export const cloneSchema = z
     z
       .object({
         /**
+         * Description of the operation
+         */
+        description: z.string().describe('Description of the operation'),
+        /**
          *  ID of the chain to import the package from.
          * Default - 13370
          */
@@ -575,6 +593,10 @@ export const routerSchema = z
      */
     contracts: z.array(z.string()).describe('Set of contracts that will be passed to the router'),
     /**
+     * Description of the operation
+     */
+    description: z.string().optional().describe('Description of the operation'),
+    /**
      * Include a `receive` function on the router so that it can receive ETH (or, whatever the gas token is on your network).
      * NOTE: you can always define `payable` functions on your end-functions to receive ETH as well. This is only for receiving ETH like a regular EOA would.
      */
@@ -605,7 +627,10 @@ export const varSchema = z
      *   The setting value to apply
      */
     defaultValue: z.string().optional().describe('⚠ Deprecated in favor of var. The value to set in the setting'),
-    description: z.string().optional().describe('Helpful explanation of the variable being set'),
+    /**
+     * Description of the operation
+     */
+    description: z.string().optional().describe('Description of the operation'),
     /**
      *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
      */
@@ -693,9 +718,9 @@ export const chainDefinitionSchema = z
             z
               .object({
                 /**
-                 * Description for the setting
+                 * Description of the operation
                  */
-                description: z.string().describe('Description for the setting'),
+                description: z.string().describe('Description of the operation'),
                 /**
                  * Data type of the value being stored
                  */
