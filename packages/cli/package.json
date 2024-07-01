@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/cli",
-  "version": "2.15.4",
+  "version": "2.15.5",
   "description": "Utility for instantly loading cannon packages in standalone contexts",
   "main": "dist/src/index.js",
   "scripts": {
@@ -36,7 +36,7 @@
     "@types/debug": "^4.1.12",
     "@types/fs-extra": "^11.0.4",
     "@types/jest": "^29.5.12",
-    "@types/lodash": "^4.17.5",
+    "@types/lodash": "^4.17.6",
     "@types/prompts": "^2.4.9",
     "@types/semver": "^7.5.8",
     "@types/sinon": "^17.0.3",
@@ -46,8 +46,8 @@
     "tmp-promise": "^3.0.3",
     "ts-jest": "^29.1.5",
     "ts-node": "^10.9.2",
-    "typedoc": "^0.26.2",
-    "typedoc-plugin-markdown": "^4.1.0",
+    "typedoc": "^0.26.3",
+    "typedoc-plugin-markdown": "^4.1.1",
     "typedoc-plugin-zod": "^1.2.0",
     "typescript": "^5.5.2"
   },
@@ -56,8 +56,8 @@
   },
   "dependencies": {
     "@iarna/toml": "^3.0.0",
-    "@usecannon/builder": "2.15.3",
-    "abitype": "^1.0.4",
+    "@usecannon/builder": "2.15.5",
+    "abitype": "^1.0.5",
     "chalk": "^4.1.2",
     "commander": "^12.1.0",
     "debug": "^4.3.5",
@@ -70,7 +70,7 @@
     "table": "^6.8.2",
     "tildify": "3.0.0",
     "untildify": "^5.0.0",
-    "viem": "^2.16.2",
+    "viem": "^2.16.5",
     "znv": "^0.4.0",
     "zod": "^3.23.8"
   },
