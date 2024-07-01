@@ -396,10 +396,13 @@ export const DocsCannonfilesPage: FC = () => {
                   </Link>
                 </Heading>
                 <Text color="gray.400">
-                  Primary source of cannon package information which contains package definition and on-chain state data derived
-                  changes made by defined steps in the cannonfile definition. 
-                  Deployment data is stored on IPFS and is locally stored in your filesystem in the default storage location "~/.local/share/cannon/tags"
-                  or the storage location defined by the CANNON_DIRECTORY environment variable.
+                  Primary source of cannon package information which contains
+                  package definition and on-chain state data derived changes
+                  made by defined steps in the cannonfile definition. Deployment
+                  data is stored on IPFS and is locally stored in your
+                  filesystem in the default storage location
+                  ~/.local/share/cannon/tags or the storage location defined by
+                  the CANNON_DIRECTORY environment variable.
                 </Text>
               </Box>
 
@@ -417,7 +420,8 @@ export const DocsCannonfilesPage: FC = () => {
                   </Link>
                 </Heading>
                 <Text color="gray.400">
-                  Contains artifact data and other contract source code data about the contracts deployed during the build.
+                  Contains artifact data and other contract source code data
+                  about the contracts deployed during the build.
                 </Text>
               </Box>
 
@@ -434,21 +438,19 @@ export const DocsCannonfilesPage: FC = () => {
                     #
                   </Link>
                 </Heading>
-                <Text color="gray.400"> 
-                  Metadata contains external information related to the cannon package. Currently metadata includes the following:
-
+                <Text color="gray.400">
+                  Metadata contains external information related to the cannon
+                  package. Currently metadata includes the following:
+                  <ul>- Git Repo URL</ul>
                   <ul>
-                    - Git Repo URL 
+                    - Commit hash of the changes in which the last instance of
+                    the package were made
                   </ul>
-                  <ul>
-                    - Commit hash of the changes in which the last instance of the package were made
-                  </ul>
-                  <ul>
-                    - Link to the package's git repo README file
-                  </ul>
-
-                  Metadata is also stored on IPFS and is locally stored in your filesystem in the default storage location "~/.local/share/cannon/tags"
-                  or the storage location defined by the CANNON_DIRECTORY environment variable.
+                  <ul>- Link to the package git repo README file</ul>
+                  Metadata is also stored on IPFS and is locally stored in your
+                  filesystem in the default storage location
+                  ~/.local/share/cannon/tags or the storage location defined by
+                  the CANNON_DIRECTORY environment variable.
                 </Text>
               </Box>
             </Box>
