@@ -31,12 +31,12 @@
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@types/debug": "^4.1.12",
-    "@types/mocha": "^10.0.6",
-    "@types/node": "^20.12.8",
+    "@types/mocha": "^10.0.7",
+    "@types/node": "^20.14.9",
     "bn.js": "^5.2.1",
-    "hardhat": "^2.22.3",
+    "hardhat": "^2.22.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.5.2"
   },
   "peerDependencies": {
     "hardhat": ">=2.0.0"
