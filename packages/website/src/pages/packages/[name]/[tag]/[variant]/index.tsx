@@ -33,11 +33,13 @@ function generateMetadata({
           id: number;
         });
 
-  const title = `${params.name} on ${chain.name} | Cannon`;
+  const title = `${params.name} on ${chain ? chain.name : 'chain'} | Cannon`;
 
   const description = `Explore the Cannon package for ${params.name}${
     params.tag !== 'latest' ? `:${params.tag}` : ''
-  }${preset !== 'main' ? `@${preset}` : ''} on ${chain.name} (ID: ${chain.id})`;
+  }${preset !== 'main' ? `@${preset}` : ''} on ${
+    chain ? chain.name : 'chain'
+  } (ID: ${chainId})`;
 
   const metadata = {
     title,
