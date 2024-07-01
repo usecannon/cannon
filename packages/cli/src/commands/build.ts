@@ -21,7 +21,7 @@ import { table } from 'table';
 import * as viem from 'viem';
 import pkg from '../../package.json';
 import { getChainById } from '../chains';
-import { readMetadataCache } from '../helpers';
+import { filterSettings, readMetadataCache } from '../helpers';
 import { getMainLoader } from '../loader';
 import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { createDefaultReadRegistry } from '../registry';
@@ -107,6 +107,7 @@ export async function build({
   }
 
   const cliSettings = resolveCliSettings({ registryPriority });
+  const filteredSettings = await filterSettings(cliSettings);
 
   if (plugins) {
     await loadPlugins();
@@ -443,7 +444,9 @@ export async function build({
 
       console.log(
         bold(
-          `Package data has been stored locally${cliSettings.writeIpfsUrl && ' and pinned to ' + cliSettings.writeIpfsUrl}`
+          `Package data has been stored locally${
+            filteredSettings.writeIpfsUrl && ' and pinned to ' + filteredSettings.writeIpfsUrl
+          }`
         )
       );
       console.log(
@@ -454,7 +457,7 @@ export async function build({
         ])
       );
       console.log(
-        bold(`Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${cliSettings.publishIpfsUrl}`)
+        bold(`Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`)
       );
       console.log(`> ${`cannon publish ${fullPackageRef} --chain-id ${chainId}`}`);
       console.log('');
