@@ -40,16 +40,16 @@ export async function filterSettings(settings: any) {
     '*'.repeat(32)
   );
 
-  const filterUrlPassword = (uri: string) => { 
+  const filterUrlPassword = (uri: string) => {
     try {
-      const res = new URL(uri); 
-      res.password = '*'.repeat(10); 
+      const res = new URL(uri);
+      res.password = '*'.repeat(10);
       return res.toString();
     } catch (err) {
-      debug('Invalid URL', uri)
+      debug('Invalid URL', uri);
       return '';
     }
-   }
+  };
 
   filteredSettings.publishIpfsUrl = filterUrlPassword(filteredSettings.publishIpfsUrl!);
   filteredSettings.ipfsUrl = filterUrlPassword(filteredSettings.ipfsUrl!);
