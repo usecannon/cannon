@@ -36,7 +36,8 @@ export async function resolveWriteProvider(
   chainId: number
 ): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
   const chainData = getChainById(chainId);
-  console.log(bold(`Resolving connection to ${getChainById(chainId)} (Chain ID: ${chainId})...`));
+
+  console.log(bold(`Resolving connection to ${chainData.name} (Chain ID: ${chainId})...`));
   // Check if the first provider URL doesn't start with 'http'
   const isProviderUrl = isURL(settings.providerUrl.split(',')[0]);
 
