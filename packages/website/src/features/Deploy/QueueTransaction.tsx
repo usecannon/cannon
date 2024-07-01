@@ -138,6 +138,7 @@ export function QueueTransaction({
   const [value, setValue] = useState<string | undefined>(
     tx?.value ? formatEther(BigInt(tx?.value)).toString() : undefined
   );
+  const [valueIsValid, setValueIsValid] = useState<boolean>(true);
   const pkg = useCannonPackage(target, chainId);
   const { contracts } = useCannonPackageContracts(target, chainId);
 
@@ -482,7 +483,15 @@ export function QueueTransaction({
                   bg="black"
                   borderColor="whiteAlpha.400"
                   value={value?.toString()}
-                  onChange={(e) => setValue(e.target.value)}
+                  onChange={(e) => {
+                    setValue(e.target.value);
+                    try {
+                      parseEther(e.target.value);
+                      setValueIsValid(true);
+                    } catch (err) {
+                      setValueIsValid(false);
+                    }
+                  }}
                 />
                 <InputRightAddon
                   bg="black"
@@ -492,12 +501,18 @@ export function QueueTransaction({
                   ETH
                 </InputRightAddon>
               </InputGroup>
-              <FormHelperText color="gray.300">
-                {value !== undefined
-                  ? parseEther(value.toString()).toString()
-                  : 0}{' '}
-                wei
-              </FormHelperText>
+              {valueIsValid ? (
+                <FormHelperText color="gray.300">
+                  {value !== undefined
+                    ? parseEther(value.toString()).toString()
+                    : 0}{' '}
+                  wei
+                </FormHelperText>
+              ) : (
+                <FormHelperText color="red.300">
+                  Invalid BigNumber value
+                </FormHelperText>
+              )}
             </FormControl>
           )}
           {paramsEncodeError && (
