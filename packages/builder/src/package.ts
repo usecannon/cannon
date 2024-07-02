@@ -37,7 +37,7 @@ export interface PackagePublishCall {
 export class PackageReference {
   static DEFAULT_TAG = 'latest';
   static DEFAULT_PRESET = 'main';
-  static PACKAGE_REGEX = /^(?<name>@?[a-z0-9][A-Za-z0-9-]*[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
+  static PACKAGE_REGEX = /^(?<name>@?[a-z0-9][A-Za-z0-9-]{1,}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
 
   /**
    * Anything before the colon or an @ (if no version is present) is the package name.
