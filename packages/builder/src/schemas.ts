@@ -211,21 +211,30 @@ export const pullSchema = z
       )
       .refine(
         (val) => {
-          const pkgRef = new PackageReference(val);
+          if (PackageReference.isValid(val)) {
+            const pkgRef = new PackageReference(val);
 
-          const nameSize = new Blob([pkgRef.name]).size;
+            const nameSize = new Blob([pkgRef.name]).size;
 
-          return nameSize <= 32;
+            return nameSize <= 32;
+          } else {
+            return true; // Returns true if package reference is not valid (as its likely an interpolated string or step name)
+          }
         },
         (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
       )
       .refine(
         (val) => {
-          const pkgRef = new PackageReference(val);
+          if (PackageReference.isValid(val)) {
+            const pkgRef = new PackageReference(val);
 
-          const variantSize = new Blob([pkgRef.version + '_' + pkgRef.preset]).size;
 
-          return variantSize <= 32;
+            const variantSize = new Blob([pkgRef.version + '_' + pkgRef.preset]).size;
+
+            return variantSize <= 32;
+          } else {
+            return true; // Returns true if package reference is not valid (as its likely an interpolated string or step name)
+          }
         },
         (val) => ({ message: `Package reference "${val}" is too long. Package variant exceeds 32 bytes` })
       )
@@ -524,21 +533,30 @@ export const cloneSchema = z
       )
       .refine(
         (val) => {
-          const pkgRef = new PackageReference(val);
+          if (PackageReference.isValid(val)) {
+            const pkgRef = new PackageReference(val);
 
-          const nameSize = new Blob([pkgRef.name]).size;
+            const nameSize = new Blob([pkgRef.name]).size;
 
-          return nameSize <= 32;
+            return nameSize <= 32;
+          } else {
+            return true; // Returns true if package reference is not valid (as its likely an interpolated string or step name)
+          }
         },
         (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
       )
       .refine(
         (val) => {
-          const pkgRef = new PackageReference(val);
+          if (PackageReference.isValid(val)) {
+            const pkgRef = new PackageReference(val);
 
-          const variantSize = new Blob([pkgRef.version + '_' + pkgRef.preset]).size;
 
-          return variantSize <= 32;
+            const variantSize = new Blob([pkgRef.version + '_' + pkgRef.preset]).size;
+
+            return variantSize <= 32;
+          } else {
+            return true; // Returns true if package reference is not valid (as its likely an interpolated string or step name)
+          }
         },
         (val) => ({ message: `Package reference "${val}" is too long. Package variant exceeds 32 bytes` })
       )
@@ -578,21 +596,30 @@ export const cloneSchema = z
           )
           .refine(
             (val) => {
-              const pkgRef = new PackageReference(val);
+              if (PackageReference.isValid(val)) {
+                const pkgRef = new PackageReference(val);
 
-              const nameSize = new Blob([pkgRef.name]).size;
+                const nameSize = new Blob([pkgRef.name]).size;
 
-              return nameSize <= 32;
+                return nameSize <= 32;
+              } else {
+                return true; // Returns true if package reference is not valid (as its likely an interpolated string or step name)
+              }
             },
             (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
           )
           .refine(
             (val) => {
-              const pkgRef = new PackageReference(val);
+              if (PackageReference.isValid(val)) {
+                const pkgRef = new PackageReference(val);
 
-              const variantSize = new Blob([pkgRef.version + '_' + pkgRef.preset]).size;
 
-              return variantSize <= 32;
+                const variantSize = new Blob([pkgRef.version + '_' + pkgRef.preset]).size;
+
+                return variantSize <= 32;
+              } else {
+                return true; // Returns true if package reference is not valid (as its likely an interpolated string or step name)
+              }
             },
             (val) => ({ message: `Package reference "${val}" is too long. Package variant exceeds 32 bytes` })
           )
