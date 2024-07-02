@@ -37,7 +37,7 @@ export interface PackagePublishCall {
 export class PackageReference {
   static DEFAULT_TAG = 'latest';
   static DEFAULT_PRESET = 'main';
-  static PACKAGE_REGEX = /^(?<name>@?[a-z0-9][A-Za-z0-9-]{1,30}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
+  static PACKAGE_REGEX = /^(?<name>@?[a-z0-9][A-Za-z0-9-]*[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
 
   /**
    * Anything before the colon or an @ (if no version is present) is the package name.
@@ -76,7 +76,7 @@ export class PackageReference {
 
     if (!match || !match.groups?.name) {
       throw new Error(
-        `Invalid package name "${ref}". Should be of the format <package-name>:<version> or <package-name>:<version>@<preset>`
+        `Invalid package reference "${ref}". Should be of the format <package-name>:<version> or <package-name>:<version>@<preset>`
       );
     }
 
@@ -89,6 +89,21 @@ export class PackageReference {
   }
 
   static isValid(ref: string) {
+    const pkgRef = new PackageReference(ref);
+    const nameSize = new Blob([pkgRef.name]).size;
+    const variantSize = new Blob([pkgRef.version+'_'+pkgRef.preset]).size;
+    
+    if (!(nameSize <= 32)) {
+      throw new Error(
+         `Package reference "${ref}" is too long. Package name exceeds 32 bytes`
+      )
+    }
+
+    if (!(variantSize <= 32)) {
+      throw new Error(
+         `Package reference "${ref}" is too long. Package variant exceeds 32 bytes`
+      )
+    }
     return !!PackageReference.PACKAGE_REGEX.test(ref);
   }
 

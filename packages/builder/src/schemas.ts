@@ -1,5 +1,6 @@
 import * as viem from 'viem';
 import { z } from 'zod';
+import { PackageReference } from './package';
 
 /// ================================ INPUT CONFIG SCHEMAS ================================ \\\
 
@@ -12,7 +13,6 @@ const argtype: z.ZodLazy<any> = z.lazy(() =>
 // <%=  string interpolation %>, step.names or property.names, packages:versions
 const interpolatedRegex = RegExp(/^<%=\s\w+.+[\w()[\]-]+\s%>$/, 'i');
 const stepRegex = RegExp(/^[\w-]+\.[.\w-]+$/, 'i');
-const packageRegex = RegExp(/^(?<name>@?[a-z0-9][a-z0-9-]{1,29}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/, 'i');
 const jsonAbiPathRegex = RegExp(/^(?!.*\.d?$).*\.json?$/, 'i');
 
 // This regex matches artifact names which are just capitalized words like solidity contract names
@@ -204,7 +204,7 @@ export const pullSchema = z
     source: z
       .string()
       .refine(
-        (val) => !!val.match(packageRegex) || !!val.match(stepRegex) || !!val.match(interpolatedRegex),
+        (val) => !!PackageReference.isValid(val) || !!val.match(stepRegex) || !!val.match(interpolatedRegex),
         (val) => ({
           message: `Source value: ${val} must match package formats: "package:version" or "package:version@preset" or operation name "import.Contract" or be an interpolated value`,
         })
@@ -497,7 +497,7 @@ export const cloneSchema = z
     source: z
       .string()
       .refine(
-        (val) => !!val.match(packageRegex) || !!val.match(interpolatedRegex),
+        (val) => !!PackageReference.isValid(val) || !!val.match(interpolatedRegex),
         (val) => ({
           message: `Source value: ${val} must match package formats: "package:version" or "package:version@preset" or be an interpolated value`,
         })
@@ -531,7 +531,7 @@ export const cloneSchema = z
         target: z
           .string()
           .refine(
-            (val) => !!val.match(packageRegex) || !!val.match(interpolatedRegex),
+            (val) => !!PackageReference.isValid(val) || !!val.match(interpolatedRegex),
             (val) => ({
               message: `Target value: ${val} must match package formats: "package:version" or "package:version@preset" or be an interpolated value`,
             })
