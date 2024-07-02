@@ -218,7 +218,7 @@ export const pullSchema = z
 
             return nameSize <= 32;
           } else {
-            return true; // Returns true if package reference is not valid (as its likely an interpolated string or step name)
+            return true; // Returns true if package reference is not valid as its likely an interpolated string or step name
           }
         },
         (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
@@ -232,7 +232,7 @@ export const pullSchema = z
 
             return variantSize <= 32;
           } else {
-            return true; // Returns true if package reference is not valid (as its likely an interpolated string or step name)
+            return true; // Returns true if package reference is not valid as its likely an interpolated string or step name
           }
         },
         (val) => ({ message: `Package reference "${val}" is too long. Package variant exceeds 32 bytes` })
@@ -539,7 +539,7 @@ export const cloneSchema = z
 
             return nameSize <= 32;
           } else {
-            return true; // Returns true if package reference is not valid (as its likely an interpolated string or step name)
+            return true; // Returns true if package reference is not valid as its likely an interpolated string or step name
           }
         },
         (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
@@ -553,7 +553,7 @@ export const cloneSchema = z
 
             return variantSize <= 32;
           } else {
-            return true; // Returns true if package reference is not valid (as its likely an interpolated string or step name)
+            return true; // Returns true if package reference is not valid as its likely an interpolated string or step name
           }
         },
         (val) => ({ message: `Package reference "${val}" is too long. Package variant exceeds 32 bytes` })
@@ -601,7 +601,7 @@ export const cloneSchema = z
 
                 return nameSize <= 32;
               } else {
-                return true; // Returns true if package reference is not valid (as its likely an interpolated string or step name)
+                return true; // Returns true if package reference is not valid as its likely an interpolated string or step name
               }
             },
             (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
@@ -615,7 +615,7 @@ export const cloneSchema = z
 
                 return variantSize <= 32;
               } else {
-                return true; // Returns true if package reference is not valid (as its likely an interpolated string or step name)
+                return true; // Returns true if package reference is not valid as its likely an interpolated string or step name
               }
             },
             (val) => ({ message: `Package reference "${val}" is too long. Package variant exceeds 32 bytes` })
