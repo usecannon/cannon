@@ -228,7 +228,6 @@ export const pullSchema = z
           if (PackageReference.isValid(val)) {
             const pkgRef = new PackageReference(val);
 
-
             const variantSize = new Blob([pkgRef.version + '_' + pkgRef.preset]).size;
 
             return variantSize <= 32;
@@ -550,7 +549,6 @@ export const cloneSchema = z
           if (PackageReference.isValid(val)) {
             const pkgRef = new PackageReference(val);
 
-
             const variantSize = new Blob([pkgRef.version + '_' + pkgRef.preset]).size;
 
             return variantSize <= 32;
@@ -612,7 +610,6 @@ export const cloneSchema = z
             (val) => {
               if (PackageReference.isValid(val)) {
                 const pkgRef = new PackageReference(val);
-
 
                 const variantSize = new Blob([pkgRef.version + '_' + pkgRef.preset]).size;
 
