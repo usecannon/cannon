@@ -209,6 +209,26 @@ export const pullSchema = z
           message: `Source value: ${val} must match package formats: "package:version" or "package:version@preset" or operation name "import.Contract" or be an interpolated value`,
         })
       )
+      .refine(
+        (val) => {
+          const pkgRef = new PackageReference(val);
+
+          const nameSize = new Blob([pkgRef.name]).size;
+
+          return nameSize <= 32;
+        },
+        (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
+      )
+      .refine(
+        (val) => {
+          const pkgRef = new PackageReference(val);
+
+          const variantSize = new Blob([pkgRef.version + '_' + pkgRef.preset]).size;
+
+          return variantSize <= 32;
+        },
+        (val) => ({ message: `Package reference "${val}" is too long. Package variant exceeds 32 bytes` })
+      )
       .describe('Source of the cannonfile package to import from. Can be a cannonfile operation name or package name'),
   })
   .merge(
@@ -502,6 +522,26 @@ export const cloneSchema = z
           message: `Source value: ${val} must match package formats: "package:version" or "package:version@preset" or be an interpolated value`,
         })
       )
+      .refine(
+        (val) => {
+          const pkgRef = new PackageReference(val);
+
+          const nameSize = new Blob([pkgRef.name]).size;
+
+          return nameSize <= 32;
+        },
+        (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
+      )
+      .refine(
+        (val) => {
+          const pkgRef = new PackageReference(val);
+
+          const variantSize = new Blob([pkgRef.version + '_' + pkgRef.preset]).size;
+
+          return variantSize <= 32;
+        },
+        (val) => ({ message: `Package reference "${val}" is too long. Package variant exceeds 32 bytes` })
+      )
       .describe('Name of the package to provision'),
   })
   .merge(
@@ -535,6 +575,26 @@ export const cloneSchema = z
             (val) => ({
               message: `Target value: ${val} must match package formats: "package:version" or "package:version@preset" or be an interpolated value`,
             })
+          )
+          .refine(
+            (val) => {
+              const pkgRef = new PackageReference(val);
+
+              const nameSize = new Blob([pkgRef.name]).size;
+
+              return nameSize <= 32;
+            },
+            (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
+          )
+          .refine(
+            (val) => {
+              const pkgRef = new PackageReference(val);
+
+              const variantSize = new Blob([pkgRef.version + '_' + pkgRef.preset]).size;
+
+              return variantSize <= 32;
+            },
+            (val) => ({ message: `Package reference "${val}" is too long. Package variant exceeds 32 bytes` })
           )
           .describe('Name of the package to provision'),
         /**

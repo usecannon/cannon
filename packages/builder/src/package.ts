@@ -82,16 +82,8 @@ export class PackageReference {
 
     const res: PartialRefValues = { name: match.groups.name };
 
-    if (match.groups.version) res.version = match.groups.version;
-    if (match.groups.preset) res.preset = match.groups.preset;
-
-    return res;
-  }
-
-  static isValid(ref: string) {
-    const pkgRef = new PackageReference(ref);
-    const nameSize = new Blob([pkgRef.name]).size;
-    const variantSize = new Blob([pkgRef.version + '_' + pkgRef.preset]).size;
+    const nameSize = new Blob([res.name]).size;
+    const variantSize = new Blob([res.version + '_' + res.preset]).size;
 
     if (!(nameSize <= 32)) {
       throw new Error(`Package reference "${ref}" is too long. Package name exceeds 32 bytes`);
@@ -100,6 +92,14 @@ export class PackageReference {
     if (!(variantSize <= 32)) {
       throw new Error(`Package reference "${ref}" is too long. Package variant exceeds 32 bytes`);
     }
+
+    if (match.groups.version) res.version = match.groups.version;
+    if (match.groups.preset) res.preset = match.groups.preset;
+
+    return res;
+  }
+
+  static isValid(ref: string) {
     return !!PackageReference.PACKAGE_REGEX.test(ref);
   }
 
