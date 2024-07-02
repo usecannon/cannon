@@ -72,9 +72,6 @@ export class PackageReference {
    * Parse package reference without normalizing it
    */
   static parse(ref: string) {
-    // Check if package ref is valid first before trying to parse
-    this.isValid(ref);
-
     const match = ref.match(PackageReference.PACKAGE_REGEX);
 
     if (!match || !match.groups?.name) {
@@ -94,18 +91,14 @@ export class PackageReference {
   static isValid(ref: string) {
     const pkgRef = new PackageReference(ref);
     const nameSize = new Blob([pkgRef.name]).size;
-    const variantSize = new Blob([pkgRef.version+'_'+pkgRef.preset]).size;
-    
+    const variantSize = new Blob([pkgRef.version + '_' + pkgRef.preset]).size;
+
     if (!(nameSize <= 32)) {
-      throw new Error(
-         `Package reference "${ref}" is too long. Package name exceeds 32 bytes`
-      )
+      throw new Error(`Package reference "${ref}" is too long. Package name exceeds 32 bytes`);
     }
 
     if (!(variantSize <= 32)) {
-      throw new Error(
-         `Package reference "${ref}" is too long. Package variant exceeds 32 bytes`
-      )
+      throw new Error(`Package reference "${ref}" is too long. Package variant exceeds 32 bytes`);
     }
     return !!PackageReference.PACKAGE_REGEX.test(ref);
   }
