@@ -72,6 +72,9 @@ export class PackageReference {
    * Parse package reference without normalizing it
    */
   static parse(ref: string) {
+    // Check if package ref is valid first before trying to parse
+    this.isValid(ref);
+
     const match = ref.match(PackageReference.PACKAGE_REGEX);
 
     if (!match || !match.groups?.name) {
