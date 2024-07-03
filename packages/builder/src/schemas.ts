@@ -212,7 +212,7 @@ export const pullSchema = z
       .refine(
         (val) => {
           const match = val.match(packageRegex);
-          
+
           if (match) {
             const nameSize = new Blob([match!.groups!.name]).size;
 
