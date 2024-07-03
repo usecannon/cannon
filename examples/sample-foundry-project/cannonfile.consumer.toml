@@ -41,11 +41,9 @@ args = ["<%= contracts.cloned.address %>", "<%= formatBytes32String(settings.cha
 
 var.NewCloneGreeting.event = "NewGreetingAdded"
 var.NewCloneGreeting.arg = 0
-var.NewCloneGreeting.artifact = "Greeter"
 
 var.OldCloneGreeting.event = "OldGreetingRemoved"
 var.OldCloneGreeting.arg = 0
-var.OldCloneGreeting.artifact = "Greeter"
 
 # test to parse through previous emitted event values
 [invoke.set_new_greeting_for_next_clones]

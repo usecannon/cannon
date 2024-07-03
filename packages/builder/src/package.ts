@@ -37,7 +37,7 @@ export interface PackagePublishCall {
 export class PackageReference {
   static DEFAULT_TAG = 'latest';
   static DEFAULT_PRESET = 'main';
-  static PACKAGE_REGEX = /^(?<name>@?[a-z0-9][A-Za-z0-9-]{1,30}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
+  static PACKAGE_REGEX = /^(?<name>@?[a-z0-9][A-Za-z0-9-]{1,}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
 
   /**
    * Anything before the colon or an @ (if no version is present) is the package name.
@@ -76,11 +76,22 @@ export class PackageReference {
 
     if (!match || !match.groups?.name) {
       throw new Error(
-        `Invalid package name "${ref}". Should be of the format <package-name>:<version> or <package-name>:<version>@<preset>`
+        `Invalid package reference "${ref}". Should be of the format <package-name>:<version> or <package-name>:<version>@<preset>`
       );
     }
 
     const res: PartialRefValues = { name: match.groups.name };
+
+    const nameSize = new Blob([res.name]).size;
+    const variantSize = new Blob([res.version + '_' + res.preset]).size;
+
+    if (!(nameSize <= 32)) {
+      throw new Error(`Package reference "${ref}" is too long. Package name exceeds 32 bytes`);
+    }
+
+    if (!(variantSize <= 32)) {
+      throw new Error(`Package reference "${ref}" is too long. Package variant exceeds 32 bytes`);
+    }
 
     if (match.groups.version) res.version = match.groups.version;
     if (match.groups.preset) res.preset = match.groups.preset;
