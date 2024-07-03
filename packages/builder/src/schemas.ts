@@ -211,21 +211,21 @@ export const pullSchema = z
       )
       .refine(
         (val) => {
-            const match = val.match(packageRegex);
+          const match = val.match(packageRegex);
 
-            const nameSize = new Blob([match!.groups!.name]).size;
+          const nameSize = new Blob([match!.groups!.name]).size;
 
-            return nameSize <= 32;
+          return nameSize <= 32;
         },
         (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
       )
       .refine(
         (val) => {
-            const match = val.match(packageRegex);
+          const match = val.match(packageRegex);
 
-            const variantSize = new Blob([match!.groups!.version + '_' + match!.groups!.preset]).size;
+          const variantSize = new Blob([match!.groups!.version + '_' + match!.groups!.preset]).size;
 
-            return variantSize <= 32;
+          return variantSize <= 32;
         },
         (val) => ({ message: `Package reference "${val}" is too long. Package variant exceeds 32 bytes` })
       )
@@ -524,21 +524,21 @@ export const cloneSchema = z
       )
       .refine(
         (val) => {
-            const match = val.match(packageRegex);
+          const match = val.match(packageRegex);
 
-            const nameSize = new Blob([match!.groups!.name]).size;
+          const nameSize = new Blob([match!.groups!.name]).size;
 
-            return nameSize <= 32;
+          return nameSize <= 32;
         },
         (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
       )
       .refine(
         (val) => {
-            const match = val.match(packageRegex);
+          const match = val.match(packageRegex);
 
-            const variantSize = new Blob([match!.groups!.version + '_' + match!.groups!.preset]).size;
+          const variantSize = new Blob([match!.groups!.version + '_' + match!.groups!.preset]).size;
 
-            return variantSize <= 32;
+          return variantSize <= 32;
         },
         (val) => ({ message: `Package reference "${val}" is too long. Package variant exceeds 32 bytes` })
       )
@@ -578,21 +578,21 @@ export const cloneSchema = z
           )
           .refine(
             (val) => {
-                const match = val.match(packageRegex);
-    
-                const nameSize = new Blob([match!.groups!.name]).size;
-    
-                return nameSize <= 32;
+              const match = val.match(packageRegex);
+
+              const nameSize = new Blob([match!.groups!.name]).size;
+
+              return nameSize <= 32;
             },
             (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
           )
           .refine(
             (val) => {
-                const match = val.match(packageRegex);
-    
-                const variantSize = new Blob([match!.groups!.version + '_' + match!.groups!.preset]).size;
-    
-                return variantSize <= 32;
+              const match = val.match(packageRegex);
+
+              const variantSize = new Blob([match!.groups!.version + '_' + match!.groups!.preset]).size;
+
+              return variantSize <= 32;
             },
             (val) => ({ message: `Package reference "${val}" is too long. Package variant exceeds 32 bytes` })
           )
