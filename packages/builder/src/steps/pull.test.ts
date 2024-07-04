@@ -68,6 +68,28 @@ describe('steps/pull.ts', () => {
       ).rejects.toThrowError('deployment not found');
     });
 
+    it('throws if target name is longer than 32 bytes', async () => {
+      await expect(() =>
+        action.exec(
+          fakeRuntime,
+          fakeCtx,
+          { source: 'package-name-longer-than-32bytes1337:1.0.0' },
+          { name: 'package', version: '1.0.0', currentLabel: 'clone.whatever' }
+        )
+      ).rejects.toThrowError('Package name exceeds 32 bytes');
+    });
+
+    it('throws if target version is longer than 32 bytes', async () => {
+      await expect(() =>
+        action.exec(
+          fakeRuntime,
+          fakeCtx,
+          { source: 'package:package-version-longer-than-32bytes1337' },
+          { name: 'package', version: '1.0.0', currentLabel: 'clone.whatever' }
+        )
+      ).rejects.toThrowError('Package version exceeds 32 bytes');
+    });
+
     it('works properly', async () => {
       await registry.publish(['hello:1.0.0@main'], 1234, 'https://something.com', '');
       await registry.publish(['hello:latest@main'], 1234, 'https://something.com', '');

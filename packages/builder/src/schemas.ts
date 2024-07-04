@@ -228,14 +228,14 @@ export const pullSchema = z
           const match = val.match(packageRegex);
 
           if (match) {
-            const variantSize = new Blob([match!.groups!.version + '_' + match!.groups!.preset]).size;
+            const versionSize = new Blob([match!.groups!.version]).size;
 
-            return variantSize <= 32;
+            return versionSize <= 32;
           } else {
             return true;
           }
         },
-        (val) => ({ message: `Package reference "${val}" is too long. Package variant exceeds 32 bytes` })
+        (val) => ({ message: `Package reference "${val}" is too long. Package version exceeds 32 bytes` })
       )
       .describe('Source of the cannonfile package to import from. Can be a cannonfile operation name or package name'),
   })
@@ -548,14 +548,14 @@ export const cloneSchema = z
           const match = val.match(packageRegex);
 
           if (match) {
-            const variantSize = new Blob([match!.groups!.version + '_' + match!.groups!.preset]).size;
+            const versionSize = new Blob([match!.groups!.version]).size;
 
-            return variantSize <= 32;
+            return versionSize <= 32;
           } else {
             return true;
           }
         },
-        (val) => ({ message: `Package reference "${val}" is too long. Package variant exceeds 32 bytes` })
+        (val) => ({ message: `Package reference "${val}" is too long. Package version exceeds 32 bytes` })
       )
       .describe('Name of the package to provision'),
   })
@@ -609,16 +609,16 @@ export const cloneSchema = z
               const match = val.match(packageRegex);
 
               if (match) {
-                const variantSize = new Blob([match!.groups!.version + '_' + match!.groups!.preset]).size;
+                const versionSize = new Blob([match!.groups!.version]).size;
 
-                return variantSize <= 32;
+                return versionSize <= 32;
               } else {
                 return true;
               }
             },
-            (val) => ({ message: `Package reference "${val}" is too long. Package variant exceeds 32 bytes` })
+            (val) => ({ message: `Package reference "${val}" is too long. Package version exceeds 32 bytes` })
           )
-          .describe('Name of the package to provision'),
+          .describe('Name of the package to clone'),
         /**
          *  (DEPRECATED) use `target` instead. Set the new preset to use for this package.
          * Default - "main"

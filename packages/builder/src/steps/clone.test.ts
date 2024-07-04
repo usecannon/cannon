@@ -1,3 +1,4 @@
+import { DeploymentInfo } from '..';
 import { validateConfig } from '../actions';
 import { BUILD_VERSION } from '../constants';
 import { InMemoryRegistry } from '../registry';
@@ -90,6 +91,28 @@ describe('steps/clone.ts', () => {
           { name: 'package', version: '1.0.0', currentLabel: 'clone.whatever' }
         )
       ).rejects.toThrowError('deployment not found');
+    });
+
+    it('throws if source name is longer than 32 bytes', async () => {
+      await expect(() =>
+        action.exec(
+          fakeRuntime,
+          fakeCtx,
+          { source: 'package-name-longer-than-32bytes1337:1.0.0' },
+          { name: 'package', version: '1.0.0', currentLabel: 'clone.whatever' }
+        )
+      ).rejects.toThrow('Package name exceeds 32 bytes');
+      });
+
+    it('throws if target name is longer than 32 bytes', async () => {
+      await expect(() =>
+        action.exec(
+          fakeRuntime,
+          fakeCtx,
+          { source: 'package:1.0.0', target: 'package-name-longer-than-32bytes1337:1.0.0' },
+          { name: 'package', version: '1.0.0', currentLabel: 'clone.whatever' }
+        )
+      ).rejects.toThrowError('Package name exceeds 32 bytes');
     });
 
     it('returns partial deployment if runtime becomes cancelled', async () => {
