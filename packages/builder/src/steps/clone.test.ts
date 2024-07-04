@@ -1,4 +1,3 @@
-import { DeploymentInfo } from '..';
 import { validateConfig } from '../actions';
 import { BUILD_VERSION } from '../constants';
 import { InMemoryRegistry } from '../registry';
@@ -102,7 +101,7 @@ describe('steps/clone.ts', () => {
           { name: 'package', version: '1.0.0', currentLabel: 'clone.whatever' }
         )
       ).rejects.toThrow('Package name exceeds 32 bytes');
-      });
+    });
 
     it('throws if target name is longer than 32 bytes', async () => {
       await expect(() =>
