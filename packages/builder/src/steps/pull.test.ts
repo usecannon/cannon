@@ -81,12 +81,14 @@ describe('steps/pull.ts', () => {
 
     it('throws if target version is longer than 32 bytes', async () => {
       await expect(() =>
-        action.exec(
-          fakeRuntime,
-          fakeCtx,
-          { source: 'package:package-version-longer-than-32bytes1337' },
-          { name: 'package', version: '1.0.0', currentLabel: 'clone.whatever' }
-        )
+        validateConfig(action.validate, {
+          exec: {
+            runtime: fakeRuntime,
+            ctx: fakeCtx,
+            config: { source: 'package:package-version-longer-than-32bytes1337' },
+            packageState: { name: 'package', version: '1.0.0', currentLabel: 'clone.whatever' }
+          }
+        })
       ).rejects.toThrowError('Package version exceeds 32 bytes');
     });
 

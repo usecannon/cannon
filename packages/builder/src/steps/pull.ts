@@ -9,12 +9,12 @@ import { ChainBuilderRuntime } from '../runtime';
 import { pullSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
 
-const debug = Debug('cannon:builder:import');
+const debug = Debug('cannon:builder:pull');
 
 /**
- *  Available properties for import operation
+ *  Available properties for pull operation
  *  @public
- *  @group Import
+ *  @group pull
  */
 export type Config = z.infer<typeof pullSchema>;
 
