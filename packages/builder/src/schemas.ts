@@ -214,7 +214,7 @@ export const pullSchema = z
           const match = val.match(packageRegex);
 
           if (match) {
-            const nameSize = new Blob([match!.groups!.name]).size;
+            const nameSize = match!.groups!.name.length;
 
             return nameSize <= 32;
           } else {
@@ -227,8 +227,8 @@ export const pullSchema = z
         (val) => {
           const match = val.match(packageRegex);
 
-          if (match) {
-            const versionSize = new Blob([match!.groups!.version]).size;
+          if (match && match!.groups!.version) {
+            const versionSize = match!.groups!.version.length;
 
             return versionSize <= 32;
           } else {
@@ -534,7 +534,7 @@ export const cloneSchema = z
         (val) => {
           const match = val.match(packageRegex);
           if (match) {
-            const nameSize = new Blob([match!.groups!.name]).size;
+            const nameSize = match!.groups!.name.length;
 
             return nameSize <= 32;
           } else {
@@ -547,8 +547,8 @@ export const cloneSchema = z
         (val) => {
           const match = val.match(packageRegex);
 
-          if (match) {
-            const versionSize = new Blob([match!.groups!.version]).size;
+          if (match && match!.groups!.version) {
+            const versionSize = match!.groups!.version.length;
 
             return versionSize <= 32;
           } else {
@@ -595,7 +595,7 @@ export const cloneSchema = z
             (val) => {
               const match = val.match(packageRegex);
               if (match) {
-                const nameSize = new Blob([match!.groups!.name]).size;
+                const nameSize = match!.groups!.name.length;
 
                 return nameSize <= 32;
               } else {
@@ -608,8 +608,8 @@ export const cloneSchema = z
             (val) => {
               const match = val.match(packageRegex);
 
-              if (match) {
-                const versionSize = new Blob([match!.groups!.version]).size;
+              if (match && match!.groups!.version) {
+                const versionSize = match!.groups!.version.length;
 
                 return versionSize <= 32;
               } else {
