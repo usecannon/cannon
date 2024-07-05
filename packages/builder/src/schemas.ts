@@ -736,7 +736,12 @@ export const chainDefinitionSchema = z
     name: z
       .string()
       .min(3)
-      .max(31)
+      .refine(
+        (val) => {
+          return new Blob([val]).size <= 32;
+        },
+        (val) => ({ message: `Package name "${val}" is too long. Package name exceeds 32 bytes` })
+      )
       .refine((val) => !!val.match(RegExp(/[a-zA-Z0-9-]+/, 'gm')), {
         message: 'Name cannot contain any special characters',
       })
@@ -746,7 +751,12 @@ export const chainDefinitionSchema = z
      */
     version: z
       .string()
-      .max(31)
+      .refine(
+        (val) => {
+          return new Blob([val]).size <= 32;
+        },
+        (val) => ({ message: `Package version "${val}" is too long. Package version exceeds 32 bytes` })
+      )
       .refine((val) => !!val.match(RegExp(/[\w.]+/, 'gm')), {
         message: 'Version cannot contain any special characters',
       })
