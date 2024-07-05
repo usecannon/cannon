@@ -131,6 +131,8 @@ export type CliSettings = {
   priorityGasFee?: string;
 };
 
+export const PROVIDER_URL_DEFAULT = 'frame,direct';
+
 /**
  * Settings zod schema.
  * Check env vars and set default values if needed
@@ -140,7 +142,7 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
   return {
     CANNON_DIRECTORY: z.string().default(DEFAULT_CANNON_DIRECTORY),
     CANNON_SETTINGS: z.string().optional(),
-    CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || 'frame,direct'),
+    CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || PROVIDER_URL_DEFAULT),
     CANNON_PRIVATE_KEY: z
       .string()
       .optional()

@@ -200,7 +200,11 @@ export async function createDefaultReadRegistry(
   } else if (!(await isConnectedToInternet())) {
     debug('not connected to internet, using local registry only');
     // When not connected to the internet, we don't want to check the on-chain registry version to not throw an error
-    console.log(yellowBright('⚠️  You are not connected to the internet. Using local registry only'));
+    console.log(
+      yellowBright(
+        '⚠️  You are not connected to the internet or using a VPN that is limiting connectivity. Cannon will only use packages available locally.'
+      )
+    );
     return new FallbackRegistry([...additionalRegistries, localRegistry]);
   } else if (cliSettings.registryPriority === 'local') {
     debug('local registry is the priority, using local registry first');

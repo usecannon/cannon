@@ -21,7 +21,7 @@ import { table } from 'table';
 import * as viem from 'viem';
 import pkg from '../../package.json';
 import { getChainById } from '../chains';
-import { readMetadataCache } from '../helpers';
+import { filterSettings, readMetadataCache } from '../helpers';
 import { getMainLoader } from '../loader';
 import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { createDefaultReadRegistry } from '../registry';
@@ -110,6 +110,7 @@ export async function build({
   }
 
   const cliSettings = resolveCliSettings({ registryPriority });
+  const filteredSettings = await filterSettings(cliSettings);
 
   if (plugins) {
     await loadPlugins();
@@ -332,9 +333,9 @@ export async function build({
     }
     for (const setting in o.settings) {
       if (ctx.overrideSettings[setting]) {
-        console.log(red(`${'  '.repeat(d)}  Overridden Setting: ${setting} = ${ctx.overrideSettings[setting]}`));
+        console.log(`${'  '.repeat(d)} Setting (Override): ${setting} = ${ctx.overrideSettings[setting]}`);
       } else {
-        console.log(gray(`${'  '.repeat(d)}  Setting: ${setting} = ${o.settings[setting]}`));
+        console.log(`${'  '.repeat(d)}  Setting: ${setting} = ${o.settings[setting]}`);
       }
     }
     stepsExecuted = true;
@@ -460,7 +461,7 @@ export async function build({
     } else {
       if (chainId == 13370) {
         console.log(bold(`💥 ${fullPackageRef} built for Cannon (Chain ID: ${chainId})`));
-        console.log(gray('This package can be run locally using the CLI and provisioned by Cannonfiles.'));
+        console.log(gray('This package can be run locally and cloned in cannonfiles.'));
       } else {
         console.log(bold(`💥 ${fullPackageRef} built on ${chainName} (Chain ID: ${chainId})`));
         console.log(gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
@@ -468,9 +469,11 @@ export async function build({
       console.log();
 
       console.log(
-        `The following package data has been stored locally${
-          cliSettings.writeIpfsUrl && ' and pinned to ' + cliSettings.writeIpfsUrl
-        }`
+        bold(
+          `Package data has been stored locally${
+            filteredSettings.writeIpfsUrl && ' and pinned to ' + filteredSettings.writeIpfsUrl
+          }`
+        )
       );
       console.log(
         table([
@@ -480,7 +483,7 @@ export async function build({
         ])
       );
       console.log(
-        bold(`Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${cliSettings.publishIpfsUrl}`)
+        bold(`Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`)
       );
       console.log(`> ${`cannon publish ${fullPackageRef} --chain-id ${chainId}`}`);
       console.log('');
@@ -505,7 +508,7 @@ export async function build({
   }
 
   if (!stepsExecuted) {
-    console.log(bold('No operations were executed during the build.'));
+    console.log(bold('\nNo operations were executed during the build.'));
   }
 
   console.log('');

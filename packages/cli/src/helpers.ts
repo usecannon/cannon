@@ -10,7 +10,7 @@ import {
   RawChainDefinition,
 } from '@usecannon/builder';
 import { AbiEvent } from 'abitype';
-import { bold, magentaBright, red, yellow, yellowBright } from 'chalk';
+import { bold, magentaBright, red, yellowBright } from 'chalk';
 import { exec, spawnSync } from 'child_process';
 import Debug from 'debug';
 import fs from 'fs-extra';
@@ -39,8 +39,21 @@ export async function filterSettings(settings: any) {
     RegExp(/[=A-Za-z0-9_-]{32,}/),
     '*'.repeat(32)
   );
-  filteredSettings.publishIpfsUrl = filteredSettings.publishIpfsUrl?.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32));
-  filteredSettings.ipfsUrl = filteredSettings.ipfsUrl?.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32));
+
+  const filterUrlPassword = (uri: string) => {
+    try {
+      const res = new URL(uri);
+      res.password = '*'.repeat(10);
+      return res.toString();
+    } catch (err) {
+      debug('Invalid URL', uri);
+      return '';
+    }
+  };
+
+  filteredSettings.publishIpfsUrl = filterUrlPassword(filteredSettings.publishIpfsUrl!);
+  filteredSettings.ipfsUrl = filterUrlPassword(filteredSettings.ipfsUrl!);
+  filteredSettings.writeIpfsUrl = filterUrlPassword(filteredSettings.writeIpfsUrl!);
 
   return filteredSettings;
 }
@@ -164,7 +177,6 @@ export async function checkCannonVersion(currentVersion: string): Promise<void> 
 
   if (latestVersion && currentVersion && semver.lt(currentVersion, latestVersion)) {
     console.warn(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
-    console.warn(yellow('Upgrade with ' + bold('npm install -g @usecannon/cli\n')));
   }
 }
 
