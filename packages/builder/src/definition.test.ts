@@ -44,7 +44,7 @@ describe('ChainDefinition', () => {
         version: 'package-version-longer-than-32bytes1337',
       };
 
-      expect(() => new ChainDefinition(rawDef)).toThrow('Package name exceeds 32 bytes');
+      expect(() => new ChainDefinition(rawDef)).toThrow('Package version exceeds 32 bytes');
     });
   });
 
