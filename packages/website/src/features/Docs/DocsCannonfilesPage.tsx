@@ -401,7 +401,7 @@ export const DocsCannonfilesPage: FC = () => {
                   made by defined steps in the cannonfile definition. Deployment
                   data is stored on IPFS and is locally stored in your
                   filesystem in the default storage location
-                  ~/.local/share/cannon/tags or the storage location defined by
+                  <Code>~/.local/share/cannon/tags</Code> or the storage location defined by
                   the CANNON_DIRECTORY environment variable.
                 </Text>
               </Box>
@@ -449,7 +449,7 @@ export const DocsCannonfilesPage: FC = () => {
                   <ul>- Link to the package git repo README file</ul>
                   Metadata is also stored on IPFS and is locally stored in your
                   filesystem in the default storage location
-                  ~/.local/share/cannon/tags or the storage location defined by
+                  <Code>~/.local/share/cannon/tags</Code> or the storage location defined by
                   the CANNON_DIRECTORY environment variable.
                 </Text>
               </Box>
