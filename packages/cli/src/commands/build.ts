@@ -393,7 +393,7 @@ export async function build({
     });
 
     throw new Error(
-      `${err.toString()}\n\nAn error occured during build. A dump file has been written to ${dumpFilePath}. Please include this file if you are reporting a problem with Cannon.`
+      `${err.toString()}\n\nAn error occured during build. A file with comprehensive information pertaining to this error has been written to ${dumpFilePath}. Please include this file when reporting an issue.`
     );
   }
 
