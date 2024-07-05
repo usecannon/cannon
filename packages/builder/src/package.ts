@@ -83,17 +83,17 @@ export class PackageReference {
     const res: PartialRefValues = { name: match.groups.name };
 
     const nameSize = new Blob([res.name]).size;
-    const variantSize = new Blob([res.version + '_' + res.preset]).size;
-
     if (!(nameSize <= 32)) {
       throw new Error(`Package reference "${ref}" is too long. Package name exceeds 32 bytes`);
     }
 
-    if (!(variantSize <= 32)) {
+    
+    if (match.groups.version) res.version = match.groups.version;
+    
+    const versionSize = new Blob([res.version!]).size;
+    if (!(versionSize <= 32)) {
       throw new Error(`Package reference "${ref}" is too long. Package variant exceeds 32 bytes`);
     }
-
-    if (match.groups.version) res.version = match.groups.version;
     if (match.groups.preset) res.preset = match.groups.preset;
 
     return res;
