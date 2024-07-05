@@ -91,7 +91,7 @@ export class PackageReference {
 
     const versionSize = new Blob([res.version!]).size;
     if (!(versionSize <= 32)) {
-      throw new Error(`Package reference "${ref}" is too long. Package variant exceeds 32 bytes`);
+      throw new Error(`Package reference "${ref}" is too long. Package version exceeds 32 bytes`);
     }
 
     if (match.groups.preset) res.preset = match.groups.preset;
