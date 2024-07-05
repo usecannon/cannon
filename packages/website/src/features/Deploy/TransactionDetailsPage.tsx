@@ -400,7 +400,7 @@ function TransactionDetailsPage({
                   overflowY="auto"
                   maxH={expandDiff ? 'none' : '345px'}
                 >
-                  <Box ref={gitDiffContainerRef} />
+                  <Box ref={gitDiffContainerRef} pb={6} />
                 </Box>
               </Box>
             )}
