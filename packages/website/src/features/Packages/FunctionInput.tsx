@@ -119,14 +119,14 @@ export const FunctionInput: FC<{
                     <CloseIcon name="close" color="red.500" />{' '}
                   </Box>
                 )}
+
+                <Link onClick={add} float="right" padding="0.5rem">
+                  <AddIcon name="add" color="green.500" />
+                </Link>
               </Flex>
             );
           })}
         </Box>
-
-        <Link onClick={add} float="right">
-          <AddIcon name="add" color="green.500" />
-        </Link>
       </>
     );
   }

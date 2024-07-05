@@ -67,6 +67,13 @@ export async function contractCall(
   publicClient: PublicClient,
   pythUrl: string
 ) {
+  // Remove empty string from array inputs in params
+  for (const key in params) {
+    if (Array.isArray(params[key]) && params[key].includes('')) {
+      return params[key].filter((item: any) => item !== '');
+    }
+  }
+
   const data = encodeFunctionData({
     abi,
     functionName,
