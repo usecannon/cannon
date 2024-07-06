@@ -7,7 +7,7 @@ import { CannonSigner, ChainArtifacts, PackageReference } from './';
 import { traceActions } from './error';
 import { CannonLoader, IPFSLoader } from './loader';
 import { CannonRegistry } from './registry';
-import { ChainBuilderRuntimeInfo, ContractArtifact, DeploymentInfo } from './types';
+import { ChainBuilderRuntimeInfo, ChainBuilderContext, ContractArtifact, DeploymentInfo } from './types';
 import { getExecutionSigner } from './util';
 
 const debug = Debug('cannon:builder:runtime');
@@ -118,6 +118,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   readonly getArtifact: (name: string) => Promise<ContractArtifact>;
   readonly snapshots: boolean;
   readonly allowPartialDeploy: boolean;
+  ctx: ChainBuilderContext | null;
   private publicSourceCode: boolean | undefined;
   private signals: { cancelled: boolean } = { cancelled: false };
   private _gasPrice: string | undefined;
@@ -167,6 +168,8 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     this.allowPartialDeploy = info.allowPartialDeploy;
 
     this.misc = { artifacts: {} };
+
+    this.ctx = null;
 
     if (info.priorityGasFee) {
       if (!info.gasFee) {
@@ -266,6 +269,10 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     debug('reported contract artifact', n, artifact);
 
     this.misc.artifacts[n] = artifact;
+  }
+
+  reportOperatingContext(ctx: ChainBuilderContext | null) {
+    this.ctx = ctx;
   }
 
   updateProviderArtifacts(artifacts: ChainArtifacts) {
