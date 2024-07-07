@@ -13,6 +13,7 @@ const argtype: z.ZodLazy<any> = z.lazy(() =>
 // <%=  string interpolation %>, step.names or property.names, packages:versions
 const interpolatedRegex = RegExp(/^<%=\s\w+.+[\w()[\]-]+\s%>$/, 'i');
 const stepRegex = RegExp(/^[\w-]+\.[.\w-]+$/, 'i');
+const packageRegex = RegExp(/^(?<name>@?[a-z0-9][a-z0-9-]{1,}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/, 'i');
 const jsonAbiPathRegex = RegExp(/^(?!.*\.d?$).*\.json?$/, 'i');
 
 // This regex matches artifact names which are just capitalized words like solidity contract names
@@ -211,31 +212,31 @@ export const pullSchema = z
       )
       .refine(
         (val) => {
-          if (PackageReference.isValid(val)) {
-            const pkgRef = new PackageReference(val);
+          const match = val.match(packageRegex);
 
-            const nameSize = new Blob([pkgRef.name]).size;
+          if (match) {
+            const nameSize = match!.groups!.name.length;
 
             return nameSize <= 32;
           } else {
-            return true; // Returns true if package reference is not valid as its likely an interpolated string or step name
+            return true;
           }
         },
         (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
       )
       .refine(
         (val) => {
-          if (PackageReference.isValid(val)) {
-            const pkgRef = new PackageReference(val);
+          const match = val.match(packageRegex);
 
-            const variantSize = new Blob([pkgRef.version + '_' + pkgRef.preset]).size;
+          if (match && match!.groups!.version) {
+            const versionSize = match!.groups!.version.length;
 
-            return variantSize <= 32;
+            return versionSize <= 32;
           } else {
-            return true; // Returns true if package reference is not valid as its likely an interpolated string or step name
+            return true;
           }
         },
-        (val) => ({ message: `Package reference "${val}" is too long. Package variant exceeds 32 bytes` })
+        (val) => ({ message: `Package reference "${val}" is too long. Package version exceeds 32 bytes` })
       )
       .describe('Source of the cannonfile package to import from. Can be a cannonfile operation name or package name'),
   })
@@ -532,31 +533,30 @@ export const cloneSchema = z
       )
       .refine(
         (val) => {
-          if (PackageReference.isValid(val)) {
-            const pkgRef = new PackageReference(val);
-
-            const nameSize = new Blob([pkgRef.name]).size;
+          const match = val.match(packageRegex);
+          if (match) {
+            const nameSize = match!.groups!.name.length;
 
             return nameSize <= 32;
           } else {
-            return true; // Returns true if package reference is not valid as its likely an interpolated string or step name
+            return true;
           }
         },
         (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
       )
       .refine(
         (val) => {
-          if (PackageReference.isValid(val)) {
-            const pkgRef = new PackageReference(val);
+          const match = val.match(packageRegex);
 
-            const variantSize = new Blob([pkgRef.version + '_' + pkgRef.preset]).size;
+          if (match && match!.groups!.version) {
+            const versionSize = match!.groups!.version.length;
 
-            return variantSize <= 32;
+            return versionSize <= 32;
           } else {
-            return true; // Returns true if package reference is not valid as its likely an interpolated string or step name
+            return true;
           }
         },
-        (val) => ({ message: `Package reference "${val}" is too long. Package variant exceeds 32 bytes` })
+        (val) => ({ message: `Package reference "${val}" is too long. Package version exceeds 32 bytes` })
       )
       .describe('Name of the package to provision'),
   })
@@ -594,33 +594,32 @@ export const cloneSchema = z
           )
           .refine(
             (val) => {
-              if (PackageReference.isValid(val)) {
-                const pkgRef = new PackageReference(val);
-
-                const nameSize = new Blob([pkgRef.name]).size;
+              const match = val.match(packageRegex);
+              if (match) {
+                const nameSize = match!.groups!.name.length;
 
                 return nameSize <= 32;
               } else {
-                return true; // Returns true if package reference is not valid as its likely an interpolated string or step name
+                return true;
               }
             },
             (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
           )
           .refine(
             (val) => {
-              if (PackageReference.isValid(val)) {
-                const pkgRef = new PackageReference(val);
+              const match = val.match(packageRegex);
 
-                const variantSize = new Blob([pkgRef.version + '_' + pkgRef.preset]).size;
+              if (match && match!.groups!.version) {
+                const versionSize = match!.groups!.version.length;
 
-                return variantSize <= 32;
+                return versionSize <= 32;
               } else {
-                return true; // Returns true if package reference is not valid as its likely an interpolated string or step name
+                return true;
               }
             },
-            (val) => ({ message: `Package reference "${val}" is too long. Package variant exceeds 32 bytes` })
+            (val) => ({ message: `Package reference "${val}" is too long. Package version exceeds 32 bytes` })
           )
-          .describe('Name of the package to provision'),
+          .describe('Name of the package to clone'),
         /**
          *  (DEPRECATED) use `target` instead. Set the new preset to use for this package.
          * Default - "main"
@@ -738,7 +737,12 @@ export const chainDefinitionSchema = z
     name: z
       .string()
       .min(3)
-      .max(31)
+      .refine(
+        (val) => {
+          return new Blob([val]).size <= 32;
+        },
+        (val) => ({ message: `Package name "${val}" is too long. Package name exceeds 32 bytes` })
+      )
       .refine((val) => !!val.match(RegExp(/[a-zA-Z0-9-]+/, 'gm')), {
         message: 'Name cannot contain any special characters',
       })
@@ -748,7 +752,12 @@ export const chainDefinitionSchema = z
      */
     version: z
       .string()
-      .max(31)
+      .refine(
+        (val) => {
+          return new Blob([val]).size <= 32;
+        },
+        (val) => ({ message: `Package version "${val}" is too long. Package version exceeds 32 bytes` })
+      )
       .refine((val) => !!val.match(RegExp(/[\w.]+/, 'gm')), {
         message: 'Version cannot contain any special characters',
       })
