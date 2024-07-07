@@ -1,6 +1,5 @@
 import * as viem from 'viem';
 import { z } from 'zod';
-import { PackageReference } from './package';
 
 /// ================================ INPUT CONFIG SCHEMAS ================================ \\\
 
