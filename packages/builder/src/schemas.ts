@@ -204,7 +204,7 @@ export const pullSchema = z
     source: z
       .string()
       .refine(
-        (val) => !!PackageReference.isValid(val) || !!val.match(stepRegex) || !!val.match(interpolatedRegex),
+        (val) => !!val.match(packageRegex) || !!val.match(stepRegex) || !!val.match(interpolatedRegex),
         (val) => ({
           message: `Source value: ${val} must match package formats: "package:version" or "package:version@preset" or operation name "import.Contract" or be an interpolated value`,
         })
@@ -525,7 +525,7 @@ export const cloneSchema = z
     source: z
       .string()
       .refine(
-        (val) => !!PackageReference.isValid(val) || !!val.match(interpolatedRegex),
+        (val) => !!val.match(packageRegex) || !!val.match(interpolatedRegex),
         (val) => ({
           message: `Source value: ${val} must match package formats: "package:version" or "package:version@preset" or be an interpolated value`,
         })
@@ -586,7 +586,7 @@ export const cloneSchema = z
         target: z
           .string()
           .refine(
-            (val) => !!PackageReference.isValid(val) || !!val.match(interpolatedRegex),
+            (val) => !!val.match(packageRegex) || !!val.match(interpolatedRegex),
             (val) => ({
               message: `Target value: ${val} must match package formats: "package:version" or "package:version@preset" or be an interpolated value`,
             })
