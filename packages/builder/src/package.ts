@@ -100,6 +100,11 @@ export class PackageReference {
   }
 
   static isValid(ref: string) {
+    try {
+      PackageReference.parse(ref);
+    } catch (err) {
+      return false;
+    }
     return !!PackageReference.PACKAGE_REGEX.test(ref);
   }
 
