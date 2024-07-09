@@ -157,6 +157,11 @@ export async function publish({
     publishCalls.push(...calls);
   }
 
+  if (!publishCalls.length) {
+    console.log(bold(`The package seems to be already published and there isn't anything new to publish`));
+    process.exit(1);
+  }
+
   if (!skipConfirm) {
     for (const publishCall of publishCalls) {
       const packageName = new PackageReference(publishCall.packagesNames[0]).name;
