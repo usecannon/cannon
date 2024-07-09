@@ -158,7 +158,7 @@ export async function publish({
   }
 
   if (!publishCalls.length) {
-    console.log(bold(`The package seems to be already published and there isn't anything new to publish`));
+    console.log(bold("The package seems to be already published, and there isn't anything new to publish."));
     process.exit(1);
   }
 
