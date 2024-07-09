@@ -72,7 +72,7 @@ export function computeTemplateAccesses(str?: string, possibleNames: string[] = 
       recorders[n] = _.noop as unknown as AccessRecorder;
     } else if (typeof (CannonHelperContext as any)[n] === 'object') {
       for (const o in (CannonHelperContext as any)[n]) {
-        (recorders[n] as any) = {};
+        if (!recorders[n]) (recorders[n] as any) = {};
         if (typeof (CannonHelperContext as any)[n][o] === 'function') {
           (recorders[n] as any)[o] = _.noop as unknown as AccessRecorder;
         } else {
