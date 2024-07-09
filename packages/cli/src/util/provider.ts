@@ -66,7 +66,7 @@ export const hideApiKey = (providerUrl: string) => {
 export const getChainIdFromProviderUrl = async (providerUrl: string) => {
   if (!isURL(providerUrl)) throw new Error('Provider URL has not a valid format');
 
-  const provider = viem.createPublicClient({ transport: viem.http(providerUrl) });
+  const provider = viem.createPublicClient({ transport: viem.http(providerUrl, { timeout: 180000 }) });
   return provider.getChainId();
 };
 
@@ -189,7 +189,7 @@ export async function resolveProviderAndSigners({
       publicClient = (
         viem.createPublicClient({
           chain: getChainById(chainId),
-          transport: viem.http(checkProviders[0]),
+          transport: viem.http(checkProviders[0], { timeout: 180000 }),
         }) as any
       ).extend(traceActions({}));
     } catch (err) {
