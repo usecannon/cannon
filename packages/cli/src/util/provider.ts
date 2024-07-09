@@ -24,6 +24,45 @@ export const isURL = (url: string): boolean => {
   }
 };
 
+export const hideApiKey = (providerUrl: string) => {
+  try {
+    const parsedUrl = new URL(providerUrl);
+    const pathParts = parsedUrl.pathname.split('/');
+    const queryParams = parsedUrl.searchParams;
+
+    // function to mask a string
+    const maskString = (key: string, visibleChars = 4) => {
+      return key.length > visibleChars ? '*'.repeat(key.length - visibleChars) + key.slice(-visibleChars) : key;
+    };
+
+    // function to check if a string looks like a key or token
+    const isLikelyKey = (key: string) => {
+      // check for strings that look like keys, tokens, or hashes
+      return /^[a-zA-Z0-9_-]+$/.test(key) && key.length > 8;
+    };
+
+    // check and mask path segments
+    pathParts.forEach((part, index) => {
+      if (isLikelyKey(part)) {
+        pathParts[index] = maskString(part);
+      }
+    });
+
+    // check and mask query parameters
+    for (const [key, value] of queryParams.entries()) {
+      if (isLikelyKey(value)) {
+        queryParams.set(key, maskString(value));
+      }
+    }
+
+    parsedUrl.pathname = pathParts.join('/');
+    return parsedUrl.toString();
+  } catch (error) {
+    debug('error processing url:', error);
+    return providerUrl; // return original URL if parsing fails
+  }
+};
+
 export const getChainIdFromProviderUrl = async (providerUrl: string) => {
   if (!isURL(providerUrl)) throw new Error('Provider URL has not a valid format');
 
@@ -111,7 +150,7 @@ export async function resolveProviderAndSigners({
       case 'direct':
         return 'default IPC paths, ws://127.0.0.1:8546, or http://127.0.0.1:8545';
       default:
-        return provider;
+        return hideApiKey(provider);
     }
   };
 
@@ -122,7 +161,7 @@ export async function resolveProviderAndSigners({
 
   debug(
     'resolving provider',
-    checkProviders.map((p) => (p ? p.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32)) : p)),
+    checkProviders.map((p) => hideApiKey(p)),
     chainId
   );
 
@@ -144,7 +183,7 @@ export async function resolveProviderAndSigners({
   if (isURL(checkProviders[0])) {
     debug(
       'use explicit provider url',
-      checkProviders.map((p) => (p ? p.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32)) : p))
+      checkProviders.map((p) => hideApiKey(p))
     );
     try {
       publicClient = (
