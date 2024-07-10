@@ -1,4 +1,4 @@
-import { hideApiKey } from './provider'; // Replace with the actual file name
+import { hideApiKey } from './provider';
 
 describe('hideApiKey', () => {
   test('should mask llamanodes api token', () => {
