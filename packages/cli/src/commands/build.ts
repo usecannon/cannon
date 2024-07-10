@@ -28,6 +28,7 @@ import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
+import { hideApiKey } from '../util/provider';
 
 import fs from 'fs-extra';
 import path from 'path';
@@ -227,13 +228,8 @@ export async function build({
       : typeof providerUrl === 'string'
       ? providerUrl.split(',')[0]
       : providerUrl;
-  console.log(
-    bold(
-      `Building the chain (ID ${chainId})${
-        providerUrlMsg ? ' via ' + providerUrlMsg.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32)) : ''
-      }...`
-    )
-  );
+
+  console.log(bold(`Building the chain (ID ${chainId})${providerUrlMsg ? ' via ' + hideApiKey(providerUrlMsg) : ''}...`));
 
   let defaultSignerAddress: string;
   if (getDefaultSigner) {
