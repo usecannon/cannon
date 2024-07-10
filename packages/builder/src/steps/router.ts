@@ -7,6 +7,7 @@ import { ChainBuilderRuntime } from '../runtime';
 import { routerSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, ContractMap, PackageState } from '../types';
 import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
+import { template } from '../utils/template';
 
 const debug = Debug('cannon:builder:router');
 
@@ -54,14 +55,14 @@ const routerStep = {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     config = _.cloneDeep(config);
 
-    config.contracts = _.map(config.contracts, (n) => _.template(n)(ctx));
+    config.contracts = _.map(config.contracts, (n) => template(n)(ctx));
 
     if (config.from) {
-      config.from = _.template(config.from)(ctx);
+      config.from = template(config.from)(ctx);
     }
 
     if (config.salt) {
-      config.salt = _.template(config.salt)(ctx);
+      config.salt = template(config.salt)(ctx);
     }
 
     return config;

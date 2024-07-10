@@ -1,7 +1,6 @@
 import Debug from 'debug';
-import * as viem from 'viem';
-import { AbiFunction } from 'viem';
 import _ from 'lodash';
+import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { invokeSchema } from '../schemas';
@@ -21,6 +20,7 @@ import {
   getContractFromPath,
   getMergedAbiFromContractPaths,
 } from '../util';
+import { template } from '../utils/template';
 
 const debug = Debug('cannon:builder:invoke');
 
@@ -38,7 +38,7 @@ export interface InvokeOutputs {
   events?: EncodedTxnEvents[];
 }
 
-export function formatAbiFunction(v: AbiFunction) {
+export function formatAbiFunction(v: viem.AbiFunction) {
   return `${v.name}(${v.inputs.map((i) => i.type).join(',')})`;
 }
 
@@ -120,7 +120,7 @@ async function runTxn(
         `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
           config.func
         }" to determine owner. List of recognized functions is:\n${Object.keys(
-          contract.abi.filter((v) => v.type === 'function').map((v) => (v as AbiFunction).name)
+          contract.abi.filter((v) => v.type === 'function').map((v) => (v as viem.AbiFunction).name)
         ).join(
           '\n'
         )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it.`
@@ -342,53 +342,53 @@ const invokeSpec = {
 
     if (config.target) {
       // [string, ...string[]] refers to a nonempty array
-      config.target = config.target.map((v) => _.template(v)(ctx)) as [string, ...string[]];
+      config.target = config.target.map((v) => template(v)(ctx)) as [string, ...string[]];
     }
 
     if (config.abi) {
-      config.abi = _.template(config.abi)(ctx);
+      config.abi = template(config.abi)(ctx);
     }
 
-    config.func = _.template(config.func)(ctx);
+    config.func = template(config.func)(ctx);
 
     if (config.args) {
       config.args = _.map(config.args, (a) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
-        return JSON.parse(_.template(JSON.stringify(a))(ctx));
+        return JSON.parse(template(JSON.stringify(a))(ctx));
       });
     }
 
     if (config.from) {
-      config.from = _.template(config.from)(ctx);
+      config.from = template(config.from)(ctx);
     }
 
     if (config.fromCall) {
-      config.fromCall.func = _.template(config.fromCall.func)(ctx);
+      config.fromCall.func = template(config.fromCall.func)(ctx);
       config.fromCall.args = _.map(config.fromCall.args, (a) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
-        return JSON.parse(_.template(JSON.stringify(a))(ctx));
+        return JSON.parse(template(JSON.stringify(a))(ctx));
       });
     }
 
     if (config.value) {
-      config.value = _.template(config.value)(ctx);
+      config.value = template(config.value)(ctx);
     }
 
     if (config?.overrides?.gasLimit) {
-      config.overrides.gasLimit = _.template(config.overrides.gasLimit)(ctx);
+      config.overrides.gasLimit = template(config.overrides.gasLimit)(ctx);
     }
 
     for (const name in config.factory) {
       const f = config.factory[name];
 
-      f.event = _.template(f.event)(ctx);
+      f.event = template(f.event)(ctx);
 
       if (f.artifact) {
-        f.artifact = _.template(f.artifact)(ctx);
+        f.artifact = template(f.artifact)(ctx);
       }
 
       if (f.abiOf) {
-        f.abiOf = _.map(f.abiOf, (v) => _.template(v)(ctx));
+        f.abiOf = _.map(f.abiOf, (v) => template(v)(ctx));
       }
     }
 
@@ -396,7 +396,7 @@ const invokeSpec = {
 
     for (const name in varsConfig) {
       const f = varsConfig[name];
-      f.event = _.template(f.event)(ctx);
+      f.event = template(f.event)(ctx);
     }
 
     return config;

@@ -3,8 +3,9 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
+import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
+import { handleTxnError } from '../error';
 import { deploySchema } from '../schemas';
-import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn, ARACHNID_DEFAULT_DEPLOY_ADDR } from '../create2';
 import {
   ChainArtifacts,
   ChainBuilderContext,
@@ -14,7 +15,7 @@ import {
   PackageState,
 } from '../types';
 import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
-import { handleTxnError } from '../error';
+import { template } from '../utils/template';
 
 const debug = Debug('cannon:builder:contract');
 
@@ -140,39 +141,39 @@ const deploySpec = {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     config = _.cloneDeep(config);
 
-    config.from = _.template(config.from)(ctx);
+    config.from = template(config.from || '')(ctx);
 
-    config.nonce = _.template(config.nonce)(ctx);
+    config.nonce = template(config.nonce || '')(ctx);
 
-    config.artifact = _.template(config.artifact)(ctx);
+    config.artifact = template(config.artifact)(ctx);
 
-    config.value = _.template(config.value)(ctx);
+    config.value = template(config.value || '')(ctx);
 
-    config.abi = _.template(config.abi)(ctx);
+    config.abi = template(config.abi || '')(ctx);
 
     if (config.abiOf) {
-      config.abiOf = _.map(config.abiOf, (v) => _.template(v)(ctx));
+      config.abiOf = _.map(config.abiOf, (v) => template(v)(ctx));
     }
 
     if (config.args) {
       config.args = _.map(config.args, (a) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
-        return JSON.parse(_.template(JSON.stringify(a))(ctx));
+        return JSON.parse(template(JSON.stringify(a))(ctx));
       });
     }
 
     if (config.libraries) {
       config.libraries = _.mapValues(config.libraries, (a) => {
-        return _.template(a)(ctx);
+        return template(a)(ctx);
       });
     }
 
     if (config.salt) {
-      config.salt = _.template(config.salt)(ctx);
+      config.salt = template(config.salt)(ctx);
     }
 
     if (config?.overrides?.gasLimit) {
-      config.overrides.gasLimit = _.template(config.overrides.gasLimit)(ctx);
+      config.overrides.gasLimit = template(config.overrides.gasLimit)(ctx);
     }
 
     return config;
