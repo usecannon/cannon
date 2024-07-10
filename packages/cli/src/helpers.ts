@@ -24,7 +24,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { cannonChain, chains } from './chains';
 import { resolveCliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
-import { getChainIdFromProviderUrl, isURL } from './util/provider';
+import { getChainIdFromProviderUrl, isURL, hideApiKey } from './util/provider';
 
 const debug = Debug('cannon:cli:helpers');
 
@@ -34,11 +34,8 @@ export async function filterSettings(settings: any) {
   const { cannonDirectory, privateKey, etherscanApiKey, ...filteredSettings } = settings;
 
   // Filters out API keys
-  filteredSettings.providerUrl = filteredSettings.providerUrl?.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32));
-  filteredSettings.registryProviderUrl = filteredSettings.registryProviderUrl?.replace(
-    RegExp(/[=A-Za-z0-9_-]{32,}/),
-    '*'.repeat(32)
-  );
+  filteredSettings.providerUrl = hideApiKey(filteredSettings.providerUrl);
+  filteredSettings.registryProviderUrl = hideApiKey(filteredSettings.registryProviderUrl);
 
   const filterUrlPassword = (uri: string) => {
     try {
