@@ -42,4 +42,4 @@ args = [0]
 [invoke.setGreeting]
 target = ["proxy.Proxy"]
 func = "setGreeting"
-args = ["<%= imports.proxy.contractss.EmptyContract.address %>"]
+args = ["hello world!"]
