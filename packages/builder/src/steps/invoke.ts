@@ -1,7 +1,6 @@
 import Debug from 'debug';
-import * as viem from 'viem';
-import { AbiFunction } from 'viem';
 import _ from 'lodash';
+import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { invokeSchema } from '../schemas';
@@ -21,6 +20,7 @@ import {
   getContractFromPath,
   getMergedAbiFromContractPaths,
 } from '../util';
+import { template } from '../utils/template';
 
 const debug = Debug('cannon:builder:invoke');
 
@@ -38,7 +38,7 @@ export interface InvokeOutputs {
   events?: EncodedTxnEvents[];
 }
 
-export function formatAbiFunction(v: AbiFunction) {
+export function formatAbiFunction(v: viem.AbiFunction) {
   return `${v.name}(${v.inputs.map((i) => i.type).join(',')})`;
 }
 
@@ -120,7 +120,7 @@ async function runTxn(
         `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
           config.func
         }" to determine owner. List of recognized functions is:\n${Object.keys(
-          contract.abi.filter((v) => v.type === 'function').map((v) => (v as AbiFunction).name)
+          contract.abi.filter((v) => v.type === 'function').map((v) => (v as viem.AbiFunction).name)
         ).join(
           '\n'
         )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it.`
@@ -354,7 +354,7 @@ const invokeSpec = {
     if (config.args) {
       config.args = _.map(config.args, (a) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
-        return JSON.parse(_.template(JSON.stringify(a))(ctx));
+        return JSON.parse(template(JSON.stringify(a), ctx));
       });
     }
 
