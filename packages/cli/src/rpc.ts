@@ -144,7 +144,7 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
               .createTestClient({
                 mode: 'anvil',
                 chain: anvilOptions.chainId ? getChainById(anvilOptions.chainId) || cannonChain : cannonChain,
-                transport: viem.http(host),
+                transport: viem.http(host, { timeout: 180000 }),
               })
               .extend(viem.publicActions)
               .extend(viem.walletActions) as any;
