@@ -1,7 +1,7 @@
+import Debug from 'debug';
 import _ from 'lodash';
 import { CannonHelperContext } from './types';
-
-import Debug from 'debug';
+import { template } from './utils/template';
 
 const debug = Debug('cannon:builder:access-recorder');
 
@@ -88,7 +88,7 @@ export function computeTemplateAccesses(str?: string, possibleNames: string[] = 
     recorders[n] = new AccessRecorder();
   }
 
-  const baseTemplate = _.template(str, {
+  const baseTemplate = template(str, {
     imports: recorders,
   });
 
