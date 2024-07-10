@@ -60,9 +60,9 @@ const cloneSpec = {
       config.source = PackageReference.from(ref.name, ref.version, config.sourcePreset).fullPackageRef;
     }
 
-    config.sourcePreset = config.sourcePreset && template(config.sourcePreset)(ctx);
-    config.targetPreset = (config.targetPreset && template(config.targetPreset)(ctx)) || `with-${packageState.name}`;
-    config.target = config.target && template(config.target)(ctx);
+    config.sourcePreset = template(config.sourcePreset)(ctx);
+    config.targetPreset = template(config.targetPreset)(ctx) || `with-${packageState.name}`;
+    config.target = template(config.target)(ctx);
 
     if (config.var) {
       config.var = _.mapValues(config.var, (v) => {

@@ -3,7 +3,7 @@ import _ from 'lodash';
 
 import type { TemplateOptions } from 'lodash';
 
-export function template(str: string, options?: TemplateOptions) {
+export function template(str?: string, options?: TemplateOptions) {
   const render = _.template(str, options);
 
   return (data?: object) => {

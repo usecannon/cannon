@@ -53,7 +53,7 @@ const pullSpec = {
     const packageRef = new PackageReference(template(config.source)(ctx));
 
     config.source = packageRef.fullPackageRef;
-    config.preset = template(config.preset || '')(ctx) || packageRef.preset;
+    config.preset = template(config.preset)(ctx) || packageRef.preset;
 
     return config;
   },

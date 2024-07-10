@@ -196,7 +196,7 @@ export class ChainDefinition {
   }
 
   getPreset(ctx: ChainBuilderContext) {
-    return template(this.raw.preset || 'main')(ctx);
+    return template(this.raw.preset)(ctx) || 'main';
   }
 
   isPublicSourceCode() {
@@ -286,7 +286,7 @@ export class ChainDefinition {
       Object.values(this.raw.import).map((d) => ({
         source: template(d.source)(ctx),
         chainId: d.chainId || ctx.chainId,
-        preset: template(d.preset || 'main')(ctx),
+        preset: template(d.preset)(ctx) || 'main',
       }))
     );
   }
