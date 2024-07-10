@@ -15,7 +15,7 @@ export function template(str: string, data = {}) {
           const allKeys = Array.from(getAllKeys(data));
           const results = fuzzySearch(allKeys, desiredKey);
           if (results.length) {
-            err.message += '\n\n Did you mean?';
+            err.message += "\n\n Here's a list of some fields available in this context, did you mean one of these?";
             for (const res of results) err.message += `\n    ${res}`;
           }
         }
