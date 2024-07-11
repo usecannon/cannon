@@ -90,7 +90,7 @@ export class PackageReference {
     if (match.groups.version) res.version = match.groups.version;
 
     const versionSize = res.name.length;
-    if (versionSize < 32) {
+    if (versionSize > 32) {
       throw new Error(`Package reference "${ref}" is too long. Package version exceeds 32 bytes`);
     }
 
