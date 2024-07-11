@@ -42,11 +42,11 @@ export const customErrorMap: z.ZodErrorMap = (error, ctx) => {
       }
     case z.ZodIssueCode.too_big:
       return {
-        message: `Expected ${error.path[0]} to equal less than ${error.maximum} but got ${ctx.data}`,
+        message: `Expected ${error.path[0]} to equal less than ${error.maximum} but got ${ctx.data.length}`,
       };
     case z.ZodIssueCode.too_small:
       return {
-        message: `Expected ${error.path[0]} to equal more than ${error.minimum} but got ${ctx.data}`,
+        message: `Expected ${error.path[0]} to equal more than ${error.minimum} but got ${ctx.data.length}`,
       };
     case z.ZodIssueCode.invalid_enum_value:
       return {
