@@ -83,14 +83,14 @@ export class PackageReference {
     const res: PartialRefValues = { name: match.groups.name };
 
     const nameSize = res.name.length;
-    if (!(nameSize <= 32)) {
+    if (nameSize > 32) {
       throw new Error(`Package reference "${ref}" is too long. Package name exceeds 32 bytes`);
     }
 
     if (match.groups.version) res.version = match.groups.version;
 
     const versionSize = res.name.length;
-    if (!(versionSize <= 32)) {
+    if (versionSize < 32) {
       throw new Error(`Package reference "${ref}" is too long. Package version exceeds 32 bytes`);
     }
 
@@ -102,10 +102,10 @@ export class PackageReference {
   static isValid(ref: string) {
     try {
       PackageReference.parse(ref);
+      return true;
     } catch (err) {
       return false;
     }
-    return !!PackageReference.PACKAGE_REGEX.test(ref);
   }
 
   static from(name: string, version?: string, preset?: string) {
@@ -214,9 +214,8 @@ export async function preparePublishPackage({
 
     const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId!, deployInfo.options);
 
-    const curFullPackageRef = `${def.getName(preCtx)}:${def.getVersion(preCtx)}@${
-      context && context.preset ? context.preset : presetRef
-    }`;
+    const curFullPackageRef = `${def.getName(preCtx)}:${def.getVersion(preCtx)}@${context && context.preset ? context.preset : presetRef
+      }`;
 
     // if the package has already been published to the registry and it has the same ipfs hash, skip.
     const toUrl = await toStorage.registry.getUrl(curFullPackageRef, chainId);
