@@ -58,7 +58,6 @@ export const hideApiKey = (providerUrl: string) => {
     parsedUrl.pathname = pathParts.join('/');
     return parsedUrl.toString();
   } catch (error) {
-    debug('error processing url:', error);
     return providerUrl; // return original URL if parsing fails
   }
 };
