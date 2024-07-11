@@ -50,6 +50,24 @@ describe('steps/clone.ts', () => {
     });
   });
 
+  describe('getInputs()', () => {
+    it('has inputs', async () => {
+      expect(
+        action.getInputs(
+          {
+            source: '<%= settings.a %>',
+            var: { woot: '<%= settings.b %>', wah: '<%= settings.c %>' },
+            options: { woot: '<%= settings.d %>', wah: '<%= settings.e %>', tags: '<%= settings.f %>' },
+          },
+          []
+        )
+      ).toEqual({
+        accesses: ['settings.a', 'settings.b', 'settings.c', 'settings.d', 'settings.e', 'settings.f'],
+        unableToCompute: false,
+      });
+    });
+  });
+
   describe('configInject()', () => {
     it('injects all fields', async () => {
       const result = action.configInject(
