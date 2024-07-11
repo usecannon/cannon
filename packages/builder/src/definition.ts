@@ -5,6 +5,7 @@ import { ActionKinds, RawChainDefinition, validateConfig } from './actions';
 import { ChainBuilderRuntime } from './runtime';
 import { chainDefinitionSchema } from './schemas';
 import { CannonHelperContext, ChainBuilderContext } from './types';
+import { template } from './utils/template';
 
 const debug = Debug('cannon:builder:definition');
 const debugVerbose = Debug('cannon:verbose:builder:definition');
@@ -179,7 +180,7 @@ export class ChainDefinition {
   }
 
   getName(ctx: ChainBuilderContext) {
-    const n = _.template(this.raw.name)(ctx);
+    const n = template(this.raw.name)(ctx);
 
     validatePackageName(n);
 
@@ -187,7 +188,7 @@ export class ChainDefinition {
   }
 
   getVersion(ctx: ChainBuilderContext) {
-    const v = _.template(this.raw.version)(ctx);
+    const v = template(this.raw.version)(ctx);
 
     validatePackageVersion(v);
 
@@ -195,7 +196,7 @@ export class ChainDefinition {
   }
 
   getPreset(ctx: ChainBuilderContext) {
-    return _.template(this.raw.preset)(ctx) || 'main';
+    return template(this.raw.preset)(ctx) || 'main';
   }
 
   isPublicSourceCode() {
@@ -283,9 +284,9 @@ export class ChainDefinition {
     // can do about this right now
     return _.uniq(
       Object.values(this.raw.import).map((d) => ({
-        source: _.template(d.source)(ctx),
+        source: template(d.source)(ctx),
         chainId: d.chainId || ctx.chainId,
-        preset: _.template(d.preset || 'main')(ctx),
+        preset: template(d.preset)(ctx) || 'main',
       }))
     );
   }

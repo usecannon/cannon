@@ -21,13 +21,14 @@ import { table } from 'table';
 import * as viem from 'viem';
 import pkg from '../../package.json';
 import { getChainById } from '../chains';
-import { filterSettings, readMetadataCache } from '../helpers';
+import { filterSettings, saveToMetadataCache } from '../helpers';
 import { getMainLoader } from '../loader';
 import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
+import { hideApiKey } from '../util/provider';
 
 import fs from 'fs-extra';
 import path from 'path';
@@ -227,13 +228,8 @@ export async function build({
       : typeof providerUrl === 'string'
       ? providerUrl.split(',')[0]
       : providerUrl;
-  console.log(
-    bold(
-      `Building the chain (ID ${chainId})${
-        providerUrlMsg ? ' via ' + providerUrlMsg.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32)) : ''
-      }...`
-    )
-  );
+
+  console.log(bold(`Building the chain (ID ${chainId})${providerUrlMsg ? ' via ' + hideApiKey(providerUrlMsg) : ''}...`));
 
   let defaultSignerAddress: string;
   if (getDefaultSigner) {
@@ -423,11 +419,19 @@ export async function build({
       chainId: runtime.chainId,
     });
 
-    const metadata = await readMetadataCache(`${pkgName}:${pkgVersion}`);
+    const metadataCache: { [key: string]: string } = {};
+
+    if (!_.isEmpty(pkgInfo)) {
+      metadataCache.gitUrl = pkgInfo.gitUrl;
+      metadataCache.commitHash = pkgInfo.commitHash;
+      metadataCache.readme = pkgInfo.readme;
+    }
+
+    // store metadata to /metadata_cache folder
+    const metadata = await saveToMetadataCache(`${pkgName}_${pkgVersion}_${runtime.chainId}-${preset}`, metadataCache);
 
     const metaUrl = await runtime.putBlob(metadata);
 
-    // locally store cannon packages (version + latest)
     await resolver.publish([fullPackageRef, `${name}:latest@${preset}`], runtime.chainId, deployUrl!, metaUrl!);
 
     // detach the process handler
