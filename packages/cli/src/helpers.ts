@@ -24,7 +24,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { cannonChain, chains } from './chains';
 import { resolveCliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
-import { getChainIdFromProviderUrl, isURL } from './util/provider';
+import { getChainIdFromProviderUrl, isURL, hideApiKey } from './util/provider';
 
 const debug = Debug('cannon:cli:helpers');
 
@@ -34,11 +34,8 @@ export async function filterSettings(settings: any) {
   const { cannonDirectory, privateKey, etherscanApiKey, ...filteredSettings } = settings;
 
   // Filters out API keys
-  filteredSettings.providerUrl = filteredSettings.providerUrl?.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32));
-  filteredSettings.registryProviderUrl = filteredSettings.registryProviderUrl?.replace(
-    RegExp(/[=A-Za-z0-9_-]{32,}/),
-    '*'.repeat(32)
-  );
+  filteredSettings.providerUrl = hideApiKey(filteredSettings.providerUrl);
+  filteredSettings.registryProviderUrl = hideApiKey(filteredSettings.registryProviderUrl);
 
   const filterUrlPassword = (uri: string) => {
     try {
@@ -342,14 +339,26 @@ export async function ensureChainIdConsistency(providerUrl?: string, chainId?: n
 
 function getMetadataPath(packageName: string): string {
   const cliSettings = resolveCliSettings();
-  return path.join(cliSettings.cannonDirectory, 'metadata_cache', `${packageName.replace(':', '_')}.txt`);
+  return path.join(cliSettings.cannonDirectory, 'metadata_cache', `${packageName.replace(':', '_')}.json`);
 }
 
-export async function saveToMetadataCache(packageName: string, key: string, value: string) {
+export async function saveToMetadataCache(packageName: string, updatedMetadata: { [key: string]: string }) {
   const metadataCache = await readMetadataCache(packageName);
-  metadataCache[key] = value;
+
+  // merge metadatas
+  const updatedMetadataCache = {
+    ...metadataCache,
+    ...updatedMetadata,
+  };
+
+  // create directory if not exists
   await fs.mkdirp(path.dirname(getMetadataPath(packageName)));
-  await fs.writeJson(getMetadataPath(packageName), metadataCache);
+
+  // save metadata to cache
+  await fs.writeJson(getMetadataPath(packageName), updatedMetadataCache);
+
+  // return updated metadata cache
+  return updatedMetadataCache;
 }
 
 export async function readMetadataCache(packageName: string): Promise<{ [key: string]: string }> {

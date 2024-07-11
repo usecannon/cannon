@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@usecannon/builder": "^2.15.6",
+    "@usecannon/builder": "^2.15.7",
     "@usecannon/cli": "^2.15.6",
     "dotenv": "^16.4.5",
     "envalid": "^8.0.0",
