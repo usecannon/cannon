@@ -158,8 +158,7 @@ export async function publish({
   }
 
   if (!publishCalls.length) {
-    console.log(bold("The package seems to be already published, and there isn't anything new to publish."));
-    process.exit(1);
+    throw new Error("There isn't anything new to publish.");
   }
 
   if (!skipConfirm) {
@@ -184,7 +183,7 @@ export async function publish({
         totalFees > 0n &&
         totalFees >= (await onChainRegistry.provider!.getBalance({ address: onChainRegistry.signer!.address }))
       ) {
-        throw new Error('you do not appear to have enough ETH in your wallet to publish');
+        throw new Error('You do not appear to have enough ETH in your wallet to publish');
       }
     }
 
