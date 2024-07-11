@@ -40,6 +40,10 @@ export async function filterSettings(settings: any) {
   const filterUrlPassword = (uri: string) => {
     try {
       const res = new URL(uri);
+      // If no password exists, return the string
+      if (!res.password) {
+        return res.toString();
+      }
       res.password = '*'.repeat(10);
       return res.toString();
     } catch (err) {
