@@ -40,6 +40,10 @@ export async function filterSettings(settings: any) {
   const filterUrlPassword = (uri: string) => {
     try {
       const res = new URL(uri);
+      // If no password exists, return the string
+      if (!res.password) {
+        return res.toString();
+      }
       res.password = '*'.repeat(10);
       return res.toString();
     } catch (err) {
@@ -339,14 +343,26 @@ export async function ensureChainIdConsistency(providerUrl?: string, chainId?: n
 
 function getMetadataPath(packageName: string): string {
   const cliSettings = resolveCliSettings();
-  return path.join(cliSettings.cannonDirectory, 'metadata_cache', `${packageName.replace(':', '_')}.txt`);
+  return path.join(cliSettings.cannonDirectory, 'metadata_cache', `${packageName.replace(':', '_')}.json`);
 }
 
-export async function saveToMetadataCache(packageName: string, key: string, value: string) {
+export async function saveToMetadataCache(packageName: string, updatedMetadata: { [key: string]: string }) {
   const metadataCache = await readMetadataCache(packageName);
-  metadataCache[key] = value;
+
+  // merge metadatas
+  const updatedMetadataCache = {
+    ...metadataCache,
+    ...updatedMetadata,
+  };
+
+  // create directory if not exists
   await fs.mkdirp(path.dirname(getMetadataPath(packageName)));
-  await fs.writeJson(getMetadataPath(packageName), metadataCache);
+
+  // save metadata to cache
+  await fs.writeJson(getMetadataPath(packageName), updatedMetadataCache);
+
+  // return updated metadata cache
+  return updatedMetadataCache;
 }
 
 export async function readMetadataCache(packageName: string): Promise<{ [key: string]: string }> {
