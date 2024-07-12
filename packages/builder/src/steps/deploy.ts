@@ -229,7 +229,7 @@ const deploySpec = {
 
     // sanity check that any connected libraries are bytecoded
     for (const lib in config.libraries || {}) {
-      if ((await runtime.provider.getBytecode({ address: config.libraries![lib] as viem.Address })) === '0x') {
+      if ((await runtime.provider.getCode({ address: config.libraries![lib] as viem.Address })) === '0x') {
         throw new Error(`library ${lib} has no bytecode. This is most likely a missing dependency or bad state.`);
       }
     }
@@ -285,7 +285,7 @@ const deploySpec = {
         const [create2Txn, addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!, arachnidDeployerAddress);
         debug(`create2: deploy ${addr} by ${arachnidDeployerAddress}`);
 
-        const bytecode = await runtime.provider.getBytecode({ address: addr });
+        const bytecode = await runtime.provider.getCode({ address: addr });
 
         if (bytecode && bytecode !== '0x') {
           debug('create2 contract already completed');
@@ -317,7 +317,7 @@ const deploySpec = {
           debug(`contract appears already deployed to address ${contractAddress} (nonce too high)`);
 
           // check that the contract bytecode that was deployed matches the requested
-          const actualBytecode = await runtime.provider.getBytecode({ address: contractAddress });
+          const actualBytecode = await runtime.provider.getCode({ address: contractAddress });
           // we only check the length because solidity puts non-substantial changes (ex. comments) in bytecode and that
           // shouldn't trigger any significant change. And also this is just kind of a sanity check so just verifying the
           // length should be sufficient
