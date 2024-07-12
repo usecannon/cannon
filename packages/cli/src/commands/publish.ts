@@ -157,6 +157,10 @@ export async function publish({
     publishCalls.push(...calls);
   }
 
+  if (!publishCalls.length) {
+    throw new Error("There isn't anything new to publish.");
+  }
+
   if (!skipConfirm) {
     for (const publishCall of publishCalls) {
       const packageName = new PackageReference(publishCall.packagesNames[0]).name;
@@ -179,7 +183,7 @@ export async function publish({
         totalFees > 0n &&
         totalFees >= (await onChainRegistry.provider!.getBalance({ address: onChainRegistry.signer!.address }))
       ) {
-        throw new Error('you do not appear to have enough ETH in your wallet to publish');
+        throw new Error('You do not appear to have enough ETH in your wallet to publish');
       }
     }
 
