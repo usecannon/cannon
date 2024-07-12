@@ -197,7 +197,7 @@ export async function preparePublishPackage({
   const packageReference = PackageReference.isValid(packageRef) ? new PackageReference(packageRef) : null;
 
   const presetRef = packageReference ? packageReference.preset : 'main';
-  const fullPackageRef = packageReference ? packageReference.fullPackageRef : packageRef;
+  const givenPackageRef = packageReference ? packageReference.fullPackageRef : packageRef;
 
   const alreadyCopiedIpfs = new Map<string, any>();
 
@@ -282,11 +282,11 @@ export async function preparePublishPackage({
     return returnVal;
   };
 
-  const deployData = await fromStorage.readDeploy(fullPackageRef, chainId);
+  const deployData = await fromStorage.readDeploy(givenPackageRef, chainId);
 
   if (!deployData) {
     throw new Error(
-      `could not find deployment artifact for ${fullPackageRef} with chain id "${chainId}". Please double check your settings, and rebuild your package.`
+      `could not find deployment artifact for ${givenPackageRef} with chain id "${chainId}". Please double check your settings, and rebuild your package.`
     );
   }
 

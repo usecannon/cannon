@@ -1,11 +1,11 @@
 import {
   CannonRegistry,
   CannonStorage,
+  getCannonRepoRegistryUrl,
   IPFSLoader,
   OnChainRegistry,
   PackagePublishCall,
   PackageReference,
-  getCannonRepoRegistryUrl,
   preparePublishPackage,
 } from '@usecannon/builder';
 import { blueBright, bold, gray, yellow } from 'chalk';
@@ -130,13 +130,15 @@ export async function publish({
 
   // "dedupe" the deploys so that when we iterate we can go over every package deployment by version
   const parentPackages: DeployList[] = deployNames.reduce((result: DeployList[], item) => {
-    const matchingDeploys = result.find((i) => i.name === item.name && i.preset === item.preset);
+    const matchingDeploys = result.find((i) => !i.name.startsWith('@') && i.name === item.name && i.preset === item.preset);
 
     if (matchingDeploys) {
       matchingDeploys.versions.push(item.version);
     } else {
-      result.push({ name: item.name, versions: [item.version], chainId: item.chainId, preset: item.preset });
+      const versions = item.name.startsWith('@') ? [] : [item.version];
+      result.push({ name: item.name, versions, chainId: item.chainId, preset: item.preset });
     }
+
     return result;
   }, []);
 

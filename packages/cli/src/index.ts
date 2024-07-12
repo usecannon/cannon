@@ -412,46 +412,45 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     ).pickedRegistryProvider;
   }
 
-  // Check if the package is already registered
-  const [optimism, mainnet] = DEFAULT_REGISTRY_CONFIG;
+  // TODO: fix the registered check to take into account @ipfs:Qm...
+  // if (isDefaultSettings) {
+  //   // Check if the package is already registered
+  //   const [optimism, mainnet] = DEFAULT_REGISTRY_CONFIG;
 
-  const [optimismProvider, mainnetProvider] = await resolveRegistryProviders(cliSettings);
+  //   const [optimismProvider, mainnetProvider] = await resolveRegistryProviders(cliSettings);
 
-  const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, [
-    mainnet.address,
-    optimism.address,
-  ]);
+  //   const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, [
+  //     mainnet.address,
+  //     optimism.address,
+  //   ]);
 
-  console.log('isRegistered: ', isRegistered);
+  //   if (!isRegistered) {
+  //     console.log();
+  //     console.log(
+  //       gray(
+  //         `Package "${
+  //           packageRef.split(':')[0]
+  //         }" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
+  //       )
+  //     );
+  //     console.log();
 
-  if (!isRegistered) {
-    console.log();
-    console.log(
-      gray(
-        `Package "${
-          packageRef.split(':')[0]
-        }" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
-      )
-    );
-    console.log();
+  //     const registerPrompt = await prompts({
+  //       type: 'confirm',
+  //       name: 'value',
+  //       message: 'Would you like to register the package now?',
+  //       initial: true,
+  //     });
 
-    if (!options.skipConfirm) {
-      const registerPrompt = await prompts({
-        type: 'confirm',
-        name: 'value',
-        message: 'Would you like to register the package now?',
-        initial: true,
-      });
+  //     if (!registerPrompt.value) {
+  //       return process.exit(0);
+  //     }
 
-      if (!registerPrompt.value) {
-        return process.exit(0);
-      }
-    }
+  //     const { register } = await import('./commands/register');
 
-    const { register } = await import('./commands/register');
-
-    await register({ cliSettings, options, packageRefs: [new PackageReference(packageRef)], fromPublish: true });
-  }
+  //     await register({ cliSettings, options, packageRefs: [new PackageReference(packageRef)], fromPublish: true });
+  //   }
+  // }
 
   const overrides: any = {};
 
