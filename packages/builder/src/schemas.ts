@@ -541,7 +541,11 @@ export const cloneSchema = z
          *  (DEPRECATED) use `target` instead. Set the new preset to use for this package.
          * Default - "main"
          */
-        targetPreset: z.string().describe('Set the new preset to use for this package. Default - "main"'),
+        targetPreset: z
+          .string()
+          .describe(
+            '⚠ Deprecated in favor using target only with format packageName:version@targetPreset. Set the new preset to use for this package. Default - "main"'
+          ),
         /**
          *  The settings to be used when initializing this Cannonfile.
          *  Overrides any defaults preset in the source package.
