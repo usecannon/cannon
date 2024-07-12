@@ -21,10 +21,12 @@ import {
   OptionProps,
   SingleValueProps,
 } from 'chakra-react-select';
+import * as viem from 'viem';
 import deepEqual from 'fast-deep-equal';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useSwitchChain } from 'wagmi';
+
 import Chain from '@/features/Search/PackageCard/Chain';
 import { truncateAddress } from '@/helpers/ethereum';
 
@@ -45,9 +47,9 @@ export function SafeAddressInput() {
   const pendingServiceTransactions = usePendingTransactions(currentSafe);
 
   const { switchChain } = useSwitchChain();
+
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const { asPath: pathname, query: searchParams } = router;
 
   const safeOptions = _safesToOptions(safeAddresses, { isDeletable: true });
   const walletSafeOptions = _safesToOptions(
@@ -56,66 +58,86 @@ export function SafeAddressInput() {
 
   // Load the safe address from url
   useEffect(() => {
-    if (searchParams.has('address') || searchParams.has('chainId')) {
-      const chainId = searchParams.get('chainId');
-      const address = searchParams.get('address');
-      const newSafe = parseSafe(`${chainId}:${address}`);
+    const { address, chainId } = searchParams;
 
-      if (isValidSafe(newSafe)) {
-        if (!deepEqual(currentSafe, newSafe)) {
-          setState({ currentSafe: newSafe });
-        }
+    if (!Number.isSafeInteger(Number(chainId))) return;
+    if (!viem.isAddress(address as string)) return;
 
-        if (!includes(safeAddresses, newSafe)) {
-          prependSafeAddress(newSafe);
-        }
+    const newSafe = parseSafe(`${chainId}:${address}`);
 
-        if (switchChain) {
-          switchChain({ chainId: newSafe.chainId });
-        }
-      } else {
-        const newSearchParams = new URLSearchParams(
-          Array.from(searchParams.entries())
-        );
-        newSearchParams.delete('chainId');
-        newSearchParams.delete('address');
-        const search = newSearchParams.toString();
-        const query = `${'?'.repeat(search.length && 1)}${search}`;
-        router.push(`${pathname}${query}`);
+    if (isValidSafe(newSafe)) {
+      if (!deepEqual(currentSafe, newSafe)) {
+        setState({ currentSafe: newSafe });
       }
-    }
-  }, []);
 
-  // Keep the current safe in the url params
-  useEffect(() => {
-    if (
-      pathname.startsWith(links.DEPLOY) &&
-      currentSafe &&
-      !searchParams.has('address') &&
-      !searchParams.has('chainId')
-    ) {
-      const newSearchParams = new URLSearchParams(
-        Array.from(searchParams.entries())
-      );
-      newSearchParams.set('chainId', currentSafe.chainId.toString());
-      newSearchParams.set('address', currentSafe.address);
-      const search = newSearchParams.toString();
-      const query = `${'?'.repeat(search.length && 1)}${search}`;
-      router.push(`${pathname}${query}`);
-    }
-  }, [pathname]);
+      if (!includes(safeAddresses, newSafe)) {
+        prependSafeAddress(newSafe);
+      }
 
-  // If the user puts a correct address in the input, update the url
-  function handleSafeChange(safeString: SafeString) {
-    if (!safeString) {
+      if (switchChain) {
+        switchChain({ chainId: newSafe.chainId });
+      }
+    } else {
       const newSearchParams = new URLSearchParams(
-        Array.from(searchParams.entries())
+        Array.from(Object.entries(searchParams)) as any
       );
       newSearchParams.delete('chainId');
       newSearchParams.delete('address');
       const search = newSearchParams.toString();
       const query = `${'?'.repeat(search.length && 1)}${search}`;
-      router.push(`${pathname}${query}`);
+      router
+        .push(`${pathname}${query}`)
+        .then(() => {
+          // do nothing
+        })
+        .catch(() => {
+          // do nothing
+        });
+    }
+  }, [searchParams]);
+
+  // Keep the current safe in the url params
+  useEffect(() => {
+    // can't do it with router().query because it is empty on first render
+    const queryStrings = pathname.split('?').pop();
+    const formattedQueryStrings = new URLSearchParams(queryStrings);
+    const address = formattedQueryStrings.get('address');
+    const chainId = formattedQueryStrings.get('chainId');
+
+    if (
+      pathname.startsWith(links.DEPLOY) &&
+      currentSafe &&
+      !address &&
+      !chainId
+    ) {
+      const newSearchParams = new URLSearchParams();
+      newSearchParams.set('chainId', currentSafe.chainId.toString());
+      newSearchParams.set('address', currentSafe.address);
+      const search = newSearchParams.toString();
+      const query = `${'?'.repeat(search.length && 1)}${search}`;
+
+      router
+        .push(`${pathname}${query}`)
+        .then(() => {
+          // do nothing
+        })
+        .catch(() => {
+          // do nothing
+        });
+    }
+  }, [pathname]);
+
+  // If the user puts a correct address in the input, update the url
+  async function handleSafeChange(safeString: SafeString) {
+    if (!safeString) {
+      const newSearchParams = new URLSearchParams(
+        Array.from(Object.entries(searchParams)) as any
+      );
+      newSearchParams.delete('chainId');
+      newSearchParams.delete('address');
+      const search = newSearchParams.toString();
+      const query = `${'?'.repeat(search.length && 1)}${search}`;
+      await router.push(`${pathname}${query}`);
       setState({ currentSafe: null });
       return;
     }
@@ -124,33 +146,33 @@ export function SafeAddressInput() {
 
     setCurrentSafe(selectedSafe);
     const newSearchParams = new URLSearchParams(
-      Array.from(searchParams.entries())
+      Array.from(Object.entries(searchParams)) as any
     );
     newSearchParams.set('chainId', selectedSafe.chainId.toString());
     newSearchParams.set('address', selectedSafe.address);
     const search = newSearchParams.toString();
     const query = `${'?'.repeat(search.length && 1)}${search}`;
-    router.push(`${pathname}${query}`);
+    await router.push(`${pathname}${query}`);
 
     if (switchChain) {
       switchChain({ chainId: selectedSafe.chainId });
     }
   }
 
-  function handleSafeCreate(newSafeAddress: string) {
+  async function handleSafeCreate(newSafeAddress: string) {
     const newSafe = getSafeFromString(newSafeAddress);
     if (newSafe) {
       prependSafeAddress(newSafe);
       setState({ currentSafe: newSafe });
 
       const newSearchParams = new URLSearchParams(
-        Array.from(searchParams.entries())
+        Array.from(Object.entries(searchParams)) as any
       );
       newSearchParams.set('chainId', newSafe.chainId.toString());
       newSearchParams.set('address', newSafe.address);
       const search = newSearchParams.toString();
       const query = `${'?'.repeat(search.length && 1)}${search}`;
-      router.push(`${pathname}${query}`);
+      await router.push(`${pathname}${query}`);
 
       if (switchChain) {
         switchChain({ chainId: newSafe.chainId });

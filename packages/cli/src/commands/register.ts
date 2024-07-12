@@ -1,24 +1,25 @@
 import _ from 'lodash';
+import Debug from 'debug';
 import * as viem from 'viem';
 import prompts from 'prompts';
 import { blueBright, gray, green } from 'chalk';
-import { OnChainRegistry, prepareMulticall } from '@usecannon/builder';
+import { OnChainRegistry, prepareMulticall, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 
 import { CliSettings } from '../settings';
-import { PackageSpecification } from '../types';
-import { DEFAULT_REGISTRY_CONFIG } from '../constants';
 import { resolveRegistryProviders } from '../util/provider';
 import { isPackageRegistered, waitForEvent } from '../util/register';
 import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 
+const debug = Debug('cannon:cli:register');
+
 interface Params {
   cliSettings: CliSettings;
   options: any;
-  packageRef: PackageSpecification[];
+  packageRefs: PackageReference[];
   fromPublish: boolean;
 }
 
-export async function register({ cliSettings, options, packageRef, fromPublish }: Params) {
+export async function register({ cliSettings, options, packageRefs, fromPublish }: Params) {
   if (!cliSettings.privateKey) {
     const keyPrompt = await prompts({
       type: 'text',
@@ -38,24 +39,43 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
+  // mock provider urls when the execution comes from e2e tests
+  if (cliSettings.isE2E) {
+    // anvil optimism fork
+    cliSettings.registries[0].providerUrl = ['http://127.0.0.1:9546'];
+    // anvil mainnet fork
+    cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
+  }
+
+  debug('Registries list: ', cliSettings.registries);
+
   const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
   const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
 
   // if any of the packages are registered, throw an error
   const isRegistered = await Promise.all(
-    packageRef.map(async (pkg: PackageSpecification) => {
+    packageRefs.map(async (pkg: PackageReference) => {
       // Run the two registry checks in parallel
-      const [isRegisteredOnMainnet, isRegisteredOnOptimism] = await Promise.all([
-        isPackageRegistered([mainnetRegistryProvider], pkg.name, [mainnetRegistryConfig.address]),
+      const [isRegisteredOnOptimism, isRegisteredOnMainnet] = await Promise.all([
         isPackageRegistered([optimismRegistryProvider], pkg.name, [optimismRegistryConfig.address]),
+        isPackageRegistered([mainnetRegistryProvider], pkg.name, [mainnetRegistryConfig.address]),
       ]);
+
+      debug(
+        'Package name: ' +
+          pkg.name +
+          ' isRegisteredOnOptimism: ' +
+          isRegisteredOnOptimism +
+          ' isRegisteredOnMainnet: ' +
+          isRegisteredOnMainnet
+      );
 
       // Throw an error if the package is registered on both
       if (isRegisteredOnMainnet && isRegisteredOnOptimism) {
         throw new Error(`The package "${pkg.name}" is already registered.`);
       }
 
-      return [isRegisteredOnMainnet, isRegisteredOnOptimism];
+      return [isRegisteredOnOptimism, isRegisteredOnMainnet];
     })
   );
 
@@ -82,6 +102,8 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   const userAddress = mainnetRegistryProvider.signers[0].address;
 
+  debug('Address that will send the transaction: ', userAddress);
+
   const userBalance = await mainnetRegistryProvider.provider.getBalance({ address: userAddress });
 
   if (userBalance === BigInt(0)) {
@@ -90,10 +112,15 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   const registerFee = await mainnetRegistry.getRegisterFee();
 
+  debug('Register fee: ', viem.formatEther(registerFee));
+
   const transactions = await Promise.all(
-    packageRef.map((pkg: PackageSpecification, index: number) => {
-      const [isRegisteredOnMainnet, isRegisteredOnOptimism] = isRegistered[index];
+    packageRefs.map((pkg: PackageReference, index: number) => {
+      const [isRegisteredOnOptimism, isRegisteredOnMainnet] = isRegistered[index];
+
       const shouldNominateOwner = isRegisteredOnMainnet && !isRegisteredOnOptimism;
+
+      debug('Should nominate owner for package: ', pkg.name, ' - ', shouldNominateOwner ? 'yes' : 'no');
 
       return mainnetRegistry.prepareSetPackageOwnership(pkg.name, undefined, shouldNominateOwner);
     })
@@ -116,21 +143,24 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   console.log('');
   console.log('You are about to register the following packages:');
-  packageRef.forEach((pkg: PackageSpecification) => console.log(' - Package:', blueBright(pkg.name)));
+  packageRefs.forEach((pkg: PackageReference) => console.log(' - Package:', blueBright(pkg.name)));
   console.log();
   console.log(
     `The transaction will cost ~${viem.formatEther(estimateGas * currentGasPrice)} ETH on ${mainnetRegistryConfig.name}.`
   );
   console.log('');
 
-  const confirm = await prompts({
-    type: 'confirm',
-    name: 'confirmation',
-    message: 'Proceed?',
-  });
+  if (!options.skipConfirm) {
+    const confirm = await prompts({
+      type: 'confirm',
+      name: 'confirmation',
+      message: 'Proceed?',
+    });
 
-  if (!confirm.confirmation) {
-    process.exit(0);
+    if (!confirm.confirmation) {
+      console.log('Cancelled');
+      process.exit(1);
+    }
   }
 
   console.log('Submitting transaction...');
@@ -154,14 +184,14 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
       (async () => {
         // this should always resolve after the first promise but we want to make sure it runs at the same time
         return Promise.all(
-          packageRef.map((pkg: PackageSpecification) => {
+          packageRefs.map((pkg: PackageReference) => {
             const packageNameHex = viem.stringToHex(pkg.name, { size: 32 });
 
             return Promise.all([
               waitForEvent({
                 eventName: 'PackageOwnerChanged',
                 abi: mainnetRegistry.contract.abi,
-                chainId: optimismRegistryConfig.chainId!,
+                providerUrl: optimismRegistryConfig.providerUrl![0],
                 expectedArgs: {
                   name: packageNameHex,
                   owner: userAddress,
@@ -170,7 +200,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
               waitForEvent({
                 eventName: 'PackagePublishersChanged',
                 abi: mainnetRegistry.contract.abi,
-                chainId: optimismRegistryConfig.chainId!,
+                providerUrl: optimismRegistryConfig.providerUrl![0],
                 expectedArgs: {
                   name: packageNameHex,
                   publisher: [userAddress],
@@ -185,7 +215,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
     if (fromPublish) {
       console.log(gray('We will continue with the publishing process.'));
     } else {
-      packageRef.map(async (pkg) => {
+      packageRefs.map(async (pkg) => {
         console.log(green(`Success - Package "${pkg.name}" has been registered.`));
       });
     }

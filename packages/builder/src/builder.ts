@@ -123,11 +123,13 @@ ${printChainDefinitionProblems(problems)}`);
           addOutputsToContext(ctx, state[n].artifacts);
         }
 
+        runtime.reportOperatingContext(ctx);
+
         try {
           const curHashes = await def.getState(n, runtime, ctx, depsTainted);
 
           debug('comparing states', state[n] ? state[n].hash : null, curHashes);
-          if (!state[n] || (curHashes && !curHashes.includes(state[n].hash || ''))) {
+          if (!state[n] || (state[n].hash !== 'SKIP' && curHashes && !curHashes.includes(state[n].hash || ''))) {
             debug('run isolated', n);
             const newArtifacts = await runStep(runtime, { name, version, currentLabel: n }, def.getConfig(n, ctx), ctx);
 
@@ -145,12 +147,18 @@ ${printChainDefinitionProblems(problems)}`);
           }
 
           built.set(n, _.merge(artifacts, state[n].artifacts));
+
+          // if there is an error then this will ensure the stack trace is printed with the latest
+          runtime.updateProviderArtifacts(state[n].artifacts);
         } catch (err: any) {
           debug('got error', err);
           if (runtime.allowPartialDeploy) {
             runtime.emit(Events.SkipDeploy, n, err, 0);
             continue; // will skip saving the build artifacts, which should block any future jobs from finishing
           } else {
+            // fake emit the pre step execute so its easier to see what is going on
+            const [type, label] = n.split('.') as [keyof typeof ActionKinds, string];
+            runtime.emit(Events.PreStepExecute, type, label, {}, 0);
             // make sure its possible to debug the original error
             debug('error', err);
             debugVerbose('context', JSON.stringify(ctx, null, 2));
@@ -165,6 +173,8 @@ ${printChainDefinitionProblems(problems)}`);
     debugVerbose('context', JSON.stringify(ctx, null, 2));
     throw err;
   }
+
+  runtime.reportOperatingContext(null);
 
   return state;
 }
@@ -226,6 +236,8 @@ export async function buildLayer(
       addOutputsToContext(ctx, state[action].artifacts);
     }
 
+    runtime.reportOperatingContext(ctx);
+
     try {
       const curHashes = await def.getState(action, runtime, ctx, false);
 
@@ -244,8 +256,10 @@ export async function buildLayer(
       // make sure its possible to debug the original error
       debug('error', err);
 
-      // now log a more friendly message
-      throw new Error(`Failure on operation ${action}: ${(err as Error).toString()}`);
+      // fake emit the pre step execute so its easier to see what is going on
+      const [type, label] = action.split('.') as [keyof typeof ActionKinds, string];
+      runtime.emit(Events.PreStepExecute, type, label, {}, 0);
+      throw err;
     }
   }
 
@@ -305,6 +319,9 @@ export async function buildLayer(
 
       tainted.add(action);
       built.set(action, _.merge(depArtifacts, state[action].artifacts));
+
+      // if there is an error then this will ensure the stack trace is printed with the latest
+      runtime.updateProviderArtifacts(state[action].artifacts);
     }
 
     // after all contexts are built, save all of them at the same time
@@ -322,9 +339,6 @@ export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageSta
   runtime.emit(Events.PreStepExecute, type, label, cfg, 0);
 
   debugVerbose('ctx for operation', pkgState.currentLabel, ctx);
-
-  // if there is an error then this will ensure the stack trace is printed with the latest
-  runtime.updateProviderArtifacts(ctx);
 
   const result = await viem.withTimeout(
     () => {

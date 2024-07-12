@@ -144,7 +144,7 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
               .createTestClient({
                 mode: 'anvil',
                 chain: anvilOptions.chainId ? getChainById(anvilOptions.chainId) || cannonChain : cannonChain,
-                transport: viem.http(host),
+                transport: viem.http(host, { timeout: 180000 }),
               })
               .extend(viem.publicActions)
               .extend(viem.walletActions) as any;
@@ -163,7 +163,9 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
       }),
     {
       timeout: ANVIL_OP_TIMEOUT,
-      errorInstance: new Error('anvil failed to start'),
+      errorInstance: new Error(
+        'Timeout - Anvil failed to start. If you are using a VPN or firewall, it might be causing a connection issue. Try disabling them.'
+      ),
     }
   );
 }

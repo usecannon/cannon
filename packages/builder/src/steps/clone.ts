@@ -2,6 +2,7 @@ import { yellow } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
+import pkg from '../../package.json';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { build, createInitialContext, getOutputs } from '../builder';
 import { CANNON_CHAIN_ID } from '../constants';
@@ -16,8 +17,7 @@ import {
   DeploymentState,
   PackageState,
 } from '../types';
-
-import pkg from '../../package.json';
+import { template } from '../utils/template';
 
 const debug = Debug('cannon:builder:clone');
 
@@ -52,7 +52,7 @@ const cloneSpec = {
       throw new Error(`only one of \`target\` and \`targetPreset\` can specified for ${packageState.name}`);
     }
 
-    const ref = new PackageReference(_.template(config.source)(ctx));
+    const ref = new PackageReference(template(config.source)(ctx));
 
     config.source = ref.fullPackageRef;
 
@@ -60,22 +60,22 @@ const cloneSpec = {
       config.source = PackageReference.from(ref.name, ref.version, config.sourcePreset).fullPackageRef;
     }
 
-    config.sourcePreset = _.template(config.sourcePreset)(ctx);
-    config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
-    config.target = _.template(config.target)(ctx);
+    config.sourcePreset = template(config.sourcePreset)(ctx);
+    config.targetPreset = template(config.targetPreset)(ctx) || `with-${packageState.name}`;
+    config.target = template(config.target)(ctx);
 
     if (config.var) {
       config.var = _.mapValues(config.var, (v) => {
-        return _.template(v)(ctx);
+        return template(v)(ctx);
       });
     } else if (config.options) {
       config.options = _.mapValues(config.options, (v) => {
-        return _.template(v)(ctx);
+        return template(v)(ctx);
       });
     }
 
     if (config.tags) {
-      config.tags = config.tags.map((t: string) => _.template(t)(ctx));
+      config.tags = config.tags.map((t: string) => template(t)(ctx));
     }
 
     return config;
@@ -138,6 +138,11 @@ const cloneSpec = {
     const importPkgOptions = { ...(deployInfo?.options || {}), ...(config.var || config.options || {}) };
 
     debug(`[clone.${importLabel}]`, 'cloning package options', importPkgOptions);
+
+    // prior to importing the name, ensure the target names/version fields are set on the definition
+    deployInfo.def.name = targetRef.name;
+    deployInfo.def.version = targetRef.version;
+    deployInfo.def.preset = targetRef.preset;
 
     const def = new ChainDefinition(deployInfo.def);
 

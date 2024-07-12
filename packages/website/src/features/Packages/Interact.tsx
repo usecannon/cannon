@@ -17,7 +17,7 @@ import {
   ChainArtifacts,
   ContractData,
   PackageReference,
-} from '@usecannon/builder/src';
+} from '@usecannon/builder';
 import { FC, useContext, useEffect, useState } from 'react';
 import { Address } from 'viem';
 import { HasSubnavContext } from './Tabs/InteractTab';
@@ -56,6 +56,7 @@ export const Interact: FC<{
     }
 
     const cannonOutputs: ChainArtifacts = getOutput(deploymentData.data);
+
     setCannonOutputs(cannonOutputs);
 
     const findContract = (
@@ -92,7 +93,7 @@ export const Interact: FC<{
       }
     };
     findContract(cannonOutputs.contracts, name, cannonOutputs.imports);
-  }, [deploymentData.data]);
+  }, [deploymentData.data, contractName]);
 
   const deployUrl = `https://repo.usecannon.com/${packagesQuery.data.data.deployUrl.replace(
     'ipfs://',

@@ -1,13 +1,13 @@
 import * as viem from 'viem';
 import { fixtureTransactionReceipt } from '../../test/fixtures';
+import { validateConfig } from '../actions';
 import { ContractArtifact } from '../types';
 import action from './deploy';
 import { fakeCtx, fakeRuntime, makeFakeSigner } from './utils.test.helper';
-import '../actions';
 
 const DEFAULT_ARACHNID_ADDRESS = '0x4e59b44847b379578588920cA78FbF26c0B4956C';
 
-describe('steps/contract.ts', () => {
+describe('steps/deploy.ts', () => {
   const fakeAbi = [
     {
       inputs: [
@@ -46,6 +46,18 @@ describe('steps/contract.ts', () => {
 
     jest.mocked((fakeRuntime.provider as any).sendTransaction).mockResolvedValue('0x1234');
     jest.mocked(fakeRuntime.provider.waitForTransactionReceipt).mockResolvedValue(fakeRx);
+  });
+
+  describe('validate', () => {
+    it('fails when not setting values', () => {
+      expect(() => validateConfig(action.validate, {})).toThrow('Field: artifact');
+    });
+
+    it('fails when setting invalid value', () => {
+      expect(() => validateConfig(action.validate, { artifact: 'Greeter', invalid: ['something'] })).toThrow(
+        "Unrecognized key(s) in object: 'invalid'"
+      );
+    });
   });
 
   describe('configInject()', () => {
@@ -193,6 +205,8 @@ describe('steps/contract.ts', () => {
               ],
               contractName: undefined,
               deployTxnHash: '',
+              deployTxnBlockNumber: '',
+              deployTimestamp: '',
               deployedOn: 'contract.Woot',
               gasCost: '0',
               gasUsed: 0,
@@ -238,6 +252,8 @@ describe('steps/contract.ts', () => {
               ],
               contractName: undefined,
               deployTxnHash: fakeRx.transactionHash,
+              deployTxnBlockNumber: '0',
+              deployTimestamp: '',
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
               sourceName: undefined,
@@ -279,6 +295,8 @@ describe('steps/contract.ts', () => {
               ],
               contractName: undefined,
               deployTxnHash: fakeRx.transactionHash,
+              deployTxnBlockNumber: '0',
+              deployTimestamp: '',
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
               sourceName: undefined,
@@ -325,6 +343,8 @@ describe('steps/contract.ts', () => {
               contractName: undefined,
               deployTxnHash: fakeRx.transactionHash,
               deployedOn: 'contract.Woot',
+              deployTxnBlockNumber: '0',
+              deployTimestamp: '',
               linkedLibraries: {},
               sourceName: undefined,
               highlight: undefined,
@@ -361,6 +381,8 @@ describe('steps/contract.ts', () => {
               contractName: undefined,
               deployTxnHash: fakeRx.transactionHash,
               deployedOn: 'contract.Woot',
+              deployTxnBlockNumber: '0',
+              deployTimestamp: '',
               linkedLibraries: {},
               sourceName: undefined,
               highlight: undefined,

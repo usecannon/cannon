@@ -15,11 +15,11 @@ import NextLink from 'next/link';
 import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
 import { ConnectWallet } from './ConnectWallet';
-import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { SearchBar } from './SearchBar';
 
 const NavLinks = () => {
-  const pathname = usePathname();
+  const pathname = useRouter().pathname;
   return (
     <Flex
       width={['auto', 'auto', 'auto']}
@@ -42,7 +42,7 @@ const NavLinks = () => {
 };
 
 const SettingsButton = () => {
-  const pathname = usePathname();
+  const pathname = useRouter().pathname;
   return (
     <IconButton
       as={Link}
@@ -71,7 +71,7 @@ const SettingsButton = () => {
 };
 
 export const Header = () => {
-  const breakpoint = useBreakpoint();
+  const breakpoint = useBreakpoint({ ssr: false });
 
   return (
     <Box bg="black" borderBottom="1px solid" borderColor="gray.700">

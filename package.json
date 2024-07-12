@@ -21,8 +21,10 @@
     "update-stables": "npm i @usecannon/builder@latest @usecannon/cli@latest -w @usecannon/indexer -w cannon-registry -w cannon-website -w @usecannon/api && npm i hardhat-cannon@latest -w cannon-registry",
     "test": "npm run test --workspaces --if-present",
     "docgen-md": "cd ./packages/builder && npm run docgen && cd - && cd ./packages/cli && npm run docgen",
-    "website-dev": "npm run dev --workspace=packages/website",
     "website": "npm run start --workspace=packages/website",
+    "website-dev": "npm run dev --workspace=packages/website",
+    "website:e2e": "npm run e2e --workspace=packages/website",
+    "website:e2e:ci": "npm run e2e:headless --workspace=packages/website",
     "changeset": "changeset"
   },
   "devDependencies": {
@@ -56,5 +58,6 @@
     "concat-md": "^0.5.1",
     "react-multi-ref": "^1.0.2",
     "scroll-into-view-if-needed": "^3.1.0"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }

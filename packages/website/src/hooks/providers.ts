@@ -1,9 +1,11 @@
-import * as viem from 'viem';
-import { http } from '@wagmi/core';
-import { useState, useEffect } from 'react';
-import * as chains from '@wagmi/core/chains';
-
 import { useStore } from '@/helpers/store';
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
+import { http } from '@wagmi/core';
+import * as chains from '@wagmi/core/chains';
+import { useEffect, useState } from 'react';
+import * as viem from 'viem';
+import { WagmiProviderProps } from 'wagmi';
+import { getE2eWagmiConfig } from '../../cypress/utils/wagmi-mock-config';
 
 interface VerifiedProviders {
   provider: string;
@@ -23,7 +25,11 @@ export const defaultTransports = supportedChains.reduce((prev, curr) => {
   return prev;
 }, {} as Record<number, viem.HttpTransport>);
 
+const isE2ETest = process.env.NEXT_PUBLIC_E2E_TESTING_MODE === 'true';
+
 export function useProviders() {
+  const [wagmiConfig, setWagmiConfig] = useState<WagmiProviderProps['config'] | null>(null);
+
   const [verifiedProviders, setVerifiedProviders] = useState<VerifiedProviders[]>([]);
   const [transports, setTransports] = useState<Record<number, viem.HttpTransport>>(defaultTransports);
   const customProviders = useStore((state) => state.settings.customProviders);
@@ -74,5 +80,22 @@ export function useProviders() {
     setTransports(_transports);
   }, [verifiedProviders]);
 
-  return { verifiedProviders, transports };
+  useEffect(() => {
+    // If we are running an E2E test, use the E2E config
+    if (isE2ETest) {
+      const e2eWagmiConfig = getE2eWagmiConfig();
+      setWagmiConfig(e2eWagmiConfig);
+      return;
+    }
+    setWagmiConfig(
+      getDefaultConfig({
+        appName: 'Cannon',
+        projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',
+        chains: [...supportedChains],
+        transports,
+      })
+    );
+  }, [transports]);
+
+  return { verifiedProviders, transports, wagmiConfig };
 }

@@ -1,7 +1,7 @@
 import { contractCall, contractTransaction } from '@/helpers/ethereum';
 import { useStore } from '@/helpers/store';
 import { useLogs } from '@/providers/logsProvider';
-import { Abi } from 'abitype/src/abi';
+import { Abi } from 'abitype';
 import { useState } from 'react';
 import { Address, PublicClient, WalletClient } from 'viem';
 

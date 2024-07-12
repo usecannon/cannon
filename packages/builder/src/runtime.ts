@@ -1,13 +1,13 @@
 import { yellow } from 'chalk';
 import Debug from 'debug';
-import * as viem from 'viem';
 import { EventEmitter } from 'events';
 import _ from 'lodash';
+import * as viem from 'viem';
 import { CannonSigner, ChainArtifacts, PackageReference } from './';
+import { traceActions } from './error';
 import { CannonLoader, IPFSLoader } from './loader';
 import { CannonRegistry } from './registry';
-import { traceActions } from './error';
-import { ChainBuilderRuntimeInfo, ContractArtifact, DeploymentInfo } from './types';
+import { ChainBuilderRuntimeInfo, ChainBuilderContext, ContractArtifact, DeploymentInfo } from './types';
 import { getExecutionSigner } from './util';
 
 const debug = Debug('cannon:builder:runtime');
@@ -47,6 +47,12 @@ export class CannonStorage extends EventEmitter {
     }
 
     return this.loaders[loaderScheme];
+  }
+
+  getLabel() {
+    return ` registry ${this.registry.getLabel()} loader ${Object.values(this.loaders)
+      .map((loader) => loader.getLabel())
+      .join(', ')}`;
   }
 
   readBlob(url: string) {
@@ -112,6 +118,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   readonly getArtifact: (name: string) => Promise<ContractArtifact>;
   readonly snapshots: boolean;
   readonly allowPartialDeploy: boolean;
+  ctx: ChainBuilderContext | null;
   private publicSourceCode: boolean | undefined;
   private signals: { cancelled: boolean } = { cancelled: false };
   private _gasPrice: string | undefined;
@@ -121,6 +128,9 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   private cleanSnapshot: any;
 
   private loadedMisc: string | null = null;
+
+  private traceArtifacts: ChainArtifacts = {};
+
   misc: {
     artifacts: { [label: string]: any };
   };
@@ -158,6 +168,8 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     this.allowPartialDeploy = info.allowPartialDeploy;
 
     this.misc = { artifacts: {} };
+
+    this.ctx = null;
 
     if (info.priorityGasFee) {
       if (!info.gasFee) {
@@ -259,8 +271,13 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     this.misc.artifacts[n] = artifact;
   }
 
+  reportOperatingContext(ctx: ChainBuilderContext | null) {
+    this.ctx = ctx;
+  }
+
   updateProviderArtifacts(artifacts: ChainArtifacts) {
-    this.provider = this.provider.extend(traceActions(artifacts) as any);
+    this.traceArtifacts = _.merge(this.traceArtifacts, artifacts);
+    this.provider = this.provider.extend(traceActions(this.traceArtifacts) as any);
   }
 
   setPublicSourceCode(isPublic: boolean) {

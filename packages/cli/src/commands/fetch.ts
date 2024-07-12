@@ -49,7 +49,7 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
 
   const storage = new CannonStorage(localRegistry, {
-    ipfs: new IPFSLoader(cliSettings.ipfsUrl! || getCannonRepoRegistryUrl()),
+    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl! || getCannonRepoRegistryUrl()),
   });
 
   console.log(blueBright('Fetching IPFS data from: '));

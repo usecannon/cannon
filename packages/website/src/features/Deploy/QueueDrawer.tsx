@@ -10,6 +10,10 @@ import { useSimulatedTxns } from '@/hooks/fork';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { AddIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
+  AlertTitle,
   Box,
   Button,
   Drawer,
@@ -31,10 +35,11 @@ import {
   Text,
   Tooltip,
   useToast,
+  Flex,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { useRouter } from 'next/navigation';
-import React, { Suspense, useState } from 'react';
+import { useRouter } from 'next/router';
+import React, { useState } from 'react';
 import {
   AbiFunction,
   Address,
@@ -49,6 +54,7 @@ import { QueueTransaction } from './QueueTransaction';
 import { SafeAddressInput } from './SafeAddressInput';
 import { isValidHex } from '@/helpers/ethereum';
 import 'react-diff-view/style/index.css';
+import ClientOnly from '@/components/ClientOnly';
 
 export const QueuedTxns = ({
   onDrawerClose,
@@ -132,9 +138,9 @@ export const QueuedTxns = ({
       : {},
     {
       safe: currentSafe!,
-      onSignComplete() {
+      async onSignComplete() {
         if (onDrawerClose) onDrawerClose();
-        router.push(links.DEPLOY);
+        await router.push(links.DEPLOY);
         toast({
           title: 'You successfully signed the transaction.',
           status: 'success',
@@ -245,16 +251,83 @@ export const QueuedTxns = ({
     }
   };
 
-  const txnHasError = !!txnInfo.txnResults.filter((r) => r?.error).length;
+  const txnsWithErrorIndexes = txnInfo.txnResults
+    .map((r, idx) => (r?.error ? idx : -1))
+    .filter((i) => i !== -1);
+  const txnHasError = txnsWithErrorIndexes.length > 0;
 
-  const disableExecute =
-    !targetTxn || txnHasError || !!stager.execConditionFailed;
+  const disableExecute = !targetTxn || !!stager.execConditionFailed;
+
+  const renderSimulationStatus = () => {
+    // if there is only one transaction or zero, we don't need to show the status
+    if (queuedIdentifiableTxns.length <= 1) {
+      return null;
+    }
+    return (
+      <Box
+        mb={8}
+        mt={8}
+        p={6}
+        bg="gray.800"
+        display="block"
+        borderWidth="1px"
+        borderStyle="solid"
+        borderColor="gray.600"
+        borderRadius="4px"
+      >
+        {txnInfo.loading ? (
+          <Flex w="full" justifyContent="left" alignItems="center" gap={4}>
+            <Spinner />
+            <Text fontSize="sm" color="gray.300">
+              Simulating transactions
+            </Text>
+          </Flex>
+        ) : txnsWithErrorIndexes.length > 0 &&
+          queuedIdentifiableTxns.length > 1 ? (
+          <Flex direction={'column'} gap={4}>
+            {/* This error messages just show up when simulated txns are more
+            than 1, and just shows up the first error */}
+            <Alert bg="gray.900" status="error">
+              <AlertIcon />
+              <Box>
+                <AlertTitle>Transaction Simulation Failed</AlertTitle>
+                <AlertDescription fontSize="sm">
+                  {/* TODO: decode error - for this we need to have the abi of the contract */}
+                  Transaction #{txnsWithErrorIndexes[0] + 1} failed with error:{' '}
+                  {txnInfo.txnResults[txnsWithErrorIndexes[0]]?.error}
+                </AlertDescription>
+              </Box>
+            </Alert>
+          </Flex>
+        ) : (
+          (txnsWithErrorIndexes.length === 0 &&
+            queuedIdentifiableTxns.length > 1 && (
+              <Alert bg="grey.900" status="success">
+                <AlertIcon />
+                <Box>
+                  <AlertTitle>
+                    All Transactions Simulated Successfully
+                  </AlertTitle>
+                  <AlertDescription fontSize="sm">
+                    {queuedIdentifiableTxns.length} simulated transaction
+                    {queuedIdentifiableTxns.length > 1 ? 's ' : ' '}
+                    went through successfully.
+                  </AlertDescription>
+                </Box>
+              </Alert>
+            )) ||
+          null
+        )}
+      </Box>
+    );
+  };
 
   return (
     <>
       <Box mt={6} mb={8} display="block">
-        {queuedIdentifiableTxns.length > 0
-          ? queuedIdentifiableTxns.map((queuedIdentifiableTxn, i) => (
+        {queuedIdentifiableTxns.length > 0 ? (
+          <>
+            {queuedIdentifiableTxns.map((queuedIdentifiableTxn, i) => (
               <Box
                 key={i}
                 mb={8}
@@ -289,12 +362,17 @@ export const QueuedTxns = ({
                   chainId={queuedIdentifiableTxn.chainId}
                   isCustom={queuedIdentifiableTxn.pkgUrl === ''}
                   isDeletable
+                  // simulate single transaction if there is only one
+                  simulate={queuedIdentifiableTxns.length === 1}
                 />
               </Box>
-            ))
-          : null}
+            ))}
+            {renderSimulationStatus()}
+          </>
+        ) : null}
         <Box
           mb={8}
+          mt={8}
           p={6}
           bg="gray.800"
           display="block"
@@ -305,10 +383,11 @@ export const QueuedTxns = ({
         >
           <FormControl>
             <FormLabel>
-              Add a transaction from a Cannon package or contract address
+              Add a transaction using a Cannon package or contract address
             </FormLabel>
             <InputGroup>
               <Input
+                name="target-input"
                 type="text"
                 borderColor="whiteAlpha.400"
                 background="black"
@@ -437,7 +516,6 @@ export const QueuedTxns = ({
                           isDisabled={
                             stager.signing ||
                             !targetTxn ||
-                            txnHasError ||
                             !!stager.signConditionFailed ||
                             queuedIdentifiableTxns.length === 0
                           }
@@ -464,8 +542,8 @@ export const QueuedTxns = ({
                         isDisabled={disableExecute}
                         onClick={() => {
                           execTxn.writeContract(stager.executeTxnConfig!, {
-                            onSuccess: () => {
-                              router.push(links.DEPLOY);
+                            onSuccess: async () => {
+                              await router.push(links.DEPLOY);
 
                               toast({
                                 title:
@@ -482,7 +560,15 @@ export const QueuedTxns = ({
                       </Button>
                     </Tooltip>
                   </HStack>
-
+                  {txnHasError && (
+                    <Alert mt={1} status="warning" bg={'grey.900'}>
+                      <AlertIcon />
+                      <AlertDescription>
+                        Some transactions failed to simulate. You can still
+                        execute / stage the transactions.
+                      </AlertDescription>
+                    </Alert>
+                  )}
                   {stager.signConditionFailed && (
                     <Text fontSize="sm" mt={2} color="gray.300">
                       Can’t Sign: {stager.signConditionFailed}
@@ -563,9 +649,9 @@ const QueueDrawer = ({
             Stage Transactions to a Safe
           </DrawerHeader>
           <DrawerBody bg="gray.700" pt={4}>
-            <Suspense fallback={<Spinner />}>
+            <ClientOnly>
               <SafeAddressInput />
-            </Suspense>
+            </ClientOnly>
             <WithSafe>
               <QueuedTxns onDrawerClose={onClose} />
             </WithSafe>

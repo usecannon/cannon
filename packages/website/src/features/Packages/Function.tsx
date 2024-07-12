@@ -28,7 +28,7 @@ import {
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
-import { Abi, AbiFunction } from 'abitype/src/abi';
+import { Abi, AbiFunction } from 'abitype';
 import React, { FC, useMemo, useState } from 'react';
 import {
   Address,
@@ -45,7 +45,7 @@ import {
   useSwitchChain,
   useWalletClient,
 } from 'wagmi';
-import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { useQueueTxsStore, useStore } from '@/helpers/store';
 
 export const Function: FC<{
@@ -72,7 +72,7 @@ export const Function: FC<{
 }) => {
   const { isOpen, onToggle } = useDisclosure();
   const currentSafe = useStore((s) => s.currentSafe);
-  const pathName = usePathname();
+  const { asPath: pathname } = useRouter();
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
   const [error, setError] = useState<any>(null);
@@ -198,8 +198,8 @@ export const Function: FC<{
   const anchor = `#selector-${toFunctionSelector(f)}`;
 
   const getCodeUrl = (functionName: string) => {
-    const base = pathName.split('/interact')[0];
-    const activeContractPath = pathName.split('interact/')[1];
+    const base = pathname.split('/interact')[0];
+    const activeContractPath = pathname.split('interact/')[1];
     if (activeContractPath && contractSource) {
       const [moduleName] = activeContractPath.split('/');
 
@@ -460,6 +460,7 @@ export const Function: FC<{
                   Submit using wallet {!simulated && statusIcon}
                 </Button>
                 <Button
+                  id={`${f.name}-stage-to-safe`}
                   isLoading={loading}
                   colorScheme="teal"
                   bg="teal.900"

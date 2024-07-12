@@ -5,6 +5,7 @@ import { ActionKinds, RawChainDefinition, validateConfig } from './actions';
 import { ChainBuilderRuntime } from './runtime';
 import { chainDefinitionSchema } from './schemas';
 import { CannonHelperContext, ChainBuilderContext } from './types';
+import { template } from './utils/template';
 
 const debug = Debug('cannon:builder:definition');
 const debugVerbose = Debug('cannon:verbose:builder:definition');
@@ -94,12 +95,14 @@ export class ChainDefinition {
         actions.push(fullActionName);
 
         if (ActionKinds[action] && ActionKinds[action].getOutputs) {
-          for (const output of ActionKinds[action].getOutputs!(_.get(def, fullActionName), {
+          const actionOutputs = ActionKinds[action].getOutputs!(_.get(def, fullActionName), {
             // TODO: what to do about name and version? do they even matter?
             name: '',
             version: '',
             currentLabel: fullActionName,
-          })) {
+          });
+
+          for (const output of actionOutputs) {
             debug(`deps: ${fullActionName} provides ${output}`);
             if (!this.dependencyFor.has(output)) {
               this.dependencyFor.set(output, fullActionName);
@@ -177,7 +180,7 @@ export class ChainDefinition {
   }
 
   getName(ctx: ChainBuilderContext) {
-    const n = _.template(this.raw.name)(ctx);
+    const n = template(this.raw.name)(ctx);
 
     validatePackageName(n);
 
@@ -185,7 +188,7 @@ export class ChainDefinition {
   }
 
   getVersion(ctx: ChainBuilderContext) {
-    const v = _.template(this.raw.version)(ctx);
+    const v = template(this.raw.version)(ctx);
 
     validatePackageVersion(v);
 
@@ -193,7 +196,7 @@ export class ChainDefinition {
   }
 
   getPreset(ctx: ChainBuilderContext) {
-    return _.template(this.raw.preset)(ctx) || 'main';
+    return template(this.raw.preset)(ctx) || 'main';
   }
 
   isPublicSourceCode() {
@@ -206,24 +209,21 @@ export class ChainDefinition {
     }
 
     const kind = n.split('.')[0] as keyof typeof ActionKinds;
+    const action = ActionKinds[kind];
 
-    if (!ActionKinds[kind]) {
+    if (!action) {
       throw new Error(
         `action kind plugin not installed: "${kind}" (for action: "${n}"). please install the plugin necessary to build this package.`
       );
     }
 
-    validateConfig(ActionKinds[kind].validate, _.get(this.raw, n));
+    validateConfig(action.validate, _.get(this.raw, n));
 
-    return ActionKinds[n.split('.')[0] as keyof typeof ActionKinds].configInject(
-      { ...ctx, ...CannonHelperContext },
-      _.get(this.raw, n),
-      {
-        name: this.getName(ctx),
-        version: this.getVersion(ctx),
-        currentLabel: n,
-      }
-    );
+    return action.configInject({ ...ctx, ...CannonHelperContext }, _.get(this.raw, n), {
+      name: this.getName(ctx),
+      version: this.getVersion(ctx),
+      currentLabel: n,
+    });
   }
 
   /**
@@ -284,9 +284,9 @@ export class ChainDefinition {
     // can do about this right now
     return _.uniq(
       Object.values(this.raw.import).map((d) => ({
-        source: _.template(d.source)(ctx),
+        source: template(d.source)(ctx),
         chainId: d.chainId || ctx.chainId,
-        preset: _.template(d.preset || 'main')(ctx),
+        preset: template(d.preset)(ctx) || 'main',
       }))
     );
   }
@@ -299,17 +299,20 @@ export class ChainDefinition {
   computeDependencies(node: string) {
     if (!_.get(this.raw, node)) {
       const stepName = node.split('.')[0];
-      const stepList: string[] = [];
-      Object.keys(_.get(this.raw, stepName)).forEach((dep) => {
-        stepList.push(dep);
-      });
+      const possibleSteps = _.get(this.raw, stepName);
+
+      if (!possibleSteps) {
+        throw new Error(`invalid dependency: ${node}`);
+      }
 
       throw new Error(`invalid dependency: ${node}. Available "${stepName}" operations:
-          ${stepList.map((dep) => `\n - ${stepName}.${dep}`).join('')}
+          ${Object.keys(possibleSteps)
+            .map((dep) => `\n - ${stepName}.${dep}`)
+            .join('')}
         `);
     }
 
-    const deps = (_.get(this.raw, node)!.depends || []) as string[];
+    const deps = _.clone(_.get(this.raw, node)!.depends || []) as string[];
 
     const n = node.split('.')[0];
 

@@ -8,13 +8,14 @@ import { PackageReference } from '../package';
 import { ChainBuilderRuntime } from '../runtime';
 import { pullSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
+import { template } from '../utils/template';
 
-const debug = Debug('cannon:builder:import');
+const debug = Debug('cannon:builder:pull');
 
 /**
- *  Available properties for import operation
+ *  Available properties for pull operation
  *  @public
- *  @group Import
+ *  @group pull
  */
 export type Config = z.infer<typeof pullSchema>;
 
@@ -49,10 +50,10 @@ const pullSpec = {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     config = _.cloneDeep(config);
 
-    const packageRef = new PackageReference(_.template(config.source)(ctx));
+    const packageRef = new PackageReference(template(config.source)(ctx));
 
     config.source = packageRef.fullPackageRef;
-    config.preset = _.template(config.preset)(ctx) || packageRef.preset;
+    config.preset = template(config.preset)(ctx) || packageRef.preset;
 
     return config;
   },

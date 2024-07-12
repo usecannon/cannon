@@ -21,13 +21,17 @@ import { table } from 'table';
 import * as viem from 'viem';
 import pkg from '../../package.json';
 import { getChainById } from '../chains';
-import { readMetadataCache } from '../helpers';
+import { filterSettings, saveToMetadataCache } from '../helpers';
 import { getMainLoader } from '../loader';
 import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
+import { hideApiKey } from '../util/provider';
+
+import fs from 'fs-extra';
+import path from 'path';
 
 interface Params {
   provider: viem.PublicClient;
@@ -107,6 +111,7 @@ export async function build({
   }
 
   const cliSettings = resolveCliSettings({ registryPriority });
+  const filteredSettings = await filterSettings(cliSettings);
 
   if (plugins) {
     await loadPlugins();
@@ -153,12 +158,7 @@ export async function build({
 
   const resolver = overrideResolver || (await createDefaultReadRegistry(cliSettings));
 
-  const runtime = new ChainBuilderRuntime(
-    runtimeOptions,
-    resolver,
-    getMainLoader(cliSettings, { writeToIpfs: false }),
-    'ipfs'
-  );
+  const runtime = new ChainBuilderRuntime(runtimeOptions, resolver, getMainLoader(cliSettings), 'ipfs');
 
   const dump = writeScript ? await createWriteScript(runtime, writeScript, writeScriptFormat) : null;
 
@@ -204,6 +204,7 @@ export async function build({
   if (oldDeployData && wipe) {
     console.log('Wiping existing package...');
     console.log(bold('Initializing new package...'));
+    oldDeployData = null;
   } else if (oldDeployData && !upgradeFrom) {
     console.log(bold('Continuing with existing package...'));
   } else {
@@ -227,13 +228,8 @@ export async function build({
       : typeof providerUrl === 'string'
       ? providerUrl.split(',')[0]
       : providerUrl;
-  console.log(
-    bold(
-      `Building the chain (ID ${chainId})${
-        providerUrlMsg ? ' via ' + providerUrlMsg.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32)) : ''
-      }...`
-    )
-  );
+
+  console.log(bold(`Building the chain (ID ${chainId})${providerUrlMsg ? ' via ' + hideApiKey(providerUrlMsg) : ''}...`));
 
   let defaultSignerAddress: string;
   if (getDefaultSigner) {
@@ -333,9 +329,9 @@ export async function build({
     }
     for (const setting in o.settings) {
       if (ctx.overrideSettings[setting]) {
-        console.log(red(`${'  '.repeat(d)}  Overridden Setting: ${setting} = ${ctx.overrideSettings[setting]}`));
+        console.log(`${'  '.repeat(d)} Setting (Override): ${setting} = ${ctx.overrideSettings[setting]}`);
       } else {
-        console.log(gray(`${'  '.repeat(d)}  Setting: ${setting} = ${o.settings[setting]}`));
+        console.log(`${'  '.repeat(d)}  Setting: ${setting} = ${o.settings[setting]}`);
       }
     }
     stepsExecuted = true;
@@ -373,7 +369,29 @@ export async function build({
     process.on('SIGQUIT', handler);
   }
 
-  const newState = await cannonBuild(runtime, def, oldDeployData && !wipe ? oldDeployData.state : {}, initialCtx);
+  let newState;
+  try {
+    newState = await cannonBuild(runtime, def, oldDeployData && !wipe ? oldDeployData.state : {}, initialCtx);
+  } catch (err: any) {
+    const dumpData = {
+      def: def.toJson(),
+      initialCtx,
+      oldState: oldDeployData?.state || null,
+      activeCtx: runtime.ctx,
+      error: _.pick(err, Object.getOwnPropertyNames(err)),
+    };
+
+    const dumpFilePath = path.join(cliSettings.cannonDirectory, 'dumps', new Date().toISOString() + '.json');
+
+    await fs.mkdirp(path.dirname(dumpFilePath));
+    await fs.writeJson(dumpFilePath, dumpData, {
+      spaces: 2,
+    });
+
+    throw new Error(
+      `${err.toString()}\n\nAn error occured during build. A file with comprehensive information pertaining to this error has been written to ${dumpFilePath}. Please include this file when reporting an issue.`
+    );
+  }
 
   if (writeScript) {
     await dump!.end();
@@ -401,11 +419,19 @@ export async function build({
       chainId: runtime.chainId,
     });
 
-    const metadata = await readMetadataCache(`${pkgName}:${pkgVersion}`);
+    const metadataCache: { [key: string]: string } = {};
+
+    if (!_.isEmpty(pkgInfo)) {
+      metadataCache.gitUrl = pkgInfo.gitUrl;
+      metadataCache.commitHash = pkgInfo.commitHash;
+      metadataCache.readme = pkgInfo.readme;
+    }
+
+    // store metadata to /metadata_cache folder
+    const metadata = await saveToMetadataCache(`${pkgName}_${pkgVersion}_${runtime.chainId}-${preset}`, metadataCache);
 
     const metaUrl = await runtime.putBlob(metadata);
 
-    // locally store cannon packages (version + latest)
     await resolver.publish([fullPackageRef, `${name}:latest@${preset}`], runtime.chainId, deployUrl!, metaUrl!);
 
     // detach the process handler
@@ -439,7 +465,7 @@ export async function build({
     } else {
       if (chainId == 13370) {
         console.log(bold(`💥 ${fullPackageRef} built for Cannon (Chain ID: ${chainId})`));
-        console.log(gray('This package can be run locally using the CLI and provisioned by Cannonfiles.'));
+        console.log(gray('This package can be run locally and cloned in cannonfiles.'));
       } else {
         console.log(bold(`💥 ${fullPackageRef} built on ${chainName} (Chain ID: ${chainId})`));
         console.log(gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
@@ -447,7 +473,11 @@ export async function build({
       console.log();
 
       console.log(
-        `The following package data has been stored to ${runtime.loaders[runtime.defaultLoaderScheme].getLabel()}`
+        bold(
+          `Package data has been stored locally${
+            filteredSettings.writeIpfsUrl && ' and pinned to ' + filteredSettings.writeIpfsUrl
+          }`
+        )
       );
       console.log(
         table([
@@ -456,7 +486,9 @@ export async function build({
           ['Metadata', metaUrl],
         ])
       );
-      console.log(bold(`Publish ${bold(fullPackageRef)}`));
+      console.log(
+        bold(`Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`)
+      );
       console.log(`> ${`cannon publish ${fullPackageRef} --chain-id ${chainId}`}`);
       console.log('');
       if (chainId == 13370) {
@@ -480,7 +512,7 @@ export async function build({
   }
 
   if (!stepsExecuted) {
-    console.log(bold('No operations were executed during the build.'));
+    console.log(bold('\nNo operations were executed during the build.'));
   }
 
   console.log('');

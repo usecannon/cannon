@@ -1,7 +1,7 @@
+import Debug from 'debug';
 import _ from 'lodash';
 import { CannonHelperContext } from './types';
-
-import Debug from 'debug';
+import { template } from './utils/template';
 
 const debug = Debug('cannon:builder:access-recorder');
 
@@ -70,15 +70,25 @@ export function computeTemplateAccesses(str?: string, possibleNames: string[] = 
     if (typeof (CannonHelperContext as any)[n] === 'function') {
       // the types have been a massive unsolvableseeming pain here
       recorders[n] = _.noop as unknown as AccessRecorder;
+    } else if (typeof (CannonHelperContext as any)[n] === 'object') {
+      for (const o in (CannonHelperContext as any)[n]) {
+        if (!recorders[n]) (recorders[n] as any) = {};
+        if (typeof (CannonHelperContext as any)[n][o] === 'function') {
+          (recorders[n] as any)[o] = _.noop as unknown as AccessRecorder;
+        } else {
+          recorders[n] = (CannonHelperContext as any)[n] as unknown as AccessRecorder;
+        }
+      }
+    } else {
+      recorders[n] = (CannonHelperContext as any)[n] as unknown as AccessRecorder;
     }
-    recorders[n] = (CannonHelperContext as any)[n] as unknown as AccessRecorder;
   }
 
   for (const n of possibleNames) {
     recorders[n] = new AccessRecorder();
   }
 
-  const baseTemplate = _.template(str, {
+  const baseTemplate = template(str, {
     imports: recorders,
   });
 

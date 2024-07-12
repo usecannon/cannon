@@ -1,16 +1,17 @@
 import {
   CannonStorage,
   DeploymentInfo,
-  IPFSLoader,
-  OnChainRegistry,
   InMemoryRegistry,
-  publishPackage,
+  IPFSLoader,
+  preparePublishPackage,
+  OnChainRegistry,
 } from '@usecannon/builder';
-import * as viem from 'viem';
+import * as builder from '@usecannon/builder';
 import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
 import { dirSync } from 'tmp-promise';
+import * as viem from 'viem';
 import { publish } from '../commands/publish';
 import { LocalLoader } from '../loader';
 import { resolveCliSettings } from '../settings';
@@ -136,37 +137,75 @@ describe('publish command', () => {
     jest.spyOn(OnChainRegistry.prototype, 'publish').mockResolvedValue([]);
   });
 
-  it('should publish the package to the registry', async () => {
-    // jest spy on fs readdir which return string[] of package.json
-    await publish({
-      packageRef: fullPackageRef,
-      cliSettings: resolveCliSettings(),
-      onChainRegistry,
-      tags,
-      chainId,
-      quiet: true,
-      includeProvisioned: false,
-      skipConfirm: true,
+  describe('publish', () => {
+    it('should not publish if there are no new packages', async () => {
+      jest.spyOn(builder, 'preparePublishPackage').mockResolvedValue([]);
+
+      await expect(
+        publish({
+          packageRef: fullPackageRef,
+          cliSettings: resolveCliSettings(),
+          onChainRegistry,
+          tags,
+          chainId,
+          quiet: true,
+          skipConfirm: true,
+          includeProvisioned: false,
+        })
+      ).rejects.toThrow("There isn't anything new to publish.");
     });
 
-    expect(await onChainRegistry.getUrl(fullPackageRef, chainId)).toEqual(testPkgDataNewIpfsUrl);
-    expect(await onChainRegistry.getUrl(`package:tag0@${preset}`, chainId)).toEqual(testPkgDataNewIpfsUrl);
-  });
+    it('should publish the package to the registry', async () => {
+      // jest spy on fs readdir which return string[] of package.json
+      jest.spyOn(builder, 'preparePublishPackage').mockResolvedValue([
+        {
+          packagesNames: [fullPackageRef, `${fullPackageRef}:tag0@${preset}`],
+          chainId,
+          url: 'ipfs://test-ipfs-new-url',
+          metaUrl: '',
+        },
+      ]);
 
-  it('should publish the package to the registry with no tags', async () => {
-    tags = [];
-    await publish({
-      packageRef: fullPackageRef,
-      cliSettings: resolveCliSettings(),
-      onChainRegistry,
-      tags,
-      chainId,
-      quiet: true,
-      skipConfirm: true,
-      includeProvisioned: true,
+      await publish({
+        packageRef: fullPackageRef,
+        cliSettings: resolveCliSettings(),
+        onChainRegistry,
+        tags,
+        chainId,
+        quiet: true,
+        skipConfirm: true,
+        includeProvisioned: false,
+      });
+
+      expect(await onChainRegistry.getUrl(fullPackageRef, chainId)).toEqual(testPkgDataNewIpfsUrl);
+      expect(await onChainRegistry.getUrl(`${fullPackageRef}:tag0@${preset}`, chainId)).toEqual(testPkgDataNewIpfsUrl);
     });
 
-    expect(await onChainRegistry.getUrl(fullPackageRef, chainId)).toEqual(testPkgDataNewIpfsUrl);
+    it('should publish the package to the registry with no tags', async () => {
+      tags = [];
+
+      jest.spyOn(builder, 'preparePublishPackage').mockResolvedValue([
+        {
+          packagesNames: [fullPackageRef],
+          chainId,
+          url: 'ipfs://test-ipfs-new-url',
+          metaUrl: '',
+        },
+      ]);
+
+      await publish({
+        packageRef: fullPackageRef,
+        cliSettings: resolveCliSettings(),
+        onChainRegistry,
+        tags,
+        chainId,
+        quiet: true,
+        skipConfirm: true,
+        includeProvisioned: true,
+      });
+
+      expect(await onChainRegistry.getUrl(fullPackageRef, chainId)).toEqual(testPkgDataNewIpfsUrl);
+    });
   });
 
   describe('scanDeploys', () => {
@@ -179,10 +218,14 @@ describe('publish command', () => {
       // @ts-ignore
       jest.spyOn(fs, 'readdir').mockResolvedValue(_deployDataLocalFileNames);
 
-      const builder = await import('@usecannon/builder');
-      jest.spyOn(builder, 'publishPackage').mockImplementation(async () => {
-        return [];
-      });
+      jest.spyOn(builder, 'preparePublishPackage').mockResolvedValue([
+        {
+          packagesNames: [fullPackageRef],
+          chainId,
+          url: 'ipfs://test-ipfs-new-url',
+          metaUrl: '',
+        },
+      ]);
     });
 
     it('should only find single deploy file on chainId and preset set', async () => {
@@ -197,9 +240,9 @@ describe('publish command', () => {
         includeProvisioned: true,
       });
 
-      expect(publishPackage as jest.Mock).toHaveBeenCalledTimes(1);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
+      expect(preparePublishPackage as jest.Mock).toHaveBeenCalledTimes(1);
+      expect((preparePublishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
+      expect((preparePublishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
     });
 
     // Not sure if it's the expected behavior to match multiple deploy files on preset is empty
@@ -216,9 +259,9 @@ describe('publish command', () => {
         skipConfirm: true,
       });
 
-      expect(publishPackage as jest.Mock).toHaveBeenCalledTimes(1);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
+      expect(preparePublishPackage as jest.Mock).toHaveBeenCalledTimes(1);
+      expect((preparePublishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
+      expect((preparePublishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
     });
 
     // Not sure if it's the expected behavior to match multiple deploy files on chainId is zero
@@ -235,9 +278,9 @@ describe('publish command', () => {
         skipConfirm: true,
       });
 
-      expect(publishPackage as jest.Mock).toHaveBeenCalledTimes(1);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
+      expect(preparePublishPackage as jest.Mock).toHaveBeenCalledTimes(1);
+      expect((preparePublishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
+      expect((preparePublishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
     });
   });
 });

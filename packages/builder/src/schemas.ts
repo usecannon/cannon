@@ -12,7 +12,7 @@ const argtype: z.ZodLazy<any> = z.lazy(() =>
 // <%=  string interpolation %>, step.names or property.names, packages:versions
 const interpolatedRegex = RegExp(/^<%=\s\w+.+[\w()[\]-]+\s%>$/, 'i');
 const stepRegex = RegExp(/^[\w-]+\.[.\w-]+$/, 'i');
-const packageRegex = RegExp(/^(?<name>@?[a-z0-9][a-z0-9-]{1,29}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/, 'i');
+const packageRegex = RegExp(/^(?<name>@?[a-z0-9][a-z0-9-]{1,}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/, 'i');
 const jsonAbiPathRegex = RegExp(/^(?!.*\.d?$).*\.json?$/, 'i');
 
 // This regex matches artifact names which are just capitalized words like solidity contract names
@@ -51,6 +51,8 @@ function tryParseJson(jsonString: string) {
   return undefined;
 }
 
+// Note: The first schema defined contains required properties, we then merge a schema with the `deepPartial` function which contains the optional properties
+
 const targetSchema = targetString.or(z.array(targetString).nonempty());
 
 export const deploySchema = z
@@ -69,6 +71,10 @@ export const deploySchema = z
   .merge(
     z
       .object({
+        /**
+         * Description of the operation
+         */
+        description: z.string().describe('Description of the operation'),
         /**
          *    Determines whether contract should get priority in displays
          */
@@ -186,7 +192,8 @@ export const deploySchema = z
           ),
       })
       .deepPartial()
-  );
+  )
+  .strict();
 
 export const pullSchema = z
   .object({
@@ -202,11 +209,43 @@ export const pullSchema = z
           message: `Source value: ${val} must match package formats: "package:version" or "package:version@preset" or operation name "import.Contract" or be an interpolated value`,
         })
       )
+      .refine(
+        (val) => {
+          const match = val.match(packageRegex);
+
+          if (match) {
+            const nameSize = match!.groups!.name.length;
+
+            return nameSize <= 32;
+          } else {
+            return true;
+          }
+        },
+        (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
+      )
+      .refine(
+        (val) => {
+          const match = val.match(packageRegex);
+
+          if (match && match!.groups!.version) {
+            const versionSize = match!.groups!.version.length;
+
+            return versionSize <= 32;
+          } else {
+            return true;
+          }
+        },
+        (val) => ({ message: `Package reference "${val}" is too long. Package version exceeds 32 bytes` })
+      )
       .describe('Source of the cannonfile package to import from. Can be a cannonfile operation name or package name'),
   })
   .merge(
     z
       .object({
+        /**
+         * Description of the operation
+         */
+        description: z.string().describe('Description of the operation'),
         /**
          *  ID of the chain to import the package from
          */
@@ -235,40 +274,43 @@ export const pullSchema = z
           ),
       })
       .deepPartial()
-  );
+  )
+  .strict();
 
 const invokeVarRecord = z
   .record(
-    z.object({
-      /**
-       *   Name of the event to get data for
-       */
-      event: z.string().describe('Name of the event to get data for'),
-      /**
-       *   Data argument of the event output
-       */
-      arg: z.number().int().describe('Data argument of the event output'),
-      /**
-       *   Number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)
-       */
-      expectCount: z
-        .number()
-        .int()
-        .optional()
-        .describe(
-          'Number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)'
-        ),
+    z
+      .object({
+        /**
+         *   Name of the event to get data for
+         */
+        event: z.string().describe('Name of the event to get data for'),
+        /**
+         *   Data argument of the event output
+         */
+        arg: z.number().int().describe('Data argument of the event output'),
+        /**
+         *   Number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)
+         */
+        expectCount: z
+          .number()
+          .int()
+          .optional()
+          .describe(
+            'Number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)'
+          ),
 
-      /**
-       *   Bypass error messages if an event is expected in the invoke operation but none are emitted in the transaction.
-       */
-      allowEmptyEvents: z
-        .boolean()
-        .optional()
-        .describe(
-          'Bypass error messages if an event is expected in the invoke operation but none are emitted in the transaction.'
-        ),
-    })
+        /**
+         *   Bypass error messages if an event is expected in the invoke operation but none are emitted in the transaction.
+         */
+        allowEmptyEvents: z
+          .boolean()
+          .optional()
+          .describe(
+            'Bypass error messages if an event is expected in the invoke operation but none are emitted in the transaction.'
+          ),
+      })
+      .strict()
   )
   .describe(
     'Object defined to hold transaction result data in a setting. For now its limited to getting event data so it can be reused in other operations'
@@ -288,6 +330,10 @@ export const invokeSchema = z
   .merge(
     z
       .object({
+        /**
+         * Description of the operation
+         */
+        description: z.string().describe('Description of the operation'),
         /**
          *  JSON file of the contract ABI.
          *  Required if the target contains an address rather than a contract operation name.
@@ -468,7 +514,8 @@ export const invokeSchema = z
           ),
       })
       .partial()
-  );
+  )
+  .strict();
 
 export const cloneSchema = z
   .object({
@@ -483,11 +530,42 @@ export const cloneSchema = z
           message: `Source value: ${val} must match package formats: "package:version" or "package:version@preset" or be an interpolated value`,
         })
       )
+      .refine(
+        (val) => {
+          const match = val.match(packageRegex);
+          if (match) {
+            const nameSize = match!.groups!.name.length;
+
+            return nameSize <= 32;
+          } else {
+            return true;
+          }
+        },
+        (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
+      )
+      .refine(
+        (val) => {
+          const match = val.match(packageRegex);
+
+          if (match && match!.groups!.version) {
+            const versionSize = match!.groups!.version.length;
+
+            return versionSize <= 32;
+          } else {
+            return true;
+          }
+        },
+        (val) => ({ message: `Package reference "${val}" is too long. Package version exceeds 32 bytes` })
+      )
       .describe('Name of the package to provision'),
   })
   .merge(
     z
       .object({
+        /**
+         * Description of the operation
+         */
+        description: z.string().describe('Description of the operation'),
         /**
          *  ID of the chain to import the package from.
          * Default - 13370
@@ -513,7 +591,34 @@ export const cloneSchema = z
               message: `Target value: ${val} must match package formats: "package:version" or "package:version@preset" or be an interpolated value`,
             })
           )
-          .describe('Name of the package to provision'),
+          .refine(
+            (val) => {
+              const match = val.match(packageRegex);
+              if (match) {
+                const nameSize = match!.groups!.name.length;
+
+                return nameSize <= 32;
+              } else {
+                return true;
+              }
+            },
+            (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
+          )
+          .refine(
+            (val) => {
+              const match = val.match(packageRegex);
+
+              if (match && match!.groups!.version) {
+                const versionSize = match!.groups!.version.length;
+
+                return versionSize <= 32;
+              } else {
+                return true;
+              }
+            },
+            (val) => ({ message: `Package reference "${val}" is too long. Package version exceeds 32 bytes` })
+          )
+          .describe('Name of the package to clone'),
         /**
          *  (DEPRECATED) use `target` instead. Set the new preset to use for this package.
          * Default - "main"
@@ -560,36 +665,43 @@ export const cloneSchema = z
           ),
       })
       .deepPartial()
-  );
+  )
+  .strict();
 
-export const routerSchema = z.object({
-  /**
-   * Set of contracts that will be passed to the router
-   */
-  contracts: z.array(z.string()).describe('Set of contracts that will be passed to the router'),
-  /**
-   * Include a `receive` function on the router so that it can receive ETH (or, whatever the gas token is on your network).
-   * NOTE: you can always define `payable` functions on your end-functions to receive ETH as well. This is only for receiving ETH like a regular EOA would.
-   */
-  includeReceive: z.boolean().optional(),
-  /**
-   *  Address to pass to the from call
-   */
-  from: z.string().optional().describe('Address to pass to the from call'),
-  /**
-   *   Used to force new copy of a contract (not actually used)
-   */
-  salt: z.string().optional().describe('Used to force new copy of a contract (not actually used)'),
-  /**
-   *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
-   */
-  depends: z
-    .array(z.string())
-    .optional()
-    .describe(
-      'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
-    ),
-});
+export const routerSchema = z
+  .object({
+    /**
+     * Set of contracts that will be passed to the router
+     */
+    contracts: z.array(z.string()).describe('Set of contracts that will be passed to the router'),
+    /**
+     * Description of the operation
+     */
+    description: z.string().optional().describe('Description of the operation'),
+    /**
+     * Include a `receive` function on the router so that it can receive ETH (or, whatever the gas token is on your network).
+     * NOTE: you can always define `payable` functions on your end-functions to receive ETH as well. This is only for receiving ETH like a regular EOA would.
+     */
+    includeReceive: z.boolean().optional(),
+    /**
+     *  Address to pass to the from call
+     */
+    from: z.string().optional().describe('Address to pass to the from call'),
+    /**
+     *   Used to force new copy of a contract (not actually used)
+     */
+    salt: z.string().optional().describe('Used to force new copy of a contract (not actually used)'),
+    /**
+     *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
+     */
+    depends: z
+      .array(z.string())
+      .optional()
+      .describe(
+        'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+      ),
+  })
+  .strict();
 
 export const varSchema = z
   .object({
@@ -597,7 +709,10 @@ export const varSchema = z
      *   The setting value to apply
      */
     defaultValue: z.string().optional().describe('⚠ Deprecated in favor of var. The value to set in the setting'),
-    description: z.string().optional().describe('Helpful explanation of the variable being set'),
+    /**
+     * Description of the operation
+     */
+    description: z.string().optional().describe('Description of the operation'),
     /**
      *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
      */
@@ -621,7 +736,12 @@ export const chainDefinitionSchema = z
     name: z
       .string()
       .min(3)
-      .max(31)
+      .refine(
+        (val) => {
+          return new Blob([val]).size <= 32;
+        },
+        (val) => ({ message: `Package name "${val}" is too long. Package name exceeds 32 bytes` })
+      )
       .refine((val) => !!val.match(RegExp(/[a-zA-Z0-9-]+/, 'gm')), {
         message: 'Name cannot contain any special characters',
       })
@@ -631,7 +751,12 @@ export const chainDefinitionSchema = z
      */
     version: z
       .string()
-      .max(31)
+      .refine(
+        (val) => {
+          return new Blob([val]).size <= 32;
+        },
+        (val) => ({ message: `Package version "${val}" is too long. Package version exceeds 32 bytes` })
+      )
       .refine((val) => !!val.match(RegExp(/[\w.]+/, 'gm')), {
         message: 'Version cannot contain any special characters',
       })
@@ -685,9 +810,9 @@ export const chainDefinitionSchema = z
             z
               .object({
                 /**
-                 * Description for the setting
+                 * Description of the operation
                  */
-                description: z.string().describe('Description for the setting'),
+                description: z.string().describe('Description of the operation'),
                 /**
                  * Data type of the value being stored
                  */

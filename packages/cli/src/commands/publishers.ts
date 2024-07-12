@@ -1,13 +1,16 @@
-import { OnChainRegistry, PackageReference } from '@usecannon/builder';
-import { blueBright, gray, green } from 'chalk';
+import { OnChainRegistry, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 import _ from 'lodash';
-import prompts from 'prompts';
+import Debug from 'debug';
 import * as viem from 'viem';
-import { DEFAULT_REGISTRY_CONFIG } from '../constants';
+import prompts from 'prompts';
+import { blueBright, gray, green } from 'chalk';
+
 import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 import { CliSettings } from '../settings';
 import { resolveRegistryProviders } from '../util/provider';
 import { waitForEvent } from '../util/register';
+
+const debug = Debug('cannon:cli:publishers');
 
 interface Params {
   cliSettings: CliSettings;
@@ -15,11 +18,25 @@ interface Params {
   packageRef: string;
 }
 
+enum Network {
+  OP = 'OP',
+  MAINNET = 'ETH',
+}
+
 export async function publishers({ cliSettings, options, packageRef }: Params) {
   // throw an error if the user has not provided any addresses
   if (!options.add && !options.remove) {
     throw new Error('Please provide either --add or --remove option');
   }
+
+  if (cliSettings.isE2E) {
+    // anvil optimism fork
+    cliSettings.registries[0].providerUrl = ['http://127.0.0.1:9546'];
+    // anvil mainnet fork
+    cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
+  }
+
+  debug('Registries list: ', cliSettings.registries);
 
   const publishersToAdd: viem.Address[] = options.add
     ? options.add.split(',').map((p: string) => viem.getAddress(p.trim()))
@@ -65,18 +82,26 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
-  const keyPrompt = await prompts({
-    type: 'select',
-    name: 'value',
-    message: 'Where do you want to add or remove publishers?',
-    choices: [
-      { title: 'Optimism', value: 'OP' },
-      { title: 'Ethereum Mainnet', value: 'ETH' },
-    ],
-    initial: 0,
-  });
+  let selectedNetwork = '';
 
-  const isMainnet = keyPrompt.value === 'ETH';
+  if (!options.optimism && !options.mainnet) {
+    selectedNetwork = (
+      await prompts({
+        type: 'select',
+        name: 'value',
+        message: 'Where do you want to add or remove publishers?',
+        choices: [
+          { title: 'Optimism', value: Network.OP },
+          { title: 'Ethereum Mainnet', value: Network.MAINNET },
+        ],
+        initial: 0,
+      })
+    ).value;
+  } else {
+    selectedNetwork = options.optimism ? Network.OP : Network.MAINNET;
+  }
+
+  const isMainnet = selectedNetwork === Network.MAINNET;
   const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
   const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
 
@@ -158,16 +183,17 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   );
   console.log();
 
-  const verification = await prompts({
-    type: 'confirm',
-    name: 'confirmation',
-    message: 'Proceed?',
-    initial: true,
-  });
+  if (!options.skipConfirm) {
+    const confirm = await prompts({
+      type: 'confirm',
+      name: 'confirmation',
+      message: 'Proceed?',
+    });
 
-  if (!verification.confirmation) {
-    console.log('Cancelled');
-    process.exit(1);
+    if (!confirm.confirmation) {
+      console.log('Cancelled');
+      process.exit(1);
+    }
   }
 
   const mainnetPublishers = isMainnet ? publishers : mainnetCurrentPublishers;
@@ -196,7 +222,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         waitForEvent({
           eventName: 'PackagePublishersChanged',
           abi: mainnetRegistry.contract.abi,
-          chainId: mainnetRegistryConfig.chainId!,
+          providerUrl: mainnetRegistryConfig.providerUrl![0],
           expectedArgs: {
             name: packageNameHex,
             publisher: mainnetPublishers,
@@ -205,7 +231,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         waitForEvent({
           eventName: 'PackagePublishersChanged',
           abi: optimismRegistry.contract.abi,
-          chainId: optimismRegistryConfig.chainId!,
+          providerUrl: optimismRegistryConfig.providerUrl![0],
           expectedArgs: {
             name: packageNameHex,
             publisher: optimismPublishers,
@@ -213,7 +239,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         }),
       ]);
 
-      console.log(green('Success!'));
+      console.log(green('Success - The publishers list has been updated!'));
       console.log('');
     })(),
   ]);

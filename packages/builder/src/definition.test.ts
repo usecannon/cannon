@@ -1,8 +1,6 @@
-import { ChainDefinition, validatePackageName, validatePackageVersion } from './definition';
-
-import 'jest';
 import _ from 'lodash';
 import { RawChainDefinition } from './actions';
+import { ChainDefinition, validatePackageName, validatePackageVersion } from './definition';
 
 function makeFakeChainDefinition(nodes: { [n: string]: any }) {
   const rawDef: RawChainDefinition = {
@@ -18,6 +16,38 @@ function makeFakeChainDefinition(nodes: { [n: string]: any }) {
 }
 
 describe('ChainDefinition', () => {
+  describe('constructor()', () => {
+    it('throws an error when trying to use a definition with invalid action name', () => {
+      const rawDef = {
+        name: 'test',
+        version: '1.0.0',
+        invalid: {
+          saturday: { target: '420' },
+        },
+      };
+
+      expect(() => new ChainDefinition(rawDef)).toThrow('Unrecognized action type invalid at [invalid.saturday]');
+    });
+
+    it('throws an error when trying to use a definition with name over 32 bytes', () => {
+      const rawDef = {
+        name: 'package-name-longer-than-32bytes1337',
+        version: '1.0.0',
+      };
+
+      expect(() => new ChainDefinition(rawDef)).toThrow('Package name exceeds 32 bytes');
+    });
+
+    it('throws an error when trying to use a definition with version over 32 bytes', () => {
+      const rawDef = {
+        name: 'package',
+        version: 'package-version-longer-than-32bytes1337',
+      };
+
+      expect(() => new ChainDefinition(rawDef)).toThrow('Package version exceeds 32 bytes');
+    });
+  });
+
   describe('validatePackageName()', () => {
     it('verifies the name is not too short', () => {
       expect(() => validatePackageName('hh')).toThrowError('must be at least');
@@ -48,6 +78,26 @@ describe('ChainDefinition', () => {
 
     it('works if there is no problem', () => {
       validatePackageVersion('something-1234-fun');
+    });
+  });
+
+  describe('computeDependencies()', () => {
+    it('does not modify the underlying `raw` data structure', () => {
+      const rawDef: RawChainDefinition = {
+        name: 'test',
+        version: '1.0.0',
+        var: {
+          a: { b: '<%= settings.c %>' },
+          d: { c: '1234' },
+        },
+        deploy: {
+          woot: { artifact: 'wohoo', args: ['<%= settings.b %>'], depends: [] },
+        },
+      };
+
+      const def = new ChainDefinition(_.cloneDeep(rawDef));
+
+      expect((def as any).raw).toEqual(rawDef);
     });
   });
 
