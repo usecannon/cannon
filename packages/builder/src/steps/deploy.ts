@@ -336,12 +336,24 @@ const deploySpec = {
           const signer = config.from
             ? await runtime.getSigner(config.from as viem.Address)
             : await runtime.getDefaultSigner!(txn, config.salt);
-          const preparedTxn = await runtime.provider.prepareTransactionRequest(
-            _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
-          );
-          const hash = await signer.wallet.sendTransaction(preparedTxn as any);
-          receipt = await runtime.provider.waitForTransactionReceipt({ hash });
-          deployAddress = receipt.contractAddress!;
+
+          if (config.overrides?.simulate) {
+            // if the code goes here, it means that the Create2 deployment failed
+            // and prepareTransactionRequest will throw an error with the underlying revert message
+            await runtime.provider.prepareTransactionRequest(
+              _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
+            );
+
+            deployAddress = viem.zeroAddress;
+          } else {
+            const preparedTxn = await runtime.provider.prepareTransactionRequest(
+              _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
+            );
+
+            const hash = await signer.wallet.sendTransaction(preparedTxn as any);
+            receipt = await runtime.provider.waitForTransactionReceipt({ hash });
+            deployAddress = receipt.contractAddress!;
+          }
         }
       }
     } catch (error: any) {
@@ -350,11 +362,14 @@ const deploySpec = {
         // arachnid create2 does not return the underlying revert message.
         // ref: https://github.com/Arachnid/deterministic-deployment-proxy/blob/master/source/deterministic-deployment-proxy.yul#L13
 
-        // to get the underlying revert message
-        // try to simulate a normal deployment
+        // simulate a non-create2 deployment to get the underlying revert message
         const simulateConfig = {
           ...config,
           create2: false,
+          overrides: {
+            ...config.overrides,
+            simulate: true,
+          },
         };
 
         return await this.exec(runtime, ctx, simulateConfig, packageState);

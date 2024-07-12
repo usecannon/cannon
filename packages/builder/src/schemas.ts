@@ -172,6 +172,7 @@ export const deploySchema = z
         overrides: z
           .object({
             gasLimit: z.string(),
+            simulate: z.boolean(),
           })
           .describe('Override transaction settings'),
 
