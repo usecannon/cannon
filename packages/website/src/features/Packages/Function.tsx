@@ -25,6 +25,7 @@ import {
   InputGroup,
   InputRightAddon,
   FormHelperText,
+  Tooltip,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
@@ -317,7 +318,13 @@ export const Function: FC<{
               alignItems="center"
               gap={2}
             >
-              {toFunctionSignature(f)}
+              <Tooltip
+                label={`Selector: ${toFunctionSelector(
+                  toFunctionSignature(f)
+                )}`}
+              >
+                {toFunctionSignature(f)}
+              </Tooltip>
               <Link
                 color="gray.300"
                 ml={1}
@@ -577,7 +584,14 @@ export const Function: FC<{
                 alignItems="center"
                 gap={2}
               >
-                {toFunctionSignature(f)}
+                <Tooltip
+                  label={`Selector: ${toFunctionSelector(
+                    toFunctionSignature(f)
+                  )}`}
+                >
+                  {toFunctionSignature(f)}
+                </Tooltip>
+
                 <Link
                   color="gray.300"
                   ml={1}
