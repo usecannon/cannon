@@ -123,7 +123,7 @@ export const deploySchema = z
               tryParseJson(val),
             {
               message:
-                'ABI must be a valid JSON ABI string, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
+                'ABI must be a valid JSON ABI string or artifact name or artifact name, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
             }
           )
           .describe('Abi of the contract being deployed'),
@@ -348,7 +348,7 @@ export const invokeSchema = z
               tryParseJson(val),
             {
               message:
-                'ABI must be a valid JSON ABI string, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
+                'ABI must be a valid JSON ABI string or artifact name, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
             }
           )
           .describe(
@@ -471,7 +471,7 @@ export const invokeSchema = z
                 .describe(
                   'An array of contract artifacts that have already been deployed with Cannon. Used if the code for the deployed contract is not available in the artifacts.'
                 ),
-                
+
               abi: z
                 .string()
                 .refine(
@@ -482,7 +482,7 @@ export const invokeSchema = z
                     tryParseJson(val),
                   {
                     message:
-                      'ABI must be a valid JSON ABI string, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
+                      'ABI must be a valid JSON ABI string or artifact name or artifact name, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
                   }
                 )
                 .describe('Abi of the contract being deployed'),
