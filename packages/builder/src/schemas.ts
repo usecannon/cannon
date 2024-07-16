@@ -485,8 +485,8 @@ export const invokeSchema = z
                       'ABI must be a valid JSON ABI string or artifact name or artifact name, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
                   }
                 )
+                .optional()
                 .describe('Abi of the contract being deployed'),
-
 
               /**
                *   Constructor or initializer args

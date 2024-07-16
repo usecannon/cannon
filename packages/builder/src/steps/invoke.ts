@@ -99,7 +99,8 @@ async function runTxn(
   )?.[0] as viem.AbiFunction;
   if (!neededFuncAbi) {
     throw new Error(
-      `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${config.func
+      `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
+        config.func
       }". List of recognized functions is:\n${functionList
         .map((v) => v[1])
         .join(
@@ -116,7 +117,8 @@ async function runTxn(
     )?.[0] as viem.AbiFunction;
     if (!neededOwnerFuncAbi) {
       throw new Error(
-        `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${config.func
+        `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
+          config.func
         }" to determine owner. List of recognized functions is:\n${Object.keys(
           contract.abi.filter((v) => v.type === 'function').map((v) => (v as viem.AbiFunction).name)
         ).join(
@@ -257,11 +259,11 @@ async function importTxnData(
         } else {
           // Load the abi from another contract
           const implContract = getContractDefinitionFromPath(ctx, factoryInfo.abi);
-    
+
           if (!implContract) {
             throw new Error(`previously deployed contract with name ${factoryInfo.abi} for abi not found`);
           }
-    
+
           abi = implContract.abi;
         }
       } else if (factoryInfo.abiOf) {
