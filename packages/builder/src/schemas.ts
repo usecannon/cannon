@@ -471,6 +471,22 @@ export const invokeSchema = z
                 .describe(
                   'An array of contract artifacts that have already been deployed with Cannon. Used if the code for the deployed contract is not available in the artifacts.'
                 ),
+                
+              abi: z
+                .string()
+                .refine(
+                  (val) =>
+                    !!val.match(artifactNameRegex) ||
+                    !!val.match(jsonAbiPathRegex) ||
+                    !!val.match(interpolatedRegex) ||
+                    tryParseJson(val),
+                  {
+                    message:
+                      'ABI must be a valid JSON ABI string, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
+                  }
+                )
+                .describe('Abi of the contract being deployed'),
+
 
               /**
                *   Constructor or initializer args
