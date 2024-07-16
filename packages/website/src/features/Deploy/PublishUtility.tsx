@@ -200,7 +200,6 @@ export default function PublishUtility(props: {
           isClosable: true,
         });
       }
-
     },
   });
 
