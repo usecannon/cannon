@@ -22,6 +22,7 @@ contracts = [
   "Greeter",
 ]
 includeReceive = false
+highlight = true
 
 # Deploy a new Proxy using as implementation our just craeted Router
 [provision.proxy]
