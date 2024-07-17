@@ -487,9 +487,9 @@ export async function build({
         ])
       );
 
-      const isPresetMain = preset === 'main';
+      const isMainPreset = preset === 'main';
 
-      if (isPresetMain) {
+      if (isMainPreset) {
         console.log(
           bold(
             `Publish ${bold(`${name}:${version}`)} to the registry and pin the IPFS data to ${
@@ -509,7 +509,7 @@ export async function build({
       if (chainId == 13370) {
         console.log(bold('Run this package'));
 
-        if (isPresetMain) console.log(`> cannon ${name}:${version}`);
+        if (isMainPreset) console.log(`> cannon ${name}:${version}`);
         else console.log(`> ${`cannon ${fullPackageRef}`} `);
       } else {
         console.log(bold('Verify contracts on Etherscan'));
