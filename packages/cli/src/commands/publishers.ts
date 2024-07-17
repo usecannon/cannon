@@ -201,6 +201,9 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
 
   const packageNameHex = viem.stringToHex(packageName, { size: 32 });
 
+  console.log('Submitting transaction, waiting for transaction to succeed...');
+  console.log();
+
   const [hash] = await Promise.all([
     (async () => {
       const hash = await mainnetRegistry.setAdditionalPublishers(packageName, mainnetPublishers, optimismPublishers);

@@ -486,17 +486,34 @@ export async function build({
           ['Metadata', metaUrl],
         ])
       );
-      console.log(
-        bold(`Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`)
-      );
-      console.log(`> ${`cannon publish ${fullPackageRef} --chain-id ${chainId}`}`);
+
+      const isPresetMain = preset === 'main';
+
+      if (isPresetMain) {
+        console.log(
+          bold(
+            `Publish ${bold(`${name}:${version}`)} to the registry and pin the IPFS data to ${
+              filteredSettings.publishIpfsUrl
+            }`
+          )
+        );
+        console.log(`> cannon publish ${name}:${version} --chain-id ${chainId}`);
+      } else {
+        console.log(
+          bold(`Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`)
+        );
+        console.log(`> cannon publish ${fullPackageRef} --chain-id ${chainId}`);
+      }
+
       console.log('');
       if (chainId == 13370) {
         console.log(bold('Run this package'));
-        console.log(`> ${`cannon ${fullPackageRef}`}`);
+
+        if (isPresetMain) console.log(`> cannon ${name}:${version}`);
+        else console.log(`> ${`cannon ${fullPackageRef}`} `);
       } else {
         console.log(bold('Verify contracts on Etherscan'));
-        console.log(`> ${`cannon verify ${fullPackageRef} --chain-id ${chainId}`}`);
+        console.log(`> cannon verify ${fullPackageRef} --chain-id ${chainId}`);
       }
     }
   } else {
