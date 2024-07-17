@@ -344,7 +344,7 @@ async function execTxn({
     to: contract.address,
     data: callData,
     value: value || 0,
-  };
+  } as any;
 
   // estimate gas
   try {
@@ -369,6 +369,7 @@ async function execTxn({
   } catch (err) {
     console.error(red(`❌ txn will most likely fail: ${(err as Error).toString()}`));
     console.error('Txn gas limit has been set to 1,000,000 due to simulation failure');
+    console.error('txn data', txn);
     txn.gas = BigInt(1000000);
   }
 
