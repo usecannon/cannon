@@ -93,11 +93,16 @@ export async function build({
   }
 
   let stepsExecuted = false;
-  const packageRef = PackageReference.from(packageDefinition.name, packageDefinition.version, packageDefinition.preset);
 
-  const { name, version } = packageRef;
-  const preset = presetArg || packageRef.preset;
-  const { fullPackageRef } = PackageReference.from(name, version, preset);
+  const packageReference = PackageReference.from(
+    packageDefinition.name,
+    packageDefinition.version,
+    packageDefinition.preset
+  );
+
+  const { fullPackageRef, packageRef } = packageReference;
+  const { name, version } = packageReference;
+  const preset = presetArg || packageReference.preset;
 
   // Handle deprecated preset specification
   if (presetArg) {
@@ -486,17 +491,32 @@ export async function build({
           ['Metadata', metaUrl],
         ])
       );
-      console.log(
-        bold(`Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`)
-      );
-      console.log(`> ${`cannon publish ${fullPackageRef} --chain-id ${chainId}`}`);
+
+      const isMainPreset = preset === PackageReference.DEFAULT_PRESET;
+
+      if (isMainPreset) {
+        console.log(
+          bold(
+            `Publish ${bold(`${packageRef}`)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`
+          )
+        );
+        console.log(`> cannon publish ${packageRef} --chain-id ${chainId}`);
+      } else {
+        console.log(
+          bold(`Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`)
+        );
+        console.log(`> cannon publish ${fullPackageRef} --chain-id ${chainId}`);
+      }
+
       console.log('');
       if (chainId == 13370) {
         console.log(bold('Run this package'));
-        console.log(`> ${`cannon ${fullPackageRef}`}`);
+
+        if (isMainPreset) console.log(`> cannon ${packageRef}`);
+        else console.log(`> cannon ${fullPackageRef}`);
       } else {
         console.log(bold('Verify contracts on Etherscan'));
-        console.log(`> ${`cannon verify ${fullPackageRef} --chain-id ${chainId}`}`);
+        console.log(`> cannon verify ${fullPackageRef} --chain-id ${chainId}`);
       }
     }
   } else {

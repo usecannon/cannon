@@ -163,7 +163,8 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
     }
   }
 
-  console.log('Submitting transaction...');
+  console.log('Submitting transaction, waiting for transaction to succeed...');
+  console.log();
 
   try {
     const [hash] = await Promise.all([
