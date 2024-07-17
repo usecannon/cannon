@@ -700,6 +700,7 @@ export const routerSchema = z
       .describe(
         'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
       ),
+    highlight: z.boolean().describe('Determines whether contract should get priority in displays'),
   })
   .strict();
 
