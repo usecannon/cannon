@@ -510,7 +510,7 @@ export async function build({
         console.log(bold('Run this package'));
 
         if (isMainPreset) console.log(`> cannon ${name}:${version}`);
-        else console.log(`> ${`cannon ${fullPackageRef}`} `);
+        else console.log(`> cannon ${fullPackageRef}`);
       } else {
         console.log(bold('Verify contracts on Etherscan'));
         console.log(`> cannon verify ${fullPackageRef} --chain-id ${chainId}`);
