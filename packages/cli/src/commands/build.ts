@@ -21,7 +21,7 @@ import { table } from 'table';
 import * as viem from 'viem';
 import pkg from '../../package.json';
 import { getChainById } from '../chains';
-import { filterSettings, readMetadataCache } from '../helpers';
+import { filterSettings, saveToMetadataCache } from '../helpers';
 import { getMainLoader } from '../loader';
 import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { createDefaultReadRegistry } from '../registry';
@@ -419,11 +419,19 @@ export async function build({
       chainId: runtime.chainId,
     });
 
-    const metadata = await readMetadataCache(`${pkgName}:${pkgVersion}`);
+    const metadataCache: { [key: string]: string } = {};
+
+    if (!_.isEmpty(pkgInfo)) {
+      metadataCache.gitUrl = pkgInfo.gitUrl;
+      metadataCache.commitHash = pkgInfo.commitHash;
+      metadataCache.readme = pkgInfo.readme;
+    }
+
+    // store metadata to /metadata_cache folder
+    const metadata = await saveToMetadataCache(`${pkgName}_${pkgVersion}_${runtime.chainId}-${preset}`, metadataCache);
 
     const metaUrl = await runtime.putBlob(metadata);
 
-    // locally store cannon packages (version + latest)
     await resolver.publish([fullPackageRef, `${name}:latest@${preset}`], runtime.chainId, deployUrl!, metaUrl!);
 
     // detach the process handler
