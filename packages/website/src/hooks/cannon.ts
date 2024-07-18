@@ -28,6 +28,9 @@ import { useEffect, useState } from 'react';
 import { Abi, Address, createPublicClient, createWalletClient, custom, Hex, isAddressEqual, PublicClient } from 'viem';
 import { useChainId } from 'wagmi';
 
+// Needed to preapre mock run step with registerAction
+import '@/lib/builder';
+
 export type BuildState =
   | {
       status: 'idle' | 'loading' | 'error';

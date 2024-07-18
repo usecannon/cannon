@@ -63,9 +63,6 @@ import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
 import 'react-diff-view/style/index.css';
 
-// Needed to preapre mock run step with registerAction
-import '@/lib/builder';
-
 export default function QueueFromGitOpsPage() {
   return <QueueFromGitOps />;
 }
