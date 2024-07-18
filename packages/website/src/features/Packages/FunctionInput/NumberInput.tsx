@@ -3,10 +3,9 @@ import { FC, useEffect, useMemo, useState } from 'react';
 import { parseEther } from 'viem';
 
 export const NumberInput: FC<{
-  handleUpdate: (value: bigint) => void;
-  value?: string;
-  positiveOnly?: boolean;
-}> = ({ handleUpdate, value = '0', positiveOnly = false }) => {
+  handleUpdate: (value: bigint | undefined) => void;
+  value?: bigint;
+}> = ({ handleUpdate, value }) => {
   // TODO: Doesn't look a solid approach (parseEther if it has dot)
   const parseValue = (_value = '0'): bigint =>
     _value
@@ -15,12 +14,11 @@ export const NumberInput: FC<{
         : BigInt(_value)
       : BigInt(0);
 
-  const [updateValue, setUpdateValue] = useState<bigint>(parseValue(value));
-  useEffect(() => handleUpdate(updateValue), [updateValue]);
-  const isInvalid = useMemo(
-    () => positiveOnly && updateValue < BigInt(0),
-    [updateValue, positiveOnly]
-  );
+  const [updateValue, setUpdateValue] = useState<bigint | undefined>(value);
+
+  useEffect(() => {
+    handleUpdate(updateValue || BigInt(0));
+  }, [updateValue]);
 
   return (
     <Input
@@ -28,9 +26,8 @@ export const NumberInput: FC<{
       bg="black"
       step="1"
       size="sm"
-      borderColor={isInvalid ? 'red.500' : 'whiteAlpha.400'}
-      value={updateValue.toString()}
-      _focus={{ borderColor: isInvalid ? 'red.500' : 'blue.300' }}
+      placeholder="0"
+      value={updateValue?.toString()}
       onChange={(e) => {
         setUpdateValue(parseValue(e.target.value));
       }}

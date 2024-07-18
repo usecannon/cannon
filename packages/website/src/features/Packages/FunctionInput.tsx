@@ -19,15 +19,8 @@ export const FunctionInput: FC<Props> = ({
   valueUpdated,
   initialValue,
 }) => {
-  const getDefaultValue = () => {
-    if (input.type.startsWith('int')) return '0';
-    if (input.type.startsWith('uint')) return '0';
-    return '';
-  };
   const isArray = useMemo(() => !!input?.type?.endsWith('[]'), [input]);
-  const [dataArray, setDataArray] = useState<{ val: any | null }[]>([
-    { val: getDefaultValue() },
-  ]);
+  const [dataArray, setDataArray] = useState<{ val: any | null }[]>([]);
 
   const updateValue = (value: any) => {
     // When getting a single empty string array, the value should be an empty array
@@ -40,7 +33,7 @@ export const FunctionInput: FC<Props> = ({
   };
 
   const add = () => {
-    setDataArray([...dataArray, { val: getDefaultValue() }]);
+    setDataArray([...dataArray, { val: undefined }]);
   };
 
   const remove = (index: number) => {
@@ -79,6 +72,7 @@ export const FunctionInput: FC<Props> = ({
       initialValue && isArray && index !== undefined
         ? initialValue[index]
         : initialValue;
+
     switch (true) {
       case input.type.startsWith('bool'):
         return <BoolInput handleUpdate={_handleUpdate} value={_initialValue} />;

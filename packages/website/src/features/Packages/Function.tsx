@@ -76,7 +76,9 @@ export const Function: FC<{
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
   const [error, setError] = useState<any>(null);
-  const [params, setParams] = useState<any[] | any>([]);
+  const [params, setParams] = useState<any[] | any>(
+    new Array(f.inputs.length).fill(undefined)
+  );
   // for payable functions only
   const [value, setValue] = useState<any>();
   const toast = useToast();
@@ -363,8 +365,15 @@ export const Function: FC<{
                     <FunctionInput
                       input={input}
                       valueUpdated={(value) => {
+                        console.log('valueUpdated.params: ', params);
+
+                        console.log('valueUpdated.index: ', index);
+
                         const _params = [...params];
                         _params[index] = value;
+
+                        console.log('valueUpdated._params: ', _params);
+
                         setParams(_params);
                       }}
                     />
