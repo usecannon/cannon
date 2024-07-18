@@ -42,6 +42,7 @@ import {
   useToast,
   VStack,
 } from '@chakra-ui/react';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainBuilderContext, PackageReference } from '@usecannon/builder';
 import _ from 'lodash';
 import NextLink from 'next/link';
@@ -56,12 +57,14 @@ import {
   TransactionRequestBase,
   zeroAddress,
 } from 'viem';
-import { useWriteContract, useAccount, useSwitchChain } from 'wagmi';
+import { useAccount, useSwitchChain, useWriteContract } from 'wagmi';
 import pkg from '../../../package.json';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
 import 'react-diff-view/style/index.css';
+
+// Needed to preapre mock run step with registerAction
+import '@/lib/builder';
 
 export default function QueueFromGitOpsPage() {
   return <QueueFromGitOps />;
