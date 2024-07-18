@@ -398,7 +398,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     value: p,
   }));
 
-  if (!options.skipConfirm) {
+  if (!cliSettings.isE2E) {
     // override pickedRegistryProvider with the selected provider
     pickedRegistryProvider = (
       await prompts([
