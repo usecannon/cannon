@@ -213,12 +213,13 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
       })(),
     ]);
 
+    packageRefs.map(async (pkg) => {
+      console.log(green(`Success - Package "${pkg.name}" has been registered.`));
+    });
+
     if (fromPublish) {
+      console.log('');
       console.log(gray('We will continue with the publishing process.'));
-    } else {
-      packageRefs.map(async (pkg) => {
-        console.log(green(`Success - Package "${pkg.name}" has been registered.`));
-      });
     }
 
     return hash;
