@@ -10,13 +10,13 @@ import TupleInput from './FunctionInput/TupleInput';
 
 interface Props {
   input: AbiParameter;
-  valueUpdated: (value: any) => void;
+  handleUpdate: (value: any) => void;
   initialValue?: any;
 }
 
 export const FunctionInput: FC<Props> = ({
   input,
-  valueUpdated,
+  handleUpdate,
   initialValue,
 }) => {
   const isArray = useMemo(() => !!input?.type?.endsWith('[]'), [input]);
@@ -29,7 +29,7 @@ export const FunctionInput: FC<Props> = ({
       Array.isArray(value) && value.length === 1 && value[0] === ''
         ? []
         : value;
-    valueUpdated(result);
+    handleUpdate(result);
   };
 
   const add = () => {
@@ -54,7 +54,7 @@ export const FunctionInput: FC<Props> = ({
     }
   }, []);
 
-  const handleUpdate = (index: number | null, value: any) => {
+  const _handleUpdate = (index: number | null, value: any) => {
     if (isArray) {
       const updatedArray = [...dataArray];
       updatedArray[index as number].val = value;
@@ -82,7 +82,10 @@ export const FunctionInput: FC<Props> = ({
         );
       case input.type.startsWith('int') || input.type.startsWith('uint'):
         return (
-          <NumberInput handleUpdate={_handleUpdate} value={_initialValue} />
+          <NumberInput
+            handleUpdate={_handleUpdate}
+            initialValue={_initialValue}
+          />
         );
       case input.type === 'tuple':
         // TODO: implement value prop for TupleInput
@@ -104,7 +107,7 @@ export const FunctionInput: FC<Props> = ({
     c = (
       <Flex direction="row" align="center">
         <Flex flex="1">
-          {getInputComponent((value: any) => handleUpdate(null, value))}
+          {getInputComponent((value: any) => _handleUpdate(null, value))}
         </Flex>
       </Flex>
     );
@@ -121,7 +124,7 @@ export const FunctionInput: FC<Props> = ({
                 key={index}
               >
                 {getInputComponent(
-                  (value: any) => handleUpdate(index, value),
+                  (value: any) => _handleUpdate(index, value),
                   index
                 )}
                 {dataArray.length > 1 && (

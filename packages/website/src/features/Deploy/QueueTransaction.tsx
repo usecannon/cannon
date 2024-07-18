@@ -455,7 +455,7 @@ export function QueueTransaction({
                   <FunctionInput
                     key={JSON.stringify(input)}
                     input={input}
-                    valueUpdated={(value) => {
+                    handleUpdate={(value) => {
                       const params = [...selectedParams];
                       params[index] = value;
                       setSelectedParams(params);

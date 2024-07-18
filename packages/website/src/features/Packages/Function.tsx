@@ -29,7 +29,7 @@ import {
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
 import { Abi, AbiFunction } from 'abitype';
-import React, { FC, useMemo, useState } from 'react';
+import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Address,
   toFunctionSelector,
@@ -76,9 +76,17 @@ export const Function: FC<{
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
   const [error, setError] = useState<any>(null);
-  const [params, setParams] = useState<any[] | any>(
-    new Array(f.inputs.length).fill(undefined)
-  );
+
+  // TODO: don't know why, had to use a ref instead of an array to be able to
+  // keep the correct reference.
+  const sadParams = useRef(new Array(f.inputs.length).fill(undefined));
+  const [params, setParams] = useState<any[] | any>([...sadParams.current]);
+
+  const setParam = (index: number, value: any) => {
+    sadParams.current[index] = value;
+    setParams([...sadParams.current]);
+  };
+
   // for payable functions only
   const [value, setValue] = useState<any>();
   const toast = useToast();
@@ -114,7 +122,7 @@ export const Function: FC<{
   const [readContractResult, fetchReadContractResult] = useContractCall(
     address,
     f.name,
-    params,
+    [...params],
     abi,
     publicClient
   );
@@ -124,7 +132,7 @@ export const Function: FC<{
       from as Address,
       address as Address,
       f.name,
-      params,
+      [...params],
       abi,
       publicClient,
       walletClient as any
@@ -276,7 +284,7 @@ export const Function: FC<{
           contractName,
           target: address,
           fn: f,
-          params,
+          params: [...params],
           chainId,
           pkgUrl: packageUrl || '',
         },
@@ -364,17 +372,8 @@ export const Function: FC<{
                     </FormLabel>
                     <FunctionInput
                       input={input}
-                      valueUpdated={(value) => {
-                        console.log('valueUpdated.params: ', params);
-
-                        console.log('valueUpdated.index: ', index);
-
-                        const _params = [...params];
-                        _params[index] = value;
-
-                        console.log('valueUpdated._params: ', _params);
-
-                        setParams(_params);
+                      handleUpdate={(value) => {
+                        setParam(index, value);
                       }}
                     />
                   </FormControl>
