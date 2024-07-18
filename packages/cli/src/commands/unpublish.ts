@@ -67,31 +67,40 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     overrides.value = options.value;
   }
 
-  const registryProviders = await resolveRegistryProviders(cliSettings);
-
-  // Initialize pickedRegistryProvider with the first provider
-  let [pickedRegistryProvider] = registryProviders;
-
   // if it's using the default config, prompt the user to choose a registry provider
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Custom registry settings are not supported yet.');
+
+  if (cliSettings.isE2E) {
+    // anvil optimism fork
+    cliSettings.registries[0].providerUrl = ['http://127.0.0.1:9546'];
+    // anvil mainnet fork
+    cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
+  }
+
+  const registryProviders = await resolveRegistryProviders(cliSettings);
+  // initialize pickedRegistryProvider with the first provider
+  let [pickedRegistryProvider] = registryProviders;
 
   const choices = registryProviders.reverse().map((p) => ({
     title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
     value: p,
   }));
 
-  // Override pickedRegistryProvider with the selected provider
-  pickedRegistryProvider = (
-    await prompts([
-      {
-        type: 'select',
-        name: 'pickedRegistryProvider',
-        message: 'Which registry would you like to use? (Cannon will find the package on either.):',
-        choices,
-      },
-    ])
-  ).pickedRegistryProvider;
+  // if the execution comes from the e2e tests, don't prompt and use the first one
+  if (!cliSettings.isE2E) {
+    // override pickedRegistryProvider with the selected provider
+    pickedRegistryProvider = (
+      await prompts([
+        {
+          type: 'select',
+          name: 'pickedRegistryProvider',
+          message: 'Which registry would you like to use? (Cannon will find the package on either.):',
+          choices,
+        },
+      ])
+    ).pickedRegistryProvider;
+  }
 
   const registryAddress =
     cliSettings.registries.find((registry) => registry.chainId === pickedRegistryProvider.provider.chain?.id)?.address ||
@@ -111,7 +120,7 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     // if user has specified a full package ref, use it to fetch the deployment
     deploys = [{ name: fullPackageRef, chainId: options.chainId }];
   } else {
-    // Check for deployments that are relevant to the provided packageRef
+    // check for deployments that are relevant to the provided packageRef
     deploys = await localRegistry.scanDeploys(packageRef, Number(options.chainId));
   }
 
@@ -129,10 +138,9 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
 
   const publishedDeploys = deploys.reduce((acc: any[], deploy, index) => {
     const [url, metaUrl] = onChainResults[index];
-    if (url && metaUrl) {
-      // note: name should be an array to be used in _preparePackageData function
-      acc.push({ ...deploy, name: [deploy.name], url, metaUrl });
-    }
+    // note: name should be an array to be used in _preparePackageData function
+    acc.push({ ...deploy, name: [deploy.name], url, metaUrl });
+
     return acc;
   }, []);
 
