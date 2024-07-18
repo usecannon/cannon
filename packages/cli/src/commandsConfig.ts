@@ -527,10 +527,6 @@ const commandsConfig = {
         description: 'Comma separated list of labels for your package',
       },
       {
-        flags: '--skip-confirm',
-        description: 'Skip confirmation to unpublish the package',
-      },
-      {
         flags: '--gas-limit <gasLimit>',
         description: 'The maximum units of gas spent for the registration transaction',
       },
