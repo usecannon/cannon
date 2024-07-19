@@ -697,7 +697,7 @@ function QueueFromGitOps() {
               </Flex>
             </Alert>
           )}
-          {!isPartialDataRequired && multicallTxn.data && stager.safeTxn && (
+          {multicallTxn.data && stager.safeTxn && (
             <Box mt="8">
               <Heading size="md" mb={2}>
                 Transactions
