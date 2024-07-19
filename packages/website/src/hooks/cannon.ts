@@ -151,6 +151,8 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     currentRuntime.on(
       Events.PostStepExecute,
       (stepType: string, stepLabel: string, stepConfig: any, stepCtx: ChainBuilderContext, stepOutput: ChainArtifacts) => {
+        const stepName = `${stepType}.${stepLabel}`;
+
         addLog(
           `cannon.ts: on Events.PostStepExecute operation ${stepType}.${stepLabel} output: ${JSON.stringify(stepOutput)}`
         );
@@ -163,6 +165,10 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
         }
 
         setBuildStatus(`Building ${stepType}.${stepLabel}...`);
+
+        if (stepType === 'contract' || stepType === 'deploy') {
+          skippedSteps.push({ name: stepName, err: new Error('Cannot deploy contract on a Safe transaction') });
+        }
       }
     );
 

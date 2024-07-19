@@ -363,7 +363,10 @@ function QueueFromGitOps() {
 
   const isPartialDataRequired =
     buildInfo.buildSkippedSteps.filter(
-      (s) => s.name.includes('contract') || s.name.includes('router')
+      (s) =>
+        s.name.startsWith('contract') ||
+        s.name.startsWith('deploy') ||
+        s.name.startsWith('router')
     ).length > 0;
 
   const loadingDataForDeploy =
