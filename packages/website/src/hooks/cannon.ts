@@ -166,7 +166,8 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
         setBuildStatus(`Building ${stepType}.${stepLabel}...`);
 
-        if (stepType === 'contract' || stepType === 'deploy') {
+        // a step that deploys a contract is a step that has no txns deployed but contract(s) deployed
+        if (_.keys(stepOutput.txns).length === 0 && _.keys(stepOutput.contracts).length > 0) {
           skippedSteps.push({ name: stepName, err: new Error('Cannot deploy contract on a Safe transaction') });
         }
       }
