@@ -253,7 +253,7 @@ const deploySpec = {
       }),
     };
 
-    const overrides: any = {}; // TODO
+    const overrides: any = {};
 
     if (config.overrides?.gasLimit) {
       overrides.gasLimit = config.overrides.gasLimit;
@@ -336,28 +336,58 @@ const deploySpec = {
           const signer = config.from
             ? await runtime.getSigner(config.from as viem.Address)
             : await runtime.getDefaultSigner!(txn, config.salt);
-          const preparedTxn = await runtime.provider.prepareTransactionRequest(
-            _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
-          );
-          const hash = await signer.wallet.sendTransaction(preparedTxn as any);
-          receipt = await runtime.provider.waitForTransactionReceipt({ hash });
-          deployAddress = receipt.contractAddress!;
+
+          if (config.overrides?.simulate) {
+            // if the code goes here, it means that the Create2 deployment failed
+            // and prepareTransactionRequest will throw an error with the underlying revert message
+            await runtime.provider.prepareTransactionRequest(
+              _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
+            );
+
+            deployAddress = viem.zeroAddress;
+          } else {
+            const preparedTxn = await runtime.provider.prepareTransactionRequest(
+              _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
+            );
+
+            const hash = await signer.wallet.sendTransaction(preparedTxn as any);
+            receipt = await runtime.provider.waitForTransactionReceipt({ hash });
+            deployAddress = receipt.contractAddress!;
+          }
         }
       }
     } catch (error: any) {
-      // we need to get the contract artifact to decode the error
-      const contractArtifact = generateOutputs(
-        config,
-        ctx,
-        artifactData,
-        receipt,
-        null,
-        // note: send zero address since there is no contract address
-        viem.zeroAddress,
-        packageState.currentLabel
-      );
+      // catch an error when it comes from create2 deployer
+      if (config.create2) {
+        // arachnid create2 does not return the underlying revert message.
+        // ref: https://github.com/Arachnid/deterministic-deployment-proxy/blob/master/source/deterministic-deployment-proxy.yul#L13
 
-      return await handleTxnError(contractArtifact, runtime.provider, error);
+        // simulate a non-create2 deployment to get the underlying revert message
+        const simulateConfig = {
+          ...config,
+          create2: false,
+          overrides: {
+            ...config.overrides,
+            simulate: true,
+          },
+        };
+
+        return await this.exec(runtime, ctx, simulateConfig, packageState);
+      } else {
+        // catch an error when it comes from normal deployment
+        const contractArtifact = generateOutputs(
+          config,
+          ctx,
+          artifactData,
+          receipt,
+          null,
+          // note: send zero address since there is no contract address
+          viem.zeroAddress,
+          packageState.currentLabel
+        );
+
+        return await handleTxnError(contractArtifact, runtime.provider, error);
+      }
     }
 
     const block = await runtime.provider.getBlock({ blockNumber: receipt?.blockNumber });
