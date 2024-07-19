@@ -29,7 +29,7 @@ import {
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
 import { Abi, AbiFunction } from 'abitype';
-import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
+import React, { FC, useMemo, useRef, useState } from 'react';
 import {
   Address,
   toFunctionSelector,
