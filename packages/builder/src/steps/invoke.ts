@@ -64,7 +64,7 @@ async function runTxn(
   // sanity check the contract we are calling has code defined
   // we check here because a missing contract will not revert when provided with data, leading to confusing situations
   // if invoke calls succeeding when no action was actually performed.
-  if ((await runtime.provider.getBytecode({ address: contract.address })) === '0x') {
+  if ((await runtime.provider.getCode({ address: contract.address })) === '0x') {
     throw new Error(
       `contract ${contract.address} for ${packageState.currentLabel} has no bytecode. This is most likely a missing dependency or bad state.`
     );

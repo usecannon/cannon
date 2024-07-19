@@ -178,7 +178,7 @@ describe('steps/deploy.ts', () => {
   describe('exec()', () => {
     describe('when create2 = true', () => {
       it('works if contract already deployed', async () => {
-        jest.mocked(fakeRuntime.provider.getBytecode).mockResolvedValue('0xabcdef');
+        jest.mocked(fakeRuntime.provider.getCode).mockResolvedValue('0xabcdef');
 
         const result = await action.exec(
           fakeRuntime,
@@ -219,7 +219,7 @@ describe('steps/deploy.ts', () => {
       });
 
       it('works if contract needs to be deployed', async () => {
-        jest.mocked(fakeRuntime.provider.getBytecode).mockImplementation(async ({ address }) => {
+        jest.mocked(fakeRuntime.provider.getCode).mockImplementation(async ({ address }) => {
           if (address === DEFAULT_ARACHNID_ADDRESS) {
             return '0xabcd';
           }

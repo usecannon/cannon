@@ -180,6 +180,9 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     }\n - Gas Limit: ${overrides.gasLimit ? overrides.gasLimit : 'default'}\n` +
       " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
   );
+
+  console.log();
+  console.log('Submitting transaction, waiting for transaction to succeed...');
   console.log();
 
   if (selectedDeploys.length > 1) {

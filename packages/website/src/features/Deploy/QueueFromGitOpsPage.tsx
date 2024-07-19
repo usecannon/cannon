@@ -42,6 +42,7 @@ import {
   useToast,
   VStack,
 } from '@chakra-ui/react';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainBuilderContext, PackageReference } from '@usecannon/builder';
 import _ from 'lodash';
 import NextLink from 'next/link';
@@ -56,11 +57,10 @@ import {
   TransactionRequestBase,
   zeroAddress,
 } from 'viem';
-import { useWriteContract, useAccount, useSwitchChain } from 'wagmi';
+import { useAccount, useSwitchChain, useWriteContract } from 'wagmi';
 import pkg from '../../../package.json';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
 import 'react-diff-view/style/index.css';
 
 export default function QueueFromGitOpsPage() {
@@ -363,7 +363,10 @@ function QueueFromGitOps() {
 
   const isPartialDataRequired =
     buildInfo.buildSkippedSteps.filter(
-      (s) => s.name.includes('contract') || s.name.includes('router')
+      (s) =>
+        s.name.startsWith('contract') ||
+        s.name.startsWith('deploy') ||
+        s.name.startsWith('router')
     ).length > 0;
 
   const loadingDataForDeploy =
@@ -694,7 +697,7 @@ function QueueFromGitOps() {
               </Flex>
             </Alert>
           )}
-          {!isPartialDataRequired && multicallTxn.data && stager.safeTxn && (
+          {multicallTxn.data && stager.safeTxn && (
             <Box mt="8">
               <Heading size="md" mb={2}>
                 Transactions
