@@ -153,9 +153,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       (stepType: string, stepLabel: string, stepConfig: any, stepCtx: ChainBuilderContext, stepOutput: ChainArtifacts) => {
         const stepName = `${stepType}.${stepLabel}`;
 
-        addLog(
-          `cannon.ts: on Events.PostStepExecute operation ${stepType}.${stepLabel} output: ${JSON.stringify(stepOutput)}`
-        );
+        addLog(`cannon.ts: on Events.PostStepExecute operation ${stepName} output: ${JSON.stringify(stepOutput)}`);
 
         simulatedSteps.push(_.cloneDeep(stepOutput));
 
@@ -164,11 +162,11 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
           stepOutput.txns![txn].hash = '';
         }
 
-        setBuildStatus(`Building ${stepType}.${stepLabel}...`);
+        setBuildStatus(`Building ${stepName}...`);
 
         // a step that deploys a contract is a step that has no txns deployed but contract(s) deployed
         if (_.keys(stepOutput.txns).length === 0 && _.keys(stepOutput.contracts).length > 0) {
-          skippedSteps.push({ name: stepName, err: new Error('Cannot deploy contract on a Safe transaction') });
+          throw new Error(`Cannot deploy contract on a Safe transaction for step ${stepName}`);
         }
       }
     );
