@@ -174,6 +174,7 @@ const routerStep = {
           deployTimestamp: block.timestamp.toString(),
           contractName,
           sourceName: contractName + '.sol',
+          highlight: config.highlight,
           gasUsed: Number(receipt.gasUsed),
           gasCost: receipt.effectiveGasPrice.toString(),
         },
