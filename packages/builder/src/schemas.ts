@@ -482,7 +482,7 @@ export const invokeSchema = z
                     tryParseJson(val),
                   {
                     message:
-                      'ABI must be a valid JSON ABI string or artifact name or artifact name, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
+                      'ABI must be a valid JSON ABI string or artifact name, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
                   }
                 )
                 .optional()
