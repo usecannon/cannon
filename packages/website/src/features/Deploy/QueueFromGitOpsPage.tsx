@@ -63,9 +63,6 @@ import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
 import 'react-diff-view/style/index.css';
 
-// Needed to preapre mock run step with registerAction
-import '@/lib/builder';
-
 export default function QueueFromGitOpsPage() {
   return <QueueFromGitOps />;
 }
@@ -366,7 +363,10 @@ function QueueFromGitOps() {
 
   const isPartialDataRequired =
     buildInfo.buildSkippedSteps.filter(
-      (s) => s.name.includes('contract') || s.name.includes('router')
+      (s) =>
+        s.name.startsWith('contract') ||
+        s.name.startsWith('deploy') ||
+        s.name.startsWith('router')
     ).length > 0;
 
   const loadingDataForDeploy =

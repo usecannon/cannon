@@ -28,6 +28,9 @@ import { useEffect, useState } from 'react';
 import { Abi, Address, createPublicClient, createWalletClient, custom, Hex, isAddressEqual, PublicClient } from 'viem';
 import { useChainId } from 'wagmi';
 
+// Needed to preapre mock run step with registerAction
+import '@/lib/builder';
+
 export type BuildState =
   | {
       status: 'idle' | 'loading' | 'error';
@@ -148,6 +151,8 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     currentRuntime.on(
       Events.PostStepExecute,
       (stepType: string, stepLabel: string, stepConfig: any, stepCtx: ChainBuilderContext, stepOutput: ChainArtifacts) => {
+        const stepName = `${stepType}.${stepLabel}`;
+
         addLog(
           `cannon.ts: on Events.PostStepExecute operation ${stepType}.${stepLabel} output: ${JSON.stringify(stepOutput)}`
         );
@@ -160,6 +165,11 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
         }
 
         setBuildStatus(`Building ${stepType}.${stepLabel}...`);
+
+        // a step that deploys a contract is a step that has no txns deployed but contract(s) deployed
+        if (_.keys(stepOutput.txns).length === 0 && _.keys(stepOutput.contracts).length > 0) {
+          skippedSteps.push({ name: stepName, err: new Error('Cannot deploy contract on a Safe transaction') });
+        }
       }
     );
 
