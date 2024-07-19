@@ -68,9 +68,6 @@ interface Props {
   sigHash: string;
 }
 
-// Needed to preapre mock run step with registerAction
-import '@/lib/builder';
-
 function TransactionDetailsPage({
   safeAddress,
   chainId,
