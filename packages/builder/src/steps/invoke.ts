@@ -249,6 +249,23 @@ async function importTxnData(
         abi = artifact.abi;
         sourceName = artifact.sourceName;
         contractName = artifact.contractName;
+      } else if (factoryInfo.abi) {
+        sourceName = '';
+        contractName = '';
+
+        if (factoryInfo.abi.trimStart().startsWith('[')) {
+          // Allow to pass in a literal abi string
+          abi = JSON.parse(factoryInfo.abi);
+        } else {
+          // Load the abi from another contract
+          const implContract = getContractDefinitionFromPath(ctx, factoryInfo.abi);
+
+          if (!implContract) {
+            throw new Error(`previously deployed contract with name ${factoryInfo.abi} for abi not found`);
+          }
+
+          abi = implContract.abi;
+        }
       } else if (factoryInfo.abiOf) {
         abi = getMergedAbiFromContractPaths(ctx, factoryInfo.abiOf);
 
@@ -390,6 +407,10 @@ const invokeSpec = {
       if (f.abiOf) {
         f.abiOf = _.map(f.abiOf, (v) => template(v)(ctx));
       }
+
+      if (f.abi) {
+        f.abi = template(f.abi || '')(ctx);
+      }
     }
 
     const varsConfig = config.var || config.extra;
@@ -443,6 +464,7 @@ const invokeSpec = {
 
       accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.event, possibleFields));
       accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.artifact, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.abi, possibleFields));
 
       _.forEach(f.abiOf, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))));
     }
