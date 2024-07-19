@@ -87,7 +87,7 @@ export const FunctionInput: FC<Props> = ({
             initialValue={_initialValue}
           />
         );
-      case input.type === 'tuple':
+      case input.type.startsWith('tuple'):
         // TODO: implement value prop for TupleInput
         return <TupleInput input={input} handleUpdate={_handleUpdate} />;
       default:
