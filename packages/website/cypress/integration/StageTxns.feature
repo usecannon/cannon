@@ -18,7 +18,7 @@ Feature: Stage Transactions
     Then URL includes "/packages/owned-greeter/latest"
     * View renders a "h1" displaying the text "owned-greeter"
     * View renders a "h2" displaying the text "Contract Deployments"
-    When User clicks on the "/packages/owned-greeter/latest/11155111-main/interact" link
+    When User clicks on the "/packages/owned-greeter/0.0.5/11155111-main/interact" link
     * User clicks on the "div" element with text "setGreeting(string)"
     * User types "Hello World!" for "_greeting" function param
     * User clicks on the button with id "setGreeting-stage-to-safe"
@@ -37,7 +37,7 @@ Feature: Stage Transactions
     Then Drawer has exactly 2 queued transactions
 
   Scenario: User stages transactions from the queue transactions drawer
-    Given User opens the "/packages/owned-greeter/latest/11155111-main/interact/owned-greeter/Greeter/0xa4605Ef2fB94211815F14AF6153915928C9E6407" page
+    Given User opens the "/packages/owned-greeter/0.0.5/11155111-main/interact/owned-greeter/Greeter/0xa4605Ef2fB94211815F14AF6153915928C9E6407" page
     When User clicks on the button with "aria-label" "queue-txs"
     Then View renders a "header" displaying the text "Stage Transactions to a Safe"
     When User types and select the safe "11155111:0xfD050037C9039cE7b4A3213E3645BC1ba6eA0c97"
