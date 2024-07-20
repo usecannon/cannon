@@ -104,7 +104,7 @@ export class CannonStorage extends EventEmitter {
 const parseGasValue = (value: string | undefined) => {
   if (!value) return undefined;
 
-  return viem.parseGwei(value).toString();
+  return viem.parseGwei(value);
 };
 
 export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRuntimeInfo {
@@ -121,9 +121,9 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   ctx: ChainBuilderContext | null;
   private publicSourceCode: boolean | undefined;
   private signals: { cancelled: boolean } = { cancelled: false };
-  private _gasPrice: string | undefined;
-  private _gasFee: string | undefined;
-  private _priorityGasFee: string | undefined;
+  private _gasPrice: bigint | undefined;
+  private _gasFee: bigint | undefined;
+  private _priorityGasFee: bigint | undefined;
 
   private cleanSnapshot: any;
 
@@ -177,14 +177,14 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
       }
     }
 
-    this._gasFee = parseGasValue(info.gasFee);
-    this._priorityGasFee = parseGasValue(info.priorityGasFee);
+    this._gasFee = info.gasFee;
+    this._priorityGasFee = info.priorityGasFee;
 
     if (info.gasPrice) {
       if (info.gasFee) {
         debug(yellow('WARNING: gasPrice is ignored when gasFee is set'));
       } else {
-        this._gasPrice = parseGasValue(info.gasPrice);
+        this._gasPrice = info.gasPrice;
       }
     }
   }
@@ -193,13 +193,13 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     this.signals.cancelled = true;
   }
 
-  get gasPrice(): string | undefined {
+  get gasPrice(): bigint | undefined {
     return this._gasPrice;
   }
-  get gasFee(): string | undefined {
+  get gasFee(): bigint | undefined {
     return this._gasFee;
   }
-  get priorityGasFee(): string | undefined {
+  get priorityGasFee(): bigint | undefined {
     return this._priorityGasFee;
   }
 

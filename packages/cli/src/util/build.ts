@@ -278,8 +278,12 @@ async function prepareBuildConfig(
     providerUrl: cliSettings.providerUrl,
     writeScript: opts.writeScript,
     writeScriptFormat: opts.writeScriptFormat,
-    gasPrice: opts.gasPrice,
-    gasFee: opts.maxGasFee,
-    priorityGasFee: opts.maxPriorityGasFee,
+    gasPrice: parseGwei(opts.gasPrice),
+    gasFee: parseGwei(opts.maxGasFee),
+    priorityGasFee: parseGwei(opts.maxPriorityGasFee),
   };
+}
+
+function parseGwei(v: string | undefined): bigint | undefined {
+  return v ? viem.parseGwei(v) : undefined;
 }
