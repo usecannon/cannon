@@ -118,7 +118,7 @@ async function runTxn(
     if (!neededOwnerFuncAbi) {
       throw new Error(
         `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
-          config.func
+          config.fromCall.func
         }" to determine owner. List of recognized functions is:\n${Object.keys(
           contract.abi.filter((v) => v.type === 'function').map((v) => (v as viem.AbiFunction).name)
         ).join(
