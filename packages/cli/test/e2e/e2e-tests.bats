@@ -236,11 +236,20 @@ teardown() {
   assert_success
 }
 
-@test "Publish - Publishing greeter package" {
+@test "Register & Publish - Registering and publishing the greeter package" {
   set_custom_config
-  run publish.sh
+  start_optimism_emitter
+  run publish.sh 1
   echo $output
   assert_success
+}
+
+@test "Publish - Publishing the greeter package failed due to no changes" {
+  set_custom_config
+  run publish.sh 2
+  echo $output
+  assert_output --partial "There isn't anything new to publish."
+  assert_failure
 }
 
 @test "Inspect - Inspect Synthetix Sandbox" {

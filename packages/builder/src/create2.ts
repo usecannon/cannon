@@ -19,7 +19,7 @@ export async function ensureArachnidCreate2Exists(
 ): Promise<viem.Address> {
   // if arachnid create2 contract is not deployed
   const proxyAddress = viem.getCreateAddress({ from: deployer, nonce: BigInt(0) });
-  const detectedBytecode = await runtime.provider.getBytecode({ address: proxyAddress });
+  const detectedBytecode = await runtime.provider.getCode({ address: proxyAddress });
   if (!detectedBytecode || detectedBytecode === '0x') {
     debug('arachnid create2 contract not found. attempting to deploy...');
     // on local testnets the arachnid contract is not deployed,

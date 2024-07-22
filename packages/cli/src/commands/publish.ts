@@ -157,32 +157,36 @@ export async function publish({
     publishCalls.push(...calls);
   }
 
+  if (!publishCalls.length) {
+    throw new Error("There isn't anything new to publish.");
+  }
+
+  for (const publishCall of publishCalls) {
+    const packageName = new PackageReference(publishCall.packagesNames[0]).name;
+    console.log(blueBright(`\nThis will publish ${bold(packageName)} to the registry:`));
+    for (const fullPackageRef of publishCall.packagesNames) {
+      const { version, preset } = new PackageReference(fullPackageRef);
+      console.log(` - ${version} (preset: ${preset})`);
+    }
+  }
+
+  console.log();
+
+  if (onChainRegistry instanceof OnChainRegistry) {
+    const totalFees = await onChainRegistry.calculatePublishingFee(publishCalls.length);
+
+    console.log(`Total publishing fees: ${viem.formatEther(totalFees)} ETH`);
+    console.log();
+
+    if (
+      totalFees > 0n &&
+      totalFees >= (await onChainRegistry.provider!.getBalance({ address: onChainRegistry.signer!.address }))
+    ) {
+      throw new Error('You do not appear to have enough ETH in your wallet to publish');
+    }
+  }
+
   if (!skipConfirm) {
-    for (const publishCall of publishCalls) {
-      const packageName = new PackageReference(publishCall.packagesNames[0]).name;
-      console.log(blueBright(`\nThis will publish ${bold(packageName)} to the registry:`));
-      for (const fullPackageRef of publishCall.packagesNames) {
-        const { version, preset } = new PackageReference(fullPackageRef);
-        console.log(` - ${version} (preset: ${preset})`);
-      }
-    }
-
-    console.log('\n');
-
-    if (onChainRegistry instanceof OnChainRegistry) {
-      const totalFees = await onChainRegistry.calculatePublishingFee(publishCalls.length);
-
-      console.log(`Total publishing fees: ${viem.formatEther(totalFees)} ETH`);
-      console.log();
-
-      if (
-        totalFees > 0n &&
-        totalFees >= (await onChainRegistry.provider!.getBalance({ address: onChainRegistry.signer!.address }))
-      ) {
-        throw new Error('you do not appear to have enough ETH in your wallet to publish');
-      }
-    }
-
     const verification = await prompts({
       type: 'confirm',
       name: 'confirmation',

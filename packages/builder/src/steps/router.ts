@@ -65,6 +65,10 @@ const routerStep = {
       config.salt = template(config.salt)(ctx);
     }
 
+    if (config?.overrides?.gasLimit) {
+      config.overrides.gasLimit = template(config.overrides.gasLimit)(ctx);
+    }
+
     return config;
   },
 
@@ -74,6 +78,10 @@ const routerStep = {
     accesses.accesses.push(
       ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`))
     );
+
+    if (config?.overrides) {
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit, possibleFields));
+    }
 
     return accesses;
   },
@@ -157,6 +165,23 @@ const routerStep = {
       }),
       chain: undefined,
     });
+
+    if (config.overrides?.gasLimit) {
+      preparedTxn.gas = BigInt(config.overrides.gasLimit);
+    }
+
+    if (runtime.gasPrice) {
+      preparedTxn.gasPrice = runtime.gasPrice;
+    }
+
+    if (runtime.gasFee) {
+      preparedTxn.maxFeePerGas = runtime.gasFee;
+    }
+
+    if (runtime.priorityGasFee) {
+      preparedTxn.maxPriorityFeePerGas = runtime.priorityGasFee;
+    }
+
     const hash = await signer.wallet.sendTransaction(preparedTxn as any);
 
     const receipt = await runtime.provider.waitForTransactionReceipt({ hash });
@@ -174,6 +199,7 @@ const routerStep = {
           deployTimestamp: block.timestamp.toString(),
           contractName,
           sourceName: contractName + '.sol',
+          highlight: config.highlight,
           gasUsed: Number(receipt.gasUsed),
           gasCost: receipt.effectiveGasPrice.toString(),
         },

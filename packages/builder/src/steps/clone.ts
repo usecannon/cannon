@@ -87,6 +87,10 @@ const cloneSpec = {
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.sourcePreset, possibleFields));
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.targetPreset, possibleFields));
 
+    if (config.var) {
+      _.forEach(config.var, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))));
+    }
+
     if (config.options) {
       _.forEach(
         config.options,

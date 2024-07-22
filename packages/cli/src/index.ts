@@ -378,20 +378,28 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
   }
 
-  const registryProviders = await resolveRegistryProviders(cliSettings);
+  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
+  if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
-  // Initialize pickedRegistryProvider with the first provider
+  // mock provider urls when the execution comes from e2e tests
+  if (cliSettings.isE2E) {
+    // anvil optimism fork
+    cliSettings.registries[0].providerUrl = ['http://127.0.0.1:9546'];
+    // anvil mainnet fork
+    cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
+  }
+
+  const registryProviders = await resolveRegistryProviders(cliSettings);
+  // initialize pickedRegistryProvider with the first provider
   let [pickedRegistryProvider] = registryProviders;
 
-  // if it's using the default config, prompt the user to choose a registry provider
-  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
-  if (isDefaultSettings) {
-    const choices = registryProviders.map((p) => ({
-      title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
-      value: p,
-    }));
+  const choices = registryProviders.map((p) => ({
+    title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
+    value: p,
+  }));
 
-    // Override pickedRegistryProvider with the selected provider
+  if (!cliSettings.isE2E) {
+    // override pickedRegistryProvider with the selected provider
     pickedRegistryProvider = (
       await prompts([
         {
@@ -402,35 +410,32 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
         },
       ])
     ).pickedRegistryProvider;
-  } else {
-    // the user has customized the provider and chain id, verify inputs
-    console.log(
-      `You are about to publish a package to a custom registry on: ${pickedRegistryProvider.provider.chain?.name}`
-    );
   }
 
-  if (isDefaultSettings) {
-    // Check if the package is already registered
-    const [optimism, mainnet] = DEFAULT_REGISTRY_CONFIG;
+  // Check if the package is already registered
+  const [optimism, mainnet] = DEFAULT_REGISTRY_CONFIG;
 
-    const [optimismProvider, mainnetProvider] = await resolveRegistryProviders(cliSettings);
+  const [optimismProvider, mainnetProvider] = await resolveRegistryProviders(cliSettings);
 
-    const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, [
-      mainnet.address,
-      optimism.address,
-    ]);
+  const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, [
+    mainnet.address,
+    optimism.address,
+  ]);
 
-    if (!isRegistered) {
-      console.log();
-      console.log(
-        gray(
-          `Package "${
-            packageRef.split(':')[0]
-          }" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
-        )
-      );
-      console.log();
+  console.log('isRegistered: ', isRegistered);
 
+  if (!isRegistered) {
+    console.log();
+    console.log(
+      gray(
+        `Package "${
+          packageRef.split(':')[0]
+        }" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
+      )
+    );
+    console.log();
+
+    if (!options.skipConfirm) {
       const registerPrompt = await prompts({
         type: 'confirm',
         name: 'value',
@@ -441,11 +446,11 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       if (!registerPrompt.value) {
         return process.exit(0);
       }
-
-      const { register } = await import('./commands/register');
-
-      await register({ cliSettings, options, packageRefs: [new PackageReference(packageRef)], fromPublish: true });
     }
+
+    const { register } = await import('./commands/register');
+
+    await register({ cliSettings, options, packageRefs: [new PackageReference(packageRef)], fromPublish: true });
   }
 
   const overrides: any = {};
