@@ -52,9 +52,9 @@ interface Params {
   publicSourceCode?: boolean;
   providerUrl?: string;
   registryPriority?: 'local' | 'onchain' | 'offline';
-  gasPrice?: string;
-  gasFee?: string;
-  priorityGasFee?: string;
+  gasPrice?: bigint;
+  gasFee?: bigint;
+  priorityGasFee?: bigint;
   writeScript?: string;
   writeScriptFormat?: WriteScriptFormat;
 }
