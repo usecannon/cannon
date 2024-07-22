@@ -709,6 +709,15 @@ export const routerSchema = z
      */
     salt: z.string().optional().describe('Used to force new copy of a contract (not actually used)'),
     /**
+     *   Override transaction settings
+     */
+    overrides: z
+      .object({
+        gasLimit: z.string().optional(),
+      })
+      .optional()
+      .describe('Override transaction settings'),
+    /**
      *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
      */
     depends: z
