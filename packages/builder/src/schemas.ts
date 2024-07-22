@@ -713,9 +713,9 @@ export const routerSchema = z
      */
     overrides: z
       .object({
-        gasLimit: z.string(),
-        simulate: z.boolean(),
+        gasLimit: z.string().optional(),
       })
+      .optional()
       .describe('Override transaction settings'),
     /**
      *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
