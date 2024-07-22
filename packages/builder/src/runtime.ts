@@ -101,12 +101,6 @@ export class CannonStorage extends EventEmitter {
   }
 }
 
-const parseGasValue = (value: string | undefined) => {
-  if (!value) return undefined;
-
-  return viem.parseGwei(value);
-};
-
 export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRuntimeInfo {
   provider: viem.PublicClient;
   readonly chainId: number;
