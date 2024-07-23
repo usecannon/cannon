@@ -239,6 +239,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
 
     if (options.writeDeployments) {
       await writeModuleDeployments(path.join(process.cwd(), options.writeDeployments), '', outputs);
+      console.log('');
     }
 
     if (options.keepAlive && node) {
