@@ -590,7 +590,7 @@ const commandsConfig = {
     ],
   },
   publishers: {
-    description: 'Add a new publisher to your Cannon package',
+    description: 'Add, remove or list publishers in your Cannon package',
     arguments: [
       {
         flags: '<packageRef>',
@@ -605,6 +605,10 @@ const commandsConfig = {
       {
         flags: '-r --remove <address>',
         description: 'Specify a comma separated list of addresses to add as publishers',
+      },
+      {
+        flags: '-l --list',
+        description: 'List package publishers',
       },
       {
         flags: '-n --registry-provider-url [url]',
