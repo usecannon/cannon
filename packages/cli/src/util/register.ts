@@ -1,6 +1,5 @@
 import { CannonSigner, OnChainRegistry, PackageReference } from '@usecannon/builder';
 import * as viem from 'viem';
-import _ from 'lodash';
 
 /**
  * Checks if a package is registered on a registry provider.
