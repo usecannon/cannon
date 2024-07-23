@@ -252,6 +252,14 @@ teardown() {
   assert_failure
 }
 
+@test "Unpublish - Unpublishing the greeter package" {
+  set_custom_config
+  run unpublish.sh
+  echo $output
+  assert_output --partial "Success! (Transaction Hash: "
+  assert_success
+}
+
 @test "Inspect - Inspect Synthetix Sandbox" {
   run inspect.sh
   echo $output
