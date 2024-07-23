@@ -157,6 +157,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   if (options.list) {
     console.log('');
     console.log(`The ${packageName} package lists the following publishers: `);
+    console.log(`  - ${packageOwner} (Mainnet) (Package Owner)`);
     mainnetCurrentPublishers.forEach((p) => console.log(`  - ${p} (Mainnet)`));
     optimismCurrentPublishers.forEach((p) => console.log(`  - ${p} (Optimism)`));
     console.log('');
