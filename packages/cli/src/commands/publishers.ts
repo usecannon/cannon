@@ -8,7 +8,7 @@ import { blueBright, gray, green } from 'chalk';
 import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 import { CliSettings } from '../settings';
 import { resolveRegistryProviders } from '../util/provider';
-import { waitForEvent } from '../util/register';
+import { waitForEvent } from '../util/wait-for-event';
 
 const debug = Debug('cannon:cli:publishers');
 
@@ -24,9 +24,14 @@ enum Network {
 }
 
 export async function publishers({ cliSettings, options, packageRef }: Params) {
-  // throw an error if the user has not provided any addresses
-  if (!options.add && !options.remove) {
-    throw new Error('Please provide either --add or --remove option');
+  // throw an error if the user has not provided any option
+  if (!options.add && !options.remove && !options.list) {
+    throw new Error('Please provide either --add, --remove or --list option');
+  }
+
+  // --list should be used alone
+  if (options.list && (options.add || options.remove)) {
+    throw new Error('Cannot use --list option with --add or --remove');
   }
 
   if (cliSettings.isE2E) {
@@ -63,7 +68,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     throw new Error('Cannot add and remove the same address in one operation');
   }
 
-  if (!cliSettings.privateKey) {
+  if (!cliSettings.privateKey && !options.list) {
     const keyPrompt = await prompts({
       type: 'text',
       name: 'value',
@@ -82,9 +87,9 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
-  let selectedNetwork = '';
+  let selectedNetwork = options.optimism ? Network.OP : Network.MAINNET;
 
-  if (!options.optimism && !options.mainnet) {
+  if (!options.optimism && !options.mainnet && !options.list) {
     selectedNetwork = (
       await prompts({
         type: 'select',
@@ -97,8 +102,6 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         initial: 0,
       })
     ).value;
-  } else {
-    selectedNetwork = options.optimism ? Network.OP : Network.MAINNET;
   }
 
   const isMainnet = selectedNetwork === Network.MAINNET;
@@ -132,7 +135,8 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     overrides,
   });
 
-  const userAddress = mainnetRegistryProvider.signers[0].address;
+  const userAddress = !options.list ? mainnetRegistryProvider.signers[0].address : viem.zeroAddress;
+
   const packageName = new PackageReference(packageRef).name;
   const packageOwner = await mainnetRegistry.getPackageOwner(packageName);
 
@@ -141,7 +145,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     throw new Error('The package is not registered already.');
   }
   // throw an error if the package is not registered by the user address
-  if (!viem.isAddressEqual(packageOwner, userAddress)) {
+  if (!options.list && !viem.isAddressEqual(packageOwner, userAddress)) {
     throw new Error(`Unauthorized: The package "${packageName}" is already registered by "${packageOwner}".`);
   }
 
@@ -149,6 +153,14 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     mainnetRegistry.getAdditionalPublishers(packageName),
     optimismRegistry.getAdditionalPublishers(packageName),
   ]);
+
+  if (options.list) {
+    console.log(`The ${packageName} package includes the following publishers: `);
+    mainnetCurrentPublishers.forEach((p) => console.log(`  - ${p} (Mainnet)`));
+    optimismCurrentPublishers.forEach((p) => console.log(`  - ${p} (Optimism)`));
+
+    return;
+  }
 
   const currentPublishers = isMainnet ? mainnetCurrentPublishers : optimismCurrentPublishers;
 

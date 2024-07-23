@@ -209,6 +209,16 @@ teardown() {
   assert_success
 }
 
+@test "Publishers - List publisher of the Optimism network" {
+  set_custom_config
+  start_optimism_emitter
+  run publishers.sh 5
+  echo $output
+  assert_output --partial 'The package-one package includes the following publishers:'
+  assert_output --partial ' - 0x000000000000000000000000000000000000dEaD (Optimism)'
+  assert_success
+}
+
 @test "Publishers - Remove a publisher on the Optimism network" {
   set_custom_config
   start_optimism_emitter
