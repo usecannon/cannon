@@ -209,7 +209,7 @@ teardown() {
   assert_success
 }
 
-@test "Publishers - List publisher of the Optimism network" {
+@test "Publishers - List publishers on the Optimism network" {
   set_custom_config
   start_optimism_emitter
   run publishers.sh 5
