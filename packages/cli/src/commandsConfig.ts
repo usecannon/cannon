@@ -304,6 +304,10 @@ const commandsConfig = {
         description: '(Experimental) Path to write all the actions taken as a script that can be later executed',
       },
       {
+        flags: '-w --write-deployments <writeDeployments>',
+        description: 'Path to write the deployments data (address and ABIs), like "./deployments"',
+      },
+      {
         flags: '--write-script-format <writeScriptFormat>',
         description: '(Experimental) Format in which to write the actions script (Options: json, ethers)',
         defaultValue: 'ethers',
