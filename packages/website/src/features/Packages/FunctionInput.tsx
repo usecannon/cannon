@@ -10,24 +10,17 @@ import TupleInput from './FunctionInput/TupleInput';
 
 interface Props {
   input: AbiParameter;
-  valueUpdated: (value: any) => void;
+  handleUpdate: (value: any) => void;
   initialValue?: any;
 }
 
 export const FunctionInput: FC<Props> = ({
   input,
-  valueUpdated,
+  handleUpdate,
   initialValue,
 }) => {
-  const getDefaultValue = () => {
-    if (input.type.startsWith('int')) return '0';
-    if (input.type.startsWith('uint')) return '0';
-    return '';
-  };
   const isArray = useMemo(() => !!input?.type?.endsWith('[]'), [input]);
-  const [dataArray, setDataArray] = useState<{ val: any | null }[]>([
-    { val: getDefaultValue() },
-  ]);
+  const [dataArray, setDataArray] = useState<{ val: any | null }[]>([]);
 
   const updateValue = (value: any) => {
     // When getting a single empty string array, the value should be an empty array
@@ -36,11 +29,11 @@ export const FunctionInput: FC<Props> = ({
       Array.isArray(value) && value.length === 1 && value[0] === ''
         ? []
         : value;
-    valueUpdated(result);
+    handleUpdate(result);
   };
 
   const add = () => {
-    setDataArray([...dataArray, { val: getDefaultValue() }]);
+    setDataArray([...dataArray, { val: undefined }]);
   };
 
   const remove = (index: number) => {
@@ -61,7 +54,7 @@ export const FunctionInput: FC<Props> = ({
     }
   }, []);
 
-  const handleUpdate = (index: number | null, value: any) => {
+  const _handleUpdate = (index: number | null, value: any) => {
     if (isArray) {
       const updatedArray = [...dataArray];
       updatedArray[index as number].val = value;
@@ -79,6 +72,7 @@ export const FunctionInput: FC<Props> = ({
       initialValue && isArray && index !== undefined
         ? initialValue[index]
         : initialValue;
+
     switch (true) {
       case input.type.startsWith('bool'):
         return <BoolInput handleUpdate={_handleUpdate} value={_initialValue} />;
@@ -88,9 +82,12 @@ export const FunctionInput: FC<Props> = ({
         );
       case input.type.startsWith('int') || input.type.startsWith('uint'):
         return (
-          <NumberInput handleUpdate={_handleUpdate} value={_initialValue} />
+          <NumberInput
+            handleUpdate={_handleUpdate}
+            initialValue={_initialValue}
+          />
         );
-      case input.type === 'tuple':
+      case input.type.startsWith('tuple'):
         // TODO: implement value prop for TupleInput
         return <TupleInput input={input} handleUpdate={_handleUpdate} />;
       default:
@@ -110,7 +107,7 @@ export const FunctionInput: FC<Props> = ({
     c = (
       <Flex direction="row" align="center">
         <Flex flex="1">
-          {getInputComponent((value: any) => handleUpdate(null, value))}
+          {getInputComponent((value: any) => _handleUpdate(null, value))}
         </Flex>
       </Flex>
     );
@@ -127,7 +124,7 @@ export const FunctionInput: FC<Props> = ({
                 key={index}
               >
                 {getInputComponent(
-                  (value: any) => handleUpdate(index, value),
+                  (value: any) => _handleUpdate(index, value),
                   index
                 )}
                 {dataArray.length > 1 && (

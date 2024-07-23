@@ -193,11 +193,11 @@ export interface ChainBuilderRuntimeInfo {
   allowPartialDeploy: boolean;
 
   // Gas price to use for transactions
-  gasPrice?: string;
+  gasPrice?: bigint;
 
   // Base and Priority gas fee to use for transactions - EIP1559
-  gasFee?: string;
-  priorityGasFee?: string;
+  gasFee?: bigint;
+  priorityGasFee?: bigint;
 }
 
 export interface PackageState {

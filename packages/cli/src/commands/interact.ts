@@ -340,18 +340,21 @@ async function execTxn({
     args,
   });
 
-  let txn: viem.TransactionRequest | null = null;
+  let txn: viem.TransactionRequest = {
+    to: contract.address,
+    data: callData,
+    value: value || 0,
+  } as any;
 
   // estimate gas
   try {
     const chain = getChainById(await provider.getChainId());
-    txn = (await provider.prepareTransactionRequest({
-      account: signer.wallet.account || signer.address,
-      chain,
-      to: contract.address,
-      data: callData,
-      value: value || 0,
-    })) as any;
+    txn = (await provider.prepareTransactionRequest(
+      _.assign(txn, {
+        account: signer.wallet.account || signer.address,
+        chain,
+      })
+    )) as any;
 
     console.log(gray(`  > calldata: ${txn!.data}`));
     console.log(gray(`  > estimated gas required: ${txn!.gas}`));
@@ -365,6 +368,9 @@ async function execTxn({
     console.log(green(bold('  ✅ txn will succeed')));
   } catch (err) {
     console.error(red(`❌ txn will most likely fail: ${(err as Error).toString()}`));
+    console.error('Txn gas limit has been set to 1,000,000 due to simulation failure');
+    console.error('txn data', txn);
+    txn.gas = BigInt(1000000);
   }
 
   if (signer != null) {
