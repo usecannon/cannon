@@ -500,13 +500,13 @@ export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | unde
 }
 
 /**
- * 
+ *
  * @param ref reference string, can be a package reference or ipfs url
  * @returns Package Reference string
  */
 export async function getPackageReference(ref: string) {
   if (ref.startsWith('@')) {
-    console.log(yellowBright("'@ipfs:' package format is deprecated, use 'ipfs://' instead"))
+    console.log(yellowBright("'@ipfs:' package format is deprecated, use 'ipfs://' instead"));
   }
 
   if (isIPFSUrl(ref)) {
@@ -529,7 +529,6 @@ export async function getPackageReference(ref: string) {
 
   const packageReference = `${pkgInfo.def.name}:${pkgInfo.def.version || 'latest'}@${pkgInfo.def.preset || 'main'}`;
 
-
   return packageReference;
 }
 
@@ -544,4 +543,3 @@ export function isIPFSCid(ref: string) {
 export function isIPFSRef(ref: string) {
   return isIPFSCid(ref) || isIPFSUrl(ref);
 }
-

@@ -4,7 +4,6 @@ import { createInitialContext, getArtifacts } from './builder';
 import { ChainDefinition } from './definition';
 import { CannonStorage } from './runtime';
 import { BundledOutput, ChainArtifacts, DeploymentInfo, StepState } from './types';
-import { readIpfs } from './ipfs';
 
 const debug = Debug('cannon:builder:package');
 

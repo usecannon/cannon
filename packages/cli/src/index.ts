@@ -30,9 +30,6 @@ import {
   checkForgeAstSupport,
   ensureChainIdConsistency,
   getPackageReference,
-  isIPFSCid,
-  isIPFSRef,
-  isIPFSUrl,
   isPrivateKey,
   normalizePrivateKey,
   setupAnvil,
@@ -437,9 +434,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       console.log();
       console.log(
         gray(
-          `Package "${
-            fullPackageRef
-          }" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
+          `Package "${fullPackageRef}" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
         )
       );
       console.log();
