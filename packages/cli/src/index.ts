@@ -235,7 +235,12 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     const pickedCliSettings = _.pick(cliSettings, Object.keys(options));
     const mergedOptions = _.assign({}, options, pickedCliSettings);
 
-    const [node, pkgSpec, , runtime] = await doBuild(cannonfile, settings, mergedOptions);
+    const [node, pkgSpec, outputs, runtime] = await doBuild(cannonfile, settings, mergedOptions);
+
+    if (options.writeDeployments) {
+      await writeModuleDeployments(path.join(process.cwd(), options.writeDeployments), '', outputs);
+      console.log('');
+    }
 
     if (options.keepAlive && node) {
       console.log(`The local node will continue running at ${node.host}`);
