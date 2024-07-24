@@ -167,7 +167,7 @@ function TransactionDetailsPage({
 
   const cannonPackage = useCannonPackage(
     hintData?.cannonPackage
-      ? `@ipfs:${_.last(hintData?.cannonPackage.split('/'))}`
+      ? `ipfs://${_.last(hintData?.cannonPackage.split('/'))}`
       : ''
   );
 
@@ -210,7 +210,7 @@ function TransactionDetailsPage({
 
   const prevCannonDeployInfo = useCannonPackage(
     (hintData?.cannonUpgradeFromPackage || prevDeployPackageUrl
-      ? `@ipfs:${_.last(
+      ? `ipfs://${_.last(
           (hintData?.cannonUpgradeFromPackage || prevDeployPackageUrl).split(
             '/'
           )

@@ -505,12 +505,14 @@ export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | unde
  * @returns Package Reference string
  */
 export async function getPackageReference(ref: string) {
-  let cid;
+  if (ref.startsWith('@')) {
+    console.log(yellowBright("'@ipfs:' package format is deprecated, use 'ipfs://' instead"))
+  }
 
   if (isIPFSUrl(ref)) {
-    cid = ref.replace('^(?:@ipfs:|ipfs:\/\/)', '');
+    ref = ref.replace('@ipfs:', 'ipfs://');
   } else if (isIPFSCid(ref)) {
-    cid = ref
+    ref = `ipfs://${ref}`;
   } else {
     return new PackageReference(ref).fullPackageRef; //If its not an IPFS ref just return the package reference
   }
@@ -523,17 +525,16 @@ export async function getPackageReference(ref: string) {
     ipfs: new IPFSLoader(cliSettings.ipfsUrl! || getCannonRepoRegistryUrl()),
   });
 
-  const pkgInfo: DeploymentInfo = await storage.readBlob(`ipfs://${cid}`);
+  const pkgInfo: DeploymentInfo = await storage.readBlob(ref);
 
   const packageReference = `${pkgInfo.def.name}:${pkgInfo.def.version || 'latest'}@${pkgInfo.def.preset || 'main'}`;
-  console.log(packageReference)
 
 
   return packageReference;
 }
 
 export function isIPFSUrl(ref: string) {
-  return ref.startsWith('ipfs') || ref.startsWith('@ipfs');
+  return ref.startsWith('ipfs://') || ref.startsWith('@ipfs:');
 }
 
 export function isIPFSCid(ref: string) {

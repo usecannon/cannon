@@ -193,12 +193,10 @@ export async function preparePublishPackage({
 }: CopyPackageOpts) {
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
 
-  // TODO: packageRef in this case can be a package name or an IPFS hash (@ipfs://Qm...) for the pin command, however, this functionality should have
-  // it's own function to handle the pinning of IPFS urls.
-  const packageReference = PackageReference.isValid(packageRef) ? new PackageReference(packageRef) : null;
+  const packageReference = new PackageReference(packageRef);
 
-  const presetRef = packageReference ? packageReference.preset : 'main';
-  const givenPackageRef = packageReference ? packageReference.fullPackageRef : packageRef;
+  const presetRef = packageReference.preset;
+  const givenPackageRef = packageReference.fullPackageRef;
 
   const alreadyCopiedIpfs = new Map<string, any>();
 

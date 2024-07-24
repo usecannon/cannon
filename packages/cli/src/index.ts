@@ -29,6 +29,10 @@ import {
   checkCannonVersion,
   checkForgeAstSupport,
   ensureChainIdConsistency,
+  getPackageReference,
+  isIPFSCid,
+  isIPFSRef,
+  isIPFSUrl,
   isPrivateKey,
   normalizePrivateKey,
   setupAnvil,
@@ -320,10 +324,10 @@ applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async
   await fetch(packageName, parseInt(options.chainId), ipfsHash, options.metaHash);
 });
 
-applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async function (ipfsHash, options) {
+applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async function (ref, options) {
   const cliSettings = resolveCliSettings(options);
 
-  ipfsHash = ipfsHash.replace(/^ipfs:\/\//, '');
+  const fullPackageRef = await getPackageReference(ref);
 
   const fromStorage = new CannonStorage(await createDefaultReadRegistry(cliSettings), getMainLoader(cliSettings));
 
@@ -334,7 +338,7 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
   console.log('Uploading package data for pinning...');
 
   await publishPackage({
-    packageRef: '@ipfs:' + ipfsHash,
+    packageRef: fullPackageRef,
     chainId: 13370,
     tags: [], // when passing no tags, it will only copy IPFS files, but not publish to registry
     fromStorage,
@@ -351,6 +355,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   const { publish } = await import('./commands/publish');
 
   const cliSettings = resolveCliSettings(options);
+  const fullPackageRef = await getPackageReference(packageRef);
 
   if (!options.chainId) {
     const chainIdPrompt = await prompts({
@@ -417,45 +422,44 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     ).pickedRegistryProvider;
   }
 
-  // TODO: fix the registered check to take into account @ipfs:Qm...
-  // if (isDefaultSettings) {
-  //   // Check if the package is already registered
-  //   const [optimism, mainnet] = DEFAULT_REGISTRY_CONFIG;
+  if (isDefaultSettings) {
+    // Check if the package is already registered
+    const [optimism, mainnet] = DEFAULT_REGISTRY_CONFIG;
 
-  //   const [optimismProvider, mainnetProvider] = await resolveRegistryProviders(cliSettings);
+    const [optimismProvider, mainnetProvider] = await resolveRegistryProviders(cliSettings);
 
-  //   const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, [
-  //     mainnet.address,
-  //     optimism.address,
-  //   ]);
+    const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], fullPackageRef, [
+      mainnet.address,
+      optimism.address,
+    ]);
 
-  //   if (!isRegistered) {
-  //     console.log();
-  //     console.log(
-  //       gray(
-  //         `Package "${
-  //           packageRef.split(':')[0]
-  //         }" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
-  //       )
-  //     );
-  //     console.log();
+    if (!isRegistered) {
+      console.log();
+      console.log(
+        gray(
+          `Package "${
+            fullPackageRef
+          }" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
+        )
+      );
+      console.log();
 
-  //     const registerPrompt = await prompts({
-  //       type: 'confirm',
-  //       name: 'value',
-  //       message: 'Would you like to register the package now?',
-  //       initial: true,
-  //     });
+      const registerPrompt = await prompts({
+        type: 'confirm',
+        name: 'value',
+        message: 'Would you like to register the package now?',
+        initial: true,
+      });
 
-  //     if (!registerPrompt.value) {
-  //       return process.exit(0);
-  //     }
+      if (!registerPrompt.value) {
+        return process.exit(0);
+      }
 
-  //     const { register } = await import('./commands/register');
+      const { register } = await import('./commands/register');
 
-  //     await register({ cliSettings, options, packageRefs: [new PackageReference(packageRef)], fromPublish: true });
-  //   }
-  // }
+      await register({ cliSettings, options, packageRefs: [new PackageReference(fullPackageRef)], fromPublish: true });
+    }
+  }
 
   const overrides: any = {};
 
