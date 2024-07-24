@@ -7,6 +7,11 @@ import {
   ChainDefinition,
   ContractData,
   ContractMap,
+  DeploymentInfo,
+  getCannonRepoRegistryUrl,
+  IPFSLoader,
+  CannonStorage,
+  PackageReference,
   RawChainDefinition,
 } from '@usecannon/builder';
 import { AbiEvent } from 'abitype';
@@ -25,6 +30,7 @@ import { cannonChain, chains } from './chains';
 import { resolveCliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 import { getChainIdFromProviderUrl, isURL, hideApiKey } from './util/provider';
+import { LocalRegistry } from './registry';
 
 const debug = Debug('cannon:cli:helpers');
 
@@ -492,3 +498,49 @@ export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | unde
 
   return normalizedPrivateKeys.join(',') as viem.Hex;
 }
+
+/**
+ * 
+ * @param ref reference string, can be a package reference or ipfs url
+ * @returns Package Reference string
+ */
+export async function getPackageReference(ref: string) {
+  let cid;
+
+  if (isIPFSUrl(ref)) {
+    cid = ref.replace('^(?:@ipfs:|ipfs:\/\/)', '');
+  } else if (isIPFSCid(ref)) {
+    cid = ref
+  } else {
+    return new PackageReference(ref).fullPackageRef; //If its not an IPFS ref just return the package reference
+  }
+
+  const cliSettings = resolveCliSettings();
+
+  const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
+
+  const storage = new CannonStorage(localRegistry, {
+    ipfs: new IPFSLoader(cliSettings.ipfsUrl! || getCannonRepoRegistryUrl()),
+  });
+
+  const pkgInfo: DeploymentInfo = await storage.readBlob(`ipfs://${cid}`);
+
+  const packageReference = `${pkgInfo.def.name}:${pkgInfo.def.version || 'latest'}@${pkgInfo.def.preset || 'main'}`;
+  console.log(packageReference)
+
+
+  return packageReference;
+}
+
+export function isIPFSUrl(ref: string) {
+  return ref.startsWith('ipfs') || ref.startsWith('@ipfs');
+}
+
+export function isIPFSCid(ref: string) {
+  return ref.startsWith('Qm');
+}
+
+export function isIPFSRef(ref: string) {
+  return isIPFSCid(ref) || isIPFSUrl(ref);
+}
+

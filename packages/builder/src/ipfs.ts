@@ -5,6 +5,7 @@ import Debug from 'debug';
 import FormData from 'form-data';
 import pako from 'pako';
 import Hash from 'typestub-ipfs-only-hash';
+import { DeploymentInfo } from '.';
 
 export interface Headers {
   [key: string]: string | string[] | number | boolean | null;

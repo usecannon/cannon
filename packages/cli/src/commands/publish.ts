@@ -14,6 +14,7 @@ import * as viem from 'viem';
 import { getMainLoader } from '../loader';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';
+import { getPackageReference, isIPFSRef } from '../helpers';
 
 interface Params {
   packageRef: string;
@@ -45,10 +46,10 @@ export async function publish({
   includeProvisioned = true,
   skipConfirm = false,
 }: Params) {
-  const { fullPackageRef } = new PackageReference(packageRef);
+  const fullPackageRef = await getPackageReference(packageRef);
 
   // Handle deprecated preset specification
-  if (presetArg && !packageRef.startsWith('@')) {
+  if (presetArg && !isIPFSRef(packageRef)) {
     console.warn(
       yellow(
         bold(
@@ -78,12 +79,10 @@ export async function publish({
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
   const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
 
-  // if the package reference doesnt contain a version reference we still want to scan deploys without it.
-  // This works as a catch all to get any deployment stored locally.
-  // However if a version is passed, we use the basePackageRef to extrapolate and remove any potential preset in the reference.
+  // if the package reference is an ipfs reference (url or hash) we pass it the full package ref since its referencing a specific deploy
   let deploys;
-  if (packageRef.startsWith('@')) {
-    deploys = [{ name: packageRef, chainId: 13370 }];
+  if (isIPFSRef(packageRef)) {
+    deploys = [{ name: fullPackageRef, chainId: 13370 }];
   } else {
     // Check for deployments that are relevant to the provided packageRef
     deploys = await localRegistry.scanDeploys(packageRef, chainId);
@@ -130,12 +129,12 @@ export async function publish({
 
   // "dedupe" the deploys so that when we iterate we can go over every package deployment by version
   const parentPackages: DeployList[] = deployNames.reduce((result: DeployList[], item) => {
-    const matchingDeploys = result.find((i) => !i.name.startsWith('@') && i.name === item.name && i.preset === item.preset);
+    const matchingDeploys = result.find((i) => !isIPFSRef(i.name) && i.name === item.name && i.preset === item.preset);
 
     if (matchingDeploys) {
       matchingDeploys.versions.push(item.version);
     } else {
-      const versions = item.name.startsWith('@') ? [] : [item.version];
+      const versions = isIPFSRef(item.name) ? [] : [item.version];
       result.push({ name: item.name, versions, chainId: item.chainId, preset: item.preset });
     }
 
