@@ -104,7 +104,7 @@ export class ChainDefinition {
 
           for (const output of actionOutputs) {
             debug(`deps: ${fullActionName} provides ${output}`);
-            if (!this.dependencyFor.has(output)) {
+            if (!this.dependencyFor.has(output) || action == 'setting' || action == 'var') {
               this.dependencyFor.set(output, fullActionName);
             } else {
               throw new Error(`output clash: both ${this.dependencyFor.get(output)} and ${fullActionName} output ${output}`);
