@@ -3,7 +3,7 @@ import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { createFork, findChain } from '@/helpers/rpc';
 import { SafeDefinition, useStore } from '@/helpers/store';
 import { useGitRepo } from '@/hooks/git';
-import { useCannonRegistry } from '@/hooks/registry';
+import { useCannonRegistry } from '@/providers/CannonRegistryProvider';
 import { useLogs } from '@/providers/logsProvider';
 import { BaseTransaction } from '@safe-global/safe-apps-sdk';
 import { useMutation, UseMutationOptions, useQuery } from '@tanstack/react-query';
