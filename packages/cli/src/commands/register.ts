@@ -7,7 +7,7 @@ import { OnChainRegistry, prepareMulticall, PackageReference, DEFAULT_REGISTRY_C
 
 import { CliSettings } from '../settings';
 import { waitForEvent } from '../util/wait-for-event';
-import { resolveRegistryProviders } from '../util/provider';
+import { resolveRegistryProviders, ProviderAction } from '../util/provider';
 import { isPackageRegistered } from '../util/register';
 
 import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
@@ -22,22 +22,6 @@ interface Params {
 }
 
 export async function register({ cliSettings, options, packageRefs, fromPublish }: Params) {
-  if (!cliSettings.privateKey) {
-    const keyPrompt = await prompts({
-      type: 'text',
-      name: 'value',
-      message: 'Enter the private key for the signer that will register packages',
-      style: 'password',
-      validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
-    });
-
-    if (!keyPrompt.value) {
-      throw new Error('A valid private key is required.');
-    }
-
-    cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
-  }
-
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
@@ -52,7 +36,10 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
   debug('Registries list: ', cliSettings.registries);
 
   const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
-  const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
+  const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(
+    cliSettings,
+    ProviderAction.WriteRegistry
+  );
 
   // if any of the packages are registered, throw an error
   const isRegistered = await Promise.all(

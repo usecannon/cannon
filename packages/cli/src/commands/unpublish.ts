@@ -6,7 +6,7 @@ import * as viem from 'viem';
 import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';
-import { resolveRegistryProviders } from '../util/provider';
+import { resolveRegistryProviders, ProviderAction } from '../util/provider';
 
 interface Params {
   cliSettings: CliSettings;
@@ -28,24 +28,6 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     }
 
     options.chainId = Number(chainIdPrompt.value);
-  }
-
-  console.log();
-
-  if (!cliSettings.privateKey) {
-    const keyPrompt = await prompts({
-      type: 'text',
-      name: 'value',
-      message: 'Enter the private key of the package owner to unpublish',
-      style: 'password',
-      validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
-    });
-
-    if (!keyPrompt.value) {
-      throw new Error('A valid private key is required.');
-    }
-
-    cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
   }
 
   console.log();
@@ -78,7 +60,7 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
   }
 
-  const registryProviders = await resolveRegistryProviders(cliSettings);
+  const registryProviders = await resolveRegistryProviders(cliSettings, ProviderAction.WriteRegistry);
   // initialize pickedRegistryProvider with the first provider
   let [pickedRegistryProvider] = registryProviders;
 

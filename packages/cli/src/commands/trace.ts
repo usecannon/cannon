@@ -44,7 +44,7 @@ export async function trace({
   // as possible, the same way that an error occurs
 
   // if chain id is not specified, get it from the provider
-  const { provider } = await resolveWriteProvider(cliSettings, chainId);
+  const { provider } = await resolveWriteProvider({ cliSettings, chainId });
 
   const deployInfos = await readDeployRecursive(packageRef, chainId);
 

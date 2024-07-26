@@ -8,7 +8,7 @@ import path from 'path';
 import * as viem from 'viem';
 import { CliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
-import { resolveRegistryProviders } from './util/provider';
+import { resolveRegistryProviders, ProviderAction } from './util/provider';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -187,7 +187,7 @@ export async function createDefaultReadRegistry(
   cliSettings: CliSettings,
   additionalRegistries: CannonRegistry[] = []
 ): Promise<FallbackRegistry> {
-  const registryProviders = await resolveRegistryProviders(cliSettings);
+  const registryProviders = await resolveRegistryProviders(cliSettings, ProviderAction.ReadRegistry);
 
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
   const onChainRegistries = registryProviders.map(

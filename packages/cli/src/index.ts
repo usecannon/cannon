@@ -24,15 +24,7 @@ import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
-import {
-  checkAndNormalizePrivateKey,
-  checkCannonVersion,
-  checkForgeAstSupport,
-  ensureChainIdConsistency,
-  isPrivateKey,
-  normalizePrivateKey,
-  setupAnvil,
-} from './helpers';
+import { checkCannonVersion, checkForgeAstSupport, ensureChainIdConsistency, setupAnvil } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
 import { createDefaultReadRegistry } from './registry';
@@ -43,7 +35,13 @@ import { pickAnvilOptions } from './util/anvil';
 import { doBuild } from './util/build';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { parsePackageArguments, parsePackagesArguments } from './util/params';
-import { getChainIdFromProviderUrl, isURL, resolveRegistryProviders, resolveWriteProvider } from './util/provider';
+import {
+  getChainIdFromProviderUrl,
+  isURL,
+  ProviderAction,
+  resolveRegistryProviders,
+  resolveWriteProvider,
+} from './util/provider';
 import { isPackageRegistered } from './util/register';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
@@ -156,7 +154,10 @@ function configureRun(program: Command) {
 
     let node: CannonRpcNode;
     if (options.chainId) {
-      const { provider } = await resolveWriteProvider(cliSettings, Number.parseInt(options.chainId));
+      const { provider } = await resolveWriteProvider({
+        cliSettings,
+        chainId: Number.parseInt(options.chainId),
+      });
 
       // throw an error if the chainId is not consistent with the provider's chainId
       await ensureChainIdConsistency(cliSettings.providerUrl, options.chainId);
@@ -168,7 +169,7 @@ function configureRun(program: Command) {
       if (isURL(cliSettings.providerUrl)) {
         options.chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
 
-        const { provider } = await resolveWriteProvider(cliSettings, Number.parseInt(options.chainId));
+        const { provider } = await resolveWriteProvider({ cliSettings, chainId: Number.parseInt(options.chainId) });
 
         node = await runRpc(pickAnvilOptions(options), {
           forkProvider: provider,
@@ -367,22 +368,6 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     options.chainId = chainIdPrompt.value;
   }
 
-  if (!cliSettings.privateKey) {
-    const keyPrompt = await prompts({
-      type: 'text',
-      name: 'value',
-      message: 'Enter the private key for an address that has permission to publish',
-      style: 'password',
-      validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
-    });
-
-    if (!keyPrompt.value) {
-      throw new Error('A valid private key is required.');
-    }
-
-    cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
-  }
-
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
@@ -394,7 +379,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
   }
 
-  const registryProviders = await resolveRegistryProviders(cliSettings);
+  const registryProviders = await resolveRegistryProviders(cliSettings, ProviderAction.WriteRegistry);
   // initialize pickedRegistryProvider with the first provider
   let [pickedRegistryProvider] = registryProviders;
 
@@ -419,15 +404,11 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
   // Check if the package is already registered
   const [optimism, mainnet] = DEFAULT_REGISTRY_CONFIG;
-
-  const [optimismProvider, mainnetProvider] = await resolveRegistryProviders(cliSettings);
-
+  const [optimismProvider, mainnetProvider] = registryProviders;
   const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, [
     mainnet.address,
     optimism.address,
   ]);
-
-  console.log('isRegistered: ', isRegistered);
 
   if (!isRegistered) {
     console.log();
@@ -705,7 +686,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
   // throw an error if the chainId is not consistent with the provider's chainId
   await ensureChainIdConsistency(cliSettings.providerUrl, chainId);
 
-  const { provider, signers } = await resolveWriteProvider(cliSettings, chainId!);
+  const { provider, signers } = await resolveWriteProvider({ cliSettings, chainId: chainId! });
 
   const resolver = await createDefaultReadRegistry(cliSettings);
 

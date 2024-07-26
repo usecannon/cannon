@@ -7,7 +7,7 @@ import { blueBright, gray, green } from 'chalk';
 
 import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 import { CliSettings } from '../settings';
-import { resolveRegistryProviders } from '../util/provider';
+import { resolveRegistryProviders, ProviderAction } from '../util/provider';
 import { waitForEvent } from '../util/wait-for-event';
 
 const debug = Debug('cannon:cli:publishers');
@@ -68,22 +68,6 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     throw new Error('Cannot add and remove the same address in one operation');
   }
 
-  if (!cliSettings.privateKey && !options.list) {
-    const keyPrompt = await prompts({
-      type: 'text',
-      name: 'value',
-      message: 'Enter the private key of the package owner',
-      style: 'password',
-      validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
-    });
-
-    if (!keyPrompt.value) {
-      throw new Error('A valid private key is required.');
-    }
-
-    cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
-  }
-
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
@@ -106,7 +90,10 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
 
   const isMainnet = selectedNetwork === Network.MAINNET;
   const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
-  const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
+  const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(
+    cliSettings,
+    options.list ? ProviderAction.ReadRegistry : ProviderAction.ReadRegistry
+  );
 
   const overrides: any = {};
   if (options.maxFeePerGas) {
