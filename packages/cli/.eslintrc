@@ -1,6 +1,0 @@
-{
-  "rules": {
-    "no-console": "error"
-  }
-  exclude: ['./src/util/console.ts']
-}
