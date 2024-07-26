@@ -70,6 +70,17 @@ const chainsById = Object.values(enrichedChainData).reduce((acc, chain) => {
   return acc;
 });
 
+export const getExplorerUrl = (chainId: number, hash: string) => {
+  const chain = chainsById[chainId];
+  const explorer = chain.blockExplorers?.default;
+  if (!chain || !explorer) return '';
+
+  const url = explorer?.url || 'https://etherscan.io';
+
+  const type = hash.length > 42 ? 'tx' : 'address';
+  return `${url}/${type}/${hash}`;
+};
+
 export { chainsById };
 
 export * from 'viem/chains';
