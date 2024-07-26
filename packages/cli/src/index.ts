@@ -428,8 +428,6 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     optimism.address,
   ]);
 
-  log('isRegistered: ', isRegistered);
-
   if (!isRegistered) {
     log();
     log(
