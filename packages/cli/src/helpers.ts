@@ -558,13 +558,13 @@ export function normalizeIPFSUrl(ref: string) {
 }
 
 export function getCIDfromUrl(ref: string) {
-  if(!isIPFSRef(ref)) {
-    throw new Error(`${ref} is not a valid IPFS url`)
+  if (!isIPFSRef(ref)) {
+    throw new Error(`${ref} is not a valid IPFS url`);
   }
 
-  if (isIPFSUrl(ref)){
+  if (isIPFSUrl(ref)) {
     ref = normalizeIPFSUrl(ref);
-    return ref.replace('ipfs://', '')
+    return ref.replace('ipfs://', '');
   }
 
   return ref;

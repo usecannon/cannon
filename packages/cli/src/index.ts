@@ -439,7 +439,6 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       );
       console.log();
 
-
       if (!options.skipConfirm) {
         const registerPrompt = await prompts({
           type: 'confirm',
