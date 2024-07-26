@@ -12,7 +12,6 @@ import { DefaultSeo } from 'next-seo';
 import '@/styles/globals.css';
 import defaultSEO from '@/constants/defaultSeo';
 import E2EWalletConnector from '../../cypress/utils/E2EWalletConnector';
-import { CannonRegistryProvider } from '@/providers/CannonRegistryProvider';
 
 const miriam = Miriam_Libre({
   subsets: ['latin'],
@@ -72,11 +71,7 @@ export default function RootLayout({
           position="relative"
         >
           <Header />
-          <Flex flex="1">
-            <CannonRegistryProvider>
-              {getLayout(<Component {...pageProps} />)}
-            </CannonRegistryProvider>
-          </Flex>
+          <Flex flex="1">{getLayout(<Component {...pageProps} />)}</Flex>
           <Footer />
           {/*<Console />*/}
           <E2EWalletConnector />
