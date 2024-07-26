@@ -439,15 +439,18 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       );
       console.log();
 
-      const registerPrompt = await prompts({
-        type: 'confirm',
-        name: 'value',
-        message: 'Would you like to register the package now?',
-        initial: true,
-      });
 
-      if (!registerPrompt.value) {
-        return process.exit(0);
+      if (!options.skipConfirm) {
+        const registerPrompt = await prompts({
+          type: 'confirm',
+          name: 'value',
+          message: 'Would you like to register the package now?',
+          initial: true,
+        });
+
+        if (!registerPrompt.value) {
+          return process.exit(0);
+        }
       }
 
       const { register } = await import('./commands/register');
