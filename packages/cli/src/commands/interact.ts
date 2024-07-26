@@ -581,13 +581,13 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: viem.TransactionRece
     );
 
     for (let i = 0; i < receipt.logs.length; i++) {
-      const log = receipt.logs[i];
+      const logItem = receipt.logs[i];
 
       let foundLog = false;
-      for (const [n, logContract] of contractsByAddress[log.address.toLowerCase()] || []) {
+      for (const [n, logContract] of contractsByAddress[logItem.address.toLowerCase()] || []) {
         try {
           // find contract matching address of the log
-          const parsedLog = viem.decodeEventLog({ ...logContract, ...log });
+          const parsedLog = viem.decodeEventLog({ ...logContract, ...logItem });
           foundLog = true;
           log(gray(`\n    log ${i}:`), cyan(parsedLog.eventName), gray(`\t${n}`));
 

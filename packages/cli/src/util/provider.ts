@@ -5,7 +5,7 @@ import provider from 'eth-provider';
 import { privateKeyToAccount } from 'viem/accounts';
 import { CannonSigner, traceActions } from '@usecannon/builder';
 
-import { log, error, warn } from './console';}
+import { log, error, warn } from './console';
 import { getChainById } from '../chains';
 import { CliSettings, PROVIDER_URL_DEFAULT } from '../settings';
 
