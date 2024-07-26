@@ -3,6 +3,8 @@ import path from 'path';
 import { ChainArtifacts } from '@usecannon/builder';
 import { green } from 'chalk';
 
+import { log } from './console';
+
 /**
  * Recursively writes all deployments for a chainbuilder output
  */

@@ -12,7 +12,7 @@ import { createDefaultReadRegistry } from '../registry';
 import { getChainById } from '../chains';
 import { getMainLoader } from '../loader';
 
-import { log, warm } from './util/console';
+import { log, warn } from './util/console';
 import { isVerified } from '../util/verify';
 
 const debug = Debug('cannon:cli:verify');

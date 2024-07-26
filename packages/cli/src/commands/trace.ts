@@ -6,6 +6,7 @@ import * as viem from 'viem';
 import { readDeployRecursive } from '../package';
 import { getProvider, runRpc } from '../rpc';
 import { CliSettings } from '../settings';
+import { log } from '../util/console';
 import { resolveWriteProvider } from '../util/provider';
 import { ANVIL_FIRST_ADDRESS } from '../constants';
 

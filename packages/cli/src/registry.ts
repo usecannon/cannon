@@ -7,6 +7,7 @@ import os from 'os';
 import path from 'path';
 import * as viem from 'viem';
 import { CliSettings } from './settings';
+import { log } from './util/console';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 import { resolveRegistryProviders } from './util/provider';
 
