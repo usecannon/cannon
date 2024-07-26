@@ -80,6 +80,8 @@ export async function resolveWriteProvider(
   // Check if the first provider URL doesn't start with 'http'
   const isProviderUrl = isURL(settings.providerUrl.split(',')[0]);
 
+  console.log('isProviderUrl: ', isProviderUrl);
+
   if (!isProviderUrl) {
     // If privateKey is present or no valid http URLs are available in rpcUrls
     if (settings.privateKey || chainData.rpcUrls.default.http.length === 0) {

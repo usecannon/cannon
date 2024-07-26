@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import prompts from 'prompts';
 
-import { log } from './util/console';
+import { log } from '../util/console';
 
 jest.mock('node:fs', () => ({
   ...jest.requireActual('node:fs'),
