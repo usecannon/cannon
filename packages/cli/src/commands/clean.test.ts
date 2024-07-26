@@ -3,6 +3,8 @@ import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import prompts from 'prompts';
 
+import { log } from './util/console';
+
 jest.mock('node:fs', () => ({
   ...jest.requireActual('node:fs'),
   existsSync: jest.fn(),
@@ -35,7 +37,8 @@ describe('clean function', () => {
     (existsSync as jest.Mock).mockReturnValue(false);
     const result = await clean(false);
     expect(result).toBe(false);
-    expect(console.log).toHaveBeenCalledWith('No files or folders found that could be deleted.');
+
+    expect(log).toHaveBeenCalledWith('No files or folders found that could be deleted.');
   });
 
   it('should prompt for confirmation and delete files and directories if confirmed', async () => {
