@@ -6,8 +6,10 @@ import { blueBright, gray, green } from 'chalk';
 import { OnChainRegistry, prepareMulticall, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 
 import { CliSettings } from '../settings';
+import { waitForEvent } from '../util/wait-for-event';
 import { resolveRegistryProviders } from '../util/provider';
-import { isPackageRegistered, waitForEvent } from '../util/register';
+import { isPackageRegistered } from '../util/register';
+
 import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 
 const debug = Debug('cannon:cli:register');
