@@ -1,0 +1,316 @@
+import Debug from 'debug';
+import _ from 'lodash';
+import * as viem from 'viem';
+import { z } from 'zod';
+import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
+import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
+import { ChainBuilderRuntime } from '../runtime';
+import { diamondSchema } from '../schemas';
+import {
+  ChainArtifacts,
+  ChainBuilderContext,
+  ChainBuilderContextWithHelpers,
+  ContractArtifact,
+  ContractMap,
+  PackageState,
+} from '../types';
+import { encodeDeployData, getContractDefinitionFromPath } from '../util';
+import { template } from '../utils/template';
+
+const debug = Debug('cannon:builder:diamond');
+
+/**
+ *  Available properties for diamond operation
+ *  @public
+ *  @group Diamond
+ */
+export type Config = z.infer<typeof diamondSchema>;
+
+// get function selectors from ABI
+function getFacetSelectors(abi: viem.Abi) {
+  const selectors = abi
+    .map((item: viem.AbiItem) => {
+      if (item.type === 'function') {
+        return viem.toFunctionSelector(item);
+      }
+
+      return null;
+    })
+    .filter((v) => v);
+  return selectors;
+}
+
+// ensure the specified contract is already deployed
+// if not deployed, deploy the specified hardhat contract with specfied options, export
+// address, abi, etc.
+// if already deployed, reexport deployment options for usage downstream and exit with no changes
+const diamondStep = {
+  label: 'diamond',
+
+  validate: diamondSchema,
+
+  async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config) {
+    const newConfig = this.configInject(ctx, config);
+
+    const contractAbis: { [contractName: string]: viem.Abi } = {};
+    const contractAddresses: { [contractName: string]: string } = {};
+
+    for (const n of newConfig.contracts) {
+      const contract = getContractDefinitionFromPath(ctx, n);
+      if (!contract) {
+        throw new Error(`contract not found: ${n}`);
+      }
+
+      contractAbis[n] = contract.abi;
+      contractAddresses[n] = contract.address;
+    }
+
+    return [
+      {
+        contractAbis,
+        contractAddresses,
+        config: newConfig,
+      },
+    ];
+  },
+
+  configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
+    config = _.cloneDeep(config);
+
+    config.contracts = _.map(config.contracts, (n) => template(n)(ctx));
+
+    config.diamondArgs.owner = template(config.diamondArgs.owner)(ctx);
+    if (config.diamondArgs.init) {
+      config.diamondArgs.init = template(config.diamondArgs.init)(ctx);
+    }
+    if (config.diamondArgs.initCalldata) {
+      config.diamondArgs.initCalldata = template(config.diamondArgs.initCalldata)(ctx);
+    }
+
+    config.salt = template(config.salt)(ctx);
+
+    if (config?.overrides?.gasLimit) {
+      config.overrides.gasLimit = template(config.overrides.gasLimit)(ctx);
+    }
+
+    return config;
+  },
+
+  getInputs(config: Config, possibleFields: string[]) {
+    let accesses = computeTemplateAccesses(config.diamondArgs.owner, possibleFields);
+    if (config.diamondArgs.init) {
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.diamondArgs.init, possibleFields));
+    }
+
+    if (config.diamondArgs.initCalldata) {
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.diamondArgs.initCalldata, possibleFields));
+    }
+
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt, possibleFields));
+    accesses.accesses.push(
+      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`))
+    );
+
+    if (config?.overrides) {
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit, possibleFields));
+    }
+
+    return accesses;
+  },
+
+  getOutputs(_: Config, packageState: PackageState) {
+    return [`contracts.${packageState.currentLabel.split('.')[1]}`, `${packageState.currentLabel.split('.')[1]}`];
+  },
+
+  async exec(
+    runtime: ChainBuilderRuntime,
+    ctx: ChainBuilderContext,
+    config: Config,
+    packageState: PackageState
+  ): Promise<ChainArtifacts> {
+    debug('exec', config);
+
+    const stepName = packageState.currentLabel.split('.')[1];
+
+    const contracts = config.contracts.map((n) => {
+      const contract = getContractDefinitionFromPath(ctx, n);
+      if (!contract) {
+        throw new Error(`contract not found: ${n}`);
+      }
+
+      return {
+        constructorArgs: contract.constructorArgs,
+        abi: contract.abi,
+        deployedAddress: contract.address ? viem.getAddress(contract.address) : contract.address, // Make sure address is checksum encoded
+        deployTxnHash: contract.deployTxnHash,
+        deployTxnBlockNumber: '',
+        deployTimestamp: '',
+        contractName: contract.contractName,
+        sourceName: contract.sourceName,
+        contractFullyQualifiedName: `${contract.sourceName}:${contract.contractName}`,
+      };
+    });
+
+    const contractName = packageState.currentLabel.slice('diamond.'.length);
+
+    const signer = await runtime.getDefaultSigner(
+      { data: viem.keccak256(viem.encodePacked(['string'], [config.salt])) as viem.Hex },
+      config.salt
+    );
+
+    debug('using deploy signer with address', signer.address);
+
+    const outputContracts: ContractMap = {};
+    // first, deploy the basic facets
+    const arachnidDeployerAddress = await ensureArachnidCreate2Exists(runtime, ARACHNID_DEFAULT_DEPLOY_ADDR);
+
+    const baseFacets = await Promise.all([
+      import('../abis/diamond/DiamondCutFacet.json'),
+      import('../abis/diamond/DiamondLoupeFacet.json'),
+      import('../abis/diamond/DiamondWipeAndPaveFacet.json'),
+      import('../abis/diamond/OwnershipFacet.json'),
+    ]);
+
+    const deployContract = async function (
+      contract: ContractArtifact,
+      deployedContractLabel: string,
+      constructorArgs: any[],
+      salt = ''
+    ) {
+      runtime.reportContractArtifact(`${contract.contractName}.sol:${contract.contractName}`, {
+        contractName: contract.contractName,
+        sourceName: `${contract.contractName}.sol`,
+        abi: contract.abi as any,
+        bytecode: contract.bytecode as viem.Hex,
+        deployedBytecode: contract.deployedBytecode,
+        linkReferences: {},
+        source: contract.source,
+      });
+
+      const preparedTxn = await signer.wallet.prepareTransactionRequest({
+        account: signer.wallet.account || signer.address!,
+        data: encodeDeployData({
+          abi: contract.abi,
+          bytecode: contract.bytecode as viem.Hash,
+          args: constructorArgs,
+        }),
+        chain: undefined,
+      });
+
+      if (config.overrides?.gasLimit) {
+        preparedTxn.gas = BigInt(config.overrides.gasLimit);
+      }
+
+      if (runtime.gasPrice) {
+        preparedTxn.gasPrice = runtime.gasPrice;
+      }
+
+      if (runtime.gasFee) {
+        preparedTxn.maxFeePerGas = runtime.gasFee;
+      }
+
+      if (runtime.priorityGasFee) {
+        preparedTxn.maxPriorityFeePerGas = runtime.priorityGasFee;
+      }
+
+      const [create2Txn, addr] = makeArachnidCreate2Txn(salt, preparedTxn.data!, arachnidDeployerAddress);
+      debug(`create2: deploy ${addr} by ${arachnidDeployerAddress}`);
+
+      const bytecode = await runtime.provider.getCode({ address: addr });
+
+      if (!bytecode) {
+        const hash = await signer.wallet.sendTransaction(create2Txn as any);
+        const receipt = await runtime.provider.waitForTransactionReceipt({ hash });
+        const block = await runtime.provider.getBlock({ blockHash: receipt.blockHash });
+        outputContracts[contract.contractName] = {
+          address: addr,
+          abi: contract.abi,
+          deployedOn: packageState.currentLabel,
+          deployTxnHash: receipt.transactionHash,
+          deployTxnBlockNumber: receipt.blockNumber.toString(),
+          deployTimestamp: block.timestamp.toString(),
+          contractName,
+          sourceName: contractName + '.sol',
+          highlight: config.highlight,
+          gasUsed: Number(receipt.gasUsed),
+          gasCost: receipt.effectiveGasPrice.toString(),
+        };
+      } else {
+        outputContracts[deployedContractLabel] = {
+          address: addr,
+          abi: contract.abi,
+          deployedOn: packageState.currentLabel,
+          deployTxnHash: '',
+          deployTxnBlockNumber: '',
+          deployTimestamp: '',
+          contractName,
+          sourceName: contractName + '.sol',
+          highlight: config.highlight,
+          gasUsed: Number(0),
+          gasCost: '0',
+        };
+      }
+
+      return addr;
+    };
+
+    const addFacets = [];
+    for (const facet of baseFacets) {
+      // load the diamond proxy contracts which may need to be deployed:
+      const deployedAddr = await deployContract(facet as any, facet.contractName, []);
+      addFacets.push({ action: 0, facetAddress: deployedAddr, functionSelectors: getFacetSelectors(facet.abi as viem.Abi) });
+    }
+
+    // then, deploy the proxy
+    const proxyAddress = await deployContract(
+      (await import('../abis/diamond/Diamond.json')) as any,
+      stepName,
+      [addFacets, config.diamondArgs],
+      config.salt || ''
+    );
+
+    // finally, do the link operation
+    for (const contract of contracts) {
+      addFacets.push({
+        action: 0,
+        facetAddress: contract.deployedAddress,
+        functionSelectors: getFacetSelectors(contract.abi),
+      });
+    }
+
+    const txns = {};
+
+    const ownerSigner = await runtime.getSigner(config.diamondArgs.owner as viem.Address);
+    const preparedTxn = await runtime.provider.prepareTransactionRequest({
+      account: ownerSigner.wallet.account || ownerSigner.address,
+      to: proxyAddress,
+      data: viem.encodeFunctionData({
+        abi: (await import('../abis/diamond/DiamondWipeAndPaveFacet.json')).abi,
+        functionName: 'diamondWipeAndPave',
+        args: [addFacets, config.diamondArgs.init, config.diamondArgs.initCalldata],
+      }),
+      ...config.overrides,
+    } as any);
+
+    const txn = await ownerSigner.wallet.sendTransaction(preparedTxn as any);
+
+    const receipt = await runtime.provider.waitForTransactionReceipt({ hash: txn });
+    debug('got receipt', receipt);
+
+    return {
+      contracts: outputContracts,
+      txns: {
+        [`${stepName}_diamondCut`]: {
+          hash: txn,
+          events: {},
+          deployedOn: packageState.currentLabel,
+          gasUsed: Number(receipt.gasUsed),
+          gasCost: receipt.effectiveGasPrice.toString(),
+          signer: viem.getAddress(receipt.from),
+        },
+      },
+    };
+  },
+};
+
+export default diamondStep;
