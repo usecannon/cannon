@@ -4,6 +4,7 @@ import prompts, { Choice } from 'prompts';
 import { red, bold, gray, green, yellow, cyan } from 'chalk';
 import { CannonSigner, ChainArtifacts, Contract, ContractMap, traceActions } from '@usecannon/builder';
 
+import { log, error } from '../util/console';
 import { formatAbiFunction } from '../helpers';
 import { PackageSpecification } from '../types';
 import { getChainById } from '../chains';
@@ -92,9 +93,9 @@ export async function interact(ctx: InteractTaskArgs) {
           blockTag: ctx.blockTag,
         });
       } else if (!ctx.signer) {
-        console.log();
-        console.log(red('  Signer is not supplied. cannot invoke writable function.'));
-        console.log();
+        log();
+        log(red('  Signer is not supplied. cannot invoke writable function.'));
+        log();
       } else {
         const receipt = await execTxn({
           provider: ctx.provider,
@@ -125,34 +126,34 @@ async function printHeader(ctx: InteractTaskArgs) {
   // and prevents the UI from lurching later if its queried later
   const signerBalance = ctx.signer ? await ctx.provider.getBalance({ address: ctx.signer.address }) : BigInt(0);
 
-  console.log('\n');
-  console.log(gray('================================================================================'));
-  console.log(gray('> Gas price: provider default'));
-  console.log(gray(`> Block tag: ${ctx.blockTag || 'latest'}`));
+  log('\n');
+  log(gray('================================================================================'));
+  log(gray('> Gas price: provider default'));
+  log(gray(`> Block tag: ${ctx.blockTag || 'latest'}`));
 
   if (ctx.signer) {
-    console.log(yellow(`> Read/Write: ${ctx.signer.address}`));
+    log(yellow(`> Read/Write: ${ctx.signer.address}`));
 
     if (signerBalance > viem.parseEther('0.01')) {
-      console.log(green(`> Signer Balance: ${viem.formatEther(signerBalance)}`));
+      log(green(`> Signer Balance: ${viem.formatEther(signerBalance)}`));
     } else {
-      console.log(red(`> WARNING! Low signer balance: ${viem.formatEther(signerBalance)}`));
+      log(red(`> WARNING! Low signer balance: ${viem.formatEther(signerBalance)}`));
     }
   } else {
-    console.log(gray('> Read Only'));
+    log(gray('> Read Only'));
   }
 
-  console.log(gray('================================================================================'));
-  console.log('\n');
+  log(gray('================================================================================'));
+  log('\n');
 }
 
 async function printHelpfulInfo(ctx: InteractTaskArgs, pickedPackage: number, pickedContract: string | null) {
   if (pickedContract) {
-    console.log(gray.inverse(`${pickedContract} => ${ctx.contracts[pickedPackage][pickedContract].address}`));
+    log(gray.inverse(`${pickedContract} => ${ctx.contracts[pickedPackage][pickedContract].address}`));
   }
 
-  console.log(gray(`  * Signer: ${ctx.signer ? ctx.signer.address : 'None'}`));
-  console.log('\n');
+  log(gray(`  * Signer: ${ctx.signer ? ctx.signer.address : 'None'}`));
+  log('\n');
 }
 
 interface PackageChoice extends Choice {
@@ -288,7 +289,7 @@ async function query({
     functionName: functionAbi.name,
     args,
   });
-  console.log(gray(`  > calldata: ${callData}`));
+  log(gray(`  > calldata: ${callData}`));
 
   let result = [];
   const callArgs = {
@@ -299,18 +300,18 @@ async function query({
     blockTag: blockTag as any,
   };
   try {
-    console.log(gray(`  > estimated gas required: ${await provider.estimateContractGas(callArgs)}`));
+    log(gray(`  > estimated gas required: ${await provider.estimateContractGas(callArgs)}`));
     const simulation = await provider.simulateContract(callArgs);
     result = simulation.result;
   } catch (err: any) {
-    console.error('failed query:', err?.message && process.env.TRACE !== 'true' ? err?.message : err);
+    error('failed query:', err?.message && process.env.TRACE !== 'true' ? err?.message : err);
     return null;
   }
 
   for (let i = 0; i < functionAbi.outputs.length; i++) {
     const output = functionAbi.outputs[i];
 
-    console.log(
+    log(
       cyan(`  ↪ ${output.name || ''}(${output.type}):`),
       renderArgs(output, functionAbi.outputs.length > 1 ? result[i] : result)
     );
@@ -356,20 +357,20 @@ async function execTxn({
       })
     )) as any;
 
-    console.log(gray(`  > calldata: ${txn!.data}`));
-    console.log(gray(`  > estimated gas required: ${txn!.gas}`));
-    console.log(
+    log(gray(`  > calldata: ${txn!.data}`));
+    log(gray(`  > estimated gas required: ${txn!.gas}`));
+    log(
       gray(
         `  > gas: ${JSON.stringify(
           _.mapValues(_.pick(txn, 'gasPrice', 'maxFeePerGas', 'maxPriorityFeePerGas'), viem.formatGwei)
         )}`
       )
     );
-    console.log(green(bold('  ✅ txn will succeed')));
+    log(green(bold('  ✅ txn will succeed')));
   } catch (err) {
-    console.error(red(`❌ txn will most likely fail: ${(err as Error).toString()}`));
-    console.error('Txn gas limit has been set to 1,000,000 due to simulation failure');
-    console.error('txn data', txn);
+    error(red(`❌ txn will most likely fail: ${(err as Error).toString()}`));
+    error('Txn gas limit has been set to 1,000,000 due to simulation failure');
+    error('txn data', txn);
     txn.gas = BigInt(1000000);
   }
 
@@ -392,8 +393,8 @@ async function execTxn({
         ...(txn as any)!,
       });
 
-      console.log('> hash: ', txHash);
-      console.log('confirming...');
+      log('> hash: ', txHash);
+      log('confirming...');
 
       const receipt = await provider.waitForTransactionReceipt({ hash: txHash });
 
@@ -403,7 +404,7 @@ async function execTxn({
       return null;
     }
   } else {
-    console.log('not submitting transaction because in read-only mode');
+    log('not submitting transaction because in read-only mode');
   }
 }
 
@@ -425,7 +426,7 @@ async function promptInputValue(input: viem.AbiParameter): Promise<any> {
       // if there is a problem this will throw and user will be forced to re-enter data
       return parseInput(input, answer[name]);
     } catch (err) {
-      console.error('invalid input: ', err);
+      error('invalid input: ', err);
     }
   }
 }
@@ -477,7 +478,7 @@ function parseInput(input: viem.AbiParameter, rawValue: string): any {
 
   //const processed = preprocessInput(input, type, hre);
   if (processed !== rawValue) {
-    console.log(gray(`  > processed inputs (${isArray ? processed.length : '1'}):`, processed));
+    log(gray(`  > processed inputs (${isArray ? processed.length : '1'}):`, processed));
   }
 
   // Encode user's input to validate it
@@ -563,14 +564,14 @@ function boolify(value: any) {
 }
 
 async function logTxSucceed(ctx: InteractTaskArgs, receipt: viem.TransactionReceipt) {
-  console.log(green('  ✅ Success'));
-  // console.log('receipt', JSON.stringify(receipt, null, 2));
+  log(green('  ✅ Success'));
+  // log('receipt', JSON.stringify(receipt, null, 2));
 
   // Print tx hash
-  console.log(gray(`    tx hash: ${receipt.transactionHash}`));
+  log(gray(`    tx hash: ${receipt.transactionHash}`));
 
   // Print gas used
-  console.log(gray(`    gas used: ${receipt.gasUsed.toString()}`));
+  log(gray(`    gas used: ${receipt.gasUsed.toString()}`));
 
   // Print emitted events
   if (receipt.logs && receipt.logs.length > 0) {
@@ -588,7 +589,7 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: viem.TransactionRece
           // find contract matching address of the log
           const parsedLog = viem.decodeEventLog({ ...logContract, ...log });
           foundLog = true;
-          console.log(gray(`\n    log ${i}:`), cyan(parsedLog.eventName), gray(`\t${n}`));
+          log(gray(`\n    log ${i}:`), cyan(parsedLog.eventName), gray(`\t${n}`));
 
           //logContract.interface.getEvent(parsedLog.name).inputs[i]
           // TODO: for some reason viem does not export `AbiEvent` type (even though they export other types like AbiFunction)
@@ -597,7 +598,7 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: viem.TransactionRece
           for (const [a, arg] of ((eventAbiDef.inputs || []) as viem.AbiParameter[]).entries()) {
             const output = parsedLog.args![arg.name || (`${a}` as any)];
 
-            console.log(cyan(`  ↪ ${arg.name || ''}(${arg.type}):`), renderArgs(arg, output));
+            log(cyan(`  ↪ ${arg.name || ''}(${arg.type}):`), renderArgs(arg, output));
           }
 
           break;
@@ -607,14 +608,14 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: viem.TransactionRece
       }
 
       if (!foundLog) {
-        console.log(gray(`\n    log ${i}: unable to decode log - ${JSON.stringify(log)}`));
+        log(gray(`\n    log ${i}: unable to decode log - ${JSON.stringify(log)}`));
       }
     }
   }
 }
 
 function logTxFail(error: any) {
-  console.log(red('  ❌ Error'));
+  log(red('  ❌ Error'));
 
   function findReason(error: any): string {
     if (typeof error === 'string') {
@@ -631,9 +632,9 @@ function logTxFail(error: any) {
   }
 
   const reason = findReason(error);
-  if (reason) console.log(red(`    Reason: ${reason}`));
+  if (reason) log(red(`    Reason: ${reason}`));
 
-  console.log(gray(JSON.stringify(error, null, 2)));
+  log(gray(JSON.stringify(error, null, 2)));
 }
 
 // filters choices by subtrings that don't have to be continuous e.g. 'ybtc' will match 'SynthsBTC'

@@ -90,7 +90,7 @@ const runAction = {
         return hashFs(pathToScan).toString('hex');
       } catch (err) {
         if ((err as any).code === 'ENOENT') {
-          //console.warn(`warning: could not check modified file at path '${pathToScan}'. this may be an error.`);
+          //warn(`warning: could not check modified file at path '${pathToScan}'. this may be an error.`);
           //return 'notfound';
 
           // TODO: there is no other way to tell if the runtime state is even supposed to be evaluated other than the existance or not of modified file paths

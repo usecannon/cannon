@@ -12,6 +12,7 @@ import { createDefaultReadRegistry } from '../registry';
 import { getChainById } from '../chains';
 import { getMainLoader } from '../loader';
 
+import { log, warm } from './util/console';
 import { isVerified } from '../util/verify';
 
 const debug = Debug('cannon:cli:verify');
@@ -19,7 +20,7 @@ const debug = Debug('cannon:cli:verify');
 export async function verify(packageRef: string, cliSettings: CliSettings, presetArg: string, chainId: number) {
   // Handle deprecated preset specification
   if (presetArg) {
-    console.warn(
+    warn(
       yellow(
         bold(
           'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
@@ -93,17 +94,17 @@ export async function verify(packageRef: string, cliSettings: CliSettings, prese
         miscData.artifacts[`${contractInfo.sourceName}:${contractInfo.contractName}`];
 
       if (!contractArtifact) {
-        console.log(`${c}: cannot verify: no contract artifact found`);
+        log(`${c}: cannot verify: no contract artifact found`);
         continue;
       }
 
       if (!contractArtifact.source) {
-        console.log(`${c}: cannot verify: no source code recorded in deploy data`);
+        log(`${c}: cannot verify: no source code recorded in deploy data`);
         continue;
       }
 
       if (await isVerified(contractInfo.address, etherscanApi, cliSettings.etherscanApiKey)) {
-        console.log(`✅ ${c}: Contract source code already verified`);
+        log(`✅ ${c}: Contract source code already verified`);
         await sleep(500);
         continue;
       }
@@ -141,13 +142,13 @@ export async function verify(packageRef: string, cliSettings: CliSettings, prese
 
         if (res.data.status === '0') {
           debug('etherscan failed', res.data);
-          console.log(`${c}:\tcannot verify:`, res.data.result);
+          log(`${c}:\tcannot verify:`, res.data.result);
         } else {
-          console.log(`${c}:\tsubmitted verification (${contractInfo.address})`);
+          log(`${c}:\tsubmitted verification (${contractInfo.address})`);
           guids[c] = res.data.result;
         }
       } catch (err) {
-        console.log(`verification for ${c} (${contractInfo.address}) failed:`, err);
+        log(`verification for ${c} (${contractInfo.address}) failed:`, err);
       }
 
       await sleep(500);
@@ -185,12 +186,12 @@ export async function verify(packageRef: string, cliSettings: CliSettings, prese
         if (res.data.result === 'Pending in queue') {
           await sleep(1000);
         } else {
-          console.log(`❌ ${c}`, res.data.result);
-          console.log(res.data);
+          log(`❌ ${c}`, res.data.result);
+          log(res.data);
           break;
         }
       } else {
-        console.log(`✅ ${c}`);
+        log(`✅ ${c}`);
         await sleep(500);
         break;
       }

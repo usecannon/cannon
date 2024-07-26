@@ -12,7 +12,7 @@ export async function writeModuleDeployments(deploymentPath: string, prefix: str
     relativePath = './' + relativePath;
   }
 
-  if (!prefix) console.log(green(`Writing deployment artifacts to ${relativePath}`));
+  if (!prefix) log(green(`Writing deployment artifacts to ${relativePath}`));
 
   await fs.mkdir(deploymentPath, { recursive: true });
 
