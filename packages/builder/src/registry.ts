@@ -30,7 +30,7 @@ export abstract class CannonRegistry {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getUrl(serviceRef: string, chainId: number): Promise<string | null> {
     // Check if its an ipfs hash / url, if so we make sure to remove any incorrectly appended presets (like @main);
-    if (serviceRef.startsWith('@') || serviceRef.startsWith('ipfs://') || serviceRef.startsWith('Qm')) {
+    if (serviceRef.startsWith('@ipfs:') || serviceRef.startsWith('ipfs://') || serviceRef.startsWith('Qm')) {
       const ref = serviceRef.replace('@ipfs:', 'ipfs://');
       const result = ref.startsWith('Qm') ? 'ipfs://' + ref : ref;
       return result.indexOf('@') !== -1 ? result.slice(0, result.indexOf('@')) : result;

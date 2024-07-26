@@ -494,7 +494,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   );
 
   await publish({
-    packageRef,
+    packageRef: fullPackageRef,
     cliSettings,
     onChainRegistry,
     tags: options.tags ? options.tags.split(',') : undefined,

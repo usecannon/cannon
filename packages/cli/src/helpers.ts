@@ -527,7 +527,12 @@ export async function getPackageReference(ref: string) {
 
   const pkgInfo: DeploymentInfo = await storage.readBlob(ref);
 
-  const packageReference = `${pkgInfo.def.name}:${pkgInfo.def.version || 'latest'}@${pkgInfo.def.preset || 'main'}`;
+  let version = pkgInfo.def.version;
+  if (pkgInfo.def.version.startsWith('<%=')) {
+    version = pkgInfo.meta.version;
+  }
+
+  const packageReference = `${pkgInfo.def.name}:${version || 'latest'}@${pkgInfo.def.preset || 'main'}`;
 
   return packageReference;
 }
@@ -542,4 +547,25 @@ export function isIPFSCid(ref: string) {
 
 export function isIPFSRef(ref: string) {
   return isIPFSCid(ref) || isIPFSUrl(ref);
+}
+
+export function normalizeIPFSUrl(ref: string) {
+  if (ref.startsWith('@ipfs:')) {
+    return ref.replace('@ipfs:', 'ipfs://');
+  }
+
+  return ref;
+}
+
+export function getCIDfromUrl(ref: string) {
+  if(!isIPFSRef(ref)) {
+    throw new Error(`${ref} is not a valid IPFS url`)
+  }
+
+  if (isIPFSUrl(ref)){
+    ref = normalizeIPFSUrl(ref);
+    return ref.replace('ipfs://', '')
+  }
+
+  return ref;
 }

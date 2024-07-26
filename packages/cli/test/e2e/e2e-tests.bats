@@ -181,6 +181,13 @@ teardown() {
   assert_file_exists "$CANNON_DIRECTORY/tags/synthetix_3.3.4_13370-main.txt"
 }
 
+@test "Pin - Pin a package IPFS hash" {
+  set_custom_config
+  run pin.sh
+  echo $output
+  assert_success
+}
+
 @test "Register - Register a single package" {
   set_custom_config
   start_optimism_emitter
