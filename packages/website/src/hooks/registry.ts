@@ -1,30 +1,7 @@
-import { inMemoryRegistry } from '@/helpers/cannon';
 import { findChain } from '@/helpers/rpc';
-import { FallbackRegistry, OnChainRegistry, DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
-import { useEffect, useMemo, useState } from 'react';
+import { OnChainRegistry, DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
+import { useEffect, useState } from 'react';
 import * as viem from 'viem';
-
-export function useCannonRegistry() {
-  return useMemo(() => {
-    const registryChainIds = DEFAULT_REGISTRY_CONFIG.map((registry) => registry.chainId);
-
-    const onChainRegistries = registryChainIds.map(
-      (chainId: number) =>
-        new OnChainRegistry({
-          address: DEFAULT_REGISTRY_ADDRESS,
-          provider: viem.createPublicClient({
-            chain: findChain(chainId) as viem.Chain,
-            transport: viem.http(),
-          }),
-        })
-    );
-
-    // Create a regsitry that loads data first from Memory to be able to utilize
-    // the locally built data
-    const fallbackRegistry = new FallbackRegistry([inMemoryRegistry, ...onChainRegistries]);
-    return fallbackRegistry;
-  }, []);
-}
 
 type Publishers = {
   publisher: viem.Address;
