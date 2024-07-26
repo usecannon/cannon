@@ -3,7 +3,6 @@ import { blueBright, green } from 'chalk';
 import _ from 'lodash';
 import prompts from 'prompts';
 import * as viem from 'viem';
-import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';
 import { resolveRegistryProviders, ProviderAction } from '../util/provider';

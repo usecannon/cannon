@@ -10,8 +10,6 @@ import { waitForEvent } from '../util/wait-for-event';
 import { resolveRegistryProviders, ProviderAction } from '../util/provider';
 import { isPackageRegistered } from '../util/register';
 
-import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
-
 const debug = Debug('cannon:cli:register');
 
 interface Params {

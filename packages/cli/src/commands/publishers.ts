@@ -5,7 +5,6 @@ import * as viem from 'viem';
 import prompts from 'prompts';
 import { blueBright, gray, green } from 'chalk';
 
-import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 import { CliSettings } from '../settings';
 import { resolveRegistryProviders, ProviderAction } from '../util/provider';
 import { waitForEvent } from '../util/wait-for-event';
