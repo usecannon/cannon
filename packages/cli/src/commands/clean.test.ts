@@ -4,6 +4,7 @@ import { existsSync } from 'node:fs';
 import prompts from 'prompts';
 
 import { log } from '../util/console';
+import * as console from '../util/console';
 
 jest.mock('node:fs', () => ({
   ...jest.requireActual('node:fs'),
