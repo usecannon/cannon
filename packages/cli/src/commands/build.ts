@@ -288,17 +288,24 @@ export async function build({
   runtime.on(Events.PostStepExecute, (t, n, c, ctx, o, d) => {
     for (const txnKey in o.txns) {
       const txn = o.txns[txnKey];
-      console.log(
-        `${'  '.repeat(d)}  ${green('\u2714')} Successfully called ${c.func}(${c?.args
-          ?.map((arg: any) => (typeof arg === 'object' && arg !== null ? JSON.stringify(arg) : arg))
-          .join(', ')})`
-      );
+      if (c.func) {
+        console.log(
+          `${'  '.repeat(d)}  ${green('\u2714')} Successfully called ${c.func}(${c?.args
+            ?.map((arg: any) => (typeof arg === 'object' && arg !== null ? JSON.stringify(arg) : arg))
+            .join(', ')})`
+        );
+      } else {
+        console.log(`${'  '.repeat(d)}  ${green('\u2714')} Successfully performed operation`);
+      }
       if (txn.signer != defaultSignerAddress) {
         console.log(gray(`${'  '.repeat(d)}  Signer: ${txn.signer}`));
       }
-      const contractAddress = getContractFromPath(ctx, c.target[0])?.address;
-      if (contractAddress) {
-        console.log(gray(`${'  '.repeat(d)}  Contract Address: ${contractAddress}`));
+
+      if (c.target) {
+        const contractAddress = getContractFromPath(ctx, c.target[0])?.address;
+        if (contractAddress) {
+          console.log(gray(`${'  '.repeat(d)}  Contract Address: ${contractAddress}`));
+        }
       }
       console.log(gray(`${'  '.repeat(d)}  Transaction Hash: ${txn.hash}`));
       const cost = BigInt(txn.gasCost) * BigInt(txn.gasUsed);

@@ -14,7 +14,7 @@ import {
   ContractMap,
   PackageState,
 } from '../types';
-import { encodeDeployData, getContractDefinitionFromPath } from '../util';
+import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 import { template } from '../utils/template';
 
 const debug = Debug('cannon:builder:diamond');
@@ -82,9 +82,13 @@ const diamondStep = {
     config.diamondArgs.owner = template(config.diamondArgs.owner)(ctx);
     if (config.diamondArgs.init) {
       config.diamondArgs.init = template(config.diamondArgs.init)(ctx);
+    } else {
+      config.diamondArgs.init = viem.zeroAddress;
     }
     if (config.diamondArgs.initCalldata) {
       config.diamondArgs.initCalldata = template(config.diamondArgs.initCalldata)(ctx);
+    } else {
+      config.diamondArgs.initCalldata = '0x';
     }
 
     config.salt = template(config.salt)(ctx);
@@ -151,8 +155,6 @@ const diamondStep = {
       };
     });
 
-    const contractName = packageState.currentLabel.slice('diamond.'.length);
-
     const signer = await runtime.getDefaultSigner(
       { data: viem.keccak256(viem.encodePacked(['string'], [config.salt])) as viem.Hex },
       config.salt
@@ -177,6 +179,7 @@ const diamondStep = {
       constructorArgs: any[],
       salt = ''
     ) {
+      debug('deploy contract', contract.contractName, deployedContractLabel, constructorArgs, salt);
       runtime.reportContractArtifact(`${contract.contractName}.sol:${contract.contractName}`, {
         contractName: contract.contractName,
         sourceName: `${contract.contractName}.sol`,
@@ -222,16 +225,16 @@ const diamondStep = {
         const hash = await signer.wallet.sendTransaction(create2Txn as any);
         const receipt = await runtime.provider.waitForTransactionReceipt({ hash });
         const block = await runtime.provider.getBlock({ blockHash: receipt.blockHash });
-        outputContracts[contract.contractName] = {
+        outputContracts[deployedContractLabel] = {
           address: addr,
           abi: contract.abi,
           deployedOn: packageState.currentLabel,
           deployTxnHash: receipt.transactionHash,
           deployTxnBlockNumber: receipt.blockNumber.toString(),
           deployTimestamp: block.timestamp.toString(),
-          contractName,
-          sourceName: contractName + '.sol',
-          highlight: config.highlight,
+          contractName: contract.contractName,
+          sourceName: contract.sourceName,
+          highlight: deployedContractLabel === stepName ? config.highlight : false,
           gasUsed: Number(receipt.gasUsed),
           gasCost: receipt.effectiveGasPrice.toString(),
         };
@@ -243,9 +246,9 @@ const diamondStep = {
           deployTxnHash: '',
           deployTxnBlockNumber: '',
           deployTimestamp: '',
-          contractName,
-          sourceName: contractName + '.sol',
-          highlight: config.highlight,
+          contractName: contract.contractName,
+          sourceName: contract.sourceName,
+          highlight: deployedContractLabel === stepName ? config.highlight : false,
           gasUsed: Number(0),
           gasCost: '0',
         };
@@ -257,7 +260,7 @@ const diamondStep = {
     const addFacets = [];
     for (const facet of baseFacets) {
       // load the diamond proxy contracts which may need to be deployed:
-      const deployedAddr = await deployContract(facet as any, facet.contractName, []);
+      const deployedAddr = await deployContract(facet as any, stepName + facet.contractName, []);
       addFacets.push({ action: 0, facetAddress: deployedAddr, functionSelectors: getFacetSelectors(facet.abi as viem.Abi) });
     }
 
@@ -269,6 +272,8 @@ const diamondStep = {
       config.salt || ''
     );
 
+    outputContracts[stepName as any].abi = getMergedAbiFromContractPaths(ctx, config.contracts);
+
     // finally, do the link operation
     for (const contract of contracts) {
       addFacets.push({
@@ -278,9 +283,8 @@ const diamondStep = {
       });
     }
 
-    const txns = {};
-
     const ownerSigner = await runtime.getSigner(config.diamondArgs.owner as viem.Address);
+
     const preparedTxn = await runtime.provider.prepareTransactionRequest({
       account: ownerSigner.wallet.account || ownerSigner.address,
       to: proxyAddress,
