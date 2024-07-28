@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-//import {console} from "forge-std/console.sol";
+import {console} from "forge-std/console.sol";
 
 import {Library} from "./Library.sol";
 import {ClonedGreeter} from "./ClonedGreeter.sol";
@@ -21,8 +21,10 @@ contract Greeter {
     return greeting;
   }
 
-  function setGreeting(string memory _greeting) public {
-    //console.log("Changing greeting from '%s' to '%s'", greeting, _greeting);
+  function setGreeting(string memory _greeting, bool print) public {
+    if (print) {
+      console.log("Changing greeting from '%s' to '%s'", greeting, _greeting);
+    }
     if (keccak256(abi.encodePacked(_greeting)) == keccak256(abi.encodePacked("whoops"))) {
       revert BadGreeting(_greeting);
     }
