@@ -62,7 +62,7 @@ export function DisplayedTransaction(props: {
     props.isPreloaded
   );
 
-  if (cannonInfo.isFetching) {
+  if (cannonInfo.isLoading) {
     return (
       <TxWrapper>
         <Flex alignItems="center" justifyContent="center" height="100%">
