@@ -28,7 +28,7 @@ import { useEffect, useState } from 'react';
 import { Abi, Address, createPublicClient, createWalletClient, custom, Hex, isAddressEqual, PublicClient } from 'viem';
 import { useChainId } from 'wagmi';
 
-// Needed to preapre mock run step with registerAction
+// Needed to prepare mock run step with registerAction
 import '@/lib/builder';
 
 export type BuildState =
@@ -403,7 +403,7 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
   };
 }
 
-type ContractInfo = {
+export type ContractInfo = {
   [x: string]: { address: Address; abi: Abi };
 };
 
@@ -464,3 +464,4 @@ export function useCannonPackageContracts(packageRef: string, chainId?: number) 
 
   return { contracts, ...pkg };
 }
+export type UseCannonPackageContractsReturnType = ReturnType<typeof useCannonPackageContracts>;
