@@ -19,8 +19,6 @@ class OptimismEmitter extends EventEmitter {
   }
 
   start() {
-    console.log(`Starting to listen for ${SentMessageEvent} events`);
-
     const event = viem.getAbiItem({
       abi: CrossDomainMessengerABI,
       name: SentMessageEvent,
