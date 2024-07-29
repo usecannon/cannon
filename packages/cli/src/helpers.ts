@@ -23,6 +23,7 @@ import * as viem from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { cannonChain, chains } from './chains';
 import { resolveCliSettings } from './settings';
+import { log, warn } from './util/console';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 import { getChainIdFromProviderUrl, isURL, hideApiKey } from './util/provider';
 
@@ -75,7 +76,7 @@ export async function setupAnvil(): Promise<void> {
       });
 
       if (anvilResponse.confirmation) {
-        console.log(magentaBright('Upgrading Foundry to the latest version...'));
+        log(magentaBright('Upgrading Foundry to the latest version...'));
         await execPromise('foundryup');
       } else {
         process.exit();
@@ -90,7 +91,7 @@ export async function setupAnvil(): Promise<void> {
     });
 
     if (response.confirmation) {
-      console.log(magentaBright('Installing Foundry...'));
+      log(magentaBright('Installing Foundry...'));
       await execPromise('curl -L https://foundry.paradigm.xyz | bash');
       await execPromise(os.homedir() + '/.foundry/bin/foundryup');
     } else {
@@ -177,7 +178,7 @@ export async function checkCannonVersion(currentVersion: string): Promise<void> 
   const latestVersion = await resolveCannonVersion();
 
   if (latestVersion && currentVersion && semver.lt(currentVersion, latestVersion)) {
-    console.warn(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
+    warn(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
   }
 }
 
@@ -325,7 +326,7 @@ export async function ensureChainIdConsistency(providerUrl?: string, chainId?: n
 
       // throw an expected error if the chainId is not consistent with the provider's chainId
       if (Number(chainId) !== Number(providerChainId)) {
-        console.log(
+        log(
           red(
             `Error: The chainId (${providerChainId}) obtained from the ${bold('--provider-url')} does not match with ${bold(
               '--chain-id'

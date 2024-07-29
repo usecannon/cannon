@@ -3,6 +3,7 @@ import _ from 'lodash';
 import Debug from 'debug';
 import * as viem from 'viem';
 import prompts from 'prompts';
+import { log } from '../util/console';
 import { blueBright, gray, green } from 'chalk';
 
 import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
@@ -155,12 +156,12 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   ]);
 
   if (options.list) {
-    console.log('');
-    console.log(`The ${packageName} package lists the following publishers: `);
-    console.log(`  - ${packageOwner} (Mainnet) (Package Owner)`);
-    mainnetCurrentPublishers.forEach((p) => console.log(`  - ${p} (Mainnet)`));
-    optimismCurrentPublishers.forEach((p) => console.log(`  - ${p} (Optimism)`));
-    console.log('');
+    log('');
+    log(`The ${packageName} package lists the following publishers: `);
+    log(`  - ${packageOwner} (Mainnet) (Package Owner)`);
+    mainnetCurrentPublishers.forEach((p) => log(`  - ${p} (Mainnet)`));
+    optimismCurrentPublishers.forEach((p) => log(`  - ${p} (Optimism)`));
+    log('');
 
     return;
   }
@@ -189,14 +190,12 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     throw new Error('The publishers list is already up to date.');
   }
 
-  console.log();
-  console.log('The publishers list will be updated as follows:');
-  publishers.forEach((publisher) => console.log(` - ${publisher} (${isMainnet ? 'Ethereum Mainnet' : 'OP Mainnet'})`));
+  log();
+  log('The publishers list will be updated as follows:');
+  publishers.forEach((publisher) => log(` - ${publisher} (${isMainnet ? 'Ethereum Mainnet' : 'OP Mainnet'})`));
   const restOfPublishers = !isMainnet ? mainnetCurrentPublishers : optimismCurrentPublishers;
-  restOfPublishers.forEach((publisher) =>
-    console.log(` - ${publisher} (${!isMainnet ? 'Ethereum Mainnet' : 'OP Mainnet'})`)
-  );
-  console.log();
+  restOfPublishers.forEach((publisher) => log(` - ${publisher} (${!isMainnet ? 'Ethereum Mainnet' : 'OP Mainnet'})`));
+  log();
 
   if (!options.skipConfirm) {
     const confirm = await prompts({
@@ -206,7 +205,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     });
 
     if (!confirm.confirmation) {
-      console.log('Cancelled');
+      log('Cancelled');
       process.exit(1);
     }
   }
@@ -216,21 +215,21 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
 
   const packageNameHex = viem.stringToHex(packageName, { size: 32 });
 
-  console.log('Submitting transaction, waiting for transaction to succeed...');
-  console.log();
+  log('Submitting transaction, waiting for transaction to succeed...');
+  log();
 
   const [hash] = await Promise.all([
     (async () => {
       const hash = await mainnetRegistry.setAdditionalPublishers(packageName, mainnetPublishers, optimismPublishers);
 
-      console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
-      console.log('');
-      console.log(
+      log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+      log('');
+      log(
         gray(
           `Waiting for the transaction to propagate to ${optimismRegistryConfig.name}... It may take approximately 1-3 minutes.`
         )
       );
-      console.log('');
+      log('');
 
       return hash;
     })(),
@@ -257,8 +256,8 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         }),
       ]);
 
-      console.log(green('Success - The publishers list has been updated!'));
-      console.log('');
+      log(green('Success - The publishers list has been updated!'));
+      log('');
     })(),
   ]);
 
