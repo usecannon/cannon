@@ -1,5 +1,6 @@
 import { prune } from './prune';
 import { CannonStorage } from '@usecannon/builder';
+import { log } from '../util/console';
 import { LocalLoader } from '../loader';
 
 jest.mock('../registry');
@@ -38,7 +39,7 @@ describe('prune', () => {
   //);
 
   test('calling prune with dry run', async () => {
-    console.log(Date.now());
+    log(Date.now());
     const [toDelete] = await prune(mockStorage, [], [], 1);
 
     // returned list should include all files which rae within the time

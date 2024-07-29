@@ -3,6 +3,8 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import Debug from 'debug';
 import prompts from 'prompts';
+
+import { log } from '../util/console';
 import { resolveCliSettings } from '../settings';
 
 const debug = Debug('cannon:cli:clean');
@@ -23,13 +25,13 @@ export async function clean(confirm = true) {
   ).then((entries) => entries.flat());
 
   if (!filesAndDirs.length) {
-    console.log('No files or folders found that could be deleted.');
+    log('No files or folders found that could be deleted.');
     return false;
   }
 
-  console.log('Found the following files and/or folders for deletion:');
-  for (const entry of filesAndDirs) console.log(`  - ${entry}`);
-  console.log();
+  log('Found the following files and/or folders for deletion:');
+  for (const entry of filesAndDirs) log(`  - ${entry}`);
+  log();
 
   if (confirm) {
     const confirm = await prompts({
