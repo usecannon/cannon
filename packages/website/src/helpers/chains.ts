@@ -1,5 +1,6 @@
 import { merge } from 'lodash';
 import * as chains from 'viem/chains';
+import * as viem from 'viem';
 
 // For enrichment if necessary
 //import { set } from 'lodash';
@@ -77,7 +78,7 @@ export const getExplorerUrl = (chainId: number, hash: string) => {
 
   const url = explorer?.url || 'https://etherscan.io';
 
-  const type = hash.length > 42 ? 'tx' : 'address';
+  const type = viem.isAddress(hash) ? 'address' : 'tx';
   return `${url}/${type}/${hash}`;
 };
 
