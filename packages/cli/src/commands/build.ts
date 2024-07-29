@@ -177,7 +177,7 @@ export async function build({
 
   // Update pkgInfo (package.json) with information from existing package, if present
   if (oldDeployData) {
-    log(gray(`    ${fullPackageRef} (Chain ID: ${chainId}) found`));
+    console.log(gray(`  ${fullPackageRef} (Chain ID: ${chainId}) found`));
     if (!wipe) {
       await runtime.restoreMisc(oldDeployData.miscUrl);
 
@@ -187,9 +187,9 @@ export async function build({
     }
   } else {
     if (upgradeFrom) {
-      throw new Error(`    ${prevPkg} (Chain ID: ${chainId}) not found`);
+      throw new Error(`  ${prevPkg} (Chain ID: ${chainId}) not found`);
     } else {
-      log(gray(`    ${prevPkg} (Chain ID: ${chainId}) not found`));
+      console.log(gray(`  ${prevPkg} (Chain ID: ${chainId}) not found`));
     }
   }
 
