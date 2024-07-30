@@ -507,11 +507,11 @@ export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | unde
  */
 export async function getPackageReference(ref: string) {
   if (ref.startsWith('@')) {
-    console.log(yellowBright("'@ipfs:' package format is deprecated, use 'ipfs://' instead"));
+    log(yellowBright("'@ipfs:' package reference format is deprecated, use 'ipfs://' instead"));
   }
 
   if (isIPFSUrl(ref)) {
-    ref = ref.replace('@ipfs:', 'ipfs://');
+    ref = normalizeIPFSUrl(ref);
   } else if (isIPFSCid(ref)) {
     ref = `ipfs://${ref}`;
   } else {
@@ -523,10 +523,11 @@ export async function getPackageReference(ref: string) {
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
 
   const storage = new CannonStorage(localRegistry, {
-    ipfs: new IPFSLoader(cliSettings.ipfsUrl! || getCannonRepoRegistryUrl()),
+    ipfs: new IPFSLoader(cliSettings.ipfsUrl! || getCannonRepoRegistryUrl(), {}, 1000),
   });
 
-  const pkgInfo: DeploymentInfo = await storage.readBlob(ref);
+  try {
+    const pkgInfo: DeploymentInfo = await storage.readBlob(ref);
 
   let version = pkgInfo.def.version;
   if (pkgInfo.def.version.startsWith('<%=')) {
@@ -536,6 +537,11 @@ export async function getPackageReference(ref: string) {
   const packageReference = `${pkgInfo.def.name}:${version || 'latest'}@${pkgInfo.def.preset || 'main'}`;
 
   return packageReference;
+  } catch (error: any) {
+    if (error.toString().includes('timeout')){
+      throw new Error(`Could not download package through IPFS, please make sure you have set your 'writeIpfsUrl' correctly when building packages locally`)
+    }
+  }
 }
 
 export function isIPFSUrl(ref: string) {
