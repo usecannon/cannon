@@ -734,6 +734,50 @@ export const routerSchema = z
   })
   .strict();
 
+export const diamondSchema = z
+  .object({
+    /**
+     * Set of contracts that will be passed to the router
+     */
+    contracts: z.array(z.string()).describe('Set of contracts that should be facets of the Diamond proxy'),
+    /**
+     * Description of the operation
+     */
+    description: z.string().optional().describe('Description of the action'),
+    /**
+     *   Used to force new copy of a new diamond proxy
+     */
+    salt: z.string().describe('Used to force new copy of a contract.'),
+    /**
+     *   Override transaction settings
+     */
+    diamondArgs: z.object({
+      owner: z.string().describe('Address has permission to change Diamond facets (ie proxied contracts to upgrade)'),
+      init: z
+        .string()
+        .optional()
+        .describe('Address to DELEGATECALL on diamondCut() or constructor after the facets have been set'),
+      initCalldata: z.string().optional().describe('Additional data to send to the `init` DELEGATECALL'),
+    }),
+    overrides: z
+      .object({
+        gasLimit: z.string().optional(),
+      })
+      .optional()
+      .describe('Override transaction settings'),
+    /**
+     *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
+     */
+    depends: z
+      .array(z.string())
+      .optional()
+      .describe(
+        'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+      ),
+    highlight: z.boolean().optional().describe('Determines whether contract should get priority in displays'),
+  })
+  .strict();
+
 export const varSchema = z
   .object({
     /**
@@ -908,6 +952,14 @@ export const chainDefinitionSchema = z
         router: z
           .record(routerSchema)
           .describe('Generate a contract that proxies calls to multiple contracts using the synthetix router codegen.'),
+        /**
+         * @internal
+         */
+        diamond: z
+          .record(diamondSchema)
+          .describe(
+            'Generate a upgradable contract that proxies calls to multiple contracts using a ERC2535 Diamond standard.'
+          ),
         /**
          * @internal
          */
