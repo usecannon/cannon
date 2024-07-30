@@ -3,8 +3,10 @@
 import { parseHintedMulticall } from '@/helpers/cannon';
 import { truncateAddress } from '@/helpers/ethereum';
 import { getSafeTransactionHash } from '@/helpers/safe';
+import { sleep } from '@/helpers/misc';
 import { SafeDefinition } from '@/helpers/store';
 import { useSafeTransactions, useTxnStager } from '@/hooks/backend';
+import { useStore } from '@/helpers/store';
 import {
   useCannonBuild,
   useCannonPackage,
@@ -28,7 +30,6 @@ import {
   Flex,
   Grid,
   Heading,
-  Image,
   Link,
   Spinner,
   Text,
@@ -50,12 +51,15 @@ import {
   useChainId,
   usePublicClient,
   useWriteContract,
+  useSwitchChain,
 } from 'wagmi';
 import PublishUtility from './PublishUtility';
 import { SimulateTransactionButton } from './SimulateTransactionButton';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import 'react-diff-view/style/index.css';
+import { IoIosContract, IoIosExpand } from 'react-icons/io';
 
 interface Props {
   safeAddress: string;
@@ -70,12 +74,17 @@ function TransactionDetailsPage({
   nonce,
   sigHash,
 }: Props) {
+  const { openConnectModal } = useConnectModal();
+  const currentSafe = useStore((s) => s.currentSafe);
+  const { switchChainAsync } = useSwitchChain();
   const [executionTxnHash, setExecutionTxnHash] = useState<string | null>(null);
   const publicClient = usePublicClient();
   const walletChainId = useChainId();
   const account = useAccount();
   const parsedChainId = parseInt(chainId ?? '0') || 0;
   const parsedNonce = parseInt(nonce ?? '0') || 0;
+  const accountAlreadyConnected = useRef(account.isConnected);
+  const [expandDiff, setExpandDiff] = useState<boolean>(false);
 
   if (!isAddress(safeAddress ?? '')) {
     safeAddress = zeroAddress;
@@ -132,6 +141,29 @@ function TransactionDetailsPage({
   const hintData = parseHintedMulticall(safeTxn?.data as any);
 
   const queuedWithGitOps = hintData?.type == 'deploy';
+
+  useEffect(() => {
+    const switchChain = async () => {
+      if (account.isConnected && !accountAlreadyConnected.current) {
+        accountAlreadyConnected.current = true;
+        if (account.chainId !== currentSafe?.chainId.toString()) {
+          try {
+            await switchChainAsync({ chainId: currentSafe?.chainId || 1 });
+          } catch (e) {
+            toast({
+              title:
+                'Failed to switch chain, Your wallet must be connected to the same network as the selected Safe.',
+              status: 'error',
+              duration: 5000,
+              isClosable: true,
+            });
+            return;
+          }
+        }
+      }
+    };
+    void switchChain();
+  }, [account.isConnected, currentSafe?.chainId]);
 
   const cannonPackage = useCannonPackage(
     hintData?.cannonPackage
@@ -234,9 +266,43 @@ function TransactionDetailsPage({
 
   const remainingSignatures = threshold - signers.length;
 
-  const chainName = safeChain?.name;
-
   const gitDiffContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleConnectWalletAndSign = async () => {
+    if (!account.isConnected) {
+      if (openConnectModal) {
+        openConnectModal();
+      }
+
+      toast({
+        title: 'In order to sign you must connect your wallet first.',
+        status: 'warning',
+        duration: 5000,
+        isClosable: true,
+      });
+
+      return;
+    }
+
+    if (account.chainId !== currentSafe?.chainId.toString()) {
+      try {
+        await switchChainAsync({ chainId: currentSafe?.chainId || 1 });
+
+        await sleep(100);
+
+        await stager.sign();
+      } catch (e) {
+        toast({
+          title:
+            'Failed to switch chain, Your wallet must be connected to the same network as the selected Safe.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+    }
+  };
 
   return (
     <>
@@ -283,11 +349,17 @@ function TransactionDetailsPage({
           <Container maxW="container.lg" mt={[6, 6, 12]}>
             {queuedWithGitOps && (
               <Box
+                position={expandDiff ? 'fixed' : 'static'}
+                top={0}
+                left={0}
+                right={0}
+                bottom={0}
+                zIndex={99}
                 background="gray.800"
                 p={4}
                 borderWidth="1px"
                 borderColor="gray.700"
-                mb={6}
+                mb={expandDiff ? 0 : 6}
               >
                 <Flex mb={3} alignItems="center">
                   <Heading
@@ -300,37 +372,35 @@ function TransactionDetailsPage({
                   >
                     Cannonfile Diff
                   </Heading>
-
-                  {hintData.gitRepoUrl && (
-                    <Link
-                      ml="auto"
-                      href={'https:' + hintData.gitRepoUrl.split(':')[1]}
-                      textDecoration="none"
-                      _hover={{ textDecoration: 'none' }}
-                      display="flex"
-                      alignItems="center"
+                  <Link
+                    ml="auto"
+                    onClick={() => {
+                      setExpandDiff(!expandDiff);
+                    }}
+                    textDecoration="none"
+                    _hover={{ textDecoration: 'none' }}
+                    display="flex"
+                    alignItems="center"
+                  >
+                    {expandDiff ? <IoIosContract /> : <IoIosExpand />}
+                    <Text
+                      fontSize="xs"
+                      display="inline"
+                      borderBottom="1px solid"
+                      borderBottomColor="gray.500"
+                      ml="1.5"
                     >
-                      <Image
-                        display="inline-block"
-                        src="/images/github-mark-white.svg"
-                        alt="github"
-                        height="14px"
-                        mr={1.5}
-                      />
-                      <Text
-                        fontSize="xs"
-                        display="inline"
-                        borderBottom="1px solid"
-                        borderBottomColor="gray.500"
-                      >
-                        View Repo
-                      </Text>
-                    </Link>
-                  )}
+                      {expandDiff ? 'Collapse' : 'Expand'}
+                    </Text>
+                  </Link>
                 </Flex>
 
-                <Box overflowY="auto" maxH="345px">
-                  <Box ref={gitDiffContainerRef} />
+                <Box
+                  h="100%"
+                  overflowY="auto"
+                  maxH={expandDiff ? 'none' : '345px'}
+                >
+                  <Box ref={gitDiffContainerRef} pb={expandDiff ? 6 : 0} />
                 </Box>
               </Box>
             )}
@@ -603,14 +673,13 @@ function TransactionDetailsPage({
                             </Tooltip>
                           </>
                         ) : (
-                          <Text fontSize="xs" fontWeight="medium" mt={3}>
-                            <InfoOutlineIcon
-                              transform="translateY(-1.5px)"
-                              mr={1.5}
-                            />
-                            Connect your wallet {chainName && `to ${chainName}`}{' '}
-                            to sign
-                          </Text>
+                          <Button
+                            colorScheme="teal"
+                            w="100%"
+                            onClick={handleConnectWalletAndSign}
+                          >
+                            {account.isConnected ? 'Sign' : 'Connect wallet'}
+                          </Button>
                         )}
                       </Flex>
                     )}

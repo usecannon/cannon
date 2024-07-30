@@ -1,7 +1,6 @@
 import Debug from 'debug';
-import * as viem from 'viem';
-import { AbiFunction } from 'viem';
 import _ from 'lodash';
+import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { invokeSchema } from '../schemas';
@@ -21,6 +20,7 @@ import {
   getContractFromPath,
   getMergedAbiFromContractPaths,
 } from '../util';
+import { template } from '../utils/template';
 
 const debug = Debug('cannon:builder:invoke');
 
@@ -38,7 +38,7 @@ export interface InvokeOutputs {
   events?: EncodedTxnEvents[];
 }
 
-export function formatAbiFunction(v: AbiFunction) {
+export function formatAbiFunction(v: viem.AbiFunction) {
   return `${v.name}(${v.inputs.map((i) => i.type).join(',')})`;
 }
 
@@ -64,7 +64,7 @@ async function runTxn(
   // sanity check the contract we are calling has code defined
   // we check here because a missing contract will not revert when provided with data, leading to confusing situations
   // if invoke calls succeeding when no action was actually performed.
-  if ((await runtime.provider.getBytecode({ address: contract.address })) === '0x') {
+  if ((await runtime.provider.getCode({ address: contract.address })) === '0x') {
     throw new Error(
       `contract ${contract.address} for ${packageState.currentLabel} has no bytecode. This is most likely a missing dependency or bad state.`
     );
@@ -118,9 +118,9 @@ async function runTxn(
     if (!neededOwnerFuncAbi) {
       throw new Error(
         `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
-          config.func
+          config.fromCall.func
         }" to determine owner. List of recognized functions is:\n${Object.keys(
-          contract.abi.filter((v) => v.type === 'function').map((v) => (v as AbiFunction).name)
+          contract.abi.filter((v) => v.type === 'function').map((v) => (v as viem.AbiFunction).name)
         ).join(
           '\n'
         )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it.`
@@ -249,6 +249,23 @@ async function importTxnData(
         abi = artifact.abi;
         sourceName = artifact.sourceName;
         contractName = artifact.contractName;
+      } else if (factoryInfo.abi) {
+        sourceName = '';
+        contractName = '';
+
+        if (factoryInfo.abi.trimStart().startsWith('[')) {
+          // Allow to pass in a literal abi string
+          abi = JSON.parse(factoryInfo.abi);
+        } else {
+          // Load the abi from another contract
+          const implContract = getContractDefinitionFromPath(ctx, factoryInfo.abi);
+
+          if (!implContract) {
+            throw new Error(`previously deployed contract with name ${factoryInfo.abi} for abi not found`);
+          }
+
+          abi = implContract.abi;
+        }
       } else if (factoryInfo.abiOf) {
         abi = getMergedAbiFromContractPaths(ctx, factoryInfo.abiOf);
 
@@ -265,6 +282,8 @@ async function importTxnData(
         abi,
         //deployTxnHash: txns[0].hash, // TODO: find the hash for the actual txn we are reading?
         deployTxnHash: '',
+        deployTxnBlockNumber: '',
+        deployTimestamp: '',
         constructorArgs: factoryInfo.constructorArgs,
         sourceName: sourceName,
         contractName: contractName,
@@ -340,53 +359,57 @@ const invokeSpec = {
 
     if (config.target) {
       // [string, ...string[]] refers to a nonempty array
-      config.target = config.target.map((v) => _.template(v)(ctx)) as [string, ...string[]];
+      config.target = config.target.map((v) => template(v)(ctx)) as [string, ...string[]];
     }
 
     if (config.abi) {
-      config.abi = _.template(config.abi)(ctx);
+      config.abi = template(config.abi)(ctx);
     }
 
-    config.func = _.template(config.func)(ctx);
+    config.func = template(config.func)(ctx);
 
     if (config.args) {
       config.args = _.map(config.args, (a) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
-        return JSON.parse(_.template(JSON.stringify(a))(ctx));
+        return JSON.parse(template(JSON.stringify(a))(ctx));
       });
     }
 
     if (config.from) {
-      config.from = _.template(config.from)(ctx);
+      config.from = template(config.from)(ctx);
     }
 
     if (config.fromCall) {
-      config.fromCall.func = _.template(config.fromCall.func)(ctx);
+      config.fromCall.func = template(config.fromCall.func)(ctx);
       config.fromCall.args = _.map(config.fromCall.args, (a) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
-        return JSON.parse(_.template(JSON.stringify(a))(ctx));
+        return JSON.parse(template(JSON.stringify(a))(ctx));
       });
     }
 
     if (config.value) {
-      config.value = _.template(config.value)(ctx);
+      config.value = template(config.value)(ctx);
     }
 
     if (config?.overrides?.gasLimit) {
-      config.overrides.gasLimit = _.template(config.overrides.gasLimit)(ctx);
+      config.overrides.gasLimit = template(config.overrides.gasLimit)(ctx);
     }
 
     for (const name in config.factory) {
       const f = config.factory[name];
 
-      f.event = _.template(f.event)(ctx);
+      f.event = template(f.event)(ctx);
 
       if (f.artifact) {
-        f.artifact = _.template(f.artifact)(ctx);
+        f.artifact = template(f.artifact)(ctx);
       }
 
       if (f.abiOf) {
-        f.abiOf = _.map(f.abiOf, (v) => _.template(v)(ctx));
+        f.abiOf = _.map(f.abiOf, (v) => template(v)(ctx));
+      }
+
+      if (f.abi) {
+        f.abi = template(f.abi || '')(ctx);
       }
     }
 
@@ -394,7 +417,7 @@ const invokeSpec = {
 
     for (const name in varsConfig) {
       const f = varsConfig[name];
-      f.event = _.template(f.event)(ctx);
+      f.event = template(f.event)(ctx);
     }
 
     return config;
@@ -441,6 +464,7 @@ const invokeSpec = {
 
       accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.event, possibleFields));
       accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.artifact, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.abi, possibleFields));
 
       _.forEach(f.abiOf, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))));
     }
@@ -538,6 +562,8 @@ ${getAllContractPaths(ctx).join('\n')}`);
 
       const [receipt, txnEvents] = await runTxn(runtime, config, contract, mainSigner, packageState);
 
+      const block = await runtime.provider.getBlock({ blockHash: receipt.blockHash });
+
       const splitLabel = packageState.currentLabel.split('.')[1];
 
       const label = config.target?.length === 1 ? splitLabel || '' : `${splitLabel}_${t}`;
@@ -547,6 +573,8 @@ ${getAllContractPaths(ctx).join('\n')}`);
 
       txns[label] = {
         hash: receipt.transactionHash,
+        blockNumber: receipt.blockNumber.toString(),
+        timestamp: block.timestamp.toString(),
         events: txnEvents,
         deployedOn: packageState.currentLabel,
         gasUsed: Number(receipt.gasUsed),

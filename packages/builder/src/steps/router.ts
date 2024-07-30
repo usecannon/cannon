@@ -3,11 +3,11 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
-import { encodeDeployData } from '../util';
 import { ChainBuilderRuntime } from '../runtime';
 import { routerSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, ContractMap, PackageState } from '../types';
-import { getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
+import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
+import { template } from '../utils/template';
 
 const debug = Debug('cannon:builder:router');
 
@@ -55,14 +55,18 @@ const routerStep = {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     config = _.cloneDeep(config);
 
-    config.contracts = _.map(config.contracts, (n) => _.template(n)(ctx));
+    config.contracts = _.map(config.contracts, (n) => template(n)(ctx));
 
     if (config.from) {
-      config.from = _.template(config.from)(ctx);
+      config.from = template(config.from)(ctx);
     }
 
     if (config.salt) {
-      config.salt = _.template(config.salt)(ctx);
+      config.salt = template(config.salt)(ctx);
+    }
+
+    if (config?.overrides?.gasLimit) {
+      config.overrides.gasLimit = template(config.overrides.gasLimit)(ctx);
     }
 
     return config;
@@ -74,6 +78,10 @@ const routerStep = {
     accesses.accesses.push(
       ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`))
     );
+
+    if (config?.overrides) {
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit, possibleFields));
+    }
 
     return accesses;
   },
@@ -101,8 +109,10 @@ const routerStep = {
       return {
         constructorArgs: contract.constructorArgs,
         abi: contract.abi,
-        deployedAddress: contract.address,
+        deployedAddress: contract.address ? viem.getAddress(contract.address) : contract.address, // Make sure address is checksum encoded
         deployTxnHash: contract.deployTxnHash,
+        deployTxnBlockNumber: '',
+        deployTimestamp: '',
         contractName: contract.contractName,
         sourceName: contract.sourceName,
         contractFullyQualifiedName: `${contract.sourceName}:${contract.contractName}`,
@@ -155,9 +165,28 @@ const routerStep = {
       }),
       chain: undefined,
     });
+
+    if (config.overrides?.gasLimit) {
+      preparedTxn.gas = BigInt(config.overrides.gasLimit);
+    }
+
+    if (runtime.gasPrice) {
+      preparedTxn.gasPrice = runtime.gasPrice;
+    }
+
+    if (runtime.gasFee) {
+      preparedTxn.maxFeePerGas = runtime.gasFee;
+    }
+
+    if (runtime.priorityGasFee) {
+      preparedTxn.maxPriorityFeePerGas = runtime.priorityGasFee;
+    }
+
     const hash = await signer.wallet.sendTransaction(preparedTxn as any);
 
     const receipt = await runtime.provider.waitForTransactionReceipt({ hash });
+
+    const block = await runtime.provider.getBlock({ blockHash: receipt.blockHash });
 
     return {
       contracts: {
@@ -166,8 +195,11 @@ const routerStep = {
           abi: routableAbi,
           deployedOn: packageState.currentLabel,
           deployTxnHash: receipt.transactionHash,
+          deployTxnBlockNumber: receipt.blockNumber.toString(),
+          deployTimestamp: block.timestamp.toString(),
           contractName,
           sourceName: contractName + '.sol',
+          highlight: config.highlight,
           gasUsed: Number(receipt.gasUsed),
           gasCost: receipt.effectiveGasPrice.toString(),
         },

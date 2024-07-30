@@ -12,9 +12,15 @@ setup_file() {
 
   cd $CANNON_DIRECTORY
 
+  # Fork OP to run tests against forked node
+  anvil --fork-url https://optimism-rpc.publicnode.com --port 9546 --silent --accounts 1 --optimism &
+  export ANVIL_PID_OP="$!"
+  sleep 1
+
   # Fork Mainnet to run tests against forked node
   anvil --fork-url https://ethereum.publicnode.com --port 9545 --silent --accounts 1 &
   export ANVIL_PID="$!"
+  sleep 1
 }
 
 # File post-run hook
@@ -23,6 +29,7 @@ teardown_file() {
   _teardown_file
 
   kill -15 "$ANVIL_PID"
+  kill -15 "$ANVIL_PID_OP"
 }
 
 # Test pre-hook
@@ -174,10 +181,93 @@ teardown() {
   assert_file_exists "$CANNON_DIRECTORY/tags/synthetix_3.3.4_13370-main.txt"
 }
 
-@test "Publish - Publishing greeter package" {
+@test "Register - Register a single package" {
   set_custom_config
-  run publish.sh
+  start_optimism_emitter
+  run register.sh 1
   echo $output
+  assert_output --partial 'Success - Package "package-one" has been registered'
+  assert_success
+}
+
+@test "Register - Register multiple packages" {
+  set_custom_config
+  start_optimism_emitter
+  run register.sh 2
+  echo $output
+  assert_output --partial 'Success - Package "first-package" has been registered'
+  assert_output --partial 'Success - Package "second-package" has been registered'
+  assert_success
+}
+
+@test "Publishers - Add a publisher on the Optimism network" {
+  set_custom_config
+  start_optimism_emitter
+  run publishers.sh 1
+  echo $output
+  assert_output --partial 'Success - The publishers list has been updated!'
+  assert_success
+}
+
+@test "Publishers - List publishers of package-one" {
+  set_custom_config
+  run publishers.sh 5
+  echo $output
+  assert_output --partial 'The package-one package lists the following publishers'
+  assert_output --partial '- 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 (Mainnet) (Package Owner)'
+  assert_output --partial '- 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 (Optimism)'
+  assert_output --partial '- 0x000000000000000000000000000000000000dEaD (Optimism)'
+  assert_success
+}
+
+@test "Publishers - Remove a publisher on the Optimism network" {
+  set_custom_config
+  start_optimism_emitter
+  run publishers.sh 2
+  echo $output
+  assert_output --partial 'Success - The publishers list has been updated!'
+  assert_success
+}
+
+@test "Publishers - Add a publisher on the Mainnet network" {
+  set_custom_config
+  start_optimism_emitter
+  run publishers.sh 3
+  echo $output
+  assert_output --partial 'Success - The publishers list has been updated!'
+  assert_success
+}
+
+@test "Publishers - Remove a publisher on the Mainnet network" {
+  set_custom_config
+  start_optimism_emitter
+  run publishers.sh 4
+  echo $output
+  assert_output --partial 'Success - The publishers list has been updated!'
+  assert_success
+}
+
+@test "Register & Publish - Registering and publishing the greeter package" {
+  set_custom_config
+  start_optimism_emitter
+  run publish.sh 1
+  echo $output
+  assert_success
+}
+
+@test "Publish - Publishing the greeter package failed due to no changes" {
+  set_custom_config
+  run publish.sh 2
+  echo $output
+  assert_output --partial "There isn't anything new to publish."
+  assert_failure
+}
+
+@test "Unpublish - Unpublishing the greeter package" {
+  set_custom_config
+  run unpublish.sh
+  echo $output
+  assert_output --partial "Success! (Transaction Hash: "
   assert_success
 }
 

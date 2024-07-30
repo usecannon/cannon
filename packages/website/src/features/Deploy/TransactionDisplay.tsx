@@ -24,6 +24,7 @@ import {
   Code,
 } from '@chakra-ui/react';
 import { Diff, parseDiff, Hunk } from 'react-diff-view';
+import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { GitHub } from 'react-feather';
 import { DisplayedTransaction } from './DisplayedTransaction';
 
@@ -118,59 +119,76 @@ export function TransactionDisplay(props: {
   return (
     <Box maxW="100%" overflowX="auto">
       <Portal containerRef={props.containerRef}>
-        {props.showQueueSource && props.queuedWithGitOps && (
-          <Box>
-            <Flex>
-              <Code w="50%" px={2} py={1}>
-                {prevDeployGitHash}
-              </Code>
-              <Code w="50%" px={2} py={1}>
-                {hintData?.gitRepoHash}
-              </Code>
-            </Flex>
-            {patches.map((p, i) => {
-              const { oldRevision, newRevision, type, hunks } = parseDiff(p)[0];
-              const [fromFileName, toFileName] = parseDiffFileNames(p);
+        {props.showQueueSource &&
+          props.queuedWithGitOps &&
+          (prevDeployGitHash ? (
+            <>
+              <Box>
+                <Flex>
+                  <Code w="50%" px={2} py={1}>
+                    {prevDeployGitHash}
+                  </Code>
+                  <Code w="50%" px={2} py={1}>
+                    {hintData?.gitRepoHash}
+                  </Code>
+                </Flex>
+                {patches.map((p, i) => {
+                  const { oldRevision, newRevision, type, hunks } =
+                    parseDiff(p)[0];
+                  const [fromFileName, toFileName] = parseDiffFileNames(p);
 
-              return (
-                <Box
-                  bg="gray.900"
-                  borderRadius="sm"
-                  overflow="hidden"
-                  fontSize="xs"
-                  mb={2}
-                  key={i}
-                >
-                  <Flex
-                    bg="blackAlpha.300"
-                    direction="row"
-                    py="1"
-                    fontWeight="semibold"
-                  >
-                    <Box w="50%" px={2} py={1}>
-                      {fromFileName}
-                    </Box>
-                    <Box w="50%" px={2} py={1}>
-                      {toFileName}
-                    </Box>
-                  </Flex>
-                  <Diff
-                    key={oldRevision + '-' + newRevision}
-                    viewType="split"
-                    diffType={type}
-                    hunks={hunks}
-                  >
-                    {(hunks) =>
-                      hunks.map((hunk) => (
-                        <Hunk key={hunk.content} hunk={hunk} />
-                      ))
-                    }
-                  </Diff>
-                </Box>
-              );
-            })}
-          </Box>
-        )}
+                  return (
+                    hunks.length > 0 && (
+                      <Box
+                        bg="gray.900"
+                        borderRadius="sm"
+                        overflow="hidden"
+                        fontSize="xs"
+                        mb={2}
+                        key={i}
+                      >
+                        <Flex
+                          bg="blackAlpha.300"
+                          direction="row"
+                          py="1"
+                          fontWeight="semibold"
+                        >
+                          <Box w="50%" px={2} py={1}>
+                            {fromFileName}
+                          </Box>
+                          <Box w="50%" px={2} py={1}>
+                            {toFileName}
+                          </Box>
+                        </Flex>
+                        <Diff
+                          key={oldRevision + '-' + newRevision}
+                          viewType="split"
+                          diffType={type}
+                          hunks={hunks}
+                        >
+                          {(hunks) =>
+                            hunks.map((hunk) => (
+                              <Hunk key={hunk.content} hunk={hunk} />
+                            ))
+                          }
+                        </Diff>
+                      </Box>
+                    )
+                  );
+                })}
+              </Box>
+            </>
+          ) : (
+            <>
+              <Text fontSize="sm">
+                <InfoOutlineIcon transform="translateY(-1.5px)" mr={0.5} />{' '}
+                <strong>No cannonfile diff available.</strong> This may occur
+                when signing an initial deployment, changing Safes used for
+                deployments, changing package names for the deployment, or
+                re-executing the same partial deployment more than once.
+              </Text>
+            </>
+          ))}
       </Portal>
       {props.showQueueSource &&
         (props.queuedWithGitOps ? (

@@ -5,6 +5,8 @@ import {
   CannonStorage,
   ChainBuilderRuntime,
   ChainDefinition,
+  DEFAULT_REGISTRY_CONFIG,
+  getCannonRepoRegistryUrl,
   getOutputs,
   InMemoryRegistry,
   IPFSLoader,
@@ -12,7 +14,6 @@ import {
   PackageReference,
   publishPackage,
   traceActions,
-  DEFAULT_REGISTRY_CONFIG,
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
@@ -30,6 +31,7 @@ import {
   ensureChainIdConsistency,
   isPrivateKey,
   normalizePrivateKey,
+  setupAnvil,
 } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
@@ -39,6 +41,7 @@ import { resolveCliSettings } from './settings';
 import { PackageSpecification } from './types';
 import { pickAnvilOptions } from './util/anvil';
 import { doBuild } from './util/build';
+import { log, error, warn } from './util/console';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { parsePackageArguments, parsePackagesArguments } from './util/params';
 import { getChainIdFromProviderUrl, isURL, resolveRegistryProviders, resolveWriteProvider } from './util/provider';
@@ -49,6 +52,8 @@ import './custom-steps/run';
 export * from './types';
 export * from './constants';
 export * from './util/params';
+export * from './util/register';
+export * from './util/provider';
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export type { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
@@ -142,7 +147,7 @@ function configureRun(program: Command) {
     options,
     program
   ) {
-    console.log(bold('Starting local node...\n'));
+    log(bold('Starting local node...\n'));
 
     const { run } = await import('./commands/run');
 
@@ -189,6 +194,8 @@ function configureRun(program: Command) {
 applyCommandsConfig(program.command('build'), commandsConfig.build)
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, options) => {
+    await setupAnvil();
+
     const cannonfilePath = path.resolve(cannonfile);
     const projectDirectory = path.dirname(cannonfilePath);
 
@@ -197,7 +204,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     // throw an error if the chainId is not consistent with the provider's chainId
     await ensureChainIdConsistency(cliSettings.providerUrl, options.chainId);
 
-    console.log(bold('Building the foundry project...'));
+    log(bold('Building the foundry project...'));
     if (!options.skipCompile) {
       let forgeBuildArgs = ['build'];
       if (await checkForgeAstSupport()) {
@@ -209,10 +216,10 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
       await new Promise((resolve, reject) => {
         forgeBuildProcess.on('exit', (code) => {
           if (code === 0) {
-            console.log(gray('forge build succeeded'));
+            log(gray('forge build succeeded'));
           } else {
-            console.log(red('forge build failed'));
-            console.log(red('Make sure "forge build" runs successfully or use the --skip-compile flag.'));
+            log(red('forge build failed'));
+            log(red('Make sure "forge build" runs successfully or use the --skip-compile flag.'));
             return reject(new Error(`forge build failed with exit code "${code}"`));
           }
 
@@ -220,19 +227,24 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
         });
       });
     } else {
-      console.log(yellow('Skipping forge build...'));
+      log(yellow('Skipping forge build...'));
     }
 
-    console.log(''); // Linebreak in CLI to signify end of compilation.
+    log(''); // Linebreak in CLI to signify end of compilation.
 
     // Override options with CLI settings
     const pickedCliSettings = _.pick(cliSettings, Object.keys(options));
     const mergedOptions = _.assign({}, options, pickedCliSettings);
 
-    const [node, pkgSpec, , runtime] = await doBuild(cannonfile, settings, mergedOptions);
+    const [node, pkgSpec, outputs, runtime] = await doBuild(cannonfile, settings, mergedOptions);
+
+    if (options.writeDeployments) {
+      await writeModuleDeployments(path.join(process.cwd(), options.writeDeployments), '', outputs);
+      log('');
+    }
 
     if (options.keepAlive && node) {
-      console.log(`Built package RPC URL available at ${node.host}`);
+      log(`The local node will continue running at ${node.host}`);
 
       const { run } = await import('./commands/run');
 
@@ -272,9 +284,19 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
   await ensureChainIdConsistency(cliSettings.providerUrl, flags.chainId);
 
   // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
-  const newUrl = await alter(packageName, parseInt(flags.chainId), cliSettings, flags.preset, {}, command, options, {});
+  const newUrl = await alter(
+    packageName,
+    flags.subpkg ? flags.subpkg.split(',') : [],
+    parseInt(flags.chainId),
+    cliSettings,
+    flags.preset,
+    {},
+    command,
+    options,
+    {}
+  );
 
-  console.log(newUrl);
+  log(newUrl);
 });
 
 applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async function (packageName, ipfsHash, options) {
@@ -289,7 +311,7 @@ applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async
     });
 
     if (!chainIdPrompt.value) {
-      console.log('Chain ID is required.');
+      log('Chain ID is required.');
       process.exit(1);
     }
 
@@ -307,10 +329,10 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
   const fromStorage = new CannonStorage(await createDefaultReadRegistry(cliSettings), getMainLoader(cliSettings));
 
   const toStorage = new CannonStorage(new InMemoryRegistry(), {
-    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
+    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || getCannonRepoRegistryUrl()),
   });
 
-  console.log('Uploading package data for pinning...');
+  log('Uploading package data for pinning...');
 
   await publishPackage({
     packageRef: '@ipfs:' + ipfsHash,
@@ -320,7 +342,7 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
     toStorage,
   });
 
-  console.log('Done!');
+  log('Done!');
 });
 
 applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (
@@ -362,20 +384,28 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
   }
 
-  const registryProviders = await resolveRegistryProviders(cliSettings);
+  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
+  if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
-  // Initialize pickedRegistryProvider with the first provider
+  // mock provider urls when the execution comes from e2e tests
+  if (cliSettings.isE2E) {
+    // anvil optimism fork
+    cliSettings.registries[0].providerUrl = ['http://127.0.0.1:9546'];
+    // anvil mainnet fork
+    cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
+  }
+
+  const registryProviders = await resolveRegistryProviders(cliSettings);
+  // initialize pickedRegistryProvider with the first provider
   let [pickedRegistryProvider] = registryProviders;
 
-  // if it's using the default config, prompt the user to choose a registry provider
-  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
-  if (isDefaultSettings) {
-    const choices = registryProviders.map((p) => ({
-      title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
-      value: p,
-    }));
+  const choices = registryProviders.map((p) => ({
+    title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
+    value: p,
+  }));
 
-    // Override pickedRegistryProvider with the selected provider
+  if (!cliSettings.isE2E) {
+    // override pickedRegistryProvider with the selected provider
     pickedRegistryProvider = (
       await prompts([
         {
@@ -386,35 +416,30 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
         },
       ])
     ).pickedRegistryProvider;
-  } else {
-    // the user has customized the provider and chain id, verify inputs
-    console.log(
-      `You are about to publish a package to a custom registry on: ${pickedRegistryProvider.provider.chain?.name}`
-    );
   }
 
-  if (isDefaultSettings) {
-    // Check if the package is already registered
-    const [optimism, mainnet] = DEFAULT_REGISTRY_CONFIG;
+  // Check if the package is already registered
+  const [optimism, mainnet] = DEFAULT_REGISTRY_CONFIG;
 
-    const [optimismProvider, mainnetProvider] = await resolveRegistryProviders(cliSettings);
+  const [optimismProvider, mainnetProvider] = await resolveRegistryProviders(cliSettings);
 
-    const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, [
-      mainnet.address,
-      optimism.address,
-    ]);
+  const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, [
+    mainnet.address,
+    optimism.address,
+  ]);
 
-    if (!isRegistered) {
-      console.log();
-      console.log(
-        gray(
-          `Package "${
-            packageRef.split(':')[0]
-          }" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
-        )
-      );
-      console.log();
+  if (!isRegistered) {
+    log();
+    log(
+      gray(
+        `Package "${
+          packageRef.split(':')[0]
+        }" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
+      )
+    );
+    log();
 
+    if (!options.skipConfirm) {
       const registerPrompt = await prompts({
         type: 'confirm',
         name: 'value',
@@ -425,11 +450,11 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       if (!registerPrompt.value) {
         return process.exit(0);
       }
-
-      const { register } = await import('./commands/register');
-
-      await register({ cliSettings, options, packageRefs: [new PackageReference(packageRef)], fromPublish: true });
     }
+
+    const { register } = await import('./commands/register');
+
+    await register({ cliSettings, options, packageRefs: [new PackageReference(packageRef)], fromPublish: true });
   }
 
   const overrides: any = {};
@@ -457,7 +482,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     overrides,
   });
 
-  console.log(
+  log(
     `\nSettings:\n - Max Fee Per Gas: ${
       overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
     }\n - Max Priority Fee Per Gas: ${
@@ -530,7 +555,7 @@ applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async
 
   const storage = new CannonStorage(registry, loader);
 
-  console.log('Scanning for storage artifacts to prune (this may take some time)...');
+  log('Scanning for storage artifacts to prune (this may take some time)...');
 
   const [pruneUrls, pruneStats] = await prune(
     storage,
@@ -540,10 +565,10 @@ applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async
   );
 
   if (pruneUrls.length) {
-    console.log(bold(`Found ${pruneUrls.length} storage artifacts to prune.`));
-    console.log(`Matched with Registry: ${pruneStats.matchedFromRegistry}`);
-    console.log(`Not Expired: ${pruneStats.notExpired}`);
-    console.log(`Not Cannon Package: ${pruneStats.notCannonPackage}`);
+    log(bold(`Found ${pruneUrls.length} storage artifacts to prune.`));
+    log(`Matched with Registry: ${pruneStats.matchedFromRegistry}`);
+    log(`Not Expired: ${pruneStats.notExpired}`);
+    log(`Not Cannon Package: ${pruneStats.notCannonPackage}`);
 
     if (options.dryRun) {
       process.exit(0);
@@ -558,23 +583,23 @@ applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async
       });
 
       if (!verification.confirmation) {
-        console.log('Cancelled');
+        log('Cancelled');
         process.exit(1);
       }
     }
 
     for (const url of pruneUrls) {
-      console.log(`delete ${url}`);
+      log(`delete ${url}`);
       try {
         await storage.deleteBlob(url);
       } catch (err: any) {
-        console.error(`Failed to delete ${url}: ${err.message}`);
+        error(`Failed to delete ${url}: ${err.message}`);
       }
     }
 
-    console.log('Done!');
+    log('Done!');
   } else {
-    console.log(bold('Nothing to prune.'));
+    log(bold('Nothing to prune.'));
   }
 });
 
@@ -649,7 +674,7 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
 
   await new Promise(() => {
     forgeProcess.on('close', (code: number) => {
-      console.log(`forge exited with code ${code}`);
+      log(`forge exited with code ${code}`);
       node?.kill();
       process.exit(code);
     });
@@ -688,7 +713,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   // Handle deprecated preset specification
   if (options.preset) {
-    console.warn(
+    warn(
       yellow(
         bold(
           'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
@@ -756,27 +781,27 @@ applyCommandsConfig(program.command('setup'), commandsConfig.setup).action(async
 applyCommandsConfig(program.command('clean'), commandsConfig.clean).action(async function ({ noConfirm }) {
   const { clean } = await import('./commands/clean');
   const executed = await clean(!noConfirm);
-  if (executed) console.log('Complete!');
+  if (executed) log('Complete!');
 });
 
 const pluginCmd = applyCommandsConfig(program.command('plugin'), commandsConfig.plugin);
 
 applyCommandsConfig(pluginCmd.command('list'), commandsConfig.plugin.commands.list).action(async function () {
-  console.log(green(bold('\n=============== Installed Plug-ins ===============')));
+  log(green(bold('\n=============== Installed Plug-ins ===============')));
   const installedPlugins = await listInstalledPlugins();
-  installedPlugins.forEach((plugin) => console.log(yellow(plugin)));
+  installedPlugins.forEach((plugin) => log(yellow(plugin)));
 });
 
 applyCommandsConfig(pluginCmd.command('add'), commandsConfig.plugin.commands.add).action(async function (name) {
-  console.log(`Installing plug-in ${name}...`);
+  log(`Installing plug-in ${name}...`);
   await installPlugin(name);
-  console.log('Complete!');
+  log('Complete!');
 });
 
 applyCommandsConfig(pluginCmd.command('remove'), commandsConfig.plugin.commands.remove).action(async function (name) {
-  console.log(`Removing plugin ${name}...`);
+  log(`Removing plugin ${name}...`);
   await removePlugin(name);
-  console.log('Complete!');
+  log('Complete!');
 });
 
 export default program;

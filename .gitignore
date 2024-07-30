@@ -13,8 +13,8 @@ yarn-debug.log*
 yarn-error.log*
 
 # testing
-/cypress/screenshots
-/cypress/videos
+**/cypress/screenshots/
+**/cypress/videos
 
 # Runtime data
 pids

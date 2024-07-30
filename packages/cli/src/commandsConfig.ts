@@ -67,10 +67,6 @@ const anvilOptions = [
     description: 'Timeout in ms for requests sent to remote JSON-RPC server in forking mode.',
   },
   {
-    flags: '--block-base-fee-per-gas [number]',
-    description: 'The base fee in a block.',
-  },
-  {
     flags: '--code-size-limit [number]',
     description: 'EIP-170: Contract code size limit in bytes. Useful to increase this because of tests.',
   },
@@ -81,10 +77,6 @@ const anvilOptions = [
   {
     flags: '--gas-limit [number]',
     description: 'The block gas limit.',
-  },
-  {
-    flags: '--gas-price [number]',
-    description: 'The gas price.',
   },
   {
     flags: '--accounts [number]',
@@ -293,15 +285,15 @@ const commandsConfig = {
       },
       {
         flags: '--gas-price <gasPrice>',
-        description: 'Specify a gas price to use for the deployment',
+        description: 'The gas price used by all transactions processed by this build. Expressed in GWEI.',
       },
       {
         flags: '--max-gas-fee <maxGasFee>',
-        description: 'Specify max fee per gas (EIP-1559) for deployment',
+        description: 'Specify max fee per gas (EIP-1559) for all transactions processed by this build. Expressed in GWEI.',
       },
       {
         flags: '--max-priority-gas-fee <maxpriorityGasFee>',
-        description: 'Specify max fee per gas (EIP-1559) for deployment',
+        description: 'Specify max fee per gas (EIP-1559) for all transactions processed by this build. Expressed in GWEI.',
       },
       {
         flags: '--skip-compile',
@@ -310,6 +302,10 @@ const commandsConfig = {
       {
         flags: '--write-script <writeScript>',
         description: '(Experimental) Path to write all the actions taken as a script that can be later executed',
+      },
+      {
+        flags: '-w --write-deployments <writeDeployments>',
+        description: 'Path to write the deployments data (address and ABIs), like "./deployments"',
       },
       {
         flags: '--write-script-format <writeScriptFormat>',
@@ -369,6 +365,11 @@ const commandsConfig = {
       {
         flags: '-c --chain-id <chainId>',
         description: 'Chain ID of deployment to alter',
+      },
+      {
+        flags: '-s --subpkg <subpackagePath>',
+        description:
+          'When the change needs to be made in a subpackage, specify the step names leading to the subpackage, comma separated.',
       },
       {
         flags: '-n --provider-url [url]',
@@ -502,7 +503,7 @@ const commandsConfig = {
         description: 'RPC endpoint to unpublish to',
       },
       {
-        flags: '--registry-chain-id <number>',
+        flags: '-c --registry-chain-id <number>',
         description: 'Registry chain id to unpublish to',
       },
       {
@@ -558,8 +559,16 @@ const commandsConfig = {
         description: 'Chain ID of the package to register',
       },
       {
+        flags: '-a --registry-address <address>',
+        description: 'Custom address of the registry contract to register the package to',
+      },
+      {
         flags: '--private-key <key>',
         description: 'Private key to use for publishing the registry package',
+      },
+      {
+        flags: '--skip-confirm',
+        description: 'Skip confirmation to register the package',
       },
       {
         flags: '--gas-limit <gasLimit>',
@@ -581,7 +590,7 @@ const commandsConfig = {
     ],
   },
   publishers: {
-    description: 'Add a new publisher to your Cannon package',
+    description: 'Add, remove or list publishers in your Cannon package',
     arguments: [
       {
         flags: '<packageRef>',
@@ -598,6 +607,10 @@ const commandsConfig = {
         description: 'Specify a comma separated list of addresses to add as publishers',
       },
       {
+        flags: '-l --list',
+        description: 'List package publishers',
+      },
+      {
         flags: '-n --registry-provider-url [url]',
         description: 'RPC endpoint to add a publisher to your package',
       },
@@ -608,6 +621,18 @@ const commandsConfig = {
       {
         flags: '--private-key <key>',
         description: 'Private key of the package owner',
+      },
+      {
+        flags: '--optimism',
+        description: 'Change publishers on the Optimism network',
+      },
+      {
+        flags: '--mainnet',
+        description: 'Change publishers on the Mainnet network',
+      },
+      {
+        flags: '--skip-confirm',
+        description: 'Skip confirmation to change the publishers',
       },
       {
         flags: '--gas-limit <gasLimit>',

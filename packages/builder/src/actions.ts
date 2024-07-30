@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { AccessComputationResult } from './access-recorder';
 import { handleZodErrors } from './error/zod';
 import { ChainBuilderRuntime } from './runtime';
 import { chainDefinitionSchema } from './schemas';
@@ -10,7 +11,6 @@ import pullSpec from './steps/pull';
 import routerSpec from './steps/router';
 import varSpec from './steps/var';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from './types';
-import { AccessComputationResult } from './access-recorder';
 
 export interface CannonAction {
   label: string;

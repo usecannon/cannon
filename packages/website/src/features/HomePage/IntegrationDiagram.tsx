@@ -44,7 +44,7 @@ interface ExtendedSimulationNodeDatum extends d3.SimulationNodeDatum {
   id: string;
 }
 
-export const IntegrationDiagram: FC = () => {
+const IntegrationDiagram: FC = () => {
   const nodes: ExtendedSimulationNodeDatum[] = [];
   const links: d3.SimulationLinkDatum<ExtendedSimulationNodeDatum>[] = [];
 
@@ -281,3 +281,5 @@ export const IntegrationDiagram: FC = () => {
     </>
   );
 };
+
+export default IntegrationDiagram;

@@ -259,7 +259,7 @@ export function useTxnStager(
   } else if (existingSigsCount < requiredSigs && (signConditionFailed || existingSigsCount + 1 < requiredSigs)) {
     execConditionFailed = `insufficient signers to execute (required: ${requiredSigs})`;
   } else if (stageTxnMutate.isError) {
-    execConditionFailed = `Simluation error: ${stageTxnMutate.failureReason}`;
+    execConditionFailed = `Simulation error: ${stageTxnMutate.failureReason}`;
   }
 
   return {

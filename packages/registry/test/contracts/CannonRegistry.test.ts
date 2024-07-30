@@ -1,11 +1,12 @@
 import { deepEqual, equal, ok } from 'assert/strict';
 import { BigNumber, ContractTransaction, Signer } from 'ethers';
 import { ethers } from 'hardhat';
+import { stringToHex } from 'viem';
 import { CannonRegistry as TCannonRegistry } from '../../typechain-types/contracts/CannonRegistry';
 import { MockOptimismBridge as TMockOptimismBridge } from '../../typechain-types/contracts/MockOptimismBridge';
 import assertRevert from '../helpers/assert-revert';
 
-const toBytes32 = ethers.utils.formatBytes32String;
+const toBytes32 = (str: string) => stringToHex(str, { size: 32 });
 const parseEther = ethers.utils.parseEther;
 
 describe('CannonRegistry', function () {
@@ -99,6 +100,15 @@ describe('CannonRegistry', function () {
 
       equal(await CannonRegistry.validatePackageName(toBytes32(testName.slice(0, minLength))), true);
       equal(await CannonRegistry.validatePackageName(toBytes32(testName.slice(0, minLength - 1))), false);
+    });
+
+    it('it validates package names of 32 characters directly', async function () {
+      equal(
+        await CannonRegistry.validatePackageName('0x692D646F6E742D636F6E7461696E2D612D6E756C6C2D7465726D696E61746F72'),
+        true
+      );
+
+      equal(await CannonRegistry.validatePackageName(toBytes32('i-dont-contain-a-null-terminator')), true);
     });
   });
 

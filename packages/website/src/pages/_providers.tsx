@@ -1,5 +1,6 @@
 'use client';
 
+import { CannonRegistryProvider } from '@/providers/CannonRegistryProvider';
 import LogsProvider from '@/providers/logsProvider';
 import WalletProvider from '@/providers/walletProvider';
 import { theme } from '@/theme/theme';
@@ -28,7 +29,9 @@ export default function Providers({ children }: { children: ReactNode }) {
       <ChakraProvider theme={theme} colorModeManager={csm as any}>
         <QueryClientProvider client={queryClient}>
           <LogsProvider>
-            <WalletProvider>{children}</WalletProvider>
+            <CannonRegistryProvider>
+              <WalletProvider>{children}</WalletProvider>
+            </CannonRegistryProvider>
           </LogsProvider>
         </QueryClientProvider>
       </ChakraProvider>

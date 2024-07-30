@@ -9,6 +9,7 @@ import * as viem from 'viem';
 import { cannonChain, getChainById } from './chains';
 import { execPromise, toArgs } from './helpers';
 import { AnvilOptions } from './util/anvil';
+import { error, log } from './util/console';
 
 const debug = Debug('cannon:cli:rpc');
 
@@ -67,7 +68,7 @@ export async function runRpc(anvilOptions: AnvilOptions, rpcOptions: RpcOptions 
   }
 
   if (anvilInstance && anvilInstance.exitCode === null) {
-    console.log('shutting down existing anvil subprocess', anvilInstance.pid);
+    log('shutting down existing anvil subprocess', anvilInstance.pid);
 
     return viem.withTimeout(
       () =>
@@ -137,14 +138,14 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
           if (m) {
             const host = 'http://' + m[1];
             state = 'listening';
-            console.log(gray('Anvil instance running on:', host, '\n'));
+            log(gray('Anvil instance running on:', host, '\n'));
 
             // TODO: why is this type not working out? (something about mode being wrong?)
             anvilProvider = viem
               .createTestClient({
                 mode: 'anvil',
                 chain: anvilOptions.chainId ? getChainById(anvilOptions.chainId) || cannonChain : cannonChain,
-                transport: viem.http(host),
+                transport: viem.http(host, { timeout: 180000 }),
               })
               .extend(viem.publicActions)
               .extend(viem.walletActions) as any;
@@ -158,12 +159,14 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
 
         anvilInstance.stderr?.on('data', (rawChunk) => {
           const chunk = rawChunk.toString('utf8');
-          console.error(chunk.split('\n').map((m: string) => 'anvil: ' + m));
+          error(chunk.split('\n').map((m: string) => 'anvil: ' + m));
         });
       }),
     {
       timeout: ANVIL_OP_TIMEOUT,
-      errorInstance: new Error('anvil failed to start'),
+      errorInstance: new Error(
+        'Timeout - Anvil failed to start. If you are using a VPN or firewall, it might be causing a connection issue. Try disabling them.'
+      ),
     }
   );
 }
@@ -194,7 +197,7 @@ export function createProviderProxy(provider: viem.Client): Promise<string> {
           })
         );
       } catch (err) {
-        console.log('got rpc error', err);
+        log('got rpc error', err);
         res.writeHead(400);
         res.end(
           JSON.stringify({

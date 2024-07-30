@@ -7,6 +7,7 @@ import os from 'os';
 import path from 'path';
 import * as viem from 'viem';
 import { CliSettings } from './settings';
+import { log } from './util/console';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 import { resolveRegistryProviders } from './util/provider';
 
@@ -175,7 +176,7 @@ async function checkLocalRegistryOverride({
 }) {
   const localResult = await _.last(fallbackRegistry.registries).getUrl(fullPackageRef, chainId);
   if (registry instanceof OnChainRegistry && localResult && localResult != result) {
-    console.log(
+    log(
       yellowBright(
         `⚠️  The package ${fullPackageRef} was found on the official on-chain registry, but you also have a local build of this package. To use this local build instead, run this command with '--registry-priority local'`
       )
@@ -184,32 +185,36 @@ async function checkLocalRegistryOverride({
 }
 
 export async function createDefaultReadRegistry(
-  settings: CliSettings,
+  cliSettings: CliSettings,
   additionalRegistries: CannonRegistry[] = []
 ): Promise<FallbackRegistry> {
-  const registryProviders = await resolveRegistryProviders(settings);
+  const registryProviders = await resolveRegistryProviders(cliSettings);
 
-  const localRegistry = new LocalRegistry(settings.cannonDirectory);
+  const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
   const onChainRegistries = registryProviders.map(
-    (p, i) => new ReadOnlyOnChainRegistry({ provider: p.provider, address: settings.registries[i].address })
+    (p, i) => new ReadOnlyOnChainRegistry({ provider: p.provider, address: cliSettings.registries[i].address })
   );
 
-  if (settings.registryPriority === 'offline') {
+  if (cliSettings.registryPriority === 'offline') {
     debug('running in offline mode, using local registry only');
     return new FallbackRegistry([...additionalRegistries, localRegistry]);
   } else if (!(await isConnectedToInternet())) {
     debug('not connected to internet, using local registry only');
     // When not connected to the internet, we don't want to check the on-chain registry version to not throw an error
-    console.log(yellowBright('⚠️  You are not connected to the internet. Using local registry only'));
+    log(
+      yellowBright(
+        '⚠️  You are not connected to the internet or using a VPN that is limiting connectivity. Cannon will only use packages available locally.'
+      )
+    );
     return new FallbackRegistry([...additionalRegistries, localRegistry]);
-  } else if (settings.registryPriority === 'local') {
+  } else if (cliSettings.registryPriority === 'local') {
     debug('local registry is the priority, using local registry first');
     return new FallbackRegistry([...additionalRegistries, localRegistry, ...onChainRegistries]);
   } else {
     debug('on-chain registry is the priority, using on-chain registry first');
     const fallbackRegistry = new FallbackRegistry([...additionalRegistries, ...onChainRegistries, localRegistry]);
 
-    if (!settings.quiet) {
+    if (!cliSettings.quiet) {
       fallbackRegistry.on('getUrl', checkLocalRegistryOverride).catch((err: Error) => {
         throw err;
       });
@@ -219,6 +224,6 @@ export async function createDefaultReadRegistry(
   }
 }
 
-export async function createDryRunRegistry(settings: CliSettings): Promise<FallbackRegistry> {
-  return createDefaultReadRegistry(settings, [new InMemoryRegistry()]);
+export async function createDryRunRegistry(cliSettings: CliSettings): Promise<FallbackRegistry> {
+  return createDefaultReadRegistry(cliSettings, [new InMemoryRegistry()]);
 }

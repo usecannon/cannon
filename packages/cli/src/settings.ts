@@ -37,9 +37,15 @@ export type CliSettings = {
   ipfsTimeout?: number;
 
   /**
-   * the url of the IPFS endpoint to use as a storage base. defaults to localhost IPFS
+
+   * the url of the IPFS endpoint to use as a storage base, only for reading data
    */
   ipfsUrl?: string;
+
+  /**
+   * the url of the IPFS endpoint to use as a storage base, only for writing data
+   */
+  writeIpfsUrl?: string;
 
   /**
    * the IPFS url to use when publishing. If you have an IPFS cluster, or a pinning service, this is a good place to put its IPFS Proxy publish endpoint. If not specified, your packages wont be uploaded to remote ipfs.
@@ -99,6 +105,11 @@ export type CliSettings = {
   etherscanApiKey: string;
 
   /**
+   * Whether to run in E2E mode
+   */
+  isE2E: boolean;
+
+  /**
    * Whether to suppress extra output
    */
   quiet: boolean;
@@ -120,6 +131,8 @@ export type CliSettings = {
   priorityGasFee?: string;
 };
 
+export const PROVIDER_URL_DEFAULT = 'frame,direct';
+
 /**
  * Settings zod schema.
  * Check env vars and set default values if needed
@@ -129,7 +142,7 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
   return {
     CANNON_DIRECTORY: z.string().default(DEFAULT_CANNON_DIRECTORY),
     CANNON_SETTINGS: z.string().optional(),
-    CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || 'frame,direct'),
+    CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || PROVIDER_URL_DEFAULT),
     CANNON_PRIVATE_KEY: z
       .string()
       .optional()
@@ -146,6 +159,10 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .string()
       .optional()
       .default(fileSettings.ipfsUrl || ''),
+    CANNON_WRITE_IPFS_URL: z
+      .string()
+      .optional()
+      .default(fileSettings.writeIpfsUrl || ''),
     CANNON_PUBLISH_IPFS_URL: z
       .string()
       .url()
@@ -165,6 +182,7 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .default(fileSettings.etherscanApiUrl as string),
     CANNON_ETHERSCAN_API_KEY: z.string().length(34).optional().default(fileSettings.etherscanApiKey),
     CANNON_QUIET: z.boolean().default(fileSettings.quiet || false),
+    CANNON_E2E: z.boolean().default(false),
     TRACE: z.boolean().default(false),
   };
 }
@@ -189,6 +207,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     CANNON_IPFS_TIMEOUT,
     CANNON_IPFS_RETRIES,
     CANNON_IPFS_URL,
+    CANNON_WRITE_IPFS_URL,
     CANNON_PUBLISH_IPFS_URL,
     CANNON_REGISTRY_PROVIDER_URL,
     CANNON_REGISTRY_CHAIN_ID,
@@ -197,6 +216,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     CANNON_ETHERSCAN_API_URL,
     CANNON_ETHERSCAN_API_KEY,
     CANNON_QUIET,
+    CANNON_E2E,
     TRACE,
   } = parseEnv(process.env, cannonSettingsSchema(fileSettings));
 
@@ -209,6 +229,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       ipfsTimeout: CANNON_IPFS_TIMEOUT,
       ipfsRetries: CANNON_IPFS_RETRIES,
       ipfsUrl: CANNON_IPFS_URL,
+      writeIpfsUrl: CANNON_WRITE_IPFS_URL,
       publishIpfsUrl: CANNON_PUBLISH_IPFS_URL,
       registries:
         CANNON_REGISTRY_ADDRESS && (CANNON_REGISTRY_PROVIDER_URL || CANNON_REGISTRY_CHAIN_ID)
@@ -225,6 +246,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       etherscanApiUrl: CANNON_ETHERSCAN_API_URL,
       etherscanApiKey: CANNON_ETHERSCAN_API_KEY,
       quiet: CANNON_QUIET,
+      isE2E: CANNON_E2E,
       trace: TRACE,
     },
     _.pickBy(overrides)

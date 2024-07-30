@@ -32,6 +32,8 @@ export type ContractData = {
   constructorArgs?: any[]; // only needed for external verification
   linkedLibraries?: { [sourceName: string]: { [libName: string]: string } }; // only needed for external verification
   deployTxnHash: string;
+  deployTxnBlockNumber?: string;
+  deployTimestamp?: string;
   contractName: string;
   sourceName: string;
   deployedOn: string;
@@ -47,6 +49,8 @@ export type ContractMap = {
 export type TransactionMap = {
   [label: string]: {
     hash: Hash | '';
+    blockNumber?: string;
+    timestamp?: string;
     events: EventMap;
     deployedOn: string;
     gasUsed: number;
@@ -189,11 +193,11 @@ export interface ChainBuilderRuntimeInfo {
   allowPartialDeploy: boolean;
 
   // Gas price to use for transactions
-  gasPrice?: string;
+  gasPrice?: bigint;
 
   // Base and Priority gas fee to use for transactions - EIP1559
-  gasFee?: string;
-  priorityGasFee?: string;
+  gasFee?: bigint;
+  priorityGasFee?: bigint;
 }
 
 export interface PackageState {
