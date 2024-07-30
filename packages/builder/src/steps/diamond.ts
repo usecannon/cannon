@@ -222,7 +222,9 @@ const diamondStep = {
       const bytecode = await runtime.provider.getCode({ address: addr });
 
       if (!bytecode) {
-        const hash = await signer.wallet.sendTransaction(create2Txn as any);
+        const hash = await signer.wallet.sendTransaction(
+          _.assign({ account: signer.wallet.account || signer.address }, create2Txn as any)
+        );
         const receipt = await runtime.provider.waitForTransactionReceipt({ hash });
         const block = await runtime.provider.getBlock({ blockHash: receipt.blockHash });
         outputContracts[deployedContractLabel] = {
