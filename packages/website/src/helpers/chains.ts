@@ -1,5 +1,6 @@
 import { merge } from 'lodash';
 import * as chains from 'viem/chains';
+import * as viem from 'viem';
 
 // For enrichment if necessary
 //import { set } from 'lodash';
@@ -69,6 +70,17 @@ const chainsById = Object.values(enrichedChainData).reduce((acc, chain) => {
   acc[chain.id] = chain;
   return acc;
 });
+
+export const getExplorerUrl = (chainId: number, hash: string) => {
+  const chain = chainsById[chainId];
+  const explorer = chain.blockExplorers?.default;
+  if (!chain || !explorer) return '';
+
+  const url = explorer?.url || 'https://etherscan.io';
+
+  const type = viem.isAddress(hash) ? 'address' : 'tx';
+  return `${url}/${type}/${hash}`;
+};
 
 export { chainsById };
 

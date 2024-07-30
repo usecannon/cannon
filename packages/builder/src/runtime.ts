@@ -7,7 +7,7 @@ import { CannonSigner, ChainArtifacts, PackageReference } from './';
 import { traceActions } from './error';
 import { CannonLoader, IPFSLoader } from './loader';
 import { CannonRegistry } from './registry';
-import { ChainBuilderRuntimeInfo, ContractArtifact, DeploymentInfo } from './types';
+import { ChainBuilderRuntimeInfo, ChainBuilderContext, ContractArtifact, DeploymentInfo } from './types';
 import { getExecutionSigner } from './util';
 
 const debug = Debug('cannon:builder:runtime');
@@ -101,12 +101,6 @@ export class CannonStorage extends EventEmitter {
   }
 }
 
-const parseGasValue = (value: string | undefined) => {
-  if (!value) return undefined;
-
-  return viem.parseGwei(value).toString();
-};
-
 export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRuntimeInfo {
   provider: viem.PublicClient;
   readonly chainId: number;
@@ -118,11 +112,12 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   readonly getArtifact: (name: string) => Promise<ContractArtifact>;
   readonly snapshots: boolean;
   readonly allowPartialDeploy: boolean;
+  ctx: ChainBuilderContext | null;
   private publicSourceCode: boolean | undefined;
   private signals: { cancelled: boolean } = { cancelled: false };
-  private _gasPrice: string | undefined;
-  private _gasFee: string | undefined;
-  private _priorityGasFee: string | undefined;
+  private _gasPrice: bigint | undefined;
+  private _gasFee: bigint | undefined;
+  private _priorityGasFee: bigint | undefined;
 
   private cleanSnapshot: any;
 
@@ -168,20 +163,22 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
 
     this.misc = { artifacts: {} };
 
+    this.ctx = null;
+
     if (info.priorityGasFee) {
       if (!info.gasFee) {
         throw new Error('priorityGasFee requires gasFee');
       }
     }
 
-    this._gasFee = parseGasValue(info.gasFee);
-    this._priorityGasFee = parseGasValue(info.priorityGasFee);
+    this._gasFee = info.gasFee;
+    this._priorityGasFee = info.priorityGasFee;
 
     if (info.gasPrice) {
       if (info.gasFee) {
         debug(yellow('WARNING: gasPrice is ignored when gasFee is set'));
       } else {
-        this._gasPrice = parseGasValue(info.gasPrice);
+        this._gasPrice = info.gasPrice;
       }
     }
   }
@@ -190,13 +187,13 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     this.signals.cancelled = true;
   }
 
-  get gasPrice(): string | undefined {
+  get gasPrice(): bigint | undefined {
     return this._gasPrice;
   }
-  get gasFee(): string | undefined {
+  get gasFee(): bigint | undefined {
     return this._gasFee;
   }
-  get priorityGasFee(): string | undefined {
+  get priorityGasFee(): bigint | undefined {
     return this._priorityGasFee;
   }
 
@@ -266,6 +263,10 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     debug('reported contract artifact', n, artifact);
 
     this.misc.artifacts[n] = artifact;
+  }
+
+  reportOperatingContext(ctx: ChainBuilderContext | null) {
+    this.ctx = ctx;
   }
 
   updateProviderArtifacts(artifacts: ChainArtifacts) {

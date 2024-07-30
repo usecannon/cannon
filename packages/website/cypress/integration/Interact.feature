@@ -1,20 +1,20 @@
 Feature: Interact page
 
-  Scenario: Navigating to the interact page 
-    Given User opens the "/packages/synthetix/latest/5-main" page
+  Scenario: Navigating to the interact page
+    Given User opens the "/packages/synthetix/3.3.4/5-main" page
     * Wallet is connected
     * View renders a "h1" displaying the text "synthetix"
     * User clicks on the "a" element with text "Interact"
 
-  Scenario: Selecting Modules on the interact page 
-    Given User opens the "/packages/synthetix/latest/1-main/interact" page
+  Scenario: Selecting Modules on the interact page
+    Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
     * Wallet is connected
     * View renders a "button" displaying the text "InitialCoreProxy"
     * User clicks on the "button" element with text "AccountProxy"
     Then URL includes "/synthetix/AccountProxy/0x0E429603D3Cb1DFae4E6F52Add5fE82d96d77Dac"
-    
+
   Scenario: Executing read functions
-    Given User opens the "/packages/synthetix/latest/1-main/interact" page
+    Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
     * Wallet is connected
     * User clicks on the "button" element with text "InitialCoreProxy"
     Then URL includes "/synthetix/InitialCoreProxy/0xffffffaEff0B96Ea8e4f94b2253f31abdD875847"
@@ -23,7 +23,7 @@ Feature: Interact page
     * User clicks on the "button" element with text "Call view function"
     Then View renders a "div" displaying the text "0xEb3107117FEAd7de89Cd14D463D340A2E6917769"
     # Read function with string output
-    Given User opens the "/packages/synthetix/latest/1-main/interact" page
+    Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
     * Wallet is connected
     * User clicks on the "button" element with text "InitialCoreProxy"
     Then URL includes "/synthetix/InitialCoreProxy/0xffffffaEff0B96Ea8e4f94b2253f31abdD875847"

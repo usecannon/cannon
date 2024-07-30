@@ -17,6 +17,7 @@ import {
   DeploymentState,
   PackageState,
 } from '../types';
+import { template } from '../utils/template';
 
 const debug = Debug('cannon:builder:clone');
 
@@ -51,7 +52,7 @@ const cloneSpec = {
       throw new Error(`only one of \`target\` and \`targetPreset\` can specified for ${packageState.name}`);
     }
 
-    const ref = new PackageReference(_.template(config.source)(ctx));
+    const ref = new PackageReference(template(config.source)(ctx));
 
     config.source = ref.fullPackageRef;
 
@@ -59,22 +60,22 @@ const cloneSpec = {
       config.source = PackageReference.from(ref.name, ref.version, config.sourcePreset).fullPackageRef;
     }
 
-    config.sourcePreset = _.template(config.sourcePreset)(ctx);
-    config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
-    config.target = _.template(config.target)(ctx);
+    config.sourcePreset = template(config.sourcePreset)(ctx);
+    config.targetPreset = template(config.targetPreset)(ctx) || `with-${packageState.name}`;
+    config.target = template(config.target)(ctx);
 
     if (config.var) {
       config.var = _.mapValues(config.var, (v) => {
-        return _.template(v)(ctx);
+        return template(v)(ctx);
       });
     } else if (config.options) {
       config.options = _.mapValues(config.options, (v) => {
-        return _.template(v)(ctx);
+        return template(v)(ctx);
       });
     }
 
     if (config.tags) {
-      config.tags = config.tags.map((t: string) => _.template(t)(ctx));
+      config.tags = config.tags.map((t: string) => template(t)(ctx));
     }
 
     return config;
@@ -85,6 +86,10 @@ const cloneSpec = {
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.target, possibleFields));
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.sourcePreset, possibleFields));
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.targetPreset, possibleFields));
+
+    if (config.var) {
+      _.forEach(config.var, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))));
+    }
 
     if (config.options) {
       _.forEach(

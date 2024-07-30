@@ -50,6 +50,24 @@ describe('steps/clone.ts', () => {
     });
   });
 
+  describe('getInputs()', () => {
+    it('has inputs', async () => {
+      expect(
+        action.getInputs(
+          {
+            source: '<%= settings.a %>',
+            var: { woot: '<%= settings.b %>', wah: '<%= settings.c %>' },
+            options: { woot: '<%= settings.d %>', wah: '<%= settings.e %>', tags: '<%= settings.f %>' },
+          },
+          []
+        )
+      ).toEqual({
+        accesses: ['settings.a', 'settings.b', 'settings.c', 'settings.d', 'settings.e', 'settings.f'],
+        unableToCompute: false,
+      });
+    });
+  });
+
   describe('configInject()', () => {
     it('injects all fields', async () => {
       const result = action.configInject(
@@ -90,6 +108,132 @@ describe('steps/clone.ts', () => {
           { name: 'package', version: '1.0.0', currentLabel: 'clone.whatever' }
         )
       ).rejects.toThrowError('deployment not found');
+    });
+
+    it('throws if source name is longer than 32 bytes', async () => {
+      await expect(() =>
+        action.exec(
+          fakeRuntime,
+          fakeCtx,
+          { source: 'package-name-longer-than-32bytes1337:1.0.0' },
+          { name: 'package', version: '1.0.0', currentLabel: 'clone.whatever' }
+        )
+      ).rejects.toThrowError('Package name exceeds 32 bytes');
+    });
+
+    it('throws if source version is longer than 32 bytes', async () => {
+      jest.mocked(fakeRuntime.readDeploy).mockResolvedValue({
+        generator: 'cannon test',
+        timestamp: 1234,
+        state: {
+          'deploy.Woot': {
+            version: BUILD_VERSION,
+            hash: 'arst',
+            artifacts: {
+              contracts: {
+                Woot: {
+                  address: '0xfoobar',
+                  abi: [],
+                  deployTxnHash: '0x',
+                  contractName: 'Woot',
+                  sourceName: 'Woot.sol',
+                  deployedOn: 'deploy.Woot',
+                  gasCost: '0',
+                  gasUsed: 0,
+                },
+              },
+            },
+          },
+        },
+        options: {},
+        def: {
+          name: 'package',
+          version: '1.0.0',
+          var: {
+            main: {
+              sophisticated: 'fast',
+            },
+          },
+          clone: {
+            source: { source: 'package:package-version-longer-than-32bytes1337' },
+            target: { target: 'package:1.0.0' },
+          },
+        } as any,
+        meta: {},
+        miscUrl: 'https://something.com',
+      });
+
+      await expect(() =>
+        action.exec(
+          fakeRuntime,
+          fakeCtx,
+          { source: 'package:package-version-longer-than-32bytes1337' },
+          { name: 'package', version: '1.0.0', currentLabel: 'clone.whatever' }
+        )
+      ).rejects.toThrowError('Package version exceeds 32 bytes');
+    });
+
+    it('throws if target name is longer than 32 bytes', async () => {
+      await expect(() =>
+        action.exec(
+          fakeRuntime,
+          fakeCtx,
+          { source: 'package:1.0.0', target: 'package-name-longer-than-32bytes1337:1.0.0' },
+          { name: 'package', version: '1.0.0', currentLabel: 'clone.whatever' }
+        )
+      ).rejects.toThrowError('Package name exceeds 32 bytes');
+    });
+
+    it('throws if target version is longer than 32 bytes', async () => {
+      jest.mocked(fakeRuntime.readDeploy).mockResolvedValue({
+        generator: 'cannon test',
+        timestamp: 1234,
+        state: {
+          'deploy.Woot': {
+            version: BUILD_VERSION,
+            hash: 'arst',
+            artifacts: {
+              contracts: {
+                Woot: {
+                  address: '0xfoobar',
+                  abi: [],
+                  deployTxnHash: '0x',
+                  contractName: 'Woot',
+                  sourceName: 'Woot.sol',
+                  deployedOn: 'deploy.Woot',
+                  gasCost: '0',
+                  gasUsed: 0,
+                },
+              },
+            },
+          },
+        },
+        options: {},
+        def: {
+          name: 'package',
+          version: '1.0.0',
+          var: {
+            main: {
+              sophisticated: 'fast',
+            },
+          },
+          clone: {
+            source: { source: 'package:package-version-longer-than-32bytes1337' },
+            target: { target: 'package:package-version-longer-than-32bytes1337' },
+          },
+        } as any,
+        meta: {},
+        miscUrl: 'https://something.com',
+      });
+
+      await expect(() =>
+        action.exec(
+          fakeRuntime,
+          fakeCtx,
+          { source: 'package:1.0.0', target: 'package:package-version-longer-than-32bytes1337' },
+          { name: 'package', version: '1.0.0', currentLabel: 'clone.whatever' }
+        )
+      ).rejects.toThrowError('Package version exceeds 32 bytes');
     });
 
     it('returns partial deployment if runtime becomes cancelled', async () => {

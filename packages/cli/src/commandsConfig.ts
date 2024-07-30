@@ -67,10 +67,6 @@ const anvilOptions = [
     description: 'Timeout in ms for requests sent to remote JSON-RPC server in forking mode.',
   },
   {
-    flags: '--block-base-fee-per-gas [number]',
-    description: 'The base fee in a block.',
-  },
-  {
     flags: '--code-size-limit [number]',
     description: 'EIP-170: Contract code size limit in bytes. Useful to increase this because of tests.',
   },
@@ -81,10 +77,6 @@ const anvilOptions = [
   {
     flags: '--gas-limit [number]',
     description: 'The block gas limit.',
-  },
-  {
-    flags: '--gas-price [number]',
-    description: 'The gas price.',
   },
   {
     flags: '--accounts [number]',
@@ -293,15 +285,15 @@ const commandsConfig = {
       },
       {
         flags: '--gas-price <gasPrice>',
-        description: 'Specify a gas price to use for the deployment',
+        description: 'The gas price used by all transactions processed by this build. Expressed in GWEI.',
       },
       {
         flags: '--max-gas-fee <maxGasFee>',
-        description: 'Specify max fee per gas (EIP-1559) for deployment',
+        description: 'Specify max fee per gas (EIP-1559) for all transactions processed by this build. Expressed in GWEI.',
       },
       {
         flags: '--max-priority-gas-fee <maxpriorityGasFee>',
-        description: 'Specify max fee per gas (EIP-1559) for deployment',
+        description: 'Specify max fee per gas (EIP-1559) for all transactions processed by this build. Expressed in GWEI.',
       },
       {
         flags: '--skip-compile',
@@ -310,6 +302,10 @@ const commandsConfig = {
       {
         flags: '--write-script <writeScript>',
         description: '(Experimental) Path to write all the actions taken as a script that can be later executed',
+      },
+      {
+        flags: '-w --write-deployments <writeDeployments>',
+        description: 'Path to write the deployments data (address and ABIs), like "./deployments"',
       },
       {
         flags: '--write-script-format <writeScriptFormat>',
@@ -594,7 +590,7 @@ const commandsConfig = {
     ],
   },
   publishers: {
-    description: 'Add a new publisher to your Cannon package',
+    description: 'Add, remove or list publishers in your Cannon package',
     arguments: [
       {
         flags: '<packageRef>',
@@ -609,6 +605,10 @@ const commandsConfig = {
       {
         flags: '-r --remove <address>',
         description: 'Specify a comma separated list of addresses to add as publishers',
+      },
+      {
+        flags: '-l --list',
+        description: 'List package publishers',
       },
       {
         flags: '-n --registry-provider-url [url]',

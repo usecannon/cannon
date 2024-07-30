@@ -32,3 +32,4 @@ export * from './definition';
 export * from './helpers';
 export * from './util';
 export * from './types';
+export * from './utils/template';

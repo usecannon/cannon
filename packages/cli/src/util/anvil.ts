@@ -77,10 +77,6 @@ export type AnvilOptions = {
    */
   timeout?: number | undefined;
   /**
-   * The base fee in a block.
-   */
-  blockBaseFeePerGas?: number | bigint | undefined;
-  /**
    * The chain id.
    */
   chainId?: number | undefined;
@@ -94,14 +90,6 @@ export type AnvilOptions = {
    * Disable the `call.gas_limit <= block.gas_limit` constraint.
    */
   disableBlockGasLimit?: boolean | undefined;
-  /**
-   * The block gas limit.
-   */
-  gasLimit?: number | bigint | undefined;
-  /**
-   * The gas price.
-   */
-  gasPrice?: number | bigint | undefined;
   /**
    * Number of dev accounts to generate and configure.
    *
@@ -220,12 +208,9 @@ const anvilOptionKeys = [
   'noStorageCaching',
   'retries',
   'timeout',
-  'blockBaseFeePerGas',
   'chainId',
   'codeSizeLimit',
   'disableBlockGasLimit',
-  'gasLimit',
-  'gasPrice',
   'accounts',
   'balance',
   'derivationPath',

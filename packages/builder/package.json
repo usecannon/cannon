@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/builder",
-  "version": "2.15.5",
+  "version": "2.15.8",
   "description": "Assembles cannonfile.toml manifests into cannon packages.",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -30,8 +30,7 @@
     "@types/lodash": "^4.17.6",
     "@types/pako": "^2.0.3",
     "jest": "^29.7.0",
-    "rollup": "^4.18.0",
-    "ts-jest": "^29.1.5",
+    "ts-jest": "^29.1.2",
     "typedoc": "^0.26.3",
     "typedoc-plugin-markdown": "^4.1.1",
     "typedoc-plugin-zod": "^1.2.0"
@@ -44,9 +43,11 @@
     "chalk": "^4.1.2",
     "debug": "^4.3.5",
     "form-data": "^4.0.0",
+    "fuse.js": "^7.0.0",
     "lodash": "^4.17.21",
     "pako": "^2.1.0",
     "promise-events": "^0.2.4",
+    "rollup": "^4.18.1",
     "typestub-ipfs-only-hash": "^4.0.0",
     "viem": "^2.16.5",
     "zod": "^3.23.8"

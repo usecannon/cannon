@@ -156,12 +156,21 @@ export default function PublishUtility(props: {
     onError(err) {
       // eslint-disable-next-line no-console
       console.error(err);
-      toast({
-        title: 'Error Publishing Package',
-        status: 'error',
-        duration: 30000,
-        isClosable: true,
-      });
+      if (err.message.includes('exceeds the balance of the account')) {
+        toast({
+          title: 'Error Publishing Package: Insufficient Funds',
+          status: 'error',
+          duration: 10000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: 'Error Publishing Package',
+          status: 'error',
+          duration: 10000,
+          isClosable: true,
+        });
+      }
     },
   });
 
@@ -175,12 +184,22 @@ export default function PublishUtility(props: {
     onError(err) {
       // eslint-disable-next-line no-console
       console.error(err);
-      toast({
-        title: 'Error Publishing Package',
-        status: 'error',
-        duration: 10000,
-        isClosable: true,
-      });
+
+      if (err.message.includes('exceeds the balance of the account')) {
+        toast({
+          title: 'Error Publishing Package: Insufficient Funds',
+          status: 'error',
+          duration: 10000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: 'Error Publishing Package',
+          status: 'error',
+          duration: 10000,
+          isClosable: true,
+        });
+      }
     },
   });
 

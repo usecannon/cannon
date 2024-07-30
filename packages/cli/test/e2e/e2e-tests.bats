@@ -209,6 +209,17 @@ teardown() {
   assert_success
 }
 
+@test "Publishers - List publishers of package-one" {
+  set_custom_config
+  run publishers.sh 5
+  echo $output
+  assert_output --partial 'The package-one package lists the following publishers'
+  assert_output --partial '- 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 (Mainnet) (Package Owner)'
+  assert_output --partial '- 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 (Optimism)'
+  assert_output --partial '- 0x000000000000000000000000000000000000dEaD (Optimism)'
+  assert_success
+}
+
 @test "Publishers - Remove a publisher on the Optimism network" {
   set_custom_config
   start_optimism_emitter
@@ -236,10 +247,27 @@ teardown() {
   assert_success
 }
 
-@test "Publish - Publishing greeter package" {
+@test "Register & Publish - Registering and publishing the greeter package" {
   set_custom_config
-  run publish.sh
+  start_optimism_emitter
+  run publish.sh 1
   echo $output
+  assert_success
+}
+
+@test "Publish - Publishing the greeter package failed due to no changes" {
+  set_custom_config
+  run publish.sh 2
+  echo $output
+  assert_output --partial "There isn't anything new to publish."
+  assert_failure
+}
+
+@test "Unpublish - Unpublishing the greeter package" {
+  set_custom_config
+  run unpublish.sh
+  echo $output
+  assert_output --partial "Success! (Transaction Hash: "
   assert_success
 }
 

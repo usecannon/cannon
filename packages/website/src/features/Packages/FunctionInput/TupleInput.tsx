@@ -52,7 +52,7 @@ const TupleInput = ({
           </FormLabel>
           <FunctionInput
             input={component}
-            valueUpdated={(value) => {
+            handleUpdate={(value) => {
               // Since tuple components are represented as a JSON object,
               // We represent the bigint type as a string
               if (typeof value === 'bigint') {

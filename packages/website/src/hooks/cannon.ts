@@ -3,7 +3,7 @@ import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { createFork, findChain } from '@/helpers/rpc';
 import { SafeDefinition, useStore } from '@/helpers/store';
 import { useGitRepo } from '@/hooks/git';
-import { useCannonRegistry } from '@/hooks/registry';
+import { useCannonRegistry } from '@/providers/CannonRegistryProvider';
 import { useLogs } from '@/providers/logsProvider';
 import { BaseTransaction } from '@safe-global/safe-apps-sdk';
 import { useMutation, UseMutationOptions, useQuery } from '@tanstack/react-query';
@@ -27,6 +27,9 @@ import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { Abi, Address, createPublicClient, createWalletClient, custom, Hex, isAddressEqual, PublicClient } from 'viem';
 import { useChainId } from 'wagmi';
+
+// Needed to prepare mock run step with registerAction
+import '@/lib/builder';
 
 export type BuildState =
   | {
@@ -148,9 +151,9 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     currentRuntime.on(
       Events.PostStepExecute,
       (stepType: string, stepLabel: string, stepConfig: any, stepCtx: ChainBuilderContext, stepOutput: ChainArtifacts) => {
-        addLog(
-          `cannon.ts: on Events.PostStepExecute operation ${stepType}.${stepLabel} output: ${JSON.stringify(stepOutput)}`
-        );
+        const stepName = `${stepType}.${stepLabel}`;
+
+        addLog(`cannon.ts: on Events.PostStepExecute operation ${stepName} output: ${JSON.stringify(stepOutput)}`);
 
         simulatedSteps.push(_.cloneDeep(stepOutput));
 
@@ -159,7 +162,12 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
           stepOutput.txns![txn].hash = '';
         }
 
-        setBuildStatus(`Building ${stepType}.${stepLabel}...`);
+        setBuildStatus(`Building ${stepName}...`);
+
+        // a step that deploys a contract is a step that has no txns deployed but contract(s) deployed
+        if (_.keys(stepOutput.txns).length === 0 && _.keys(stepOutput.contracts).length > 0) {
+          throw new Error(`Cannot deploy contract on a Safe transaction for step ${stepName}`);
+        }
       }
     );
 
@@ -395,7 +403,7 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
   };
 }
 
-type ContractInfo = {
+export type ContractInfo = {
   [x: string]: { address: Address; abi: Abi };
 };
 
@@ -456,3 +464,4 @@ export function useCannonPackageContracts(packageRef: string, chainId?: number) 
 
   return { contracts, ...pkg };
 }
+export type UseCannonPackageContractsReturnType = ReturnType<typeof useCannonPackageContracts>;
