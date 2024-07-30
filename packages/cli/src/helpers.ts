@@ -543,6 +543,7 @@ export async function getPackageReference(ref: string) {
         "Could not download package through IPFS, please make sure you have set your 'writeIpfsUrl' correctly when building packages locally"
       );
     }
+    return ref;
   }
 }
 
