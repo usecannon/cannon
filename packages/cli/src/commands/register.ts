@@ -6,8 +6,11 @@ import { blueBright, gray, green } from 'chalk';
 import { OnChainRegistry, prepareMulticall, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 
 import { CliSettings } from '../settings';
+import { log } from '../util/console';
+import { waitForEvent } from '../util/wait-for-event';
 import { resolveRegistryProviders } from '../util/provider';
-import { isPackageRegistered, waitForEvent } from '../util/register';
+import { isPackageRegistered } from '../util/register';
+
 import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 
 const debug = Debug('cannon:cli:register');
@@ -141,14 +144,12 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
 
   const currentGasPrice = await mainnetRegistryProvider.provider.getGasPrice();
 
-  console.log('');
-  console.log('You are about to register the following packages:');
-  packageRefs.forEach((pkg: PackageReference) => console.log(' - Package:', blueBright(pkg.name)));
-  console.log();
-  console.log(
-    `The transaction will cost ~${viem.formatEther(estimateGas * currentGasPrice)} ETH on ${mainnetRegistryConfig.name}.`
-  );
-  console.log('');
+  log('');
+  log('You are about to register the following packages:');
+  packageRefs.forEach((pkg: PackageReference) => log(' - Package:', blueBright(pkg.name)));
+  log();
+  log(`The transaction will cost ~${viem.formatEther(estimateGas * currentGasPrice)} ETH on ${mainnetRegistryConfig.name}.`);
+  log('');
 
   if (!options.skipConfirm) {
     const confirm = await prompts({
@@ -158,27 +159,27 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
     });
 
     if (!confirm.confirmation) {
-      console.log('Cancelled');
+      log('Cancelled');
       process.exit(1);
     }
   }
 
-  console.log('Submitting transaction, waiting for transaction to succeed...');
-  console.log();
+  log('Submitting transaction, waiting for transaction to succeed...');
+  log();
 
   try {
     const [hash] = await Promise.all([
       (async () => {
         const hash = await mainnetRegistry.setPackageOwnership(multicallTx);
 
-        console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
-        console.log('');
-        console.log(
+        log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+        log('');
+        log(
           gray(
             `Waiting for the transaction to propagate to ${optimismRegistryConfig.name}... It may take approximately 1-3 minutes.`
           )
         );
-        console.log('');
+        log('');
 
         return hash;
       })(),
@@ -214,12 +215,12 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
     ]);
 
     packageRefs.map(async (pkg) => {
-      console.log(green(`Success - Package "${pkg.name}" has been registered.`));
+      log(green(`Success - Package "${pkg.name}" has been registered.`));
     });
 
     if (fromPublish) {
-      console.log('');
-      console.log(gray('We will continue with the publishing process.'));
+      log('');
+      log(gray('We will continue with the publishing process.'));
     }
 
     return hash;

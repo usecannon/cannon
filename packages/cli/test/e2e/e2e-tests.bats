@@ -209,6 +209,17 @@ teardown() {
   assert_success
 }
 
+@test "Publishers - List publishers of package-one" {
+  set_custom_config
+  run publishers.sh 5
+  echo $output
+  assert_output --partial 'The package-one package lists the following publishers'
+  assert_output --partial '- 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 (Mainnet) (Package Owner)'
+  assert_output --partial '- 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 (Optimism)'
+  assert_output --partial '- 0x000000000000000000000000000000000000dEaD (Optimism)'
+  assert_success
+}
+
 @test "Publishers - Remove a publisher on the Optimism network" {
   set_custom_config
   start_optimism_emitter
@@ -250,6 +261,14 @@ teardown() {
   echo $output
   assert_output --partial "There isn't anything new to publish."
   assert_failure
+}
+
+@test "Unpublish - Unpublishing the greeter package" {
+  set_custom_config
+  run unpublish.sh
+  echo $output
+  assert_output --partial "Success! (Transaction Hash: "
+  assert_success
 }
 
 @test "Inspect - Inspect Synthetix Sandbox" {

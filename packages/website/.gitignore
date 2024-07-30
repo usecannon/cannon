@@ -7,3 +7,6 @@ local.graphql
 # next.js build output
 .next/
 out/
+
+# Sentry Config File
+.env.sentry-build-plugin

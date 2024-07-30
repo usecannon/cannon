@@ -6,6 +6,7 @@ import * as viem from 'viem';
 import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';
+import { log } from '../util/console';
 import { resolveRegistryProviders } from '../util/provider';
 
 interface Params {
@@ -30,7 +31,7 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     options.chainId = Number(chainIdPrompt.value);
   }
 
-  console.log();
+  log();
 
   if (!cliSettings.privateKey) {
     const keyPrompt = await prompts({
@@ -48,7 +49,7 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
   }
 
-  console.log();
+  log();
 
   const fullPackageRef = new PackageReference(packageRef).fullPackageRef;
 
@@ -67,31 +68,40 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     overrides.value = options.value;
   }
 
-  const registryProviders = await resolveRegistryProviders(cliSettings);
-
-  // Initialize pickedRegistryProvider with the first provider
-  let [pickedRegistryProvider] = registryProviders;
-
   // if it's using the default config, prompt the user to choose a registry provider
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Custom registry settings are not supported yet.');
+
+  if (cliSettings.isE2E) {
+    // anvil optimism fork
+    cliSettings.registries[0].providerUrl = ['http://127.0.0.1:9546'];
+    // anvil mainnet fork
+    cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
+  }
+
+  const registryProviders = await resolveRegistryProviders(cliSettings);
+  // initialize pickedRegistryProvider with the first provider
+  let [pickedRegistryProvider] = registryProviders;
 
   const choices = registryProviders.reverse().map((p) => ({
     title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
     value: p,
   }));
 
-  // Override pickedRegistryProvider with the selected provider
-  pickedRegistryProvider = (
-    await prompts([
-      {
-        type: 'select',
-        name: 'pickedRegistryProvider',
-        message: 'Which registry would you like to use? (Cannon will find the package on either.):',
-        choices,
-      },
-    ])
-  ).pickedRegistryProvider;
+  // if the execution comes from the e2e tests, don't prompt and use the first one
+  if (!cliSettings.isE2E) {
+    // override pickedRegistryProvider with the selected provider
+    pickedRegistryProvider = (
+      await prompts([
+        {
+          type: 'select',
+          name: 'pickedRegistryProvider',
+          message: 'Which registry would you like to use? (Cannon will find the package on either.):',
+          choices,
+        },
+      ])
+    ).pickedRegistryProvider;
+  }
 
   const registryAddress =
     cliSettings.registries.find((registry) => registry.chainId === pickedRegistryProvider.provider.chain?.id)?.address ||
@@ -111,7 +121,7 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     // if user has specified a full package ref, use it to fetch the deployment
     deploys = [{ name: fullPackageRef, chainId: options.chainId }];
   } else {
-    // Check for deployments that are relevant to the provided packageRef
+    // check for deployments that are relevant to the provided packageRef
     deploys = await localRegistry.scanDeploys(packageRef, Number(options.chainId));
   }
 
@@ -129,10 +139,9 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
 
   const publishedDeploys = deploys.reduce((acc: any[], deploy, index) => {
     const [url, metaUrl] = onChainResults[index];
-    if (url && metaUrl) {
-      // note: name should be an array to be used in _preparePackageData function
-      acc.push({ ...deploy, name: [deploy.name], url, metaUrl });
-    }
+    // note: name should be an array to be used in _preparePackageData function
+    acc.push({ ...deploy, name: [deploy.name], url, metaUrl });
+
     return acc;
   }, []);
 
@@ -142,7 +151,7 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
 
   let selectedDeploys;
   if (publishedDeploys.length > 1) {
-    console.log();
+    log();
 
     const prompt = await prompts({
       type: 'multiselect',
@@ -162,7 +171,7 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     });
 
     if (!prompt.value) {
-      console.log('You must select a package to unpublish');
+      log('You must select a package to unpublish');
       process.exit(1);
     }
 
@@ -171,8 +180,8 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     selectedDeploys = publishedDeploys;
   }
 
-  console.log();
-  console.log(
+  log();
+  log(
     `\nSettings:\n - Max Fee Per Gas: ${
       overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
     }\n - Max Priority Fee Per Gas: ${
@@ -181,18 +190,18 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
       " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
   );
 
-  console.log();
-  console.log('Submitting transaction, waiting for transaction to succeed...');
-  console.log();
+  log();
+  log('Submitting transaction, waiting for transaction to succeed...');
+  log();
 
   if (selectedDeploys.length > 1) {
     const [hash] = await onChainRegistry.unpublishMany(selectedDeploys);
 
-    console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+    log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
   } else {
     const [deploy] = selectedDeploys;
     const hash = await onChainRegistry.unpublish(deploy.name, deploy.chainId);
 
-    console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+    log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
   }
 }
