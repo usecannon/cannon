@@ -3,15 +3,16 @@ version = "<%= package.version %>"
 description = "Simple project to verify the functionality of cannon"
 keywords = ["sample", "greeter"]
 
-[setting.value]
-defaultValue = "15"
+[var.value]
+description="Random Description"
+value = "15"
 
-[setting.salt]
-defaultValue = "greeter"
+[var.salt]
+salt = "greeter"
 
-[setting.msg]
-defaultValue = "Hello world!"
+[var.msg]
 description="The greeting passed to the constructor"
+msg = "Hello world!"
 
 [contract.library]
 artifact = "Library"
