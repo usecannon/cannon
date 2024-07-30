@@ -24,3 +24,4 @@ export const RKEY_TS_FEES_PAID = 'reg:feesPaid:ts';
 
 export const RKEY_PACKAGE_SEARCHABLE = 'reg:packages';
 export const RKEY_ABI_SEARCHABLE = 'reg:abi';
+export const RKEY_REGISTRY_STREAM = 'reg:events';
