@@ -529,17 +529,19 @@ export async function getPackageReference(ref: string) {
   try {
     const pkgInfo: DeploymentInfo = await storage.readBlob(ref);
 
-  let version = pkgInfo.def.version;
-  if (pkgInfo.def.version.startsWith('<%=')) {
-    version = pkgInfo.meta.version;
-  }
+    let version = pkgInfo.def.version;
+    if (pkgInfo.def.version.startsWith('<%=')) {
+      version = pkgInfo.meta.version;
+    }
 
-  const packageReference = `${pkgInfo.def.name}:${version || 'latest'}@${pkgInfo.def.preset || 'main'}`;
+    const packageReference = `${pkgInfo.def.name}:${version || 'latest'}@${pkgInfo.def.preset || 'main'}`;
 
-  return packageReference;
+    return packageReference;
   } catch (error: any) {
-    if (error.toString().includes('timeout')){
-      throw new Error(`Could not download package through IPFS, please make sure you have set your 'writeIpfsUrl' correctly when building packages locally`)
+    if (error.toString().includes('timeout')) {
+      throw new Error(
+        "Could not download package through IPFS, please make sure you have set your 'writeIpfsUrl' correctly when building packages locally"
+      );
     }
   }
 }

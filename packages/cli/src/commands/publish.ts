@@ -51,7 +51,7 @@ export async function publish({
 
   // Handle deprecated preset specification
   if (presetArg && !isIPFSRef(packageRef)) {
-    console.warn(
+    warn(
       yellow(
         bold(
           'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
@@ -102,7 +102,7 @@ export async function publish({
       message: 'Select the package you want to publish:\n',
       name: 'value',
       choices: deploys.map((d) => {
-        const { fullPackageRef } = new PackageReference(d.name);
+        const { fullPackageRef } = new PackageReference(d.name!);
 
         return {
           title: `${fullPackageRef} (Chain ID: ${d.chainId})`,
@@ -124,7 +124,7 @@ export async function publish({
 
   // Doing some filtering on deploys list so that we can iterate over every "duplicate" package which has more than one version being deployed.
   const deployNames = deploys.map((deploy) => {
-    const { name, version, preset } = new PackageReference(deploy.name);
+    const { name, version, preset } = new PackageReference(deploy.name!);
     return { name, version, preset, chainId: deploy.chainId };
   });
 

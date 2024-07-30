@@ -432,13 +432,13 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     ]);
 
     if (!isRegistered) {
-      console.log();
-      console.log(
+      log();
+      log(
         gray(
           `Package "${fullPackageRef}" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
         )
       );
-      console.log();
+      log();
 
       if (!options.skipConfirm) {
         const registerPrompt = await prompts({
