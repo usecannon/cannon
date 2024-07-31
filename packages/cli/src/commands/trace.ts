@@ -6,6 +6,7 @@ import * as viem from 'viem';
 import { readDeployRecursive } from '../package';
 import { getProvider, runRpc } from '../rpc';
 import { CliSettings } from '../settings';
+import { log } from '../util/console';
 import { resolveWriteProvider } from '../util/provider';
 import { ANVIL_FIRST_ADDRESS } from '../constants';
 
@@ -62,7 +63,7 @@ export async function trace({
       const txReceipt = await provider.getTransactionReceipt({ hash: txHash });
 
       // this is a transaction hash
-      console.log(gray('Detected transaction hash'));
+      log(gray('Detected transaction hash'));
 
       data = txData.input;
       value = value || txData.value;
@@ -85,9 +86,9 @@ export async function trace({
     });
     if (r !== null) {
       to = r.contract.address;
-      console.log(gray(`Inferred contract for call: ${r.name}`));
+      log(gray(`Inferred contract for call: ${r.name}`));
     } else {
-      console.log(
+      log(
         yellow(
           'Could not find a contract for this call. Are you sure the call can be traced on a contract on this cannon package? Pass `--to` to set manually if necessary'
         )
@@ -137,7 +138,7 @@ export async function trace({
       await simulateProvider.setBalance({ address: fullTxn.from, value: viem.parseEther('10000') });
     }
 
-    console.log(gray('Simulating transaction (be patient! this could take a while...)'));
+    log(gray('Simulating transaction (be patient! this could take a while...)'));
     const pushedTxn = await simulateProvider.sendTransaction({ account: signer, chain: simulateProvider.chain, ...fullTxn });
 
     try {
@@ -156,13 +157,13 @@ export async function trace({
   if (!json) {
     const traceText = renderTrace(artifacts, traces);
 
-    console.log(traceText);
+    log(traceText);
 
     const receipt = await simulateProvider.getTransactionReceipt({ hash: txnHash });
     const totalGasUsed = computeGasUsed(traces, fullTxn).toLocaleString();
-    console.log();
+    log();
     if (receipt.status == 'success') {
-      console.log(
+      log(
         green(
           bold(
             `Transaction completes successfully with return value: ${
@@ -172,12 +173,10 @@ export async function trace({
         )
       );
     } else {
-      console.log(
-        red(bold(`Transaction completes with error: ${traces[0].result?.output ?? 'unknown'} (${totalGasUsed} gas)`))
-      );
+      log(red(bold(`Transaction completes with error: ${traces[0].result?.output ?? 'unknown'} (${totalGasUsed} gas)`)));
     }
   } else {
-    console.log(JSON.stringify(traces, null, 2));
+    log(JSON.stringify(traces, null, 2));
   }
 }
 

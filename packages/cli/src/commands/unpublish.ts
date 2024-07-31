@@ -6,6 +6,7 @@ import * as viem from 'viem';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';
 import { resolveRegistryProviders, ProviderAction } from '../util/provider';
+import { log } from '../util/console';
 
 interface Params {
   cliSettings: CliSettings;
@@ -29,7 +30,7 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     options.chainId = Number(chainIdPrompt.value);
   }
 
-  console.log();
+  log();
 
   const fullPackageRef = new PackageReference(packageRef).fullPackageRef;
 
@@ -131,7 +132,7 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
 
   let selectedDeploys;
   if (publishedDeploys.length > 1) {
-    console.log();
+    log();
 
     const prompt = await prompts({
       type: 'multiselect',
@@ -151,7 +152,7 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     });
 
     if (!prompt.value) {
-      console.log('You must select a package to unpublish');
+      log('You must select a package to unpublish');
       process.exit(1);
     }
 
@@ -160,8 +161,8 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     selectedDeploys = publishedDeploys;
   }
 
-  console.log();
-  console.log(
+  log();
+  log(
     `\nSettings:\n - Max Fee Per Gas: ${
       overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
     }\n - Max Priority Fee Per Gas: ${
@@ -170,18 +171,18 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
       " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
   );
 
-  console.log();
-  console.log('Submitting transaction, waiting for transaction to succeed...');
-  console.log();
+  log();
+  log('Submitting transaction, waiting for transaction to succeed...');
+  log();
 
   if (selectedDeploys.length > 1) {
     const [hash] = await onChainRegistry.unpublishMany(selectedDeploys);
 
-    console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+    log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
   } else {
     const [deploy] = selectedDeploys;
     const hash = await onChainRegistry.unpublish(deploy.name, deploy.chainId);
 
-    console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+    log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
   }
 }

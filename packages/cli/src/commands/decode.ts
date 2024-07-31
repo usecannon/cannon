@@ -3,10 +3,10 @@ import { AbiFunction, AbiEvent } from 'abitype';
 import { bold, gray, green, italic, yellow } from 'chalk';
 import { ContractData, DeploymentInfo, decodeTxError } from '@usecannon/builder';
 
-import { resolveCliSettings } from '../../src/settings';
-
+import { log, error, warn } from '../util/console';
 import { readDeployRecursive } from '../package';
 import { formatAbiFunction, getSighash } from '../helpers';
+import { resolveCliSettings } from '../../src/settings';
 
 export async function decode({
   packageRef,
@@ -27,7 +27,7 @@ export async function decode({
 
   // Handle deprecated preset specification
   if (presetArg) {
-    console.warn(
+    warn(
       yellow(
         bold(
           'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
@@ -45,7 +45,7 @@ export async function decode({
   if (!parsed) {
     const errorMessage = decodeTxError(data[0], abis);
     if (errorMessage) {
-      console.log(errorMessage);
+      log(errorMessage);
       return;
     }
     throw new Error('Could not decode transaction data');
@@ -62,18 +62,18 @@ export async function decode({
   });
 
   if (json || !fragment) {
-    return console.log(JSON.stringify(parsed.result, null, 2));
+    return log(JSON.stringify(parsed.result, null, 2));
   }
 
   const sighash = getSighash(fragment as AbiFunction | AbiEvent);
 
-  console.log();
-  console.log(green(`${formatAbiFunction(fragment as any)}`), `${sighash ? italic(gray(sighash)) : ''}`);
+  log();
+  log(green(`${formatAbiFunction(fragment as any)}`), `${sighash ? italic(gray(sighash)) : ''}`);
 
   if ((parsed.result as viem.DecodeErrorResultReturnType).errorName) {
     const errorMessage = decodeTxError(data[0], abis);
     if (errorMessage) {
-      console.log(errorMessage);
+      log(errorMessage);
       return;
     }
   }
@@ -84,7 +84,7 @@ export async function decode({
     switch (true) {
       case input.type.startsWith('tuple'): {
         // e.g. tuple, tuple[]
-        console.log(renderParam(offset, input));
+        log(renderParam(offset, input));
         // @ts-ignore: TODO - figure out how to type this
         const components = input.components;
         const values = input.type.endsWith('[]') ? value.map(Object.values) : [value];
@@ -99,14 +99,14 @@ export async function decode({
               offset.repeat(2)
             );
           }
-          console.log();
+          log();
         }
         break;
       }
 
       case input.type.endsWith('[]'): {
         //e.g. uint256[], bool[], bytes[], bytes8[], bytes32[], etc
-        console.log(renderParam(offset, input));
+        log(renderParam(offset, input));
         for (let i = 0; i < value.length; i++) {
           renderArgs(
             {
@@ -122,7 +122,7 @@ export async function decode({
       }
 
       default: {
-        console.log(renderParam(offset, input), _renderValue(input, value));
+        log(renderParam(offset, input), _renderValue(input, value));
       }
     }
   };
@@ -133,7 +133,7 @@ export async function decode({
     }
   }
 
-  console.log();
+  log();
 }
 
 function _getAbis(deployData: DeploymentInfo) {
@@ -159,7 +159,7 @@ function _renderValue(type: viem.AbiParameter, value: string | bigint) {
       } catch (err) {
         const settings = resolveCliSettings();
         if (settings.trace) {
-          console.error(err);
+          error(err);
         }
       }
 

@@ -6,6 +6,7 @@ import provider from 'eth-provider';
 import { privateKeyToAccount } from 'viem/accounts';
 import { CannonSigner, traceActions } from '@usecannon/builder';
 
+import { log, error, warn } from './console';
 import { getChainById } from '../chains';
 import { CliSettings, PROVIDER_URL_DEFAULT } from '../settings';
 
@@ -89,7 +90,7 @@ export async function resolveWriteProvider({
 }: WriteProvider): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
   const chainData = getChainById(chainId);
 
-  console.log(bold(`Resolving connection to ${chainData.name} (Chain ID: ${chainId})...`));
+  log(bold(`Resolving connection to ${chainData.name} (Chain ID: ${chainId})...`));
   // Check if the first provider URL doesn't start with 'http'
   const isProviderUrl = isURL(cliSettings.providerUrl.split(',')[0]);
 
@@ -97,7 +98,7 @@ export async function resolveWriteProvider({
     // If privateKey is present or no valid http URLs are available in rpcUrls
     if (cliSettings.privateKey || chainData.rpcUrls.default.http.length === 0) {
       if (chainData.rpcUrls.default.http.length === 0) {
-        console.error(
+        error(
           red(
             `Failed to establish a connection with any provider. Please specify a valid RPC url using the ${bold(
               '--provider-url'
@@ -116,7 +117,7 @@ export async function resolveWriteProvider({
   }
 
   if (cliSettings.providerUrl == PROVIDER_URL_DEFAULT && !cliSettings.quiet) {
-    console.warn(grey('Set a RPC URL by passing --provider-url or setting the ENV variable CANNON_PROVIDER_URL.\n'));
+    warn(grey('Set a RPC URL by passing --provider-url or setting the ENV variable CANNON_PROVIDER_URL.\n'));
   }
 
   const action = options?.dryRun ? ProviderAction.BuildDryRun : ProviderAction.Build;
@@ -171,7 +172,7 @@ export async function resolveProviderAndSigners({
   };
 
   if ([ProviderAction.Build, ProviderAction.BuildDryRun, ProviderAction.WriteRegistry].some((a) => a === action)) {
-    console.log(grey(`Attempting to find connection via ${bold(providerDisplayName(checkProviders[0]))}`));
+    log(grey(`Attempting to find connection via ${bold(providerDisplayName(checkProviders[0]))}`));
     if (checkProviders.length === 1) console.log('');
   }
 
@@ -187,7 +188,7 @@ export async function resolveProviderAndSigners({
   try {
     rawProvider.setChain(Number.parseInt(chainId.toString())); // its important here we ensure chainId is a number
   } catch (err) {
-    console.error(`Failed to use chain id ${chainId}`, err);
+    error(`Failed to use chain id ${chainId}`, err);
     throw err;
   }
 
@@ -211,7 +212,7 @@ export async function resolveProviderAndSigners({
       ).extend(traceActions({}));
     } catch (err) {
       if (checkProviders.length <= 1) {
-        console.error(
+        error(
           red(
             `Failed to establish a connection with any provider. Please specify a valid RPC url using the ${bold(
               '--provider-url'
@@ -309,7 +310,7 @@ export async function resolveProviderAndSigners({
       }
     } catch (err: any) {
       if (checkProviders.length <= 1) {
-        console.error(
+        error(
           red(
             `Failed to establish a connection with any provider. Please specify a valid RPC url using the ${bold(
               '--provider-url'
