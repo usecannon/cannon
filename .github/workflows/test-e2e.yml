@@ -17,6 +17,8 @@ jobs:
           cache: 'npm'
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
+      - name: Install IPFS
+        uses: ipfs/download-ipfs-distribution-action@v1
       - run: npm ci
       - run: npm run build
         env:
