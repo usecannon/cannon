@@ -9,6 +9,7 @@ import invokeSpec from './steps/invoke';
 import keeperSpec from './steps/keeper';
 import pullSpec from './steps/pull';
 import routerSpec from './steps/router';
+import diamondSpec from './steps/diamond';
 import varSpec from './steps/var';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from './types';
 
@@ -113,6 +114,7 @@ registerAction(invokeSpec);
 registerAction(keeperSpec);
 registerAction(cloneSpec);
 registerAction(routerSpec);
+registerAction(diamondSpec);
 registerAction(varSpec);
 
 // backwards compatibility
