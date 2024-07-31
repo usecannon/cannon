@@ -1,5 +1,5 @@
 {
-  "publishIpfsUrl": "http://127.0.0.1:5001",
+  "publishIpfsUrl": "https://us-east.repo.usecannon.com",
   "writeIpfsUrl": "http://127.0.0.1:5001",
   "ipfsUrl": "http://127.0.0.1:5001",
   "providerUrl": "http://127.0.0.1:9545",
