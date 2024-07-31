@@ -18,9 +18,109 @@ import {
   Tr,
   Badge,
   Code,
+  UnorderedList,
+  ListItem,
 } from '@chakra-ui/react';
 import React, { FC } from 'react';
+import { a11yDark, CodeBlock } from 'react-code-blocks';
 
+const artifactDataExample = {
+  artifacts: {
+    MyContract: {
+      _format: 'hh-sol-artifact-1',
+      contractName: 'MyContract',
+      sourceName: 'contracts/MyContract.sol',
+      abi: ['...'],
+      bytecode: '0x...',
+      deployedBytecode: '0x...',
+      linkReferences: {},
+      deployedLinkReferences: {},
+      source: {
+        solcVersion: '0.8.24+commit.e11b9ed9',
+        input:
+          '{"language":"Solidity","sources":{"example/example/contracts/MyContract.sol":{"content":\\ Your Contract Source Code',
+      },
+    },
+  },
+};
+
+const deploymentDataExample = {
+  generator: 'cannon cli 2.15.0',
+  timestamp: 1718767889,
+  def: {
+    name: 'my-package',
+    version: '1.0.0',
+    setting: {
+      owner: {
+        defaultValue: '0x...',
+      },
+    },
+    contract: {
+      MyContract: {
+        artifact: 'MyContract',
+        owner: '<%= settings.owner %>',
+      },
+    },
+  },
+  state: {
+    'setting.owner': {
+      artifacts: {
+        settings: {
+          owner: '0x...',
+        },
+      },
+      hash: '...',
+      version: 7,
+    },
+    'contract.MyContract': {
+      artifacts: {
+        contracts: {
+          Implementation: {
+            address: '0x...',
+            abi: ['...'],
+            constructorArgs: ['...'],
+            linkedLibraries: {},
+            deployTxnHash: '0x...',
+            sourceName: 'contracts/MyContract.sol',
+            contractName: 'MyContract',
+            deployedOn: 'contract.MyContract',
+            gasUsed: 2172726,
+            gasCost: '4726073795',
+          },
+        },
+      },
+      hash: '...',
+      version: 7,
+    },
+  },
+  options: {},
+  meta: {
+    name: 'my-package',
+    version: '1.0.0',
+    private: true,
+    description: 'My Custom Contract package',
+    scripts: {
+      test: 'hardhat compile && hardhat --network hardhat test',
+      coverage: 'hardhat coverage',
+    },
+    repository: {
+      type: 'git',
+      url: 'git+https://github.com/example/example.git',
+    },
+    author: '',
+    license: 'MIT',
+    bugs: {
+      url: 'https://github.com/example/example/issues',
+    },
+    homepage: 'https://github.com/example/example#readme',
+    devDependencies: {
+      ethers: '5.7.1',
+      hardhat: '^2.22.3',
+      'hardhat-cannon': '^2.14.3',
+    },
+  },
+  miscUrl: 'ipfs://Qm...',
+};
 interface CustomLinkProps {
   href: string;
   children: React.ReactNode;
@@ -395,7 +495,25 @@ export const DocsCannonfilesPage: FC = () => {
                     #
                   </Link>
                 </Heading>
-                <Text color="gray.400">Coming soon.</Text>
+                <Text color="gray.400">
+                  Primary source of cannon package information which contains
+                  package definition and on-chain state data derived changes
+                  made by defined steps in the cannonfile definition. Deployment
+                  data is stored on IPFS and is locally stored in your
+                  filesystem in the default storage location
+                  <Code>~/.local/share/cannon/tags</Code> or the storage
+                  location defined by the CANNON_DIRECTORY environment variable.
+                  <br />
+                  <br />
+                  Here is an example of a cannon deployment data:
+                  <CodeBlock
+                    text={JSON.stringify(deploymentDataExample, null, 2)}
+                    language="bash"
+                    showLineNumbers={false}
+                    theme={a11yDark}
+                    customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
+                  />
+                </Text>
               </Box>
 
               <Box mb={16} id="package-code">
@@ -411,7 +529,20 @@ export const DocsCannonfilesPage: FC = () => {
                     #
                   </Link>
                 </Heading>
-                <Text color="gray.400">Coming soon.</Text>
+                <Text color="gray.400">
+                  Contains artifact data and other contract source code data
+                  about the contracts deployed during the build.
+                  <br />
+                  <br />
+                  Here is an example of a deployments package data:
+                  <CodeBlock
+                    text={JSON.stringify(artifactDataExample, null, 2)}
+                    language="bash"
+                    showLineNumbers={false}
+                    theme={a11yDark}
+                    customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
+                  />
+                </Text>
               </Box>
 
               <Box mb={16} id="metadata">
@@ -427,7 +558,24 @@ export const DocsCannonfilesPage: FC = () => {
                     #
                   </Link>
                 </Heading>
-                <Text color="gray.400">Coming soon.</Text>
+                <Text color="gray.400">
+                  Metadata contains external information related to the cannon
+                  package. Currently metadata includes the following:
+                  <UnorderedList>
+                    <ListItem> Git Repo URL</ListItem>
+                    <ListItem>
+                      Commit hash of the changes in which the last instance of
+                      the package were made
+                    </ListItem>
+                    <ListItem>
+                      Link to the package git repo README file
+                    </ListItem>
+                  </UnorderedList>
+                  Metadata is also stored on IPFS and is locally stored in your
+                  filesystem in the default storage location
+                  <Code>~/.local/share/cannon/tags</Code> or the storage
+                  location defined by the CANNON_DIRECTORY environment variable.
+                </Text>
               </Box>
             </Box>
 

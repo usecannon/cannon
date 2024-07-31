@@ -2,8 +2,10 @@ import path from 'path';
 import fs from 'fs-extra';
 import { ContractArtifact } from '@usecannon/builder';
 import _ from 'lodash';
-import { execPromise, checkForgeAstSupport } from './helpers';
 import Debug from 'debug';
+
+import { execPromise, checkForgeAstSupport } from './helpers';
+import { warn } from './util/console';
 
 const debug = Debug('cannon:cli:foundry');
 
@@ -48,9 +50,7 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
     // Reached the filesystem root without finding the marker file
     const parentPath = path.dirname(currentPath);
     if (parentPath === currentPath) {
-      console.warn(
-        'Could not find foundry project, make sure your cannonfiles are stored within the root of a foundry project.'
-      );
+      warn('Could not find foundry project, make sure your cannonfiles are stored within the root of a foundry project.');
       return parentPath;
     }
 

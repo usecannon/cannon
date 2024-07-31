@@ -10,25 +10,36 @@ import {
   Spinner,
   Text,
 } from '@chakra-ui/react';
-import { useMemo } from 'react';
+import { FC, ReactNode } from 'react';
 import { a11yDark, CopyBlock } from 'react-code-blocks';
 import {
-  Address,
   bytesToString,
   decodeFunctionData,
   Hex,
   hexToBytes,
   TransactionRequestBase,
   trim,
-  formatEther,
+  DecodeFunctionDataReturnType,
 } from 'viem';
-import { chainsById } from '@/helpers/chains';
+import { chainsById, getExplorerUrl } from '@/helpers/chains';
 import { Alert } from '@/components/Alert';
-import { useCannonPackageContracts } from '@/hooks/cannon';
+import {
+  ContractInfo,
+  useCannonPackageContracts,
+  UseCannonPackageContractsReturnType,
+} from '@/hooks/cannon';
+import { formatToken } from '@/helpers/formatters';
 
+const TxWrapper: FC<{ children: ReactNode }> = ({ children }) => (
+  <Box p={6} border="1px solid" borderColor="gray.600" bgColor="black">
+    {children}
+  </Box>
+);
+// TODO: refactor caching mechanism
+// A possible solution is to use useQuery from tanstack/react-query
 const useCannonPreloadedContracts = (
   url: string,
-  cannonInfo?: any,
+  cannonInfo?: UseCannonPackageContractsReturnType,
   isPreloaded?: boolean
 ) => {
   const useCannonContracts =
@@ -40,10 +51,10 @@ export function DisplayedTransaction(props: {
   txn?: Omit<TransactionRequestBase, 'from'>;
   chainId: number;
   pkgUrl: string;
-  cannonInfo?: any;
+  cannonInfo?: UseCannonPackageContractsReturnType;
   isPreloaded?: boolean;
 }) {
-  const chain = useMemo(() => chainsById[props.chainId], [props.chainId]);
+  const chain = chainsById[props.chainId];
 
   const cannonInfo = useCannonPreloadedContracts(
     props.pkgUrl ? '@' + props.pkgUrl.replace('://', ':') : '',
@@ -53,84 +64,87 @@ export function DisplayedTransaction(props: {
 
   if (cannonInfo.isFetching) {
     return (
-      <Box p={6} border="1px solid" borderColor="gray.600" bgColor="black">
+      <TxWrapper>
         <Flex alignItems="center" justifyContent="center" height="100%">
           <Spinner />
         </Flex>
-      </Box>
+      </TxWrapper>
     );
   }
 
   if (cannonInfo.isError) {
     return (
-      <Box p={6} border="1px solid" borderColor="gray.600" bgColor="black">
+      <TxWrapper>
         <Alert status="error">
           <AlertDescription fontSize="sm" lineHeight="0">
             Unable to fetch cannon package contracts.
           </AlertDescription>
         </Alert>
-      </Box>
+      </TxWrapper>
     );
   }
 
-  const contracts = cannonInfo.contracts as {
-    [key: string]: { address: Address; abi: any[] };
-  };
+  const contracts: ContractInfo | null = cannonInfo.contracts;
+
+  // Get the contract names that match the transaction's `to` address
   const parsedContractNames =
     props.txn && contracts
       ? Object.entries(contracts)
-          .filter((c) => c[1].address === props.txn?.to)
-          .map((v) => v[0])
-      : '';
+          .filter(([, { address }]) => address === props.txn?.to)
+          .map(([contractName]) => contractName)
+      : [];
 
-  let parsedContract = props.txn ? props.txn.to : '';
-  let parsedFunction = null;
+  let contractName = props.txn?.to ?? '';
+  let decodedFunctionData: DecodeFunctionDataReturnType | null = null;
   if (contracts) {
     for (const n of parsedContractNames) {
       try {
-        parsedFunction = decodeFunctionData({
+        decodedFunctionData = decodeFunctionData({
           abi: contracts[n].abi,
-          data: props.txn?.data as any,
+          data: props.txn?.data || '0x',
         });
-        parsedContract = n;
+        contractName = n;
         break;
       } catch {
         // ignore
       }
     }
   }
-  const execFunc = props.txn
-    ? parsedFunction
-      ? parsedFunction.functionName.split('(')[0]
-      : props.txn.data?.slice(0, 10)
-    : '';
 
-  const execContractInfo =
-    contracts && parsedContract ? contracts[parsedContract] : null;
-  const execFuncFragment =
-    contracts && execContractInfo && execFunc
-      ? execContractInfo.abi.find((f) => f.name === execFunc)
-      : null;
+  const functionName = decodedFunctionData?.functionName.split('(')[0];
+  const functionHash = props.txn?.data?.slice(0, 10);
+  const rawFunctionArgs = props.txn?.data?.slice(10);
+  const functionArgs = decodedFunctionData?.args?.map((v) => v) || [
+    rawFunctionArgs,
+  ];
+  const functionFragmentsFromAbi = contracts?.[contractName].abi.filter(
+    (f) => 'name' in f && f.name === functionName
+  );
+  const functionFragmentFromAbi = functionFragmentsFromAbi?.find(
+    (f) =>
+      f &&
+      decodedFunctionData &&
+      'inputs' in f &&
+      f.inputs?.length === decodedFunctionData.args?.length
+  );
+  const functionParameters =
+    (functionFragmentFromAbi &&
+      'inputs' in functionFragmentFromAbi &&
+      functionFragmentFromAbi.inputs) ||
+    [];
 
-  const execFuncArgs = props.txn
-    ? parsedFunction?.args?.map((v) => v) || [props.txn.data?.slice(10)]
-    : [];
-
-  const etherscanUrl =
-    chain.blockExplorers?.default?.url ?? 'https://etherscan.io';
   const address = (
-    <Link isExternal href={etherscanUrl + '/address/' + props.txn?.to}>
+    <Link isExternal href={getExplorerUrl(chain.id, props.txn?.to || '')}>
       {props.txn?.to}
     </Link>
   );
-  const selector = props.txn?.data?.slice(0, 10);
-  const value = `${formatEther(props.txn?.value || BigInt(0))} ${
-    chain?.nativeCurrency?.symbol
-  }`;
+  const value = formatToken(props.txn?.value || BigInt(0), {
+    symbol: chain?.nativeCurrency?.symbol,
+  });
 
   if (!contracts && !cannonInfo.isFetching) {
     return (
-      <Box p={6} border="1px solid" borderColor="gray.600" bgColor="black">
+      <TxWrapper>
         <Box mb={5}>
           <Alert status="warning">
             <AlertDescription fontSize="sm" lineHeight="0">
@@ -145,7 +159,7 @@ export function DisplayedTransaction(props: {
               Target: {address}
             </Text>
             <Text as="span" mr={3}>
-              Selector: {selector}
+              Selector: {functionHash}
             </Text>
             <Text as="span">Value: {value}</Text>
           </Text>
@@ -161,55 +175,50 @@ export function DisplayedTransaction(props: {
           theme={a11yDark}
           customStyle={{ fontSize: '14px' }}
         />
-      </Box>
+      </TxWrapper>
     );
   }
 
   return (
     <Box p={6} border="1px solid" borderColor="gray.600" bgColor="black">
       <Box maxW="100%" overflowX="auto">
-        <Box
-          whiteSpace="nowrap"
-          mb={execFuncFragment?.inputs?.length > 0 ? 4 : 0}
-        >
+        <Box whiteSpace="nowrap" mb={functionParameters.length > 0 ? 4 : 0}>
           <Heading size="sm" fontFamily="mono" fontWeight="semibold" mb={1}>
-            {`${parsedContract}.${execFunc}`}
+            {`${contractName}.${functionName || functionHash}`}
           </Heading>
           <Text fontSize="xs" color="gray.300">
             <Text as="span" mr={3}>
               Target: {address}
             </Text>
             <Text as="span" mr={3}>
-              Selector: {selector}
+              Selector: {functionHash}
             </Text>
             <Text as="span">Value: {value}</Text>
           </Text>
         </Box>
         <Flex flexDirection={['column', 'column', 'row']} gap={8} height="100%">
           <Box flex="1" w={['100%', '100%', '50%']}>
-            {(execFuncFragment?.inputs || []).map((_arg: any, i: number) => [
-              <Box key={JSON.stringify(execFuncFragment.inputs[i])}>
+            {functionParameters.map((_arg, i) => [
+              <Box key={JSON.stringify(functionParameters[i])}>
                 <FormControl mb="4">
                   <FormLabel fontSize="sm" mb={1}>
-                    {execFuncFragment.inputs[i].name && (
-                      <Text display="inline">
-                        {execFuncFragment.inputs[i].name}
-                      </Text>
+                    {functionParameters[i].name && (
+                      <Text display="inline">{functionParameters[i].name}</Text>
                     )}
-                    {execFuncFragment.inputs[i].type && (
+                    {functionParameters[i].type && (
                       <Text
                         fontSize="xs"
                         color="whiteAlpha.700"
                         display="inline"
                       >
                         {' '}
-                        {execFuncFragment.inputs[i].type}
+                        {functionParameters[i].type}
                       </Text>
                     )}
                   </FormLabel>
                   {_renderInput(
-                    execFuncFragment.inputs[i].type,
-                    execFuncArgs[i]
+                    functionParameters[i].type,
+                    functionArgs[i] as string
                   )}
                 </FormControl>
               </Box>,
