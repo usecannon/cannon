@@ -1,0 +1,41 @@
+name = "examples-diamond-architecture"
+description = "Cannon Diamond operation example usage"
+version = "0.0.1"
+
+# Configurable Proxy admin, this will be the account that will be able to upgrade
+# the proxy's implementation on the future
+[var.main]
+admin = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" # Test Account 0
+salt = "test"
+
+# Counter and Greeeter are the example modules that are going to be accessible
+# behind our Proxy + Router architecture
+[deploy.Counter]
+artifact = "Counter"
+
+[deploy.Greeter]
+artifact = "Greeter"
+
+# Generate a single Diamond contract merging all the desired implementations as facets
+[diamond.Diamond]
+contracts = [
+  "Counter",
+  "Greeter",
+]
+diamondArgs.owner = "<%= settings.admin %>"
+salt = "<%= settings.salt %>"
+highlight = true
+
+# Make example contracts calls, through the Diamond Proxy
+
+# Call Counter.setCount
+[invoke.setCount]
+target = ["Diamond"]
+func = "setCount"
+args = [0]
+
+# Call Greeter.setGreeting
+[invoke.setGreeting]
+target = ["Diamond"]
+func = "setGreeting"
+args = ["hello world!"]
