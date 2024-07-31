@@ -212,9 +212,9 @@ export async function preparePublishPackage({
 
     const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId!, deployInfo.options);
 
-    const curFullPackageRef = `${def.getName(preCtx)}:${def.getVersion(preCtx)}@${
+    const curFullPackageRef = new PackageReference(`${def.getName(preCtx)}:${def.getVersion(preCtx)}@${
       context && context.preset ? context.preset : presetRef
-    }`;
+    }`).fullPackageRef;
 
     // if the package has already been published to the registry and it has the same ipfs hash, skip.
     const toUrl = await toStorage.registry.getUrl(curFullPackageRef, chainId);

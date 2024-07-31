@@ -5,4 +5,7 @@ case $1 in
   2)
     CANNON_E2E=true CANNON_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 $CANNON publish greeter-foundry --chain-id 1 --skip-confirm
     ;;
+  3)
+    CANNON_E2E=true CANNON_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 $CANNON publish $(cat $CANNON_DIRECTORY/tags/examples-router-architecture_latest_1-main.txt) --chain-id 1 --skip-confirm
+    ;;
 esac
