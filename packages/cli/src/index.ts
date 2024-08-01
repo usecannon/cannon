@@ -432,10 +432,11 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     ]);
 
     if (!isRegistered) {
+      const pkgRef = new PackageReference(fullPackageRef)
       log();
       log(
         gray(
-          `Package "${fullPackageRef}" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
+          `Package "${pkgRef.name}" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
         )
       );
       log();
@@ -455,7 +456,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
       const { register } = await import('./commands/register');
 
-      await register({ cliSettings, options, packageRefs: [new PackageReference(fullPackageRef)], fromPublish: true });
+      await register({ cliSettings, options, packageRefs: [pkgRef], fromPublish: true });
     }
   }
 
