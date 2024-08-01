@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import pako from 'pako';
 import {
   Checkbox,
   Container,
@@ -17,15 +18,17 @@ import {
   Button,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
-import { useQueryIpfsData } from '@/hooks/ipfs';
+import { useQueryIpfsDataRaw } from '@/hooks/ipfs';
 import { CodePreview } from '@/components/CodePreview';
 import { useStore } from '@/helpers/store';
 import { DownloadIcon } from '@chakra-ui/icons';
 import NextLink from 'next/link';
 
-function isJsonParsable(string: string): boolean {
+function isJsonParsable(data?: ArrayBuffer): boolean {
+  if (!data) return false;
   try {
-    JSON.parse(string);
+    const _data = pako.inflate(data, { to: 'string' });
+    JSON.parse(_data);
     return true;
   } catch (e) {
     return false;
@@ -98,16 +101,17 @@ export default function Download() {
     }
   };
 
-  const { data: ipfsData } = useQueryIpfsData(cid, true, !decompress);
-
-  const decodedData =
-    ipfsData instanceof ArrayBuffer
-      ? decodeData(ipfsData, encoding)
-      : JSON.stringify(ipfsData, null, 2);
-
-  const isJson = isJsonParsable(String(decodedData));
+  const { data: ipfsData } = useQueryIpfsDataRaw(cid, true);
+  const isJson = isJsonParsable(ipfsData);
+  const decodedData = !ipfsData
+    ? null
+    : isJson
+    ? JSON.stringify(ipfsData, null, 2)
+    : decodeData(ipfsData, encoding);
 
   const handleDownload = () => {
+    if (!decodedData) return;
+
     const blob = new Blob([decodedData], { type: 'application/octet-stream' });
 
     const url = URL.createObjectURL(blob);

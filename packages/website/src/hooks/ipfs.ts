@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import axios from 'axios';
 import pako from 'pako';
 import { useStore } from '@/helpers/store';
@@ -6,17 +6,28 @@ import { useLogs } from '@/providers/logsProvider';
 
 import { create as createUrl, parse as parseUrl } from 'simple-url';
 
-export function useQueryIpfsData(url?: string, enabled?: boolean, raw?: boolean) {
+function useFetchIpfsData<T>({
+  url,
+  enabled,
+  parseResult,
+}: {
+  url?: string;
+  enabled?: boolean;
+  parseResult: (data: ArrayBuffer) => T;
+}) {
   const settings = useStore((s) => s.settings);
   const { addLog } = useLogs();
-  return useQuery({
-    queryKey: [url, raw],
+
+  return useQuery<T>({
+    queryKey: [url],
+    enabled,
     queryFn: async ({ signal }) => {
       if (typeof url !== 'string') {
         throw new Error(`Invalid IPFS url: ${url}`);
       }
       const cid = url.replace('ipfs://', '');
-      const ipfsQueryUrl = settings.ipfsApiUrl.endsWith('/') ? settings.ipfsApiUrl : settings.ipfsApiUrl + '/';
+      // Add trailing slash if missing
+      const ipfsQueryUrl = settings.ipfsApiUrl.replace(/\/?$/, '/');
 
       let kuboQueryUrl = `${ipfsQueryUrl}api/v0/cat?arg=${cid}`;
       addLog(`Querying IPFS: ${kuboQueryUrl}`);
@@ -31,7 +42,7 @@ export function useQueryIpfsData(url?: string, enabled?: boolean, raw?: boolean)
       }
 
       const res = await axios
-        .post(kuboQueryUrl, null, {
+        .post<ArrayBuffer>(kuboQueryUrl, null, {
           headers,
           responseType: 'arraybuffer',
           signal,
@@ -40,7 +51,72 @@ export function useQueryIpfsData(url?: string, enabled?: boolean, raw?: boolean)
           addLog(`IPFS Error: ${err.message}`);
           const gatewayQueryUrl = `${ipfsQueryUrl}${cid}`;
           addLog(`Querying IPFS as HTTP gateway: ${gatewayQueryUrl}`);
-          return await axios.get(gatewayQueryUrl, {
+          return await axios.get<ArrayBuffer>(gatewayQueryUrl, {
+            responseType: 'arraybuffer',
+            signal,
+          });
+        });
+
+      return parseResult(res.data);
+    },
+  });
+}
+
+export function useQueryIpfsDataRaw(url?: string, enabled?: boolean) {
+  return useFetchIpfsData<ArrayBuffer>({ url, enabled, parseResult: (data) => data });
+}
+
+export function useQueryIpfsDataParsed<T>(url?: string, enabled?: boolean): UseQueryResult<T> {
+  return useFetchIpfsData<T>({
+    url,
+    enabled,
+    parseResult: (data) => {
+      const _data = pako.inflate(data, { to: 'string' });
+      return JSON.parse(_data);
+    },
+  });
+}
+
+/**
+ * @deprecated Use useQueryIpfsDataParsed or useQueryIpfsDataParsedRaw instead
+ */
+export function useQueryIpfsData<T>(url?: string, enabled?: boolean, raw?: boolean) {
+  const settings = useStore((s) => s.settings);
+  const { addLog } = useLogs();
+
+  return useQuery<T | ArrayBuffer>({
+    queryKey: [url, raw],
+    queryFn: async ({ signal }) => {
+      if (typeof url !== 'string') {
+        throw new Error(`Invalid IPFS url: ${url}`);
+      }
+      const cid = url.replace('ipfs://', '');
+      // Add trailing slash if missing
+      const ipfsQueryUrl = settings.ipfsApiUrl.replace(/\/?$/, '/');
+
+      let kuboQueryUrl = `${ipfsQueryUrl}api/v0/cat?arg=${cid}`;
+      addLog(`Querying IPFS: ${kuboQueryUrl}`);
+
+      const parsedUrl = parseUrl(kuboQueryUrl);
+      const headers: { [k: string]: string } = {};
+
+      if (parsedUrl.auth) {
+        const [username, password] = parsedUrl.auth.split(':');
+        headers['Authorization'] = `Basic ${btoa(`${username}:${password}`)}`;
+        kuboQueryUrl = kuboQueryUrl.replace(/\/\/.*@/, '//');
+      }
+
+      const res = await axios
+        .post<ArrayBuffer>(kuboQueryUrl, null, {
+          headers,
+          responseType: 'arraybuffer',
+          signal,
+        })
+        .catch(async (err) => {
+          addLog(`IPFS Error: ${err.message}`);
+          const gatewayQueryUrl = `${ipfsQueryUrl}${cid}`;
+          addLog(`Querying IPFS as HTTP gateway: ${gatewayQueryUrl}`);
+          return await axios.get<ArrayBuffer>(gatewayQueryUrl, {
             responseType: 'arraybuffer',
             signal,
           });
@@ -50,13 +126,15 @@ export function useQueryIpfsData(url?: string, enabled?: boolean, raw?: boolean)
         return res.data;
       }
 
-      const data = pako.inflate(res.data as any, { to: 'string' });
-      try {
-        const result = JSON.parse(data);
-        return result;
-      } catch (err) {
-        return data;
-      }
+      const data = pako.inflate(res.data, { to: 'string' });
+      return JSON.parse(data) as T;
+      // try {
+      //   return JSON.parse(data) as T;
+      //   const result = JSON.parse(data) as T;
+      //   return result;
+      // } catch (err) {
+      //   return data;
+      // }
     },
     enabled,
   });
