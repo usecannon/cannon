@@ -49,7 +49,8 @@ function useFetchIpfsData<T>({
         })
         .catch(async (err) => {
           addLog(`IPFS Error: ${err.message}`);
-          const gatewayQueryUrl = `${ipfsQueryUrl}${cid}`;
+          //const gatewayQueryUrl = `${ipfsQueryUrl}${cid}`;
+          const gatewayQueryUrl = `http://ipfs.io/ipfs/${cid}`;
           addLog(`Querying IPFS as HTTP gateway: ${gatewayQueryUrl}`);
           return await axios.get<ArrayBuffer>(gatewayQueryUrl, {
             responseType: 'arraybuffer',
@@ -127,14 +128,12 @@ export function useQueryIpfsData<T>(url?: string, enabled?: boolean, raw?: boole
       }
 
       const data = pako.inflate(res.data, { to: 'string' });
-      return JSON.parse(data) as T;
-      // try {
-      //   return JSON.parse(data) as T;
-      //   const result = JSON.parse(data) as T;
-      //   return result;
-      // } catch (err) {
-      //   return data;
-      // }
+      try {
+        const result = JSON.parse(data);
+        return result;
+      } catch (err) {
+        return data;
+      }
     },
     enabled,
   });
