@@ -432,7 +432,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     ]);
 
     if (!isRegistered) {
-      const pkgRef = new PackageReference(fullPackageRef)
+      const pkgRef = new PackageReference(fullPackageRef);
       log();
       log(
         gray(
