@@ -78,67 +78,6 @@ export function useQueryIpfsDataParsed<T>(url?: string, enabled?: boolean): UseQ
   });
 }
 
-/**
- * @deprecated Use useQueryIpfsDataParsed or useQueryIpfsDataParsedRaw instead
- */
-export function useQueryIpfsData<T>(url?: string, enabled?: boolean, raw?: boolean) {
-  const settings = useStore((s) => s.settings);
-  const { addLog } = useLogs();
-
-  return useQuery<T | ArrayBuffer>({
-    queryKey: [url, raw],
-    queryFn: async ({ signal }) => {
-      if (typeof url !== 'string') {
-        throw new Error(`Invalid IPFS url: ${url}`);
-      }
-      const cid = url.replace('ipfs://', '');
-      // Add trailing slash if missing
-      const ipfsQueryUrl = settings.ipfsApiUrl.replace(/\/?$/, '/');
-
-      let kuboQueryUrl = `${ipfsQueryUrl}api/v0/cat?arg=${cid}`;
-      addLog(`Querying IPFS: ${kuboQueryUrl}`);
-
-      const parsedUrl = parseUrl(kuboQueryUrl);
-      const headers: { [k: string]: string } = {};
-
-      if (parsedUrl.auth) {
-        const [username, password] = parsedUrl.auth.split(':');
-        headers['Authorization'] = `Basic ${btoa(`${username}:${password}`)}`;
-        kuboQueryUrl = kuboQueryUrl.replace(/\/\/.*@/, '//');
-      }
-
-      const res = await axios
-        .post<ArrayBuffer>(kuboQueryUrl, null, {
-          headers,
-          responseType: 'arraybuffer',
-          signal,
-        })
-        .catch(async (err) => {
-          addLog(`IPFS Error: ${err.message}`);
-          const gatewayQueryUrl = `${ipfsQueryUrl}${cid}`;
-          addLog(`Querying IPFS as HTTP gateway: ${gatewayQueryUrl}`);
-          return await axios.get<ArrayBuffer>(gatewayQueryUrl, {
-            responseType: 'arraybuffer',
-            signal,
-          });
-        });
-
-      if (raw) {
-        return res.data;
-      }
-
-      const data = pako.inflate(res.data, { to: 'string' });
-      try {
-        const result = JSON.parse(data);
-        return result;
-      } catch (err) {
-        return data;
-      }
-    },
-    enabled,
-  });
-}
-
 // Create an ipfs url with compatibility for custom auth and https+ipfs:// protocol
 export function createIpfsUrl(base: string, pathname: string) {
   const parsedUrl = parseUrl(base);
