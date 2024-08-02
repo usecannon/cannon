@@ -346,7 +346,7 @@ export const CodeExplorer: FC<{
     window.history.pushState(
       null,
       '',
-      `/packages/${name}/${pkg.version}/${pkg.name}/code/${
+      `/packages/${name}/${pkg.version}/${pkg.chainId}-${pkg.preset}/code/${
         selectedPackage.name
       }?source=${encodeURIComponent(sourceKey)}`
     );
