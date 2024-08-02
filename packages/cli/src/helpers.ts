@@ -540,10 +540,10 @@ export async function getPackageReference(ref: string) {
   } catch (error: any) {
     if (error.toString().includes('timeout')) {
       throw new Error(
-        "Could not download package through IPFS, please make sure you have set your 'writeIpfsUrl' correctly when building packages locally"
+        "Could not download package through IPFS, please make sure you set your 'ipfsUrl' to the ipfs url where this hash has been pinned"
       );
     }
-    return ref;
+    throw new Error(error);
   }
 }
 
