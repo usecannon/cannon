@@ -63,7 +63,6 @@ describe('ChainDefinition', () => {
 
     expect(new ChainDefinition(rawDef)).toBeTruthy;
   });
-});
 
   describe('validatePackageName()', () => {
     it('verifies the name is not too short', () => {
