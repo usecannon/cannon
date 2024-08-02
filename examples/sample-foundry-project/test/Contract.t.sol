@@ -18,7 +18,7 @@ contract ContractTest is Test {
   function testExample() public {
     string memory newGreeting = "Namaste";
     bytes32 expectedHash = keccak256(abi.encodePacked(newGreeting));
-    greeter.setGreeting(newGreeting);
+    greeter.setGreeting(newGreeting, false);
     assertTrue(keccak256(abi.encodePacked(greeter.greet())) == expectedHash);
   }
 }
