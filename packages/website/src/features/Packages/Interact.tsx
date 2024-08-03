@@ -1,7 +1,7 @@
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { Abi } from '@/features/Packages/Abi';
 import chains from '@/helpers/chains';
-import { useQueryIpfsData } from '@/hooks/ipfs';
+import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { getOutput } from '@/lib/builder';
 import {
   Box,
@@ -16,6 +16,7 @@ import {
 import {
   ChainArtifacts,
   ContractData,
+  DeploymentInfo,
   PackageReference,
 } from '@usecannon/builder';
 import { FC, useContext, useEffect, useState } from 'react';
@@ -45,13 +46,13 @@ export const Interact: FC<{
   const [cannonOutputs, setCannonOutputs] = useState<ChainArtifacts>({});
   const [contract, setContract] = useState<ContractData | undefined>();
 
-  const deploymentData = useQueryIpfsData(
+  const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     packagesQuery?.data?.data.deployUrl,
     !!packagesQuery?.data?.data.deployUrl
   );
 
   useEffect(() => {
-    if (deploymentData.isPending) {
+    if (deploymentData.isPending || !deploymentData.data) {
       return;
     }
 
