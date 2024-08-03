@@ -8,7 +8,7 @@ import {
   Tooltip,
   useTheme,
 } from '@chakra-ui/react';
-import { useQueryIpfsData } from '@/hooks/ipfs';
+import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
 import { PiCheckCircleFill, PiMinusCircleFill } from 'react-icons/pi';
 
@@ -19,11 +19,11 @@ export const IpfsLinks: FC<{
   const green500Hex = theme.colors.green[500];
   const yellow400Hex = theme.colors.yellow[400];
 
-  const deploymentData = useQueryIpfsData(pkg?.deployUrl, !!pkg?.deployUrl);
-
-  const deploymentInfo = deploymentData.data
-    ? (deploymentData.data as DeploymentInfo)
-    : undefined;
+  const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
+    pkg?.deployUrl,
+    !!pkg?.deployUrl
+  );
+  const deploymentInfo = deploymentData.data;
 
   const convertUrl = (url: string) => {
     return `/ipfs?cid=${url.replace('ipfs://', '')}&compressed=true`;
