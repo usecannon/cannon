@@ -13,10 +13,11 @@ import * as viem from 'viem';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { ChainArtifacts } from '@usecannon/builder';
-import { FC, useContext, useEffect, useMemo, useRef } from 'react';
+import { FC, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AbiFunction, Abi as AbiType } from 'abitype';
 import { Function } from '@/features/Packages/Function';
 import { HasSubnavContext } from './Tabs/InteractTab';
+import SearchInput from '@/components/SearchInput';
 
 export const Abi: FC<{
   abi?: AbiType;
@@ -72,6 +73,8 @@ export const Abi: FC<{
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const hasSubnav = useContext(HasSubnavContext);
+
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   const handleHashChange = (firstRender: boolean) => {
     const hash = window.location.hash;
@@ -135,6 +138,10 @@ export const Abi: FC<{
             overflowY="auto"
           >
             <Box mt={4}>
+              <SearchInput onSearchChange={setSearchTerm} />
+            </Box>
+
+            <Box mt={4}>
               <Flex flexDirection="row" px="2" alignItems="center" mb="1.5">
                 <Heading
                   fontWeight="500"
@@ -146,32 +153,34 @@ export const Abi: FC<{
                 </Heading>
               </Flex>
 
-              {readFunctions?.map((f, index) => (
-                <Link
-                  as={NextLink}
-                  display="block"
-                  borderRadius="md"
-                  mb={0.5}
-                  py={0.5}
-                  px="2"
-                  cursor="pointer"
-                  fontSize="sm"
-                  _hover={{ background: 'gray.800' }}
-                  whiteSpace="nowrap"
-                  overflow="hidden"
-                  textOverflow="ellipsis"
-                  key={index}
-                  href={`#selector-${viem.toFunctionSelector(f)}`}
-                  scroll={false}
-                  textDecoration="none"
-                >
-                  {f.name}(
-                  {f.inputs
-                    .map((i) => i.type + (i.name ? ' ' + i.name : ''))
-                    .join(',')}
-                  )
-                </Link>
-              ))}
+              {readFunctions
+                ?.filter((f) => f.name.includes(searchTerm))
+                .map((f, index) => (
+                  <Link
+                    as={NextLink}
+                    display="block"
+                    borderRadius="md"
+                    mb={0.5}
+                    py={0.5}
+                    px="2"
+                    cursor="pointer"
+                    fontSize="sm"
+                    _hover={{ background: 'gray.800' }}
+                    whiteSpace="nowrap"
+                    overflow="hidden"
+                    textOverflow="ellipsis"
+                    key={index}
+                    href={`#selector-${viem.toFunctionSelector(f)}`}
+                    scroll={false}
+                    textDecoration="none"
+                  >
+                    {f.name}(
+                    {f.inputs
+                      .map((i) => i.type + (i.name ? ' ' + i.name : ''))
+                      .join(',')}
+                    )
+                  </Link>
+                ))}
             </Box>
             <Box mt={4}>
               <Flex flexDirection="row" px="2" alignItems="center" mb="1.5">
@@ -184,32 +193,34 @@ export const Abi: FC<{
                   Write Functions
                 </Heading>
               </Flex>
-              {writeFunctions?.map((f, index) => (
-                <Link
-                  as={NextLink}
-                  display="block"
-                  borderRadius="md"
-                  mb={0.5}
-                  py={0.5}
-                  px="2"
-                  cursor="pointer"
-                  fontSize="sm"
-                  _hover={{ background: 'gray.800' }}
-                  whiteSpace="nowrap"
-                  overflow="hidden"
-                  textOverflow="ellipsis"
-                  key={index}
-                  href={`#selector-${viem.toFunctionSelector(f)}`}
-                  scroll={false}
-                  textDecoration="none"
-                >
-                  {f.name}(
-                  {f.inputs
-                    .map((i) => i.type + (i.name ? ' ' + i.name : ''))
-                    .join(',')}
-                  )
-                </Link>
-              ))}
+              {writeFunctions
+                ?.filter((f) => f.name.includes(searchTerm))
+                .map((f, index) => (
+                  <Link
+                    as={NextLink}
+                    display="block"
+                    borderRadius="md"
+                    mb={0.5}
+                    py={0.5}
+                    px="2"
+                    cursor="pointer"
+                    fontSize="sm"
+                    _hover={{ background: 'gray.800' }}
+                    whiteSpace="nowrap"
+                    overflow="hidden"
+                    textOverflow="ellipsis"
+                    key={index}
+                    href={`#selector-${viem.toFunctionSelector(f)}`}
+                    scroll={false}
+                    textDecoration="none"
+                  >
+                    {f.name}(
+                    {f.inputs
+                      .map((i) => i.type + (i.name ? ' ' + i.name : ''))
+                      .join(',')}
+                    )
+                  </Link>
+                ))}
             </Box>
           </Box>
         </Flex>
