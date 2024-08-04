@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, ReactNode, useEffect, useState, createContext } from 'react';
-import { useQueryIpfsData } from '@/hooks/ipfs';
+import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import {
   Box,
   Button,
@@ -16,7 +16,11 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { CustomSpinner } from '@/components/CustomSpinner';
-import { ChainArtifacts, PackageReference } from '@usecannon/builder';
+import {
+  ChainArtifacts,
+  DeploymentInfo,
+  PackageReference,
+} from '@usecannon/builder';
 import { getOutput } from '@/lib/builder';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
@@ -81,7 +85,7 @@ export const InteractTab: FC<{
     );
   };
 
-  const deploymentData = useQueryIpfsData(
+  const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     packagesQuery?.data?.data.deployUrl,
     !!packagesQuery?.data?.data.deployUrl
   );

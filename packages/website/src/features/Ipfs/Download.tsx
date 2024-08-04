@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
 import {
   Checkbox,
   Container,
@@ -17,42 +17,64 @@ import {
   Button,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
-import { useQueryIpfsData } from '@/hooks/ipfs';
+import { useQueryIpfsDataRaw } from '@/hooks/ipfs';
 import { CodePreview } from '@/components/CodePreview';
 import { useStore } from '@/helpers/store';
 import { DownloadIcon } from '@chakra-ui/icons';
 import NextLink from 'next/link';
+import {
+  arrayBufferToUtf8,
+  decodeData,
+  decompressData,
+  Encodings,
+  EncodingsKeys,
+} from '@/helpers/misc';
 
-function isJsonParsable(string: string): boolean {
+function parseJson(data: ArrayBuffer | undefined, decompress?: boolean) {
+  if (!data || decompress === undefined) return false;
+  let _data;
+  if (decompress) {
+    try {
+      _data = decompressData(data) as string;
+    } catch (error) {
+      _data = JSON.stringify({
+        error: 'Failed trying to decompress data.',
+        try: 'Disabling compression.',
+      });
+    }
+  } else {
+    _data = arrayBufferToUtf8(data);
+  }
+
   try {
-    JSON.parse(string);
-    return true;
+    return JSON.parse(_data);
   } catch (e) {
-    return false;
+    return null;
   }
 }
 
 export default function Download() {
   const [cid, setCid] = useState('');
-  const [decompress, setDecompress] = useState(false);
+  const [decompress, setDecompress] = useState<boolean | undefined>();
   const router = useRouter();
   const pathname = router.pathname;
   const searchParams = router.query;
   const ipfsApiUrl = useStore((s) => s.settings.ipfsApiUrl);
-  const [encoding, setEncoding] = useState('utf8');
+  const [encoding, setEncoding] = useState<EncodingsKeys>('utf8');
 
   useEffect(() => {
     const queryCid = searchParams.cid;
-    const queryCompressed = searchParams.compressed;
 
     if (queryCid && typeof queryCid === 'string') {
       setCid(queryCid);
     }
-
-    if (queryCompressed && queryCompressed === 'true') {
-      setDecompress(true);
-    }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (Object.keys(router.query).length && decompress === undefined) {
+      setDecompress(router.query.compressed !== 'false');
+    }
+  }, [router]);
 
   const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const current = new URLSearchParams(
@@ -76,38 +98,41 @@ export default function Download() {
   const handleEncodingChange = (e: {
     target: { value: React.SetStateAction<string> };
   }) => {
-    setEncoding(e.target.value);
+    setEncoding(e.target.value as EncodingsKeys);
   };
 
-  const decodeData = (data: ArrayBuffer, encoding: string) => {
-    try {
-      if (encoding === 'base64') {
-        return btoa(
-          String.fromCharCode.apply(null, Array.from(new Uint8Array(data)))
-        );
-      } else if (encoding === 'hex') {
-        return Array.from(new Uint8Array(data))
-          .map((b) => b.toString(16).padStart(2, '0'))
-          .join('');
-      } else if (encoding === 'utf8') {
-        return new TextDecoder('utf-8').decode(new Uint8Array(data));
-      }
-      return data;
-    } catch (err) {
-      return data;
-    }
+  const handleSwitchDecompress = async (e: ChangeEvent<HTMLInputElement>) => {
+    setDecompress(e.target.checked);
+
+    const newQuery = {
+      ...router.query,
+      compressed: e.target.checked.toString(),
+    };
+    await router.replace(
+      {
+        pathname: router.pathname,
+        query: newQuery,
+      },
+      undefined,
+      { shallow: true }
+    );
   };
 
-  const { data: ipfsData } = useQueryIpfsData(cid, true, !decompress);
-
-  const decodedData =
-    ipfsData instanceof ArrayBuffer
-      ? decodeData(ipfsData, encoding)
-      : JSON.stringify(ipfsData, null, 2);
-
-  const isJson = isJsonParsable(String(decodedData));
+  const { data: ipfsData } = useQueryIpfsDataRaw(cid, true);
+  const parsedJsonData = parseJson(ipfsData, decompress);
+  const isJson = parsedJsonData !== null;
+  const decodedData = isJson
+    ? JSON.stringify(parsedJsonData, null, 2)
+    : decompress
+    ? JSON.stringify({
+        error: 'Compression is not enabled for non JSON files.',
+        try: 'Disabling compression.',
+      })
+    : decodeData(ipfsData as ArrayBuffer, encoding);
 
   const handleDownload = () => {
+    if (!decodedData) return;
+
     const blob = new Blob([decodedData], { type: 'application/octet-stream' });
 
     const url = URL.createObjectURL(blob);
@@ -171,7 +196,7 @@ export default function Download() {
             <Checkbox
               mb={2}
               isChecked={decompress}
-              onChange={(e) => setDecompress(e.target.checked)}
+              onChange={handleSwitchDecompress}
             >
               Decompress using zlib
             </Checkbox>
@@ -184,9 +209,11 @@ export default function Download() {
                     onChange={handleEncodingChange}
                     mb={2}
                   >
-                    <option value="utf8">UTF-8</option>
-                    <option value="base64">Base64</option>
-                    <option value="hex">Hexadecimal</option>
+                    {Object.entries(Encodings).map(([key, value]) => (
+                      <option key={key} value={key}>
+                        {value}
+                      </option>
+                    ))}
                   </Select>
                 </FormControl>
                 <Box mb={4} minHeight="420px">

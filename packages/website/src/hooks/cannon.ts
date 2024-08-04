@@ -28,7 +28,7 @@ import { useEffect, useState } from 'react';
 import { Abi, Address, createPublicClient, createWalletClient, custom, Hex, isAddressEqual, PublicClient } from 'viem';
 import { useChainId } from 'wagmi';
 
-// Needed to preapre mock run step with registerAction
+// Needed to prepare mock run step with registerAction
 import '@/lib/builder';
 
 export type BuildState =
@@ -323,13 +323,11 @@ export function useCannonWriteDeployToIpfs(
 
 export function useCannonPackage(packageRef: string, chainId?: number) {
   const connectedChainId = useChainId();
+  const registry = useCannonRegistry();
+  const settings = useStore((s) => s.settings);
   const { addLog } = useLogs();
 
   const packageChainId = chainId ?? connectedChainId;
-
-  const settings = useStore((s) => s.settings);
-
-  const registry = useCannonRegistry();
 
   const registryQuery = useQuery({
     queryKey: ['cannon', 'registry', packageRef, packageChainId],
@@ -349,7 +347,6 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
     },
     refetchOnWindowFocus: false,
   });
-
   const pkgUrl = registryQuery.data?.url;
 
   const ipfsQuery = useQuery({
@@ -388,6 +385,7 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
   });
 
   return {
+    isLoading: registryQuery.isLoading || ipfsQuery.isLoading,
     isFetching: registryQuery.isFetching || ipfsQuery.isFetching,
     isError: registryQuery.isError || ipfsQuery.isError,
     error: registryQuery.error || registryQuery.error,
@@ -403,7 +401,7 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
   };
 }
 
-type ContractInfo = {
+export type ContractInfo = {
   [x: string]: { address: Address; abi: Abi };
 };
 
@@ -464,3 +462,4 @@ export function useCannonPackageContracts(packageRef: string, chainId?: number) 
 
   return { contracts, ...pkg };
 }
+export type UseCannonPackageContractsReturnType = ReturnType<typeof useCannonPackageContracts>;

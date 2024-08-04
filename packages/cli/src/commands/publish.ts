@@ -11,6 +11,7 @@ import {
 import { blueBright, bold, gray, yellow } from 'chalk';
 import prompts from 'prompts';
 import * as viem from 'viem';
+import { log, warn } from '../util/console';
 import { getMainLoader } from '../loader';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';
@@ -49,7 +50,7 @@ export async function publish({
 
   // Handle deprecated preset specification
   if (presetArg && !packageRef.startsWith('@')) {
-    console.warn(
+    warn(
       yellow(
         bold(
           'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
@@ -65,8 +66,8 @@ export async function publish({
       throw new Error('signer not provided in registry');
     }
     if (!quiet) {
-      console.log(blueBright(`Publishing with ${onChainRegistry.signer!.address}`));
-      console.log();
+      log(blueBright(`Publishing with ${onChainRegistry.signer!.address}`));
+      log();
     }
   }
   // Generate CannonStorage to publish ipfs remotely and write to the registry
@@ -113,7 +114,7 @@ export async function publish({
     });
 
     if (!prompt.value) {
-      console.log('You must select a package to publish');
+      log('You must select a package to publish');
       process.exit(1);
     }
 
@@ -163,20 +164,20 @@ export async function publish({
 
   for (const publishCall of publishCalls) {
     const packageName = new PackageReference(publishCall.packagesNames[0]).name;
-    console.log(blueBright(`\nThis will publish ${bold(packageName)} to the registry:`));
+    log(blueBright(`\nThis will publish ${bold(packageName)} to the registry:`));
     for (const fullPackageRef of publishCall.packagesNames) {
       const { version, preset } = new PackageReference(fullPackageRef);
-      console.log(` - ${version} (preset: ${preset})`);
+      log(` - ${version} (preset: ${preset})`);
     }
   }
 
-  console.log();
+  log();
 
   if (onChainRegistry instanceof OnChainRegistry) {
     const totalFees = await onChainRegistry.calculatePublishingFee(publishCalls.length);
 
-    console.log(`Total publishing fees: ${viem.formatEther(totalFees)} ETH`);
-    console.log();
+    log(`Total publishing fees: ${viem.formatEther(totalFees)} ETH`);
+    log();
 
     if (
       totalFees > 0n &&
@@ -195,19 +196,19 @@ export async function publish({
     });
 
     if (!verification.confirmation) {
-      console.log('Cancelled');
+      log('Cancelled');
       process.exit(1);
     }
   }
 
-  console.log(bold('Publishing package...'));
-  console.log(gray('This may take a few minutes.'));
-  console.log();
+  log(bold('Publishing package...'));
+  log(gray('This may take a few minutes.'));
+  log();
 
   const registrationReceipts = await toStorage.registry.publishMany(publishCalls);
 
   if (!quiet) {
-    console.log(blueBright('Transactions:'));
-    for (const tx of registrationReceipts) console.log(`  - ${tx}`);
+    log(blueBright('Transactions:'));
+    for (const tx of registrationReceipts) log(`  - ${tx}`);
   }
 }
