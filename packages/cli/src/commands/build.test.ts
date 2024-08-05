@@ -109,12 +109,10 @@ describe('build', () => {
 
         await cli.parseAsync([...fixedArgs, '--provider-url', providerUrl]);
 
-        // create write provider with expected values
-        expect((utilProvider.resolveProvider as jest.Mock).mock.calls[0][0].providerUrl).toEqual(providerUrl);
-        expect((utilProvider.resolveProvider as jest.Mock).mock.calls[0][1]).toEqual(chainId);
+        expect((utilProvider.resolveProvider as jest.Mock).mock.calls[0][0].cliSettings.providerUrl).toEqual(providerUrl);
+        expect((utilProvider.resolveProvider as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
         expect(utilProvider.resolveProvider).toHaveBeenCalledTimes(1);
 
-        // The same provider is passed to build command
         expect((buildCommand.build as jest.Mock).mock.calls[0][0].provider).toEqual(provider);
       });
     });
@@ -125,12 +123,13 @@ describe('build', () => {
       const args = [...fixedArgs, '--chain-id', String(chainId)];
 
       await cli.parseAsync(args);
-      // create write provider with expected values
-      expect((utilProvider.resolveProvider as jest.Mock).mock.calls[0][0].providerUrl.split(',')[0]).toEqual('frame');
-      expect((utilProvider.resolveProvider as jest.Mock).mock.calls[0][1]).toEqual(chainId);
+
+      expect((utilProvider.resolveProvider as jest.Mock).mock.calls[0][0].cliSettings.providerUrl.split(',')[0]).toEqual(
+        'frame'
+      );
+      expect((utilProvider.resolveProvider as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
       expect(utilProvider.resolveProvider).toHaveBeenCalledTimes(1);
 
-      // The same provider is passed to build command
       expect((buildCommand.build as jest.Mock).mock.calls[0][0].provider).toEqual(provider);
     });
 
