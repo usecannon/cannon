@@ -17,8 +17,6 @@ import { isPrivateKey, normalizePrivateKey } from '../helpers';
 export enum ProviderAction {
   WriteRegistry = 'WriteRegistry',
   ReadRegistry = 'ReadRegistry',
-  Build = 'Build',
-  BuildDryRun = 'BuildDryRun',
 }
 
 type WriteProvider = {
@@ -120,7 +118,7 @@ export async function resolveWriteProvider({
     warn(grey('Set a RPC URL by passing --provider-url or setting the ENV variable CANNON_PROVIDER_URL.\n'));
   }
 
-  const action = options?.dryRun ? ProviderAction.BuildDryRun : ProviderAction.Build;
+  const action = options?.dryRun ? ProviderAction.ReadRegistry : ProviderAction.WriteRegistry;
 
   return resolveProviderAndSigners({
     chainId,
@@ -171,9 +169,9 @@ export async function resolveProviderAndSigners({
     }
   };
 
-  if ([ProviderAction.Build, ProviderAction.BuildDryRun, ProviderAction.WriteRegistry].some((a) => a === action)) {
+  if (ProviderAction.WriteRegistry === action) {
     log(grey(`Attempting to find connection via ${bold(providerDisplayName(checkProviders[0]))}`));
-    if (checkProviders.length === 1) console.log('');
+    if (checkProviders.length === 1) log('');
   }
 
   debug(
@@ -248,7 +246,6 @@ export async function resolveProviderAndSigners({
       debug('no signer supplied for provider');
 
       switch (action) {
-        case ProviderAction.Build:
         case ProviderAction.WriteRegistry: {
           const keyPrompt = await prompts({
             type: 'text',
@@ -276,8 +273,7 @@ export async function resolveProviderAndSigners({
           break;
         }
 
-        case ProviderAction.ReadRegistry:
-        case ProviderAction.BuildDryRun: {
+        case ProviderAction.ReadRegistry: {
           // No signer needed for this action
           break;
         }
