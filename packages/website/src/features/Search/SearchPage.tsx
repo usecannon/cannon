@@ -5,9 +5,6 @@ import {
   Flex,
   Box,
   Text,
-  Input,
-  InputGroup,
-  InputLeftElement,
   useBreakpointValue,
   Container,
   Accordion,
@@ -16,14 +13,14 @@ import {
   AccordionItem,
   AccordionPanel,
 } from '@chakra-ui/react';
-import { SearchIcon } from '@chakra-ui/icons';
 import { PackageCardExpandable } from './PackageCard/PackageCardExpandable';
 import { CustomSpinner } from '@/components/CustomSpinner';
-import { debounce, groupBy } from 'lodash';
+import { groupBy } from 'lodash';
 import { ChainFilter } from './ChainFilter';
 import chains from '@/helpers/chains';
 import { useQuery } from '@tanstack/react-query';
 import { getChains, getPackages } from '@/helpers/api';
+import SearchInput from '@/components/SearchInput';
 
 export const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -42,11 +39,6 @@ export const SearchPage = () => {
         : [...prevSelectedChains, id]
     );
   };
-
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-  };
-  const debouncedHandleSearch = debounce(handleSearch, 300);
 
   const packagesQuery = useQuery({
     queryKey: ['packages', searchTerm, selectedChains, 'package'],
@@ -127,15 +119,7 @@ export const SearchPage = () => {
               },
             }}
           >
-            <InputGroup borderColor="gray.600" mb={[4, 4, 8]}>
-              <InputLeftElement pointerEvents="none">
-                <SearchIcon color="gray.500" />
-              </InputLeftElement>
-              <Input
-                onChange={(e) => debouncedHandleSearch(e.target.value)}
-                name="search"
-              />
-            </InputGroup>
+            <SearchInput onSearchChange={setSearchTerm} />
 
             <Text mb={1.5} color="gray.200" fontSize="sm" fontWeight={500}>
               Filter by Chain

@@ -3,30 +3,27 @@ import Layout from '../_layout';
 import NestedLayout from './_layout';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
-import { useRouter } from 'next/router';
-import { PackageReference } from '@usecannon/builder';
-import { ChainData } from '@/features/Search/PackageCard/Chain';
-import chains from '@/helpers/chains';
-import { find } from 'lodash';
+import { getChainById } from '@/helpers/chains';
+import { usePackageUrlParams } from '@/hooks/routing/usePackageUrlParams';
 
 function generateMetadata({
-  params,
+  name,
+  tag,
+  chainId,
+  preset,
 }: {
-  params: { name: string; tag: string; variant: string };
+  name: string;
+  tag: string;
+  chainId: number;
+  preset: string;
 }) {
-  const [chainId, preset] = PackageReference.parseVariant(params.variant);
-  const chain: { name: string; id: number } =
-    Number(chainId) == 13370
-      ? { id: 13370, name: 'Cannon' }
-      : (find(chains, (chain: ChainData) => chain.id === Number(chainId)) as {
-          name: string;
-          id: number;
-        });
+  const chain = getChainById(chainId);
+  if (!chain) throw new Error(`Chain with ID ${chainId} not found`);
 
-  const title = `${params.name} on ${chain.name} | Cannon`;
+  const title = `${name} on ${chain.name} | Cannon`;
 
-  const description = `Explore the Cannon package for ${params.name}${
-    params.tag !== 'latest' ? `:${params.tag}` : ''
+  const description = `Explore the Cannon package for ${name}${
+    tag !== 'latest' ? `:${tag}` : ''
   }${preset !== 'main' ? `@${preset}` : ''} on ${chain.name} (ID: ${chain.id})`;
 
   const metadata = {
@@ -41,8 +38,13 @@ function generateMetadata({
 }
 
 export default function Interact() {
-  const params = useRouter().query;
-  const metadata = generateMetadata({ params: params as any });
+  const { name, tag, chainId, preset } = usePackageUrlParams();
+  const metadata = generateMetadata({
+    name,
+    tag,
+    chainId,
+    preset,
+  });
 
   return (
     <>

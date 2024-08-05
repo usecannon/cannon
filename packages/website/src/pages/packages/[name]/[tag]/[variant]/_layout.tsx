@@ -24,7 +24,7 @@ import { IpfsLinks } from '@/features/Packages/IpfsLinks';
 import { VersionSelect } from '@/features/Packages/VersionSelect';
 import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
 
-import { useQueryIpfsData } from '@/hooks/ipfs';
+import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { DeploymentInfo, PackageReference } from '@usecannon/builder';
 import { getPackage } from '@/helpers/api';
 
@@ -55,14 +55,10 @@ export default function PackageLayout({ children }: { children: ReactNode }) {
       !!additionalParams.chainId,
   });
 
-  const deploymentData = useQueryIpfsData(
+  const { data: deploymentInfo } = useQueryIpfsDataParsed<DeploymentInfo>(
     packagesQuery?.data?.data.deployUrl,
     !!packagesQuery?.data?.data.deployUrl
   );
-
-  const deploymentInfo = deploymentData.data
-    ? (deploymentData.data as DeploymentInfo)
-    : undefined;
 
   return (
     <Flex flexDirection="column" width="100%">
