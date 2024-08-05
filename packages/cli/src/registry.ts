@@ -188,7 +188,7 @@ export async function createDefaultReadRegistry(
   cliSettings: CliSettings,
   additionalRegistries: CannonRegistry[] = []
 ): Promise<FallbackRegistry> {
-  const registryProviders = await resolveRegistryProviders(cliSettings, ProviderAction.ReadProvider);
+  const registryProviders = await resolveRegistryProviders({ cliSettings, action: ProviderAction.ReadProvider });
 
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
   const onChainRegistries = registryProviders.map(

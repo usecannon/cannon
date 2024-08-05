@@ -19,10 +19,10 @@ export enum ProviderAction {
   ReadProvider = 'ReadProvider',
 }
 
-type WriteProvider = {
+type ProviderParams = {
   action: ProviderAction;
   cliSettings: CliSettings;
-  chainId: number;
+  chainId?: number;
 };
 
 export const isURL = (url: string): boolean => {
@@ -83,8 +83,8 @@ export async function resolveProvider({
   cliSettings,
   chainId,
   action,
-}: WriteProvider): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
-  const chainData = getChainById(chainId);
+}: ProviderParams): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
+  const chainData = getChainById(chainId!);
 
   log(bold(`Resolving connection to ${chainData.name} (Chain ID: ${chainId})...`));
   // Check if the first provider URL doesn't start with 'http'
@@ -117,17 +117,17 @@ export async function resolveProvider({
   }
 
   return resolveProviderAndSigners({
-    chainId,
+    chainId: chainId!,
     checkProviders: cliSettings.providerUrl.split(','),
     privateKey: cliSettings.privateKey,
     action,
   });
 }
 
-export async function resolveRegistryProviders(
-  cliSettings: CliSettings,
-  action: ProviderAction
-): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }[]> {
+export async function resolveRegistryProviders({
+  cliSettings,
+  action,
+}: ProviderParams): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }[]> {
   const resolvedProviders = [];
   for (const registryInfo of cliSettings.registries) {
     resolvedProviders.push(

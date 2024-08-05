@@ -90,10 +90,10 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
 
   const isMainnet = selectedNetwork === Network.MAINNET;
   const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
-  const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(
+  const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders({
     cliSettings,
-    options.list ? ProviderAction.ReadProvider : ProviderAction.ReadProvider
-  );
+    action: options.list ? ProviderAction.ReadProvider : ProviderAction.WriteProvider,
+  });
 
   const overrides: any = {};
   if (options.maxFeePerGas) {
