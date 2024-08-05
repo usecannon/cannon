@@ -19,6 +19,7 @@ import {
   getContractDefinitionFromPath,
   getContractFromPath,
   getMergedAbiFromContractPaths,
+  encodeFunctionData,
 } from '../util';
 import { template } from '../utils/template';
 
@@ -142,7 +143,7 @@ async function runTxn(
     const preparedTxn = await runtime.provider.prepareTransactionRequest({
       account: callSigner.wallet.account || callSigner.address,
       to: contract.address,
-      data: viem.encodeFunctionData({ abi: [neededFuncAbi], functionName: neededFuncAbi.name, args: config.args }),
+      data: encodeFunctionData({ abi: [neededFuncAbi], functionName: neededFuncAbi.name, args: config.args }),
       value: config.value,
       ...overrides,
     });
@@ -151,7 +152,7 @@ async function runTxn(
     const preparedTxn = await runtime.provider.prepareTransactionRequest({
       account: signer.wallet.account || signer.address,
       to: contract.address,
-      data: viem.encodeFunctionData({ abi: [neededFuncAbi], functionName: neededFuncAbi.name, args: config.args }),
+      data: encodeFunctionData({ abi: [neededFuncAbi], functionName: neededFuncAbi.name, args: config.args }),
       value: config.value,
       ...overrides,
     });
