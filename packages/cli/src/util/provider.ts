@@ -15,14 +15,12 @@ const debug = Debug('cannon:cli:provider');
 import { isPrivateKey, normalizePrivateKey } from '../helpers';
 
 export enum ProviderAction {
-  WriteRegistry = 'WriteRegistry',
-  ReadRegistry = 'ReadRegistry',
+  WriteProvider = 'WriteProvider',
+  ReadProvider = 'ReadProvider',
 }
 
 type WriteProvider = {
-  options?: {
-    dryRun: boolean;
-  };
+  action: ProviderAction;
   cliSettings: CliSettings;
   chainId: number;
 };
@@ -81,10 +79,10 @@ export const getChainIdFromProviderUrl = async (providerUrl: string) => {
   return provider.getChainId();
 };
 
-export async function resolveWriteProvider({
-  options,
+export async function resolveProvider({
   cliSettings,
   chainId,
+  action,
 }: WriteProvider): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
   const chainData = getChainById(chainId);
 
@@ -118,20 +116,18 @@ export async function resolveWriteProvider({
     warn(grey('Set a RPC URL by passing --provider-url or setting the ENV variable CANNON_PROVIDER_URL.\n'));
   }
 
-  const action = options?.dryRun ? ProviderAction.ReadRegistry : ProviderAction.WriteRegistry;
-
   return resolveProviderAndSigners({
     chainId,
     checkProviders: cliSettings.providerUrl.split(','),
     privateKey: cliSettings.privateKey,
     action,
-  }) as any;
+  });
 }
 
 export async function resolveRegistryProviders(
   cliSettings: CliSettings,
   action: ProviderAction
-): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }[]> {
+): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }[]> {
   const resolvedProviders = [];
   for (const registryInfo of cliSettings.registries) {
     resolvedProviders.push(
@@ -157,7 +153,7 @@ export async function resolveProviderAndSigners({
   checkProviders?: string[];
   privateKey?: string;
   action: ProviderAction;
-}): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }> {
+}): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
   const providerDisplayName = (provider: string) => {
     switch (provider) {
       case 'frame':
@@ -169,7 +165,7 @@ export async function resolveProviderAndSigners({
     }
   };
 
-  if (ProviderAction.WriteRegistry === action) {
+  if (ProviderAction.WriteProvider === action) {
     log(grey(`Attempting to find connection via ${bold(providerDisplayName(checkProviders[0]))}`));
     if (checkProviders.length === 1) log('');
   }
@@ -190,7 +186,7 @@ export async function resolveProviderAndSigners({
     throw err;
   }
 
-  let publicClient: viem.PublicClient;
+  let publicClient: viem.PublicClient & viem.WalletClient;
 
   // TODO: if at any point we let users provide multiple urls, this will have to be changed.
   // force provider to use JSON-RPC instead of Web3Provider for local http urls
@@ -246,7 +242,7 @@ export async function resolveProviderAndSigners({
       debug('no signer supplied for provider');
 
       switch (action) {
-        case ProviderAction.WriteRegistry: {
+        case ProviderAction.WriteProvider: {
           const keyPrompt = await prompts({
             type: 'text',
             name: 'value',
@@ -273,7 +269,7 @@ export async function resolveProviderAndSigners({
           break;
         }
 
-        case ProviderAction.ReadRegistry: {
+        case ProviderAction.ReadProvider: {
           // No signer needed for this action
           break;
         }

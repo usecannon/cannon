@@ -10,7 +10,7 @@ import { CliSettings, resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { pickAnvilOptions } from './anvil';
 import { parseSettings } from './params';
-import { resolveWriteProvider, isURL, getChainIdFromProviderUrl } from './provider';
+import { ProviderAction, resolveProvider, isURL, getChainIdFromProviderUrl } from './provider';
 import { ANVIL_FIRST_ADDRESS } from '../constants';
 
 const debug = Debug('cannon:cli');
@@ -131,7 +131,11 @@ async function configureProvider(options: any, cliSettings: CliSettings) {
   }
 
   if (!provider) {
-    const _provider = await resolveWriteProvider({ options, cliSettings, chainId });
+    const _provider = await resolveProvider({
+      action: options.dryRun ? ProviderAction.ReadProvider : ProviderAction.WriteProvider,
+      cliSettings,
+      chainId,
+    });
     provider = _provider.provider as any;
     signers = _provider.signers;
   }

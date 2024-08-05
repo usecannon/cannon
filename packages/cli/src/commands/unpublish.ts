@@ -60,7 +60,7 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
   }
 
-  const registryProviders = await resolveRegistryProviders(cliSettings, ProviderAction.WriteRegistry);
+  const registryProviders = await resolveRegistryProviders(cliSettings, ProviderAction.WriteProvider);
   // initialize pickedRegistryProvider with the first provider
   let [pickedRegistryProvider] = registryProviders;
 

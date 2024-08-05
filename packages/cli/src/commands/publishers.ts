@@ -92,7 +92,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
   const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(
     cliSettings,
-    options.list ? ProviderAction.ReadRegistry : ProviderAction.ReadRegistry
+    options.list ? ProviderAction.ReadProvider : ProviderAction.ReadProvider
   );
 
   const overrides: any = {};

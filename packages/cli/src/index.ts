@@ -41,7 +41,7 @@ import {
   isURL,
   ProviderAction,
   resolveRegistryProviders,
-  resolveWriteProvider,
+  resolveProvider,
 } from './util/provider';
 import { isPackageRegistered } from './util/register';
 import { writeModuleDeployments } from './util/write-deployments';
@@ -155,7 +155,8 @@ function configureRun(program: Command) {
 
     let node: CannonRpcNode;
     if (options.chainId) {
-      const { provider } = await resolveWriteProvider({
+      const { provider } = await resolveProvider({
+        action: ProviderAction.WriteProvider,
         cliSettings,
         chainId: Number.parseInt(options.chainId),
       });
@@ -170,7 +171,11 @@ function configureRun(program: Command) {
       if (isURL(cliSettings.providerUrl)) {
         options.chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
 
-        const { provider } = await resolveWriteProvider({ cliSettings, chainId: Number.parseInt(options.chainId) });
+        const { provider } = await resolveProvider({
+          action: ProviderAction.WriteProvider,
+          cliSettings,
+          chainId: Number.parseInt(options.chainId),
+        });
 
         node = await runRpc(pickAnvilOptions(options), {
           forkProvider: provider,
@@ -380,7 +385,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
   }
 
-  const registryProviders = await resolveRegistryProviders(cliSettings, ProviderAction.WriteRegistry);
+  const registryProviders = await resolveRegistryProviders(cliSettings, ProviderAction.WriteProvider);
   // initialize pickedRegistryProvider with the first provider
   let [pickedRegistryProvider] = registryProviders;
 
@@ -687,7 +692,11 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
   // throw an error if the chainId is not consistent with the provider's chainId
   await ensureChainIdConsistency(cliSettings.providerUrl, chainId);
 
-  const { provider, signers } = await resolveWriteProvider({ cliSettings, chainId: chainId! });
+  const { provider, signers } = await resolveProvider({
+    action: ProviderAction.WriteProvider,
+    cliSettings,
+    chainId: chainId!,
+  });
 
   const resolver = await createDefaultReadRegistry(cliSettings);
 

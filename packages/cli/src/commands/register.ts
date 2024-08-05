@@ -37,7 +37,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
   const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
   const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(
     cliSettings,
-    ProviderAction.WriteRegistry
+    ProviderAction.WriteProvider
   );
 
   // if any of the packages are registered, throw an error

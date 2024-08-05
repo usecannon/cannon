@@ -18,7 +18,7 @@ import { getMainLoader } from '../loader';
 import { createDefaultReadRegistry } from '../registry';
 import { CliSettings } from '../settings';
 import { warn } from '../util/console';
-import { resolveWriteProvider } from '../util/provider';
+import { ProviderAction, resolveProvider } from '../util/provider';
 
 const debug = Debug('cannon:cli:alter');
 
@@ -48,7 +48,7 @@ export async function alter(
     );
   }
 
-  const { provider } = await resolveWriteProvider({ cliSettings, chainId });
+  const { provider } = await resolveProvider({ action: ProviderAction.ReadProvider, cliSettings, chainId });
   const resolver = await createDefaultReadRegistry(cliSettings);
   const loader = getMainLoader(cliSettings);
 

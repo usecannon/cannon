@@ -7,7 +7,7 @@ import { readDeployRecursive } from '../package';
 import { getProvider, runRpc } from '../rpc';
 import { CliSettings } from '../settings';
 import { log } from '../util/console';
-import { resolveWriteProvider } from '../util/provider';
+import { ProviderAction, resolveProvider } from '../util/provider';
 import { ANVIL_FIRST_ADDRESS } from '../constants';
 
 const debug = Debug('cannon:cli:trace');
@@ -45,7 +45,7 @@ export async function trace({
   // as possible, the same way that an error occurs
 
   // if chain id is not specified, get it from the provider
-  const { provider } = await resolveWriteProvider({ cliSettings, chainId });
+  const { provider } = await resolveProvider({ action: ProviderAction.ReadProvider, cliSettings, chainId });
 
   const deployInfos = await readDeployRecursive(packageRef, chainId);
 
