@@ -103,7 +103,7 @@ export function setCannonfilePath(cannonfile: string, settings: string[]) {
 /**
  * Configures and returns an Ethereum provider.
  * If no chain id or provider url is provided, starts a local RPC node.
- * In a dry run, it fork the network using the specified provider.
+ * In a dry run, it forks the network using the specified provider.
  * @param options Options for configuring the provider.
  * @param cliSettings CLI settings to use in provider configuration.
  * @returns An object containing the configured provider, signers, and an optional RPC node.
@@ -132,7 +132,7 @@ async function configureProvider(options: any, cliSettings: CliSettings) {
 
   if (!provider) {
     const _provider = await resolveProvider({
-      action: options.dryRun ? ProviderAction.ReadProvider : ProviderAction.WriteProvider,
+      action: options.dryRun ? ProviderAction.WriteDryRunProvider : ProviderAction.WriteProvider,
       cliSettings,
       chainId,
     });

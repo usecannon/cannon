@@ -29,7 +29,7 @@ import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
 import { createDefaultReadRegistry } from './registry';
 import { CannonRpcNode, getProvider, runRpc } from './rpc';
-import { resolveCliSettings } from './settings';
+import { CliSettings, resolveCliSettings } from './settings';
 import { PackageSpecification } from './types';
 import { pickAnvilOptions } from './util/anvil';
 import { doBuild } from './util/build';
@@ -40,7 +40,7 @@ import {
   getChainIdFromProviderUrl,
   isURL,
   ProviderAction,
-  resolveRegistryProviders,
+  resolveProviderAndSigners,
   resolveProvider,
 } from './util/provider';
 import { isPackageRegistered } from './util/register';
@@ -385,35 +385,55 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
   }
 
-  const registryProviders = await resolveRegistryProviders({ cliSettings, action: ProviderAction.WriteProvider });
-  // initialize pickedRegistryProvider with the first provider
-  let [pickedRegistryProvider] = registryProviders;
-
-  const choices = registryProviders.map((p) => ({
-    title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
-    value: p,
-  }));
+  // initialized optimism as the default registry
+  let [writeRegistry] = cliSettings.registries;
 
   if (!cliSettings.isE2E) {
-    // override pickedRegistryProvider with the selected provider
-    pickedRegistryProvider = (
+    const choices = cliSettings.registries.map((p) => ({
+      title: `${p.name ?? 'Unknown Network'} (Chain ID: ${p.chainId})`,
+      value: p,
+    }));
+
+    // override writeRegistry with the picked provider
+    writeRegistry = (
       await prompts([
         {
           type: 'select',
-          name: 'pickedRegistryProvider',
-          message: 'Which registry would you like to use? (Cannon will find the package on either.):',
+          name: 'writeRegistry',
+          message: 'Which registry would you like to use? (Cannon will find the package on either):',
           choices,
         },
       ])
-    ).pickedRegistryProvider;
+    ).writeRegistry;
+
+    log();
   }
 
+  log(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
+
+  const readRegistry = _.differenceWith(cliSettings.registries, [writeRegistry], _.isEqual)[0];
+  const registryProviders = await Promise.all([
+    // write to picked provider
+    resolveProviderAndSigners({
+      chainId: writeRegistry.chainId!,
+      privateKey: cliSettings.privateKey!,
+      checkProviders: writeRegistry.providerUrl,
+      action: ProviderAction.WriteProvider,
+    }),
+    // read from the other one
+    resolveProviderAndSigners({
+      chainId: readRegistry.chainId!,
+      checkProviders: readRegistry.providerUrl,
+      action: ProviderAction.ReadProvider,
+    }),
+  ]);
+
+  let [writeRegistryProvider] = registryProviders;
+
   // Check if the package is already registered
-  const [optimism, mainnet] = DEFAULT_REGISTRY_CONFIG;
-  const [optimismProvider, mainnetProvider] = registryProviders;
-  const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, [
-    mainnet.address,
-    optimism.address,
+  const isRegistered = await isPackageRegistered(registryProviders, packageRef, [
+    writeRegistry.address,
+    readRegistry.address,
   ]);
 
   if (!isRegistered) {
@@ -438,6 +458,8 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       if (!registerPrompt.value) {
         return process.exit(0);
       }
+
+      log();
     }
 
     const { register } = await import('./commands/register');
@@ -460,12 +482,12 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   }
 
   const registryAddress =
-    cliSettings.registries.find((registry) => registry.chainId === pickedRegistryProvider.provider.chain?.id)?.address ||
+    cliSettings.registries.find((registry) => registry.chainId === writeRegistryProvider.provider.chain?.id)?.address ||
     DEFAULT_REGISTRY_CONFIG[0].address;
 
   const onChainRegistry = new OnChainRegistry({
-    signer: pickedRegistryProvider.signers[0],
-    provider: pickedRegistryProvider.provider,
+    signer: writeRegistryProvider.signers[0],
+    provider: writeRegistryProvider.provider,
     address: registryAddress,
     overrides,
   });

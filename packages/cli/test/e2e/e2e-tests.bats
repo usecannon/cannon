@@ -252,6 +252,9 @@ teardown() {
   start_optimism_emitter
   run publish.sh 1
   echo $output
+  assert_output --partial 'Package "greeter-foundry" not yet registered'
+  assert_output --partial 'Success - Package "greeter-foundry" has been registered'
+  assert_output --partial 'Transactions:'
   assert_success
 }
 

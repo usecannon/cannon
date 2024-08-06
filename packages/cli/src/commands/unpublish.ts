@@ -1,11 +1,11 @@
 import { OnChainRegistry, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
-import { blueBright, green } from 'chalk';
+import { blueBright, green, bold } from 'chalk';
 import _ from 'lodash';
 import prompts from 'prompts';
 import * as viem from 'viem';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';
-import { resolveRegistryProviders, ProviderAction } from '../util/provider';
+import { resolveProviderAndSigners, ProviderAction } from '../util/provider';
 import { log } from '../util/console';
 
 interface Params {
@@ -60,37 +60,58 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
   }
 
-  const registryProviders = await resolveRegistryProviders({ cliSettings, action: ProviderAction.WriteProvider });
-  // initialize pickedRegistryProvider with the first provider
-  let [pickedRegistryProvider] = registryProviders;
+  // initialized optimism as the default registry
+  let [writeRegistry] = cliSettings.registries;
 
-  const choices = registryProviders.reverse().map((p) => ({
-    title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
-    value: p,
-  }));
-
-  // if the execution comes from the e2e tests, don't prompt and use the first one
   if (!cliSettings.isE2E) {
-    // override pickedRegistryProvider with the selected provider
-    pickedRegistryProvider = (
+    const choices = cliSettings.registries.map((p) => ({
+      title: `${p.name ?? 'Unknown Network'} (Chain ID: ${p.chainId})`,
+      value: p,
+    }));
+
+    // override writeRegistry with the picked provider
+    writeRegistry = (
       await prompts([
         {
           type: 'select',
-          name: 'pickedRegistryProvider',
-          message: 'Which registry would you like to use? (Cannon will find the package on either.):',
+          name: 'writeRegistry',
+          message: 'Which registry would you like to use? (Cannon will find the package on either):',
           choices,
         },
       ])
-    ).pickedRegistryProvider;
+    ).writeRegistry;
+
+    log();
   }
 
+  log(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
+
+  const readRegistry = _.differenceWith(cliSettings.registries, [writeRegistry], _.isEqual)[0];
+  const registryProviders = await Promise.all([
+    // write to picked provider
+    resolveProviderAndSigners({
+      chainId: writeRegistry.chainId!,
+      privateKey: cliSettings.privateKey!,
+      checkProviders: writeRegistry.providerUrl,
+      action: ProviderAction.WriteProvider,
+    }),
+    // read from the other one
+    resolveProviderAndSigners({
+      chainId: readRegistry.chainId!,
+      checkProviders: readRegistry.providerUrl,
+      action: ProviderAction.ReadProvider,
+    }),
+  ]);
+
+  let [writeRegistryProvider] = registryProviders;
+
   const registryAddress =
-    cliSettings.registries.find((registry) => registry.chainId === pickedRegistryProvider.provider.chain?.id)?.address ||
+    cliSettings.registries.find((registry) => registry.chainId === writeRegistryProvider.provider.chain?.id)?.address ||
     DEFAULT_REGISTRY_CONFIG[0].address;
 
   const onChainRegistry = new OnChainRegistry({
-    signer: pickedRegistryProvider.signers[0],
-    provider: pickedRegistryProvider.provider,
+    signer: writeRegistryProvider.signers[0],
+    provider: writeRegistryProvider.provider,
     address: registryAddress,
     overrides,
   });

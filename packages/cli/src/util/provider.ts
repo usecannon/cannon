@@ -15,6 +15,7 @@ const debug = Debug('cannon:cli:provider');
 import { isPrivateKey, normalizePrivateKey } from '../helpers';
 
 export enum ProviderAction {
+  WriteDryRunProvider = 'WriteDryRunProvider',
   WriteProvider = 'WriteProvider',
   ReadProvider = 'ReadProvider',
 }
@@ -129,12 +130,13 @@ export async function resolveRegistryProviders({
   action,
 }: ProviderParams): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }[]> {
   const resolvedProviders = [];
+
   for (const registryInfo of cliSettings.registries) {
     resolvedProviders.push(
       await resolveProviderAndSigners({
         chainId: registryInfo.chainId!,
         checkProviders: registryInfo.providerUrl,
-        privateKey: cliSettings.privateKey,
+        privateKey: cliSettings.privateKey!,
         action,
       })
     );
@@ -154,18 +156,18 @@ export async function resolveProviderAndSigners({
   privateKey?: string;
   action: ProviderAction;
 }): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
-  const providerDisplayName = (provider: string) => {
-    switch (provider) {
+  const providerDisplayName = (providerUrl: string) => {
+    switch (providerUrl) {
       case 'frame':
         return 'Frame (frame.sh) if running';
       case 'direct':
         return 'default IPC paths, ws://127.0.0.1:8546, or http://127.0.0.1:8545';
       default:
-        return hideApiKey(provider);
+        return hideApiKey(providerUrl);
     }
   };
 
-  if (ProviderAction.WriteProvider === action) {
+  if (ProviderAction.WriteProvider === action || ProviderAction.WriteDryRunProvider === action) {
     log(grey(`Attempting to find connection via ${bold(providerDisplayName(checkProviders[0]))}`));
     if (checkProviders.length === 1) log('');
   }
@@ -269,7 +271,8 @@ export async function resolveProviderAndSigners({
           break;
         }
 
-        case ProviderAction.ReadProvider: {
+        case ProviderAction.ReadProvider:
+        case ProviderAction.WriteDryRunProvider: {
           // No signer needed for this action
           break;
         }

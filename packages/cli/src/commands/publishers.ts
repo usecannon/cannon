@@ -4,10 +4,10 @@ import Debug from 'debug';
 import * as viem from 'viem';
 import prompts from 'prompts';
 import { log } from '../util/console';
-import { blueBright, gray, green } from 'chalk';
+import { blueBright, gray, green, bold } from 'chalk';
 
 import { CliSettings } from '../settings';
-import { resolveRegistryProviders, ProviderAction } from '../util/provider';
+import { resolveProviderAndSigners, ProviderAction } from '../util/provider';
 import { waitForEvent } from '../util/wait-for-event';
 
 const debug = Debug('cannon:cli:publishers');
@@ -86,14 +86,31 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         initial: 0,
       })
     ).value;
+
+    log();
   }
 
   const isMainnet = selectedNetwork === Network.MAINNET;
+  const [readRegistry, writeRegistry] = cliSettings.registries;
+
+  log(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
+
+  const registryProviders = await Promise.all([
+    resolveProviderAndSigners({
+      chainId: readRegistry.chainId!,
+      checkProviders: readRegistry.providerUrl,
+      action: ProviderAction.ReadProvider,
+    }),
+    resolveProviderAndSigners({
+      chainId: writeRegistry.chainId!,
+      privateKey: cliSettings.privateKey!,
+      checkProviders: writeRegistry.providerUrl,
+      action: options.list ? ProviderAction.ReadProvider : ProviderAction.WriteProvider,
+    }),
+  ]);
+
   const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
-  const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders({
-    cliSettings,
-    action: options.list ? ProviderAction.ReadProvider : ProviderAction.WriteProvider,
-  });
+  const [optimismRegistryProvider, mainnetRegistryProvider] = registryProviders;
 
   const overrides: any = {};
   if (options.maxFeePerGas) {

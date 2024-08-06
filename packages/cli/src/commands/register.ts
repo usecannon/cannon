@@ -2,13 +2,13 @@ import _ from 'lodash';
 import Debug from 'debug';
 import * as viem from 'viem';
 import prompts from 'prompts';
-import { blueBright, gray, green } from 'chalk';
+import { blueBright, gray, green, bold } from 'chalk';
 import { OnChainRegistry, prepareMulticall, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 
 import { CliSettings } from '../settings';
 import { log } from '../util/console';
 import { waitForEvent } from '../util/wait-for-event';
-import { resolveRegistryProviders, ProviderAction } from '../util/provider';
+import { resolveProviderAndSigners, ProviderAction } from '../util/provider';
 import { isPackageRegistered } from '../util/register';
 
 const debug = Debug('cannon:cli:register');
@@ -34,11 +34,27 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
 
   debug('Registries list: ', cliSettings.registries);
 
+  // [optimism registry, mainnet registry]
+  const [readRegistry, writeRegistry] = cliSettings.registries;
+
+  log(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
+
+  const registryProviders = await Promise.all([
+    resolveProviderAndSigners({
+      chainId: readRegistry.chainId!,
+      checkProviders: readRegistry.providerUrl,
+      action: ProviderAction.ReadProvider,
+    }),
+    resolveProviderAndSigners({
+      chainId: writeRegistry.chainId!,
+      privateKey: cliSettings.privateKey!,
+      checkProviders: writeRegistry.providerUrl,
+      action: ProviderAction.WriteProvider,
+    }),
+  ]);
+
   const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
-  const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders({
-    cliSettings,
-    action: ProviderAction.WriteProvider,
-  });
+  const [optimismRegistryProvider, mainnetRegistryProvider] = registryProviders;
 
   // if any of the packages are registered, throw an error
   const isRegistered = await Promise.all(
