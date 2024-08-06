@@ -1,6 +1,7 @@
 import { merge } from 'lodash';
 import * as chains from 'viem/chains';
 import * as viem from 'viem';
+import find from 'lodash/find';
 
 // For enrichment if necessary
 //import { set } from 'lodash';
@@ -70,6 +71,8 @@ const chainsById = Object.values(enrichedChainData).reduce((acc, chain) => {
   acc[chain.id] = chain;
   return acc;
 });
+
+export const getChainById = (chainId: number) => find(chains, (chain: ChainData) => chain.id === Number(chainId));
 
 export const getExplorerUrl = (chainId: number, hash: string) => {
   const chain = chainsById[chainId];
