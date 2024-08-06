@@ -435,7 +435,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     }),
   ]);
 
-  let [writeRegistryProvider] = registryProviders;
+  const [writeRegistryProvider] = registryProviders;
 
   // Check if the package is already registered
   const isRegistered = await isPackageRegistered(registryProviders, packageRef, [

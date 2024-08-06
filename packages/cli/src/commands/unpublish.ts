@@ -103,7 +103,7 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     }),
   ]);
 
-  let [writeRegistryProvider] = registryProviders;
+  const [writeRegistryProvider] = registryProviders;
 
   const registryAddress =
     cliSettings.registries.find((registry) => registry.chainId === writeRegistryProvider.provider.chain?.id)?.address ||
