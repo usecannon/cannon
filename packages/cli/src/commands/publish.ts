@@ -1,11 +1,11 @@
 import {
   CannonRegistry,
   CannonStorage,
+  getCannonRepoRegistryUrl,
   IPFSLoader,
   OnChainRegistry,
   PackagePublishCall,
   PackageReference,
-  getCannonRepoRegistryUrl,
   preparePublishPackage,
 } from '@usecannon/builder';
 import { blueBright, bold, gray, yellow } from 'chalk';
@@ -15,6 +15,7 @@ import { log, warn } from '../util/console';
 import { getMainLoader } from '../loader';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';
+import { getPackageReference, isIPFSRef } from '../helpers';
 
 interface Params {
   packageRef: string;
@@ -46,10 +47,10 @@ export async function publish({
   includeProvisioned = true,
   skipConfirm = false,
 }: Params) {
-  const { fullPackageRef } = new PackageReference(packageRef);
+  const fullPackageRef = await getPackageReference(packageRef);
 
   // Handle deprecated preset specification
-  if (presetArg && !packageRef.startsWith('@')) {
+  if (presetArg && !isIPFSRef(packageRef)) {
     warn(
       yellow(
         bold(
@@ -79,12 +80,10 @@ export async function publish({
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
   const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
 
-  // if the package reference doesnt contain a version reference we still want to scan deploys without it.
-  // This works as a catch all to get any deployment stored locally.
-  // However if a version is passed, we use the basePackageRef to extrapolate and remove any potential preset in the reference.
+  // if the package reference is an ipfs reference (url or hash) we pass it the full package ref since its referencing a specific deploy
   let deploys;
-  if (packageRef.startsWith('@')) {
-    deploys = [{ name: packageRef, chainId: 13370 }];
+  if (isIPFSRef(packageRef)) {
+    deploys = [{ name: fullPackageRef, chainId: 13370 }];
   } else {
     // Check for deployments that are relevant to the provided packageRef
     deploys = await localRegistry.scanDeploys(packageRef, chainId);
@@ -103,7 +102,7 @@ export async function publish({
       message: 'Select the package you want to publish:\n',
       name: 'value',
       choices: deploys.map((d) => {
-        const { fullPackageRef } = new PackageReference(d.name);
+        const { fullPackageRef } = new PackageReference(d.name!);
 
         return {
           title: `${fullPackageRef} (Chain ID: ${d.chainId})`,
@@ -125,19 +124,21 @@ export async function publish({
 
   // Doing some filtering on deploys list so that we can iterate over every "duplicate" package which has more than one version being deployed.
   const deployNames = deploys.map((deploy) => {
-    const { name, version, preset } = new PackageReference(deploy.name);
+    const { name, version, preset } = new PackageReference(deploy.name!);
     return { name, version, preset, chainId: deploy.chainId };
   });
 
   // "dedupe" the deploys so that when we iterate we can go over every package deployment by version
   const parentPackages: DeployList[] = deployNames.reduce((result: DeployList[], item) => {
-    const matchingDeploys = result.find((i) => i.name === item.name && i.preset === item.preset);
+    const matchingDeploys = result.find((i) => !isIPFSRef(i.name) && i.name === item.name && i.preset === item.preset);
 
     if (matchingDeploys) {
       matchingDeploys.versions.push(item.version);
     } else {
-      result.push({ name: item.name, versions: [item.version], chainId: item.chainId, preset: item.preset });
+      const versions = isIPFSRef(item.name) ? [] : [item.version];
+      result.push({ name: item.name, versions, chainId: item.chainId, preset: item.preset });
     }
+
     return result;
   }, []);
 

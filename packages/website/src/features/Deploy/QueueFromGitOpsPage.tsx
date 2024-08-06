@@ -209,11 +209,11 @@ function QueueFromGitOps() {
     cannonPkgVersionInfo.pkgUrl;
 
   const prevCannonDeployInfo = useCannonPackage(
-    prevDeployLocation ? `@ipfs:${_.last(prevDeployLocation.split('/'))}` : ''
+    prevDeployLocation ? `ipfs://${_.last(prevDeployLocation.split('/'))}` : ''
   );
 
   const partialDeployInfo = useCannonPackage(
-    partialDeployIpfs ? `@ipfs:${partialDeployIpfs}` : ''
+    partialDeployIpfs ? `ipfs://${partialDeployIpfs}` : ''
   );
 
   useEffect(() => {

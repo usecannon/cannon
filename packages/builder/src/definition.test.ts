@@ -48,6 +48,22 @@ describe('ChainDefinition', () => {
     });
   });
 
+  it('does not have output clash on var or settings', () => {
+    const rawDef: RawChainDefinition = {
+      name: 'test',
+      version: '1.0.0',
+      var: {
+        a: { b: '<%= settings.c %>', description: 'desc 1' },
+        d: { c: '1234', description: 'desc 2' },
+      },
+      deploy: {
+        woot: { artifact: 'wohoo', args: ['<%= settings.b %>'], depends: [] },
+      },
+    };
+
+    expect(new ChainDefinition(rawDef)).toBeTruthy;
+  });
+
   describe('validatePackageName()', () => {
     it('verifies the name is not too short', () => {
       expect(() => validatePackageName('hh')).toThrowError('must be at least');
