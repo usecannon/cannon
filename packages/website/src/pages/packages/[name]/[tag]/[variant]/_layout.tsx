@@ -121,7 +121,13 @@ export default function PackageLayout({ children }: { children: ReactNode }) {
                   <VersionSelect pkg={packagesQuery.data.data} />
                 </Box>
               </Flex>
-              <Flex gap={8} align="center" maxW="100%" overflowX="auto">
+              <Flex
+                gap={8}
+                align="center"
+                maxW="100%"
+                overflowX="auto"
+                overflowY="hidden"
+              >
                 <NavLink
                   isActive={pathname == '/packages/[name]/[tag]/[variant]'}
                   href={`/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}`}
