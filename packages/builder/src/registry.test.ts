@@ -24,6 +24,14 @@ describe('registry.ts', () => {
         expect(url).toBe('ipfs://Qmwohoo');
       });
 
+      it('applies url alteration for "Qm" hashes', async () => {
+        const registry = new FakeCannonRegistry();
+
+        const url = await registry.getUrl('Qmwohoo', 13370);
+
+        expect(url).toBe('ipfs://Qmwohoo');
+      });
+
       it('just passes through for any non "@" prefixed cannon packages', async () => {
         const registry = new FakeCannonRegistry();
 
