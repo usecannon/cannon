@@ -37,7 +37,7 @@ export interface PackagePublishCall {
 export class PackageReference {
   static DEFAULT_TAG = 'latest';
   static DEFAULT_PRESET = 'main';
-  static PACKAGE_REGEX = /^(?<name>@?[a-z0-9][A-Za-z0-9-]{1,}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
+  static PACKAGE_REGEX = /^(?<name>[a-z0-9][A-Za-z0-9-]{1,}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
 
   /**
    * Anything before the colon or an @ (if no version is present) is the package name.
@@ -192,12 +192,10 @@ export async function preparePublishPackage({
 }: CopyPackageOpts) {
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
 
-  // TODO: packageRef in this case can be a package name or an IPFS hash (@ipfs://Qm...) for the pin command, however, this functionality should have
-  // it's own function to handle the pinning of IPFS urls.
-  const packageReference = PackageReference.isValid(packageRef) ? new PackageReference(packageRef) : null;
+  const packageReference = new PackageReference(packageRef);
 
-  const presetRef = packageReference ? packageReference.preset : 'main';
-  const fullPackageRef = packageReference ? packageReference.fullPackageRef : packageRef;
+  const presetRef = packageReference.preset;
+  const givenPackageRef = packageReference.fullPackageRef;
 
   const alreadyCopiedIpfs = new Map<string, any>();
 
@@ -214,9 +212,9 @@ export async function preparePublishPackage({
 
     const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId!, deployInfo.options);
 
-    const curFullPackageRef = `${def.getName(preCtx)}:${def.getVersion(preCtx)}@${
-      context && context.preset ? context.preset : presetRef
-    }`;
+    const curFullPackageRef = new PackageReference(
+      `${def.getName(preCtx)}:${def.getVersion(preCtx)}@${context && context.preset ? context.preset : presetRef}`
+    ).fullPackageRef;
 
     // if the package has already been published to the registry and it has the same ipfs hash, skip.
     const toUrl = await toStorage.registry.getUrl(curFullPackageRef, chainId);
@@ -282,11 +280,11 @@ export async function preparePublishPackage({
     return returnVal;
   };
 
-  const deployData = await fromStorage.readDeploy(fullPackageRef, chainId);
+  const deployData = await fromStorage.readDeploy(givenPackageRef, chainId);
 
   if (!deployData) {
     throw new Error(
-      `could not find deployment artifact for ${fullPackageRef} with chain id "${chainId}". Please double check your settings, and rebuild your package.`
+      `could not find deployment artifact for ${givenPackageRef} with chain id "${chainId}". Please double check your settings, and rebuild your package.`
     );
   }
 
