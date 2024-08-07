@@ -7,7 +7,7 @@ import { CannonSigner, traceActions } from '@usecannon/builder';
 
 import { log, error, warn } from './console';
 import { getChainById } from '../chains';
-import { CliSettings, PROVIDER_URL_DEFAULT } from '../settings';
+import { CliSettings, RPC_URL_DEFAULT } from '../settings';
 
 const debug = Debug('cannon:cli:provider');
 
@@ -102,7 +102,7 @@ export async function resolveWriteProvider(
     }
   }
 
-  if (settings.rpcUrl == PROVIDER_URL_DEFAULT && !settings.quiet) {
+  if (settings.rpcUrl == RPC_URL_DEFAULT && !settings.quiet) {
     warn(grey('Set a RPC URL by passing --rpc-url or setting the ENV variable CANNON_PROVIDER_URL.\n'));
   }
 
