@@ -4,20 +4,51 @@ import {
   Box,
   Flex,
   Heading,
-  Link,
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import _ from 'lodash';
+import sortBy from 'lodash/sortBy';
 import * as viem from 'viem';
-import NextLink from 'next/link';
-import { useRouter } from 'next/router';
 import { ChainArtifacts } from '@usecannon/builder';
 import { FC, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AbiFunction, Abi as AbiType } from 'abitype';
 import { Function } from '@/features/Packages/Function';
 import { HasSubnavContext } from './Tabs/InteractTab';
 import SearchInput from '@/components/SearchInput';
+import { scroller, Element, scrollSpy } from 'react-scroll';
+
+import { Button, ButtonProps } from '@chakra-ui/react';
+import React from 'react';
+import { useRouter } from 'next/router';
+
+const getSelectorSlug = (f: AbiFunction) =>
+  `selector-${viem.toFunctionSelector(f)}`;
+
+const ButtonLink: React.FC<ButtonProps & { selected?: boolean }> = ({
+  children,
+  selected,
+  ...props
+}) => (
+  <Button
+    display="block"
+    borderRadius="md"
+    w="100%"
+    textAlign="left"
+    px="2"
+    cursor={props.disabled ? 'not-allowed' : 'pointer'}
+    fontSize="xs"
+    _hover={{ background: 'gray.800' }}
+    whiteSpace="nowrap"
+    overflow="hidden"
+    textOverflow="ellipsis"
+    color="white"
+    background={selected ? 'gray.800' : 'transparent'}
+    height={30}
+    {...props}
+  >
+    {children}
+  </Button>
+);
 
 export const Abi: FC<{
   abi?: AbiType;
@@ -36,89 +67,93 @@ export const Abi: FC<{
   onDrawerOpen,
   packageUrl,
 }) => {
-  const params = useRouter().query;
+  const router = useRouter();
+  const isSmall = useBreakpointValue([true, true, false]);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const hasSubnav = useContext(HasSubnavContext);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [selectedSelector, setSelectedSelector] = useState<string | null>(null);
+  const [isUpdatingRoute, setIsUpdatingRoute] = useState(false);
 
-  const functions = useMemo<AbiFunction[]>(
+  const allContractMethods = useMemo<AbiFunction[]>(
     () =>
-      _.sortBy(abi?.filter((a) => a.type === 'function') as AbiFunction[], [
+      sortBy(abi?.filter((a) => a.type === 'function') as AbiFunction[], [
         'name',
       ]),
     [abi]
   );
 
-  const readFunctions = useMemo<AbiFunction[]>(
+  const readContractMethods = useMemo(
     () =>
-      _.sortBy(
-        functions?.filter((func) =>
+      sortBy(
+        allContractMethods?.filter((func) =>
           ['view', 'pure'].includes(func.stateMutability)
         ),
         ['name']
       ),
-    [functions]
+    [allContractMethods]
   );
 
-  const writeFunctions = useMemo<AbiFunction[]>(
+  const writeContractMethods = useMemo(
     () =>
-      _.sortBy(
-        functions?.filter(
+      sortBy(
+        allContractMethods?.filter(
           (func) => !['view', 'pure'].includes(func.stateMutability)
         ),
         ['name']
       ),
-    [functions]
+    [allContractMethods]
   );
 
-  const isSmall = useBreakpointValue([true, true, false]);
+  const onSelectedSelector = async (newSelector: string) => {
+    // set the selector
+    setSelectedSelector(newSelector);
 
-  const containerRef = useRef<HTMLDivElement | null>(null);
+    // scroll to the element
+    const adjust = 102 + (hasSubnav ? 65 : 0);
+    scroller.scrollTo(newSelector, {
+      duration: 1200,
+      smooth: true,
+      offset: adjust * -1,
+    });
 
-  const hasSubnav = useContext(HasSubnavContext);
-
-  const [searchTerm, setSearchTerm] = useState<string>('');
-
-  const handleHashChange = (firstRender: boolean) => {
-    const hash = window.location.hash;
-
-    if (hash) {
-      const section = document.getElementById(`${hash}`);
-
-      if (section) {
-        const adjust = firstRender ? 162 : 102;
-
-        const topOffset =
-          section.getBoundingClientRect().top + window.scrollY - adjust;
-
-        const button = section.querySelector('h2');
-
-        if (button) {
-          // open the collapsible
-          button.click();
-        }
-
-        window.scrollTo(0, topOffset - (hasSubnav ? 65 : 0));
-      }
-    }
+    // update the url in shallow mode
+    setIsUpdatingRoute(true);
+    await router.replace(
+      `${router.asPath.split('#')[0]}#${selectedSelector}`,
+      undefined,
+      { shallow: true }
+    );
+    setIsUpdatingRoute(false);
   };
 
-  // hash changed
-  useEffect(() => {
-    handleHashChange(false);
-  }, [params]);
+  const handleMethodClick = async (functionSelector: AbiFunction) => {
+    if (isUpdatingRoute) return;
+    const newSelector = getSelectorSlug(functionSelector);
+    if (newSelector === selectedSelector) {
+      return;
+    }
 
-  // first render
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      handleHashChange(true);
-    }, 1000);
+    await onSelectedSelector(newSelector);
+  };
 
-    return () => {
-      clearTimeout(timeoutId);
-    };
+  // Updating scrollSpy when the component mounts.
+  useEffect(() => {
+    scrollSpy.update();
   }, []);
+
+  // Initialize the selector from the URL
+  useEffect(() => {
+    const urlSelectorFromPath = router.asPath.split('#')[1];
+    if (urlSelectorFromPath || !selectedSelector) {
+      setSelectedSelector(urlSelectorFromPath);
+    }
+  }, [router.asPath]);
 
   return (
     <Flex flex="1" direction="column" maxWidth="100%">
       <Flex flex="1" direction={['column', 'column', 'row']}>
+        {/* Methods Sidebar */}
         <Flex
           flexDirection="column"
           maxWidth={['100%', '100%', '320px']}
@@ -149,37 +184,25 @@ export const Abi: FC<{
                   color="gray.200"
                   letterSpacing="0.1px"
                 >
-                  Read Functions
+                  {'<< Read Functions'}
                 </Heading>
               </Flex>
 
-              {readFunctions
+              {readContractMethods
                 ?.filter((f) => f.name.includes(searchTerm))
                 .map((f, index) => (
-                  <Link
-                    as={NextLink}
-                    display="block"
-                    borderRadius="md"
-                    mb={0.5}
-                    py={0.5}
-                    px="2"
-                    cursor="pointer"
-                    fontSize="sm"
-                    _hover={{ background: 'gray.800' }}
-                    whiteSpace="nowrap"
-                    overflow="hidden"
-                    textOverflow="ellipsis"
+                  <ButtonLink
                     key={index}
-                    href={`#selector-${viem.toFunctionSelector(f)}`}
-                    scroll={false}
-                    textDecoration="none"
+                    selected={selectedSelector == getSelectorSlug(f)}
+                    disabled={isUpdatingRoute}
+                    onClick={() => handleMethodClick(f)}
                   >
                     {f.name}(
                     {f.inputs
                       .map((i) => i.type + (i.name ? ' ' + i.name : ''))
                       .join(',')}
                     )
-                  </Link>
+                  </ButtonLink>
                 ))}
             </Box>
             <Box mt={4}>
@@ -190,41 +213,30 @@ export const Abi: FC<{
                   color="gray.200"
                   letterSpacing="0.1px"
                 >
-                  Write Functions
+                  {'>> Write Functions'}
                 </Heading>
               </Flex>
-              {writeFunctions
+              {writeContractMethods
                 ?.filter((f) => f.name.includes(searchTerm))
                 .map((f, index) => (
-                  <Link
-                    as={NextLink}
-                    display="block"
-                    borderRadius="md"
-                    mb={0.5}
-                    py={0.5}
-                    px="2"
-                    cursor="pointer"
-                    fontSize="sm"
-                    _hover={{ background: 'gray.800' }}
-                    whiteSpace="nowrap"
-                    overflow="hidden"
-                    textOverflow="ellipsis"
+                  <ButtonLink
                     key={index}
-                    href={`#selector-${viem.toFunctionSelector(f)}`}
-                    scroll={false}
-                    textDecoration="none"
+                    disabled={isUpdatingRoute}
+                    selected={selectedSelector == getSelectorSlug(f)}
+                    onClick={() => handleMethodClick(f)}
                   >
                     {f.name}(
                     {f.inputs
                       .map((i) => i.type + (i.name ? ' ' + i.name : ''))
                       .join(',')}
                     )
-                  </Link>
+                  </ButtonLink>
                 ))}
             </Box>
           </Box>
         </Flex>
 
+        {/* Methods Interactions */}
         <Box background="black" ref={containerRef} w="100%">
           <Alert
             status="warning"
@@ -247,20 +259,22 @@ export const Abi: FC<{
             borderColor="gray.700"
             gap={4}
           >
-            {functions?.map((f, index) => (
-              <Function
-                key={index}
-                f={f}
-                abi={abi as AbiType}
-                address={address}
-                cannonOutputs={cannonOutputs}
-                chainId={chainId}
-                contractSource={contractSource}
-                onDrawerOpen={onDrawerOpen}
-                collapsible
-                showFunctionSelector={false}
-                packageUrl={packageUrl}
-              />
+            {allContractMethods?.map((f, index) => (
+              <Element name={getSelectorSlug(f)} key={index}>
+                <Function
+                  selected={selectedSelector == getSelectorSlug(f)}
+                  f={f}
+                  abi={abi as AbiType}
+                  address={address}
+                  cannonOutputs={cannonOutputs}
+                  chainId={chainId}
+                  contractSource={contractSource}
+                  onDrawerOpen={onDrawerOpen}
+                  collapsible
+                  showFunctionSelector={false}
+                  packageUrl={packageUrl}
+                />
+              </Element>
             ))}
           </Flex>
         </Box>
