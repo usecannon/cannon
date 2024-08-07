@@ -2,6 +2,7 @@ import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
+import { yellow } from 'chalk';
 import untildify from 'untildify';
 import * as viem from 'viem';
 import { parseEnv } from 'znv';
@@ -9,6 +10,7 @@ import { z } from 'zod';
 import { DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY } from './constants';
 import { checkAndNormalizePrivateKey, filterSettings } from './helpers';
+import { warn, log } from './util/console';
 
 const debug = Debug('cannon:cli:settings');
 
@@ -17,12 +19,17 @@ const debug = Debug('cannon:cli:settings');
  */
 export type CliSettings = {
   /**
-   * provider used for `build` defaults to 'frame,direct' https://github.com/floating/eth-provider#presets
+   * (DEPRECATED) Provider used for `build` defaults to 'frame,direct' https://github.com/floating/eth-provider#presets
+   */
+  providerUrl: string;
+
+  /**
+   * Provider used for `build` defaults to 'frame,direct' https://github.com/floating/eth-provider#presets
    */
   rpcUrl: string;
 
   /**
-   * private key(s) of default signer that should be used for build, comma separated
+   * Private key(s) of default signer that should be used for build, comma separated
    */
   privateKey?: viem.Hex;
 
@@ -131,7 +138,12 @@ export type CliSettings = {
   priorityGasFee?: string;
 };
 
-export const PROVIDER_URL_DEFAULT = 'frame,direct';
+export const RPC_URL_DEFAULT = 'frame,direct';
+
+const deprecatedWarn = _.once((deprecatedFlag: string, newFlag: string) => {
+  warn(yellow(`The ${deprecatedFlag} option will be deprecated soon. Use ${newFlag} instead.`));
+  log();
+});
 
 /**
  * Settings zod schema.
@@ -142,7 +154,8 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
   return {
     CANNON_DIRECTORY: z.string().default(DEFAULT_CANNON_DIRECTORY),
     CANNON_SETTINGS: z.string().optional(),
-    CANNON_PROVIDER_URL: z.string().default(fileSettings.rpcUrl || PROVIDER_URL_DEFAULT),
+    CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || RPC_URL_DEFAULT),
+    CANNON_RPC_URL: z.string().default(fileSettings.rpcUrl || RPC_URL_DEFAULT),
     CANNON_PRIVATE_KEY: z
       .string()
       .optional()
@@ -168,7 +181,7 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .url()
       .optional()
       .default(fileSettings.publishIpfsUrl as string),
-    CANNON_REGISTRY_PROVIDER_URL: z.string().url().optional(),
+    CANNON_REGISTRY_RPC_URL: z.string().url().optional(),
     CANNON_REGISTRY_CHAIN_ID: z.string().optional(),
     CANNON_REGISTRY_ADDRESS: z
       .string()
@@ -203,13 +216,14 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     CANNON_DIRECTORY,
     CANNON_SETTINGS,
     CANNON_PROVIDER_URL,
+    CANNON_RPC_URL,
     CANNON_PRIVATE_KEY,
     CANNON_IPFS_TIMEOUT,
     CANNON_IPFS_RETRIES,
     CANNON_IPFS_URL,
     CANNON_WRITE_IPFS_URL,
     CANNON_PUBLISH_IPFS_URL,
-    CANNON_REGISTRY_PROVIDER_URL,
+    CANNON_REGISTRY_RPC_URL,
     CANNON_REGISTRY_CHAIN_ID,
     CANNON_REGISTRY_ADDRESS,
     CANNON_REGISTRY_PRIORITY,
@@ -224,7 +238,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     {
       cannonDirectory: untildify(CANNON_DIRECTORY),
       cannonSettings: CANNON_SETTINGS,
-      rpcUrl: CANNON_PROVIDER_URL,
+      rpcUrl: CANNON_RPC_URL || CANNON_PROVIDER_URL,
       privateKey: CANNON_PRIVATE_KEY,
       ipfsTimeout: CANNON_IPFS_TIMEOUT,
       ipfsRetries: CANNON_IPFS_RETRIES,
@@ -232,11 +246,11 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       writeIpfsUrl: CANNON_WRITE_IPFS_URL,
       publishIpfsUrl: CANNON_PUBLISH_IPFS_URL,
       registries:
-        CANNON_REGISTRY_ADDRESS && (CANNON_REGISTRY_PROVIDER_URL || CANNON_REGISTRY_CHAIN_ID)
+        CANNON_REGISTRY_ADDRESS && (CANNON_REGISTRY_RPC_URL || CANNON_REGISTRY_CHAIN_ID)
           ? [
               {
                 name: 'Custom Network',
-                rpcUrl: CANNON_REGISTRY_PROVIDER_URL ? [CANNON_REGISTRY_PROVIDER_URL] : undefined,
+                rpcUrl: CANNON_REGISTRY_RPC_URL ? [CANNON_REGISTRY_RPC_URL] : undefined,
                 chainId: CANNON_REGISTRY_CHAIN_ID ? Number(CANNON_REGISTRY_CHAIN_ID) : undefined,
                 address: CANNON_REGISTRY_ADDRESS as viem.Address,
               },
@@ -251,6 +265,11 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     },
     _.pickBy(overrides)
   ) as CliSettings;
+
+  if (overrides.providerUrl && !overrides.rpcUrl) {
+    deprecatedWarn('--providerUrl', '--rpcUrl');
+    finalSettings.rpcUrl = overrides.providerUrl;
+  }
 
   // Check and normalize private keys
   finalSettings.privateKey = checkAndNormalizePrivateKey(finalSettings.privateKey);
