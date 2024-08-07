@@ -16,15 +16,12 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { CustomSpinner } from '@/components/CustomSpinner';
-import {
-  ChainArtifacts,
-  DeploymentInfo,
-  PackageReference,
-} from '@usecannon/builder';
+import { ChainArtifacts, DeploymentInfo } from '@usecannon/builder';
 import { getOutput } from '@/lib/builder';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
 import { getPackage } from '@/helpers/api';
+import { usePackageUrlParams } from '@/hooks/routing/usePackageUrlParams';
 
 type Option = {
   moduleName: string;
@@ -34,40 +31,45 @@ type Option = {
 
 export const HasSubnavContext = createContext(false);
 
-export const InteractTab: FC<{
-  name: string;
-  tag: string;
-  variant: string;
-  children?: ReactNode;
-}> = ({ name, tag, variant, children }) => {
-  const [chainId, preset] = PackageReference.parseVariant(variant);
-
-  const packagesQuery = useQuery({
-    queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],
-    queryFn: getPackage,
-  });
-
+function useActiveContract() {
   const pathName = useRouter().asPath;
-
-  let activeContractOption: Option | undefined;
-  const activeContractPath = pathName.split('interact/')[1];
+  // first remove the hash and selected method
+  // then split the path by the interact keyword
+  const activeContractPath = pathName.split('#')[0].split('interact/')[1];
 
   if (activeContractPath) {
     const [moduleName, contractName, contractAddress] =
       activeContractPath.split('/');
 
-    activeContractOption = {
+    return {
       moduleName,
       contractName,
       contractAddress,
     };
   }
 
-  const router = useRouter();
+  return undefined;
+}
 
+export const InteractTab: FC<{
+  children?: ReactNode;
+}> = ({ children }) => {
+  const router = useRouter();
+  const { name, tag, preset, chainId, variant } = usePackageUrlParams();
+  const packagesQuery = useQuery({
+    queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],
+    queryFn: getPackage,
+  });
+  const activeContractOption = useActiveContract();
   const [highlightedOptions, setHighlightedOptions] = useState<Option[]>([]);
   const [otherOptions, setOtherOptions] = useState<Option[]>([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
+    packagesQuery?.data?.data.deployUrl,
+    !!packagesQuery?.data?.data.deployUrl
+  );
+
+  const hasSubnav = otherOptions.length > 0 || highlightedOptions.length > 1;
 
   const selectContract = (contract: Option) => {
     void router.push(
@@ -77,18 +79,12 @@ export const InteractTab: FC<{
 
   const isActiveContract = (contract: Option) => {
     if (!activeContractOption) return false;
-
     return (
       activeContractOption.moduleName === contract.moduleName &&
       activeContractOption.contractName === contract.contractName &&
       activeContractOption.contractAddress === contract.contractAddress
     );
   };
-
-  const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
-    packagesQuery?.data?.data.deployUrl,
-    !!packagesQuery?.data?.data.deployUrl
-  );
 
   useEffect(() => {
     if (!deploymentData.data) {
@@ -179,8 +175,6 @@ export const InteractTab: FC<{
       }
     }
   }, [deploymentData.data]);
-
-  const hasSubnav = otherOptions.length > 0 || highlightedOptions.length > 1;
 
   if (packagesQuery.isPending || deploymentData.isLoading) {
     return <CustomSpinner m="auto" />;
