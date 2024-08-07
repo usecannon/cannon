@@ -259,8 +259,11 @@ export const Abi: FC<{
             borderColor="gray.700"
             gap={4}
           >
-            {allContractMethods?.map((f, index) => (
-              <Element name={getSelectorSlug(f)} key={index}>
+            {allContractMethods?.map((f) => (
+              <Element
+                name={getSelectorSlug(f)}
+                key={`${address}-${getSelectorSlug(f)}`}
+              >
                 <Function
                   selected={selectedSelector == getSelectorSlug(f)}
                   f={f}
