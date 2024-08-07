@@ -21,7 +21,7 @@ export type CliSettings = {
   /**
    * (DEPRECATED) Provider used for `build` defaults to 'frame,direct' https://github.com/floating/eth-provider#presets
    */
-  providerUrl: string;
+  providerUrl?: string;
 
   /**
    * Provider used for `build` defaults to 'frame,direct' https://github.com/floating/eth-provider#presets
