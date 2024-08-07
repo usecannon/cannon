@@ -19,7 +19,7 @@ export type CliSettings = {
   /**
    * provider used for `build` defaults to 'frame,direct' https://github.com/floating/eth-provider#presets
    */
-  providerUrl: string;
+  rpcUrl: string;
 
   /**
    * private key(s) of default signer that should be used for build, comma separated
@@ -60,14 +60,14 @@ export type CliSettings = {
   registries: {
     chainId?: number;
     name: string;
-    providerUrl?: string[];
+    rpcUrl?: string[];
     address: viem.Address;
   }[];
 
   /**
    * URL to use to write a package to the registry.
    */
-  registryProviderUrl?: string;
+  registryRpcUrl?: string;
 
   /**
    * chain Id of the registry. Defaults to `1`.
@@ -142,7 +142,7 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
   return {
     CANNON_DIRECTORY: z.string().default(DEFAULT_CANNON_DIRECTORY),
     CANNON_SETTINGS: z.string().optional(),
-    CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || PROVIDER_URL_DEFAULT),
+    CANNON_PROVIDER_URL: z.string().default(fileSettings.rpcUrl || PROVIDER_URL_DEFAULT),
     CANNON_PRIVATE_KEY: z
       .string()
       .optional()
@@ -224,7 +224,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     {
       cannonDirectory: untildify(CANNON_DIRECTORY),
       cannonSettings: CANNON_SETTINGS,
-      providerUrl: CANNON_PROVIDER_URL,
+      rpcUrl: CANNON_PROVIDER_URL,
       privateKey: CANNON_PRIVATE_KEY,
       ipfsTimeout: CANNON_IPFS_TIMEOUT,
       ipfsRetries: CANNON_IPFS_RETRIES,
@@ -236,7 +236,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
           ? [
               {
                 name: 'Custom Network',
-                providerUrl: CANNON_REGISTRY_PROVIDER_URL ? [CANNON_REGISTRY_PROVIDER_URL] : undefined,
+                rpcUrl: CANNON_REGISTRY_PROVIDER_URL ? [CANNON_REGISTRY_PROVIDER_URL] : undefined,
                 chainId: CANNON_REGISTRY_CHAIN_ID ? Number(CANNON_REGISTRY_CHAIN_ID) : undefined,
                 address: CANNON_REGISTRY_ADDRESS as viem.Address,
               },
@@ -255,11 +255,11 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
   // Check and normalize private keys
   finalSettings.privateKey = checkAndNormalizePrivateKey(finalSettings.privateKey);
 
-  if (overrides.registryAddress && (overrides.registryProviderUrl || overrides.registryChainId)) {
+  if (overrides.registryAddress && (overrides.registryRpcUrl || overrides.registryChainId)) {
     finalSettings.registries = [
       {
         name: 'Custom Network',
-        providerUrl: overrides.registryProviderUrl ? [overrides.registryProviderUrl] : undefined,
+        rpcUrl: overrides.registryRpcUrl ? [overrides.registryRpcUrl] : undefined,
         chainId: overrides.registryChainId ? Number(overrides.registryChainId) : undefined,
         address: overrides.registryAddress ? overrides.registryAddress : (CANNON_REGISTRY_ADDRESS as viem.Address),
       },

@@ -25,9 +25,9 @@ export const isURL = (url: string): boolean => {
   }
 };
 
-export const hideApiKey = (providerUrl: string) => {
+export const hideApiKey = (rpcUrl: string) => {
   try {
-    const parsedUrl = new URL(providerUrl);
+    const parsedUrl = new URL(rpcUrl);
     const pathParts = parsedUrl.pathname.split('/');
     const queryParams = parsedUrl.searchParams;
 
@@ -59,14 +59,14 @@ export const hideApiKey = (providerUrl: string) => {
     parsedUrl.pathname = pathParts.join('/');
     return parsedUrl.toString();
   } catch (error) {
-    return providerUrl; // return original URL if parsing fails
+    return rpcUrl; // return original URL if parsing fails
   }
 };
 
-export const getChainIdFromProviderUrl = async (providerUrl: string) => {
-  if (!isURL(providerUrl)) throw new Error('Provider URL has not a valid format');
+export const getChainIdFromRpcUrl = async (rpcUrl: string) => {
+  if (!isURL(rpcUrl)) throw new Error('Provider URL has not a valid format');
 
-  const provider = viem.createPublicClient({ transport: viem.http(providerUrl, { timeout: 180000 }) });
+  const provider = viem.createPublicClient({ transport: viem.http(rpcUrl, { timeout: 180000 }) });
   return provider.getChainId();
 };
 
@@ -78,37 +78,37 @@ export async function resolveWriteProvider(
 
   log(bold(`Resolving connection to ${chainData.name} (Chain ID: ${chainId})...`));
   // Check if the first provider URL doesn't start with 'http'
-  const isProviderUrl = isURL(settings.providerUrl.split(',')[0]);
+  const isRpcUrl = isURL(settings.rpcUrl.split(',')[0]);
 
-  if (!isProviderUrl) {
+  if (!isRpcUrl) {
     // If privateKey is present or no valid http URLs are available in rpcUrls
     if (settings.privateKey || chainData.rpcUrls.default.http.length === 0) {
       if (chainData.rpcUrls.default.http.length === 0) {
         error(
           red(
             `Failed to establish a connection with any provider. Please specify a valid RPC url using the ${bold(
-              '--provider-url'
+              '--rpc-url'
             )} flag.`
           )
         );
         process.exit(1);
       }
       // Use default http URLs from chainData
-      settings.providerUrl = chainData.rpcUrls.default.http.join(',');
+      settings.rpcUrl = chainData.rpcUrls.default.http.join(',');
     } else {
       // Merge with viem's default rpc URLs, remove duplicates
-      const providers = [...new Set([...settings.providerUrl.split(','), ...chainData.rpcUrls.default.http])];
-      settings.providerUrl = providers.join(',');
+      const providers = [...new Set([...settings.rpcUrl.split(','), ...chainData.rpcUrls.default.http])];
+      settings.rpcUrl = providers.join(',');
     }
   }
 
-  if (settings.providerUrl == PROVIDER_URL_DEFAULT && !settings.quiet) {
-    warn(grey('Set a RPC URL by passing --provider-url or setting the ENV variable CANNON_PROVIDER_URL.\n'));
+  if (settings.rpcUrl == PROVIDER_URL_DEFAULT && !settings.quiet) {
+    warn(grey('Set a RPC URL by passing --rpc-url or setting the ENV variable CANNON_PROVIDER_URL.\n'));
   }
 
   return resolveProviderAndSigners({
     chainId,
-    checkProviders: settings.providerUrl.split(','),
+    checkProviders: settings.rpcUrl.split(','),
     privateKey: settings.privateKey,
     origin: ProviderOrigin.Write,
   }) as any;
@@ -122,7 +122,7 @@ export async function resolveRegistryProviders(
     resolvedProviders.push(
       await resolveProviderAndSigners({
         chainId: registryInfo.chainId!,
-        checkProviders: registryInfo.providerUrl,
+        checkProviders: registryInfo.rpcUrl,
         privateKey: cliSettings.privateKey,
         origin: ProviderOrigin.Registry,
       })
@@ -197,7 +197,7 @@ export async function resolveProviderAndSigners({
         error(
           red(
             `Failed to establish a connection with any provider. Please specify a valid RPC url using the ${bold(
-              '--provider-url'
+              '--rpc-url'
             )} flag.`
           )
         );
@@ -256,7 +256,7 @@ export async function resolveProviderAndSigners({
         error(
           red(
             `Failed to establish a connection with any provider. Please specify a valid RPC url using the ${bold(
-              '--provider-url'
+              '--rpc-url'
             )} flag.`
           )
         );

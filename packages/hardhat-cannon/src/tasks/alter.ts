@@ -16,9 +16,9 @@ task(TASK_ALTER, 'Make a change to a cannon package outside the regular build pr
     'subpkg',
     'When the change needs to be made in a subpackage, specify the step names leading to the subpackage, comma separated'
   )
-  .addOptionalParam('providerUrl', 'RPC endpoint of the variant to inspect')
+  .addOptionalParam('rpcUrl', 'RPC endpoint of the variant to inspect')
   .addOptionalParam('preset', 'Preset of the variant to inspect')
-  .setAction(async ({ packageName, subpkg, chainId, providerUrl, preset, command, options }, hre) => {
+  .setAction(async ({ packageName, subpkg, chainId, rpcUrl, preset, command, options }, hre) => {
     const packageSpec: PackageSpecification = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
       packageWithSettingsParams: packageName ? [packageName] : [],
     });
@@ -30,7 +30,7 @@ task(TASK_ALTER, 'Make a change to a cannon package outside the regular build pr
       `${packageSpec.name}:${packageSpec.version}`,
       subpkg.split(',').filter((s: string) => s.length > 0),
       chainId,
-      providerUrl,
+      rpcUrl,
       preset,
       loadPackageJson(path.join(hre.config.paths.root, 'package.json')),
       command,

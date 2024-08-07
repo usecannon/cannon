@@ -10,7 +10,7 @@ import { CliSettings, resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { pickAnvilOptions } from './anvil';
 import { parseSettings } from './params';
-import { resolveWriteProvider, isURL, getChainIdFromProviderUrl } from './provider';
+import { resolveWriteProvider, isURL, getChainIdFromRpcUrl } from './provider';
 import { ANVIL_FIRST_ADDRESS } from '../constants';
 
 const debug = Debug('cannon:cli');
@@ -116,8 +116,8 @@ async function configureProvider(opts: any, cliSettings: CliSettings) {
   let chainId: number | undefined = undefined;
 
   if (!opts.chainId) {
-    if (isURL(cliSettings.providerUrl)) {
-      chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
+    if (isURL(cliSettings.rpcUrl)) {
+      chainId = await getChainIdFromRpcUrl(cliSettings.rpcUrl);
     } else {
       node = await runRpc({
         ...pickAnvilOptions(opts),
@@ -172,9 +172,9 @@ async function configureSigners(
   let getDefaultSigner: (() => Promise<CannonSigner>) | undefined = undefined;
 
   // Early return, we don't need to configure signers
-  const isProviderUrl = isURL(cliSettings.providerUrl);
+  const isRpcUrl = isURL(cliSettings.rpcUrl);
 
-  if (!opts.chainId && !isProviderUrl) return { getSigner, getDefaultSigner };
+  if (!opts.chainId && !isRpcUrl) return { getSigner, getDefaultSigner };
 
   if (opts.dryRun) {
     // Setup for dry run
@@ -275,7 +275,7 @@ async function prepareBuildConfig(
     wipe: opts.wipe,
     persist: !opts.dryRun,
     overrideResolver,
-    providerUrl: cliSettings.providerUrl,
+    rpcUrl: cliSettings.rpcUrl,
     writeScript: opts.writeScript,
     writeScriptFormat: opts.writeScriptFormat,
     gasPrice: parseGwei(opts.gasPrice),

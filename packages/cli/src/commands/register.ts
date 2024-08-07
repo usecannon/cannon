@@ -45,9 +45,9 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
   // mock provider urls when the execution comes from e2e tests
   if (cliSettings.isE2E) {
     // anvil optimism fork
-    cliSettings.registries[0].providerUrl = ['http://127.0.0.1:9546'];
+    cliSettings.registries[0].rpcUrl = ['http://127.0.0.1:9546'];
     // anvil mainnet fork
-    cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
+    cliSettings.registries[1].rpcUrl = ['http://127.0.0.1:9545'];
   }
 
   debug('Registries list: ', cliSettings.registries);
@@ -193,7 +193,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
               waitForEvent({
                 eventName: 'PackageOwnerChanged',
                 abi: mainnetRegistry.contract.abi,
-                providerUrl: optimismRegistryConfig.providerUrl![0],
+                rpcUrl: optimismRegistryConfig.rpcUrl![0],
                 expectedArgs: {
                   name: packageNameHex,
                   owner: userAddress,
@@ -202,7 +202,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
               waitForEvent({
                 eventName: 'PackagePublishersChanged',
                 abi: mainnetRegistry.contract.abi,
-                providerUrl: optimismRegistryConfig.providerUrl![0],
+                rpcUrl: optimismRegistryConfig.rpcUrl![0],
                 expectedArgs: {
                   name: packageNameHex,
                   publisher: [userAddress],

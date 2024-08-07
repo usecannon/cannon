@@ -103,14 +103,14 @@ describe('build', () => {
       });
 
       it('should resolve chainId from provider url', async () => {
-        const providerUrl = `http://127.0.0.1:${port}`;
+        const rpcUrl = `http://127.0.0.1:${port}`;
 
         jest.mocked(provider.getChainId).mockResolvedValue(chainId);
 
-        await cli.parseAsync([...fixedArgs, '--provider-url', providerUrl]);
+        await cli.parseAsync([...fixedArgs, '--rpc-url', rpcUrl]);
 
         // create write provider with expected values
-        expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][0].providerUrl).toEqual(providerUrl);
+        expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][0].rpcUrl).toEqual(rpcUrl);
         expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][1]).toEqual(chainId);
         expect(utilProvider.resolveWriteProvider).toHaveBeenCalledTimes(1);
 
@@ -126,7 +126,7 @@ describe('build', () => {
 
       await cli.parseAsync(args);
       // create write provider with expected values
-      expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][0].providerUrl.split(',')[0]).toEqual('frame');
+      expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][0].rpcUrl.split(',')[0]).toEqual('frame');
       expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][1]).toEqual(chainId);
       expect(utilProvider.resolveWriteProvider).toHaveBeenCalledTimes(1);
 
