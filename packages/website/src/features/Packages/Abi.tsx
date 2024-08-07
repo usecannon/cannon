@@ -10,7 +10,7 @@ import {
 import sortBy from 'lodash/sortBy';
 import * as viem from 'viem';
 import { ChainArtifacts } from '@usecannon/builder';
-import { FC, useContext, useEffect, useRef, useState } from 'react';
+import { FC, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AbiFunction, Abi as AbiType } from 'abitype';
 import { Function } from '@/features/Packages/Function';
 import { HasSubnavContext } from './Tabs/InteractTab';
@@ -75,21 +75,34 @@ export const Abi: FC<{
   const [selectedSelector, setSelectedSelector] = useState<string | null>(null);
   const [isUpdatingRoute, setIsUpdatingRoute] = useState(false);
 
-  const allContractMethods = sortBy(
-    abi?.filter((a) => a.type === 'function') as AbiFunction[],
-    ['name']
+  const allContractMethods = useMemo<AbiFunction[]>(
+    () =>
+      sortBy(abi?.filter((a) => a.type === 'function') as AbiFunction[], [
+        'name',
+      ]),
+    [abi]
   );
-  const readContractMethods = sortBy(
-    allContractMethods?.filter((func) =>
-      ['view', 'pure'].includes(func.stateMutability)
-    ),
-    ['name']
+
+  const readContractMethods = useMemo(
+    () =>
+      sortBy(
+        allContractMethods?.filter((func) =>
+          ['view', 'pure'].includes(func.stateMutability)
+        ),
+        ['name']
+      ),
+    [allContractMethods]
   );
-  const writeContractMethods = sortBy(
-    allContractMethods?.filter(
-      (func) => !['view', 'pure'].includes(func.stateMutability)
-    ),
-    ['name']
+
+  const writeContractMethods = useMemo(
+    () =>
+      sortBy(
+        allContractMethods?.filter(
+          (func) => !['view', 'pure'].includes(func.stateMutability)
+        ),
+        ['name']
+      ),
+    [allContractMethods]
   );
 
   const onSelectedSelector = async (newSelector: string) => {
