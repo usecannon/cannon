@@ -14,5 +14,4 @@ yarn cannon build omnibus-base-mainnet-andromeda.toml \
   --dry-run \
   --upgrade-from synthetix-omnibus:latest@andromeda \
   --chain-id 8453 \
-  --provider-url https://base.publicnode.com
-
+  --rpc-url https://base.publicnode.com

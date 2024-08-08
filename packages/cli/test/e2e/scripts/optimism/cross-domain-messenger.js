@@ -12,7 +12,7 @@ const CrossDomainMessengerABI = require('./CrossDomainMessenger.json');
 const L1CrossDomainMessenger = '0x36BDE71C97B33Cc4729cf772aE268934f7AB70B2';
 const L2CrossDomainMessenger = '0x4200000000000000000000000000000000000007';
 
-const optimismForkProviderUrl = 'http://127.0.0.1:9546';
+const optimismForkRpcUrl = 'http://127.0.0.1:9546';
 
 /*
  * This function sets up a test client impersonating the L1CrossDomainMessengerAddress
@@ -22,7 +22,7 @@ const setupTestClient = async () => {
     .createTestClient({
       mode: 'anvil',
       chain: optimism,
-      transport: viem.http(optimismForkProviderUrl),
+      transport: viem.http(optimismForkRpcUrl),
     })
     .extend(viem.publicActions)
     .extend(viem.walletActions);

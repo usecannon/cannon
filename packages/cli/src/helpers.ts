@@ -30,7 +30,7 @@ import { cannonChain, chains } from './chains';
 import { resolveCliSettings } from './settings';
 import { log, warn } from './util/console';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
-import { getChainIdFromProviderUrl, isURL, hideApiKey } from './util/provider';
+import { getChainIdFromRpcUrl, isURL, hideApiKey } from './util/provider';
 import { LocalRegistry } from './registry';
 
 const debug = Debug('cannon:cli:helpers');
@@ -41,8 +41,8 @@ export async function filterSettings(settings: any) {
   const { cannonDirectory, privateKey, etherscanApiKey, ...filteredSettings } = settings;
 
   // Filters out API keys
-  filteredSettings.providerUrl = hideApiKey(filteredSettings.providerUrl);
-  filteredSettings.registryProviderUrl = hideApiKey(filteredSettings.registryProviderUrl);
+  filteredSettings.rpcUrl = hideApiKey(filteredSettings.rpcUrl);
+  filteredSettings.registryRpcUrl = hideApiKey(filteredSettings.registryRpcUrl);
 
   const filterUrlPassword = (uri: string) => {
     try {
@@ -322,19 +322,19 @@ export function getChainDataFromId(chainId: number): viem.Chain | null {
   return chains.find((c: viem.Chain) => c.id == chainId) || null;
 }
 
-export async function ensureChainIdConsistency(providerUrl?: string, chainId?: number): Promise<void> {
+export async function ensureChainIdConsistency(rpcUrl?: string, chainId?: number): Promise<void> {
   // only if both are defined
-  if (providerUrl && chainId) {
-    const isProviderUrl = isURL(providerUrl);
+  if (rpcUrl && chainId) {
+    const isRpcUrl = isURL(rpcUrl);
 
-    if (isProviderUrl) {
-      const providerChainId = await getChainIdFromProviderUrl(providerUrl);
+    if (isRpcUrl) {
+      const providerChainId = await getChainIdFromRpcUrl(rpcUrl);
 
       // throw an expected error if the chainId is not consistent with the provider's chainId
       if (Number(chainId) !== Number(providerChainId)) {
         log(
           red(
-            `Error: The chainId (${providerChainId}) obtained from the ${bold('--provider-url')} does not match with ${bold(
+            `Error: The chainId (${providerChainId}) obtained from the ${bold('--rpc-url')} does not match with ${bold(
               '--chain-id'
             )} value (${chainId}). Please ensure that the ${bold(
               '--chain-id'

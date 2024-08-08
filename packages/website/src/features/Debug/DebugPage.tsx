@@ -95,8 +95,8 @@ export const DebugPage = () => {
         <Code>--from</Code>, and <Code>--value</Code>.{' '}
         <strong>
           Note that you must connect to an archive node (using the{' '}
-          <Code>--provider-url</Code> option) to successfully simulate a call on
-          a historical block.
+          <Code>--rpc-url</Code> option) to successfully simulate a call on a
+          historical block.
         </strong>
       </Text>
       <Text mb={2}>
@@ -104,7 +104,7 @@ export const DebugPage = () => {
         retrieving the debt associated with a pool’s vault in Synthetix V3:
       </Text>
       <Box mb={4}>
-        <CommandPreview command="cannon trace --chain-id 10 synthetix-omnibus 0x2fb8ff2400000000000000000000000000000000000000000000000000000000000000010000000000000000000000008700daec35af8ff88c16bdf0418774cb3d7599b4 --to 0xffffffaEff0B96Ea8e4f94b2253f31abdD875847 --provider-url https://optimism.publicnode.com" />
+        <CommandPreview command="cannon trace --chain-id 10 synthetix-omnibus 0x2fb8ff2400000000000000000000000000000000000000000000000000000000000000010000000000000000000000008700daec35af8ff88c16bdf0418774cb3d7599b4 --to 0xffffffaEff0B96Ea8e4f94b2253f31abdD875847 --rpc-url https://optimism.publicnode.com" />
       </Box>
       <Box mb={4} width="100%" overflowX="auto">
         <Image
@@ -132,7 +132,7 @@ export const DebugPage = () => {
         Synthetix V3:
       </Text>
       <Box mb={4}>
-        <CommandPreview command="cannon interact synthetix --chain-id 1 --provider-url https://ethereum.publicnode.com" />
+        <CommandPreview command="cannon interact synthetix --chain-id 1 --rpc-url https://ethereum.publicnode.com" />
       </Box>
       <Text mb={4}>
         If you’d like to send transactions, you can use{' '}
