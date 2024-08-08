@@ -29,7 +29,7 @@ import {
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
 import { Abi, AbiFunction } from 'abitype';
-import React, { FC, useMemo, useRef, useState } from 'react';
+import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Address,
   toFunctionSelector,
@@ -49,6 +49,7 @@ import { useRouter } from 'next/router';
 import { useQueueTxsStore, useStore } from '@/helpers/store';
 
 export const Function: FC<{
+  selected?: boolean;
   f: AbiFunction;
   abi: Abi;
   address: Address;
@@ -60,6 +61,7 @@ export const Function: FC<{
   showFunctionSelector: boolean;
   packageUrl?: string;
 }> = ({
+  selected,
   f,
   abi /*, cannonOutputs */,
   address,
@@ -555,6 +557,12 @@ export const Function: FC<{
       </Box>
     </Box>
   );
+
+  useEffect(() => {
+    if (selected && !isOpen) {
+      onToggle();
+    }
+  }, [selected]);
 
   return (
     <>
