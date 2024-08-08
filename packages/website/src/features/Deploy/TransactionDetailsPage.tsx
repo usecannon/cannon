@@ -173,7 +173,7 @@ function TransactionDetailsPage({
 
   // then reverse check the package referenced by the
   const { pkgUrl: existingRegistryUrl } = useCannonPackage(
-    `${cannonPackage.resolvedName}:${cannonPackage.resolvedVersion}@${cannonPackage.resolvedPreset}`,
+    cannonPackage.fullPackageRef!,
     parsedChainId
   );
 
@@ -409,6 +409,7 @@ function TransactionDetailsPage({
               gap={6}
             >
               <TransactionDisplay
+                packageRef={cannonPackage.fullPackageRef!}
                 safe={safe}
                 safeTxn={safeTxn as any}
                 queuedWithGitOps={queuedWithGitOps}
