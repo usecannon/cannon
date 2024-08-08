@@ -16,14 +16,21 @@ task(TASK_ALTER, 'Make a change to a cannon package outside the regular build pr
     'subpkg',
     'When the change needs to be made in a subpackage, specify the step names leading to the subpackage, comma separated'
   )
+  .addOptionalParam('providerUrl', '(DEPRECATED) RPC endpoint of the variant to inspect')
   .addOptionalParam('rpcUrl', 'RPC endpoint of the variant to inspect')
   .addOptionalParam('preset', 'Preset of the variant to inspect')
-  .setAction(async ({ packageName, subpkg, chainId, rpcUrl, preset, command, options }, hre) => {
+  .setAction(async ({ packageName, subpkg, chainId, providerUrl, rpcUrl, preset, command, options }, hre) => {
     const packageSpec: PackageSpecification = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
       packageWithSettingsParams: packageName ? [packageName] : [],
     });
     if (!chainId) {
       chainId = hre?.network?.config?.chainId || 13370;
+    }
+
+    // override rpcUrl with providerUrl if it is provided
+    // warning is logged if providerUrl is used on settings file
+    if (providerUrl) {
+      rpcUrl = providerUrl;
     }
 
     await alter(
