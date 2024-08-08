@@ -193,13 +193,18 @@ function QueueFromGitOps() {
       : '',
     chainId
   );
-  const preset = cannonDefInfo.def && cannonDefInfo.def.getPreset(ctx);
-  const cannonPkgVersionInfo = useCannonPackage(
+
+  const fullPackageRef =
     (cannonDefInfo.def &&
       `${cannonDefInfo.def.getName(ctx)}:${cannonDefInfo.def.getVersion(ctx)}${
-        preset ? '@' + preset : ''
+        cannonDefInfo.def.getPreset(ctx)
+          ? '@' + cannonDefInfo.def.getPreset(ctx)
+          : ''
       }`) ??
-      '',
+    '';
+
+  const cannonPkgVersionInfo = useCannonPackage(
+    fullPackageRef,
     currentSafe?.chainId
   );
 
@@ -703,6 +708,7 @@ function QueueFromGitOps() {
                 Transactions
               </Heading>
               <TransactionDisplay
+                packageRef={fullPackageRef}
                 safe={currentSafe as any}
                 safeTxn={stager.safeTxn}
               />
