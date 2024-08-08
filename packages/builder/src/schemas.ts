@@ -22,7 +22,7 @@ const artifactPathRegex = RegExp(/^.*\.sol:\w+/, 'i');
 // Invoke target string schema
 const targetString = z.string().refine(
   (val) =>
-    viem.isAddress(val) ||
+    !!viem.isAddress(val) ||
     !!val.match(interpolatedRegex) ||
     !!val.match(stepRegex) ||
     !!val.match(artifactNameRegex) ||

@@ -15,11 +15,11 @@ import {
   TransactionMap,
 } from '../types';
 import {
+  encodeFunctionData,
   getAllContractPaths,
   getContractDefinitionFromPath,
   getContractFromPath,
   getMergedAbiFromContractPaths,
-  encodeFunctionData,
 } from '../util';
 import { template } from '../utils/template';
 
