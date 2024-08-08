@@ -170,7 +170,7 @@ describe('steps/invoke.ts', () => {
       expect(
         action.getOutputs(
           {
-            target: 'hello',
+            target: ['hello'],
             func: 'wohoo',
             factory: { something: { event: 'whoop', arg: 0 } },
             extra: { else: { event: 'arst', arg: 1 } },

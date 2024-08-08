@@ -18,19 +18,3 @@ artifact = "Greeter"
 args = ["<%= settings.msg %>"]
 libraries.Library = "<%= contracts.library.address %>"
 salt = "<%= settings.salt %>"
-
-[deploy.ClonedGreeter]
-artifact = "ClonedGreeter"
-args = ["<%= settings.msg %>"]
-libraries.Library = "<%= contracts.library.address %>"
-salt = "<%= settings.salt %>"
-
-[router.test]
-contracts = [
-  "library",
-  "greeter",
-]
-
-[invoke.initializeMarket]
-target=["test"]
-func = "greet"
