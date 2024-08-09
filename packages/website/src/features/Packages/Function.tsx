@@ -398,6 +398,7 @@ export const Function: FC<{
                     type="number"
                     size="sm"
                     bg="black"
+                    isInvalid={!valueIsValid}
                     borderColor="whiteAlpha.400"
                     value={value?.toString()}
                     onChange={(e) => {
@@ -418,18 +419,12 @@ export const Function: FC<{
                     ETH
                   </InputRightAddon>
                 </InputGroup>
-                {valueIsValid ? (
-                  <FormHelperText color="gray.300">
+                  <FormHelperText hidden={!valueIsValid} color="gray.300">
                     {value !== undefined
                       ? parseEther(value.toString()).toString()
                       : 0}{' '}
                     wei
                   </FormHelperText>
-                ) : (
-                  <FormHelperText color="red.300">
-                    Invalid BigNumber value
-                  </FormHelperText>
-                )}
               </FormControl>
             )}
 
