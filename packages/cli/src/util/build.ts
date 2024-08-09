@@ -10,7 +10,7 @@ import { CliSettings, resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { pickAnvilOptions } from './anvil';
 import { parseSettings } from './params';
-import { resolveWriteProvider, isURL, getChainIdFromProviderUrl } from './provider';
+import { ProviderAction, resolveProvider, isURL, getChainIdFromProviderUrl } from './provider';
 import { ANVIL_FIRST_ADDRESS } from '../constants';
 
 const debug = Debug('cannon:cli');
@@ -103,43 +103,47 @@ export function setCannonfilePath(cannonfile: string, settings: string[]) {
 /**
  * Configures and returns an Ethereum provider.
  * If no chain id or provider url is provided, starts a local RPC node.
- * In a dry run, it forks the mainnet using the specified provider.
- * @param opts Options for configuring the provider.
+ * In a dry run, it forks the network using the specified provider.
+ * @param options Options for configuring the provider.
  * @param cliSettings CLI settings to use in provider configuration.
  * @returns An object containing the configured provider, signers, and an optional RPC node.
  */
-async function configureProvider(opts: any, cliSettings: CliSettings) {
+async function configureProvider(options: any, cliSettings: CliSettings) {
   let provider: (viem.PublicClient & viem.WalletClient & viem.TestClient) | undefined = undefined;
   let signers: CannonSigner[] | undefined = undefined;
 
   let node: CannonRpcNode | null = null;
   let chainId: number | undefined = undefined;
 
-  if (!opts.chainId) {
+  if (!options.chainId) {
     if (isURL(cliSettings.providerUrl)) {
       chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
     } else {
       node = await runRpc({
-        ...pickAnvilOptions(opts),
+        ...pickAnvilOptions(options),
       });
 
       chainId = node.chainId;
       provider = getProvider(node)!;
     }
   } else {
-    chainId = parseInt(opts.chainId);
+    chainId = parseInt(options.chainId);
   }
 
   if (!provider) {
-    const _provider = await resolveWriteProvider(cliSettings, chainId);
+    const _provider = await resolveProvider({
+      action: options.dryRun ? ProviderAction.WriteDryRunProvider : ProviderAction.WriteProvider,
+      cliSettings,
+      chainId,
+    });
     provider = _provider.provider as any;
     signers = _provider.signers;
   }
 
-  if (opts.dryRun) {
+  if (options.dryRun) {
     node = await runRpc(
       {
-        ...pickAnvilOptions(opts),
+        ...pickAnvilOptions(options),
         chainId,
       },
       {
