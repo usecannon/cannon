@@ -11,7 +11,7 @@ import {
   IPFSLoader,
   InMemoryRegistry,
 } from '@usecannon/builder';
-import viem from 'viem';
+import * as viem from 'viem';
 import axios from 'axios';
 
 /* eslint no-console: "off" */
@@ -53,7 +53,7 @@ const SUPPORTED_CHAIN_IDS = [
 ];
 
 if (!config.ETHERSCAN_API_KEY) {
-  throw new Error('must specify CANNON_ETHERSCAN_API_KEY');
+  throw new Error('must specify ETHERSCAN_API_KEY');
 }
 
 export type EtherscanGetSourceCodeResponse = EtherscanGetSourceCodeNotOkResponse | EtherscanGetSourceCodeOkResponse;
@@ -95,7 +95,7 @@ export async function doContractVerify(ipfsHash: string, loader: CannonStorage) 
         continue;
       }
 
-      if (await isVerified(contractInfo.address, config.ETHERSCAN_API_URL, config.ETHERSCAN_API_KEY)) {
+      if (await isVerified(contractInfo.address, deployData.chainId!, config.ETHERSCAN_API_URL, config.ETHERSCAN_API_KEY)) {
         console.log(`✅ ${c}: Contract source code already verified`);
         await sleep(500);
         continue;
@@ -110,7 +110,7 @@ export async function doContractVerify(ipfsHash: string, loader: CannonStorage) 
           apikey: config.ETHERSCAN_API_KEY,
           module: 'contract',
           action: 'verifysourcecode',
-          chainId: '',
+          chainId: deployData.chainId!.toString(),
           contractaddress: contractInfo.address,
           // need to parse to get the inner structure, then stringify again
           sourceCode: JSON.stringify(inputData),
@@ -127,7 +127,7 @@ export async function doContractVerify(ipfsHash: string, loader: CannonStorage) 
             .slice(2),
         };
 
-        const res = await axios.post(config.ETHERSCAN_API_KEY, reqData, {
+        const res = await axios.post(config.ETHERSCAN_API_URL, reqData, {
           headers: { 'content-type': 'application/x-www-form-urlencoded' },
         });
 
@@ -170,11 +170,12 @@ function sleep(ms: number): Promise<void> {
  * @returns True if the contract is verified, false otherwise.
  */
 
-export async function isVerified(address: string, apiUrl: string, apiKey: string): Promise<boolean> {
+export async function isVerified(address: string, chainId: number, apiUrl: string, apiKey: string): Promise<boolean> {
   const parameters = new URLSearchParams({
     apikey: apiKey,
     module: 'contract',
     action: 'getsourcecode',
+    chainId: chainId.toString(),
     address,
   });
 
