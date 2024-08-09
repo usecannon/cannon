@@ -53,7 +53,7 @@ function tryParseJson(jsonString: string) {
 
 // Note: The first schema defined contains required properties, we then merge a schema with the `deepPartial` function which contains the optional properties
 
-const targetSchema = targetString.or(z.array(targetString).nonempty());
+const targetSchema = z.array(targetString).nonempty();
 
 export const deploySchema = z
   .object({
