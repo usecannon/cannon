@@ -12,10 +12,15 @@ updates:
       dev-deps:
         dependency-type: "development"
     ignore:
+      # Ignore major version updates
       - dependency-name: 'prod-deps'
         update-types: ["version-update:semver-major"]
       - dependency-name: 'dev-deps'
         update-types: ["version-update:semver-major"]
+      # Ignore specific dependencies
+
+      - dependency-name: 'chalk'
+        versions: ['>= 4.1.2']
       
   - package-ecosystem: "npm"
     directory: "/packages/cli"
@@ -28,10 +33,17 @@ updates:
       dev-deps:
         dependency-type: "development"
     ignore:
+      # Ignore major version updates
       - dependency-name: 'prod-deps'
         update-types: ["version-update:semver-major"]
       - dependency-name: 'dev-deps'
         update-types: ["version-update:semver-major"]
+      # Ignore specific dependencies
+
+      - dependency-name: 'chalk'
+        versions: ['>= 4.1.2']
+      - dependency-name: 'untildify'
+        versions: ['>= 4.0.0']
 
   - package-ecosystem: "npm"
     directory: "/packages/hardhat-cannon"
@@ -44,7 +56,12 @@ updates:
       dev-deps:
         dependency-type: "development"
     ignore:
+      # Ignore major version updates
       - dependency-name: 'prod-deps'
         update-types: ["version-update:semver-major"]
       - dependency-name: 'dev-deps'
         update-types: ["version-update:semver-major"]
+      # Ignore specific dependencies
+
+      - dependency-name: 'chalk'
+        versions: ['>= 4.1.2']
