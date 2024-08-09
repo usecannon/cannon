@@ -419,12 +419,12 @@ export const Function: FC<{
                     ETH
                   </InputRightAddon>
                 </InputGroup>
-                  <FormHelperText hidden={!valueIsValid} color="gray.300">
-                    {value !== undefined
-                      ? parseEther(value.toString()).toString()
-                      : 0}{' '}
-                    wei
-                  </FormHelperText>
+                <FormHelperText hidden={!valueIsValid} color="gray.300">
+                  {value !== undefined
+                    ? parseEther(value.toString()).toString()
+                    : 0}{' '}
+                  wei
+                </FormHelperText>
               </FormControl>
             )}
 
