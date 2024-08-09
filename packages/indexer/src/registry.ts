@@ -508,6 +508,8 @@ export async function scanChain(
                 LABELS: { chainId: `${chainId}`, kind: rkey.RKEY_TS_FEES_PAID },
               });
 
+              batch.xAdd(rkey.RKEY_REGISTRY_STREAM, '*', event);
+
               batch.set(rkey.RKEY_LAST_UPDATED + ':' + event.chainId, event.timestamp);
 
               await batch.exec();
