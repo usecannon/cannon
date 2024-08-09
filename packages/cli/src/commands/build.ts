@@ -480,7 +480,7 @@ export async function build({
         log(bold(`💥 ${fullPackageRef} would be successfully built on ${chainName} (Chain ID: ${chainId})`));
         log(gray(`Estimated Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
         log();
-        
+
         log(
           bold(
             `Package data would be stored locally${
@@ -490,7 +490,7 @@ export async function build({
         );
         log();
 
-        log('(Note: These files will not be saved)')
+        log('(Note: These files will not be saved)');
       } else {
         if (chainId == 13370) {
           log(bold(`💥 ${fullPackageRef} built for Cannon (Chain ID: ${chainId})`));

@@ -13,7 +13,6 @@ import { parseSettings } from './params';
 import { resolveWriteProvider, isURL, getChainIdFromProviderUrl } from './provider';
 import { ANVIL_FIRST_ADDRESS } from '../constants';
 import { warn } from './console';
-import { omit } from 'lodash';
 
 const debug = Debug('cannon:cli');
 
@@ -144,10 +143,11 @@ async function configureProvider(opts: any, cliSettings: CliSettings) {
         ...pickAnvilOptions(opts),
         chainId,
       },
-      provider ? {} :
-      {
-        forkProvider: provider,
-      }
+      provider
+        ? {}
+        : {
+            forkProvider: provider,
+          }
     );
 
     provider = getProvider(node)!;
@@ -205,7 +205,9 @@ async function configureSigners(
     getDefaultSigner = async () => signers![0];
   }
 
-  if (opts.chainId != '13370' && (await getDefaultSigner()).address == ANVIL_FIRST_ADDRESS) {
+  const defaultSignerAddress = (await getDefaultSigner())!.address;
+
+  if (opts.chainId != '13370' && defaultSignerAddress === ANVIL_FIRST_ADDRESS) {
     warn(`WARNING: This build is using default anvil address ${ANVIL_FIRST_ADDRESS}`);
   }
 
