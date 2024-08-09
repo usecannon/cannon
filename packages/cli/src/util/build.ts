@@ -205,10 +205,12 @@ async function configureSigners(
     getDefaultSigner = async () => signers![0];
   }
 
-  const defaultSignerAddress = (await getDefaultSigner())!.address;
-
-  if (opts.chainId != '13370' && defaultSignerAddress === ANVIL_FIRST_ADDRESS) {
-    warn(`WARNING: This build is using default anvil address ${ANVIL_FIRST_ADDRESS}`);
+  if (await getDefaultSigner()) {
+    const defaultSignerAddress = (await getDefaultSigner())!.address;
+  
+    if (opts.chainId != '13370' && defaultSignerAddress === ANVIL_FIRST_ADDRESS) {
+      warn(`WARNING: This build is using default anvil address ${ANVIL_FIRST_ADDRESS}`);
+    }
   }
 
   return { getSigner, getDefaultSigner };
