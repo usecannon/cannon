@@ -18,7 +18,7 @@ import { DeploymentInfo } from '@usecannon/builder/src/types';
 import { InfoIcon, DownloadIcon } from '@chakra-ui/icons';
 import { ChainBuilderContext } from '@usecannon/builder';
 import { isEmpty } from 'lodash';
-import { useQueryIpfsData } from '@/hooks/ipfs';
+import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { CommandPreview } from '@/components/CommandPreview';
 import { ContractsTable } from './ContractsTable';
 import { InvokesTable } from './InvokesTable';
@@ -27,11 +27,11 @@ import { EventsTable } from './EventsTable';
 export const DeploymentExplorer: FC<{
   pkg: any;
 }> = ({ pkg }) => {
-  const deploymentData = useQueryIpfsData(pkg?.deployUrl, !!pkg?.deployUrl);
-
-  const deploymentInfo = deploymentData.data
-    ? (deploymentData.data as DeploymentInfo)
-    : undefined;
+  const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
+    pkg?.deployUrl,
+    !!pkg?.deployUrl
+  );
+  const deploymentInfo = deploymentData.data;
 
   const settings: { [key: string]: any } = {};
   if (deploymentInfo?.def?.setting) {
@@ -200,8 +200,8 @@ export const DeploymentExplorer: FC<{
               </Box>
               <CommandPreview
                 command={`cannon ${pkg.name}${
-                  pkg?.tag !== 'latest' ? `:${pkgDef.version}` : ''
-                }${pkg.preset !== 'main' ? `@${pkgDef.preset}` : ''}`}
+                  pkg?.tag !== 'latest' ? `:${pkgDef?.version}` : ''
+                }${pkg.preset !== 'main' ? `@${pkgDef?.preset}` : ''}`}
               />
             </Container>
           )}

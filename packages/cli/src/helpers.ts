@@ -7,6 +7,11 @@ import {
   ChainDefinition,
   ContractData,
   ContractMap,
+  DeploymentInfo,
+  getCannonRepoRegistryUrl,
+  IPFSLoader,
+  CannonStorage,
+  PackageReference,
   RawChainDefinition,
 } from '@usecannon/builder';
 import { AbiEvent } from 'abitype';
@@ -26,6 +31,7 @@ import { resolveCliSettings } from './settings';
 import { log, warn } from './util/console';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 import { getChainIdFromProviderUrl, isURL, hideApiKey } from './util/provider';
+import { LocalRegistry } from './registry';
 
 const debug = Debug('cannon:cli:helpers');
 
@@ -492,4 +498,84 @@ export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | unde
   });
 
   return normalizedPrivateKeys.join(',') as viem.Hex;
+}
+
+/**
+ *
+ * @param ref reference string, can be a package reference or ipfs url
+ * @returns Package Reference string
+ */
+export async function getPackageReference(ref: string) {
+  if (ref.startsWith('@')) {
+    log(yellowBright("'@ipfs:' package reference format is deprecated, use 'ipfs://' instead"));
+  }
+
+  if (isIPFSUrl(ref)) {
+    ref = normalizeIPFSUrl(ref);
+  } else if (isIPFSCid(ref)) {
+    ref = `ipfs://${ref}`;
+  } else {
+    return new PackageReference(ref).fullPackageRef; //If its not an IPFS ref just return the package reference
+  }
+
+  const cliSettings = resolveCliSettings();
+
+  const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
+
+  const storage = new CannonStorage(localRegistry, {
+    ipfs: new IPFSLoader(cliSettings.ipfsUrl! || getCannonRepoRegistryUrl(), {}, 1000),
+  });
+
+  try {
+    const pkgInfo: DeploymentInfo = await storage.readBlob(ref);
+
+    let version = pkgInfo.def.version;
+    if (pkgInfo.def.version.startsWith('<%=')) {
+      version = pkgInfo.meta.version;
+    }
+
+    const packageReference = `${pkgInfo.def.name}:${version || 'latest'}@${pkgInfo.def.preset || 'main'}`;
+
+    return packageReference;
+  } catch (error: any) {
+    if (error.toString().includes('timeout')) {
+      throw new Error(
+        "Could not download package through IPFS, please make sure you set your 'ipfsUrl' to the ipfs url where this hash has been pinned"
+      );
+    }
+    throw new Error(error);
+  }
+}
+
+export function isIPFSUrl(ref: string) {
+  return ref.startsWith('ipfs://') || ref.startsWith('@ipfs:');
+}
+
+export function isIPFSCid(ref: string) {
+  return ref.startsWith('Qm');
+}
+
+export function isIPFSRef(ref: string) {
+  return isIPFSCid(ref) || isIPFSUrl(ref);
+}
+
+export function normalizeIPFSUrl(ref: string) {
+  if (ref.startsWith('@ipfs:')) {
+    return ref.replace('@ipfs:', 'ipfs://');
+  }
+
+  return ref;
+}
+
+export function getCIDfromUrl(ref: string) {
+  if (!isIPFSRef(ref)) {
+    throw new Error(`${ref} is not a valid IPFS url`);
+  }
+
+  if (isIPFSUrl(ref)) {
+    ref = normalizeIPFSUrl(ref);
+    return ref.replace('ipfs://', '');
+  }
+
+  return ref;
 }

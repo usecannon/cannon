@@ -6,6 +6,9 @@ keywords = ["sample", "consumer"]
 [var.change_greeting2]
 change_greeting2 = "new greeting!"
 
+[var.boolTest]
+boolTest = "True"
+
 [pull.greeters]
 source = "greeter-foundry"
 
@@ -18,7 +21,12 @@ var.msg = "a message from second greeter set"
 [invoke.do_change_greeting2]
 target = ["greeters.greeter"]
 func = "setGreeting"
-args = ["<%= settings.change_greeting2 %>"]
+args = ["<%= settings.change_greeting2 %>", "False"]
+
+[invoke.do_change_greeting3]
+target = ["more_greeters.greeter"]
+func = "setGreeting"
+args = ["<%= settings.change_greeting2 %>", "True"]
 
 # test for factory functionality
 [invoke.clone]
@@ -49,7 +57,13 @@ var.OldCloneGreeting.arg = 0
 [invoke.set_new_greeting_for_next_clones]
 target = ["greeters.greeter"]
 func = "setGreeting"
-args = ["<%= settings.NewCloneGreeting %>"]
+args = ["<%= settings.NewCloneGreeting %>", false]
+
+[invoke.set_dummy]
+target = ["<%= AddressZero %>"]
+abi = '[{"type":"function","name":"test","inputs":[{"type": "string"},{"type":"string"}]}]'
+func = "test"
+args = ["true", "FALSE"]
 
 # Clone 2 greeters iteratively (used to test multiple emissions of the same event)
 # Testing this using extras object instead of factory 

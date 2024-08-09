@@ -167,13 +167,13 @@ function TransactionDetailsPage({
 
   const cannonPackage = useCannonPackage(
     hintData?.cannonPackage
-      ? `@ipfs:${_.last(hintData?.cannonPackage.split('/'))}`
+      ? `ipfs://${_.last(hintData?.cannonPackage.split('/'))}`
       : ''
   );
 
   // then reverse check the package referenced by the
   const { pkgUrl: existingRegistryUrl } = useCannonPackage(
-    `${cannonPackage.resolvedName}:${cannonPackage.resolvedVersion}@${cannonPackage.resolvedPreset}`,
+    cannonPackage.fullPackageRef!,
     parsedChainId
   );
 
@@ -210,7 +210,7 @@ function TransactionDetailsPage({
 
   const prevCannonDeployInfo = useCannonPackage(
     (hintData?.cannonUpgradeFromPackage || prevDeployPackageUrl
-      ? `@ipfs:${_.last(
+      ? `ipfs://${_.last(
           (hintData?.cannonUpgradeFromPackage || prevDeployPackageUrl).split(
             '/'
           )
@@ -409,6 +409,7 @@ function TransactionDetailsPage({
               gap={6}
             >
               <TransactionDisplay
+                packageRef={cannonPackage.fullPackageRef!}
                 safe={safe}
                 safeTxn={safeTxn as any}
                 queuedWithGitOps={queuedWithGitOps}
