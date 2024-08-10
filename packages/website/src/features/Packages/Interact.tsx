@@ -184,7 +184,7 @@ const Interact: FC = () => {
       </Flex>
 
       <Abi
-        isLoading={true}
+        isLoading={isLoadingData}
         abi={contract?.abi}
         contractSource={contract?.sourceName}
         address={contractAddress}
