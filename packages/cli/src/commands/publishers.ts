@@ -98,13 +98,13 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   const registryProviders = await Promise.all([
     resolveProviderAndSigners({
       chainId: readRegistry.chainId!,
-      checkProviders: readRegistry.providerUrl,
+      checkProviders: readRegistry.rpcUrl,
       action: ProviderAction.ReadProvider,
     }),
     resolveProviderAndSigners({
       chainId: writeRegistry.chainId!,
       privateKey: cliSettings.privateKey!,
-      checkProviders: writeRegistry.providerUrl,
+      checkProviders: writeRegistry.rpcUrl,
       action: options.list ? ProviderAction.ReadProvider : ProviderAction.WriteProvider,
     }),
   ]);
@@ -242,7 +242,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         waitForEvent({
           eventName: 'PackagePublishersChanged',
           abi: mainnetRegistry.contract.abi,
-          rpcUrl: _.last(mainnetRegistryConfig.providerUrl)!,
+          rpcUrl: _.last(mainnetRegistryConfig.rpcUrl)!,
           expectedArgs: {
             name: packageNameHex,
             publisher: mainnetPublishers,
@@ -251,7 +251,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         waitForEvent({
           eventName: 'PackagePublishersChanged',
           abi: optimismRegistry.contract.abi,
-          rpcUrl: _.last(optimismRegistryConfig.providerUrl)!,
+          rpcUrl: _.last(optimismRegistryConfig.rpcUrl)!,
           expectedArgs: {
             name: packageNameHex,
             publisher: optimismPublishers,

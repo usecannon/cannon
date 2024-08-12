@@ -11,7 +11,7 @@ import { alter } from './alter';
 // Jest Mocking
 jest.mock('../settings', () => ({
   resolveCliSettings: jest.fn().mockReturnValue({
-    registryrpcUrl: 'http://localhost:3000',
+    registryRpcUrl: 'http://localhost:3000',
     registryChainId: '123', // or whatever value is appropriate in your case
     privateKey: generatePrivateKey(), // or whatever value is appropriate in your case
     cannonDirectory: dirSync().name,

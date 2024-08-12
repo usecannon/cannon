@@ -42,13 +42,13 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
   const registryProviders = await Promise.all([
     resolveProviderAndSigners({
       chainId: readRegistry.chainId!,
-      checkProviders: readRegistry.providerUrl,
+      checkProviders: readRegistry.rpcUrl,
       action: ProviderAction.ReadProvider,
     }),
     resolveProviderAndSigners({
       chainId: writeRegistry.chainId!,
       privateKey: cliSettings.privateKey!,
-      checkProviders: writeRegistry.providerUrl,
+      checkProviders: writeRegistry.rpcUrl,
       action: ProviderAction.WriteProvider,
     }),
   ]);
@@ -194,7 +194,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
               waitForEvent({
                 eventName: 'PackageOwnerChanged',
                 abi: mainnetRegistry.contract.abi,
-                rpcUrl: _.last(optimismRegistryConfig.providerUrl)!,
+                rpcUrl: _.last(optimismRegistryConfig.rpcUrl)!,
                 expectedArgs: {
                   name: packageNameHex,
                   owner: userAddress,
@@ -203,7 +203,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
               waitForEvent({
                 eventName: 'PackagePublishersChanged',
                 abi: mainnetRegistry.contract.abi,
-                rpcUrl: _.last(optimismRegistryConfig.providerUrl)!,
+                rpcUrl: _.last(optimismRegistryConfig.rpcUrl)!,
                 expectedArgs: {
                   name: packageNameHex,
                   publisher: [userAddress],

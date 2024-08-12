@@ -58,7 +58,7 @@ describe('fetch', () => {
       jest.fn().mockReturnValue({
         ipfsUrl: 'http://127.0.0.1:5001',
         publishIpfsUrl: 'http://127.0.0.1:5001',
-        registryrpcUrl: 'http://localhost:3000',
+        registryRpcUrl: 'http://localhost:3000',
         registryAddress: viem.zeroAddress,
         registryChainId: '123',
         cannonDirectory: '/cannon/directory/',
