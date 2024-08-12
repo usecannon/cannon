@@ -27,17 +27,11 @@ task(TASK_ALTER, 'Make a change to a cannon package outside the regular build pr
       chainId = hre?.network?.config?.chainId || 13370;
     }
 
-    // override rpcUrl with providerUrl if it is provided
-    // warning is logged if providerUrl is used on settings file
-    if (providerUrl) {
-      rpcUrl = providerUrl;
-    }
-
     await alter(
       `${packageSpec.name}:${packageSpec.version}`,
       subpkg.split(',').filter((s: string) => s.length > 0),
       chainId,
-      rpcUrl,
+      rpcUrl || providerUrl,
       preset,
       loadPackageJson(path.join(hre.config.paths.root, 'package.json')),
       command,
