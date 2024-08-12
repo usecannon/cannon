@@ -1,3 +1,4 @@
+import { isValidHex } from '@/helpers/ethereum';
 import { useStore } from '@/helpers/store';
 import { useCannonPackage, useCannonPackageContracts } from '@/hooks/cannon';
 import { useSimulatedTxns } from '@/hooks/fork';
@@ -28,19 +29,8 @@ import {
   Select,
 } from 'chakra-react-select';
 import { useEffect, useState } from 'react';
-import {
-  Abi,
-  Address,
-  decodeErrorResult,
-  encodeFunctionData,
-  formatEther,
-  Hex,
-  parseEther,
-  toFunctionSelector,
-  TransactionRequestBase,
-} from 'viem';
+import * as viem from 'viem';
 import { FunctionInput } from '../Packages/FunctionInput';
-import { isValidHex } from '@/helpers/ethereum';
 import 'react-diff-view/style/index.css';
 
 type OptionData = {
@@ -86,9 +76,9 @@ const chakraStyles: ChakraStylesConfig<
   }),
 };
 
-function decodeError(err: Hex, abi: Abi) {
+function decodeError(err: viem.Hex, abi: viem.Abi) {
   try {
-    const parsedError = decodeErrorResult({
+    const parsedError = viem.decodeErrorResult({
       abi,
       data: err,
     });
@@ -116,7 +106,7 @@ export function QueueTransaction({
   simulate = true,
 }: {
   onChange: (
-    txn: Omit<TransactionRequestBase, 'from'> | null,
+    txn: Omit<viem.TransactionRequestBase, 'from'> | null,
     fn: AbiFunction,
     params: any[] | any,
     contractName: string | null,
@@ -126,7 +116,7 @@ export function QueueTransaction({
   isCustom?: boolean;
   isDeletable: boolean;
   onDelete: () => void;
-  txn: Omit<TransactionRequestBase, 'from'> | null;
+  txn: Omit<viem.TransactionRequestBase, 'from'> | null;
   fn?: AbiFunction;
   contractName?: string;
   contractAddress?: string;
@@ -136,7 +126,7 @@ export function QueueTransaction({
   simulate?: boolean;
 }) {
   const [value, setValue] = useState<string | undefined>(
-    tx?.value ? formatEther(BigInt(tx?.value)).toString() : undefined
+    tx?.value ? viem.formatEther(BigInt(tx?.value)).toString() : undefined
   );
   const pkg = useCannonPackage(target, chainId);
   const { contracts } = useCannonPackageContracts(target, chainId);
@@ -148,9 +138,10 @@ export function QueueTransaction({
     fn || null
   );
   const [selectedParams, setSelectedParams] = useState<any[]>(params || []);
-  const [txn, setTxn] = useState<Omit<TransactionRequestBase, 'from'> | null>(
-    tx || null
-  );
+  const [txn, setTxn] = useState<Omit<
+    viem.TransactionRequestBase,
+    'from'
+  > | null>(tx || null);
   const [paramsEncodeError, setParamsEncodeError] = useState<string | null>();
 
   useEffect(() => {
@@ -170,7 +161,7 @@ export function QueueTransaction({
     if (isCustom) return;
 
     let error: string | null = null;
-    let _txn: Omit<TransactionRequestBase, 'from'> | null = null;
+    let _txn: Omit<viem.TransactionRequestBase, 'from'> | null = null;
 
     if (selectedContractName && selectedFunction) {
       const isPayable = selectedFunction.stateMutability === 'payable';
@@ -179,11 +170,11 @@ export function QueueTransaction({
         _txn = {
           to: contracts
             ? contracts[selectedContractName].address
-            : (tx?.to as Address),
-          data: toFunctionSelector(selectedFunction),
+            : (tx?.to as viem.Address),
+          data: viem.toFunctionSelector(selectedFunction),
           value:
             isPayable && value !== undefined
-              ? parseEther(value.toString())
+              ? viem.parseEther(value.toString())
               : undefined,
         };
       } else {
@@ -191,14 +182,14 @@ export function QueueTransaction({
           _txn = {
             to: contracts
               ? contracts[selectedContractName].address
-              : (tx?.to as Address),
-            data: encodeFunctionData({
+              : (tx?.to as viem.Address),
+            data: viem.encodeFunctionData({
               abi: [selectedFunction],
               args: selectedParams,
             }),
             value:
               isPayable && value !== undefined
-                ? parseEther(value.toString())
+                ? viem.parseEther(value.toString())
                 : undefined,
           };
         } catch (err: any) {
@@ -283,7 +274,7 @@ export function QueueTransaction({
                   onChange(
                     {
                       ...tx,
-                      data: e.target.value as Address,
+                      data: e.target.value as any, // TODO: fix type
                     },
                     selectedFunction as any,
                     selectedParams,
@@ -360,7 +351,7 @@ export function QueueTransaction({
                       secondary: `${chainId}:${
                         contracts
                           ? contracts[selectedContractName].address
-                          : (txn?.to as Address)
+                          : (txn?.to as viem.Address)
                       }`,
                     }
                   : null
@@ -400,7 +391,7 @@ export function QueueTransaction({
                   ? {
                       value: selectedFunction,
                       label: selectedFunction.name,
-                      secondary: toFunctionSelector(selectedFunction),
+                      secondary: viem.toFunctionSelector(selectedFunction),
                     }
                   : null
               }
@@ -416,14 +407,14 @@ export function QueueTransaction({
                       .map((abi: AbiFunction) => ({
                         value: abi,
                         label: abi.name,
-                        secondary: toFunctionSelector(abi),
+                        secondary: viem.toFunctionSelector(abi),
                       }))
                   : selectedFunction
                   ? [
                       {
                         value: selectedFunction,
                         label: selectedFunction.name,
-                        secondary: toFunctionSelector(selectedFunction),
+                        secondary: viem.toFunctionSelector(selectedFunction),
                       },
                     ]
                   : []
@@ -494,7 +485,7 @@ export function QueueTransaction({
               </InputGroup>
               <FormHelperText color="gray.300">
                 {value !== undefined
-                  ? parseEther(value.toString()).toString()
+                  ? viem.parseEther(value.toString()).toString()
                   : 0}{' '}
                 wei
               </FormHelperText>

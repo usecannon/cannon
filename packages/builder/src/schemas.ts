@@ -19,10 +19,14 @@ const jsonAbiPathRegex = RegExp(/^(?!.*\.d?$).*\.json?$/, 'i');
 const artifactNameRegex = RegExp(/^[A-Z]{1}[\w]+$/, 'i');
 const artifactPathRegex = RegExp(/^.*\.sol:\w+/, 'i');
 
+// Because of a weird type cohercion, after using viem.isAddress during website build,
+// the string type of the given value gets invalid to "never", and breaks the build.
+const isAddress = (val: any): boolean => typeof val === 'string' && viem.isAddress(val);
+
 // Invoke target string schema
 const targetString = z.string().refine(
   (val) =>
-    viem.isAddress(val) ||
+    !!isAddress(val) ||
     !!val.match(interpolatedRegex) ||
     !!val.match(stepRegex) ||
     !!val.match(artifactNameRegex) ||
@@ -83,7 +87,7 @@ export const deploySchema = z
          *    Determines whether to deploy the contract using create2
          */
         create2: z
-          .union([z.boolean(), z.string().refine((val) => viem.isAddress(val))])
+          .union([z.boolean(), z.string().refine((val) => isAddress(val))])
           .describe(
             'Determines whether to deploy the contract using create2. If an address is specified, the arachnid create2 contract will be deployed/used from this address.'
           ),
@@ -94,7 +98,7 @@ export const deploySchema = z
         from: z
           .string()
           .refine(
-            (val) => viem.isAddress(val) || !!val.match(interpolatedRegex),
+            (val) => isAddress(val) || !!val.match(interpolatedRegex),
             (val) => ({ message: `"${val}" is not a valid ethereum address` })
           )
           .describe('Contract deployer address. Must match the ethereum address format'),
@@ -366,7 +370,7 @@ export const invokeSchema = z
         from: z
           .string()
           .refine(
-            (val) => viem.isAddress(val) || !!val.match(interpolatedRegex),
+            (val) => isAddress(val) || !!val.match(interpolatedRegex),
             (val) => ({ message: `"${val}" must be a valid ethereum address` })
           )
           .describe('The calling address to use when invoking this call.'),

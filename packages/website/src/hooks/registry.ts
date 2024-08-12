@@ -1,5 +1,5 @@
 import { findChain } from '@/helpers/rpc';
-import { OnChainRegistry, DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
+import { DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_CONFIG, OnChainRegistry } from '@usecannon/builder';
 import { useEffect, useState } from 'react';
 import * as viem from 'viem';
 
@@ -22,7 +22,7 @@ export function useCannonPackagePublishers(packageName: string) {
           provider: viem.createPublicClient({
             chain: findChain(chainId) as viem.Chain,
             transport: viem.http(),
-          }),
+          }) as any, // TODO: fix type
         })
     );
 
