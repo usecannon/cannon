@@ -1,6 +1,7 @@
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { FunctionInput } from '@/features/Packages/FunctionInput';
 import { FunctionOutput } from '@/features/Packages/FunctionOutput';
+import { useQueueTxsStore, useStore } from '@/helpers/store';
 import { useContractCall, useContractTransaction } from '@/hooks/ethereum';
 import {
   CheckCircleIcon,
@@ -8,36 +9,37 @@ import {
   ChevronUpIcon,
   WarningIcon,
 } from '@chakra-ui/icons';
-import { FaCode } from 'react-icons/fa6';
 import {
   Alert,
   Box,
   Button,
   Flex,
   FormControl,
+  FormHelperText,
   FormLabel,
   Heading,
-  Link,
-  Text,
-  useToast,
-  useDisclosure,
   Input,
   InputGroup,
   InputRightAddon,
-  FormHelperText,
+  Link,
+  Text,
+  useDisclosure,
+  useToast,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
 import { Abi, AbiFunction } from 'abitype';
+import { useRouter } from 'next/router';
 import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
+import { FaCode } from 'react-icons/fa6';
 import {
   Address,
+  encodeFunctionData,
+  parseEther,
   toFunctionSelector,
   toFunctionSignature,
-  zeroAddress,
-  encodeFunctionData,
   TransactionRequestBase,
-  parseEther,
+  zeroAddress,
 } from 'viem';
 import {
   useAccount,
@@ -45,8 +47,6 @@ import {
   useSwitchChain,
   useWalletClient,
 } from 'wagmi';
-import { useRouter } from 'next/router';
-import { useQueueTxsStore, useStore } from '@/helpers/store';
 
 export const Function: FC<{
   selected?: boolean;
@@ -126,7 +126,7 @@ export const Function: FC<{
     f.name,
     [...params],
     abi,
-    publicClient
+    publicClient as any // TODO: fix type
   );
 
   const [writeContractResult, fetchWriteContractResult] =
@@ -136,7 +136,7 @@ export const Function: FC<{
       f.name,
       [...params],
       abi,
-      publicClient,
+      publicClient as any, // TODO: fix type
       walletClient as any
     );
 
