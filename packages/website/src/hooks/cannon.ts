@@ -25,9 +25,8 @@ import {
 } from '@usecannon/builder';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { Abi, Address, createPublicClient, createWalletClient, custom, Hex, isAddressEqual, PublicClient } from 'viem';
+import { Abi, Address, createPublicClient, createWalletClient, custom, Hex, isAddressEqual } from 'viem';
 import { useChainId } from 'wagmi';
-
 // Needed to prepare mock run step with registerAction
 import '@/lib/builder';
 
@@ -126,18 +125,20 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
     const loaders = { mem: inMemoryLoader, ipfs: ipfsLoader };
 
+    const getSigner = async (addr: Address) => {
+      if (!isAddressEqual(addr, safe.address)) {
+        throw new Error(`Could not get signer for "${addr}"`);
+      }
+
+      return getDefaultSigner();
+    };
+
     currentRuntime = new ChainBuilderRuntime(
       {
-        provider: provider as PublicClient,
+        provider: provider as any, // TODO: fix type
         chainId: safe.chainId,
-        getSigner: async (addr: Address) => {
-          if (!isAddressEqual(addr, safe.address)) {
-            throw new Error(`Could not get signer for "${addr}"`);
-          }
-
-          return getDefaultSigner();
-        },
-        getDefaultSigner,
+        getSigner: getSigner as any, // TODO: fix type
+        getDefaultSigner: getDefaultSigner as any, // TODO: fix type
         snapshots: false,
         allowPartialDeploy: true,
       },

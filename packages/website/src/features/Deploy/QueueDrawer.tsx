@@ -1,7 +1,9 @@
 'use client';
 
+import ClientOnly from '@/components/ClientOnly';
 import { links } from '@/constants/links';
 import WithSafe from '@/features/Deploy/WithSafe';
+import { isValidHex } from '@/helpers/ethereum';
 import { makeMultisend } from '@/helpers/multisend';
 import { useQueueTxsStore, useStore } from '@/helpers/store';
 import { useTxnStager } from '@/hooks/backend';
@@ -22,6 +24,7 @@ import {
   DrawerContent,
   DrawerHeader,
   DrawerOverlay,
+  Flex,
   FormControl,
   FormHelperText,
   FormLabel,
@@ -35,26 +38,21 @@ import {
   Text,
   Tooltip,
   useToast,
-  Flex,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
-import {
-  AbiFunction,
-  Address,
-  encodeAbiParameters,
-  isAddress,
-  TransactionRequestBase,
-  zeroAddress,
-} from 'viem';
+import * as viem from 'viem';
 import { useAccount, useWriteContract } from 'wagmi';
 import NoncePicker from './NoncePicker';
 import { QueueTransaction } from './QueueTransaction';
 import { SafeAddressInput } from './SafeAddressInput';
-import { isValidHex } from '@/helpers/ethereum';
 import 'react-diff-view/style/index.css';
-import ClientOnly from '@/components/ClientOnly';
+
+// Because of a weird type cohercion, after using viem.isAddress during website build,
+// the string type of the given value gets invalid to "never", and breaks the build.
+const isAddress = (val: any): boolean =>
+  typeof val === 'string' && viem.isAddress(val);
 
 export const QueuedTxns = ({
   onDrawerClose,
@@ -63,7 +61,7 @@ export const QueuedTxns = ({
 }) => {
   const account = useAccount();
   const { openConnectModal } = useConnectModal();
-  const [customTxnData, setCustomTxnData] = useState<string>();
+  const [customTxnData, setCustomTxnData] = useState<viem.Address>('');
   const customTxnDataIsValid = isValidHex(customTxnData || '');
   const currentSafe = useStore((s) => s.currentSafe);
   const router = useRouter();
@@ -103,12 +101,12 @@ export const QueuedTxns = ({
     queuedTxns.length > 0
       ? makeMultisend([
           {
-            to: zeroAddress,
-            data: encodeAbiParameters(
+            to: viem.zeroAddress,
+            data: viem.encodeAbiParameters(
               [{ type: 'string[]' }],
               [['invoke', pkgUrlString]]
             ),
-          } as Partial<TransactionRequestBase>,
+          } as Partial<viem.TransactionRequestBase>,
           ...queuedTxns,
         ])
       : {};
@@ -166,8 +164,8 @@ export const QueuedTxns = ({
 
   function updateQueuedTxn(
     i: number,
-    txn: Omit<TransactionRequestBase, 'from'>,
-    fn?: AbiFunction,
+    txn: Omit<viem.TransactionRequestBase, 'from'>,
+    fn?: viem.AbiFunction,
     params?: any[] | any,
     contractName?: string | null,
     target?: string | null,
@@ -231,8 +229,8 @@ export const QueuedTxns = ({
           ...queuedIdentifiableTxns,
           {
             txn: {
-              to: target as Address,
-              data: customTxnData as Address,
+              to: target as `0x${string}`,
+              data: customTxnData as `0x${string}`,
             },
             id: String(lastQueuedTxnsId + 1),
             chainId: currentSafe?.chainId as number,
@@ -246,7 +244,7 @@ export const QueuedTxns = ({
         lastQueuedTxnsId: lastQueuedTxnsId + 1,
         safeId: `${currentSafe?.chainId}:${currentSafe?.address}`,
       });
-      setCustomTxnData('');
+      setCustomTxnData('' as viem.Address);
       setTarget('');
     }
   };
@@ -465,7 +463,7 @@ export const QueuedTxns = ({
                   borderColor="whiteAlpha.400"
                   background="black"
                   placeholder="0x"
-                  onChange={(e) => setCustomTxnData(e.target.value as Address)}
+                  onChange={(e) => setCustomTxnData(e.target.value)}
                 />
                 {customTxnData && !customTxnDataIsValid && (
                   <FormHelperText color="red.300">
