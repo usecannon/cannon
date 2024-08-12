@@ -156,7 +156,7 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
     CANNON_DIRECTORY: z.string().default(DEFAULT_CANNON_DIRECTORY),
     CANNON_SETTINGS: z.string().optional(),
     CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || RPC_URL_DEFAULT),
-    CANNON_RPC_URL: z.string().default(fileSettings.rpcUrl || RPC_URL_DEFAULT),
+    CANNON_RPC_URL: z.string().default(fileSettings.rpcUrl || ''),
     CANNON_PRIVATE_KEY: z
       .string()
       .optional()
