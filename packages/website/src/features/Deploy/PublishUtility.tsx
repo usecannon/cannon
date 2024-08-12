@@ -33,7 +33,7 @@ import {
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { PublicClient, createPublicClient, http, isAddressEqual } from 'viem';
+import * as viem from 'viem';
 import { mainnet, optimism } from 'viem/chains';
 import { useSwitchChain, useWalletClient } from 'wagmi';
 
@@ -77,7 +77,7 @@ export default function PublishUtility(props: {
   const canPublish = publishers.some(
     ({ publisher }) =>
       wc.data?.account.address &&
-      isAddressEqual(publisher, wc.data?.account.address)
+      viem.isAddressEqual(publisher, wc.data?.account.address)
   );
 
   const { transports } = useProviders();
@@ -94,18 +94,18 @@ export default function PublishUtility(props: {
         new OnChainRegistry({
           signer: { address: walletAddress, wallet: wc.data },
           address: DEFAULT_REGISTRY_ADDRESS,
-          provider: createPublicClient({
+          provider: viem.createPublicClient({
             chain: optimism,
-            transport: transports[optimism.id] || http(),
-          }) as PublicClient,
+            transport: transports[optimism.id] || viem.http(),
+          }) as any, // TODO: fix type
         }),
         new OnChainRegistry({
           signer: { address: walletAddress, wallet: wc.data },
           address: DEFAULT_REGISTRY_ADDRESS,
-          provider: createPublicClient({
+          provider: viem.createPublicClient({
             chain: mainnet,
-            transport: transports[mainnet.id] || http(),
-          }),
+            transport: transports[mainnet.id] || viem.http(),
+          }) as any, // TODO: fix type
         }),
       ],
       publishChainId === 10 ? 0 : 1
