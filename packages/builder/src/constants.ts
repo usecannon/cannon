@@ -13,13 +13,13 @@ export const DEFAULT_REGISTRY_CONFIG = [
   {
     name: 'OP Mainnet',
     chainId: 10,
-    providerUrl: ['frame', 'direct', 'https://optimism-rpc.publicnode.com'],
+    providerUrl: ['frame', 'direct', 'https://optimism.llamarpc.com'],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
   {
     name: 'Ethereum Mainnet',
     chainId: 1,
-    providerUrl: ['frame', 'direct', 'https://ethereum-rpc.publicnode.com'],
+    providerUrl: ['frame', 'direct', 'https://eth.llamarpc.com'],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
 ];
