@@ -141,6 +141,7 @@ export type CliSettings = {
 export const RPC_URL_DEFAULT = 'frame,direct';
 
 const deprecatedWarn = _.once((deprecatedFlag: string, newFlag: string) => {
+  log();
   warn(yellow(`The ${deprecatedFlag} option will be deprecated soon. Use ${newFlag} instead.`));
   log();
 });
@@ -267,7 +268,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
   ) as CliSettings;
 
   if (overrides.providerUrl && !overrides.rpcUrl) {
-    deprecatedWarn('--providerUrl', '--rpcUrl');
+    deprecatedWarn('--provider-url', '--rpc-url');
     finalSettings.rpcUrl = overrides.providerUrl;
   }
 
