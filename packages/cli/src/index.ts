@@ -25,13 +25,10 @@ import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
 import {
-  checkAndNormalizePrivateKey,
   checkCannonVersion,
   checkForgeAstSupport,
-  ensureChainIdConsistency,
   getPackageReference,
-  isPrivateKey,
-  normalizePrivateKey,
+  ensureChainIdConsistency,
   setupAnvil,
 } from './helpers';
 import { getMainLoader } from './loader';
@@ -45,7 +42,7 @@ import { doBuild } from './util/build';
 import { log, error, warn } from './util/console';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { parsePackageArguments, parsePackagesArguments } from './util/params';
-import { getChainIdFromRpcUrl, isURL, resolveRegistryProviders, resolveWriteProvider } from './util/provider';
+import { getChainIdFromRpcUrl, isURL, ProviderAction, resolveProviderAndSigners, resolveProvider } from './util/provider';
 import { isPackageRegistered } from './util/register';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
@@ -158,7 +155,11 @@ function configureRun(program: Command) {
 
     let node: CannonRpcNode;
     if (options.chainId) {
-      const { provider } = await resolveWriteProvider(cliSettings, Number.parseInt(options.chainId));
+      const { provider } = await resolveProvider({
+        action: ProviderAction.WriteProvider,
+        cliSettings,
+        chainId: Number.parseInt(options.chainId),
+      });
 
       // throw an error if the chainId is not consistent with the provider's chainId
       await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
@@ -170,7 +171,11 @@ function configureRun(program: Command) {
       if (isURL(cliSettings.rpcUrl)) {
         options.chainId = await getChainIdFromRpcUrl(cliSettings.rpcUrl);
 
-        const { provider } = await resolveWriteProvider(cliSettings, Number.parseInt(options.chainId));
+        const { provider } = await resolveProvider({
+          action: ProviderAction.WriteProvider,
+          cliSettings,
+          chainId: Number.parseInt(options.chainId),
+        });
 
         node = await runRpc(pickAnvilOptions(options), {
           forkProvider: provider,
@@ -370,22 +375,6 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     options.chainId = chainIdPrompt.value;
   }
 
-  if (!cliSettings.privateKey) {
-    const keyPrompt = await prompts({
-      type: 'text',
-      name: 'value',
-      message: 'Enter the private key for an address that has permission to publish',
-      style: 'password',
-      validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
-    });
-
-    if (!keyPrompt.value) {
-      throw new Error('A valid private key is required.');
-    }
-
-    cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
-  }
-
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
@@ -397,67 +386,83 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     cliSettings.registries[1].rpcUrl = ['http://127.0.0.1:9545'];
   }
 
-  const registryProviders = await resolveRegistryProviders(cliSettings);
-  // initialize pickedRegistryProvider with the first provider
-  let [pickedRegistryProvider] = registryProviders;
-
-  const choices = registryProviders.map((p) => ({
-    title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
-    value: p,
-  }));
+  // initialized optimism as the default registry
+  let [writeRegistry] = cliSettings.registries;
 
   if (!cliSettings.isE2E) {
-    // override pickedRegistryProvider with the selected provider
-    pickedRegistryProvider = (
+    const choices = cliSettings.registries.map((p) => ({
+      title: `${p.name ?? 'Unknown Network'} (Chain ID: ${p.chainId})`,
+      value: p,
+    }));
+
+    // override writeRegistry with the picked provider
+    writeRegistry = (
       await prompts([
         {
           type: 'select',
-          name: 'pickedRegistryProvider',
-          message: 'Which registry would you like to use? (Cannon will find the package on either.):',
+          name: 'writeRegistry',
+          message: 'Which registry would you like to use? (Cannon will find the package on either):',
           choices,
         },
       ])
-    ).pickedRegistryProvider;
+    ).writeRegistry;
+
+    log();
   }
 
-  if (isDefaultSettings) {
-    // Check if the package is already registered
-    const [optimism, mainnet] = DEFAULT_REGISTRY_CONFIG;
+  log(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
 
-    const [optimismProvider, mainnetProvider] = await resolveRegistryProviders(cliSettings);
+  const readRegistry = _.differenceWith(cliSettings.registries, [writeRegistry], _.isEqual)[0];
+  const registryProviders = await Promise.all([
+    // write to picked provider
+    resolveProviderAndSigners({
+      chainId: writeRegistry.chainId!,
+      privateKey: cliSettings.privateKey!,
+      checkProviders: writeRegistry.rpcUrl,
+      action: ProviderAction.WriteProvider,
+    }),
+    // read from the other one
+    resolveProviderAndSigners({
+      chainId: readRegistry.chainId!,
+      checkProviders: readRegistry.rpcUrl,
+      action: ProviderAction.ReadProvider,
+    }),
+  ]);
 
-    const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], fullPackageRef, [
-      mainnet.address,
-      optimism.address,
-    ]);
+  const [writeRegistryProvider] = registryProviders;
 
-    if (!isRegistered) {
-      const pkgRef = new PackageReference(fullPackageRef);
-      log();
-      log(
-        gray(
-          `Package "${pkgRef.name}" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
-        )
-      );
-      log();
+  // Check if the package is already registered
+  const isRegistered = await isPackageRegistered(registryProviders, packageRef, [
+    writeRegistry.address,
+    readRegistry.address,
+  ]);
 
-      if (!options.skipConfirm) {
-        const registerPrompt = await prompts({
-          type: 'confirm',
-          name: 'value',
-          message: 'Would you like to register the package now?',
-          initial: true,
-        });
+  if (!isRegistered) {
+    const pkgRef = new PackageReference(fullPackageRef);
+    log();
+    log(
+      gray(
+        `Package "${pkgRef.name}" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
+      )
+    );
+    log();
 
-        if (!registerPrompt.value) {
-          return process.exit(0);
-        }
+    if (!options.skipConfirm) {
+      const registerPrompt = await prompts({
+        type: 'confirm',
+        name: 'value',
+        message: 'Would you like to register the package now?',
+        initial: true,
+      });
+
+      if (!registerPrompt.value) {
+        return process.exit(0);
       }
-
-      const { register } = await import('./commands/register');
-
-      await register({ cliSettings, options, packageRefs: [pkgRef], fromPublish: true });
     }
+
+    log();
+    const { register } = await import('./commands/register');
+    await register({ cliSettings, options, packageRefs: [pkgRef], fromPublish: true });
   }
 
   const overrides: any = {};
@@ -475,12 +480,12 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   }
 
   const registryAddress =
-    cliSettings.registries.find((registry) => registry.chainId === pickedRegistryProvider.provider.chain?.id)?.address ||
+    cliSettings.registries.find((registry) => registry.chainId === writeRegistryProvider.provider.chain?.id)?.address ||
     DEFAULT_REGISTRY_CONFIG[0].address;
 
   const onChainRegistry = new OnChainRegistry({
-    signer: pickedRegistryProvider.signers[0],
-    provider: pickedRegistryProvider.provider,
+    signer: writeRegistryProvider.signers[0],
+    provider: writeRegistryProvider.provider,
     address: registryAddress,
     overrides,
   });
@@ -707,7 +712,11 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
   // throw an error if the chainId is not consistent with the provider's chainId
   await ensureChainIdConsistency(cliSettings.rpcUrl, chainId);
 
-  const { provider, signers } = await resolveWriteProvider(cliSettings, chainId!);
+  const { provider, signers } = await resolveProvider({
+    action: ProviderAction.WriteProvider,
+    cliSettings,
+    chainId: chainId!,
+  });
 
   const resolver = await createDefaultReadRegistry(cliSettings);
 

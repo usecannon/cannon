@@ -85,7 +85,7 @@ describe('build', () => {
       jest.spyOn(helpers, 'loadCannonfile').mockResolvedValue({} as any);
       provider = makeFakeProvider();
       jest.spyOn(buildCommand, 'build').mockResolvedValue({ outputs: {}, provider, runtime: {} as any });
-      jest.spyOn(utilProvider, 'resolveWriteProvider').mockResolvedValue({ provider: provider as any, signers: [] });
+      jest.spyOn(utilProvider, 'resolveProvider').mockResolvedValue({ provider: provider as any, signers: [] });
     });
 
     describe('when resolving chainId', () => {
@@ -109,12 +109,9 @@ describe('build', () => {
 
         await cli.parseAsync([...fixedArgs, '--rpc-url', rpcUrl]);
 
-        // create write provider with expected values
-        expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][0].rpcUrl).toEqual(rpcUrl);
-        expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][1]).toEqual(chainId);
-        expect(utilProvider.resolveWriteProvider).toHaveBeenCalledTimes(1);
-
-        // The same provider is passed to build command
+        expect((utilProvider.resolveProvider as jest.Mock).mock.calls[0][0].cliSettings.rpcUrl).toEqual(rpcUrl);
+        expect((utilProvider.resolveProvider as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
+        expect(utilProvider.resolveProvider).toHaveBeenCalledTimes(1);
         expect((buildCommand.build as jest.Mock).mock.calls[0][0].provider).toEqual(provider);
       });
     });
@@ -125,12 +122,11 @@ describe('build', () => {
       const args = [...fixedArgs, '--chain-id', String(chainId)];
 
       await cli.parseAsync(args);
-      // create write provider with expected values
-      expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][0].rpcUrl.split(',')[0]).toEqual('frame');
-      expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][1]).toEqual(chainId);
-      expect(utilProvider.resolveWriteProvider).toHaveBeenCalledTimes(1);
 
-      // The same provider is passed to build command
+      expect((utilProvider.resolveProvider as jest.Mock).mock.calls[0][0].cliSettings.rpcUrl.split(',')[0]).toEqual('frame');
+      expect((utilProvider.resolveProvider as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
+      expect(utilProvider.resolveProvider).toHaveBeenCalledTimes(1);
+
       expect((buildCommand.build as jest.Mock).mock.calls[0][0].provider).toEqual(provider);
     });
 
