@@ -242,7 +242,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         waitForEvent({
           eventName: 'PackagePublishersChanged',
           abi: mainnetRegistry.contract.abi,
-          providerUrl: mainnetRegistryConfig.providerUrl![0],
+          providerUrl: _.last(mainnetRegistryConfig.providerUrl)!,
           expectedArgs: {
             name: packageNameHex,
             publisher: mainnetPublishers,
@@ -251,7 +251,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         waitForEvent({
           eventName: 'PackagePublishersChanged',
           abi: optimismRegistry.contract.abi,
-          providerUrl: optimismRegistryConfig.providerUrl![0],
+          providerUrl: _.last(optimismRegistryConfig.providerUrl)!,
           expectedArgs: {
             name: packageNameHex,
             publisher: optimismPublishers,

@@ -171,7 +171,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
   try {
     const [hash] = await Promise.all([
       (async () => {
-        const hash = await mainnetRegistry.setPackageOwnership(multicallTx);
+        const hash = ''; //await mainnetRegistry.setPackageOwnership(multicallTx);
 
         log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
         log('');
@@ -194,7 +194,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
               waitForEvent({
                 eventName: 'PackageOwnerChanged',
                 abi: mainnetRegistry.contract.abi,
-                providerUrl: optimismRegistryConfig.providerUrl![0],
+                providerUrl: _.last(optimismRegistryConfig.providerUrl)!,
                 expectedArgs: {
                   name: packageNameHex,
                   owner: userAddress,
@@ -203,7 +203,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
               waitForEvent({
                 eventName: 'PackagePublishersChanged',
                 abi: mainnetRegistry.contract.abi,
-                providerUrl: optimismRegistryConfig.providerUrl![0],
+                providerUrl: _.last(optimismRegistryConfig.providerUrl)!,
                 expectedArgs: {
                   name: packageNameHex,
                   publisher: [userAddress],
