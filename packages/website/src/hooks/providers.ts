@@ -12,16 +12,16 @@ interface VerifiedProviders {
   chainId: number;
 }
 
-const cannonNetwork: viem.Chain = {
+const cannonNetwork = {
   ...chains.localhost,
   id: 13370,
   name: 'Cannon Localhost',
-};
+} as viem.Chain;
 
 export const supportedChains = [cannonNetwork, ...Object.values(chains)] as [viem.Chain, ...viem.Chain[]];
 
 export const defaultTransports = supportedChains.reduce((prev, curr) => {
-  prev[curr.id] = http();
+  prev[curr.id] = http() as any; // TODO: fix type
   return prev;
 }, {} as Record<number, viem.HttpTransport>);
 
@@ -44,7 +44,7 @@ export function useProviders() {
       const responses = await Promise.allSettled(
         customProviders.map(async (providerUrl) => {
           const publicClient = viem.createPublicClient({
-            transport: http(providerUrl),
+            transport: http(providerUrl) as any, // TODO: fix type
           });
           return {
             providerUrl,
@@ -72,7 +72,7 @@ export function useProviders() {
 
   useEffect(() => {
     const _transports = verifiedProviders.reduce((prev, curr) => {
-      prev[curr.chainId] = http(curr.provider);
+      prev[curr.chainId] = http(curr.provider) as any; // TODO: fix type
 
       return prev;
     }, transports);
@@ -91,8 +91,8 @@ export function useProviders() {
       getDefaultConfig({
         appName: 'Cannon',
         projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',
-        chains: [...supportedChains],
-        transports,
+        chains: [...supportedChains] as any, // TODO: fix type
+        transports: transports as any, // TODO: fix type
       })
     );
   }, [transports]);
