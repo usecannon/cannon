@@ -44,11 +44,7 @@ export function useProviders() {
       const responses = await Promise.allSettled(
         customProviders.map(async (rpcUrl) => {
           const publicClient = viem.createPublicClient({
-<<<<<<< HEAD
-            transport: http(rpcUrl),
-=======
-            transport: http(providerUrl) as any, // TODO: fix type
->>>>>>> main
+            transport: http(rpcUrl) as any, // TODO: fix type
           });
           return {
             rpcUrl,
