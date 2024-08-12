@@ -171,7 +171,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
   try {
     const [hash] = await Promise.all([
       (async () => {
-        const hash = ''; //await mainnetRegistry.setPackageOwnership(multicallTx);
+        const hash = await mainnetRegistry.setPackageOwnership(multicallTx);
 
         log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
         log('');
