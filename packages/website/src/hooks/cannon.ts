@@ -388,21 +388,22 @@ export function useCannonPackage(packageRef?: string, chainId?: number) {
     enabled: !!pkgUrl,
   });
 
-  const fullPackageRef = ipfsQuery.data?.fullPackageRef;
-
   const registryQueryMeta = useQuery({
-    queryKey: ['cannon', 'registry-meta', fullPackageRef, packageChainId],
+    queryKey: ['cannon', 'registry-meta', packageRef, packageChainId],
     queryFn: async () => {
-      if (typeof fullPackageRef !== 'string' || fullPackageRef.length < 3) {
+      if (typeof packageRef !== 'string' || packageRef.length < 3) {
         return null;
       }
 
-      const metaUrl = await registry.getMetaUrl(fullPackageRef, packageChainId);
+      if (packageRef.startsWith('ipfs://')) return { url: packageRef };
+      if (packageRef.startsWith('@ipfs:')) return { url: packageRef.replace('@ipfs:', 'ipfs://') };
+
+      const metaUrl = await registry.getMetaUrl(pkgUrl!, packageChainId);
 
       if (metaUrl) {
         return { metaUrl };
       } else {
-        throw new Error(`package not found: ${fullPackageRef} (${packageChainId})`);
+        throw new Error(`package not found: ${pkgUrl} (${packageChainId})`);
       }
     },
     refetchOnWindowFocus: false,
@@ -421,7 +422,7 @@ export function useCannonPackage(packageRef?: string, chainId?: number) {
     resolvedName: ipfsQuery.data?.resolvedName,
     resolvedVersion: ipfsQuery.data?.resolvedVersion,
     resolvedPreset: ipfsQuery.data?.resolvedPreset,
-    fullPackageRef,
+    fullPackageRef: ipfsQuery.data?.fullPackageRef,
   };
 }
 

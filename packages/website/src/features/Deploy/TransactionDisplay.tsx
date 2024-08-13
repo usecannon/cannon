@@ -292,7 +292,8 @@ export function TransactionDisplay(props: {
 
       <Box maxW="100%" overflowX="scroll">
         {hintData.txns.map((txn, i) => {
-          const pkgUrl = hintData.cannonPackage;
+          const pkgUrl = hintData.cannonPackage.split(',')[i];
+
           return (
             <Box key={`tx-${i}`} mb={8}>
               <DisplayedTransaction
