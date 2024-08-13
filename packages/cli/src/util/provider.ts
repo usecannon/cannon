@@ -1,5 +1,6 @@
 import Debug from 'debug';
 import * as viem from 'viem';
+import prompts from 'prompts';
 import { bold, red, grey } from 'chalk';
 import provider from 'eth-provider';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -11,10 +12,19 @@ import { CliSettings, PROVIDER_URL_DEFAULT } from '../settings';
 
 const debug = Debug('cannon:cli:provider');
 
-export enum ProviderOrigin {
-  Registry = 'registry',
-  Write = 'write',
+import { isPrivateKey, normalizePrivateKey } from '../helpers';
+
+export enum ProviderAction {
+  WriteDryRunProvider = 'WriteDryRunProvider',
+  WriteProvider = 'WriteProvider',
+  ReadProvider = 'ReadProvider',
 }
+
+type ProviderParams = {
+  action: ProviderAction;
+  cliSettings: CliSettings;
+  chainId?: number;
+};
 
 export const isURL = (url: string): boolean => {
   try {
@@ -70,19 +80,20 @@ export const getChainIdFromProviderUrl = async (providerUrl: string) => {
   return provider.getChainId();
 };
 
-export async function resolveWriteProvider(
-  settings: CliSettings,
-  chainId: number
-): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
-  const chainData = getChainById(chainId);
+export async function resolveProvider({
+  cliSettings,
+  chainId,
+  action,
+}: ProviderParams): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
+  const chainData = getChainById(chainId!);
 
   log(bold(`Resolving connection to ${chainData.name} (Chain ID: ${chainId})...`));
   // Check if the first provider URL doesn't start with 'http'
-  const isProviderUrl = isURL(settings.providerUrl.split(',')[0]);
+  const isProviderUrl = isURL(cliSettings.providerUrl.split(',')[0]);
 
   if (!isProviderUrl) {
     // If privateKey is present or no valid http URLs are available in rpcUrls
-    if (settings.privateKey || chainData.rpcUrls.default.http.length === 0) {
+    if (cliSettings.privateKey || chainData.rpcUrls.default.http.length === 0) {
       if (chainData.rpcUrls.default.http.length === 0) {
         error(
           red(
@@ -94,37 +105,39 @@ export async function resolveWriteProvider(
         process.exit(1);
       }
       // Use default http URLs from chainData
-      settings.providerUrl = chainData.rpcUrls.default.http.join(',');
+      cliSettings.providerUrl = chainData.rpcUrls.default.http.join(',');
     } else {
       // Merge with viem's default rpc URLs, remove duplicates
-      const providers = [...new Set([...settings.providerUrl.split(','), ...chainData.rpcUrls.default.http])];
-      settings.providerUrl = providers.join(',');
+      const providers = [...new Set([...cliSettings.providerUrl.split(','), ...chainData.rpcUrls.default.http])];
+      cliSettings.providerUrl = providers.join(',');
     }
   }
 
-  if (settings.providerUrl == PROVIDER_URL_DEFAULT && !settings.quiet) {
+  if (cliSettings.providerUrl == PROVIDER_URL_DEFAULT && !cliSettings.quiet) {
     warn(grey('Set a RPC URL by passing --provider-url or setting the ENV variable CANNON_PROVIDER_URL.\n'));
   }
 
   return resolveProviderAndSigners({
-    chainId,
-    checkProviders: settings.providerUrl.split(','),
-    privateKey: settings.privateKey,
-    origin: ProviderOrigin.Write,
-  }) as any;
+    chainId: chainId!,
+    checkProviders: cliSettings.providerUrl.split(','),
+    privateKey: cliSettings.privateKey,
+    action,
+  });
 }
 
-export async function resolveRegistryProviders(
-  cliSettings: CliSettings
-): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }[]> {
+export async function resolveRegistryProviders({
+  cliSettings,
+  action,
+}: ProviderParams): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }[]> {
   const resolvedProviders = [];
+
   for (const registryInfo of cliSettings.registries) {
     resolvedProviders.push(
       await resolveProviderAndSigners({
         chainId: registryInfo.chainId!,
         checkProviders: registryInfo.providerUrl,
-        privateKey: cliSettings.privateKey,
-        origin: ProviderOrigin.Registry,
+        privateKey: cliSettings.privateKey!,
+        action,
       })
     );
   }
@@ -136,25 +149,25 @@ export async function resolveProviderAndSigners({
   chainId,
   checkProviders = ['frame'],
   privateKey,
-  origin,
+  action,
 }: {
   chainId: number;
   checkProviders?: string[];
   privateKey?: string;
-  origin: ProviderOrigin;
-}): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }> {
-  const providerDisplayName = (provider: string) => {
-    switch (provider) {
+  action: ProviderAction;
+}): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
+  const providerDisplayName = (providerUrl: string) => {
+    switch (providerUrl) {
       case 'frame':
         return 'Frame (frame.sh) if running';
       case 'direct':
         return 'default IPC paths, ws://127.0.0.1:8546, or http://127.0.0.1:8545';
       default:
-        return hideApiKey(provider);
+        return hideApiKey(providerUrl);
     }
   };
 
-  if (origin === ProviderOrigin.Write) {
+  if (ProviderAction.WriteProvider === action || ProviderAction.WriteDryRunProvider === action) {
     log(grey(`Attempting to find connection via ${bold(providerDisplayName(checkProviders[0]))}`));
     if (checkProviders.length === 1) log('');
   }
@@ -175,11 +188,12 @@ export async function resolveProviderAndSigners({
     throw err;
   }
 
-  let publicClient: viem.PublicClient;
+  let publicClient: viem.PublicClient & viem.WalletClient;
 
   // TODO: if at any point we let users provide multiple urls, this will have to be changed.
   // force provider to use JSON-RPC instead of Web3Provider for local http urls
   const signers: CannonSigner[] = [];
+
   if (isURL(checkProviders[0])) {
     debug(
       'use explicit provider url',
@@ -208,7 +222,7 @@ export async function resolveProviderAndSigners({
         chainId,
         checkProviders: checkProviders.slice(1),
         privateKey,
-        origin,
+        action,
       });
     }
 
@@ -228,6 +242,44 @@ export async function resolveProviderAndSigners({
       );
     } else {
       debug('no signer supplied for provider');
+
+      switch (action) {
+        case ProviderAction.WriteProvider: {
+          const keyPrompt = await prompts({
+            type: 'text',
+            name: 'value',
+            message: 'Enter the private key of the address you want to use:',
+            style: 'password',
+            validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
+          });
+
+          if (!keyPrompt.value) {
+            throw new Error('A valid private key is required.');
+          }
+
+          const account = privateKeyToAccount(keyPrompt.value as viem.Hex);
+
+          signers.push({
+            address: account.address,
+            wallet: viem.createWalletClient({
+              account,
+              chain: getChainById(chainId),
+              transport: viem.custom(publicClient.transport),
+            }),
+          });
+
+          break;
+        }
+
+        case ProviderAction.ReadProvider:
+        case ProviderAction.WriteDryRunProvider: {
+          // No signer needed for this action
+          break;
+        }
+
+        default:
+          break;
+      }
     }
   } else {
     debug('use frame eth provider');
@@ -267,7 +319,7 @@ export async function resolveProviderAndSigners({
         chainId,
         checkProviders: checkProviders.slice(1),
         privateKey,
-        origin,
+        action,
       });
     }
   }
