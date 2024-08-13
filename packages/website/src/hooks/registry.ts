@@ -9,22 +9,21 @@ type Publishers = {
   chainId: number;
 };
 
-export function useCannonPackagePublishers(packageName: string) {
+export function useCannonPackagePublishers(packageName?: string) {
   const [publishers, setPublishers] = useState<Publishers[]>([]);
 
   useEffect(() => {
-    const registryChainIds = DEFAULT_REGISTRY_CONFIG.map((registry) => registry.chainId);
+    if (!packageName) return setPublishers([]);
 
-    const onChainRegistries = registryChainIds.map(
-      (chainId: number) =>
-        new OnChainRegistry({
-          address: DEFAULT_REGISTRY_ADDRESS,
-          provider: viem.createPublicClient({
-            chain: findChain(chainId) as viem.Chain,
-            transport: viem.http(),
-          }) as any, // TODO: fix type
-        })
-    );
+    const onChainRegistries = DEFAULT_REGISTRY_CONFIG.map((config) => {
+      return new OnChainRegistry({
+        address: DEFAULT_REGISTRY_ADDRESS,
+        provider: viem.createPublicClient({
+          chain: findChain(config.chainId),
+          transport: viem.http(),
+        }) as any, // TODO: fix type
+      });
+    });
 
     const fetchPublishers = async () => {
       const [optimismRegistry, mainnetRegistry] = onChainRegistries;
