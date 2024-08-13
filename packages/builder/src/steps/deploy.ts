@@ -412,8 +412,6 @@ const deploySpec = {
 
     const txn = await runtime.provider.getTransactionReceipt({ hash: existingKeys[0] as viem.Hash });
 
-    console.log(txn.logs)
-
     const contractAddress = config.create2 ? txn.contractAddress : txn.logs[0].address;
 
     if (!viem.isAddress(contractAddress as string)) {
