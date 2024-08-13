@@ -57,6 +57,7 @@ export class CannonStorage extends EventEmitter {
 
   readBlob(url: string) {
     const loader = this.lookupLoader(url);
+
     let loaderLabel;
 
     if (loader instanceof IPFSLoader) {
