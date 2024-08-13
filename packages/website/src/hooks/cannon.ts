@@ -322,7 +322,7 @@ export function useCannonWriteDeployToIpfs(
   };
 }
 
-export function useCannonPackage(packageRef: string, chainId?: number) {
+export function useCannonPackage(packageRef?: string, chainId?: number) {
   const connectedChainId = useChainId();
   const registry = useCannonRegistry();
   const settings = useStore((s) => s.settings);
@@ -444,7 +444,7 @@ function getContractsRecursive(outputs: ChainArtifacts, prefix?: string): Contra
   return contracts;
 }
 
-export function useCannonPackageContracts(packageRef: string, chainId?: number) {
+export function useCannonPackageContracts(packageRef?: string, chainId?: number) {
   const pkg = useCannonPackage(packageRef, chainId);
   const [contracts, setContracts] = useState<ContractInfo | null>(null);
   const settings = useStore((s) => s.settings);

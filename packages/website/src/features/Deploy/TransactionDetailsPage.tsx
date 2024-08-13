@@ -409,7 +409,6 @@ function TransactionDetailsPage({
               gap={6}
             >
               <TransactionDisplay
-                packageRef={cannonPackage.fullPackageRef!}
                 safe={safe}
                 safeTxn={safeTxn as any}
                 queuedWithGitOps={queuedWithGitOps}

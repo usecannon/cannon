@@ -57,7 +57,7 @@ export function DisplayedTransaction(props: {
   const chain = chainsById[props.chainId];
 
   const cannonInfo = useCannonPreloadedContracts(
-    props.pkgUrl ? '@' + props.pkgUrl.replace('://', ':') : '',
+    props.pkgUrl,
     props.cannonInfo,
     props.isPreloaded
   );
