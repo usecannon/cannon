@@ -15,13 +15,13 @@ import {
   Portal,
   Text,
 } from '@chakra-ui/react';
-import { CustomSpinner } from '@/components/CustomSpinner';
 import { ChainArtifacts, DeploymentInfo } from '@usecannon/builder';
 import { getOutput } from '@/lib/builder';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
 import { getPackage } from '@/helpers/api';
 import { usePackageUrlParams } from '@/hooks/routing/usePackageUrlParams';
+import { CustomSpinner } from '@/components/CustomSpinner';
 
 type Option = {
   moduleName: string;
@@ -29,7 +29,9 @@ type Option = {
   contractAddress: string;
 };
 
-export const HasSubnavContext = createContext(false);
+export const SubnavContext = createContext<{ hasSubnav: boolean }>({
+  hasSubnav: true,
+});
 
 function useActiveContract() {
   const pathName = useRouter().asPath;
@@ -64,6 +66,7 @@ export const InteractTab: FC<{
   const [highlightedOptions, setHighlightedOptions] = useState<Option[]>([]);
   const [otherOptions, setOtherOptions] = useState<Option[]>([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [routing, setRouting] = useState(false);
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     packagesQuery?.data?.data.deployUrl,
     !!packagesQuery?.data?.data.deployUrl
@@ -71,10 +74,14 @@ export const InteractTab: FC<{
 
   const hasSubnav = otherOptions.length > 0 || highlightedOptions.length > 1;
 
-  const selectContract = (contract: Option) => {
-    void router.push(
-      `/packages/${name}/${tag}/${variant}/interact/${contract.moduleName}/${contract.contractName}/${contract.contractAddress}`
+  const selectContract = async (contract: Option) => {
+    setRouting(true);
+    await router.replace(
+      `/packages/${name}/${tag}/${variant}/interact/${contract.moduleName}/${contract.contractName}/${contract.contractAddress}`,
+      undefined,
+      { shallow: true }
     );
+    setRouting(false);
   };
 
   const isActiveContract = (contract: Option) => {
@@ -169,19 +176,15 @@ export const InteractTab: FC<{
 
     if (!activeContractOption) {
       if (highlightedData.length > 0) {
-        selectContract(highlightedData[0]);
+        void selectContract(highlightedData[0]);
       } else if (otherData.length > 0) {
-        selectContract(otherData[0]);
+        void selectContract(otherData[0]);
       }
     }
   }, [deploymentData.data]);
 
-  if (packagesQuery.isPending || deploymentData.isLoading) {
-    return <CustomSpinner m="auto" />;
-  }
-
   return (
-    <HasSubnavContext.Provider value={hasSubnav}>
+    <SubnavContext.Provider value={{ hasSubnav: true }}>
       {hasSubnav && (
         <Flex
           top="0"
@@ -196,154 +199,178 @@ export const InteractTab: FC<{
           borderColor="gray.800"
           flexWrap="nowrap"
         >
-          {highlightedOptions.map((option, i) => (
-            <Button
-              key={i}
-              color="white"
-              borderWidth="2px"
-              borderRadius="md"
-              variant="outline"
-              aria-label="contract name"
-              boxShadow="lg"
-              flexShrink={0}
-              background={isActiveContract(option) ? 'teal.900' : 'gray.700'}
-              borderColor={isActiveContract(option) ? 'teal.600' : 'gray.600'}
-              _hover={
-                isActiveContract(option)
-                  ? {
-                      background: 'teal.800',
-                      borderColor: 'teal.500',
-                    }
-                  : {
-                      background: 'gray.600',
-                      borderColor: 'teal.500',
-                    }
-              }
-              mr={4}
-              height="48px"
-              px={2}
-              onClick={() => selectContract(option)}
-            >
-              <Box textAlign="left">
-                <Text
-                  fontSize="xs"
-                  display="block"
-                  fontWeight="normal"
-                  color="gray.400"
-                  mb="1px"
-                >
-                  {option.moduleName}
-                </Text>
-                <Heading
-                  fontWeight="500"
-                  size="sm"
-                  color="gray.200"
-                  letterSpacing="0.1px"
-                >
-                  {option.contractName}
-                </Heading>
-              </Box>
-            </Button>
-          ))}
-          {otherOptions.length > 0 && (
-            <Popover
-              placement="bottom-start"
-              isOpen={isPopoverOpen}
-              onOpen={() => setIsPopoverOpen(true)}
-              onClose={() => setIsPopoverOpen(false)}
-            >
-              <PopoverTrigger>
+          {
+            <>
+              {/* Tabs options */}
+              {highlightedOptions.map((option, i) => (
                 <Button
+                  key={i}
                   color="white"
-                  borderColor={'gray.600'}
                   borderWidth="2px"
                   borderRadius="md"
                   variant="outline"
-                  background={'gray.700'}
-                  aria-label="Settings"
+                  aria-label="contract name"
                   boxShadow="lg"
-                  _hover={{
-                    background: 'gray.600',
-                    borderColor: 'teal.500',
-                  }}
-                  height="48px"
-                  width="48px"
                   flexShrink={0}
-                  p={0}
-                >
-                  <Icon
-                    boxSize={48}
-                    opacity={0.5}
-                    _hover={{ opacity: 1 }}
-                    viewBox="0 0 48 48"
-                    width="48px"
-                    height="48px"
-                    fill="white"
-                    stroke="none"
-                  >
-                    <circle cx="13" cy="24" r="3"></circle>
-                    <circle cx="24" cy="24" r="3"></circle>
-                    <circle cx="35" cy="24" r="3"></circle>
-                  </Icon>
-                </Button>
-              </PopoverTrigger>
-              <Portal>
-                <PopoverContent
-                  maxHeight={'45vh'}
-                  overflowY={'auto'}
-                  overflowX={'hidden'}
-                  width="auto"
-                  bg="gray.900"
-                  borderColor="gray.700"
-                >
-                  <PopoverBody p={0}>
-                    {otherOptions.map((option, i) => (
-                      <Box
-                        key={i}
-                        cursor={'pointer'}
-                        textAlign="left"
-                        p={2}
-                        background={
-                          isActiveContract(option) ? 'gray.800' : 'transparent'
+                  background={
+                    isActiveContract(option) ? 'teal.900' : 'gray.700'
+                  }
+                  borderColor={
+                    isActiveContract(option) ? 'teal.600' : 'gray.600'
+                  }
+                  _hover={
+                    isActiveContract(option)
+                      ? {
+                          background: 'teal.800',
+                          borderColor: 'teal.500',
                         }
-                        _hover={{
-                          background: 'gray.800',
-                        }}
-                        borderBottom="1px solid"
-                        borderColor="gray.700"
-                        onClick={() => {
-                          setIsPopoverOpen(false);
-                          selectContract(option);
-                        }}
+                      : {
+                          background: 'gray.600',
+                          borderColor: 'teal.500',
+                        }
+                  }
+                  mr={4}
+                  height="48px"
+                  px={2}
+                  onClick={() => selectContract(option)}
+                >
+                  <Box textAlign="left">
+                    <Text
+                      fontSize="xs"
+                      display="block"
+                      fontWeight="normal"
+                      color="gray.400"
+                      mb="1px"
+                    >
+                      {option.moduleName}
+                    </Text>
+                    <Heading
+                      fontWeight="500"
+                      size="sm"
+                      color="gray.200"
+                      letterSpacing="0.1px"
+                    >
+                      {option.contractName}
+                    </Heading>
+                  </Box>
+                </Button>
+              ))}
+              {/* other options (dots) */}
+              {otherOptions.length > 0 && (
+                <Popover
+                  placement="bottom-start"
+                  isOpen={isPopoverOpen}
+                  onOpen={() => setIsPopoverOpen(true)}
+                  onClose={() => setIsPopoverOpen(false)}
+                >
+                  <PopoverTrigger>
+                    <Button
+                      color="white"
+                      borderColor={'gray.600'}
+                      borderWidth="2px"
+                      borderRadius="md"
+                      variant="outline"
+                      background={'gray.700'}
+                      aria-label="Settings"
+                      boxShadow="lg"
+                      _hover={{
+                        background: 'gray.600',
+                        borderColor: 'teal.500',
+                      }}
+                      height="48px"
+                      width="48px"
+                      flexShrink={0}
+                      p={0}
+                    >
+                      <Icon
+                        boxSize={48}
+                        opacity={0.5}
+                        _hover={{ opacity: 1 }}
+                        viewBox="0 0 48 48"
+                        width="48px"
+                        height="48px"
+                        fill="white"
+                        stroke="none"
                       >
-                        <Text
-                          fontSize="xs"
-                          display="block"
-                          fontWeight="normal"
-                          color="gray.400"
-                          mb="1px"
-                        >
-                          {option.moduleName}
-                        </Text>
-                        <Heading
-                          fontWeight="500"
-                          size="sm"
-                          color="gray.200"
-                          letterSpacing="0.1px"
-                        >
-                          {option.contractName}
-                        </Heading>
-                      </Box>
-                    ))}
-                  </PopoverBody>
-                </PopoverContent>
-              </Portal>
-            </Popover>
-          )}
+                        <circle cx="13" cy="24" r="3"></circle>
+                        <circle cx="24" cy="24" r="3"></circle>
+                        <circle cx="35" cy="24" r="3"></circle>
+                      </Icon>
+                    </Button>
+                  </PopoverTrigger>
+                  <Portal>
+                    <PopoverContent
+                      maxHeight={'45vh'}
+                      overflowY={'auto'}
+                      overflowX={'hidden'}
+                      width="auto"
+                      bg="gray.900"
+                      borderColor="gray.700"
+                    >
+                      <PopoverBody p={0}>
+                        {otherOptions.map((option, i) => (
+                          <Box
+                            key={i}
+                            cursor={'pointer'}
+                            textAlign="left"
+                            p={2}
+                            background={
+                              isActiveContract(option)
+                                ? 'gray.800'
+                                : 'transparent'
+                            }
+                            _hover={{
+                              background: 'gray.800',
+                            }}
+                            borderBottom="1px solid"
+                            borderColor="gray.700"
+                            onClick={async () => {
+                              setIsPopoverOpen(false);
+                              await selectContract(option);
+                            }}
+                          >
+                            <Text
+                              fontSize="xs"
+                              display="block"
+                              fontWeight="normal"
+                              color="gray.400"
+                              mb="1px"
+                            >
+                              {option.moduleName}
+                            </Text>
+                            <Heading
+                              fontWeight="500"
+                              size="sm"
+                              color="gray.200"
+                              letterSpacing="0.1px"
+                            >
+                              {option.contractName}
+                            </Heading>
+                          </Box>
+                        ))}
+                      </PopoverBody>
+                    </PopoverContent>
+                  </Portal>
+                </Popover>
+              )}
+            </>
+          }
         </Flex>
       )}
-      <Box>{children}</Box>
-    </HasSubnavContext.Provider>
+
+      {deploymentData.isLoading || packagesQuery.isLoading || routing ? (
+        <Flex
+          justifyContent="center"
+          alignItems="center"
+          height="100%"
+          width="100%"
+        >
+          <CustomSpinner />
+        </Flex>
+      ) : (
+        <Box>{children}</Box>
+      )}
+    </SubnavContext.Provider>
   );
 };
 
