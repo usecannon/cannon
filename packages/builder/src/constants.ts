@@ -13,13 +13,13 @@ export const DEFAULT_REGISTRY_CONFIG = [
   {
     name: 'OP Mainnet',
     chainId: 10,
-    providerUrl: ['https://optimism-rpc.publicnode.com'],
+    providerUrl: ['frame', 'direct', 'https://optimism.llamarpc.com'],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
   {
     name: 'Ethereum Mainnet',
     chainId: 1,
-    providerUrl: ['https://ethereum-rpc.publicnode.com'],
+    providerUrl: ['frame', 'direct', 'https://eth.llamarpc.com'],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
 ];
@@ -31,13 +31,13 @@ export const DEFAULT_REGISTRY_CONFIG = [
   {
     name: 'OP Sepolia',
     chainId: 11155420,
-    providerUrl: ['https://optimism-sepolia-rpc.publicnode.com'],
+    providerUrl: ['frame', 'direct', 'https://optimism-sepolia-rpc.publicnode.com'],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
   {
     name: 'Ethereum Sepolia',
     chainId: 11155111,
-    providerUrl: ['https://ethereum-sepolia-rpc.publicnode.com'],
+    providerUrl: ['frame', 'direct', 'https://ethereum-sepolia-rpc.publicnode.com'],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
 ];
