@@ -76,7 +76,7 @@ describe('builder.ts', () => {
     },
     invoke: {
       smartFunc: {
-        target: ['0x1234123412341234123412341234123412341234'],
+        target: '0x1234123412341234123412341234123412341234',
         func: 'smartFunc',
         args: [1, 2, 3, '<%= contracts.Yoop.address %>'],
         from: '0x1234123412341234123412341234123412341234',
