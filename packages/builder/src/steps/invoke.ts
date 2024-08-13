@@ -15,11 +15,11 @@ import {
   TransactionMap,
 } from '../types';
 import {
+  encodeFunctionData,
   getAllContractPaths,
   getContractDefinitionFromPath,
   getContractFromPath,
   getMergedAbiFromContractPaths,
-  encodeFunctionData,
 } from '../util';
 import { template } from '../utils/template';
 
@@ -431,7 +431,7 @@ const invokeSpec = {
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.value, possibleFields));
 
     for (const target of config.target) {
-      if (!viem.isAddress(target)) {
+      if (!viem.isAddress(target as any)) {
         if (target.includes('.')) {
           accesses.accesses.push(`imports.${target.split('.')[0]}`);
         } else {

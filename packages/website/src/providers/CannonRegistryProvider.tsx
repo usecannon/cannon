@@ -1,13 +1,13 @@
-import React, { createContext, useContext } from 'react';
 import { inMemoryRegistry } from '@/helpers/cannon';
+import { findChain } from '@/helpers/rpc';
 import {
-  FallbackRegistry,
-  OnChainRegistry,
   DEFAULT_REGISTRY_ADDRESS,
   DEFAULT_REGISTRY_CONFIG,
+  FallbackRegistry,
+  OnChainRegistry,
 } from '@usecannon/builder';
-import { findChain } from '@/helpers/rpc';
-import { Chain, http, createPublicClient } from 'viem';
+import React, { createContext, useContext } from 'react';
+import { Chain, createPublicClient, http } from 'viem';
 
 type RegistryContextType = FallbackRegistry | undefined;
 
@@ -26,7 +26,7 @@ export const CannonRegistryProvider: React.FC<Props> = ({ children }) => {
         provider: createPublicClient({
           chain: findChain(chainId) as Chain,
           transport: http(),
-        }),
+        }) as any, // TODO: fix type
       })
   );
 
