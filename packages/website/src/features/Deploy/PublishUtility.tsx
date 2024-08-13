@@ -53,7 +53,7 @@ export default function PublishUtility(props: {
     resolvedVersion,
     resolvedPreset,
     ipfsQuery: ipfsPkgQuery,
-  } = useCannonPackage(props.deployUrl.replace('ipfs://', '@ipfs:'));
+  } = useCannonPackage(props.deployUrl);
 
   // then reverse check the package referenced by the
   const {
