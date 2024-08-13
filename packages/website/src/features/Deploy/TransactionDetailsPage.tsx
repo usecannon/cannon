@@ -165,11 +165,7 @@ function TransactionDetailsPage({
     void switchChain();
   }, [account.isConnected, currentSafe?.chainId]);
 
-  const cannonPackage = useCannonPackage(
-    hintData?.cannonPackage
-      ? `ipfs://${_.last(hintData?.cannonPackage.split('/'))}`
-      : ''
-  );
+  const cannonPackage = useCannonPackage(hintData?.cannonPackage);
 
   // then reverse check the package referenced by the
   const { pkgUrl: existingRegistryUrl } = useCannonPackage(
@@ -409,7 +405,6 @@ function TransactionDetailsPage({
               gap={6}
             >
               <TransactionDisplay
-                packageRef={cannonPackage.fullPackageRef!}
                 safe={safe}
                 safeTxn={safeTxn as any}
                 queuedWithGitOps={queuedWithGitOps}

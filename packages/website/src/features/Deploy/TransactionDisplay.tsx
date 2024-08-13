@@ -39,7 +39,6 @@ const parseDiffFileNames = (diffString: string): string[] => {
 };
 
 export function TransactionDisplay(props: {
-  packageRef: string;
   safeTxn: SafeTransaction;
   safe: SafeDefinition;
   queuedWithGitOps?: boolean;
@@ -49,7 +48,7 @@ export function TransactionDisplay(props: {
 }) {
   const hintData = parseHintedMulticall(props.safeTxn?.data);
 
-  const cannonInfo = useCannonPackageContracts(props.packageRef);
+  const cannonInfo = useCannonPackageContracts(hintData?.cannonPackage);
 
   // git stuff
   const denom = hintData?.gitRepoUrl?.lastIndexOf(':');
@@ -294,6 +293,7 @@ export function TransactionDisplay(props: {
       <Box maxW="100%" overflowX="scroll">
         {hintData.txns.map((txn, i) => {
           const pkgUrl = hintData.cannonPackage.split(',')[i];
+
           return (
             <Box key={`tx-${i}`} mb={8}>
               <DisplayedTransaction
