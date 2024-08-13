@@ -412,13 +412,15 @@ const deploySpec = {
 
     const txn = await runtime.provider.getTransactionReceipt({ hash: existingKeys[0] as viem.Hash });
 
-    if (!txn.contractAddress) {
+    if (!txn.contractAddress && !txn.logs[0].address) {
       throw new Error('imported txn does not appear to deploy a contract');
     }
 
     const block = await runtime.provider.getBlock({ blockNumber: txn?.blockNumber });
 
-    return generateOutputs(config, ctx, artifactData, txn, block, txn.contractAddress!, packageState.currentLabel);
+    const contractAddress = txn.contractAddress || txn.logs[0].address;
+
+    return generateOutputs(config, ctx, artifactData, txn, block, contractAddress, packageState.currentLabel);
   },
 };
 
