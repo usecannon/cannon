@@ -6,6 +6,7 @@ import {
   createInitialContext,
   DeploymentInfo,
   getOutputs,
+  getArtifacts,
   StepState,
 } from '@usecannon/builder';
 import { ActionKinds } from '@usecannon/builder/dist/src/actions';
@@ -303,16 +304,30 @@ export async function alter(
   }
 
   let superPkgDeployInfo;
+  let subPkgDeployInfo = deployInfo;
   while ((superPkgDeployInfo = startDeployInfo.pop())) {
     debug('write subpkg to ipfs', subpkgUrl);
-    superPkgDeployInfo.state[subpkg[startDeployInfo.length]].artifacts.imports![
-      subpkg[startDeployInfo.length].split('.')[1]
-    ].url = subpkgUrl;
+
+    const importsInfo =
+      superPkgDeployInfo.state[subpkg[startDeployInfo.length]].artifacts.imports![
+        subpkg[startDeployInfo.length].split('.')[1]
+      ];
+    // need to set the subpkg deployment url
+    importsInfo.url = subpkgUrl;
+
+    // also need to set the subpkg artifacts state to match
+    const subpkgArts = getArtifacts(new ChainDefinition(subPkgDeployInfo.def), subPkgDeployInfo.state);
+    importsInfo.contracts = subpkgArts.contracts;
+    importsInfo.imports = subpkgArts.imports;
+    importsInfo.txns = subpkgArts.txns;
+
     subpkgUrl = await runtime.putDeploy(superPkgDeployInfo);
 
     if (!subpkgUrl) {
       throw new Error('error writing subpkg to loader');
     }
+
+    subPkgDeployInfo = superPkgDeployInfo;
   }
 
   await resolver.publish([fullPackageRef], chainId, subpkgUrl, metaUrl || '');
