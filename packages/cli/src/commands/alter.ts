@@ -49,7 +49,7 @@ export async function alter(
     );
   }
 
-  const { provider } = await resolveProvider({ action: ProviderAction.ReadProvider, cliSettings, chainId });
+  const { provider } = await resolveProvider({ action: ProviderAction.ReadProvider, quiet: true, cliSettings, chainId });
   const resolver = await createDefaultReadRegistry(cliSettings);
   const loader = getMainLoader(cliSettings);
 
