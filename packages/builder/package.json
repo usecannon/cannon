@@ -38,8 +38,8 @@
   },
   "dependencies": {
     "@synthetixio/router": "^3.4.0",
-    "axios": "^1.7.2",
-    "axios-retry": "^4.4.2",
+    "axios": "^1.7.4",
+    "axios-retry": "^4.5.0",
     "buffer": "^6.0.3",
     "chalk": "^4.1.2",
     "debug": "^4.3.6",
@@ -49,8 +49,8 @@
     "pako": "^2.1.0",
     "promise-events": "^0.2.4",
     "typestub-ipfs-only-hash": "^4.0.0",
-    "viem": "^2.16.5",
-    "zod": "^3.23.6"
+    "viem": "^2.19.4",
+    "zod": "^3.23.8"
   },
   "engines": {
     "node": ">=16.0.0"
