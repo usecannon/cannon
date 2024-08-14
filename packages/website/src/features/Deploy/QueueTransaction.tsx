@@ -493,7 +493,7 @@ export function QueueTransaction({
                   ETH
                 </InputRightAddon>
               </InputGroup>
-              <FormHelperText color="gray.300">
+              <FormHelperText hidden={!valueIsValid} color="gray.300">
                 {value !== undefined && valueIsValid
                   ? viem.parseEther(value.toString()).toString()
                   : 0}{' '}
