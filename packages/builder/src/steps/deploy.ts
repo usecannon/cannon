@@ -344,7 +344,9 @@ const deploySpec = {
               _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
             );
 
-            throw new Error("Simulation failed. We can't decode the revert message.");
+            throw new Error(
+              'The CREATE2 contract seems to be failing in the constructor. However, we were not able to get a stack trace.'
+            );
           } else {
             const preparedTxn = await runtime.provider.prepareTransactionRequest(
               _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
