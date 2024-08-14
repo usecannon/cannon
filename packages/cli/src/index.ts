@@ -27,8 +27,8 @@ import commandsConfig from './commandsConfig';
 import {
   checkCannonVersion,
   checkForgeAstSupport,
-  getPackageReference,
   ensureChainIdConsistency,
+  getPackageReference,
   setupAnvil,
 } from './helpers';
 import { getMainLoader } from './loader';
@@ -39,15 +39,15 @@ import { resolveCliSettings } from './settings';
 import { PackageSpecification } from './types';
 import { pickAnvilOptions } from './util/anvil';
 import { doBuild } from './util/build';
-import { log, error, warn } from './util/console';
+import { error, log, warn } from './util/console';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { parsePackageArguments, parsePackagesArguments } from './util/params';
 import {
   getChainIdFromProviderUrl,
   isURL,
   ProviderAction,
-  resolveProviderAndSigners,
   resolveProvider,
+  resolveProviderAndSigners,
 } from './util/provider';
 import { isPackageRegistered } from './util/register';
 import { writeModuleDeployments } from './util/write-deployments';

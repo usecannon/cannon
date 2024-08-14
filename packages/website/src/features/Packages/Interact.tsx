@@ -1,6 +1,10 @@
+import QueueDrawer from '@/features/Deploy/QueueDrawer';
 import { Abi } from '@/features/Packages/Abi';
+import { SubnavContext } from '@/features/Packages/Tabs/InteractTab';
+import { getPackage } from '@/helpers/api';
 import chains from '@/helpers/chains';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
+import { usePackageUrlParams } from '@/hooks/routing/usePackageUrlParams';
 import { getOutput } from '@/lib/builder';
 import {
   Box,
@@ -13,6 +17,7 @@ import {
   useBreakpointValue,
   useDisclosure,
 } from '@chakra-ui/react';
+import { useQuery } from '@tanstack/react-query';
 import {
   ChainArtifacts,
   ContractData,
@@ -20,12 +25,6 @@ import {
   PackageReference,
 } from '@usecannon/builder';
 import { FC, useContext, useEffect, useState } from 'react';
-
-import QueueDrawer from '@/features/Deploy/QueueDrawer';
-import { useQuery } from '@tanstack/react-query';
-import { getPackage } from '@/helpers/api';
-import { usePackageUrlParams } from '@/hooks/routing/usePackageUrlParams';
-import { SubnavContext } from '@/features/Packages/Tabs/InteractTab';
 
 const Interact: FC = () => {
   const { variant, tag, name, moduleName, contractName, contractAddress } =
@@ -141,7 +140,7 @@ const Interact: FC = () => {
               borderBottomColor="gray.300"
               href={`${etherscanUrl}/address/${contractAddress}`}
             >
-              {isMobile
+              {isMobile && contractAddress
                 ? `${contractAddress.substring(0, 6)}...${contractAddress.slice(
                     -4
                   )}`
@@ -187,7 +186,7 @@ const Interact: FC = () => {
         isLoading={isLoadingData}
         abi={contract?.abi}
         contractSource={contract?.sourceName}
-        address={contractAddress}
+        address={contractAddress!}
         cannonOutputs={cannonOutputs}
         chainId={packagesQuery.data?.data?.chainId}
         onDrawerOpen={onOpen}
