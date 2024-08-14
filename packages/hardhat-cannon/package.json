@@ -31,12 +31,12 @@
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@types/debug": "^4.1.12",
-    "@types/mocha": "^10.0.6",
-    "@types/node": "^20.12.8",
+    "@types/mocha": "^10.0.7",
+    "@types/node": "^22.0.2",
     "bn.js": "^5.2.1",
-    "hardhat": "^2.22.3",
+    "hardhat": "^2.22.7",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.5.4"
   },
   "peerDependencies": {
     "hardhat": ">=2.0.0"
@@ -46,7 +46,7 @@
     "@usecannon/builder": "2.16.1",
     "@usecannon/cli": "2.16.1",
     "chalk": "^4.1.2",
-    "debug": "^4.3.4",
+    "debug": "^4.3.6",
     "fs-extra": "^11.2.0",
     "viem": "^2.16.5"
   },
