@@ -53,7 +53,7 @@ export default function PublishUtility(props: {
     resolvedVersion,
     resolvedPreset,
     ipfsQuery: ipfsPkgQuery,
-  } = useCannonPackage('@' + props.deployUrl.replace('://', ':'));
+  } = useCannonPackage(props.deployUrl);
 
   // then reverse check the package referenced by the
   const {
@@ -72,7 +72,7 @@ export default function PublishUtility(props: {
     resolvedVersion ? ':' + resolvedVersion : ''
   }${resolvedPreset ? '@' + resolvedPreset : ''}`;
 
-  const publishers = useCannonPackagePublishers(resolvedName!);
+  const publishers = useCannonPackagePublishers(resolvedName);
 
   const canPublish = publishers.some(
     ({ publisher }) =>
