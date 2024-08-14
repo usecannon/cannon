@@ -60,6 +60,7 @@ import { TransactionStepper } from './TransactionStepper';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import 'react-diff-view/style/index.css';
 import { IoIosContract, IoIosExpand } from 'react-icons/io';
+import Card from '@/components/Card';
 
 interface Props {
   safeAddress: string;
@@ -344,30 +345,24 @@ function TransactionDetailsPage({
 
           <Container maxW="container.lg" mt={[6, 6, 12]}>
             {queuedWithGitOps && (
-              <Box
-                position={expandDiff ? 'fixed' : 'static'}
-                top={0}
-                left={0}
-                right={0}
-                bottom={0}
-                zIndex={99}
-                background="gray.800"
-                p={4}
-                borderWidth="1px"
-                borderColor="gray.700"
-                mb={expandDiff ? 0 : 6}
-              >
-                <Flex mb={3} alignItems="center">
-                  <Heading
-                    size="sm"
-                    fontWeight="medium"
-                    textTransform="uppercase"
-                    letterSpacing="1.5px"
-                    fontFamily="var(--font-miriam)"
-                    textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                  >
-                    Cannonfile Diff
-                  </Heading>
+              <Card
+                containerProps={{
+                  position: expandDiff ? 'fixed' : 'static',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  zIndex: 99,
+                  mb: expandDiff ? 0 : 6,
+                  p: 4,
+                }}
+                contentProps={{
+                  h: '100%',
+                  overflowY: 'auto',
+                  maxH: expandDiff ? 'none' : '345px',
+                }}
+                title="Cannonfile Diff"
+                titleExtraContent={
                   <Link
                     ml="auto"
                     onClick={() => {
@@ -389,17 +384,12 @@ function TransactionDetailsPage({
                       {expandDiff ? 'Collapse' : 'Expand'}
                     </Text>
                   </Link>
-                </Flex>
-
-                <Box
-                  h="100%"
-                  overflowY="auto"
-                  maxH={expandDiff ? 'none' : '345px'}
-                >
-                  <Box ref={gitDiffContainerRef} pb={expandDiff ? 6 : 0} />
-                </Box>
-              </Box>
+                }
+              >
+                <Box ref={gitDiffContainerRef} pb={expandDiff ? 6 : 0} />
+              </Card>
             )}
+
             <Grid
               templateColumns={{ base: 'repeat(1, 1fr)', lg: '2fr 1fr' }}
               gap={6}
@@ -414,25 +404,9 @@ function TransactionDetailsPage({
               />
               <Box position="relative">
                 <Box position="sticky" top={8}>
+                  {/* Verify txs */}
                   {!isTransactionExecuted && (
-                    <Box
-                      background="gray.800"
-                      p={4}
-                      borderWidth="1px"
-                      borderColor="gray.700"
-                      mb={8}
-                    >
-                      <Heading
-                        size="sm"
-                        mb={3}
-                        fontWeight="medium"
-                        textTransform="uppercase"
-                        letterSpacing="1.5px"
-                        fontFamily="var(--font-miriam)"
-                        textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                      >
-                        Verify Transactions
-                      </Heading>
+                    <Card title="Verify Transactions">
                       {queuedWithGitOps && (
                         <Box>
                           {buildInfo.buildStatus && (
@@ -480,29 +454,31 @@ function TransactionDetailsPage({
                         safeTxn={safeTxn}
                         execTransactionData={stager.execTransactionData}
                       />
-                    </Box>
+                    </Card>
                   )}
-                  <Box
-                    background="gray.800"
-                    p={4}
-                    borderWidth="1px"
-                    borderColor="gray.700"
-                    mb={6}
-                  >
-                    {!executionTxnHash ? (
-                      <>
-                        <Heading
-                          size="sm"
-                          mb="3"
-                          fontWeight="medium"
-                          textTransform="uppercase"
-                          letterSpacing="1.5px"
-                          fontFamily="var(--font-miriam)"
-                          textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                        >
-                          Signatures
-                        </Heading>
 
+                  {/* Signatures or Execute info  */}
+                  <Card
+                    title={executionTxnHash ? 'Execution' : 'Signatures'}
+                    subtitle={
+                      executionTxnHash ? 'Transaction pending' : undefined
+                    }
+                  >
+                    {executionTxnHash ? (
+                      /* Execution */
+                      <Link
+                        href={`${etherscanUrl}/tx/${executionTxnHash}`}
+                        isExternal
+                        fontSize="sm"
+                        fontWeight="medium"
+                        mt={3}
+                      >
+                        {truncateAddress((executionTxnHash || '') as string, 8)}
+                        <ExternalLinkIcon transform="translateY(-1px)" ml={1} />
+                      </Link>
+                    ) : (
+                      /* Signatures */
+                      <>
                         {signers?.map((s) => (
                           <Box mt={2.5} key={s}>
                             <Box
@@ -544,40 +520,6 @@ function TransactionDetailsPage({
                             required
                           </Text>
                         )}
-                      </>
-                    ) : (
-                      <>
-                        <Heading
-                          size="sm"
-                          mb="3"
-                          fontWeight="medium"
-                          textTransform="uppercase"
-                          letterSpacing="1.5px"
-                          fontFamily="var(--font-miriam)"
-                          textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                        >
-                          Execution
-                        </Heading>
-
-                        <Text fontSize="sm" fontWeight="medium" mt={3}>
-                          Transaction pending on network
-                        </Text>
-                        <Link
-                          href={`${etherscanUrl}/tx/${executionTxnHash}`}
-                          isExternal
-                          fontSize="sm"
-                          fontWeight="medium"
-                          mt={3}
-                        >
-                          {truncateAddress(
-                            (executionTxnHash || '') as string,
-                            8
-                          )}
-                          <ExternalLinkIcon
-                            transform="translateY(-1px)"
-                            ml={1}
-                          />
-                        </Link>
                       </>
                     )}
 
@@ -679,35 +621,24 @@ function TransactionDetailsPage({
                         )}
                       </Flex>
                     )}
-                  </Box>
-                  {queuedWithGitOps && (
-                    <Box
-                      background="gray.800"
-                      p={4}
-                      borderWidth="1px"
-                      borderColor="gray.700"
-                      mb={8}
-                    >
-                      <Heading
-                        size="sm"
-                        mb={3}
-                        fontWeight="medium"
-                        textTransform="uppercase"
-                        letterSpacing="1.5px"
-                        fontFamily="var(--font-miriam)"
-                        textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                      >
-                        Cannon Package
-                        <Tooltip label="Packages include data about this deployment (including smart contract addresses, ABIs, and source code). When publishing, the registry collects some ETH (indicated as the 'value' for the transaction in your wallet) to support an IPFS cluster that pins package data.">
-                          <InfoOutlineIcon ml={1.5} opacity={0.8} mt={-0.5} />
-                        </Tooltip>
-                      </Heading>
+                  </Card>
 
+                  {queuedWithGitOps && (
+                    <Card
+                      title={
+                        <>
+                          Cannon Package
+                          <Tooltip label="Packages include data about this deployment (including smart contract addresses, ABIs, and source code). When publishing, the registry collects some ETH (indicated as the 'value' for the transaction in your wallet) to support an IPFS cluster that pins package data.">
+                            <InfoOutlineIcon ml={1.5} opacity={0.8} mt={-0.5} />
+                          </Tooltip>
+                        </>
+                      }
+                    >
                       <PublishUtility
                         deployUrl={hintData.cannonPackage}
                         targetChainId={safe.chainId}
                       />
-                    </Box>
+                    </Card>
                   )}
                 </Box>
               </Box>
