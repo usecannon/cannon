@@ -4,6 +4,7 @@ import {
   Box,
   Flex,
   Heading,
+  Skeleton,
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
@@ -13,13 +14,14 @@ import { ChainArtifacts } from '@usecannon/builder';
 import { FC, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AbiFunction, Abi as AbiType } from 'abitype';
 import { Function } from '@/features/Packages/Function';
-import { HasSubnavContext } from './Tabs/InteractTab';
+import { SubnavContext } from './Tabs/InteractTab';
 import SearchInput from '@/components/SearchInput';
 import { scroller, Element, scrollSpy } from 'react-scroll';
 
 import { Button, ButtonProps } from '@chakra-ui/react';
 import React from 'react';
 import { useRouter } from 'next/router';
+import { CustomSpinner } from '@/components/CustomSpinner';
 
 const getSelectorSlug = (f: AbiFunction) =>
   `selector-${viem.toFunctionSelector(f)}`;
@@ -50,7 +52,16 @@ const ButtonLink: React.FC<ButtonProps & { selected?: boolean }> = ({
   </Button>
 );
 
+const FunctionRowsSkeleton = () => (
+  <Flex direction="column" gap={2}>
+    {Array.from({ length: 7 }).map((_, i) => (
+      <Skeleton key={i} height={3} />
+    ))}
+  </Flex>
+);
+
 export const Abi: FC<{
+  isLoading?: boolean;
   abi?: AbiType;
   address: viem.Address;
   cannonOutputs: ChainArtifacts;
@@ -59,6 +70,7 @@ export const Abi: FC<{
   onDrawerOpen?: () => void;
   packageUrl?: string;
 }> = ({
+  isLoading,
   abi,
   contractSource,
   address,
@@ -70,7 +82,7 @@ export const Abi: FC<{
   const router = useRouter();
   const isSmall = useBreakpointValue([true, true, false]);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const hasSubnav = useContext(HasSubnavContext);
+  const hasSubnav = useContext(SubnavContext);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [selectedSelector, setSelectedSelector] = useState<string | null>(null);
   const [isUpdatingRoute, setIsUpdatingRoute] = useState(false);
@@ -184,26 +196,30 @@ export const Abi: FC<{
                   color="gray.200"
                   letterSpacing="0.1px"
                 >
-                  {'<< Read Functions'}
+                  Read Functions
                 </Heading>
               </Flex>
 
-              {readContractMethods
-                ?.filter((f) => f.name.includes(searchTerm))
-                .map((f, index) => (
-                  <ButtonLink
-                    key={index}
-                    selected={selectedSelector == getSelectorSlug(f)}
-                    disabled={isUpdatingRoute}
-                    onClick={() => handleMethodClick(f)}
-                  >
-                    {f.name}(
-                    {f.inputs
-                      .map((i) => i.type + (i.name ? ' ' + i.name : ''))
-                      .join(',')}
-                    )
-                  </ButtonLink>
-                ))}
+              {isLoading ? (
+                <FunctionRowsSkeleton />
+              ) : (
+                readContractMethods
+                  ?.filter((f) => f.name.includes(searchTerm))
+                  .map((f, index) => (
+                    <ButtonLink
+                      key={index}
+                      selected={selectedSelector == getSelectorSlug(f)}
+                      disabled={isUpdatingRoute}
+                      onClick={() => handleMethodClick(f)}
+                    >
+                      {f.name}(
+                      {f.inputs
+                        .map((i) => i.type + (i.name ? ' ' + i.name : ''))
+                        .join(',')}
+                      )
+                    </ButtonLink>
+                  ))
+              )}
             </Box>
             <Box mt={4}>
               <Flex flexDirection="row" px="2" alignItems="center" mb="1.5">
@@ -213,31 +229,35 @@ export const Abi: FC<{
                   color="gray.200"
                   letterSpacing="0.1px"
                 >
-                  {'>> Write Functions'}
+                  Write Functions
                 </Heading>
               </Flex>
-              {writeContractMethods
-                ?.filter((f) => f.name.includes(searchTerm))
-                .map((f, index) => (
-                  <ButtonLink
-                    key={index}
-                    disabled={isUpdatingRoute}
-                    selected={selectedSelector == getSelectorSlug(f)}
-                    onClick={() => handleMethodClick(f)}
-                  >
-                    {f.name}(
-                    {f.inputs
-                      .map((i) => i.type + (i.name ? ' ' + i.name : ''))
-                      .join(',')}
-                    )
-                  </ButtonLink>
-                ))}
+              {isLoading ? (
+                <FunctionRowsSkeleton />
+              ) : (
+                writeContractMethods
+                  ?.filter((f) => f.name.includes(searchTerm))
+                  .map((f, index) => (
+                    <ButtonLink
+                      key={index}
+                      disabled={isUpdatingRoute}
+                      selected={selectedSelector == getSelectorSlug(f)}
+                      onClick={() => handleMethodClick(f)}
+                    >
+                      {f.name}(
+                      {f.inputs
+                        .map((i) => i.type + (i.name ? ' ' + i.name : ''))
+                        .join(',')}
+                      )
+                    </ButtonLink>
+                  ))
+              )}
             </Box>
           </Box>
         </Flex>
 
         {/* Methods Interactions */}
-        <Box background="black" ref={containerRef} w="100%">
+        <Flex background="black" ref={containerRef} w="100%" direction="column">
           <Alert
             status="warning"
             bg="gray.900"
@@ -258,29 +278,36 @@ export const Abi: FC<{
             borderBottom="1px solid"
             borderColor="gray.700"
             gap={4}
+            flex={1}
           >
-            {allContractMethods?.map((f) => (
-              <Element
-                name={getSelectorSlug(f)}
-                key={`${address}-${getSelectorSlug(f)}`}
-              >
-                <Function
-                  selected={selectedSelector == getSelectorSlug(f)}
-                  f={f}
-                  abi={abi as AbiType}
-                  address={address}
-                  cannonOutputs={cannonOutputs}
-                  chainId={chainId}
-                  contractSource={contractSource}
-                  onDrawerOpen={onDrawerOpen}
-                  collapsible
-                  showFunctionSelector={false}
-                  packageUrl={packageUrl}
-                />
-              </Element>
-            ))}
+            {isLoading ? (
+              <Flex align="center" justify="center" flex={1}>
+                <CustomSpinner />
+              </Flex>
+            ) : (
+              allContractMethods?.map((f) => (
+                <Element
+                  name={getSelectorSlug(f)}
+                  key={`${address}-${getSelectorSlug(f)}`}
+                >
+                  <Function
+                    selected={selectedSelector == getSelectorSlug(f)}
+                    f={f}
+                    abi={abi as AbiType}
+                    address={address}
+                    cannonOutputs={cannonOutputs}
+                    chainId={chainId}
+                    contractSource={contractSource}
+                    onDrawerOpen={onDrawerOpen}
+                    collapsible
+                    showFunctionSelector={false}
+                    packageUrl={packageUrl}
+                  />
+                </Element>
+              ))
+            )}
           </Flex>
-        </Box>
+        </Flex>
       </Flex>
     </Flex>
   );

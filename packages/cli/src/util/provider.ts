@@ -16,12 +16,14 @@ import { isPrivateKey, normalizePrivateKey } from '../helpers';
 
 export enum ProviderAction {
   WriteDryRunProvider = 'WriteDryRunProvider',
+  OptionalWriteProvider = 'OptionalWriteProvider',
   WriteProvider = 'WriteProvider',
   ReadProvider = 'ReadProvider',
 }
 
 type ProviderParams = {
   action: ProviderAction;
+  quiet?: boolean;
   cliSettings: CliSettings;
   chainId?: number;
 };
@@ -83,11 +85,15 @@ export const getChainIdFromProviderUrl = async (providerUrl: string) => {
 export async function resolveProvider({
   cliSettings,
   chainId,
+  quiet = false,
   action,
 }: ProviderParams): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
   const chainData = getChainById(chainId!);
 
-  log(bold(`Resolving connection to ${chainData.name} (Chain ID: ${chainId})...`));
+  if (!quiet) {
+    log(bold(`Resolving connection to ${chainData.name} (Chain ID: ${chainId})...`));
+  }
+
   // Check if the first provider URL doesn't start with 'http'
   const isProviderUrl = isURL(cliSettings.providerUrl.split(',')[0]);
 
@@ -244,29 +250,33 @@ export async function resolveProviderAndSigners({
       debug('no signer supplied for provider');
 
       switch (action) {
-        case ProviderAction.WriteProvider: {
+        case ProviderAction.WriteProvider:
+        case ProviderAction.OptionalWriteProvider: {
+          const isOptional = ProviderAction.OptionalWriteProvider === action;
+
           const keyPrompt = await prompts({
             type: 'text',
             name: 'value',
-            message: 'Enter the private key of the address you want to use:',
+            message: `Enter the private key of the address you want to use ${isOptional ? '(Optional)' : ''}:`,
             style: 'password',
-            validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
+            validate: (key) => {
+              if (isOptional && !key) return true;
+              return isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid';
+            },
           });
 
-          if (!keyPrompt.value) {
-            throw new Error('A valid private key is required.');
+          if (keyPrompt.value) {
+            const account = privateKeyToAccount(keyPrompt.value as viem.Hex);
+
+            signers.push({
+              address: account.address,
+              wallet: viem.createWalletClient({
+                account,
+                chain: getChainById(chainId),
+                transport: viem.custom(publicClient.transport),
+              }),
+            });
           }
-
-          const account = privateKeyToAccount(keyPrompt.value as viem.Hex);
-
-          signers.push({
-            address: account.address,
-            wallet: viem.createWalletClient({
-              account,
-              chain: getChainById(chainId),
-              transport: viem.custom(publicClient.transport),
-            }),
-          });
 
           break;
         }

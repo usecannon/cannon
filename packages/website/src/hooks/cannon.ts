@@ -322,7 +322,7 @@ export function useCannonWriteDeployToIpfs(
   };
 }
 
-export function useCannonPackage(packageRef: string, chainId?: number) {
+export function useCannonPackage(packageRef?: string, chainId?: number) {
   const connectedChainId = useChainId();
   const registry = useCannonRegistry();
   const settings = useStore((s) => s.settings);
@@ -331,23 +331,26 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
   const packageChainId = chainId ?? connectedChainId;
 
   const registryQuery = useQuery({
-    queryKey: ['cannon', 'registry', packageRef, packageChainId],
+    queryKey: ['cannon', 'registry-url', packageRef, packageChainId],
     queryFn: async () => {
-      if (!packageRef || packageRef.length < 3) {
+      if (typeof packageRef !== 'string' || packageRef.length < 3) {
         return null;
       }
 
+      if (packageRef.startsWith('ipfs://')) return { url: packageRef };
+      if (packageRef.startsWith('@ipfs:')) return { url: packageRef.replace('@ipfs:', 'ipfs://') };
+
       const url = await registry.getUrl(packageRef, packageChainId);
-      const metaUrl = await registry.getMetaUrl(packageRef, packageChainId);
 
       if (url) {
-        return { url, metaUrl };
+        return { url };
       } else {
         throw new Error(`package not found: ${packageRef} (${packageChainId})`);
       }
     },
     refetchOnWindowFocus: false,
   });
+
   const pkgUrl = registryQuery.data?.url;
 
   const ipfsQuery = useQuery({
@@ -385,20 +388,40 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
     enabled: !!pkgUrl,
   });
 
+  const fullPackageRef = ipfsQuery.data?.fullPackageRef;
+
+  const registryQueryMeta = useQuery({
+    queryKey: ['cannon', 'registry-meta', fullPackageRef, packageChainId],
+    queryFn: async () => {
+      if (typeof fullPackageRef !== 'string' || fullPackageRef.length < 3) {
+        return null;
+      }
+
+      const metaUrl = await registry.getMetaUrl(fullPackageRef, packageChainId);
+
+      if (metaUrl) {
+        return { metaUrl };
+      } else {
+        return null;
+      }
+    },
+    refetchOnWindowFocus: false,
+  });
+
   return {
-    isLoading: registryQuery.isLoading || ipfsQuery.isLoading,
-    isFetching: registryQuery.isFetching || ipfsQuery.isFetching,
-    isError: registryQuery.isError || ipfsQuery.isError,
-    error: registryQuery.error || registryQuery.error,
+    isLoading: registryQuery.isLoading || ipfsQuery.isLoading || registryQueryMeta.isLoading,
+    isFetching: registryQuery.isFetching || ipfsQuery.isFetching || registryQueryMeta.isFetching,
+    isError: registryQuery.isError || ipfsQuery.isError || registryQueryMeta.isError,
+    error: registryQuery.error || registryQuery.error || registryQueryMeta.error,
     registryQuery,
     ipfsQuery,
     pkgUrl,
-    metaUrl: registryQuery.data?.metaUrl,
+    metaUrl: registryQueryMeta.data?.metaUrl,
     pkg: ipfsQuery.data?.deployInfo,
     resolvedName: ipfsQuery.data?.resolvedName,
     resolvedVersion: ipfsQuery.data?.resolvedVersion,
     resolvedPreset: ipfsQuery.data?.resolvedPreset,
-    fullPackageRef: ipfsQuery.data?.fullPackageRef,
+    fullPackageRef,
   };
 }
 
@@ -421,7 +444,7 @@ function getContractsRecursive(outputs: ChainArtifacts, prefix?: string): Contra
   return contracts;
 }
 
-export function useCannonPackageContracts(packageRef: string, chainId?: number) {
+export function useCannonPackageContracts(packageRef?: string, chainId?: number) {
   const pkg = useCannonPackage(packageRef, chainId);
   const [contracts, setContracts] = useState<ContractInfo | null>(null);
   const settings = useStore((s) => s.settings);
