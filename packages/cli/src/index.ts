@@ -282,6 +282,29 @@ applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(asy
   await verify(packageName, cliSettings, options.preset, parseInt(options.chainId));
 });
 
+applyCommandsConfig(program.command('diff'), commandsConfig.diff).action(async function (
+  packageName,
+  projectDirectory,
+  options
+) {
+  const { diff } = await import('./commands/diff');
+
+  const cliSettings = resolveCliSettings(options);
+
+  const foundDiffs = await diff(
+    packageName,
+    cliSettings,
+    options.preset,
+    parseInt(options.chainId),
+    projectDirectory,
+    options.matchContract,
+    options.matchSource
+  );
+
+  // exit code is the number of differences found--useful for CI checks
+  process.exit(foundDiffs);
+});
+
 applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async function (
   packageName,
   command,

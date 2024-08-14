@@ -1,22 +1,30 @@
-import axios from 'axios';
 import Debug from 'debug';
+import * as Diff from 'diff';
 import * as viem from 'viem';
+import { getFoundryArtifact, buildContracts } from '../foundry';
 import { bold, yellow } from 'chalk';
-import { ChainDefinition, getOutputs, ChainBuilderRuntime, DeploymentInfo, CannonStorage } from '@usecannon/builder';
-import { forPackageTree, PackageReference } from '@usecannon/builder/dist/src/package';
+import { ChainDefinition, ChainBuilderRuntime, DeploymentInfo, getArtifacts } from '@usecannon/builder';
+import { PackageReference } from '@usecannon/builder/dist/src/package';
 
 import { CliSettings } from '../settings';
 import { getProvider, runRpc } from '../rpc';
 import { createDefaultReadRegistry } from '../registry';
 
-import { getChainById } from '../chains';
 import { getMainLoader } from '../loader';
 
-import { log, warn } from '../util/console';
+import { log, warn, error } from '../util/console';
 
 const debug = Debug('cannon:cli:diff');
 
-export async function diff(packageRef: string, cliSettings: CliSettings, presetArg: string, chainId: number) {
+export async function diff(
+  packageRef: string,
+  cliSettings: CliSettings,
+  presetArg: string,
+  chainId: number,
+  projectDirectory: string,
+  matchContract = '',
+  matchPath = ''
+): Promise<number> {
   // Handle deprecated preset specification
   if (presetArg) {
     warn(
@@ -55,48 +63,47 @@ export async function diff(packageRef: string, cliSettings: CliSettings, presetA
     getMainLoader(cliSettings)
   );
 
-  const etherscanApi = cliSettings.etherscanApiUrl || getChainById(chainId)?.blockExplorers?.default.apiUrl;
-
-  if (!etherscanApi) {
-    throw new Error(
-      `couldn't find etherscan api url for network with ${chainId}. Please set your etherscan URL with CANNON_ETHERSCAN_API_URL`
-    );
-  }
-
-  if (!cliSettings.etherscanApiKey) {
-    throw new Error(
-      'Etherscan Api Key not supplied. Please set it with --api-key or CANNON_ETHERSCAN_API_KEY environment variable'
-    );
-  }
-
-  const guids: { [c: string]: string } = {};
-
   const deployData = await runtime.readDeploy(fullPackageRef, chainId);
 
   if (!deployData) {
     throw new Error(
-      `deployment not found: ${fullPackageRef}. please make sure it exists for the given preset and current network.`
+      `deployment not found: ${fullPackageRef}. please make sure it exists for the given preset and ${chainId} network.`
     );
   }
 
   // go through all the packages and sub packages and make sure all contracts are being verified
-  diffPackage();
+  const foundDiffs = await diffPackage(deployData, runtime, projectDirectory, matchContract, matchPath);
 
   node.kill();
+
+  return foundDiffs;
 }
 
-async function diffPackage(deployData: DeploymentInfo, runtime: ChainBuilderRuntime) {
+async function diffPackage(
+  deployData: DeploymentInfo,
+  runtime: ChainBuilderRuntime,
+  contractsDirectory: string,
+  matchContract: string,
+  matchPath: string
+) {
   const miscData = await runtime.readBlob(deployData.miscUrl);
 
   debug('misc data', miscData);
 
-  const outputs = await getOutputs(runtime, new ChainDefinition(deployData.def), deployData.state);
+  const outputs = getArtifacts(new ChainDefinition(deployData.def), deployData.state);
 
   if (!outputs) {
     throw new Error('No chain outputs found. Has the requested chain already been built?');
   }
 
+  await buildContracts();
+
+  let foundDiffs = 0;
   for (const c in outputs.contracts) {
+    if (matchContract && !c.match(new RegExp(matchContract))) {
+      debug(`skipping contract ${c}, not matched with ${matchContract}`);
+      continue;
+    }
     const contractInfo = outputs.contracts[c];
 
     // contracts can either be imported by just their name, or by a full path.
@@ -111,61 +118,54 @@ async function diffPackage(deployData: DeploymentInfo, runtime: ChainBuilderRunt
       continue;
     }
 
-    if (!contractArtifact.source) {
+    if (!contractArtifact.source?.input) {
       log(`${c}: cannot verify: no source code recorded in deploy data`);
       continue;
     }
 
-    if (await isVerified(contractInfo.address, etherscanApi, cliSettings.etherscanApiKey)) {
-      log(`✅ ${c}: Contract source code already verified`);
-      await sleep(500);
-      continue;
+    let localArtifact;
+    try {
+      localArtifact = await getFoundryArtifact(
+        `${contractInfo.sourceName}:${contractInfo.contractName}`,
+        contractsDirectory
+      );
+    } catch (err) {
+      try {
+        localArtifact = await getFoundryArtifact(`${contractInfo.contractName}`, contractsDirectory);
+      } catch (err) {
+        error('❌ ${c}: foundry does not recognize contract artifact for', c);
+        foundDiffs++;
+        continue;
+      }
     }
 
+    // compare the contract artifact sources with those found in the current project directory
     try {
-      // supply any linked libraries within the inputs since those are calculated at runtime
-      const inputData = JSON.parse(contractArtifact.source.input);
-      inputData.settings.libraries = contractInfo.linkedLibraries;
+      const { sources } = JSON.parse(contractArtifact.source.input);
+      const localSources = JSON.parse(localArtifact.source?.input || '{}').sources;
 
-      const reqData: { [k: string]: string } = {
-        apikey: cliSettings.etherscanApiKey,
-        module: 'contract',
-        action: 'verifysourcecode',
-        contractaddress: contractInfo.address,
-        // need to parse to get the inner structure, then stringify again
-        sourceCode: JSON.stringify(inputData),
-        codeformat: 'solidity-standard-json-input',
-        contractname: `${contractInfo.sourceName}:${contractInfo.contractName}`,
-        compilerversion: 'v' + contractArtifact.source.solcVersion,
+      for (const source in sources) {
+        if (matchPath && !source.match(new RegExp(matchPath))) {
+          debug(`skipping source ${source}, not matched with ${matchPath}`);
+          continue;
+        }
 
-        // NOTE: below: yes, the etherscan api is misspelling
-        constructorArguements: viem
-          .encodeAbiParameters(
-            contractArtifact.abi.find((i: viem.AbiItem) => i.type === 'constructor')?.inputs ?? [],
-            contractInfo.constructorArgs || []
-          )
-          .slice(2),
-      };
-
-      debug('verification request', reqData);
-
-      const res = await axios.post(etherscanApi, reqData, {
-        headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      });
-
-      if (res.data.status === '0') {
-        debug('etherscan failed', res.data);
-        log(`${c}:\tcannot verify:`, res.data.result);
-      } else {
-        log(`${c}:\tsubmitted verification (${contractInfo.address})`);
-        guids[c] = res.data.result;
+        if (!localSources[source]) {
+          log(`❌ ${c}: local artifact does not have ${source}`);
+          continue;
+        }
+        if (localSources[source].content !== sources[source].content) {
+          foundDiffs++;
+          log(`❌ ${c}: ${source} differs`);
+          log(Diff.createPatch(source, localSources[source].content, sources[source].content));
+        } else {
+          log(`✅ ${c}: ${source} matches`);
+        }
       }
     } catch (err) {
-      log(`verification for ${c} (${contractInfo.address}) failed:`, err);
+      error('could not parse', c, err);
     }
-
-    await sleep(500);
   }
 
-  return {};
+  return foundDiffs;
 }
