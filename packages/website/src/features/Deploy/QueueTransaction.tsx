@@ -478,7 +478,7 @@ export function QueueTransaction({
                   onChange={(e) => {
                     setValue(e.target.value);
                     try {
-                      parseEther(e.target.value);
+                      viem.parseEther(e.target.value);
                       setValueIsValid(true);
                     } catch (err) {
                       setValueIsValid(false);
@@ -494,7 +494,7 @@ export function QueueTransaction({
                 </InputRightAddon>
               </InputGroup>
               <FormHelperText color="gray.300">
-                {value !== undefined
+                {value !== undefined && valueIsValid
                   ? viem.parseEther(value.toString()).toString()
                   : 0}{' '}
                 wei
