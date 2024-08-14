@@ -1,3 +1,4 @@
+import { externalLinks } from '@/constants/externalLinks';
 import { truncateAddress } from '@/helpers/ethereum';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { sleep } from '@/helpers/misc';
@@ -18,7 +19,8 @@ import {
   Image,
   Link,
   ListItem,
-  Spinner,
+  Skeleton,
+  Stack,
   Text,
   Tooltip,
   UnorderedList,
@@ -122,7 +124,7 @@ export default function PublishUtility(props: {
     );
 
     const loader = new IPFSBrowserLoader(
-      settings.ipfsApiUrl || 'https://repo.usecannon.com/'
+      settings.ipfsApiUrl || externalLinks.IPFS_CANNON
     );
 
     const fromStorage = new CannonStorage(
@@ -205,9 +207,11 @@ export default function PublishUtility(props: {
 
   if (ipfsPkgQuery.isFetching || ipfsChkQuery.isFetching) {
     return (
-      <Text textAlign="center">
-        <Spinner boxSize={6} opacity={0.8} mt={3} />
-      </Text>
+      <Stack>
+        <Skeleton height="20px" />
+        <Skeleton height="60px" />
+        <Skeleton height="20px" />
+      </Stack>
     );
   } else if (existingRegistryUrl !== props.deployUrl) {
     // Any difference means that this deployment is not technically published
