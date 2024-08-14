@@ -1,4 +1,3 @@
-import { CustomSpinner } from '@/components/CustomSpinner';
 import { Abi } from '@/features/Packages/Abi';
 import chains from '@/helpers/chains';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
@@ -9,6 +8,7 @@ import {
   Flex,
   Heading,
   Link,
+  Skeleton,
   Text,
   useBreakpointValue,
   useDisclosure,
@@ -20,20 +20,16 @@ import {
   PackageReference,
 } from '@usecannon/builder';
 import { FC, useContext, useEffect, useState } from 'react';
-import { Address } from 'viem';
-import { HasSubnavContext } from './Tabs/InteractTab';
+
 import QueueDrawer from '@/features/Deploy/QueueDrawer';
 import { useQuery } from '@tanstack/react-query';
 import { getPackage } from '@/helpers/api';
+import { usePackageUrlParams } from '@/hooks/routing/usePackageUrlParams';
+import { SubnavContext } from '@/features/Packages/Tabs/InteractTab';
 
-export const Interact: FC<{
-  name: string;
-  tag: string;
-  variant: string;
-  moduleName: string;
-  contractName: string;
-  contractAddress: Address;
-}> = ({ name, tag, variant, moduleName, contractName, contractAddress }) => {
+const Interact: FC = () => {
+  const { variant, tag, name, moduleName, contractName, contractAddress } =
+    usePackageUrlParams();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const [chainId, preset] = PackageReference.parseVariant(variant);
@@ -96,7 +92,7 @@ export const Interact: FC<{
     findContract(cannonOutputs.contracts, name, cannonOutputs.imports);
   }, [deploymentData.data, contractName]);
 
-  const deployUrl = `https://repo.usecannon.com/${packagesQuery.data.data.deployUrl.replace(
+  const deployUrl = `https://repo.usecannon.com/${packagesQuery.data?.data.deployUrl.replace(
     'ipfs://',
     ''
   )}`;
@@ -104,27 +100,22 @@ export const Interact: FC<{
   const etherscanUrl =
     (
       Object.values(chains).find(
-        (chain) => chain.id === packagesQuery.data.data?.chainId
+        (chain) => chain.id === packagesQuery.data?.data?.chainId
       ) as any
     )?.blockExplorers?.default?.url ?? 'https://etherscan.io';
 
   const isMobile = useBreakpointValue([true, true, false]);
 
-  const hasSubnav = useContext(HasSubnavContext);
+  const subnavContext = useContext(SubnavContext);
 
-  if (packagesQuery.isPending || deploymentData.isPending) {
-    return (
-      <Box py="20" textAlign="center">
-        <CustomSpinner m="auto" />
-      </Box>
-    );
-  }
+  const isLoadingData = packagesQuery.isPending || deploymentData.isPending;
 
   return (
     <>
+      {/* Header */}
       <Flex
         position={{ md: 'sticky' }}
-        top={hasSubnav ? 65 : 0}
+        top={subnavContext.hasSubnav ? 65 : 0}
         zIndex={3}
         bg="gray.800"
         p={2}
@@ -133,9 +124,14 @@ export const Interact: FC<{
         borderBottom="1px solid"
         borderColor="gray.600"
       >
+        {/* Token */}
         <Box py={2} px={[1, 1, 3]}>
           <Heading display="inline-block" as="h4" size="md" mb={1.5}>
-            {contract?.contractName}
+            {isLoadingData ? (
+              <Skeleton height={1} width={100} mt={1} mb={1} />
+            ) : (
+              contract?.contractName
+            )}
           </Heading>
           <Text color="gray.300" fontSize="xs" fontFamily="mono">
             <Link
@@ -153,6 +149,8 @@ export const Interact: FC<{
             </Link>
           </Text>
         </Box>
+
+        {/* IPFS Url */}
         <Box p={1} ml={[0, 0, 'auto']}>
           <Flex
             justifyContent={['flex-start', 'flex-start', 'flex-end']}
@@ -174,26 +172,30 @@ export const Interact: FC<{
                 href={deployUrl}
               >
                 {isMobile
-                  ? `${packagesQuery.data.data.deployUrl.substring(
+                  ? `${packagesQuery.data?.data.deployUrl.substring(
                       0,
                       13
-                    )}...${packagesQuery.data.data?.deployUrl.slice(-4)}`
-                  : packagesQuery.data.data?.deployUrl}
+                    )}...${packagesQuery.data?.data?.deployUrl.slice(-4)}`
+                  : packagesQuery.data?.data?.deployUrl}
               </Link>
             </Text>
           </Flex>
         </Box>
       </Flex>
+
       <Abi
+        isLoading={isLoadingData}
         abi={contract?.abi}
         contractSource={contract?.sourceName}
         address={contractAddress}
         cannonOutputs={cannonOutputs}
-        chainId={packagesQuery.data.data?.chainId}
+        chainId={packagesQuery.data?.data?.chainId}
         onDrawerOpen={onOpen}
-        packageUrl={packagesQuery.data.data.deployUrl}
+        packageUrl={packagesQuery.data?.data.deployUrl}
       />
       <QueueDrawer isOpen={isOpen} onClose={onClose} onOpen={onOpen} />
     </>
   );
 };
+
+export default Interact;
