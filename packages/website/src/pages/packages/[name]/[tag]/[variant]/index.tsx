@@ -7,10 +7,10 @@ import { find } from 'lodash';
 import { ChainData } from '@/features/Search/PackageCard/Chain';
 import { PackageReference } from '@usecannon/builder';
 
-import Layout from './_layout';
+import TagVariantLayout from './_layout';
 import { ReactElement } from 'react';
 
-const NoSSR = dynamic(
+const DeploymentTab = dynamic(
   async () => {
     return import('@/features/Packages/Tabs/DeploymentTab');
   },
@@ -76,7 +76,7 @@ export default function Deployment() {
           description: metadata.description,
         }}
       />
-      <NoSSR
+      <DeploymentTab
         name={decodeURIComponent(params.name as string)}
         tag={decodeURIComponent(params.tag as string)}
         variant={decodeURIComponent(params.variant as string)}
@@ -86,5 +86,5 @@ export default function Deployment() {
 }
 
 Deployment.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>;
+  return <TagVariantLayout>{page}</TagVariantLayout>;
 };

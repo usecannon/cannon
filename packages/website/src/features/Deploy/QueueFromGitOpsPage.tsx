@@ -708,7 +708,6 @@ function QueueFromGitOps() {
                 Transactions
               </Heading>
               <TransactionDisplay
-                packageRef={fullPackageRef}
                 safe={currentSafe as any}
                 safeTxn={stager.safeTxn}
               />
