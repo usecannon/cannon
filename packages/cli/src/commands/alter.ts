@@ -228,19 +228,29 @@ export async function alter(
       }
 
       break;
-    case 'set-contract-address':
-      // find the steps that deploy contract
-      for (const actionStep in deployInfo.state) {
-        if (
-          deployInfo.state[actionStep].artifacts.contracts &&
-          deployInfo.state[actionStep].artifacts.contracts![targets[0]]
-        ) {
-          deployInfo.state[actionStep].artifacts.contracts![targets[0]].address = targets[1] as viem.Address;
-          deployInfo.state[actionStep].artifacts.contracts![targets[0]].deployTxnHash = '';
-        }
+    case 'set-contract-address': {
+      const [targetContractName, targetAddress] = targets;
+
+      if (!viem.isAddress(targetAddress)) {
+        throw new Error(`Invalid address given: "${targetAddress}"`);
       }
 
+      // find the step that deploy contract
+      const [targetStep] = Object.values(deployInfo.state).filter(
+        (step) => !!step.artifacts?.contracts?.[targetContractName]
+      );
+
+      if (!targetStep) {
+        throw new Error(`Could not find contract by step name "${targetContractName}"`);
+      }
+
+      debug(`setting "${targetContractName}" address to "${targetAddress}"`);
+
+      targetStep.artifacts!.contracts![targetContractName].address = targetAddress;
+      targetStep.artifacts!.contracts![targetContractName].deployTxnHash = '';
+
       break;
+    }
     case 'mark-complete':
       // some steps may require access to misc artifacts
       await runtime.restoreMisc(deployInfo.miscUrl);
