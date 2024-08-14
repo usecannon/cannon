@@ -26,6 +26,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getPackage } from '@/helpers/api';
 import { usePackageUrlParams } from '@/hooks/routing/usePackageUrlParams';
 import { SubnavContext } from '@/features/Packages/Tabs/InteractTab';
+import { externalLinks } from '@/constants/externalLinks';
 
 const Interact: FC = () => {
   const { variant, tag, name, moduleName, contractName, contractAddress } =
@@ -92,10 +93,9 @@ const Interact: FC = () => {
     findContract(cannonOutputs.contracts, name, cannonOutputs.imports);
   }, [deploymentData.data, contractName]);
 
-  const deployUrl = `https://repo.usecannon.com/${packagesQuery.data?.data.deployUrl.replace(
-    'ipfs://',
-    ''
-  )}`;
+  const deployUrl = `${
+    externalLinks.IPFS_CANNON
+  }${packagesQuery.data?.data.deployUrl.replace('ipfs://', '')}`;
 
   const etherscanUrl =
     (
