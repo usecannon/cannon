@@ -430,6 +430,10 @@ const invokeSpec = {
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.from, possibleFields));
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.value, possibleFields));
 
+    if (typeof config.target === 'string') {
+      config.target = [config.target as string];
+    }
+
     for (const target of config.target) {
       if (!viem.isAddress(target as any)) {
         if (target.includes('.')) {
