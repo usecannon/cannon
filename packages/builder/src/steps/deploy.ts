@@ -17,7 +17,7 @@ import {
 import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 import { template } from '../utils/template';
 
-const debug = Debug('cannon:builder:contract');
+const debug = Debug('cannon:builder:deploy');
 
 /**
  *  Available properties for contract operation
@@ -344,7 +344,9 @@ const deploySpec = {
               _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
             );
 
-            deployAddress = viem.zeroAddress;
+            throw new Error(
+              'The CREATE2 contract seems to be failing in the constructor. However, we were not able to get a stack trace.'
+            );
           } else {
             const preparedTxn = await runtime.provider.prepareTransactionRequest(
               _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
