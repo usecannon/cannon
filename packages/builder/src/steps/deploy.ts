@@ -414,13 +414,17 @@ const deploySpec = {
 
     const txn = await runtime.provider.getTransactionReceipt({ hash: existingKeys[0] as viem.Hash });
 
-    if (!txn.contractAddress) {
+    // When a CREATE2 contract is deployed, it doesnt output the contractAddress property.
+    // However the txn will emit events from the deployed contract address which can be found in the txn logs
+    const contractAddress = config.create2 ? txn.logs[0].address : txn.contractAddress;
+
+    if (!viem.isAddress(contractAddress as string)) {
       throw new Error('imported txn does not appear to deploy a contract');
     }
 
     const block = await runtime.provider.getBlock({ blockNumber: txn?.blockNumber });
 
-    return generateOutputs(config, ctx, artifactData, txn, block, txn.contractAddress!, packageState.currentLabel);
+    return generateOutputs(config, ctx, artifactData, txn, block, contractAddress!, packageState.currentLabel);
   },
 };
 
