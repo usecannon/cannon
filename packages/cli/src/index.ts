@@ -162,7 +162,7 @@ function configureRun(program: Command) {
     let node: CannonRpcNode;
     if (options.chainId) {
       const { provider } = await resolveProvider({
-        action: ProviderAction.WriteProvider,
+        action: ProviderAction.ReadProvider,
         cliSettings,
         chainId: Number.parseInt(options.chainId),
       });
@@ -178,7 +178,7 @@ function configureRun(program: Command) {
         options.chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
 
         const { provider } = await resolveProvider({
-          action: ProviderAction.WriteProvider,
+          action: ProviderAction.ReadProvider,
           cliSettings,
           chainId: Number.parseInt(options.chainId),
         });
