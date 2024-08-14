@@ -153,6 +153,12 @@ teardown() {
   assert_success
 }
 
+@test "Diff" {
+  run diff.sh
+  echo $output
+  assert_success
+}
+
 @test "Partial Build - Ensure integrity of cloned packages in partial deployment state" {
   set_custom_config
   run build-foundry-partial.sh
