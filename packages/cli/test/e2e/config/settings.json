@@ -1,7 +1,5 @@
 {
   "publishIpfsUrl": "https://us-east.repo.usecannon.com",
-  "writeIpfsUrl": "http://127.0.0.1:5001",
-  "ipfsUrl": "http://127.0.0.1:5001",
   "providerUrl": "http://127.0.0.1:9545",
   "privateKey": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
   "registryProviderUrl": "http://127.0.0.1:9545",
