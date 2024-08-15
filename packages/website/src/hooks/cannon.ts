@@ -273,7 +273,7 @@ export function useCannonWriteDeployToIpfs(
       //   throw new Error('You cannot publish on an repo endpoint, only read operations can be done');
       // }
 
-      if (!runtime || !deployInfo || !metaUrl) {
+      if (!runtime || !deployInfo) {
         throw new Error('Missing required parameters');
       }
 
