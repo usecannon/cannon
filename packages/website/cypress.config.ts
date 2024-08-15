@@ -21,6 +21,14 @@ export default defineConfig({
       // This is required for the preprocessor to be able to generate JSON reports after each run, and more,
       await addCucumberPreprocessorPlugin(on, config);
 
+      // create a custom task to log messages
+      on('task', {
+        log(message) {
+          console.log(message);
+          return null;
+        },
+      });
+
       on(
         'file:preprocessor',
         createBundler({
