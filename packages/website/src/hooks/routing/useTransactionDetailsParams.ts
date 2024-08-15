@@ -11,7 +11,7 @@ export function useTransactionDetailsParams() {
     typeof nonce !== 'string' ||
     typeof sigHash !== 'string'
   ) {
-    throw new Error('Missing or malformed  required  params');
+    throw new Error('Missing or malformed required params');
   }
 
   if (!isAddress(safeAddress)) {
