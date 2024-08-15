@@ -28,6 +28,7 @@ import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { DeploymentInfo } from '@usecannon/builder';
 import { getPackage } from '@/helpers/api';
 import { usePackageUrlParams } from '@/hooks/routing/usePackageUrlParams';
+import PageLoading from '@/components/PageLoading';
 
 function TagVariantLayout({ children }: { children: ReactNode }) {
   const { name, tag, chainId, preset } = usePackageUrlParams();
@@ -196,17 +197,9 @@ export default function WrapperTagVariantLayout({
   children: ReactNode;
 }) {
   const router = useRouter();
-  if (!router.isReady)
-    return (
-      <Flex
-        flexDirection="column"
-        align="center"
-        justify="center"
-        height="100%"
-        width="100%"
-      >
-        <CustomSpinner />
-      </Flex>
-    );
-  return <TagVariantLayout>{children}</TagVariantLayout>;
+  return router.isReady ? (
+    <TagVariantLayout>{children}</TagVariantLayout>
+  ) : (
+    <PageLoading />
+  );
 }
