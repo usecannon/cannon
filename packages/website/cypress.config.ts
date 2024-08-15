@@ -24,6 +24,7 @@ export default defineConfig({
       // create a custom task to log messages
       on('task', {
         log(message) {
+          // eslint-disable-next-line no-console
           console.log(message);
           return null;
         },
