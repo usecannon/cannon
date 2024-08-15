@@ -1,5 +1,5 @@
 export const slowRequestTracker = (() => {
-  const THRESHOLD = 60000; // 1 minute in milliseconds
+  const THRESHOLD = 30000; // 30s in milliseconds
   let slowRequests: string[] = [];
 
   function trackRequest(req: any) {
