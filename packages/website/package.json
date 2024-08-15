@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint --fix",
     "e2e": "NEXT_PUBLIC_E2E_TESTING_MODE=true start-server-and-test dev http://localhost:3000 \"cypress open --e2e\"",
-    "e2e:headless": "NEXT_PUBLIC_E2E_TESTING_MODE=true start-server-and-test dev http://localhost:3000 \"cypress run --e2e\"",
+    "e2e:headless": "NEXT_PUBLIC_E2E_TESTING_MODE=true DEBUG=cypress:* start-server-and-test dev http://localhost:3000 \"cypress run --e2e\"",
     "component": "cypress open --component",
     "component:headless": "cypress run --component"
   },
