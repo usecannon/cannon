@@ -269,9 +269,9 @@ export function useCannonWriteDeployToIpfs(
         throw new Error('You cannot write on an IPFS gateway, only read operations can be done');
       }
 
-      if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
-        throw new Error('You cannot publish on an repo endpoint, only read operations can be done');
-      }
+      // if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
+      //   throw new Error('You cannot publish on an repo endpoint, only read operations can be done');
+      // }
 
       if (!runtime || !deployInfo || !metaUrl) {
         throw new Error('Missing required parameters');
