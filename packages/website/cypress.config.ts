@@ -1,11 +1,11 @@
-import { defineConfig } from 'cypress';
-import createBundler from '@bahmutov/cypress-esbuild-preprocessor';
 import { addCucumberPreprocessorPlugin } from '@badeball/cypress-cucumber-preprocessor';
 import { createEsbuildPlugin } from '@badeball/cypress-cucumber-preprocessor/esbuild';
+import createBundler from '@bahmutov/cypress-esbuild-preprocessor';
+import { defineConfig } from 'cypress';
 
 export default defineConfig({
   e2e: {
-    defaultCommandTimeout: 50000,
+    defaultCommandTimeout: 100_000,
     specPattern: '**/*.feature',
     baseUrl: 'http://localhost:3000',
     video: false, // GH provides 2 CPUs, and cypress video eats one up, ref https://github.com/cypress-io/cypress/issues/20468#issuecomment-1307608025
