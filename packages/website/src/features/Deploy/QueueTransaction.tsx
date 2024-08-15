@@ -128,6 +128,7 @@ export function QueueTransaction({
   const [value, setValue] = useState<string | undefined>(
     tx?.value ? viem.formatEther(BigInt(tx?.value)).toString() : undefined
   );
+  const [valueIsValid, setValueIsValid] = useState<boolean>(true);
   const pkg = useCannonPackage(target, chainId);
   const { contracts } = useCannonPackageContracts(target, chainId);
 
@@ -472,8 +473,17 @@ export function QueueTransaction({
                   size="sm"
                   bg="black"
                   borderColor="whiteAlpha.400"
+                  isInvalid={!valueIsValid}
                   value={value?.toString()}
-                  onChange={(e) => setValue(e.target.value)}
+                  onChange={(e) => {
+                    setValue(e.target.value);
+                    try {
+                      viem.parseEther(e.target.value);
+                      setValueIsValid(true);
+                    } catch (err) {
+                      setValueIsValid(false);
+                    }
+                  }}
                 />
                 <InputRightAddon
                   bg="black"
@@ -483,8 +493,8 @@ export function QueueTransaction({
                   ETH
                 </InputRightAddon>
               </InputGroup>
-              <FormHelperText color="gray.300">
-                {value !== undefined
+              <FormHelperText hidden={!valueIsValid} color="gray.300">
+                {value !== undefined && valueIsValid
                   ? viem.parseEther(value.toString()).toString()
                   : 0}{' '}
                 wei

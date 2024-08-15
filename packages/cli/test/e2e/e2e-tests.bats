@@ -13,12 +13,12 @@ setup_file() {
   cd $CANNON_DIRECTORY
 
   # Fork OP to run tests against forked node
-  anvil --fork-url https://optimism-rpc.publicnode.com --port 9546 --silent --accounts 1 --optimism &
+  anvil --fork-url https://optimism.gateway.tenderly.co --port 9546 --silent --accounts 1 --optimism &
   export ANVIL_PID_OP="$!"
   sleep 1
 
   # Fork Mainnet to run tests against forked node
-  anvil --fork-url https://ethereum.publicnode.com --port 9545 --silent --accounts 1 &
+  anvil --fork-url https://mainnet.gateway.tenderly.co --port 9545 --silent --accounts 1 &
   export ANVIL_PID="$!"
   sleep 1
 }

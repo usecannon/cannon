@@ -742,7 +742,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
   await ensureChainIdConsistency(cliSettings.providerUrl, chainId);
 
   const { provider, signers } = await resolveProvider({
-    action: ProviderAction.WriteProvider,
+    action: ProviderAction.OptionalWriteProvider,
     cliSettings,
     chainId: chainId!,
   });
