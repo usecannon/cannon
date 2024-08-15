@@ -1,4 +1,4 @@
-import { chainDefinitionSchema } from '@usecannon/builder';
+import { chainDefinitionSchema } from '@usecannon/builder/dist/src/schemas';
 import { runSchema } from '@usecannon/cli/dist/src/schemas';
 import { compile } from 'json-schema-to-typescript';
 import { useEffect, useState } from 'react';

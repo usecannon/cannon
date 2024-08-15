@@ -92,7 +92,7 @@ export default function PublishUtility(props: {
     const targetRegistry = new FallbackRegistry(
       [
         new OnChainRegistry({
-          signer: { address: walletAddress, wallet: wc.data },
+          signer: { address: walletAddress, wallet: wc.data as any },
           address: DEFAULT_REGISTRY_ADDRESS,
           provider: viem.createPublicClient({
             chain: optimism,
@@ -100,7 +100,7 @@ export default function PublishUtility(props: {
           }) as any, // TODO: fix type
         }),
         new OnChainRegistry({
-          signer: { address: walletAddress, wallet: wc.data },
+          signer: { address: walletAddress, wallet: wc.data as any },
           address: DEFAULT_REGISTRY_ADDRESS,
           provider: viem.createPublicClient({
             chain: mainnet,

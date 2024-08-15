@@ -61,7 +61,7 @@ export const QueuedTxns = ({
 }) => {
   const account = useAccount();
   const { openConnectModal } = useConnectModal();
-  const [customTxnData, setCustomTxnData] = useState<viem.Address>('');
+  const [customTxnData, setCustomTxnData] = useState<viem.Address>();
   const customTxnDataIsValid = isValidHex(customTxnData || '');
   const currentSafe = useStore((s) => s.currentSafe);
   const router = useRouter();
@@ -463,7 +463,9 @@ export const QueuedTxns = ({
                   borderColor="whiteAlpha.400"
                   background="black"
                   placeholder="0x"
-                  onChange={(e) => setCustomTxnData(e.target.value)}
+                  onChange={(e) =>
+                    setCustomTxnData(e.target.value as viem.Address)
+                  }
                 />
                 {customTxnData && !customTxnDataIsValid && (
                   <FormHelperText color="red.300">
