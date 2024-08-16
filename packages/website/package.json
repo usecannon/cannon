@@ -6,9 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "serve": "serve out -c ../serve.json > /dev/null 2>&1 &",
+    "serve": "serve out -c ../serve.json -p 3000 > /dev/null 2>&1 &",
     "lint": "next lint --fix",
-    "e2e": "NEXT_PUBLIC_E2E_TESTING_MODE=true npm run build && npm run serve && cypress open --e2e",
+    "e2e": "NEXT_PUBLIC_E2E_TESTING_MODE=true npm run build && npm run serve  && cypress open --e2e",
     "e2e:headless": "NEXT_PUBLIC_E2E_TESTING_MODE=true npm run build && npm run serve && cypress run --e2e",
     "component": "cypress open --component",
     "component:headless": "cypress run --component"
