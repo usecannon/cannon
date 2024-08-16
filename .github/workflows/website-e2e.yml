@@ -29,3 +29,5 @@ jobs:
         env:
           # pass GitHub token to allow accurately detecting a build vs a re-run build
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CANNON_E2E_RPC_URL_SEPOLIA: ${{ secrets.CANNON_E2E_RPC_URL_SEPOLIA }}
+          CANNON_E2E_RPC_URL_ETHEREUM: ${{ secrets.CANNON_E2E_RPC_URL_ETHEREUM }}
