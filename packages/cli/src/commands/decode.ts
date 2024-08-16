@@ -93,10 +93,10 @@ export async function decode({
             renderArgs(
               {
                 ...components[i],
-                name: `[${i}] ${components[i].name}`,
+                name: `${components[i].name}`,
               },
-              v[i],
-              offset.repeat(2)
+              v[`${components[i].name}`],
+              offset.repeat(4)
             );
           }
           log();
@@ -148,10 +148,6 @@ function _renderValue(type: viem.AbiParameter, value: string | bigint) {
       return value.toString();
 
     case type.type === 'address':
-      if (!value) {
-        return `"${value}"`;
-      }
-
       return viem.getAddress(value);
     case type.type == 'bool':
       return typeof value == 'string' && value.startsWith('0x') ? viem.hexToBool(value as viem.Hex) : value;
@@ -186,7 +182,6 @@ function _parseData(abis: ContractData['abi'][], data: viem.Hash[]) {
           data: data.length > 1 ? data[data.length - 1] : '0x',
         })
       );
-
     if (result) return { abi, result };
   }
 
