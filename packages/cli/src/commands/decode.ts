@@ -95,8 +95,8 @@ export async function decode({
                 ...components[i],
                 name: `${components[i].name}`,
               },
-              v[`${components[i].name}`],
-              offset.repeat(4)
+              v[`${components[i].name}`] ? v[`${components[i].name}`] : v[i] ,
+              offset.repeat(2)
             );
           }
           log();
@@ -152,17 +152,17 @@ function _renderValue(type: viem.AbiParameter, value: string | bigint) {
     case type.type == 'bool':
       return typeof value == 'string' && value.startsWith('0x') ? viem.hexToBool(value as viem.Hex) : value;
 
-    case type.type.startsWith('bytes'):
-      try {
-        return viem.hexToString(value as viem.Hex, { size: 32 });
-      } catch (err) {
-        const settings = resolveCliSettings();
-        if (settings.trace) {
-          error(err);
+      case type.type.startsWith('bytes'):
+        try {
+          return viem.hexToString(value as viem.Hex, { size: 32 });
+        } catch (err) {
+          const settings = resolveCliSettings();
+          if (settings.trace) {
+            error(err);
+          }
         }
-      }
-
-      return `"${value}"`;
+  
+        return `"${value}"`;
     default:
       return `"${value}"`;
   }
