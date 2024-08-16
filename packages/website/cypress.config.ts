@@ -11,6 +11,7 @@ export default defineConfig({
     video: false, // GH provides 2 CPUs, and cypress video eats one up, ref https://github.com/cypress-io/cypress/issues/20468#issuecomment-1307608025
     experimentalMemoryManagement: true, // better memory management, ref https://github.com/cypress-io/cypress/pull/2546
     supportFile: 'cypress/support/commands.ts',
+    reporter: require.resolve('@badeball/cypress-cucumber-preprocessor/pretty-reporter'),
     async setupNodeEvents(
       on: Cypress.PluginEvents,
       config: Cypress.PluginConfigOptions
