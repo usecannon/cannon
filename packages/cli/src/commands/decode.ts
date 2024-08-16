@@ -93,7 +93,7 @@ export async function decode({
             renderArgs(
               {
                 ...components[i],
-                name: `[${i}]`,
+                name: `[${i}] ${components[i].name}`,
               },
               v[i],
               offset.repeat(2)
@@ -148,8 +148,11 @@ function _renderValue(type: viem.AbiParameter, value: string | bigint) {
       return value.toString();
 
     case type.type === 'address':
-      return viem.getAddress(value);
+      if (!value) {
+        return `"${value}"`;
+      }
 
+      return viem.getAddress(value);
     case type.type == 'bool':
       return typeof value == 'string' && value.startsWith('0x') ? viem.hexToBool(value as viem.Hex) : value;
 
