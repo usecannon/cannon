@@ -201,15 +201,15 @@ export const DeploymentExplorer: FC<{
                     <Link as={NextLink} href="/learn/cli/">
                       Install the CLI
                     </Link>{' '}
-                    and then run a local node for development with this package{' '}
-                    {pkg.chainId != 13370 && 'on a fork'}:
+                    and then run a local node for development with this package
+                    {pkg.chainId != 13370 && ' on a fork'}:
                   </Text>
                 </Box>
                 <CommandPreview
                   command={`cannon ${pkg.name}${
                     pkg?.tag !== 'latest' ? `:${pkgDef?.version}` : ''
                   }${pkg.preset !== 'main' ? `@${pkgDef?.preset}` : ''}${
-                    pkg.chainId != 13370 && ' --chain-id ' + pkg.chainId
+                    pkg.chainId != 13370 ? ' --chain-id ' + pkg.chainId : ''
                   }`}
                 />
               </Box>
