@@ -12,13 +12,16 @@ setup_file() {
 
   cd $CANNON_DIRECTORY
 
+  export CANNON_E2E_RPC_URL_OPTIMISM="${CANNON_E2E_RPC_URL_OPTIMISM:="https://optimism.gateway.tenderly.co"}"
+  export CANNON_E2E_RPC_URL_ETHEREUM="${CANNON_E2E_RPC_URL_ETHEREUM:="https://mainnet.gateway.tenderly.co"}"
+
   # Fork OP to run tests against forked node
-  anvil --fork-url https://optimism.gateway.tenderly.co --port 9546 --silent --accounts 1 --optimism &
+  anvil --fork-url "$CANNON_E2E_RPC_URL_OPTIMISM" --port 9546 --silent --accounts 1 --optimism &
   export ANVIL_PID_OP="$!"
   sleep 1
 
   # Fork Mainnet to run tests against forked node
-  anvil --fork-url https://mainnet.gateway.tenderly.co --port 9545 --silent --accounts 1 &
+  anvil --fork-url "$CANNON_E2E_RPC_URL_ETHEREUM" --port 9545 --silent --accounts 1 &
   export ANVIL_PID="$!"
   sleep 1
 }
