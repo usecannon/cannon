@@ -20,7 +20,7 @@ artifact = "Greeter"
 [diamond.Diamond]
 contracts = [
   "Counter",
-  #"Greeter",
+  "Greeter",
 ]
 diamondArgs.owner = "<%= settings.admin %>"
 salt = "<%= settings.salt %>"
