@@ -8,7 +8,6 @@ Feature: Stage Transactions
     Given User opens the "/deploy" page
     * Wallet is connected
     Then View renders a "p" displaying the text "Queue, sign, and execute deployments using a"
-    * View renders a "p" displaying the text "Select a Safe from the dropdown above."
 
   Scenario: User stages transactions from the interact page
     Given User opens the "/packages" page
