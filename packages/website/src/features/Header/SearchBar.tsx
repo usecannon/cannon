@@ -56,7 +56,7 @@ const generateLink = (result: any) => {
   }
 };
 
-export const SearchBar = () => {
+const SearchBar = () => {
   const pathname = useRouter().pathname;
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -443,3 +443,5 @@ export const SearchBar = () => {
     </>
   );
 };
+
+export default SearchBar;

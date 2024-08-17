@@ -1,13 +1,27 @@
 'use client';
 
-import { CannonRegistryProvider } from '@/providers/CannonRegistryProvider';
-import LogsProvider from '@/providers/logsProvider';
-import WalletProvider from '@/providers/walletProvider';
-import { theme } from '@/theme/theme';
+import dynamic from 'next/dynamic';
 import { CacheProvider } from '@chakra-ui/next-js';
 import { ChakraProvider } from '@chakra-ui/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
+
+import LogsProvider from '@/providers/logsProvider';
+import { theme } from '@/theme/theme';
+
+const NoSsrCannonRegistryProvider = dynamic(
+  () => import('@/providers/CannonRegistryProvider'),
+  {
+    ssr: false,
+  }
+);
+
+const NoSsrWalletProvider = dynamic(
+  () => import('@/providers/walletProvider'),
+  {
+    ssr: false,
+  }
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,9 +43,9 @@ export default function Providers({ children }: { children: ReactNode }) {
       <ChakraProvider theme={theme} colorModeManager={csm as any}>
         <QueryClientProvider client={queryClient}>
           <LogsProvider>
-            <CannonRegistryProvider>
-              <WalletProvider>{children}</WalletProvider>
-            </CannonRegistryProvider>
+            <NoSsrCannonRegistryProvider>
+              <NoSsrWalletProvider>{children}</NoSsrWalletProvider>
+            </NoSsrCannonRegistryProvider>
           </LogsProvider>
         </QueryClientProvider>
       </ChakraProvider>
