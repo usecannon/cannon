@@ -26,6 +26,8 @@ import {
 } from '@usecannon/builder';
 import { FC, useContext, useEffect, useState } from 'react';
 
+import { externalLinks } from '@/constants/externalLinks';
+
 const Interact: FC = () => {
   const { variant, tag, name, moduleName, contractName, contractAddress } =
     usePackageUrlParams();
@@ -91,10 +93,9 @@ const Interact: FC = () => {
     findContract(cannonOutputs.contracts, name, cannonOutputs.imports);
   }, [deploymentData.data, contractName]);
 
-  const deployUrl = `https://repo.usecannon.com/${packagesQuery.data?.data.deployUrl.replace(
-    'ipfs://',
-    ''
-  )}`;
+  const deployUrl = `${
+    externalLinks.IPFS_CANNON
+  }${packagesQuery.data?.data.deployUrl.replace('ipfs://', '')}`;
 
   const etherscanUrl =
     (

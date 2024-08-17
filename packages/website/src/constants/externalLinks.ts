@@ -13,4 +13,5 @@ export const externalLinks = {
   HARDHAT_EXAMPLE: github + 'usecannon/cannon/tree/main/examples/sample-hardhat-project',
   ETHERSCAN: 'https://www.etherscan.io/',
   IPFS_CLUSTER: 'https://cluster.ipfs.io/',
+  IPFS_CANNON: 'https://repo.usecannon.com/',
 };
