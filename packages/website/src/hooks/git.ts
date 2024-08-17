@@ -83,12 +83,22 @@ export function useGitDiff(url: string, fromRef: string, toRef: string, files: s
   const patches = useMemo(() => {
     const patches: string[] = [];
 
-    if (!fromQuery.data || !toQuery.data) return patches;
+    if (!fromQuery.data && !toQuery.data) return patches;
 
     const fromFiles = fromQuery.data;
     const toFiles = toQuery.data;
 
-    for (let i = 0; i < fromFiles.length; i++) {
+    // If the fromFiles are not available, then we only use the toFiles to create the patches.
+    if (!fromFiles && toFiles) {
+      for (let i = 0; i < toFiles.length; i++) {
+        const p = createTwoFilesPatch('a/', `b/${files[i]}`, '', toFiles[i], undefined, undefined);
+        patches.push(p.slice(p.indexOf('\n')));
+      }
+      return patches;
+    }
+
+    // create patches comparing the fromFiles and toFiles
+    for (let i = 0; i < fromFiles!.length; i++) {
       const p = createTwoFilesPatch(`a/${files[i]}`, `b/${files[i]}`, fromFiles![i], toFiles![i], undefined, undefined);
       patches.push(p.slice(p.indexOf('\n')));
     }
@@ -97,6 +107,8 @@ export function useGitDiff(url: string, fromRef: string, toRef: string, files: s
   }, [fromQuery.status, toQuery.status]);
 
   return {
+    isLoading: fromQuery.isLoading || toQuery.isLoading,
+    areDiff: Boolean((fromQuery.data || []).length),
     patches,
     fromQuery,
     toQuery,
