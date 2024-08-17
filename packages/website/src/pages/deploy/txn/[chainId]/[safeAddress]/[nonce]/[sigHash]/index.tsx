@@ -6,7 +6,7 @@ import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
 import PageLoading from '@/components/PageLoading';
 
-const NoSSR = dynamic(
+const NoSSRTransactionDetailsPage = dynamic(
   async () => {
     return import('@/features/Deploy/TransactionDetailsPage');
   },
@@ -17,7 +17,6 @@ const NoSSR = dynamic(
 
 export default function TransactionDetails() {
   const router = useRouter();
-  const params = router.query;
   return (
     <>
       <NextSeo
@@ -30,16 +29,7 @@ export default function TransactionDetails() {
           description: 'Transaction Details',
         }}
       />
-      {router.isReady ? (
-        <NoSSR
-          safeAddress={params.safeAddress as string}
-          chainId={params.chainId as string}
-          nonce={params.nonce as string}
-          sigHash={params.sigHash as string}
-        />
-      ) : (
-        <PageLoading />
-      )}
+      {router.isReady ? <NoSSRTransactionDetailsPage /> : <PageLoading />}
     </>
   );
 }

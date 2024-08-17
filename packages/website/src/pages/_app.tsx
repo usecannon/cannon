@@ -11,7 +11,14 @@ import Providers from './_providers';
 import { DefaultSeo } from 'next-seo';
 import '@/styles/globals.css';
 import defaultSEO from '@/constants/defaultSeo';
-import E2EWalletConnector from '../../cypress/utils/E2EWalletConnector';
+import dynamic from 'next/dynamic';
+
+const NoSsrE2EWalletConnector = dynamic(
+  () => import('../../cypress/utils/E2EWalletConnector'),
+  {
+    ssr: false,
+  }
+);
 
 const miriam = Miriam_Libre({
   subsets: ['latin'],
@@ -70,11 +77,10 @@ export default function RootLayout({
           minHeight="100vh"
           position="relative"
         >
-          <Header />
+          <Header /> {/* 0.1MB */}
           <Flex flex="1">{getLayout(<Component {...pageProps} />)}</Flex>
           <Footer />
-          {/*<Console />*/}
-          <E2EWalletConnector />
+          <NoSsrE2EWalletConnector />
         </Flex>
       </Providers>
       <Analytics />

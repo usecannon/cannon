@@ -35,8 +35,7 @@ export function useSafeTransactions(safe: SafeDefinition | null) {
     enabled: !!safe,
     queryFn: async () => {
       if (!safe) return;
-      const res = await axios.get(`${stagingUrl}/${safe.chainId}/${safe.address}`);
-      return res as { data: CannonSafeTransaction[] };
+      return axios.get<CannonSafeTransaction[]>(`${stagingUrl}/${safe.chainId}/${safe.address}`);
     },
     refetchInterval: 10000,
   });
@@ -76,6 +75,7 @@ export function useSafeTransactions(safe: SafeDefinition | null) {
   }, [stagedQuery.isSuccess, stagedQuery.data, nonceQuery.isSuccess, nonceQuery.data]);
 
   return {
+    isLoading: stagedQuery.isLoading || nonceQuery.isLoading,
     isSuccess: nonceQuery.isSuccess && stagedQuery.isSuccess,
     nonceQuery,
     stagedQuery,

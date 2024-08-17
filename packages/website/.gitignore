@@ -3,6 +3,7 @@
 !.env.*.example
 local.graphql
 
+tsconfig.tsbuildinfo
 
 # next.js build output
 .next/
