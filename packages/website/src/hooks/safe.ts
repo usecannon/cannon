@@ -75,7 +75,7 @@ function _createSafeApiKit(chainId: number) {
   });
 }
 
-export function useExecutedTransactions(safe?: SafeDefinition) {
+export function useExecutedTransactions(safe?: SafeDefinition | null) {
   const txsQuery = useQuery({
     queryKey: ['executed-transactions', safe?.chainId, safe?.address],
     queryFn: async () => {
