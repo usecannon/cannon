@@ -15,7 +15,13 @@ import NextLink from 'next/link';
 import { links } from '@/constants/links';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
-import { InfoIcon, DownloadIcon, AddIcon } from '@chakra-ui/icons';
+import {
+  InfoIcon,
+  DownloadIcon,
+  AddIcon,
+  EditIcon,
+  InfoOutlineIcon,
+} from '@chakra-ui/icons';
 import { ChainBuilderContext } from '@usecannon/builder';
 import { isEmpty } from 'lodash';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
@@ -185,84 +191,181 @@ export const DeploymentExplorer: FC<{
       ) : deploymentInfo ? (
         <Box>
           {
-            <Container maxW="container.lg" mt={9} mb={12}>
-              <Box
-                p={5}
-                bg="gray.800"
-                border="1px solid"
-                borderColor="gray.700"
-                borderRadius="sm"
-              >
-                <Box mb={4}>
-                  <Flex
-                    alignItems="center"
-                    mb={2}
-                    flexDir={['column', 'column', 'row']}
-                    alignItems="left"
-                  >
-                    <Heading size="md" mb={[2.5, 2.5, 0]} fontWeight={700}>
-                      Run this package on a local{' '}
-                      {pkg.chainId == 13370 ? 'node' : 'fork'}
-                    </Heading>
-                    <Box ml={['none', 'none', 'auto']}>
-                      <Button
-                        variant="outline"
-                        colorScheme="white"
-                        size="xs"
-                        bg="teal.900"
-                        borderColor="teal.500"
-                        _hover={{ bg: 'teal.800' }}
-                        as={NextLink}
-                        leftIcon={
-                          <AddIcon boxSize={2} transform="translateY(-0.5px)" />
-                        }
-                        href="/learn/cli/"
-                        textTransform="uppercase"
-                        letterSpacing="1px"
-                        pt={0.5}
-                        fontFamily="var(--font-miriam)"
-                        color="gray.200"
-                        fontWeight={500}
-                      >
-                        Install Cannon CLI
-                      </Button>
-                    </Box>
-                  </Flex>
+            <>
+              <Container maxW="container.lg" my={9}>
+                <Box
+                  p={5}
+                  bg="gray.800"
+                  border="1px solid"
+                  borderColor="gray.700"
+                  borderRadius="sm"
+                >
+                  <Box mb={4}>
+                    <Flex
+                      alignItems="center"
+                      mb={2}
+                      flexDir={['column', 'column', 'row']}
+                      alignItems="left"
+                    >
+                      <Heading size="md" mb={[2.5, 2.5, 0]} fontWeight={700}>
+                        Run this package on a local{' '}
+                        {pkg.chainId == 13370 ? 'node' : 'fork'}
+                      </Heading>
+                      <Box ml={['none', 'none', 'auto']}>
+                        <Button
+                          variant="outline"
+                          colorScheme="white"
+                          size="xs"
+                          bg="teal.900"
+                          borderColor="teal.500"
+                          _hover={{ bg: 'teal.800' }}
+                          as={NextLink}
+                          leftIcon={
+                            <AddIcon
+                              boxSize={2}
+                              transform="translateY(-0.5px)"
+                            />
+                          }
+                          href="/learn/cli/"
+                          textTransform="uppercase"
+                          letterSpacing="1px"
+                          pt={0.5}
+                          fontFamily="var(--font-miriam)"
+                          color="gray.200"
+                          fontWeight={500}
+                        >
+                          Install Cannon CLI
+                        </Button>
+                      </Box>
+                    </Flex>
+                  </Box>
+                  <CommandPreview
+                    command={`cannon ${pkg.name}${
+                      pkg?.tag !== 'latest' ? `:${pkgDef?.version}` : ''
+                    }${pkg.preset !== 'main' ? `@${pkgDef?.preset}` : ''}${
+                      pkg.chainId != 13370 ? ' --chain-id ' + pkg.chainId : ''
+                    }`}
+                  />
                 </Box>
-                <CommandPreview
-                  command={`cannon ${pkg.name}${
-                    pkg?.tag !== 'latest' ? `:${pkgDef?.version}` : ''
-                  }${pkg.preset !== 'main' ? `@${pkgDef?.preset}` : ''}${
-                    pkg.chainId != 13370 ? ' --chain-id ' + pkg.chainId : ''
-                  }`}
-                />
-              </Box>
-            </Container>
+              </Container>
+
+              <Container maxW="container.lg" my={9}>
+                <Box
+                  p={5}
+                  bg="gray.800"
+                  border="1px solid"
+                  borderColor="gray.700"
+                  borderRadius="sm"
+                >
+                  <Box mb={4}>
+                    <Flex
+                      alignItems="center"
+                      mb={2}
+                      flexDir={['column', 'column', 'row']}
+                      alignItems="left"
+                    >
+                      <Heading size="md" mb={[2.5, 2.5, 0]} fontWeight={700}>
+                        Retrieve addresses and ABIs
+                      </Heading>
+                      <Box ml={['none', 'none', 'auto']}>
+                        <Button
+                          variant="outline"
+                          colorScheme="white"
+                          size="xs"
+                          bg="teal.900"
+                          borderColor="teal.500"
+                          _hover={{ bg: 'teal.800' }}
+                          leftIcon={<DownloadIcon boxSize={2.5} />}
+                          onClick={handleDownload}
+                          textTransform="uppercase"
+                          letterSpacing="1px"
+                          pt={0.5}
+                          fontFamily="var(--font-miriam)"
+                          color="gray.200"
+                          fontWeight={500}
+                        >
+                          Download JSON
+                        </Button>
+                      </Box>
+                    </Flex>
+                  </Box>
+                  <CommandPreview
+                    command={`cannon inspect ${pkg.name}${
+                      pkg?.tag !== 'latest' ? `:${pkgDef?.version}` : ''
+                    }${pkg.preset !== 'main' ? `@${pkgDef?.preset}` : ''}${
+                      pkg.chainId != 13370 ? ' --chain-id ' + pkg.chainId : ''
+                    } --write-deployments ./deployment`}
+                  />
+                </Box>
+              </Container>
+
+              <Container maxW="container.lg" my={9}>
+                <Box
+                  p={5}
+                  bg="gray.800"
+                  border="1px solid"
+                  borderColor="gray.700"
+                  borderRadius="sm"
+                >
+                  <Box mb={4}>
+                    <Flex
+                      alignItems="center"
+                      mb={2}
+                      flexDir={['column', 'column', 'row']}
+                      alignItems="left"
+                    >
+                      <Heading size="md" mb={[2.5, 2.5, 0]} fontWeight={700}>
+                        Integrate with this package
+                      </Heading>
+                      <Box ml={['none', 'none', 'auto']}>
+                        <Button
+                          variant="outline"
+                          colorScheme="white"
+                          size="xs"
+                          bg="teal.900"
+                          borderColor="teal.500"
+                          _hover={{ bg: 'teal.800' }}
+                          as={NextLink}
+                          leftIcon={
+                            <EditIcon
+                              boxSize={2.5}
+                              transform="translateY(-1px)"
+                            />
+                          }
+                          href="/learn/cannonfile/"
+                          textTransform="uppercase"
+                          letterSpacing="1px"
+                          pt={0.5}
+                          fontFamily="var(--font-miriam)"
+                          color="gray.200"
+                          fontWeight={500}
+                        >
+                          Build Cannonfile
+                        </Button>
+                      </Box>
+                    </Flex>
+                  </Box>
+                  <Text mb={2}>Add to a Cannonfile</Text>
+                  <Box mb={4} p={3} bg="black">
+                    [pull.blah]
+                  </Box>
+                  <Text mb={2}>
+                    Cannonfile Context Data{' '}
+                    <Tooltip label='After adding the pull operation to your cannonfile, you reference the following data in other steps like prop="<%= contracts.example %>'>
+                      <InfoOutlineIcon />
+                    </Tooltip>
+                  </Text>
+                  <Box p={3} bg="black">
+                    'contracts': 'blah'
+                  </Box>
+                </Box>
+              </Container>
+            </>
           }
           {(!isEmpty(addressesAbis) || !isEmpty(contractState)) && (
             <Box mt={6}>
               <Flex px={4} mb={3} direction={['column', 'column', 'row']}>
                 <Heading size="md">Contract Deployments</Heading>
-                <Box ml={[0, 0, 4]} mt={[2, 2, 0]}>
-                  <Button
-                    variant="outline"
-                    colorScheme="white"
-                    size="xs"
-                    bg="teal.900"
-                    borderColor="teal.500"
-                    _hover={{ bg: 'teal.800' }}
-                    leftIcon={<DownloadIcon boxSize={2.5} />}
-                    onClick={handleDownload}
-                    textTransform="uppercase"
-                    letterSpacing="1px"
-                    pt={0.5}
-                    fontFamily="var(--font-miriam)"
-                    color="gray.200"
-                    fontWeight={500}
-                  >
-                    Download Addresses + ABIs
-                  </Button>
-                </Box>
               </Flex>
               <Box maxW="100%" overflowX="auto">
                 <ContractsTable
