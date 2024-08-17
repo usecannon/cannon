@@ -274,7 +274,7 @@ export function useCannonWriteDeployToIpfs(
         throw new Error(`You cannot publish in ${externalLinks.IPFS_CANNON}, only read operations can be done.`);
       }
 
-      if (!runtime || !deployInfo || !metaUrl) {
+      if (!runtime || !deployInfo) {
         throw new Error('Missing required parameters');
       }
 
@@ -288,7 +288,7 @@ export function useCannonWriteDeployToIpfs(
         [packageRef],
         runtime.chainId,
         (await runtime.loaders.mem.put(deployInfo)) ?? '',
-        metaUrl
+        metaUrl as string
       );
 
       const memoryRegistry = new InMemoryRegistry();

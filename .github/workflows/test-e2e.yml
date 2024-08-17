@@ -17,10 +17,6 @@ jobs:
           cache: 'npm'
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-      - name: Install IPFS
-        uses: ipfs/download-ipfs-distribution-action@v1
-      - name: Run IPFS
-        uses: ipfs/start-ipfs-daemon-action@v1
       - run: npm ci
       - run: npm run build
         env:
@@ -37,3 +33,6 @@ jobs:
 
       - name: E2E Tests
         run: cd ./packages/cli && npm run test-e2e
+        env:
+          CANNON_E2E_RPC_URL_OPTIMISM: ${{ secrets.CANNON_E2E_RPC_URL_OPTIMISM }}
+          CANNON_E2E_RPC_URL_ETHEREUM: ${{ secrets.CANNON_E2E_RPC_URL_ETHEREUM }}
