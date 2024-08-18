@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "analyze": "ANALYZE=true npm run build",
+    "tsc:build": "tsc",
     "start": "next start",
     "lint": "next lint --fix",
     "e2e": "NEXT_PUBLIC_E2E_TESTING_MODE=true start-server-and-test dev http://localhost:3000 \"cypress open --e2e\"",
@@ -23,6 +25,7 @@
     "@iarna/toml": "^3.0.0",
     "@isomorphic-git/lightning-fs": "^4.6.0",
     "@monaco-editor/react": "^4.6.0",
+    "@next/bundle-analyzer": "^14.2.5",
     "@next/third-parties": "^14.2.3",
     "@rainbow-me/rainbowkit": "^2.1.2",
     "@safe-global/api-kit": "^2.2.0",
@@ -71,7 +74,6 @@
     "remark-gfm": "^3.0.1",
     "simple-url": "^1.1.8",
     "styled-components": "^6.0.7",
-    "typescript": "^5.3.3",
     "viem": "2.16.5",
     "wagmi": "^2.5.13",
     "zod": "^3.23.8",
@@ -97,7 +99,8 @@
     "cypress-xpath": "^2.0.1",
     "eslint-plugin-cypress": "^3.2.0",
     "sass": "^1.63.6",
-    "start-server-and-test": "^2.0.3"
+    "start-server-and-test": "^2.0.3",
+    "typescript": "^5.3.3"
   },
   "optionalDependencies": {
     "@nx/nx-darwin-arm64": "18.0.4",

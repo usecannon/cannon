@@ -7,6 +7,7 @@ import { persist } from 'zustand/middleware';
 import { chains } from '@/constants/deployChains';
 import { BuildState } from '@/hooks/cannon';
 import { includes } from '@/helpers/array';
+import { externalLinks } from '@/constants/externalLinks';
 
 export type IdentifiableTxn = {
   txn: Omit<TransactionRequestBase, 'from'>;
@@ -98,7 +99,7 @@ export const initialState = {
     },
   },
   settings: {
-    ipfsApiUrl: 'https://repo.usecannon.com/',
+    ipfsApiUrl: externalLinks.IPFS_CANNON,
     isIpfsGateway: false,
     stagingUrl: 'https://cannon-safe-app.external.dbeal.dev',
     customProviders: [],

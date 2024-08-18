@@ -29,6 +29,7 @@ import { Abi, Address, createPublicClient, createWalletClient, custom, Hex, isAd
 import { useChainId } from 'wagmi';
 // Needed to prepare mock run step with registerAction
 import '@/lib/builder';
+import { externalLinks } from '@/constants/externalLinks';
 
 export type BuildState =
   | {
@@ -102,7 +103,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       throw err;
     });
 
-    const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/');
+    const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
 
     setBuildStatus('Loading deployment data...');
 
@@ -269,6 +270,10 @@ export function useCannonWriteDeployToIpfs(
         throw new Error('You cannot write on an IPFS gateway, only read operations can be done');
       }
 
+      if (settings.ipfsApiUrl.includes(externalLinks.IPFS_CANNON.replace(/\/$/, ''))) {
+        throw new Error(`You cannot publish in ${externalLinks.IPFS_CANNON}, only read operations can be done.`);
+      }
+
       if (!runtime || !deployInfo) {
         throw new Error('Missing required parameters');
       }
@@ -292,7 +297,7 @@ export function useCannonWriteDeployToIpfs(
         fromStorage: runtime,
         toStorage: new CannonStorage(
           memoryRegistry,
-          { ipfs: new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/') },
+          { ipfs: new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON) },
           'ipfs'
         ),
         packageRef,
@@ -357,7 +362,7 @@ export function useCannonPackage(packageRef?: string, chainId?: number) {
       if (!pkgUrl) return null;
 
       try {
-        const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/');
+        const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
 
         const deployInfo: DeploymentInfo = await loader.read(pkgUrl as any);
 
@@ -450,7 +455,7 @@ export function useCannonPackageContracts(packageRef?: string, chainId?: number)
       if (pkg.pkg) {
         const info = pkg.pkg;
 
-        const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/');
+        const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
         const readRuntime = new ChainBuilderRuntime(
           {
             provider: null as any,
