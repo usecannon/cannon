@@ -35,18 +35,6 @@ const anvilOptions = [
     description: 'Sets the number of assumed available compute units per second for this fork provider.',
   },
   {
-    flags: '--fork-url [url]',
-    description: 'Fetch state over a remote endpoint instead of starting from an empty state.',
-  },
-  {
-    flags: '--fork-block-number [number]',
-    description: 'Fetch state from a specific block number over a remote endpoint.',
-  },
-  {
-    flags: '--fork-chain-id [number]',
-    description: 'Specify chain id to skip fetching it from remote endpoint.',
-  },
-  {
     flags: '--fork-retry-backoff [number]',
     description: 'Initial retry backoff on encountering errors.',
   },
@@ -170,6 +158,22 @@ const anvilOptions = [
   },
 ];
 
+const anviloptionsWithFork = [
+  ...anvilOptions,
+  {
+    flags: '--fork-url [url]',
+    description: 'Fetch state over a remote endpoint instead of starting from an empty state.',
+  },
+  {
+    flags: '--fork-block-number [number]',
+    description: 'Fetch state from a specific block number over a remote endpoint.',
+  },
+  {
+    flags: '--fork-chain-id [number]',
+    description: 'Specify chain id to skip fetching it from remote endpoint.',
+  },
+];
+
 const commandsConfig = {
   run: {
     description: 'Run a local Cannon package (Chain ID: 13370) on a local node for development and testing',
@@ -180,7 +184,7 @@ const commandsConfig = {
         description: 'List of packages to load, optionally with custom settings for each one',
       },
     ],
-    anvilOptions: anvilOptions,
+    anvilOptions: anviloptionsWithFork,
     options: [
       {
         flags: '-n --provider-url [url]',
