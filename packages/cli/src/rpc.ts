@@ -10,7 +10,6 @@ import { cannonChain, getChainById } from './chains';
 import { execPromise, toArgs } from './helpers';
 import { AnvilOptions } from './util/anvil';
 import { error, log } from './util/console';
-import fs from 'fs-extra';
 
 const debug = Debug('cannon:cli:rpc');
 
