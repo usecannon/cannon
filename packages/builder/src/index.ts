@@ -17,7 +17,7 @@ export { prepareMulticall } from './multicall';
 };
 
 export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from './registry';
-export { publishPackage, PackageReference, preparePublishPackage } from './package';
+export { publishPackage, preparePublishPackage } from './package';
 export type { PackagePublishCall } from './package';
 export {
   CANNON_CHAIN_ID,
@@ -30,6 +30,7 @@ export { isIpfsGateway } from './ipfs';
 export * from './access-recorder';
 export * from './definition';
 export * from './helpers';
+export * from './package-reference';
 export * from './util';
 export * from './types';
 export * from './schemas';

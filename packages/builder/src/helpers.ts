@@ -4,7 +4,7 @@ import { getArtifacts } from './builder';
 import { CANNON_CHAIN_ID, getCannonRepoRegistryUrl, DEFAULT_REGISTRY_CONFIG, DEFAULT_REGISTRY_ADDRESS } from './constants';
 import { ChainDefinition } from './definition';
 import { IPFSLoader } from './loader';
-import { PackageReference } from './package';
+import { PackageReference } from './package-reference';
 import { OnChainRegistry, FallbackRegistry, InMemoryRegistry } from './registry';
 import { CannonStorage } from './runtime';
 import { getContractFromPath } from './util';

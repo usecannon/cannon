@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
-import { PackageReference } from '../package';
+import { PackageReference } from '../package-reference';
 import { ChainBuilderRuntime } from '../runtime';
 import { pullSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';

@@ -2,7 +2,7 @@ import Debug from 'debug';
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import _ from 'lodash';
 import * as viem from 'viem';
-import { ContractMap, DeploymentState, TransactionMap } from './';
+import { ContractMap, DeploymentState, PackageReference, TransactionMap } from './';
 import { ActionKinds } from './actions';
 import { BUILD_VERSION } from './constants';
 import { ChainDefinition } from './definition';
@@ -71,8 +71,7 @@ ${printChainDefinitionProblems(problems)}`);
   const topologicalActions = def.topologicalActions;
   let ctx;
 
-  const name = def.getName(initialCtx);
-  const version = def.getVersion(initialCtx);
+  const ref = def.getPackageRef(initialCtx);
 
   // whether or not source code is included in deployment artifacts or not is controlled by cannonfile config, so we set it here
   runtime.setPublicSourceCode(def.isPublicSourceCode());
@@ -131,7 +130,7 @@ ${printChainDefinitionProblems(problems)}`);
           debug('comparing states', state[n] ? state[n].hash : null, curHashes);
           if (!state[n] || (state[n].hash !== 'SKIP' && curHashes && !curHashes.includes(state[n].hash || ''))) {
             debug('run isolated', n);
-            const newArtifacts = await runStep(runtime, { name, version, currentLabel: n }, def.getConfig(n, ctx), ctx);
+            const newArtifacts = await runStep(runtime, { ref, currentLabel: n }, def.getConfig(n, ctx), ctx);
 
             // some steps may be self introspective, causing a step to be giving the wrong hash initially. to counteract this, we recompute the hash
             addOutputsToContext(ctx, newArtifacts);
@@ -199,8 +198,7 @@ export async function buildLayer(
 
   debug('eval build layer name', cur);
 
-  const name = def.getName(baseCtx);
-  const version = def.getVersion(baseCtx);
+  const ref = def.getPackageRef(baseCtx);
 
   // check all dependencies. If the dependency is not done, run the dep layer first
   let isCompleteLayer = true;
@@ -299,8 +297,7 @@ export async function buildLayer(
       const newArtifacts = await runStep(
         runtime,
         {
-          name,
-          version,
+          ref,
           currentLabel: action,
         },
         def.getConfig(action, ctx),

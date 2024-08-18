@@ -7,7 +7,7 @@ import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-record
 import { build, createInitialContext, getOutputs } from '../builder';
 import { CANNON_CHAIN_ID } from '../constants';
 import { ChainDefinition } from '../definition';
-import { PackageReference } from '../package';
+import { PackageReference } from '../package-reference';
 import { ChainBuilderRuntime, Events } from '../runtime';
 import { cloneSchema } from '../schemas';
 import {
@@ -49,7 +49,7 @@ const cloneSpec = {
     config = _.cloneDeep(config);
 
     if (config.target && config.targetPreset) {
-      throw new Error(`only one of \`target\` and \`targetPreset\` can specified for ${packageState.name}`);
+      throw new Error(`only one of \`target\` and \`targetPreset\` can specified for ${packageState.currentLabel}`);
     }
 
     const ref = new PackageReference(template(config.source)(ctx));
@@ -61,7 +61,7 @@ const cloneSpec = {
     }
 
     config.sourcePreset = template(config.sourcePreset)(ctx);
-    config.targetPreset = template(config.targetPreset)(ctx) || `with-${packageState.name}`;
+    config.targetPreset = template(config.targetPreset)(ctx) || `with-${packageState.ref?.preset}`;
     config.target = template(config.target)(ctx);
 
     if (config.var) {
