@@ -21,6 +21,7 @@ export enum Events {
   SkipDeploy = 'skip-deploy', // step name, error causing skip
   ResolveDeploy = 'resolve-deploy',
   DownloadDeploy = 'download-deploy',
+  Notice = 'notice', // used when there is some warning from the build output
 }
 
 export class CannonStorage extends EventEmitter {
@@ -113,6 +114,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   readonly getArtifact: (name: string) => Promise<ContractArtifact>;
   readonly snapshots: boolean;
   readonly allowPartialDeploy: boolean;
+  readonly subpkgDepth: number;
   ctx: ChainBuilderContext | null;
   private publicSourceCode: boolean | undefined;
   private signals: { cancelled: boolean } = { cancelled: false };
@@ -131,10 +133,11 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   };
 
   constructor(
-    info: ChainBuilderRuntimeInfo,
+    info: Omit<ChainBuilderRuntimeInfo, 'subpkgDepth'>,
     registry: CannonRegistry,
     loaders: { [scheme: string]: CannonLoader } = { ipfs: new IPFSLoader('') },
-    defaultLoaderScheme = 'ipfs'
+    defaultLoaderScheme = 'ipfs',
+    subpkgDepth = 0
   ) {
     super(registry, loaders, defaultLoaderScheme);
 
@@ -161,6 +164,8 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     this.snapshots = info.snapshots;
 
     this.allowPartialDeploy = info.allowPartialDeploy;
+
+    this.subpkgDepth = subpkgDepth;
 
     this.misc = { artifacts: {} };
 
@@ -284,7 +289,8 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
       { ...this, ...overrides },
       this.registry,
       this.loaders,
-      this.defaultLoaderScheme
+      this.defaultLoaderScheme,
+      this.subpkgDepth + 1
     );
 
     newRuntime.signals = this.signals;

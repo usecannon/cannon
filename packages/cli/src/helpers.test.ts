@@ -1,5 +1,5 @@
 import * as viem from 'viem';
-import { InMemoryRegistry } from '@usecannon/builder/src';
+import { InMemoryRegistry } from '@usecannon/builder';
 import {
   getContractsAndDetails,
   checkAndNormalizePrivateKey,

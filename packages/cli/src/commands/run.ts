@@ -10,7 +10,7 @@ import {
   PackageReference,
   renderTrace,
 } from '@usecannon/builder';
-import { TraceEntry } from '@usecannon/builder/src';
+import { TraceEntry } from '@usecannon/builder';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';

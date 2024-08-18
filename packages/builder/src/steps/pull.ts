@@ -5,7 +5,7 @@ import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-record
 import { getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { PackageReference } from '../package';
-import { ChainBuilderRuntime } from '../runtime';
+import { ChainBuilderRuntime, Events } from '../runtime';
 import { pullSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
 import { template } from '../utils/template';
@@ -81,6 +81,14 @@ const pullSpec = {
     const source = config.source;
     const preset = config.preset;
     const chainId = config.chainId ?? runtime.chainId;
+
+    if (new PackageReference(source).version === 'latest') {
+      runtime.emit(
+        Events.Notice,
+        packageState.currentLabel,
+        'To prevent unexpected upgrades, it is strongly reccomended to lock the version of the source package by specifying a version in the `source` field.'
+      );
+    }
 
     // try to load the chain definition specific to this chain
     // otherwise, load the top level definition

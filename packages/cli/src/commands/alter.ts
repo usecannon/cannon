@@ -8,9 +8,9 @@ import {
   getOutputs,
   getArtifacts,
   StepState,
+  PackageReference,
+  ActionKinds,
 } from '@usecannon/builder';
-import { ActionKinds } from '@usecannon/builder/dist/src/actions';
-import { PackageReference } from '@usecannon/builder/dist/src/package';
 import { bold, yellow } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
@@ -229,6 +229,11 @@ export async function alter(
 
       break;
     case 'set-contract-address': {
+      if (targets.length !== 2) {
+        throw new Error(
+          'incorrect number of arguments for set-contract-address. Should be <operationName> <contract address>'
+        );
+      }
       const [targetContractName, targetAddress] = targets;
 
       if (!viem.isAddress(targetAddress)) {
@@ -257,6 +262,9 @@ export async function alter(
       // compute the state hash for the step
       for (const target of targets) {
         if (!deployInfo.state[target]) {
+          warn(
+            `WARN: action ${target} does not exist in the cannon state for the given package. Setting dummy empty state.`
+          );
           deployInfo.state[target] = {
             artifacts: { contracts: {}, txns: {}, extras: {} },
             hash: 'SKIP',
@@ -270,7 +278,12 @@ export async function alter(
       break;
     case 'mark-incomplete':
       // invalidate the state hash
-      deployInfo.state[targets[0]].hash = 'INCOMPLETE';
+      for (const target of targets) {
+        if (!deployInfo.state[target]) {
+          throw new Error(`State does not exist for action ${target}`);
+        }
+        deployInfo.state[target].hash = 'INCOMPLETE';
+      }
       break;
     case 'migrate-212':
       // nested provisions also have to be updated
