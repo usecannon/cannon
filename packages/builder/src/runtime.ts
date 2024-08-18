@@ -312,6 +312,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
       this.emit(Events.ResolveDeploy, packageName, preset, chainId, registry, d + 1)
     );
     newRuntime.on(Events.DownloadDeploy, (hash, gateway, d) => this.emit(Events.DownloadDeploy, hash, gateway, d + 1));
+    newRuntime.on(Events.Notice, (n, msg, d) => this.emit(Events.Notice, n, msg, d + 1));
 
     return newRuntime;
   }

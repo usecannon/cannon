@@ -81,7 +81,7 @@ describe('steps/clone.ts', () => {
       expect(result).toStrictEqual({
         source: 'abc:latest@main',
         sourcePreset: '',
-        targetPreset: 'with-who',
+        targetPreset: '',
         target: '',
       });
     });
