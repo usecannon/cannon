@@ -1,7 +1,7 @@
 import { ChildProcess, spawn } from 'node:child_process';
 import http from 'node:http';
 import { Readable } from 'node:stream';
-import { CANNON_CHAIN_ID } from '@usecannon/builder';
+import { CANNON_CHAIN_ID, loadPrecompiles } from '@usecannon/builder';
 import { gray } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
@@ -10,6 +10,7 @@ import { cannonChain, getChainById } from './chains';
 import { execPromise, toArgs } from './helpers';
 import { AnvilOptions } from './util/anvil';
 import { error, log } from './util/console';
+import fs from 'fs-extra';
 
 const debug = Debug('cannon:cli:rpc');
 
@@ -151,7 +152,12 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
               .extend(viem.walletActions) as any;
 
             anvilInstance!.host = host;
-            resolve(anvilInstance!);
+
+            loadPrecompiles(anvilProvider as viem.TestClient)
+              .then(() => resolve(anvilInstance!))
+              .catch((err: any) => {
+                throw err;
+              });
           }
 
           debug(chunk);

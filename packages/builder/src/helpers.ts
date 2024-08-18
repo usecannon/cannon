@@ -61,3 +61,11 @@ export async function getCannonContract(args: {
 
   return contract;
 }
+
+export async function loadPrecompiles(provider: viem.TestClient) {
+  const precompiles = await import('./precompiles');
+
+  for (const precompileCall of precompiles.default) {
+    await provider.setCode(precompileCall);
+  }
+}

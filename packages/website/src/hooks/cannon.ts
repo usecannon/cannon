@@ -20,12 +20,13 @@ import {
   Events,
   getOutputs,
   InMemoryRegistry,
+  loadPrecompiles,
   PackageReference,
   publishPackage,
 } from '@usecannon/builder';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { Abi, Address, createPublicClient, createWalletClient, custom, Hex, isAddressEqual } from 'viem';
+import { Abi, Address, createPublicClient, createTestClient, createWalletClient, custom, Hex, isAddressEqual } from 'viem';
 import { useChainId } from 'wagmi';
 // Needed to prepare mock run step with registerAction
 import '@/lib/builder';
@@ -115,6 +116,15 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       chain: findChain(safe.chainId),
       transport,
     });
+
+    const testProvider = createTestClient({
+      chain: findChain(safe.chainId),
+      transport,
+      mode: 'ganache',
+    });
+
+    // todo: as usual viem provider types refuse to work
+    await loadPrecompiles(testProvider as any);
 
     const wallet = createWalletClient({
       account: safe.address,
