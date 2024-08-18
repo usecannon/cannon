@@ -61,7 +61,7 @@ const cloneSpec = {
     }
 
     config.sourcePreset = template(config.sourcePreset)(ctx);
-    config.targetPreset = template(config.targetPreset)(ctx) || `with-${packageState.ref?.preset}`;
+    config.targetPreset = template(config.targetPreset)(ctx);
     config.target = template(config.target)(ctx);
 
     if (config.var) {

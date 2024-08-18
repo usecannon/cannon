@@ -2,7 +2,7 @@ import Debug from 'debug';
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import _ from 'lodash';
 import * as viem from 'viem';
-import { ContractMap, DeploymentState, PackageReference, TransactionMap } from './';
+import { ContractMap, DeploymentState, TransactionMap } from './';
 import { ActionKinds } from './actions';
 import { BUILD_VERSION } from './constants';
 import { ChainDefinition } from './definition';
