@@ -155,7 +155,7 @@ function _renderValue(type: viem.AbiParameter, value: string | bigint) {
     case type.type.startsWith('bytes'):
       try {
         const decodedBytes32 = viem.hexToString(value as viem.Hex, { size: 32 });
-        
+
         // Check for characters outside the ASCII range (0-127)
         // in case the bytes32 value isnt meant to be converted (e.g an identifier)
         if (/[\u0080-\uFFFF]/.test(decodedBytes32)) {
