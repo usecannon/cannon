@@ -13,8 +13,8 @@ import {
   getOutputs,
   PackageReference,
   traceActions,
+  CannonSigner,
 } from '@usecannon/builder';
-import { CannonSigner } from '@usecannon/builder/src';
 import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
 import _ from 'lodash';
 import { table } from 'table';
