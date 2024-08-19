@@ -9,8 +9,8 @@ import {
   getOutputs,
   PackageReference,
   renderTrace,
+  TraceEntry
 } from '@usecannon/builder';
-import { TraceEntry } from '@usecannon/builder/src';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';

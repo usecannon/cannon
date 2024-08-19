@@ -1,5 +1,4 @@
 import * as viem from 'viem';
-import { InMemoryRegistry } from '@usecannon/builder/src';
 import {
   getContractsAndDetails,
   checkAndNormalizePrivateKey,
@@ -10,7 +9,7 @@ import {
   getChainName,
 } from './helpers';
 import { LocalRegistry } from './registry';
-import { ChainArtifacts, FallbackRegistry } from '@usecannon/builder';
+import { ChainArtifacts, FallbackRegistry, InMemoryRegistry } from '@usecannon/builder';
 
 describe('getChainId', getChainIdTestCases);
 describe('getChainName', getChainNameTestCases);
