@@ -2,6 +2,7 @@ import {
   build as cannonBuild,
   CANNON_CHAIN_ID,
   CannonRegistry,
+  CannonSigner,
   ChainArtifacts,
   ChainBuilderRuntime,
   ChainDefinition,
@@ -13,10 +14,11 @@ import {
   getOutputs,
   PackageReference,
   traceActions,
-  CannonSigner,
 } from '@usecannon/builder';
 import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
+import fs from 'fs-extra';
 import _ from 'lodash';
+import path from 'path';
 import { table } from 'table';
 import * as viem from 'viem';
 import pkg from '../../package.json';
@@ -27,12 +29,9 @@ import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
-import { createWriteScript, WriteScriptFormat } from '../write-script/write';
-import { hideApiKey } from '../util/provider';
 import { log, warn } from '../util/console';
-
-import fs from 'fs-extra';
-import path from 'path';
+import { hideApiKey } from '../util/provider';
+import { createWriteScript, WriteScriptFormat } from '../write-script/write';
 
 interface Params {
   provider: viem.PublicClient;
