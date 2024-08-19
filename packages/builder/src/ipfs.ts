@@ -37,6 +37,7 @@ export function setAxiosRetries(totalRetries = 3) {
         throw error;
       }
     },
+    retryDelay: axiosRetry.exponentialDelay,
   });
 }
 
