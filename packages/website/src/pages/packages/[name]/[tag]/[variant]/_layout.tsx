@@ -1,6 +1,11 @@
 'use client';
 
 import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
   Box,
   Container,
   Flex,
@@ -116,6 +121,86 @@ function TagVariantLayout({ children }: { children: ReactNode }) {
                   <VersionSelect pkg={packagesQuery.data.data} />
                 </Box>
               </Flex>
+
+              <Accordion allowToggle mt={6} mb={4}>
+                <AccordionItem borderLeft="1px" borderRight="1px" borderColor="gray.500" borderStyle="dotted">
+                  <h2>
+                    <AccordionButton>
+                      <Box as="span" flex="1" textAlign="left">
+                        <Text
+                          color="gray.200"
+                          textDecoration="none"
+                          textTransform={'uppercase'}
+                          letterSpacing={'1px'}
+                          fontFamily={'var(--font-miriam)'}
+                          textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
+                        >
+                          Run package locally
+                        </Text>
+                      </Box>
+                      <AccordionIcon />
+                    </AccordionButton>
+                  </h2>
+                  <AccordionPanel pb={4}>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                    do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+                    ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                  </AccordionPanel>
+                </AccordionItem>
+
+                <AccordionItem borderLeft="1px" borderRight="1px" borderColor="gray.500" borderStyle="dotted">
+                  <h2>
+                    <AccordionButton>
+                      <Box as="span" flex="1" textAlign="left">
+                        <Text
+                          color="gray.200"
+                          textDecoration="none"
+                          textTransform={'uppercase'}
+                          letterSpacing={'1px'}
+                          fontFamily={'var(--font-miriam)'}
+                          textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
+                        >
+                          Retrieve Addresses + ABIs
+                        </Text>
+                      </Box>
+                      <AccordionIcon />
+                    </AccordionButton>
+                  </h2>
+                  <AccordionPanel pb={4}>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                    do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+                    ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                  </AccordionPanel>
+                </AccordionItem>
+
+                <AccordionItem borderLeft="1px" borderRight="1px" borderColor="gray.500" borderStyle="dotted">
+                  <h2>
+                    <AccordionButton>
+                      <Box as="span" flex="1" textAlign="left">
+                        <Text
+                          color="gray.200"
+                          textDecoration="none"
+                          textTransform={'uppercase'}
+                          letterSpacing={'1px'}
+                          fontFamily={'var(--font-miriam)'}
+                          textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
+                        >
+                          Integrate with this package
+                        </Text>
+                      </Box>
+                      <AccordionIcon />
+                    </AccordionButton>
+                  </h2>
+                  <AccordionPanel pb={4}>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                    do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+                    ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                  </AccordionPanel>
+                </AccordionItem>
+              </Accordion>
 
               {/* Package Tabs */}
               <Flex
