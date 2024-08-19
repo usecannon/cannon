@@ -148,13 +148,21 @@ function _renderValue(type: viem.AbiParameter, value: string | bigint) {
       return value.toString();
 
     case type.type === 'address':
-      return viem.getAddress(value);
+      return viem.getAddress(value as string);
     case type.type == 'bool':
       return typeof value == 'string' && value.startsWith('0x') ? viem.hexToBool(value as viem.Hex) : value;
 
     case type.type.startsWith('bytes'):
       try {
-        return viem.hexToString(value as viem.Hex, { size: 32 });
+        const decodedBytes32 = viem.hexToString(value as viem.Hex, { size: 32 });
+        
+        // Check for characters outside the ASCII range (0-127)
+        // in case the bytes32 value isnt meant to be converted (e.g an identifier)
+        if (/[\u0080-\uFFFF]/.test(decodedBytes32)) {
+          return `${value}`;
+        }
+
+        return decodedBytes32;
       } catch (err) {
         const settings = resolveCliSettings();
         if (settings.trace) {
