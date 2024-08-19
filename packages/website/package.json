@@ -9,8 +9,9 @@
     "tsc:build": "tsc",
     "start": "next start",
     "lint": "next lint --fix",
-    "e2e": "NEXT_PUBLIC_E2E_TESTING_MODE=true start-server-and-test dev http://localhost:3000 \"cypress open --e2e\"",
-    "e2e:headless": "NEXT_PUBLIC_E2E_TESTING_MODE=true start-server-and-test dev http://localhost:3000 \"cypress run --e2e\"",
+    "serve": "serve out -c ../serve.json -p 3000 > /dev/null 2>&1 &",
+    "e2e": "NEXT_PUBLIC_E2E_TESTING_MODE=true npm run build && npm run serve  && cypress open --e2e",
+    "e2e:headless": "NEXT_PUBLIC_E2E_TESTING_MODE=true npm run build && npm run serve && cypress run --e2e",
     "component": "cypress open --component",
     "component:headless": "cypress run --component"
   },
@@ -99,7 +100,7 @@
     "cypress-xpath": "^2.0.1",
     "eslint-plugin-cypress": "^3.2.0",
     "sass": "^1.63.6",
-    "start-server-and-test": "^2.0.3",
+    "serve": "^14.2.3",
     "typescript": "^5.3.3"
   },
   "optionalDependencies": {
