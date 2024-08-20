@@ -62,6 +62,7 @@ export function useLoadCannonDefinition(repo: string, ref: string, filepath: str
   });
 
   return {
+    isLoading: loadGitRepoQuery.isLoading || loadDefinitionQuery.isLoading,
     isFetching: loadGitRepoQuery.isFetching || loadDefinitionQuery.isFetching,
     isError: loadGitRepoQuery.isError || loadDefinitionQuery.isError,
     error: loadGitRepoQuery.error || loadDefinitionQuery.error,

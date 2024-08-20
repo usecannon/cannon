@@ -21,12 +21,25 @@ import {
   Text,
   Image,
   Portal,
-  Code,
+  Skeleton,
+  Stack,
 } from '@chakra-ui/react';
 import { Diff, parseDiff, Hunk } from 'react-diff-view';
-import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { GitHub } from 'react-feather';
 import { DisplayedTransaction } from './DisplayedTransaction';
+
+const CommitLink = ({ gitUrl, hash }: { gitUrl?: string; hash?: string }) => {
+  if (!gitUrl || !hash) return null;
+
+  return (
+    <Flex alignItems="center">
+      <GitHub size="12" strokeWidth={1} />
+      <Link ml={2} fontSize="sm" isExternal href={`${gitUrl}/commit/${hash}`}>
+        {hash}
+      </Link>{' '}
+    </Flex>
+  );
+};
 
 const parseDiffFileNames = (diffString: string): string[] => {
   const regExp = /[-|+]{3}\s[ab]\/\.(.*?)\n/g;
@@ -37,6 +50,17 @@ const parseDiffFileNames = (diffString: string): string[] => {
   }
   return fileNames;
 };
+
+const NoDiffWarning = () => (
+  <Alert status="info" mb={2}>
+    <Text fontSize="sm">
+      <strong>No cannon-file diff available.</strong> This may occur when
+      signing an initial deployment, changing Safes used for deployments,
+      changing package names for the deployment, or re-executing the same
+      partial deployment more than once.
+    </Text>
+  </Alert>
+);
 
 export function TransactionDisplay(props: {
   safeTxn: SafeTransaction;
@@ -80,7 +104,11 @@ export function TransactionDisplay(props: {
     gitFile ?? ''
   );
 
-  const { patches } = useGitDiff(
+  const {
+    patches,
+    isLoading: isGitDiffLoading,
+    areDiff,
+  } = useGitDiff(
     gitUrl ?? '',
     prevDeployGitHash,
     hintData?.gitRepoHash ?? '',
@@ -114,20 +142,34 @@ export function TransactionDisplay(props: {
 
   return (
     <Box maxW="100%" overflowX="auto">
+      {/* Code diff */}
       <Portal containerRef={props.containerRef}>
-        {props.showQueueSource &&
-          props.queuedWithGitOps &&
-          (prevDeployGitHash ? (
+        {isGitDiffLoading ? (
+          <Stack>
+            <Skeleton height="20px" />
+            <Skeleton height="20px" />
+            <Skeleton height="20px" />
+            <Skeleton height="20px" />
+          </Stack>
+        ) : (
+          props.showQueueSource &&
+          props.queuedWithGitOps && (
             <>
+              {prevDeployGitHash == '' && <NoDiffWarning />}
               <Box>
+                {/* Commit hashes */}
                 <Flex>
-                  <Code w="50%" px={2} py={1}>
-                    {prevDeployGitHash}
-                  </Code>
-                  <Code w="50%" px={2} py={1}>
-                    {hintData?.gitRepoHash}
-                  </Code>
+                  {areDiff && (
+                    <Box w="50%" py={1}>
+                      <CommitLink gitUrl={gitUrl!} hash={prevDeployGitHash} />
+                    </Box>
+                  )}
+                  <Box w="50%" py={1}>
+                    <CommitLink gitUrl={gitUrl!} hash={hintData.gitRepoHash} />
+                  </Box>
                 </Flex>
+
+                {/* package code */}
                 {patches.map((p, i) => {
                   const { oldRevision, newRevision, type, hunks } =
                     parseDiff(p)[0];
@@ -149,16 +191,18 @@ export function TransactionDisplay(props: {
                           py="1"
                           fontWeight="semibold"
                         >
-                          <Box w="50%" px={2} py={1}>
-                            {fromFileName}
-                          </Box>
-                          <Box w="50%" px={2} py={1}>
-                            {toFileName}
+                          {areDiff && (
+                            <Box w="50%" px={2} py={1}>
+                              {fromFileName}
+                            </Box>
+                          )}
+                          <Box w={areDiff ? '50%' : '100%'} px={2} py={1}>
+                            {areDiff ? toFileName : fromFileName}
                           </Box>
                         </Flex>
                         <Diff
                           key={oldRevision + '-' + newRevision}
-                          viewType="split"
+                          viewType={areDiff ? 'split' : 'unified'}
                           diffType={type}
                           hunks={hunks}
                         >
@@ -174,18 +218,11 @@ export function TransactionDisplay(props: {
                 })}
               </Box>
             </>
-          ) : (
-            <>
-              <Text fontSize="sm">
-                <InfoOutlineIcon transform="translateY(-1.5px)" mr={0.5} />{' '}
-                <strong>No cannonfile diff available.</strong> This may occur
-                when signing an initial deployment, changing Safes used for
-                deployments, changing package names for the deployment, or
-                re-executing the same partial deployment more than once.
-              </Text>
-            </>
-          ))}
+          )
+        )}
       </Portal>
+
+      {/* Queued from */}
       {props.showQueueSource &&
         (props.queuedWithGitOps ? (
           <>
@@ -290,6 +327,7 @@ export function TransactionDisplay(props: {
           </ChakraAlert>
         ))}
 
+      {/* Transactions */}
       <Box maxW="100%" overflowX="scroll">
         {hintData.txns.map((txn, i) => {
           const pkgUrl = hintData.cannonPackage.split(',')[i];
