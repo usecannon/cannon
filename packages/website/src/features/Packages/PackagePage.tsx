@@ -6,6 +6,7 @@ import { PackageCard } from '../Search/PackageCard/PackageCard';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { useQuery } from '@tanstack/react-query';
 import { getPackage } from '@/helpers/api';
+import Custom404 from '@/pages/404';
 
 export const PackagePage: FC<{
   name: string;
@@ -18,12 +19,16 @@ export const PackagePage: FC<{
 
   return (
     <Flex flexDirection="column" width="100%">
-      {!packagesQuery.isPending ? (
+      {packagesQuery.isPending ? (
+        <CustomSpinner m="auto" />
+      ) : packagesQuery.data ? (
         <Container maxW="container.xl" my={[4, 4, 16]}>
-          <PackageCard pkgs={packagesQuery?.data?.data} />
+          <PackageCard pkgs={packagesQuery.data.data} />
         </Container>
       ) : (
-        <CustomSpinner m="auto" />
+        <Flex m="auto">
+          <Custom404 text="Package not found" />
+        </Flex>
       )}
     </Flex>
   );
