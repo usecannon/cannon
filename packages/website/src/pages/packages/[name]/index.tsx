@@ -1,7 +1,7 @@
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/router';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
+import { usePackageUrlParams } from '@/hooks/routing/usePackageUrlParams';
 
 const NoSSRPackagePage = dynamic(
   async () => {
@@ -13,20 +13,20 @@ const NoSSRPackagePage = dynamic(
 );
 
 export default function Deployment() {
-  const params = useRouter().query;
+  const { name } = usePackageUrlParams();
   return (
     <>
       <NextSeo
         {...defaultSEO}
-        title={`Cannon | Package | ${params.name}`}
-        description={`Cannon | Package | ${params.name}`}
+        title={`Cannon | Package | ${name}`}
+        description={`Cannon | Package | ${name}`}
         openGraph={{
           ...defaultSEO.openGraph,
-          title: `Cannon | Package | ${params.name}`,
-          description: `Cannon | Package | ${params.name}`,
+          title: `Cannon | Package | ${name}`,
+          description: `Cannon | Package | ${name}`,
         }}
       />
-      <NoSSRPackagePage name={params.name as string} />
+      <NoSSRPackagePage name={name} />
     </>
   );
 }

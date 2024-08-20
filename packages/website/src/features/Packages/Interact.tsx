@@ -4,7 +4,7 @@ import { SubnavContext } from '@/features/Packages/Tabs/InteractTab';
 import { getPackage } from '@/helpers/api';
 import chains from '@/helpers/chains';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
-import { usePackageUrlParams } from '@/hooks/routing/usePackageUrlParams';
+import { usePackageVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import { getOutput } from '@/lib/builder';
 import {
   Box,
@@ -30,7 +30,7 @@ import { externalLinks } from '@/constants/externalLinks';
 
 const Interact: FC = () => {
   const { variant, tag, name, moduleName, contractName, contractAddress } =
-    usePackageUrlParams();
+    usePackageVersionUrlParams();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const [chainId, preset] = PackageReference.parseVariant(variant);
