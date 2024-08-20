@@ -27,11 +27,11 @@ import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { DeploymentInfo } from '@usecannon/builder';
 import { getPackage } from '@/helpers/api';
-import { usePackageUrlParams } from '@/hooks/routing/usePackageUrlParams';
+import { usePackageVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import PageLoading from '@/components/PageLoading';
 
 function TagVariantLayout({ children }: { children: ReactNode }) {
-  const { name, tag, chainId, preset } = usePackageUrlParams();
+  const { name, tag, chainId, preset } = usePackageVersionUrlParams();
   const { query: params, pathname, asPath } = useRouter();
 
   const packagesQuery = useQuery({
