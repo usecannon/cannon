@@ -4,7 +4,7 @@ import InteractLayout from './_layout';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
 import { getChainById } from '@/helpers/chains';
-import { usePackageUrlParams } from '@/hooks/routing/usePackageUrlParams';
+import { usePackageVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 
 function generateMetadata({
   name,
@@ -39,7 +39,7 @@ function generateMetadata({
 }
 
 export default function Interact() {
-  const { name, tag, chainId, preset } = usePackageUrlParams();
+  const { name, tag, chainId, preset } = usePackageVersionUrlParams();
   const metadata = generateMetadata({
     name,
     tag,

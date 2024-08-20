@@ -20,7 +20,7 @@ import { getOutput } from '@/lib/builder';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
 import { getPackage } from '@/helpers/api';
-import { usePackageUrlParams } from '@/hooks/routing/usePackageUrlParams';
+import { usePackageVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import { CustomSpinner } from '@/components/CustomSpinner';
 
 type Option = {
@@ -57,7 +57,7 @@ export const InteractTab: FC<{
   children?: ReactNode;
 }> = ({ children }) => {
   const router = useRouter();
-  const { name, tag, preset, chainId, variant } = usePackageUrlParams();
+  const { name, tag, preset, chainId, variant } = usePackageVersionUrlParams();
   const packagesQuery = useQuery({
     queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],
     queryFn: getPackage,
