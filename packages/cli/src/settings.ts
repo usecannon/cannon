@@ -2,7 +2,7 @@ import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
-import { yellow } from 'chalk';
+import { yellow, bold } from 'chalk';
 import untildify from 'untildify';
 import * as viem from 'viem';
 import { parseEnv } from 'znv';
@@ -142,7 +142,8 @@ export const RPC_URL_DEFAULT = 'frame,direct';
 
 const deprecatedWarn = _.once((deprecatedFlag: string, newFlag: string) => {
   log();
-  warn(yellow(`The ${deprecatedFlag} option will be deprecated soon. Use ${newFlag} instead.`));
+
+  warn(yellow(bold(`The ${deprecatedFlag} option will be deprecated soon. Use ${newFlag} instead.`)));
   log();
 });
 
