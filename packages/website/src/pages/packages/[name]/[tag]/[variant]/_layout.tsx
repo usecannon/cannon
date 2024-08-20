@@ -9,6 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
   Portal,
+  Spinner,
   Text,
 } from '@chakra-ui/react';
 import { format } from 'date-fns';
@@ -16,7 +17,6 @@ import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { ReactNode } from 'react';
-
 import { NavLink } from '@/components/NavLink';
 import { CustomSpinner } from '@/components/CustomSpinner';
 
@@ -25,40 +25,26 @@ import { VersionSelect } from '@/features/Packages/VersionSelect';
 import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
 
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
-import { DeploymentInfo, PackageReference } from '@usecannon/builder';
+import { DeploymentInfo } from '@usecannon/builder';
 import { getPackage } from '@/helpers/api';
+import { usePackageUrlParams } from '@/hooks/routing/usePackageUrlParams';
+import PageLoading from '@/components/PageLoading';
 
-export default function PackageLayout({ children }: { children: ReactNode }) {
+function TagVariantLayout({ children }: { children: ReactNode }) {
+  const { name, tag, chainId, preset } = usePackageUrlParams();
   const { query: params, pathname, asPath } = useRouter();
 
-  const [chainId, preset] = PackageReference.parseVariant(
-    decodeURIComponent(params.variant as string)
-  );
-
-  const additionalParams = {
-    name: decodeURIComponent(params.name as string),
-    tag: decodeURIComponent(params.tag as string),
-    preset,
-    chainId,
-  };
-
   const packagesQuery = useQuery({
-    queryKey: [
-      'package',
-      `${additionalParams.name}:${additionalParams.tag}@${additionalParams.preset}/${additionalParams.chainId}`,
-    ],
+    queryKey: ['package', `${name}:${tag}@${preset}/${chainId}`],
     queryFn: getPackage,
-    enabled:
-      !!additionalParams.name &&
-      !!additionalParams.tag &&
-      !!additionalParams.preset &&
-      !!additionalParams.chainId,
+    enabled: !!name && !!tag && !!preset && !!chainId,
   });
 
-  const { data: deploymentInfo } = useQueryIpfsDataParsed<DeploymentInfo>(
-    packagesQuery?.data?.data.deployUrl,
-    !!packagesQuery?.data?.data.deployUrl
-  );
+  const { data: deploymentInfo, isLoading: isDeploymentInfoLoading } =
+    useQueryIpfsDataParsed<DeploymentInfo>(
+      packagesQuery?.data?.data.deployUrl,
+      !!packagesQuery?.data?.data.deployUrl
+    );
 
   return (
     <Flex flexDirection="column" width="100%">
@@ -71,6 +57,7 @@ export default function PackageLayout({ children }: { children: ReactNode }) {
             borderColor="gray.700"
           >
             <Container maxW="container.lg">
+              {/* Header */}
               <Flex
                 flexDirection={['column', 'column', 'row']}
                 alignItems={['left', 'left', 'center']}
@@ -90,25 +77,33 @@ export default function PackageLayout({ children }: { children: ReactNode }) {
                           borderColor="gray.800"
                         >
                           <Flex direction={'column'} p={2} gap={1}>
-                            {deploymentInfo?.def?.description && (
-                              <Text>{deploymentInfo.def.description}</Text>
-                            )}
-                            {(deploymentInfo?.generator ||
-                              deploymentInfo?.timestamp) && (
-                              <Text
-                                color="gray.300"
-                                fontSize="xs"
-                                letterSpacing="0.2px"
-                              >
-                                {deploymentInfo?.generator &&
-                                  `built with ${deploymentInfo.generator} `}
-                                {deploymentInfo?.generator &&
-                                  deploymentInfo?.timestamp &&
-                                  `on ${format(
-                                    new Date(deploymentInfo?.timestamp * 1000),
-                                    'PPPppp'
-                                  ).toLowerCase()}`}
-                              </Text>
+                            {isDeploymentInfoLoading ? (
+                              <Spinner />
+                            ) : (
+                              <>
+                                {deploymentInfo?.def?.description && (
+                                  <Text>{deploymentInfo.def.description}</Text>
+                                )}
+                                {(deploymentInfo?.generator ||
+                                  deploymentInfo?.timestamp) && (
+                                  <Text
+                                    color="gray.300"
+                                    fontSize="xs"
+                                    letterSpacing="0.2px"
+                                  >
+                                    {deploymentInfo?.generator &&
+                                      `built with ${deploymentInfo.generator} `}
+                                    {deploymentInfo?.generator &&
+                                      deploymentInfo?.timestamp &&
+                                      `on ${format(
+                                        new Date(
+                                          deploymentInfo?.timestamp * 1000
+                                        ),
+                                        'PPPppp'
+                                      ).toLowerCase()}`}
+                                  </Text>
+                                )}
+                              </>
                             )}
                           </Flex>
                         </PopoverContent>
@@ -121,6 +116,8 @@ export default function PackageLayout({ children }: { children: ReactNode }) {
                   <VersionSelect pkg={packagesQuery.data.data} />
                 </Box>
               </Flex>
+
+              {/* Package Tabs */}
               <Flex
                 gap={8}
                 align="center"
@@ -191,5 +188,18 @@ export default function PackageLayout({ children }: { children: ReactNode }) {
         <CustomSpinner m="auto" />
       )}
     </Flex>
+  );
+}
+
+export default function WrapperTagVariantLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const router = useRouter();
+  return router.isReady ? (
+    <TagVariantLayout>{children}</TagVariantLayout>
+  ) : (
+    <PageLoading />
   );
 }

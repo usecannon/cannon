@@ -251,7 +251,7 @@ function QueueFromGitOps() {
           miscUrl: prevCannonDeployInfo.pkg?.miscUrl || '',
         }
       : undefined,
-    prevCannonDeployInfo.metaUrl || undefined
+    prevCannonDeployInfo.metaUrl
   );
 
   useEffect(() => {
@@ -708,7 +708,6 @@ function QueueFromGitOps() {
                 Transactions
               </Heading>
               <TransactionDisplay
-                packageRef={fullPackageRef}
                 safe={currentSafe as any}
                 safeTxn={stager.safeTxn}
               />

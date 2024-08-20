@@ -1,5 +1,4 @@
 import Debug from 'debug';
-
 import { Address } from 'viem';
 
 const debug = Debug('cannon:builder:constants');

@@ -36,16 +36,9 @@ import {
   Tooltip,
   useToast,
 } from '@chakra-ui/react';
-import * as chains from '@wagmi/core/chains';
-import _, { find } from 'lodash';
+import _ from 'lodash';
 import { useEffect, useMemo, useState, useRef } from 'react';
-import {
-  Address,
-  hexToString,
-  isAddress,
-  TransactionRequestBase,
-  zeroAddress,
-} from 'viem';
+import { Hex, hexToString, TransactionRequestBase } from 'viem';
 import {
   useAccount,
   useChainId,
@@ -60,49 +53,49 @@ import { TransactionStepper } from './TransactionStepper';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import 'react-diff-view/style/index.css';
 import { IoIosContract, IoIosExpand } from 'react-icons/io';
+import Card from '@/components/Card';
+import { getChainById, getExplorerUrl } from '@/helpers/chains';
+import { Alert } from '@/components/Alert';
+import { useTransactionDetailsParams } from '@/hooks/routing/useTransactionDetailsParams';
 
-interface Props {
-  safeAddress: string;
-  chainId: string;
-  nonce: string;
-  sigHash: string;
-}
+const AdditionalSignaturesText = ({ amount }: { amount: number }) => (
+  <Text fontWeight="bold" mt="3">
+    {amount} additional {amount === 1 ? 'signature' : 'signatures'} required
+  </Text>
+);
 
-function TransactionDetailsPage({
-  safeAddress,
-  chainId,
-  nonce,
-  sigHash,
-}: Props) {
+const UnorderedNonceWarning = ({ nextNonce }: { nextNonce: number }) => (
+  <Alert status="warning" mt={3}>
+    <Text fontSize="sm">You must execute transaction #{nextNonce} first.</Text>
+  </Alert>
+);
+
+function TransactionDetailsPage() {
+  const { safeAddress, chainId, nonce, sigHash } =
+    useTransactionDetailsParams();
   const { openConnectModal } = useConnectModal();
-  const currentSafe = useStore((s) => s.currentSafe);
   const { switchChainAsync } = useSwitchChain();
-  const [executionTxnHash, setExecutionTxnHash] = useState<string | null>(null);
   const publicClient = usePublicClient();
   const walletChainId = useChainId();
   const account = useAccount();
-  const parsedChainId = parseInt(chainId ?? '0') || 0;
-  const parsedNonce = parseInt(nonce ?? '0') || 0;
-  const accountAlreadyConnected = useRef(account.isConnected);
+
+  const currentSafe = useStore((s) => s.currentSafe);
   const [expandDiff, setExpandDiff] = useState<boolean>(false);
+  const [executionTxnHash, setExecutionTxnHash] = useState<string | null>(null);
+  const accountAlreadyConnected = useRef(account.isConnected);
 
-  if (!isAddress(safeAddress ?? '')) {
-    safeAddress = zeroAddress;
-  }
-
-  const safe = useMemo(
-    () =>
-      ({
-        chainId: parsedChainId,
-        address: safeAddress as Address,
-      } as SafeDefinition),
-    [parsedChainId, safeAddress]
+  const safe: SafeDefinition = useMemo(
+    () => ({
+      chainId,
+      address: safeAddress,
+    }),
+    [chainId, safeAddress]
   );
 
-  const safeChain = useMemo(() => {
-    if (!safe) return;
-    return find(chains, (chain: any) => chain.id === safe.chainId);
-  }, [safe]);
+  const safeChain = useMemo(() => getChainById(safe.chainId), [safe]);
+  if (!safeChain) {
+    throw new Error('Safe Chain not supported');
+  }
 
   const {
     nonce: safeNonce,
@@ -111,7 +104,7 @@ function TransactionDetailsPage({
     nonceQuery,
   } = useSafeTransactions(safe);
 
-  const isTransactionExecuted = parsedNonce < safeNonce;
+  const isTransactionExecuted = nonce < safeNonce;
 
   const { data: history, refetch: refetchHistory } =
     useExecutedTransactions(safe);
@@ -119,7 +112,7 @@ function TransactionDetailsPage({
   // get the txn we want, we can just pluck it out of staged transactions if its there
   let safeTxn: SafeTransaction | null = null;
 
-  if (parsedNonce < safeNonce) {
+  if (nonce < safeNonce) {
     // TODO: the gnosis safe transaction history is quite long, but if its not on the first page, we have to call "next" to get more txns until
     // we find the nonce we want. no way to just get the txn we want unfortunately
     // also todo: code dup
@@ -133,12 +126,13 @@ function TransactionDetailsPage({
     safeTxn =
       staged.find(
         (s) =>
-          s.txn._nonce.toString() === nonce &&
+          s.txn._nonce.toString() === nonce.toString() &&
           (!sigHash || sigHash === getSafeTransactionHash(safe, s.txn))
       )?.txn || null;
   }
 
-  const hintData = parseHintedMulticall(safeTxn?.data as any);
+  const unorderedNonce = safeTxn && safeTxn._nonce > staged[0]?.txn._nonce;
+  const hintData = parseHintedMulticall(safeTxn?.data as Hex);
 
   const queuedWithGitOps = hintData?.type == 'deploy';
 
@@ -165,16 +159,12 @@ function TransactionDetailsPage({
     void switchChain();
   }, [account.isConnected, currentSafe?.chainId]);
 
-  const cannonPackage = useCannonPackage(
-    hintData?.cannonPackage
-      ? `ipfs://${_.last(hintData?.cannonPackage.split('/'))}`
-      : ''
-  );
+  const cannonPackage = useCannonPackage(hintData?.cannonPackage);
 
   // then reverse check the package referenced by the
   const { pkgUrl: existingRegistryUrl } = useCannonPackage(
     cannonPackage.fullPackageRef!,
-    parsedChainId
+    chainId
   );
 
   const stager = useTxnStager(safeTxn || {}, { safe: safe });
@@ -254,9 +244,6 @@ function TransactionDetailsPage({
         );
       }));
 
-  const etherscanUrl =
-    safeChain?.blockExplorers?.default.url || 'https://etherscan.io';
-
   const signers: Array<string> = stager.existingSigners.length
     ? stager.existingSigners
     : safeTxn?.confirmedSigners || [];
@@ -333,7 +320,7 @@ function TransactionDetailsPage({
               {(hintData.type == 'deploy' || hintData.type == 'invoke') && (
                 <Box mt={4}>
                   <TransactionStepper
-                    chainId={parsedChainId}
+                    chainId={chainId}
                     cannonPackage={cannonPackage}
                     safeTxn={safeTxn}
                     published={existingRegistryUrl == hintData?.cannonPackage}
@@ -347,31 +334,26 @@ function TransactionDetailsPage({
           </Box>
 
           <Container maxW="container.lg" mt={[6, 6, 12]}>
+            {/* Cannon file diff  */}
             {queuedWithGitOps && (
-              <Box
-                position={expandDiff ? 'fixed' : 'static'}
-                top={0}
-                left={0}
-                right={0}
-                bottom={0}
-                zIndex={99}
-                background="gray.800"
-                p={4}
-                borderWidth="1px"
-                borderColor="gray.700"
-                mb={expandDiff ? 0 : 6}
-              >
-                <Flex mb={3} alignItems="center">
-                  <Heading
-                    size="sm"
-                    fontWeight="medium"
-                    textTransform="uppercase"
-                    letterSpacing="1.5px"
-                    fontFamily="var(--font-miriam)"
-                    textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                  >
-                    Cannonfile Diff
-                  </Heading>
+              <Card
+                containerProps={{
+                  position: expandDiff ? 'fixed' : 'static',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  zIndex: 99,
+                  mb: expandDiff ? 0 : 6,
+                  p: 4,
+                }}
+                contentProps={{
+                  h: '100%',
+                  overflowY: 'auto',
+                  maxH: expandDiff ? 'none' : '345px',
+                }}
+                title="Cannonfile Diff"
+                titleExtraContent={
                   <Link
                     ml="auto"
                     onClick={() => {
@@ -393,23 +375,18 @@ function TransactionDetailsPage({
                       {expandDiff ? 'Collapse' : 'Expand'}
                     </Text>
                   </Link>
-                </Flex>
-
-                <Box
-                  h="100%"
-                  overflowY="auto"
-                  maxH={expandDiff ? 'none' : '345px'}
-                >
-                  <Box ref={gitDiffContainerRef} pb={expandDiff ? 6 : 0} />
-                </Box>
-              </Box>
+                }
+              >
+                <Box ref={gitDiffContainerRef} pb={expandDiff ? 6 : 0} />
+              </Card>
             )}
+
             <Grid
               templateColumns={{ base: 'repeat(1, 1fr)', lg: '2fr 1fr' }}
               gap={6}
             >
+              {/* TX Info: left column */}
               <TransactionDisplay
-                packageRef={cannonPackage.fullPackageRef!}
                 safe={safe}
                 safeTxn={safeTxn as any}
                 queuedWithGitOps={queuedWithGitOps}
@@ -417,27 +394,12 @@ function TransactionDetailsPage({
                 isTransactionExecuted={isTransactionExecuted}
                 containerRef={gitDiffContainerRef}
               />
+              {/* Tx extra data: right column */}
               <Box position="relative">
                 <Box position="sticky" top={8}>
-                  {!isTransactionExecuted && (
-                    <Box
-                      background="gray.800"
-                      p={4}
-                      borderWidth="1px"
-                      borderColor="gray.700"
-                      mb={8}
-                    >
-                      <Heading
-                        size="sm"
-                        mb={3}
-                        fontWeight="medium"
-                        textTransform="uppercase"
-                        letterSpacing="1.5px"
-                        fontFamily="var(--font-miriam)"
-                        textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                      >
-                        Verify Transactions
-                      </Heading>
+                  {/* Verify txs */}
+                  {!isTransactionExecuted && !unorderedNonce && (
+                    <Card title="Verify Transactions">
                       {queuedWithGitOps && (
                         <Box>
                           {buildInfo.buildStatus && (
@@ -485,29 +447,32 @@ function TransactionDetailsPage({
                         safeTxn={safeTxn}
                         execTransactionData={stager.execTransactionData}
                       />
-                    </Box>
+                    </Card>
                   )}
-                  <Box
-                    background="gray.800"
-                    p={4}
-                    borderWidth="1px"
-                    borderColor="gray.700"
-                    mb={6}
-                  >
-                    {!executionTxnHash ? (
-                      <>
-                        <Heading
-                          size="sm"
-                          mb="3"
-                          fontWeight="medium"
-                          textTransform="uppercase"
-                          letterSpacing="1.5px"
-                          fontFamily="var(--font-miriam)"
-                          textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                        >
-                          Signatures
-                        </Heading>
 
+                  {/* Signatures or Execute info  */}
+                  <Card
+                    title={executionTxnHash ? 'Execution' : 'Signatures'}
+                    subtitle={
+                      executionTxnHash ? 'Transaction pending' : undefined
+                    }
+                  >
+                    {executionTxnHash ? (
+                      /* Execution */
+                      <Link
+                        href={getExplorerUrl(safeChain?.id, executionTxnHash)}
+                        isExternal
+                        fontSize="sm"
+                        fontWeight="medium"
+                        mt={3}
+                      >
+                        {truncateAddress((executionTxnHash || '') as string, 8)}
+                        <ExternalLinkIcon transform="translateY(-1px)" ml={1} />
+                      </Link>
+                    ) : (
+                      /* Signatures */
+                      <>
+                        {/* Show signatures collected */}
                         {signers?.map((s) => (
                           <Box mt={2.5} key={s}>
                             <Box
@@ -531,7 +496,7 @@ function TransactionDetailsPage({
                               <Link
                                 isExternal
                                 styleConfig={{ 'text-decoration': 'none' }}
-                                href={`${etherscanUrl}/address/${s}`}
+                                href={getExplorerUrl(safeChain?.id, s)}
                                 ml={1}
                               >
                                 <ExternalLinkIcon transform="translateY(-1px)" />
@@ -540,49 +505,23 @@ function TransactionDetailsPage({
                           </Box>
                         ))}
 
-                        {!isTransactionExecuted && remainingSignatures > 0 && (
-                          <Text fontWeight="bold" mt="3">
-                            {remainingSignatures} additional{' '}
-                            {remainingSignatures === 1
-                              ? 'signature'
-                              : 'signatures'}{' '}
-                            required
-                          </Text>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <Heading
-                          size="sm"
-                          mb="3"
-                          fontWeight="medium"
-                          textTransform="uppercase"
-                          letterSpacing="1.5px"
-                          fontFamily="var(--font-miriam)"
-                          textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                        >
-                          Execution
-                        </Heading>
+                        {!isTransactionExecuted && (
+                          <>
+                            {/* Required signatures to reach threshold */}
+                            {remainingSignatures > 0 && (
+                              <AdditionalSignaturesText
+                                amount={remainingSignatures}
+                              />
+                            )}
 
-                        <Text fontSize="sm" fontWeight="medium" mt={3}>
-                          Transaction pending on network
-                        </Text>
-                        <Link
-                          href={`${etherscanUrl}/tx/${executionTxnHash}`}
-                          isExternal
-                          fontSize="sm"
-                          fontWeight="medium"
-                          mt={3}
-                        >
-                          {truncateAddress(
-                            (executionTxnHash || '') as string,
-                            8
-                          )}
-                          <ExternalLinkIcon
-                            transform="translateY(-1px)"
-                            ml={1}
-                          />
-                        </Link>
+                            {/* Warning if trying to sign a nonce bigger than the next to be executed */}
+                            {unorderedNonce && (
+                              <UnorderedNonceWarning
+                                nextNonce={staged[0]?.txn._nonce}
+                              />
+                            )}
+                          </>
+                        )}
                       </>
                     )}
 
@@ -684,35 +623,25 @@ function TransactionDetailsPage({
                         )}
                       </Flex>
                     )}
-                  </Box>
-                  {queuedWithGitOps && (
-                    <Box
-                      background="gray.800"
-                      p={4}
-                      borderWidth="1px"
-                      borderColor="gray.700"
-                      mb={8}
-                    >
-                      <Heading
-                        size="sm"
-                        mb={3}
-                        fontWeight="medium"
-                        textTransform="uppercase"
-                        letterSpacing="1.5px"
-                        fontFamily="var(--font-miriam)"
-                        textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                      >
-                        Cannon Package
-                        <Tooltip label="Packages include data about this deployment (including smart contract addresses, ABIs, and source code). When publishing, the registry collects some ETH (indicated as the 'value' for the transaction in your wallet) to support an IPFS cluster that pins package data.">
-                          <InfoOutlineIcon ml={1.5} opacity={0.8} mt={-0.5} />
-                        </Tooltip>
-                      </Heading>
+                  </Card>
 
+                  {/* Cannon package IPFS Info */}
+                  {queuedWithGitOps && (
+                    <Card
+                      title={
+                        <>
+                          Cannon Package
+                          <Tooltip label="Packages include data about this deployment (including smart contract addresses, ABIs, and source code). When publishing, the registry collects some ETH (indicated as the 'value' for the transaction in your wallet) to support an IPFS cluster that pins package data.">
+                            <InfoOutlineIcon ml={1.5} opacity={0.8} mt={-0.5} />
+                          </Tooltip>
+                        </>
+                      }
+                    >
                       <PublishUtility
                         deployUrl={hintData.cannonPackage}
                         targetChainId={safe.chainId}
                       />
-                    </Box>
+                    </Card>
                   )}
                 </Box>
               </Box>

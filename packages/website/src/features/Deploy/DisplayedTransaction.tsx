@@ -1,3 +1,11 @@
+import { Alert } from '@/components/Alert';
+import { chainsById, getExplorerUrl } from '@/helpers/chains';
+import { formatToken } from '@/helpers/formatters';
+import {
+  ContractInfo,
+  useCannonPackageContracts,
+  UseCannonPackageContractsReturnType,
+} from '@/hooks/cannon';
 import {
   AlertDescription,
   Box,
@@ -15,20 +23,12 @@ import { a11yDark, CopyBlock } from 'react-code-blocks';
 import {
   bytesToString,
   decodeFunctionData,
+  DecodeFunctionDataReturnType,
   Hex,
   hexToBytes,
   TransactionRequestBase,
   trim,
-  DecodeFunctionDataReturnType,
 } from 'viem';
-import { chainsById, getExplorerUrl } from '@/helpers/chains';
-import { Alert } from '@/components/Alert';
-import {
-  ContractInfo,
-  useCannonPackageContracts,
-  UseCannonPackageContractsReturnType,
-} from '@/hooks/cannon';
-import { formatToken } from '@/helpers/formatters';
 
 const TxWrapper: FC<{ children: ReactNode }> = ({ children }) => (
   <Box p={6} border="1px solid" borderColor="gray.600" bgColor="black">
@@ -57,7 +57,7 @@ export function DisplayedTransaction(props: {
   const chain = chainsById[props.chainId];
 
   const cannonInfo = useCannonPreloadedContracts(
-    props.pkgUrl ? '@' + props.pkgUrl.replace('://', ':') : '',
+    props.pkgUrl,
     props.cannonInfo,
     props.isPreloaded
   );

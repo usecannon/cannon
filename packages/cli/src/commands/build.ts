@@ -2,6 +2,7 @@ import {
   build as cannonBuild,
   CANNON_CHAIN_ID,
   CannonRegistry,
+  CannonSigner,
   ChainArtifacts,
   ChainBuilderRuntime,
   ChainDefinition,
@@ -14,9 +15,10 @@ import {
   PackageReference,
   traceActions,
 } from '@usecannon/builder';
-import { CannonSigner } from '@usecannon/builder/src';
 import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
+import fs from 'fs-extra';
 import _ from 'lodash';
+import path from 'path';
 import { table } from 'table';
 import * as viem from 'viem';
 import pkg from '../../package.json';
@@ -27,12 +29,9 @@ import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
-import { createWriteScript, WriteScriptFormat } from '../write-script/write';
-import { hideApiKey } from '../util/provider';
 import { log, warn } from '../util/console';
-
-import fs from 'fs-extra';
-import path from 'path';
+import { hideApiKey } from '../util/provider';
+import { createWriteScript, WriteScriptFormat } from '../write-script/write';
 
 interface Params {
   provider: viem.PublicClient;
@@ -124,6 +123,7 @@ export async function build({
   }
 
   const chainId = await provider.getChainId();
+
   const chainInfo = getChainById(chainId);
   const chainName = chainInfo?.name || 'unknown chain';
   const nativeCurrencySymbol = chainInfo?.nativeCurrency.symbol || 'ETH';
@@ -471,22 +471,39 @@ export async function build({
           ' to pin the partial deployment package on IPFS. Then use https://usecannon.com/deploy to collect signatures from a Safe for the skipped operations in the partial deployment package.'
       );
     } else {
-      if (chainId == 13370) {
-        log(bold(`💥 ${fullPackageRef} built for Cannon (Chain ID: ${chainId})`));
-        log(gray('This package can be run locally and cloned in cannonfiles.'));
-      } else {
-        log(bold(`💥 ${fullPackageRef} built on ${chainName} (Chain ID: ${chainId})`));
-        log(gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
-      }
-      log();
+      if (!persist) {
+        log(bold(`💥 ${fullPackageRef} would be successfully built on ${chainName} (Chain ID: ${chainId})`));
+        log(gray(`Estimated Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
+        log();
 
-      log(
-        bold(
-          `Package data has been stored locally${
-            filteredSettings.writeIpfsUrl && ' and pinned to ' + filteredSettings.writeIpfsUrl
-          }`
-        )
-      );
+        log(
+          bold(
+            `Package data would be stored locally${
+              filteredSettings.writeIpfsUrl && ' and pinned to ' + filteredSettings.writeIpfsUrl
+            }`
+          )
+        );
+        log();
+
+        log('(Note: These files will not be saved)');
+      } else {
+        if (chainId == 13370) {
+          log(bold(`💥 ${fullPackageRef} built for Cannon (Chain ID: ${chainId})`));
+          log(gray('This package can be run locally and cloned in cannonfiles.'));
+        } else {
+          log(bold(`💥 ${fullPackageRef} built on ${chainName} (Chain ID: ${chainId})`));
+          log(gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
+        }
+        log();
+
+        log(
+          bold(
+            `Package data has been stored locally${
+              filteredSettings.writeIpfsUrl && ' and pinned to ' + filteredSettings.writeIpfsUrl
+            }`
+          )
+        );
+      }
       log(
         table([
           ['Deployment Data', deployUrl],
@@ -497,29 +514,33 @@ export async function build({
 
       const isMainPreset = preset === PackageReference.DEFAULT_PRESET;
 
-      if (isMainPreset) {
-        log(
-          bold(
-            `Publish ${bold(`${packageRef}`)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`
-          )
-        );
-        log(`> cannon publish ${packageRef} --chain-id ${chainId}`);
-      } else {
-        log(
-          bold(`Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`)
-        );
-        log(`> cannon publish ${fullPackageRef} --chain-id ${chainId}`);
-      }
+      if (persist) {
+        if (isMainPreset) {
+          log(
+            bold(
+              `Publish ${bold(`${packageRef}`)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`
+            )
+          );
+          log(`> cannon publish ${packageRef} --chain-id ${chainId}`);
+        } else {
+          log(
+            bold(
+              `Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`
+            )
+          );
+          log(`> cannon publish ${fullPackageRef} --chain-id ${chainId}`);
+        }
 
-      log('');
-      if (chainId == 13370) {
-        log(bold('Run this package'));
+        log('');
+        if (chainId == 13370) {
+          log(bold('Run this package'));
 
-        if (isMainPreset) log(`> cannon ${packageRef}`);
-        else log(`> cannon ${fullPackageRef}`);
-      } else {
-        log(bold('Verify contracts on Etherscan'));
-        log(`> cannon verify ${fullPackageRef} --chain-id ${chainId}`);
+          if (isMainPreset) log(`> cannon ${packageRef}`);
+          else log(`> cannon ${fullPackageRef}`);
+        } else {
+          log(bold('Verify contracts on Etherscan'));
+          log(`> cannon verify ${fullPackageRef} --chain-id ${chainId}`);
+        }
       }
     }
   } else {

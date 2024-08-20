@@ -5,10 +5,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "analyze": "ANALYZE=true npm run build",
+    "tsc:build": "tsc",
     "start": "next start",
     "lint": "next lint --fix",
-    "e2e": "NEXT_PUBLIC_E2E_TESTING_MODE=true start-server-and-test dev http://localhost:3000 \"cypress open --e2e\"",
-    "e2e:headless": "NEXT_PUBLIC_E2E_TESTING_MODE=true start-server-and-test dev http://localhost:3000 \"cypress run --e2e\"",
+    "serve": "serve out -c ../serve.json -p 3000 > /dev/null 2>&1 &",
+    "e2e": "NEXT_PUBLIC_E2E_TESTING_MODE=true npm run build && npm run serve  && cypress open --e2e",
+    "e2e:headless": "NEXT_PUBLIC_E2E_TESTING_MODE=true npm run build && npm run serve && cypress run --e2e",
     "component": "cypress open --component",
     "component:headless": "cypress run --component"
   },
@@ -23,6 +26,7 @@
     "@iarna/toml": "^3.0.0",
     "@isomorphic-git/lightning-fs": "^4.6.0",
     "@monaco-editor/react": "^4.6.0",
+    "@next/bundle-analyzer": "^14.2.5",
     "@next/third-parties": "^14.2.3",
     "@rainbow-me/rainbowkit": "^2.1.2",
     "@safe-global/api-kit": "^2.2.0",
@@ -34,8 +38,8 @@
     "@types/node": "20.3.2",
     "@types/react": "18.2.37",
     "@types/react-dom": "18.2.6",
-    "@usecannon/builder": "^2.16.1",
-    "@usecannon/cli": "^2.16.1",
+    "@usecannon/builder": "^2.16.3",
+    "@usecannon/cli": "^2.16.3",
     "@vercel/analytics": "^1.1.1",
     "axios": "^1.6.7",
     "browser-level": "^1.0.1",
@@ -71,7 +75,6 @@
     "remark-gfm": "^3.0.1",
     "simple-url": "^1.1.8",
     "styled-components": "^6.0.7",
-    "typescript": "^5.3.3",
     "viem": "2.16.5",
     "wagmi": "^2.5.13",
     "zod": "^3.23.8",
@@ -97,7 +100,8 @@
     "cypress-xpath": "^2.0.1",
     "eslint-plugin-cypress": "^3.2.0",
     "sass": "^1.63.6",
-    "start-server-and-test": "^2.0.3"
+    "serve": "^14.2.3",
+    "typescript": "^5.3.3"
   },
   "optionalDependencies": {
     "@nx/nx-darwin-arm64": "18.0.4",

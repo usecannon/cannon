@@ -20,15 +20,17 @@ import {
   Events,
   getOutputs,
   InMemoryRegistry,
+  loadPrecompiles,
   PackageReference,
   publishPackage,
 } from '@usecannon/builder';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { Abi, Address, createPublicClient, createWalletClient, custom, Hex, isAddressEqual } from 'viem';
+import { Abi, Address, createPublicClient, createTestClient, createWalletClient, custom, Hex, isAddressEqual } from 'viem';
 import { useChainId } from 'wagmi';
 // Needed to prepare mock run step with registerAction
 import '@/lib/builder';
+import { externalLinks } from '@/constants/externalLinks';
 
 export type BuildState =
   | {
@@ -102,7 +104,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       throw err;
     });
 
-    const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/');
+    const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
 
     setBuildStatus('Loading deployment data...');
 
@@ -114,6 +116,15 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       chain: findChain(safe.chainId),
       transport,
     });
+
+    const testProvider = createTestClient({
+      chain: findChain(safe.chainId),
+      transport,
+      mode: 'ganache',
+    });
+
+    // todo: as usual viem provider types refuse to work
+    await loadPrecompiles(testProvider as any);
 
     const wallet = createWalletClient({
       account: safe.address,
@@ -269,11 +280,11 @@ export function useCannonWriteDeployToIpfs(
         throw new Error('You cannot write on an IPFS gateway, only read operations can be done');
       }
 
-      if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
-        throw new Error('You cannot publish on an repo endpoint, only read operations can be done');
+      if (settings.ipfsApiUrl.includes(externalLinks.IPFS_CANNON.replace(/\/$/, ''))) {
+        throw new Error(`You cannot publish in ${externalLinks.IPFS_CANNON}, only read operations can be done.`);
       }
 
-      if (!runtime || !deployInfo || !metaUrl) {
+      if (!runtime || !deployInfo) {
         throw new Error('Missing required parameters');
       }
 
@@ -287,7 +298,7 @@ export function useCannonWriteDeployToIpfs(
         [packageRef],
         runtime.chainId,
         (await runtime.loaders.mem.put(deployInfo)) ?? '',
-        metaUrl
+        metaUrl as string
       );
 
       const memoryRegistry = new InMemoryRegistry();
@@ -296,7 +307,7 @@ export function useCannonWriteDeployToIpfs(
         fromStorage: runtime,
         toStorage: new CannonStorage(
           memoryRegistry,
-          { ipfs: new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/') },
+          { ipfs: new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON) },
           'ipfs'
         ),
         packageRef,
@@ -322,7 +333,7 @@ export function useCannonWriteDeployToIpfs(
   };
 }
 
-export function useCannonPackage(packageRef: string, chainId?: number) {
+export function useCannonPackage(packageRef?: string, chainId?: number) {
   const connectedChainId = useChainId();
   const registry = useCannonRegistry();
   const settings = useStore((s) => s.settings);
@@ -331,23 +342,26 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
   const packageChainId = chainId ?? connectedChainId;
 
   const registryQuery = useQuery({
-    queryKey: ['cannon', 'registry', packageRef, packageChainId],
+    queryKey: ['cannon', 'registry-url', packageRef, packageChainId],
     queryFn: async () => {
-      if (!packageRef || packageRef.length < 3) {
+      if (typeof packageRef !== 'string' || packageRef.length < 3) {
         return null;
       }
 
+      if (packageRef.startsWith('ipfs://')) return { url: packageRef };
+      if (packageRef.startsWith('@ipfs:')) return { url: packageRef.replace('@ipfs:', 'ipfs://') };
+
       const url = await registry.getUrl(packageRef, packageChainId);
-      const metaUrl = await registry.getMetaUrl(packageRef, packageChainId);
 
       if (url) {
-        return { url, metaUrl };
+        return { url };
       } else {
         throw new Error(`package not found: ${packageRef} (${packageChainId})`);
       }
     },
     refetchOnWindowFocus: false,
   });
+
   const pkgUrl = registryQuery.data?.url;
 
   const ipfsQuery = useQuery({
@@ -358,7 +372,7 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
       if (!pkgUrl) return null;
 
       try {
-        const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/');
+        const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
 
         const deployInfo: DeploymentInfo = await loader.read(pkgUrl as any);
 
@@ -385,20 +399,40 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
     enabled: !!pkgUrl,
   });
 
+  const fullPackageRef = ipfsQuery.data?.fullPackageRef;
+
+  const registryQueryMeta = useQuery({
+    queryKey: ['cannon', 'registry-meta', fullPackageRef, packageChainId],
+    queryFn: async () => {
+      if (typeof fullPackageRef !== 'string' || fullPackageRef.length < 3) {
+        return null;
+      }
+
+      const metaUrl = await registry.getMetaUrl(fullPackageRef, packageChainId);
+
+      if (metaUrl) {
+        return { metaUrl };
+      } else {
+        return null;
+      }
+    },
+    refetchOnWindowFocus: false,
+  });
+
   return {
-    isLoading: registryQuery.isLoading || ipfsQuery.isLoading,
-    isFetching: registryQuery.isFetching || ipfsQuery.isFetching,
-    isError: registryQuery.isError || ipfsQuery.isError,
-    error: registryQuery.error || registryQuery.error,
+    isLoading: registryQuery.isLoading || ipfsQuery.isLoading || registryQueryMeta.isLoading,
+    isFetching: registryQuery.isFetching || ipfsQuery.isFetching || registryQueryMeta.isFetching,
+    isError: registryQuery.isError || ipfsQuery.isError || registryQueryMeta.isError,
+    error: registryQuery.error || registryQuery.error || registryQueryMeta.error,
     registryQuery,
     ipfsQuery,
     pkgUrl,
-    metaUrl: registryQuery.data?.metaUrl,
+    metaUrl: registryQueryMeta.data?.metaUrl,
     pkg: ipfsQuery.data?.deployInfo,
     resolvedName: ipfsQuery.data?.resolvedName,
     resolvedVersion: ipfsQuery.data?.resolvedVersion,
     resolvedPreset: ipfsQuery.data?.resolvedPreset,
-    fullPackageRef: ipfsQuery.data?.fullPackageRef,
+    fullPackageRef,
   };
 }
 
@@ -421,7 +455,7 @@ function getContractsRecursive(outputs: ChainArtifacts, prefix?: string): Contra
   return contracts;
 }
 
-export function useCannonPackageContracts(packageRef: string, chainId?: number) {
+export function useCannonPackageContracts(packageRef?: string, chainId?: number) {
   const pkg = useCannonPackage(packageRef, chainId);
   const [contracts, setContracts] = useState<ContractInfo | null>(null);
   const settings = useStore((s) => s.settings);
@@ -431,7 +465,7 @@ export function useCannonPackageContracts(packageRef: string, chainId?: number) 
       if (pkg.pkg) {
         const info = pkg.pkg;
 
-        const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/');
+        const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
         const readRuntime = new ChainBuilderRuntime(
           {
             provider: null as any,

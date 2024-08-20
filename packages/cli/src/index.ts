@@ -27,8 +27,8 @@ import commandsConfig from './commandsConfig';
 import {
   checkCannonVersion,
   checkForgeAstSupport,
-  getPackageReference,
   ensureChainIdConsistency,
+  getPackageReference,
   setupAnvil,
 } from './helpers';
 import { getMainLoader } from './loader';
@@ -39,7 +39,7 @@ import { resolveCliSettings } from './settings';
 import { PackageSpecification } from './types';
 import { pickAnvilOptions } from './util/anvil';
 import { doBuild } from './util/build';
-import { log, error, warn } from './util/console';
+import { error, log, warn } from './util/console';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { parsePackageArguments, parsePackagesArguments } from './util/params';
 import { getChainIdFromRpcUrl, isURL, ProviderAction, resolveProviderAndSigners, resolveProvider } from './util/provider';
@@ -156,7 +156,7 @@ function configureRun(program: Command) {
     let node: CannonRpcNode;
     if (options.chainId) {
       const { provider } = await resolveProvider({
-        action: ProviderAction.WriteProvider,
+        action: ProviderAction.ReadProvider,
         cliSettings,
         chainId: Number.parseInt(options.chainId),
       });
@@ -172,7 +172,7 @@ function configureRun(program: Command) {
         options.chainId = await getChainIdFromRpcUrl(cliSettings.rpcUrl);
 
         const { provider } = await resolveProvider({
-          action: ProviderAction.WriteProvider,
+          action: ProviderAction.ReadProvider,
           cliSettings,
           chainId: Number.parseInt(options.chainId),
         });
@@ -713,7 +713,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
   await ensureChainIdConsistency(cliSettings.rpcUrl, chainId);
 
   const { provider, signers } = await resolveProvider({
-    action: ProviderAction.WriteProvider,
+    action: ProviderAction.OptionalWriteProvider,
     cliSettings,
     chainId: chainId!,
   });

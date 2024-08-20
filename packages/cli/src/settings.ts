@@ -142,7 +142,6 @@ export const RPC_URL_DEFAULT = 'frame,direct';
 
 const deprecatedWarn = _.once((deprecatedFlag: string, newFlag: string) => {
   log();
-
   warn(yellow(bold(`The ${deprecatedFlag} option will be deprecated soon. Use ${newFlag} instead.`)));
   log();
 });

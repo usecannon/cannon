@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
+import { CANNON_CHAIN_ID, CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
 import Debug from 'debug';
 import * as viem from 'viem';
 import { getFoundryArtifact } from '../foundry';
@@ -12,6 +12,7 @@ import { pickAnvilOptions } from './anvil';
 import { parseSettings } from './params';
 import { ProviderAction, resolveProvider, isURL, getChainIdFromRpcUrl } from './provider';
 import { ANVIL_FIRST_ADDRESS } from '../constants';
+import { warn } from './console';
 
 const debug = Debug('cannon:cli');
 
@@ -140,6 +141,10 @@ async function configureProvider(options: any, cliSettings: CliSettings) {
     signers = _provider.signers;
   }
 
+  if (options.dryRun && options.chainId === CANNON_CHAIN_ID) {
+    throw new Error('Cannot perform a dry-run build on local network');
+  }
+
   if (options.dryRun) {
     node = await runRpc(
       {
@@ -204,6 +209,14 @@ async function configureSigners(
     };
 
     getDefaultSigner = async () => signers![0];
+  }
+
+  if (await getDefaultSigner()) {
+    const defaultSignerAddress = (await getDefaultSigner())!.address;
+
+    if (opts.chainId != '13370' && defaultSignerAddress === ANVIL_FIRST_ADDRESS) {
+      warn(`WARNING: This build is using default anvil address ${ANVIL_FIRST_ADDRESS}`);
+    }
   }
 
   return { getSigner, getDefaultSigner };

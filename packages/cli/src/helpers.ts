@@ -8,8 +8,6 @@ import {
   ContractData,
   ContractMap,
   DeploymentInfo,
-  getCannonRepoRegistryUrl,
-  IPFSLoader,
   CannonStorage,
   PackageReference,
   RawChainDefinition,
@@ -25,6 +23,7 @@ import path from 'path';
 import prompts from 'prompts';
 import semver from 'semver';
 import * as viem from 'viem';
+import { getMainLoader } from './loader';
 import { privateKeyToAccount } from 'viem/accounts';
 import { cannonChain, chains } from './chains';
 import { resolveCliSettings } from './settings';
@@ -522,9 +521,7 @@ export async function getPackageReference(ref: string) {
 
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
 
-  const storage = new CannonStorage(localRegistry, {
-    ipfs: new IPFSLoader(cliSettings.ipfsUrl! || getCannonRepoRegistryUrl(), {}, 1000),
-  });
+  const storage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
 
   try {
     const pkgInfo: DeploymentInfo = await storage.readBlob(ref);
@@ -543,6 +540,7 @@ export async function getPackageReference(ref: string) {
         "Could not download package through IPFS, please make sure you set your 'ipfsUrl' to the ipfs url where this hash has been pinned"
       );
     }
+
     throw new Error(error);
   }
 }

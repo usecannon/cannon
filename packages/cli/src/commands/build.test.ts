@@ -1,9 +1,6 @@
 import * as viem from 'viem';
 import { CannonRpcNode, runRpc } from '../rpc';
 
-jest.mock('ethers');
-jest.mock('@usecannon/builder');
-
 export function makeFakeProvider(): viem.PublicClient & viem.WalletClient & viem.TestClient {
   const fakeProvider = viem
     .createTestClient({

@@ -10,6 +10,7 @@ import {
   Flex,
   Heading,
   Link,
+  Skeleton,
   Text,
 } from '@chakra-ui/react';
 import { useState } from 'react';
@@ -21,8 +22,9 @@ export default function SignTransactionsPage() {
 
 function SignTransactions() {
   const currentSafe = useStore((s) => s.currentSafe);
-  const { staged } = useSafeTransactions(currentSafe as any);
-  const { data: history } = useExecutedTransactions(currentSafe as any);
+  const { staged, isLoading: isLoadingSafeTxs } =
+    useSafeTransactions(currentSafe);
+  const { data: history } = useExecutedTransactions(currentSafe);
   const [isChecked, setIsChecked] = useState(true);
 
   const handleCheckboxChange = (e: any) => {
@@ -31,6 +33,7 @@ function SignTransactions() {
 
   return (
     <Container maxW="container.lg" py={8}>
+      {/* Header */}
       <Box mb={6}>
         <Heading size="lg" mb={2}>
           Sign & Execute Transactions
@@ -42,6 +45,7 @@ function SignTransactions() {
         </Text>
       </Box>
 
+      {/* Staged txs */}
       <Box
         mb={8}
         p={6}
@@ -55,22 +59,29 @@ function SignTransactions() {
         <Heading size="md" mb={3}>
           Staged Transactions
         </Heading>
-        {currentSafe &&
-          staged.map((tx) => (
-            <Transaction
-              key={JSON.stringify(tx.txn)}
-              safe={currentSafe}
-              tx={tx.txn}
-              hideExternal={false}
-              isStaged
-            />
-          ))}
-        {currentSafe && staged.length === 0 && (
-          <Text color="gray.300">
-            There are no transactions queued on the selected safe.
-          </Text>
+        {isLoadingSafeTxs ? (
+          <Skeleton height="20px" />
+        ) : (
+          currentSafe &&
+          (staged.length === 0 ? (
+            <Text color="gray.300">
+              There are no transactions queued on the selected safe.
+            </Text>
+          ) : (
+            staged.map((tx) => (
+              <Transaction
+                key={JSON.stringify(tx.txn)}
+                safe={currentSafe}
+                tx={tx.txn}
+                hideExternal={false}
+                isStaged
+              />
+            ))
+          ))
         )}
       </Box>
+
+      {/* Executed txs */}
       {currentSafe && (history.count ?? 0) > 0 && (
         <Box
           mb={8}
