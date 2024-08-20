@@ -78,9 +78,9 @@ export const getChainById = (chainId: number) => {
   if (!chain) {
     return {
       id: chainId,
-      name: "Unknown Chain",
-      color: 'gray.600'
-    }
+      name: 'Unknown Chain',
+      color: 'gray.600',
+    };
   }
 
   return chain;

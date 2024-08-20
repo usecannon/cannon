@@ -27,8 +27,9 @@ function generateMetadata({
 
   const title = `${params.name} on ${chain.name} | Cannon`;
 
-  const description = `Explore the Cannon package for ${params.name}${params.tag !== 'latest' ? `:${params.tag}` : ''
-    }${preset !== 'main' ? `@${preset}` : ''} on ${chain.name} (ID: ${chainId})`;
+  const description = `Explore the Cannon package for ${params.name}${
+    params.tag !== 'latest' ? `:${params.tag}` : ''
+  }${preset !== 'main' ? `@${preset}` : ''} on ${chain.name} (ID: ${chainId})`;
 
   const metadata = {
     title,

@@ -16,7 +16,6 @@ function generateMetadata({
   const [chainId, preset] = PackageReference.parseVariant(params.variant);
   const chain = getChainById(chainId);
 
-
   const title = `${params.name} on ${chain.name} | Cannon`;
 
   const description = `Explore the Cannon package code for ${params.name}${
