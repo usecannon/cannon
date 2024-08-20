@@ -17,6 +17,8 @@ jobs:
           cache: 'npm'
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
       - run: npm ci
       - run: npm run build
         env:
