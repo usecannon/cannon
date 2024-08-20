@@ -70,11 +70,9 @@ export async function loadPrecompiles(provider: viem.TestClient) {
       await provider.request({
         // @ts-ignore: evm_setAccountCode is not currently implemented in Viem.
         method: 'evm_setAccountCode',
-        params: [precompileCall.address, precompileCall.bytecode]
+        params: [precompileCall.address, precompileCall.bytecode],
       });
     } else {
       await provider.setCode(precompileCall);
     }
-
-  }
 }
