@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
 
-const NoSSR = dynamic(
+const NoSSRPackagePage = dynamic(
   async () => {
     return import('@/features/Packages/PackagePage');
   },
@@ -26,7 +26,7 @@ export default function Deployment() {
           description: `Cannon | Package | ${params.name}`,
         }}
       />
-      <NoSSR name={params.name as string} />
+      <NoSSRPackagePage name={params.name as string} />
     </>
   );
 }
