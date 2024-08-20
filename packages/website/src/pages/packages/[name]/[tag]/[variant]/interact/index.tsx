@@ -17,12 +17,15 @@ function generateMetadata({
   chainId: number;
   preset: string;
 }) {
-  let chain = getChainById(chainId);
+  const chain = getChainById(chainId);
 
   const title = `${name} on ${chain ? chain.name : 'Unknown Chain'} | Cannon`;
 
-  const description = `Explore the Cannon package for ${name}${tag !== 'latest' ? `:${tag}` : ''
-    }${preset !== 'main' ? `@${preset}` : ''} on ${ chain ? chain.name : 'Unknown Chain'} (ID: ${chain ? chain.id : chainId})`;
+  const description = `Explore the Cannon package for ${name}${
+    tag !== 'latest' ? `:${tag}` : ''
+  }${preset !== 'main' ? `@${preset}` : ''} on ${
+    chain ? chain.name : 'Unknown Chain'
+  } (ID: ${chain ? chain.id : chainId})`;
 
   const metadata = {
     title,
