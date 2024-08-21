@@ -222,7 +222,7 @@ export function useTxnStager(
     functionName: 'execTransaction',
     args: [
       safeTxn.to,
-      Number(safeTxn.value).toString() || '0',
+      BigInt(safeTxn.value.toString() || '0'),
       safeTxn.data,
       safeTxn.operation,
       safeTxn.safeTxGas,
