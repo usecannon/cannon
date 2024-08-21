@@ -21,12 +21,12 @@ var.msg = "a message from second greeter set"
 [invoke.do_change_greeting2]
 target = ["greeters.greeter"]
 func = "setGreeting"
-args = ["<%= settings.change_greeting2 %>", "False"]
+args = ["<%= settings.change_greeting2 %>"]
 
 [invoke.do_change_greeting3]
 target = ["more_greeters.greeter"]
 func = "setGreeting"
-args = ["<%= settings.change_greeting2 %>", "True"]
+args = ["<%= settings.change_greeting2 %>"]
 
 # test for factory functionality
 [invoke.clone]
@@ -57,7 +57,7 @@ var.OldCloneGreeting.arg = 0
 [invoke.set_new_greeting_for_next_clones]
 target = ["greeters.greeter"]
 func = "setGreeting"
-args = ["<%= settings.NewCloneGreeting %>", false]
+args = ["<%= settings.NewCloneGreeting %>"]
 
 [invoke.set_dummy]
 target = ["<%= AddressZero %>"]
