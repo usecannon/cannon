@@ -47,7 +47,8 @@ const varSpec = {
     let accesses = computeTemplateAccesses('', possibleFields);
 
     for (const c in _.omit(config, 'depends')) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config[c], possibleFields));
+      const fields = computeTemplateAccesses(config[c], possibleFields);
+      accesses = mergeTemplateAccesses(accesses, fields);
     }
 
     return accesses;
