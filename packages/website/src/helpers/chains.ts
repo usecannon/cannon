@@ -80,7 +80,7 @@ export const getChainById = (chainId: number) => {
       id: chainId,
       name: 'Unknown Chain',
       color: 'gray.600',
-    };
+    } as ChainData;
   }
 
   return chain;
