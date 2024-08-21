@@ -365,7 +365,7 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
 
   await publishPackage({
     packageRef: fullPackageRef,
-    chainId: 13370,
+    chainId: options.chainId || 13370,
     tags: [], // when passing no tags, it will only copy IPFS files, but not publish to registry
     fromStorage,
     toStorage,
