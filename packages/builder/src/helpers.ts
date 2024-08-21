@@ -65,7 +65,14 @@ export async function getCannonContract(args: {
 export async function loadPrecompiles(provider: viem.TestClient) {
   const precompiles = await import('./precompiles');
 
-  for (const precompileCall of precompiles.default) {
-    await provider.setCode(precompileCall);
-  }
+  for (const precompileCall of precompiles.default)
+    if (provider.mode === 'ganache') {
+      await provider.request({
+        // @ts-ignore: evm_setAccountCode is not currently implemented in Viem.
+        method: 'evm_setAccountCode',
+        params: [precompileCall.address, precompileCall.bytecode],
+      });
+    } else {
+      await provider.setCode(precompileCall);
+    }
 }
