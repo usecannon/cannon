@@ -16,6 +16,9 @@ export const isPackageRegistered = async (
 ) => {
   const packageName = new PackageReference(packageRef).name;
 
+  console.log('registry provs', registryProviders);
+  console.log('package ref', packageRef);
+
   if (contractAddress.length !== registryProviders.length) {
     throw new Error('Registry providers and contract addresses must have the same length.');
   }
@@ -32,6 +35,8 @@ export const isPackageRegistered = async (
   const packageOwners = await Promise.all(
     onChainRegistries.map((onChainRegistry) => onChainRegistry.getPackageOwner(packageName))
   );
+
+  console.log(packageOwners);
 
   return !packageOwners.some((address) => viem.isAddressEqual(address, viem.zeroAddress));
 };
