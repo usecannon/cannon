@@ -114,8 +114,6 @@ export const InteractTab: FC<{
 
     const cannonOutputs: ChainArtifacts = getOutput(deploymentData.data);
 
-    console.log('cannonOutputs: ', cannonOutputs);
-
     if (cannonOutputs.contracts) {
       processContracts(cannonOutputs.contracts, name);
     }
