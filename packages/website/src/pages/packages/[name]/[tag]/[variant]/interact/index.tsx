@@ -4,7 +4,7 @@ import InteractLayout from './_layout';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
 import { getChainById } from '@/helpers/chains';
-import { usePackageUrlParams } from '@/hooks/routing/usePackageUrlParams';
+import { usePackageVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 
 function generateMetadata({
   name,
@@ -18,13 +18,14 @@ function generateMetadata({
   preset: string;
 }) {
   const chain = getChainById(chainId);
-  if (!chain) throw new Error(`Chain with ID ${chainId} not found`);
 
-  const title = `${name} on ${chain.name} | Cannon`;
+  const title = `${name} on ${chain ? chain.name : 'Unknown Chain'} | Cannon`;
 
   const description = `Explore the Cannon package for ${name}${
     tag !== 'latest' ? `:${tag}` : ''
-  }${preset !== 'main' ? `@${preset}` : ''} on ${chain.name} (ID: ${chain.id})`;
+  }${preset !== 'main' ? `@${preset}` : ''} on ${
+    chain ? chain.name : 'Unknown Chain'
+  } (ID: ${chain ? chain.id : chainId})`;
 
   const metadata = {
     title,
@@ -38,7 +39,7 @@ function generateMetadata({
 }
 
 export default function Interact() {
-  const { name, tag, chainId, preset } = usePackageUrlParams();
+  const { name, tag, chainId, preset } = usePackageVersionUrlParams();
   const metadata = generateMetadata({
     name,
     tag,
