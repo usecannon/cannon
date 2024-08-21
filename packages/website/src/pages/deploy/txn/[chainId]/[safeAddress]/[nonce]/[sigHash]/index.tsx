@@ -1,10 +1,10 @@
+import PageLoading from '@/components/PageLoading';
+import defaultSEO from '@/constants/defaultSeo';
+import { NextSeo } from 'next-seo';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { ReactElement } from 'react';
 import Layout from '../../../../../_layout';
-import { NextSeo } from 'next-seo';
-import defaultSEO from '@/constants/defaultSeo';
-import PageLoading from '@/components/PageLoading';
 
 const NoSSRTransactionDetailsPage = dynamic(
   async () => {
@@ -33,6 +33,7 @@ export default function TransactionDetails() {
     </>
   );
 }
+
 TransactionDetails.getLayout = function getLayout(page: ReactElement) {
   return <Layout>{page}</Layout>;
 };
