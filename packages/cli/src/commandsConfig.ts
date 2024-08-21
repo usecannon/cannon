@@ -466,10 +466,13 @@ const commandsConfig = {
         description: 'IPFS hash to write deployment data for',
       },
     ],
-    options: [...debugVerbosity, {
-      flags: '-c --chain-id <chainId>',
-      description: 'Chain ID of deployment to pin',
-    }],
+    options: [
+      ...debugVerbosity,
+      {
+        flags: '-c --chain-id <chainId>',
+        description: 'Chain ID of deployment to pin',
+      },
+    ],
   },
   publish: {
     description:
