@@ -101,16 +101,21 @@ export const InteractTab: FC<{
     let allContracts: any[] = [];
 
     const processContracts = (contracts: any, moduleName: string) => {
-      const processedContracts = Object.entries(contracts).map(([k, v]) => ({
-        moduleName: moduleName,
-        contractName: k,
-        contractAddress: (v as any).address,
-        highlight: (v as any).highlight,
-      }));
-      allContracts = allContracts.concat(processedContracts);
+      if (contracts) {
+        const processedContracts = Object.entries(contracts).map(([k, v]) => ({
+          moduleName: moduleName,
+          contractName: k,
+          contractAddress: (v as any).address,
+          highlight: (v as any).highlight,
+        }));
+        allContracts = allContracts.concat(processedContracts);
+      }
     };
 
     const cannonOutputs: ChainArtifacts = getOutput(deploymentData.data);
+
+    console.log('cannonOutputs: ', cannonOutputs);
+
     if (cannonOutputs.contracts) {
       processContracts(cannonOutputs.contracts, name);
     }
