@@ -236,7 +236,6 @@ function QueueFromGitOps() {
       def: new ChainDefinition(partialDeployInfo.pkg.def), // This should be typed as a partial of chain def
       filesList: undefined,
     }
-    console.log(cannonDefInfo.def)
   }
   
   useEffect(() => {
