@@ -9,14 +9,23 @@ on:
 jobs:
   test-e2e:
     runs-on: ubuntu-latest
+    env:
+      CANNON_DIRECTORY: .cannon/
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20.5.1'
           cache: 'npm'
+
+      - uses: actions/cache/restore@v4
+        with:
+          key: ${{ runner.os }}-cannon-ipfs-cache
+          path: ${{ env.CANNON_DIRECTORY }}/ipfs_cache
+
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
+
       - run: npm ci
       - run: npm run build
         env:
@@ -36,3 +45,8 @@ jobs:
         env:
           CANNON_E2E_RPC_URL_OPTIMISM: ${{ secrets.CANNON_E2E_RPC_URL_OPTIMISM }}
           CANNON_E2E_RPC_URL_ETHEREUM: ${{ secrets.CANNON_E2E_RPC_URL_ETHEREUM }}
+
+      - uses: actions/cache/save@v4
+        with:
+          key: ${{ runner.os }}-cannon-ipfs-cache
+          path: ${{ env.CANNON_DIRECTORY }}/ipfs_cache
