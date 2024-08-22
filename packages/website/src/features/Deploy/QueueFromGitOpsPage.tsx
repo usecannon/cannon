@@ -15,7 +15,7 @@ import {
 import { useGitRefsList } from '@/hooks/git';
 import { useGetPreviousGitInfoQuery } from '@/hooks/safe';
 import { SafeTransaction } from '@/types/SafeTransaction';
-import { CheckIcon } from '@chakra-ui/icons';
+import { CheckIcon, CloseIcon } from '@chakra-ui/icons';
 import {
   Alert,
   AlertIcon,
@@ -67,6 +67,7 @@ import pkg from '../../../package.json';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
 import 'react-diff-view/style/index.css';
+import { ChainDefinition } from '@usecannon/builder/dist/src';
 
 export default function QueueFromGitOpsPage() {
   return <QueueFromGitOps />;
@@ -141,7 +142,7 @@ function QueueFromGitOps() {
     return urlComponents.join('/');
   }, [cannonfileUrlInput]);
 
-  const cannonDefInfo = useLoadCannonDefinition(gitUrl, gitRef, gitFile);
+  let cannonDefInfo = useLoadCannonDefinition(gitUrl, gitRef, gitFile);
 
   const cannonDefInfoError: string = gitUrl
     ? (cannonDefInfo.error as any)?.toString()
@@ -224,6 +225,18 @@ function QueueFromGitOps() {
     partialDeployIpfs ? `ipfs://${partialDeployIpfs}` : ''
   );
 
+  if (!cannonDefInfo.def && partialDeployInfo.pkg) {
+    cannonDefInfo = {
+      isLoading: partialDeployInfo.isLoading,
+      isFetching: partialDeployInfo.isFetching,
+      isError: partialDeployInfo.isError,
+      error: partialDeployInfo.error,
+      def: new ChainDefinition(partialDeployInfo.pkg.def), // This should be typed as a partial of chain def
+      filesList: undefined,
+    }
+    console.log(cannonDefInfo.def)
+  }
+  
   useEffect(() => {
     if (!cannonDefInfo.def) return setPreviousPackageInput('');
 
@@ -247,7 +260,7 @@ function QueueFromGitOps() {
       ? {
         generator: `cannon website ${pkg.version}`,
         timestamp: Math.floor(Date.now() / 1000),
-        def: cannonDefInfo.def?.toJson(),
+        def: cannonDefInfo.def?.toJson() || cannonDefInfo.def,
         state: buildInfo.buildResult?.state || {},
         options: prevCannonDeployInfo.pkg?.options || {},
         meta: prevCannonDeployInfo.pkg?.meta,
@@ -509,10 +522,6 @@ function QueueFromGitOps() {
   }
 
   function RenderPreviewButtonTooltip() {
-    if (cannonfileUrlInput.length == 0) {
-      return <PreviewButton />;
-    }
-
     if (!chainId) {
       return (
         <PreviewButton message="You must connect your wallet to the same chain as the selected safe to continue" />
@@ -523,6 +532,11 @@ function QueueFromGitOps() {
       return (
         <PreviewButton message="Deployment Chain ID does not match Safe Chain ID" />
       );
+    }
+
+    if (partialDeployInfo.isError) {
+      const message = `Error fetching partial deploy info, error: ${partialDeployInfo.error?.message}`
+      return <PreviewButton message={message} />
     }
 
     if (
@@ -571,7 +585,7 @@ function QueueFromGitOps() {
           borderRadius="4px"
         >
 
-          <Tabs isFitted variant='line' colorScheme='teal'>
+          <Tabs isFitted isLazy variant='line' colorScheme='teal'>
             <TabList>
               <Tab>New deployment</Tab>
               <Tab>Upgrade package</Tab>
@@ -602,6 +616,9 @@ function QueueFromGitOps() {
                       }
                     />
                     <InputRightElement>
+                      {cannonPkgPreviousInfo.isError ? (
+                        <CloseIcon color="red.500" />
+                      ) : null}
                       {cannonPkgPreviousInfo.isFetching ? (
                         <Spinner />
                       ) : cannonPkgPreviousInfo.pkg ? (
@@ -624,8 +641,6 @@ function QueueFromGitOps() {
                 </FormControl>
               </TabPanel>
               <TabPanel>
-                {renderCannonfileInput()}
-
                 <FormControl mb="6">
                   <FormLabel>Partial Deployment Data</FormLabel>
                   <InputGroup>
@@ -647,7 +662,8 @@ function QueueFromGitOps() {
                       }
                     />
                     <InputRightElement>
-                      {partialDeployInfo.isFetching && <Spinner />}
+                      {partialDeployInfo.isError && <CloseIcon color='red.500' />}
+                      {partialDeployInfo.isFetching && !partialDeployInfo.isError && <Spinner />}
                       {partialDeployInfo.pkg && <CheckIcon color="green.500" />}
                     </InputRightElement>
                   </InputGroup>
