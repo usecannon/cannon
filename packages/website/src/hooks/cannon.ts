@@ -281,10 +281,6 @@ export function useCannonWriteDeployToIpfs(
         throw new Error('You cannot write on an IPFS gateway, only read operations can be done');
       }
 
-      if (settings.ipfsApiUrl.includes(externalLinks.IPFS_CANNON.replace(/\/$/, ''))) {
-        throw new Error(`You cannot publish in ${externalLinks.IPFS_CANNON}, only read operations can be done.`);
-      }
-
       if (!runtime || !deployInfo) {
         throw new Error('Missing required parameters');
       }
