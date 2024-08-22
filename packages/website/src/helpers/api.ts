@@ -46,6 +46,17 @@ export const getChains = async () => {
 export const getPackage = async ({ queryKey }: { queryKey: any[] }) => {
   const [, name] = queryKey;
 
+  try {
+    const response = await axios.get<ApiPackage>(`packages/${name}`, { baseURL });
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to fetch package', error as Error);
+  }
+};
+
+export const getPackage2 = async ({ queryKey }: { queryKey: any[] }) => {
+  const [, name] = queryKey;
+
   const a: ApiPackage = {
     type: 'package',
     name: name,
@@ -53,11 +64,4 @@ export const getPackage = async ({ queryKey }: { queryKey: any[] }) => {
   };
 
   return a;
-
-  // try {
-  //   const response = await axios.get<ApiPackage>(`packages/${name}`, { baseURL });
-  //   return response.data;
-  // } catch (error) {
-  //   throw new Error('Failed to fetch package', error as Error);
-  // }
 };
