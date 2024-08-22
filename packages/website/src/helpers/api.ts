@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+import { ApiPackage } from '@usecannon/api/types';
 const baseURL = process.env.NEXT_PUBLIC_API_URL || 'https://api.usecannon.com';
 
 export const getSearch = async ({ queryKey }: { queryKey: any[] }) => {
@@ -45,10 +45,19 @@ export const getChains = async () => {
 
 export const getPackage = async ({ queryKey }: { queryKey: any[] }) => {
   const [, name] = queryKey;
-  try {
-    const response = await axios.get(`packages/${name}`, { baseURL });
-    return response.data;
-  } catch (error) {
-    throw new Error('Failed to fetch package', error as Error);
-  }
+
+  const a: ApiPackage = {
+    type: 'package',
+    name: 'name',
+    pepe: 1,
+  };
+
+  return a;
+
+  // try {
+  //   const response = await axios.get<ApiPackage>(`packages/${name}`, { baseURL });
+  //   return response.data;
+  // } catch (error) {
+  //   throw new Error('Failed to fetch package', error as Error);
+  // }
 };
