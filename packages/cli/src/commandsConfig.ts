@@ -183,8 +183,12 @@ const commandsConfig = {
     anvilOptions: anvilOptions,
     options: [
       {
-        flags: '-n --provider-url [url]',
+        flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to fork off of',
+      },
+      {
+        flags: '-n --provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to fork off of',
       },
       {
         flags: '--build',
@@ -246,8 +250,12 @@ const commandsConfig = {
     anvilOptions: anvilOptions,
     options: [
       {
-        flags: '-n --provider-url [url]',
+        flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to execute the deployment on',
+      },
+      {
+        flags: '-n --provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to fork off of',
       },
       {
         flags: '-c --chain-id <number>',
@@ -372,8 +380,12 @@ const commandsConfig = {
           'When the change needs to be made in a subpackage, specify the step names leading to the subpackage, comma separated.',
       },
       {
-        flags: '-n --provider-url [url]',
+        flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to alter to',
+      },
+      {
+        flags: '-n --provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to fork off of',
       },
       {
         flags: '-p --preset <preset>',
@@ -427,7 +439,7 @@ const commandsConfig = {
     ],
     options: [
       {
-        flags: '-n --registry-provider-url [url]',
+        flags: '-n --registry-rpc-url [url]',
         description: 'RPC endpoint to publish to',
       },
       {
@@ -499,7 +511,7 @@ const commandsConfig = {
     ],
     options: [
       {
-        flags: '-n --registry-provider-url [url]',
+        flags: '-n --registry-rpc-url [url]',
         description: 'RPC endpoint to unpublish to',
       },
       {
@@ -551,7 +563,7 @@ const commandsConfig = {
     ],
     options: [
       {
-        flags: '-n --registry-provider-url [url]',
+        flags: '-n --registry-rpc-url [url]',
         description: 'RPC endpoint to register your package to',
       },
       {
@@ -611,7 +623,7 @@ const commandsConfig = {
         description: 'List package publishers',
       },
       {
-        flags: '-n --registry-provider-url [url]',
+        flags: '-n --registry-rpc-url [url]',
         description: 'RPC endpoint to add a publisher to your package',
       },
       {
@@ -756,6 +768,10 @@ const commandsConfig = {
       },
       {
         flags: '-n --provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to fork off of',
+      },
+      {
+        flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to fork off of',
       },
       {
@@ -810,8 +826,12 @@ const commandsConfig = {
     ],
     options: [
       {
-        flags: '-n --provider-url [url]',
+        flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to fork off of',
+      },
+      {
+        flags: '-n --provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to fork off of',
       },
       {
         flags: '-c --chain-id',
@@ -855,8 +875,12 @@ const commandsConfig = {
         description: 'Chain ID of deployment to interact with ',
       },
       {
-        flags: '-n --provider-url [url]',
+        flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to execute the deployment on',
+      },
+      {
+        flags: '-n --provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to fork off of',
       },
       {
         flags: '-p --preset <preset>',
