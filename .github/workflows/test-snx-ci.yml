@@ -20,7 +20,7 @@ jobs:
 
       - uses: actions/cache/restore@v4
         with:
-          key: ${{ runner.os }}-cannon-ipfs-cache
+          key: ${{ runner.os }}-${{ github.job }}-cannon-ipfs-cache
           path: ${{ env.CANNON_DIRECTORY }}/ipfs_cache
 
       - name: Install Foundry
@@ -42,5 +42,5 @@ jobs:
       - uses: actions/cache/save@v4
         if: always()
         with:
-          key: ${{ runner.os }}-cannon-ipfs-cache
+          key: ${{ runner.os }}-${{ github.job }}-cannon-ipfs-cache
           path: ${{ env.CANNON_DIRECTORY }}/ipfs_cache
