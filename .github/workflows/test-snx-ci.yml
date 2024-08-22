@@ -10,7 +10,7 @@ jobs:
   test-snx-ci:
     runs-on: ubuntu-latest
     env:
-      CANNON_DIRECTORY: .cannon/
+      CANNON_DIRECTORY: .cannon
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
