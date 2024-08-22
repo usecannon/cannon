@@ -47,6 +47,7 @@ jobs:
           CANNON_E2E_RPC_URL_ETHEREUM: ${{ secrets.CANNON_E2E_RPC_URL_ETHEREUM }}
 
       - uses: actions/cache/save@v4
+        if: always()
         with:
           key: ${{ runner.os }}-cannon-ipfs-cache
           path: ${{ env.CANNON_DIRECTORY }}/ipfs_cache

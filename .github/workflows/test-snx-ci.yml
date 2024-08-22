@@ -40,6 +40,7 @@ jobs:
         run: cd ./packages/cli && npm run test-snx-ci
 
       - uses: actions/cache/save@v4
+        if: always()
         with:
           key: ${{ runner.os }}-cannon-ipfs-cache
           path: ${{ env.CANNON_DIRECTORY }}/ipfs_cache
