@@ -225,6 +225,8 @@ function QueueFromGitOps() {
     partialDeployIpfs ? `ipfs://${partialDeployIpfs}` : ''
   );
 
+  // If its a partial deployment, use the chain definition from the 
+  // IPFS partial deployment data
   if (!cannonDefInfo.def && partialDeployInfo.pkg) {
     cannonDefInfo = {
       isLoading: partialDeployInfo.isLoading,
