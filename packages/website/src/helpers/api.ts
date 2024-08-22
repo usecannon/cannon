@@ -48,7 +48,7 @@ export const getPackage = async ({ queryKey }: { queryKey: any[] }) => {
 
   const a: ApiPackage = {
     type: 'package',
-    name: 'name',
+    name: name,
     pepe: 1,
   };
 
