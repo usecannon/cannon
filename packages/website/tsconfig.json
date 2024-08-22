@@ -22,7 +22,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@usecannon/api/*": ["./node_modules/@usecannon/api/dist/src/*"]
+      "@usecannon/api/*": ["../../node_modules/@usecannon/api/dist/src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
