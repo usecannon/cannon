@@ -10,37 +10,33 @@ jobs:
   test-snx-ci:
     runs-on: ubuntu-latest
     env:
-      CANNON_DIRECTORY: .cannon
+      CANNON_DIRECTORY: ${{ github.workspace }}/.cannon
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20.5.1'
           cache: 'npm'
-
-      - uses: actions/cache/restore@v4
-        with:
-          key: ${{ runner.os }}-${{ github.job }}-cannon-ipfs-cache
-          path: ${{ env.CANNON_DIRECTORY }}/ipfs_cache
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly-ef62fdbab638a275fc19a2ff8fe8951c3bd1d9aa
 
+      - uses: actions/cache@v4
+        with:
+          key: cannon-ipfs-cache_${{ runner.os }}-${{ github.job }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: cannon-ipfs-cache_
+          path: ${{ env.CANNON_DIRECTORY }}/ipfs_cache
+          save-always: true
+
       - run: npm ci
       - run: npm run build
         env:
           NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
 
-      - name: Initialize submodules
-        run: git submodule update --init --recursive
-
       - name: Synthetix CI Downstream
         run: cd ./packages/cli && npm run test-snx-ci
-
-      - uses: actions/cache/save@v4
-        if: always()
-        with:
-          key: ${{ runner.os }}-${{ github.job }}-cannon-ipfs-cache
-          path: ${{ env.CANNON_DIRECTORY }}/ipfs_cache

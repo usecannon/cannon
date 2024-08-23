@@ -21,15 +21,15 @@ jobs:
           node-version: '20.5.1'
           cache: 'npm'
 
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
       - uses: actions/cache@v4
         with:
           key: cannon-ipfs-cache_${{ runner.os }}-${{ github.job }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: cannon-ipfs-cache_
           path: ${{ env.CANNON_DIRECTORY }}/ipfs_cache
           save-always: true
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
 
       - run: npm ci
       - run: npm run build
