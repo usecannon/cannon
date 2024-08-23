@@ -5,14 +5,13 @@
 _setup_file() {
   export CANNON_REPO_DIR="$(git rev-parse --show-toplevel)"
 
-  # Create temporary directory for tests
-  export WORKDIR="$(mktemp -d)"
-  export CANNON_DIRECTORY="$WORKDIR/cannondir"
+  # Create temporary directory for tests if necessary
+  export CANNON_DIRECTORY="${CANNON_DIRECTORY:="$(mktemp -d)/.cannon"}"
 
   export CANNON_OP_EMITTER="node $CANNON_REPO_DIR/packages/cli/test/e2e/scripts/optimism/cross-domain-messenger.js"
 
-  #Creating cannon directory structure
-  mkdir $CANNON_DIRECTORY $CANNON_DIRECTORY/tags/ $CANNON_DIRECTORY/ipfs_cache/ $CANNON_DIRECTORY/metadata_cache/
+  # Create cannon directory if necessary
+  mkdir -p $CANNON_DIRECTORY
 
   # CD into dir so any files created go in the tmp dir
   cd $CANNON_DIRECTORY
