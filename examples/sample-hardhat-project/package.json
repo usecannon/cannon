@@ -16,7 +16,7 @@
     "chai": "^4.3.6",
     "dotenv": "^10.0.0",
     "ethers": "^5.7.1",
-    "hardhat-cannon": "file:../../packages/hardhat-cannon",
+    "hardhat-cannon": "workspace:*",
     "hardhat": "^2.13.1",
     "hardhat-gas-reporter": "^1.0.9",
     "solidity-coverage": "^0.8.5",

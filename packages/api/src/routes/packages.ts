@@ -1,9 +1,9 @@
-import express, { Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 import { BadRequestError, NotFoundError } from '../errors';
 import { isChainId, isFullPackageRef, isPackageName } from '../helpers';
 import { findPackageByFullRef, findPackagesByName } from '../queries/packages';
 
-const packages = express.Router();
+const packages: Router = Router();
 
 packages.get('/packages/:packageName', async (req: Request, res: Response) => {
   if (!isPackageName(req.params.packageName)) {

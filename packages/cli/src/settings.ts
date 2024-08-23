@@ -1,16 +1,16 @@
+import { DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
+import { bold, yellowBright } from 'chalk';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
-import { yellowBright, bold } from 'chalk';
 import untildify from 'untildify';
 import * as viem from 'viem';
 import { parseEnv } from 'znv';
 import { z } from 'zod';
-import { DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY } from './constants';
 import { checkAndNormalizePrivateKey, filterSettings } from './helpers';
-import { warn, log } from './util/console';
+import { log, warn } from './util/console';
 
 const debug = Debug('cannon:cli:settings');
 
