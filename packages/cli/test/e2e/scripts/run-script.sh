@@ -10,11 +10,10 @@ export CANNON_REPO_DIR="$(git rev-parse --show-toplevel)"
 export CANNON="node $CANNON_REPO_DIR/packages/cli/bin/cannon.js"
 
 # Create temporary directory for tests
-export WORKDIR="$(mktemp -d)"
-export CANNON_DIRECTORY="$WORKDIR/cannondir"
+export CANNON_DIRECTORY="${CANNON_DIRECTORY:="$(mktemp -d)/.cannon"}"
 
-#Creating cannon directory structure
-mkdir $CANNON_DIRECTORY $CANNON_DIRECTORY/tags/ $CANNON_DIRECTORY/ipfs_cache/ $CANNON_DIRECTORY/metadata_cache/
+# Make sure that the cannon directory exists
+mkdir -p $CANNON_DIRECTORY
 
 scriptFile="$1"
 
