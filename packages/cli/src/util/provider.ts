@@ -266,7 +266,7 @@ export async function resolveProviderAndSigners({
           });
 
           if (keyPrompt.value) {
-            const account = privateKeyToAccount(keyPrompt.value as viem.Hex);
+            const account = privateKeyToAccount(normalizePrivateKey(keyPrompt.value as viem.Hex));
 
             signers.push({
               address: account.address,
