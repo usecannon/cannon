@@ -2,9 +2,7 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
-import chains from '@/helpers/chains';
-import { find } from 'lodash';
-import { ChainData } from '@/features/Search/PackageCard/Chain';
+import { getChainById } from '@/helpers/chains';
 import { PackageReference } from '@usecannon/builder';
 
 import TagVariantLayout from './_layout';
@@ -25,21 +23,13 @@ function generateMetadata({
   params: { name: string; tag: string; variant: string };
 }) {
   const [chainId, preset] = PackageReference.parseVariant(params.variant);
-  const chain: { name: string; id: number } =
-    Number(chainId) == 13370
-      ? { id: 13370, name: 'Cannon' }
-      : (find(chains, (chain: ChainData) => chain.id === Number(chainId)) as {
-          name: string;
-          id: number;
-        });
+  const chain = getChainById(chainId);
 
-  const title = `${params.name} on ${chain ? chain.name : 'chain'} | Cannon`;
+  const title = `${params.name} on ${chain.name} | Cannon`;
 
   const description = `Explore the Cannon package for ${params.name}${
     params.tag !== 'latest' ? `:${params.tag}` : ''
-  }${preset !== 'main' ? `@${preset}` : ''} on ${
-    chain ? chain.name : 'chain'
-  } (ID: ${chainId})`;
+  }${preset !== 'main' ? `@${preset}` : ''} on ${chain.name} (ID: ${chainId})`;
 
   const metadata = {
     title,

@@ -9,14 +9,28 @@ on:
 jobs:
   test-e2e:
     runs-on: ubuntu-latest
+    env:
+      CANNON_DIRECTORY: ${{ github.workspace }}/.cannon
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20.5.1'
           cache: 'npm'
+
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
+
+      - uses: actions/cache@v4
+        with:
+          key: cannon-ipfs-cache_${{ runner.os }}-${{ github.job }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: cannon-ipfs-cache_
+          path: ${{ env.CANNON_DIRECTORY }}/ipfs_cache
+          save-always: true
+
       - run: npm ci
       - run: npm run build
         env:
@@ -27,9 +41,6 @@ jobs:
 
       - name: Update Foundry Example Package
         run: cd ./examples/sample-foundry-project && npm i
-
-      - name: Initialize submodules
-        run: cd ./packages/cli && npm run test-e2e-prepare
 
       - name: E2E Tests
         run: cd ./packages/cli && npm run test-e2e

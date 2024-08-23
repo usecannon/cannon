@@ -42,12 +42,12 @@ export function useProviders() {
 
     async function fetchVerifiedProviders() {
       const responses = await Promise.allSettled(
-        customProviders.map(async (providerUrl) => {
+        customProviders.map(async (rpcUrl) => {
           const publicClient = viem.createPublicClient({
-            transport: http(providerUrl) as any, // TODO: fix type
+            transport: http(rpcUrl) as any, // TODO: fix type
           });
           return {
-            providerUrl,
+            rpcUrl,
             chainId: await publicClient.getChainId(),
           };
         })
@@ -56,7 +56,7 @@ export function useProviders() {
       const verified = responses.reduce((prev, curr) => {
         if (curr.status === 'fulfilled') {
           prev.push({
-            provider: curr.value.providerUrl as string,
+            provider: curr.value.rpcUrl as string,
             chainId: Number(curr.value.chainId),
           });
         }

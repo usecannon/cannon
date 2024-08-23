@@ -9,9 +9,7 @@ export function makeMultisend(txns: Partial<TransactionRequestBase>[]): {
   value: string;
   data: Hex;
 } {
-  const totalValue = txns.reduce((val, txn) => {
-    return val + (txn.value || BigInt(0));
-  }, BigInt(0));
+  const totalValue = txns.reduce((val, txn) => val + (txn.value || BigInt(0)), BigInt(0));
 
   return {
     operation: '1', // multicall is a DELEGATECALL
