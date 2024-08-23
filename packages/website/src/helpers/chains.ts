@@ -72,7 +72,19 @@ const chainsById = Object.values(enrichedChainData).reduce((acc, chain) => {
   return acc;
 });
 
-export const getChainById = (chainId: number) => find(chains, (chain: ChainData) => chain.id === Number(chainId));
+export const getChainById = (chainId: number) => {
+  const chain = find(chains, (chain: ChainData) => chain.id === Number(chainId));
+
+  if (!chain) {
+    return {
+      id: chainId,
+      name: 'Unknown Chain',
+      color: 'gray.600',
+    } as ChainData;
+  }
+
+  return chain;
+};
 
 export const getExplorerUrl = (chainId: number, hash: string) => {
   const chain = chainsById[chainId];
