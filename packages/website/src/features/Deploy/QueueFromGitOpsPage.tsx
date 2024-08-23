@@ -233,7 +233,7 @@ function QueueFromGitOps() {
       isFetching: partialDeployInfo.isFetching,
       isError: partialDeployInfo.isError,
       error: partialDeployInfo.error,
-      def: new ChainDefinition(partialDeployInfo.pkg.def), // This should be typed as a partial of chain def
+      def: new ChainDefinition(partialDeployInfo.pkg.def),
       filesList: undefined,
     }
   }
@@ -261,7 +261,7 @@ function QueueFromGitOps() {
       ? {
         generator: `cannon website ${pkg.version}`,
         timestamp: Math.floor(Date.now() / 1000),
-        def: cannonDefInfo.def?.toJson() || cannonDefInfo.def,
+        def: cannonDefInfo.def.toJson(),
         state: buildInfo.buildResult?.state || {},
         options: prevCannonDeployInfo.pkg?.options || {},
         meta: prevCannonDeployInfo.pkg?.meta,
@@ -306,8 +306,8 @@ function QueueFromGitOps() {
                   'deploy',
                   uploadToPublishIpfs.deployedIpfsHash,
                   prevDeployLocation || '',
-                  `${gitUrl}:${gitFile}`,
-                  gitHash,
+                  gitUrl && gitFile ? `${gitUrl}:${gitFile}` : '',
+                  gitHash || '',
                   prevInfoQuery.data &&
                     typeof prevInfoQuery.data?.[0].result == 'string' &&
                     (prevInfoQuery.data[0].result as any).length > 2
@@ -318,7 +318,7 @@ function QueueFromGitOps() {
             ),
           } as Partial<TransactionRequestBase>,
           // write data needed for the subsequent deployment to chain
-          {
+          (gitUrl && gitFile ? {
             to: onchainStore.deployAddress,
             data: encodeFunctionData({
               abi: onchainStore.ABI,
@@ -328,8 +328,8 @@ function QueueFromGitOps() {
                 '0x' + gitHash,
               ],
             }),
-          } as Partial<TransactionRequestBase>,
-          {
+          } as Partial<TransactionRequestBase> : {}),
+          (gitUrl && gitFile ? {
             to: onchainStore.deployAddress,
             data: encodeFunctionData({
               abi: onchainStore.ABI,
@@ -339,7 +339,7 @@ function QueueFromGitOps() {
                 stringToHex(uploadToPublishIpfs.deployedIpfsHash ?? ''),
               ],
             }),
-          } as Partial<TransactionRequestBase>,
+          } as Partial<TransactionRequestBase> : {})
         ].concat(
           buildInfo.buildResult.steps.map(
             (s) => s.tx as unknown as Partial<TransactionRequestBase>
@@ -718,9 +718,14 @@ function QueueFromGitOps() {
                   </Flex>
                 </Alert>
               )}
+              {cannonDefInfo.def && multicallTxn.data && (
+                <Box mt="10">
+                  <Heading size="md" mt={5}>{cannonDefInfo.def.getName(ctx)}:{cannonDefInfo.def.getVersion(ctx)}@{cannonDefInfo.def.getPreset(ctx)}</Heading>
+                </Box>
+              )}
               {multicallTxn.data && stager.safeTxn && (
-                <Box mt="8">
-                  <Heading size="md" mb={2}>
+                <Box mt="4" mb="10">
+                  <Heading size="sm" mb={2}>
                     Transactions
                   </Heading>
                   <TransactionDisplay
