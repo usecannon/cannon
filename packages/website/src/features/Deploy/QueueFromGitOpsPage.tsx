@@ -144,7 +144,7 @@ function QueueFromGitOps() {
   const cannonDefInfoError: string = gitUrl
     ? (cannonDefInfo.error as any)?.toString()
     : cannonfileUrlInput &&
-    'The format of your URL appears incorrect. Please double check and try again.';
+      'The format of your URL appears incorrect. Please double check and try again.';
 
   const partialDeployInfo = useCannonPackage(
     partialDeployIpfs ? `ipfs://${partialDeployIpfs}` : ''
@@ -207,17 +207,19 @@ function QueueFromGitOps() {
 
   const cannonPkgPreviousInfo = useCannonPackage(
     cannonDefInfo.def && PackageReference.isValid(previousPackageInput)
-      ? `${previousName}:${previousVersion}${previousPreset ? '@' + previousPreset : ''
-      }`
+      ? `${previousName}:${previousVersion}${
+          previousPreset ? '@' + previousPreset : ''
+        }`
       : '',
     chainId
   );
 
   const fullPackageRef =
     (cannonDefInfo.def &&
-      `${cannonDefInfo.def.getName(ctx)}:${cannonDefInfo.def.getVersion(ctx)}${cannonDefInfo.def.getPreset(ctx)
-        ? '@' + cannonDefInfo.def.getPreset(ctx)
-        : ''
+      `${cannonDefInfo.def.getName(ctx)}:${cannonDefInfo.def.getVersion(ctx)}${
+        cannonDefInfo.def.getPreset(ctx)
+          ? '@' + cannonDefInfo.def.getPreset(ctx)
+          : ''
       }`) ??
     '';
 
@@ -256,14 +258,14 @@ function QueueFromGitOps() {
     buildInfo.buildResult?.runtime,
     cannonDefInfo.def
       ? {
-        generator: `cannon website ${pkg.version}`,
-        timestamp: Math.floor(Date.now() / 1000),
-        def: cannonDefInfo.def.toJson(),
-        state: buildInfo.buildResult?.state || {},
-        options: prevCannonDeployInfo.pkg?.options || {},
-        meta: prevCannonDeployInfo.pkg?.meta,
-        miscUrl: prevCannonDeployInfo.pkg?.miscUrl || '',
-      }
+          generator: `cannon website ${pkg.version}`,
+          timestamp: Math.floor(Date.now() / 1000),
+          def: cannonDefInfo.def.toJson(),
+          state: buildInfo.buildResult?.state || {},
+          options: prevCannonDeployInfo.pkg?.options || {},
+          meta: prevCannonDeployInfo.pkg?.meta,
+          miscUrl: prevCannonDeployInfo.pkg?.miscUrl || '',
+        }
       : undefined,
     prevCannonDeployInfo.metaUrl
   );
@@ -289,64 +291,64 @@ function QueueFromGitOps() {
 
   const multicallTxn: /*Partial<TransactionRequestBase>*/ any =
     buildInfo.buildResult &&
-      !prevInfoQuery.isLoading &&
-      buildInfo.buildResult.steps.indexOf(null as any) === -1
+    !prevInfoQuery.isLoading &&
+    buildInfo.buildResult.steps.indexOf(null as any) === -1
       ? makeMultisend(
-        [
-          // supply the hint data
-          {
-            to: zeroAddress,
-            data: encodeAbiParameters(
-              [{ type: 'string[]' }],
-              [
+          [
+            // supply the hint data
+            {
+              to: zeroAddress,
+              data: encodeAbiParameters(
+                [{ type: 'string[]' }],
                 [
-                  'deploy',
-                  uploadToPublishIpfs.deployedIpfsHash,
-                  prevDeployLocation || '',
-                  gitUrl && gitFile ? `${gitUrl}:${gitFile}` : '',
-                  gitHash || '',
-                  prevInfoQuery.data &&
+                  [
+                    'deploy',
+                    uploadToPublishIpfs.deployedIpfsHash,
+                    prevDeployLocation || '',
+                    gitUrl && gitFile ? `${gitUrl}:${gitFile}` : '',
+                    gitHash || '',
+                    prevInfoQuery.data &&
                     typeof prevInfoQuery.data?.[0].result == 'string' &&
                     (prevInfoQuery.data[0].result as any).length > 2
-                    ? ((prevInfoQuery.data[0].result as any).slice(2) as any)
-                    : '',
-                ],
-              ]
-            ),
-          } as Partial<TransactionRequestBase>,
-          // write data needed for the subsequent deployment to chain
-          gitUrl && gitFile
-            ? ({
-              to: onchainStore.deployAddress,
-              data: encodeFunctionData({
-                abi: onchainStore.ABI,
-                functionName: 'set',
-                args: [
-                  keccak256(toBytes(`${gitUrl}:${gitFile}gitHash`)),
-                  '0x' + gitHash,
-                ],
-              }),
-            } as Partial<TransactionRequestBase>)
-            : {},
-          gitUrl && gitFile
-            ? ({
-              to: onchainStore.deployAddress,
-              data: encodeFunctionData({
-                abi: onchainStore.ABI,
-                functionName: 'set',
-                args: [
-                  keccak256(toBytes(`${gitUrl}:${gitFile}cannonPackage`)),
-                  stringToHex(uploadToPublishIpfs.deployedIpfsHash ?? ''),
-                ],
-              }),
-            } as Partial<TransactionRequestBase>)
-            : {},
-        ].concat(
-          buildInfo.buildResult.steps.map(
-            (s) => s.tx as unknown as Partial<TransactionRequestBase>
+                      ? ((prevInfoQuery.data[0].result as any).slice(2) as any)
+                      : '',
+                  ],
+                ]
+              ),
+            } as Partial<TransactionRequestBase>,
+            // write data needed for the subsequent deployment to chain
+            gitUrl && gitFile
+              ? ({
+                  to: onchainStore.deployAddress,
+                  data: encodeFunctionData({
+                    abi: onchainStore.ABI,
+                    functionName: 'set',
+                    args: [
+                      keccak256(toBytes(`${gitUrl}:${gitFile}gitHash`)),
+                      '0x' + gitHash,
+                    ],
+                  }),
+                } as Partial<TransactionRequestBase>)
+              : {},
+            gitUrl && gitFile
+              ? ({
+                  to: onchainStore.deployAddress,
+                  data: encodeFunctionData({
+                    abi: onchainStore.ABI,
+                    functionName: 'set',
+                    args: [
+                      keccak256(toBytes(`${gitUrl}:${gitFile}cannonPackage`)),
+                      stringToHex(uploadToPublishIpfs.deployedIpfsHash ?? ''),
+                    ],
+                  }),
+                } as Partial<TransactionRequestBase>)
+              : {},
+          ].concat(
+            buildInfo.buildResult.steps.map(
+              (s) => s.tx as unknown as Partial<TransactionRequestBase>
+            )
           )
         )
-      )
       : { value: BigInt(0) };
 
   let totalGas = BigInt(0);
@@ -360,13 +362,13 @@ function QueueFromGitOps() {
   const stager = useTxnStager(
     multicallTxn.data
       ? ({
-        to: multicallTxn.to,
-        value: multicallTxn.value.toString(),
-        data: multicallTxn.data,
-        safeTxGas: totalGas.toString(),
-        operation: '1', // delegate call multicall
-        _nonce: pickedNonce,
-      } as SafeTransaction)
+          to: multicallTxn.to,
+          value: multicallTxn.value.toString(),
+          data: multicallTxn.data,
+          safeTxGas: totalGas.toString(),
+          operation: '1', // delegate call multicall
+          _nonce: pickedNonce,
+        } as SafeTransaction)
       : {},
     {
       safe: currentSafe,
@@ -509,7 +511,8 @@ function QueueFromGitOps() {
           </InputGroup>
         </HStack>
         <FormHelperText color="gray.300">
-          Enter a Git or GitHub URL for the cannonfile you’d like to build. (Optional for partial deployments)
+          Enter a Git or GitHub URL for the cannonfile you’d like to build.
+          (Optional for partial deployments)
         </FormHelperText>
         {cannonDefInfoError ? (
           <Alert mt="6" status="error" bg="gray.700">
@@ -604,7 +607,7 @@ function QueueFromGitOps() {
                       value={previousPackageInput}
                       borderColor={
                         !previousPackageInput.length ||
-                          !cannonPkgPreviousInfo.error
+                        !cannonPkgPreviousInfo.error
                           ? 'whiteAlpha.400'
                           : 'red.500'
                       }
@@ -648,8 +651,8 @@ function QueueFromGitOps() {
                       value={partialDeployIpfs}
                       borderColor={
                         !partialDeployIpfs.length ||
-                          partialDeployInfo.isFetching ||
-                          partialDeployInfo.pkg
+                        partialDeployInfo.isFetching ||
+                        partialDeployInfo.pkg
                           ? 'whiteAlpha.400'
                           : 'red.500'
                       }
@@ -670,8 +673,8 @@ function QueueFromGitOps() {
                   <FormHelperText color="gray.300">
                     If this deployment requires transactions executed in other
                     contexts (e.g. contract deployments or function calls using
-                    other signers), provide the IPFS hash generated by building the package
-                    using the CLI.
+                    other signers), provide the IPFS hash generated by building
+                    the package using the CLI.
                   </FormHelperText>
                 </FormControl>
                 {renderCannonfileInput()}
