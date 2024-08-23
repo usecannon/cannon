@@ -13,20 +13,20 @@ jobs:
       CANNON_DIRECTORY: .cannon
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20.5.1'
           cache: 'npm'
 
-      - run: mkdir -p ${{ env.CANNON_DIRECTORY }}/ipfs_cache
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache@v4
         with:
-          key: ${{ runner.os }}-${{ github.job }}-cannon-ipfs-cache
+          key: cannon-ipfs-cache_${{ runner.os }}-${{ github.job }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: cannon-ipfs-cache_
           path: ${{ env.CANNON_DIRECTORY }}/ipfs_cache
-
-      - run: ls -la ${{ env.CANNON_DIRECTORY }}
-      - run: ls -la ${{ env.CANNON_DIRECTORY }}/ipfs_cache
-      - run: node -pe 'process.env.CANNON_DIRECTORY'
+          save-always: true
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
@@ -42,9 +42,6 @@ jobs:
       - name: Update Foundry Example Package
         run: cd ./examples/sample-foundry-project && npm i
 
-      - name: Initialize submodules
-        run: cd ./packages/cli && npm run test-e2e-prepare
-
       - name: E2E Tests
         run: cd ./packages/cli && npm run test-e2e
         env:
@@ -55,9 +52,3 @@ jobs:
         if: always()
       - run: ls -la ${{ env.CANNON_DIRECTORY }}/ipfs_cache
         if: always()
-
-      - uses: actions/cache/save@v4
-        if: always()
-        with:
-          key: ${{ runner.os }}-${{ github.job }}-cannon-ipfs-cache
-          path: ${{ env.CANNON_DIRECTORY }}/ipfs_cache
