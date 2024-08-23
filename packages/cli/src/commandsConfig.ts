@@ -352,6 +352,42 @@ const commandsConfig = {
       ...debugVerbosity,
     ],
   },
+  diff: {
+    description: 'Confirm that the contracts in a package match up with those in a contracts source code directory',
+    arguments: [
+      {
+        flags: '<packageRef>',
+        description:
+          'Name, version and preset of the Cannon package to match up with a source code directory (name:version@preset)',
+      },
+      {
+        flags: '<projectDirectory>',
+        description: 'The directory of the foundry project to be compared against.',
+      },
+    ],
+    options: [
+      {
+        flags: '-c --chain-id <chainId>',
+        description: 'Chain ID of deployment to verify',
+        defaultValue: '13370',
+      },
+      {
+        flags: '-p --preset <preset>',
+        description: '(DEPRECATED) Preset of the deployment to verify',
+      },
+      {
+        flags: '--match-contract <name>',
+        description: 'Regex of contracts to match. Default: compare all contracts',
+        defaultValue: '',
+      },
+      {
+        flags: '--match-source <path>',
+        description: 'Regex of source code file names to match. Default: compare all source code paths',
+        defaultValue: '',
+      },
+      ...debugVerbosity,
+    ],
+  },
   alter: {
     description: 'Change a cannon package outside of the regular build process.',
     arguments: [
