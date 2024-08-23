@@ -18,10 +18,15 @@ jobs:
           node-version: '20.5.1'
           cache: 'npm'
 
+      - run: mkdir -p ${{ env.CANNON_DIRECTORY }}/ipfs_cache
       - uses: actions/cache/restore@v4
         with:
           key: ${{ runner.os }}-${{ github.job }}-cannon-ipfs-cache
           path: ${{ env.CANNON_DIRECTORY }}/ipfs_cache
+
+      - run: ls -la ${{ env.CANNON_DIRECTORY }}
+      - run: ls -la ${{ env.CANNON_DIRECTORY }}/ipfs_cache
+      - run: node -pe 'process.env.CANNON_DIRECTORY'
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
@@ -45,6 +50,11 @@ jobs:
         env:
           CANNON_E2E_RPC_URL_OPTIMISM: ${{ secrets.CANNON_E2E_RPC_URL_OPTIMISM }}
           CANNON_E2E_RPC_URL_ETHEREUM: ${{ secrets.CANNON_E2E_RPC_URL_ETHEREUM }}
+
+      - run: ls -la ${{ env.CANNON_DIRECTORY }}
+        if: always()
+      - run: ls -la ${{ env.CANNON_DIRECTORY }}/ipfs_cache
+        if: always()
 
       - uses: actions/cache/save@v4
         if: always()
