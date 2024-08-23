@@ -7,5 +7,5 @@ inspectResult=$($CANNON inspect greeter-foundry:latest)
 
 # deploy status is complete
 [[ "$inspectResult" =~ "Deploy Status: complete" ]]
-# no source codes should have been included
-[[ "$inspectResult" =~ "0 sources included" ]]
+# Two source codes should have been included
+[[ "$inspectResult" =~ "2 sources included" ]]

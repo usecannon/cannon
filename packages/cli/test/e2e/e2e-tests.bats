@@ -115,11 +115,18 @@ teardown() {
   assert_success
 }
 
-@test "Build - Building foundry greeter example locally" {
+@test "Build - Building foundry greeter example locally (Public Source Code)" {
   run build-foundry-local.sh
   echo $output
   assert_success
   assert_file_exists "$CANNON_DIRECTORY/tags/greeter-foundry_latest_13370-main.txt"
+}
+
+@test "Build - Building foundry greeter example locally (Private Source Code)" {
+  run build-foundry-local-private-source.sh
+  echo $output
+  assert_success
+  assert_file_exists "$CANNON_DIRECTORY/tags/greeter-foundry-private-source_latest_13370-main.txt"
 }
 
 @test "Build - Building foundry greeter example live" {
@@ -156,7 +163,7 @@ teardown() {
   assert_success
 }
 
-@test "Diff" {
+@test "Diff - Find difference between contracts" {
   run diff.sh
   echo $output
   assert_success
