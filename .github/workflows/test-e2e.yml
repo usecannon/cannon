@@ -33,3 +33,6 @@ jobs:
 
       - name: E2E Tests
         run: cd ./packages/cli && npm run test-e2e
+        env:
+          CANNON_E2E_RPC_URL_OPTIMISM: ${{ secrets.CANNON_E2E_RPC_URL_OPTIMISM }}
+          CANNON_E2E_RPC_URL_ETHEREUM: ${{ secrets.CANNON_E2E_RPC_URL_ETHEREUM }}

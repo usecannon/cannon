@@ -184,27 +184,37 @@ export const DeploymentExplorer: FC<{
         </Box>
       ) : deploymentInfo ? (
         <Box>
-          {pkg.chainId == 13370 && (
+          {
             <Container maxW="container.lg" mt={9} mb={12}>
-              <Box mb={4}>
-                <Heading size="md" mb={2}>
-                  Run Package
-                </Heading>
-                <Text fontSize="sm" color="gray.300">
-                  <Link as={NextLink} href="/learn/cli/">
-                    Install the CLI
-                  </Link>{' '}
-                  and then use the following command to run a local node for
-                  development with this package:
-                </Text>
+              <Box
+                p={6}
+                bg="gray.800"
+                border="1px solid"
+                borderColor="gray.700"
+                borderRadius="sm"
+              >
+                <Box mb={4}>
+                  <Heading size="md" mb={2}>
+                    Run Package
+                  </Heading>
+                  <Text fontSize="sm" color="gray.300">
+                    <Link as={NextLink} href="/learn/cli/">
+                      Install the CLI
+                    </Link>{' '}
+                    and then run a local node for development with this package
+                    {pkg.chainId != 13370 && ' on a fork'}:
+                  </Text>
+                </Box>
+                <CommandPreview
+                  command={`cannon ${pkg.name}${
+                    pkg?.tag !== 'latest' ? `:${pkgDef?.version}` : ''
+                  }${pkg.preset !== 'main' ? `@${pkgDef?.preset}` : ''}${
+                    pkg.chainId != 13370 ? ' --chain-id ' + pkg.chainId : ''
+                  }`}
+                />
               </Box>
-              <CommandPreview
-                command={`cannon ${pkg.name}${
-                  pkg?.tag !== 'latest' ? `:${pkgDef?.version}` : ''
-                }${pkg.preset !== 'main' ? `@${pkgDef?.preset}` : ''}`}
-              />
             </Container>
-          )}
+          }
           {(!isEmpty(addressesAbis) || !isEmpty(contractState)) && (
             <Box mt={6}>
               <Flex px={4} mb={3} direction={['column', 'column', 'row']}>

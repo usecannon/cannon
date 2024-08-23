@@ -14,9 +14,19 @@ import { Link } from '@chakra-ui/next-js';
 import NextLink from 'next/link';
 import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
-import { ConnectWallet } from './ConnectWallet';
 import { useRouter } from 'next/router';
-import { SearchBar } from './SearchBar';
+import dynamic from 'next/dynamic';
+
+const NoSSRConnectWallet = dynamic(
+  () => import('@/features/Header/ConnectWallet'),
+  {
+    ssr: false,
+  }
+);
+
+const NoSSRSearchBar = dynamic(() => import('@/features/Header/SearchBar'), {
+  ssr: false,
+});
 
 const NavLinks = () => {
   const pathname = useRouter().pathname;
@@ -108,12 +118,12 @@ export const Header = () => {
         {(breakpoint == 'xl' || breakpoint == '2xl') && (
           <>
             <Box ml="auto">
-              <SearchBar />
+              <NoSSRSearchBar />
             </Box>
             <Box ml="auto" mr="8">
               <NavLinks />
             </Box>
-            <ConnectWallet />
+            <NoSSRConnectWallet />
             <Box ml={3}>
               <SettingsButton />
             </Box>
@@ -124,9 +134,9 @@ export const Header = () => {
             <Box ml="auto" mr="8">
               <NavLinks />
             </Box>
-            <ConnectWallet />
+            <NoSSRConnectWallet />
             <Box ml={3}>
-              <SearchBar />
+              <NoSSRSearchBar />
             </Box>
             <Box ml={3}>
               <SettingsButton />
@@ -136,12 +146,12 @@ export const Header = () => {
         {(breakpoint == 'base' || breakpoint == 'sm') && (
           <>
             <Box ml="auto">
-              <ConnectWallet />
+              <NoSSRConnectWallet />
             </Box>
             <Flex w="100%" alignItems="center">
               <NavLinks />
               <Box ml="auto">
-                <SearchBar />
+                <NoSSRSearchBar />
               </Box>
               <Box ml={3}>
                 <SettingsButton />

@@ -1,0 +1,41 @@
+{
+  "rewrites": [
+    {
+      "source": "/packages/:name",
+      "destination": "/packages/[name].html"
+    },
+    {
+      "source": "/packages/:name/:tag/:variant",
+      "destination": "/packages/[name]/[tag]/[variant].html"
+    },
+    {
+      "source": "/packages/:name/:tag/:variant/code",
+      "destination": "/packages/[name]/[tag]/[variant]/code.html"
+    },
+    {
+      "source": "/packages/:name/:tag/:variant/code/:moduleName",
+      "destination": "/packages/[name]/[tag]/[variant]/code/[moduleName].html"
+    },
+    {
+      "source": "/packages/:name/:tag/:variant/interact",
+      "destination": "/packages/[name]/[tag]/[variant]/interact.html"
+    },
+    {
+      "source": "/packages/:name/:tag/:variant/interact/:moduleName",
+      "destination": "/packages/[name]/[tag]/[variant]/interact/[moduleName].html"
+    },
+    {
+      "source": "/packages/:name/:tag/:variant/interact/:moduleName/:contractName/:contractAddress",
+      "destination": "/packages/[name]/[tag]/[variant]/interact/[moduleName]/[contractName]/[contractAddress].html"
+    },
+    {
+      "source": "/packages/:name/:tag/:variant/cannonfile",
+      "destination": "/packages/[name]/[tag]/[variant]/cannonfile.html"
+    },
+    {
+      "source": "/deploy/txn/:chainId/:safeAddress/:nonce/:sigHash",
+      "destination": "/deploy/txn/[chainId]/[safeAddress]/[nonce]/[sigHash].html"
+    }
+  ],
+  "cleanUrls": true
+}

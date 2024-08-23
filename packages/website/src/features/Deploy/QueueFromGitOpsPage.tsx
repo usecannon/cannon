@@ -251,7 +251,7 @@ function QueueFromGitOps() {
           miscUrl: prevCannonDeployInfo.pkg?.miscUrl || '',
         }
       : undefined,
-    prevCannonDeployInfo.metaUrl || undefined
+    prevCannonDeployInfo.metaUrl
   );
 
   useEffect(() => {
