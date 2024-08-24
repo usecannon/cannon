@@ -1,11 +1,6 @@
 'use client';
 
 import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
   Box,
   Container,
   Flex,
@@ -32,11 +27,13 @@ import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { DeploymentInfo } from '@usecannon/builder';
 import { getPackage } from '@/helpers/api';
-import { usePackageVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
+
 import PageLoading from '@/components/PageLoading';
+import { useUrlParams } from '@/pages/packages/[name]/[tag]/[variant]/useUrlParams';
+import PackageAccordionHelper from '@/features/Packages/PackageAccordionHelper';
 
 function TagVariantLayout({ children }: { children: ReactNode }) {
-  const { name, tag, chainId, preset } = usePackageVersionUrlParams();
+  const { name, tag, chainId, preset } = useUrlParams();
   const { query: params, pathname, asPath } = useRouter();
 
   const packagesQuery = useQuery({
@@ -122,85 +119,12 @@ function TagVariantLayout({ children }: { children: ReactNode }) {
                 </Box>
               </Flex>
 
-              <Accordion allowToggle mt={6} mb={4}>
-                <AccordionItem borderLeft="1px" borderRight="1px" borderColor="gray.500" borderStyle="dotted">
-                  <h2>
-                    <AccordionButton>
-                      <Box as="span" flex="1" textAlign="left">
-                        <Text
-                          color="gray.200"
-                          textDecoration="none"
-                          textTransform={'uppercase'}
-                          letterSpacing={'1px'}
-                          fontFamily={'var(--font-miriam)'}
-                          textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                        >
-                          Run package locally
-                        </Text>
-                      </Box>
-                      <AccordionIcon />
-                    </AccordionButton>
-                  </h2>
-                  <AccordionPanel pb={4}>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-                    ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                  </AccordionPanel>
-                </AccordionItem>
-
-                <AccordionItem borderLeft="1px" borderRight="1px" borderColor="gray.500" borderStyle="dotted">
-                  <h2>
-                    <AccordionButton>
-                      <Box as="span" flex="1" textAlign="left">
-                        <Text
-                          color="gray.200"
-                          textDecoration="none"
-                          textTransform={'uppercase'}
-                          letterSpacing={'1px'}
-                          fontFamily={'var(--font-miriam)'}
-                          textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                        >
-                          Retrieve Addresses + ABIs
-                        </Text>
-                      </Box>
-                      <AccordionIcon />
-                    </AccordionButton>
-                  </h2>
-                  <AccordionPanel pb={4}>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-                    ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                  </AccordionPanel>
-                </AccordionItem>
-
-                <AccordionItem borderLeft="1px" borderRight="1px" borderColor="gray.500" borderStyle="dotted">
-                  <h2>
-                    <AccordionButton>
-                      <Box as="span" flex="1" textAlign="left">
-                        <Text
-                          color="gray.200"
-                          textDecoration="none"
-                          textTransform={'uppercase'}
-                          letterSpacing={'1px'}
-                          fontFamily={'var(--font-miriam)'}
-                          textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                        >
-                          Integrate with this package
-                        </Text>
-                      </Box>
-                      <AccordionIcon />
-                    </AccordionButton>
-                  </h2>
-                  <AccordionPanel pb={4}>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-                    ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                  </AccordionPanel>
-                </AccordionItem>
-              </Accordion>
+              <PackageAccordionHelper
+                name={name}
+                tag={tag}
+                chainId={chainId}
+                preset={preset}
+              />
 
               {/* Package Tabs */}
               <Flex

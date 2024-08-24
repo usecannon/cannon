@@ -76,7 +76,7 @@ export interface PreChainBuilderContext {
 
   overrideSettings: { [label: string]: string };
 }
-
+// TODO: render this
 export interface ChainBuilderContext extends PreChainBuilderContext {
   contracts: ContractMap;
 
