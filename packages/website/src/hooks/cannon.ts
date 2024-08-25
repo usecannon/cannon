@@ -109,7 +109,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
     setBuildStatus('Loading deployment data...');
 
-    addLog(`cannon.ts: upgrade from: ${prevDeploy?.def.name}:${prevDeploy?.def.version}`);
+    addLog('info', `cannon.ts: upgrade from: ${prevDeploy?.def.name}:${prevDeploy?.def.version}`);
 
     const transport = custom(fork);
 
@@ -166,7 +166,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       (stepType: string, stepLabel: string, stepConfig: any, stepCtx: ChainBuilderContext, stepOutput: ChainArtifacts) => {
         const stepName = `${stepType}.${stepLabel}`;
 
-        addLog(`cannon.ts: on Events.PostStepExecute operation ${stepName} output: ${JSON.stringify(stepOutput)}`);
+        addLog('info', `cannon.ts: on Events.PostStepExecute operation ${stepName} output: ${JSON.stringify(stepOutput)}`);
 
         simulatedSteps.push(_.cloneDeep(stepOutput));
 
@@ -185,8 +185,12 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     );
 
     currentRuntime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
-      addLog(`cannon.ts: on Events.SkipDeploy error ${err.toString()} happened on the operation ${stepName}`);
+      addLog('error', `cannon.ts: on Events.SkipDeploy error ${err.toString()} happened on the operation ${stepName}`);
       skippedSteps.push({ name: stepName, err });
+    });
+
+    currentRuntime.on(Events.Notice, (stepName: string, msg: string) => {
+      addLog('warn', `${stepName}: ${msg}`);
     });
 
     if (prevDeploy) {
@@ -247,7 +251,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       .catch((err) => {
         // eslint-disable-next-line no-console
         console.error(err);
-        addLog(`cannon.ts: full build error ${err.toString()}`);
+        addLog('error', `cannon.ts: full build error ${err.toString()}`);
         setBuildError(err.toString());
       })
       .finally(() => {
@@ -364,7 +368,7 @@ export function useCannonPackage(packageRef?: string, chainId?: number) {
   const ipfsQuery = useQuery({
     queryKey: ['cannon', 'pkg', pkgUrl],
     queryFn: async () => {
-      addLog(`Loading ${pkgUrl}`);
+      addLog('info', `Loading ${pkgUrl}`);
 
       if (!pkgUrl) return null;
 
@@ -383,13 +387,13 @@ export function useCannonPackage(packageRef?: string, chainId?: number) {
         const { fullPackageRef } = PackageReference.from(resolvedName, resolvedVersion, resolvedPreset);
 
         if (deployInfo) {
-          addLog(`Loaded ${resolvedName}:${resolvedVersion}@${resolvedPreset} from IPFS`);
+          addLog('info', `Loaded ${resolvedName}:${resolvedVersion}@${resolvedPreset} from IPFS`);
           return { deployInfo, ctx, resolvedName, resolvedVersion, resolvedPreset, fullPackageRef };
         } else {
           throw new Error('failed to download package data');
         }
       } catch (err) {
-        addLog(`IPFS Error: ${(err as any)?.message ?? 'unknown error'}`);
+        addLog('error', `IPFS Error: ${(err as any)?.message ?? 'unknown error'}`);
         throw err;
       }
     },

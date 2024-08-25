@@ -30,7 +30,7 @@ function useFetchIpfsData<T>({
       const ipfsQueryUrl = settings.ipfsApiUrl.replace(/\/?$/, '/');
 
       let kuboQueryUrl = `${ipfsQueryUrl}api/v0/cat?arg=${cid}`;
-      addLog(`Querying IPFS: ${kuboQueryUrl}`);
+      addLog('info', `Querying IPFS: ${kuboQueryUrl}`);
 
       const parsedUrl = parseUrl(kuboQueryUrl);
       const headers: { [k: string]: string } = {};
@@ -48,10 +48,10 @@ function useFetchIpfsData<T>({
           signal,
         })
         .catch(async (err) => {
-          addLog(`IPFS Error: ${err.message}`);
+          addLog('error', `IPFS Error: ${err.message}`);
           //const gatewayQueryUrl = `${ipfsQueryUrl}${cid}`;
           const gatewayQueryUrl = `http://ipfs.io/ipfs/${cid}`;
-          addLog(`Querying IPFS as HTTP gateway: ${gatewayQueryUrl}`);
+          addLog('info', `Querying IPFS as HTTP gateway: ${gatewayQueryUrl}`);
           return await axios.get<ArrayBuffer>(gatewayQueryUrl, {
             responseType: 'arraybuffer',
             signal,

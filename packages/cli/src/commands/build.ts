@@ -280,6 +280,9 @@ export async function build({
       )
     );
   });
+  runtime.on(Events.Notice, (n, msg) => {
+    warn(yellowBright(`WARN: ${n}: ${msg}`));
+  });
   runtime.on(Events.PostStepExecute, (t, n, c, ctx, o, d) => {
     for (const txnKey in o.txns) {
       const txn = o.txns[txnKey];

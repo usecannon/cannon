@@ -129,6 +129,22 @@ const cloneSpec = {
     const targetRef = new PackageReference(target);
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
+    if (sourceRef.version === 'latest') {
+      runtime.emit(
+        Events.Notice,
+        packageState.currentLabel,
+        'To prevent unexpected upgrades, it is strongly reccomended to lock the version of the source package by specifying a version in the `source` field.'
+      );
+    }
+
+    if (!config.target && !config.targetPreset) {
+      runtime.emit(
+        Events.Notice,
+        packageState.currentLabel,
+        `Deploying cloned package to default preset ${targetRef.preset}`
+      );
+    }
+
     // try to read the chain definition we are going to use
     const deployInfo = await runtime.readDeploy(source, chainId);
     if (!deployInfo) {
