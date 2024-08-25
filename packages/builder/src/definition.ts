@@ -201,7 +201,7 @@ export class ChainDefinition {
   }
 
   getPackageRef(ctx: ChainBuilderContext) {
-    return new PackageReference(`${this.getName(ctx)}:${this.getVersion(ctx)}@${this.getPreset(ctx)}`);
+    return new PackageReference(`${this.getName(ctx)}:${this.getVersion(ctx) || 'latest'}@${this.getPreset(ctx) || 'main'}`);
   }
 
   isPublicSourceCode() {
