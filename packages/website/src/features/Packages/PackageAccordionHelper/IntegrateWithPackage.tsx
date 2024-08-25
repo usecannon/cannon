@@ -43,23 +43,23 @@ preset = "${preset}"`;
         </Link>
       }
     >
-      <Text fontSize="xs">Add to a Cannonfile</Text>
-      <Box mb={4} p={3} bg="black">
-        <CodePreview
-          code={pullCode}
-          height="80px"
-          language="ini"
-          editorProps={{
-            options: {
-              readOnly: true,
-              minimap: { enabled: false },
-              scrollBeyondLastLine: false,
-            },
-          }}
-        />
-      </Box>
+      <Text fontSize="xs" mb={1}>
+        Add to a Cannonfile
+      </Text>
+      <CodePreview
+        code={pullCode}
+        height="80px"
+        language="ini"
+        editorProps={{
+          options: {
+            readOnly: true,
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+          },
+        }}
+      />
 
-      <Flex alignItems="center" mb={1}>
+      <Flex alignItems="center" mt={2} mb={1}>
         <Text fontSize="xs" mr={1.5}>
           Cannonfile Context Data
         </Text>
