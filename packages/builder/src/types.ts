@@ -5,6 +5,8 @@ import _ from 'lodash';
 
 import type { RawChainDefinition } from './actions';
 
+import { PackageReference } from './package-reference';
+
 // loosely based on the hardhat `Artifact` type
 export type ContractArtifact = {
   contractName: string;
@@ -201,8 +203,7 @@ export interface ChainBuilderRuntimeInfo {
 }
 
 export interface PackageState {
-  name: string;
-  version: string;
+  ref: PackageReference | null;
   currentLabel: string;
 }
 

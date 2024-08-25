@@ -7,6 +7,8 @@ import { chainDefinitionSchema } from './schemas';
 import { CannonHelperContext, ChainBuilderContext } from './types';
 import { template } from './utils/template';
 
+import { PackageReference } from './package-reference';
+
 const debug = Debug('cannon:builder:definition');
 const debugVerbose = Debug('cannon:verbose:builder:definition');
 
@@ -96,9 +98,7 @@ export class ChainDefinition {
 
         if (ActionKinds[action] && ActionKinds[action].getOutputs) {
           const actionOutputs = ActionKinds[action].getOutputs!(_.get(def, fullActionName), {
-            // TODO: what to do about name and version? do they even matter?
-            name: '',
-            version: '',
+            ref: null,
             currentLabel: fullActionName,
           });
 
@@ -200,6 +200,10 @@ export class ChainDefinition {
     return template(this.raw.preset)(ctx) || 'main';
   }
 
+  getPackageRef(ctx: ChainBuilderContext) {
+    return new PackageReference(`${this.getName(ctx)}:${this.getVersion(ctx) || 'latest'}@${this.getPreset(ctx) || 'main'}`);
+  }
+
   isPublicSourceCode() {
     return !this.raw.privateSourceCode;
   }
@@ -221,8 +225,7 @@ export class ChainDefinition {
     validateConfig(action.validate, _.get(this.raw, n));
 
     return action.configInject({ ...ctx, ...CannonHelperContext }, _.get(this.raw, n), {
-      name: this.getName(ctx),
-      version: this.getVersion(ctx),
+      ref: this.getPackageRef(ctx),
       currentLabel: n,
     });
   }
@@ -258,8 +261,7 @@ export class ChainDefinition {
       { ...ctx, ...CannonHelperContext },
       this.getConfig(n, ctx) as any,
       {
-        name: this.getName(ctx),
-        version: this.getVersion(ctx),
+        ref: this.getPackageRef(ctx),
         currentLabel: n,
       }
     );
@@ -336,8 +338,7 @@ export class ChainDefinition {
         }
       }
       const accessComputationResults = ActionKinds[n].getInputs!(_.get(this.raw, node), possibleFields, {
-        name: '',
-        version: '',
+        ref: null,
         currentLabel: node,
       });
 

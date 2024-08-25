@@ -2,6 +2,7 @@ export { createInitialContext, build, getArtifacts, getOutputs } from './builder
 export { computeTemplateAccesses, mergeTemplateAccesses } from './access-recorder';
 export { registerAction } from './actions';
 export type { CannonAction, RawChainDefinition } from './actions';
+export { ActionKinds } from './actions';
 export { ChainDefinition } from './definition';
 export { ChainBuilderRuntime, CannonStorage, Events } from './runtime';
 export type { CannonLoader } from './loader';
@@ -17,7 +18,7 @@ export { prepareMulticall } from './multicall';
 };
 
 export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from './registry';
-export { publishPackage, PackageReference, preparePublishPackage } from './package';
+export { publishPackage, preparePublishPackage, forPackageTree } from './package';
 export type { PackagePublishCall } from './package';
 export {
   CANNON_CHAIN_ID,
@@ -26,10 +27,11 @@ export {
   DEFAULT_REGISTRY_CONFIG,
   DEFAULT_REGISTRY_ADDRESS,
 } from './constants';
-export { isIpfsGateway } from './ipfs';
+export { isIpfsGateway, fetchIPFSAvailability } from './ipfs';
 export * from './access-recorder';
 export * from './definition';
 export * from './helpers';
+export * from './package-reference';
 export * from './util';
 export * from './types';
 export * from './schemas';

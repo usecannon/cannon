@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`steps/deploy.ts exec() when create2 = true fails if contract already deployed 1`] = `"The CREATE2 contract seems to be failing in the constructor. However, we were not able to get a stack trace."`;

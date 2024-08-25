@@ -9,8 +9,8 @@ import {
   getArtifacts,
   StepState,
 } from '@usecannon/builder';
-import { ActionKinds } from '@usecannon/builder/dist/src/actions';
-import { PackageReference } from '@usecannon/builder/dist/src/package';
+import { ActionKinds } from '@usecannon/builder';
+import { PackageReference } from '@usecannon/builder';
 import { bold, yellow } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
@@ -98,7 +98,11 @@ export async function alter(
     );
   }
 
-  let deployInfo = startDeployInfo.pop()!;
+  let deployInfo = startDeployInfo.pop();
+
+  if (!deployInfo) {
+    throw new Error(`no alter packages were able to be loaded ${startDeployInfo}`);
+  }
 
   const ctx = await createInitialContext(new ChainDefinition(deployInfo.def), meta, chainId, deployInfo.options);
   const outputs = await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state);
@@ -188,7 +192,7 @@ export async function alter(
           runtime,
           ctx,
           config,
-          { currentLabel: stepName, name: def.getName(ctx), version: def.getVersion(ctx) },
+          { currentLabel: stepName, ref: def.getPackageRef(ctx) },
           existingKeys
         );
 
@@ -208,7 +212,7 @@ export async function alter(
               runtime,
               ctx,
               config,
-              { currentLabel: stepName, name: def.getName(ctx), version: def.getVersion(ctx) },
+              { currentLabel: stepName, ref: def.getPackageRef(ctx) },
               existingKeys
             );
 
