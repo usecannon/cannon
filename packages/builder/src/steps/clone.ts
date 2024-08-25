@@ -121,7 +121,7 @@ const cloneSpec = {
     const importLabel = packageState.currentLabel.split('.')[1] || '';
     debug(`[clone.${importLabel}]`, 'exec', config);
 
-    const targetPreset = config.targetPreset ?? 'main';
+    const targetPreset = config.targetPreset || `with-${packageState.ref?.name || 'unknown'}`;
     const sourcePreset = config.sourcePreset;
     const sourceRef = new PackageReference(config.source);
     const source = sourceRef.fullPackageRef;

@@ -98,7 +98,11 @@ export async function alter(
     );
   }
 
-  let deployInfo = startDeployInfo.pop()!;
+  let deployInfo = startDeployInfo.pop();
+
+  if (!deployInfo) {
+    throw new Error(`no alter packages were able to be loaded ${startDeployInfo}`);
+  }
 
   const ctx = await createInitialContext(new ChainDefinition(deployInfo.def), meta, chainId, deployInfo.options);
   const outputs = await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state);
