@@ -188,7 +188,7 @@ export async function alter(
           runtime,
           ctx,
           config,
-          { currentLabel: stepName, ref: def.getPackageRef(ctx)},
+          { currentLabel: stepName, ref: def.getPackageRef(ctx) },
           existingKeys
         );
 
