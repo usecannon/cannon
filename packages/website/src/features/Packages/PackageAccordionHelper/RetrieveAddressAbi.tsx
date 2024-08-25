@@ -1,6 +1,5 @@
 import { CommandPreview } from '@/components/CommandPreview';
 import { ItemBodyWrapper } from '@/features/Packages/PackageAccordionHelper/utils';
-import { DownloadIcon } from '@chakra-ui/icons';
 import { Button } from '@chakra-ui/react';
 import { FC } from 'react';
 
@@ -20,7 +19,6 @@ const DownloadButton: FC<{ onClick: () => void }> = ({ onClick }) => (
     bg="teal.900"
     borderColor="teal.500"
     _hover={{ bg: 'teal.800' }}
-    leftIcon={<DownloadIcon boxSize={2.5} />}
     onClick={onClick}
     textTransform="uppercase"
     letterSpacing="1px"

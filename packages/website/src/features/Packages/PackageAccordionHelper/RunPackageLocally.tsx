@@ -1,8 +1,6 @@
 import { CommandPreview } from '@/components/CommandPreview';
-import IconText from '@/components/IconText';
 import { ItemBodyWrapper } from '@/features/Packages/PackageAccordionHelper/utils';
-import { ExternalLinkIcon } from '@chakra-ui/icons';
-import { Heading } from '@chakra-ui/react';
+import { Button } from '@chakra-ui/react';
 import Link from 'next/link';
 
 type Props = {
@@ -28,11 +26,24 @@ export default function RunPackageLocally({
         chainId == 13370 ? 'node' : 'fork'
       }`}
       titleAction={
-        <Link href="/learn/cli/">
-          <Heading size="xs">
-            <IconText icon={ExternalLinkIcon} label="Install Cannon CLI" />
-          </Heading>
-        </Link>
+        <Button
+          variant="outline"
+          colorScheme="white"
+          size="xs"
+          bg="teal.900"
+          borderColor="teal.500"
+          _hover={{ bg: 'teal.800' }}
+          as={Link}
+          href="/learn/cli/"
+          textTransform="uppercase"
+          letterSpacing="1px"
+          pt={0.5}
+          fontFamily="var(--font-miriam)"
+          color="gray.200"
+          fontWeight={500}
+        >
+          Build a cannonfile
+        </Button>
       }
     >
       <CommandPreview

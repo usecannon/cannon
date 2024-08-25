@@ -12,12 +12,12 @@ export const ItemBodyWrapper: FC<
     borderRadius="sm"
   >
     <Flex
-      mb={2}
+      mb={3}
       flexDir={['column', 'column', 'row']}
-      alignItems="center"
+      alignItems={['left', 'left', 'center']}
       justifyContent="center"
     >
-      <Heading size="xs" mb={[2.5, 2.5, 0]}>
+      <Heading size="sm" mb={[2.5, 2.5, 0]}>
         {titleText}
       </Heading>
 
