@@ -1,11 +1,12 @@
 import { FC, useRef } from 'react';
-import Editor from '@monaco-editor/react';
+import Editor, { type EditorProps } from '@monaco-editor/react';
 
 interface ICodePreviewProps {
   code: string;
   language?: string;
   height?: string | number | undefined;
   line?: number; // The line to highlight
+  editorProps?: EditorProps;
 }
 
 export const CodePreview: FC<ICodePreviewProps> = ({
@@ -13,6 +14,7 @@ export const CodePreview: FC<ICodePreviewProps> = ({
   language,
   height = '190px',
   line,
+  editorProps,
 }) => {
   const editorRef = useRef<any>(null);
 
@@ -53,6 +55,7 @@ export const CodePreview: FC<ICodePreviewProps> = ({
       value={code}
       options={{ readOnly: true }}
       onMount={handleEditorDidMount}
+      {...editorProps}
     />
   );
 };

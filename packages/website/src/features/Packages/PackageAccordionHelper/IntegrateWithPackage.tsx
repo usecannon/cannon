@@ -1,26 +1,34 @@
-import { CommandPreview } from '@/components/CommandPreview';
+import CodePreview from '@/components/CodePreview';
 import IconText from '@/components/IconText';
 import { ItemBodyWrapper } from '@/features/Packages/PackageAccordionHelper/utils';
 import { ExternalLinkIcon, InfoOutlineIcon } from '@chakra-ui/icons';
-import { Box, Heading, Text, Tooltip } from '@chakra-ui/react';
+import { Box, Flex, Heading, Text, Tooltip } from '@chakra-ui/react';
 import Link from 'next/link';
+import camelCase from 'lodash/camelCase';
+import { ChainDefinition, getArtifacts } from '@usecannon/builder';
+import { DeploymentState } from '@usecannon/builder/src';
 
 type Props = {
   name: string;
   chainId: number;
-  version: string;
   preset: string;
+  chainDefinition: ChainDefinition;
+  deploymentState: DeploymentState;
 };
 
 export default function IntegrateWithPackage({
   name,
   chainId,
-  version,
   preset,
+  chainDefinition,
+  deploymentState,
 }: Props) {
-  const _version = version !== 'latest' ? `:${version}` : '';
-  const _preset = preset !== 'main' ? `@${preset}` : '';
-  const _chainId = chainId != 13370 ? ` --chain-id ${chainId}` : '';
+  const pullCode = `[pull.${camelCase(name)}]
+source = "${name.toLowerCase()}"
+chainId = ${chainId}
+preset = "${preset}"`;
+
+  const contextDataCode = getArtifacts(chainDefinition, deploymentState);
 
   return (
     <ItemBodyWrapper
@@ -28,27 +36,49 @@ export default function IntegrateWithPackage({
         chainId == 13370 ? 'node' : 'fork'
       }`}
       titleAction={
-        <Link href="/learn/cli/">
+        <Link href="/learn/cannonfile/">
           <Heading size="xs">
             <IconText icon={ExternalLinkIcon} label="Build a cannon file" />
           </Heading>
         </Link>
       }
     >
-      <Text mb={2}>Add to a Cannonfile</Text>
+      <Text fontSize="xs">Add to a Cannonfile</Text>
       <Box mb={4} p={3} bg="black">
-        [pull.blah]
+        <CodePreview
+          code={pullCode}
+          height="80px"
+          language="ini"
+          editorProps={{
+            options: {
+              readOnly: true,
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+            },
+          }}
+        />
       </Box>
 
-      <Text mb={2}>
-        Cannonfile Context Data{' '}
-        <Tooltip label='After adding the pull operation to your cannonfile, you reference the following data in other steps like prop="<%= contracts.example %>'>
-          <InfoOutlineIcon />
+      <Flex alignItems="center" mb={1}>
+        <Text fontSize="xs" mr={1.5}>
+          Cannonfile Context Data
+        </Text>
+        <Tooltip label='After adding the pull operation to your cannonfile, you reference the following data in other steps like prop="<%= contracts.someContract %>'>
+          <InfoOutlineIcon boxSize={3} />
         </Tooltip>
-      </Text>
+      </Flex>
 
-      <CommandPreview
-        command={`cannon ${name}${_version}${_preset}${_chainId}`}
+      <CodePreview
+        code={JSON.stringify(contextDataCode, null, 2)}
+        height="250px"
+        language="ini"
+        editorProps={{
+          options: {
+            readOnly: true,
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+          },
+        }}
       />
     </ItemBodyWrapper>
   );
