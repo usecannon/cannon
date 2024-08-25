@@ -1,9 +1,9 @@
-name = "greeter-foundry"
+name = "greeter-foundry-private-source"
 version = "<%= package.version %>"
 description = "Simple project to verify the functionality of cannon"
 keywords = ["sample", "greeter"]
 
-privateSourceCode = false
+privateSourceCode = true
 
 [var.main]
 salt = "greeter"

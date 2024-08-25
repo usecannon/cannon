@@ -36,9 +36,9 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
 
   if (cliSettings.isE2E) {
     // anvil optimism fork
-    cliSettings.registries[0].providerUrl = ['http://127.0.0.1:9546'];
+    cliSettings.registries[0].rpcUrl = ['http://127.0.0.1:9546'];
     // anvil mainnet fork
-    cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
+    cliSettings.registries[1].rpcUrl = ['http://127.0.0.1:9545'];
   }
 
   debug('Registries list: ', cliSettings.registries);
@@ -98,13 +98,13 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   const registryProviders = await Promise.all([
     resolveProviderAndSigners({
       chainId: readRegistry.chainId!,
-      checkProviders: readRegistry.providerUrl,
+      checkProviders: readRegistry.rpcUrl,
       action: ProviderAction.ReadProvider,
     }),
     resolveProviderAndSigners({
       chainId: writeRegistry.chainId!,
       privateKey: cliSettings.privateKey!,
-      checkProviders: writeRegistry.providerUrl,
+      checkProviders: writeRegistry.rpcUrl,
       action: options.list ? ProviderAction.ReadProvider : ProviderAction.WriteProvider,
     }),
   ]);
@@ -242,7 +242,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         waitForEvent({
           eventName: 'PackagePublishersChanged',
           abi: mainnetRegistry.contract.abi,
-          providerUrl: _.last(mainnetRegistryConfig.providerUrl)!,
+          rpcUrl: _.last(mainnetRegistryConfig.rpcUrl)!,
           expectedArgs: {
             name: packageNameHex,
             publisher: mainnetPublishers,
@@ -251,7 +251,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         waitForEvent({
           eventName: 'PackagePublishersChanged',
           abi: optimismRegistry.contract.abi,
-          providerUrl: _.last(optimismRegistryConfig.providerUrl)!,
+          rpcUrl: _.last(optimismRegistryConfig.rpcUrl)!,
           expectedArgs: {
             name: packageNameHex,
             publisher: optimismPublishers,

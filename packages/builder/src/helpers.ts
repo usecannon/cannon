@@ -1,7 +1,7 @@
 import * as viem from 'viem';
 import { mainnet, optimism } from 'viem/chains';
 import { getArtifacts } from './builder';
-import { CANNON_CHAIN_ID, getCannonRepoRegistryUrl, DEFAULT_REGISTRY_CONFIG, DEFAULT_REGISTRY_ADDRESS } from './constants';
+import { CANNON_CHAIN_ID, DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_CONFIG, getCannonRepoRegistryUrl } from './constants';
 import { ChainDefinition } from './definition';
 import { IPFSLoader } from './loader';
 import { PackageReference } from './package-reference';
@@ -60,4 +60,19 @@ export async function getCannonContract(args: {
   }
 
   return contract;
+}
+
+export async function loadPrecompiles(provider: viem.TestClient) {
+  const precompiles = await import('./precompiles');
+
+  for (const precompileCall of precompiles.default)
+    if (provider.mode === 'ganache') {
+      await provider.request({
+        // @ts-ignore: evm_setAccountCode is not currently implemented in Viem.
+        method: 'evm_setAccountCode',
+        params: [precompileCall.address, precompileCall.bytecode],
+      });
+    } else {
+      await provider.setCode(precompileCall);
+    }
 }

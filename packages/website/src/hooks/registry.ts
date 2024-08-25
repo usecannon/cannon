@@ -36,10 +36,14 @@ export function useCannonPackagePublishers(packageName?: string) {
       ]);
 
       const publishers = [
-        { publisher: mainnetOwner, chainName: 'Ethereum', chainId: 1 },
         ...mainnetPublishers.map((publisher) => ({ publisher, chainName: 'Ethereum', chainId: 1 })),
         ...optimismPublishers.map((publisher) => ({ publisher, chainName: 'Optimism', chainId: 10 })),
       ];
+
+      // Owner on Ethereum can also publish
+      if (!publishers.some((p) => p.publisher === mainnetOwner && p.chainId === 1)) {
+        publishers.unshift({ publisher: mainnetOwner, chainName: 'Ethereum', chainId: 1 });
+      }
 
       setPublishers(publishers);
     };

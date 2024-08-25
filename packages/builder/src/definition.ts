@@ -130,7 +130,8 @@ export class ChainDefinition {
     // get all dependencies, and filter out the extraneous
     for (const action of this.allActionNames) {
       debug(`compute dependencies for ${action}`);
-      this.resolvedDependencies.set(action, this.computeDependencies(action));
+      const deps = this.computeDependencies(action);
+      this.resolvedDependencies.set(action, deps);
     }
 
     debug('finished resolving dependencies');
