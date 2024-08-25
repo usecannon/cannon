@@ -1,6 +1,7 @@
 import { CannonStorage } from './';
 import { IPFSLoader } from './loader';
-import { PackageReference, publishPackage } from './package';
+import { publishPackage } from './package';
+import { PackageReference } from './package-reference';
 import { InMemoryRegistry } from './registry';
 import { DeploymentInfo } from './types';
 
