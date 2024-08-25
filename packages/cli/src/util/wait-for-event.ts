@@ -5,7 +5,7 @@ import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/builder';
 type WaitForEventProps = {
   eventName: string;
   abi: viem.Abi;
-  providerUrl: string;
+  rpcUrl: string;
   expectedArgs: any;
 };
 
@@ -19,11 +19,11 @@ type WaitForEventProps = {
  * @returns {Promise<void>} - A promise that resolves with the event logs when the event is received or rejects with an error on timeout or if an error occurs while watching the event.
  */
 
-export const waitForEvent = ({ eventName, abi, providerUrl, expectedArgs }: WaitForEventProps) => {
+export const waitForEvent = ({ eventName, abi, rpcUrl, expectedArgs }: WaitForEventProps) => {
   const event = viem.getAbiItem({ abi, name: eventName }) as viem.AbiEvent;
 
   const client = viem.createPublicClient({
-    transport: viem.http(providerUrl),
+    transport: viem.http(rpcUrl),
   });
 
   let timeoutId: ReturnType<typeof setTimeout>;

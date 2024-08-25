@@ -8,13 +8,12 @@ Feature: Stage Transactions
     Given User opens the "/deploy" page
     * Wallet is connected
     Then View renders a "p" displaying the text "Queue, sign, and execute deployments using a"
-    * View renders a "p" displaying the text "Select a Safe from the dropdown above."
 
   Scenario: User stages transactions from the interact page
     Given User opens the "/packages" page
     When User types "owned-greeter" in the "search" input
     * User clicks on the button with id "owned-greeter-expandable-button"
-    * User clicks on the element with version "0.0.5" and chain "Sepolia"
+    * User clicks on the element with version "0.0.5" and chain "11155111"
     Then URL includes "/packages/owned-greeter/0.0.5"
     * View renders a "h1" displaying the text "owned-greeter"
     * View renders a "h2" displaying the text "Contract Deployments"

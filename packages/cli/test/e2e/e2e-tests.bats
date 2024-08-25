@@ -12,13 +12,16 @@ setup_file() {
 
   cd $CANNON_DIRECTORY
 
+  export CANNON_E2E_RPC_URL_OPTIMISM="${CANNON_E2E_RPC_URL_OPTIMISM:="https://optimism.gateway.tenderly.co"}"
+  export CANNON_E2E_RPC_URL_ETHEREUM="${CANNON_E2E_RPC_URL_ETHEREUM:="https://mainnet.gateway.tenderly.co"}"
+
   # Fork OP to run tests against forked node
-  anvil --fork-url https://optimism.gateway.tenderly.co --port 9546 --silent --accounts 1 --optimism &
+  anvil --fork-url "$CANNON_E2E_RPC_URL_OPTIMISM" --port 9546 --silent --accounts 1 --optimism &
   export ANVIL_PID_OP="$!"
   sleep 1
 
   # Fork Mainnet to run tests against forked node
-  anvil --fork-url https://mainnet.gateway.tenderly.co --port 9545 --silent --accounts 1 &
+  anvil --fork-url "$CANNON_E2E_RPC_URL_ETHEREUM" --port 9545 --silent --accounts 1 &
   export ANVIL_PID="$!"
   sleep 1
 }
@@ -112,11 +115,18 @@ teardown() {
   assert_success
 }
 
-@test "Build - Building foundry greeter example locally" {
+@test "Build - Building foundry greeter example locally (Public Source Code)" {
   run build-foundry-local.sh
   echo $output
   assert_success
   assert_file_exists "$CANNON_DIRECTORY/tags/greeter-foundry_latest_13370-main.txt"
+}
+
+@test "Build - Building foundry greeter example locally (Private Source Code)" {
+  run build-foundry-local-private-source.sh
+  echo $output
+  assert_success
+  assert_file_exists "$CANNON_DIRECTORY/tags/greeter-foundry-private-source_latest_13370-main.txt"
 }
 
 @test "Build - Building foundry greeter example live" {
@@ -150,6 +160,12 @@ teardown() {
   echo $output
   assert_output --partial 'examples-router-architecture:0.0.1@main built on Ethereum (Chain ID: 1)'
   assert_file_exists "$CANNON_DIRECTORY/tags/examples-router-architecture_latest_1-main.txt"
+  assert_success
+}
+
+@test "Diff - Find difference between contracts" {
+  run diff.sh
+  echo $output
   assert_success
 }
 

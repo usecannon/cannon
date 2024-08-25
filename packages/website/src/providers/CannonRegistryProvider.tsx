@@ -6,6 +6,7 @@ import {
   FallbackRegistry,
   OnChainRegistry,
 } from '@usecannon/builder';
+
 import React, { createContext, useContext } from 'react';
 import { Chain, createPublicClient, http } from 'viem';
 
@@ -41,6 +42,8 @@ export const CannonRegistryProvider: React.FC<Props> = ({ children }) => {
     </CannonRegistryContext.Provider>
   );
 };
+
+export default CannonRegistryProvider;
 
 export const useCannonRegistry = (): FallbackRegistry => {
   const context = useContext(CannonRegistryContext);

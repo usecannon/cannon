@@ -51,7 +51,7 @@ describe('getMainLoader', function getMainLoaderTestCases() {
 
   it('should return object with instances of loaders', () => {
     const settings: CliSettings = {
-      providerUrl: '',
+      rpcUrl: '',
       registries: [],
       ipfsUrl: 'ipfs',
       cannonDirectory: 'directory',
@@ -71,7 +71,7 @@ describe('getMainLoader', function getMainLoaderTestCases() {
 
   it('should use default ipfs url if not provided in settings', () => {
     const settings: CliSettings = {
-      providerUrl: '',
+      rpcUrl: '',
       registries: [],
       cannonDirectory: 'directory',
       registryPriority: 'onchain',
