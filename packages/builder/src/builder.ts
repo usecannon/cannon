@@ -120,6 +120,7 @@ ${printChainDefinitionProblems(problems)}`);
           // also add self artifacts here so that we can self-reference from inside the step
           debug('adding self artifacts to context', state[n].artifacts);
           addOutputsToContext(ctx, state[n].artifacts);
+          runtime.updateProviderArtifacts(state[n].artifacts);
         }
 
         runtime.reportOperatingContext(ctx);
@@ -291,6 +292,7 @@ export async function buildLayer(
       if (state[action] && state[action].artifacts) {
         debug('adding self artifacts to context', state[action].artifacts);
         addOutputsToContext(ctx, state[action].artifacts);
+        runtime.updateProviderArtifacts(state[action].artifacts);
       }
 
       debug('run action in layer', action);
