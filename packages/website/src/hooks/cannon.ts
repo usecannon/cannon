@@ -20,12 +20,13 @@ import {
   Events,
   getOutputs,
   InMemoryRegistry,
+  loadPrecompiles,
   PackageReference,
   publishPackage,
 } from '@usecannon/builder';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { Abi, Address, createPublicClient, createWalletClient, custom, Hex, isAddressEqual } from 'viem';
+import { Abi, Address, createPublicClient, createTestClient, createWalletClient, custom, Hex, isAddressEqual } from 'viem';
 import { useChainId } from 'wagmi';
 // Needed to prepare mock run step with registerAction
 import '@/lib/builder';
@@ -61,6 +62,7 @@ export function useLoadCannonDefinition(repo: string, ref: string, filepath: str
   });
 
   return {
+    isLoading: loadGitRepoQuery.isLoading || loadDefinitionQuery.isLoading,
     isFetching: loadGitRepoQuery.isFetching || loadDefinitionQuery.isFetching,
     isError: loadGitRepoQuery.isError || loadDefinitionQuery.isError,
     error: loadGitRepoQuery.error || loadDefinitionQuery.error,
@@ -115,6 +117,15 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       chain: findChain(safe.chainId),
       transport,
     });
+
+    const testProvider = createTestClient({
+      chain: findChain(safe.chainId),
+      transport,
+      mode: 'ganache',
+    });
+
+    // todo: as usual viem provider types refuse to work
+    await loadPrecompiles(testProvider as any);
 
     const wallet = createWalletClient({
       account: safe.address,
@@ -272,10 +283,6 @@ export function useCannonWriteDeployToIpfs(
     mutationFn: async () => {
       if (settings.isIpfsGateway) {
         throw new Error('You cannot write on an IPFS gateway, only read operations can be done');
-      }
-
-      if (settings.ipfsApiUrl.includes(externalLinks.IPFS_CANNON.replace(/\/$/, ''))) {
-        throw new Error(`You cannot publish in ${externalLinks.IPFS_CANNON}, only read operations can be done.`);
       }
 
       if (!runtime || !deployInfo) {

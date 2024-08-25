@@ -1,16 +1,15 @@
+import { ChainArtifacts, FallbackRegistry, InMemoryRegistry } from '@usecannon/builder';
 import * as viem from 'viem';
-import { InMemoryRegistry } from '@usecannon/builder';
 import {
-  getContractsAndDetails,
   checkAndNormalizePrivateKey,
-  isPrivateKey,
-  getSourceFromRegistry,
-  getChainId,
   getChainDataFromId,
+  getChainId,
   getChainName,
+  getContractsAndDetails,
+  getSourceFromRegistry,
+  isPrivateKey,
 } from './helpers';
 import { LocalRegistry } from './registry';
-import { ChainArtifacts, FallbackRegistry } from '@usecannon/builder';
 
 describe('getChainId', getChainIdTestCases);
 describe('getChainName', getChainNameTestCases);

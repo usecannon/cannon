@@ -6,9 +6,7 @@ import NestedLayout from './_layout';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
 import { PackageReference } from '@usecannon/builder';
-import { ChainData } from '@/features/Search/PackageCard/Chain';
-import chains from '@/helpers/chains';
-import { find } from 'lodash';
+import { getChainById } from '@/helpers/chains';
 
 function generateMetadata({
   params,
@@ -16,13 +14,7 @@ function generateMetadata({
   params: { name: string; tag: string; variant: string };
 }) {
   const [chainId, preset] = PackageReference.parseVariant(params.variant);
-  const chain: { name: string; id: number } =
-    Number(chainId) == 13370
-      ? { id: 13370, name: 'Cannon' }
-      : (find(chains, (chain: ChainData) => chain.id === Number(chainId)) as {
-          name: string;
-          id: number;
-        });
+  const chain = getChainById(chainId);
 
   const title = `${params.name} on ${chain.name} | Cannon`;
 

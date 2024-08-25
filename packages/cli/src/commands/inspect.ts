@@ -1,15 +1,15 @@
+import { ChainArtifacts, ChainDefinition, ContractData, DeploymentState } from '@usecannon/builder';
+import { fetchIPFSAvailability } from '@usecannon/builder/dist/src/ipfs';
+import { PackageReference } from '@usecannon/builder';
+import { bold, cyan, green, yellow } from 'chalk';
+import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
-import fs from 'fs-extra';
-import { bold, cyan, green, yellow } from 'chalk';
-import { fetchIPFSAvailability, PackageReference } from '@usecannon/builder';
-import { ContractData, ChainArtifacts, ChainDefinition, DeploymentState } from '@usecannon/builder';
-
-import { log, warn } from '../util/console';
-import { CliSettings } from '../settings';
+import { getContractsAndDetails, getSourceFromRegistry } from '../helpers';
 import { getMainLoader } from '../loader';
 import { createDefaultReadRegistry } from '../registry';
-import { getContractsAndDetails, getSourceFromRegistry } from '../helpers';
+import { CliSettings } from '../settings';
+import { log, warn } from '../util/console';
 
 export async function inspect(
   packageRef: string,

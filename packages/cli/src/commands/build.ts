@@ -2,6 +2,7 @@ import {
   build as cannonBuild,
   CANNON_CHAIN_ID,
   CannonRegistry,
+  CannonSigner,
   ChainArtifacts,
   ChainBuilderRuntime,
   ChainDefinition,
@@ -13,10 +14,11 @@ import {
   getOutputs,
   PackageReference,
   traceActions,
-  CannonSigner,
 } from '@usecannon/builder';
 import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
+import fs from 'fs-extra';
 import _ from 'lodash';
+import path from 'path';
 import { table } from 'table';
 import * as viem from 'viem';
 import pkg from '../../package.json';
@@ -27,12 +29,9 @@ import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
-import { createWriteScript, WriteScriptFormat } from '../write-script/write';
-import { hideApiKey } from '../util/provider';
 import { log, warn } from '../util/console';
-
-import fs from 'fs-extra';
-import path from 'path';
+import { hideApiKey } from '../util/provider';
+import { createWriteScript, WriteScriptFormat } from '../write-script/write';
 
 interface Params {
   provider: viem.PublicClient;
@@ -51,7 +50,7 @@ interface Params {
   persist?: boolean;
   plugins?: boolean;
   publicSourceCode?: boolean;
-  providerUrl?: string;
+  rpcUrl?: string;
   registryPriority?: 'local' | 'onchain' | 'offline';
   gasPrice?: bigint;
   gasFee?: bigint;
@@ -75,7 +74,7 @@ export async function build({
   persist = true,
   plugins = true,
   publicSourceCode = false,
-  providerUrl,
+  rpcUrl,
   registryPriority,
   gasPrice,
   gasFee,
@@ -87,7 +86,7 @@ export async function build({
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
   }
 
-  if (!persist && providerUrl) {
+  if (!persist && rpcUrl) {
     log(
       yellowBright(bold('⚠️  This is a simulation. No changes will be made to the chain. No package data will be saved.\n'))
     );
@@ -229,14 +228,10 @@ export async function build({
   }
   log('');
 
-  const providerUrlMsg =
-    provider.transport.type === 'http'
-      ? provider.transport.url
-      : typeof providerUrl === 'string'
-      ? providerUrl.split(',')[0]
-      : providerUrl;
+  const rpcUrlMsg =
+    provider.transport.type === 'http' ? provider.transport.url : typeof rpcUrl === 'string' ? rpcUrl.split(',')[0] : rpcUrl;
 
-  log(bold(`Building the chain (ID ${chainId})${providerUrlMsg ? ' via ' + hideApiKey(providerUrlMsg) : ''}...`));
+  log(bold(`Building the chain (ID ${chainId})${rpcUrlMsg ? ' via ' + hideApiKey(rpcUrlMsg) : ''}...`));
 
   let defaultSignerAddress: string;
   if (getDefaultSigner) {
