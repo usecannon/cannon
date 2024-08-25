@@ -2,7 +2,6 @@ export { createInitialContext, build, getArtifacts, getOutputs } from './builder
 export { computeTemplateAccesses, mergeTemplateAccesses } from './access-recorder';
 export { registerAction, ActionKinds } from './actions';
 export type { CannonAction, RawChainDefinition } from './actions';
-export { ActionKinds } from './actions';
 export { ChainDefinition } from './definition';
 export { ChainBuilderRuntime, CannonStorage, Events } from './runtime';
 export type { CannonLoader } from './loader';

@@ -11,8 +11,6 @@ import {
   PackageReference,
   ActionKinds,
 } from '@usecannon/builder';
-import { ActionKinds } from '@usecannon/builder';
-import { PackageReference } from '@usecannon/builder';
 import { bold, yellow } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
