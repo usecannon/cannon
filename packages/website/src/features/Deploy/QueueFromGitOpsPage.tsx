@@ -38,11 +38,9 @@ import {
   Tooltip,
   useToast,
   VStack,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
+  Radio,
+  RadioGroup,
+  Stack,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainBuilderContext, PackageReference } from '@usecannon/builder';
@@ -144,7 +142,7 @@ function QueueFromGitOps() {
   const cannonDefInfoError: string = gitUrl
     ? (cannonDefInfo.error as any)?.toString()
     : cannonfileUrlInput &&
-      'The format of your URL appears incorrect. Please double check and try again.';
+    'The format of your URL appears incorrect. Please double check and try again.';
 
   const partialDeployInfo = useCannonPackage(
     partialDeployIpfs ? `ipfs://${partialDeployIpfs}` : ''
@@ -207,19 +205,17 @@ function QueueFromGitOps() {
 
   const cannonPkgPreviousInfo = useCannonPackage(
     cannonDefInfo.def && PackageReference.isValid(previousPackageInput)
-      ? `${previousName}:${previousVersion}${
-          previousPreset ? '@' + previousPreset : ''
-        }`
+      ? `${previousName}:${previousVersion}${previousPreset ? '@' + previousPreset : ''
+      }`
       : '',
     chainId
   );
 
   const fullPackageRef =
     (cannonDefInfo.def &&
-      `${cannonDefInfo.def.getName(ctx)}:${cannonDefInfo.def.getVersion(ctx)}${
-        cannonDefInfo.def.getPreset(ctx)
-          ? '@' + cannonDefInfo.def.getPreset(ctx)
-          : ''
+      `${cannonDefInfo.def.getName(ctx)}:${cannonDefInfo.def.getVersion(ctx)}${cannonDefInfo.def.getPreset(ctx)
+        ? '@' + cannonDefInfo.def.getPreset(ctx)
+        : ''
       }`) ??
     '';
 
@@ -258,14 +254,14 @@ function QueueFromGitOps() {
     buildInfo.buildResult?.runtime,
     cannonDefInfo.def
       ? {
-          generator: `cannon website ${pkg.version}`,
-          timestamp: Math.floor(Date.now() / 1000),
-          def: cannonDefInfo.def.toJson(),
-          state: buildInfo.buildResult?.state || {},
-          options: prevCannonDeployInfo.pkg?.options || {},
-          meta: prevCannonDeployInfo.pkg?.meta,
-          miscUrl: prevCannonDeployInfo.pkg?.miscUrl || '',
-        }
+        generator: `cannon website ${pkg.version}`,
+        timestamp: Math.floor(Date.now() / 1000),
+        def: cannonDefInfo.def.toJson(),
+        state: buildInfo.buildResult?.state || {},
+        options: prevCannonDeployInfo.pkg?.options || {},
+        meta: prevCannonDeployInfo.pkg?.meta,
+        miscUrl: prevCannonDeployInfo.pkg?.miscUrl || '',
+      }
       : undefined,
     prevCannonDeployInfo.metaUrl
   );
@@ -291,64 +287,64 @@ function QueueFromGitOps() {
 
   const multicallTxn: /*Partial<TransactionRequestBase>*/ any =
     buildInfo.buildResult &&
-    !prevInfoQuery.isLoading &&
-    buildInfo.buildResult.steps.indexOf(null as any) === -1
+      !prevInfoQuery.isLoading &&
+      buildInfo.buildResult.steps.indexOf(null as any) === -1
       ? makeMultisend(
-          [
-            // supply the hint data
-            {
-              to: zeroAddress,
-              data: encodeAbiParameters(
-                [{ type: 'string[]' }],
+        [
+          // supply the hint data
+          {
+            to: zeroAddress,
+            data: encodeAbiParameters(
+              [{ type: 'string[]' }],
+              [
                 [
-                  [
-                    'deploy',
-                    uploadToPublishIpfs.deployedIpfsHash,
-                    prevDeployLocation || '',
-                    gitUrl && gitFile ? `${gitUrl}:${gitFile}` : '',
-                    gitHash || '',
-                    prevInfoQuery.data &&
+                  'deploy',
+                  uploadToPublishIpfs.deployedIpfsHash,
+                  prevDeployLocation || '',
+                  gitUrl && gitFile ? `${gitUrl}:${gitFile}` : '',
+                  gitHash || '',
+                  prevInfoQuery.data &&
                     typeof prevInfoQuery.data?.[0].result == 'string' &&
                     (prevInfoQuery.data[0].result as any).length > 2
-                      ? ((prevInfoQuery.data[0].result as any).slice(2) as any)
-                      : '',
-                  ],
-                ]
-              ),
-            } as Partial<TransactionRequestBase>,
-            // write data needed for the subsequent deployment to chain
-            gitUrl && gitFile
-              ? ({
-                  to: onchainStore.deployAddress,
-                  data: encodeFunctionData({
-                    abi: onchainStore.ABI,
-                    functionName: 'set',
-                    args: [
-                      keccak256(toBytes(`${gitUrl}:${gitFile}gitHash`)),
-                      '0x' + gitHash,
-                    ],
-                  }),
-                } as Partial<TransactionRequestBase>)
-              : {},
-            gitUrl && gitFile
-              ? ({
-                  to: onchainStore.deployAddress,
-                  data: encodeFunctionData({
-                    abi: onchainStore.ABI,
-                    functionName: 'set',
-                    args: [
-                      keccak256(toBytes(`${gitUrl}:${gitFile}cannonPackage`)),
-                      stringToHex(uploadToPublishIpfs.deployedIpfsHash ?? ''),
-                    ],
-                  }),
-                } as Partial<TransactionRequestBase>)
-              : {},
-          ].concat(
-            buildInfo.buildResult.steps.map(
-              (s) => s.tx as unknown as Partial<TransactionRequestBase>
-            )
+                    ? ((prevInfoQuery.data[0].result as any).slice(2) as any)
+                    : '',
+                ],
+              ]
+            ),
+          } as Partial<TransactionRequestBase>,
+          // write data needed for the subsequent deployment to chain
+          gitUrl && gitFile
+            ? ({
+              to: onchainStore.deployAddress,
+              data: encodeFunctionData({
+                abi: onchainStore.ABI,
+                functionName: 'set',
+                args: [
+                  keccak256(toBytes(`${gitUrl}:${gitFile}gitHash`)),
+                  '0x' + gitHash,
+                ],
+              }),
+            } as Partial<TransactionRequestBase>)
+            : {},
+          gitUrl && gitFile
+            ? ({
+              to: onchainStore.deployAddress,
+              data: encodeFunctionData({
+                abi: onchainStore.ABI,
+                functionName: 'set',
+                args: [
+                  keccak256(toBytes(`${gitUrl}:${gitFile}cannonPackage`)),
+                  stringToHex(uploadToPublishIpfs.deployedIpfsHash ?? ''),
+                ],
+              }),
+            } as Partial<TransactionRequestBase>)
+            : {},
+        ].concat(
+          buildInfo.buildResult.steps.map(
+            (s) => s.tx as unknown as Partial<TransactionRequestBase>
           )
         )
+      )
       : { value: BigInt(0) };
 
   let totalGas = BigInt(0);
@@ -362,13 +358,13 @@ function QueueFromGitOps() {
   const stager = useTxnStager(
     multicallTxn.data
       ? ({
-          to: multicallTxn.to,
-          value: multicallTxn.value.toString(),
-          data: multicallTxn.data,
-          safeTxGas: totalGas.toString(),
-          operation: '1', // delegate call multicall
-          _nonce: pickedNonce,
-        } as SafeTransaction)
+        to: multicallTxn.to,
+        value: multicallTxn.value.toString(),
+        data: multicallTxn.data,
+        safeTxGas: totalGas.toString(),
+        operation: '1', // delegate call multicall
+        _nonce: pickedNonce,
+      } as SafeTransaction)
       : {},
     {
       safe: currentSafe,
@@ -490,7 +486,7 @@ function QueueFromGitOps() {
   function renderCannonfileInput() {
     return (
       <FormControl mb="4">
-        <FormLabel>Cannonfile</FormLabel>
+        <FormLabel>Cannonfile {selectedDeployType == '3' ? '(Optional)' : ''}</FormLabel>
         <HStack>
           <InputGroup>
             <Input
@@ -512,7 +508,6 @@ function QueueFromGitOps() {
         </HStack>
         <FormHelperText color="gray.300">
           Enter a Git or GitHub URL for the cannonfile you’d like to build.
-          (Optional for partial deployments)
         </FormHelperText>
         {cannonDefInfoError ? (
           <Alert mt="6" status="error" bg="gray.700">
@@ -565,7 +560,7 @@ function QueueFromGitOps() {
 
   return (
     <>
-      <Container maxWidth="container.lg" py={8}>
+      <Container maxWidth="container.md" py={8}>
         <Box mb={6}>
           <Heading size="lg" mb={2}>
             Queue Deployment
@@ -587,233 +582,252 @@ function QueueFromGitOps() {
           borderColor="gray.600"
           borderRadius="4px"
         >
-          <Tabs isFitted isLazy variant="line" colorScheme="teal">
-            <TabList>
-              <Tab>New deployment</Tab>
-              <Tab>Upgrade package</Tab>
-              <Tab>Finish partial deployment</Tab>
-            </TabList>
+          <FormControl mb="4">
+            <FormLabel>Deployment Type</FormLabel>
+            <RadioGroup
+              value={selectedDeployType}
+              onChange={setSelectedDeployType}
+            >
+              <Stack
+                direction={['column', 'column', 'row']}
+                spacing={['1', '1', '6']}
+                width="100%"
+              >
+                <Radio colorScheme="teal" value="1">
+                  New deployment
+                </Radio>
+                <Radio colorScheme="teal" value="2">
+                  Upgrade existing package
+                </Radio>
+                <Radio colorScheme="teal" value="3">
+                  Finish partial deployment
+                </Radio>
+              </Stack>
+            </RadioGroup>
+          </FormControl>
 
-            <TabPanels>
-              <TabPanel>{renderCannonfileInput()}</TabPanel>
-              <TabPanel>
-                {renderCannonfileInput()}
-                <FormControl mb="6">
-                  <FormLabel>Previous Package</FormLabel>
-                  <InputGroup>
-                    <Input
-                      placeholder="name:version@preset"
-                      type="text"
-                      value={previousPackageInput}
-                      borderColor={
-                        !previousPackageInput.length ||
-                        !cannonPkgPreviousInfo.error
-                          ? 'whiteAlpha.400'
-                          : 'red.500'
-                      }
-                      background="black"
-                      onChange={(evt: any) =>
-                        setPreviousPackageInput(evt.target.value)
-                      }
-                    />
-                    <InputRightElement>
-                      {cannonPkgPreviousInfo.isError ? (
-                        <CloseIcon color="red.500" />
-                      ) : null}
-                      {cannonPkgPreviousInfo.isFetching ? (
-                        <Spinner />
-                      ) : cannonPkgPreviousInfo.pkg ? (
-                        <CheckIcon color="green.500" />
-                      ) : null}
-                    </InputRightElement>
-                  </InputGroup>
-                  <FormHelperText color="gray.300">
-                    Specify the package this cannonfile is extending. See{' '}
-                    <Link as={NextLink} href="/learn/cli#build">
-                      <Code>--upgrade-from</Code>
-                    </Link>
-                  </FormHelperText>
-                  {cannonPkgPreviousInfo.error ? (
-                    <Alert mt="6" status="error" bg="red.700">
-                      <AlertIcon mr={3} />
-                      <strong>{cannonPkgPreviousInfo.error.toString()}</strong>
-                    </Alert>
-                  ) : undefined}
-                </FormControl>
-              </TabPanel>
-              <TabPanel>
-                <FormControl mb="6">
-                  <FormLabel>Partial Deployment Data</FormLabel>
-                  <InputGroup>
-                    <Input
-                      placeholder="Qm..."
-                      type="text"
-                      value={partialDeployIpfs}
-                      borderColor={
-                        !partialDeployIpfs.length ||
-                        partialDeployInfo.isFetching ||
-                        partialDeployInfo.pkg
-                          ? 'whiteAlpha.400'
-                          : 'red.500'
-                      }
-                      background="black"
-                      onChange={(evt: any) =>
-                        setPartialDeployIpfs(parseIpfsHash(evt.target.value))
-                      }
-                    />
-                    <InputRightElement>
-                      {partialDeployInfo.isError && (
-                        <CloseIcon color="red.500" />
-                      )}
-                      {partialDeployInfo.isFetching &&
-                        !partialDeployInfo.isError && <Spinner />}
-                      {partialDeployInfo.pkg && <CheckIcon color="green.500" />}
-                    </InputRightElement>
-                  </InputGroup>
-                  <FormHelperText color="gray.300">
-                    If this deployment requires transactions executed in other
-                    contexts (e.g. contract deployments or function calls using
-                    other signers), provide the IPFS hash generated by building
-                    the package using the CLI.
-                  </FormHelperText>
-                </FormControl>
-                {renderCannonfileInput()}
-              </TabPanel>
-              {renderAlertMessage()}
-              <RenderPreviewButtonTooltip />
-              {buildInfo.buildStatus && (
-                <Alert mt="6" status="info" bg="gray.800">
-                  <Spinner mr={3} boxSize={4} />
-                  <strong>{buildInfo.buildStatus}</strong>
-                </Alert>
-              )}
-              {buildInfo.buildError && (
+          {selectedDeployType != '3' && renderCannonfileInput()}
+
+          {selectedDeployType == '1' && <Box mb="6" />}
+          {selectedDeployType == '2' && (
+            <FormControl mb="6">
+              <FormLabel>Previous Package</FormLabel>
+              <InputGroup>
+                <Input
+                  placeholder="name:version@preset"
+                  type="text"
+                  value={previousPackageInput}
+                  borderColor={
+                    !previousPackageInput.length ||
+                      !cannonPkgPreviousInfo.error
+                      ? 'whiteAlpha.400'
+                      : 'red.500'
+                  }
+                  background="black"
+                  onChange={(evt: any) =>
+                    setPreviousPackageInput(evt.target.value)
+                  }
+                />
+                <InputRightElement>
+                  {cannonPkgPreviousInfo.isError ? (
+                    <CloseIcon color="red.500" />
+                  ) : null}
+                  {cannonPkgPreviousInfo.isFetching ? (
+                    <Spinner />
+                  ) : cannonPkgPreviousInfo.pkg ? (
+                    <CheckIcon color="green.500" />
+                  ) : null}
+                </InputRightElement>
+              </InputGroup>
+              <FormHelperText color="gray.300">
+                Specify the package this cannonfile is extending. See{' '}
+                <Link as={NextLink} href="/learn/cli#build">
+                  <Code>--upgrade-from</Code>
+                </Link>
+              </FormHelperText>
+              {cannonPkgPreviousInfo.error ? (
                 <Alert mt="6" status="error" bg="red.700">
                   <AlertIcon mr={3} />
-                  <strong>{buildInfo.buildError}</strong>
+                  <strong>{cannonPkgPreviousInfo.error.toString()}</strong>
                 </Alert>
-              )}
-              {buildInfo.buildSkippedSteps.length > 0 && (
-                <Flex flexDir="column" mt="6">
-                  <Text mb="2" fontWeight="bold">
-                    This safe will not be able to complete the following
-                    operations:
-                  </Text>
-                  {buildInfo.buildSkippedSteps.map((s, i) => (
-                    <Text fontFamily="monospace" key={i} mb="2">
-                      <strong>{`[${s.name}]: `}</strong>
-                      {s.err.toString()}
-                    </Text>
-                  ))}
-                </Flex>
-              )}
-              {isPartialDataRequired && (
-                <Alert mt="6" status="error" bg="red.700" mb="5">
-                  <Flex flexDir="column" gap={3}>
-                    <Text>
-                      The web deployer is unable to compile and deploy contracts
-                      and routers. Run the following command to generate partial
-                      deploy data:
-                    </Text>
-                    <Code display="block" p="2">
-                      cannon build {gitFile} --upgrade-from{' '}
-                      {previousPackageInput} --chain-id {currentSafe?.chainId}
-                    </Code>
-                  </Flex>
-                </Alert>
-              )}
-              {cannonDefInfo.def && multicallTxn.data && (
-                <Box mt="10">
-                  <Heading size="md" mt={5}>
-                    {cannonDefInfo.def.getName(ctx)}:
-                    {cannonDefInfo.def.getVersion(ctx) || 'latest'}@
-                    {cannonDefInfo.def.getPreset(ctx)}
-                  </Heading>
-                </Box>
-              )}
-              {multicallTxn.data && stager.safeTxn && (
-                <Box mt="4" mb="10">
-                  <Heading size="sm" mb={2}>
-                    Transactions
-                  </Heading>
-                  <TransactionDisplay
-                    safe={currentSafe as any}
-                    safeTxn={stager.safeTxn}
-                  />
-                </Box>
-              )}
-              {uploadToPublishIpfs.writeToIpfsMutation.isPending && (
-                <Text>Uploading build result to IPFS...</Text>
-              )}
-              {uploadToPublishIpfs.writeToIpfsMutation.error && (
-                <Text>
-                  Failed to upload staged transaction to IPFS:{' '}
-                  {uploadToPublishIpfs.writeToIpfsMutation.error.toString()}
-                </Text>
-              )}
-              {uploadToPublishIpfs.deployedIpfsHash && multicallTxn.data && (
-                <Box>
-                  <NoncePicker
-                    safe={currentSafe}
-                    handleChange={setPickedNonce}
-                  />
-                  <HStack gap="6">
-                    {stager.execConditionFailed ? (
-                      <Tooltip label={stager.signConditionFailed}>
-                        <Button
-                          isDisabled={
-                            !!stager.signConditionFailed || stager.signing
-                          }
-                          size="lg"
-                          w="100%"
-                          onClick={async () => {
-                            await stager.sign();
-                          }}
-                        >
-                          {stager.signing ? (
-                            <>
-                              Currently Signing
-                              <Spinner size="sm" ml={2} />
-                            </>
-                          ) : (
-                            'Queue & Sign'
-                          )}
-                        </Button>
-                      </Tooltip>
-                    ) : null}
-                    <Tooltip label={stager.execConditionFailed}>
-                      <Button
-                        isDisabled={
-                          !!stager.execConditionFailed || isPartialDataRequired
-                        }
-                        size="lg"
-                        w="100%"
-                        onClick={() => {
-                          execTxn.writeContract(stager.executeTxnConfig!, {
-                            onSuccess: async () => {
-                              await router.push(links.DEPLOY);
+              ) : undefined}
+            </FormControl>
+          )}
 
-                              toast({
-                                title:
-                                  'You successfully executed the transaction.',
-                                status: 'success',
-                                duration: 5000,
-                                isClosable: true,
-                              });
-                            },
+          {selectedDeployType == '3' && (
+            <FormControl mb="6">
+              <FormLabel>Partial Deployment Data</FormLabel>
+              <InputGroup>
+                <Input
+                  placeholder="Qm..."
+                  type="text"
+                  value={partialDeployIpfs}
+                  borderColor={
+                    !partialDeployIpfs.length ||
+                      partialDeployInfo.isFetching ||
+                      partialDeployInfo.pkg
+                      ? 'whiteAlpha.400'
+                      : 'red.500'
+                  }
+                  background="black"
+                  onChange={(evt: any) =>
+                    setPartialDeployIpfs(parseIpfsHash(evt.target.value))
+                  }
+                />
+                <InputRightElement>
+                  {partialDeployInfo.isError && (
+                    <CloseIcon color="red.500" />
+                  )}
+                  {partialDeployInfo.isFetching &&
+                    !partialDeployInfo.isError && <Spinner />}
+                  {partialDeployInfo.pkg && <CheckIcon color="green.500" />}
+                </InputRightElement>
+              </InputGroup>
+              <FormHelperText color="gray.300">
+                If this deployment requires transactions executed in other
+                contexts (e.g. contract deployments or function calls using
+                other signers), provide the IPFS hash generated by building
+                the package using the CLI.
+              </FormHelperText>
+            </FormControl>
+          )}
+          
+          {selectedDeployType == '3' && renderCannonfileInput()}
+
+
+          {renderAlertMessage()}
+          <RenderPreviewButtonTooltip />
+          {buildInfo.buildStatus && (
+            <Alert mt="6" status="info" bg="gray.800">
+              <Spinner mr={3} boxSize={4} />
+              <strong>{buildInfo.buildStatus}</strong>
+            </Alert>
+          )}
+          {buildInfo.buildError && (
+            <Alert mt="6" status="error" bg="red.700">
+              <AlertIcon mr={3} />
+              <strong>{buildInfo.buildError}</strong>
+            </Alert>
+          )}
+          {buildInfo.buildSkippedSteps.length > 0 && (
+            <Flex flexDir="column" mt="6">
+              <Text mb="2" fontWeight="bold">
+                This safe will not be able to complete the following
+                operations:
+              </Text>
+              {buildInfo.buildSkippedSteps.map((s, i) => (
+                <Text fontFamily="monospace" key={i} mb="2">
+                  <strong>{`[${s.name}]: `}</strong>
+                  {s.err.toString()}
+                </Text>
+              ))}
+            </Flex>
+          )}
+          {isPartialDataRequired && (
+            <Alert mt="6" status="error" bg="red.700" mb="5">
+              <Flex flexDir="column" gap={3}>
+                <Text>
+                  The web deployer is unable to compile and deploy contracts
+                  and routers. Run the following command to generate partial
+                  deploy data:
+                </Text>
+                <Code display="block" p="2">
+                  cannon build {gitFile} --upgrade-from{' '}
+                  {previousPackageInput} --chain-id {currentSafe?.chainId}
+                </Code>
+              </Flex>
+            </Alert>
+          )}
+          {cannonDefInfo.def && multicallTxn.data && (
+            <Box mt="10">
+              <Heading size="md" mt={5}>
+                {cannonDefInfo.def.getName(ctx)}:
+                {cannonDefInfo.def.getVersion(ctx) || 'latest'}@
+                {cannonDefInfo.def.getPreset(ctx)}
+              </Heading>
+            </Box>
+          )}
+          {multicallTxn.data && stager.safeTxn && (
+            <Box mt="4" mb="10">
+              <Heading size="sm" mb={2}>
+                Transactions
+              </Heading>
+              <TransactionDisplay
+                safe={currentSafe as any}
+                safeTxn={stager.safeTxn}
+              />
+            </Box>
+          )}
+          {uploadToPublishIpfs.writeToIpfsMutation.isPending && (
+            <Text>Uploading build result to IPFS...</Text>
+          )}
+          {uploadToPublishIpfs.writeToIpfsMutation.error && (
+            <Text>
+              Failed to upload staged transaction to IPFS:{' '}
+              {uploadToPublishIpfs.writeToIpfsMutation.error.toString()}
+            </Text>
+          )}
+          {uploadToPublishIpfs.deployedIpfsHash && multicallTxn.data && (
+            <Box>
+              <NoncePicker
+                safe={currentSafe}
+                handleChange={setPickedNonce}
+              />
+              <HStack gap="6">
+                {stager.execConditionFailed ? (
+                  <Tooltip label={stager.signConditionFailed}>
+                    <Button
+                      isDisabled={
+                        !!stager.signConditionFailed || stager.signing
+                      }
+                      size="lg"
+                      w="100%"
+                      onClick={async () => {
+                        await stager.sign();
+                      }}
+                    >
+                      {stager.signing ? (
+                        <>
+                          Currently Signing
+                          <Spinner size="sm" ml={2} />
+                        </>
+                      ) : (
+                        'Queue & Sign'
+                      )}
+                    </Button>
+                  </Tooltip>
+                ) : null}
+                <Tooltip label={stager.execConditionFailed}>
+                  <Button
+                    isDisabled={
+                      !!stager.execConditionFailed || isPartialDataRequired
+                    }
+                    size="lg"
+                    w="100%"
+                    onClick={() => {
+                      execTxn.writeContract(stager.executeTxnConfig!, {
+                        onSuccess: async () => {
+                          await router.push(links.DEPLOY);
+
+                          toast({
+                            title:
+                              'You successfully executed the transaction.',
+                            status: 'success',
+                            duration: 5000,
+                            isClosable: true,
                           });
-                        }}
-                      >
-                        Execute
-                      </Button>
-                    </Tooltip>
-                  </HStack>
-                </Box>
-              )}
-            </TabPanels>
-          </Tabs>
+                        },
+                      });
+                    }}
+                  >
+                    Execute
+                  </Button>
+                </Tooltip>
+              </HStack>
+            </Box>
+          )}
         </Box>
-      </Container>
+      </Container >
     </>
   );
 }
