@@ -1,16 +1,26 @@
 import CodePreview from '@/components/CodePreview';
 import { ItemBodyWrapper } from '@/features/Packages/PackageAccordionHelper/utils';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
-import { Button, Flex, Text, Tooltip } from '@chakra-ui/react';
+import { Flex, Text, Tooltip } from '@chakra-ui/react';
 import Link from 'next/link';
 import camelCase from 'lodash/camelCase';
 import { ChainDefinition, getArtifacts } from '@usecannon/builder';
 import { DeploymentState } from '@usecannon/builder/src';
+import ButtonOutlined from '@/components/buttons/Outlined';
+
+function generateSettingsText(settings?: Record<string, unknown>) {
+  let text = '';
+  for (const key in settings) {
+    text += `options.${key} = "${settings[key]}"\n`;
+  }
+  return text.trim();
+}
 
 type Props = {
   name: string;
   chainId: number;
   preset: string;
+  version: string;
   chainDefinition: ChainDefinition;
   deploymentState: DeploymentState;
 };
@@ -19,15 +29,27 @@ export default function IntegrateWithPackage({
   name,
   chainId,
   preset,
+  version,
   chainDefinition,
   deploymentState,
 }: Props) {
-  const pullCode = `[${chainId == 13370 ? 'clone' : 'pull'}.${camelCase(name)}]
-source = "${name.toLowerCase()}"
-chainId = ${chainId}
-preset = "${preset}"`;
-
   const contextDataCode = getArtifacts(chainDefinition, deploymentState);
+
+  const _preset = preset !== 'main' ? `@${preset}` : '';
+  const _version = version !== 'latest' ? `:${version}` : '';
+  const _source = `"${name.toLowerCase()}${_version}${_preset}"`;
+
+  const pullCode = `[pull.${camelCase(name)}]
+source = ${_source}
+`;
+
+  const cloneCode = `[clone.${camelCase(name)}]
+source = ${_source}
+target = "myPackageName@${camelCase(name)}${_preset}"
+${generateSettingsText(contextDataCode.settings)}
+`.trim();
+
+  const interactCode = chainId == 13370 ? cloneCode : pullCode;
 
   return (
     <ItemBodyWrapper
@@ -35,24 +57,9 @@ preset = "${preset}"`;
         chainId == 13370 ? 'node' : 'fork'
       }`}
       titleAction={
-        <Button
-          variant="outline"
-          colorScheme="white"
-          size="xs"
-          bg="teal.900"
-          borderColor="teal.500"
-          _hover={{ bg: 'teal.800' }}
-          as={Link}
-          href="/learn/cannonfile/"
-          textTransform="uppercase"
-          letterSpacing="1px"
-          pt={0.5}
-          fontFamily="var(--font-miriam)"
-          color="gray.200"
-          fontWeight={500}
-        >
+        <ButtonOutlined buttonProps={{ as: Link, href: '/learn/cannonfile/' }}>
           Build a cannonfile
-        </Button>
+        </ButtonOutlined>
       }
     >
       <Flex alignItems="center" mb={2}>
@@ -64,8 +71,8 @@ preset = "${preset}"`;
         </Tooltip>
       </Flex>
       <CodePreview
-        code={pullCode}
-        height="80px"
+        code={interactCode}
+        height="150px"
         language="ini"
         editorProps={{
           options: {

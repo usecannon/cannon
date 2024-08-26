@@ -1,6 +1,6 @@
+import ButtonOutlined from '@/components/buttons/Outlined';
 import { CommandPreview } from '@/components/CommandPreview';
 import { ItemBodyWrapper } from '@/features/Packages/PackageAccordionHelper/utils';
-import { Button } from '@chakra-ui/react';
 import Link from 'next/link';
 
 type Props = {
@@ -26,24 +26,9 @@ export default function RunPackageLocally({
         chainId == 13370 ? 'node' : 'fork'
       }`}
       titleAction={
-        <Button
-          variant="outline"
-          colorScheme="white"
-          size="xs"
-          bg="teal.900"
-          borderColor="teal.500"
-          _hover={{ bg: 'teal.800' }}
-          as={Link}
-          href="/learn/cli/"
-          textTransform="uppercase"
-          letterSpacing="1px"
-          pt={0.5}
-          fontFamily="var(--font-miriam)"
-          color="gray.200"
-          fontWeight={500}
-        >
-          Build a cannonfile
-        </Button>
+        <ButtonOutlined buttonProps={{ as: Link, href: '/learn/cli/' }}>
+          Use this package in your Cannonfile
+        </ButtonOutlined>
       }
     >
       <CommandPreview

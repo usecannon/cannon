@@ -93,6 +93,7 @@ export default function PackageAccordionHelper({
             preset={packagesQuery.data.data.preset}
             chainDefinition={new ChainDefinition(deploymentInfo.def)}
             deploymentState={state}
+            version={packagesQuery.data.data.version}
           />
         ) : (
           <Text>Error retrieving deployment data</Text>
