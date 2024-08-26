@@ -8,17 +8,19 @@ export const BUILD_VERSION = 7;
 
 // Production settings (OP Mainnet & ETH Mainnet)
 export const DEFAULT_REGISTRY_ADDRESS: Address = '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba';
+
+// the below RPC configuration is our public infura, but it only allows for requests against the cannon registry contract
 export const DEFAULT_REGISTRY_CONFIG = [
   {
     name: 'OP Mainnet',
     chainId: 10,
-    rpcUrl: ['frame', 'direct', 'https://optimism.llamarpc.com'],
+    rpcUrl: ['frame', 'direct', 'https://optimism-mainnet.infura.io/v3/831b4daacdb44a28ba250505347cbeb4'],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
   {
     name: 'Ethereum Mainnet',
     chainId: 1,
-    rpcUrl: ['frame', 'direct', 'https://eth.llamarpc.com'],
+    rpcUrl: ['frame', 'direct', 'https://mainnet.infura.io/v3/831b4daacdb44a28ba250505347cbeb4'],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
 ];

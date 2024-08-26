@@ -97,11 +97,6 @@ export type CliSettings = {
   cannonDirectory: string;
 
   /**
-   * Settings file to load configurations from
-   */
-  cannonSettings?: string;
-
-  /**
    * URL of etherscan API for verification
    */
   etherscanApiUrl?: string;
@@ -151,10 +146,9 @@ const deprecatedWarn = _.once((deprecatedFlag: string, newFlag: string) => {
  * Check env vars and set default values if needed
  */
 
-function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>) {
+function cannonSettingsSchema(fileSettings: CliSettings) {
   return {
-    CANNON_DIRECTORY: z.string().default(DEFAULT_CANNON_DIRECTORY),
-    CANNON_SETTINGS: z.string().optional(),
+    CANNON_DIRECTORY: z.string().default(fileSettings.cannonDirectory || DEFAULT_CANNON_DIRECTORY),
     CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || RPC_URL_DEFAULT),
     CANNON_RPC_URL: z.string().default(fileSettings.rpcUrl || ''),
     CANNON_PRIVATE_KEY: z
@@ -206,16 +200,17 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     path.join(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY, CLI_SETTINGS_STORE)
   );
 
-  let fileSettings: Omit<CliSettings, 'cannonDirectory'>;
+  let fileSettings: CliSettings;
   if (process.env.CANNON_SETTINGS) {
     fileSettings = JSON.parse(process.env.CANNON_SETTINGS);
   } else {
     fileSettings = fs.existsSync(cliSettingsStore) ? fs.readJsonSync(cliSettingsStore) : {};
   }
 
+  console.log('my process env', process.env.CANNON_DIRECTORY);
+
   const {
     CANNON_DIRECTORY,
-    CANNON_SETTINGS,
     CANNON_PROVIDER_URL,
     CANNON_RPC_URL,
     CANNON_PRIVATE_KEY,
@@ -238,7 +233,6 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
   const finalSettings = _.assign(
     {
       cannonDirectory: untildify(CANNON_DIRECTORY),
-      cannonSettings: CANNON_SETTINGS,
       rpcUrl: CANNON_RPC_URL || CANNON_PROVIDER_URL,
       privateKey: CANNON_PRIVATE_KEY,
       ipfsTimeout: CANNON_IPFS_TIMEOUT,
@@ -256,7 +250,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
                 address: CANNON_REGISTRY_ADDRESS as viem.Address,
               },
             ]
-          : DEFAULT_REGISTRY_CONFIG,
+          : fileSettings.registries || DEFAULT_REGISTRY_CONFIG,
       registryPriority: CANNON_REGISTRY_PRIORITY,
       etherscanApiUrl: CANNON_ETHERSCAN_API_URL,
       etherscanApiKey: CANNON_ETHERSCAN_API_KEY,
@@ -292,3 +286,4 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
 }
 
 export const resolveCliSettings = _.memoize(_resolveCliSettings);
+export const resolveCliSettingsNoCache = _resolveCliSettings;
