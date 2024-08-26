@@ -45,7 +45,9 @@ source = ${_source}
 
   const cloneCode = `[clone.${camelCase(name)}]
 source = ${_source}
-target = "myPackageName@${camelCase(name)}${_preset}"
+target = "PACKAGE_NAME@${camelCase(
+    name
+  )}${_preset}" # Replace with a name:version@preset for your cloned instance.
 ${generateSettingsText(contextDataCode.settings)}
 `.trim();
 
