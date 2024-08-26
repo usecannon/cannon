@@ -398,8 +398,10 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     options.chainId = chainIdPrompt.value;
   }
 
-  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
-  if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
+  const isDefaultRegistryChains =
+    cliSettings.registries[0].chainId === DEFAULT_REGISTRY_CONFIG[0].chainId &&
+    cliSettings.registries[1].chainId === DEFAULT_REGISTRY_CONFIG[1].chainId;
+  if (!isDefaultRegistryChains) throw new Error('Only default registries are supported for now');
 
   // mock provider urls when the execution comes from e2e tests
   if (cliSettings.isE2E) {
