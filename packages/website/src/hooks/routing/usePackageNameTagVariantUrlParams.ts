@@ -1,7 +1,7 @@
 import { PackageReference } from '@usecannon/builder';
 import { useRouter } from 'next/router';
 
-export function useUrlParams() {
+export function usePackageNameTagVariantUrlParams() {
   const { query: params } = useRouter();
   const { name, tag, variant } = params;
 

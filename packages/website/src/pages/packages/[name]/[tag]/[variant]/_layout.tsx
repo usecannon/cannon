@@ -29,11 +29,11 @@ import { DeploymentInfo } from '@usecannon/builder';
 import { getPackage } from '@/helpers/api';
 
 import PageLoading from '@/components/PageLoading';
-import { useUrlParams } from '@/pages/packages/[name]/[tag]/[variant]/useUrlParams';
 import PackageAccordionHelper from '@/features/Packages/PackageAccordionHelper';
+import { usePackageNameTagVariantUrlParams } from '@/hooks/routing/usePackageNameTagVariantUrlParams';
 
 function TagVariantLayout({ children }: { children: ReactNode }) {
-  const { name, tag, chainId, preset } = useUrlParams();
+  const { name, tag, chainId, preset } = usePackageNameTagVariantUrlParams();
   const { query: params, pathname, asPath } = useRouter();
 
   const packagesQuery = useQuery({
