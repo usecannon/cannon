@@ -100,15 +100,15 @@ describe('settings.ts', () => {
             name: 'Custom Registry',
             chainId: 1337,
             rpcUrl: ['https://custom.registry.rpc'],
-            address: '0x1234567890123456789012345678901234567890'
-          }
+            address: '0x1234567890123456789012345678901234567890',
+          },
         ],
         registryPriority: 'local' as const,
         etherscanApiUrl: 'https://custom.etherscan.api',
         etherscanApiKey: 'customEtherscanApiKeyxxxxxxxxxxxxx',
         quiet: true,
         trace: false,
-        isE2E: false
+        isE2E: false,
       };
       process.env.CANNON_SETTINGS = JSON.stringify(customSettings);
 
@@ -121,7 +121,7 @@ describe('settings.ts', () => {
     it('should prioritize environment variables over CANNON_SETTINGS', () => {
       const customSettings: Partial<CliSettings> = {
         rpcUrl: 'https://custom.rpc.url',
-        ipfsRetries: 10
+        ipfsRetries: 10,
       };
       process.env.CANNON_SETTINGS = JSON.stringify(customSettings);
       process.env.CANNON_RPC_URL = 'https://env.rpc.url';
@@ -139,13 +139,13 @@ describe('settings.ts', () => {
     it('should allow overrides to take precedence over CANNON_SETTINGS', () => {
       const customSettings: Partial<CliSettings> = {
         rpcUrl: 'https://custom.rpc.url',
-        ipfsRetries: 10
+        ipfsRetries: 10,
       };
       process.env.CANNON_SETTINGS = JSON.stringify(customSettings);
 
       const overrides = {
         rpcUrl: 'https://override.rpc.url',
-        ipfsRetries: 15
+        ipfsRetries: 15,
       };
 
       const settings = resolveCliSettings(overrides);

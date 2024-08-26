@@ -207,8 +207,6 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     fileSettings = fs.existsSync(cliSettingsStore) ? fs.readJsonSync(cliSettingsStore) : {};
   }
 
-  console.log('my process env', process.env.CANNON_DIRECTORY);
-
   const {
     CANNON_DIRECTORY,
     CANNON_PROVIDER_URL,
