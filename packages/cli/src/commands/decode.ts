@@ -55,7 +55,7 @@ export async function decode({
 
     await ensureChainIdConsistency(rpcUrl, chainId);
 
-    const { provider } = await resolveProvider({ action: ProviderAction.ReadProvider, quiet: false, cliSettings, chainId });
+    const { provider } = await resolveProvider({ action: ProviderAction.ReadProvider, quiet: true, cliSettings, chainId });
 
     const transaction = await provider.getTransaction({
       hash: data,
