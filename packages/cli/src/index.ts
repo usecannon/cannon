@@ -674,10 +674,13 @@ applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async
 applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(async function (packageRef, data, options) {
   const { decode } = await import('./commands/decode');
 
+  const cliSettings = resolveCliSettings(options);
+
   await decode({
     packageRef,
     data,
-    chainId: parseInt(options.chainId || CANNON_CHAIN_ID),
+    chainId: options.chainId ? parseInt(options.chainId) : undefined,
+    rpcUrl: cliSettings.rpcUrl,
     presetArg: options.preset,
     json: options.json,
   });

@@ -5,24 +5,31 @@ import { ContractData, DeploymentInfo, decodeTxError } from '@usecannon/builder'
 
 import { log, error, warn } from '../util/console';
 import { readDeployRecursive } from '../package';
-import { formatAbiFunction, getSighash } from '../helpers';
+import { ensureChainIdConsistency, formatAbiFunction, getSighash } from '../helpers';
 import { resolveCliSettings } from '../../src/settings';
+import { isTxHash } from '../util/is-tx-hash';
+import { getChainIdFromRpcUrl, isURL, ProviderAction, resolveProvider } from '../util/provider';
 
 export async function decode({
   packageRef,
   data,
   chainId,
+  rpcUrl,
   presetArg,
   json = false,
 }: {
   packageRef: string;
-  data: viem.Hash[];
-  chainId: number;
+  data: viem.Hash;
+  chainId?: number;
+  rpcUrl?: string;
   presetArg: string;
   json: boolean;
 }) {
-  if (!data[0].startsWith('0x')) {
-    data[0] = ('0x' + data[0]) as viem.Hash;
+  const cliSettings = resolveCliSettings();
+
+  // Add 0x prefix to data or transaction hash if missing
+  if (!data.startsWith('0x')) {
+    data = ('0x' + data) as viem.Hash;
   }
 
   // Handle deprecated preset specification
@@ -37,13 +44,35 @@ export async function decode({
     packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
 
-  const deployInfos = await readDeployRecursive(packageRef, chainId);
+  let inputData = data;
+
+  if (isTxHash(data)) {
+    if (!rpcUrl && !chainId) {
+      throw new Error('RPC URL or chain ID is required to decode transaction data');
+    }
+
+    if (!chainId && rpcUrl) {
+      chainId = await getChainIdFromRpcUrl(rpcUrl);
+    }
+
+    ensureChainIdConsistency(rpcUrl, chainId);
+
+    const { provider } = await resolveProvider({ action: ProviderAction.ReadProvider, quiet: true, cliSettings, chainId });
+
+    const transaction = await provider.getTransaction({
+      hash: data,
+    });
+
+    inputData = transaction.input;
+  }
+
+  const deployInfos = await readDeployRecursive(packageRef, chainId!);
 
   const abis = deployInfos.flatMap((deployData) => _getAbis(deployData));
-  const parsed = _parseData(abis, data);
+  const parsed = _parseData(abis, inputData);
 
   if (!parsed) {
-    const errorMessage = decodeTxError(data[0], abis);
+    const errorMessage = decodeTxError(inputData, abis);
     if (errorMessage) {
       log(errorMessage);
       return;
@@ -67,11 +96,10 @@ export async function decode({
 
   const sighash = getSighash(fragment as AbiFunction | AbiEvent);
 
-  log();
   log(green(`${formatAbiFunction(fragment as any)}`), `${sighash ? italic(gray(sighash)) : ''}`);
 
   if ((parsed.result as viem.DecodeErrorResultReturnType).errorName) {
-    const errorMessage = decodeTxError(data[0], abis);
+    const errorMessage = decodeTxError(inputData, abis);
     if (errorMessage) {
       log(errorMessage);
       return;
@@ -99,7 +127,6 @@ export async function decode({
               offset.repeat(2)
             );
           }
-          log();
         }
         break;
       }
@@ -132,8 +159,6 @@ export async function decode({
       renderArgs((fragment as viem.AbiFunction).inputs[index], parsed.result.args[index]);
     }
   }
-
-  log();
 }
 
 function _getAbis(deployData: DeploymentInfo) {
@@ -176,20 +201,21 @@ function _renderValue(type: viem.AbiParameter, value: string | bigint) {
   }
 }
 
-function _parseData(abis: ContractData['abi'][], data: viem.Hash[]) {
-  if (data.length === 0) return null;
+function _parseData(abis: ContractData['abi'][], data: viem.Hash) {
+  if (!data) return null;
 
   for (const abi of abis) {
     const result =
-      _try(() => viem.decodeErrorResult({ abi, data: data[0] })) ||
-      _try(() => viem.decodeFunctionData({ abi, data: data[0] })) ||
+      _try(() => viem.decodeErrorResult({ abi, data: data })) ||
+      _try(() => viem.decodeFunctionData({ abi, data: data })) ||
       _try(() =>
         viem.decodeEventLog({
           abi,
-          topics: (data.length > 1 ? data.slice(0, -1) : data) as [viem.Hex],
-          data: data.length > 1 ? data[data.length - 1] : '0x',
+          topics: [data] as [viem.Hex],
+          data,
         })
       );
+
     if (result) return { abi, result };
   }
 

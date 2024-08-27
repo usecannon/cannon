@@ -829,7 +829,7 @@ const commandsConfig = {
         description: 'Name, version and preset of the package to decode from (name:version@preset)',
       },
       {
-        flags: '<bytes32Data...>',
+        flags: '<bytes32Data or txHash>',
         description: 'bytes32 encoded transaction data to decode',
       },
     ],
@@ -837,7 +837,14 @@ const commandsConfig = {
       {
         flags: '-c --chain-id <chainId>',
         description: 'Chain ID of the variant to inspect',
-        defaultValue: '13370',
+      },
+      {
+        flags: '-n --rpc-url [url]',
+        description: 'RPC endpoint to decode on',
+      },
+      {
+        flags: '-n --provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to decode on',
       },
       {
         flags: '-p --preset <preset>',
