@@ -10,7 +10,7 @@ const argtype: z.ZodLazy<any> = z.lazy(() =>
 
 // Different regular expressions used to validate formats like
 // <%=  string interpolation %>, step.names or property.names, packages:versions
-const interpolatedRegex = RegExp(/^<%=\s\w+.+[\w()[\]-]+\s%>$/, 'i');
+const interpolatedRegex = RegExp(/\w*<%= [^%]* %>\w*|[^<%=]*<%= [^%]* %>[^<%=]*/, 'i');
 const stepRegex = RegExp(/^[\w-]+\.[.\w-]+$/, 'i');
 const packageRegex = RegExp(/^(?<name>@?[a-z0-9][a-z0-9-]{1,}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/, 'i');
 const jsonAbiPathRegex = RegExp(/^(?!.*\.d?$).*\.json?$/, 'i');
