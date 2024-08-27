@@ -53,9 +53,9 @@ export async function decode({
       if (!chainId) throw new Error('--chain-id or --rpc-url is required to decode transaction data');
     }
 
-    ensureChainIdConsistency(rpcUrl, chainId);
+    await ensureChainIdConsistency(rpcUrl, chainId);
 
-    const { provider } = await resolveProvider({ action: ProviderAction.ReadProvider, quiet: true, cliSettings, chainId });
+    const { provider } = await resolveProvider({ action: ProviderAction.ReadProvider, quiet: false, cliSettings, chainId });
 
     const transaction = await provider.getTransaction({
       hash: data,

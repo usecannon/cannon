@@ -1,7 +1,6 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import {
-  CANNON_CHAIN_ID,
   CannonStorage,
   ChainBuilderRuntime,
   ChainDefinition,
