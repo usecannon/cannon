@@ -778,7 +778,7 @@ const commandsConfig = {
       },
       {
         flags: '<transactionHash OR bytes32Data>',
-        description: 'base 16 encoded transaction data to input to a function call, or transaction hash',
+        description: 'bytes32 encoded transaction data to input to a function call, or transaction hash',
       },
     ],
     options: [
@@ -829,8 +829,8 @@ const commandsConfig = {
         description: 'Name, version and preset of the package to decode from (name:version@preset)',
       },
       {
-        flags: '<bytes32Data or txHash>',
-        description: 'bytes32 encoded transaction data to decode',
+        flags: '<transactionHash OR bytes32Data>',
+        description: 'bytes32 encoded transaction data, or transaction hash',
       },
     ],
     options: [
