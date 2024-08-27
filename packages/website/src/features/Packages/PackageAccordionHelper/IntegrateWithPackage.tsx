@@ -55,9 +55,7 @@ ${generateSettingsText(contextDataCode.settings)}
 
   return (
     <ItemBodyWrapper
-      titleText={`Run this package on a local ${
-        chainId == 13370 ? 'node' : 'fork'
-      }`}
+      titleText="Use this package in your cannonfile"
       titleAction={
         <ButtonOutlined buttonProps={{ as: Link, href: '/learn/cannonfile/' }}>
           Build a cannonfile

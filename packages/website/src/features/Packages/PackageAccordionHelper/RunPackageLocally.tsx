@@ -27,7 +27,7 @@ export default function RunPackageLocally({
       }`}
       titleAction={
         <ButtonOutlined buttonProps={{ as: Link, href: '/learn/cli/' }}>
-          Use this package in your Cannonfile
+          Install CLI
         </ButtonOutlined>
       }
     >
