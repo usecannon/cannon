@@ -9,24 +9,22 @@ import {
   getOutputs,
   PackageReference,
   renderTrace,
+  TraceEntry,
 } from '@usecannon/builder';
-import { TraceEntry } from '@usecannon/builder/src';
+import { bold, gray, green, greenBright, yellow } from 'chalk';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { bold, gray, green, greenBright, yellow } from 'chalk';
-
+import { ANVIL_FIRST_ADDRESS } from '../constants';
 import { setupAnvil } from '../helpers';
 import { getMainLoader } from '../loader';
-import onKeypress from '../util/on-keypress';
-import { PackageSpecification } from '../types';
-import { resolveCliSettings } from '../settings';
-import { ANVIL_FIRST_ADDRESS } from '../constants';
-import { CannonRpcNode, getProvider } from '../rpc';
 import { createDefaultReadRegistry } from '../registry';
+import { CannonRpcNode, getProvider } from '../rpc';
+import { resolveCliSettings } from '../settings';
+import { PackageSpecification } from '../types';
 import { log, warn } from '../util/console';
 import { getContractsRecursive } from '../util/contracts-recursive';
-
+import onKeypress from '../util/on-keypress';
 import { build } from './build';
 import { interact } from './interact';
 

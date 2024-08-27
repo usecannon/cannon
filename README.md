@@ -90,6 +90,24 @@ We bump and publish manually using lerna's [version and publish](https://lerna.j
 3. Create PR for the branch and merge when required tests are passing
 4. From the `main` branch, run `npm run publish-alpha` and follow the prompts.
 
+#### Dependabot Configuration
+To keep Cannon updated, we recommend using dependabot to regularly check for updates.
+
+Below is an example of a dependabot configuration that checks daily for cannon updates and applies them:
+
+```
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    groups:
+      cannon:
+        patterns:
+          - "@usecannon*"
+          - "*cannon*"
+```
+
 #### Changesets
 
 We can also use [changesets](https://github.com/changesets/changesets) to manage versions on our monorepo.

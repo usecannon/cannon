@@ -763,6 +763,12 @@ export const diamondSchema = z
         .describe('Address to DELEGATECALL on diamondCut() or constructor after the facets have been set'),
       initCalldata: z.string().optional().describe('Additional data to send to the `init` DELEGATECALL'),
     }),
+    immutable: z
+      .boolean()
+      .optional()
+      .describe(
+        'Prevents the diamond proxy from being modified in the future. Setting this value to `true` is irreversable once deployed.'
+      ),
     overrides: z
       .object({
         gasLimit: z.string().optional(),

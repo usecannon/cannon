@@ -58,7 +58,8 @@ export function computeTemplateAccesses(str?: string, possibleNames: string[] = 
     return { accesses: [], unableToCompute: false };
   }
 
-  const recorders: { [k: string]: AccessRecorder } = {
+  type AccessRecorderMap = { [k: string]: AccessRecorder };
+  const recorders: { [k: string]: AccessRecorder | AccessRecorderMap } = {
     contracts: new AccessRecorder(),
     imports: new AccessRecorder(),
     extras: new AccessRecorder(),
@@ -66,21 +67,21 @@ export function computeTemplateAccesses(str?: string, possibleNames: string[] = 
     settings: new AccessRecorder(),
   };
 
-  for (const n in CannonHelperContext) {
-    if (typeof (CannonHelperContext as any)[n] === 'function') {
+  for (const [n, ctxVal] of Object.entries(CannonHelperContext)) {
+    if (typeof ctxVal === 'function') {
       // the types have been a massive unsolvableseeming pain here
       recorders[n] = _.noop as unknown as AccessRecorder;
-    } else if (typeof (CannonHelperContext as any)[n] === 'object') {
-      for (const o in (CannonHelperContext as any)[n]) {
-        if (!recorders[n]) (recorders[n] as any) = {};
-        if (typeof (CannonHelperContext as any)[n][o] === 'function') {
-          (recorders[n] as any)[o] = _.noop as unknown as AccessRecorder;
+    } else if (typeof ctxVal === 'object') {
+      for (const [key, val] of Object.entries(ctxVal)) {
+        if (typeof val === 'function') {
+          if (!recorders[n]) recorders[n] = {} as AccessRecorderMap;
+          (recorders[n] as AccessRecorderMap)[key] = _.noop as unknown as AccessRecorder;
         } else {
-          recorders[n] = (CannonHelperContext as any)[n] as unknown as AccessRecorder;
+          recorders[n] = ctxVal as unknown as AccessRecorder;
         }
       }
     } else {
-      recorders[n] = (CannonHelperContext as any)[n] as unknown as AccessRecorder;
+      recorders[n] = ctxVal as unknown as AccessRecorder;
     }
   }
 

@@ -10,7 +10,7 @@ import { CliSettings, resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { pickAnvilOptions } from './anvil';
 import { parseSettings } from './params';
-import { ProviderAction, resolveProvider, isURL, getChainIdFromProviderUrl } from './provider';
+import { ProviderAction, resolveProvider, isURL, getChainIdFromRpcUrl } from './provider';
 import { ANVIL_FIRST_ADDRESS } from '../constants';
 import { warn } from './console';
 
@@ -117,8 +117,8 @@ async function configureProvider(options: any, cliSettings: CliSettings) {
   let chainId: number | undefined = undefined;
 
   if (!options.chainId) {
-    if (isURL(cliSettings.providerUrl)) {
-      chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
+    if (isURL(cliSettings.rpcUrl)) {
+      chainId = await getChainIdFromRpcUrl(cliSettings.rpcUrl);
     } else {
       node = await runRpc({
         ...pickAnvilOptions(options),
@@ -181,9 +181,9 @@ async function configureSigners(
   let getDefaultSigner: (() => Promise<CannonSigner>) | undefined = undefined;
 
   // Early return, we don't need to configure signers
-  const isProviderUrl = isURL(cliSettings.providerUrl);
+  const isRpcUrl = isURL(cliSettings.rpcUrl);
 
-  if (!opts.chainId && !isProviderUrl) return { getSigner, getDefaultSigner };
+  if (!opts.chainId && !isRpcUrl) return { getSigner, getDefaultSigner };
 
   if (opts.dryRun) {
     // Setup for dry run
@@ -214,7 +214,7 @@ async function configureSigners(
   if (await getDefaultSigner()) {
     const defaultSignerAddress = (await getDefaultSigner())!.address;
 
-    if (opts.chainId != '13370' && defaultSignerAddress === ANVIL_FIRST_ADDRESS) {
+    if (!opts.dryRun && opts.chainId != '13370' && defaultSignerAddress === ANVIL_FIRST_ADDRESS) {
       warn(`WARNING: This build is using default anvil address ${ANVIL_FIRST_ADDRESS}`);
     }
   }
@@ -292,7 +292,7 @@ async function prepareBuildConfig(
     wipe: opts.wipe,
     persist: !opts.dryRun,
     overrideResolver,
-    providerUrl: cliSettings.providerUrl,
+    rpcUrl: cliSettings.rpcUrl,
     writeScript: opts.writeScript,
     writeScriptFormat: opts.writeScriptFormat,
     gasPrice: parseGwei(opts.gasPrice),

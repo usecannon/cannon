@@ -172,7 +172,7 @@ describe('runtime.ts', () => {
           newRuntime.emit(Events[evt], 'dummy');
         }
 
-        expect(receiver).toBeCalledTimes(Object.keys(Events).length);
+        expect(receiver).toHaveBeenCalledTimes(Object.keys(Events).length);
       });
     });
 

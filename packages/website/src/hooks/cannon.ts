@@ -20,15 +20,17 @@ import {
   Events,
   getOutputs,
   InMemoryRegistry,
+  loadPrecompiles,
   PackageReference,
   publishPackage,
 } from '@usecannon/builder';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { Abi, Address, createPublicClient, createWalletClient, custom, Hex, isAddressEqual } from 'viem';
+import { Abi, Address, createPublicClient, createTestClient, createWalletClient, custom, Hex, isAddressEqual } from 'viem';
 import { useChainId } from 'wagmi';
 // Needed to prepare mock run step with registerAction
 import '@/lib/builder';
+import { externalLinks } from '@/constants/externalLinks';
 
 export type BuildState =
   | {
@@ -60,6 +62,7 @@ export function useLoadCannonDefinition(repo: string, ref: string, filepath: str
   });
 
   return {
+    isLoading: loadGitRepoQuery.isLoading || loadDefinitionQuery.isLoading,
     isFetching: loadGitRepoQuery.isFetching || loadDefinitionQuery.isFetching,
     isError: loadGitRepoQuery.isError || loadDefinitionQuery.isError,
     error: loadGitRepoQuery.error || loadDefinitionQuery.error,
@@ -102,11 +105,11 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       throw err;
     });
 
-    const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/');
+    const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
 
     setBuildStatus('Loading deployment data...');
 
-    addLog(`cannon.ts: upgrade from: ${prevDeploy?.def.name}:${prevDeploy?.def.version}`);
+    addLog('info', `cannon.ts: upgrade from: ${prevDeploy?.def.name}:${prevDeploy?.def.version}`);
 
     const transport = custom(fork);
 
@@ -114,6 +117,15 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       chain: findChain(safe.chainId),
       transport,
     });
+
+    const testProvider = createTestClient({
+      chain: findChain(safe.chainId),
+      transport,
+      mode: 'ganache',
+    });
+
+    // todo: as usual viem provider types refuse to work
+    await loadPrecompiles(testProvider as any);
 
     const wallet = createWalletClient({
       account: safe.address,
@@ -154,7 +166,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       (stepType: string, stepLabel: string, stepConfig: any, stepCtx: ChainBuilderContext, stepOutput: ChainArtifacts) => {
         const stepName = `${stepType}.${stepLabel}`;
 
-        addLog(`cannon.ts: on Events.PostStepExecute operation ${stepName} output: ${JSON.stringify(stepOutput)}`);
+        addLog('info', `cannon.ts: on Events.PostStepExecute operation ${stepName} output: ${JSON.stringify(stepOutput)}`);
 
         simulatedSteps.push(_.cloneDeep(stepOutput));
 
@@ -173,8 +185,12 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     );
 
     currentRuntime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
-      addLog(`cannon.ts: on Events.SkipDeploy error ${err.toString()} happened on the operation ${stepName}`);
+      addLog('error', `cannon.ts: on Events.SkipDeploy error ${err.toString()} happened on the operation ${stepName}`);
       skippedSteps.push({ name: stepName, err });
+    });
+
+    currentRuntime.on(Events.Notice, (stepName: string, msg: string) => {
+      addLog('warn', `${stepName}: ${msg}`);
     });
 
     if (prevDeploy) {
@@ -235,7 +251,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       .catch((err) => {
         // eslint-disable-next-line no-console
         console.error(err);
-        addLog(`cannon.ts: full build error ${err.toString()}`);
+        addLog('error', `cannon.ts: full build error ${err.toString()}`);
         setBuildError(err.toString());
       })
       .finally(() => {
@@ -269,11 +285,7 @@ export function useCannonWriteDeployToIpfs(
         throw new Error('You cannot write on an IPFS gateway, only read operations can be done');
       }
 
-      if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
-        throw new Error('You cannot publish on an repo endpoint, only read operations can be done');
-      }
-
-      if (!runtime || !deployInfo || !metaUrl) {
+      if (!runtime || !deployInfo) {
         throw new Error('Missing required parameters');
       }
 
@@ -287,7 +299,7 @@ export function useCannonWriteDeployToIpfs(
         [packageRef],
         runtime.chainId,
         (await runtime.loaders.mem.put(deployInfo)) ?? '',
-        metaUrl
+        metaUrl as string
       );
 
       const memoryRegistry = new InMemoryRegistry();
@@ -296,7 +308,7 @@ export function useCannonWriteDeployToIpfs(
         fromStorage: runtime,
         toStorage: new CannonStorage(
           memoryRegistry,
-          { ipfs: new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/') },
+          { ipfs: new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON) },
           'ipfs'
         ),
         packageRef,
@@ -356,12 +368,12 @@ export function useCannonPackage(packageRef?: string, chainId?: number) {
   const ipfsQuery = useQuery({
     queryKey: ['cannon', 'pkg', pkgUrl],
     queryFn: async () => {
-      addLog(`Loading ${pkgUrl}`);
+      addLog('info', `Loading ${pkgUrl}`);
 
       if (!pkgUrl) return null;
 
       try {
-        const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/');
+        const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
 
         const deployInfo: DeploymentInfo = await loader.read(pkgUrl as any);
 
@@ -375,13 +387,13 @@ export function useCannonPackage(packageRef?: string, chainId?: number) {
         const { fullPackageRef } = PackageReference.from(resolvedName, resolvedVersion, resolvedPreset);
 
         if (deployInfo) {
-          addLog(`Loaded ${resolvedName}:${resolvedVersion}@${resolvedPreset} from IPFS`);
+          addLog('info', `Loaded ${resolvedName}:${resolvedVersion}@${resolvedPreset} from IPFS`);
           return { deployInfo, ctx, resolvedName, resolvedVersion, resolvedPreset, fullPackageRef };
         } else {
           throw new Error('failed to download package data');
         }
       } catch (err) {
-        addLog(`IPFS Error: ${(err as any)?.message ?? 'unknown error'}`);
+        addLog('error', `IPFS Error: ${(err as any)?.message ?? 'unknown error'}`);
         throw err;
       }
     },
@@ -454,7 +466,7 @@ export function useCannonPackageContracts(packageRef?: string, chainId?: number)
       if (pkg.pkg) {
         const info = pkg.pkg;
 
-        const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/');
+        const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
         const readRuntime = new ChainBuilderRuntime(
           {
             provider: null as any,

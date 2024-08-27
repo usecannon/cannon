@@ -2,14 +2,13 @@ import _ from 'lodash';
 import path from 'path';
 import fs from 'fs-extra';
 import { bold, cyan, green, yellow } from 'chalk';
-import { PackageReference } from '@usecannon/builder/dist/src/package';
-import { fetchIPFSAvailability } from '@usecannon/builder/dist/src/ipfs';
+import { PackageReference } from '@usecannon/builder';
+import { fetchIPFSAvailability } from '@usecannon/builder';
 import { ContractData, ChainArtifacts, ChainDefinition, DeploymentState } from '@usecannon/builder';
-
-import { log, warn } from '../util/console';
-import { CliSettings } from '../settings';
 import { getMainLoader } from '../loader';
 import { createDefaultReadRegistry } from '../registry';
+import { CliSettings } from '../settings';
+import { log, warn } from '../util/console';
 import { getContractsAndDetails, getSourceFromRegistry } from '../helpers';
 
 export async function inspect(
