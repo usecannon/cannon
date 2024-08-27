@@ -159,6 +159,12 @@ const runAction = {
   ): Promise<ChainArtifacts> {
     debug('exec', config);
 
+    // can only actually execute this step when the current runtime context is in the top level
+    // otherwise its a possible security issue because running arbitrary code
+    if (runtime.subpkgDepth > 0) {
+      throw new Error('Cannot execute `run` step outside its original context. Please contact the package owner.');
+    }
+
     if (!fs.statSync(config.exec).isFile()) {
       throw new Error(`Invalid "exec" value for "run" operation. Path "${config.exec}" not found.`);
     }

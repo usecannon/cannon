@@ -7,7 +7,7 @@ import EventEmitter from 'promise-events';
 import * as viem from 'viem';
 import CannonRegistryAbi from './abis/CannonRegistry';
 import { prepareMulticall, TxData } from './multicall';
-import { PackageReference } from './package';
+import { PackageReference } from './package-reference';
 import { CannonSigner } from './types';
 
 const debug = Debug('cannon:builder:registry');

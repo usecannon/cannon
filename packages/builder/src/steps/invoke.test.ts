@@ -2,6 +2,7 @@ import _ from 'lodash';
 import { validateConfig } from '../actions';
 import action from './invoke';
 import { fakeCtx, fakeRuntime } from './utils.test.helper';
+import { PackageReference } from '../package-reference';
 
 describe('steps/invoke.ts', () => {
   const fakeContractInfo = {
@@ -175,7 +176,7 @@ describe('steps/invoke.ts', () => {
             factory: { something: { event: 'whoop', arg: 0 } },
             extra: { else: { event: 'arst', arg: 1 } },
           },
-          { name: '', version: '', currentLabel: 'invoke.Hello' }
+          { ref: new PackageReference('fun:1.0.0'), currentLabel: 'invoke.Hello' }
         )
       ).toEqual(['txns.Hello', 'contracts.something', 'something', 'settings.else', 'extras.else']);
     });
@@ -228,7 +229,7 @@ describe('steps/invoke.ts', () => {
             },
           },
         },
-        { name: 'fun', version: '1.0.0', currentLabel: 'invoke.something' }
+        { ref: new PackageReference('fun:1.0.0'), currentLabel: 'invoke.something' }
       );
 
       expect(result.contracts).toStrictEqual({

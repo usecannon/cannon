@@ -300,7 +300,7 @@ describe('builder.ts', () => {
       runtime.on(Events.PostStepExecute, handler);
       const stepData = await runStep(
         runtime,
-        { name: fakeDefinition.name, version: fakeDefinition.version, currentLabel: 'deploy.Yoop' },
+        { ref: new ChainDefinition(fakeDefinition).getPackageRef({} as any), currentLabel: 'deploy.Yoop' },
         (fakeDefinition as any).deploy.Yoop,
         initialCtx
       );

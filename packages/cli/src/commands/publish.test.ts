@@ -61,7 +61,7 @@ describe('publish command', () => {
       jest.fn().mockReturnValue({
         ipfsUrl: 'http://127.0.0.1:5001',
         publishIpfsUrl: 'http://127.0.0.1:5001',
-        registryProviderUrl: 'http://localhost:3000',
+        registryRpcUrl: 'http://localhost:3000',
         registryAddress: viem.zeroAddress,
         registryChainId: '123', // or whatever value is appropriate in your case
         cannonDirectory: dirSync().name,

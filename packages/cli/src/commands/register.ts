@@ -27,9 +27,9 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
   // mock provider urls when the execution comes from e2e tests
   if (cliSettings.isE2E) {
     // anvil optimism fork
-    cliSettings.registries[0].providerUrl = ['http://127.0.0.1:9546'];
+    cliSettings.registries[0].rpcUrl = ['http://127.0.0.1:9546'];
     // anvil mainnet fork
-    cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
+    cliSettings.registries[1].rpcUrl = ['http://127.0.0.1:9545'];
   }
 
   debug('Registries list: ', cliSettings.registries);
@@ -42,13 +42,13 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
   const registryProviders = await Promise.all([
     resolveProviderAndSigners({
       chainId: readRegistry.chainId!,
-      checkProviders: readRegistry.providerUrl,
+      checkProviders: readRegistry.rpcUrl,
       action: ProviderAction.ReadProvider,
     }),
     resolveProviderAndSigners({
       chainId: writeRegistry.chainId!,
       privateKey: cliSettings.privateKey!,
-      checkProviders: writeRegistry.providerUrl,
+      checkProviders: writeRegistry.rpcUrl,
       action: ProviderAction.WriteProvider,
     }),
   ]);
@@ -194,7 +194,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
               waitForEvent({
                 eventName: 'PackageOwnerChanged',
                 abi: mainnetRegistry.contract.abi,
-                providerUrl: _.last(optimismRegistryConfig.providerUrl)!,
+                rpcUrl: _.last(optimismRegistryConfig.rpcUrl)!,
                 expectedArgs: {
                   name: packageNameHex,
                   owner: userAddress,
@@ -203,7 +203,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
               waitForEvent({
                 eventName: 'PackagePublishersChanged',
                 abi: mainnetRegistry.contract.abi,
-                providerUrl: _.last(optimismRegistryConfig.providerUrl)!,
+                rpcUrl: _.last(optimismRegistryConfig.rpcUrl)!,
                 expectedArgs: {
                   name: packageNameHex,
                   publisher: [userAddress],

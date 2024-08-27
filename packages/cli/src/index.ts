@@ -42,13 +42,7 @@ import { doBuild } from './util/build';
 import { error, log, warn } from './util/console';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { parsePackageArguments, parsePackagesArguments } from './util/params';
-import {
-  getChainIdFromProviderUrl,
-  isURL,
-  ProviderAction,
-  resolveProvider,
-  resolveProviderAndSigners,
-} from './util/provider';
+import { getChainIdFromRpcUrl, isURL, ProviderAction, resolveProviderAndSigners, resolveProvider } from './util/provider';
 import { isPackageRegistered } from './util/register';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
@@ -168,14 +162,14 @@ function configureRun(program: Command) {
       });
 
       // throw an error if the chainId is not consistent with the provider's chainId
-      await ensureChainIdConsistency(cliSettings.providerUrl, options.chainId);
+      await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
 
       node = await runRpc(pickAnvilOptions(options), {
         forkProvider: provider,
       });
     } else {
-      if (isURL(cliSettings.providerUrl)) {
-        options.chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
+      if (isURL(cliSettings.rpcUrl)) {
+        options.chainId = await getChainIdFromRpcUrl(cliSettings.rpcUrl);
 
         const { provider } = await resolveProvider({
           action: ProviderAction.ReadProvider,
@@ -214,7 +208,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     const cliSettings = resolveCliSettings(options);
 
     // throw an error if the chainId is not consistent with the provider's chainId
-    await ensureChainIdConsistency(cliSettings.providerUrl, options.chainId);
+    await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
 
     log(bold('Building the foundry project...'));
     if (!options.skipCompile) {
@@ -282,6 +276,29 @@ applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(asy
   await verify(packageName, cliSettings, options.preset, parseInt(options.chainId));
 });
 
+applyCommandsConfig(program.command('diff'), commandsConfig.diff).action(async function (
+  packageName,
+  projectDirectory,
+  options
+) {
+  const { diff } = await import('./commands/diff');
+
+  const cliSettings = resolveCliSettings(options);
+
+  const foundDiffs = await diff(
+    packageName,
+    cliSettings,
+    options.preset,
+    parseInt(options.chainId),
+    projectDirectory,
+    options.matchContract,
+    options.matchSource
+  );
+
+  // exit code is the number of differences found--useful for CI checks
+  process.exit(foundDiffs);
+});
+
 applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async function (
   packageName,
   command,
@@ -293,7 +310,7 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
   const cliSettings = resolveCliSettings(flags);
 
   // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(cliSettings.providerUrl, flags.chainId);
+  await ensureChainIdConsistency(cliSettings.rpcUrl, flags.chainId);
 
   // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
   const newUrl = await alter(
@@ -381,15 +398,17 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     options.chainId = chainIdPrompt.value;
   }
 
-  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
-  if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
+  const isDefaultRegistryChains =
+    cliSettings.registries[0].chainId === DEFAULT_REGISTRY_CONFIG[0].chainId &&
+    cliSettings.registries[1].chainId === DEFAULT_REGISTRY_CONFIG[1].chainId;
+  if (!isDefaultRegistryChains) throw new Error('Only default registries are supported for now');
 
   // mock provider urls when the execution comes from e2e tests
   if (cliSettings.isE2E) {
     // anvil optimism fork
-    cliSettings.registries[0].providerUrl = ['http://127.0.0.1:9546'];
+    cliSettings.registries[0].rpcUrl = ['http://127.0.0.1:9546'];
     // anvil mainnet fork
-    cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
+    cliSettings.registries[1].rpcUrl = ['http://127.0.0.1:9545'];
   }
 
   // initialized optimism as the default registry
@@ -424,13 +443,13 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     resolveProviderAndSigners({
       chainId: writeRegistry.chainId!,
       privateKey: cliSettings.privateKey!,
-      checkProviders: writeRegistry.providerUrl,
+      checkProviders: writeRegistry.rpcUrl,
       action: ProviderAction.WriteProvider,
     }),
     // read from the other one
     resolveProviderAndSigners({
       chainId: readRegistry.chainId!,
-      checkProviders: readRegistry.providerUrl,
+      checkProviders: readRegistry.rpcUrl,
       action: ProviderAction.ReadProvider,
     }),
   ]);
@@ -622,21 +641,21 @@ applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async
 
   const cliSettings = resolveCliSettings(options);
 
-  const isProviderUrl = isURL(cliSettings.providerUrl);
+  const isRpcUrl = isURL(cliSettings.rpcUrl);
 
   let chainId = options.chainId ? Number(options.chainId) : undefined;
 
-  if (!chainId && isProviderUrl) {
-    chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
+  if (!chainId && isRpcUrl) {
+    chainId = await getChainIdFromRpcUrl(cliSettings.rpcUrl);
   }
 
-  // throw an error if both chainId and providerUrl are not provided
-  if (!chainId && !isProviderUrl) {
-    throw new Error('Please provide one of the following options: --chain-id or --provider-url');
+  // throw an error if both chainId and rpcUrl are not provided
+  if (!chainId && !isRpcUrl) {
+    throw new Error('Please provide one of the following options: --chain-id or --rpc-url');
   }
 
   // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(cliSettings.providerUrl, chainId);
+  await ensureChainIdConsistency(cliSettings.rpcUrl, chainId);
 
   await trace({
     packageRef,
@@ -669,12 +688,12 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
 
   const cliSettings = resolveCliSettings(options);
 
-  if (cliSettings.providerUrl.startsWith('https')) {
+  if (cliSettings.rpcUrl.startsWith('https')) {
     options.dryRun = true;
   }
 
   // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(cliSettings.providerUrl, options.chainId);
+  await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
 
   const [node, , outputs] = await doBuild(cannonfile, [], options);
 
@@ -703,20 +722,20 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   let chainId: number | undefined = options.chainId ? Number(options.chainId) : undefined;
 
-  const isProviderUrl = isURL(cliSettings.providerUrl);
+  const isRpcUrl = isURL(cliSettings.rpcUrl);
 
   // if chainId is not provided, get it from the provider
-  if (!chainId && isProviderUrl) {
-    chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
+  if (!chainId && isRpcUrl) {
+    chainId = await getChainIdFromRpcUrl(cliSettings.rpcUrl);
   }
 
-  // throw an error if both chainId and providerUrl are not provided
-  if (!chainId && !isProviderUrl) {
-    throw new Error('Please provide one of the following options: --chain-id or --provider-url');
+  // throw an error if both chainId and rpcUrl are not provided
+  if (!chainId && !isRpcUrl) {
+    throw new Error('Please provide one of the following options: --chain-id or --rpc-url');
   }
 
   // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(cliSettings.providerUrl, chainId);
+  await ensureChainIdConsistency(cliSettings.rpcUrl, chainId);
 
   const { provider, signers } = await resolveProvider({
     action: ProviderAction.OptionalWriteProvider,
