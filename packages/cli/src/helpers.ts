@@ -537,7 +537,50 @@ export async function getPackageReference(ref: string) {
   } catch (error: any) {
     if (error.toString().includes('timeout')) {
       throw new Error(
-        "Could not download package through IPFS, please make sure you set your 'ipfsUrl' to the ipfs url where this hash has been pinned"
+        "Could not find package in the local cannon directory"
+      );
+    }
+
+    throw new Error(error);
+  }
+}
+
+/**
+ *
+ * @param ref reference string, can be a package reference or ipfs url
+ * @returns Package Reference string
+ */
+export async function getChainIdFromDeployInfo(ref: string) {
+  if (ref.startsWith('@')) {
+    log(yellowBright("'@ipfs:' package reference format is deprecated, use 'ipfs://' instead"));
+  }
+
+  if (isIPFSUrl(ref)) {
+    ref = normalizeIPFSUrl(ref);
+  } else if (isIPFSCid(ref)) {
+    ref = `ipfs://${ref}`;
+  } else {
+    throw new Error('Ref must be a valid IPFS hash or url')
+  }
+
+  const cliSettings = resolveCliSettings();
+
+  const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
+
+  const storage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
+
+  try {
+    const pkgInfo: DeploymentInfo = await storage.readBlob(ref);
+
+    if (pkgInfo.chainId) {
+      return pkgInfo.chainId;
+    } else {
+      throw new Error ('Deployment has no chain id specified')
+    }
+  } catch (error: any) {
+    if (error.toString().includes('timeout')) {
+      throw new Error(
+        "Could not find package in the local cannon directory"
       );
     }
 
