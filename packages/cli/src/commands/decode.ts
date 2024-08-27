@@ -47,12 +47,10 @@ export async function decode({
   let inputData = data;
 
   if (isTxHash(data)) {
-    if (!rpcUrl && !chainId) {
-      throw new Error('RPC URL or chain ID is required to decode transaction data');
-    }
-
-    if (!chainId && rpcUrl) {
+    if (!chainId && rpcUrl && isURL(rpcUrl)) {
       chainId = await getChainIdFromRpcUrl(rpcUrl);
+    } else {
+      if (!chainId) throw new Error('--chain-id or --rpc-url is required to decode transaction data');
     }
 
     ensureChainIdConsistency(rpcUrl, chainId);
