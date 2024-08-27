@@ -27,11 +27,13 @@ import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { DeploymentInfo } from '@usecannon/builder';
 import { getPackage } from '@/helpers/api';
-import { usePackageVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
+
 import PageLoading from '@/components/PageLoading';
+import PackageAccordionHelper from '@/features/Packages/PackageAccordionHelper';
+import { usePackageNameTagVariantUrlParams } from '@/hooks/routing/usePackageNameTagVariantUrlParams';
 
 function TagVariantLayout({ children }: { children: ReactNode }) {
-  const { name, tag, chainId, preset } = usePackageVersionUrlParams();
+  const { name, tag, chainId, preset } = usePackageNameTagVariantUrlParams();
   const { query: params, pathname, asPath } = useRouter();
 
   const packagesQuery = useQuery({
@@ -116,6 +118,13 @@ function TagVariantLayout({ children }: { children: ReactNode }) {
                   <VersionSelect pkg={packagesQuery.data.data} />
                 </Box>
               </Flex>
+
+              <PackageAccordionHelper
+                name={name}
+                tag={tag}
+                chainId={chainId}
+                preset={preset}
+              />
 
               {/* Package Tabs */}
               <Flex
