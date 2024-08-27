@@ -1,7 +1,7 @@
+import CodePreview from '@/components/CodePreview';
 import { ItemBodyWrapper } from '@/features/Packages/PackageAccordionHelper/utils';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { Flex, Text, Tooltip } from '@chakra-ui/react';
-import { a11yDark, CopyBlock } from 'react-code-blocks';
 import Link from 'next/link';
 import camelCase from 'lodash/camelCase';
 import { ChainDefinition, getArtifacts } from '@usecannon/builder';
@@ -72,14 +72,17 @@ ${generateSettingsText(contextDataCode.settings)}
           <InfoOutlineIcon boxSize={3} />
         </Tooltip>
       </Flex>
-
-      <CopyBlock
-        text={interactCode}
-        language="toml"
-        showLineNumbers={true}
-        codeBlock
-        theme={a11yDark}
-        customStyle={{ fontSize: '14px', color: 'black' }}
+      <CodePreview
+        code={interactCode}
+        height="150px"
+        language="ini"
+        editorProps={{
+          options: {
+            readOnly: true,
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+          },
+        }}
       />
 
       <Flex alignItems="center" mt={4} mb={2}>
@@ -95,13 +98,17 @@ ${generateSettingsText(contextDataCode.settings)}
         </Tooltip>
       </Flex>
 
-      <CopyBlock
-        text={JSON.stringify(contextDataCode, null, 2)}
-        language="bash"
-        showLineNumbers={true}
-        codeBlock
-        theme={a11yDark}
-        customStyle={{ fontSize: '14px' }}
+      <CodePreview
+        code={JSON.stringify(contextDataCode, null, 2)}
+        height="250px"
+        language="ini"
+        editorProps={{
+          options: {
+            readOnly: true,
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+          },
+        }}
       />
     </ItemBodyWrapper>
   );
