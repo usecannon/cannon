@@ -242,7 +242,7 @@ function QueueFromGitOps() {
     const version = 'latest';
     const preset = cannonDefInfo.def.getPreset(ctx);
     setPreviousPackageInput(`${name}:${version}@${preset}`);
-    if (selectedDeployType == '1') setSelectedDeployType('2');
+    if (selectedDeployType == 'new') setSelectedDeployType('upgrade');
   }, [cannonDefInfo.def]);
 
   // run the build and get the list of transactions we need to run
