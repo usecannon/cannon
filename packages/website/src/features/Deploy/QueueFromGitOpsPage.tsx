@@ -69,7 +69,7 @@ export default function QueueFromGitOpsPage() {
 }
 
 function QueueFromGitOps() {
-  const [selectedDeployType, setSelectedDeployType] = useState('1');
+  const [selectedDeployType, setSelectedDeployType] = useState('new');
   const router = useRouter();
   const currentSafe = useStore((s) => s.currentSafe);
   const { chainId, isConnected } = useAccount();
