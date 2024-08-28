@@ -56,19 +56,12 @@ export class CannonStorage extends EventEmitter {
       .join(', ')}`;
   }
 
-  readBlob(url: string) {
+  async readBlob(url: string) {
     const loader = this.lookupLoader(url);
-
-    let loaderLabel;
-
-    if (loader instanceof IPFSLoader) {
-      loaderLabel = loader.ipfsUrl;
-    } else {
-      loaderLabel = loader.getLabel();
-    }
-
+    const blob = await loader.read(url);
+    const loaderLabel = loader.getLabel();
     this.emit(Events.DownloadDeploy, url, loaderLabel, 0);
-    return loader.read(url);
+    return blob;
   }
 
   putBlob(data: any) {
