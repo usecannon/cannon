@@ -138,7 +138,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
       debug('trying registry', registry.getLabel());
       try {
         const result = await registry.getUrl(packageRef, chainId);
-        
+
         if (result) {
           debug('fallback registry: loaded from registry', registry.getLabel());
           await this.emit('getPackageUrl', { fullPackageRef, chainId, result, registry, fallbackRegistry: this });
@@ -152,7 +152,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
               `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`
           );
         }
-        
+
         throw new Error(err);
       }
     }
@@ -179,7 +179,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
               `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`
           );
         }
-        
+
         throw new Error(err);
       }
     }
