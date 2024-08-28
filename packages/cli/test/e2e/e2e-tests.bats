@@ -103,6 +103,22 @@ teardown() {
   assert_success
 }
 
+@test "Decode - Synthetix configureCollateral function (Transaction Hash)" {
+  run decode.sh 6
+  echo $output
+  assert_output --partial 'function configureCollateral(tuple config)'
+  assert_output --partial '0x644cb0f3'
+  assert_output --partial 'tuple config'
+  assert_output --partial 'bool depositingEnabled true'
+  assert_output --partial 'uint256 issuanceRatioD18 4000000000000000000'
+  assert_output --partial 'uint256 liquidationRatioD18 1500000000000000000'
+  assert_output --partial 'uint256 liquidationRewardD18 10000000000000000000'
+  assert_output --partial 'bytes32 oracleNodeId 0x050be821f7e92c7ca8366e2fe01eee313272231d436c5deaed75b978d78f7116'
+  assert_output --partial 'address tokenAddress 0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F'
+  assert_output --partial 'uint256 minDelegationD18 10000000000000000000'
+  assert_success
+}
+
 @test "Alter - Import contract " {
   run alter-import-contract.sh
   echo $output
