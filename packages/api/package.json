@@ -15,7 +15,7 @@
   "dependencies": {
     "@isaacs/ttlcache": "^1.4.1",
     "@usecannon/builder": "^2.16.5",
-    "@usecannon/cli": "^2.16.4",
+    "@usecannon/cli": "^2.16.5",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "envalid": "^8.0.0",
