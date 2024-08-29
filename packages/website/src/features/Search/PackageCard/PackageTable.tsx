@@ -6,9 +6,10 @@ import { DataTable } from './DataTable';
 import { createColumnHelper } from '@tanstack/react-table';
 import chains from '@/helpers/chains';
 import { Box } from '@chakra-ui/react';
+import { ApiDocument } from '@usecannon/api/dist/src/types';
 
 const PackageTable: FC<{
-  pkgs: any;
+  pkgs: ApiDocument[];
   latestOnly: boolean;
 }> = ({ pkgs, latestOnly }) => {
   let data = pkgs.map((v: any) => {

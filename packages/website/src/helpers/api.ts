@@ -1,12 +1,13 @@
 import axios from 'axios';
-import { ApiPackage } from '@usecannon/api/types';
-const baseURL = process.env.NEXT_PUBLIC_API_URL || 'https://api.usecannon.com';
+import { externalLinks } from '@/constants/externalLinks';
+
+// TODO: move all this to typed hooks
 
 export const getSearch = async ({ queryKey }: { queryKey: any[] }) => {
   const [, searchTerm] = queryKey;
   try {
     const response = await axios.get('search', {
-      baseURL,
+      baseURL: externalLinks.API_CANNON,
       params: {
         query: searchTerm,
       },
@@ -21,7 +22,7 @@ export const getPackages = async ({ queryKey }: { queryKey: any[] }) => {
   const [, searchTerm, selectedChains, types] = queryKey;
   try {
     const response = await axios.get('search', {
-      baseURL,
+      baseURL: externalLinks.API_CANNON,
       params: {
         query: searchTerm,
         chainIds: selectedChains.length > 0 ? selectedChains.join(',') : undefined,
@@ -36,31 +37,9 @@ export const getPackages = async ({ queryKey }: { queryKey: any[] }) => {
 
 export const getChains = async () => {
   try {
-    const response = await axios.get('chains', { baseURL });
+    const response = await axios.get('chains', { baseURL: externalLinks.API_CANNON });
     return response.data;
   } catch (error) {
     throw new Error('Failed to fetch chains', error as Error);
   }
-};
-
-export const getPackage = async ({ queryKey }: { queryKey: any[] }) => {
-  const [, name] = queryKey;
-  try {
-    const response = await axios.get(`packages/${name}`, { baseURL });
-    return response.data;
-  } catch (error) {
-    throw new Error('Failed to fetch package', error as Error);
-  }
-};
-
-export const getPackage2 = async ({ queryKey }: { queryKey: any[] }) => {
-  const [, name] = queryKey;
-
-  const a: ApiPackage = {
-    type: 'package',
-    name: name,
-    pepe: 1,
-  };
-
-  return a;
 };

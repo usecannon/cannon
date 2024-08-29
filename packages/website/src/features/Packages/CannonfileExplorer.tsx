@@ -34,6 +34,7 @@ import { CannonfileGraph } from './CannonfileGraph';
 import { StepModalProvider } from '@/providers/stepModalProvider';
 import { stringify } from '@iarna/toml';
 import { PiGraphLight, PiCodeLight, PiListBullets } from 'react-icons/pi';
+import { ApiPackage } from '@usecannon/api/dist/src/types';
 
 function omitEmptyObjects(config: { [x: string]: any }) {
   for (const key in config) {
@@ -54,7 +55,7 @@ function omitEmptyObjects(config: { [x: string]: any }) {
 }
 
 export const CannonfileExplorer: FC<{
-  pkg: any;
+  pkg: ApiPackage;
 }> = ({ pkg }) => {
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     pkg?.deployUrl,
