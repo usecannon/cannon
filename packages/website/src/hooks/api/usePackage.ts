@@ -18,7 +18,7 @@ const fetchPackageByRef = async ({ queryKey }: { queryKey: string[] }) => {
 const fetchPackageByName = async ({ queryKey }: { queryKey: string[] }) => {
   const [, name] = queryKey;
   try {
-    const response = await axios.get<{ data: { total: any; data: ApiDocument[] } }>(`packages/${name}`, {
+    const response = await axios.get<{ total: any; data: ApiDocument[] }>(`packages/${name}`, {
       baseURL: externalLinks.API_CANNON,
     });
     return response.data;
