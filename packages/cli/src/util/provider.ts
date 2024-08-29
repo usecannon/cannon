@@ -76,7 +76,7 @@ export const hideApiKey = (rpcUrl: string) => {
 };
 
 export const getChainIdFromRpcUrl = async (rpcUrl: string) => {
-  if (!isURL(rpcUrl)) throw new Error('Provider URL has not a valid format');
+  if (!isURL(rpcUrl)) throw new Error('RPC URL has not a valid format');
 
   const provider = viem.createPublicClient({ transport: viem.http(rpcUrl, { timeout: 180000 }) });
   return provider.getChainId();
@@ -162,14 +162,14 @@ export async function resolveProviderAndSigners({
   privateKey?: string;
   action: ProviderAction;
 }): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
-  const providerDisplayName = (providerUrl: string) => {
-    switch (providerUrl) {
+  const providerDisplayName = (rpcUrl: string) => {
+    switch (rpcUrl) {
       case 'frame':
         return 'Frame (frame.sh) if running';
       case 'direct':
         return 'default IPC paths, ws://127.0.0.1:8546, or http://127.0.0.1:8545';
       default:
-        return hideApiKey(providerUrl);
+        return hideApiKey(rpcUrl);
     }
   };
 
