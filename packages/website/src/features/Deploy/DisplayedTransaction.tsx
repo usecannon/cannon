@@ -100,7 +100,7 @@ export function DisplayedTransaction(props: {
     for (const n of parsedContractNames) {
       try {
         decodedFunctionData = decodeFunctionData({
-          abi: contracts[n].abi,
+          abi: contracts[n]?.abi,
           data: props.txn?.data || '0x',
         });
         contractName = n;
@@ -117,7 +117,7 @@ export function DisplayedTransaction(props: {
   const functionArgs = decodedFunctionData?.args?.map((v) => v) || [
     rawFunctionArgs,
   ];
-  const functionFragmentsFromAbi = contracts?.[contractName].abi.filter(
+  const functionFragmentsFromAbi = contracts?.[contractName]?.abi.filter(
     (f) => 'name' in f && f.name === functionName
   );
   const functionFragmentFromAbi = functionFragmentsFromAbi?.find(
