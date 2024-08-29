@@ -14,7 +14,7 @@ export function useGitRefsList(url: string) {
           http,
           corsProxy: 'https://git-proxy.repo.usecannon.com',
           url,
-          protocolVersion: 1, // reccomended when not filtering prefix
+          protocolVersion: 1, // recommended when not filtering prefix
         });
       }
 
