@@ -9,6 +9,8 @@ import { ReactNode } from 'react';
 import { WagmiProvider } from 'wagmi';
 import '@rainbow-me/rainbowkit/styles.css';
 import { useProviders } from '@/providers/CustomProvidersProvider';
+import { isE2ETest } from '@/constants/misc';
+import { getE2eWagmiConfig } from '../../cypress/utils/wagmi-mock-config';
 
 const queryClient = new QueryClient();
 
@@ -19,12 +21,17 @@ interface IWalletProvider {
 function WalletProvider({ children }: IWalletProvider) {
   const { chains, transports } = useProviders();
 
-  const wagmiConfig = getDefaultConfig({
-    appName: 'Cannon',
-    projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',
-    chains: chains as any,
-    transports,
-  });
+  let wagmiConfig: ReturnType<typeof getDefaultConfig>;
+  if (isE2ETest) {
+    wagmiConfig = getE2eWagmiConfig();
+  } else {
+    wagmiConfig = getDefaultConfig({
+      appName: 'Cannon',
+      projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',
+      chains: chains as any,
+      transports,
+    });
+  }
 
   // NOTE: have to hack the style below because otherwise it overflows the page.
   // hopefully the class name doesn't change from compile to compile lol
