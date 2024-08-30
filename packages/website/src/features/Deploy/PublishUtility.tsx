@@ -5,8 +5,9 @@ import { sleep } from '@/helpers/misc';
 import { findChain } from '@/helpers/rpc';
 import { useStore } from '@/helpers/store';
 import { useCannonPackage } from '@/hooks/cannon';
-import { useProviders } from '@/hooks/providers';
+
 import { useCannonPackagePublishers } from '@/hooks/registry';
+import { useProviders } from '@/providers/CustomProvidersProvider';
 import {
   ExternalLinkIcon,
   InfoOutlineIcon,
