@@ -535,12 +535,6 @@ export async function getPackageReference(ref: string) {
 
     return packageReference;
   } catch (error: any) {
-    if (error.toString().includes('timeout')) {
-      throw new Error(
-        "Could not find package in the local cannon directory"
-      );
-    }
-
     throw new Error(error);
   }
 }
