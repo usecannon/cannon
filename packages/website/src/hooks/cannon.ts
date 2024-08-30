@@ -7,6 +7,7 @@ import { useCannonRegistry } from '@/providers/CannonRegistryProvider';
 import { useLogs } from '@/providers/logsProvider';
 import { BaseTransaction } from '@safe-global/safe-apps-sdk';
 import { useMutation, UseMutationOptions, useQuery } from '@tanstack/react-query';
+import { useProviders } from './providers';
 import {
   build as cannonBuild,
   CannonStorage,
@@ -90,6 +91,8 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
   const fallbackRegistry = useCannonRegistry();
 
+  const providers = useProviders();
+
   const buildFn = async () => {
     // Wait until finished loading
     if (!safe || !def || !prevDeploy) {
@@ -100,6 +103,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     const fork = await createFork({
       chainId: safe.chainId,
       impersonate: [safe.address],
+      url: providers.rpcUrls[safe.chainId.toString() as any],
     }).catch((err) => {
       err.message = `Could not create local fork for build: ${err.message}`;
       throw err;

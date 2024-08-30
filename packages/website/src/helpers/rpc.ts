@@ -44,8 +44,16 @@ async function loadGanache() {
   });
 }
 
-export async function createFork({ chainId, impersonate = [] }: { chainId: number; impersonate: string[] }) {
-  const chainUrl = findChainUrl(chainId);
+export async function createFork({
+  chainId,
+  impersonate = [],
+  url,
+}: {
+  chainId: number;
+  impersonate: string[];
+  url?: string;
+}) {
+  const chainUrl = url ?? findChainUrl(chainId);
 
   await loadGanache();
   const Ganache = (window as any).Ganache.default;

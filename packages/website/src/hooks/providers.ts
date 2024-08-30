@@ -32,6 +32,7 @@ export function useProviders() {
 
   const [verifiedProviders, setVerifiedProviders] = useState<VerifiedProviders[]>([]);
   const [transports, setTransports] = useState<Record<number, viem.HttpTransport>>(defaultTransports);
+  const [rpcUrls, setRpcUrls] = useState<Record<number, string>>({});
   const customProviders = useStore((state) => state.settings.customProviders);
 
   useEffect(() => {
@@ -77,7 +78,14 @@ export function useProviders() {
       return prev;
     }, transports);
 
+    const _rpcUrls = verifiedProviders.reduce((prev, curr) => {
+      prev[curr.chainId] = curr.provider;
+
+      return prev;
+    }, rpcUrls);
+
     setTransports(_transports);
+    setRpcUrls(_rpcUrls);
   }, [verifiedProviders]);
 
   useEffect(() => {
@@ -97,5 +105,5 @@ export function useProviders() {
     );
   }, [transports]);
 
-  return { verifiedProviders, transports, wagmiConfig };
+  return { verifiedProviders, transports, rpcUrls, wagmiConfig };
 }

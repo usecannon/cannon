@@ -7,6 +7,8 @@ import {
   OnChainRegistry,
 } from '@usecannon/builder';
 
+import { useProviders } from '../hooks/providers';
+
 import React, { createContext, useContext } from 'react';
 import { Chain, createPublicClient, http } from 'viem';
 
@@ -18,6 +20,7 @@ type Props = {
   children: React.ReactNode;
 };
 export const CannonRegistryProvider: React.FC<Props> = ({ children }) => {
+  const { transports } = useProviders();
   const onChainRegistries = DEFAULT_REGISTRY_CONFIG.map(
     (registry) => registry.chainId
   ).map(
@@ -26,7 +29,7 @@ export const CannonRegistryProvider: React.FC<Props> = ({ children }) => {
         address: DEFAULT_REGISTRY_ADDRESS,
         provider: createPublicClient({
           chain: findChain(chainId) as Chain,
-          transport: http(),
+          transport: transports[chainId.toString() as any] || http(),
         }) as any, // TODO: fix type
       })
   );

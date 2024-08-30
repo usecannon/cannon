@@ -2,6 +2,7 @@ import { createFork } from '@/helpers/rpc';
 import { SafeDefinition } from '@/helpers/store';
 import { useEffect, useState } from 'react';
 import { Hex, TransactionRequestBase } from 'viem';
+import { useProviders } from './providers';
 
 type SimulatedTransactionResult = {
   gasUsed: bigint;
@@ -12,9 +13,11 @@ type SimulatedTransactionResult = {
 function useFork({ chainId, impersonate = [] }: { chainId: number; impersonate: string[] }) {
   const [fork, setFork] = useState<any>(null);
 
+  const providers = useProviders();
+
   useEffect(() => {
     void (async function load() {
-      setFork(await createFork({ chainId, impersonate }));
+      setFork(await createFork({ chainId, impersonate, url: providers.rpcUrls[chainId.toString() as any] }));
     })();
   }, [chainId, impersonate.join(',')]);
 
