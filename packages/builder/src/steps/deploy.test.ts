@@ -180,44 +180,22 @@ describe('steps/deploy.ts', () => {
       it('fails if contract already deployed', async () => {
         jest.mocked(fakeRuntime.provider.getCode).mockResolvedValue('0xabcdef');
 
-        const result = await action.exec(
-          fakeRuntime,
-          fakeCtx,
-          {
-            artifact: 'hello',
-            create2: true,
-            args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],
-            salt: 'wohoo',
-            value: '1234',
-          },
-          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
-        );
-
-        expect(result).toStrictEqual({
-          contracts: {
-            Woot: {
-              abi: fakeAbi,
-              address: '0x3F9270CE7b8704E7BE0BfcA0EA8836f2B135a4ef',
-              constructorArgs: [
-                viem.stringToHex('one', { size: 32 }),
-                viem.stringToHex('two', { size: 32 }),
-                { three: 'four' },
-              ],
-              contractName: undefined,
-              deployTxnHash: '',
-              deployTxnBlockNumber: '',
-              deployTimestamp: '',
-              deployedOn: 'contract.Woot',
-              gasCost: '0',
-              gasUsed: 0,
-              linkedLibraries: {},
-              sourceName: undefined,
-              highlight: undefined,
+        expect(
+          action.exec(
+            fakeRuntime,
+            fakeCtx,
+            {
+              artifact: 'hello',
+              create2: true,
+              args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],
+              salt: 'wohoo',
+              value: '1234',
             },
-          },
-        });
+            { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
+          )
+        ).rejects.toThrowErrorMatchingSnapshot();
       });
-
+      
       it('works if contract needs to be deployed', async () => {
         jest.mocked(fakeRuntime.provider.getCode).mockImplementation(async ({ address }) => {
           if (address === DEFAULT_ARACHNID_ADDRESS) {
