@@ -177,7 +177,7 @@ describe('steps/deploy.ts', () => {
 
   describe('exec()', () => {
     describe('when create2 = true', () => {
-      it('works if contract already deployed', async () => {
+      it('fails if contract already deployed', async () => {
         jest.mocked(fakeRuntime.provider.getCode).mockResolvedValue('0xabcdef');
 
         const result = await action.exec(
