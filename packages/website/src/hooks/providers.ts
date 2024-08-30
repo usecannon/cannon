@@ -18,7 +18,14 @@ const cannonNetwork = {
   name: 'Cannon Localhost',
 } as viem.Chain;
 
-export const supportedChains = [cannonNetwork, ...Object.values(chains)] as [viem.Chain, ...viem.Chain[]];
+// TODO: temp remove when snaxchain info gets upstreamed
+const tempSnaxNetwork = {
+  ...chains.localhost,
+  id: 2192,
+  name: 'SnaxChain',
+} as viem.Chain;
+
+export const supportedChains = [cannonNetwork, tempSnaxNetwork, ...Object.values(chains)] as [viem.Chain, ...viem.Chain[]];
 
 export const defaultTransports = supportedChains.reduce((prev, curr) => {
   prev[curr.id] = http() as any; // TODO: fix type
