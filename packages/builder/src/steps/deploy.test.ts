@@ -195,7 +195,7 @@ describe('steps/deploy.ts', () => {
           )
         ).rejects.toThrowErrorMatchingSnapshot();
       });
-      
+
       it('works if contract needs to be deployed', async () => {
         jest.mocked(fakeRuntime.provider.getCode).mockImplementation(async ({ address }) => {
           if (address === DEFAULT_ARACHNID_ADDRESS) {
