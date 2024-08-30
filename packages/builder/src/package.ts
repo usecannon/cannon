@@ -6,7 +6,6 @@ import { CannonStorage } from './runtime';
 import { BundledOutput, ChainArtifacts, DeploymentInfo, StepState } from './types';
 
 import { PackageReference } from './package-reference';
-import { from } from 'form-data';
 
 const debug = Debug('cannon:builder:package');
 
@@ -77,9 +76,19 @@ function _deployImports(deployInfo: DeploymentInfo) {
 }
 
 // this internal function will copy one package's ipfs records and return a publish call, without recursing
-export async function pinIpfs(deployInfo: DeploymentInfo, context: BundledOutput | null, alreadyCopiedIpfs: Map<string, any>, fromStorage: CannonStorage, toStorage: CannonStorage, tags: Array<string>) {
+export async function pinIpfs(
+  deployInfo: DeploymentInfo,
+  context: BundledOutput | null,
+  fromStorage: CannonStorage,
+  toStorage: CannonStorage,
+  tags: Array<string>,
+) {
+  const alreadyCopiedIpfs = new Map<string, any>();
+
+  const checkKeyPreset = deployInfo.def.preset || context?.preset || 'main';
+
   const checkKey =
-    deployInfo.def.name + ':' + deployInfo.def.version + ':' + deployInfo.def.preset + ':' + deployInfo.timestamp;
+    deployInfo.def.name + ':' + deployInfo.def.version + ':' + checkKeyPreset + ':' + deployInfo.timestamp;
 
   if (alreadyCopiedIpfs.has(checkKey)) {
     return alreadyCopiedIpfs.get(checkKey);
@@ -87,19 +96,19 @@ export async function pinIpfs(deployInfo: DeploymentInfo, context: BundledOutput
 
   const def = new ChainDefinition(deployInfo.def);
 
-  const chainId = deployInfo.chainId!;
+  const pkgChainId = deployInfo.chainId!;
 
-  const preCtx = await createInitialContext(def, deployInfo.meta, chainId, deployInfo.options);
+  const preCtx = await createInitialContext(def, deployInfo.meta, pkgChainId, deployInfo.options);
 
-  const packageReference = new PackageReference(
-    `${def.getName(preCtx)}:${def.getVersion(preCtx)}@${context && context.preset ? context.preset : deployInfo.def.preset}`
+  const packageReference = PackageReference.from(
+    def.getName(preCtx), def.getVersion(preCtx), context && context.preset ? context.preset : deployInfo.def.preset
   );
 
   // if the package has already been published to the registry and it has the same ipfs hash, skip.
-  const toUrl = await toStorage.registry.getUrl(packageReference.fullPackageRef, chainId);
+  const toUrl = await toStorage.registry.getUrl(packageReference.fullPackageRef, pkgChainId);
   debug('toStorage.getLabel: ' + toStorage.getLabel() + ' toUrl: ' + toUrl);
 
-  const fromUrl = await fromStorage.registry.getUrl(packageReference.fullPackageRef, chainId);
+  const fromUrl = await fromStorage.registry.getUrl(packageReference.fullPackageRef, pkgChainId);
   debug('fromStorage.getLabel: ' + fromStorage.getLabel() + ' fromUrl: ' + fromUrl);
 
   if (fromUrl && toUrl === fromUrl) {
@@ -108,7 +117,7 @@ export async function pinIpfs(deployInfo: DeploymentInfo, context: BundledOutput
     return null;
   }
 
-  debug('copy ipfs for', packageReference, toUrl, fromUrl);
+  debug('copy ipfs for', packageReference.fullPackageRef, toUrl, fromUrl);
 
   const url = await toStorage.putBlob(deployInfo!);
 
@@ -129,17 +138,17 @@ export async function pinIpfs(deployInfo: DeploymentInfo, context: BundledOutput
 
   // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
   //       Should it be called outside the scoped copyIpfs() function?
-  const metaUrl = await fromStorage.registry.getMetaUrl(packageReference.fullPackageRef, chainId);
-  let newMetaUrl = metaUrl;
+  // const metaUrl = await fromStorage.registry.getMetaUrl(packageReference.fullPackageRef, pkgChainId);
+  // let newMetaUrl = metaUrl;
 
-  if (metaUrl) {
-    // TODO: figure out metaurl handling
-    newMetaUrl = await toStorage.putBlob(await fromStorage.readBlob(metaUrl));
+  // if (metaUrl) {
+  //   // TODO: figure out metaurl handling
+  //   newMetaUrl = await toStorage.putBlob(await fromStorage.readBlob(metaUrl));
 
-    if (!newMetaUrl) {
-      throw new Error('error while writing new misc blob');
-    }
-  }
+  //   if (!newMetaUrl) {
+  //     throw new Error('error while writing new misc blob');
+  //   }
+  // }
 
   if (!url) {
     throw new Error('uploaded url is invalid');
@@ -149,15 +158,17 @@ export async function pinIpfs(deployInfo: DeploymentInfo, context: BundledOutput
     packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
       (t: string) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : packageReference.preset}`
     ),
-    chainId,
+    pkgChainId,
     url,
     metaUrl: '',
   };
 
   alreadyCopiedIpfs.set(checkKey, returnVal);
 
+  console.log(alreadyCopiedIpfs)
+
   return returnVal;
-};
+}
 
 export async function preparePublishPackage({
   packageRef,
@@ -170,11 +181,10 @@ export async function preparePublishPackage({
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
 
   const packageReference = new PackageReference(packageRef);
-  const alreadyCopiedIpfs = new Map<string, any>();
 
   // this internal function will copy one package's ipfs records and return a publish call, without recursing
   const pinPackagesToIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
-    return await pinIpfs(deployInfo, context, alreadyCopiedIpfs, fromStorage, toStorage, tags);
+    return await pinIpfs(deployInfo, context, fromStorage, toStorage, tags);
   };
 
   const deployData = await fromStorage.readDeploy(packageReference.fullPackageRef, chainId);
@@ -186,7 +196,9 @@ export async function preparePublishPackage({
   }
 
   // We call this regardless of includeProvisioned because we want to ALWAYS upload the subpackages ipfs data.
-  const calls: PackagePublishCall[] = (await forPackageTree(fromStorage, deployData, pinPackagesToIpfs)).filter((v: any) => !!v);
+  const calls: PackagePublishCall[] = (await forPackageTree(fromStorage, deployData, pinPackagesToIpfs)).filter(
+    (v: any) => !!v
+  );
 
   return includeProvisioned ? calls : [_.last(calls)!];
 }
