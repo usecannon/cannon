@@ -11,7 +11,6 @@ import {
   IPFSLoader,
   OnChainRegistry,
   PackageReference,
-  publishPackage,
   traceActions,
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow } from 'chalk';
@@ -46,6 +45,7 @@ import { isPackageRegistered } from './util/register';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
 import { pin } from './commands/pin';
+import ora from 'ora';
 
 export * from './types';
 export * from './constants';
@@ -359,11 +359,14 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
     ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || getCannonRepoRegistryUrl()),
   });
 
-  log('Uploading package data for pinning...');
+  const spinner = ora('Uploading package data for pinning').start();
+  
+  const pinned = await pin(ref, fromStorage, toStorage);
 
-  await pin(ref, fromStorage, toStorage);
+  spinner.info(`Succesfully pinned Ipfs deployment data for the following packages: \n${pinned.map(p => `${p.packagesNames}`)}`)
 
-  log('Done!');
+  spinner.succeed('Done!');
+
 });
 
 applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (

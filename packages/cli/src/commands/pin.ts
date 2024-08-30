@@ -1,10 +1,7 @@
 import {
   DeploymentInfo,
-  IPFSLoader,
   CannonStorage,
   PackageReference,
-  ChainDefinition,
-  createInitialContext,
   BundledOutput,
   forPackageTree,
 } from '@usecannon/builder';
@@ -22,11 +19,9 @@ export interface PinnedPackages {
 }
 
 export async function pin(hash: string, fromStorage: CannonStorage, toStorage: CannonStorage) {
-  const alreadyCopiedIpfs = new Map<string, any>();
-
   // this internal function will copy one package's ipfs records and return a publish call, without recursing
   const pinPackagesToIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
-    return await pinIpfs(deployInfo, context, alreadyCopiedIpfs, fromStorage, toStorage, []);
+    return await pinIpfs(deployInfo, context, fromStorage, toStorage, []);
   };
 
   const deployData: DeploymentInfo = await fromStorage.readBlob(hash);
@@ -37,10 +32,12 @@ export async function pin(hash: string, fromStorage: CannonStorage, toStorage: C
     );
   }
 
-  const packageReference = new PackageReference(`${deployData.def.name}:${deployData.def.version}@${deployData.def.preset}`);
-  
-  debug(`pin package ${packageReference.fullPackageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
 
+  const packageReference = PackageReference.from(deployData.def.name, deployData.def.version, deployData.def.preset);
+
+  debug(
+    `pin package ${packageReference.fullPackageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`
+  );
 
   const calls: PinnedPackages[] = (await forPackageTree(fromStorage, deployData, pinPackagesToIpfs)).filter((v: any) => !!v);
 

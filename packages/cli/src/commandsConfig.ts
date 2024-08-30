@@ -467,11 +467,7 @@ const commandsConfig = {
       },
     ],
     options: [
-      ...debugVerbosity,
-      {
-        flags: '-c --chain-id <chainId>',
-        description: 'Chain ID of deployment to pin',
-      },
+      ...debugVerbosity
     ],
   },
   publish: {
