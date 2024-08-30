@@ -289,12 +289,7 @@ const deploySpec = {
 
         if (bytecode && bytecode !== '0x') {
           debug('create2 contract already completed');
-
-          // the cannon state does not think a contract should be deployed, but the on-chain state says a contract
-          // is deployed. this could be a mistake. alert the user and explain how to override
-          throw new Error(
-            `The contract at the create2 destination ${addr} is already deployed, but the Cannon state does not recognize that this contract has already been deployed. This typically indicates incorrect upgrade configuration. Please confirm if this contract should already be deployed or not, and if you want to continue the build as-is, run 'cannon alter ${packageState.ref} set-contract-address ${packageState.currentLabel} ${addr}'`
-          );
+          // our work is done for us. unfortunately, its not easy to figure out what the transaction hash was
         } else {
           const signer = config.from
             ? await runtime.getSigner(config.from as viem.Address)

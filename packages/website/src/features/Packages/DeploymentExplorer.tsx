@@ -1,28 +1,20 @@
-import { FC } from 'react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
-import {
-  Box,
-  Button,
-  Container,
-  Flex,
-  Heading,
-  Link,
-  Text,
-  Tooltip,
-} from '@chakra-ui/react';
+
+import { FC } from 'react';
+import { Box, Flex, Heading, Link, Text, Tooltip } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { links } from '@/constants/links';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
-import { InfoIcon, DownloadIcon } from '@chakra-ui/icons';
+import { InfoIcon } from '@chakra-ui/icons';
 import { ChainBuilderContext } from '@usecannon/builder';
 import { isEmpty } from 'lodash';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
-import { CommandPreview } from '@/components/CommandPreview';
 import { ContractsTable } from './ContractsTable';
 import { InvokesTable } from './InvokesTable';
 import { EventsTable } from './EventsTable';
+import { extractAddressesAbis } from '@/features/Packages/utils/extractAddressesAndABIs';
 
 export const DeploymentExplorer: FC<{
   pkg: any;
@@ -95,23 +87,6 @@ export const DeploymentExplorer: FC<{
     ? mergeInvoke(deploymentInfo.state)
     : {};
 
-  function extractAddressesAbis(obj: any, result: any = {}) {
-    for (const key in obj) {
-      if (obj[key] && typeof obj[key] === 'object') {
-        // If the current object has both address and abi keys
-        if (obj[key].address && obj[key].abi) {
-          result[key] = {
-            address: obj[key].address,
-            abi: obj[key].abi,
-          };
-        }
-        // Recursively search through nested objects
-        extractAddressesAbis(obj[key], result);
-      }
-    }
-    return result;
-  }
-
   const addressesAbis = deploymentInfo?.state
     ? extractAddressesAbis(deploymentInfo.state)
     : {};
@@ -145,22 +120,6 @@ export const DeploymentExplorer: FC<{
 
   const mergedExtras = mergeExtras(deploymentInfo?.state || {});
 
-  const handleDownload = () => {
-    const blob = new Blob([JSON.stringify(addressesAbis, null, 2)], {
-      type: 'application/json',
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'deployments.json';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  };
-
-  const pkgDef = deploymentData?.data?.def;
-
   return pkg?.deployUrl ? (
     <Box>
       {deploymentData.isLoading ? (
@@ -184,61 +143,10 @@ export const DeploymentExplorer: FC<{
         </Box>
       ) : deploymentInfo ? (
         <Box>
-          {
-            <Container maxW="container.lg" mt={9} mb={12}>
-              <Box
-                p={6}
-                bg="gray.800"
-                border="1px solid"
-                borderColor="gray.700"
-                borderRadius="sm"
-              >
-                <Box mb={4}>
-                  <Heading size="md" mb={2}>
-                    Run Package
-                  </Heading>
-                  <Text fontSize="sm" color="gray.300">
-                    <Link as={NextLink} href="/learn/cli/">
-                      Install the CLI
-                    </Link>{' '}
-                    and then run a local node for development with this package
-                    {pkg.chainId != 13370 && ' on a fork'}:
-                  </Text>
-                </Box>
-                <CommandPreview
-                  command={`cannon ${pkg.name}${
-                    pkg?.tag !== 'latest' ? `:${pkgDef?.version}` : ''
-                  }${pkg.preset !== 'main' ? `@${pkgDef?.preset}` : ''}${
-                    pkg.chainId != 13370 ? ' --chain-id ' + pkg.chainId : ''
-                  }`}
-                />
-              </Box>
-            </Container>
-          }
           {(!isEmpty(addressesAbis) || !isEmpty(contractState)) && (
             <Box mt={6}>
               <Flex px={4} mb={3} direction={['column', 'column', 'row']}>
                 <Heading size="md">Contract Deployments</Heading>
-                <Box ml={[0, 0, 4]} mt={[2, 2, 0]}>
-                  <Button
-                    variant="outline"
-                    colorScheme="white"
-                    size="xs"
-                    bg="teal.900"
-                    borderColor="teal.500"
-                    _hover={{ bg: 'teal.800' }}
-                    leftIcon={<DownloadIcon boxSize={2.5} />}
-                    onClick={handleDownload}
-                    textTransform="uppercase"
-                    letterSpacing="1px"
-                    pt={0.5}
-                    fontFamily="var(--font-miriam)"
-                    color="gray.200"
-                    fontWeight={500}
-                  >
-                    Download Addresses + ABIs
-                  </Button>
-                </Box>
               </Flex>
               <Box maxW="100%" overflowX="auto">
                 <ContractsTable

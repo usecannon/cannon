@@ -133,7 +133,7 @@ const cloneSpec = {
       runtime.emit(
         Events.Notice,
         packageState.currentLabel,
-        'To prevent unexpected upgrades, it is strongly reccomended to lock the version of the source package by specifying a version in the `source` field.'
+        'To prevent unexpected upgrades, it is strongly recommended to lock the version of the source package by specifying a version in the `source` field.'
       );
     }
 
