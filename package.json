@@ -11,7 +11,7 @@
     "lint:fix:js": "prettier --write '{packages,examples}/**/*.{js,ts}' && eslint --fix '{packages,examples}/**/*.{js,ts}'",
     "lint:fix:sol": "prettier --write '{packages,examples}/*/{contracts,src}/**/*.sol'",
     "lint:fix": "npm-run-parallel lint:fix:js lint:fix:sol",
-    "build": "lerna run build --ignore cannon-website --ignore @usecannon/indexer --ignore repo --ignore @usecannon/api",
+    "build": "lerna run build --ignore cannon-website --ignore @usecannon/indexer --ignore repo",
     "version-alpha": "lerna version prerelease --no-private",
     "version-patch": "lerna version patch --no-private",
     "version-minor": "lerna version minor --no-private",

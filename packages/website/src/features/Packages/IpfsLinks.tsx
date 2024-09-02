@@ -11,9 +11,10 @@ import {
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
 import { PiCheckCircleFill, PiMinusCircleFill } from 'react-icons/pi';
+import { ApiPackage } from '@usecannon/api/dist/src/types';
 
 export const IpfsLinks: FC<{
-  pkg: any;
+  pkg: ApiPackage;
 }> = ({ pkg }) => {
   const theme = useTheme();
   const green500Hex = theme.colors.green[500];
