@@ -14,13 +14,13 @@ export const DEFAULT_REGISTRY_CONFIG = [
   {
     name: 'OP Mainnet',
     chainId: 10,
-    rpcUrl: ['frame', 'direct', 'https://opt-mainnet.g.alchemy.com/v2/iViPnjLzHhXkXS6Aj44qYDMqENOe0M_B'],
+    rpcUrl: ['frame', 'direct', 'https://opt-mainnet.g.alchemy.com/v2/2c6Mq72inJF0FBlKPMK8pe6TolJMar6G'],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
   {
     name: 'Ethereum Mainnet',
     chainId: 1,
-    rpcUrl: ['frame', 'direct', 'https://eth-mainnet.g.alchemy.com/v2/iViPnjLzHhXkXS6Aj44qYDMqENOe0M_B'],
+    rpcUrl: ['frame', 'direct', 'https://eth-mainnet.g.alchemy.com/v2/2c6Mq72inJF0FBlKPMK8pe6TolJMar6G'],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
 ];
