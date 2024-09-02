@@ -15,9 +15,10 @@ import { ContractsTable } from './ContractsTable';
 import { InvokesTable } from './InvokesTable';
 import { EventsTable } from './EventsTable';
 import { extractAddressesAbis } from '@/features/Packages/utils/extractAddressesAndABIs';
+import { ApiPackage } from '@usecannon/api/dist/src/types';
 
 export const DeploymentExplorer: FC<{
-  pkg: any;
+  pkg: ApiPackage;
 }> = ({ pkg }) => {
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     pkg?.deployUrl,

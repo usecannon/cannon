@@ -1,9 +1,9 @@
-import express from 'express';
+import { Router } from 'express';
 import basicAuth from 'express-basic-auth';
 import prometheus from 'express-prom-bundle';
 import { config } from '../config';
 
-const metrics = express.Router();
+const metrics: Router = Router();
 
 metrics.get(
   '/metrics',

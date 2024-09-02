@@ -1,7 +1,7 @@
-import express from 'express';
+import { Router } from 'express';
 import { getChainIdsWithCount } from '../queries/chains';
 
-const chains = express.Router();
+const chains: Router = Router();
 
 chains.get('/chains', async (req, res) => {
   const results = await getChainIdsWithCount();

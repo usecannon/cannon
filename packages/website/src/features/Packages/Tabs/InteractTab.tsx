@@ -18,10 +18,9 @@ import {
 import { ChainArtifacts, DeploymentInfo } from '@usecannon/builder';
 import { getOutput } from '@/lib/builder';
 import { useRouter } from 'next/router';
-import { useQuery } from '@tanstack/react-query';
-import { getPackage } from '@/helpers/api';
 import { usePackageVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import { CustomSpinner } from '@/components/CustomSpinner';
+import { usePackageByRef } from '@/hooks/api/usePackage';
 
 type Option = {
   moduleName: string;
@@ -58,18 +57,16 @@ export const InteractTab: FC<{
 }> = ({ children }) => {
   const router = useRouter();
   const { name, tag, preset, chainId, variant } = usePackageVersionUrlParams();
-  const packagesQuery = useQuery({
-    queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],
-    queryFn: getPackage,
-  });
+  const packagesQuery = usePackageByRef({ name, tag, preset, chainId });
+
   const activeContractOption = useActiveContract();
   const [highlightedOptions, setHighlightedOptions] = useState<Option[]>([]);
   const [otherOptions, setOtherOptions] = useState<Option[]>([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [routing, setRouting] = useState(false);
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
-    packagesQuery?.data?.data.deployUrl,
-    !!packagesQuery?.data?.data.deployUrl
+    packagesQuery?.data?.deployUrl,
+    !!packagesQuery?.data?.deployUrl
   );
 
   const hasSubnav = otherOptions.length > 0 || highlightedOptions.length > 1;
