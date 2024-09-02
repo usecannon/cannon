@@ -363,8 +363,6 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
   
   const pinned = await pin(ref, fromStorage, toStorage);
 
-  spinner.info(`Succesfully pinned Ipfs deployment data for the following packages: \n${pinned.map(p => `${p.packagesNames}`)}`)
-
   spinner.succeed('Done!');
 
 });

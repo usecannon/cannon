@@ -332,6 +332,9 @@ importers:
       chalk:
         specifier: ^4.1.2
         version: 4.1.2
+      cli-spinners:
+        specifier: ^3.1.0
+        version: 3.1.0
       commander:
         specifier: ^9.5.0
         version: 9.5.0
@@ -6276,6 +6279,10 @@ packages:
   cli-spinners@2.9.2:
     resolution: {integrity: sha512-ywqV+5MmyL4E7ybXgKys4DugZbX0FC6LnwrhjuykIjnK9k8OQacQ7axGKnjDXWNhns0xot3bZI5h55H8yo9cJg==}
     engines: {node: '>=6'}
+
+  cli-spinners@3.1.0:
+    resolution: {integrity: sha512-2MH0N34TpDAs9ROPVkZJfBWFoYfv4zfkJF14PBHY4v/qRY75SLcm4WaEKNCLScsXieosa/tY/+slJ+BDswJxHQ==}
+    engines: {node: '>=18.20'}
 
   cli-table3@0.5.1:
     resolution: {integrity: sha512-7Qg2Jrep1S/+Q3EceiZtQcDPWxhAvBw+ERf1162v4sikJrvojMHFqXt8QIVha8UlH9rgU0BeWPytZ9/TzYqlUw==}
@@ -21406,6 +21413,8 @@ snapshots:
   cli-spinners@2.6.1: {}
 
   cli-spinners@2.9.2: {}
+
+  cli-spinners@3.1.0: {}
 
   cli-table3@0.5.1:
     dependencies:

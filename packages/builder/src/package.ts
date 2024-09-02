@@ -81,10 +81,9 @@ export async function pinIpfs(
   context: BundledOutput | null,
   fromStorage: CannonStorage,
   toStorage: CannonStorage,
+  alreadyCopiedIpfs: Map<string, any>,
   tags: Array<string>,
 ) {
-  const alreadyCopiedIpfs = new Map<string, any>();
-
   const checkKeyPreset = deployInfo.def.preset || context?.preset || 'main';
 
   const checkKey =
@@ -101,7 +100,7 @@ export async function pinIpfs(
   const preCtx = await createInitialContext(def, deployInfo.meta, pkgChainId, deployInfo.options);
 
   const packageReference = PackageReference.from(
-    def.getName(preCtx), def.getVersion(preCtx), context && context.preset ? context.preset : deployInfo.def.preset
+    def.getName(preCtx), def.getVersion(preCtx), checkKeyPreset
   );
 
   // if the package has already been published to the registry and it has the same ipfs hash, skip.
@@ -138,7 +137,7 @@ export async function pinIpfs(
 
   // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
   //       Should it be called outside the scoped copyIpfs() function?
-  // const metaUrl = await fromStorage.registry.getMetaUrl(packageReference.fullPackageRef, pkgChainId);
+  const metaUrl = await fromStorage.registry.getMetaUrl(packageReference.fullPackageRef, pkgChainId);
   // let newMetaUrl = metaUrl;
 
   // if (metaUrl) {
@@ -158,14 +157,12 @@ export async function pinIpfs(
     packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
       (t: string) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : packageReference.preset}`
     ),
-    pkgChainId,
+    chainId: pkgChainId,
     url,
     metaUrl: '',
   };
 
   alreadyCopiedIpfs.set(checkKey, returnVal);
-
-  console.log(alreadyCopiedIpfs)
 
   return returnVal;
 }
@@ -182,9 +179,11 @@ export async function preparePublishPackage({
 
   const packageReference = new PackageReference(packageRef);
 
+  const alreadyCopiedIpfs = new Map<string, any>();
+
   // this internal function will copy one package's ipfs records and return a publish call, without recursing
   const pinPackagesToIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
-    return await pinIpfs(deployInfo, context, fromStorage, toStorage, tags);
+    return await pinIpfs(deployInfo, context, fromStorage, toStorage, alreadyCopiedIpfs,  tags);
   };
 
   const deployData = await fromStorage.readDeploy(packageReference.fullPackageRef, chainId);

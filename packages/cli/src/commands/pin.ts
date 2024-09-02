@@ -19,9 +19,11 @@ export interface PinnedPackages {
 }
 
 export async function pin(hash: string, fromStorage: CannonStorage, toStorage: CannonStorage) {
+  const alreadyCopiedIpfs = new Map<string, any>();
+
   // this internal function will copy one package's ipfs records and return a publish call, without recursing
   const pinPackagesToIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
-    return await pinIpfs(deployInfo, context, fromStorage, toStorage, []);
+    return await pinIpfs(deployInfo, context, fromStorage, toStorage, alreadyCopiedIpfs, []);
   };
 
   const deployData: DeploymentInfo = await fromStorage.readBlob(hash);
