@@ -29,7 +29,7 @@ export class LocalLoader implements CannonLoader {
   }
 
   getLabel(): string {
-    return `local (${this.dir})`;
+    return this.dir;
   }
 
   read(url: string): Promise<any> {
@@ -63,7 +63,15 @@ export class LocalLoader implements CannonLoader {
   }
 }
 
+enum LoaderAction {
+  read = 'read',
+  local = 'local',
+  write = 'write',
+  repo = 'repo',
+}
+
 export class CliLoader implements CannonLoader {
+  currAction: LoaderAction = LoaderAction.repo;
   readIpfs?: IPFSLoader;
   writeIpfs?: IPFSLoader;
   repo: IPFSLoader;
@@ -82,12 +90,17 @@ export class CliLoader implements CannonLoader {
   }
 
   getLabel() {
-    return `cli ${
-      (this.readIpfs ? 'READ ' + this.readIpfs.getLabel() + ' + ' : '') +
-      (this.writeIpfs ? 'READ ' + this.writeIpfs.getLabel() + ' + ' : '') +
-      'REPO ' +
-      this.repo.getLabel()
-    }`;
+    switch (this.currAction) {
+      case LoaderAction.read:
+        return this.readIpfs ? this.readIpfs.getLabel() : this.repo.getLabel();
+      case LoaderAction.local:
+        return this.dir;
+      case LoaderAction.write:
+        return this.writeIpfs ? this.writeIpfs.getLabel() : '';
+      case LoaderAction.repo:
+      default:
+        return this.repo.getLabel();
+    }
   }
 
   getCacheFilePath(url: string) {
@@ -95,8 +108,8 @@ export class CliLoader implements CannonLoader {
   }
 
   async put(misc: any): Promise<string> {
+    this.currAction = LoaderAction.write;
     const data = JSON.stringify(misc);
-
     const cid = await getContentCID(Buffer.from(compress(data)));
     const url = IPFSLoader.PREFIX + cid;
 
@@ -113,16 +126,18 @@ export class CliLoader implements CannonLoader {
   }
 
   async read(url: string) {
+    this.currAction = LoaderAction.local;
     const cacheFile = this.getCacheFilePath(url);
     debug(`cli ipfs read ${url} ${cacheFile}`);
 
     // Check if we already have the file cached locally
     if (isFile(cacheFile)) {
-      const ipfsData = fs.readJson(cacheFile);
+      const ipfsData = await fs.readJson(cacheFile);
       debug('cli ipfs loaded from cache');
       return ipfsData;
     }
 
+    this.currAction = LoaderAction.read;
     // If its configured, try to get it from the settings ipfs
     const ipfsData = await (this.readIpfs || this.repo).read(url);
     await fs.mkdirp(this.dir);
@@ -135,8 +150,8 @@ export class CliLoader implements CannonLoader {
   }
 
   async remove(url: string) {
-    debug(`cli ipfs remove ${url}`);
-
+    this.currAction = LoaderAction.write;
+    debug(`cli ipfs remove: ${url}`);
     const cacheFile = this.getCacheFilePath(url);
 
     // Remove from the local cache

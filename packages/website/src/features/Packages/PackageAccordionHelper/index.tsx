@@ -1,6 +1,4 @@
 import { CustomAccordion, CustomAccordionItem } from '@/components/Accordion';
-import { useQuery } from '@tanstack/react-query';
-import { getPackage } from '@/helpers/api';
 import RunPackageLocally from '@/features/Packages/PackageAccordionHelper/RunPackageLocally';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
@@ -8,6 +6,7 @@ import RetrieveAddressAbi from '@/features/Packages/PackageAccordionHelper/Retri
 import IntegrateWithPackage from '@/features/Packages/PackageAccordionHelper/IntegrateWithPackage';
 import { extractAddressesAbis } from '@/features/Packages/utils/extractAddressesAndABIs';
 import { Skeleton, Stack, Text } from '@chakra-ui/react';
+import { usePackageByRef } from '@/hooks/api/usePackage';
 
 type Props = {
   name: string;
@@ -22,14 +21,11 @@ export default function PackageAccordionHelper({
   preset,
   chainId,
 }: Props) {
-  const packagesQuery: any = useQuery({
-    queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],
-    queryFn: getPackage,
-  });
+  const packagesQuery = usePackageByRef({ name, tag, preset, chainId });
 
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
-    packagesQuery?.data?.data.deployUrl,
-    !!packagesQuery?.data?.data.deployUrl
+    packagesQuery?.data?.deployUrl,
+    !!packagesQuery?.data?.deployUrl
   );
 
   const isLoading = packagesQuery.isLoading || deploymentData.isLoading;
@@ -44,7 +40,11 @@ export default function PackageAccordionHelper({
     );
   }
 
-  const state = deploymentData.data?.state;
+  if (!packagesQuery.data || !deploymentData.data) {
+    throw new Error('Failed to fetch package');
+  }
+
+  const state = deploymentData.data.state;
   const deploymentInfo = deploymentData.data;
 
   if (!state || !deploymentInfo) {
@@ -59,9 +59,9 @@ export default function PackageAccordionHelper({
       >
         <RunPackageLocally
           name={name}
-          chainId={packagesQuery.data.data.chainId}
-          version={packagesQuery.data.data.version}
-          preset={packagesQuery.data.data.preset}
+          chainId={packagesQuery.data.chainId}
+          version={packagesQuery.data.version}
+          preset={packagesQuery.data.preset}
         />
       </CustomAccordionItem>
 
@@ -71,9 +71,9 @@ export default function PackageAccordionHelper({
       >
         <RetrieveAddressAbi
           name={name}
-          chainId={packagesQuery.data.data.chainId}
-          version={packagesQuery.data.data.version}
-          preset={packagesQuery.data.data.preset}
+          chainId={packagesQuery.data.chainId}
+          version={packagesQuery.data.version}
+          preset={packagesQuery.data.preset}
           addressesAbis={
             deploymentData.data?.state
               ? extractAddressesAbis(deploymentData.data.state)
@@ -89,11 +89,11 @@ export default function PackageAccordionHelper({
         {state && deploymentInfo ? (
           <IntegrateWithPackage
             name={name}
-            chainId={packagesQuery.data.data.chainId}
-            preset={packagesQuery.data.data.preset}
+            chainId={packagesQuery.data.chainId}
+            preset={packagesQuery.data.preset}
             chainDefinition={new ChainDefinition(deploymentInfo.def)}
             deploymentState={state}
-            version={packagesQuery.data.data.version}
+            version={packagesQuery.data.version}
           />
         ) : (
           <Text>Error retrieving deployment data</Text>
