@@ -1,7 +1,7 @@
 import { externalLinks } from '@/constants/externalLinks';
 import { useQuery } from '@tanstack/react-query';
+import { ApiDocument, ApiPackage } from '@usecannon/api/dist/src/types';
 import axios from 'axios';
-import { ApiDocument, ApiPackage } from '@usecannon/api/types';
 
 const fetchPackageByRef = async ({ queryKey }: { queryKey: string[] }) => {
   const [, fullPackagePath] = queryKey;

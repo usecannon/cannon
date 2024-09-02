@@ -43,8 +43,8 @@
   },
   "dependencies": {
     "@iarna/toml": "^3.0.0",
-    "@usecannon/builder": "2.16.7",
-    "@usecannon/cli": "2.16.7",
+    "@usecannon/builder": "workspace:*",
+    "@usecannon/cli": "workspace:*",
     "chalk": "^4.1.2",
     "debug": "^4.3.6",
     "fs-extra": "^11.2.0",
