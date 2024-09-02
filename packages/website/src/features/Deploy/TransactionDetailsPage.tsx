@@ -620,7 +620,7 @@ function TransactionDetailsPage() {
               </Card>
 
               {/* Cannon package IPFS Info */}
-              {queuedWithGitOps && (
+              {queuedWithGitOps && executionTxnHash && (
                 <Card
                   title={
                     <>
