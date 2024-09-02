@@ -1,13 +1,6 @@
-import {
-  DeploymentInfo,
-  CannonStorage,
-  PackageReference,
-  BundledOutput,
-  forPackageTree,
-} from '@usecannon/builder';
+import { DeploymentInfo, CannonStorage, PackageReference, BundledOutput, forPackageTree } from '@usecannon/builder';
 import Debug from 'debug';
 
-import _ from 'lodash';
 import { pinIpfs } from '@usecannon/builder/dist/src/package';
 
 const debug = Debug('cannon:cli:pin');
@@ -33,7 +26,6 @@ export async function pin(hash: string, fromStorage: CannonStorage, toStorage: C
       `could not find deployment artifact the given IPFS hash "${hash}". Please double check your settings, and rebuild your package.`
     );
   }
-
 
   const packageReference = PackageReference.from(deployData.def.name, deployData.def.version, deployData.def.preset);
 

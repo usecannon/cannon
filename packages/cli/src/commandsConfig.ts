@@ -466,9 +466,7 @@ const commandsConfig = {
         description: 'IPFS hash to write deployment data for',
       },
     ],
-    options: [
-      ...debugVerbosity
-    ],
+    options: [...debugVerbosity],
   },
   publish: {
     description:

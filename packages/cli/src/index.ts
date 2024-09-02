@@ -360,11 +360,10 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
   });
 
   const spinner = ora('Uploading package data for pinning').start();
-  
-  const pinned = await pin(ref, fromStorage, toStorage);
+
+  await pin(ref, fromStorage, toStorage);
 
   spinner.succeed('Done!');
-
 });
 
 applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (

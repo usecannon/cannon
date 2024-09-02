@@ -82,12 +82,11 @@ export async function pinIpfs(
   fromStorage: CannonStorage,
   toStorage: CannonStorage,
   alreadyCopiedIpfs: Map<string, any>,
-  tags: Array<string>,
+  tags: Array<string>
 ) {
   const checkKeyPreset = deployInfo.def.preset || context?.preset || 'main';
 
-  const checkKey =
-    deployInfo.def.name + ':' + deployInfo.def.version + ':' + checkKeyPreset + ':' + deployInfo.timestamp;
+  const checkKey = deployInfo.def.name + ':' + deployInfo.def.version + ':' + checkKeyPreset + ':' + deployInfo.timestamp;
 
   if (alreadyCopiedIpfs.has(checkKey)) {
     return alreadyCopiedIpfs.get(checkKey);
@@ -99,9 +98,7 @@ export async function pinIpfs(
 
   const preCtx = await createInitialContext(def, deployInfo.meta, pkgChainId, deployInfo.options);
 
-  const packageReference = PackageReference.from(
-    def.getName(preCtx), def.getVersion(preCtx), checkKeyPreset
-  );
+  const packageReference = PackageReference.from(def.getName(preCtx), def.getVersion(preCtx), checkKeyPreset);
 
   // if the package has already been published to the registry and it has the same ipfs hash, skip.
   const toUrl = await toStorage.registry.getUrl(packageReference.fullPackageRef, pkgChainId);
@@ -137,7 +134,7 @@ export async function pinIpfs(
 
   // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
   //       Should it be called outside the scoped copyIpfs() function?
-  const metaUrl = await fromStorage.registry.getMetaUrl(packageReference.fullPackageRef, pkgChainId);
+  // const metaUrl = await fromStorage.registry.getMetaUrl(packageReference.fullPackageRef, pkgChainId);
   // let newMetaUrl = metaUrl;
 
   // if (metaUrl) {
@@ -183,7 +180,7 @@ export async function preparePublishPackage({
 
   // this internal function will copy one package's ipfs records and return a publish call, without recursing
   const pinPackagesToIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
-    return await pinIpfs(deployInfo, context, fromStorage, toStorage, alreadyCopiedIpfs,  tags);
+    return await pinIpfs(deployInfo, context, fromStorage, toStorage, alreadyCopiedIpfs, tags);
   };
 
   const deployData = await fromStorage.readDeploy(packageReference.fullPackageRef, chainId);
