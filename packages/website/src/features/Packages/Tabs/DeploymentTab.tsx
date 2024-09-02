@@ -1,12 +1,11 @@
 'use client';
 
 import { FC } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Flex } from '@chakra-ui/react';
 import { PackageReference } from '@usecannon/builder';
 import { DeploymentExplorer } from '@/features/Packages/DeploymentExplorer';
 import { CustomSpinner } from '@/components/CustomSpinner';
-import { getPackage } from '@/helpers/api';
+import { usePackageByRef } from '@/hooks/api/usePackage';
 
 export const DeploymentTab: FC<{
   name: string;
@@ -17,18 +16,24 @@ export const DeploymentTab: FC<{
     decodeURIComponent(variant)
   );
 
-  const packagesQuery = useQuery({
-    queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],
-    queryFn: getPackage,
+  const packagesQuery = usePackageByRef({
+    name,
+    tag,
+    preset,
+    chainId,
   });
 
   if (packagesQuery.isPending) {
     return <CustomSpinner m="auto" />;
   }
 
+  if (packagesQuery.isError) {
+    throw new Error('Failed to fetch package');
+  }
+
   return (
     <Flex flexDirection="column" width="100%">
-      <DeploymentExplorer pkg={packagesQuery.data.data} />
+      <DeploymentExplorer pkg={packagesQuery.data} />
     </Flex>
   );
 };

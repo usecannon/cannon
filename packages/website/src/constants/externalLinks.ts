@@ -11,7 +11,8 @@ export const externalLinks = {
   PINATA_IPFS: 'https://www.pinata.cloud/',
   FOUNDRY_EXAMPLE: github + 'usecannon/cannon/tree/main/examples/sample-foundry-project',
   HARDHAT_EXAMPLE: github + 'usecannon/cannon/tree/main/examples/sample-hardhat-project',
-  ETHERSCAN: 'https://www.etherscan.io/',
+  ETHERSCAN: 'https://etherscan.io/',
   IPFS_CLUSTER: 'https://cluster.ipfs.io/',
   IPFS_CANNON: 'https://repo.usecannon.com/',
+  API_CANNON: process.env.NEXT_PUBLIC_API_URL || 'https://api.usecannon.com',
 };
