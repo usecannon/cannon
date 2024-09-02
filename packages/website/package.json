@@ -40,6 +40,7 @@
     "@types/node": "20.3.2",
     "@types/react": "18.2.37",
     "@types/react-dom": "18.2.6",
+    "@usecannon/api": "workspace:*",
     "@usecannon/builder": "workspace:*",
     "@usecannon/cli": "workspace:*",
     "@vercel/analytics": "^1.1.1",
