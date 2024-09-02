@@ -6,9 +6,8 @@ import { CodeExplorer } from '@/features/Packages/CodeExplorer';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { Address } from 'viem';
 import { useRouter } from 'next/router';
-import { useQuery } from '@tanstack/react-query';
-import { getPackage } from '@/helpers/api';
 import { PackageReference } from '@usecannon/builder';
+import { usePackageByRef } from '@/hooks/api/usePackage';
 
 export const CodePage: FC<{
   name: string;
@@ -19,10 +18,7 @@ export const CodePage: FC<{
 }> = ({ name, tag, variant, moduleName }) => {
   const [chainId, preset] = PackageReference.parseVariant(variant);
 
-  const packagesQuery = useQuery({
-    queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],
-    queryFn: getPackage,
-  });
+  const packagesQuery = usePackageByRef({ name, tag, preset, chainId });
 
   const searchParams = useRouter().query;
   const source = (searchParams.source as string) || '';
@@ -32,11 +28,15 @@ export const CodePage: FC<{
     return <CustomSpinner m="auto" />;
   }
 
+  if (packagesQuery.isError) {
+    throw new Error('Failed to fetch package');
+  }
+
   return (
     <Flex flexDirection="column" width="100%" flex="1">
       <CodeExplorer
         name={name}
-        pkg={packagesQuery.data.data}
+        pkg={packagesQuery.data}
         moduleName={moduleName}
         source={source}
         functionName={functionName}

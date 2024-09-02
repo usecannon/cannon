@@ -14,7 +14,7 @@ export function useGitRefsList(url: string) {
           http,
           corsProxy: 'https://git-proxy.repo.usecannon.com',
           url,
-          protocolVersion: 1, // reccomended when not filtering prefix
+          protocolVersion: 1, // recommended when not filtering prefix
         });
       }
 
@@ -89,17 +89,24 @@ export function useGitDiff(url: string, fromRef: string, toRef: string, files: s
     const toFiles = toQuery.data;
 
     // If the fromFiles are not available, then we only use the toFiles to create the patches.
-    if (!fromFiles && toFiles) {
+    /*if (!fromFiles && toFiles) {
       for (let i = 0; i < toFiles.length; i++) {
         const p = createTwoFilesPatch('a/', `b/${files[i]}`, '', toFiles[i], undefined, undefined);
         patches.push(p.slice(p.indexOf('\n')));
       }
       return patches;
-    }
+    }*/
 
     // create patches comparing the fromFiles and toFiles
-    for (let i = 0; i < fromFiles!.length; i++) {
-      const p = createTwoFilesPatch(`a/${files[i]}`, `b/${files[i]}`, fromFiles![i], toFiles![i], undefined, undefined);
+    for (let i = 0; i < (fromFiles ? fromFiles.length : toFiles!.length); i++) {
+      const p = createTwoFilesPatch(
+        `a/${files[i]}`,
+        `b/${files[i]}`,
+        fromFiles ? fromFiles![i] : '',
+        toFiles ? toFiles![i] : '',
+        undefined,
+        undefined
+      );
       patches.push(p.slice(p.indexOf('\n')));
     }
 
