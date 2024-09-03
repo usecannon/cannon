@@ -243,13 +243,18 @@ async function importTxnData(
       }
 
       let abi: viem.Abi | null = null;
-      let sourceName: string | null;
-      let contractName: string;
+      let sourceName = '';
+      let contractName = '';
+
+      if (factoryInfo.artifact) {
+        const artifact = await runtime.getArtifact!(factoryInfo.artifact);
+        // only apply the abi from the contract if we haven't already resolved it previously
+        abi = artifact.abi;
+        sourceName = artifact.sourceName;
+        contractName = artifact.contractName;
+      }
 
       if (factoryInfo.abi) {
-        sourceName = '';
-        contractName = '';
-
         if (factoryInfo.abi.trimStart().startsWith('[')) {
           // Allow to pass in a literal abi string
           abi = JSON.parse(factoryInfo.abi);
@@ -265,26 +270,17 @@ async function importTxnData(
         }
       } else if (factoryInfo.abiOf) {
         abi = getMergedAbiFromContractPaths(ctx, factoryInfo.abiOf);
-
-        sourceName = ''; // TODO: might cause a problem, might be able to load from the resolved contract itself. update `getContractFromPath`
-        contractName = '';
-      } else {
-        throw new Error(
-          `factory."${topLabel}": must specify at least one of "artifact" or "abiOf" to resolve the contract ABI for the created contract`
-        );
       }
 
-      if (factoryInfo.artifact) {
-        const artifact = await runtime.getArtifact!(factoryInfo.artifact);
-        // only apply the abi from the contract if we haven't already resolved it previously
-        abi = abi || artifact.abi;
-        sourceName = artifact.sourceName;
-        contractName = artifact.contractName;
+      if (!abi) {
+        throw new Error(
+          `factory."${topLabel}": must specify at least one of "artifact", "abi", or "abiOf" to resolve the contract ABI for the created contract.`
+        );
       }
 
       contracts[k] = {
         address: contractAddress,
-        abi: abi!,
+        abi,
         //deployTxnHash: txns[0].hash, // TODO: find the hash for the actual txn we are reading?
         deployTxnHash: '',
         deployTxnBlockNumber: '',
