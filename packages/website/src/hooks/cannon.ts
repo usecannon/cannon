@@ -7,11 +7,11 @@ import { useCannonRegistry } from '@/providers/CannonRegistryProvider';
 import { useLogs } from '@/providers/logsProvider';
 import { BaseTransaction } from '@safe-global/safe-apps-sdk';
 import { useMutation, UseMutationOptions, useQuery } from '@tanstack/react-query';
+import { useDeployerWallet } from './deployer';
 import {
   build as cannonBuild,
   CannonStorage,
   ChainArtifacts,
-  ChainBuilderContext,
   ChainBuilderRuntime,
   ChainDefinition,
   createInitialContext,
@@ -90,6 +90,8 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
   const fallbackRegistry = useCannonRegistry();
 
+  const { address: deployerWalletAddress } = useDeployerWallet(safe?.chainId);
+
   const buildFn = async () => {
     // Wait until finished loading
     if (!safe || !def || !prevDeploy) {
@@ -111,7 +113,19 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
     addLog('info', `cannon.ts: upgrade from: ${prevDeploy?.def.name}:${prevDeploy?.def.version}`);
 
-    const transport = custom(fork);
+    const simulatedTxs = [];
+
+    const transport = custom({
+      request: async (args) => {
+        switch (args.method) {
+          case 'eth_sendTransaction':
+            // capture the transaction that needs to be sent
+            simulatedTxs.push(args.params[0]);
+        }
+
+        return await fork.request(args);
+      },
+    });
 
     const provider = createPublicClient({
       chain: findChain(safe.chainId),
@@ -127,22 +141,30 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     // todo: as usual viem provider types refuse to work
     await loadPrecompiles(testProvider as any);
 
-    const wallet = createWalletClient({
+    const multiSigWallet = createWalletClient({
       account: safe.address,
       chain: findChain(safe.chainId),
       transport,
     });
 
-    const getDefaultSigner = async () => ({ address: safe.address, wallet });
+    const deployerWallet = createWalletClient({
+      account: deployerWalletAddress,
+      chain: findChain(safe.chainId),
+      transport,
+    });
+
+    const getDefaultSigner = async () => ({ address: deployerWalletAddress, wallet: deployerWallet });
 
     const loaders = { mem: inMemoryLoader, ipfs: ipfsLoader };
 
     const getSigner = async (addr: Address) => {
-      if (!isAddressEqual(addr, safe.address)) {
+      if (isAddressEqual(addr, safe.address)) {
+        return { address: safe.address, wallet: multiSigWallet };
+      } else if (isAddressEqual(addr, deployerWalletAddress!)) {
+        return { address: deployerWalletAddress, wallet: deployerWallet };
+      } else {
         throw new Error(`Could not get signer for "${addr}"`);
       }
-
-      return getDefaultSigner();
     };
 
     currentRuntime = new ChainBuilderRuntime(
@@ -158,31 +180,22 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       loaders
     );
 
-    const simulatedSteps: ChainArtifacts[] = [];
     const skippedSteps: StepExecutionError[] = [];
 
-    currentRuntime.on(
-      Events.PostStepExecute,
-      (stepType: string, stepLabel: string, stepConfig: any, stepCtx: ChainBuilderContext, stepOutput: ChainArtifacts) => {
-        const stepName = `${stepType}.${stepLabel}`;
+    currentRuntime.on(Events.PostStepExecute, (stepType: string, stepLabel: string, stepOutput: ChainArtifacts) => {
+      const stepName = `${stepType}.${stepLabel}`;
 
-        addLog('info', `cannon.ts: on Events.PostStepExecute operation ${stepName} output: ${JSON.stringify(stepOutput)}`);
+      addLog('info', `cannon.ts: on Events.PostStepExecute operation ${stepName} output: ${JSON.stringify(stepOutput)}`);
 
-        simulatedSteps.push(_.cloneDeep(stepOutput));
+      //simulatedSteps.push(_.cloneDeep(stepOutput));
 
-        for (const txn in stepOutput.txns || {}) {
-          // clean out txn hash
-          stepOutput.txns![txn].hash = '';
-        }
-
-        setBuildStatus(`Building ${stepName}...`);
-
-        // a step that deploys a contract is a step that has no txns deployed but contract(s) deployed
-        if (_.keys(stepOutput.txns).length === 0 && _.keys(stepOutput.contracts).length > 0) {
-          throw new Error(`Cannot deploy contract on a Safe transaction for step ${stepName}`);
-        }
+      for (const txn in stepOutput.txns || {}) {
+        // clean out txn hash
+        stepOutput.txns![txn].hash = '';
       }
-    );
+
+      setBuildStatus(`Building ${stepName}...`);
+    });
 
     currentRuntime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
       addLog('error', `cannon.ts: on Events.SkipDeploy error ${err.toString()} happened on the operation ${stepName}`);
@@ -202,11 +215,6 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     const newState = await cannonBuild(currentRuntime, def, _.cloneDeep(prevDeploy?.state) ?? {}, ctx);
 
     setBuildSkippedSteps(skippedSteps);
-
-    const simulatedTxs = simulatedSteps
-      .map((s) => !!s?.txns && Object.values(s.txns))
-      .filter((tx) => !!tx)
-      .flat();
 
     if (simulatedTxs.length === 0) {
       throw new Error('There are no transactions that can be executed on Safe.');

@@ -6,6 +6,7 @@ import { makeMultisend } from '@/helpers/multisend';
 import * as onchainStore from '@/helpers/onchain-store';
 import { useStore } from '@/helpers/store';
 import { useTxnStager } from '@/hooks/backend';
+import { useDeployerWallet } from '@/hooks/deployer';
 import {
   useCannonBuild,
   useCannonPackage,
@@ -79,6 +80,13 @@ function QueueFromGitOps() {
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
   const { openConnectModal } = useConnectModal();
+
+  const { queueTransactions, address: deployerWalletAddress } =
+    useDeployerWallet(undefined);
+
+  useEffect(() => {
+    // TODO: reset safe txns to be regenerated
+  }, [deployerWalletAddress]);
 
   const cannonfileUrlRegex =
     // eslint-disable-next-line no-useless-escape
@@ -737,6 +745,16 @@ function QueueFromGitOps() {
               </Flex>
             </Alert>
           )}
+          {isDeployerContractsRequired && (
+            <Alert mt="6" status="info" mb="5">
+              <Text>
+                Some transactions should be executed outside the safe before
+                staging. You can execute these now in your browser. By clicking
+                the button below.
+              </Text>
+              <Button onClick={}>Execute Outside Safe Txns</Button>
+            </Alert>
+          )}
           {cannonDefInfo.def && multicallTxn.data && (
             <Box mt="10">
               <Heading size="md" mt={5}>
@@ -802,8 +820,8 @@ function QueueFromGitOps() {
                     w="100%"
                     onClick={() => {
                       execTxn.writeContract(stager.executeTxnConfig!, {
-                        onSuccess: async () => {
-                          await router.push(links.DEPLOY);
+                        onSuccess: () => {
+                          router.push(links.DEPLOY);
 
                           toast({
                             title: 'You successfully executed the transaction.',
