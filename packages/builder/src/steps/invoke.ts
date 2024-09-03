@@ -370,6 +370,7 @@ const invokeSpec = {
     config.func = template(config.func)(ctx);
 
     if (config.args) {
+      debug('rendering invoke args with settings: ', ctx.settings);
       config.args = _.map(config.args, (a) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
         return JSON.parse(template(JSON.stringify(a))(ctx));

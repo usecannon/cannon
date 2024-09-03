@@ -1,3 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`steps/deploy.ts exec() when create2 = true fails if contract already deployed 1`] = `"The CREATE2 contract seems to be failing in the constructor. However, we were not able to get a stack trace."`;
+exports[`steps/deploy.ts exec() when create2 = true fails if contract already deployed 1`] = `"The contract at the create2 destination 0x3F9270CE7b8704E7BE0BfcA0EA8836f2B135a4ef is already deployed, but the Cannon state does not recognize that this contract has already been deployed. This typically indicates incorrect upgrade configuration. Please confirm if this contract should already be deployed or not, and if you want to continue the build as-is, run 'cannon alter hello:1.0.0 set-contract-address contract.Woot 0x3F9270CE7b8704E7BE0BfcA0EA8836f2B135a4ef'"`;
