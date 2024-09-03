@@ -43,12 +43,12 @@
   },
   "dependencies": {
     "@iarna/toml": "^3.0.0",
-    "@usecannon/builder": "workspace:*",
-    "@usecannon/cli": "workspace:*",
+    "@usecannon/builder": "2.16.8-alpha.0",
+    "@usecannon/cli": "2.16.8-alpha.0",
     "chalk": "^4.1.2",
     "debug": "^4.3.6",
     "fs-extra": "^11.2.0",
     "viem": "^2.16.5"
   },
-  "gitHead": "81979336c4cfe5f1f8ee7677b2b968f886a20a87"
+  "gitHead": "2447b8fc0720c7c9f7986187ef7f24e52feb5757"
 }

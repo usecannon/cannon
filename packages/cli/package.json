@@ -58,7 +58,7 @@
   },
   "dependencies": {
     "@iarna/toml": "^3.0.0",
-    "@usecannon/builder": "workspace:*",
+    "@usecannon/builder": "2.16.8-alpha.0",
     "abitype": "^1.0.5",
     "chalk": "^4.1.2",
     "commander": "^9.5.0",
@@ -76,5 +76,5 @@
     "znv": "^0.4.0",
     "zod": "^3.23.8"
   },
-  "gitHead": "81979336c4cfe5f1f8ee7677b2b968f886a20a87"
+  "gitHead": "2447b8fc0720c7c9f7986187ef7f24e52feb5757"
 }
