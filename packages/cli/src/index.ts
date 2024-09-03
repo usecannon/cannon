@@ -358,7 +358,7 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
     ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || getCannonRepoRegistryUrl()),
   });
 
-  log('Uploading package data for pinning...')
+  log('Uploading package data for pinning...');
 
   await pin(ref, fromStorage, toStorage);
 
