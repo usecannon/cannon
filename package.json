@@ -1,30 +1,23 @@
 {
   "name": "root",
   "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "lint:js": "eslint '{packages,examples}/**/*.{js,ts}'",
     "lint:sol": "solhint '{packages,examples}/*/{contracts,src}/**/*.sol'",
-    "lint": "npm-run-parallel lint:js lint:sol",
+    "lint": "pnpm run '/^lint:(js|sol)/'",
     "lint:fix:js": "prettier --write '{packages,examples}/**/*.{js,ts}' && eslint --fix '{packages,examples}/**/*.{js,ts}'",
     "lint:fix:sol": "prettier --write '{packages,examples}/*/{contracts,src}/**/*.sol'",
-    "lint:fix": "npm-run-parallel lint:fix:js lint:fix:sol",
-    "build": "lerna run build --ignore cannon-website --ignore @usecannon/indexer --ignore repo --ignore @usecannon/api",
+    "lint:fix": "pnpm run '/^lint:fix:(js|sol)/'",
+    "build": "pnpm -r --filter @usecannon/builder --filter @usecannon/cli --filter hardhat-cannon --filter @usecannon/api run build",
     "version-alpha": "lerna version prerelease --no-private",
     "version-patch": "lerna version patch --no-private",
     "version-minor": "lerna version minor --no-private",
     "version-major": "lerna version major --no-private",
     "publish": "lerna publish from-package --no-private",
     "publish-alpha": "lerna publish from-package --no-private --preid alpha --dist-tag alpha",
-    "update-stables": "npm i @usecannon/builder@latest @usecannon/cli@latest -w @usecannon/indexer -w cannon-registry -w cannon-website -w @usecannon/api && npm i hardhat-cannon@latest -w cannon-registry",
-    "test": "npm run test --workspaces --if-present",
-    "docgen-md": "cd ./packages/builder && npm run docgen && cd - && cd ./packages/cli && npm run docgen",
-    "website": "npm run start --workspace=packages/website",
-    "website-dev": "npm run dev --workspace=packages/website",
-    "website:e2e": "npm run e2e --workspace=packages/website",
-    "website:e2e:ci": "npm run e2e:headless --workspace=packages/website",
+    "test": "pnpm -r --if-present --filter './packages/**' run test",
+    "docgen-md": "pnpm -r --if-present run docgen",
     "changeset": "changeset"
   },
   "devDependencies": {
@@ -33,7 +26,6 @@
     "@babel/plugin-transform-runtime": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-typescript": "^7.16.7",
-    "@types/mock-fs": "^4.13.4",
     "@typescript-eslint/eslint-plugin": "^5.13.0",
     "@typescript-eslint/parser": "^5.13.0",
     "eslint": "^8.10.0",
@@ -41,11 +33,11 @@
     "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-prettier": "^4.0.0",
     "lerna": "^8.0.2",
-    "npm-run-parallel": "^0.6.0",
     "nx": "^17.3.2",
     "nx-cloud": "^16.5.2",
     "prettier": "^2.5.1",
     "prettier-plugin-solidity": "^1.0.0-beta.19",
+    "react": "^18.2.0",
     "release-please": "^15.12.0",
     "solhint": "^3.4.1",
     "solhint-plugin-prettier": "^0.0.5",
@@ -59,5 +51,10 @@
     "react-multi-ref": "^1.0.2",
     "scroll-into-view-if-needed": "^3.1.0"
   },
-  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
+  "engineStrict": true,
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "packageManager": "pnpm@9.8.0+sha512.8e4c3550fb500e808dbc30bb0ce4dd1eb614e30b1c55245f211591ec2cdf9c611cabd34e1364b42f564bd54b3945ed0f49d61d1bbf2ec9bd74b866fcdc723276"
 }

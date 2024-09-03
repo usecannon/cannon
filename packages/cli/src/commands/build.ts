@@ -88,7 +88,7 @@ export async function build({
 
   if (!persist && rpcUrl) {
     log(
-      yellowBright(bold('⚠️  This is a simulation. No changes will be made to the chain. No package data will be saved.\n'))
+      yellowBright(bold('⚠️ This is a simulation. No changes will be made to the chain. No package data will be saved.\n'))
     );
   }
 
@@ -168,12 +168,9 @@ export async function build({
 
   const dump = writeScript ? await createWriteScript(runtime, writeScript, writeScriptFormat) : null;
 
-  // Check for existing package
-  let oldDeployData: DeploymentInfo | null = null;
-  const prevPkg = upgradeFrom || fullPackageRef;
-
   log(bold('Checking for existing package...'));
-  oldDeployData = await runtime.readDeploy(prevPkg, runtime.chainId);
+  const prevPkg = upgradeFrom || fullPackageRef;
+  let oldDeployData: DeploymentInfo | null = await runtime.readDeploy(prevPkg, runtime.chainId);
 
   // Update pkgInfo (package.json) with information from existing package, if present
   if (oldDeployData) {

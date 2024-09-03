@@ -14,7 +14,6 @@ import {
 } from '@chakra-ui/react';
 import { format } from 'date-fns';
 import { useRouter } from 'next/router';
-import { useQuery } from '@tanstack/react-query';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { ReactNode } from 'react';
 import { NavLink } from '@/components/NavLink';
@@ -26,26 +25,22 @@ import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
 
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { DeploymentInfo } from '@usecannon/builder';
-import { getPackage } from '@/helpers/api';
 
 import PageLoading from '@/components/PageLoading';
 import PackageAccordionHelper from '@/features/Packages/PackageAccordionHelper';
 import { usePackageNameTagVariantUrlParams } from '@/hooks/routing/usePackageNameTagVariantUrlParams';
+import { usePackageByRef } from '@/hooks/api/usePackage';
 
 function TagVariantLayout({ children }: { children: ReactNode }) {
   const { name, tag, chainId, preset } = usePackageNameTagVariantUrlParams();
   const { query: params, pathname, asPath } = useRouter();
 
-  const packagesQuery = useQuery({
-    queryKey: ['package', `${name}:${tag}@${preset}/${chainId}`],
-    queryFn: getPackage,
-    enabled: !!name && !!tag && !!preset && !!chainId,
-  });
+  const packagesQuery = usePackageByRef({ name, tag, preset, chainId });
 
   const { data: deploymentInfo, isLoading: isDeploymentInfoLoading } =
     useQueryIpfsDataParsed<DeploymentInfo>(
-      packagesQuery?.data?.data.deployUrl,
-      !!packagesQuery?.data?.data.deployUrl
+      packagesQuery?.data?.deployUrl,
+      !!packagesQuery?.data?.deployUrl
     );
 
   return (
@@ -67,7 +62,7 @@ function TagVariantLayout({ children }: { children: ReactNode }) {
               >
                 <Box>
                   <Heading as="h1" size="lg" mb="2">
-                    {packagesQuery.data.data.name}
+                    {packagesQuery.data.name}
                     <Popover trigger="hover">
                       <PopoverTrigger>
                         <InfoOutlineIcon boxSize={4} ml={2} color="gray.400" />
@@ -112,10 +107,10 @@ function TagVariantLayout({ children }: { children: ReactNode }) {
                       </Portal>
                     </Popover>
                   </Heading>
-                  <PublishInfo p={packagesQuery.data.data} />
+                  <PublishInfo p={packagesQuery.data} />
                 </Box>
                 <Box ml={[0, 0, 'auto']} mt={[6, 6, 0]}>
-                  <VersionSelect pkg={packagesQuery.data.data} />
+                  <VersionSelect pkg={packagesQuery.data} />
                 </Box>
               </Flex>
 
@@ -136,7 +131,7 @@ function TagVariantLayout({ children }: { children: ReactNode }) {
               >
                 <NavLink
                   isActive={pathname == '/packages/[name]/[tag]/[variant]'}
-                  href={`/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}`}
+                  href={`/packages/${packagesQuery.data.name}/${params.tag}/${params.variant}`}
                   isSmall
                 >
                   Deployment
@@ -145,7 +140,7 @@ function TagVariantLayout({ children }: { children: ReactNode }) {
                   isActive={pathname.startsWith(
                     '/packages/[name]/[tag]/[variant]/code'
                   )}
-                  href={`/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/code`}
+                  href={`/packages/${packagesQuery.data.name}/${params.tag}/${params.variant}/code`}
                   isSmall
                 >
                   Code
@@ -160,7 +155,7 @@ function TagVariantLayout({ children }: { children: ReactNode }) {
                         '/packages/[name]/[tag]/[variant]/interact'
                       )
                         ? asPath
-                        : `/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/interact`
+                        : `/packages/${packagesQuery.data.name}/${params.tag}/${params.variant}/interact`
                     }
                     isSmall
                   >
@@ -171,13 +166,13 @@ function TagVariantLayout({ children }: { children: ReactNode }) {
                   isActive={
                     pathname == '/packages/[name]/[tag]/[variant]/cannonfile'
                   }
-                  href={`/packages/${packagesQuery.data.data.name}/${params.tag}/${params.variant}/cannonfile`}
+                  href={`/packages/${packagesQuery.data.name}/${params.tag}/${params.variant}/cannonfile`}
                   isSmall
                 >
                   Cannonfile
                 </NavLink>
                 <Box ml="auto">
-                  <IpfsLinks pkg={packagesQuery?.data?.data} />
+                  <IpfsLinks pkg={packagesQuery?.data} />
                 </Box>
               </Flex>
             </Container>

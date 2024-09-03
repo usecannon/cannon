@@ -1,9 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { CannonStorage, DeploymentInfo, IPFSLoader } from '@usecannon/builder';
-import { resolveCliSettings } from '@usecannon/cli/src/settings';
-import * as viem from 'viem';
 import mockfs from 'mock-fs';
+import * as viem from 'viem';
 import { CliLoader, getMainLoader, LocalLoader } from '../loader';
 import { createDefaultReadRegistry, LocalRegistry } from '../registry';
 import * as settings from '../settings';
@@ -70,115 +69,122 @@ describe('fetch', () => {
     mockfs.restore();
   });
 
-  beforeEach(() => {
-    jest.clearAllMocks();
+  describe('succesfull fetch', function () {
+    beforeEach(() => {
+      jest.clearAllMocks();
 
-    // mock cannon tag directory
-    mockfs({
-      '/cannon/directory/tags': {},
+      // avoid mochking node_modules to give access jest to its helpers
+      const mockPassKey = path.resolve(__dirname, '..', '..', '..', '..', 'node_modules');
+      const mocked = mockfs.load(mockPassKey);
+
+      // mock cannon tag directory
+      mockfs({
+        '/cannon/directory/tags': {},
+        [mockPassKey]: mocked,
+      });
+
+      const cliSettings = settings.resolveCliSettings();
+
+      jest.spyOn(LocalLoader.prototype, 'read').mockImplementation(async (url) => {
+        switch (url) {
+          case 'file:/usecannon.com/misc':
+            return miscData;
+          case 'file:/usecannon.com/meta':
+            return metaData;
+          case 'file:/usecannon.com':
+          case url:
+            return testPkgData;
+        }
+        return '';
+      });
+
+      jest.spyOn(fs, 'readFile').mockImplementation((_path) => {
+        const testPkgDataFilePath = path.join(cliSettings.cannonDirectory, 'tags', deployDataLocalFileName);
+        switch (_path) {
+          case testPkgDataFilePath:
+            return Promise.resolve(Buffer.from(testPkgDataIpfsUrl));
+          case testPkgDataFilePath + '.meta':
+            return Promise.resolve(Buffer.from(testPkgMetaIpfsUrl));
+        }
+        return Promise.resolve(Buffer.from(''));
+      });
+
+      jest.spyOn(IPFSLoader.prototype, 'read').mockImplementation((url: string): Promise<any> => {
+        switch (url) {
+          case testPkgDataIpfsUrl:
+            return Promise.resolve(testPkgData);
+          case testPkgMetaIpfsUrl:
+            return Promise.resolve(testPkgData.meta);
+        }
+        return Promise.resolve({});
+      });
+
+      jest.spyOn(CannonStorage.prototype, 'readBlob').mockImplementation((url: string): Promise<any> => {
+        switch (url) {
+          case testPkgDataIpfsUrl:
+            return Promise.resolve(testPkgData);
+          case testPkgMetaIpfsUrl:
+            return Promise.resolve(testPkgData.meta);
+        }
+        return Promise.resolve({});
+      });
+
+      jest.spyOn(CannonStorage.prototype, 'putBlob').mockImplementation((url: string): Promise<any> => {
+        switch (url) {
+          case testPkgDataIpfsUrl:
+            return Promise.resolve(testPkgData);
+          case testPkgMetaIpfsUrl:
+            return Promise.resolve(testPkgData.meta);
+        }
+        return Promise.resolve({});
+      });
+
+      jest.spyOn(LocalRegistry.prototype, 'getTagReferenceStorage').mockImplementation(() => {
+        return path.join(cliSettings.cannonDirectory, 'tags', deployDataLocalFileName);
+      });
+
+      jest.spyOn(LocalRegistry.prototype, 'getMetaTagReferenceStorage').mockImplementation(() => {
+        return path.join(cliSettings.cannonDirectory, 'tags', deployMetaDataLocalFileName);
+      });
+
+      mockedFallBackRegistry = {
+        getDeployUrl: jest.fn().mockResolvedValue('file:/usecannon.com/url'),
+        getUrl: jest.fn().mockResolvedValue('file:/usecannon.com/url'),
+        getMetaUrl: jest.fn().mockResolvedValue('file:/usecannon.com/meta'),
+      };
+
+      localLoader = new LocalLoader('path');
+      ipfsLoader = new CliLoader({
+        readIpfs: new IPFSLoader('ipfs'),
+        writeIpfs: undefined,
+        repoLoader: new IPFSLoader('ipfs'),
+        fileCacheDir: 'path',
+      });
+
+      jest.mocked(getMainLoader).mockReturnValueOnce({
+        file: localLoader,
+        ipfs: ipfsLoader,
+      });
+
+      jest
+        .mocked(LocalRegistry.prototype.getTagReferenceStorage)
+        .mockReturnValueOnce(path.join(cliSettings.cannonDirectory, 'tags', deployDataLocalFileName));
+      jest
+        .mocked(LocalRegistry.prototype.getMetaTagReferenceStorage)
+        .mockReturnValueOnce(path.join(cliSettings.cannonDirectory, 'tags', deployMetaDataLocalFileName));
+
+      jest.mocked(createDefaultReadRegistry).mockResolvedValue(Promise.resolve(mockedFallBackRegistry));
+
+      jest.spyOn(localLoader, 'read').mockResolvedValue(testPkgData);
+      jest.spyOn(ipfsLoader, 'read').mockResolvedValue(testPkgData);
     });
 
-    const cliSettings = resolveCliSettings();
+    test('should fetch package info from IPFS hash and write deployment info', async () => {
+      // Call the 'fetch' function with the necessary arguments
+      await fetch(basePackageRef, chainId, ipfsHash);
 
-    jest.spyOn(LocalLoader.prototype, 'read').mockImplementation(async (url) => {
-      switch (url) {
-        case 'file:/usecannon.com/misc':
-          return miscData;
-        case 'file:/usecannon.com/meta':
-          return metaData;
-        case 'file:/usecannon.com':
-        case url:
-          return testPkgData;
-      }
-      return '';
+      expect(CannonStorage.prototype.readBlob).toHaveBeenCalledTimes(1);
     });
-
-    jest.spyOn(fs, 'readFile').mockImplementation((_path) => {
-      const testPkgDataFilePath = path.join(cliSettings.cannonDirectory, 'tags', deployDataLocalFileName);
-      switch (_path) {
-        case testPkgDataFilePath:
-          return Promise.resolve(Buffer.from(testPkgDataIpfsUrl));
-        case testPkgDataFilePath + '.meta':
-          return Promise.resolve(Buffer.from(testPkgMetaIpfsUrl));
-      }
-      return Promise.resolve(Buffer.from(''));
-    });
-
-    jest.spyOn(IPFSLoader.prototype, 'read').mockImplementation((url: string): Promise<any> => {
-      switch (url) {
-        case testPkgDataIpfsUrl:
-          return Promise.resolve(testPkgData);
-        case testPkgMetaIpfsUrl:
-          return Promise.resolve(testPkgData.meta);
-      }
-      return Promise.resolve({});
-    });
-
-    jest.spyOn(CannonStorage.prototype, 'readBlob').mockImplementation((url: string): Promise<any> => {
-      switch (url) {
-        case testPkgDataIpfsUrl:
-          return Promise.resolve(testPkgData);
-        case testPkgMetaIpfsUrl:
-          return Promise.resolve(testPkgData.meta);
-      }
-      return Promise.resolve({});
-    });
-
-    jest.spyOn(CannonStorage.prototype, 'putBlob').mockImplementation((url: string): Promise<any> => {
-      switch (url) {
-        case testPkgDataIpfsUrl:
-          return Promise.resolve(testPkgData);
-        case testPkgMetaIpfsUrl:
-          return Promise.resolve(testPkgData.meta);
-      }
-      return Promise.resolve({});
-    });
-
-    jest.spyOn(LocalRegistry.prototype, 'getTagReferenceStorage').mockImplementation(() => {
-      return path.join(cliSettings.cannonDirectory, 'tags', deployDataLocalFileName);
-    });
-
-    jest.spyOn(LocalRegistry.prototype, 'getMetaTagReferenceStorage').mockImplementation(() => {
-      return path.join(cliSettings.cannonDirectory, 'tags', deployMetaDataLocalFileName);
-    });
-
-    mockedFallBackRegistry = {
-      getDeployUrl: jest.fn().mockResolvedValue('file:/usecannon.com/url'),
-      getUrl: jest.fn().mockResolvedValue('file:/usecannon.com/url'),
-      getMetaUrl: jest.fn().mockResolvedValue('file:/usecannon.com/meta'),
-    };
-
-    localLoader = new LocalLoader('path');
-    ipfsLoader = new CliLoader({
-      readIpfs: new IPFSLoader('ipfs'),
-      writeIpfs: undefined,
-      repoLoader: new IPFSLoader('ipfs'),
-      fileCacheDir: 'path',
-    });
-
-    jest.mocked(getMainLoader).mockReturnValueOnce({
-      file: localLoader,
-      ipfs: ipfsLoader,
-    });
-
-    jest
-      .mocked(LocalRegistry.prototype.getTagReferenceStorage)
-      .mockReturnValueOnce(path.join(cliSettings.cannonDirectory, 'tags', deployDataLocalFileName));
-    jest
-      .mocked(LocalRegistry.prototype.getMetaTagReferenceStorage)
-      .mockReturnValueOnce(path.join(cliSettings.cannonDirectory, 'tags', deployMetaDataLocalFileName));
-
-    jest.mocked(createDefaultReadRegistry).mockResolvedValue(Promise.resolve(mockedFallBackRegistry));
-
-    jest.spyOn(localLoader, 'read').mockResolvedValue(testPkgData);
-    jest.spyOn(ipfsLoader, 'read').mockResolvedValue(testPkgData);
-  });
-
-  test('should fetch package info from IPFS hash and write deployment info', async () => {
-    // Call the 'fetch' function with the necessary arguments
-    await fetch(basePackageRef, chainId, ipfsHash);
-
-    expect(CannonStorage.prototype.readBlob).toHaveBeenCalledTimes(1);
   });
 
   test('should fail if IPFS hash is invalid', async () => {

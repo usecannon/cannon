@@ -2,11 +2,22 @@
   "$schema": "https://unpkg.com/@changesets/config@2.3.1/schema.json",
   "changelog": [
     "@changesets/changelog-github",
-    { "repo": "usecannon/cannon" }
+    {
+      "repo": "usecannon/cannon"
+    }
   ],
   "commit": true,
-  "fixed": [["@usecannon/cli", "@usecannon/builder", "hardhat-cannon"]],
+  "fixed": [
+    [
+      "@usecannon/cli",
+      "@usecannon/builder",
+      "hardhat-cannon"
+    ]
+  ],
   "access": "public",
   "baseBranch": "main",
-  "ignore": ["cannon-registry", "cannon-website"]
+  "ignore": [
+    "@usecannon/registry",
+    "@usecannon/website"
+  ]
 }

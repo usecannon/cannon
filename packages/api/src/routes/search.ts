@@ -1,4 +1,4 @@
-import express from 'express';
+import { Router } from 'express';
 import Fuse from 'fuse.js';
 import * as viem from 'viem';
 import { BadRequestError } from '../errors';
@@ -15,7 +15,7 @@ import { findFunctionsBySelector, searchFunctions } from '../queries/functions';
 import { findPackagesByPartialRef, searchPackages } from '../queries/packages';
 import { ApiDocument } from '../types';
 
-const search = express.Router();
+const search: Router = Router();
 
 export interface SearchResponse {
   status: number;
