@@ -45,7 +45,6 @@ import { isPackageRegistered } from './util/register';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
 import { pin } from './commands/pin';
-import ora from 'ora';
 
 export * from './types';
 export * from './constants';
@@ -359,11 +358,11 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
     ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || getCannonRepoRegistryUrl()),
   });
 
-  const spinner = ora('Uploading package data for pinning').start();
+  log('Uploading package data for pinning...')
 
   await pin(ref, fromStorage, toStorage);
 
-  spinner.succeed('Done!');
+  log('Done!');
 });
 
 applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (
