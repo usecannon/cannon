@@ -242,15 +242,11 @@ async function importTxnData(
         throw new Error(`address is not valid in ${topLabel}. Ensure "arg" parameter is correct`);
       }
 
-      let abi: viem.Abi;
+      let abi: viem.Abi | null = null;
       let sourceName: string | null;
       let contractName: string;
-      if (factoryInfo.artifact) {
-        const artifact = await runtime.getArtifact!(factoryInfo.artifact);
-        abi = artifact.abi;
-        sourceName = artifact.sourceName;
-        contractName = artifact.contractName;
-      } else if (factoryInfo.abi) {
+
+      if (factoryInfo.abi) {
         sourceName = '';
         contractName = '';
 
@@ -278,9 +274,17 @@ async function importTxnData(
         );
       }
 
+      if (factoryInfo.artifact) {
+        const artifact = await runtime.getArtifact!(factoryInfo.artifact);
+        // only apply the abi from the contract if we haven't already resolved it previously
+        abi = abi || artifact.abi;
+        sourceName = artifact.sourceName;
+        contractName = artifact.contractName;
+      }
+
       contracts[k] = {
         address: contractAddress,
-        abi,
+        abi: abi!,
         //deployTxnHash: txns[0].hash, // TODO: find the hash for the actual txn we are reading?
         deployTxnHash: '',
         deployTxnBlockNumber: '',
