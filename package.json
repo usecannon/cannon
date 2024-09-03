@@ -1,7 +1,6 @@
 {
   "name": "root",
   "private": true,
-  "version": "2.16.8",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "lint:js": "eslint '{packages,examples}/**/*.{js,ts}'",
