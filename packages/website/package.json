@@ -15,6 +15,11 @@
     "component": "cypress open --component",
     "component:headless": "cypress run --component"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/usecannon/cannon.git",
+    "directory": "packages/website"
+  },
   "dependencies": {
     "@chakra-ui/icons": "^2.0.19",
     "@chakra-ui/next-js": "^2.1.4",
