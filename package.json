@@ -20,6 +20,10 @@
     "docgen-md": "pnpm -r --if-present run docgen",
     "changeset": "changeset"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/usecannon/cannon.git"
+  },
   "devDependencies": {
     "@babel/core": "^7.22.1",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",

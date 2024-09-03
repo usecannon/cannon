@@ -10,7 +10,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/usecannon/cannon.git"
+    "url": "https://github.com/usecannon/cannon.git",
+    "directory": "packages/repo"
   },
   "keywords": [
     "ipfs"

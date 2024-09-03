@@ -9,7 +9,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Synthetixio/cannon.git"
+    "url": "https://github.com/usecannon/cannon.git",
+    "directory": "packages/registry"
   },
   "author": "",
   "license": "MIT",
