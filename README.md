@@ -77,10 +77,10 @@ We bump and publish manually using lerna's [version and publish](https://lerna.j
 
 - Note, DO NOT use the version name as the branch name as this can cause conflicts with tags. (eg `v2.12.1` as a branch name is incorrect)
 
-2. Run `pnpm version-*` where `*` can be patch, minor or major.
+2. Run `pnpm run version-*` where `*` can be patch, minor or major.
 3. Create PR for the release branch
-4. From the branch, run `pnpm publish` and follow the prompts.
-5. Run `pnpm update-stables` to make sure that all the other private packages reference to new release.
+4. From the branch, run `pnpm run publish` and follow the prompts.
+5. Run `pnpm run update-stables` to make sure that all the other private packages reference to new release.
 6. Merge release PR
 
 #### Alpha Release
@@ -94,6 +94,7 @@ We bump and publish manually using lerna's [version and publish](https://lerna.j
 4. From the `main` branch, run `pnpm publish-alpha` and follow the prompts.
 
 #### Dependabot Configuration
+
 To keep Cannon updated, we recommend using dependabot to regularly check for updates.
 
 Below is an example of a dependabot configuration that checks daily for cannon updates and applies them:
