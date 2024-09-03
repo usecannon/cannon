@@ -9,6 +9,7 @@ import CannonRegistryAbi from './abis/CannonRegistry';
 import { prepareMulticall, TxData } from './multicall';
 import { PackageReference } from './package-reference';
 import { CannonSigner } from './types';
+import axios from 'axios';
 
 const debug = Debug('cannon:builder:registry');
 
@@ -469,8 +470,7 @@ export class OnChainRegistry extends CannonRegistry {
     const { name, version, preset } = new PackageReference(packageOrServiceRef);
     const variant = `${chainId}-${preset}`;
 
-    const url = await this.provider.readContract({
-      address: this.contract.address,
+    const encodedData = viem.encodeFunctionData({
       abi: this.contract.abi,
       functionName: 'getPackageUrl',
       args: [
@@ -480,7 +480,38 @@ export class OnChainRegistry extends CannonRegistry {
       ],
     });
 
-    return (url as string) || null;
+    const response = await axios.post(
+      this.provider.chain!.rpcUrls.default.http[0]!,
+      {
+        jsonrpc: '2.0',
+        method: 'eth_call',
+        params: [
+          {
+            to: this.contract.address,
+            data: encodedData,
+          },
+          version,
+        ],
+        id: chainId,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (response.data.error) {
+      throw response.data.error.message;
+    }
+
+    const url = viem.decodeFunctionResult({
+      functionName: 'getPackageUrl',
+      abi: this.contract.abi,
+      data: response.data.result,
+    }) as string;
+
+    return url || null;
   }
 
   async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
@@ -494,8 +525,8 @@ export class OnChainRegistry extends CannonRegistry {
     const { name, version, preset } = new PackageReference(packageOrServiceRef);
     const variant = `${chainId}-${preset}`;
 
-    const url = await this.provider.readContract({
-      ...this.contract,
+    const encodedData = viem.encodeFunctionData({
+      abi: this.contract.abi,
       functionName: 'getPackageMeta',
       args: [
         viem.stringToHex(name, { size: 32 }),
@@ -503,6 +534,33 @@ export class OnChainRegistry extends CannonRegistry {
         viem.stringToHex(variant, { size: 32 }),
       ],
     });
+
+    const response = await axios.post(
+      this.provider.chain!.rpcUrls.default.http[0]!,
+      {
+        jsonrpc: '2.0',
+        method: 'eth_call',
+        params: [
+          {
+            to: this.contract.address,
+            data: encodedData,
+          },
+          version,
+        ],
+        id: chainId,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const url = (await viem.decodeFunctionResult({
+      functionName: 'getPackageMeta',
+      abi: this.contract.abi,
+      data: response.data.result,
+    })) as string;
 
     return url || null;
   }
