@@ -480,8 +480,6 @@ export class OnChainRegistry extends CannonRegistry {
       ],
     });
 
-    console.log(this.provider.transport.url)
-
     const response = await axios.post(
       this.provider.transport.url,
       {
@@ -557,6 +555,10 @@ export class OnChainRegistry extends CannonRegistry {
         },
       }
     );
+
+    if (response.data.error) {
+      throw response.data.error.message;
+    }
 
     const url = (await viem.decodeFunctionResult({
       functionName: 'getPackageMeta',
