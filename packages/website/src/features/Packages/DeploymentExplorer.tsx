@@ -1,7 +1,7 @@
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 
-import React, { FC } from 'react';
+import React, { FC, useState } from 'react';
 import { Box, Flex, Heading, Link, Text, Tooltip } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { links } from '@/constants/links';
@@ -16,10 +16,12 @@ import { InvokesTable } from './InvokesTable';
 import { EventsTable } from './EventsTable';
 import { extractAddressesAbis } from '@/features/Packages/utils/extractAddressesAndABIs';
 import { ApiPackage } from '@usecannon/api/dist/src/types';
+import SearchInput from '@/components/SearchInput';
 
 export const DeploymentExplorer: FC<{
   pkg: ApiPackage;
 }> = ({ pkg }) => {
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     pkg?.deployUrl,
     !!pkg?.deployUrl
@@ -98,6 +100,29 @@ export const DeploymentExplorer: FC<{
     ? mergeArtifactsContracts(deploymentInfo.state)
     : {};
 
+  // Filter and sort based on search term
+  const contractEntries = Object.entries(contractState);
+  const sortedEntries = contractEntries
+    .filter(([key, user]) =>
+      Object.values(user).some(value =>
+        typeof value === 'string' && value.includes(searchTerm)
+      )
+    )
+    .sort(([keyA, userA], [keyB, userB]) => {
+      // Calculate match scores based on search term position
+      const scoreA = Math.min(
+        ...Object.values(userA).filter(v => typeof v === 'string').map(v => (v as string).indexOf(searchTerm))
+      );
+      const scoreB = Math.min(
+        ...Object.values(userB).filter(v => typeof v === 'string').map(v => (v as string).indexOf(searchTerm))
+      );
+      return scoreA - scoreB;
+    });
+
+  const filteredContractState = Object.fromEntries(sortedEntries);
+
+  console.log(filteredContractState)
+
   function mergeInvoke(obj: any, mergedInvokes: any = {}): any {
     for (const key in obj) {
       if (obj[key] && typeof obj[key] === 'object') {
@@ -175,17 +200,26 @@ export const DeploymentExplorer: FC<{
         </Box>
       ) : deploymentInfo ? (
         <Box>
-          {(!isEmpty(addressesAbis) || !isEmpty(contractState)) && (
-            <Box mt={6}>
-              <Flex px={4} mb={3} direction={['column', 'column', 'row']}>
-                <Heading size="md">Contract Deployments</Heading>
-              </Flex>
+          <Flex p={6} mb={1} justifyContent={'space-between'} direction={['column', 'column', 'row']}>
+            <Heading size="md">Contract Deployments</Heading>
+            <Box>
+              <SearchInput onSearchChange={setSearchTerm}></SearchInput>
+            </Box>
+          </Flex>
+          {(!isEmpty(filteredContractState)) && !isEmpty(addressesAbis) ? (
+            <Box mt={2}>
               <Box maxW="100%" overflowX="auto">
                 <ContractsTable
-                  contractState={contractState}
+                  contractState={filteredContractState}
                   chainId={pkg.chainId}
                 />
               </Box>
+            </Box>
+          ) : (
+            <Box mt={6}>
+              <Flex px={4} mb={3} justifyContent={'center'} direction={['column', 'column', 'row']}>
+                <Heading size='sm'> No Contracts Found</Heading>
+              </Flex>
             </Box>
           )}
 
@@ -222,8 +256,9 @@ export const DeploymentExplorer: FC<{
         <Box textAlign="center" py="20" opacity="0.5">
           Unable to retrieve deployment data
         </Box>
-      )}
-    </Box>
+      )
+      }
+    </Box >
   ) : (
     <Box textAlign="center" py="20" opacity="0.5">
       No metadata is associated with this package
