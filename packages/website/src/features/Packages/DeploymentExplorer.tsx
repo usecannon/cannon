@@ -1,13 +1,13 @@
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 
-import { FC } from 'react';
-import { Box, Flex, Heading, Link, Text, Tooltip } from '@chakra-ui/react';
+import React, { FC } from 'react';
+import { Box, Collapse, Flex, Heading, Link, Text, Tooltip } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { links } from '@/constants/links';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
-import { InfoIcon } from '@chakra-ui/icons';
+import { InfoIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import { ChainBuilderContext } from '@usecannon/builder';
 import { isEmpty } from 'lodash';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
@@ -20,6 +20,10 @@ import { ApiPackage } from '@usecannon/api/dist/src/types';
 export const DeploymentExplorer: FC<{
   pkg: ApiPackage;
 }> = ({ pkg }) => {
+  const [show, setShow] = React.useState(false);
+
+  const handleToggle = () => setShow(!show);
+
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     pkg?.deployUrl,
     !!pkg?.deployUrl
@@ -47,25 +51,51 @@ export const DeploymentExplorer: FC<{
     for (const key in obj) {
       if (obj[key] && typeof obj[key] === 'object') {
         // If the current object has both address and abi keys
-        if (obj[key].address && obj[key].abi) {
+        if ((obj[key].address && obj[key].abi)) {
           if (
             obj[key].deployedOn.startsWith('deploy') ||
             obj[key].deployedOn.startsWith('contract') ||
-            obj[key].deployedOn.includes('router')
+            obj[key].deployedOn.includes('router') ||
+            obj[key].deployedOn.includes('invoke') ||
+            obj[key].deployedOn.includes('provision') ||
+            obj[key].deployedOn.includes('clone') ||
+            obj[key].deployedOn.includes('import') ||
+            obj[key].deployedOn.includes('pull') ||
+            obj[key].deployedOn.includes('run')
           ) {
-            mergedContracts[obj[key].contractName] = obj[key];
+            mergedContracts[obj[key].contractName || '⚠ Unknown Contract Name'] = obj[key];
           }
         }
+
+        if (obj[key].artifacts && obj[key].artifacts.imports) {
+          for (let k in obj[key].artifacts.imports[key.split('.')[1]].contracts) {
+            if (
+              key.includes('provision') ||
+              key.includes('clone') ||
+              key.includes('import') ||
+              key.includes('pull')
+            ) {
+              obj[key].artifacts.imports[key.split('.')[1]].contracts[k].deployedOn = key;
+
+              // Change deployedOn title to parent package
+              mergedContracts[obj[key].contractName || '⚠ Unknown Contract Name'] = obj[key].artifacts.imports[key.split('.')[1]].contracts[k];
+
+            }
+          }
+        }
+
         // Recursively search through nested objects
         mergeArtifactsContracts(obj[key], mergedContracts);
       }
     }
+
     return mergedContracts;
   }
 
   const contractState: ChainBuilderContext['contracts'] = deploymentInfo?.state
     ? mergeArtifactsContracts(deploymentInfo.state)
     : {};
+
 
   function mergeInvoke(obj: any, mergedInvokes: any = {}): any {
     for (const key in obj) {
