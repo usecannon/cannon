@@ -480,8 +480,10 @@ export class OnChainRegistry extends CannonRegistry {
       ],
     });
 
+    console.log(this.provider.transport.url)
+
     const response = await axios.post(
-      this.provider.chain!.rpcUrls.default.http[0]!,
+      this.provider.transport.url,
       {
         jsonrpc: '2.0',
         method: 'eth_call',
@@ -536,7 +538,7 @@ export class OnChainRegistry extends CannonRegistry {
     });
 
     const response = await axios.post(
-      this.provider.chain!.rpcUrls.default.http[0]!,
+      this.provider.transport.url,
       {
         jsonrpc: '2.0',
         method: 'eth_call',
