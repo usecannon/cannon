@@ -114,6 +114,19 @@ teardown() {
   assert_file_exists "$CANNON_DIRECTORY/tags/trusted-multicall-forwarder_latest_1-with-oracle-manager.txt"
 }
 
+@test "Verify - Verify greeter packages" {
+  set_custom_config
+  run verify.sh
+  echo $output
+  assert_success
+}
+
+@test "Pin - Pin a package IPFS hash" {
+  set_custom_config
+  run pin.sh
+  echo $output
+  assert_success
+}
 
 @test "Register - Register a single package" {
   set_custom_config
