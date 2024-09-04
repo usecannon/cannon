@@ -103,25 +103,27 @@ export const DeploymentExplorer: FC<{
   // Filter and sort based on search term
   const contractEntries = Object.entries(contractState);
   const sortedEntries = contractEntries
-    .filter(([key, user]) =>
-      Object.values(user).some(value =>
-        typeof value === 'string' && value.includes(searchTerm)
+    .filter(([, user]) =>
+      Object.values(user).some(
+        (value) => typeof value === 'string' && value.includes(searchTerm)
       )
     )
-    .sort(([keyA, userA], [keyB, userB]) => {
+    .sort(([, userA], [, userB]) => {
       // Calculate match scores based on search term position
       const scoreA = Math.min(
-        ...Object.values(userA).filter(v => typeof v === 'string').map(v => (v as string).indexOf(searchTerm))
+        ...Object.values(userA)
+          .filter((v) => typeof v === 'string')
+          .map((v) => (v as string).indexOf(searchTerm))
       );
       const scoreB = Math.min(
-        ...Object.values(userB).filter(v => typeof v === 'string').map(v => (v as string).indexOf(searchTerm))
+        ...Object.values(userB)
+          .filter((v) => typeof v === 'string')
+          .map((v) => (v as string).indexOf(searchTerm))
       );
       return scoreA - scoreB;
     });
 
   const filteredContractState = Object.fromEntries(sortedEntries);
-
-  console.log(filteredContractState)
 
   function mergeInvoke(obj: any, mergedInvokes: any = {}): any {
     for (const key in obj) {
@@ -200,13 +202,18 @@ export const DeploymentExplorer: FC<{
         </Box>
       ) : deploymentInfo ? (
         <Box>
-          <Flex p={6} mb={1} justifyContent={'space-between'} direction={['column', 'column', 'row']}>
+          <Flex
+            p={6}
+            mb={1}
+            justifyContent={'space-between'}
+            direction={['column', 'column', 'row']}
+          >
             <Heading size="md">Contract Deployments</Heading>
             <Box>
               <SearchInput onSearchChange={setSearchTerm}></SearchInput>
             </Box>
           </Flex>
-          {(!isEmpty(filteredContractState)) && !isEmpty(addressesAbis) ? (
+          {!isEmpty(filteredContractState) && !isEmpty(addressesAbis) ? (
             <Box mt={2}>
               <Box maxW="100%" overflowX="auto">
                 <ContractsTable
@@ -217,8 +224,13 @@ export const DeploymentExplorer: FC<{
             </Box>
           ) : (
             <Box mt={6}>
-              <Flex px={4} mb={3} justifyContent={'center'} direction={['column', 'column', 'row']}>
-                <Heading size='sm'> No Contracts Found</Heading>
+              <Flex
+                px={4}
+                mb={3}
+                justifyContent={'center'}
+                direction={['column', 'column', 'row']}
+              >
+                <Heading size="sm"> No Contracts Found</Heading>
               </Flex>
             </Box>
           )}
@@ -256,9 +268,8 @@ export const DeploymentExplorer: FC<{
         <Box textAlign="center" py="20" opacity="0.5">
           Unable to retrieve deployment data
         </Box>
-      )
-      }
-    </Box >
+      )}
+    </Box>
   ) : (
     <Box textAlign="center" py="20" opacity="0.5">
       No metadata is associated with this package
