@@ -207,17 +207,15 @@ describe('registry.ts', () => {
         const provider = makeFakeProvider();
         const registry = createRegistry({ provider });
 
-        jest
-          .mocked(axios.post)
-          .mockImplementation(() =>
-            Promise.resolve({
-              status: 200,
-              data: {
-                result:
-                  '0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000035697066733a2f2f516d59705544755a35715a5a4354344375684368436d6e6535386d64776a6b69524e706d5a567a5558376b615a610000000000000000000000',
-              },
-            })
-          );
+        jest.mocked(axios.post).mockImplementation(() =>
+          Promise.resolve({
+            status: 200,
+            data: {
+              result:
+                '0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000035697066733a2f2f516d59705544755a35715a5a4354344375684368436d6e6535386d64776a6b69524e706d5a567a5558376b615a610000000000000000000000',
+            },
+          })
+        );
 
         const url = await registry.getUrl('dummy-package:0.0.1@main', 13370);
 
