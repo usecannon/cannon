@@ -14,11 +14,12 @@ import * as chains from '@wagmi/core/chains';
 
 import { useQuery } from '@tanstack/react-query';
 import merge from 'lodash/merge';
+import { externalLinks } from '@/constants/externalLinks';
 
 type CustomProviders =
   | {
       chains: Chain[];
-      chainColors: Record<number, { color: string }>;
+      chainMetadata: Record<number, { color: string }>;
       transports: Record<number, HttpTransport>;
       getChainById: (chainId: number) => Chain | undefined;
       getExplorerUrl: (chainId: number, hash: Hash) => string;
@@ -32,7 +33,7 @@ const cannonNetwork = {
   name: 'Cannon',
 } as Chain;
 
-const chainColors = {
+const chainMetadata = {
   [chains.arbitrum.id]: {
     color: '#96bedc',
   },
@@ -160,16 +161,17 @@ function _getAllTransports(
 }
 
 function _getChainById(allChains: Chain[], chainId: number) {
-  const chain = allChains.find((c) => c.id === chainId);
-  if (!chain) throw new Error(`Unknown chainId: ${chainId}`);
+  const chain = allChains.find((c) => c.id === +chainId);
   return chain;
 }
 const _getExplorerUrl = (allChains: Chain[], chainId: number, hash: Hash) => {
-  const chain = _getChainById(allChains, chainId);
+  const chain = _getChainById(allChains, +chainId);
+  if (!chain) return externalLinks.ETHERSCAN;
+
   const explorer = chain.blockExplorers?.default;
   if (!chain || !explorer) return '';
 
-  const url = explorer?.url || 'https://etherscan.io';
+  const url = explorer?.url || externalLinks.ETHERSCAN;
 
   const type = isAddress(hash) ? 'address' : 'tx';
   return `${url}/${type}/${hash}`;
@@ -188,7 +190,7 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
   const allChains = _getAllChains(verifiedProviders);
   const value = {
     chains: allChains,
-    chainColors,
+    chainMetadata,
     transports: _getAllTransports(verifiedProviders),
     getChainById: (chainId: number) => _getChainById(allChains, chainId),
     getExplorerUrl: (chainId: number, hash: Hash) =>
