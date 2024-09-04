@@ -491,7 +491,6 @@ export class OnChainRegistry extends CannonRegistry {
             data: encodedData,
           },
         ],
-        id: chainId,
       },
       {
         headers: {
@@ -500,7 +499,7 @@ export class OnChainRegistry extends CannonRegistry {
       }
     );
 
-    if (response.data.error) {
+    if (response.data && response.data.error) {
       throw response.data.error.message;
     }
 
@@ -545,7 +544,6 @@ export class OnChainRegistry extends CannonRegistry {
             data: encodedData,
           },
         ],
-        id: chainId,
       },
       {
         headers: {
@@ -554,7 +552,7 @@ export class OnChainRegistry extends CannonRegistry {
       }
     );
 
-    if (response.data.error) {
+    if (response.data && response.data.error) {
       throw response.data.error.message;
     }
 
