@@ -8,11 +8,13 @@
         "paths": [
           {
             "name": "viem/chains",
-            "message": "Importing chains is not allowed. Please use `const {chains} = useProviders()` instead."
+            "importNames": ["default"],
+            "message": "Importing chains is not allowed. Please use `const {chains} = useCannonChains()` instead."
           },
           {
             "name": "@wagmi/core/chains",
-            "message": "Importing chains is not allowed. Please use `const {chains} = useProviders()` instead."
+            "importNames": ["default"],
+            "message": "Importing chains is not allowed. Please use `const {chains} = useCannonChains()` instead."
           }
         ]
       }
