@@ -8,7 +8,7 @@ import {
 import { ReactNode } from 'react';
 import { WagmiProvider } from 'wagmi';
 import '@rainbow-me/rainbowkit/styles.css';
-import { useProviders } from '@/providers/CustomProvidersProvider';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { isE2ETest } from '@/constants/misc';
 import { getE2eWagmiConfig } from '../../cypress/utils/wagmi-mock-config';
 
@@ -19,7 +19,7 @@ interface IWalletProvider {
 }
 
 function WalletProvider({ children }: IWalletProvider) {
-  const { chains, transports } = useProviders();
+  const { chains, transports } = useCannonChains();
 
   let wagmiConfig: ReturnType<typeof getDefaultConfig>;
   if (isE2ETest) {

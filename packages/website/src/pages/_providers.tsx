@@ -8,7 +8,7 @@ import { ReactNode } from 'react';
 
 import LogsProvider from '@/providers/logsProvider';
 import { theme } from '@/theme/theme';
-import { CustomProvidersProvider } from '@/providers/CustomProvidersProvider';
+import { CannonProvidersProvider } from '@/providers/CannonProvidersProvider';
 
 const NoSsrCannonRegistryProvider = dynamic(
   () => import('@/providers/CannonRegistryProvider'),
@@ -44,11 +44,11 @@ export default function Providers({ children }: { children: ReactNode }) {
       <ChakraProvider theme={theme} colorModeManager={csm as any}>
         <QueryClientProvider client={queryClient}>
           <LogsProvider>
-            <CustomProvidersProvider>
+            <CannonProvidersProvider>
               <NoSsrCannonRegistryProvider>
                 <NoSsrWalletProvider>{children}</NoSsrWalletProvider>
               </NoSsrCannonRegistryProvider>
-            </CustomProvidersProvider>
+            </CannonProvidersProvider>
           </LogsProvider>
         </QueryClientProvider>
       </ChakraProvider>

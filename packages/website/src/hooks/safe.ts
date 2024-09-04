@@ -6,7 +6,7 @@ import { chains } from '@/constants/deployChains';
 import * as onchainStore from '@/helpers/onchain-store';
 import { ChainId, SafeDefinition, useStore } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
-import { useProviders } from '@/providers/CustomProvidersProvider';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 export type SafeString = `${ChainId}:${Address}`;
 
@@ -136,7 +136,7 @@ export function usePendingTransactions(safe?: SafeDefinition) {
 
 export function useWalletPublicSafes() {
   const { address } = useAccount();
-  const { chains } = useProviders();
+  const { chains } = useCannonChains();
 
   const txsQuery = useQuery({
     queryKey: ['safe-service', 'wallet-safes', address],

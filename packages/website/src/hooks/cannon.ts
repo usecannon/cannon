@@ -1,6 +1,6 @@
 import { inMemoryLoader, loadCannonfile, StepExecutionError } from '@/helpers/cannon';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
-import { createFork, findChain } from '@/helpers/rpc';
+import { useCreateFork } from '@/helpers/rpc';
 import { SafeDefinition, useStore } from '@/helpers/store';
 import { useGitRepo } from '@/hooks/git';
 import { useCannonRegistry } from '@/providers/CannonRegistryProvider';
@@ -31,6 +31,7 @@ import { useChainId } from 'wagmi';
 // Needed to prepare mock run step with registerAction
 import '@/lib/builder';
 import { externalLinks } from '@/constants/externalLinks';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 export type BuildState =
   | {
@@ -90,6 +91,9 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
   const fallbackRegistry = useCannonRegistry();
 
+  const { getChainById } = useCannonChains();
+  const createFork = useCreateFork();
+
   const buildFn = async () => {
     // Wait until finished loading
     if (!safe || !def || !prevDeploy) {
@@ -114,12 +118,12 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     const transport = custom(fork);
 
     const provider = createPublicClient({
-      chain: findChain(safe.chainId),
+      chain: getChainById(safe.chainId),
       transport,
     });
 
     const testProvider = createTestClient({
-      chain: findChain(safe.chainId),
+      chain: getChainById(safe.chainId),
       transport,
       mode: 'ganache',
     });
@@ -129,7 +133,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
     const wallet = createWalletClient({
       account: safe.address,
-      chain: findChain(safe.chainId),
+      chain: getChainById(safe.chainId),
       transport,
     });
 

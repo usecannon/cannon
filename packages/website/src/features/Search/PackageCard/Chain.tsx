@@ -1,7 +1,7 @@
-import { FC, useMemo } from 'react';
+import { FC } from 'react';
 import { Flex, Box, Text } from '@chakra-ui/react';
-import { chainsById } from '@/helpers/chains';
 import { Image } from '@chakra-ui/react';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 export type ChainData = {
   id: number;
@@ -18,10 +18,10 @@ const Chain: FC<{
   chainData?: ChainData;
   hideId?: boolean;
 }> = ({ id, isSmall, hideId }) => {
-  const chain = useMemo(() => chainsById[id], [id]);
-
+  const { getChainById, chainColors } = useCannonChains();
+  const chain = getChainById(id);
   const name = chain?.name || 'Unknown Chain';
-  const color = chain?.color || 'gray.600';
+  const color = chainColors[id] || 'gray.600';
   return (
     <Flex gap={1.5} alignItems={isSmall ? 'center' : 'baseline'}>
       {id === 13370 ? (

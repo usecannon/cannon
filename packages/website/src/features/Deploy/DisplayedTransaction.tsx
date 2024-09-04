@@ -1,11 +1,11 @@
 import { Alert } from '@/components/Alert';
-import { chainsById, getExplorerUrl } from '@/helpers/chains';
 import { formatToken } from '@/helpers/formatters';
 import {
   ContractInfo,
   useCannonPackageContracts,
   UseCannonPackageContractsReturnType,
 } from '@/hooks/cannon';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import {
   AlertDescription,
   Box,
@@ -54,7 +54,10 @@ export function DisplayedTransaction(props: {
   cannonInfo?: UseCannonPackageContractsReturnType;
   isPreloaded?: boolean;
 }) {
-  const chain = chainsById[props.chainId];
+  const { getChainById, getExplorerUrl } = useCannonChains();
+  const chain = getChainById(props.chainId);
+
+  if (!chain) throw new Error(`Chain ${props.chainId} not found`);
 
   const cannonInfo = useCannonPreloadedContracts(
     props.pkgUrl,
@@ -133,11 +136,12 @@ export function DisplayedTransaction(props: {
       functionFragmentFromAbi.inputs) ||
     [];
 
-  const address = (
-    <Link isExternal href={getExplorerUrl(chain.id, props.txn?.to || '')}>
+  const address = props.txn?.to ? (
+    <Link isExternal href={getExplorerUrl(chain.id, props.txn?.to)}>
       {props.txn?.to}
     </Link>
-  );
+  ) : null;
+
   const value = formatToken(props.txn?.value || BigInt(0), {
     symbol: chain?.nativeCurrency?.symbol,
   });
