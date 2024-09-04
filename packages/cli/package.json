@@ -6,10 +6,12 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "watch": "tsc -p tsconfig.build.json -w",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "pnpm run build",
     "test": "jest",
     "test-e2e-prepare": "git submodule update --init --recursive",
-    "test-e2e": "./test/e2e/helpers/bats/bin/bats test/e2e/e2e-tests.bats",
+    "test-e2e": "pnpm run test-e2e-parallel && pnpm run test-e2e-series",
+    "test-e2e-parallel": "./test/e2e/helpers/bats/bin/bats test/e2e/parallel.bats --jobs 13 --timing",
+    "test-e2e-series": "./test/e2e/helpers/bats/bin/bats test/e2e/series.bats --timing",
     "test-snx-ci": "./test/e2e/helpers/bats/bin/bats test/e2e/synthetix-ci.bats",
     "start": "node bin/cannon.js",
     "docgen": "typedoc"
