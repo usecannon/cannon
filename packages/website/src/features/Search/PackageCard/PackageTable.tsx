@@ -6,9 +6,10 @@ import { DataTable } from './DataTable';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Box } from '@chakra-ui/react';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import { ApiDocument } from '@usecannon/api/dist/src/types';
 
 const PackageTable: FC<{
-  pkgs: any;
+  pkgs: ApiDocument[];
   latestOnly: boolean;
 }> = ({ pkgs, latestOnly }) => {
   const { getChainById } = useCannonChains();

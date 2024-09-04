@@ -152,6 +152,8 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
               `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`
           );
         }
+
+        throw new Error(err);
       }
     }
 
@@ -177,6 +179,8 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
               `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`
           );
         }
+
+        throw new Error(err);
       }
     }
 

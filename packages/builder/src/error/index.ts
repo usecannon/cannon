@@ -131,10 +131,17 @@ export async function handleTxnError(
   }
 }
 
-class CannonTraceError extends Error {
-  error: Error;
-
+export class CannonError extends Error {
   code: string = UNKNOWN_ERROR;
+
+  constructor(msg: string, code = UNKNOWN_ERROR) {
+    super(msg);
+    this.code = code;
+  }
+}
+
+class CannonTraceError extends CannonError {
+  error: Error;
 
   constructor(error: Error, ctx: ChainArtifacts, errorCodeHex: viem.Hex | null, traces: TraceEntry[]) {
     let contractName = 'unknown';

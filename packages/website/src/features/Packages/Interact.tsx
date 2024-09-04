@@ -1,7 +1,6 @@
 import QueueDrawer from '@/features/Deploy/QueueDrawer';
 import { Abi } from '@/features/Packages/Abi';
 import { SubnavContext } from '@/features/Packages/Tabs/InteractTab';
-import { getPackage } from '@/helpers/api';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { usePackageVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import { getOutput } from '@/lib/builder';
@@ -16,7 +15,6 @@ import {
   useBreakpointValue,
   useDisclosure,
 } from '@chakra-ui/react';
-import { useQuery } from '@tanstack/react-query';
 import {
   ChainArtifacts,
   ContractData,
@@ -27,6 +25,7 @@ import { FC, useContext, useEffect, useState } from 'react';
 
 import { externalLinks } from '@/constants/externalLinks';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import { usePackageByRef } from '@/hooks/api/usePackage';
 
 const Interact: FC = () => {
   const { variant, tag, name, moduleName, contractName, contractAddress } =
@@ -36,17 +35,14 @@ const Interact: FC = () => {
 
   const [chainId, preset] = PackageReference.parseVariant(variant);
 
-  const packagesQuery = useQuery({
-    queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],
-    queryFn: getPackage,
-  });
+  const packagesQuery = usePackageByRef({ name, tag, preset, chainId });
 
   const [cannonOutputs, setCannonOutputs] = useState<ChainArtifacts>({});
   const [contract, setContract] = useState<ContractData | undefined>();
 
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
-    packagesQuery?.data?.data.deployUrl,
-    !!packagesQuery?.data?.data.deployUrl
+    packagesQuery?.data?.deployUrl,
+    !!packagesQuery?.data?.deployUrl
   );
 
   useEffect(() => {
@@ -96,17 +92,10 @@ const Interact: FC = () => {
 
   const deployUrl = `${
     externalLinks.IPFS_CANNON
-  }${packagesQuery.data?.data.deployUrl.replace('ipfs://', '')}`;
+  }${packagesQuery.data?.deployUrl.replace('ipfs://', '')}`;
 
-  // const etherscanUrl =
-  //   (
-  //     Object.values(chains).find(
-  //       (chain) => chain.id === packagesQuery.data?.data?.chainId
-  //     ) as any
-  //   )?.blockExplorers?.default?.url ?? 'https://etherscan.io';
-
-  const explorerUrl = packagesQuery.data?.data?.chainId
-    ? getExplorerUrl(packagesQuery.data?.data?.chainId, contractAddress)
+  const explorerUrl = packagesQuery.data?.chainId
+    ? getExplorerUrl(packagesQuery.data?.chainId, contractAddress)
     : null;
 
   const isMobile = useBreakpointValue([true, true, false]);
@@ -114,6 +103,10 @@ const Interact: FC = () => {
   const subnavContext = useContext(SubnavContext);
 
   const isLoadingData = packagesQuery.isPending || deploymentData.isPending;
+
+  if (!packagesQuery.isLoading && !packagesQuery.data) {
+    throw new Error('Failed to fetch package');
+  }
 
   return (
     <>
@@ -180,11 +173,11 @@ const Interact: FC = () => {
                 href={deployUrl}
               >
                 {isMobile
-                  ? `${packagesQuery.data?.data.deployUrl.substring(
+                  ? `${packagesQuery.data?.deployUrl.substring(
                       0,
                       13
-                    )}...${packagesQuery.data?.data?.deployUrl.slice(-4)}`
-                  : packagesQuery.data?.data?.deployUrl}
+                    )}...${packagesQuery.data?.deployUrl.slice(-4)}`
+                  : packagesQuery.data?.deployUrl}
               </Link>
             </Text>
           </Flex>
@@ -197,9 +190,9 @@ const Interact: FC = () => {
         contractSource={contract?.sourceName}
         address={contractAddress!}
         cannonOutputs={cannonOutputs}
-        chainId={packagesQuery.data?.data?.chainId}
+        chainId={packagesQuery.data!.chainId}
         onDrawerOpen={onOpen}
-        packageUrl={packagesQuery.data?.data.deployUrl}
+        packageUrl={packagesQuery.data?.deployUrl}
       />
       <QueueDrawer isOpen={isOpen} onClose={onClose} onOpen={onOpen} />
     </>

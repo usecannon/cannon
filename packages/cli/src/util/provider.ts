@@ -6,9 +6,9 @@ import provider from 'eth-provider';
 import { privateKeyToAccount } from 'viem/accounts';
 import { CannonSigner, traceActions } from '@usecannon/builder';
 
-import { log, error, warn } from './console';
+import { log, error } from './console';
 import { getChainById } from '../chains';
-import { CliSettings, RPC_URL_DEFAULT } from '../settings';
+import { CliSettings } from '../settings';
 
 const debug = Debug('cannon:cli:provider');
 
@@ -94,12 +94,12 @@ export async function resolveProvider({
     log(bold(`Resolving connection to ${chainData.name} (Chain ID: ${chainId})...`));
   }
 
-  // Check if the first provider URL doesn't start with 'http'
+  // Check if the first provider URL is actually an URL.
   const isRpcUrl = isURL(cliSettings.rpcUrl.split(',')[0]);
 
   if (!isRpcUrl) {
     // If privateKey is present or no valid http URLs are available in rpcUrls
-    if (cliSettings.privateKey || chainData.rpcUrls.default.http.length === 0) {
+    if (cliSettings.privateKey) {
       if (chainData.rpcUrls.default.http.length === 0) {
         error(
           red(
@@ -117,10 +117,6 @@ export async function resolveProvider({
       const rpcs = [...new Set([...cliSettings.rpcUrl.split(','), ...chainData.rpcUrls.default.http])];
       cliSettings.rpcUrl = rpcs.join(',');
     }
-  }
-
-  if (cliSettings.rpcUrl == RPC_URL_DEFAULT && !cliSettings.quiet) {
-    warn(grey('Set a RPC url by passing --rpc-url or setting the ENV variable CANNON_RPC_URL.\n'));
   }
 
   return resolveProviderAndSigners({
@@ -173,7 +169,11 @@ export async function resolveProviderAndSigners({
     }
   };
 
-  if (ProviderAction.WriteProvider === action || ProviderAction.WriteDryRunProvider === action) {
+  if (
+    ProviderAction.WriteProvider === action ||
+    ProviderAction.WriteDryRunProvider === action ||
+    ProviderAction.OptionalWriteProvider === action
+  ) {
     log(grey(`Attempting to find connection via ${bold(providerDisplayName(checkProviders[0]))}`));
     if (checkProviders.length === 1) log('');
   }

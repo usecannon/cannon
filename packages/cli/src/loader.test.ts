@@ -17,7 +17,7 @@ describe('LocalLoader', function LocalLoaderTestCases() {
 
   it('getLabel should return label', () => {
     const result = loader.getLabel();
-    expect(result).toEqual(`local (${dir})`);
+    expect(result).toEqual(dir);
   });
 
   it('read should return JSON from the path', async () => {

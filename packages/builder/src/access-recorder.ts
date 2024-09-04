@@ -1,5 +1,6 @@
 import Debug from 'debug';
 import _ from 'lodash';
+import * as viem from 'viem';
 import { CannonHelperContext } from './types';
 import { template } from './utils/template';
 
@@ -8,14 +9,14 @@ const debug = Debug('cannon:builder:access-recorder');
 class ExtendableProxy {
   readonly accessed = new Map<string, AccessRecorder>();
 
-  constructor() {
+  constructor(defaultValue?: any) {
     return new Proxy(this, {
       get: (obj: any, prop: string) => {
         if (prop === 'accessed' || prop === 'getAccesses') {
           return obj[prop];
         }
         if (!this.accessed.has(prop)) {
-          this.accessed.set(prop, new AccessRecorder());
+          this.accessed.set(prop, defaultValue === undefined ? new AccessRecorder() : defaultValue);
         }
 
         if (typeof prop === 'symbol') {
@@ -64,7 +65,10 @@ export function computeTemplateAccesses(str?: string, possibleNames: string[] = 
     imports: new AccessRecorder(),
     extras: new AccessRecorder(),
     txns: new AccessRecorder(),
-    settings: new AccessRecorder(),
+    // For settings, we give it a zeroAddress as a best case scenarion that is going
+    // to be working for most cases.
+    // e.g., when calculating a setting value for 'settings.owners.split(',')' or 'settings.someNumber' will work.
+    settings: new AccessRecorder(viem.zeroAddress),
   };
 
   for (const [n, ctxVal] of Object.entries(CannonHelperContext)) {
