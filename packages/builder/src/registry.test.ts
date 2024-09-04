@@ -2,20 +2,20 @@ import * as viem from 'viem';
 import { fixtureAddress, fixtureSigner, fixtureTransactionReceipt, makeFakeProvider } from '../test/fixtures';
 import { CannonSigner } from './';
 import { CannonRegistry, OnChainRegistry } from './registry';
-import axios from "axios";
+import axios from 'axios';
 
 // Mock out all top level functions, such as get, put, delete and post:
-jest.mock("axios");
+jest.mock('axios');
 
 // ...
 
-test("good response", () => {
-  jest.mocked(axios.post).mockImplementation(() => Promise.resolve({ status: 200, data: {result: 'ipfs://Qmwohoo'} }));
+test('good response', () => {
+  jest.mocked(axios.post).mockImplementation(() => Promise.resolve({ status: 200, data: { result: 'ipfs://Qmwohoo' } }));
   // ...
 });
 
-test("bad response", () => {
-  jest.mocked(axios.post).mockImplementation(() => Promise.reject({ data: {error: {message: "error"}} }));
+test('bad response', () => {
+  jest.mocked(axios.post).mockImplementation(() => Promise.reject({ data: { error: { message: 'error' } } }));
   // ...
 });
 
@@ -206,8 +206,18 @@ describe('registry.ts', () => {
       it('calls `getPackageUrl`', async () => {
         const provider = makeFakeProvider();
         const registry = createRegistry({ provider });
-        
-        jest.mocked(axios.post).mockImplementation(() => Promise.resolve({ status: 200, data: {result: "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000035697066733a2f2f516d59705544755a35715a5a4354344375684368436d6e6535386d64776a6b69524e706d5a567a5558376b615a610000000000000000000000"} }));
+
+        jest
+          .mocked(axios.post)
+          .mockImplementation(() =>
+            Promise.resolve({
+              status: 200,
+              data: {
+                result:
+                  '0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000035697066733a2f2f516d59705544755a35715a5a4354344375684368436d6e6535386d64776a6b69524e706d5a567a5558376b615a610000000000000000000000',
+              },
+            })
+          );
 
         const url = await registry.getUrl('dummy-package:0.0.1@main', 13370);
 
