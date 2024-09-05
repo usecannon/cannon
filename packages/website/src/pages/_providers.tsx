@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { CacheProvider } from '@chakra-ui/next-js';
-import { ChakraProvider } from '@chakra-ui/react';
+import { ChakraProvider, Flex } from '@chakra-ui/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
 
@@ -40,18 +40,25 @@ export default function Providers({ children }: { children: ReactNode }) {
   } as const;
 
   return (
-    <CacheProvider>
-      <ChakraProvider theme={theme} colorModeManager={csm as any}>
-        <QueryClientProvider client={queryClient}>
-          <LogsProvider>
-            <CannonProvidersProvider>
-              <NoSsrCannonRegistryProvider>
-                <NoSsrWalletProvider>{children}</NoSsrWalletProvider>
-              </NoSsrCannonRegistryProvider>
-            </CannonProvidersProvider>
-          </LogsProvider>
-        </QueryClientProvider>
-      </ChakraProvider>
-    </CacheProvider>
+    <Flex
+      flexDirection="column"
+      backgroundColor="black"
+      minHeight="100vh"
+      position="relative"
+    >
+      <CacheProvider>
+        <ChakraProvider theme={theme} colorModeManager={csm as any}>
+          <QueryClientProvider client={queryClient}>
+            <LogsProvider>
+              <CannonProvidersProvider>
+                <NoSsrCannonRegistryProvider>
+                  <NoSsrWalletProvider>{children}</NoSsrWalletProvider>
+                </NoSsrCannonRegistryProvider>
+              </CannonProvidersProvider>
+            </LogsProvider>
+          </QueryClientProvider>
+        </ChakraProvider>
+      </CacheProvider>
+    </Flex>
   );
 }
