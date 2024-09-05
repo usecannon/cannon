@@ -10,6 +10,7 @@
     "lint:fix:sol": "prettier --write '{packages,examples}/*/{contracts,src}/**/*.sol'",
     "lint:fix": "pnpm run '/^lint:fix:(js|sol)/'",
     "build": "pnpm -r --filter @usecannon/builder --filter @usecannon/cli --filter hardhat-cannon --filter @usecannon/api run build",
+    "watch": "pnpm -r --parallel --filter @usecannon/builder --filter @usecannon/cli run watch",
     "version-alpha": "lerna version prerelease --no-private",
     "version-patch": "lerna version patch --no-private",
     "version-minor": "lerna version minor --no-private",
