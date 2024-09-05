@@ -28,6 +28,7 @@ import {
 import Chain from './Chain';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 export type DataTableProps<Data extends object> = {
   data: Data[];
@@ -136,13 +137,6 @@ export function DataTable<Data extends object>({
           <Tr
             key={row.id}
             _hover={{ backgroundColor: 'gray.900' }} // hover state
-            cursor="pointer"
-            onClick={async () => {
-              const variant = `${row.original.chain}-${row.original.preset}`;
-              await router.push(
-                `/packages/${packageName}/${row.original.version}/${variant}`
-              );
-            }}
           >
             {row.getVisibleCells().map((cell) => {
               // see https://tanstack.com/table/v8/docs/api/core/column-def#meta to type this correctly
@@ -159,6 +153,8 @@ export function DataTable<Data extends object>({
                 new Date(cell.row.original.published * 1000),
                 'PPPppp'
               );
+
+              const variant = `${row.original.chain}-${row.original.preset}`;
 
               return (
                 <Td
@@ -192,7 +188,13 @@ export function DataTable<Data extends object>({
                         return <Tooltip label={tooltipTime}>{timeAgo}</Tooltip>;
                       }
                       case 'arrow': {
-                        return <ArrowRightIcon boxSize={3} />;
+                        return (
+                          <Link
+                            href={`/packages/${packageName}/${row.original.version}/${variant}`}
+                          >
+                            <ArrowRightIcon boxSize={3} />
+                          </Link>
+                        );
                       }
                       default: {
                         return (
