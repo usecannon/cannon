@@ -27,7 +27,6 @@ import {
 } from '@tanstack/react-table';
 import Chain from './Chain';
 import { format, formatDistanceToNow } from 'date-fns';
-import { useRouter } from 'next/router';
 import Link from 'next/link';
 
 export type DataTableProps<Data extends object> = {
@@ -69,7 +68,7 @@ export function DataTable<Data extends object>({
       sorting,
     },
   });
-  const router = useRouter();
+
   return (
     <Table size="sm">
       <Thead>
