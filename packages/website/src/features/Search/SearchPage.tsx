@@ -17,14 +17,15 @@ import { PackageCardExpandable } from './PackageCard/PackageCardExpandable';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { groupBy } from 'lodash';
 import { ChainFilter } from './ChainFilter';
-import chains from '@/helpers/chains';
 import { useQuery } from '@tanstack/react-query';
 import { getChains, getPackages } from '@/helpers/api';
 import SearchInput from '@/components/SearchInput';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 export const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedChains, setSelectedChains] = useState<number[]>([]);
+  const { getChainById } = useCannonChains();
 
   const isSmall = useBreakpointValue({
     base: true,
@@ -56,7 +57,7 @@ export const SearchPage = () => {
 
     ids.forEach((id) => {
       // Check if the chain_id exists in the chains object and if it's a testnet
-      const chain = Object.values(chains).find((chain) => chain.id == id);
+      const chain = getChainById(id);
 
       if ((chain as any)?.testnet) {
         testnetChainIds.add(id);

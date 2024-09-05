@@ -1,7 +1,24 @@
 {
   "extends": "next/core-web-vitals",
   "rules": {
-    "react-hooks/exhaustive-deps": "off"
+    "react-hooks/exhaustive-deps": "off",
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "viem/chains",
+            "importNames": ["default"],
+            "message": "Importing chains is not allowed. Please use `const {chains} = useCannonChains()` instead."
+          },
+          {
+            "name": "@wagmi/core/chains",
+            "importNames": ["default"],
+            "message": "Importing chains is not allowed. Please use `const {chains} = useCannonChains()` instead."
+          }
+        ]
+      }
+    ]
   },
   "env": {
     "cypress/globals": true

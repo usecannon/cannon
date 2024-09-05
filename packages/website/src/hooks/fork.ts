@@ -1,4 +1,4 @@
-import { createFork } from '@/helpers/rpc';
+import { useCreateFork } from '@/helpers/rpc';
 import { SafeDefinition } from '@/helpers/store';
 import { useEffect, useState } from 'react';
 import { Hex, TransactionRequestBase } from 'viem';
@@ -11,6 +11,7 @@ type SimulatedTransactionResult = {
 
 function useFork({ chainId, impersonate = [] }: { chainId: number; impersonate: string[] }) {
   const [fork, setFork] = useState<any>(null);
+  const createFork = useCreateFork();
 
   useEffect(() => {
     void (async function load() {

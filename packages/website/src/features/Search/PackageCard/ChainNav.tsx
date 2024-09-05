@@ -2,23 +2,18 @@ import { FC } from 'react';
 import { Button, Tooltip, Flex } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import Chain from './Chain';
-import { find } from 'lodash';
-import chains from '@/helpers/chains';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 const ChainNav: FC<{
   variants: any[];
   packageName: string;
 }> = ({ variants, packageName }) => {
+  const { getChainById } = useCannonChains();
   const sortedVariants = [...variants].sort((a, b) => {
     if (a.chain_id === 13370) return -1;
     if (b.chain_id === 13370) return 1;
     return a.chain_id - b.chain_id;
   });
-
-  const chainName = (chainId: number) => {
-    if (chainId == 13370) return 'Cannon';
-    return find(chains, (chain) => chain.id === chainId)?.name;
-  };
 
   return (
     <Flex gap={2}>
@@ -26,7 +21,9 @@ const ChainNav: FC<{
         <Tooltip
           key={variant.id}
           placement="top"
-          label={chainName(variant.chain_id) + ` (ID ${variant.chain_id})`}
+          label={
+            getChainById(variant.chain_id)?.name + ` (ID ${variant.chain_id})`
+          }
         >
           <Button
             as={NextLink}

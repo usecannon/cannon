@@ -3,7 +3,6 @@
 import { Alert } from '@/components/Alert';
 import Card from '@/components/Card';
 import { parseHintedMulticall } from '@/helpers/cannon';
-import { getChainById, getExplorerUrl } from '@/helpers/chains';
 import { truncateAddress } from '@/helpers/ethereum';
 import { sleep } from '@/helpers/misc';
 import { getSafeTransactionHash } from '@/helpers/safe';
@@ -43,7 +42,7 @@ import { useConnectModal } from '@rainbow-me/rainbowkit';
 import _ from 'lodash';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { IoIosContract, IoIosExpand } from 'react-icons/io';
-import { Hex, hexToString, TransactionRequestBase } from 'viem';
+import { Hash, Hex, hexToString, TransactionRequestBase } from 'viem';
 import {
   useAccount,
   useChainId,
@@ -56,6 +55,7 @@ import { SimulateTransactionButton } from './SimulateTransactionButton';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 import 'react-diff-view/style/index.css';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 const AdditionalSignaturesText = ({ amount }: { amount: number }) => (
   <Text fontWeight="bold" mt="3">
@@ -74,13 +74,14 @@ function TransactionDetailsPage() {
     useTransactionDetailsParams();
   const { openConnectModal } = useConnectModal();
   const { switchChainAsync } = useSwitchChain();
+  const { getChainById, getExplorerUrl } = useCannonChains();
   const publicClient = usePublicClient();
   const walletChainId = useChainId();
   const account = useAccount();
 
   const currentSafe = useStore((s) => s.currentSafe);
   const [expandDiff, setExpandDiff] = useState<boolean>(false);
-  const [executionTxnHash, setExecutionTxnHash] = useState<string | null>(null);
+  const [executionTxnHash, setExecutionTxnHash] = useState<Hash | null>(null);
   const accountAlreadyConnected = useRef(account.isConnected);
 
   const safe: SafeDefinition = useMemo(
@@ -245,7 +246,7 @@ function TransactionDetailsPage() {
         );
       }));
 
-  const signers: Array<string> = stager.existingSigners.length
+  const signers: Array<Hash> = stager.existingSigners.length
     ? stager.existingSigners
     : safeTxn?.confirmedSigners || [];
 

@@ -1,12 +1,12 @@
 import SafeApiKit from '@safe-global/api-kit';
 import { useQuery } from '@tanstack/react-query';
-import { Address, getAddress, isAddress, keccak256, stringToBytes } from 'viem';
+import { Address, Chain, getAddress, isAddress, keccak256, stringToBytes } from 'viem';
 import { useAccount, useReadContracts } from 'wagmi';
 import { chains } from '@/constants/deployChains';
 import * as onchainStore from '@/helpers/onchain-store';
 import { ChainId, SafeDefinition, useStore } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
-import { supportedChains } from './providers';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 export type SafeString = `${ChainId}:${Address}`;
 
@@ -40,7 +40,7 @@ export function getSafeFromString(safeString: string): SafeDefinition | null {
   };
 }
 
-export function isValidSafe(safe: SafeDefinition): boolean {
+export function isValidSafe(safe: SafeDefinition, supportedChains: Chain[]): boolean {
   return (
     !!safe &&
     isAddress(safe.address) &&
@@ -136,6 +136,7 @@ export function usePendingTransactions(safe?: SafeDefinition) {
 
 export function useWalletPublicSafes() {
   const { address } = useAccount();
+  const { chains } = useCannonChains();
 
   const txsQuery = useQuery({
     queryKey: ['safe-service', 'wallet-safes', address],
@@ -143,7 +144,7 @@ export function useWalletPublicSafes() {
       const results: SafeDefinition[] = [];
       if (!address) return results;
       await Promise.all(
-        supportedChains.map(async (chain) => {
+        chains.map(async (chain) => {
           const safeService = _createSafeApiKit(chain.id);
           if (!safeService) return;
           // This in order to avoid breaking the whole query if any chain fails

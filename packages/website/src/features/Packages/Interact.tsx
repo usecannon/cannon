@@ -1,7 +1,6 @@
 import QueueDrawer from '@/features/Deploy/QueueDrawer';
 import { Abi } from '@/features/Packages/Abi';
 import { SubnavContext } from '@/features/Packages/Tabs/InteractTab';
-import chains from '@/helpers/chains';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { usePackageVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import { getOutput } from '@/lib/builder';
@@ -25,12 +24,14 @@ import {
 import { FC, useContext, useEffect, useState } from 'react';
 
 import { externalLinks } from '@/constants/externalLinks';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { usePackageByRef } from '@/hooks/api/usePackage';
 
 const Interact: FC = () => {
   const { variant, tag, name, moduleName, contractName, contractAddress } =
     usePackageVersionUrlParams();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { getExplorerUrl } = useCannonChains();
 
   const [chainId, preset] = PackageReference.parseVariant(variant);
 
@@ -93,12 +94,9 @@ const Interact: FC = () => {
     externalLinks.IPFS_CANNON
   }${packagesQuery.data?.deployUrl.replace('ipfs://', '')}`;
 
-  const etherscanUrl =
-    (
-      Object.values(chains).find(
-        (chain) => chain.id === packagesQuery.data?.chainId
-      ) as any
-    )?.blockExplorers?.default?.url ?? externalLinks.ETHERSCAN;
+  const explorerUrl = packagesQuery.data?.chainId
+    ? getExplorerUrl(packagesQuery.data?.chainId, contractAddress)
+    : null;
 
   const isMobile = useBreakpointValue([true, true, false]);
 
@@ -134,19 +132,22 @@ const Interact: FC = () => {
             )}
           </Heading>
           <Text color="gray.300" fontSize="xs" fontFamily="mono">
-            <Link
-              isExternal
-              styleConfig={{ 'text-decoration': 'none' }}
-              borderBottom="1px dotted"
-              borderBottomColor="gray.300"
-              href={`${etherscanUrl}/address/${contractAddress}`}
-            >
-              {isMobile && contractAddress
-                ? `${contractAddress.substring(0, 6)}...${contractAddress.slice(
-                    -4
-                  )}`
-                : contractAddress}
-            </Link>
+            {explorerUrl ? (
+              <Link
+                isExternal
+                styleConfig={{ 'text-decoration': 'none' }}
+                borderBottom="1px dotted"
+                borderBottomColor="gray.300"
+                href={explorerUrl}
+              >
+                {isMobile && contractAddress
+                  ? `${contractAddress.substring(
+                      0,
+                      6
+                    )}...${contractAddress.slice(-4)}`
+                  : contractAddress}
+              </Link>
+            ) : null}
           </Text>
         </Box>
 
