@@ -21,7 +21,7 @@ cannon greeter
 We use bats as our main testing infrastructure for end-to-end tests. To run the e2e suite, just run the following command in your terminal:
 
 ```
-npm run test-e2e
+pnpm run test-e2e
 ```
 
 Note: if you're using MacOS, you will need to install parallel before running the E2E tests: https://www.gnu.org/software/parallel/
