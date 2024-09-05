@@ -19,4 +19,4 @@ export const setDebugLevel = (opts: any) => {
       Debug.enable('cannon:builder');
       break;
   }
-}
+};
