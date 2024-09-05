@@ -52,6 +52,7 @@ export default function PackageAccordionHelper({
   }
 
   /** Removing any potential run steps from the definition so it doesnt get registered in ChainDefinition */
+  //eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { ['run']: _, ...filteredDefinition } = deploymentInfo.def as any;
 
   return (
