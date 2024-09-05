@@ -2,12 +2,20 @@ import 'prismjs';
 import 'prismjs/components/prism-toml';
 
 import React, { FC, useState } from 'react';
-import { Box, Flex, Heading, Link, Text, Tooltip } from '@chakra-ui/react';
+import {
+  Box,
+  Collapse,
+  Flex,
+  Heading,
+  Link,
+  Text,
+  Tooltip,
+} from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { links } from '@/constants/links';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
-import { InfoIcon } from '@chakra-ui/icons';
+import { ChevronDownIcon, InfoIcon } from '@chakra-ui/icons';
 import { ChainBuilderContext } from '@usecannon/builder';
 import { isEmpty } from 'lodash';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
@@ -22,6 +30,11 @@ export const DeploymentExplorer: FC<{
   pkg: ApiPackage;
 }> = ({ pkg }) => {
   const [searchTerm, setSearchTerm] = useState<string>('');
+
+  const [showContracts, setShow] = React.useState(true);
+
+  const handleCollapse = () => setShow(!showContracts);
+
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     pkg?.deployUrl,
     !!pkg?.deployUrl
@@ -100,30 +113,33 @@ export const DeploymentExplorer: FC<{
     ? mergeArtifactsContracts(deploymentInfo.state)
     : {};
 
-  // Filter and sort based on search term
-  const contractEntries = Object.entries(contractState);
-  const sortedEntries = contractEntries
-    .filter(([, user]) =>
-      Object.values(user).some(
-        (value) => typeof value === 'string' && value.includes(searchTerm)
-      )
-    )
-    .sort(([, userA], [, userB]) => {
-      // Calculate match scores based on search term position
-      const scoreA = Math.min(
-        ...Object.values(userA)
-          .filter((v) => typeof v === 'string')
-          .map((v) => (v as string).indexOf(searchTerm))
-      );
-      const scoreB = Math.min(
-        ...Object.values(userB)
-          .filter((v) => typeof v === 'string')
-          .map((v) => (v as string).indexOf(searchTerm))
-      );
-      return scoreA - scoreB;
-    });
+  const contractSortOrder: string[] = [
+    'deploy',
+    'contract',
+    'provision',
+    'import',
+    'pull',
+    'clone',
+    'router',
+    'invoke',
+    'run',
+  ];
 
-  const filteredContractState = Object.fromEntries(sortedEntries);
+  // Filter and sort based on search term and sort order
+  const contractEntries = Object.entries(contractState);
+  const filteredContractState = Object.fromEntries(
+    contractEntries
+      .sort(
+        ([, { deployedOn: propA }], [, { deployedOn: propB }]) =>
+          contractSortOrder.findIndex((val) => propA.includes(val)) -
+          contractSortOrder.findIndex((val) => propB.includes(val))
+      )
+      .filter(([, user]) =>
+        Object.values(user).some(
+          (value) => typeof value === 'string' && value.includes(searchTerm)
+        )
+      )
+  );
 
   function mergeInvoke(obj: any, mergedInvokes: any = {}): any {
     for (const key in obj) {
@@ -208,32 +224,40 @@ export const DeploymentExplorer: FC<{
             justifyContent={'space-between'}
             direction={['column', 'column', 'row']}
           >
-            <Heading size="md">Contract Deployments</Heading>
+            <Heading size="md">
+              Contract Deployments
+              <ChevronDownIcon
+                ml={2}
+                onClick={handleCollapse}
+              ></ChevronDownIcon>
+            </Heading>
             <Box>
               <SearchInput onSearchChange={setSearchTerm}></SearchInput>
             </Box>
           </Flex>
-          {!isEmpty(filteredContractState) && !isEmpty(addressesAbis) ? (
-            <Box mt={2}>
-              <Box maxW="100%" overflowX="auto">
-                <ContractsTable
-                  contractState={filteredContractState}
-                  chainId={pkg.chainId}
-                />
+          <Collapse in={showContracts}>
+            {!isEmpty(filteredContractState) && !isEmpty(addressesAbis) ? (
+              <Box mt={2}>
+                <Box maxW="100%" overflowX="auto">
+                  <ContractsTable
+                    contractState={filteredContractState}
+                    chainId={pkg.chainId}
+                  />
+                </Box>
               </Box>
-            </Box>
-          ) : (
-            <Box mt={6}>
-              <Flex
-                px={4}
-                mb={3}
-                justifyContent={'center'}
-                direction={['column', 'column', 'row']}
-              >
-                <Heading size="sm"> No Contracts Found</Heading>
-              </Flex>
-            </Box>
-          )}
+            ) : (
+              <Box mt={6}>
+                <Flex
+                  px={4}
+                  mb={3}
+                  justifyContent={'center'}
+                  direction={['column', 'column', 'row']}
+                >
+                  <Heading size="sm"> No Contracts Found</Heading>
+                </Flex>
+              </Box>
+            )}
+          </Collapse>
 
           {!isEmpty(invokeState) && (
             <Box mt={6}>
