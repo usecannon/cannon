@@ -2,18 +2,18 @@ import path from 'node:path';
 import { CANNON_CHAIN_ID, CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
 import Debug from 'debug';
 import * as viem from 'viem';
+import { PackageSpecification } from '../types';
 import { getFoundryArtifact } from '../foundry';
-import { execPromise, filterSettings, loadCannonfile } from '../helpers';
+import { ANVIL_FIRST_ADDRESS } from '../constants';
 import { createDryRunRegistry } from '../registry';
 import { CannonRpcNode, getProvider, runRpc } from '../rpc';
 import { CliSettings, resolveCliSettings } from '../settings';
-import { PackageSpecification } from '../types';
-import { pickAnvilOptions } from './anvil';
-import { parseSettings } from './params';
-import { ProviderAction, resolveProvider, isURL, getChainIdFromRpcUrl } from './provider';
-import { ANVIL_FIRST_ADDRESS } from '../constants';
-import { setDebugLevel } from './debug-level';
+import { execPromise, filterSettings, loadCannonfile } from '../helpers';
 import { warn } from './console';
+import { parseSettings } from './params';
+import { pickAnvilOptions } from './anvil';
+import { setDebugLevel } from './debug-level';
+import { ProviderAction, resolveProvider, isURL, getChainIdFromRpcUrl } from './provider';
 
 const debug = Debug('cannon:cli');
 
@@ -65,7 +65,6 @@ export async function doBuild(
 
   return [node, buildConfig.packageDefinition, outputs, runtime];
 }
-
 
 /**
  * Processes the cannonfile and updates settings if necessary.
