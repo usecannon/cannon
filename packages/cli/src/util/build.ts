@@ -12,6 +12,7 @@ import { pickAnvilOptions } from './anvil';
 import { parseSettings } from './params';
 import { ProviderAction, resolveProvider, isURL, getChainIdFromRpcUrl } from './provider';
 import { ANVIL_FIRST_ADDRESS } from '../constants';
+import { setDebugLevel } from './debug-level';
 import { warn } from './console';
 
 const debug = Debug('cannon:cli');
@@ -65,26 +66,6 @@ export async function doBuild(
   return [node, buildConfig.packageDefinition, outputs, runtime];
 }
 
-/**
- * Sets the debug level based on the provided options.
- * @param opts Options to define debug level.
- */
-function setDebugLevel(opts: any) {
-  switch (true) {
-    case opts.Vvvv:
-      Debug.enable('cannon:*');
-      break;
-    case opts.Vvv:
-      Debug.enable('cannon:builder*');
-      break;
-    case opts.Vv:
-      Debug.enable('cannon:builder,cannon:builder:definition');
-      break;
-    case opts.v:
-      Debug.enable('cannon:builder');
-      break;
-  }
-}
 
 /**
  * Processes the cannonfile and updates settings if necessary.
