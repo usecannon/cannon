@@ -24,6 +24,8 @@ We use bats as our main testing infrastructure for end-to-end tests. To run the 
 npm run test-e2e
 ```
 
+Note: if you're using MacOS, you will need to install parallel before running the E2E tests: https://www.gnu.org/software/parallel/
+
 ## Setup to Build
 
 To deploy protocols and create your own packages (i.e. build Cannonfiles), first run the `setup` command:
