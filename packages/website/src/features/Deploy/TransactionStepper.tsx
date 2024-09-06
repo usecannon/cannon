@@ -23,7 +23,8 @@ import {
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { formatDistanceToNow } from 'date-fns';
 import { useEffect, useMemo } from 'react';
-import chains from '@/helpers/chains';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import { Hash } from 'viem';
 
 type Orientation = 'horizontal' | 'vertical';
 
@@ -53,6 +54,8 @@ export function TransactionStepper(props: {
   signers: string[];
   threshold: number;
 }) {
+  const { getExplorerUrl } = useCannonChains();
+
   const packagePublished = props.published;
   const transactionHash = props.safeTxn?.transactionHash;
   const packageRef = props.cannonPackage?.resolvedName?.length
@@ -101,9 +104,9 @@ export function TransactionStepper(props: {
     [props.safeTxn]
   );
 
-  const etherscanUrl =
-    (Object.values(chains).find((chain) => chain.id === props.chainId) as any)
-      ?.blockExplorers?.default?.url ?? 'https://etherscan.io';
+  // const etherscanUrl =
+  //   (Object.values(chains).find((chain) => chain.id === props.chainId) as any)
+  //     ?.blockExplorers?.default?.url ?? 'https://etherscan.io';
 
   const packageName = props.cannonPackage.resolvedName;
   const version = props.cannonPackage.resolvedVersion || 'latest';
@@ -269,7 +272,10 @@ export function TransactionStepper(props: {
                   <Link
                     isExternal
                     styleConfig={{ 'text-decoration': 'none' }}
-                    href={`${etherscanUrl}/tx/${transactionHash}`}
+                    href={getExplorerUrl(
+                      props.chainId,
+                      transactionHash as Hash
+                    )}
                     ml={1}
                   >
                     <ExternalLinkIcon transform="translateY(-0.5px)" />

@@ -25,7 +25,12 @@ import {
 } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { ChainBuilderContext } from '@usecannon/builder';
-import chains from '@/helpers/chains';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
+
+type InvokeRow = {
+  name: string;
+  value: string;
+};
 
 /*
   * Function Calls
@@ -44,10 +49,7 @@ export const InvokesTable: React.FC<{
   invokeState: ChainBuilderContext['txns'];
   chainId: number;
 }> = ({ invokeState, chainId }) => {
-  type InvokeRow = {
-    name: string;
-    value: string;
-  };
+  const { getExplorerUrl } = useCannonChains();
 
   const data = React.useMemo(() => {
     return Object.entries(invokeState).map(
@@ -85,10 +87,6 @@ export const InvokesTable: React.FC<{
       sorting,
     },
   });
-
-  const etherscanUrl = (
-    Object.values(chains).find((chain) => chain.id === chainId) as any
-  )?.blockExplorers?.default?.url;
 
   return (
     <Table size="sm">
@@ -175,12 +173,14 @@ export const InvokesTable: React.FC<{
                         );
                       }
                       case 'value': {
-                        return etherscanUrl ? (
+                        const explorerUrl = getExplorerUrl(
+                          chainId,
+                          cell.row.original.value
+                        );
+                        return explorerUrl ? (
                           <Link
                             isExternal
-                            href={
-                              etherscanUrl + '/tx/' + cell.row.original.value
-                            }
+                            href={explorerUrl}
                             fontFamily="mono"
                             borderBottom="1px dotted"
                             borderBottomColor="gray.300"

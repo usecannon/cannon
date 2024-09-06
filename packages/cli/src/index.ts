@@ -15,7 +15,6 @@ import {
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
-import Debug from 'debug';
 import _ from 'lodash';
 import prompts from 'prompts';
 import * as viem from 'viem';
@@ -37,6 +36,7 @@ import { resolveCliSettings } from './settings';
 import { PackageSpecification } from './types';
 import { pickAnvilOptions } from './util/anvil';
 import { doBuild } from './util/build';
+import { setDebugLevel } from './util/debug-level';
 import { error, log, warn } from './util/console';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { parsePackageArguments, parsePackagesArguments } from './util/params';
@@ -119,23 +119,6 @@ function applyCommandsConfig(command: Command, config: any) {
     });
   }
   return command;
-}
-
-function setDebugLevel(opts: any) {
-  switch (true) {
-    case opts.Vvvv:
-      Debug.enable('cannon:*');
-      break;
-    case opts.Vvv:
-      Debug.enable('cannon:builder*');
-      break;
-    case opts.Vv:
-      Debug.enable('cannon:builder,cannon:builder:definition');
-      break;
-    case opts.v:
-      Debug.enable('cannon:builder');
-      break;
-  }
 }
 
 function configureRun(program: Command) {

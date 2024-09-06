@@ -2,11 +2,11 @@ import { externalLinks } from '@/constants/externalLinks';
 import { truncateAddress } from '@/helpers/ethereum';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { sleep } from '@/helpers/misc';
-import { findChain } from '@/helpers/rpc';
 import { useStore } from '@/helpers/store';
 import { useCannonPackage } from '@/hooks/cannon';
-import { useProviders } from '@/hooks/providers';
+
 import { useCannonPackagePublishers } from '@/hooks/registry';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import {
   ExternalLinkIcon,
   InfoOutlineIcon,
@@ -82,7 +82,7 @@ export default function PublishUtility(props: {
       viem.isAddressEqual(publisher, wc.data?.account.address)
   );
 
-  const { transports } = useProviders();
+  const { transports, getExplorerUrl } = useCannonChains();
 
   const prepareAndPublishPackage = async (publishChainId: number) => {
     if (!wc.data) {
@@ -280,10 +280,7 @@ export default function PublishUtility(props: {
                     <Link
                       isExternal
                       styleConfig={{ 'text-decoration': 'none' }}
-                      href={`${
-                        findChain(chainId).blockExplorers?.default?.url ||
-                        'https://etherscan.io'
-                      }/address/${publisher}`}
+                      href={getExplorerUrl(chainId, publisher)}
                       ml={1}
                     >
                       <ExternalLinkIcon transform="translateY(-1px)" />

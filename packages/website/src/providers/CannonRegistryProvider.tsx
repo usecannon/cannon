@@ -1,5 +1,5 @@
 import { inMemoryRegistry } from '@/helpers/cannon';
-import { findChain } from '@/helpers/rpc';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import {
   DEFAULT_REGISTRY_ADDRESS,
   DEFAULT_REGISTRY_CONFIG,
@@ -8,7 +8,7 @@ import {
 } from '@usecannon/builder';
 
 import React, { createContext, useContext } from 'react';
-import { Chain, createPublicClient, http } from 'viem';
+import { createPublicClient, http } from 'viem';
 
 type RegistryContextType = FallbackRegistry | undefined;
 
@@ -18,6 +18,8 @@ type Props = {
   children: React.ReactNode;
 };
 export const CannonRegistryProvider: React.FC<Props> = ({ children }) => {
+  const { getChainById } = useCannonChains();
+
   const onChainRegistries = DEFAULT_REGISTRY_CONFIG.map(
     (registry) => registry.chainId
   ).map(
@@ -25,9 +27,9 @@ export const CannonRegistryProvider: React.FC<Props> = ({ children }) => {
       new OnChainRegistry({
         address: DEFAULT_REGISTRY_ADDRESS,
         provider: createPublicClient({
-          chain: findChain(chainId) as Chain,
+          chain: getChainById(chainId),
           transport: http(),
-        }) as any, // TODO: fix type
+        }),
       })
   );
 

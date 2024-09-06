@@ -1,31 +1,6 @@
-import { extractChain, parseEther, toHex } from 'viem';
-import * as chains from 'viem/chains';
-
-const chainsValues = Object.values(chains);
-
-export function findChain(chainId: number) {
-  if (typeof chainId !== 'number') {
-    throw new Error(`Invalid chainId: ${chainId}`);
-  }
-
-  const chain = extractChain({
-    chains: chainsValues,
-    id: chainId as any,
-  });
-
-  if (!chain) throw new Error(`Unknown chainId: ${chainId}`);
-
-  return chain;
-}
-
-export function findChainUrl(chainId: number) {
-  const chain = findChain(chainId);
-  const url = chain.rpcUrls.default.http[0];
-
-  if (!url) throw new Error(`Chain "${chain.name}" does not have a default url`);
-
-  return url;
-}
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import { useCallback } from 'react';
+import { parseEther, toHex } from 'viem';
 
 async function loadGanache() {
   // This is a hack because we needed to remove ganache as a dependency because
@@ -44,19 +19,28 @@ async function loadGanache() {
   });
 }
 
-export async function createFork({ chainId, impersonate = [] }: { chainId: number; impersonate: string[] }) {
-  const chainUrl = findChainUrl(chainId);
+export function useCreateFork() {
+  const { getChainById } = useCannonChains();
 
-  await loadGanache();
-  const Ganache = (window as any).Ganache.default;
+  return useCallback(
+    async ({ chainId, impersonate = [] }: { chainId: number; impersonate: string[] }) => {
+      const chain = getChainById(chainId);
+      if (!chain) throw new Error(`Unknown chainId: ${chainId}`);
+      const chainUrl = chain.rpcUrls.default.http[0];
 
-  const node = Ganache.provider({
-    wallet: { unlockedAccounts: impersonate },
-    chain: { chainId },
-    fork: { url: chainUrl },
-  });
+      await loadGanache();
+      const Ganache = (window as any).Ganache.default;
 
-  await Promise.all(impersonate.map((addr) => node.send('evm_setAccountBalance', [addr, toHex(parseEther('10000'))])));
+      const node = Ganache.provider({
+        wallet: { unlockedAccounts: impersonate },
+        chain: { chainId },
+        fork: { url: chainUrl },
+      });
 
-  return node;
+      await Promise.all(impersonate.map((addr) => node.send('evm_setAccountBalance', [addr, toHex(parseEther('10000'))])));
+
+      return node;
+    },
+    [getChainById]
+  );
 }

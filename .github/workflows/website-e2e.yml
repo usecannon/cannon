@@ -25,7 +25,7 @@ jobs:
           NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
 
       - name: Cypress run
-        uses: cypress-io/github-action@v6
+        uses: cypress-io/github-action@v6.7.4
         with:
           command: pnpm -r --filter @usecannon/website run e2e:headless
         env:
