@@ -51,6 +51,49 @@ const formatIPFS = (input: string, partLength: number): string => {
   return `${prefix}${startPart}...${endPart}`;
 };
 
+const LinkableCell = ({ href }: { href: string }) => (
+  <NextLink href={href} passHref>
+    <Link position="absolute" display="block" w="100%" h="100%" />
+  </NextLink>
+);
+
+// TODO: add types
+const getCellContent = ({ cell }: { cell: any }) => {
+  const timeAgo = formatDistanceToNow(
+    new Date(cell.row.original.published * 1000),
+    {
+      addSuffix: true,
+    }
+  );
+
+  const tooltipTime = format(
+    new Date(cell.row.original.published * 1000),
+    'PPPppp'
+  );
+
+  switch (cell.column.columnDef.accessorKey) {
+    case 'chain': {
+      return <Chain id={cell.row.original.chain} />;
+    }
+    case 'deployUrl': {
+      return (
+        <Text fontFamily="mono" fontSize="12px" transform="translateY(1px)">
+          {formatIPFS(cell.row.original.deployUrl, 10)}
+        </Text>
+      );
+    }
+    case 'published': {
+      return <Tooltip label={tooltipTime}>{timeAgo}</Tooltip>;
+    }
+    case 'arrow': {
+      return <ArrowRightIcon boxSize={3} />;
+    }
+    default: {
+      return <>{flexRender(cell.column.columnDef.cell, cell.getContext())}</>;
+    }
+  }
+};
+
 export function DataTable<Data extends object>({
   data,
   columns,
@@ -141,18 +184,6 @@ export function DataTable<Data extends object>({
                 // see https://tanstack.com/table/v8/docs/api/core/column-def#meta to type this correctly
                 const meta: any = cell.column.columnDef.meta;
 
-                const timeAgo = formatDistanceToNow(
-                  new Date(cell.row.original.published * 1000),
-                  {
-                    addSuffix: true,
-                  }
-                );
-
-                const tooltipTime = format(
-                  new Date(cell.row.original.published * 1000),
-                  'PPPppp'
-                );
-
                 return (
                   <Td
                     key={cell.id}
@@ -165,53 +196,10 @@ export function DataTable<Data extends object>({
                     }
                     whiteSpace="nowrap"
                   >
-                    <NextLink
+                    <LinkableCell
                       href={`/packages/${packageName}/${row.original.version}/${variant}`}
-                      passHref
-                    >
-                      <Link
-                        position="absolute"
-                        display="block"
-                        w="100%"
-                        h="100%"
-                      />
-                    </NextLink>
-                    {(() => {
-                      switch (cell.column.columnDef.accessorKey) {
-                        case 'chain': {
-                          return <Chain id={cell.row.original.chain} />;
-                        }
-                        case 'deployUrl': {
-                          return (
-                            <Text
-                              fontFamily="mono"
-                              fontSize="12px"
-                              transform="translateY(1px)"
-                            >
-                              {formatIPFS(cell.row.original.deployUrl, 10)}
-                            </Text>
-                          );
-                        }
-                        case 'published': {
-                          return (
-                            <Tooltip label={tooltipTime}>{timeAgo}</Tooltip>
-                          );
-                        }
-                        case 'arrow': {
-                          return <ArrowRightIcon boxSize={3} />;
-                        }
-                        default: {
-                          return (
-                            <>
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
-                            </>
-                          );
-                        }
-                      }
-                    })()}
+                    />
+                    {getCellContent({ cell })}
                   </Td>
                 );
               })}
