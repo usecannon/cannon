@@ -746,19 +746,24 @@ function QueueFromGitOps() {
               </Heading>
             </Box>
           )}
-          {multicallTxn.data && stager.safeTxn && (
-            <Box mt="4" mb="10">
-              <Heading size="sm" mb={2}>
-                Transactions
-              </Heading>
-              <TransactionDisplay
-                safe={currentSafe as any}
-                safeTxn={stager.safeTxn}
-              />
-            </Box>
-          )}
+          {uploadToPublishIpfs.deployedIpfsHash &&
+            multicallTxn.data &&
+            stager.safeTxn && (
+              <Box mt="4" mb="10">
+                <Heading size="sm" mb={2}>
+                  Transactions
+                </Heading>
+                <TransactionDisplay
+                  safe={currentSafe as any}
+                  safeTxn={stager.safeTxn}
+                />
+              </Box>
+            )}
           {uploadToPublishIpfs.writeToIpfsMutation.isPending && (
-            <Text>Uploading build result to IPFS...</Text>
+            <Alert mt="6" status="info" bg="gray.800">
+              <Spinner mr={3} boxSize={4} />
+              <strong>Uploading build result to IPFS...</strong>
+            </Alert>
           )}
           {uploadToPublishIpfs.writeToIpfsMutation.error && (
             <Text>

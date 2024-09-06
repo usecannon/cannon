@@ -17,6 +17,7 @@ import {
   Link,
   Spinner,
   Text,
+  Tooltip,
 } from '@chakra-ui/react';
 import { FC, ReactNode } from 'react';
 import { a11yDark, CopyBlock } from 'react-code-blocks';
@@ -24,6 +25,7 @@ import {
   bytesToString,
   decodeFunctionData,
   DecodeFunctionDataReturnType,
+  formatEther,
   Hex,
   hexToBytes,
   TransactionRequestBase,
@@ -35,6 +37,7 @@ const TxWrapper: FC<{ children: ReactNode }> = ({ children }) => (
     {children}
   </Box>
 );
+
 // TODO: refactor caching mechanism
 // A possible solution is to use useQuery from tanstack/react-query
 const useCannonPreloadedContracts = (
@@ -276,6 +279,33 @@ function _encodeArg(type: string, val: string): string {
   return val.toString();
 }
 
+function _encodeArgTooltip(type: string, val: string): string {
+  if (Array.isArray(val)) {
+    if (!type.endsWith('[]')) {
+      throw Error(`Invalid arg type "${type}" and val "${val}"`);
+    }
+
+    return `["${val
+      .map((v) => _encodeArgTooltip(type.slice(0, -2), v))
+      .join('", "')}"]`;
+  }
+
+  if (type.startsWith('bytes') && val.startsWith('0x')) {
+    return val.toString();
+  } else if (type == 'tuple') {
+    return JSON.stringify(val, (_, v) =>
+      typeof v === 'bigint' ? v.toString() : v
+    );
+  } else if (type == 'bool') {
+    return val ? 'true' : 'false';
+  } else if (type.startsWith('uint') || type.startsWith('int')) {
+    return val ? formatEther(BigInt(val)) : '0';
+  }
+
+  // if we get here no tooltip is needed
+  return '';
+}
+
 function _renderInput(type: string, val: string) {
   if (type === 'tuple') {
     return (
@@ -291,28 +321,33 @@ function _renderInput(type: string, val: string) {
   }
 
   return (
-    <Input
-      type="text"
-      size="sm"
-      bg="black"
-      borderColor="whiteAlpha.400"
-      isReadOnly
-      _focus={{
-        boxShadow: 'none !important',
-        outline: 'none !important',
-        borderColor: 'whiteAlpha.400 !important',
-      }}
-      _focusVisible={{
-        boxShadow: 'none !important',
-        outline: 'none !important',
-        borderColor: 'whiteAlpha.400 !important',
-      }}
-      _hover={{
-        boxShadow: 'none !important',
-        outline: 'none !important',
-        borderColor: 'whiteAlpha.400 !important',
-      }}
-      value={_encodeArg(type, (val as string) || '')}
-    />
+    <Tooltip
+      label={_encodeArgTooltip(type, val as string)}
+      placement="bottom-start"
+    >
+      <Input
+        type="text"
+        size="sm"
+        bg="black"
+        borderColor="whiteAlpha.400"
+        isReadOnly
+        _focus={{
+          boxShadow: 'none !important',
+          outline: 'none !important',
+          borderColor: 'whiteAlpha.400 !important',
+        }}
+        _focusVisible={{
+          boxShadow: 'none !important',
+          outline: 'none !important',
+          borderColor: 'whiteAlpha.400 !important',
+        }}
+        _hover={{
+          boxShadow: 'none !important',
+          outline: 'none !important',
+          borderColor: 'whiteAlpha.400 !important',
+        }}
+        value={_encodeArg(type, (val as string) || '')}
+      />
+    </Tooltip>
   );
 }
