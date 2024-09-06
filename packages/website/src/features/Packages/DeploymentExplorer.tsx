@@ -38,7 +38,6 @@ export const DeploymentExplorer: FC<{
   const handleContractCollapse = () => setShowContracts(!showContracts);
   const handleInvokeCollapse = () => setShowInvoke(!showInvoke);
 
-
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     pkg?.deployUrl,
     !!pkg?.deployUrl
@@ -80,7 +79,7 @@ export const DeploymentExplorer: FC<{
         // If the current object has both address and abi keys
         if (obj[key].address && obj[key].abi) {
           if (
-            stepDefinitions.some(step => obj[key].deployedOn.includes(step))
+            stepDefinitions.some((step) => obj[key].deployedOn.includes(step))
           ) {
             mergedContracts[
               obj[key].contractName || '⚠ Unknown Contract Name'
@@ -92,7 +91,8 @@ export const DeploymentExplorer: FC<{
         if (obj[key].artifacts && obj[key].artifacts.imports) {
           const step = key.split('.')[1];
           for (const contract in obj[key].artifacts.imports[step].contracts) {
-            obj[key].artifacts.imports[step].contracts[contract].deployedOn = key;
+            obj[key].artifacts.imports[step].contracts[contract].deployedOn =
+              key;
 
             // Change deployedOn title to parent package
             mergedContracts[
@@ -124,7 +124,9 @@ export const DeploymentExplorer: FC<{
       )
       .filter(([, val]) =>
         Object.values(val).some(
-          (v) => typeof v === 'string' && v.toLowerCase().includes(contractSearchTerm.toLowerCase())
+          (v) =>
+            typeof v === 'string' &&
+            v.toLowerCase().includes(contractSearchTerm.toLowerCase())
         )
       )
   );
@@ -151,11 +153,15 @@ export const DeploymentExplorer: FC<{
     : {};
 
   const invokeEntries = Object.entries(invokeState);
-  const filteredInvokeState = Object.fromEntries(invokeEntries.filter(([, func]) =>
-    Object.values(func).some(
-      (value) => typeof value === 'string' && value.toLowerCase().includes(invokeSearchTerm.toLowerCase())
+  const filteredInvokeState = Object.fromEntries(
+    invokeEntries.filter(([, func]) =>
+      Object.values(func).some(
+        (value) =>
+          typeof value === 'string' &&
+          value.toLowerCase().includes(invokeSearchTerm.toLowerCase())
+      )
     )
-  ))
+  );
 
   const addressesAbis = deploymentInfo?.state
     ? extractAddressesAbis(deploymentInfo.state)
@@ -274,11 +280,13 @@ export const DeploymentExplorer: FC<{
           </Flex>
 
           <Collapse in={showInvoke}>
-
             {!isEmpty(invokeState) ? (
               <Box>
                 <Box maxW="100%" overflowX="auto">
-                  <InvokesTable invokeState={filteredInvokeState} chainId={pkg.chainId} />
+                  <InvokesTable
+                    invokeState={filteredInvokeState}
+                    chainId={pkg.chainId}
+                  />
                 </Box>
               </Box>
             ) : (
