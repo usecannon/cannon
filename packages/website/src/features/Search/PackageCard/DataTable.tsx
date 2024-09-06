@@ -7,6 +7,7 @@ import {
   Tr,
   Th,
   Td,
+  Link,
   chakra,
   Tooltip,
   Text,
@@ -27,7 +28,7 @@ import {
 } from '@tanstack/react-table';
 import Chain from './Chain';
 import { format, formatDistanceToNow } from 'date-fns';
-import Link from 'next/link';
+import NextLink from 'next/link';
 
 export type DataTableProps<Data extends object> = {
   data: Data[];
@@ -132,86 +133,91 @@ export function DataTable<Data extends object>({
         ))}
       </Thead>
       <Tbody>
-        {table.getRowModel().rows.map((row, rowInd) => (
-          <Tr
-            key={row.id}
-            _hover={{ backgroundColor: 'gray.900' }} // hover state
-          >
-            {row.getVisibleCells().map((cell) => {
-              // see https://tanstack.com/table/v8/docs/api/core/column-def#meta to type this correctly
-              const meta: any = cell.column.columnDef.meta;
+        {table.getRowModel().rows.map((row, rowInd) => {
+          const variant = `${row.original.chain}-${row.original.preset}`;
+          return (
+            <Tr key={row.id} _hover={{ backgroundColor: 'gray.900' }}>
+              {row.getVisibleCells().map((cell) => {
+                // see https://tanstack.com/table/v8/docs/api/core/column-def#meta to type this correctly
+                const meta: any = cell.column.columnDef.meta;
 
-              const timeAgo = formatDistanceToNow(
-                new Date(cell.row.original.published * 1000),
-                {
-                  addSuffix: true,
-                }
-              );
-
-              const tooltipTime = format(
-                new Date(cell.row.original.published * 1000),
-                'PPPppp'
-              );
-
-              const variant = `${row.original.chain}-${row.original.preset}`;
-
-              return (
-                <Td
-                  key={cell.id}
-                  isNumeric={meta?.isNumeric}
-                  borderColor="gray.600"
-                  borderBottom={
-                    table.getRowModel().rows.length == rowInd + 1
-                      ? 'none'
-                      : undefined
+                const timeAgo = formatDistanceToNow(
+                  new Date(cell.row.original.published * 1000),
+                  {
+                    addSuffix: true,
                   }
-                  whiteSpace="nowrap"
-                >
-                  {(() => {
-                    switch (cell.column.columnDef.accessorKey) {
-                      case 'chain': {
-                        return <Chain id={cell.row.original.chain} />;
-                      }
-                      case 'deployUrl': {
-                        return (
-                          <Text
-                            fontFamily="mono"
-                            fontSize="12px"
-                            transform="translateY(1px)"
-                          >
-                            {formatIPFS(cell.row.original.deployUrl, 10)}
-                          </Text>
-                        );
-                      }
-                      case 'published': {
-                        return <Tooltip label={tooltipTime}>{timeAgo}</Tooltip>;
-                      }
-                      case 'arrow': {
-                        return (
-                          <Link
-                            href={`/packages/${packageName}/${row.original.version}/${variant}`}
-                          >
-                            <ArrowRightIcon boxSize={3} />
-                          </Link>
-                        );
-                      }
-                      default: {
-                        return (
-                          <>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </>
-                        );
-                      }
+                );
+
+                const tooltipTime = format(
+                  new Date(cell.row.original.published * 1000),
+                  'PPPppp'
+                );
+
+                return (
+                  <Td
+                    key={cell.id}
+                    isNumeric={meta?.isNumeric}
+                    borderColor="gray.600"
+                    borderBottom={
+                      table.getRowModel().rows.length == rowInd + 1
+                        ? 'none'
+                        : undefined
                     }
-                  })()}
-                </Td>
-              );
-            })}
-          </Tr>
-        ))}
+                    whiteSpace="nowrap"
+                  >
+                    <NextLink
+                      href={`/packages/${packageName}/${row.original.version}/${variant}`}
+                      passHref
+                    >
+                      <Link
+                        position="absolute"
+                        display="block"
+                        w="100%"
+                        h="100%"
+                      />
+                    </NextLink>
+                    {(() => {
+                      switch (cell.column.columnDef.accessorKey) {
+                        case 'chain': {
+                          return <Chain id={cell.row.original.chain} />;
+                        }
+                        case 'deployUrl': {
+                          return (
+                            <Text
+                              fontFamily="mono"
+                              fontSize="12px"
+                              transform="translateY(1px)"
+                            >
+                              {formatIPFS(cell.row.original.deployUrl, 10)}
+                            </Text>
+                          );
+                        }
+                        case 'published': {
+                          return (
+                            <Tooltip label={tooltipTime}>{timeAgo}</Tooltip>
+                          );
+                        }
+                        case 'arrow': {
+                          return <ArrowRightIcon boxSize={3} />;
+                        }
+                        default: {
+                          return (
+                            <>
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </>
+                          );
+                        }
+                      }
+                    })()}
+                  </Td>
+                );
+              })}
+            </Tr>
+          );
+        })}
       </Tbody>
     </Table>
   );
