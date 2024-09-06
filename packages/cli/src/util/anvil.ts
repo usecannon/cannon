@@ -236,6 +236,14 @@ const anvilOptionKeys = [
   'transactionBlockKeeper',
 ] satisfies (keyof AnvilOptions)[];
 
-export function pickAnvilOptions(obj: object) {
-  return _.pick(obj, anvilOptionKeys) as AnvilOptions;
-}
+const prefix = 'anvil.';
+
+export const pickAnvilOptions = (anvilOptions: object): AnvilOptions => {
+  const pickedAnvilOptions = _.pick(
+    anvilOptions,
+    anvilOptionKeys.map((key) => `${prefix}${key}`)
+  );
+  return Object.fromEntries(
+    Object.entries(pickedAnvilOptions).map(([key, value]) => [key.replace(prefix, ''), value])
+  ) as AnvilOptions;
+};

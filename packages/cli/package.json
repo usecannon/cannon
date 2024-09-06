@@ -68,7 +68,7 @@
     "@usecannon/builder": "workspace:*",
     "abitype": "^1.0.5",
     "chalk": "^4.1.2",
-    "commander": "^9.5.0",
+    "commander": "^12.1.0",
     "debug": "^4.3.6",
     "eth-provider": "^0.13.6",
     "fastq": "^1.17.1",
