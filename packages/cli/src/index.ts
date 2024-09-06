@@ -98,7 +98,7 @@ function configureRun(program: Command) {
     const { run } = await import('./commands/run');
 
     // backwards compatibility for --port flag
-    options['anvil.port'] = options.port;
+    options['anvil.port'] = Number.parseInt(options.port);
 
     const cliSettings = resolveCliSettings(options);
 
