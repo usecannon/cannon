@@ -29,11 +29,15 @@ import SearchInput from '@/components/SearchInput';
 export const DeploymentExplorer: FC<{
   pkg: ApiPackage;
 }> = ({ pkg }) => {
-  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [contractSearchTerm, setContractSearchTerm] = useState<string>('');
+  const [invokeSearchTerm, setInvokeSearchTerm] = useState<string>('');
 
-  const [showContracts, setShow] = React.useState(true);
+  const [showInvoke, setShowInvoke] = React.useState(true);
+  const [showContracts, setShowContracts] = React.useState(true);
 
-  const handleCollapse = () => setShow(!showContracts);
+  const handleContractCollapse = () => setShowContracts(!showContracts);
+  const handleInvokeCollapse = () => setShowInvoke(!showInvoke);
+
 
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     pkg?.deployUrl,
@@ -58,21 +62,25 @@ export const DeploymentExplorer: FC<{
     }
   }
 
+  const stepDefinitions: string[] = [
+    'deploy',
+    'contract',
+    'provision',
+    'clone',
+    'import',
+    'pull',
+    'router',
+    'invoke',
+    'run',
+  ];
+
   function mergeArtifactsContracts(obj: any, mergedContracts: any = {}): any {
     for (const key in obj) {
       if (obj[key] && typeof obj[key] === 'object') {
         // If the current object has both address and abi keys
         if (obj[key].address && obj[key].abi) {
           if (
-            obj[key].deployedOn.startsWith('deploy') ||
-            obj[key].deployedOn.startsWith('contract') ||
-            obj[key].deployedOn.includes('router') ||
-            obj[key].deployedOn.includes('invoke') ||
-            obj[key].deployedOn.includes('provision') ||
-            obj[key].deployedOn.includes('clone') ||
-            obj[key].deployedOn.includes('import') ||
-            obj[key].deployedOn.includes('pull') ||
-            obj[key].deployedOn.includes('run')
+            stepDefinitions.some(step => obj[key].deployedOn.includes(step))
           ) {
             mergedContracts[
               obj[key].contractName || '⚠ Unknown Contract Name'
@@ -80,24 +88,16 @@ export const DeploymentExplorer: FC<{
           }
         }
 
+        //Adding contracts imported from subpackages
         if (obj[key].artifacts && obj[key].artifacts.imports) {
-          for (const k in obj[key].artifacts.imports[key.split('.')[1]]
-            .contracts) {
-            if (
-              key.includes('provision') ||
-              key.includes('clone') ||
-              key.includes('import') ||
-              key.includes('pull')
-            ) {
-              obj[key].artifacts.imports[key.split('.')[1]].contracts[
-                k
-              ].deployedOn = key;
+          const step = key.split('.')[1];
+          for (const contract in obj[key].artifacts.imports[step].contracts) {
+            obj[key].artifacts.imports[step].contracts[contract].deployedOn = key;
 
-              // Change deployedOn title to parent package
-              mergedContracts[
-                obj[key].contractName || '⚠ Unknown Contract Name'
-              ] = obj[key].artifacts.imports[key.split('.')[1]].contracts[k];
-            }
+            // Change deployedOn title to parent package
+            mergedContracts[
+              obj[key].contractName || '⚠ Unknown Contract Name'
+            ] = obj[key].artifacts.imports[step].contracts[contract];
           }
         }
 
@@ -113,30 +113,18 @@ export const DeploymentExplorer: FC<{
     ? mergeArtifactsContracts(deploymentInfo.state)
     : {};
 
-  const contractSortOrder: string[] = [
-    'deploy',
-    'contract',
-    'provision',
-    'import',
-    'pull',
-    'clone',
-    'router',
-    'invoke',
-    'run',
-  ];
-
-  // Filter and sort based on search term and sort order
+  // Filter and sort based on search term and sort order of steps
   const contractEntries = Object.entries(contractState);
   const filteredContractState = Object.fromEntries(
     contractEntries
       .sort(
         ([, { deployedOn: propA }], [, { deployedOn: propB }]) =>
-          contractSortOrder.findIndex((val) => propA.includes(val)) -
-          contractSortOrder.findIndex((val) => propB.includes(val))
+          stepDefinitions.findIndex((val) => propA.includes(val)) -
+          stepDefinitions.findIndex((val) => propB.includes(val))
       )
-      .filter(([, user]) =>
-        Object.values(user).some(
-          (value) => typeof value === 'string' && value.includes(searchTerm)
+      .filter(([, val]) =>
+        Object.values(val).some(
+          (v) => typeof v === 'string' && v.toLowerCase().includes(contractSearchTerm.toLowerCase())
         )
       )
   );
@@ -161,6 +149,13 @@ export const DeploymentExplorer: FC<{
   const invokeState: ChainBuilderContext['txns'] = deploymentInfo?.state
     ? mergeInvoke(deploymentInfo.state)
     : {};
+
+  const invokeEntries = Object.entries(invokeState);
+  const filteredInvokeState = Object.fromEntries(invokeEntries.filter(([, func]) =>
+    Object.values(func).some(
+      (value) => typeof value === 'string' && value.toLowerCase().includes(invokeSearchTerm.toLowerCase())
+    )
+  ))
 
   const addressesAbis = deploymentInfo?.state
     ? extractAddressesAbis(deploymentInfo.state)
@@ -221,18 +216,19 @@ export const DeploymentExplorer: FC<{
           <Flex
             p={6}
             mb={1}
-            justifyContent={'space-between'}
+            justifyContent={'flex-start'}
+            alignItems={'baseline'}
             direction={['column', 'column', 'row']}
           >
             <Heading size="md">
               Contract Deployments
               <ChevronDownIcon
                 ml={2}
-                onClick={handleCollapse}
+                onClick={handleContractCollapse}
               ></ChevronDownIcon>
             </Heading>
-            <Box>
-              <SearchInput onSearchChange={setSearchTerm}></SearchInput>
+            <Box pl={6}>
+              <SearchInput onSearchChange={setContractSearchTerm}></SearchInput>
             </Box>
           </Flex>
           <Collapse in={showContracts}>
@@ -258,17 +254,46 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
           </Collapse>
-
-          {!isEmpty(invokeState) && (
-            <Box mt={6}>
-              <Heading size="md" px={4} mb={3}>
-                Function Calls
-              </Heading>
-              <Box maxW="100%" overflowX="auto">
-                <InvokesTable invokeState={invokeState} chainId={pkg.chainId} />
-              </Box>
+          <Flex
+            p={6}
+            mt={3}
+            justifyContent={'flex-start'}
+            alignItems={'baseline'}
+            direction={['column', 'column', 'row']}
+          >
+            <Heading size="md" px={4} mb={3}>
+              Function Calls
+            </Heading>
+            <ChevronDownIcon
+              ml={2}
+              onClick={handleInvokeCollapse}
+            ></ChevronDownIcon>
+            <Box pl={6}>
+              <SearchInput onSearchChange={setInvokeSearchTerm}></SearchInput>
             </Box>
-          )}
+          </Flex>
+
+          <Collapse in={showInvoke}>
+
+            {!isEmpty(invokeState) ? (
+              <Box>
+                <Box maxW="100%" overflowX="auto">
+                  <InvokesTable invokeState={filteredInvokeState} chainId={pkg.chainId} />
+                </Box>
+              </Box>
+            ) : (
+              <Box mt={6}>
+                <Flex
+                  px={4}
+                  mb={3}
+                  justifyContent={'center'}
+                  direction={['column', 'column', 'row']}
+                >
+                  <Heading size="sm"> No Functions Found</Heading>
+                </Flex>
+              </Box>
+            )}
+          </Collapse>
 
           {!isEmpty(mergedExtras) && (
             <Box mt={6}>
