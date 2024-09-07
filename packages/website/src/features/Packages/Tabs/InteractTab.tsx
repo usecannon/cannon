@@ -311,7 +311,7 @@ export const InteractTab: FC<{
                     >
                       <PopoverBody p={0}>
                         {otherOptions.length > 5 && (
-                          <Box mt={4} mx={4} width={300}>
+                          <Box mt={4} mx={4} minWidth={300}>
                             <SearchInput onSearchChange={setSearchTerm} />
                           </Box>
                         )}
