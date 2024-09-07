@@ -14,7 +14,8 @@ import {
   getOutputs,
   PackageReference,
   traceActions,
-  storeWrite, storeRead
+  findUpgradeFromPackage,
+  writeUpgradeFromInfo,
 } from '@usecannon/builder';
 import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
 import fs from 'fs-extra';
@@ -173,28 +174,15 @@ export async function build({
   const dump = writeScript ? await createWriteScript(runtime, writeScript, writeScriptFormat) : null;
 
   log(bold('Checking for existing package...'));
-  const prevPkg = upgradeFrom || fullPackageRef;
-  let oldDeployData: DeploymentInfo | null = await runtime.readDeploy(prevPkg, runtime.chainId);
-
-  if (!oldDeployData && def) {
-    debug('reading deploy data from onchain store');
-    let oldDeployHash: viem.Hash | null = null;
-    let oldDelpoyTimestamp: number = 0;
-
-    await Promise.all(def.getDeployers().map(async (addr) => {
-      const [deployTimestamp, deployHash] = (await storeRead(
-        runtime.provider,
-        addr,
-        viem.keccak256(viem.stringToBytes(`${packageReference.name}:${packageReference.preset}`))
-      )).split(':');
-      if (Number(deployTimestamp) > oldDelpoyTimestamp) {
-        oldDeployHash = deployHash as viem.Address;
-        oldDelpoyTimestamp = Number(deployTimestamp);
-      }
-    }));
-    
+  let oldDeployData: DeploymentInfo | null = null;
+  if (upgradeFrom) {
+    oldDeployData = await runtime.readDeploy(upgradeFrom, runtime.chainId);
+    if (!oldDeployData) {
+      throw new Error(`Deployment ${upgradeFrom} (${chainId}) not found`);
+    }
+  } else if (def) {
+    const oldDeployHash = await findUpgradeFromPackage(runtime, packageReference, runtime.chainId, def.getDeployers());
     if (oldDeployHash) {
-      debug('found existing version from onchain store', oldDeployHash);
       oldDeployData = await runtime.readBlob(oldDeployHash) as DeploymentInfo;
     }
   }
@@ -210,11 +198,7 @@ export async function build({
       }
     }
   } else {
-    if (upgradeFrom) {
-      throw new Error(`  ${prevPkg} (Chain ID: ${chainId}) not found`);
-    } else {
-      log(gray(`  ${prevPkg} (Chain ID: ${chainId}) not found`));
-    }
+    log(gray('Starting fresh build...'))
   }
 
   const resolvedSettings = _.pickBy(_.assign((!wipe && oldDeployData?.options) || {}, packageDefinition.settings));
@@ -544,7 +528,8 @@ export async function build({
       const isMainPreset = preset === PackageReference.DEFAULT_PRESET;
 
       if (persist) {
-        await writeUpgradeInfo(runtime, packageReference, deployUrl);
+        log(gray('Writing upgrade info...'));
+        await writeUpgradeFromInfo(runtime, packageReference, deployUrl);
 
         if (isMainPreset) {
           log(

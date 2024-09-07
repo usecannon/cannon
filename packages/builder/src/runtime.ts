@@ -108,6 +108,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   readonly snapshots: boolean;
   readonly allowPartialDeploy: boolean;
   readonly subpkgDepth: number;
+  currentStep: string | null;
   ctx: ChainBuilderContext | null;
   private publicSourceCode: boolean | undefined;
   private signals: { cancelled: boolean } = { cancelled: false };
@@ -162,6 +163,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
 
     this.misc = { artifacts: {} };
 
+    this.currentStep = null;
     this.ctx = null;
 
     if (info.priorityGasFee) {
@@ -264,7 +266,8 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     this.misc.artifacts[n] = artifact;
   }
 
-  reportOperatingContext(ctx: ChainBuilderContext | null) {
+  reportOperatingContext(n: string | null, ctx: ChainBuilderContext | null) {
+    this.currentStep = n;
     this.ctx = ctx;
   }
 
