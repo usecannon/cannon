@@ -231,7 +231,7 @@ function TransactionDetailsPage() {
   ]);
 
   // compare proposed build info with expected transaction batch
-  const expectedTxns = buildInfo.buildResult?.steps?.map(
+  const expectedTxns = buildInfo.buildResult?.safeSteps?.map(
     (s) => s.tx as unknown as Partial<TransactionRequestBase>
   );
 

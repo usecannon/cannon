@@ -47,7 +47,7 @@ export async function doBuild(
 
   // Set up signers
   // TODO: why are the provider types borked up here (like they are everywhere)
-  const { getSigner, getDefaultSigner } = await configureSigners(opts, cliSettings, provider as any, signers)
+  const { getSigner, getDefaultSigner } = await configureSigners(opts, cliSettings, provider as any, signers);
 
   // Prepare pre-build config
   const buildConfig = await prepareBuildConfig(
@@ -62,10 +62,15 @@ export async function doBuild(
   );
 
   if (!buildConfig.def.getDeployers().includes((await getDefaultSigner!())!.address)) {
-    warn(yellow(bold('WARN: For proper record of version history, we reccomend including all signers for your package as part of the `deployers` configuration in your cannonfile.')));
+    warn(
+      yellow(
+        bold(
+          'WARN: For proper record of version history, we reccomend including all signers for your package as part of the `deployers` configuration in your cannonfile.'
+        )
+      )
+    );
     warn(yellow('This can be safely done after the build is finished.'));
   }
-
 
   const { build } = await import('../commands/build');
 

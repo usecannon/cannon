@@ -280,7 +280,7 @@ function QueueFromGitOps() {
     if (buildInfo.buildResult) {
       uploadToPublishIpfs.writeToIpfsMutation.mutate();
     }
-  }, [buildInfo.buildResult?.steps]);
+  }, [buildInfo.buildResult?.safeSteps]);
 
   const refsInfo = useGitRefsList(gitUrl);
   const foundRef = refsInfo.refs?.find(
@@ -298,7 +298,7 @@ function QueueFromGitOps() {
   const multicallTxn: /*Partial<TransactionRequestBase>*/ any =
     buildInfo.buildResult &&
     !prevInfoQuery.isLoading &&
-    buildInfo.buildResult.steps.indexOf(null as any) === -1
+    buildInfo.buildResult.safeSteps.indexOf(null as any) === -1
       ? makeMultisend(
           [
             // supply the hint data
@@ -349,8 +349,27 @@ function QueueFromGitOps() {
                   }),
                 } as Partial<TransactionRequestBase>)
               : {},
+            {
+              to: onchainStore.deployAddress,
+              data: encodeFunctionData({
+                abi: onchainStore.ABI,
+                functionName: 'set',
+                args: [
+                  keccak256(
+                    toBytes(
+                      cannonDefInfo.def
+                        ? `${cannonDefInfo.def.getName(
+                            ctx
+                          )}:${cannonDefInfo.def.getPreset(ctx)}`
+                        : ''
+                    )
+                  ),
+                  stringToHex(uploadToPublishIpfs.deployedIpfsHash ?? ''),
+                ],
+              }),
+            } as Partial<TransactionRequestBase>,
           ].concat(
-            buildInfo.buildResult.steps.map(
+            buildInfo.buildResult.safeSteps.map(
               (s) => s.tx as unknown as Partial<TransactionRequestBase>
             )
           )
@@ -359,7 +378,7 @@ function QueueFromGitOps() {
 
   let totalGas = BigInt(0);
 
-  for (const step of buildInfo.buildResult?.steps || []) {
+  for (const step of buildInfo.buildResult?.safeSteps || []) {
     totalGas += BigInt(step.gas.toString());
   }
 
@@ -745,14 +764,22 @@ function QueueFromGitOps() {
               </Flex>
             </Alert>
           )}
-          {isDeployerContractsRequired && (
+          {buildInfo.buildResult?.deployerSteps?.length && (
             <Alert mt="6" status="info" mb="5">
               <Text>
                 Some transactions should be executed outside the safe before
                 staging. You can execute these now in your browser. By clicking
                 the button below.
               </Text>
-              <Button onClick={}>Execute Outside Safe Txns</Button>
+              <Button
+                onClick={() =>
+                  queueTransactions(
+                    buildInfo.buildResult!.deployerSteps.map((s) => s.tx as any)
+                  )
+                }
+              >
+                Execute Outside Safe Txns
+              </Button>
             </Alert>
           )}
           {cannonDefInfo.def && multicallTxn.data && (

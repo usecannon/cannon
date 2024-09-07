@@ -10,6 +10,7 @@ export function useDeployerWallet(chainId?: number) {
 
   const [queuedTransactions, setQueuedTransactions] = useState<viem.TransactionRequestBase[]>([]);
   const [executionProgress, setExecutionProgress] = useState<viem.Hash[]>([]);
+  const [error, setError] = useState<Error | null>(null);
 
   const { switchChainAsync } = useSwitchChain();
 
@@ -40,6 +41,7 @@ export function useDeployerWallet(chainId?: number) {
         .then(_.noop)
         .catch((err) => {
           // unexpected issue in the deployer
+          setError(err);
         });
     },
     [isConfirmed, queuedTransactions]
@@ -49,6 +51,7 @@ export function useDeployerWallet(chainId?: number) {
     address: connectedAccount.address,
     queuedTransactions,
     executionProgress,
+    error: error,
     queueTransactions: function (txn: viem.TransactionRequestBase[]) {
       setQueuedTransactions([...queuedTransactions, ...txn]);
     },

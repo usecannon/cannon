@@ -886,9 +886,14 @@ export const chainDefinitionSchema = z
         /**
          * Any deployers that could publish this package. Will be used for automatic version management.
          */
-        deployers: z.array(z.string().refine((val) => !!val.match(RegExp(/^0x[a-fA-F0-9]{40}$/, 'gm')), {
-          message: 'Invalid Ethereum address',
-        })).optional().describe('Any deployers that could publish this package. Will be used for automatic version management.'),
+        deployers: z
+          .array(
+            z.string().refine((val) => !!val.match(RegExp(/^0x[a-fA-F0-9]{40}$/, 'gm')), {
+              message: 'Invalid Ethereum address',
+            })
+          )
+          .optional()
+          .describe('Any deployers that could publish this package. Will be used for automatic version management.'),
         /**
          * Object that allows the definition of values for use in next operations
          * ```toml

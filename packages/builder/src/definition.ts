@@ -206,7 +206,7 @@ export class ChainDefinition {
   }
 
   getDeployers() {
-    return this.raw.deployers as Address[] || [];
+    return (this.raw.deployers as Address[]) || [];
   }
 
   isPublicSourceCode() {

@@ -183,7 +183,7 @@ export async function build({
   } else if (def) {
     const oldDeployHash = await findUpgradeFromPackage(runtime, packageReference, runtime.chainId, def.getDeployers());
     if (oldDeployHash) {
-      oldDeployData = await runtime.readBlob(oldDeployHash) as DeploymentInfo;
+      oldDeployData = (await runtime.readBlob(oldDeployHash)) as DeploymentInfo;
     }
   }
 
@@ -198,7 +198,7 @@ export async function build({
       }
     }
   } else {
-    log(gray('Starting fresh build...'))
+    log(gray('Starting fresh build...'));
   }
 
   const resolvedSettings = _.pickBy(_.assign((!wipe && oldDeployData?.options) || {}, packageDefinition.settings));
@@ -426,7 +426,7 @@ export async function build({
   chainDef.version = pkgVersion;
 
   if (miscUrl) {
-    const deployUrl = await runtime.putDeploy({
+    const deployUrl = (await runtime.putDeploy({
       generator: `cannon cli ${pkg.version}`,
       timestamp: Math.floor(Date.now() / 1000),
       def: chainDef,
@@ -438,7 +438,7 @@ export async function build({
       meta: pkgInfo,
       miscUrl: miscUrl,
       chainId: runtime.chainId,
-    }) as string;
+    })) as string;
 
     const metadataCache: { [key: string]: string } = {};
 

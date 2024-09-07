@@ -113,11 +113,16 @@ export async function storeWrite(publicClient: viem.PublicClient, client: viem.W
 }
 
 export async function storeRead(publicClient: viem.PublicClient, space: viem.Address, k: string) {
-  return viem.bytesToString((await publicClient.simulateContract({
-    account: space,
-    address: deployAddress,
-    abi: ABI,
-    functionName: 'set',
-    args: [viem.toBytes(k, { size: 32 })],
-  })).result as Uint8Array, { size: 32 });
+  return viem.bytesToString(
+    (
+      await publicClient.simulateContract({
+        account: space,
+        address: deployAddress,
+        abi: ABI,
+        functionName: 'set',
+        args: [viem.toBytes(k, { size: 32 })],
+      })
+    ).result as Uint8Array,
+    { size: 32 }
+  );
 }

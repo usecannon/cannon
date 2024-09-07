@@ -23,7 +23,6 @@ import {
   loadPrecompiles,
   PackageReference,
   publishPackage,
-  writeUpgradeFromInfo,
 } from '@usecannon/builder';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
@@ -33,6 +32,8 @@ import { useChainId } from 'wagmi';
 import '@/lib/builder';
 import { externalLinks } from '@/constants/externalLinks';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
+
+type CannonTxRecord = { name: string; gas: bigint; tx: BaseTransaction };
 
 export type BuildState =
   | {
@@ -83,7 +84,8 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
   const [buildResult, setBuildResult] = useState<{
     runtime: ChainBuilderRuntime;
     state: DeploymentState;
-    steps: { name: string; gas: bigint; tx: BaseTransaction }[];
+    safeSteps: CannonTxRecord[];
+    deployerSteps: CannonTxRecord[];
   } | null>(null);
 
   const [buildError, setBuildError] = useState<string | null>(null);
@@ -117,21 +119,19 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
     addLog('info', `cannon.ts: upgrade from: ${prevDeploy?.def.name}:${prevDeploy?.def.version}`);
 
-    const simulatedTxs: { hash: Hex, deployedOn: string }[] = [];
-
+    const simulatedTxns: { hash: string; deployedOn: string }[] = [];
     const transport = custom({
       request: async (args) => {
+        const result = await fork.request(args);
         if (currentRuntime) {
           switch (args.method) {
             case 'eth_sendTransaction':
               // capture the transaction that needs to be sent
-              const result = await fork.request(args);
-              simulatedTxs.push({ hash: result.hash, deployedOn: currentRuntime.currentStep || '' });
-              return result;
+              simulatedTxns.push({ hash: result.hash, deployedOn: currentRuntime.currentStep || '' });
           }
         }
 
-        return await fork.request(args);
+        return result;
       },
     });
 
@@ -224,18 +224,15 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
     setBuildSkippedSteps(skippedSteps);
 
-    if (simulatedTxs.length === 0) {
-      throw new Error('There are no transactions that can be executed on Safe.');
-    }
-
-    const steps = await Promise.all(
-      simulatedTxs.map(async (executedTx) => {
+    const allSteps = await Promise.all(
+      simulatedTxns.map(async (executedTx) => {
         if (!executedTx) throw new Error('Invalid operation');
         const tx = await provider.getTransaction({ hash: executedTx.hash as Hex });
         const rx = await provider.getTransactionReceipt({ hash: executedTx.hash as Hex });
         return {
           name: executedTx.deployedOn,
           gas: rx.gasUsed,
+          from: tx.from,
           tx: {
             to: tx.to,
             value: tx.value.toString(),
@@ -250,7 +247,8 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     return {
       runtime: currentRuntime,
       state: newState,
-      steps,
+      safeSteps: allSteps.filter((step) => step.from === safe.address),
+      deployerSteps: allSteps.filter((step) => step.from === deployerWalletAddress),
     };
   };
 
