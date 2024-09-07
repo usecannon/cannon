@@ -4,7 +4,6 @@ import { Alert } from '@/components/Alert';
 import Card from '@/components/Card';
 import { parseHintedMulticall } from '@/helpers/cannon';
 import { truncateAddress } from '@/helpers/ethereum';
-import { sleep } from '@/helpers/misc';
 import { getSafeTransactionHash } from '@/helpers/safe';
 import { SafeDefinition, useStore } from '@/helpers/store';
 import { useSafeTransactions, useTxnStager } from '@/hooks/backend';
