@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import Debug from 'debug';
 import _ from 'lodash';
+import type { Address } from 'viem';
 import { ActionKinds, RawChainDefinition, validateConfig } from './actions';
 import { ChainBuilderRuntime } from './runtime';
 import { chainDefinitionSchema } from './schemas';
@@ -202,6 +203,10 @@ export class ChainDefinition {
 
   getPackageRef(ctx: ChainBuilderContext) {
     return new PackageReference(`${this.getName(ctx)}:${this.getVersion(ctx) || 'latest'}@${this.getPreset(ctx) || 'main'}`);
+  }
+
+  getDeployers() {
+    return this.raw.deployers as Address[] || [];
   }
 
   isPublicSourceCode() {

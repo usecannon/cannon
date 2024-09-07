@@ -14,6 +14,7 @@ import {
   getOutputs,
   PackageReference,
   traceActions,
+  storeWrite, storeRead
 } from '@usecannon/builder';
 import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
 import fs from 'fs-extra';
@@ -32,6 +33,9 @@ import { PackageSpecification } from '../types';
 import { log, warn } from '../util/console';
 import { hideApiKey } from '../util/provider';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
+
+import Debug from 'debug';
+const debug = Debug('cannon:cli:build');
 
 interface Params {
   provider: viem.PublicClient;
@@ -171,6 +175,29 @@ export async function build({
   log(bold('Checking for existing package...'));
   const prevPkg = upgradeFrom || fullPackageRef;
   let oldDeployData: DeploymentInfo | null = await runtime.readDeploy(prevPkg, runtime.chainId);
+
+  if (!oldDeployData && def) {
+    debug('reading deploy data from onchain store');
+    let oldDeployHash: viem.Hash | null = null;
+    let oldDelpoyTimestamp: number = 0;
+
+    await Promise.all(def.getDeployers().map(async (addr) => {
+      const [deployTimestamp, deployHash] = (await storeRead(
+        runtime.provider,
+        addr,
+        viem.keccak256(viem.stringToBytes(`${packageReference.name}:${packageReference.preset}`))
+      )).split(':');
+      if (Number(deployTimestamp) > oldDelpoyTimestamp) {
+        oldDeployHash = deployHash as viem.Address;
+        oldDelpoyTimestamp = Number(deployTimestamp);
+      }
+    }));
+    
+    if (oldDeployHash) {
+      debug('found existing version from onchain store', oldDeployHash);
+      oldDeployData = await runtime.readBlob(oldDeployHash) as DeploymentInfo;
+    }
+  }
 
   // Update pkgInfo (package.json) with information from existing package, if present
   if (oldDeployData) {
@@ -420,12 +447,14 @@ export async function build({
       timestamp: Math.floor(Date.now() / 1000),
       def: chainDef,
       state: newState,
+      seq: oldDeployData?.seq ? oldDeployData.seq + 1 : 1,
+      track: oldDeployData?.track || Math.random().toString(36).substring(2, 15),
       options: resolvedSettings,
       status: partialDeploy ? 'partial' : 'complete',
       meta: pkgInfo,
       miscUrl: miscUrl,
       chainId: runtime.chainId,
-    });
+    }) as string;
 
     const metadataCache: { [key: string]: string } = {};
 
@@ -515,6 +544,8 @@ export async function build({
       const isMainPreset = preset === PackageReference.DEFAULT_PRESET;
 
       if (persist) {
+        await writeUpgradeInfo(runtime, packageReference, deployUrl);
+
         if (isMainPreset) {
           log(
             bold(

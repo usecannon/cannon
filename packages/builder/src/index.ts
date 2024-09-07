@@ -17,7 +17,7 @@ export { prepareMulticall } from './multicall';
 };
 
 export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from './registry';
-export { publishPackage, preparePublishPackage, forPackageTree } from './package';
+export { publishPackage, preparePublishPackage, forPackageTree, findUpgradeFromPackage, writeUpgradeFromInfo } from './package';
 export type { PackagePublishCall } from './package';
 export {
   CANNON_CHAIN_ID,
@@ -35,3 +35,4 @@ export * from './util';
 export * from './types';
 export * from './schemas';
 export * from './utils/template';
+export { storeRead, storeWrite } from './utils/onchain-store';

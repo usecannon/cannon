@@ -1,11 +1,13 @@
 import Debug from 'debug';
+import * as viem from 'viem';
 import _ from 'lodash';
 import { createInitialContext, getArtifacts } from './builder';
 import { ChainDefinition } from './definition';
-import { CannonStorage } from './runtime';
+import { CannonStorage, ChainBuilderRuntime } from './runtime';
 import { BundledOutput, ChainArtifacts, DeploymentInfo, StepState } from './types';
 
 import { PackageReference } from './package-reference';
+import { storeRead, storeWrite } from './utils/onchain-store';
 
 const debug = Debug('cannon:builder:package');
 
@@ -208,4 +210,34 @@ export async function publishPackage({
   });
 
   return toStorage.registry.publishMany(calls);
+}
+
+export async function findUpgradeFromPackage(runtime: ChainBuilderRuntime, packageReference: PackageReference, chainId: number, deployers: viem.Address[]) {
+  debug('find upgrade from onchain store');
+  let oldDeployHash: string | null = null;
+  let oldDelpoyTimestamp: number = 0;
+
+  await Promise.all(deployers.map(async (addr) => {
+    const [deployTimestamp, deployHash] = (await storeRead(
+      runtime.provider,
+      addr,
+      viem.keccak256(viem.stringToBytes(`${packageReference.name}:${packageReference.preset}`))
+    )).split(':');
+    if (Number(deployTimestamp) > oldDelpoyTimestamp) {
+      oldDeployHash = deployHash;
+      oldDelpoyTimestamp = Number(deployTimestamp);
+    }
+  }));
+
+  if (!oldDeployHash) {
+    debug('fallback: find upgrade from with registry');
+    // fallback to the registry with the same package name
+    oldDeployHash = await runtime.registry.getUrl(packageReference.fullPackageRef, chainId);
+  }
+
+  return oldDeployHash;
+}
+
+export async function writeUpgradeFromInfo(runtime: ChainBuilderRuntime, packageRef: PackageReference, deployUrl: string) {
+  return await storeWrite(runtime.provider, (await runtime.getDefaultSigner({})).wallet, viem.keccak256(viem.stringToBytes(`${packageRef.name}:${packageRef.preset}`)), deployUrl);
 }

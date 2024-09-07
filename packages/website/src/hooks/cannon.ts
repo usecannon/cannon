@@ -23,6 +23,7 @@ import {
   loadPrecompiles,
   PackageReference,
   publishPackage,
+  writeUpgradeFromInfo,
 } from '@usecannon/builder';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';

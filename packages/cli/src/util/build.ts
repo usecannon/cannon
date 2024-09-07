@@ -9,11 +9,13 @@ import { createDryRunRegistry } from '../registry';
 import { CannonRpcNode, getProvider, runRpc } from '../rpc';
 import { CliSettings, resolveCliSettings } from '../settings';
 import { execPromise, filterSettings, loadCannonfile } from '../helpers';
-import { warn } from './console';
+import { log, warn } from './console';
 import { parseSettings } from './params';
 import { pickAnvilOptions } from './anvil';
 import { setDebugLevel } from './debug-level';
 import { ProviderAction, resolveProvider, isURL, getChainIdFromRpcUrl } from './provider';
+
+import { yellow, bold } from 'chalk';
 
 const debug = Debug('cannon:cli');
 
@@ -45,7 +47,7 @@ export async function doBuild(
 
   // Set up signers
   // TODO: why are the provider types borked up here (like they are everywhere)
-  const { getSigner, getDefaultSigner } = await configureSigners(opts, cliSettings, provider as any, signers);
+  const { getSigner, getDefaultSigner } = await configureSigners(opts, cliSettings, provider as any, signers)
 
   // Prepare pre-build config
   const buildConfig = await prepareBuildConfig(
@@ -58,6 +60,12 @@ export async function doBuild(
     getSigner,
     getDefaultSigner
   );
+
+  if (!buildConfig.def.getDeployers().includes((await getDefaultSigner!())!.address)) {
+    warn(yellow(bold('WARN: For proper record of version history, we reccomend including all signers for your package as part of the `deployers` configuration in your cannonfile.')));
+    warn(yellow('This can be safely done after the build is finished.'));
+  }
+
 
   const { build } = await import('../commands/build');
 

@@ -244,6 +244,12 @@ export type DeploymentInfo = {
   // defines whether this deployment has been fully completed or only partially or completely unbuilt
   status?: 'complete' | 'partial' | 'none';
 
+  // The package sequence number. Every time the package is deployed, the seq is incremented.
+  seq?: number;
+
+  // A randomly generated unique identifier shared by all the packages in a upgrade sequence. Can be used to verify which packages are part of the same upgrade sequence.
+  track?: string;
+
   // the result of all the build steps for the last build
   state: DeploymentState;
 
