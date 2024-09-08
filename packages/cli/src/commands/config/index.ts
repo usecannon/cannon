@@ -2,7 +2,7 @@ import { debugVerbosity } from './debug';
 import { CommandsConfig } from './types';
 import { anvilOptions, anviloptionsWithFork } from './anvil';
 
-import { ANVIL_FIRST_ADDRESS } from '../../constants';
+import { ANVIL_FIRST_ADDRESS, ANVIL_PORT_DEFAULT_VALUE } from '../../constants';
 
 export const commandsConfig: CommandsConfig = {
   run: {
@@ -29,8 +29,8 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '--port <number>',
-        description: 'Port which the JSON-RPC server will be exposed.',
-        defaultValue: '0', // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
+        description: 'Port which the JSON-RPC server will be exposed. [default: 0]',
+        defaultValue: ANVIL_PORT_DEFAULT_VALUE,
       },
       {
         flags: '--build',
@@ -103,6 +103,11 @@ export const commandsConfig: CommandsConfig = {
       {
         flags: '-c --chain-id <number>',
         description: 'The chain id to run against',
+      },
+      {
+        flags: '--port <number>',
+        description: 'Port which the JSON-RPC server will be exposed. [default: 0]',
+        defaultValue: ANVIL_PORT_DEFAULT_VALUE,
       },
       {
         flags: '-p --preset <preset>',

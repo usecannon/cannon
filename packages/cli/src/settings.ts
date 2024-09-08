@@ -1,5 +1,4 @@
 import { DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
-import { bold, yellowBright } from 'chalk';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
@@ -10,7 +9,7 @@ import { parseEnv } from 'znv';
 import { z } from 'zod';
 import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY } from './constants';
 import { checkAndNormalizePrivateKey, filterSettings } from './helpers';
-import { log, warn } from './util/console';
+import { deprecatedWarn } from './util/deprecated-warn';
 
 const debug = Debug('cannon:cli:settings');
 
@@ -134,12 +133,6 @@ export type CliSettings = {
 };
 
 export const RPC_URL_DEFAULT = 'frame,direct';
-
-const deprecatedWarn = _.once((deprecatedFlag: string, newFlag: string) => {
-  log();
-  warn(yellowBright(bold(`⚠️ The ${deprecatedFlag} option will be deprecated soon. Use ${newFlag} instead.`)));
-  log();
-});
 
 /**
  * Settings zod schema.

@@ -1,10 +1,11 @@
 import type { Option as AnvilOption } from './types';
+import { ANVIL_PORT_DEFAULT_VALUE } from '../../constants';
 
 export const anvilOptions: AnvilOption[] = [
   {
     flags: '--anvil.port <number>',
     description: 'Port number to listen on. [default: 0]',
-    defaultValue: '0',
+    defaultValue: ANVIL_PORT_DEFAULT_VALUE,
   },
   {
     flags: '--anvil.chain-id <number>',

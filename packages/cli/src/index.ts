@@ -46,6 +46,8 @@ import { getChainIdFromRpcUrl, isURL, ProviderAction, resolveProviderAndSigners,
 import { isPackageRegistered } from './util/register';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
+import { ANVIL_PORT_DEFAULT_VALUE } from './constants';
+import { deprecatedWarn } from './util/deprecated-warn';
 
 export * from './types';
 export * from './constants';
@@ -98,7 +100,12 @@ function configureRun(program: Command) {
     const { run } = await import('./commands/run');
 
     // backwards compatibility for --port flag
-    options['anvil.port'] = Number.parseInt(options.port);
+    if (options.port !== ANVIL_PORT_DEFAULT_VALUE) {
+      deprecatedWarn('--port', '--anvil.port');
+      options['anvil.port'] = options.port;
+    } else {
+      options.port = options['anvil.port'];
+    }
 
     const cliSettings = resolveCliSettings(options);
 
@@ -151,6 +158,14 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
   .action(async (cannonfile, settings, options) => {
     await setupAnvil();
 
+    // backwards compatibility for --port flag
+    if (options.port !== ANVIL_PORT_DEFAULT_VALUE) {
+      deprecatedWarn('--port', '--anvil.port');
+      options['anvil.port'] = options.port;
+    } else {
+      options.port = options['anvil.port'];
+    }
+
     const cannonfilePath = path.resolve(cannonfile);
     const projectDirectory = path.dirname(cannonfilePath);
 
@@ -188,8 +203,11 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     log(''); // Linebreak in CLI to signify end of compilation.
 
     // Override options with CLI settings
+    console.log('options: ', options);
     const pickedCliSettings = _.pick(cliSettings, Object.keys(options));
     const mergedOptions = _.assign({}, options, pickedCliSettings);
+
+    console.log('mergedOptions: ', mergedOptions);
 
     const [node, pkgSpec, outputs, runtime] = await doBuild(cannonfile, settings, mergedOptions);
 
