@@ -250,9 +250,7 @@ export async function findUpgradeFromPackage(
 export async function writeUpgradeFromInfo(runtime: ChainBuilderRuntime, packageRef: PackageReference, deployUrl: string) {
   return await storeWrite(
     runtime.provider,
-    (
-      await runtime.getDefaultSigner({})
-    ).wallet,
+    await runtime.getDefaultSigner({}),
     viem.keccak256(viem.stringToBytes(`${packageRef.name}:${packageRef.preset}`)),
     deployUrl
   );

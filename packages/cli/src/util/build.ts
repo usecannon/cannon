@@ -61,7 +61,7 @@ export async function doBuild(
     getDefaultSigner
   );
 
-  if (!buildConfig.def.getDeployers().includes((await getDefaultSigner!())!.address)) {
+  if (getDefaultSigner && buildConfig.def.getDeployers().includes((await getDefaultSigner())!.address)) {
     warn(
       yellow(
         bold(
@@ -255,9 +255,13 @@ async function prepareBuildConfig(
       execPromise('git config --get remote.origin.url'),
     ]);
 
-    pkgInfo.gitUrl = rawGitUrl.trim().replace(':', '/').replace('git@', 'https://').replace('.git', '');
+    // convert ssh url to https if needed (should work in most cases)
+    pkgInfo.gitUrl = rawGitUrl
+      .trim()
+      .replace(/^\w+@([^:]+):/, 'https://$1/')
+      .replace('.git', '');
     pkgInfo.commitHash = rawCommitHash.trim();
-    pkgInfo.readme = pkgInfo.gitUrl + '/blob/main/README.md';
+    pkgInfo.readme = pkgInfo.gitUrl + `/blob/${rawCommitHash.trim()}/README.md`;
   } catch (err) {
     // fail silently
     debug(`Failed to populate metadata: ${err}`);

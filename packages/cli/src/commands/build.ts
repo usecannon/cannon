@@ -31,7 +31,7 @@ import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
-import { log, warn } from '../util/console';
+import { log, warn, error } from '../util/console';
 import { hideApiKey } from '../util/provider';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
 
@@ -183,6 +183,7 @@ export async function build({
   } else if (def) {
     const oldDeployHash = await findUpgradeFromPackage(runtime, packageReference, runtime.chainId, def.getDeployers());
     if (oldDeployHash) {
+      log(green(bold('Found deployment state via on-chain store', oldDeployHash)));
       oldDeployData = (await runtime.readBlob(oldDeployHash)) as DeploymentInfo;
     }
   }
@@ -453,10 +454,32 @@ export async function build({
 
     const metaUrl = await runtime.putBlob(metadata);
 
+    // write upgrade-from info on-chain
+    if (stepsExecuted && persist) {
+      for (let i = 0; i < 3; i++) {
+        try {
+          log(gray('Writing upgrade info...'));
+          await writeUpgradeFromInfo(runtime, packageReference, deployUrl);
+          break;
+        } catch (err) {
+          error(err);
+          error(red(`Failed to write upgrade record to on-chain state. Try ${i + 1}/3`));
+          if (i === 2) {
+            error(
+              red(
+                bold(
+                  `Failed to write state on-chain. The next time you upgrade your package, you should include the option --upgrade-from ${deployUrl}.`
+                )
+              )
+            );
+          }
+        }
+      }
+    }
+
     await resolver.publish([fullPackageRef, `${name}:latest@${preset}`], runtime.chainId, deployUrl!, metaUrl!);
 
     // detach the process handler
-
     process.off('SIGINT', handler);
     process.off('SIGTERM', handler);
     process.off('SIGQUIT', handler);
@@ -528,9 +551,6 @@ export async function build({
       const isMainPreset = preset === PackageReference.DEFAULT_PRESET;
 
       if (persist) {
-        log(gray('Writing upgrade info...'));
-        await writeUpgradeFromInfo(runtime, packageReference, deployUrl);
-
         if (isMainPreset) {
           log(
             bold(
