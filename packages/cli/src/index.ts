@@ -203,11 +203,8 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     log(''); // Linebreak in CLI to signify end of compilation.
 
     // Override options with CLI settings
-    console.log('options: ', options);
     const pickedCliSettings = _.pick(cliSettings, Object.keys(options));
     const mergedOptions = _.assign({}, options, pickedCliSettings);
-
-    console.log('mergedOptions: ', mergedOptions);
 
     const [node, pkgSpec, outputs, runtime] = await doBuild(cannonfile, settings, mergedOptions);
 
