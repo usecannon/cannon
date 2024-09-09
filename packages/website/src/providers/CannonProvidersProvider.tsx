@@ -167,7 +167,6 @@ function _getAllTransports(
 }
 
 function _getChainById(allChains: Chain[], chainId: number) {
-  debugger;
   const chain = allChains.find((c) => c.id === +chainId);
   return chain;
 }
