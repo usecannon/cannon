@@ -15,6 +15,7 @@ import * as chains from '@wagmi/core/chains';
 import { useQuery } from '@tanstack/react-query';
 import merge from 'lodash/merge';
 import { externalLinks } from '@/constants/externalLinks';
+import isEmpty from 'lodash/isEmpty';
 
 type CustomProviders =
   | {
@@ -117,7 +118,7 @@ async function _getProvidersChainId({ queryKey }: { queryKey: string[] }) {
 function _getAllChains(verifiedProviders?: Record<number, RpcUrlAndTransport>) {
   const customTransportsChains: Chain[] = [];
 
-  if (!verifiedProviders) {
+  if (!verifiedProviders || isEmpty(verifiedProviders)) {
     return supportedChains;
   }
 
@@ -150,13 +151,13 @@ function _getAllChains(verifiedProviders?: Record<number, RpcUrlAndTransport>) {
 function _getAllTransports(
   verifiedProviders?: Record<number, RpcUrlAndTransport>
 ) {
-  if (!verifiedProviders) {
+  if (!verifiedProviders || isEmpty(verifiedProviders)) {
     return defaultTransports;
   }
 
   const verifiedTransports = Object.keys(verifiedProviders || {}).reduce(
-    (prev, curr) => {
-      prev[+curr] = verifiedProviders?.[+curr].transport;
+    (prev, chainId) => {
+      prev[+chainId] = verifiedProviders?.[+chainId].transport;
       return prev;
     },
     {} as Record<number, HttpTransport>
@@ -166,6 +167,7 @@ function _getAllTransports(
 }
 
 function _getChainById(allChains: Chain[], chainId: number) {
+  debugger;
   const chain = allChains.find((c) => c.id === +chainId);
   return chain;
 }
@@ -193,6 +195,7 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
   });
 
   const allChains = _getAllChains(verifiedProviders);
+
   const value = {
     chains: allChains,
     chainMetadata,

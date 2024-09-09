@@ -8,7 +8,7 @@ import {
 } from '@usecannon/builder';
 
 import React, { createContext, useContext } from 'react';
-import { createPublicClient } from 'viem';
+import { createPublicClient, http } from 'viem';
 
 type RegistryContextType = FallbackRegistry | undefined;
 
@@ -28,7 +28,7 @@ export const CannonRegistryProvider: React.FC<Props> = ({ children }) => {
         address: DEFAULT_REGISTRY_ADDRESS,
         provider: createPublicClient({
           chain: getChainById(chainId),
-          transport: transports[chainId],
+          transport: transports[chainId] || http(),
         }),
       })
   );
