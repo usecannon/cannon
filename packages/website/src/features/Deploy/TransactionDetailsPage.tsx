@@ -4,7 +4,6 @@ import { Alert } from '@/components/Alert';
 import Card from '@/components/Card';
 import { parseHintedMulticall } from '@/helpers/cannon';
 import { truncateAddress } from '@/helpers/ethereum';
-import { sleep } from '@/helpers/misc';
 import { getSafeTransactionHash } from '@/helpers/safe';
 import { SafeDefinition, useStore } from '@/helpers/store';
 import { useSafeTransactions, useTxnStager } from '@/hooks/backend';
@@ -28,6 +27,7 @@ import {
 import {
   Box,
   Button,
+  ButtonProps,
   Container,
   Flex,
   Grid,
@@ -40,7 +40,14 @@ import {
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import _ from 'lodash';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  FC,
+  PropsWithChildren,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { IoIosContract, IoIosExpand } from 'react-icons/io';
 import { Hash, Hex, hexToString, TransactionRequestBase } from 'viem';
 import {
@@ -67,6 +74,10 @@ const UnorderedNonceWarning = ({ nextNonce }: { nextNonce: number }) => (
   <Alert status="warning" mt={3}>
     <Text fontSize="sm">You must execute transaction #{nextNonce} first.</Text>
   </Alert>
+);
+
+const CustomButton: FC<ButtonProps & PropsWithChildren> = (props) => (
+  <Button colorScheme="teal" w="100%" {...props}></Button>
 );
 
 function TransactionDetailsPage() {
@@ -276,10 +287,6 @@ function TransactionDetailsPage() {
     if (account.chainId !== currentSafe?.chainId.toString()) {
       try {
         await switchChainAsync({ chainId: currentSafe?.chainId || 1 });
-
-        await sleep(100);
-
-        await stager.sign();
       } catch (e) {
         toast({
           title:
@@ -291,6 +298,40 @@ function TransactionDetailsPage() {
         return;
       }
     }
+  };
+
+  const handleExecuteTx = () => {
+    if (!stager.executeTxnConfig) {
+      throw new Error('Missing execution tx configuration');
+    }
+
+    execTxn.writeContract(stager.executeTxnConfig, {
+      onSuccess: async (hash) => {
+        setExecutionTxnHash(hash);
+        toast({
+          title: 'Transaction sent to network',
+          status: 'info',
+          duration: 5000,
+          isClosable: true,
+        });
+
+        // wait for the transaction to be mined
+        await publicClient!.waitForTransactionReceipt({ hash });
+
+        await stagedQuery.refetch();
+        await nonceQuery.refetch();
+        await refetchHistory();
+
+        toast({
+          title: 'You successfully executed the transaction.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+
+        setExecutionTxnHash(null);
+      },
+    });
   };
 
   if (!hintData) {
@@ -530,10 +571,8 @@ function TransactionDetailsPage() {
                     {account.isConnected && walletChainId === safe.chainId ? (
                       <>
                         <Tooltip label={stager.signConditionFailed}>
-                          <Button
-                            colorScheme="teal"
+                          <CustomButton
                             mb={3}
-                            w="100%"
                             isDisabled={
                               stager.signing ||
                               stager.alreadySigned ||
@@ -546,74 +585,34 @@ function TransactionDetailsPage() {
                           >
                             {stager.signing ? (
                               <>
-                                Currently Signing
+                                Signing
                                 <Spinner size="sm" ml={2} />
                               </>
                             ) : (
                               'Sign'
                             )}
-                          </Button>
+                          </CustomButton>
                         </Tooltip>
                         <Tooltip label={stager.execConditionFailed}>
-                          <Button
-                            colorScheme="teal"
-                            w="100%"
+                          <CustomButton
                             isDisabled={
+                              stager.signing ||
                               !stager.executeTxnConfig ||
                               executionTxnHash ||
                               ((safeTxn && !!stager.execConditionFailed) as any)
                             }
-                            onClick={() => {
-                              if (!stager.executeTxnConfig) {
-                                throw new Error(
-                                  'Missing execution tx configuration'
-                                );
-                              }
-
-                              execTxn.writeContract(stager.executeTxnConfig, {
-                                onSuccess: async (hash) => {
-                                  setExecutionTxnHash(hash);
-                                  toast({
-                                    title: 'Transaction sent to network',
-                                    status: 'info',
-                                    duration: 5000,
-                                    isClosable: true,
-                                  });
-
-                                  // wait for the transaction to be mined
-                                  await publicClient!.waitForTransactionReceipt(
-                                    { hash }
-                                  );
-
-                                  await stagedQuery.refetch();
-                                  await nonceQuery.refetch();
-                                  await refetchHistory();
-
-                                  toast({
-                                    title:
-                                      'You successfully executed the transaction.',
-                                    status: 'success',
-                                    duration: 5000,
-                                    isClosable: true,
-                                  });
-
-                                  setExecutionTxnHash(null);
-                                },
-                              });
-                            }}
+                            onClick={handleExecuteTx}
                           >
                             Execute
-                          </Button>
+                          </CustomButton>
                         </Tooltip>
                       </>
                     ) : (
-                      <Button
-                        colorScheme="teal"
-                        w="100%"
-                        onClick={handleConnectWalletAndSign}
-                      >
-                        {account.isConnected ? 'Sign' : 'Connect wallet'}
-                      </Button>
+                      <CustomButton onClick={handleConnectWalletAndSign}>
+                        {account.isConnected
+                          ? `Switch to chain  ${safe.chainId}`
+                          : 'Connect wallet'}
+                      </CustomButton>
                     )}
                   </Flex>
                 )}
