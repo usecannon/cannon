@@ -1,5 +1,6 @@
 import { useCreateFork } from '@/helpers/rpc';
 import { SafeDefinition } from '@/helpers/store';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { useEffect, useState } from 'react';
 import { Hex, TransactionRequestBase } from 'viem';
 
@@ -12,10 +13,13 @@ type SimulatedTransactionResult = {
 function useFork({ chainId, impersonate = [] }: { chainId: number; impersonate: string[] }) {
   const [fork, setFork] = useState<any>(null);
   const createFork = useCreateFork();
+  const { getChainById } = useCannonChains();
+
+  const chain = getChainById(chainId);
 
   useEffect(() => {
     void (async function load() {
-      setFork(await createFork({ chainId, impersonate }));
+      setFork(await createFork({ chainId, impersonate, url: chain?.rpcUrls.default.http[0] }));
     })();
   }, [chainId, impersonate.join(',')]);
 
