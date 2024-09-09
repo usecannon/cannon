@@ -80,7 +80,7 @@ We bump and publish manually using lerna's [version and publish](https://lerna.j
 2. Run `pnpm run version-*` where `*` can be patch, minor or major.
 3. Create PR for the release branch
 4. From the branch, run `pnpm run publish` and follow the prompts.
-5. Run `pnpm run update-stables` to make sure that all the other private packages reference to the new stable release.
+5. Run `pnpm run website:update-monorepo-deps` to make sure that all the other private packages reference to the new stable release.
 6. Merge release PR
 
 #### Alpha Release
