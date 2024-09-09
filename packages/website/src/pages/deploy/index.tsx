@@ -3,7 +3,6 @@ import { NextSeo } from 'next-seo';
 import dynamic from 'next/dynamic';
 import { ReactElement } from 'react';
 import Layout from './_layout';
-import '@usecannon/builder';
 
 const NoSSR = dynamic(() => import('@/features/Deploy/SignTransactionsPage'), {
   ssr: false,
