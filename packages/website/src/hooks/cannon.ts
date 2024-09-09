@@ -1,8 +1,10 @@
+import { externalLinks } from '@/constants/externalLinks';
 import { inMemoryLoader, loadCannonfile, StepExecutionError } from '@/helpers/cannon';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { useCreateFork } from '@/helpers/rpc';
 import { SafeDefinition, useStore } from '@/helpers/store';
 import { useGitRepo } from '@/hooks/git';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { useCannonRegistry } from '@/providers/CannonRegistryProvider';
 import { useLogs } from '@/providers/logsProvider';
 import { BaseTransaction } from '@safe-global/safe-apps-sdk';
@@ -30,8 +32,6 @@ import { Abi, Address, createPublicClient, createTestClient, createWalletClient,
 import { useChainId } from 'wagmi';
 // Needed to prepare mock run step with registerAction
 import '@/lib/builder';
-import { externalLinks } from '@/constants/externalLinks';
-import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 export type BuildState =
   | {
@@ -297,7 +297,7 @@ export function useCannonWriteDeployToIpfs(
       const ctx = await createInitialContext(def, deployInfo.meta, runtime.chainId, deployInfo.options);
 
       const preset = def.getPreset(ctx);
-      const packageRef = `${def.getName(ctx)}:${def.getVersion(ctx)}${preset ? '@' + preset : ''}`;
+      const packageRef = PackageReference.from(def.getName(ctx), def.getVersion(ctx), preset).fullPackageRef;
 
       await runtime.registry.publish(
         [packageRef],
