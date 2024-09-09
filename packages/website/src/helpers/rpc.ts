@@ -20,7 +20,7 @@ async function loadGanache() {
 }
 
 export function useCreateFork() {
-  const { getChainById, chains } = useCannonChains();
+  const { getChainById } = useCannonChains();
 
   return useCallback(
     async ({ chainId, impersonate = [], url }: { chainId: number; impersonate: string[]; url?: string }) => {

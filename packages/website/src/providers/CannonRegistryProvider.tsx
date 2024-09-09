@@ -8,7 +8,7 @@ import {
 } from '@usecannon/builder';
 
 import React, { createContext, useContext } from 'react';
-import { createPublicClient, http } from 'viem';
+import { createPublicClient } from 'viem';
 
 type RegistryContextType = FallbackRegistry | undefined;
 

@@ -91,7 +91,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
   const fallbackRegistry = useCannonRegistry();
 
-  const { getChainById, transports } = useCannonChains();
+  const { getChainById } = useCannonChains();
   const createFork = useCreateFork();
 
   const buildFn = async () => {
