@@ -100,10 +100,15 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       throw new Error('Missing required parameters');
     }
 
+    const chain = getChainById(safe.chainId);
+
     setBuildStatus('Creating fork...');
+    // eslint-disable-next-line no-console
+    console.log(`Creating fork with RPC: ${chain?.rpcUrls.default.http[0]}`);
     const fork = await createFork({
       chainId: safe.chainId,
       impersonate: [safe.address],
+      url: chain?.rpcUrls.default.http[0],
     }).catch((err) => {
       err.message = `Could not create local fork for build: ${err.message}`;
       throw err;
@@ -118,12 +123,12 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     const transport = custom(fork);
 
     const provider = createPublicClient({
-      chain: getChainById(safe.chainId),
+      chain,
       transport,
     });
 
     const testProvider = createTestClient({
-      chain: getChainById(safe.chainId),
+      chain,
       transport,
       mode: 'ganache',
     });
