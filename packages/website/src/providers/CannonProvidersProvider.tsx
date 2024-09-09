@@ -136,10 +136,15 @@ function _getAllChains(verifiedProviders?: Record<number, RpcUrlAndTransport>) {
           default: { http: [verifiedProviders[+ctId].rpcUrl] },
         },
       });
+    } else {
+      customTransportsChains.push({
+        ...chain,
+        rpcUrls: { default: { http: [verifiedProviders[+ctId].rpcUrl] } },
+      });
     }
   });
 
-  return [...supportedChains, ...customTransportsChains];
+  return customTransportsChains;
 }
 
 function _getAllTransports(
