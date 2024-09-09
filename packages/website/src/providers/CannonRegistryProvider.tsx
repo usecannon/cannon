@@ -19,19 +19,19 @@ type Props = {
 };
 export const CannonRegistryProvider: React.FC<Props> = ({ children }) => {
   const { getChainById, transports } = useCannonChains();
-
   const onChainRegistries = DEFAULT_REGISTRY_CONFIG.map(
     (registry) => registry.chainId
-  ).map(
-    (chainId: number) =>
-      new OnChainRegistry({
-        address: DEFAULT_REGISTRY_ADDRESS,
-        provider: createPublicClient({
-          chain: getChainById(chainId),
-          transport: transports[chainId] || http(),
-        }),
-      })
-  );
+  ).map((chainId: number) => {
+    const chain = getChainById(chainId);
+
+    return new OnChainRegistry({
+      address: DEFAULT_REGISTRY_ADDRESS,
+      provider: createPublicClient({
+        chain,
+        transport: transports[chainId] || http(),
+      }),
+    });
+  });
 
   const fallbackRegistry = new FallbackRegistry([
     inMemoryRegistry,

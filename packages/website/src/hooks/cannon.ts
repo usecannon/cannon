@@ -103,6 +103,8 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     const chain = getChainById(safe.chainId);
 
     setBuildStatus('Creating fork...');
+    // eslint-disable-next-line no-console
+    console.log(`Creating fork with RPC: ${chain?.rpcUrls.default.http[0]}`);
     const fork = await createFork({
       chainId: safe.chainId,
       impersonate: [safe.address],
