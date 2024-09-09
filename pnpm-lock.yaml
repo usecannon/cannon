@@ -240,7 +240,7 @@ importers:
         version: 1.7.5(debug@4.3.6)
       axios-retry:
         specifier: ^4.4.2
-        version: 4.5.0(axios@1.7.5)
+        version: 4.5.0(axios@1.7.5(debug@4.3.6))
       buffer:
         specifier: ^6.0.3
         version: 6.0.3
@@ -703,11 +703,11 @@ importers:
         specifier: workspace:*
         version: link:../api
       '@usecannon/builder':
-        specifier: workspace:*
-        version: link:../builder
+        specifier: 2.17.0
+        version: 2.17.0(bufferutil@4.0.8)(encoding@0.1.13)(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)(typescript@5.5.4)(utf-8-validate@5.0.10)
       '@usecannon/cli':
-        specifier: workspace:*
-        version: link:../cli
+        specifier: 2.17.0
+        version: 2.17.0(bufferutil@4.0.8)(encoding@0.1.13)(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)(typescript@5.5.4)(utf-8-validate@5.0.10)
       '@vercel/analytics':
         specifier: ^1.1.1
         version: 1.3.1(next@14.2.6(@babel/core@7.25.2)(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.77.8))(react@18.3.1)
@@ -5126,12 +5126,12 @@ packages:
   '@ungap/promise-all-settled@1.1.2':
     resolution: {integrity: sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==}
 
-  '@usecannon/builder@2.16.4':
-    resolution: {integrity: sha512-kxw0pntrb6e6vFx3aDJ1Ua5jOHMF3gHNsmxLKGwgzYpLtfNLynFIBWkItW35D327MXLQzhhVe/14ZcNM/udgxw==}
+  '@usecannon/builder@2.17.0':
+    resolution: {integrity: sha512-03AnPMeQdha5hCEGdJGc8DcZQJAvOqokWHl7zsQowYYHWY6U+fcYsgioA//8UFticOPIWKyr5RLbtwsWD9wIHw==}
     engines: {node: '>=16.0.0'}
 
-  '@usecannon/cli@2.16.4':
-    resolution: {integrity: sha512-1HuIfpWGDqBHjlGB1zx5pVydPwYqQ1GT8E4hLTL/QHIqgx1c0bpAa0E2Ldc0U3pLCG5rqWC45OnZkbkElrC8Ug==}
+  '@usecannon/cli@2.17.0':
+    resolution: {integrity: sha512-M6r0Ya3z1KZBj79vVY1cN62YQCBt3cg662J8e8pb22DUhqWgYjSzCxWpCQPnY4ahL5jn+w/EBKY2GYF23NDNXA==}
     hasBin: true
 
   '@vanilla-extract/css@1.14.0':
@@ -19807,11 +19807,11 @@ snapshots:
 
   '@ungap/promise-all-settled@1.1.2': {}
 
-  '@usecannon/builder@2.16.4(bufferutil@4.0.8)(encoding@0.1.13)(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)(typescript@5.5.4)(utf-8-validate@5.0.10)':
+  '@usecannon/builder@2.17.0(bufferutil@4.0.8)(encoding@0.1.13)(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)(typescript@5.5.4)(utf-8-validate@5.0.10)':
     dependencies:
       '@synthetixio/router': 3.4.0(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)
       axios: 1.7.5(debug@4.3.6)
-      axios-retry: 4.5.0(axios@1.7.5)
+      axios-retry: 4.5.0(axios@1.7.5(debug@4.3.6))
       buffer: 6.0.3
       chalk: 4.1.2
       debug: 4.3.6(supports-color@8.1.1)
@@ -19832,10 +19832,10 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@usecannon/cli@2.16.4(bufferutil@4.0.8)(encoding@0.1.13)(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)(typescript@5.5.4)(utf-8-validate@5.0.10)':
+  '@usecannon/cli@2.17.0(bufferutil@4.0.8)(encoding@0.1.13)(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)(typescript@5.5.4)(utf-8-validate@5.0.10)':
     dependencies:
       '@iarna/toml': 3.0.0
-      '@usecannon/builder': 2.16.4(bufferutil@4.0.8)(encoding@0.1.13)(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)(typescript@5.5.4)(utf-8-validate@5.0.10)
+      '@usecannon/builder': 2.17.0(bufferutil@4.0.8)(encoding@0.1.13)(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)(typescript@5.5.4)(utf-8-validate@5.0.10)
       abitype: 1.0.6(typescript@5.5.4)(zod@3.23.8)
       chalk: 4.1.2
       commander: 9.5.0
@@ -20739,7 +20739,7 @@ snapshots:
       '@babel/runtime': 7.25.4
       is-retry-allowed: 2.2.0
 
-  axios-retry@4.5.0(axios@1.7.5):
+  axios-retry@4.5.0(axios@1.7.5(debug@4.3.6)):
     dependencies:
       axios: 1.7.5(debug@4.3.6)
       is-retry-allowed: 2.2.0
@@ -22533,7 +22533,7 @@ snapshots:
     dependencies:
       '@pythnetwork/pyth-evm-js': 1.63.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       '@pythnetwork/pyth-sdk-solidity': 2.4.1
-      '@usecannon/cli': 2.16.4(bufferutil@4.0.8)(encoding@0.1.13)(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)(typescript@5.5.4)(utf-8-validate@5.0.10)
+      '@usecannon/cli': 2.17.0(bufferutil@4.0.8)(encoding@0.1.13)(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)(typescript@5.5.4)(utf-8-validate@5.0.10)
       node-fetch: 2.7.0(encoding@0.1.13)
       typechain: 8.3.2(typescript@5.5.4)
       viem: 1.21.4(bufferutil@4.0.8)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8)

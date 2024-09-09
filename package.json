@@ -17,6 +17,7 @@
     "version-major": "lerna version major --no-private",
     "publish": "lerna publish from-package --no-private",
     "publish-alpha": "lerna publish from-package --no-private --preid alpha --dist-tag alpha",
+    "update-stables": "pnpm -r --filter @usecannon/website i @usecannon/builder@latest @usecannon/cli@latest",
     "test": "pnpm -r --if-present --filter './packages/**' run test",
     "docgen-md": "pnpm -r --if-present run docgen",
     "changeset": "changeset"
@@ -61,5 +62,5 @@
     "node": ">=20",
     "pnpm": ">=9"
   },
-  "packageManager": "pnpm@9.8.0+sha512.8e4c3550fb500e808dbc30bb0ce4dd1eb614e30b1c55245f211591ec2cdf9c611cabd34e1364b42f564bd54b3945ed0f49d61d1bbf2ec9bd74b866fcdc723276"
+  "packageManager": "pnpm@9.10.0"
 }
