@@ -648,11 +648,7 @@ applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async
 applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(async function (packageRef, data, options) {
   const { decode } = await import('./commands/decode');
 
-  console.log('options: ', options);
-
   const cliSettings = resolveCliSettings(options);
-
-  console.log('cliSettings: ', cliSettings);
 
   await decode({
     packageRef,
