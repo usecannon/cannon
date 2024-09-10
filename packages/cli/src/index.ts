@@ -11,7 +11,6 @@ import {
   IPFSLoader,
   OnChainRegistry,
   PackageReference,
-  publishPackage,
   traceActions,
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow } from 'chalk';
@@ -65,6 +64,7 @@ export { publish } from './commands/publish';
 export { unpublish } from './commands/unpublish';
 export { publishers } from './commands/publishers';
 export { run } from './commands/run';
+import { pin } from './commands/pin';
 export { verify } from './commands/verify';
 export { setup } from './commands/setup';
 export { runRpc, getProvider } from './rpc';
@@ -317,8 +317,6 @@ applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async
 applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async function (ref, options) {
   const cliSettings = resolveCliSettings(options);
 
-  const fullPackageRef = await getPackageReference(ref);
-
   const fromStorage = new CannonStorage(await createDefaultReadRegistry(cliSettings), getMainLoader(cliSettings));
 
   const toStorage = new CannonStorage(new InMemoryRegistry(), {
@@ -327,13 +325,7 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
 
   log('Uploading package data for pinning...');
 
-  await publishPackage({
-    packageRef: fullPackageRef,
-    chainId: options.chainId || 13370,
-    tags: [], // when passing no tags, it will only copy IPFS files, but not publish to registry
-    fromStorage,
-    toStorage,
-  });
+  await pin(ref, fromStorage, toStorage);
 
   log('Done!');
 });

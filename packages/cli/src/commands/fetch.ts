@@ -17,7 +17,7 @@ import { log } from '../util/console';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 
-const debug = Debug('cannon:cli:clean');
+const debug = Debug('cannon:cli:fetch');
 
 const mkdir = util.promisify(fs.mkdir);
 const writeFile = util.promisify(fs.writeFile);
