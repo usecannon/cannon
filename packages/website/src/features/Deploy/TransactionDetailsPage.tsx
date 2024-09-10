@@ -17,6 +17,7 @@ import {
   useExecutedTransactions,
   useGetPreviousGitInfoQuery,
 } from '@/hooks/safe';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import {
   CheckIcon,
@@ -62,7 +63,6 @@ import { SimulateTransactionButton } from './SimulateTransactionButton';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 import 'react-diff-view/style/index.css';
-import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 const AdditionalSignaturesText = ({ amount }: { amount: number }) => (
   <Text fontWeight="bold" mt="3">
@@ -619,7 +619,7 @@ function TransactionDetailsPage() {
               </Card>
 
               {/* Cannon package IPFS Info */}
-              {queuedWithGitOps && executionTxnHash && (
+              {queuedWithGitOps && isTransactionExecuted && (
                 <Card
                   title={
                     <>

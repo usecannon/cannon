@@ -19,7 +19,7 @@ jobs:
           cache: pnpm
           node-version: '20.5.1'
 
-      - run: pnpm i
+      - run: pnpm i --prefer-frozen-lockfile
       - run: pnpm build
         env:
           NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
