@@ -7,23 +7,12 @@ import { truncateAddress } from '@/helpers/ethereum';
 import { getSafeTransactionHash } from '@/helpers/safe';
 import { SafeDefinition, useStore } from '@/helpers/store';
 import { useSafeTransactions, useTxnStager } from '@/hooks/backend';
-import {
-  useCannonBuild,
-  useCannonPackage,
-  useLoadCannonDefinition,
-} from '@/hooks/cannon';
+import { useCannonBuild, useCannonPackage, useLoadCannonDefinition } from '@/hooks/cannon';
 import { useTransactionDetailsParams } from '@/hooks/routing/useTransactionDetailsParams';
-import {
-  useExecutedTransactions,
-  useGetPreviousGitInfoQuery,
-} from '@/hooks/safe';
+import { useExecutedTransactions, useGetPreviousGitInfoQuery } from '@/hooks/safe';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { SafeTransaction } from '@/types/SafeTransaction';
-import {
-  CheckIcon,
-  ExternalLinkIcon,
-  InfoOutlineIcon,
-  WarningIcon,
-} from '@chakra-ui/icons';
+import { CheckIcon, ExternalLinkIcon, InfoOutlineIcon, WarningIcon } from '@chakra-ui/icons';
 import {
   Box,
   Button,
@@ -40,29 +29,15 @@ import {
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import _ from 'lodash';
-import {
-  FC,
-  PropsWithChildren,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { FC, PropsWithChildren, useEffect, useMemo, useRef, useState } from 'react';
 import { IoIosContract, IoIosExpand } from 'react-icons/io';
 import { Hash, Hex, hexToString, TransactionRequestBase } from 'viem';
-import {
-  useAccount,
-  useChainId,
-  usePublicClient,
-  useSwitchChain,
-  useWriteContract,
-} from 'wagmi';
+import { useAccount, useChainId, usePublicClient, useSwitchChain, useWriteContract } from 'wagmi';
 import PublishUtility from './PublishUtility';
 import { SimulateTransactionButton } from './SimulateTransactionButton';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 import 'react-diff-view/style/index.css';
-import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 const AdditionalSignaturesText = ({ amount }: { amount: number }) => (
   <Text fontWeight="bold" mt="3">
@@ -619,7 +594,7 @@ function TransactionDetailsPage() {
               </Card>
 
               {/* Cannon package IPFS Info */}
-              {queuedWithGitOps && executionTxnHash && (
+              {queuedWithGitOps && isTransactionExecuted && (
                 <Card
                   title={
                     <>
