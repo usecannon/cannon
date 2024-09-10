@@ -38,7 +38,6 @@
     }
   ],
   "framework": null,
-  "buildCommand": "pnpm run --filter @usecannon/api build && pnpm run --filter @usecannon/website build",
   "outputDirectory": "out",
   "cleanUrls": true
 }
