@@ -535,12 +535,6 @@ export async function getPackageReference(ref: string) {
 
     return packageReference;
   } catch (error: any) {
-    if (error.toString().includes('timeout')) {
-      throw new Error(
-        "Could not download package through IPFS, please make sure you set your 'ipfsUrl' to the ipfs url where this hash has been pinned"
-      );
-    }
-
     throw new Error(error);
   }
 }

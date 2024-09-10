@@ -1,8 +1,10 @@
+import { externalLinks } from '@/constants/externalLinks';
 import { inMemoryLoader, loadCannonfile, StepExecutionError } from '@/helpers/cannon';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { useCreateFork } from '@/helpers/rpc';
 import { SafeDefinition, useStore } from '@/helpers/store';
 import { useGitRepo } from '@/hooks/git';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { useCannonRegistry } from '@/providers/CannonRegistryProvider';
 import { useLogs } from '@/providers/logsProvider';
 import { BaseTransaction } from '@safe-global/safe-apps-sdk';
@@ -30,8 +32,6 @@ import { Abi, Address, createPublicClient, createTestClient, createWalletClient,
 import { useChainId } from 'wagmi';
 // Needed to prepare mock run step with registerAction
 import '@/lib/builder';
-import { externalLinks } from '@/constants/externalLinks';
-import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 export type BuildState =
   | {
@@ -100,10 +100,15 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       throw new Error('Missing required parameters');
     }
 
+    const chain = getChainById(safe.chainId);
+
     setBuildStatus('Creating fork...');
+    // eslint-disable-next-line no-console
+    console.log(`Creating fork with RPC: ${chain?.rpcUrls.default.http[0]}`);
     const fork = await createFork({
       chainId: safe.chainId,
       impersonate: [safe.address],
+      url: chain?.rpcUrls.default.http[0],
     }).catch((err) => {
       err.message = `Could not create local fork for build: ${err.message}`;
       throw err;
@@ -118,12 +123,12 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     const transport = custom(fork);
 
     const provider = createPublicClient({
-      chain: getChainById(safe.chainId),
+      chain,
       transport,
     });
 
     const testProvider = createTestClient({
-      chain: getChainById(safe.chainId),
+      chain,
       transport,
       mode: 'ganache',
     });
@@ -297,7 +302,7 @@ export function useCannonWriteDeployToIpfs(
       const ctx = await createInitialContext(def, deployInfo.meta, runtime.chainId, deployInfo.options);
 
       const preset = def.getPreset(ctx);
-      const packageRef = `${def.getName(ctx)}:${def.getVersion(ctx)}${preset ? '@' + preset : ''}`;
+      const packageRef = PackageReference.from(def.getName(ctx), def.getVersion(ctx), preset).fullPackageRef;
 
       await runtime.registry.publish(
         [packageRef],

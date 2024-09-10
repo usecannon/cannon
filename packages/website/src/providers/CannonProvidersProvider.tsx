@@ -13,8 +13,9 @@ import {
 import * as chains from '@wagmi/core/chains';
 
 import { useQuery } from '@tanstack/react-query';
-import merge from 'lodash/merge';
 import { externalLinks } from '@/constants/externalLinks';
+import isEmpty from 'lodash/isEmpty';
+import cloneDeep from 'lodash/cloneDeep';
 
 type CustomProviders =
   | {
@@ -89,6 +90,11 @@ type RpcUrlAndTransport = { rpcUrl: string; transport: HttpTransport };
 
 async function _getProvidersChainId({ queryKey }: { queryKey: string[] }) {
   const [, ...providerUrls] = queryKey;
+
+  if (!providerUrls.length) {
+    return {};
+  }
+
   const allPromises = providerUrls.map(async (rpcUrl) => {
     const client = createPublicClient({
       transport: http(rpcUrl),
@@ -115,16 +121,17 @@ async function _getProvidersChainId({ queryKey }: { queryKey: string[] }) {
 }
 
 function _getAllChains(verifiedProviders?: Record<number, RpcUrlAndTransport>) {
-  const customTransportsChains: Chain[] = [];
+  const customChains: Chain[] = cloneDeep(supportedChains);
 
-  if (!verifiedProviders) {
-    return supportedChains;
+  if (!verifiedProviders || isEmpty(verifiedProviders)) {
+    return customChains;
   }
 
   Object.keys(verifiedProviders).forEach((ctId) => {
-    const chain = supportedChains.find((c) => c.id === +ctId);
+    const chain = customChains.find((c) => c.id === +ctId);
+
     if (!chain) {
-      customTransportsChains.push({
+      customChains.push({
         id: +ctId,
         name: 'Custom Chain',
         nativeCurrency: {
@@ -136,34 +143,35 @@ function _getAllChains(verifiedProviders?: Record<number, RpcUrlAndTransport>) {
           default: { http: [verifiedProviders[+ctId].rpcUrl] },
         },
       });
+    } else {
+      chain.rpcUrls = { default: { http: [verifiedProviders[+ctId].rpcUrl] } };
     }
   });
 
-  return [...supportedChains, ...customTransportsChains];
+  return customChains;
 }
 
 function _getAllTransports(
   verifiedProviders?: Record<number, RpcUrlAndTransport>
 ) {
-  if (!verifiedProviders) {
-    return defaultTransports;
+  const customTransports = cloneDeep(defaultTransports);
+
+  if (!verifiedProviders || isEmpty(verifiedProviders)) {
+    return customTransports;
   }
 
-  const verifiedTransports = Object.keys(verifiedProviders || {}).reduce(
-    (prev, curr) => {
-      prev[+curr] = verifiedProviders?.[+curr].transport;
-      return prev;
-    },
-    {} as Record<number, HttpTransport>
-  );
+  Object.keys(verifiedProviders).forEach((chainId) => {
+    customTransports[+chainId] = verifiedProviders?.[+chainId].transport;
+  });
 
-  return merge(defaultTransports, verifiedTransports);
+  return customTransports;
 }
 
 function _getChainById(allChains: Chain[], chainId: number) {
   const chain = allChains.find((c) => c.id === +chainId);
   return chain;
 }
+
 const _getExplorerUrl = (allChains: Chain[], chainId: number, hash: Hash) => {
   const chain = _getChainById(allChains, +chainId);
   if (!chain) return externalLinks.ETHERSCAN;
@@ -187,18 +195,20 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
     queryFn: _getProvidersChainId,
   });
 
-  const allChains = _getAllChains(verifiedProviders);
-  const value = {
-    chains: allChains,
-    chainMetadata,
-    transports: _getAllTransports(verifiedProviders),
-    getChainById: (chainId: number) => _getChainById(allChains, chainId),
-    getExplorerUrl: (chainId: number, hash: Hash) =>
-      _getExplorerUrl(allChains, chainId, hash),
-  };
+  const _allChains = _getAllChains(verifiedProviders);
+  const _allTransports = _getAllTransports(verifiedProviders);
 
   return (
-    <ProvidersContext.Provider value={value}>
+    <ProvidersContext.Provider
+      value={{
+        chains: _allChains,
+        chainMetadata,
+        transports: _allTransports,
+        getChainById: (chainId: number) => _getChainById(_allChains, chainId),
+        getExplorerUrl: (chainId: number, hash: Hash) =>
+          _getExplorerUrl(_allChains, chainId, hash),
+      }}
+    >
       {isLoading ? <CustomSpinner m="auto" /> : children}
     </ProvidersContext.Provider>
   );
