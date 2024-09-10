@@ -27,8 +27,6 @@ export async function decode({
 }) {
   const cliSettings = resolveCliSettings();
 
-  console.log('cliSettings: ', cliSettings);
-
   // Add 0x prefix to data or transaction hash if missing
   if (!data.startsWith('0x')) {
     data = ('0x' + data) as viem.Hash;
