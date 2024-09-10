@@ -77,18 +77,21 @@ export async function contractCall(
     to,
     data,
   };
-  // let call;
-  // try {
-  //   call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);
-  // } catch (e) {
-  //   console.log('WARN: Failed to generate EIP7412 compatible call')
-  // }
 
-  // let res;
-  // if (call) {
-  //   res = await publicClient.call({ ...call, account: from });
-  // } else {
-  const res = await publicClient.simulateContract({ address: to, abi, functionName, args: params, account: from });
+  let call;
+  let res;
+  try {
+    call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);
+    res = await publicClient.call({ ...call, account: from });
+  } catch (e) {
+
+    /**
+     * If we fail to generate an EIP7412 compatible call we default to simulateContract
+     * which behaves almost exactly like readContract, but uses abi-encoded data
+     */
+    res = await publicClient.simulateContract({ address: to, abi, functionName, args: params, account: from });
+  }
+
   try {
     // Attempt to decode the multicall response such that we can return the last return value
     // ERC-7412 is causing there to be items prepended to the list from the oracle contract calls
@@ -150,18 +153,15 @@ export async function contractTransaction(
   };
   let call;
 
-  // Simulate the contract function before sending
-  const res = await publicClient.simulateContract({ address: to, abi, functionName, args: params, account: from });
-  console.log(res)
-
-  try {
-    call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);
-  } catch (e) {
-    console.log('WARN: Failed to generate EIP7412 compatible call')
-  }
+  /**
+    * Failing to simulate the contract call will result in a decoded error 
+    * which is then caught and returned to the user.
+  */
+  await publicClient.simulateContract({ address: to, abi, functionName, args: params, account: from });
 
   let hash;
-  if (call) {
+  try {
+    call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);
     hash = await walletClient.sendTransaction({
       chain: publicClient.chain!,
       account: from,
@@ -169,8 +169,8 @@ export async function contractTransaction(
       data: call.data,
       value: call.value,
     });
-  } else {
-     hash = await walletClient.sendTransaction({
+  } catch (e) {
+    hash = await walletClient.sendTransaction({
       chain: publicClient.chain!,
       account: from,
       to: to,
@@ -178,12 +178,6 @@ export async function contractTransaction(
       value: params.value,
     });
   }
-
- console.log(decodeFunctionResult({
-    abi,
-    functionName,
-    data: hash,
-  }))
 
   return hash;
 }
