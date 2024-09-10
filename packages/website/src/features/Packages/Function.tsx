@@ -28,6 +28,7 @@ import {
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
+import { parseContractErrorReason } from '@usecannon/builder/dist/src/trace';
 import { Abi, AbiFunction } from 'abitype';
 import { useRouter } from 'next/router';
 import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
@@ -187,10 +188,13 @@ export const Function: FC<{
       }
     } catch (e: any) {
       if (!suppressError) {
+        console.log(Object.keys(e))
+        console.log(Object.entries(e))
+        console.log(e["cause"]["message"])
         setError(
           typeof e === 'string'
             ? e
-            : e?.message || e?.error?.message || e?.error || e
+            : e.cause.message
         );
       }
     } finally {

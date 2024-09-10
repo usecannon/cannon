@@ -77,43 +77,53 @@ export async function contractCall(
     to,
     data,
   };
-  const call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);
-  const res = await publicClient.call({ ...call, account: from });
+  // let call;
+  // try {
+  //   call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);
+  // } catch (e) {
+  //   console.log('WARN: Failed to generate EIP7412 compatible call')
+  // }
+
+  // let res;
+  // if (call) {
+  //   res = await publicClient.call({ ...call, account: from });
+  // } else {
+  const res = await publicClient.simulateContract({ address: to, abi, functionName, args: params, account: from });
   try {
     // Attempt to decode the multicall response such that we can return the last return value
     // ERC-7412 is causing there to be items prepended to the list from the oracle contract calls
     const multicallValue: any = (res as any).data
       ? decodeFunctionResult({
-          abi: MulticallABI,
-          functionName: 'aggregate3Value',
-          data: (res as any).data as any,
-        })
+        abi: MulticallABI,
+        functionName: 'aggregate3Value',
+        data: (res as any).data as any,
+      })
       : (res as any).data;
     if (Array.isArray(multicallValue) && multicallValue[multicallValue.length - 1].success) {
       return (res as any).data
         ? decodeFunctionResult({
-            abi,
-            functionName,
-            data: multicallValue[multicallValue.length - 1].returnData as any,
-          })
+          abi,
+          functionName,
+          data: multicallValue[multicallValue.length - 1].returnData as any,
+        })
         : (res as any).data;
     } else {
       return (res as any).data
         ? decodeFunctionResult({
-            abi,
-            functionName,
-            data: (res as any).data as any,
-          })
+          abi,
+          functionName,
+          data: (res as any).data as any,
+        })
         : (res as any).data;
     }
   } catch (e) {
     // We land here if the call is not a multicall
     return (res as any).data
       ? decodeFunctionResult({
-          abi,
-          functionName,
-          data: (res as any).data as any,
-        })
+        abi,
+        functionName,
+        data: (res as any).data as any,
+      })
       : (res as any).data;
   }
 }
@@ -138,15 +148,42 @@ export async function contractTransaction(
     to,
     data,
   };
-  const call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);
+  let call;
 
-  const hash = await walletClient.sendTransaction({
-    chain: publicClient.chain!,
-    account: from,
-    to: call.to,
-    data: call.data,
-    value: call.value,
-  });
+  // Simulate the contract function before sending
+  const res = await publicClient.simulateContract({ address: to, abi, functionName, args: params, account: from });
+  console.log(res)
+
+  try {
+    call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);
+  } catch (e) {
+    console.log('WARN: Failed to generate EIP7412 compatible call')
+  }
+
+  let hash;
+  if (call) {
+    hash = await walletClient.sendTransaction({
+      chain: publicClient.chain!,
+      account: from,
+      to: call.to,
+      data: call.data,
+      value: call.value,
+    });
+  } else {
+     hash = await walletClient.sendTransaction({
+      chain: publicClient.chain!,
+      account: from,
+      to: to,
+      data: data,
+      value: params.value,
+    });
+  }
+
+ console.log(decodeFunctionResult({
+    abi,
+    functionName,
+    data: hash,
+  }))
 
   return hash;
 }
