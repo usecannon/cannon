@@ -84,7 +84,6 @@ export async function contractCall(
     call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);
     res = await publicClient.call({ ...call, account: from });
   } catch (e) {
-
     /**
      * If we fail to generate an EIP7412 compatible call we default to simulateContract
      * which behaves almost exactly like readContract, but uses abi-encoded data
@@ -97,36 +96,36 @@ export async function contractCall(
     // ERC-7412 is causing there to be items prepended to the list from the oracle contract calls
     const multicallValue: any = (res as any).data
       ? decodeFunctionResult({
-        abi: MulticallABI,
-        functionName: 'aggregate3Value',
-        data: (res as any).data as any,
-      })
+          abi: MulticallABI,
+          functionName: 'aggregate3Value',
+          data: (res as any).data as any,
+        })
       : (res as any).data;
     if (Array.isArray(multicallValue) && multicallValue[multicallValue.length - 1].success) {
       return (res as any).data
         ? decodeFunctionResult({
-          abi,
-          functionName,
-          data: multicallValue[multicallValue.length - 1].returnData as any,
-        })
+            abi,
+            functionName,
+            data: multicallValue[multicallValue.length - 1].returnData as any,
+          })
         : (res as any).data;
     } else {
       return (res as any).data
         ? decodeFunctionResult({
-          abi,
-          functionName,
-          data: (res as any).data as any,
-        })
+            abi,
+            functionName,
+            data: (res as any).data as any,
+          })
         : (res as any).data;
     }
   } catch (e) {
     // We land here if the call is not a multicall
     return (res as any).data
       ? decodeFunctionResult({
-        abi,
-        functionName,
-        data: (res as any).data as any,
-      })
+          abi,
+          functionName,
+          data: (res as any).data as any,
+        })
       : (res as any).data;
   }
 }
@@ -154,9 +153,9 @@ export async function contractTransaction(
   let call;
 
   /**
-    * Failing to simulate the contract call will result in a decoded error 
-    * which is then caught and returned to the user.
-  */
+   * Failing to simulate the contract call will result in a decoded error
+   * which is then caught and returned to the user.
+   */
   await publicClient.simulateContract({ address: to, abi, functionName, args: params, account: from });
 
   let hash;
