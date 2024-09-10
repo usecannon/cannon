@@ -157,6 +157,18 @@ describe('settings.ts', () => {
   });
 
   describe('resolveCliSettings()', () => {
+    // eslint-disable-next-line no-undef
+    let originalEnv: NodeJS.ProcessEnv;
+
+    beforeEach(() => {
+      originalEnv = { ...process.env };
+      jest.resetModules();
+    });
+
+    afterEach(() => {
+      process.env = originalEnv;
+    });
+
     it('should cache the result after the first call', () => {
       const settings1 = resolveCliSettings();
       const settings2 = resolveCliSettings();
@@ -164,30 +176,59 @@ describe('settings.ts', () => {
       expect(settings1).toBe(settings2);
     });
 
-    it('should not cache the result when resolveCliSettingsNoCache() is called', () => {
-      const settings1 = resolveCliSettings();
-      const uncachedSettings = resolveCliSettingsNoCache();
-      const settings2 = resolveCliSettings();
-
-      expect(settings1).toBe(settings2);
-
-      expect(uncachedSettings).not.toBe(settings1);
-      expect(uncachedSettings).not.toBe(settings2);
-    });
-
-    it('should reset the cache when new overrides are provided', () => {
+    it('should return different results when overrides are provided', () => {
       const settings1 = resolveCliSettings();
 
       const overrides = {
         rpcUrl: 'https://override.rpc.url',
+        ipfsRetries: 10,
       };
-
-      const settingsWithOverrides = resolveCliSettings(overrides);
-      const settings2 = resolveCliSettings();
-
-      expect(settings1).not.toBe(settingsWithOverrides);
+      const settings2 = resolveCliSettings(overrides);
 
       expect(settings1).not.toBe(settings2);
+      expect(settings1.rpcUrl).not.toBe(settings2.rpcUrl);
+      expect(settings1.ipfsRetries).not.toBe(settings2.ipfsRetries);
+      expect(settings2.rpcUrl).toBe('https://override.rpc.url');
+      expect(settings2.ipfsRetries).toBe(10);
+    });
+
+    it('should prioritize overrides over environment variables', () => {
+      process.env.CANNON_RPC_URL = 'https://env.rpc.url';
+
+      const overrides = {
+        rpcUrl: 'https://override.rpc.url',
+      };
+      const settings = resolveCliSettings(overrides);
+
+      expect(settings.rpcUrl).toBe('https://override.rpc.url');
+    });
+
+    it('should use the same cached result when called with the same overrides', () => {
+      const overrides = {
+        rpcUrl: 'https://override.rpc.url',
+      };
+
+      const settings1 = resolveCliSettings(overrides);
+      const settings2 = resolveCliSettings(overrides);
+
+      expect(settings1).toBe(settings2);
+    });
+
+    it('should use different cached results for different overrides', () => {
+      const overrides1 = {
+        rpcUrl: 'https://override1.rpc.url',
+      };
+
+      const overrides2 = {
+        rpcUrl: 'https://override2.rpc.url',
+      };
+
+      const settings1 = resolveCliSettings(overrides1);
+      const settings2 = resolveCliSettings(overrides2);
+
+      expect(settings1).not.toBe(settings2);
+      expect(settings1.rpcUrl).toBe('https://override1.rpc.url');
+      expect(settings2.rpcUrl).toBe('https://override2.rpc.url');
     });
   });
 });
