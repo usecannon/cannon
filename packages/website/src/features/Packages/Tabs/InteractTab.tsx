@@ -175,8 +175,6 @@ export const InteractTab: FC<{
       })
     );
 
-    console.log(highlightedData);
-
     const otherData = allContracts.filter(
       (contract) => !highlightedData.includes(contract)
     );
