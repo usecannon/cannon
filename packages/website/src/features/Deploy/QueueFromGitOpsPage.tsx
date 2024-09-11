@@ -321,7 +321,7 @@ function QueueFromGitOps() {
                       cannonDefInfo.def
                         ? `${cannonDefInfo.def.getName(
                             ctx
-                          )}:${cannonDefInfo.def.getPreset(ctx)}`
+                          )}@${cannonDefInfo.def.getPreset(ctx)}`
                         : ''
                     )
                   ),
