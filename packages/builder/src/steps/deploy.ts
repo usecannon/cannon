@@ -278,7 +278,7 @@ const deploySpec = {
       if (config.create2) {
         const arachnidDeployerAddress = await ensureArachnidCreate2Exists(
           runtime,
-          typeof config.create2 === 'string' ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR
+          viem.isAddress(config.create2 as string) ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR
         );
 
         debug('performing arachnid create2');
@@ -292,10 +292,12 @@ const deploySpec = {
 
           // the cannon state does not think a contract should be deployed, but the on-chain state says a contract
           // is deployed. this could be a mistake. alert the user and explain how to override
-          throw new CannonError(
-            `The contract at the create2 destination ${addr} is already deployed, but the Cannon state does not recognize that this contract has already been deployed. This typically indicates incorrect upgrade configuration. Please confirm if this contract should already be deployed or not, and if you want to continue the build as-is, run 'cannon alter ${packageState.ref?.packageRef} set-contract-address ${packageState.currentLabel} ${addr}'`,
-            'CREATE2_COLLISION'
-          );
+          if (config.ifExists !== 'continue') {
+            throw new CannonError(
+              `The contract at the create2 destination ${addr} is already deployed, but the Cannon state does not recognize that this contract has already been deployed. This typically indicates incorrect upgrade configuration. Please confirm if this contract should already be deployed or not, and if you want to continue the build as-is, add 'ifExists = "continue"' to the step definition`,
+              'CREATE2_COLLISION'
+            );
+          }
         } else {
           const signer = config.from
             ? await runtime.getSigner(config.from as viem.Address)

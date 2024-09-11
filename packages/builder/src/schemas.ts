@@ -80,11 +80,11 @@ export const deploySchema = z
          */
         description: z.string().describe('Description of the operation'),
         /**
-         *    Determines whether contract should get priority in displays
+         * Determines whether contract should get priority in displays
          */
         highlight: z.boolean().describe('Determines whether contract should get priority in displays'),
         /**
-         *    Determines whether to deploy the contract using create2
+         * Determines whether to deploy the contract using create2
          */
         create2: z
           .union([z.boolean(), z.string().refine((val) => isAddress(val))])
@@ -92,8 +92,17 @@ export const deploySchema = z
             'Determines whether to deploy the contract using create2. If an address is specified, the arachnid create2 contract will be deployed/used from this address.'
           ),
         /**
-         *    Contract deployer address.
-         *    Must match the ethereum address format
+         * Determines whether to deploy the contract using create2
+         */
+        ifExists: z
+          .enum(['continue'])
+          .optional()
+          .describe(
+            'Determines whether when trying to deploy the contract using CREATE2 it should continue if the target address already exists. Disabled by default'
+          ),
+        /**
+         * Contract deployer address.
+         * Must match the ethereum address format
          */
         from: z
           .string()
@@ -115,7 +124,7 @@ export const deploySchema = z
           })
           .describe('-'),
         /**
-         *  Abi of the contract being deployed
+         * Abi of the contract being deployed
          */
         abi: z
           .string()
