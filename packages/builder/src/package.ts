@@ -239,12 +239,12 @@ export async function findUpgradeFromPackage(
   await Promise.all(
     deployers.map(async (addr) => {
       try {
-        console.log('read from the store', addr, `${packageReference.name}:${packageReference.preset}`);
+        console.log('read from the store', addr, `${packageReference.name}@${packageReference.preset}`);
         const [deployTimestamp, deployHash] = (
           await storeRead(
             provider,
             addr,
-            viem.keccak256(viem.stringToBytes(`${packageReference.name}:${packageReference.preset}`))
+            viem.keccak256(viem.stringToBytes(`${packageReference.name}@${packageReference.preset}`))
           )
         ).split('_');
 
@@ -273,7 +273,7 @@ export async function writeUpgradeFromInfo(runtime: ChainBuilderRuntime, package
   return await storeWrite(
     runtime.provider,
     await runtime.getDefaultSigner({}),
-    viem.keccak256(viem.stringToBytes(`${packageRef.name}:${packageRef.preset}`)),
+    viem.keccak256(viem.stringToBytes(`${packageRef.name}@${packageRef.preset}`)),
     `${Math.floor(Date.now() / 1000)}_${deployUrl}`
   );
 }
