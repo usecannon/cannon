@@ -66,6 +66,9 @@ import { TransactionDisplay } from './TransactionDisplay';
 import 'react-diff-view/style/index.css';
 import { ChainDefinition } from '@usecannon/builder/dist/src';
 
+const EMPTY_IPFS_MISC_URL =
+  'ipfs://QmeSt2mnJKE8qmRhLyYbHQQxDKpsFbcWnw5e7JF4xVbN6k';
+
 export default function QueueFromGitOpsPage() {
   return <QueueFromGitOps />;
 }
@@ -83,12 +86,9 @@ function QueueFromGitOps() {
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
   const { openConnectModal } = useConnectModal();
 
-  const { queueTransactions, address: deployerWalletAddress } =
-    useDeployerWallet(undefined);
+  const deployer = useDeployerWallet(currentSafe?.chainId);
 
-  useEffect(() => {
-    // TODO: reset safe txns to be regenerated
-  }, [deployerWalletAddress]);
+  const deployerWalletAddress = deployer.address;
 
   const cannonfileUrlRegex =
     // eslint-disable-next-line no-useless-escape
@@ -189,7 +189,8 @@ function QueueFromGitOps() {
 
   const onChainPrevPkgQuery = useCannonFindUpgradeFromUrl(
     fullPackageRef || undefined,
-    chainId
+    chainId,
+    cannonDefInfo.def?.getDeployers()
   );
 
   const prevDeployLocation = partialDeployIpfs
@@ -215,6 +216,10 @@ function QueueFromGitOps() {
     prevCannonDeployInfo.pkg
   );
 
+  useEffect(() => {
+    buildInfo.reset();
+  }, [deployerWalletAddress]);
+
   const uploadToPublishIpfs = useCannonWriteDeployToIpfs(
     buildInfo.buildResult?.runtime,
     cannonDefInfo.def
@@ -225,7 +230,8 @@ function QueueFromGitOps() {
           state: buildInfo.buildResult?.state || {},
           options: prevCannonDeployInfo.pkg?.options || {},
           meta: prevCannonDeployInfo.pkg?.meta,
-          miscUrl: prevCannonDeployInfo.pkg?.miscUrl || '',
+          miscUrl: prevCannonDeployInfo.pkg?.miscUrl || EMPTY_IPFS_MISC_URL,
+          chainId: currentSafe?.chainId,
         }
       : undefined,
     prevCannonDeployInfo.metaUrl
@@ -319,7 +325,12 @@ function QueueFromGitOps() {
                         : ''
                     )
                   ),
-                  stringToHex(uploadToPublishIpfs.deployedIpfsHash ?? ''),
+                  // TODO: we would really rather have the timestamp be when the txn was executed. something to fix when we have a new state contract
+                  stringToHex(
+                    `${Math.floor(Date.now() / 1000)}_${
+                      uploadToPublishIpfs.deployedIpfsHash ?? ''
+                    }`
+                  ),
                 ],
               }),
             } as Partial<TransactionRequestBase>,
@@ -366,13 +377,9 @@ function QueueFromGitOps() {
 
   const execTxn = useWriteContract();
 
-  const isPartialDataRequired =
-    buildInfo.buildSkippedSteps.filter(
-      (s) =>
-        s.name.startsWith('contract') ||
-        s.name.startsWith('deploy') ||
-        s.name.startsWith('router')
-    ).length > 0;
+  const isOutsideSafeTxnsRequired =
+    (buildInfo.buildResult?.deployerSteps.length || 0) > 0 &&
+    !deployer.isComplete;
 
   const loadingDataForDeploy =
     prevCannonDeployInfo.isFetching ||
@@ -543,6 +550,8 @@ function QueueFromGitOps() {
     return <PreviewButton />;
   }
 
+  // eslint-disable-next-line no-console
+
   return (
     <>
       <Container maxWidth="container.md" py={8}>
@@ -592,7 +601,9 @@ function QueueFromGitOps() {
 
           {onChainPrevPkgQuery.isFetched &&
             (prevDeployLocation ? (
-              <Text color="green">Previous Deployment: prevDeployLocation</Text>
+              <Text color="green">
+                Previous Deployment: {prevDeployLocation}
+              </Text>
             ) : (
               <Text color="yellow">Deployment from scratch.</Text>
             ))}
@@ -714,37 +725,46 @@ function QueueFromGitOps() {
               ))}
             </Flex>
           )}
-          {isPartialDataRequired && (
-            <Alert mt="6" status="error" bg="red.700" mb="5">
-              <Flex flexDir="column" gap={3}>
-                <Text>
-                  The web deployer is unable to compile and deploy contracts and
-                  routers. Run the following command to generate partial deploy
-                  data:
-                </Text>
-                <Code display="block" p="2">
-                  cannon build {gitFile} --upgrade-from {previousPackageInput}{' '}
-                  --chain-id {currentSafe?.chainId}
-                </Code>
-              </Flex>
-            </Alert>
-          )}
-          {buildInfo.buildResult?.deployerSteps?.length && (
-            <Alert mt="6" status="info" mb="5">
-              <Text>
-                Some transactions should be executed outside the safe before
-                staging. You can execute these now in your browser. By clicking
-                the button below.
-              </Text>
-              <Button
-                onClick={() =>
-                  queueTransactions(
-                    buildInfo.buildResult!.deployerSteps.map((s) => s.tx as any)
-                  )
-                }
-              >
-                Execute Outside Safe Txns
-              </Button>
+          {!!buildInfo.buildResult?.deployerSteps?.length &&
+            !!buildInfo.buildResult?.safeSteps.length && (
+              <Alert mt="6" status="info" mb="5">
+                {deployer.queuedTransactions.length === 0 ? (
+                  <VStack>
+                    <Text color="black">
+                      Some transactions should be executed outside the safe
+                      before staging. You can execute these now in your browser.
+                      By clicking the button below.
+                    </Text>
+                    <Button
+                      onClick={() =>
+                        deployer.queueTransactions(
+                          buildInfo.buildResult!.deployerSteps.map(
+                            (s) => s.tx as any
+                          )
+                        )
+                      }
+                    >
+                      Execute Outside Safe Txns
+                    </Button>
+                  </VStack>
+                ) : deployer.executionProgress.length <
+                  deployer.queuedTransactions.length ? (
+                  <Text>
+                    Deploying txns {deployer.executionProgress.length + 1} /{' '}
+                    {deployer.queuedTransactions.length}
+                  </Text>
+                ) : (
+                  <Text>
+                    All Transactions Queued Successfully. You may now continue
+                    the safe deployment.
+                  </Text>
+                )}
+              </Alert>
+            )}
+          {(buildInfo.buildResult?.safeSteps.length || 1) == 0 && (
+            <Alert status="error">
+              There are no transactions that would be executed by the gnosis
+              safe.
             </Alert>
           )}
           {cannonDefInfo.def && multicallTxn.data && (
@@ -811,7 +831,7 @@ function QueueFromGitOps() {
                 <Tooltip label={stager.execConditionFailed}>
                   <Button
                     isDisabled={
-                      !!stager.execConditionFailed || isPartialDataRequired
+                      !!stager.execConditionFailed || isOutsideSafeTxnsRequired
                     }
                     size="lg"
                     w="100%"

@@ -14,7 +14,7 @@ export function useDeployerWallet(chainId?: number) {
 
   const { switchChainAsync } = useSwitchChain();
 
-  const { sendTransaction, isIdle, data: hash } = useSendTransaction();
+  const { sendTransaction, isIdle, data: hash, error: txnError } = useSendTransaction();
 
   const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
 
@@ -26,7 +26,7 @@ export function useDeployerWallet(chainId?: number) {
 
       (async () => {
         // is this the first transaction, or have we finished executing a transaction?
-        if ((isIdle && !executionProgress.length) || isConfirmed) {
+        if ((isIdle && !executionProgress.length && queuedTransactions.length) || isConfirmed) {
           // ensure we are on the correct network
           await switchChainAsync({ chainId });
 
@@ -41,17 +41,20 @@ export function useDeployerWallet(chainId?: number) {
         .then(_.noop)
         .catch((err) => {
           // unexpected issue in the deployer
+          // eslint-disable-next-line no-console
+          console.error('deployer issue', err);
           setError(err);
         });
     },
-    [isConfirmed, queuedTransactions, chainId]
+    [isConfirmed, isIdle, executionProgress.length, queuedTransactions, chainId]
   );
 
   return {
     address: connectedAccount.address,
     queuedTransactions,
     executionProgress,
-    error: error,
+    isComplete: queuedTransactions.length > 0 && executionProgress.length === queuedTransactions.length,
+    error: error || txnError,
     queueTransactions: function (txn: viem.TransactionRequestBase[]) {
       setQueuedTransactions([...queuedTransactions, ...txn]);
     },

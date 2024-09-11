@@ -20,13 +20,13 @@ async function loadGanache() {
 }
 
 export function useCreateFork() {
-  const { getChainById, getTransportById } = useCannonChains();
+  const { getChainById } = useCannonChains();
 
   return useCallback(
-    async ({ chainId, impersonate = [] }: { chainId: number; impersonate: string[] }) => {
+    async ({ chainId, impersonate = [], url }: { chainId: number; impersonate: string[]; url?: string }) => {
       const chain = getChainById(chainId);
       if (!chain) throw new Error(`Unknown chainId: ${chainId}`);
-      const chainUrl = getTransportById(chainId)();
+      const rpcUrl = url ?? chain.rpcUrls.default.http[0];
 
       await loadGanache();
       const Ganache = (window as any).Ganache.default;
@@ -34,7 +34,9 @@ export function useCreateFork() {
       const node = Ganache.provider({
         wallet: { unlockedAccounts: impersonate },
         chain: { chainId },
-        fork: { url: chainUrl },
+        fork: {
+          url: rpcUrl,
+        },
       });
 
       await Promise.all(impersonate.map((addr) => node.send('evm_setAccountBalance', [addr, toHex(parseEther('10000'))])));

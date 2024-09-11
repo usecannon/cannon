@@ -119,16 +119,12 @@ export async function storeWrite(publicClient: viem.PublicClient, signer: Cannon
 }
 
 export async function storeRead(publicClient: viem.PublicClient, space: viem.Address, k: viem.Hash) {
-  return viem.bytesToString(
-    (
-      await publicClient.simulateContract({
-        account: space,
-        address: deployAddress,
-        abi: ABI,
-        functionName: 'set',
-        args: [k],
-      })
-    ).result as Uint8Array,
-    { size: 32 }
+  return viem.hexToString(
+    (await publicClient.readContract({
+      address: deployAddress,
+      abi: ABI,
+      functionName: 'getWithAddress',
+      args: [space, k],
+    })) as viem.Hex
   );
 }
