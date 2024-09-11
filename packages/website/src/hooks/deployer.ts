@@ -21,7 +21,7 @@ export function useDeployerWallet(chainId?: number) {
   useEffect(
     function () {
       if (!chainId) {
-        throw new Error('missing required parameters');
+        return;
       }
 
       (async () => {
@@ -44,7 +44,7 @@ export function useDeployerWallet(chainId?: number) {
           setError(err);
         });
     },
-    [isConfirmed, queuedTransactions]
+    [isConfirmed, queuedTransactions, chainId]
   );
 
   return {

@@ -23,11 +23,12 @@ import {
   loadPrecompiles,
   PackageReference,
   publishPackage,
+  findUpgradeFromPackage,
 } from '@usecannon/builder';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { Abi, Address, createPublicClient, createTestClient, createWalletClient, custom, Hex, isAddressEqual } from 'viem';
-import { useChainId } from 'wagmi';
+import { useChainId, usePublicClient } from 'wagmi';
 // Needed to prepare mock run step with registerAction
 import '@/lib/builder';
 import { externalLinks } from '@/constants/externalLinks';
@@ -100,8 +101,8 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
   const buildFn = async () => {
     // Wait until finished loading
-    if (!safe || !def || !prevDeploy) {
-      throw new Error('Missing required parameters');
+    if (!safe || !def) {
+      throw new Error(`Missing required parameters. has safe: ${!!safe}, def: ${!!def}, prevDeploy: ${!!prevDeploy}`);
     }
 
     setBuildStatus('Creating fork...');
@@ -348,7 +349,36 @@ export function useCannonWriteDeployToIpfs(
   };
 }
 
-export function useCannonPackage(packageRef?: string, chainId?: number) {
+export function useCannonFindUpgradeFromUrl(packageRef?: PackageReference, chainId?: number, deployers?: Address[]) {
+  const registry = useCannonRegistry();
+
+  const publicClient = usePublicClient();
+
+  const onChainDataQuery = useQuery({
+    enabled: !!packageRef && !!chainId,
+    queryKey: ['cannon', 'find-upgrade-from', packageRef?.name, packageRef?.preset, chainId],
+    queryFn: async () => {
+      await findUpgradeFromPackage(
+        registry,
+        publicClient as Parameters<typeof findUpgradeFromPackage>[1],
+        packageRef!,
+        chainId!,
+        deployers || []
+      );
+    },
+  });
+
+  return {
+    url: onChainDataQuery.data,
+    ...onChainDataQuery,
+  };
+}
+
+export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?: number) {
+  if (urlOrRef && typeof urlOrRef != 'string') {
+    urlOrRef = urlOrRef.fullPackageRef;
+  }
+
   const connectedChainId = useChainId();
   const registry = useCannonRegistry();
   const settings = useStore((s) => s.settings);
@@ -357,21 +387,21 @@ export function useCannonPackage(packageRef?: string, chainId?: number) {
   const packageChainId = chainId ?? connectedChainId;
 
   const registryQuery = useQuery({
-    queryKey: ['cannon', 'registry-url', packageRef, packageChainId],
+    queryKey: ['cannon', 'registry-url', urlOrRef, packageChainId],
     queryFn: async () => {
-      if (typeof packageRef !== 'string' || packageRef.length < 3) {
+      if (typeof urlOrRef !== 'string' || urlOrRef.length < 3) {
         return null;
       }
 
-      if (packageRef.startsWith('ipfs://')) return { url: packageRef };
-      if (packageRef.startsWith('@ipfs:')) return { url: packageRef.replace('@ipfs:', 'ipfs://') };
+      if (urlOrRef.startsWith('ipfs://')) return { url: urlOrRef };
+      if (urlOrRef.startsWith('@ipfs:')) return { url: urlOrRef.replace('@ipfs:', 'ipfs://') };
 
-      const url = await registry.getUrl(packageRef, packageChainId);
+      const url = await registry.getUrl(urlOrRef, packageChainId);
 
       if (url) {
         return { url };
       } else {
-        throw new Error(`package not found: ${packageRef} (${packageChainId})`);
+        throw new Error(`package not found: ${urlOrRef} (${packageChainId})`);
       }
     },
     refetchOnWindowFocus: false,

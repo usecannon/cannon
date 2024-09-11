@@ -20,13 +20,13 @@ async function loadGanache() {
 }
 
 export function useCreateFork() {
-  const { getChainById } = useCannonChains();
+  const { getChainById, getTransportById } = useCannonChains();
 
   return useCallback(
     async ({ chainId, impersonate = [] }: { chainId: number; impersonate: string[] }) => {
       const chain = getChainById(chainId);
       if (!chain) throw new Error(`Unknown chainId: ${chainId}`);
-      const chainUrl = chain.rpcUrls.default.http[0];
+      const chainUrl = getTransportById(chainId)();
 
       await loadGanache();
       const Ganache = (window as any).Ganache.default;

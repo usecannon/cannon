@@ -12,6 +12,7 @@ import {
   useCannonPackage,
   useCannonWriteDeployToIpfs,
   useLoadCannonDefinition,
+  useCannonFindUpgradeFromUrl,
 } from '@/hooks/cannon';
 import { useGitRefsList } from '@/hooks/git';
 import { useGetPreviousGitInfoQuery } from '@/hooks/safe';
@@ -42,10 +43,10 @@ import {
   Radio,
   RadioGroup,
   Stack,
+  Checkbox,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { ChainBuilderContext, PackageReference } from '@usecannon/builder';
-import _ from 'lodash';
+import { ChainBuilderContext } from '@usecannon/builder';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -71,6 +72,7 @@ export default function QueueFromGitOpsPage() {
 
 function QueueFromGitOps() {
   const [selectedDeployType, setSelectedDeployType] = useState('new');
+  const [overridePreviousState, setOverridePreviousState] = useState(false);
   const router = useRouter();
   const currentSafe = useStore((s) => s.currentSafe);
   const { chainId, isConnected } = useAccount();
@@ -183,65 +185,18 @@ function QueueFromGitOps() {
 
   const settings = useStore((s) => s.settings);
 
-  const previousName = useMemo(() => {
-    if (previousPackageInput) {
-      return previousPackageInput.split(':')[0];
-    }
+  const fullPackageRef = cannonDefInfo.def?.getPackageRef(ctx) ?? null;
 
-    if (cannonDefInfo.def) {
-      return cannonDefInfo.def.getName(ctx);
-    }
-
-    return '';
-  }, [previousPackageInput, cannonDefInfo.def]);
-
-  const previousVersion = useMemo(() => {
-    if (previousPackageInput) {
-      return previousPackageInput.split('@')[0]?.split(':')[1];
-    }
-
-    return 'latest';
-  }, [previousPackageInput]);
-
-  const previousPreset = useMemo(() => {
-    if (previousPackageInput) {
-      return previousPackageInput.split('@')[1];
-    }
-
-    return cannonDefInfo.def?.getPreset(ctx) || 'main';
-  }, [previousPackageInput, cannonDefInfo.def?.getPreset(ctx)]);
-
-  const cannonPkgPreviousInfo = useCannonPackage(
-    cannonDefInfo.def && PackageReference.isValid(previousPackageInput)
-      ? `${previousName}:${previousVersion}${
-          previousPreset ? '@' + previousPreset : ''
-        }`
-      : '',
+  const onChainPrevPkgQuery = useCannonFindUpgradeFromUrl(
+    fullPackageRef || undefined,
     chainId
   );
 
-  const fullPackageRef =
-    (cannonDefInfo.def &&
-      `${cannonDefInfo.def.getName(ctx)}:${cannonDefInfo.def.getVersion(ctx)}${
-        cannonDefInfo.def.getPreset(ctx)
-          ? '@' + cannonDefInfo.def.getPreset(ctx)
-          : ''
-      }`) ??
-    '';
+  const prevDeployLocation = partialDeployIpfs
+    ? `ipfs://${partialDeployIpfs}`
+    : onChainPrevPkgQuery.url || '';
 
-  const cannonPkgVersionInfo = useCannonPackage(
-    fullPackageRef,
-    currentSafe?.chainId
-  );
-
-  const prevDeployLocation =
-    (partialDeployIpfs ? `ipfs://${partialDeployIpfs}` : null) ||
-    cannonPkgPreviousInfo.pkgUrl ||
-    cannonPkgVersionInfo.pkgUrl;
-
-  const prevCannonDeployInfo = useCannonPackage(
-    prevDeployLocation ? `ipfs://${_.last(prevDeployLocation.split('/'))}` : ''
-  );
+  const prevCannonDeployInfo = useCannonPackage(prevDeployLocation);
 
   useEffect(() => {
     if (!cannonDefInfo.def) return setPreviousPackageInput('');
@@ -398,7 +353,7 @@ function QueueFromGitOps() {
     {
       safe: currentSafe,
       async onSignComplete() {
-        await router.push(links.DEPLOY);
+        router.push(links.DEPLOY);
         toast({
           title: 'You successfully signed the transaction.',
           status: 'success',
@@ -420,9 +375,9 @@ function QueueFromGitOps() {
     ).length > 0;
 
   const loadingDataForDeploy =
-    cannonPkgPreviousInfo.isFetching ||
+    prevCannonDeployInfo.isFetching ||
     partialDeployInfo.isFetching ||
-    cannonPkgVersionInfo.isFetching ||
+    onChainPrevPkgQuery.isFetching ||
     buildInfo.isBuilding;
 
   const handlePreviewTxnsClick = async () => {
@@ -484,11 +439,9 @@ function QueueFromGitOps() {
   };
 
   const disablePreviewButton =
+    loadingDataForDeploy ||
     chainId !== currentSafe?.chainId ||
     !cannonDefInfo.def ||
-    cannonPkgPreviousInfo.isFetching ||
-    partialDeployInfo.isFetching ||
-    cannonPkgVersionInfo.isFetching ||
     buildInfo.isBuilding;
 
   function PreviewButton(props: any) {
@@ -570,9 +523,9 @@ function QueueFromGitOps() {
     }
 
     if (
-      cannonPkgPreviousInfo.isFetching ||
-      partialDeployInfo.isFetching ||
-      cannonPkgVersionInfo.isFetching
+      prevCannonDeployInfo.isFetching ||
+      onChainPrevPkgQuery.isFetching ||
+      partialDeployInfo.isFetching
     ) {
       return <PreviewButton message="Fetching package info, please wait..." />;
     }
@@ -615,7 +568,7 @@ function QueueFromGitOps() {
           borderRadius="4px"
         >
           <FormControl mb="4">
-            <FormLabel>Deployment Type</FormLabel>
+            <FormLabel>Deployment Source</FormLabel>
             <RadioGroup
               value={selectedDeployType}
               onChange={setSelectedDeployType}
@@ -625,23 +578,35 @@ function QueueFromGitOps() {
                 spacing={['1', '1', '6']}
                 width="100%"
               >
-                <Radio colorScheme="teal" value="new">
-                  New deployment
+                <Radio colorScheme="teal" value="git">
+                  Git URL
                 </Radio>
-                <Radio colorScheme="teal" value="upgrade">
-                  Upgrade existing package
-                </Radio>
-                <Radio colorScheme="teal" value="partial">
-                  Finish partial deployment
+                <Radio colorScheme="teal" value="stateUrl">
+                  IPFS Hash
                 </Radio>
               </Stack>
             </RadioGroup>
           </FormControl>
 
-          {selectedDeployType != 'partial' && renderCannonfileInput()}
+          {selectedDeployType == 'git' && renderCannonfileInput()}
 
-          {selectedDeployType == 'new' && <Box mb="6" />}
-          {selectedDeployType == 'upgrade' && (
+          {onChainPrevPkgQuery.isFetched &&
+            (prevDeployLocation ? (
+              <Text color="green">Previous Deployment: prevDeployLocation</Text>
+            ) : (
+              <Text color="yellow">Deployment from scratch.</Text>
+            ))}
+
+          <FormControl>
+            <Checkbox
+              onChange={(evt) =>
+                setOverridePreviousState(evt.currentTarget.checked)
+              }
+            />{' '}
+            Override Previous State
+          </FormControl>
+
+          {overridePreviousState && (
             <FormControl mb="6">
               <FormLabel>Previous Package</FormLabel>
               <InputGroup>
@@ -650,7 +615,7 @@ function QueueFromGitOps() {
                   type="text"
                   value={previousPackageInput}
                   borderColor={
-                    !previousPackageInput.length || !cannonPkgPreviousInfo.error
+                    !previousPackageInput.length || !prevCannonDeployInfo.error
                       ? 'whiteAlpha.400'
                       : 'red.500'
                   }
@@ -660,12 +625,12 @@ function QueueFromGitOps() {
                   }
                 />
                 <InputRightElement>
-                  {cannonPkgPreviousInfo.isError ? (
+                  {prevCannonDeployInfo.isError ? (
                     <CloseIcon color="red.500" />
                   ) : null}
-                  {cannonPkgPreviousInfo.isFetching ? (
+                  {prevCannonDeployInfo.isFetching ? (
                     <Spinner />
-                  ) : cannonPkgPreviousInfo.pkg ? (
+                  ) : prevCannonDeployInfo.pkg ? (
                     <CheckIcon color="green.500" />
                   ) : null}
                 </InputRightElement>
@@ -676,10 +641,10 @@ function QueueFromGitOps() {
                   <Code>--upgrade-from</Code>
                 </Link>
               </FormHelperText>
-              {cannonPkgPreviousInfo.error ? (
+              {onChainPrevPkgQuery.error ? (
                 <Alert mt="6" status="error" bg="red.700">
                   <AlertIcon mr={3} />
-                  <strong>{cannonPkgPreviousInfo.error.toString()}</strong>
+                  <strong>{onChainPrevPkgQuery.error.toString()}</strong>
                 </Alert>
               ) : undefined}
             </FormControl>

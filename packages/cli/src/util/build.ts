@@ -9,7 +9,7 @@ import { createDryRunRegistry } from '../registry';
 import { CannonRpcNode, getProvider, runRpc } from '../rpc';
 import { CliSettings, resolveCliSettings } from '../settings';
 import { execPromise, filterSettings, loadCannonfile } from '../helpers';
-import { log, warn } from './console';
+import { warn } from './console';
 import { parseSettings } from './params';
 import { pickAnvilOptions } from './anvil';
 import { setDebugLevel } from './debug-level';

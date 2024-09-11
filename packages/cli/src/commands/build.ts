@@ -181,7 +181,13 @@ export async function build({
       throw new Error(`Deployment ${upgradeFrom} (${chainId}) not found`);
     }
   } else if (def) {
-    const oldDeployHash = await findUpgradeFromPackage(runtime, packageReference, runtime.chainId, def.getDeployers());
+    const oldDeployHash = await findUpgradeFromPackage(
+      runtime.registry,
+      runtime.provider,
+      packageReference,
+      runtime.chainId,
+      def.getDeployers()
+    );
     if (oldDeployHash) {
       log(green(bold('Found deployment state via on-chain store', oldDeployHash)));
       oldDeployData = (await runtime.readBlob(oldDeployHash)) as DeploymentInfo;

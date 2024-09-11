@@ -4,6 +4,7 @@ import _ from 'lodash';
 import { createInitialContext, getArtifacts } from './builder';
 import { ChainDefinition } from './definition';
 import { CannonStorage, ChainBuilderRuntime } from './runtime';
+import { CannonRegistry } from './registry';
 import { BundledOutput, ChainArtifacts, DeploymentInfo, StepState } from './types';
 
 import { PackageReference } from './package-reference';
@@ -213,7 +214,8 @@ export async function publishPackage({
 }
 
 export async function findUpgradeFromPackage(
-  runtime: ChainBuilderRuntime,
+  registry: CannonRegistry,
+  provider: viem.PublicClient,
   packageReference: PackageReference,
   chainId: number,
   deployers: viem.Address[]
@@ -226,7 +228,7 @@ export async function findUpgradeFromPackage(
     deployers.map(async (addr) => {
       const [deployTimestamp, deployHash] = (
         await storeRead(
-          runtime.provider,
+          provider,
           addr,
           viem.keccak256(viem.stringToBytes(`${packageReference.name}:${packageReference.preset}`))
         )
@@ -241,7 +243,7 @@ export async function findUpgradeFromPackage(
   if (!oldDeployHash) {
     debug('fallback: find upgrade from with registry');
     // fallback to the registry with the same package name
-    oldDeployHash = await runtime.registry.getUrl(packageReference.fullPackageRef, chainId);
+    oldDeployHash = await registry.getUrl(packageReference.fullPackageRef, chainId);
   }
 
   return oldDeployHash;

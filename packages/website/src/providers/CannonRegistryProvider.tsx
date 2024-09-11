@@ -18,7 +18,7 @@ type Props = {
   children: React.ReactNode;
 };
 export const CannonRegistryProvider: React.FC<Props> = ({ children }) => {
-  const { getChainById } = useCannonChains();
+  const { getChainById, getTransportById } = useCannonChains();
 
   const onChainRegistries = DEFAULT_REGISTRY_CONFIG.map(
     (registry) => registry.chainId
@@ -28,7 +28,7 @@ export const CannonRegistryProvider: React.FC<Props> = ({ children }) => {
         address: DEFAULT_REGISTRY_ADDRESS,
         provider: createPublicClient({
           chain: getChainById(chainId),
-          transport: http(),
+          transport: getTransportById(chainId),
         }),
       })
   );

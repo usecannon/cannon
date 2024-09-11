@@ -22,6 +22,7 @@ type CustomProviders =
       chainMetadata: Record<number, { color: string }>;
       transports: Record<number, HttpTransport>;
       getChainById: (chainId: number) => Chain | undefined;
+      getTransportById: (chainId: number) => HttpTransport;
       getExplorerUrl: (chainId: number, hash: Hash) => string;
     }
   | undefined;
@@ -188,11 +189,13 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
   });
 
   const allChains = _getAllChains(verifiedProviders);
+  const allTransports = _getAllTransports(verifiedProviders);
   const value = {
     chains: allChains,
     chainMetadata,
     transports: _getAllTransports(verifiedProviders),
     getChainById: (chainId: number) => _getChainById(allChains, chainId),
+    getTransportById: (chainId: number) => allTransports[chainId] || http(),
     getExplorerUrl: (chainId: number, hash: Hash) =>
       _getExplorerUrl(allChains, chainId, hash),
   };
