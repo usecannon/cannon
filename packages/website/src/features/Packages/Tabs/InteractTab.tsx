@@ -167,12 +167,24 @@ export const InteractTab: FC<{
       );
     }
 
-    setHighlightedOptions(highlightedData);
+    setHighlightedOptions(
+      highlightedData.sort((a, b) => {
+        const valueA: string = a['contractName'];
+        const valueB: string = b['contractName'];
+        return valueA.localeCompare(valueB);
+      })
+    );
 
     const otherData = allContracts.filter(
       (contract) => !highlightedData.includes(contract)
     );
-    setOtherOptions(otherData);
+    setOtherOptions(
+      otherData.sort((a, b) => {
+        const valueA: string = a['contractName'];
+        const valueB: string = b['contractName'];
+        return valueA.localeCompare(valueB);
+      })
+    );
 
     if (!activeContractOption) {
       if (highlightedData.length > 0) {
