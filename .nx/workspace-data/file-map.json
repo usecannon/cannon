@@ -34,196 +34,196 @@
   "fileMap": {
     "nonProjectFiles": [
       {
-        "file": ".changeset/README.md",
-        "hash": "4888845876018830777"
-      },
-      {
-        "file": ".changeset/config.json",
-        "hash": "9436150497285796965"
-      },
-      {
-        "file": ".editorconfig",
-        "hash": "12844250875304638587"
-      },
-      {
-        "file": ".eslintignore",
-        "hash": "2650820535990372883"
-      },
-      {
-        "file": ".eslintrc.json",
-        "hash": "5263792134500466184"
-      },
-      {
-        "file": ".github/dependabot.yml",
-        "hash": "17785986153427496338"
-      },
-      {
-        "file": ".github/workflows/commitlint-pr.yml",
-        "hash": "257279499032214002"
-      },
-      {
         "file": ".github/workflows/lint.yml",
         "hash": "8384125453251554335"
-      },
-      {
-        "file": ".github/workflows/release.yml",
-        "hash": "16894990051445007914"
-      },
-      {
-        "file": ".github/workflows/test-e2e.yml",
-        "hash": "613420390365186108"
-      },
-      {
-        "file": ".github/workflows/test-snx-ci.yml",
-        "hash": "10444381077381050006"
-      },
-      {
-        "file": ".github/workflows/test.yml",
-        "hash": "7781886952440922239"
-      },
-      {
-        "file": ".github/workflows/upload-to-ipfs.yml",
-        "hash": "3712267378834430520"
-      },
-      {
-        "file": ".github/workflows/website-e2e.yml",
-        "hash": "11417049993038240611"
-      },
-      {
-        "file": ".gitignore",
-        "hash": "6395347358878874969"
-      },
-      {
-        "file": ".gitmodules",
-        "hash": "13860333871890155685"
-      },
-      {
-        "file": ".mocharc.json",
-        "hash": "13223162343389838239"
-      },
-      {
-        "file": ".prettierignore",
-        "hash": "5878918345210928365"
-      },
-      {
-        "file": ".prettierrc",
-        "hash": "5400851715388859448"
-      },
-      {
-        "file": ".solhint.json",
-        "hash": "7068450011696771920"
-      },
-      {
-        "file": ".solhintignore",
-        "hash": "14291171810886391975"
-      },
-      {
-        "file": "CODE_OF_CONDUCT.md",
-        "hash": "7359443761280019963"
-      },
-      {
-        "file": "CONTRIBUTING.md",
-        "hash": "3546465377409621033"
-      },
-      {
-        "file": "LICENSE",
-        "hash": "15553496959705771468"
-      },
-      {
-        "file": "README.md",
-        "hash": "12494180869435789022"
-      },
-      {
-        "file": "SECURITY.md",
-        "hash": "15821019023746560109"
-      },
-      {
-        "file": "examples/.eslintrc",
-        "hash": "12919761174095936280"
       },
       {
         "file": "examples/diamond-architecture/.gitignore",
         "hash": "1972197803267052439"
       },
       {
-        "file": "examples/diamond-architecture/README.md",
-        "hash": "11901379935717138200"
-      },
-      {
-        "file": "examples/diamond-architecture/cannonfile.toml",
-        "hash": "9402147275805516341"
-      },
-      {
-        "file": "examples/diamond-architecture/foundry.toml",
-        "hash": "17022801668826136003"
+        "file": ".github/dependabot.yml",
+        "hash": "17785986153427496338"
       },
       {
         "file": "examples/diamond-architecture/src/Counter.sol",
         "hash": "3253543649150228646"
       },
       {
-        "file": "examples/diamond-architecture/src/GlobalState.sol",
-        "hash": "17737632686114948403"
+        "file": "netlify.toml",
+        "hash": "2738307596039763444"
       },
       {
-        "file": "examples/diamond-architecture/src/Greeter.sol",
-        "hash": "4007247159568222914"
+        "file": ".github/workflows/test.yml",
+        "hash": "7781886952440922239"
       },
       {
-        "file": "examples/router-architecture/.gitignore",
-        "hash": "1972197803267052439"
+        "file": ".mocharc.json",
+        "hash": "13223162343389838239"
       },
       {
-        "file": "examples/router-architecture/README.md",
-        "hash": "11901379935717138200"
+        "file": "README.md",
+        "hash": "12494180869435789022"
       },
       {
-        "file": "examples/router-architecture/cannonfile.toml",
-        "hash": "9490485869668146398"
-      },
-      {
-        "file": "examples/router-architecture/foundry.toml",
-        "hash": "17022801668826136003"
-      },
-      {
-        "file": "examples/router-architecture/src/Counter.sol",
-        "hash": "3253543649150228646"
-      },
-      {
-        "file": "examples/router-architecture/src/GlobalState.sol",
-        "hash": "17737632686114948403"
+        "file": ".github/workflows/upload-to-ipfs.yml",
+        "hash": "3712267378834430520"
       },
       {
         "file": "examples/router-architecture/src/Greeter.sol",
         "hash": "4007247159568222914"
       },
       {
-        "file": "lerna.json",
-        "hash": "13347060080450527820"
+        "file": ".prettierrc",
+        "hash": "5400851715388859448"
       },
       {
-        "file": "netlify.toml",
-        "hash": "2738307596039763444"
+        "file": "examples/router-architecture/cannonfile.toml",
+        "hash": "9490485869668146398"
+      },
+      {
+        "file": "examples/.eslintrc",
+        "hash": "12919761174095936280"
+      },
+      {
+        "file": "examples/router-architecture/foundry.toml",
+        "hash": "17022801668826136003"
+      },
+      {
+        "file": ".gitignore",
+        "hash": "6395347358878874969"
+      },
+      {
+        "file": ".changeset/config.json",
+        "hash": "9436150497285796965"
+      },
+      {
+        "file": ".gitmodules",
+        "hash": "13860333871890155685"
+      },
+      {
+        "file": ".github/workflows/test-snx-ci.yml",
+        "hash": "10444381077381050006"
       },
       {
         "file": "nx.json",
         "hash": "8839361205962660654"
       },
       {
+        "file": ".changeset/README.md",
+        "hash": "4888845876018830777"
+      },
+      {
+        "file": ".github/workflows/commitlint-pr.yml",
+        "hash": "257279499032214002"
+      },
+      {
+        "file": "examples/diamond-architecture/foundry.toml",
+        "hash": "17022801668826136003"
+      },
+      {
+        "file": "examples/diamond-architecture/src/Greeter.sol",
+        "hash": "4007247159568222914"
+      },
+      {
         "file": "package.json",
         "hash": "14328248740202860865"
+      },
+      {
+        "file": "examples/diamond-architecture/src/GlobalState.sol",
+        "hash": "17737632686114948403"
+      },
+      {
+        "file": ".prettierignore",
+        "hash": "5878918345210928365"
+      },
+      {
+        "file": ".github/workflows/test-e2e.yml",
+        "hash": "613420390365186108"
+      },
+      {
+        "file": ".github/workflows/website-e2e.yml",
+        "hash": "11417049993038240611"
+      },
+      {
+        "file": "examples/diamond-architecture/cannonfile.toml",
+        "hash": "9402147275805516341"
+      },
+      {
+        "file": ".eslintignore",
+        "hash": "2650820535990372883"
+      },
+      {
+        "file": "CONTRIBUTING.md",
+        "hash": "3546465377409621033"
+      },
+      {
+        "file": ".editorconfig",
+        "hash": "12844250875304638587"
+      },
+      {
+        "file": "examples/router-architecture/.gitignore",
+        "hash": "1972197803267052439"
+      },
+      {
+        "file": "SECURITY.md",
+        "hash": "15821019023746560109"
+      },
+      {
+        "file": "examples/router-architecture/src/GlobalState.sol",
+        "hash": "17737632686114948403"
       },
       {
         "file": "pnpm-lock.yaml",
         "hash": "15710978860824579190"
       },
       {
+        "file": ".solhint.json",
+        "hash": "7068450011696771920"
+      },
+      {
+        "file": ".github/workflows/release.yml",
+        "hash": "16894990051445007914"
+      },
+      {
+        "file": "examples/router-architecture/README.md",
+        "hash": "11901379935717138200"
+      },
+      {
+        "file": "lerna.json",
+        "hash": "13295510474223916251"
+      },
+      {
+        "file": "CODE_OF_CONDUCT.md",
+        "hash": "7359443761280019963"
+      },
+      {
+        "file": ".eslintrc.json",
+        "hash": "5263792134500466184"
+      },
+      {
         "file": "pnpm-workspace.yaml",
         "hash": "16601633810671854477"
       },
       {
+        "file": "LICENSE",
+        "hash": "15553496959705771468"
+      },
+      {
+        "file": "examples/diamond-architecture/README.md",
+        "hash": "11901379935717138200"
+      },
+      {
         "file": "tsconfig.json",
         "hash": "14421949690734295062"
+      },
+      {
+        "file": "examples/router-architecture/src/Counter.sol",
+        "hash": "3253543649150228646"
+      },
+      {
+        "file": ".solhintignore",
+        "hash": "14291171810886391975"
       }
     ],
     "projectFileMap": {
@@ -250,7 +250,7 @@
         },
         {
           "file": "packages/builder/package.json",
-          "hash": "8095395903820077213",
+          "hash": "3335165844961360130",
           "deps": [
             "npm:@rollup/plugin-commonjs",
             "npm:@rollup/plugin-json",
@@ -261,16 +261,24 @@
             "npm:@types/lodash",
             "npm:@types/pako",
             "npm:jest",
+            "npm:rollup@4.21.0",
             "npm:ts-jest",
             "npm:typedoc",
             "npm:typedoc-plugin-markdown",
             "npm:typedoc-plugin-zod",
             "npm:@synthetixio/router",
-            "npm:axios",
+            "npm:axios@1.7.5",
+            "npm:axios-retry@4.5.0",
+            "npm:buffer@6.0.3",
+            "npm:chalk@4.1.2",
+            "npm:debug@4.3.6",
+            "npm:form-data@4.0.0",
             "npm:fuse.js",
             "npm:lodash",
+            "npm:pako@2.1.0",
             "npm:promise-events",
             "npm:typestub-ipfs-only-hash",
+            "npm:viem@2.16.5",
             "npm:zod"
           ]
         },
@@ -1838,7 +1846,7 @@
         },
         {
           "file": "packages/cli/package.json",
-          "hash": "5709232519688876280",
+          "hash": "1594297064762745105",
           "deps": [
             "npm:@types/adm-zip",
             "npm:@types/big.js",
@@ -1851,8 +1859,9 @@
             "npm:@types/prompts",
             "npm:@types/semver",
             "npm:@types/sinon",
-            "npm:axios",
+            "npm:axios@1.7.5",
             "npm:jest",
+            "npm:mock-fs@5.2.0",
             "npm:tmp-promise",
             "npm:ts-jest",
             "npm:ts-node",
@@ -1862,13 +1871,20 @@
             "npm:typescript",
             "npm:@iarna/toml",
             "@usecannon/builder",
+            "npm:abitype@1.0.6",
+            "npm:chalk@4.1.2",
+            "npm:commander@9.5.0",
+            "npm:debug@4.3.6",
             "npm:eth-provider",
             "npm:fastq",
+            "npm:fs-extra@11.2.0",
             "npm:lodash",
             "npm:prompts",
+            "npm:semver@7.6.3",
             "npm:table",
             "npm:tildify",
             "npm:untildify",
+            "npm:viem@2.16.5",
             "npm:znv",
             "npm:zod"
           ]
@@ -4129,15 +4145,23 @@
         },
         {
           "file": "packages/hardhat-cannon/package.json",
-          "hash": "15160134906280404728",
+          "hash": "7517499023091858247",
           "deps": [
             "npm:hardhat",
+            "npm:@nomiclabs/hardhat-ethers@2.2.3",
             "npm:@types/debug",
+            "npm:@types/mocha@10.0.7",
+            "npm:@types/node@22.5.0",
+            "npm:bn.js@5.2.1",
             "npm:ts-node",
             "npm:typescript",
             "npm:@iarna/toml",
             "@usecannon/builder",
-            "@usecannon/cli"
+            "@usecannon/cli",
+            "npm:chalk@4.1.2",
+            "npm:debug@4.3.6",
+            "npm:fs-extra@11.2.0",
+            "npm:viem@2.16.5"
           ]
         },
         {

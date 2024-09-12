@@ -29824,7 +29824,27 @@
       },
       {
         "source": "hardhat-cannon",
+        "target": "npm:@nomiclabs/hardhat-ethers@2.2.3",
+        "type": "static"
+      },
+      {
+        "source": "hardhat-cannon",
         "target": "npm:@types/debug",
+        "type": "static"
+      },
+      {
+        "source": "hardhat-cannon",
+        "target": "npm:@types/mocha@10.0.7",
+        "type": "static"
+      },
+      {
+        "source": "hardhat-cannon",
+        "target": "npm:@types/node@22.5.0",
+        "type": "static"
+      },
+      {
+        "source": "hardhat-cannon",
+        "target": "npm:bn.js@5.2.1",
         "type": "static"
       },
       {
@@ -29850,6 +29870,26 @@
       {
         "source": "hardhat-cannon",
         "target": "@usecannon/cli",
+        "type": "static"
+      },
+      {
+        "source": "hardhat-cannon",
+        "target": "npm:chalk@4.1.2",
+        "type": "static"
+      },
+      {
+        "source": "hardhat-cannon",
+        "target": "npm:debug@4.3.6",
+        "type": "static"
+      },
+      {
+        "source": "hardhat-cannon",
+        "target": "npm:fs-extra@11.2.0",
+        "type": "static"
+      },
+      {
+        "source": "hardhat-cannon",
+        "target": "npm:viem@2.16.5",
         "type": "static"
       }
     ],
@@ -29958,6 +29998,11 @@
       },
       {
         "source": "@usecannon/builder",
+        "target": "npm:rollup@4.21.0",
+        "type": "static"
+      },
+      {
+        "source": "@usecannon/builder",
         "target": "npm:ts-jest",
         "type": "static"
       },
@@ -29983,6 +30028,36 @@
       },
       {
         "source": "@usecannon/builder",
+        "target": "npm:axios@1.7.5",
+        "type": "static"
+      },
+      {
+        "source": "@usecannon/builder",
+        "target": "npm:axios-retry@4.5.0",
+        "type": "static"
+      },
+      {
+        "source": "@usecannon/builder",
+        "target": "npm:buffer@6.0.3",
+        "type": "static"
+      },
+      {
+        "source": "@usecannon/builder",
+        "target": "npm:chalk@4.1.2",
+        "type": "static"
+      },
+      {
+        "source": "@usecannon/builder",
+        "target": "npm:debug@4.3.6",
+        "type": "static"
+      },
+      {
+        "source": "@usecannon/builder",
+        "target": "npm:form-data@4.0.0",
+        "type": "static"
+      },
+      {
+        "source": "@usecannon/builder",
         "target": "npm:fuse.js",
         "type": "static"
       },
@@ -29993,12 +30068,22 @@
       },
       {
         "source": "@usecannon/builder",
+        "target": "npm:pako@2.1.0",
+        "type": "static"
+      },
+      {
+        "source": "@usecannon/builder",
         "target": "npm:promise-events",
         "type": "static"
       },
       {
         "source": "@usecannon/builder",
         "target": "npm:typestub-ipfs-only-hash",
+        "type": "static"
+      },
+      {
+        "source": "@usecannon/builder",
+        "target": "npm:viem@2.16.5",
         "type": "static"
       },
       {
@@ -30713,7 +30798,17 @@
       },
       {
         "source": "@usecannon/cli",
+        "target": "npm:axios@1.7.5",
+        "type": "static"
+      },
+      {
+        "source": "@usecannon/cli",
         "target": "npm:jest",
+        "type": "static"
+      },
+      {
+        "source": "@usecannon/cli",
+        "target": "npm:mock-fs@5.2.0",
         "type": "static"
       },
       {
@@ -30763,6 +30858,26 @@
       },
       {
         "source": "@usecannon/cli",
+        "target": "npm:abitype@1.0.6",
+        "type": "static"
+      },
+      {
+        "source": "@usecannon/cli",
+        "target": "npm:chalk@4.1.2",
+        "type": "static"
+      },
+      {
+        "source": "@usecannon/cli",
+        "target": "npm:commander@9.5.0",
+        "type": "static"
+      },
+      {
+        "source": "@usecannon/cli",
+        "target": "npm:debug@4.3.6",
+        "type": "static"
+      },
+      {
+        "source": "@usecannon/cli",
         "target": "npm:eth-provider",
         "type": "static"
       },
@@ -30773,12 +30888,22 @@
       },
       {
         "source": "@usecannon/cli",
+        "target": "npm:fs-extra@11.2.0",
+        "type": "static"
+      },
+      {
+        "source": "@usecannon/cli",
         "target": "npm:lodash",
         "type": "static"
       },
       {
         "source": "@usecannon/cli",
         "target": "npm:prompts",
+        "type": "static"
+      },
+      {
+        "source": "@usecannon/cli",
+        "target": "npm:semver@7.6.3",
         "type": "static"
       },
       {
@@ -30794,6 +30919,11 @@
       {
         "source": "@usecannon/cli",
         "target": "npm:untildify",
+        "type": "static"
+      },
+      {
+        "source": "@usecannon/cli",
+        "target": "npm:viem@2.16.5",
         "type": "static"
       },
       {
