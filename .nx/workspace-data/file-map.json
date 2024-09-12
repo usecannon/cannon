@@ -34,156 +34,136 @@
   "fileMap": {
     "nonProjectFiles": [
       {
-        "file": "CODE_OF_CONDUCT.md",
-        "hash": "7359443761280019963"
-      },
-      {
-        "file": "pnpm-workspace.yaml",
-        "hash": "16601633810671854477"
-      },
-      {
-        "file": "examples/diamond-architecture/src/Counter.sol",
-        "hash": "3253543649150228646"
-      },
-      {
-        "file": ".solhintignore",
-        "hash": "14291171810886391975"
-      },
-      {
-        "file": ".eslintrc.json",
-        "hash": "5263792134500466184"
-      },
-      {
         "file": ".github/workflows/website-e2e.yml",
         "hash": "11417049993038240611"
       },
       {
-        "file": "examples/router-architecture/src/Counter.sol",
-        "hash": "3253543649150228646"
+        "file": "CONTRIBUTING.md",
+        "hash": "3546465377409621033"
       },
       {
-        "file": ".gitmodules",
-        "hash": "13860333871890155685"
+        "file": ".gitignore",
+        "hash": "6395347358878874969"
       },
       {
-        "file": "examples/diamond-architecture/src/Greeter.sol",
-        "hash": "4007247159568222914"
-      },
-      {
-        "file": "examples/diamond-architecture/.gitignore",
-        "hash": "1972197803267052439"
-      },
-      {
-        "file": "examples/.eslintrc",
-        "hash": "12919761174095936280"
-      },
-      {
-        "file": "examples/router-architecture/src/Greeter.sol",
-        "hash": "4007247159568222914"
-      },
-      {
-        "file": "SECURITY.md",
-        "hash": "15821019023746560109"
-      },
-      {
-        "file": ".eslintignore",
-        "hash": "2650820535990372883"
-      },
-      {
-        "file": ".github/dependabot.yml",
-        "hash": "17785986153427496338"
-      },
-      {
-        "file": "examples/router-architecture/foundry.toml",
-        "hash": "17022801668826136003"
-      },
-      {
-        "file": "examples/router-architecture/src/GlobalState.sol",
-        "hash": "17737632686114948403"
-      },
-      {
-        "file": ".github/workflows/test-snx-ci.yml",
-        "hash": "10444381077381050006"
-      },
-      {
-        "file": ".changeset/config.json",
-        "hash": "9436150497285796965"
-      },
-      {
-        "file": ".github/workflows/upload-to-ipfs.yml",
-        "hash": "3712267378834430520"
-      },
-      {
-        "file": "lerna.json",
-        "hash": "13295510474223916251"
-      },
-      {
-        "file": "package.json",
-        "hash": "14328248740202860865"
-      },
-      {
-        "file": "nx.json",
-        "hash": "8839361205962660654"
-      },
-      {
-        "file": "examples/router-architecture/README.md",
-        "hash": "11901379935717138200"
-      },
-      {
-        "file": "LICENSE",
-        "hash": "15553496959705771468"
-      },
-      {
-        "file": ".solhint.json",
-        "hash": "7068450011696771920"
-      },
-      {
-        "file": "examples/diamond-architecture/foundry.toml",
-        "hash": "17022801668826136003"
-      },
-      {
-        "file": ".prettierignore",
-        "hash": "5878918345210928365"
-      },
-      {
-        "file": ".editorconfig",
-        "hash": "12844250875304638587"
-      },
-      {
-        "file": "netlify.toml",
-        "hash": "2738307596039763444"
-      },
-      {
-        "file": ".changeset/README.md",
-        "hash": "4888845876018830777"
-      },
-      {
-        "file": ".github/workflows/release.yml",
-        "hash": "16894990051445007914"
-      },
-      {
-        "file": "examples/diamond-architecture/src/GlobalState.sol",
-        "hash": "17737632686114948403"
-      },
-      {
-        "file": "examples/router-architecture/.gitignore",
-        "hash": "1972197803267052439"
-      },
-      {
-        "file": ".github/workflows/test-e2e.yml",
-        "hash": "613420390365186108"
-      },
-      {
-        "file": "examples/diamond-architecture/README.md",
-        "hash": "11901379935717138200"
+        "file": ".github/workflows/commitlint-pr.yml",
+        "hash": "257279499032214002"
       },
       {
         "file": "examples/diamond-architecture/cannonfile.toml",
         "hash": "9402147275805516341"
       },
       {
-        "file": ".github/workflows/lint.yml",
-        "hash": "8384125453251554335"
+        "file": "examples/router-architecture/src/Counter.sol",
+        "hash": "3253543649150228646"
+      },
+      {
+        "file": "pnpm-workspace.yaml",
+        "hash": "16601633810671854477"
+      },
+      {
+        "file": "examples/diamond-architecture/README.md",
+        "hash": "11901379935717138200"
+      },
+      {
+        "file": "examples/router-architecture/src/Greeter.sol",
+        "hash": "4007247159568222914"
+      },
+      {
+        "file": ".github/workflows/upload-to-ipfs.yml",
+        "hash": "3712267378834430520"
+      },
+      {
+        "file": "examples/router-architecture/README.md",
+        "hash": "11901379935717138200"
+      },
+      {
+        "file": ".eslintignore",
+        "hash": "2650820535990372883"
+      },
+      {
+        "file": "examples/.eslintrc",
+        "hash": "12919761174095936280"
+      },
+      {
+        "file": "examples/diamond-architecture/src/GlobalState.sol",
+        "hash": "17737632686114948403"
+      },
+      {
+        "file": "examples/router-architecture/foundry.toml",
+        "hash": "17022801668826136003"
+      },
+      {
+        "file": "README.md",
+        "hash": "12494180869435789022"
+      },
+      {
+        "file": "examples/router-architecture/cannonfile.toml",
+        "hash": "9490485869668146398"
+      },
+      {
+        "file": "CODE_OF_CONDUCT.md",
+        "hash": "7359443761280019963"
+      },
+      {
+        "file": ".github/workflows/test.yml",
+        "hash": "7781886952440922239"
+      },
+      {
+        "file": "examples/router-architecture/.gitignore",
+        "hash": "1972197803267052439"
+      },
+      {
+        "file": ".changeset/config.json",
+        "hash": "9436150497285796965"
+      },
+      {
+        "file": "examples/router-architecture/src/GlobalState.sol",
+        "hash": "17737632686114948403"
+      },
+      {
+        "file": "SECURITY.md",
+        "hash": "15821019023746560109"
+      },
+      {
+        "file": "nx.json",
+        "hash": "8839361205962660654"
+      },
+      {
+        "file": ".eslintrc.json",
+        "hash": "5263792134500466184"
+      },
+      {
+        "file": "lerna.json",
+        "hash": "13295510474223916251"
+      },
+      {
+        "file": "examples/diamond-architecture/.gitignore",
+        "hash": "1972197803267052439"
+      },
+      {
+        "file": ".github/dependabot.yml",
+        "hash": "17785986153427496338"
+      },
+      {
+        "file": ".github/workflows/test-snx-ci.yml",
+        "hash": "10444381077381050006"
+      },
+      {
+        "file": ".solhintignore",
+        "hash": "14291171810886391975"
+      },
+      {
+        "file": ".github/workflows/release.yml",
+        "hash": "16894990051445007914"
+      },
+      {
+        "file": ".github/workflows/test-e2e.yml",
+        "hash": "613420390365186108"
+      },
+      {
+        "file": ".prettierignore",
+        "hash": "5878918345210928365"
       },
       {
         "file": ".mocharc.json",
@@ -198,32 +178,52 @@
         "hash": "5400851715388859448"
       },
       {
-        "file": "CONTRIBUTING.md",
-        "hash": "3546465377409621033"
+        "file": ".changeset/README.md",
+        "hash": "4888845876018830777"
       },
       {
-        "file": ".github/workflows/commitlint-pr.yml",
-        "hash": "257279499032214002"
+        "file": ".editorconfig",
+        "hash": "12844250875304638587"
       },
       {
-        "file": "README.md",
-        "hash": "12494180869435789022"
+        "file": "examples/diamond-architecture/foundry.toml",
+        "hash": "17022801668826136003"
+      },
+      {
+        "file": "LICENSE",
+        "hash": "15553496959705771468"
+      },
+      {
+        "file": "netlify.toml",
+        "hash": "2738307596039763444"
+      },
+      {
+        "file": ".gitmodules",
+        "hash": "13860333871890155685"
+      },
+      {
+        "file": ".github/workflows/lint.yml",
+        "hash": "8384125453251554335"
+      },
+      {
+        "file": "examples/diamond-architecture/src/Counter.sol",
+        "hash": "3253543649150228646"
+      },
+      {
+        "file": ".solhint.json",
+        "hash": "7068450011696771920"
+      },
+      {
+        "file": "examples/diamond-architecture/src/Greeter.sol",
+        "hash": "4007247159568222914"
       },
       {
         "file": "pnpm-lock.yaml",
         "hash": "5926294876413809271"
       },
       {
-        "file": "examples/router-architecture/cannonfile.toml",
-        "hash": "9490485869668146398"
-      },
-      {
-        "file": ".gitignore",
-        "hash": "6395347358878874969"
-      },
-      {
-        "file": ".github/workflows/test.yml",
-        "hash": "7781886952440922239"
+        "file": "package.json",
+        "hash": "14328248740202860865"
       }
     ],
     "projectFileMap": {
