@@ -278,7 +278,7 @@ const deploySpec = {
       if (config.create2) {
         const arachnidDeployerAddress = await ensureArachnidCreate2Exists(
           runtime,
-          viem.isAddress(config.create2 as string) ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR
+          typeof config.create2 === 'string' ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR
         );
 
         debug('performing arachnid create2');

@@ -98,7 +98,7 @@ export const deploySchema = z
           .enum(['continue'])
           .optional()
           .describe(
-            'Determines whether when trying to deploy the contract using CREATE2 it should continue if the target address already exists. Disabled by default'
+            'When deploying a contract with CREATE2, determines the behavior when the target contract is already deployed (ex. due to same bytecode and salt). Set to continue to allow the build to continue if the contract is found to have already been deployed. By default, an error is thrown and the action is halted.'
           ),
         /**
          * Contract deployer address.
