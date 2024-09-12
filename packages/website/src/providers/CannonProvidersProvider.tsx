@@ -1,21 +1,29 @@
+'use client';
+
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { useStore } from '@/helpers/store';
-import React, { createContext, PropsWithChildren, useContext } from 'react';
+import React, {
+  createContext,
+  PropsWithChildren,
+  useContext,
+  useMemo,
+} from 'react';
 import {
   Chain,
-  createPublicClient,
   Hash,
   http,
   HttpTransport,
   isAddress,
+  createPublicClient,
 } from 'viem';
 // eslint-disable-next-line no-restricted-imports
-import * as chains from '@wagmi/core/chains';
+import * as chains from 'viem/chains';
+import sortBy from 'lodash/sortBy';
 
-import { useQuery } from '@tanstack/react-query';
 import { externalLinks } from '@/constants/externalLinks';
 import isEmpty from 'lodash/isEmpty';
 import cloneDeep from 'lodash/cloneDeep';
+import { useQuery } from '@tanstack/react-query';
 
 type CustomProviders =
   | {
@@ -100,7 +108,6 @@ async function _getProvidersChainId({ queryKey }: { queryKey: string[] }) {
       transport: http(rpcUrl),
     });
     const chainId = await client.getChainId();
-
     return {
       rpcUrl,
       chainId,
@@ -195,8 +202,16 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
     queryFn: _getProvidersChainId,
   });
 
-  const _allChains = _getAllChains(verifiedProviders);
-  const _allTransports = _getAllTransports(verifiedProviders);
+  const chainsUrls = Object.values(verifiedProviders || {}).map(
+    (v) => v.rpcUrl
+  );
+  const [_allChains, _allTransports] = useMemo(
+    () => [
+      _getAllChains(verifiedProviders),
+      _getAllTransports(verifiedProviders),
+    ],
+    [JSON.stringify(sortBy(chainsUrls))]
+  );
 
   return (
     <ProvidersContext.Provider
