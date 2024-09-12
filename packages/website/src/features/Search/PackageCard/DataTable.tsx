@@ -187,6 +187,8 @@ export function DataTable<Data extends object>({
                 return (
                   <Td
                     key={cell.id}
+                    position="relative"
+                    overflow="hidden"
                     isNumeric={meta?.isNumeric}
                     borderColor="gray.600"
                     borderBottom={
