@@ -1,3 +1,5 @@
+'use client';
+
 import { inMemoryRegistry } from '@/helpers/cannon';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import {
