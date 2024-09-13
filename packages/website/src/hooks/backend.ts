@@ -37,7 +37,7 @@ export function useSafeTransactions(safe: SafeDefinition | null) {
       if (!safe) return;
       return axios.get<CannonSafeTransaction[]>(`${stagingUrl}/${safe.chainId}/${safe.address}`);
     },
-    refetchInterval: 10000,
+    // refetchInterval: 10000,
   });
 
   const nonceQuery = useReadContract({

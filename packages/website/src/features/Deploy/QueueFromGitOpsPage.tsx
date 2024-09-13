@@ -243,7 +243,7 @@ function QueueFromGitOps() {
     const preset = cannonDefInfo.def.getPreset(ctx);
     setPreviousPackageInput(`${name}:${version}@${preset}`);
     if (selectedDeployType == 'new') setSelectedDeployType('upgrade');
-  }, [cannonDefInfo.def]);
+  }, [cannonDefInfo.def, ctx, selectedDeployType]);
 
   // run the build and get the list of transactions we need to run
   const buildInfo = useCannonBuild(
@@ -269,10 +269,9 @@ function QueueFromGitOps() {
   );
 
   useEffect(() => {
-    if (buildInfo.buildResult) {
-      uploadToPublishIpfs.writeToIpfsMutation.mutate();
-    }
-  }, [buildInfo.buildResult?.steps]);
+    if (!buildInfo.finishedBuilding) return;
+    uploadToPublishIpfs.writeToIpfsMutation.mutate();
+  }, [buildInfo.finishedBuilding]);
 
   const refsInfo = useGitRefsList(gitUrl);
   const foundRef = refsInfo.refs?.find(
