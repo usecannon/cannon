@@ -1,1 +1,2 @@
-CANNON_PROVIDER_URL=https://gateway.tenderly.co/public/base-sepolia $CANNON alter synthetix:3.3.18@andromeda --chain-id 84532 import invoke.register_const_one_oracle 0x3309f414ec6118eb2f6d448bd1ab06f7cf8ce2de8a830ce935457391049504ee
+# this test ensures that the context is properly populated with shortened properties and all helpers.
+CANNON_PROVIDER_URL=https://base.gateway.tenderly.co $CANNON alter infinex-gp-test:2.0.0@gp import invoke.upgrade 0xfdddc715cf269bd85f8414b167b21e148b0b72229250bc444a1b20f01a80e7e3 --chain-id 8453

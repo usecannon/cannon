@@ -10,6 +10,7 @@ import {
   StepState,
   PackageReference,
   ActionKinds,
+  addOutputsToContext,
 } from '@usecannon/builder';
 import { bold, yellow } from 'chalk';
 import Debug from 'debug';
@@ -107,7 +108,7 @@ export async function alter(
   const ctx = await createInitialContext(new ChainDefinition(deployInfo.def), meta, chainId, deployInfo.options);
   const outputs = await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state);
 
-  _.assign(ctx, outputs);
+  addOutputsToContext(ctx, outputs);
 
   debug('alter with ctx', ctx);
 
@@ -205,8 +206,7 @@ export async function alter(
 
             const ctx = await createInitialContext(new ChainDefinition(deployInfo.def), meta, chainId, deployInfo.options);
             const outputs = await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state);
-
-            _.assign(ctx, outputs);
+            addOutputsToContext(ctx, outputs);
 
             deployInfo.state[stepName].artifacts = await stepAction.importExisting(
               runtime,

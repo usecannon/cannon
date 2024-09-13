@@ -132,17 +132,18 @@ export type CliSettings = {
   priorityGasFee?: string;
 };
 
-export const RPC_URL_DEFAULT = 'frame,direct';
+export const DEFAULT_RPC_URL = 'frame,direct';
+let cachedCliSettings: CliSettings | null = null;
 
 /**
  * Settings zod schema.
  * Check env vars and set default values if needed
  */
 
-function cannonSettingsSchema(fileSettings: CliSettings) {
+function createCannonSettingsSchema(fileSettings: CliSettings) {
   return {
     CANNON_DIRECTORY: z.string().default(fileSettings.cannonDirectory || DEFAULT_CANNON_DIRECTORY),
-    CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || RPC_URL_DEFAULT),
+    CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || DEFAULT_RPC_URL),
     CANNON_RPC_URL: z.string().default(fileSettings.rpcUrl || ''),
     CANNON_PRIVATE_KEY: z
       .string()
@@ -188,16 +189,14 @@ function cannonSettingsSchema(fileSettings: CliSettings) {
   };
 }
 
-function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
-  const cliSettingsStore = untildify(
-    path.join(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY, CLI_SETTINGS_STORE)
-  );
+function computeCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
+  const settingsPath = untildify(path.join(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY, CLI_SETTINGS_STORE));
 
   let fileSettings: CliSettings;
   if (process.env.CANNON_SETTINGS) {
     fileSettings = JSON.parse(process.env.CANNON_SETTINGS);
   } else {
-    fileSettings = fs.existsSync(cliSettingsStore) ? fs.readJsonSync(cliSettingsStore) : {};
+    fileSettings = fs.existsSync(settingsPath) ? fs.readJsonSync(settingsPath) : {};
   }
 
   const {
@@ -219,7 +218,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     CANNON_QUIET,
     CANNON_E2E,
     TRACE,
-  } = parseEnv(process.env, cannonSettingsSchema(fileSettings));
+  } = parseEnv(process.env, createCannonSettingsSchema(fileSettings));
 
   const finalSettings = _.assign(
     {
@@ -257,7 +256,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     finalSettings.rpcUrl = overrides.providerUrl;
   }
 
-  // Check and normalize private keys
+  // check and normalize private keys
   finalSettings.privateKey = checkAndNormalizePrivateKey(finalSettings.privateKey);
 
   if (overrides.registryAddress && (overrides.registryRpcUrl || overrides.registryChainId)) {
@@ -276,5 +275,18 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
   return finalSettings;
 }
 
-export const resolveCliSettings = _.memoize(_resolveCliSettings);
-export const resolveCliSettingsNoCache = _resolveCliSettings;
+const memoizedCliSettings = _.memoize((overrides: Partial<CliSettings> = {}): CliSettings => {
+  const result = computeCliSettings(overrides);
+  cachedCliSettings = result;
+  return result;
+});
+
+export const getCliSettings = (overrides: Partial<CliSettings> = {}): CliSettings => {
+  if (_.isEmpty(overrides) && cachedCliSettings) {
+    return cachedCliSettings;
+  }
+  return memoizedCliSettings(overrides);
+};
+
+export const resolveCliSettings = getCliSettings;
+export const resolveCliSettingsNoCache = computeCliSettings;
