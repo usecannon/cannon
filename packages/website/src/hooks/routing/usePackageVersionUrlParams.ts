@@ -2,7 +2,7 @@ import { PackageReference } from '@usecannon/builder';
 import { useRouter } from 'next/router';
 import { Address, isAddress } from 'viem';
 
-export function usePackageVersionUrlParams() {
+export function usePackageNameTagVersionUrlParams() {
   const { query: params } = useRouter();
   const { name, tag, variant, moduleName, contractName, contractAddress } = params;
 

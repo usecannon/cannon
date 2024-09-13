@@ -3,6 +3,7 @@ import { FunctionInput } from '@/features/Packages/FunctionInput';
 import { FunctionOutput } from '@/features/Packages/FunctionOutput';
 import { useQueueTxsStore, useStore } from '@/helpers/store';
 import { useContractCall, useContractTransaction } from '@/hooks/ethereum';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import {
   CheckCircleIcon,
   ChevronDownIcon,
@@ -34,6 +35,7 @@ import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { FaCode } from 'react-icons/fa6';
 import {
   Address,
+  createPublicClient,
   encodeFunctionData,
   parseEther,
   toFunctionSelector,
@@ -41,12 +43,7 @@ import {
   TransactionRequestBase,
   zeroAddress,
 } from 'viem';
-import {
-  useAccount,
-  usePublicClient,
-  useSwitchChain,
-  useWalletClient,
-} from 'wagmi';
+import { useAccount, useSwitchChain, useWalletClient } from 'wagmi';
 
 export const Function: FC<{
   selected?: boolean;
@@ -78,11 +75,19 @@ export const Function: FC<{
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
   const [error, setError] = useState<any>(null);
+  const [hasExpandedSelected, setHasExpandedSelected] = useState(false);
 
   // TODO: don't know why, had to use a ref instead of an array to be able to
   // keep the correct reference.
   const sadParams = useRef(new Array(f.inputs.length).fill(undefined));
   const [params, setParams] = useState<any[] | any>([...sadParams.current]);
+
+  const { getChainById, transports } = useCannonChains();
+  const chain = getChainById(chainId);
+  const publicClient = createPublicClient({
+    chain,
+    transport: transports[chainId],
+  });
 
   const setParam = (index: number, value: any) => {
     sadParams.current[index] = value;
@@ -114,9 +119,7 @@ export const Function: FC<{
 
   const { isConnected, address: from, chain: connectedChain } = useAccount();
   const { openConnectModal } = useConnectModal();
-  const publicClient = usePublicClient({
-    chainId: chainId as number,
-  })!;
+
   const { switchChain } = useSwitchChain();
   const { data: walletClient } = useWalletClient({
     chainId: chainId as number,
@@ -127,7 +130,7 @@ export const Function: FC<{
     f.name,
     [...params],
     abi,
-    publicClient as any // TODO: fix type
+    publicClient
   );
 
   const [writeContractResult, fetchWriteContractResult] =
@@ -168,7 +171,7 @@ export const Function: FC<{
 
     try {
       if (readOnly) {
-        await fetchReadContractResult(zeroAddress);
+        await fetchReadContractResult(from ?? zeroAddress);
       } else {
         if (!isConnected) {
           if (openConnectModal) openConnectModal();
@@ -457,9 +460,7 @@ export const Function: FC<{
                   size="xs"
                   mr={3}
                   mb={3}
-                  onClick={() => {
-                    void submit(false, true);
-                  }}
+                  onClick={async () => await submit(false, true)}
                 >
                   Simulate transaction
                 </Button>
@@ -473,9 +474,7 @@ export const Function: FC<{
                   size="xs"
                   mr={3}
                   mb={3}
-                  onClick={() => {
-                    void submit(false);
-                  }}
+                  onClick={async () => await submit(false)}
                 >
                   Submit using wallet {!simulated && statusIcon}
                 </Button>
@@ -569,10 +568,11 @@ export const Function: FC<{
   );
 
   useEffect(() => {
-    if (selected && !isOpen) {
+    if (!hasExpandedSelected && selected && !isOpen) {
       onToggle();
+      setHasExpandedSelected(true);
     }
-  }, [selected]);
+  }, [selected, isOpen, onToggle, hasExpandedSelected]);
 
   return (
     <>

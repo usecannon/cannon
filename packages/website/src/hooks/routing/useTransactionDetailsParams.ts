@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router';
+import { useMemo } from 'react';
 import { Address, isAddress, isHash } from 'viem';
 
 export function useTransactionDetailsParams() {
@@ -30,10 +31,13 @@ export function useTransactionDetailsParams() {
     throw new Error('Invalid signHash');
   }
 
-  return {
-    safeAddress: safeAddress as Address,
-    chainId: parseInt(chainId),
-    nonce: parseInt(nonce),
-    sigHash,
-  };
+  return useMemo(
+    () => ({
+      safeAddress: safeAddress as Address,
+      chainId: parseInt(chainId),
+      nonce: parseInt(nonce),
+      sigHash,
+    }),
+    [safeAddress, chainId, nonce, sigHash]
+  );
 }

@@ -85,7 +85,6 @@ export const Abi: FC<{
   const hasSubnav = useContext(SubnavContext);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [selectedSelector, setSelectedSelector] = useState<string | null>(null);
-  const [isUpdatingRoute, setIsUpdatingRoute] = useState(false);
 
   const allContractMethods = useMemo<AbiFunction[]>(
     () =>
@@ -129,18 +128,10 @@ export const Abi: FC<{
       offset: adjust * -1,
     });
 
-    // update the url in shallow mode
-    setIsUpdatingRoute(true);
-    await router.replace(
-      `${router.asPath.split('#')[0]}#${selectedSelector}`,
-      undefined,
-      { shallow: true }
-    );
-    setIsUpdatingRoute(false);
+    await router.push(`${router.asPath.split('#')[0]}#${newSelector}`);
   };
 
   const handleMethodClick = async (functionSelector: AbiFunction) => {
-    if (isUpdatingRoute) return;
     const newSelector = getSelectorSlug(functionSelector);
     if (newSelector === selectedSelector) {
       return;
@@ -160,7 +151,7 @@ export const Abi: FC<{
     if (urlSelectorFromPath || !selectedSelector) {
       setSelectedSelector(urlSelectorFromPath);
     }
-  }, [router.asPath]);
+  }, [router.asPath, selectedSelector]);
 
   return (
     <Flex flex="1" direction="column" maxWidth="100%">
@@ -209,7 +200,6 @@ export const Abi: FC<{
                     <ButtonLink
                       key={index}
                       selected={selectedSelector == getSelectorSlug(f)}
-                      disabled={isUpdatingRoute}
                       onClick={() => handleMethodClick(f)}
                     >
                       {f.name}(
@@ -240,7 +230,6 @@ export const Abi: FC<{
                   .map((f, index) => (
                     <ButtonLink
                       key={index}
-                      disabled={isUpdatingRoute}
                       selected={selectedSelector == getSelectorSlug(f)}
                       onClick={() => handleMethodClick(f)}
                     >

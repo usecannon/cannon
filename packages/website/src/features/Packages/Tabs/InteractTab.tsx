@@ -1,6 +1,13 @@
 'use client';
 
-import { FC, ReactNode, useEffect, useState, createContext } from 'react';
+import {
+  FC,
+  ReactNode,
+  useEffect,
+  useState,
+  createContext,
+  useMemo,
+} from 'react';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import {
   Box,
@@ -18,10 +25,11 @@ import {
 import { ChainArtifacts, DeploymentInfo } from '@usecannon/builder';
 import { getOutput } from '@/lib/builder';
 import { useRouter } from 'next/router';
-import { usePackageVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
+import { usePackageNameTagVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { usePackageByRef } from '@/hooks/api/usePackage';
 import SearchInput from '@/components/SearchInput';
+import { Address } from 'viem';
 
 type Option = {
   moduleName: string;
@@ -35,36 +43,81 @@ export const SubnavContext = createContext<{ hasSubnav: boolean }>({
 
 function useActiveContract() {
   const pathName = useRouter().asPath;
-  // first remove the hash and selected method
-  // then split the path by the interact keyword
-  const activeContractPath = pathName.split('#')[0].split('interact/')[1];
 
-  if (activeContractPath) {
-    const [moduleName, contractName, contractAddress] =
-      activeContractPath.split('/');
+  return useMemo(() => {
+    // first remove the hash and selected method
+    // then split the path by the interact keyword
+    const activeContractPath = pathName.split('#')[0].split('interact/')[1];
 
-    return {
-      moduleName,
-      contractName,
-      contractAddress,
-    };
-  }
+    if (activeContractPath) {
+      const [moduleName, contractName, contractAddress] =
+        activeContractPath.split('/');
 
-  return undefined;
+      return {
+        moduleName,
+        contractName,
+        contractAddress,
+      };
+    }
+  }, [pathName]);
 }
+
+type AllContracts = {
+  moduleName: string;
+  contractName: string;
+  contractAddress: Address;
+  highlight: boolean;
+};
+
+const processContracts = (
+  allContractsRef: AllContracts[], // array passed by reference
+  contracts: ChainArtifacts['contracts'],
+  moduleName: string
+) => {
+  if (!contracts) return allContractsRef;
+
+  const processedContracts = Object.entries(contracts).map(
+    ([contractName, contractInfo]) => ({
+      moduleName: moduleName,
+      contractName,
+      contractAddress: contractInfo.address,
+      highlight: Boolean(contractInfo.highlight),
+    })
+  );
+
+  // Add to the existing array (modifying the reference)
+  allContractsRef.push(...processedContracts);
+};
+
+const processImports = (
+  allContractsRef: AllContracts[], // array passed by reference
+  imports: ChainArtifacts['imports'],
+  parentModuleName = ''
+) => {
+  if (imports) {
+    Object.entries(imports).forEach(([_moduleName, bundle]) => {
+      // Concatenate module names
+      const moduleName = `${parentModuleName}.${_moduleName}`;
+      processContracts(allContractsRef, bundle.contracts, moduleName);
+      // recursively process imports
+      processImports(allContractsRef, bundle.imports, moduleName);
+    });
+  }
+};
 
 export const InteractTab: FC<{
   children?: ReactNode;
 }> = ({ children }) => {
   const router = useRouter();
-  const { name, tag, preset, chainId, variant } = usePackageVersionUrlParams();
+  const { name, tag, preset, chainId, variant } =
+    usePackageNameTagVersionUrlParams();
   const packagesQuery = usePackageByRef({ name, tag, preset, chainId });
 
   const activeContractOption = useActiveContract();
   const [highlightedOptions, setHighlightedOptions] = useState<Option[]>([]);
   const [otherOptions, setOtherOptions] = useState<Option[]>([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [routing, setRouting] = useState(false);
+  // const [routing, setRouting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     packagesQuery?.data?.deployUrl,
@@ -72,16 +125,6 @@ export const InteractTab: FC<{
   );
 
   const hasSubnav = otherOptions.length > 0 || highlightedOptions.length > 1;
-
-  const selectContract = async (contract: Option) => {
-    setRouting(true);
-    await router.replace(
-      `/packages/${name}/${tag}/${variant}/interact/${contract.moduleName}/${contract.contractName}/${contract.contractAddress}`,
-      undefined,
-      { shallow: true }
-    );
-    setRouting(false);
-  };
 
   const isActiveContract = (contract: Option) => {
     if (!activeContractOption) return false;
@@ -97,37 +140,10 @@ export const InteractTab: FC<{
       return;
     }
 
-    let allContracts: any[] = [];
-
-    const processContracts = (contracts: any, moduleName: string) => {
-      if (contracts) {
-        const processedContracts = Object.entries(contracts).map(([k, v]) => ({
-          moduleName: moduleName,
-          contractName: k,
-          contractAddress: (v as any).address,
-          highlight: (v as any).highlight,
-        }));
-        allContracts = allContracts.concat(processedContracts);
-      }
-    };
-
-    const cannonOutputs: ChainArtifacts = getOutput(deploymentData.data);
-
-    if (cannonOutputs.contracts) {
-      processContracts(cannonOutputs.contracts, name);
-    }
-
-    const processImports = (imports: any, parentModuleName: string) => {
-      if (imports) {
-        Object.entries(imports).forEach(([k, v]) => {
-          const moduleName = parentModuleName ? `${parentModuleName}.${k}` : k;
-          processContracts((v as any).contracts, moduleName);
-          processImports((v as any).imports, moduleName);
-        });
-      }
-    };
-
-    processImports(cannonOutputs.imports, '');
+    const allContracts: AllContracts[] = [];
+    const cannonOutputs = getOutput(deploymentData.data);
+    processContracts(allContracts, cannonOutputs.contracts, name);
+    processImports(allContracts, cannonOutputs.imports);
 
     const highlightedContracts = allContracts.filter(
       (contract) => contract.highlight
@@ -189,13 +205,14 @@ export const InteractTab: FC<{
     );
 
     if (!activeContractOption) {
-      if (highlightedData.length > 0) {
-        void selectContract(highlightedData[0]);
-      } else if (otherData.length > 0) {
-        void selectContract(otherData[0]);
+      const _contract = highlightedData[0] || otherData[0];
+      if (_contract) {
+        void router.push(
+          `/packages/${name}/${tag}/${variant}/interact/${_contract.moduleName}/${_contract.contractName}/${_contract.contractAddress}`
+        );
       }
     }
-  }, [deploymentData.data]);
+  }, [activeContractOption, deploymentData.data, name, router, tag, variant]);
 
   return (
     <SubnavContext.Provider value={{ hasSubnav: true }}>
@@ -246,7 +263,11 @@ export const InteractTab: FC<{
                   mr={4}
                   height="48px"
                   px={2}
-                  onClick={() => selectContract(option)}
+                  onClick={async () =>
+                    await router.push(
+                      `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
+                    )
+                  }
                 >
                   <Box textAlign="left">
                     <Text
@@ -353,7 +374,9 @@ export const InteractTab: FC<{
                               borderColor="gray.700"
                               onClick={async () => {
                                 setIsPopoverOpen(false);
-                                await selectContract(option);
+                                await router.push(
+                                  `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
+                                );
                               }}
                             >
                               <Text
@@ -385,7 +408,7 @@ export const InteractTab: FC<{
         </Flex>
       )}
 
-      {deploymentData.isLoading || packagesQuery.isLoading || routing ? (
+      {deploymentData.isLoading || packagesQuery.isLoading ? (
         <Flex
           justifyContent="center"
           alignItems="center"
