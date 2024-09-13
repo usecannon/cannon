@@ -1,7 +1,20 @@
+import { useState, useEffect } from 'react';
 import SafeApiKit from '@safe-global/api-kit';
 import { useQuery } from '@tanstack/react-query';
-import { Address, Chain, getAddress, isAddress, keccak256, stringToBytes } from 'viem';
+import {
+  Address,
+  Chain,
+  getAddress,
+  isAddress,
+  keccak256,
+  stringToBytes,
+  Hash,
+  createPublicClient,
+  http,
+  parseEventLogs,
+} from 'viem';
 import { useAccount, useReadContracts } from 'wagmi';
+import SafeABI from '@/abi/Safe.json';
 import { chains } from '@/constants/deployChains';
 import * as onchainStore from '@/helpers/onchain-store';
 import { ChainId, SafeDefinition, useStore } from '@/helpers/store';
@@ -196,3 +209,46 @@ export function useGetPreviousGitInfoQuery(safe: SafeDefinition, gitRepoUrl: str
     ],
   });
 }
+
+export enum SafeTransactionStatus {
+  EXECUTION_SUCCESS = 'ExecutionSuccess',
+  EXECUTION_FAILURE = 'ExecutionFailure',
+}
+
+export const useSafeTransactionStatus = (chainId: number, transactionHash: Hash | undefined) => {
+  const { getChainById } = useCannonChains();
+  const chain = getChainById(chainId);
+
+  const publicClient = createPublicClient({
+    chain,
+    transport: http(chain?.rpcUrls.default.http[0]),
+  });
+
+  const [status, setStatus] = useState<SafeTransactionStatus | undefined>(undefined);
+
+  useEffect(() => {
+    const fetchStatus = async (transactionHash: Hash | undefined) => {
+      if (transactionHash) {
+        const receipt = await publicClient.getTransactionReceipt({
+          hash: transactionHash,
+        });
+
+        const logs = parseEventLogs({
+          abi: SafeABI,
+          logs: receipt.logs,
+        });
+
+        const isExecutionFailed = logs.some(
+          // @ts-ignore: log.eventName is not typed :/
+          (log) => log.eventName === SafeTransactionStatus.EXECUTION_FAILURE
+        );
+
+        setStatus(isExecutionFailed ? SafeTransactionStatus.EXECUTION_FAILURE : SafeTransactionStatus.EXECUTION_SUCCESS);
+      }
+    };
+
+    void fetchStatus(transactionHash);
+  }, [transactionHash]);
+
+  return status;
+};
