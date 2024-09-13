@@ -83,7 +83,9 @@ export async function contractCall(
   try {
     call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);
     res = await publicClient.call({ ...call, account: from });
+    console.log("HERE")
   } catch (e) {
+    console.log("HERE2")
     /**
      * If we fail to generate an EIP7412 compatible call we default to simulateContract
      * which behaves almost exactly like readContract, but uses abi-encoded data

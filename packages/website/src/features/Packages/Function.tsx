@@ -187,7 +187,7 @@ export const Function: FC<{
       }
     } catch (e: any) {
       if (!suppressError) {
-        setError(typeof e === 'string' ? e : e.cause.message);
+        setError(typeof e === 'string' ? e : e.cause?.message || e.message );
       }
     } finally {
       setLoading(false);
