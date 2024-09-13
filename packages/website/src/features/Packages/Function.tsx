@@ -187,7 +187,15 @@ export const Function: FC<{
       }
     } catch (e: any) {
       if (!suppressError) {
-        setError(typeof e === 'string' ? e : e.cause?.message || e.message );
+        setError(
+          typeof e === 'string'
+            ? e
+            : e?.cause?.message ||
+                e?.message ||
+                e?.error?.message ||
+                e?.error ||
+                e
+        );
       }
     } finally {
       setLoading(false);
