@@ -60,12 +60,32 @@ Feature: Interact page
     * User clicks on the "button" element with text "Call view function"
     Then View renders a "div" displaying the text "5708990770823839524233143914701057466751846718296"
 
-Scenario: Executing write functions
-  # Simulating a contract call
+Scenario: Simulating write functions
+  # Decoding a failed regular contract calls
   Given User opens the "/packages/synthetix-omnibus/7/10-main/interact" page
-    * Wallet is connected
-    * User clicks on the "button" element with text "CoreProxy"
-    Then URL includes "/synthetix-omnibus/CoreProxy/0xffffffaEff0B96Ea8e4f94b2253f31abdD875847"
-    * User clicks on the "button" element with text "addApprovedPool(uint128 poolId)"
-    * User clicks on the "button" element with text "Simulate transaction"
-    Then View renders a "div" displaying the text "Error: Unauthorized(address addr)"
+  * Wallet is connected
+  * User clicks on the "button" element with text "CoreProxy"
+  Then URL includes "/synthetix-omnibus/CoreProxy/0xffffffaEff0B96Ea8e4f94b2253f31abdD875847"
+  * User clicks on the "button" element with text "addApprovedPool(uint128 poolId)"
+  * User types "1" for "poolId" function param
+  * User clicks on the "button" element with text "Simulate transaction"
+  Then View renders a "div" displaying the text "Error: Unauthorized(address addr)"
+
+  Given User opens the "/packages/synthetix-omnibus/7/10-main/interact" page
+  * Wallet is connected
+  * User clicks on the "button" element with text "CoreProxy"
+  Then URL includes "/synthetix-omnibus/CoreProxy/0xffffffaEff0B96Ea8e4f94b2253f31abdD875847"
+  * User clicks on the "button" element with text "addApprovedPool(uint128 poolId)"
+  * User types "1" for "poolId" function param
+  * User clicks on the "button" element with text "Simulate transaction"
+  Then View renders a "div" displaying the text "Error: Unauthorized(address addr)"
+
+  # Simulating a successful EIP7412 contract call
+  Given User opens the "/packages/synthetix-omnibus/7/10-main/interact" page
+  * Wallet is connected
+  * User clicks on the "button" element with text "CoreProxy"
+  Then URL includes "/synthetix-omnibus/CoreProxy/0xffffffaEff0B96Ea8e4f94b2253f31abdD875847"
+  * User clicks on the "button" element with text "getMarketDebtPerShare(uint128 marketId)"
+  * User types "1" for "marketId" function param
+  * User clicks on the "button" element with text "Simulate transaction"
+  Then View renders a "div" displaying the text "612725627124199"
