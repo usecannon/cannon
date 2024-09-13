@@ -5,9 +5,9 @@ When('User clicks on the element with version {string} and chain {string}', (ver
     const $columns = $row.find('td');
     const rowVersion = $columns.eq(0).text().trim(); // Assuming version is in the first column
     const rowChain = $columns.eq(2).text().trim(); // Assuming chain is in the third column
-
     if (rowVersion === version && rowChain.includes(chain)) {
-      cy.wrap($row).click();
+      const clickableTd: any = $columns[0].children[0];
+      cy.visit(clickableTd.href);
     }
   });
 });

@@ -1,4 +1,4 @@
-export { createInitialContext, build, getArtifacts, getOutputs } from './builder';
+export { createInitialContext, build, getArtifacts, addOutputsToContext, getOutputs } from './builder';
 export { computeTemplateAccesses, mergeTemplateAccesses } from './access-recorder';
 export { registerAction, ActionKinds } from './actions';
 export type { CannonAction, RawChainDefinition } from './actions';
