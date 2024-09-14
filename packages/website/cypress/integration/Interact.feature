@@ -88,4 +88,4 @@ Scenario: Simulating write functions
   * User clicks on the "button" element with text "getMarketDebtPerShare(uint128 marketId)"
   * User types "1" for "marketId" function param
   * User clicks on the "button" element with text "Simulate transaction"
-  Then View renders a "div" displaying the text "612725627124199"
+  Then View renders a "div" displaying the text "612725627124199" 
