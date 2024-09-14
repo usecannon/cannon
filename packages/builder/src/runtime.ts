@@ -88,6 +88,10 @@ export class CannonStorage extends EventEmitter {
 
     const deployInfo: DeploymentInfo = await this.readBlob(uri);
 
+    if (!Number.isSafeInteger(deployInfo.chainId)) {
+      deployInfo.chainId = chainId;
+    }
+
     return deployInfo;
   }
 
