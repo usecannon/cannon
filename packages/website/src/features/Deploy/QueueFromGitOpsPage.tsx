@@ -263,6 +263,7 @@ function QueueFromGitOps() {
           options: prevCannonDeployInfo.pkg?.options || {},
           meta: prevCannonDeployInfo.pkg?.meta,
           miscUrl: prevCannonDeployInfo.pkg?.miscUrl || '',
+          chainId,
         }
       : undefined,
     prevCannonDeployInfo.metaUrl
