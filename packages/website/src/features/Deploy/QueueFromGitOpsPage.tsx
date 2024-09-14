@@ -71,7 +71,7 @@ export default function QueueFromGitOpsPage() {
 function QueueFromGitOps() {
   const [selectedDeployType, setSelectedDeployType] = useState('new');
   const router = useRouter();
-  const currentSafe = useStore((s) => s.currentSafe);
+  const currentSafe = useStore((s) => s.currentSafe)!;
   const { chainId, isConnected } = useAccount();
   const { switchChainAsync } = useSwitchChain();
   const [cannonfileUrlInput, setCannonfileUrlInput] = useState('');
@@ -263,7 +263,7 @@ function QueueFromGitOps() {
           options: prevCannonDeployInfo.pkg?.options || {},
           meta: prevCannonDeployInfo.pkg?.meta,
           miscUrl: prevCannonDeployInfo.pkg?.miscUrl || '',
-          chainId,
+          chainId: currentSafe.chainId,
         }
       : undefined,
     prevCannonDeployInfo.metaUrl
