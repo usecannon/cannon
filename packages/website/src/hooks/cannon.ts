@@ -27,7 +27,7 @@ import {
   publishPackage,
 } from '@usecannon/builder';
 import _ from 'lodash';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Abi, Address, createPublicClient, createTestClient, createWalletClient, custom, Hex, isAddressEqual } from 'viem';
 import { useChainId } from 'wagmi';
 // Needed to prepare mock run step with registerAction
@@ -95,206 +95,190 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
   const { getChainById } = useCannonChains();
   const createFork = useCreateFork();
 
-  return useMemo(() => {
-    const buildFn = async () => {
-      // Wait until finished loading
-      if (!safe || !def || !prevDeploy) {
-        throw new Error('Missing required parameters');
+  const buildFn = async () => {
+    // Wait until finished loading
+    if (!safe || !def || !prevDeploy) {
+      throw new Error('Missing required parameters');
+    }
+
+    const chain = getChainById(safe.chainId);
+
+    setBuildStatus('Creating fork...');
+    // eslint-disable-next-line no-console
+    console.log(`Creating fork with RPC: ${chain?.rpcUrls.default.http[0]}`);
+    const fork = await createFork({
+      chainId: safe.chainId,
+      impersonate: [safe.address],
+      url: chain?.rpcUrls.default.http[0],
+    }).catch((err) => {
+      err.message = `Could not create local fork for build: ${err.message}`;
+      throw err;
+    });
+
+    const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
+
+    setBuildStatus('Loading deployment data...');
+
+    addLog('info', `cannon.ts: upgrade from: ${prevDeploy?.def.name}:${prevDeploy?.def.version}`);
+
+    const transport = custom(fork);
+
+    const provider = createPublicClient({
+      chain,
+      transport,
+    });
+
+    const testProvider = createTestClient({
+      chain,
+      transport,
+      mode: 'ganache',
+    });
+
+    // todo: as usual viem provider types refuse to work
+    await loadPrecompiles(testProvider as any);
+
+    const wallet = createWalletClient({
+      account: safe.address,
+      chain: getChainById(safe.chainId),
+      transport,
+    });
+
+    const getDefaultSigner = async () => ({ address: safe.address, wallet });
+
+    const loaders = { mem: inMemoryLoader, ipfs: ipfsLoader };
+
+    const getSigner = async (addr: Address) => {
+      if (!isAddressEqual(addr, safe.address)) {
+        throw new Error(`Could not get signer for "${addr}"`);
       }
 
-      const chain = getChainById(safe.chainId);
-
-      setBuildStatus('Creating fork...');
-      // eslint-disable-next-line no-console
-      console.log(`Creating fork with RPC: ${chain?.rpcUrls.default.http[0]}`);
-      const fork = await createFork({
-        chainId: safe.chainId,
-        impersonate: [safe.address],
-        url: chain?.rpcUrls.default.http[0],
-      }).catch((err) => {
-        err.message = `Could not create local fork for build: ${err.message}`;
-        throw err;
-      });
-
-      const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
-
-      setBuildStatus('Loading deployment data...');
-
-      addLog('info', `cannon.ts: upgrade from: ${prevDeploy?.def.name}:${prevDeploy?.def.version}`);
-
-      const transport = custom(fork);
-
-      const provider = createPublicClient({
-        chain,
-        transport,
-      });
-
-      const testProvider = createTestClient({
-        chain,
-        transport,
-        mode: 'ganache',
-      });
-
-      // todo: as usual viem provider types refuse to work
-      await loadPrecompiles(testProvider as any);
-
-      const wallet = createWalletClient({
-        account: safe.address,
-        chain: getChainById(safe.chainId),
-        transport,
-      });
-
-      const getDefaultSigner = async () => ({ address: safe.address, wallet });
-
-      const loaders = { mem: inMemoryLoader, ipfs: ipfsLoader };
-
-      const getSigner = async (addr: Address) => {
-        if (!isAddressEqual(addr, safe.address)) {
-          throw new Error(`Could not get signer for "${addr}"`);
-        }
-
-        return getDefaultSigner();
-      };
-
-      currentRuntime = new ChainBuilderRuntime(
-        {
-          provider: provider as any, // TODO: fix type
-          chainId: safe.chainId,
-          getSigner: getSigner as any, // TODO: fix type
-          getDefaultSigner: getDefaultSigner as any, // TODO: fix type
-          snapshots: false,
-          allowPartialDeploy: true,
-        },
-        fallbackRegistry,
-        loaders
-      );
-
-      const simulatedSteps: ChainArtifacts[] = [];
-      const skippedSteps: StepExecutionError[] = [];
-
-      currentRuntime.on(
-        Events.PostStepExecute,
-        (stepType: string, stepLabel: string, stepConfig: any, stepCtx: ChainBuilderContext, stepOutput: ChainArtifacts) => {
-          const stepName = `${stepType}.${stepLabel}`;
-
-          addLog('info', `cannon.ts: on Events.PostStepExecute operation ${stepName} output: ${JSON.stringify(stepOutput)}`);
-
-          simulatedSteps.push(_.cloneDeep(stepOutput));
-
-          for (const txn in stepOutput.txns || {}) {
-            // clean out txn hash
-            stepOutput.txns![txn].hash = '';
-          }
-
-          setBuildStatus(`Building ${stepName}...`);
-
-          // a step that deploys a contract is a step that has no txns deployed but contract(s) deployed
-          if (_.keys(stepOutput.txns).length === 0 && _.keys(stepOutput.contracts).length > 0) {
-            throw new Error(`Cannot deploy contract on a Safe transaction for step ${stepName}`);
-          }
-        }
-      );
-
-      currentRuntime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
-        addLog('error', `cannon.ts: on Events.SkipDeploy error ${err.toString()} happened on the operation ${stepName}`);
-        skippedSteps.push({ name: stepName, err });
-      });
-
-      currentRuntime.on(Events.Notice, (stepName: string, msg: string) => {
-        addLog('warn', `${stepName}: ${msg}`);
-      });
-
-      if (prevDeploy) {
-        await currentRuntime.restoreMisc(prevDeploy.miscUrl);
-      }
-
-      const ctx = await createInitialContext(def, prevDeploy?.meta || {}, safe.chainId, prevDeploy?.options || {});
-
-      const newState = await cannonBuild(currentRuntime, def, _.cloneDeep(prevDeploy?.state) ?? {}, ctx);
-
-      setBuildSkippedSteps(skippedSteps);
-
-      const simulatedTxs = simulatedSteps
-        .map((s) => !!s?.txns && Object.values(s.txns))
-        .filter((tx) => !!tx)
-        .flat();
-
-      if (simulatedTxs.length === 0) {
-        throw new Error('There are no transactions that can be executed on Safe.');
-      }
-
-      const steps = await Promise.all(
-        simulatedTxs.map(async (executedTx) => {
-          if (!executedTx) throw new Error('Invalid operation');
-          const tx = await provider.getTransaction({ hash: executedTx.hash as Hex });
-          const rx = await provider.getTransactionReceipt({ hash: executedTx.hash as Hex });
-          return {
-            name: (executedTx as any).deployedOn,
-            gas: rx.gasUsed,
-            tx: {
-              to: tx.to,
-              value: tx.value.toString(),
-              data: tx.input,
-            } as BaseTransaction,
-          };
-        })
-      );
-
-      if (fork) await fork.disconnect();
-
-      return {
-        runtime: currentRuntime,
-        state: newState,
-        steps,
-      };
+      return getDefaultSigner();
     };
+
+    currentRuntime = new ChainBuilderRuntime(
+      {
+        provider: provider as any, // TODO: fix type
+        chainId: safe.chainId,
+        getSigner: getSigner as any, // TODO: fix type
+        getDefaultSigner: getDefaultSigner as any, // TODO: fix type
+        snapshots: false,
+        allowPartialDeploy: true,
+      },
+      fallbackRegistry,
+      loaders
+    );
+
+    const simulatedSteps: ChainArtifacts[] = [];
+    const skippedSteps: StepExecutionError[] = [];
+
+    currentRuntime.on(
+      Events.PostStepExecute,
+      (stepType: string, stepLabel: string, stepConfig: any, stepCtx: ChainBuilderContext, stepOutput: ChainArtifacts) => {
+        const stepName = `${stepType}.${stepLabel}`;
+
+        addLog('info', `cannon.ts: on Events.PostStepExecute operation ${stepName} output: ${JSON.stringify(stepOutput)}`);
+
+        simulatedSteps.push(_.cloneDeep(stepOutput));
+
+        for (const txn in stepOutput.txns || {}) {
+          // clean out txn hash
+          stepOutput.txns![txn].hash = '';
+        }
+
+        setBuildStatus(`Building ${stepName}...`);
+
+        // a step that deploys a contract is a step that has no txns deployed but contract(s) deployed
+        if (_.keys(stepOutput.txns).length === 0 && _.keys(stepOutput.contracts).length > 0) {
+          throw new Error(`Cannot deploy contract on a Safe transaction for step ${stepName}`);
+        }
+      }
+    );
+
+    currentRuntime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
+      addLog('error', `cannon.ts: on Events.SkipDeploy error ${err.toString()} happened on the operation ${stepName}`);
+      skippedSteps.push({ name: stepName, err });
+    });
+
+    currentRuntime.on(Events.Notice, (stepName: string, msg: string) => {
+      addLog('warn', `${stepName}: ${msg}`);
+    });
+
+    if (prevDeploy) {
+      await currentRuntime.restoreMisc(prevDeploy.miscUrl);
+    }
+
+    const ctx = await createInitialContext(def, prevDeploy?.meta || {}, safe.chainId, prevDeploy?.options || {});
+
+    const newState = await cannonBuild(currentRuntime, def, _.cloneDeep(prevDeploy?.state) ?? {}, ctx);
+
+    setBuildSkippedSteps(skippedSteps);
+
+    const simulatedTxs = simulatedSteps
+      .map((s) => !!s?.txns && Object.values(s.txns))
+      .filter((tx) => !!tx)
+      .flat();
+
+    if (simulatedTxs.length === 0) {
+      throw new Error('There are no transactions that can be executed on Safe.');
+    }
+
+    const steps = await Promise.all(
+      simulatedTxs.map(async (executedTx) => {
+        if (!executedTx) throw new Error('Invalid operation');
+        const tx = await provider.getTransaction({ hash: executedTx.hash as Hex });
+        const rx = await provider.getTransactionReceipt({ hash: executedTx.hash as Hex });
+        return {
+          name: (executedTx as any).deployedOn,
+          gas: rx.gasUsed,
+          tx: {
+            to: tx.to,
+            value: tx.value.toString(),
+            data: tx.input,
+          } as BaseTransaction,
+        };
+      })
+    );
+
+    if (fork) await fork.disconnect();
 
     return {
-      finishedBuilding,
-      isBuilding,
-      buildStatus,
-      buildResult,
-      buildError,
-      buildSkippedSteps,
-      doBuild() {
-        setFinishedBuilding(false);
-        setBuildResult(null);
-        setBuildError(null);
-        setBuildSkippedSteps([]);
-        setIsBuilding(true);
-
-        buildFn()
-          .then((res) => {
-            setBuildResult(res);
-          })
-          .catch((err) => {
-            // eslint-disable-next-line no-console
-            console.error(err);
-            addLog('error', `cannon.ts: full build error ${err.toString()}`);
-            setBuildError(err.toString());
-          })
-          .finally(() => {
-            setFinishedBuilding(true);
-            setIsBuilding(false);
-            setBuildStatus('');
-          });
-      },
+      runtime: currentRuntime,
+      state: newState,
+      steps,
     };
-  }, [
-    addLog,
-    buildError,
-    buildResult,
-    buildSkippedSteps,
-    buildStatus,
-    createFork,
-    def,
-    fallbackRegistry,
-    getChainById,
+  };
+
+  return {
+    finishedBuilding,
     isBuilding,
-    prevDeploy,
-    safe,
-    settings.ipfsApiUrl,
-  ]);
+    buildStatus,
+    buildResult,
+    buildError,
+    buildSkippedSteps,
+    doBuild() {
+      setFinishedBuilding(false);
+      setBuildResult(null);
+      setBuildError(null);
+      setBuildSkippedSteps([]);
+      setIsBuilding(true);
+
+      buildFn()
+        .then((res) => {
+          setBuildResult(res);
+        })
+        .catch((err) => {
+          // eslint-disable-next-line no-console
+          console.error(err);
+          addLog('error', `cannon.ts: full build error ${err.toString()}`);
+          setBuildError(err.toString());
+        })
+        .finally(() => {
+          setFinishedBuilding(true);
+          setIsBuilding(false);
+          setBuildStatus('');
+        });
+    },
+  };
 }
 
 export function useCannonWriteDeployToIpfs(
