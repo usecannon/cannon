@@ -15,11 +15,11 @@ import {
   TransactionMap,
 } from '../types';
 import {
+  encodeFunctionData,
   getAllContractPaths,
   getContractDefinitionFromPath,
   getContractFromPath,
   getMergedAbiFromContractPaths,
-  encodeFunctionData,
 } from '../util';
 import { template } from '../utils/template';
 
@@ -242,18 +242,19 @@ async function importTxnData(
         throw new Error(`address is not valid in ${topLabel}. Ensure "arg" parameter is correct`);
       }
 
-      let abi: viem.Abi;
-      let sourceName: string | null;
-      let contractName: string;
+      let abi: viem.Abi | null = null;
+      let sourceName = '';
+      let contractName = '';
+
       if (factoryInfo.artifact) {
         const artifact = await runtime.getArtifact!(factoryInfo.artifact);
+        // only apply the abi from the contract if we haven't already resolved it previously
         abi = artifact.abi;
         sourceName = artifact.sourceName;
         contractName = artifact.contractName;
-      } else if (factoryInfo.abi) {
-        sourceName = '';
-        contractName = '';
+      }
 
+      if (factoryInfo.abi) {
         if (factoryInfo.abi.trimStart().startsWith('[')) {
           // Allow to pass in a literal abi string
           abi = JSON.parse(factoryInfo.abi);
@@ -269,12 +270,11 @@ async function importTxnData(
         }
       } else if (factoryInfo.abiOf) {
         abi = getMergedAbiFromContractPaths(ctx, factoryInfo.abiOf);
+      }
 
-        sourceName = ''; // TODO: might cause a problem, might be able to load from the resolved contract itself. update `getContractFromPath`
-        contractName = '';
-      } else {
+      if (!abi) {
         throw new Error(
-          `factory."${topLabel}": must specify at least one of "artifact" or "abiOf" to resolve the contract ABI for the created contract`
+          `factory."${topLabel}": must specify at least one of "artifact", "abi", or "abiOf" to resolve the contract ABI for the created contract.`
         );
       }
 
@@ -370,6 +370,7 @@ const invokeSpec = {
     config.func = template(config.func)(ctx);
 
     if (config.args) {
+      debug('rendering invoke args with settings: ', ctx.settings);
       config.args = _.map(config.args, (a) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
         return JSON.parse(template(JSON.stringify(a))(ctx));
@@ -430,8 +431,12 @@ const invokeSpec = {
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.from, possibleFields));
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.value, possibleFields));
 
+    if (typeof config.target === 'string') {
+      config.target = [config.target as string];
+    }
+
     for (const target of config.target) {
-      if (!viem.isAddress(target)) {
+      if (!viem.isAddress(target as any)) {
         if (target.includes('.')) {
           accesses.accesses.push(`imports.${target.split('.')[0]}`);
         } else {

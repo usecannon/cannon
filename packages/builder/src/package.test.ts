@@ -1,6 +1,7 @@
 import { CannonStorage } from './';
 import { IPFSLoader } from './loader';
-import { PackageReference, publishPackage } from './package';
+import { publishPackage } from './package';
+import { PackageReference } from './package-reference';
 import { InMemoryRegistry } from './registry';
 import { DeploymentInfo } from './types';
 
@@ -67,6 +68,7 @@ describe('package.ts', () => {
       miscUrl: 'https://usecannon.com/misc',
       meta: {},
       options: {},
+      chainId: 1,
     };
     const nestedPkg = 'nested:2.34.5@main';
     const nestedPkgData: DeploymentInfo = {
@@ -78,6 +80,7 @@ describe('package.ts', () => {
       miscUrl: 'https://usecannon.com/misc',
       meta: {},
       options: {},
+      chainId: 1,
     };
 
     beforeEach(async () => {

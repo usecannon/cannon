@@ -10,7 +10,7 @@ const argtype: z.ZodLazy<any> = z.lazy(() =>
 
 // Different regular expressions used to validate formats like
 // <%=  string interpolation %>, step.names or property.names, packages:versions
-const interpolatedRegex = RegExp(/^<%=\s\w+.+[\w()[\]-]+\s%>$/, 'i');
+const interpolatedRegex = RegExp(/\w*<%= [^%]* %>\w*|[^<%=]*<%= [^%]* %>[^<%=]*/, 'i');
 const stepRegex = RegExp(/^[\w-]+\.[.\w-]+$/, 'i');
 const packageRegex = RegExp(/^(?<name>@?[a-z0-9][a-z0-9-]{1,}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/, 'i');
 const jsonAbiPathRegex = RegExp(/^(?!.*\.d?$).*\.json?$/, 'i');
@@ -19,10 +19,14 @@ const jsonAbiPathRegex = RegExp(/^(?!.*\.d?$).*\.json?$/, 'i');
 const artifactNameRegex = RegExp(/^[A-Z]{1}[\w]+$/, 'i');
 const artifactPathRegex = RegExp(/^.*\.sol:\w+/, 'i');
 
+// Because of a weird type cohercion, after using viem.isAddress during website build,
+// the string type of the given value gets invalid to "never", and breaks the build.
+const isAddress = (val: any): boolean => typeof val === 'string' && viem.isAddress(val);
+
 // Invoke target string schema
 const targetString = z.string().refine(
   (val) =>
-    viem.isAddress(val) ||
+    !!isAddress(val) ||
     !!val.match(interpolatedRegex) ||
     !!val.match(stepRegex) ||
     !!val.match(artifactNameRegex) ||
@@ -76,25 +80,34 @@ export const deploySchema = z
          */
         description: z.string().describe('Description of the operation'),
         /**
-         *    Determines whether contract should get priority in displays
+         * Determines whether contract should get priority in displays
          */
         highlight: z.boolean().describe('Determines whether contract should get priority in displays'),
         /**
-         *    Determines whether to deploy the contract using create2
+         * Determines whether to deploy the contract using create2
          */
         create2: z
-          .union([z.boolean(), z.string().refine((val) => viem.isAddress(val))])
+          .union([z.boolean(), z.string().refine((val) => isAddress(val))])
           .describe(
             'Determines whether to deploy the contract using create2. If an address is specified, the arachnid create2 contract will be deployed/used from this address.'
           ),
         /**
-         *    Contract deployer address.
-         *    Must match the ethereum address format
+         * Determines whether to deploy the contract using create2
+         */
+        ifExists: z
+          .enum(['continue'])
+          .optional()
+          .describe(
+            'When deploying a contract with CREATE2, determines the behavior when the target contract is already deployed (ex. due to same bytecode and salt). Set to continue to allow the build to continue if the contract is found to have already been deployed. By default, an error is thrown and the action is halted.'
+          ),
+        /**
+         * Contract deployer address.
+         * Must match the ethereum address format
          */
         from: z
           .string()
           .refine(
-            (val) => viem.isAddress(val) || !!val.match(interpolatedRegex),
+            (val) => isAddress(val) || !!val.match(interpolatedRegex),
             (val) => ({ message: `"${val}" is not a valid ethereum address` })
           )
           .describe('Contract deployer address. Must match the ethereum address format'),
@@ -111,7 +124,7 @@ export const deploySchema = z
           })
           .describe('-'),
         /**
-         *  Abi of the contract being deployed
+         * Abi of the contract being deployed
          */
         abi: z
           .string()
@@ -366,7 +379,7 @@ export const invokeSchema = z
         from: z
           .string()
           .refine(
-            (val) => viem.isAddress(val) || !!val.match(interpolatedRegex),
+            (val) => isAddress(val) || !!val.match(interpolatedRegex),
             (val) => ({ message: `"${val}" must be a valid ethereum address` })
           )
           .describe('The calling address to use when invoking this call.'),
@@ -640,7 +653,11 @@ export const cloneSchema = z
          *  (DEPRECATED) use `target` instead. Set the new preset to use for this package.
          * Default - "main"
          */
-        targetPreset: z.string().describe('Set the new preset to use for this package. Default - "main"'),
+        targetPreset: z
+          .string()
+          .describe(
+            '⚠ Deprecated in favor using target only with format packageName:version@targetPreset. Set the new preset to use for this package. Default - "main"'
+          ),
         /**
          *  The settings to be used when initializing this Cannonfile.
          *  Overrides any defaults preset in the source package.
@@ -755,6 +772,12 @@ export const diamondSchema = z
         .describe('Address to DELEGATECALL on diamondCut() or constructor after the facets have been set'),
       initCalldata: z.string().optional().describe('Additional data to send to the `init` DELEGATECALL'),
     }),
+    immutable: z
+      .boolean()
+      .optional()
+      .describe(
+        'Prevents the diamond proxy from being modified in the future. Setting this value to `true` is irreversable once deployed.'
+      ),
     overrides: z
       .object({
         gasLimit: z.string().optional(),

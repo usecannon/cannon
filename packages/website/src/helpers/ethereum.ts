@@ -19,8 +19,8 @@ async function generate7412CompatibleCall(
   txn: Partial<TransactionRequestBase>,
   pythUrl: string
 ) {
-  const converter = new EIP7412([new PythAdapter(pythUrl)], createMakeMulticall(from));
-  return await converter.enableERC7412(client as any, txn);
+  const converter = new EIP7412([new PythAdapter(pythUrl)], createMakeMulticall(from) as any); // TODO: fix type
+  return await converter.enableERC7412(client as any, txn as any); // TODO: fix type
 }
 
 function createMakeMulticall(from: Address) {

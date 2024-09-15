@@ -1,0 +1,20 @@
+name = "greeter-foundry-private-source"
+version = "<%= package.version %>"
+description = "Simple project to verify the functionality of cannon"
+keywords = ["sample", "greeter"]
+
+privateSourceCode = true
+
+[var.main]
+salt = "greeter"
+msg = "my library was deployed in txn <%= contracts.library.deployTxnHash %>"
+
+[deploy.library]
+artifact = "Library"
+value = "2929372"
+
+[deploy.greeter]
+artifact = "Greeter"
+args = ["<%= settings.msg %>"]
+libraries.Library = "<%= contracts.library.address %>"
+salt = "<%= settings.salt %>"

@@ -1,17 +1,19 @@
 import path from 'node:path';
-import { CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
+import { CANNON_CHAIN_ID, CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
 import Debug from 'debug';
 import * as viem from 'viem';
+import { PackageSpecification } from '../types';
 import { getFoundryArtifact } from '../foundry';
-import { execPromise, filterSettings, loadCannonfile } from '../helpers';
+import { ANVIL_FIRST_ADDRESS } from '../constants';
 import { createDryRunRegistry } from '../registry';
 import { CannonRpcNode, getProvider, runRpc } from '../rpc';
 import { CliSettings, resolveCliSettings } from '../settings';
-import { PackageSpecification } from '../types';
-import { pickAnvilOptions } from './anvil';
+import { execPromise, filterSettings, loadCannonfile } from '../helpers';
+import { warn } from './console';
 import { parseSettings } from './params';
-import { resolveWriteProvider, isURL, getChainIdFromProviderUrl } from './provider';
-import { ANVIL_FIRST_ADDRESS } from '../constants';
+import { pickAnvilOptions } from './anvil';
+import { setDebugLevel } from './debug-level';
+import { ProviderAction, resolveProvider, isURL, getChainIdFromRpcUrl } from './provider';
 
 const debug = Debug('cannon:cli');
 
@@ -65,27 +67,6 @@ export async function doBuild(
 }
 
 /**
- * Sets the debug level based on the provided options.
- * @param opts Options to define debug level.
- */
-function setDebugLevel(opts: any) {
-  switch (true) {
-    case opts.Vvvv:
-      Debug.enable('cannon:*');
-      break;
-    case opts.Vvv:
-      Debug.enable('cannon:builder*');
-      break;
-    case opts.Vv:
-      Debug.enable('cannon:builder,cannon:builder:definition');
-      break;
-    case opts.v:
-      Debug.enable('cannon:builder');
-      break;
-  }
-}
-
-/**
  * Processes the cannonfile and updates settings if necessary.
  *
  * @param {string} cannonfile - The cannonfile parameter.
@@ -103,43 +84,51 @@ export function setCannonfilePath(cannonfile: string, settings: string[]) {
 /**
  * Configures and returns an Ethereum provider.
  * If no chain id or provider url is provided, starts a local RPC node.
- * In a dry run, it forks the mainnet using the specified provider.
- * @param opts Options for configuring the provider.
+ * In a dry run, it forks the network using the specified provider.
+ * @param options Options for configuring the provider.
  * @param cliSettings CLI settings to use in provider configuration.
  * @returns An object containing the configured provider, signers, and an optional RPC node.
  */
-async function configureProvider(opts: any, cliSettings: CliSettings) {
+async function configureProvider(options: any, cliSettings: CliSettings) {
   let provider: (viem.PublicClient & viem.WalletClient & viem.TestClient) | undefined = undefined;
   let signers: CannonSigner[] | undefined = undefined;
 
   let node: CannonRpcNode | null = null;
   let chainId: number | undefined = undefined;
 
-  if (!opts.chainId) {
-    if (isURL(cliSettings.providerUrl)) {
-      chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
+  if (!options.chainId) {
+    if (isURL(cliSettings.rpcUrl)) {
+      chainId = await getChainIdFromRpcUrl(cliSettings.rpcUrl);
     } else {
       node = await runRpc({
-        ...pickAnvilOptions(opts),
+        ...pickAnvilOptions(options),
       });
 
       chainId = node.chainId;
       provider = getProvider(node)!;
     }
   } else {
-    chainId = parseInt(opts.chainId);
+    chainId = parseInt(options.chainId);
   }
 
   if (!provider) {
-    const _provider = await resolveWriteProvider(cliSettings, chainId);
+    const _provider = await resolveProvider({
+      action: options.dryRun ? ProviderAction.WriteDryRunProvider : ProviderAction.WriteProvider,
+      cliSettings,
+      chainId,
+    });
     provider = _provider.provider as any;
     signers = _provider.signers;
   }
 
-  if (opts.dryRun) {
+  if (options.dryRun && options.chainId === CANNON_CHAIN_ID) {
+    throw new Error('Cannot perform a dry-run build on local network');
+  }
+
+  if (options.dryRun) {
     node = await runRpc(
       {
-        ...pickAnvilOptions(opts),
+        ...pickAnvilOptions(options),
         chainId,
       },
       {
@@ -172,9 +161,9 @@ async function configureSigners(
   let getDefaultSigner: (() => Promise<CannonSigner>) | undefined = undefined;
 
   // Early return, we don't need to configure signers
-  const isProviderUrl = isURL(cliSettings.providerUrl);
+  const isRpcUrl = isURL(cliSettings.rpcUrl);
 
-  if (!opts.chainId && !isProviderUrl) return { getSigner, getDefaultSigner };
+  if (!opts.chainId && !isRpcUrl) return { getSigner, getDefaultSigner };
 
   if (opts.dryRun) {
     // Setup for dry run
@@ -200,6 +189,14 @@ async function configureSigners(
     };
 
     getDefaultSigner = async () => signers![0];
+  }
+
+  if (await getDefaultSigner()) {
+    const defaultSignerAddress = (await getDefaultSigner())!.address;
+
+    if (!opts.dryRun && opts.chainId != '13370' && defaultSignerAddress === ANVIL_FIRST_ADDRESS) {
+      warn(`WARNING: This build is using default anvil address ${ANVIL_FIRST_ADDRESS}`);
+    }
   }
 
   return { getSigner, getDefaultSigner };
@@ -275,7 +272,7 @@ async function prepareBuildConfig(
     wipe: opts.wipe,
     persist: !opts.dryRun,
     overrideResolver,
-    providerUrl: cliSettings.providerUrl,
+    rpcUrl: cliSettings.rpcUrl,
     writeScript: opts.writeScript,
     writeScriptFormat: opts.writeScriptFormat,
     gasPrice: parseGwei(opts.gasPrice),

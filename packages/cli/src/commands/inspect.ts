@@ -1,16 +1,23 @@
+import {
+  ChainArtifacts,
+  ChainDefinition,
+  ContractData,
+  DeploymentState,
+  fetchIPFSAvailability,
+  PackageReference,
+} from '@usecannon/builder';
+import { bold, cyan, green, yellow } from 'chalk';
+import Debug from 'debug';
+import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
-import fs from 'fs-extra';
-import { bold, cyan, green, yellow } from 'chalk';
-import { PackageReference } from '@usecannon/builder/dist/src/package';
-import { fetchIPFSAvailability } from '@usecannon/builder/dist/src/ipfs';
-import { ContractData, ChainArtifacts, ChainDefinition, DeploymentState } from '@usecannon/builder';
-
-import { log, warn } from '../util/console';
-import { CliSettings } from '../settings';
+import { getContractsAndDetails, getSourceFromRegistry } from '../helpers';
 import { getMainLoader } from '../loader';
 import { createDefaultReadRegistry } from '../registry';
-import { getContractsAndDetails, getSourceFromRegistry } from '../helpers';
+import { CliSettings } from '../settings';
+import { log, warn } from '../util/console';
+
+const debug = Debug('cannon:cli:inspect');
 
 export async function inspect(
   packageRef: string,
@@ -52,6 +59,15 @@ export async function inspect(
       Specify the --chain-id parameter to retrieve the addresses/ABIs for other deployments."
       )
     );
+  }
+
+  // Mute all build outputs when printing the result to json, this is so it
+  // doesn't break the result.
+  if (json) {
+    // eslint-disable-next-line no-console
+    console.log = debug;
+    // eslint-disable-next-line no-console
+    console.debug = debug;
   }
 
   const deployData = await loader[deployUrl.split(':')[0] as 'ipfs'].read(deployUrl);

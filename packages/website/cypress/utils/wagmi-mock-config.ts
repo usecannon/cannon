@@ -1,4 +1,4 @@
-import { http, createConfig, Config } from '@wagmi/core';
+import { Config, createConfig, http } from '@wagmi/core';
 import { mainnet, sepolia } from 'wagmi/chains';
 import { mock } from 'wagmi/connectors';
 
@@ -15,8 +15,8 @@ export const getE2eWagmiConfig = () => {
         }),
       ],
       transports: {
-        [mainnet.id]: http(),
-        [sepolia.id]: http(),
+        [mainnet.id]: http(process.env.CANNON_E2E_RPC_URL_ETHEREUM),
+        [sepolia.id]: http(process.env.CANNON_E2E_RPC_URL_SEPOLIA),
       },
     });
   }

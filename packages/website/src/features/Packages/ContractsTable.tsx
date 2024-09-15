@@ -26,7 +26,14 @@ import {
 } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { ChainBuilderContext } from '@usecannon/builder';
-import chains from '@/helpers/chains';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
+
+type ContractRow = {
+  highlight: boolean;
+  name: string;
+  address: string;
+  deployTxnHash: string;
+};
 
 /*
   * Smart Contract Deployments
@@ -45,12 +52,7 @@ export const ContractsTable: React.FC<{
   contractState: ChainBuilderContext['contracts'];
   chainId: number;
 }> = ({ contractState, chainId }) => {
-  type ContractRow = {
-    highlight: boolean;
-    name: string;
-    address: string;
-    deployTxnHash: string;
-  };
+  const { getExplorerUrl } = useCannonChains();
 
   const data = React.useMemo(() => {
     return Object.entries(contractState).map(
@@ -109,10 +111,6 @@ export const ContractsTable: React.FC<{
       sorting,
     },
   });
-
-  const etherscanUrl = (
-    Object.values(chains).find((chain) => chain.id === chainId) as any
-  )?.blockExplorers?.default?.url;
 
   return (
     <Table size="sm">
@@ -214,14 +212,14 @@ export const ContractsTable: React.FC<{
                           );
                         }
                         case 'address': {
-                          return etherscanUrl ? (
+                          const explorerUrl = getExplorerUrl(
+                            chainId,
+                            cell.row.original.address
+                          );
+                          return explorerUrl ? (
                             <Link
                               isExternal
-                              href={
-                                etherscanUrl +
-                                '/address/' +
-                                cell.row.original.address
-                              }
+                              href={explorerUrl}
                               fontFamily="mono"
                               borderBottom="1px dotted"
                               borderBottomColor="gray.300"
@@ -237,14 +235,14 @@ export const ContractsTable: React.FC<{
                           );
                         }
                         case 'deployTxnHash': {
-                          return etherscanUrl ? (
+                          const explorerUrl = getExplorerUrl(
+                            chainId,
+                            cell.row.original.deployTxnHash
+                          );
+                          return explorerUrl ? (
                             <Link
                               isExternal
-                              href={
-                                etherscanUrl +
-                                '/tx/' +
-                                cell.row.original.deployTxnHash
-                              }
+                              href={explorerUrl}
                               fontFamily="mono"
                               borderBottom="1px dotted"
                               borderBottomColor="gray.300"

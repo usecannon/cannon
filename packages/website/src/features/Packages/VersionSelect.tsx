@@ -11,22 +11,22 @@ import {
 import { ArrowUpDownIcon } from '@chakra-ui/icons';
 import { PackageCard } from '@/features/Search/PackageCard/PackageCard';
 import Chain from '@/features/Search/PackageCard/Chain';
-import { useQuery } from '@tanstack/react-query';
-import { getPackage } from '@/helpers/api';
 import { CustomSpinner } from '@/components/CustomSpinner';
+import { usePackageByName } from '@/hooks/api/usePackage';
 
 export const VersionSelect: FC<{
   pkg: any;
 }> = ({ pkg }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const packagesQuery = useQuery({
-    queryKey: ['package', pkg.name],
-    queryFn: getPackage,
-  });
+  const packagesQuery = usePackageByName({ name: pkg.name });
 
   if (packagesQuery.isPending) {
     return <CustomSpinner m="auto" />;
+  }
+
+  if (packagesQuery.isError) {
+    throw new Error('Failed to fetch package');
   }
 
   return (

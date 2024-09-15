@@ -1,6 +1,10 @@
 import { Flex, Text } from '@chakra-ui/react';
 
-export default function Custom404() {
+export default function Custom404({
+  text = 'Page not found',
+}: {
+  text?: string;
+}) {
   return (
     <Flex w="100%">
       <Text
@@ -9,7 +13,7 @@ export default function Custom404() {
         m="auto"
         fontFamily="var(--font-miriam)"
       >
-        Page Not Found
+        {text}
       </Text>
     </Flex>
   );

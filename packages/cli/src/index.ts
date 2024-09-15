@@ -1,7 +1,6 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import {
-  CANNON_CHAIN_ID,
   CannonStorage,
   ChainBuilderRuntime,
   ChainDefinition,
@@ -12,12 +11,10 @@ import {
   IPFSLoader,
   OnChainRegistry,
   PackageReference,
-  publishPackage,
   traceActions,
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
-import Debug from 'debug';
 import _ from 'lodash';
 import prompts from 'prompts';
 import * as viem from 'viem';
@@ -25,12 +22,10 @@ import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
 import {
-  checkAndNormalizePrivateKey,
   checkCannonVersion,
   checkForgeAstSupport,
   ensureChainIdConsistency,
-  isPrivateKey,
-  normalizePrivateKey,
+  getPackageReference,
   setupAnvil,
 } from './helpers';
 import { getMainLoader } from './loader';
@@ -41,13 +36,15 @@ import { resolveCliSettings } from './settings';
 import { PackageSpecification } from './types';
 import { pickAnvilOptions } from './util/anvil';
 import { doBuild } from './util/build';
-import { log, error, warn } from './util/console';
+import { setDebugLevel } from './util/debug-level';
+import { error, log, warn } from './util/console';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { parsePackageArguments, parsePackagesArguments } from './util/params';
-import { getChainIdFromProviderUrl, isURL, resolveRegistryProviders, resolveWriteProvider } from './util/provider';
+import { getChainIdFromRpcUrl, isURL, ProviderAction, resolveProviderAndSigners, resolveProvider } from './util/provider';
 import { isPackageRegistered } from './util/register';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
+import { pin } from './commands/pin';
 
 export * from './types';
 export * from './constants';
@@ -124,23 +121,6 @@ function applyCommandsConfig(command: Command, config: any) {
   return command;
 }
 
-function setDebugLevel(opts: any) {
-  switch (true) {
-    case opts.Vvvv:
-      Debug.enable('cannon:*');
-      break;
-    case opts.Vvv:
-      Debug.enable('cannon:builder*');
-      break;
-    case opts.Vv:
-      Debug.enable('cannon:builder,cannon:builder:definition');
-      break;
-    case opts.v:
-      Debug.enable('cannon:builder');
-      break;
-  }
-}
-
 function configureRun(program: Command) {
   return applyCommandsConfig(program, commandsConfig.run).action(async function (
     packages: PackageSpecification[],
@@ -157,19 +137,27 @@ function configureRun(program: Command) {
 
     let node: CannonRpcNode;
     if (options.chainId) {
-      const { provider } = await resolveWriteProvider(cliSettings, Number.parseInt(options.chainId));
+      const { provider } = await resolveProvider({
+        action: ProviderAction.ReadProvider,
+        cliSettings,
+        chainId: Number.parseInt(options.chainId),
+      });
 
       // throw an error if the chainId is not consistent with the provider's chainId
-      await ensureChainIdConsistency(cliSettings.providerUrl, options.chainId);
+      await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
 
       node = await runRpc(pickAnvilOptions(options), {
         forkProvider: provider,
       });
     } else {
-      if (isURL(cliSettings.providerUrl)) {
-        options.chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
+      if (isURL(cliSettings.rpcUrl)) {
+        options.chainId = await getChainIdFromRpcUrl(cliSettings.rpcUrl);
 
-        const { provider } = await resolveWriteProvider(cliSettings, Number.parseInt(options.chainId));
+        const { provider } = await resolveProvider({
+          action: ProviderAction.ReadProvider,
+          cliSettings,
+          chainId: Number.parseInt(options.chainId),
+        });
 
         node = await runRpc(pickAnvilOptions(options), {
           forkProvider: provider,
@@ -202,7 +190,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     const cliSettings = resolveCliSettings(options);
 
     // throw an error if the chainId is not consistent with the provider's chainId
-    await ensureChainIdConsistency(cliSettings.providerUrl, options.chainId);
+    await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
 
     log(bold('Building the foundry project...'));
     if (!options.skipCompile) {
@@ -270,6 +258,29 @@ applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(asy
   await verify(packageName, cliSettings, options.preset, parseInt(options.chainId));
 });
 
+applyCommandsConfig(program.command('diff'), commandsConfig.diff).action(async function (
+  packageName,
+  projectDirectory,
+  options
+) {
+  const { diff } = await import('./commands/diff');
+
+  const cliSettings = resolveCliSettings(options);
+
+  const foundDiffs = await diff(
+    packageName,
+    cliSettings,
+    options.preset,
+    parseInt(options.chainId),
+    projectDirectory,
+    options.matchContract,
+    options.matchSource
+  );
+
+  // exit code is the number of differences found--useful for CI checks
+  process.exit(foundDiffs);
+});
+
 applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async function (
   packageName,
   command,
@@ -281,7 +292,7 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
   const cliSettings = resolveCliSettings(flags);
 
   // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(cliSettings.providerUrl, flags.chainId);
+  await ensureChainIdConsistency(cliSettings.rpcUrl, flags.chainId);
 
   // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
   const newUrl = await alter(
@@ -321,10 +332,8 @@ applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async
   await fetch(packageName, parseInt(options.chainId), ipfsHash, options.metaHash);
 });
 
-applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async function (ipfsHash, options) {
+applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async function (ref, options) {
   const cliSettings = resolveCliSettings(options);
-
-  ipfsHash = ipfsHash.replace(/^ipfs:\/\//, '');
 
   const fromStorage = new CannonStorage(await createDefaultReadRegistry(cliSettings), getMainLoader(cliSettings));
 
@@ -334,13 +343,7 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
 
   log('Uploading package data for pinning...');
 
-  await publishPackage({
-    packageRef: '@ipfs:' + ipfsHash,
-    chainId: 13370,
-    tags: [], // when passing no tags, it will only copy IPFS files, but not publish to registry
-    fromStorage,
-    toStorage,
-  });
+  await pin(ref, fromStorage, toStorage);
 
   log('Done!');
 });
@@ -352,6 +355,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   const { publish } = await import('./commands/publish');
 
   const cliSettings = resolveCliSettings(options);
+  const fullPackageRef = await getPackageReference(packageRef);
 
   if (!options.chainId) {
     const chainIdPrompt = await prompts({
@@ -368,73 +372,76 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     options.chainId = chainIdPrompt.value;
   }
 
-  if (!cliSettings.privateKey) {
-    const keyPrompt = await prompts({
-      type: 'text',
-      name: 'value',
-      message: 'Enter the private key for an address that has permission to publish',
-      style: 'password',
-      validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
-    });
-
-    if (!keyPrompt.value) {
-      throw new Error('A valid private key is required.');
-    }
-
-    cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
-  }
-
-  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
-  if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
+  const isDefaultRegistryChains =
+    cliSettings.registries[0].chainId === DEFAULT_REGISTRY_CONFIG[0].chainId &&
+    cliSettings.registries[1].chainId === DEFAULT_REGISTRY_CONFIG[1].chainId;
+  if (!isDefaultRegistryChains) throw new Error('Only default registries are supported for now');
 
   // mock provider urls when the execution comes from e2e tests
   if (cliSettings.isE2E) {
     // anvil optimism fork
-    cliSettings.registries[0].providerUrl = ['http://127.0.0.1:9546'];
+    cliSettings.registries[0].rpcUrl = ['http://127.0.0.1:9546'];
     // anvil mainnet fork
-    cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
+    cliSettings.registries[1].rpcUrl = ['http://127.0.0.1:9545'];
   }
 
-  const registryProviders = await resolveRegistryProviders(cliSettings);
-  // initialize pickedRegistryProvider with the first provider
-  let [pickedRegistryProvider] = registryProviders;
-
-  const choices = registryProviders.map((p) => ({
-    title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
-    value: p,
-  }));
+  // initialized optimism as the default registry
+  let [writeRegistry] = cliSettings.registries;
 
   if (!cliSettings.isE2E) {
-    // override pickedRegistryProvider with the selected provider
-    pickedRegistryProvider = (
+    const choices = cliSettings.registries.map((p) => ({
+      title: `${p.name ?? 'Unknown Network'} (Chain ID: ${p.chainId})`,
+      value: p,
+    }));
+
+    // override writeRegistry with the picked provider
+    writeRegistry = (
       await prompts([
         {
           type: 'select',
-          name: 'pickedRegistryProvider',
-          message: 'Which registry would you like to use? (Cannon will find the package on either.):',
+          name: 'writeRegistry',
+          message: 'Which registry would you like to use? (Cannon will find the package on either):',
           choices,
         },
       ])
-    ).pickedRegistryProvider;
+    ).writeRegistry;
+
+    log();
   }
 
+  log(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
+
+  const readRegistry = _.differenceWith(cliSettings.registries, [writeRegistry], _.isEqual)[0];
+  const registryProviders = await Promise.all([
+    // write to picked provider
+    resolveProviderAndSigners({
+      chainId: writeRegistry.chainId!,
+      privateKey: cliSettings.privateKey!,
+      checkProviders: writeRegistry.rpcUrl,
+      action: ProviderAction.WriteProvider,
+    }),
+    // read from the other one
+    resolveProviderAndSigners({
+      chainId: readRegistry.chainId!,
+      checkProviders: readRegistry.rpcUrl,
+      action: ProviderAction.ReadProvider,
+    }),
+  ]);
+
+  const [writeRegistryProvider] = registryProviders;
+
   // Check if the package is already registered
-  const [optimism, mainnet] = DEFAULT_REGISTRY_CONFIG;
-
-  const [optimismProvider, mainnetProvider] = await resolveRegistryProviders(cliSettings);
-
-  const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, [
-    mainnet.address,
-    optimism.address,
+  const isRegistered = await isPackageRegistered(registryProviders, packageRef, [
+    writeRegistry.address,
+    readRegistry.address,
   ]);
 
   if (!isRegistered) {
+    const pkgRef = new PackageReference(fullPackageRef);
     log();
     log(
       gray(
-        `Package "${
-          packageRef.split(':')[0]
-        }" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
+        `Package "${pkgRef.name}" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
       )
     );
     log();
@@ -452,9 +459,9 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       }
     }
 
+    log();
     const { register } = await import('./commands/register');
-
-    await register({ cliSettings, options, packageRefs: [new PackageReference(packageRef)], fromPublish: true });
+    await register({ cliSettings, options, packageRefs: [pkgRef], fromPublish: true });
   }
 
   const overrides: any = {};
@@ -472,12 +479,12 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   }
 
   const registryAddress =
-    cliSettings.registries.find((registry) => registry.chainId === pickedRegistryProvider.provider.chain?.id)?.address ||
+    cliSettings.registries.find((registry) => registry.chainId === writeRegistryProvider.provider.chain?.id)?.address ||
     DEFAULT_REGISTRY_CONFIG[0].address;
 
   const onChainRegistry = new OnChainRegistry({
-    signer: pickedRegistryProvider.signers[0],
-    provider: pickedRegistryProvider.provider,
+    signer: writeRegistryProvider.signers[0],
+    provider: writeRegistryProvider.provider,
     address: registryAddress,
     overrides,
   });
@@ -492,7 +499,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   );
 
   await publish({
-    packageRef,
+    packageRef: fullPackageRef,
     cliSettings,
     onChainRegistry,
     tags: options.tags ? options.tags.split(',') : undefined,
@@ -608,21 +615,21 @@ applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async
 
   const cliSettings = resolveCliSettings(options);
 
-  const isProviderUrl = isURL(cliSettings.providerUrl);
+  const isRpcUrl = isURL(cliSettings.rpcUrl);
 
   let chainId = options.chainId ? Number(options.chainId) : undefined;
 
-  if (!chainId && isProviderUrl) {
-    chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
+  if (!chainId && isRpcUrl) {
+    chainId = await getChainIdFromRpcUrl(cliSettings.rpcUrl);
   }
 
-  // throw an error if both chainId and providerUrl are not provided
-  if (!chainId && !isProviderUrl) {
-    throw new Error('Please provide one of the following options: --chain-id or --provider-url');
+  // throw an error if both chainId and rpcUrl are not provided
+  if (!chainId && !isRpcUrl) {
+    throw new Error('Please provide one of the following options: --chain-id or --rpc-url');
   }
 
   // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(cliSettings.providerUrl, chainId);
+  await ensureChainIdConsistency(cliSettings.rpcUrl, chainId);
 
   await trace({
     packageRef,
@@ -641,10 +648,13 @@ applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async
 applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(async function (packageRef, data, options) {
   const { decode } = await import('./commands/decode');
 
+  const cliSettings = resolveCliSettings(options);
+
   await decode({
     packageRef,
     data,
-    chainId: parseInt(options.chainId || CANNON_CHAIN_ID),
+    chainId: options.chainId ? parseInt(options.chainId) : undefined,
+    rpcUrl: cliSettings.rpcUrl,
     presetArg: options.preset,
     json: options.json,
   });
@@ -655,12 +665,12 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
 
   const cliSettings = resolveCliSettings(options);
 
-  if (cliSettings.providerUrl.startsWith('https')) {
+  if (cliSettings.rpcUrl.startsWith('https')) {
     options.dryRun = true;
   }
 
   // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(cliSettings.providerUrl, options.chainId);
+  await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
 
   const [node, , outputs] = await doBuild(cannonfile, [], options);
 
@@ -689,22 +699,26 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   let chainId: number | undefined = options.chainId ? Number(options.chainId) : undefined;
 
-  const isProviderUrl = isURL(cliSettings.providerUrl);
+  const isRpcUrl = isURL(cliSettings.rpcUrl);
 
   // if chainId is not provided, get it from the provider
-  if (!chainId && isProviderUrl) {
-    chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
+  if (!chainId && isRpcUrl) {
+    chainId = await getChainIdFromRpcUrl(cliSettings.rpcUrl);
   }
 
-  // throw an error if both chainId and providerUrl are not provided
-  if (!chainId && !isProviderUrl) {
-    throw new Error('Please provide one of the following options: --chain-id or --provider-url');
+  // throw an error if both chainId and rpcUrl are not provided
+  if (!chainId && !isRpcUrl) {
+    throw new Error('Please provide one of the following options: --chain-id or --rpc-url');
   }
 
   // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(cliSettings.providerUrl, chainId);
+  await ensureChainIdConsistency(cliSettings.rpcUrl, chainId);
 
-  const { provider, signers } = await resolveWriteProvider(cliSettings, chainId!);
+  const { provider, signers } = await resolveProvider({
+    action: ProviderAction.OptionalWriteProvider,
+    cliSettings,
+    chainId: chainId!,
+  });
 
   const resolver = await createDefaultReadRegistry(cliSettings);
 

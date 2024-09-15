@@ -6,10 +6,12 @@ import {
   createInitialContext,
   DeploymentInfo,
   getOutputs,
+  getArtifacts,
   StepState,
+  PackageReference,
+  ActionKinds,
+  addOutputsToContext,
 } from '@usecannon/builder';
-import { ActionKinds } from '@usecannon/builder/dist/src/actions';
-import { PackageReference } from '@usecannon/builder/dist/src/package';
 import { bold, yellow } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
@@ -18,7 +20,7 @@ import { getMainLoader } from '../loader';
 import { createDefaultReadRegistry } from '../registry';
 import { CliSettings } from '../settings';
 import { warn } from '../util/console';
-import { resolveWriteProvider } from '../util/provider';
+import { ProviderAction, resolveProvider } from '../util/provider';
 
 const debug = Debug('cannon:cli:alter');
 
@@ -48,7 +50,7 @@ export async function alter(
     );
   }
 
-  const { provider } = await resolveWriteProvider(cliSettings, chainId);
+  const { provider } = await resolveProvider({ action: ProviderAction.ReadProvider, quiet: true, cliSettings, chainId });
   const resolver = await createDefaultReadRegistry(cliSettings);
   const loader = getMainLoader(cliSettings);
 
@@ -97,12 +99,16 @@ export async function alter(
     );
   }
 
-  let deployInfo = startDeployInfo.pop()!;
+  let deployInfo = startDeployInfo.pop();
+
+  if (!deployInfo) {
+    throw new Error(`no alter packages were able to be loaded ${startDeployInfo}`);
+  }
 
   const ctx = await createInitialContext(new ChainDefinition(deployInfo.def), meta, chainId, deployInfo.options);
   const outputs = await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state);
 
-  _.assign(ctx, outputs);
+  addOutputsToContext(ctx, outputs);
 
   debug('alter with ctx', ctx);
 
@@ -187,7 +193,7 @@ export async function alter(
           runtime,
           ctx,
           config,
-          { currentLabel: stepName, name: def.getName(ctx), version: def.getVersion(ctx) },
+          { currentLabel: stepName, ref: def.getPackageRef(ctx) },
           existingKeys
         );
 
@@ -200,14 +206,13 @@ export async function alter(
 
             const ctx = await createInitialContext(new ChainDefinition(deployInfo.def), meta, chainId, deployInfo.options);
             const outputs = await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state);
-
-            _.assign(ctx, outputs);
+            addOutputsToContext(ctx, outputs);
 
             deployInfo.state[stepName].artifacts = await stepAction.importExisting(
               runtime,
               ctx,
               config,
-              { currentLabel: stepName, name: def.getName(ctx), version: def.getVersion(ctx) },
+              { currentLabel: stepName, ref: def.getPackageRef(ctx) },
               existingKeys
             );
 
@@ -227,25 +232,43 @@ export async function alter(
       }
 
       break;
-    case 'set-contract-address':
-      // find the steps that deploy contract
-      for (const actionStep in deployInfo.state) {
-        if (
-          deployInfo.state[actionStep].artifacts.contracts &&
-          deployInfo.state[actionStep].artifacts.contracts![targets[0]]
-        ) {
-          deployInfo.state[actionStep].artifacts.contracts![targets[0]].address = targets[1] as viem.Address;
-          deployInfo.state[actionStep].artifacts.contracts![targets[0]].deployTxnHash = '';
-        }
+    case 'set-contract-address': {
+      if (targets.length !== 2) {
+        throw new Error(
+          'incorrect number of arguments for set-contract-address. Should be <operationName> <contract address>'
+        );
+      }
+      const [targetContractName, targetAddress] = targets;
+
+      if (!viem.isAddress(targetAddress)) {
+        throw new Error(`Invalid address given: "${targetAddress}"`);
       }
 
+      // find the step that deploy contract
+      const [targetStep] = Object.values(deployInfo.state).filter(
+        (step) => !!step.artifacts?.contracts?.[targetContractName]
+      );
+
+      if (!targetStep) {
+        throw new Error(`Could not find contract by step name "${targetContractName}"`);
+      }
+
+      debug(`setting "${targetContractName}" address to "${targetAddress}"`);
+
+      targetStep.artifacts!.contracts![targetContractName].address = targetAddress;
+      targetStep.artifacts!.contracts![targetContractName].deployTxnHash = '';
+
       break;
+    }
     case 'mark-complete':
       // some steps may require access to misc artifacts
       await runtime.restoreMisc(deployInfo.miscUrl);
       // compute the state hash for the step
       for (const target of targets) {
         if (!deployInfo.state[target]) {
+          warn(
+            `WARN: action ${target} does not exist in the cannon state for the given package. Setting dummy empty state.`
+          );
           deployInfo.state[target] = {
             artifacts: { contracts: {}, txns: {}, extras: {} },
             hash: 'SKIP',
@@ -259,7 +282,12 @@ export async function alter(
       break;
     case 'mark-incomplete':
       // invalidate the state hash
-      deployInfo.state[targets[0]].hash = 'INCOMPLETE';
+      for (const target of targets) {
+        if (!deployInfo.state[target]) {
+          throw new Error(`State does not exist for action ${target}`);
+        }
+        deployInfo.state[target].hash = 'INCOMPLETE';
+      }
       break;
     case 'migrate-212':
       // nested provisions also have to be updated
@@ -303,16 +331,30 @@ export async function alter(
   }
 
   let superPkgDeployInfo;
+  let subPkgDeployInfo = deployInfo;
   while ((superPkgDeployInfo = startDeployInfo.pop())) {
     debug('write subpkg to ipfs', subpkgUrl);
-    superPkgDeployInfo.state[subpkg[startDeployInfo.length]].artifacts.imports![
-      subpkg[startDeployInfo.length].split('.')[1]
-    ].url = subpkgUrl;
+
+    const importsInfo =
+      superPkgDeployInfo.state[subpkg[startDeployInfo.length]].artifacts.imports![
+        subpkg[startDeployInfo.length].split('.')[1]
+      ];
+    // need to set the subpkg deployment url
+    importsInfo.url = subpkgUrl;
+
+    // also need to set the subpkg artifacts state to match
+    const subpkgArts = getArtifacts(new ChainDefinition(subPkgDeployInfo.def), subPkgDeployInfo.state);
+    importsInfo.contracts = subpkgArts.contracts;
+    importsInfo.imports = subpkgArts.imports;
+    importsInfo.txns = subpkgArts.txns;
+
     subpkgUrl = await runtime.putDeploy(superPkgDeployInfo);
 
     if (!subpkgUrl) {
       throw new Error('error writing subpkg to loader');
     }
+
+    subPkgDeployInfo = superPkgDeployInfo;
   }
 
   await resolver.publish([fullPackageRef], chainId, subpkgUrl, metaUrl || '');

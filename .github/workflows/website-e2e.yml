@@ -13,19 +13,23 @@ jobs:
       NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID: ${{secrets.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID}}
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
+          cache: pnpm
           node-version: '20.5.1'
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run build
+
+      - run: pnpm i --prefer-frozen-lockfile
+      - run: pnpm build
         env:
           NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+
       - name: Cypress run
-        uses: cypress-io/github-action@v6
+        uses: cypress-io/github-action@v6.7.4
         with:
-          install: false
-          command: npm run website:e2e:ci
+          command: pnpm -r --filter @usecannon/website run e2e:headless
         env:
           # pass GitHub token to allow accurately detecting a build vs a re-run build
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CANNON_E2E_RPC_URL_SEPOLIA: ${{ secrets.CANNON_E2E_RPC_URL_SEPOLIA }}
+          CANNON_E2E_RPC_URL_ETHEREUM: ${{ secrets.CANNON_E2E_RPC_URL_ETHEREUM }}

@@ -9,27 +9,37 @@ on:
 jobs:
   test-e2e:
     runs-on: ubuntu-latest
+    env:
+      CANNON_DIRECTORY: ${{ github.workspace }}/.cannon
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive' # this is necessary to install dependencies on e2e tests (bats)
+
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
+          cache: pnpm
           node-version: '20.5.1'
-          cache: 'npm'
+
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-      - run: npm ci
-      - run: npm run build
+
+      - name: Cache used IPFS files
+        uses: actions/cache@v4
+        with:
+          key: cannon-ipfs-cache_${{ runner.os }}-${{ github.job }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: cannon-ipfs-cache_
+          path: ${{ env.CANNON_DIRECTORY }}/ipfs_cache
+          save-always: true
+
+      - run: pnpm i --prefer-frozen-lockfile
+      - run: pnpm build
         env:
           NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
 
-      - name: Update Hardhat Example Package
-        run: cd ./examples/sample-hardhat-project && npm i
-
-      - name: Update Foundry Example Package
-        run: cd ./examples/sample-foundry-project && npm i
-
-      - name: Initialize submodules
-        run: cd ./packages/cli && npm run test-e2e-prepare
-
       - name: E2E Tests
-        run: cd ./packages/cli && npm run test-e2e
+        run: cd ./packages/cli && pnpm test-e2e
+        env:
+          CANNON_E2E_RPC_URL_OPTIMISM: ${{ secrets.CANNON_E2E_RPC_URL_OPTIMISM }}
+          CANNON_E2E_RPC_URL_ETHEREUM: ${{ secrets.CANNON_E2E_RPC_URL_ETHEREUM }}

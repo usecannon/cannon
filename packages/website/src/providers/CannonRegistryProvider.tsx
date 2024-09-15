@@ -1,13 +1,16 @@
-import React, { createContext, useContext } from 'react';
+'use client';
+
 import { inMemoryRegistry } from '@/helpers/cannon';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import {
-  FallbackRegistry,
-  OnChainRegistry,
   DEFAULT_REGISTRY_ADDRESS,
   DEFAULT_REGISTRY_CONFIG,
+  FallbackRegistry,
+  OnChainRegistry,
 } from '@usecannon/builder';
-import { findChain } from '@/helpers/rpc';
-import { Chain, http, createPublicClient } from 'viem';
+
+import React, { createContext, useContext } from 'react';
+import { createPublicClient, http } from 'viem';
 
 type RegistryContextType = FallbackRegistry | undefined;
 
@@ -17,18 +20,20 @@ type Props = {
   children: React.ReactNode;
 };
 export const CannonRegistryProvider: React.FC<Props> = ({ children }) => {
+  const { getChainById, transports } = useCannonChains();
   const onChainRegistries = DEFAULT_REGISTRY_CONFIG.map(
     (registry) => registry.chainId
-  ).map(
-    (chainId: number) =>
-      new OnChainRegistry({
-        address: DEFAULT_REGISTRY_ADDRESS,
-        provider: createPublicClient({
-          chain: findChain(chainId) as Chain,
-          transport: http(),
-        }),
-      })
-  );
+  ).map((chainId: number) => {
+    const chain = getChainById(chainId);
+
+    return new OnChainRegistry({
+      address: DEFAULT_REGISTRY_ADDRESS,
+      provider: createPublicClient({
+        chain,
+        transport: transports[chainId] || http(),
+      }),
+    });
+  });
 
   const fallbackRegistry = new FallbackRegistry([
     inMemoryRegistry,
@@ -41,6 +46,8 @@ export const CannonRegistryProvider: React.FC<Props> = ({ children }) => {
     </CannonRegistryContext.Provider>
   );
 };
+
+export default CannonRegistryProvider;
 
 export const useCannonRegistry = (): FallbackRegistry => {
   const context = useContext(CannonRegistryContext);

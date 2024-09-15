@@ -1,12 +1,25 @@
+import { useState, useEffect } from 'react';
 import SafeApiKit from '@safe-global/api-kit';
 import { useQuery } from '@tanstack/react-query';
-import { Address, getAddress, isAddress, keccak256, stringToBytes } from 'viem';
+import {
+  Address,
+  Chain,
+  getAddress,
+  isAddress,
+  keccak256,
+  stringToBytes,
+  Hash,
+  createPublicClient,
+  http,
+  parseEventLogs,
+} from 'viem';
 import { useAccount, useReadContracts } from 'wagmi';
+import SafeABI from '@/abi/Safe.json';
 import { chains } from '@/constants/deployChains';
 import * as onchainStore from '@/helpers/onchain-store';
 import { ChainId, SafeDefinition, useStore } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
-import { supportedChains } from './providers';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 export type SafeString = `${ChainId}:${Address}`;
 
@@ -40,7 +53,7 @@ export function getSafeFromString(safeString: string): SafeDefinition | null {
   };
 }
 
-export function isValidSafe(safe: SafeDefinition): boolean {
+export function isValidSafe(safe: SafeDefinition, supportedChains: Chain[]): boolean {
   return (
     !!safe &&
     isAddress(safe.address) &&
@@ -75,7 +88,7 @@ function _createSafeApiKit(chainId: number) {
   });
 }
 
-export function useExecutedTransactions(safe?: SafeDefinition) {
+export function useExecutedTransactions(safe?: SafeDefinition | null) {
   const txsQuery = useQuery({
     queryKey: ['executed-transactions', safe?.chainId, safe?.address],
     queryFn: async () => {
@@ -136,6 +149,7 @@ export function usePendingTransactions(safe?: SafeDefinition) {
 
 export function useWalletPublicSafes() {
   const { address } = useAccount();
+  const { chains } = useCannonChains();
 
   const txsQuery = useQuery({
     queryKey: ['safe-service', 'wallet-safes', address],
@@ -143,7 +157,7 @@ export function useWalletPublicSafes() {
       const results: SafeDefinition[] = [];
       if (!address) return results;
       await Promise.all(
-        supportedChains.map(async (chain) => {
+        chains.map(async (chain) => {
           const safeService = _createSafeApiKit(chain.id);
           if (!safeService) return;
           // This in order to avoid breaking the whole query if any chain fails
@@ -195,3 +209,46 @@ export function useGetPreviousGitInfoQuery(safe: SafeDefinition, gitRepoUrl: str
     ],
   });
 }
+
+export enum SafeTransactionStatus {
+  EXECUTION_SUCCESS = 'ExecutionSuccess',
+  EXECUTION_FAILURE = 'ExecutionFailure',
+}
+
+export const useSafeTransactionStatus = (chainId: number, transactionHash: Hash | undefined) => {
+  const { getChainById } = useCannonChains();
+  const chain = getChainById(chainId);
+
+  const publicClient = createPublicClient({
+    chain,
+    transport: http(chain?.rpcUrls.default.http[0]),
+  });
+
+  const [status, setStatus] = useState<SafeTransactionStatus | undefined>(undefined);
+
+  useEffect(() => {
+    const fetchStatus = async (transactionHash: Hash | undefined) => {
+      if (transactionHash) {
+        const receipt = await publicClient.getTransactionReceipt({
+          hash: transactionHash,
+        });
+
+        const logs = parseEventLogs({
+          abi: SafeABI,
+          logs: receipt.logs,
+        });
+
+        const isExecutionFailed = logs.some(
+          // @ts-ignore: log.eventName is not typed :/
+          (log) => log.eventName === SafeTransactionStatus.EXECUTION_FAILURE
+        );
+
+        setStatus(isExecutionFailed ? SafeTransactionStatus.EXECUTION_FAILURE : SafeTransactionStatus.EXECUTION_SUCCESS);
+      }
+    };
+
+    void fetchStatus(transactionHash);
+  }, [transactionHash]);
+
+  return status;
+};

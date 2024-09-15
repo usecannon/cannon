@@ -11,7 +11,7 @@ export function useContractCall(to: Address, functionName: string, params: any, 
   const { addLog } = useLogs();
 
   const fetch = async (from: Address) => {
-    addLog(`Querying ${to} (Chain ID ${publicClient.chain!.id}): ${functionName}(${params})`);
+    addLog('info', `Querying ${to} (Chain ID ${publicClient.chain!.id}): ${functionName}(${params})`);
     const result = await contractCall(from, to, functionName, params, abi, publicClient, settings.pythUrl);
     setData(result);
   };
@@ -42,7 +42,7 @@ export function useContractTransaction(
       walletClient,
       settings.pythUrl
     );
-    addLog(`Sending ${to}: ${functionName}(${params})`);
+    addLog('info', `Sending ${to}: ${functionName}(${params})`);
     setData(result);
   };
   return [data, fetch];

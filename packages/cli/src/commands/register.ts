@@ -2,16 +2,14 @@ import _ from 'lodash';
 import Debug from 'debug';
 import * as viem from 'viem';
 import prompts from 'prompts';
-import { blueBright, gray, green } from 'chalk';
+import { blueBright, gray, green, bold } from 'chalk';
 import { OnChainRegistry, prepareMulticall, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 
 import { CliSettings } from '../settings';
 import { log } from '../util/console';
 import { waitForEvent } from '../util/wait-for-event';
-import { resolveRegistryProviders } from '../util/provider';
+import { resolveProviderAndSigners, ProviderAction } from '../util/provider';
 import { isPackageRegistered } from '../util/register';
-
-import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 
 const debug = Debug('cannon:cli:register');
 
@@ -23,37 +21,40 @@ interface Params {
 }
 
 export async function register({ cliSettings, options, packageRefs, fromPublish }: Params) {
-  if (!cliSettings.privateKey) {
-    const keyPrompt = await prompts({
-      type: 'text',
-      name: 'value',
-      message: 'Enter the private key for the signer that will register packages',
-      style: 'password',
-      validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
-    });
-
-    if (!keyPrompt.value) {
-      throw new Error('A valid private key is required.');
-    }
-
-    cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
-  }
-
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
   // mock provider urls when the execution comes from e2e tests
   if (cliSettings.isE2E) {
     // anvil optimism fork
-    cliSettings.registries[0].providerUrl = ['http://127.0.0.1:9546'];
+    cliSettings.registries[0].rpcUrl = ['http://127.0.0.1:9546'];
     // anvil mainnet fork
-    cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
+    cliSettings.registries[1].rpcUrl = ['http://127.0.0.1:9545'];
   }
 
   debug('Registries list: ', cliSettings.registries);
 
+  // [optimism registry, mainnet registry]
+  const [readRegistry, writeRegistry] = cliSettings.registries;
+
+  log(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
+
+  const registryProviders = await Promise.all([
+    resolveProviderAndSigners({
+      chainId: readRegistry.chainId!,
+      checkProviders: readRegistry.rpcUrl,
+      action: ProviderAction.ReadProvider,
+    }),
+    resolveProviderAndSigners({
+      chainId: writeRegistry.chainId!,
+      privateKey: cliSettings.privateKey!,
+      checkProviders: writeRegistry.rpcUrl,
+      action: ProviderAction.WriteProvider,
+    }),
+  ]);
+
   const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
-  const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
+  const [optimismRegistryProvider, mainnetRegistryProvider] = registryProviders;
 
   // if any of the packages are registered, throw an error
   const isRegistered = await Promise.all(
@@ -193,7 +194,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
               waitForEvent({
                 eventName: 'PackageOwnerChanged',
                 abi: mainnetRegistry.contract.abi,
-                providerUrl: optimismRegistryConfig.providerUrl![0],
+                rpcUrl: _.last(optimismRegistryConfig.rpcUrl)!,
                 expectedArgs: {
                   name: packageNameHex,
                   owner: userAddress,
@@ -202,7 +203,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
               waitForEvent({
                 eventName: 'PackagePublishersChanged',
                 abi: mainnetRegistry.contract.abi,
-                providerUrl: optimismRegistryConfig.providerUrl![0],
+                rpcUrl: _.last(optimismRegistryConfig.rpcUrl)!,
                 expectedArgs: {
                   name: packageNameHex,
                   publisher: [userAddress],

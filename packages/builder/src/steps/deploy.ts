@@ -4,7 +4,7 @@ import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
-import { handleTxnError } from '../error';
+import { CannonError, handleTxnError } from '../error';
 import { deploySchema } from '../schemas';
 import {
   ChainArtifacts,
@@ -17,7 +17,7 @@ import {
 import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 import { template } from '../utils/template';
 
-const debug = Debug('cannon:builder:contract');
+const debug = Debug('cannon:builder:deploy');
 
 /**
  *  Available properties for contract operation
@@ -289,7 +289,15 @@ const deploySpec = {
 
         if (bytecode && bytecode !== '0x') {
           debug('create2 contract already completed');
-          // our work is done for us. unfortunately, its not easy to figure out what the transaction hash was
+
+          // the cannon state does not think a contract should be deployed, but the on-chain state says a contract
+          // is deployed. this could be a mistake. alert the user and explain how to override
+          if (config.ifExists !== 'continue') {
+            throw new CannonError(
+              `The contract at the create2 destination ${addr} is already deployed, but the Cannon state does not recognize that this contract has already been deployed. This typically indicates incorrect upgrade configuration. Please confirm if this contract should already be deployed or not, and if you want to continue the build as-is, add 'ifExists = "continue"' to the step definition`,
+              'CREATE2_COLLISION'
+            );
+          }
         } else {
           const signer = config.from
             ? await runtime.getSigner(config.from as viem.Address)
@@ -344,7 +352,9 @@ const deploySpec = {
               _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
             );
 
-            deployAddress = viem.zeroAddress;
+            throw new Error(
+              'The CREATE2 contract seems to be failing in the constructor. However, we were not able to get a stack trace.'
+            );
           } else {
             const preparedTxn = await runtime.provider.prepareTransactionRequest(
               _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
@@ -358,7 +368,7 @@ const deploySpec = {
       }
     } catch (error: any) {
       // catch an error when it comes from create2 deployer
-      if (config.create2) {
+      if (!(error instanceof CannonError && error.code === 'CREATE2_COLLISION') && config.create2) {
         // arachnid create2 does not return the underlying revert message.
         // ref: https://github.com/Arachnid/deterministic-deployment-proxy/blob/master/source/deterministic-deployment-proxy.yul#L13
 
@@ -412,13 +422,17 @@ const deploySpec = {
 
     const txn = await runtime.provider.getTransactionReceipt({ hash: existingKeys[0] as viem.Hash });
 
-    if (!txn.contractAddress) {
+    // When a CREATE2 contract is deployed, it doesnt output the contractAddress property.
+    // However the txn will emit events from the deployed contract address which can be found in the txn logs
+    const contractAddress = config.create2 ? txn.logs[0].address : txn.contractAddress;
+
+    if (!viem.isAddress(contractAddress as string)) {
       throw new Error('imported txn does not appear to deploy a contract');
     }
 
     const block = await runtime.provider.getBlock({ blockNumber: txn?.blockNumber });
 
-    return generateOutputs(config, ctx, artifactData, txn, block, txn.contractAddress!, packageState.currentLabel);
+    return generateOutputs(config, ctx, artifactData, txn, block, contractAddress!, packageState.currentLabel);
   },
 };
 

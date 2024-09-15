@@ -33,12 +33,14 @@ const getJsonSchemaPropType = async (prop: any) => {
     bannerComment: '',
   });
 
-  // @ts-ignore-next-line Import module
-  await import('https://unpkg.com/prettier@3.1.0/standalone.js');
-  // @ts-ignore-next-line Import module
-  await import('https://unpkg.com/prettier@3.1.0/plugins/typescript.js');
-  // @ts-ignore-next-line Import module
-  await import('https://unpkg.com/prettier@3.1.0/plugins/estree.js');
+  await Promise.all([
+    // @ts-ignore-next-line Import module
+    import('https://unpkg.com/prettier@3.1.0/standalone.js'),
+    // @ts-ignore-next-line Import module
+    import('https://unpkg.com/prettier@3.1.0/plugins/typescript.js'),
+    // @ts-ignore-next-line Import module
+    import('https://unpkg.com/prettier@3.1.0/plugins/estree.js'),
+  ]);
 
   const prettier = (window as any).prettier;
   const prettierPlugins = (window as any).prettierPlugins;

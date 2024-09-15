@@ -35,18 +35,6 @@ const anvilOptions = [
     description: 'Sets the number of assumed available compute units per second for this fork provider.',
   },
   {
-    flags: '--fork-url [url]',
-    description: 'Fetch state over a remote endpoint instead of starting from an empty state.',
-  },
-  {
-    flags: '--fork-block-number [number]',
-    description: 'Fetch state from a specific block number over a remote endpoint.',
-  },
-  {
-    flags: '--fork-chain-id [number]',
-    description: 'Specify chain id to skip fetching it from remote endpoint.',
-  },
-  {
     flags: '--fork-retry-backoff [number]',
     description: 'Initial retry backoff on encountering errors.',
   },
@@ -170,6 +158,22 @@ const anvilOptions = [
   },
 ];
 
+const anviloptionsWithFork = [
+  ...anvilOptions,
+  {
+    flags: '--fork-url [url]',
+    description: 'Fetch state over a remote endpoint instead of starting from an empty state.',
+  },
+  {
+    flags: '--fork-block-number [number]',
+    description: 'Fetch state from a specific block number over a remote endpoint.',
+  },
+  {
+    flags: '--fork-chain-id [number]',
+    description: 'Specify chain id to skip fetching it from remote endpoint.',
+  },
+];
+
 const commandsConfig = {
   run: {
     description: 'Run a local Cannon package (Chain ID: 13370) on a local node for development and testing',
@@ -180,11 +184,15 @@ const commandsConfig = {
         description: 'List of packages to load, optionally with custom settings for each one',
       },
     ],
-    anvilOptions: anvilOptions,
+    anvilOptions: anviloptionsWithFork,
     options: [
       {
-        flags: '-n --provider-url [url]',
+        flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to fork off of',
+      },
+      {
+        flags: '-n --provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to fork off of',
       },
       {
         flags: '--build',
@@ -246,8 +254,12 @@ const commandsConfig = {
     anvilOptions: anvilOptions,
     options: [
       {
-        flags: '-n --provider-url [url]',
+        flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to execute the deployment on',
+      },
+      {
+        flags: '-n --provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to fork off of',
       },
       {
         flags: '-c --chain-id <number>',
@@ -344,6 +356,42 @@ const commandsConfig = {
       ...debugVerbosity,
     ],
   },
+  diff: {
+    description: 'Confirm that the contracts in a package match up with those in a contracts source code directory',
+    arguments: [
+      {
+        flags: '<packageRef>',
+        description:
+          'Name, version and preset of the Cannon package to match up with a source code directory (name:version@preset)',
+      },
+      {
+        flags: '<projectDirectory>',
+        description: 'The directory of the foundry project to be compared against.',
+      },
+    ],
+    options: [
+      {
+        flags: '-c --chain-id <chainId>',
+        description: 'Chain ID of deployment to verify',
+        defaultValue: '13370',
+      },
+      {
+        flags: '-p --preset <preset>',
+        description: '(DEPRECATED) Preset of the deployment to verify',
+      },
+      {
+        flags: '--match-contract <name>',
+        description: 'Regex of contracts to match. Default: compare all contracts',
+        defaultValue: '',
+      },
+      {
+        flags: '--match-source <path>',
+        description: 'Regex of source code file names to match. Default: compare all source code paths',
+        defaultValue: '',
+      },
+      ...debugVerbosity,
+    ],
+  },
   alter: {
     description: 'Change a cannon package outside of the regular build process.',
     arguments: [
@@ -372,8 +420,12 @@ const commandsConfig = {
           'When the change needs to be made in a subpackage, specify the step names leading to the subpackage, comma separated.',
       },
       {
-        flags: '-n --provider-url [url]',
+        flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to alter to',
+      },
+      {
+        flags: '-n --provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to fork off of',
       },
       {
         flags: '-p --preset <preset>',
@@ -427,7 +479,7 @@ const commandsConfig = {
     ],
     options: [
       {
-        flags: '-n --registry-provider-url [url]',
+        flags: '-n --registry-rpc-url [url]',
         description: 'RPC endpoint to publish to',
       },
       {
@@ -499,7 +551,7 @@ const commandsConfig = {
     ],
     options: [
       {
-        flags: '-n --registry-provider-url [url]',
+        flags: '-n --registry-rpc-url [url]',
         description: 'RPC endpoint to unpublish to',
       },
       {
@@ -551,7 +603,7 @@ const commandsConfig = {
     ],
     options: [
       {
-        flags: '-n --registry-provider-url [url]',
+        flags: '-n --registry-rpc-url [url]',
         description: 'RPC endpoint to register your package to',
       },
       {
@@ -611,7 +663,7 @@ const commandsConfig = {
         description: 'List package publishers',
       },
       {
-        flags: '-n --registry-provider-url [url]',
+        flags: '-n --registry-rpc-url [url]',
         description: 'RPC endpoint to add a publisher to your package',
       },
       {
@@ -726,7 +778,7 @@ const commandsConfig = {
       },
       {
         flags: '<transactionHash OR bytes32Data>',
-        description: 'base 16 encoded transaction data to input to a function call, or transaction hash',
+        description: 'bytes32 encoded transaction data to input to a function call, or transaction hash',
       },
     ],
     options: [
@@ -756,6 +808,10 @@ const commandsConfig = {
       },
       {
         flags: '-n --provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to fork off of',
+      },
+      {
+        flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to fork off of',
       },
       {
@@ -773,15 +829,22 @@ const commandsConfig = {
         description: 'Name, version and preset of the package to decode from (name:version@preset)',
       },
       {
-        flags: '<bytes32Data...>',
-        description: 'bytes32 encoded transaction data to decode',
+        flags: '<transactionHash OR bytes32Data>',
+        description: 'bytes32 encoded transaction data, or transaction hash',
       },
     ],
     options: [
       {
         flags: '-c --chain-id <chainId>',
         description: 'Chain ID of the variant to inspect',
-        defaultValue: '13370',
+      },
+      {
+        flags: '-n --rpc-url [url]',
+        description: 'RPC endpoint to decode on',
+      },
+      {
+        flags: '-n --provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to decode on',
       },
       {
         flags: '-p --preset <preset>',
@@ -810,8 +873,12 @@ const commandsConfig = {
     ],
     options: [
       {
-        flags: '-n --provider-url [url]',
+        flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to fork off of',
+      },
+      {
+        flags: '-n --provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to fork off of',
       },
       {
         flags: '-c --chain-id',
@@ -855,8 +922,12 @@ const commandsConfig = {
         description: 'Chain ID of deployment to interact with ',
       },
       {
-        flags: '-n --provider-url [url]',
+        flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to execute the deployment on',
+      },
+      {
+        flags: '-n --provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to fork off of',
       },
       {
         flags: '-p --preset <preset>',

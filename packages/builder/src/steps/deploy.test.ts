@@ -4,6 +4,7 @@ import { validateConfig } from '../actions';
 import { ContractArtifact } from '../types';
 import action from './deploy';
 import { fakeCtx, fakeRuntime, makeFakeSigner } from './utils.test.helper';
+import { PackageReference } from '../package-reference';
 
 const DEFAULT_ARACHNID_ADDRESS = '0x4e59b44847b379578588920cA78FbF26c0B4956C';
 
@@ -168,16 +169,34 @@ describe('steps/deploy.ts', () => {
 
   describe('getOutputs()', () => {
     it('returns the contract that is outputted', () => {
-      expect(action.getOutputs({ artifact: 'hello' }, { name: '', version: '', currentLabel: 'contract.Hello' })).toEqual([
-        'contracts.Hello',
-        'Hello',
-      ]);
+      expect(
+        action.getOutputs({ artifact: 'hello' }, { ref: new PackageReference('foo'), currentLabel: 'contract.Hello' })
+      ).toEqual(['contracts.Hello', 'Hello']);
     });
   });
 
   describe('exec()', () => {
     describe('when create2 = true', () => {
-      it('works if contract already deployed', async () => {
+      it('fails if contract already deployed', async () => {
+        jest.mocked(fakeRuntime.provider.getCode).mockResolvedValue('0xabcdef');
+
+        expect(
+          action.exec(
+            fakeRuntime,
+            fakeCtx,
+            {
+              artifact: 'hello',
+              create2: true,
+              args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],
+              salt: 'wohoo',
+              value: '1234',
+            },
+            { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
+          )
+        ).rejects.toThrowErrorMatchingSnapshot();
+      });
+
+      it('works if the contract is already deployed but has ifExists = "continue"', async () => {
         jest.mocked(fakeRuntime.provider.getCode).mockResolvedValue('0xabcdef');
 
         const result = await action.exec(
@@ -186,11 +205,12 @@ describe('steps/deploy.ts', () => {
           {
             artifact: 'hello',
             create2: true,
+            ifExists: 'continue',
             args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],
             salt: 'wohoo',
             value: '1234',
           },
-          { name: 'hello', version: '1.0.0', currentLabel: 'contract.Woot' }
+          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
         );
 
         expect(result).toStrictEqual({
@@ -208,11 +228,11 @@ describe('steps/deploy.ts', () => {
               deployTxnBlockNumber: '',
               deployTimestamp: '',
               deployedOn: 'contract.Woot',
-              gasCost: '0',
-              gasUsed: 0,
               linkedLibraries: {},
               sourceName: undefined,
               highlight: undefined,
+              gasCost: '0',
+              gasUsed: 0,
             },
           },
         });
@@ -237,7 +257,7 @@ describe('steps/deploy.ts', () => {
             salt: 'wohoo',
             value: '1234',
           },
-          { name: 'hello', version: '1.0.0', currentLabel: 'contract.Woot' }
+          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
         );
 
         expect(result).toStrictEqual({
@@ -280,7 +300,7 @@ describe('steps/deploy.ts', () => {
             salt: 'wohoo',
             value: '1234',
           },
-          { name: 'hello', version: '1.0.0', currentLabel: 'contract.Woot' }
+          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
         );
 
         expect(result).toStrictEqual({
@@ -327,7 +347,7 @@ describe('steps/deploy.ts', () => {
             salt: 'wohoo',
             value: '1234',
           },
-          { name: 'hello', version: '1.0.0', currentLabel: 'contract.Woot' }
+          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
         );
 
         expect(result).toStrictEqual({
@@ -365,7 +385,7 @@ describe('steps/deploy.ts', () => {
             salt: 'wohoo',
             value: '1234',
           },
-          { name: 'hello', version: '1.0.0', currentLabel: 'contract.Woot' }
+          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
         );
 
         expect(result).toStrictEqual({

@@ -1,7 +1,9 @@
+import { Hash } from 'viem';
 import { ExternalLinkIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import {
   Box,
   Link,
+  Text,
   Popover,
   PopoverBody,
   PopoverContent,
@@ -23,8 +25,8 @@ import {
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { formatDistanceToNow } from 'date-fns';
 import { useEffect, useMemo } from 'react';
-import chains from '@/helpers/chains';
-
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import { useSafeTransactionStatus, SafeTransactionStatus } from '@/hooks/safe';
 type Orientation = 'horizontal' | 'vertical';
 
 const StepTitle = chakra(BaseStepTitle, {
@@ -53,6 +55,8 @@ export function TransactionStepper(props: {
   signers: string[];
   threshold: number;
 }) {
+  const { getExplorerUrl } = useCannonChains();
+
   const packagePublished = props.published;
   const transactionHash = props.safeTxn?.transactionHash;
   const packageRef = props.cannonPackage?.resolvedName?.length
@@ -83,6 +87,15 @@ export function TransactionStepper(props: {
     setActiveStep(step);
   }, [step]);
 
+  const safeTransactionStatus = useSafeTransactionStatus(
+    props.chainId,
+    transactionHash as Hash
+  );
+
+  const isExecutionFailure = useMemo(
+    () => safeTransactionStatus === SafeTransactionStatus.EXECUTION_FAILURE,
+    [safeTransactionStatus]
+  );
   const orientation = useBreakpointValue({
     base: 'vertical' as Orientation,
     md: 'horizontal' as Orientation,
@@ -101,9 +114,9 @@ export function TransactionStepper(props: {
     [props.safeTxn]
   );
 
-  const etherscanUrl =
-    (Object.values(chains).find((chain) => chain.id === props.chainId) as any)
-      ?.blockExplorers?.default?.url ?? 'https://etherscan.io';
+  // const etherscanUrl =
+  //   (Object.values(chains).find((chain) => chain.id === props.chainId) as any)
+  //     ?.blockExplorers?.default?.url ?? 'https://etherscan.io';
 
   const packageName = props.cannonPackage.resolvedName;
   const version = props.cannonPackage.resolvedVersion || 'latest';
@@ -174,12 +187,18 @@ export function TransactionStepper(props: {
         size="sm"
         index={activeStep}
         orientation={orientation}
-        colorScheme="teal"
+        colorScheme={isExecutionFailure ? 'red' : 'teal'}
       >
         <Step key={1}>
           <StepIndicator
             borderWidth="1px !important"
-            borderColor={activeStep >= 1 ? 'teal.500' : 'gray.200'}
+            borderColor={
+              isExecutionFailure
+                ? 'red.500'
+                : activeStep >= 1
+                ? 'teal.500'
+                : 'gray.200'
+            }
           >
             <StepStatus
               complete={<StepIcon />}
@@ -201,7 +220,13 @@ export function TransactionStepper(props: {
         <Step key={2}>
           <StepIndicator
             borderWidth="1px !important"
-            borderColor={activeStep >= 2 ? 'teal.500' : 'gray.200'}
+            borderColor={
+              isExecutionFailure
+                ? 'red.500'
+                : activeStep >= 2
+                ? 'teal.500'
+                : 'gray.200'
+            }
           >
             <StepStatus
               complete={<StepIcon />}
@@ -248,10 +273,16 @@ export function TransactionStepper(props: {
         <Step key={3}>
           <StepIndicator
             borderWidth="1px !important"
-            borderColor={activeStep >= 3 ? 'teal.500' : 'gray.200'}
+            borderColor={
+              isExecutionFailure
+                ? 'red.500'
+                : activeStep >= 3
+                ? 'teal.500'
+                : 'gray.200'
+            }
           >
             <StepStatus
-              complete={<StepIcon />}
+              complete={isExecutionFailure ? <StepNumber /> : <StepIcon />}
               incomplete={<StepNumber />}
               active={<StepNumber />}
             />
@@ -269,11 +300,15 @@ export function TransactionStepper(props: {
                   <Link
                     isExternal
                     styleConfig={{ 'text-decoration': 'none' }}
-                    href={`${etherscanUrl}/tx/${transactionHash}`}
+                    href={getExplorerUrl(
+                      props.chainId,
+                      transactionHash as Hash
+                    )}
                     ml={1}
                   >
                     <ExternalLinkIcon transform="translateY(-0.5px)" />
                   </Link>
+                  {isExecutionFailure && <Text>The execution has failed</Text>}
                 </>
               ) : (
                 <>Pending</>

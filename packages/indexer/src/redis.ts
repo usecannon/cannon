@@ -5,8 +5,8 @@ export { commandOptions } from 'redis';
 
 export type ActualRedisClientType = ReturnType<typeof createClient>;
 
-export async function useRedis() {
-  const client = createClient({
+export async function useRedis(): Promise<ActualRedisClientType> {
+  const client: ActualRedisClientType = createClient({
     url: config.REDIS_URL,
     socket: {
       reconnectStrategy: (retries, err) => {

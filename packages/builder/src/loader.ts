@@ -35,14 +35,13 @@ export class IPFSLoader implements CannonLoader {
   }
 
   getLabel() {
-    debug(`IPFSLoader.getLabel() ${this.ipfsUrl}`);
     return this.ipfsUrl;
   }
 
   async put(misc: any): Promise<string> {
     await this.checkGateway();
 
-    debug('ipfs put');
+    debug('ipfs put', misc);
 
     const hash = await writeIpfs(this.ipfsUrl, misc, this.customHeaders, this.isGateway, this.timeout, this.retries);
 

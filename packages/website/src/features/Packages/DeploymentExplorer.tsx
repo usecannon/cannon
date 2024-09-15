@@ -1,10 +1,10 @@
-import { FC } from 'react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
+
+import React, { FC, useState } from 'react';
 import {
   Box,
-  Button,
-  Container,
+  Collapse,
   Flex,
   Heading,
   Link,
@@ -15,18 +15,29 @@ import NextLink from 'next/link';
 import { links } from '@/constants/links';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
-import { InfoIcon, DownloadIcon } from '@chakra-ui/icons';
+import { ChevronDownIcon, InfoIcon } from '@chakra-ui/icons';
 import { ChainBuilderContext } from '@usecannon/builder';
 import { isEmpty } from 'lodash';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
-import { CommandPreview } from '@/components/CommandPreview';
 import { ContractsTable } from './ContractsTable';
 import { InvokesTable } from './InvokesTable';
 import { EventsTable } from './EventsTable';
+import { extractAddressesAbis } from '@/features/Packages/utils/extractAddressesAndABIs';
+import { ApiPackage } from '@usecannon/api/dist/src/types';
+import SearchInput from '@/components/SearchInput';
 
 export const DeploymentExplorer: FC<{
-  pkg: any;
+  pkg: ApiPackage;
 }> = ({ pkg }) => {
+  const [contractSearchTerm, setContractSearchTerm] = useState<string>('');
+  const [invokeSearchTerm, setInvokeSearchTerm] = useState<string>('');
+
+  const [showInvoke, setShowInvoke] = React.useState(true);
+  const [showContracts, setShowContracts] = React.useState(true);
+
+  const handleContractCollapse = () => setShowContracts(!showContracts);
+  const handleInvokeCollapse = () => setShowInvoke(!showInvoke);
+
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     pkg?.deployUrl,
     !!pkg?.deployUrl
@@ -50,29 +61,75 @@ export const DeploymentExplorer: FC<{
     }
   }
 
+  const stepDefinitions: string[] = [
+    'deploy',
+    'contract',
+    'provision',
+    'clone',
+    'import',
+    'pull',
+    'router',
+    'invoke',
+    'run',
+  ];
+
   function mergeArtifactsContracts(obj: any, mergedContracts: any = {}): any {
     for (const key in obj) {
       if (obj[key] && typeof obj[key] === 'object') {
         // If the current object has both address and abi keys
         if (obj[key].address && obj[key].abi) {
           if (
-            obj[key].deployedOn.startsWith('deploy') ||
-            obj[key].deployedOn.startsWith('contract') ||
-            obj[key].deployedOn.includes('router')
+            stepDefinitions.some((step) => obj[key].deployedOn.includes(step))
           ) {
-            mergedContracts[obj[key].contractName] = obj[key];
+            mergedContracts[
+              obj[key].contractName || '⚠ Unknown Contract Name'
+            ] = obj[key];
           }
         }
+
+        //Adding contracts imported from subpackages
+        if (obj[key].artifacts && obj[key].artifacts.imports) {
+          const step = key.split('.')[1];
+          for (const contract in obj[key].artifacts.imports[step].contracts) {
+            obj[key].artifacts.imports[step].contracts[contract].deployedOn =
+              key;
+
+            // Change deployedOn title to parent package
+            mergedContracts[
+              obj[key].contractName || '⚠ Unknown Contract Name'
+            ] = obj[key].artifacts.imports[step].contracts[contract];
+          }
+        }
+
         // Recursively search through nested objects
         mergeArtifactsContracts(obj[key], mergedContracts);
       }
     }
+
     return mergedContracts;
   }
 
   const contractState: ChainBuilderContext['contracts'] = deploymentInfo?.state
     ? mergeArtifactsContracts(deploymentInfo.state)
     : {};
+
+  // Filter and sort based on search term and sort order of steps
+  const contractEntries = Object.entries(contractState);
+  const filteredContractState = Object.fromEntries(
+    contractEntries
+      .sort(
+        ([, { deployedOn: propA }], [, { deployedOn: propB }]) =>
+          stepDefinitions.findIndex((val) => propA.includes(val)) -
+          stepDefinitions.findIndex((val) => propB.includes(val))
+      )
+      .filter(([, val]) =>
+        Object.values(val).some(
+          (v) =>
+            typeof v === 'string' &&
+            v.toLowerCase().includes(contractSearchTerm.toLowerCase())
+        )
+      )
+  );
 
   function mergeInvoke(obj: any, mergedInvokes: any = {}): any {
     for (const key in obj) {
@@ -95,22 +152,16 @@ export const DeploymentExplorer: FC<{
     ? mergeInvoke(deploymentInfo.state)
     : {};
 
-  function extractAddressesAbis(obj: any, result: any = {}) {
-    for (const key in obj) {
-      if (obj[key] && typeof obj[key] === 'object') {
-        // If the current object has both address and abi keys
-        if (obj[key].address && obj[key].abi) {
-          result[key] = {
-            address: obj[key].address,
-            abi: obj[key].abi,
-          };
-        }
-        // Recursively search through nested objects
-        extractAddressesAbis(obj[key], result);
-      }
-    }
-    return result;
-  }
+  const invokeEntries = Object.entries(invokeState);
+  const filteredInvokeState = Object.fromEntries(
+    invokeEntries.filter(([, func]) =>
+      Object.values(func).some(
+        (value) =>
+          typeof value === 'string' &&
+          value.toLowerCase().includes(invokeSearchTerm.toLowerCase())
+      )
+    )
+  );
 
   const addressesAbis = deploymentInfo?.state
     ? extractAddressesAbis(deploymentInfo.state)
@@ -145,22 +196,6 @@ export const DeploymentExplorer: FC<{
 
   const mergedExtras = mergeExtras(deploymentInfo?.state || {});
 
-  const handleDownload = () => {
-    const blob = new Blob([JSON.stringify(addressesAbis, null, 2)], {
-      type: 'application/json',
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'deployments.json';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  };
-
-  const pkgDef = deploymentData?.data?.def;
-
   return pkg?.deployUrl ? (
     <Box>
       {deploymentData.isLoading ? (
@@ -184,71 +219,89 @@ export const DeploymentExplorer: FC<{
         </Box>
       ) : deploymentInfo ? (
         <Box>
-          {pkg.chainId == 13370 && (
-            <Container maxW="container.lg" mt={9} mb={12}>
-              <Box mb={4}>
-                <Heading size="md" mb={2}>
-                  Run Package
-                </Heading>
-                <Text fontSize="sm" color="gray.300">
-                  <Link as={NextLink} href="/learn/cli/">
-                    Install the CLI
-                  </Link>{' '}
-                  and then use the following command to run a local node for
-                  development with this package:
-                </Text>
-              </Box>
-              <CommandPreview
-                command={`cannon ${pkg.name}${
-                  pkg?.tag !== 'latest' ? `:${pkgDef?.version}` : ''
-                }${pkg.preset !== 'main' ? `@${pkgDef?.preset}` : ''}`}
-              />
-            </Container>
-          )}
-          {(!isEmpty(addressesAbis) || !isEmpty(contractState)) && (
-            <Box mt={6}>
-              <Flex px={4} mb={3} direction={['column', 'column', 'row']}>
-                <Heading size="md">Contract Deployments</Heading>
-                <Box ml={[0, 0, 4]} mt={[2, 2, 0]}>
-                  <Button
-                    variant="outline"
-                    colorScheme="white"
-                    size="xs"
-                    bg="teal.900"
-                    borderColor="teal.500"
-                    _hover={{ bg: 'teal.800' }}
-                    leftIcon={<DownloadIcon boxSize={2.5} />}
-                    onClick={handleDownload}
-                    textTransform="uppercase"
-                    letterSpacing="1px"
-                    pt={0.5}
-                    fontFamily="var(--font-miriam)"
-                    color="gray.200"
-                    fontWeight={500}
-                  >
-                    Download Addresses + ABIs
-                  </Button>
+          <Flex
+            p={6}
+            mb={1}
+            justifyContent={'flex-start'}
+            alignItems={'baseline'}
+            direction={['column', 'column', 'row']}
+          >
+            <Heading size="md">
+              Contract Deployments
+              <ChevronDownIcon
+                ml={2}
+                onClick={handleContractCollapse}
+              ></ChevronDownIcon>
+            </Heading>
+            <Box pl={6}>
+              <SearchInput onSearchChange={setContractSearchTerm}></SearchInput>
+            </Box>
+          </Flex>
+          <Collapse in={showContracts}>
+            {!isEmpty(filteredContractState) && !isEmpty(addressesAbis) ? (
+              <Box mt={2}>
+                <Box maxW="100%" overflowX="auto">
+                  <ContractsTable
+                    contractState={filteredContractState}
+                    chainId={pkg.chainId}
+                  />
                 </Box>
-              </Flex>
-              <Box maxW="100%" overflowX="auto">
-                <ContractsTable
-                  contractState={contractState}
-                  chainId={pkg.chainId}
-                />
               </Box>
+            ) : (
+              <Box mt={6}>
+                <Flex
+                  px={4}
+                  mb={3}
+                  justifyContent={'center'}
+                  direction={['column', 'column', 'row']}
+                >
+                  <Heading size="sm"> No Contracts Found</Heading>
+                </Flex>
+              </Box>
+            )}
+          </Collapse>
+          <Flex
+            p={6}
+            mt={3}
+            justifyContent={'flex-start'}
+            alignItems={'baseline'}
+            direction={['column', 'column', 'row']}
+          >
+            <Heading size="md" px={4} mb={3}>
+              Function Calls
+            </Heading>
+            <ChevronDownIcon
+              ml={2}
+              onClick={handleInvokeCollapse}
+            ></ChevronDownIcon>
+            <Box pl={6}>
+              <SearchInput onSearchChange={setInvokeSearchTerm}></SearchInput>
             </Box>
-          )}
+          </Flex>
 
-          {!isEmpty(invokeState) && (
-            <Box mt={6}>
-              <Heading size="md" px={4} mb={3}>
-                Function Calls
-              </Heading>
-              <Box maxW="100%" overflowX="auto">
-                <InvokesTable invokeState={invokeState} chainId={pkg.chainId} />
+          <Collapse in={showInvoke}>
+            {!isEmpty(invokeState) ? (
+              <Box>
+                <Box maxW="100%" overflowX="auto">
+                  <InvokesTable
+                    invokeState={filteredInvokeState}
+                    chainId={pkg.chainId}
+                  />
+                </Box>
               </Box>
-            </Box>
-          )}
+            ) : (
+              <Box mt={6}>
+                <Flex
+                  px={4}
+                  mb={3}
+                  justifyContent={'center'}
+                  direction={['column', 'column', 'row']}
+                >
+                  <Heading size="sm"> No Functions Found</Heading>
+                </Flex>
+              </Box>
+            )}
+          </Collapse>
 
           {!isEmpty(mergedExtras) && (
             <Box mt={6}>
