@@ -58,12 +58,13 @@ if (!config.ETHERSCAN_API_KEY) {
 
 export type EtherscanGetSourceCodeResponse = EtherscanGetSourceCodeNotOkResponse | EtherscanGetSourceCodeOkResponse;
 
-export async function doContractVerify(ipfsHash: string, loader: CannonStorage) {
+export async function doContractVerify(ipfsHash: string, loader: CannonStorage, chainId: number) {
   const guids: { [c: string]: string } = {};
 
   const verifyPackage = async (deployData: DeploymentInfo) => {
-    if (SUPPORTED_CHAIN_IDS.includes(deployData.chainId || 0)) {
-      console.log('not verifying, unsupported chain id', deployData.chainId);
+    if (!SUPPORTED_CHAIN_IDS.includes(chainId)) {
+      console.log('not verifying, unsupported chain id', chainId);
+      console.log('SUPPORTED', SUPPORTED_CHAIN_IDS);
       return {};
     }
 
@@ -95,7 +96,7 @@ export async function doContractVerify(ipfsHash: string, loader: CannonStorage) 
         continue;
       }
 
-      if (await isVerified(contractInfo.address, deployData.chainId!, config.ETHERSCAN_API_URL, config.ETHERSCAN_API_KEY)) {
+      if (await isVerified(contractInfo.address, chainId, config.ETHERSCAN_API_URL, config.ETHERSCAN_API_KEY)) {
         console.log(`✅ ${c}: Contract source code already verified`);
         await sleep(500);
         continue;
@@ -110,7 +111,7 @@ export async function doContractVerify(ipfsHash: string, loader: CannonStorage) 
           apikey: config.ETHERSCAN_API_KEY,
           module: 'contract',
           action: 'verifysourcecode',
-          chainId: deployData.chainId!.toString(),
+          chainid: chainId!.toString(),
           contractaddress: contractInfo.address,
           // need to parse to get the inner structure, then stringify again
           sourceCode: JSON.stringify(inputData),
@@ -175,7 +176,7 @@ export async function isVerified(address: string, chainId: number, apiUrl: strin
     apikey: apiKey,
     module: 'contract',
     action: 'getsourcecode',
-    chainId: chainId.toString(),
+    chainid: chainId.toString(),
     address,
   });
 
@@ -222,8 +223,9 @@ export async function loop() {
     try {
       lastKey = e[0].messages[0].id;
       const evt = e[0].messages[0].message;
+      const chainId = parseInt(evt.variant.split('-')[0]);
       // run the cannon verify command from the cli
-      await doContractVerify(evt.packageUrl, loader);
+      await doContractVerify(evt.packageUrl, loader, chainId);
 
       await rdb.set(rkey.RKEY_REGISTRY_STREAM + ':auto-verify-last', lastKey);
       e = await rdb.xRead(

@@ -12,6 +12,6 @@ export const config = cleanEnv(process.env, {
   NOTIFY_PKGS: str({ default: '' }),
   MAINNET_PROVIDER_URL: str({ default: 'https://ethereum-rpc.publicnode.com' }),
   OPTIMISM_PROVIDER_URL: str({ default: 'https://optimism-rpc.publicnode.com' }),
-  ETHERSCAN_API_URL: str({ default: 'https://api.etherscan.io/api' }),
+  ETHERSCAN_API_URL: str({ default: 'https://api.etherscan.io/v2/api' }),
   ETHERSCAN_API_KEY: str({ default: '' }),
 });
