@@ -57,6 +57,8 @@ export async function runRpc(anvilOptions: AnvilOptions, rpcOptions: RpcOptions 
     anvilOptions.accounts = 1;
   }
 
+  anvilOptions.noRequestSizeLimit = true;
+
   if (anvilOptions.forkUrl && rpcOptions.forkProvider) {
     throw new Error('Cannot set both an anvil forkUrl and a proxy provider connection');
   }
