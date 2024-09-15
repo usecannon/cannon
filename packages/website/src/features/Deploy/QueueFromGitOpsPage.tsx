@@ -71,7 +71,7 @@ export default function QueueFromGitOpsPage() {
 function QueueFromGitOps() {
   const [selectedDeployType, setSelectedDeployType] = useState('new');
   const router = useRouter();
-  const currentSafe = useStore((s) => s.currentSafe);
+  const currentSafe = useStore((s) => s.currentSafe)!;
   const { chainId, isConnected } = useAccount();
   const { switchChainAsync } = useSwitchChain();
   const [cannonfileUrlInput, setCannonfileUrlInput] = useState('');
@@ -243,7 +243,7 @@ function QueueFromGitOps() {
     const preset = cannonDefInfo.def.getPreset(ctx);
     setPreviousPackageInput(`${name}:${version}@${preset}`);
     if (selectedDeployType == 'new') setSelectedDeployType('upgrade');
-  }, [cannonDefInfo.def]);
+  }, [cannonDefInfo.def, ctx, selectedDeployType]);
 
   // run the build and get the list of transactions we need to run
   const buildInfo = useCannonBuild(
@@ -263,16 +263,17 @@ function QueueFromGitOps() {
           options: prevCannonDeployInfo.pkg?.options || {},
           meta: prevCannonDeployInfo.pkg?.meta,
           miscUrl: prevCannonDeployInfo.pkg?.miscUrl || '',
+          chainId: currentSafe.chainId,
         }
       : undefined,
     prevCannonDeployInfo.metaUrl
   );
 
   useEffect(() => {
-    if (buildInfo.buildResult) {
+    if (['success', 'error'].includes(buildInfo.buildStatus)) {
       uploadToPublishIpfs.writeToIpfsMutation.mutate();
     }
-  }, [buildInfo.buildResult?.steps]);
+  }, [buildInfo.buildStatus]);
 
   const refsInfo = useGitRefsList(gitUrl);
   const foundRef = refsInfo.refs?.find(
@@ -396,7 +397,7 @@ function QueueFromGitOps() {
     cannonPkgPreviousInfo.isFetching ||
     partialDeployInfo.isFetching ||
     cannonPkgVersionInfo.isFetching ||
-    buildInfo.isBuilding;
+    buildInfo.buildStatus === 'building';
 
   const handlePreviewTxnsClick = async () => {
     if (!isConnected) {
@@ -462,7 +463,7 @@ function QueueFromGitOps() {
     cannonPkgPreviousInfo.isFetching ||
     partialDeployInfo.isFetching ||
     cannonPkgVersionInfo.isFetching ||
-    buildInfo.isBuilding;
+    buildInfo.buildStatus === 'building';
 
   function PreviewButton(props: any) {
     return (
@@ -550,7 +551,7 @@ function QueueFromGitOps() {
       return <PreviewButton message="Fetching package info, please wait..." />;
     }
 
-    if (buildInfo.isBuilding) {
+    if (buildInfo.buildStatus === 'building') {
       return <PreviewButton message="Generating build info, please wait..." />;
     }
 
@@ -697,10 +698,10 @@ function QueueFromGitOps() {
 
           {renderAlertMessage()}
           <RenderPreviewButtonTooltip />
-          {buildInfo.buildStatus && (
+          {buildInfo.buildMessage && (
             <Alert mt="6" status="info" bg="gray.800">
               <Spinner mr={3} boxSize={4} />
-              <strong>{buildInfo.buildStatus}</strong>
+              <strong>{buildInfo.buildMessage}</strong>
             </Alert>
           )}
           {buildInfo.buildError && (
