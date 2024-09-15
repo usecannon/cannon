@@ -76,9 +76,8 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
   const { addLog } = useLogs();
   const settings = useStore((s) => s.settings);
 
-  const [finishedBuilding, setFinishedBuilding] = useState(false);
-  const [isBuilding, setIsBuilding] = useState(false);
-  const [buildStatus, setBuildStatus] = useState('');
+  const [buildMessage, setBuildMessage] = useState('');
+  const [buildStatus, setBuildStatus] = useState<'idle' | 'building' | 'success' | 'error'>('idle');
 
   const [buildResult, setBuildResult] = useState<{
     runtime: ChainBuilderRuntime;
@@ -103,7 +102,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
     const chain = getChainById(safe.chainId);
 
-    setBuildStatus('Creating fork...');
+    setBuildMessage('Creating fork...');
     // eslint-disable-next-line no-console
     console.log(`Creating fork with RPC: ${chain?.rpcUrls.default.http[0]}`);
     const fork = await createFork({
@@ -117,7 +116,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
     const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
 
-    setBuildStatus('Loading deployment data...');
+    setBuildMessage('Loading deployment data...');
 
     addLog('info', `cannon.ts: upgrade from: ${prevDeploy?.def.name}:${prevDeploy?.def.version}`);
 
@@ -185,7 +184,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
           stepOutput.txns![txn].hash = '';
         }
 
-        setBuildStatus(`Building ${stepName}...`);
+        setBuildMessage(`Building ${stepName}...`);
 
         // a step that deploys a contract is a step that has no txns deployed but contract(s) deployed
         if (_.keys(stepOutput.txns).length === 0 && _.keys(stepOutput.contracts).length > 0) {
@@ -249,33 +248,31 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
   };
 
   return {
-    finishedBuilding,
-    isBuilding,
     buildStatus,
+    buildMessage,
     buildResult,
     buildError,
     buildSkippedSteps,
     doBuild() {
-      setFinishedBuilding(false);
       setBuildResult(null);
       setBuildError(null);
       setBuildSkippedSteps([]);
-      setIsBuilding(true);
+      setBuildStatus('building');
 
       buildFn()
         .then((res) => {
           setBuildResult(res);
+          setBuildStatus('success');
         })
         .catch((err) => {
           // eslint-disable-next-line no-console
           console.error(err);
           addLog('error', `cannon.ts: full build error ${err.toString()}`);
           setBuildError(err.toString());
+          setBuildStatus('error');
         })
         .finally(() => {
-          setFinishedBuilding(true);
-          setIsBuilding(false);
-          setBuildStatus('');
+          setBuildMessage('');
         });
     },
   };

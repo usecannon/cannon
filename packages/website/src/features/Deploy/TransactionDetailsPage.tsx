@@ -449,9 +449,9 @@ function TransactionDetailsPage() {
                 <Card title="Verify Transactions">
                   {queuedWithGitOps && (
                     <Box>
-                      {buildInfo.buildStatus && (
+                      {buildInfo.buildMessage && (
                         <Text fontSize="sm" mb="2">
-                          {buildInfo.buildStatus}
+                          {buildInfo.buildMessage}
                         </Text>
                       )}
                       {buildInfo.buildError && (

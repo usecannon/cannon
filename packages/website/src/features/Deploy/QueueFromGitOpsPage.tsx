@@ -270,9 +270,10 @@ function QueueFromGitOps() {
   );
 
   useEffect(() => {
-    if (!buildInfo.finishedBuilding) return;
-    uploadToPublishIpfs.writeToIpfsMutation.mutate();
-  }, [buildInfo.finishedBuilding]);
+    if (['success', 'error'].includes(buildInfo.buildStatus)) {
+      uploadToPublishIpfs.writeToIpfsMutation.mutate();
+    }
+  }, [buildInfo.buildStatus]);
 
   const refsInfo = useGitRefsList(gitUrl);
   const foundRef = refsInfo.refs?.find(
@@ -396,7 +397,7 @@ function QueueFromGitOps() {
     cannonPkgPreviousInfo.isFetching ||
     partialDeployInfo.isFetching ||
     cannonPkgVersionInfo.isFetching ||
-    buildInfo.isBuilding;
+    buildInfo.buildStatus === 'building';
 
   const handlePreviewTxnsClick = async () => {
     if (!isConnected) {
@@ -462,7 +463,7 @@ function QueueFromGitOps() {
     cannonPkgPreviousInfo.isFetching ||
     partialDeployInfo.isFetching ||
     cannonPkgVersionInfo.isFetching ||
-    buildInfo.isBuilding;
+    buildInfo.buildStatus === 'building';
 
   function PreviewButton(props: any) {
     return (
@@ -550,7 +551,7 @@ function QueueFromGitOps() {
       return <PreviewButton message="Fetching package info, please wait..." />;
     }
 
-    if (buildInfo.isBuilding) {
+    if (buildInfo.buildStatus === 'building') {
       return <PreviewButton message="Generating build info, please wait..." />;
     }
 
@@ -697,10 +698,10 @@ function QueueFromGitOps() {
 
           {renderAlertMessage()}
           <RenderPreviewButtonTooltip />
-          {buildInfo.buildStatus && (
+          {buildInfo.buildMessage && (
             <Alert mt="6" status="info" bg="gray.800">
               <Spinner mr={3} boxSize={4} />
-              <strong>{buildInfo.buildStatus}</strong>
+              <strong>{buildInfo.buildMessage}</strong>
             </Alert>
           )}
           {buildInfo.buildError && (
