@@ -83,7 +83,7 @@ export async function pinIpfs(
   toStorage: CannonStorage,
   alreadyCopiedIpfs: Map<string, any>,
   tags: Array<string>,
-  chainId: number
+  chainId = 0
 ) {
   const checkKeyPreset = deployInfo.def.preset || context?.preset || 'main';
 
