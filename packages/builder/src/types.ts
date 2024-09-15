@@ -254,7 +254,7 @@ export type DeploymentInfo = {
   miscUrl: string;
 
   // EVM chain which this deployment is for
-  chainId: number;
+  chainId?: number;
 };
 
 export type DeploymentManifest = {
