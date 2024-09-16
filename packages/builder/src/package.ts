@@ -240,7 +240,6 @@ export async function findUpgradeFromPackage(
   await Promise.all(
     deployers.map(async (addr) => {
       try {
-        console.log('read from the store', addr, `${packageReference.name}@${packageReference.preset}`);
         const [deployTimestamp, deployHash] = (
           await storeRead(
             provider,
@@ -248,8 +247,6 @@ export async function findUpgradeFromPackage(
             viem.keccak256(viem.stringToBytes(`${packageReference.name}@${packageReference.preset}`))
           )
         ).split('_');
-
-        console.log('got result', deployTimestamp, deployHash);
 
         if (deployTimestamp && Number(deployTimestamp) > oldDelpoyTimestamp) {
           oldDeployHash = deployHash;

@@ -35,9 +35,6 @@ import { log, warn, error } from '../util/console';
 import { hideApiKey } from '../util/provider';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
 
-import Debug from 'debug';
-const debug = Debug('cannon:cli:build');
-
 interface Params {
   provider: viem.PublicClient;
   def?: ChainDefinition;
