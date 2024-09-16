@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { CANNON_CHAIN_ID, CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
+import { CANNON_CHAIN_ID, CannonError, CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
 import Debug from 'debug';
 import * as viem from 'viem';
 import { PackageSpecification } from '../types';
@@ -15,7 +15,7 @@ import { pickAnvilOptions } from './anvil';
 import { setDebugLevel } from './debug-level';
 import { ProviderAction, resolveProvider, isURL, getChainIdFromRpcUrl } from './provider';
 
-import { yellow, bold } from 'chalk';
+import { yellow, bold, italic } from 'chalk';
 
 const debug = Debug('cannon:cli');
 
@@ -61,7 +61,10 @@ export async function doBuild(
     getDefaultSigner
   );
 
-  if (getDefaultSigner && buildConfig.def.getDeployers().includes((await getDefaultSigner())!.address)) {
+  const deployers = buildConfig.def.getDeployers();
+
+  const defaultSigner = getDefaultSigner && (await getDefaultSigner());
+  if (defaultSigner && deployers.includes(defaultSigner.address)) {
     warn(
       yellow(
         bold(
