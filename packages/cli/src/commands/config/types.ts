@@ -16,6 +16,7 @@ type BaseCommand = {
   arguments?: Argument[];
   options?: Option[];
   anvilOptions?: Option[];
+  forgeOptions?: Option[];
 };
 
 type SubCommand = BaseCommand;

@@ -1,5 +1,7 @@
 import { debugVerbosity } from './debug';
 import { CommandsConfig } from './types';
+import { forgeBuildOptions } from './forge/build';
+import { forgeTestOptions } from './forge/test';
 import { anvilOptions, anviloptionsWithFork } from './anvil';
 
 import { ANVIL_FIRST_ADDRESS, ANVIL_PORT_DEFAULT_VALUE } from '../../constants';
@@ -90,7 +92,6 @@ export const commandsConfig: CommandsConfig = {
         description: 'Custom settings for building the cannonfile',
       },
     ],
-    anvilOptions: anvilOptions,
     options: [
       {
         flags: '-n --rpc-url [url]',
@@ -174,6 +175,8 @@ export const commandsConfig: CommandsConfig = {
       },
       ...debugVerbosity,
     ],
+    anvilOptions: anvilOptions,
+    forgeOptions: forgeBuildOptions,
   },
   verify: {
     description: 'Verify a package on Etherscan',
@@ -751,6 +754,7 @@ export const commandsConfig: CommandsConfig = {
       },
       ...debugVerbosity,
     ],
+    forgeOptions: forgeTestOptions,
   },
   interact: {
     description: 'Start an interactive terminal against a set of active cannon deployments',

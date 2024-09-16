@@ -23,7 +23,7 @@ export const applyCommandsConfig = (command: Command, config: CommandConfig) => 
     });
   }
 
-  // Add command options to the command
+  // add command options to the command
   if (config.options) {
     config.options.forEach((option: any) => {
       option.required
@@ -32,7 +32,7 @@ export const applyCommandsConfig = (command: Command, config: CommandConfig) => 
     });
   }
 
-  // Add anvil options to the command
+  // add anvil options to the command
   if (config.anvilOptions) {
     config.anvilOptions.forEach((option: any) => {
       option.required
@@ -40,5 +40,15 @@ export const applyCommandsConfig = (command: Command, config: CommandConfig) => 
         : command.option(option.flags, option.description, option.defaultValue);
     });
   }
+
+  // add forge options to the command
+  if (config.forgeOptions) {
+    config.forgeOptions.forEach((option: any) => {
+      option.required
+        ? command.requiredOption(option.flags, option.description, option.defaultValue)
+        : command.option(option.flags, option.description, option.defaultValue);
+    });
+  }
+
   return command;
 };
