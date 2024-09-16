@@ -1,16 +1,32 @@
-FROM node:18-alpine AS build
-WORKDIR /app
-ENV REDIS_URL ""
-ENV IPFS_URL ""
-ENV MAINNET_PROVIDER_URL ""
-COPY --link . .
-RUN npm i
-RUN npm run build
+FROM node:18-alpine AS base
 
-FROM node:18-alpine
-WORKDIR /app
-COPY --link --from=build /app/dist dist
-COPY --link --from=build /app/package.json package.json
-COPY --link --from=build /app/package-lock.json package-lock.json
-RUN npm install --omit=dev
-CMD ["node", "dist/index.js"]
+# app envvars
+ENV REDIS_URL="" IPFS_URL="" MAINNET_PROVIDER_URL=""
+
+# pnpm envvars
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
+COPY . /cannon
+
+WORKDIR /cannon
+
+FROM base AS prod-deps
+# for some reason some packages require python and make (?) to finish their installation (?)
+RUN apk update && apk add python3 build-base
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
+
+FROM base AS build
+# for some reason some packages require python and make (?) to finish their installation (?)
+RUN apk update && apk add python3 build-base
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm run build
+RUN cd packages/indexer && pnpm run build
+
+FROM base
+COPY --from=prod-deps /cannon/node_modules /cannon/node_modules
+COPY --from=build /cannon/packages/builder/dist /cannon/packages/builder/dist
+COPY --from=build /cannon/packages/cli/dist /cannon/packages/cli/dist
+COPY --from=build /cannon/packages/indexer/dist /cannon/packages/indexer/dist
+CMD ["node", "packages/indexer/dist/index.js"]

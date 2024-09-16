@@ -1,5 +1,6 @@
 export const RKEY_LAST_IDX = 'reg:lastBlock';
 export const RKEY_LAST_UPDATED = 'reg:lastTimestamp';
+export const RKEY_START_SYNC = 'reg:startSync';
 export const RKEY_ADDRESS_TO_PACKAGE = 'reg:addressToPackage';
 export const RKEY_TRANSACTION_TO_PACKAGE = 'reg:transactionToPackage';
 export const RKEY_PACKAGE_RELATION = 'reg:packageRelation';
