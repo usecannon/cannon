@@ -370,7 +370,7 @@ export async function getOutputs(
   runtime: ChainBuilderRuntime,
   def: ChainDefinition,
   state: DeploymentState
-): Promise<ChainArtifacts | null> {
+): Promise<ChainArtifacts> {
   const artifacts = getArtifacts(def, state);
   if (runtime.snapshots) {
     // need to load state as well. the states that we want to load are the "leaf" layers

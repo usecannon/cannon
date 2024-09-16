@@ -39,6 +39,7 @@ describe('fetch', () => {
     miscUrl: 'file:/usecannon.com/misc',
     meta: { itsMeta: 'data' },
     options: {},
+    chainId,
   };
 
   const ipfsHash = 'QmfVq9zcqjCwTMhR2VSChCbiqSK3kBrpidWtUUB3i41FyY';

@@ -77,7 +77,7 @@ function QueueFromGitOps() {
   const [selectedDeployType, setSelectedDeployType] = useState('new');
   const [overridePreviousState, setOverridePreviousState] = useState(false);
   const router = useRouter();
-  const currentSafe = useStore((s) => s.currentSafe);
+  const currentSafe = useStore((s) => s.currentSafe)!;
   const { chainId, isConnected } = useAccount();
   const { switchChainAsync } = useSwitchChain();
   const [cannonfileUrlInput, setCannonfileUrlInput] = useState('');
@@ -207,7 +207,7 @@ function QueueFromGitOps() {
     const preset = cannonDefInfo.def.getPreset(ctx);
     setPreviousPackageInput(`${name}:${version}@${preset}`);
     if (selectedDeployType == 'new') setSelectedDeployType('upgrade');
-  }, [cannonDefInfo.def]);
+  }, [cannonDefInfo.def, ctx, selectedDeployType]);
 
   // run the build and get the list of transactions we need to run
   const buildInfo = useCannonBuild(
@@ -218,7 +218,7 @@ function QueueFromGitOps() {
 
   useEffect(() => {
     buildInfo.reset();
-  }, [deployerWalletAddress]);
+  }, [deployerWalletAddress, buildInfo]);
 
   const uploadToPublishIpfs = useCannonWriteDeployToIpfs(
     buildInfo.buildResult?.runtime,
@@ -231,17 +231,17 @@ function QueueFromGitOps() {
           options: prevCannonDeployInfo.pkg?.options || {},
           meta: prevCannonDeployInfo.pkg?.meta,
           miscUrl: prevCannonDeployInfo.pkg?.miscUrl || EMPTY_IPFS_MISC_URL,
-          chainId: currentSafe?.chainId,
+          chainId: currentSafe.chainId,
         }
       : undefined,
     prevCannonDeployInfo.metaUrl
   );
 
   useEffect(() => {
-    if (buildInfo.buildResult) {
+    if (['success', 'error'].includes(buildInfo.buildStatus)) {
       uploadToPublishIpfs.writeToIpfsMutation.mutate();
     }
-  }, [buildInfo.buildResult?.safeSteps]);
+  }, [buildInfo.buildStatus, uploadToPublishIpfs.writeToIpfsMutation]);
 
   const refsInfo = useGitRefsList(gitUrl);
   const foundRef = refsInfo.refs?.find(
@@ -385,7 +385,7 @@ function QueueFromGitOps() {
     prevCannonDeployInfo.isFetching ||
     partialDeployInfo.isFetching ||
     onChainPrevPkgQuery.isFetching ||
-    buildInfo.isBuilding;
+    buildInfo.buildStatus === 'building';
 
   const handlePreviewTxnsClick = async () => {
     if (!isConnected) {
@@ -449,7 +449,7 @@ function QueueFromGitOps() {
     loadingDataForDeploy ||
     chainId !== currentSafe?.chainId ||
     !cannonDefInfo.def ||
-    buildInfo.isBuilding;
+    buildInfo.buildStatus === 'building';
 
   function PreviewButton(props: any) {
     return (
@@ -537,7 +537,7 @@ function QueueFromGitOps() {
       return <PreviewButton message="Fetching package info, please wait..." />;
     }
 
-    if (buildInfo.isBuilding) {
+    if (buildInfo.buildStatus === 'building') {
       return <PreviewButton message="Generating build info, please wait..." />;
     }
 
@@ -700,10 +700,10 @@ function QueueFromGitOps() {
 
           {renderAlertMessage()}
           <RenderPreviewButtonTooltip />
-          {buildInfo.buildStatus && (
+          {buildInfo.buildMessage && (
             <Alert mt="6" status="info" bg="gray.800">
               <Spinner mr={3} boxSize={4} />
-              <strong>{buildInfo.buildStatus}</strong>
+              <strong>{buildInfo.buildMessage}</strong>
             </Alert>
           )}
           {buildInfo.buildError && (

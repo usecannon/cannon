@@ -1,14 +1,14 @@
-import { CliSettings, resolveCliSettingsNoCache as resolveCliSettings } from './settings';
+import { CliSettings, resolveCliSettings, resolveCliSettingsNoCache } from './settings';
 
 describe('settings.ts', () => {
-  describe('resolveCliSettings()', () => {
+  describe('resolveCliSettingsNoCache()', () => {
     beforeEach(() => {
       //jest.resetModules();
       process.env = {};
     });
 
     it('should use default values when no overrides or environment variables are provided', () => {
-      const settings = resolveCliSettings();
+      const settings = resolveCliSettingsNoCache();
       expect(settings.cannonDirectory).toContain('.local/share/cannon');
       expect(settings.rpcUrl).toBe('frame,direct');
       expect(settings.ipfsTimeout).toBe(300000);
@@ -25,7 +25,7 @@ describe('settings.ts', () => {
       process.env.CANNON_REGISTRY_PRIORITY = 'local';
       process.env.CANNON_QUIET = 'true';
 
-      const settings = resolveCliSettings();
+      const settings = resolveCliSettingsNoCache();
       expect(settings.cannonDirectory).toBe('/custom/path');
       expect(settings.rpcUrl).toBe('https://custom.rpc.url');
       expect(settings.ipfsTimeout).toBe(60000);
@@ -41,7 +41,7 @@ describe('settings.ts', () => {
         trace: true,
       };
 
-      const settings = resolveCliSettings(overrides);
+      const settings = resolveCliSettingsNoCache(overrides);
       expect(settings.rpcUrl).toBe('https://override.rpc.url');
       expect(settings.ipfsRetries).toBe(5);
       expect(settings.registryPriority).toBe('offline');
@@ -53,7 +53,7 @@ describe('settings.ts', () => {
       process.env.CANNON_REGISTRY_RPC_URL = 'https://custom.registry.rpc';
       process.env.CANNON_REGISTRY_CHAIN_ID = '1337';
 
-      const settings = resolveCliSettings();
+      const settings = resolveCliSettingsNoCache();
       expect(settings.registries).toEqual([
         {
           name: 'Custom Network',
@@ -69,19 +69,19 @@ describe('settings.ts', () => {
         providerUrl: 'https://deprecated.provider.url',
       };
 
-      const settings = resolveCliSettings(overrides);
+      const settings = resolveCliSettingsNoCache(overrides);
       expect(settings.rpcUrl).toBe('https://deprecated.provider.url');
     });
 
     it('should normalize private key', () => {
       process.env.CANNON_PRIVATE_KEY = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
 
-      const settings = resolveCliSettings();
+      const settings = resolveCliSettingsNoCache();
       expect(settings.privateKey).toBe('0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef');
 
       process.env.CANNON_PRIVATE_KEY = '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
 
-      const settings2 = resolveCliSettings();
+      const settings2 = resolveCliSettingsNoCache();
       expect(settings2.privateKey).toBe('0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef');
     });
 
@@ -112,7 +112,7 @@ describe('settings.ts', () => {
       };
       process.env.CANNON_SETTINGS = JSON.stringify(customSettings);
 
-      const settings = resolveCliSettings();
+      const settings = resolveCliSettingsNoCache();
       expect(settings).toEqual(expect.objectContaining(customSettings));
 
       delete process.env.CANNON_SETTINGS;
@@ -127,7 +127,7 @@ describe('settings.ts', () => {
       process.env.CANNON_RPC_URL = 'https://env.rpc.url';
       process.env.CANNON_IPFS_RETRIES = '5';
 
-      const settings = resolveCliSettings();
+      const settings = resolveCliSettingsNoCache();
       expect(settings.rpcUrl).toBe('https://env.rpc.url');
       expect(settings.ipfsRetries).toBe(5);
 
@@ -148,11 +148,87 @@ describe('settings.ts', () => {
         ipfsRetries: 15,
       };
 
-      const settings = resolveCliSettings(overrides);
+      const settings = resolveCliSettingsNoCache(overrides);
       expect(settings.rpcUrl).toBe('https://override.rpc.url');
       expect(settings.ipfsRetries).toBe(15);
 
       delete process.env.CANNON_SETTINGS;
+    });
+  });
+
+  describe('resolveCliSettings()', () => {
+    // eslint-disable-next-line no-undef
+    let originalEnv: NodeJS.ProcessEnv;
+
+    beforeEach(() => {
+      originalEnv = { ...process.env };
+      jest.resetModules();
+    });
+
+    afterEach(() => {
+      process.env = originalEnv;
+    });
+
+    it('should cache the result after the first call', () => {
+      const settings1 = resolveCliSettings();
+      const settings2 = resolveCliSettings();
+
+      expect(settings1).toBe(settings2);
+    });
+
+    it('should return different results when overrides are provided', () => {
+      const settings1 = resolveCliSettings();
+
+      const overrides = {
+        rpcUrl: 'https://override.rpc.url',
+        ipfsRetries: 10,
+      };
+      const settings2 = resolveCliSettings(overrides);
+
+      expect(settings1).not.toBe(settings2);
+      expect(settings1.rpcUrl).not.toBe(settings2.rpcUrl);
+      expect(settings1.ipfsRetries).not.toBe(settings2.ipfsRetries);
+      expect(settings2.rpcUrl).toBe('https://override.rpc.url');
+      expect(settings2.ipfsRetries).toBe(10);
+    });
+
+    it('should prioritize overrides over environment variables', () => {
+      process.env.CANNON_RPC_URL = 'https://env.rpc.url';
+
+      const overrides = {
+        rpcUrl: 'https://override.rpc.url',
+      };
+      const settings = resolveCliSettings(overrides);
+
+      expect(settings.rpcUrl).toBe('https://override.rpc.url');
+    });
+
+    it('should use the same cached result when called with the same overrides', () => {
+      const overrides = {
+        rpcUrl: 'https://override.rpc.url',
+      };
+
+      const settings1 = resolveCliSettings(overrides);
+      const settings2 = resolveCliSettings(overrides);
+
+      expect(settings1).toBe(settings2);
+    });
+
+    it('should use different cached results for different overrides', () => {
+      const overrides1 = {
+        rpcUrl: 'https://override1.rpc.url',
+      };
+
+      const overrides2 = {
+        rpcUrl: 'https://override2.rpc.url',
+      };
+
+      const settings1 = resolveCliSettings(overrides1);
+      const settings2 = resolveCliSettings(overrides2);
+
+      expect(settings1).not.toBe(settings2);
+      expect(settings1.rpcUrl).toBe('https://override1.rpc.url');
+      expect(settings2.rpcUrl).toBe('https://override2.rpc.url');
     });
   });
 });

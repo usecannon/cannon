@@ -85,7 +85,8 @@ export async function pinIpfs(
   fromStorage: CannonStorage,
   toStorage: CannonStorage,
   alreadyCopiedIpfs: Map<string, any>,
-  tags: Array<string>
+  tags: Array<string>,
+  chainId = 0
 ) {
   const checkKeyPreset = deployInfo.def.preset || context?.preset || 'main';
 
@@ -97,7 +98,7 @@ export async function pinIpfs(
 
   const def = new ChainDefinition(deployInfo.def);
 
-  const pkgChainId = deployInfo.chainId!;
+  const pkgChainId = deployInfo.chainId || chainId;
 
   const preCtx = await createInitialContext(def, deployInfo.meta, pkgChainId, deployInfo.options);
 
@@ -183,7 +184,7 @@ export async function preparePublishPackage({
 
   // this internal function will copy one package's ipfs records and return a publish call, without recursing
   const pinPackagesToIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
-    return await pinIpfs(deployInfo, context, fromStorage, toStorage, alreadyCopiedIpfs, tags);
+    return await pinIpfs(deployInfo, context, fromStorage, toStorage, alreadyCopiedIpfs, tags, chainId);
   };
 
   const deployData = await fromStorage.readDeploy(packageReference.fullPackageRef, chainId);

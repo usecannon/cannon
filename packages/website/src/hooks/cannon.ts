@@ -79,8 +79,8 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
   const { addLog } = useLogs();
   const settings = useStore((s) => s.settings);
 
-  const [isBuilding, setIsBuilding] = useState(false);
-  const [buildStatus, setBuildStatus] = useState('');
+  const [buildMessage, setBuildMessage] = useState('');
+  const [buildStatus, setBuildStatus] = useState<'idle' | 'building' | 'success' | 'error'>('idle');
 
   const [buildResult, setBuildResult] = useState<{
     runtime: ChainBuilderRuntime;
@@ -107,12 +107,9 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       );
     }
 
-    // eslint-disable-next-line no-console
-    console.log('THE PREV DEPLOY DATA', prevDeploy);
-
     const chain = getChainById(safe.chainId);
 
-    setBuildStatus('Creating fork...');
+    setBuildMessage('Creating fork...');
     const fork = await createFork({
       chainId: safe.chainId,
       impersonate: [safe.address, deployerWalletAddress],
@@ -124,7 +121,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
     const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
 
-    setBuildStatus('Loading deployment data...');
+    setBuildMessage('Loading deployment data...');
 
     addLog('info', `cannon.ts: upgrade from: ${prevDeploy?.def.name}:${prevDeploy?.def.version}`);
 
@@ -211,7 +208,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
         stepOutput.txns![txn].hash = '';
       }
 
-      setBuildStatus(`Building ${stepName}...`);
+      setBuildMessage(`Building ${stepName}...`);
     });
 
     currentRuntime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
@@ -271,7 +268,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
   function doBuild() {
     reset();
-    setIsBuilding(true);
+    setBuildStatus('building');
 
     buildFn()
       .then((res) => {
@@ -282,16 +279,17 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
         console.error(err);
         addLog('error', `cannon.ts: full build error ${err.toString()}`);
         setBuildError(err.toString());
+        setBuildStatus('error');
       })
       .finally(() => {
-        setIsBuilding(false);
-        setBuildStatus('');
+        setBuildStatus('success');
+        setBuildMessage('');
       });
   }
 
   return {
-    isBuilding,
     buildStatus,
+    buildMessage,
     buildResult,
     buildError,
     buildSkippedSteps,
