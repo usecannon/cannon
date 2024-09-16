@@ -14,7 +14,8 @@ import { parseSettings } from './params';
 import { pickAnvilOptions } from './anvil';
 import { setDebugLevel } from './debug-level';
 import { ProviderAction, resolveProvider, isURL, getChainIdFromRpcUrl } from './provider';
-
+import { CannonError } from '@usecannon/builder';
+import { bold, italic } from 'chalk';
 const debug = Debug('cannon:cli');
 
 /**
@@ -226,6 +227,15 @@ async function prepareBuildConfig(
   getDefaultSigner: (() => Promise<CannonSigner>) | undefined
 ) {
   const { name, version, preset, def } = await loadCannonfile(cannonfile);
+
+  if (def.danglingDependencies.size) {
+    const neededDeps = Array.from(def.danglingDependencies).map((v) => v.split(':'));
+    throw new CannonError(
+      `Unknown template access found. Please ensure the following references are defined:\n${neededDeps
+        .map(([input, node]) => `${bold(input)} in ${italic(node)}`)
+        .join('\n')}`
+    );
+  }
 
   const packageSpecification = {
     name,

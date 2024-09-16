@@ -8,7 +8,7 @@ export type { CannonLoader } from './loader';
 export { IPFSLoader, InMemoryLoader } from './loader';
 export { decodeTxError, renderTrace, findContract } from './trace';
 export type { TraceEntry } from './trace';
-export { traceActions } from './error';
+export { traceActions, CannonError } from './error';
 export { prepareMulticall } from './multicall';
 
 // prevent dumb bugs

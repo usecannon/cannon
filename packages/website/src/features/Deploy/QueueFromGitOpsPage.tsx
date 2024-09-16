@@ -447,6 +447,22 @@ function QueueFromGitOps() {
       );
     }
 
+    if (cannonDefInfo.def && cannonDefInfo.def.danglingDependencies.size > 0) {
+      alertMessage = (
+        <>
+          The cannonfile contains invalid dependencies. Please ensure the
+          following references are defined:
+          {Array.from(cannonDefInfo.def.danglingDependencies).map(
+            ([input, node]) => (
+              <Text key={`${input}:${node}`} as="span" fontFamily="monospace">
+                {input} in {node}
+              </Text>
+            )
+          )}
+        </>
+      );
+    }
+
     return alertMessage ? (
       <VStack mt="6" spacing={2} mb={6}>
         <Alert status="error" bg="gray.700">
@@ -460,6 +476,7 @@ function QueueFromGitOps() {
   const disablePreviewButton =
     chainId !== currentSafe?.chainId ||
     !cannonDefInfo.def ||
+    cannonDefInfo.def.danglingDependencies.size > 0 ||
     cannonPkgPreviousInfo.isFetching ||
     partialDeployInfo.isFetching ||
     cannonPkgVersionInfo.isFetching ||
