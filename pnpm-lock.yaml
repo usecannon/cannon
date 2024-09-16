@@ -240,7 +240,7 @@ importers:
         version: 1.7.5(debug@4.3.6)
       axios-retry:
         specifier: ^4.4.2
-        version: 4.5.0(axios@1.7.5(debug@4.3.6))
+        version: 4.5.0(axios@1.7.5)
       buffer:
         specifier: ^6.0.3
         version: 6.0.3
@@ -19972,7 +19972,7 @@ snapshots:
     dependencies:
       '@synthetixio/router': 3.4.0(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)
       axios: 1.7.5(debug@4.3.6)
-      axios-retry: 4.5.0(axios@1.7.5(debug@4.3.6))
+      axios-retry: 4.5.0(axios@1.7.5)
       buffer: 6.0.3
       chalk: 4.1.2
       debug: 4.3.6(supports-color@8.1.1)
@@ -20904,7 +20904,7 @@ snapshots:
       '@babel/runtime': 7.25.4
       is-retry-allowed: 2.2.0
 
-  axios-retry@4.5.0(axios@1.7.5(debug@4.3.6)):
+  axios-retry@4.5.0(axios@1.7.5):
     dependencies:
       axios: 1.7.5(debug@4.3.6)
       is-retry-allowed: 2.2.0

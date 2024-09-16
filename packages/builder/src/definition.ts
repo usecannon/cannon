@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import Debug from 'debug';
 import _ from 'lodash';
+import type { Address } from 'viem';
 import { ActionKinds, RawChainDefinition, validateConfig } from './actions';
 import { ChainBuilderRuntime } from './runtime';
 import { chainDefinitionSchema } from './schemas';
@@ -78,7 +79,7 @@ export class ChainDefinition {
 
     // best way to get a list of actions is just to iterate over the entire def, and filter out anything
     // that are not an actions (because those are known)
-    const actionsDef = _.omit(def, 'name', 'version', 'preset', 'description', 'keywords');
+    const actionsDef = _.omit(def, 'name', 'version', 'preset', 'description', 'keywords', 'deployers');
 
     // Used to validate that there are not 2 steps with the same name
     const actionNames: string[] = [];
@@ -204,6 +205,10 @@ export class ChainDefinition {
 
   getPackageRef(ctx: ChainBuilderContext) {
     return new PackageReference(`${this.getName(ctx)}:${this.getVersion(ctx) || 'latest'}@${this.getPreset(ctx) || 'main'}`);
+  }
+
+  getDeployers() {
+    return (this.raw.deployers as Address[]) || [];
   }
 
   isPublicSourceCode() {

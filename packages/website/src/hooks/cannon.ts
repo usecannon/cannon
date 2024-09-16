@@ -9,11 +9,11 @@ import { useCannonRegistry } from '@/providers/CannonRegistryProvider';
 import { useLogs } from '@/providers/logsProvider';
 import { BaseTransaction } from '@safe-global/safe-apps-sdk';
 import { useMutation, UseMutationOptions, useQuery } from '@tanstack/react-query';
+import { useDeployerWallet } from './deployer';
 import {
   build as cannonBuild,
   CannonStorage,
   ChainArtifacts,
-  ChainBuilderContext,
   ChainBuilderRuntime,
   ChainDefinition,
   createInitialContext,
@@ -25,13 +25,16 @@ import {
   loadPrecompiles,
   PackageReference,
   publishPackage,
+  findUpgradeFromPackage,
 } from '@usecannon/builder';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { Abi, Address, createPublicClient, createTestClient, createWalletClient, custom, Hex, isAddressEqual } from 'viem';
-import { useChainId } from 'wagmi';
+import { useChainId, usePublicClient } from 'wagmi';
 // Needed to prepare mock run step with registerAction
 import '@/lib/builder';
+
+type CannonTxRecord = { name: string; gas: bigint; tx: BaseTransaction };
 
 export type BuildState =
   | {
@@ -82,7 +85,8 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
   const [buildResult, setBuildResult] = useState<{
     runtime: ChainBuilderRuntime;
     state: DeploymentState;
-    steps: { name: string; gas: bigint; tx: BaseTransaction }[];
+    safeSteps: CannonTxRecord[];
+    deployerSteps: CannonTxRecord[];
   } | null>(null);
 
   const [buildError, setBuildError] = useState<string | null>(null);
@@ -93,21 +97,22 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
   const { getChainById } = useCannonChains();
   const createFork = useCreateFork();
+  const { address: deployerWalletAddress } = useDeployerWallet(safe?.chainId);
 
   const buildFn = async () => {
     // Wait until finished loading
-    if (!safe || !def || !prevDeploy) {
-      throw new Error('Missing required parameters');
+    if (!safe || !def || !deployerWalletAddress) {
+      throw new Error(
+        `Missing required parameters. has safe: ${!!safe}, def: ${!!def}, deployerWalletAddress: ${deployerWalletAddress}`
+      );
     }
 
     const chain = getChainById(safe.chainId);
 
     setBuildMessage('Creating fork...');
-    // eslint-disable-next-line no-console
-    console.log(`Creating fork with RPC: ${chain?.rpcUrls.default.http[0]}`);
     const fork = await createFork({
       chainId: safe.chainId,
-      impersonate: [safe.address],
+      impersonate: [safe.address, deployerWalletAddress],
       url: chain?.rpcUrls.default.http[0],
     }).catch((err) => {
       err.message = `Could not create local fork for build: ${err.message}`;
@@ -120,7 +125,21 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
     addLog('info', `cannon.ts: upgrade from: ${prevDeploy?.def.name}:${prevDeploy?.def.version}`);
 
-    const transport = custom(fork);
+    const simulatedTxns: { hash: string; deployedOn: string }[] = [];
+    const transport = custom({
+      request: async (args) => {
+        const result = await fork.request(args);
+        if (currentRuntime) {
+          switch (args.method) {
+            case 'eth_sendTransaction':
+              // capture the transaction that needs to be sent
+              simulatedTxns.push({ hash: result, deployedOn: currentRuntime.currentStep || '' });
+          }
+        }
+
+        return result;
+      },
+    });
 
     const provider = createPublicClient({
       chain,
@@ -136,22 +155,30 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     // todo: as usual viem provider types refuse to work
     await loadPrecompiles(testProvider as any);
 
-    const wallet = createWalletClient({
+    const multiSigWallet = createWalletClient({
       account: safe.address,
       chain: getChainById(safe.chainId),
       transport,
     });
 
-    const getDefaultSigner = async () => ({ address: safe.address, wallet });
+    const deployerWallet = createWalletClient({
+      account: deployerWalletAddress,
+      chain: getChainById(safe.chainId),
+      transport,
+    });
+
+    const getDefaultSigner = async () => ({ address: deployerWalletAddress, wallet: deployerWallet });
 
     const loaders = { mem: inMemoryLoader, ipfs: ipfsLoader };
 
     const getSigner = async (addr: Address) => {
-      if (!isAddressEqual(addr, safe.address)) {
+      if (isAddressEqual(addr, safe.address)) {
+        return { address: safe.address, wallet: multiSigWallet };
+      } else if (isAddressEqual(addr, deployerWalletAddress!)) {
+        return { address: deployerWalletAddress, wallet: deployerWallet };
+      } else {
         throw new Error(`Could not get signer for "${addr}"`);
       }
-
-      return getDefaultSigner();
     };
 
     currentRuntime = new ChainBuilderRuntime(
@@ -167,31 +194,22 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       loaders
     );
 
-    const simulatedSteps: ChainArtifacts[] = [];
     const skippedSteps: StepExecutionError[] = [];
 
-    currentRuntime.on(
-      Events.PostStepExecute,
-      (stepType: string, stepLabel: string, stepConfig: any, stepCtx: ChainBuilderContext, stepOutput: ChainArtifacts) => {
-        const stepName = `${stepType}.${stepLabel}`;
+    currentRuntime.on(Events.PostStepExecute, (stepType: string, stepLabel: string, stepOutput: ChainArtifacts) => {
+      const stepName = `${stepType}.${stepLabel}`;
 
-        addLog('info', `cannon.ts: on Events.PostStepExecute operation ${stepName} output: ${JSON.stringify(stepOutput)}`);
+      addLog('info', `cannon.ts: on Events.PostStepExecute operation ${stepName} output: ${JSON.stringify(stepOutput)}`);
 
-        simulatedSteps.push(_.cloneDeep(stepOutput));
+      //simulatedSteps.push(_.cloneDeep(stepOutput));
 
-        for (const txn in stepOutput.txns || {}) {
-          // clean out txn hash
-          stepOutput.txns![txn].hash = '';
-        }
-
-        setBuildMessage(`Building ${stepName}...`);
-
-        // a step that deploys a contract is a step that has no txns deployed but contract(s) deployed
-        if (_.keys(stepOutput.txns).length === 0 && _.keys(stepOutput.contracts).length > 0) {
-          throw new Error(`Cannot deploy contract on a Safe transaction for step ${stepName}`);
-        }
+      for (const txn in stepOutput.txns || {}) {
+        // clean out txn hash
+        stepOutput.txns![txn].hash = '';
       }
-    );
+
+      setBuildMessage(`Building ${stepName}...`);
+    });
 
     currentRuntime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
       addLog('error', `cannon.ts: on Events.SkipDeploy error ${err.toString()} happened on the operation ${stepName}`);
@@ -212,23 +230,16 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
     setBuildSkippedSteps(skippedSteps);
 
-    const simulatedTxs = simulatedSteps
-      .map((s) => !!s?.txns && Object.values(s.txns))
-      .filter((tx) => !!tx)
-      .flat();
-
-    if (simulatedTxs.length === 0) {
-      throw new Error('There are no transactions that can be executed on Safe.');
-    }
-
-    const steps = await Promise.all(
-      simulatedTxs.map(async (executedTx) => {
+    const allSteps = await Promise.all(
+      simulatedTxns.map(async (executedTx) => {
         if (!executedTx) throw new Error('Invalid operation');
         const tx = await provider.getTransaction({ hash: executedTx.hash as Hex });
         const rx = await provider.getTransactionReceipt({ hash: executedTx.hash as Hex });
+        // eslint-disable-next-line no-console
         return {
-          name: (executedTx as any).deployedOn,
+          name: executedTx.deployedOn,
           gas: rx.gasUsed,
+          from: tx.from,
           tx: {
             to: tx.to,
             value: tx.value.toString(),
@@ -240,12 +251,41 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
     if (fork) await fork.disconnect();
 
+    // eslint-disable-next-line no-console
     return {
       runtime: currentRuntime,
       state: newState,
-      steps,
+      safeSteps: allSteps.filter((step) => isAddressEqual(step.from, safe.address)),
+      deployerSteps: allSteps.filter((step) => isAddressEqual(step.from, deployerWalletAddress)),
     };
   };
+
+  function reset() {
+    setBuildResult(null);
+    setBuildError(null);
+    setBuildSkippedSteps([]);
+  }
+
+  function doBuild() {
+    reset();
+    setBuildStatus('building');
+
+    buildFn()
+      .then((res) => {
+        setBuildResult(res);
+      })
+      .catch((err) => {
+        // eslint-disable-next-line no-console
+        console.error(err);
+        addLog('error', `cannon.ts: full build error ${err.toString()}`);
+        setBuildError(err.toString());
+        setBuildStatus('error');
+      })
+      .finally(() => {
+        setBuildStatus('success');
+        setBuildMessage('');
+      });
+  }
 
   return {
     buildStatus,
@@ -253,28 +293,8 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     buildResult,
     buildError,
     buildSkippedSteps,
-    doBuild() {
-      setBuildResult(null);
-      setBuildError(null);
-      setBuildSkippedSteps([]);
-      setBuildStatus('building');
-
-      buildFn()
-        .then((res) => {
-          setBuildResult(res);
-          setBuildStatus('success');
-        })
-        .catch((err) => {
-          // eslint-disable-next-line no-console
-          console.error(err);
-          addLog('error', `cannon.ts: full build error ${err.toString()}`);
-          setBuildError(err.toString());
-          setBuildStatus('error');
-        })
-        .finally(() => {
-          setBuildMessage('');
-        });
-    },
+    reset,
+    doBuild,
   };
 }
 
@@ -307,8 +327,11 @@ export function useCannonWriteDeployToIpfs(
         [packageRef],
         runtime.chainId,
         (await runtime.loaders.mem.put(deployInfo)) ?? '',
-        metaUrl as string
+        metaUrl || ''
       );
+
+      // eslint-disable-next-line no-console
+      console.log('pushed to memory registry', runtime.registry, packageRef);
 
       const memoryRegistry = new InMemoryRegistry();
 
@@ -324,6 +347,10 @@ export function useCannonWriteDeployToIpfs(
         tags: ['latest'],
         includeProvisioned: true,
       });
+
+      // it was published
+      // eslint-disable-next-line no-console
+      console.log('pushed to memory registry', memoryRegistry, packageRef, runtime.chainId);
 
       // load the new ipfs url
       const mainUrl = await memoryRegistry.getUrl(packageRef, runtime.chainId);
@@ -342,7 +369,38 @@ export function useCannonWriteDeployToIpfs(
   };
 }
 
-export function useCannonPackage(packageRef?: string, chainId?: number) {
+export function useCannonFindUpgradeFromUrl(packageRef?: PackageReference, chainId?: number, deployers?: Address[]) {
+  const registry = useCannonRegistry();
+
+  const publicClient = usePublicClient();
+
+  const onChainDataQuery = useQuery({
+    enabled: !!packageRef && !!chainId,
+    queryKey: ['cannon', 'find-upgrade-from', packageRef?.name, packageRef?.preset, chainId, deployers],
+    queryFn: async () => {
+      // eslint-disable-next-line no-console
+      console.log('find with deployers', deployers);
+      return await findUpgradeFromPackage(
+        registry,
+        publicClient as Parameters<typeof findUpgradeFromPackage>[1],
+        packageRef!,
+        chainId!,
+        deployers || []
+      );
+    },
+  });
+
+  return {
+    url: onChainDataQuery.data,
+    ...onChainDataQuery,
+  };
+}
+
+export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?: number) {
+  if (urlOrRef && typeof urlOrRef != 'string') {
+    urlOrRef = urlOrRef.fullPackageRef;
+  }
+
   const connectedChainId = useChainId();
   const registry = useCannonRegistry();
   const settings = useStore((s) => s.settings);
@@ -351,21 +409,21 @@ export function useCannonPackage(packageRef?: string, chainId?: number) {
   const packageChainId = chainId ?? connectedChainId;
 
   const registryQuery = useQuery({
-    queryKey: ['cannon', 'registry-url', packageRef, packageChainId],
+    queryKey: ['cannon', 'registry-url', urlOrRef, packageChainId],
     queryFn: async () => {
-      if (typeof packageRef !== 'string' || packageRef.length < 3) {
+      if (typeof urlOrRef !== 'string' || urlOrRef.length < 3) {
         return null;
       }
 
-      if (packageRef.startsWith('ipfs://')) return { url: packageRef };
-      if (packageRef.startsWith('@ipfs:')) return { url: packageRef.replace('@ipfs:', 'ipfs://') };
+      if (urlOrRef.startsWith('ipfs://')) return { url: urlOrRef };
+      if (urlOrRef.startsWith('@ipfs:')) return { url: urlOrRef.replace('@ipfs:', 'ipfs://') };
 
-      const url = await registry.getUrl(packageRef, packageChainId);
+      const url = await registry.getUrl(urlOrRef, packageChainId);
 
       if (url) {
         return { url };
       } else {
-        throw new Error(`package not found: ${packageRef} (${packageChainId})`);
+        throw new Error(`package not found: ${urlOrRef} (${packageChainId})`);
       }
     },
     refetchOnWindowFocus: false,

@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { CANNON_CHAIN_ID, CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
+import { CANNON_CHAIN_ID, CannonError, CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
 import Debug from 'debug';
 import * as viem from 'viem';
 import { PackageSpecification } from '../types';
@@ -14,8 +14,9 @@ import { parseSettings } from './params';
 import { pickAnvilOptions } from './anvil';
 import { setDebugLevel } from './debug-level';
 import { ProviderAction, resolveProvider, isURL, getChainIdFromRpcUrl } from './provider';
-import { CannonError } from '@usecannon/builder';
-import { bold, italic } from 'chalk';
+
+import { yellow, bold, italic } from 'chalk';
+
 const debug = Debug('cannon:cli');
 
 /**
@@ -59,6 +60,20 @@ export async function doBuild(
     getSigner,
     getDefaultSigner
   );
+
+  const deployers = buildConfig.def.getDeployers();
+
+  const defaultSigner = getDefaultSigner && (await getDefaultSigner());
+  if (defaultSigner && deployers.includes(defaultSigner.address)) {
+    warn(
+      yellow(
+        bold(
+          'WARN: For proper record of version history, we reccomend including all signers for your package as part of the `deployers` configuration in your cannonfile.'
+        )
+      )
+    );
+    warn(yellow('This can be safely done after the build is finished.'));
+  }
 
   const { build } = await import('../commands/build');
 
@@ -252,9 +267,13 @@ async function prepareBuildConfig(
       execPromise('git config --get remote.origin.url'),
     ]);
 
-    pkgInfo.gitUrl = rawGitUrl.trim().replace(':', '/').replace('git@', 'https://').replace('.git', '');
+    // convert ssh url to https if needed (should work in most cases)
+    pkgInfo.gitUrl = rawGitUrl
+      .trim()
+      .replace(/^\w+@([^:]+):/, 'https://$1/')
+      .replace('.git', '');
     pkgInfo.commitHash = rawCommitHash.trim();
-    pkgInfo.readme = pkgInfo.gitUrl + '/blob/main/README.md';
+    pkgInfo.readme = pkgInfo.gitUrl + `/blob/${rawCommitHash.trim()}/README.md`;
   } catch (err) {
     // fail silently
     debug(`Failed to populate metadata: ${err}`);
