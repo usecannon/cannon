@@ -3,7 +3,7 @@ import { CANNON_CHAIN_ID, CannonSigner } from '@usecannon/builder';
 import { build, createDryRunRegistry, loadCannonfile, parseSettings, resolveCliSettings } from '@usecannon/cli';
 import { getChainById } from '@usecannon/cli/dist/src/chains';
 import { getProvider } from '@usecannon/cli/dist/src/rpc';
-import { bold, yellow, yellowBright } from 'chalk';
+import { bold, italic, yellow, yellowBright } from 'chalk';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { task } from 'hardhat/config';
 import { HttpNetworkConfig } from 'hardhat/types';
@@ -14,6 +14,7 @@ import { loadPackageJson } from '../internal/load-pkg-json';
 import { parseAnvilOptions } from '../internal/parse-anvil-options';
 import { SubtaskRunAnvilNodeResult } from '../subtasks/run-anvil-node';
 import { SUBTASK_GET_ARTIFACT, SUBTASK_RUN_ANVIL_NODE, TASK_BUILD } from '../task-names';
+import { CannonError } from '@usecannon/builder';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
@@ -74,6 +75,15 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       const parsedSettings = parseSettings(settings);
 
       const { name, version, def, preset } = await loadCannonfile(path.join(hre.config.paths.root, cannonfile));
+
+      if (def.danglingDependencies.size) {
+        const neededDeps = Array.from(def.danglingDependencies).map((v) => v.split(':'));
+        throw new CannonError(
+          `Unknown template access found. Please ensure the following references are defined:\n${neededDeps
+            .map(([input, node]) => `${bold(input)} in ${italic(node)}`)
+            .join('\n')}`
+        );
+      }
 
       if (hre.network.name === 'hardhat' && dryRun) {
         throw new Error('You cannot use --dry-run param when using the "hardhat" network');

@@ -240,6 +240,15 @@ async function prepareBuildConfig(
 ) {
   const { name, version, preset, def } = await loadCannonfile(cannonfile);
 
+  if (def.danglingDependencies.size) {
+    const neededDeps = Array.from(def.danglingDependencies).map((v) => v.split(':'));
+    throw new CannonError(
+      `Unknown template access found. Please ensure the following references are defined:\n${neededDeps
+        .map(([input, node]) => `${bold(input)} in ${italic(node)}`)
+        .join('\n')}`
+    );
+  }
+
   const packageSpecification = {
     name,
     version,

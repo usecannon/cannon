@@ -68,6 +68,8 @@ export class ChainDefinition {
   readonly dependencyFor = new Map<string, string>();
   readonly resolvedDependencies = new Map<string, string[]>();
 
+  readonly danglingDependencies = new Set<`${string}:${string}`>();
+
   constructor(def: RawChainDefinition, sensitiveDependencies = false) {
     debug('begin chain def init');
     this.raw = def;
@@ -360,8 +362,9 @@ export class ChainDefinition {
         debug(`deps: ${node} consumes ${input}`);
         if (this.dependencyFor.has(input)) {
           deps.push(this.dependencyFor.get(input)!);
-        } else if (!input.startsWith('settings.')) {
+        } else {
           debug(`WARNING: dependency ${input} not found for operation ${node}`);
+          this.danglingDependencies.add(`${input}:${node}`);
         }
       }
     }
