@@ -60,7 +60,8 @@ Feature: Interact page
     * User clicks on the "button" element with text "Call view function"
     Then View renders a "div" displaying the text "5708990770823839524233143914701057466751846718296"
 
-Scenario: Decoding failed write functions
+Scenario: Decoding failed functions
+  #Simulating different reverted calls
   Given User opens the "/packages/synthetix-omnibus/7/10-main/interact" page
   * Wallet is connected
   * User clicks on the "button" element with text "CoreProxy"
@@ -74,17 +75,17 @@ Scenario: Decoding failed write functions
   * Wallet is connected
   * User clicks on the "button" element with text "CoreProxy"
   Then URL includes "/CoreProxy/0xffffffaEff0B96Ea8e4f94b2253f31abdD875847"
-  * User clicks on the "button" element with text "addApprovedPool(uint128 poolId)"
-  * User types "1" for "poolId" function param
+  * User clicks on the "button" element with text "mint(address _to,uint256 _amount)"
+  * User types "0x0000000000000000000000000000000000000000" for "_to" function param
+  * User types "1" for "_amount" function param
   * User clicks on the "button" element with text "Simulate transaction"
-  Then View renders a "div" displaying the text "Error: Unauthorized(address addr)"
+  Then View renders a "div" displaying the text "The contract function "mint" reverted with the following reason: FiatToken: caller is not a minter"
 
-  # Simulating a successful EIP7412 contract call
-  Given User opens the "/packages/synthetix-omnibus/7/10-main/interact" page
+  # Simulating a failed EIP7412 contract call
+  Given User opens the "/packages/pyth-erc7412-wrapper/latest/11155111-main/interact" page
   * Wallet is connected
-  * User clicks on the "button" element with text "CoreProxy"
-  Then URL includes "/CoreProxy/0xffffffaEff0B96Ea8e4f94b2253f31abdD875847"
-  * User clicks on the "button" element with text "getMarketDebtPerShare(uint128 marketId)"
-  * User types "1" for "marketId" function param
-  * User clicks on the "button" element with text "Simulate transaction"
-  Then View renders a "div" displaying the text "612725627124199" 
+  Then URL includes "/pyth-erc7412-wrapper/PythERC7412Wrapper/0x08C1F629Ec5935F95Ef3e614dF5B94086528C25c"
+  * User clicks on the "button" element with text "getLatestPrice(bytes32 priceId,uint256 stalenessTolerance)"
+  * User types "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43" for "bytes32" function param
+  * User clicks on the "button" element with text "Call view function"
+  Then View renders a "div" displaying the text "The contract function "getLatestPrice" reverted. Error: OracleDataRequired(address oracleContract, bytes oracleQuery)" 

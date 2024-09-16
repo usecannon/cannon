@@ -86,8 +86,9 @@ export async function contractCall(
   } catch (e) {
     /**
      * If we fail to generate an EIP7412 compatible call we default to simulateContract
-     * which behaves almost exactly like readContract, but uses abi-encoded data
-     */
+     * because the multicall txn doesnt return error data when it fails 
+     * We default simulateContract because behaves almost exactly like readContract, but uses abi-encoded data
+    */
     res = await publicClient.simulateContract({ address: to, abi, functionName, args: params, account: from });
   }
 
@@ -150,26 +151,25 @@ export async function contractTransaction(
     to,
     data,
   };
-  let call;
-  let hash;
+
+ let call;
   try {
     call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);
-    hash = await walletClient.sendTransaction({
-      chain: publicClient.chain!,
-      account: from,
-      to: call.to,
-      data: call.data,
-      value: call.value,
-    });
   } catch (e) {
-    hash = await walletClient.sendTransaction({
-      chain: publicClient.chain!,
-      account: from,
-      to: to,
-      data: data,
-      value: params.value,
-    });
+    // do nothing
   }
+
+  /**
+   * If we fail to generate an EIP7412 compatible call we default to the regular function params
+   * because the multicall txn doesnt return error data to decode when it fails 
+  */
+  const hash = await walletClient.sendTransaction({
+    chain: publicClient.chain!,
+    account: from,
+    to: call?.to || to ,
+    data: call?.data || data,
+    value: call?.value || params.value
+  });
 
   return hash;
 }
