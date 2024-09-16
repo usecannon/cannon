@@ -68,6 +68,7 @@ describe('package.ts', () => {
       miscUrl: 'https://usecannon.com/misc',
       meta: {},
       options: {},
+      chainId: 1,
     };
     const nestedPkg = 'nested:2.34.5@main';
     const nestedPkgData: DeploymentInfo = {
@@ -79,6 +80,7 @@ describe('package.ts', () => {
       miscUrl: 'https://usecannon.com/misc',
       meta: {},
       options: {},
+      chainId: 1,
     };
 
     beforeEach(async () => {

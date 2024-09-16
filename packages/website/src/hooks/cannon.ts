@@ -1,8 +1,10 @@
+import { externalLinks } from '@/constants/externalLinks';
 import { inMemoryLoader, loadCannonfile, StepExecutionError } from '@/helpers/cannon';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { useCreateFork } from '@/helpers/rpc';
 import { SafeDefinition, useStore } from '@/helpers/store';
 import { useGitRepo } from '@/hooks/git';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { useCannonRegistry } from '@/providers/CannonRegistryProvider';
 import { useLogs } from '@/providers/logsProvider';
 import { BaseTransaction } from '@safe-global/safe-apps-sdk';
@@ -30,8 +32,6 @@ import { Abi, Address, createPublicClient, createTestClient, createWalletClient,
 import { useChainId } from 'wagmi';
 // Needed to prepare mock run step with registerAction
 import '@/lib/builder';
-import { externalLinks } from '@/constants/externalLinks';
-import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 export type BuildState =
   | {
@@ -76,8 +76,8 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
   const { addLog } = useLogs();
   const settings = useStore((s) => s.settings);
 
-  const [isBuilding, setIsBuilding] = useState(false);
-  const [buildStatus, setBuildStatus] = useState('');
+  const [buildMessage, setBuildMessage] = useState('');
+  const [buildStatus, setBuildStatus] = useState<'idle' | 'building' | 'success' | 'error'>('idle');
 
   const [buildResult, setBuildResult] = useState<{
     runtime: ChainBuilderRuntime;
@@ -100,10 +100,15 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       throw new Error('Missing required parameters');
     }
 
-    setBuildStatus('Creating fork...');
+    const chain = getChainById(safe.chainId);
+
+    setBuildMessage('Creating fork...');
+    // eslint-disable-next-line no-console
+    console.log(`Creating fork with RPC: ${chain?.rpcUrls.default.http[0]}`);
     const fork = await createFork({
       chainId: safe.chainId,
       impersonate: [safe.address],
+      url: chain?.rpcUrls.default.http[0],
     }).catch((err) => {
       err.message = `Could not create local fork for build: ${err.message}`;
       throw err;
@@ -111,19 +116,19 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
     const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
 
-    setBuildStatus('Loading deployment data...');
+    setBuildMessage('Loading deployment data...');
 
     addLog('info', `cannon.ts: upgrade from: ${prevDeploy?.def.name}:${prevDeploy?.def.version}`);
 
     const transport = custom(fork);
 
     const provider = createPublicClient({
-      chain: getChainById(safe.chainId),
+      chain,
       transport,
     });
 
     const testProvider = createTestClient({
-      chain: getChainById(safe.chainId),
+      chain,
       transport,
       mode: 'ganache',
     });
@@ -179,7 +184,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
           stepOutput.txns![txn].hash = '';
         }
 
-        setBuildStatus(`Building ${stepName}...`);
+        setBuildMessage(`Building ${stepName}...`);
 
         // a step that deploys a contract is a step that has no txns deployed but contract(s) deployed
         if (_.keys(stepOutput.txns).length === 0 && _.keys(stepOutput.contracts).length > 0) {
@@ -242,35 +247,34 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     };
   };
 
-  function doBuild() {
-    setBuildResult(null);
-    setBuildError(null);
-    setBuildSkippedSteps([]);
-    setIsBuilding(true);
-
-    buildFn()
-      .then((res) => {
-        setBuildResult(res);
-      })
-      .catch((err) => {
-        // eslint-disable-next-line no-console
-        console.error(err);
-        addLog('error', `cannon.ts: full build error ${err.toString()}`);
-        setBuildError(err.toString());
-      })
-      .finally(() => {
-        setIsBuilding(false);
-        setBuildStatus('');
-      });
-  }
-
   return {
-    isBuilding,
     buildStatus,
+    buildMessage,
     buildResult,
     buildError,
     buildSkippedSteps,
-    doBuild,
+    doBuild() {
+      setBuildResult(null);
+      setBuildError(null);
+      setBuildSkippedSteps([]);
+      setBuildStatus('building');
+
+      buildFn()
+        .then((res) => {
+          setBuildResult(res);
+          setBuildStatus('success');
+        })
+        .catch((err) => {
+          // eslint-disable-next-line no-console
+          console.error(err);
+          addLog('error', `cannon.ts: full build error ${err.toString()}`);
+          setBuildError(err.toString());
+          setBuildStatus('error');
+        })
+        .finally(() => {
+          setBuildMessage('');
+        });
+    },
   };
 }
 
@@ -297,7 +301,7 @@ export function useCannonWriteDeployToIpfs(
       const ctx = await createInitialContext(def, deployInfo.meta, runtime.chainId, deployInfo.options);
 
       const preset = def.getPreset(ctx);
-      const packageRef = `${def.getName(ctx)}:${def.getVersion(ctx)}${preset ? '@' + preset : ''}`;
+      const packageRef = PackageReference.from(def.getName(ctx), def.getVersion(ctx), preset).fullPackageRef;
 
       await runtime.registry.publish(
         [packageRef],

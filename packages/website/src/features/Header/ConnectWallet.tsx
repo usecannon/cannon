@@ -1,3 +1,5 @@
+'use client';
+
 import { FC, ReactNode, useState } from 'react';
 import { Button, Flex, Image, useBreakpointValue } from '@chakra-ui/react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';

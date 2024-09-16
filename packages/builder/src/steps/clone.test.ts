@@ -162,6 +162,7 @@ describe('steps/clone.ts', () => {
         } as any,
         meta: {},
         miscUrl: 'https://something.com',
+        chainId: 1234,
       });
 
       await expect(() =>
@@ -225,6 +226,7 @@ describe('steps/clone.ts', () => {
         } as any,
         meta: {},
         miscUrl: 'https://something.com',
+        chainId: 1234,
       });
 
       await expect(() =>
@@ -275,6 +277,7 @@ describe('steps/clone.ts', () => {
         } as any,
         meta: {},
         miscUrl: 'https://something.com',
+        chainId: 1234,
       });
 
       jest.mocked(fakeRuntime.putDeploy).mockResolvedValue('ipfs://Qmsomething');
@@ -330,6 +333,7 @@ describe('steps/clone.ts', () => {
         } as any,
         meta: {},
         miscUrl: 'https://something.com',
+        chainId: 1234,
       });
 
       jest.mocked(fakeRuntime.putDeploy).mockResolvedValue('ipfs://Qmsomething');
