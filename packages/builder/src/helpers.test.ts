@@ -37,6 +37,7 @@ describe('helpers.test.ts', () => {
         },
         meta: {},
         miscUrl: '',
+        chainId: 282,
       });
       await fakeStorage.registry.publish(['woot:latest'], 282, deployInfoUrl!, '');
     });

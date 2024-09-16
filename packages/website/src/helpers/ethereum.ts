@@ -151,13 +151,6 @@ export async function contractTransaction(
     data,
   };
   let call;
-
-  /**
-   * Failing to simulate the contract call will result in a decoded error
-   * which is then caught and returned to the user.
-   */
-  await publicClient.simulateContract({ address: to, abi, functionName, args: params, account: from });
-
   let hash;
   try {
     call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);

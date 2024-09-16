@@ -60,8 +60,7 @@ Feature: Interact page
     * User clicks on the "button" element with text "Call view function"
     Then View renders a "div" displaying the text "5708990770823839524233143914701057466751846718296"
 
-Scenario: Simulating write functions
-  # Decoding a failed regular contract calls
+Scenario: Decoding failed write functions
   Given User opens the "/packages/synthetix-omnibus/7/10-main/interact" page
   * Wallet is connected
   * User clicks on the "button" element with text "CoreProxy"
