@@ -70,10 +70,9 @@ Scenario: Decoding failed functions
   * User clicks on the "button" element with text "Simulate transaction"
   Then View renders a "div" displaying the text "Error: Unauthorized(address addr)"
 
-  Given User opens the "/packages/synthetix-omnibus/7/1-main/interact" page
+  Given User opens the "/packages/usdc/2.1/1-main/interact" page
   * Wallet is connected
-  * User clicks on the "button" element with text "CoreProxy"
-  Then URL includes "/CoreProxy/0xffffffaEff0B96Ea8e4f94b2253f31abdD875847"
+  Then URL includes "/FiatTokenProxy/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
   * User clicks on the "button" element with text "mint(address _to,uint256 _amount)"
   * User types "0x0000000000000000000000000000000000000000" for "_to" function param
   * User types "1" for "_amount" function param
