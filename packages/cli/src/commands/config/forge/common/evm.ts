@@ -25,22 +25,27 @@ export const forgeEvmOptions: ForgeEVMOption[] = [
   {
     flags: '--forge.v',
     description: 'Verbosity of the EVM. First level of verbosity.',
+    alias: '-v',
   },
   {
     flags: '--forge.vv',
     description: 'Verbosity of the EVM. Print logs for all tests.',
+    alias: '-vv',
   },
   {
     flags: '--forge.vvv',
     description: 'Verbosity of the EVM. Print execution traces for failing tests.',
+    alias: '-vvv',
   },
   {
     flags: '--forge.vvvv',
     description: 'Verbosity of the EVM. Print execution traces for all tests, and setup traces for failing tests',
+    alias: '-vvvv',
   },
   {
     flags: '--forge.vvvvv',
     description: 'Verbosity of the EVM. Print execution and setup traces for all tests',
+    alias: '-vvvvv',
   },
   {
     flags: '--forge.sender <address>',

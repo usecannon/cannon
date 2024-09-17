@@ -123,7 +123,6 @@ export async function build({
   }
 
   const chainId = await provider.getChainId();
-
   const chainInfo = getChainById(chainId);
   const chainName = chainInfo?.name || 'unknown chain';
   const nativeCurrencySymbol = chainInfo?.nativeCurrency.symbol || 'ETH';

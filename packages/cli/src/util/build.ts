@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { CANNON_CHAIN_ID, CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
+import { CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
 import Debug from 'debug';
 import * as viem from 'viem';
 import { PackageSpecification } from '../types';
@@ -11,7 +11,7 @@ import { CliSettings, resolveCliSettings } from '../settings';
 import { execPromise, filterSettings, loadCannonfile } from '../helpers';
 import { warn } from './console';
 import { parseSettings } from './params';
-import { pickAnvilOptions } from './anvil';
+import { pickAnvilOptions } from './foundry-options';
 import { setDebugLevel } from './debug-level';
 import { ProviderAction, resolveProvider, isURL, getChainIdFromRpcUrl } from './provider';
 
@@ -119,10 +119,6 @@ async function configureProvider(options: any, cliSettings: CliSettings) {
     });
     provider = _provider.provider as any;
     signers = _provider.signers;
-  }
-
-  if (options.dryRun && options.chainId === CANNON_CHAIN_ID) {
-    throw new Error('Cannot perform a dry-run build on local network');
   }
 
   if (options.dryRun) {

@@ -2,6 +2,7 @@ export type Option = {
   flags: string;
   description: string;
   defaultValue?: string | boolean | string[];
+  alias?: string;
 };
 
 type Argument = {

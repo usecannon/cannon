@@ -4,7 +4,7 @@ import { forgeBuildOptions } from './forge/build';
 import { forgeTestOptions } from './forge/test';
 import { anvilOptions, anviloptionsWithFork } from './anvil';
 
-import { ANVIL_FIRST_ADDRESS, ANVIL_PORT_DEFAULT_VALUE } from '../../constants';
+import { ANVIL_CHAIN_ID_DEFAULT_VALUE, ANVIL_FIRST_ADDRESS, ANVIL_PORT_DEFAULT_VALUE } from '../../constants';
 
 export const commandsConfig: CommandsConfig = {
   run: {
@@ -28,6 +28,7 @@ export const commandsConfig: CommandsConfig = {
       {
         flags: '-c --chain-id <chainId>',
         description: 'Chain Id of the deployment you are running [default: 13370]',
+        defaultValue: ANVIL_CHAIN_ID_DEFAULT_VALUE,
       },
       {
         flags: '--port <number>',
@@ -80,7 +81,7 @@ export const commandsConfig: CommandsConfig = {
     anvilOptions: anviloptionsWithFork,
   },
   build: {
-    description: 'Build a package from a Cannonfile',
+    description: 'Build a package from a Cannonfile.',
     arguments: [
       {
         flags: '[cannonfile]',
@@ -104,6 +105,7 @@ export const commandsConfig: CommandsConfig = {
       {
         flags: '-c --chain-id <number>',
         description: 'The chain id to run against',
+        defaultValue: ANVIL_CHAIN_ID_DEFAULT_VALUE,
       },
       {
         flags: '--port <number>',
@@ -705,17 +707,13 @@ export const commandsConfig: CommandsConfig = {
     ],
   },
   test: {
-    description: 'Run forge tests on a cannon deployment. To pass arguments through to `forge test`, use `--`.',
-    usage: '[cannonfile] [-- forge options...]',
+    description: 'Run forge tests on a cannon deployment.',
+    usage: '[cannonfile]',
     arguments: [
       {
         flags: '[cannonfile]',
         description: 'Path to a cannonfile',
         defaultValue: 'cannonfile.toml',
-      },
-      {
-        flags: '[forge options...]',
-        description: 'Additional options to send to forge',
       },
     ],
     options: [
@@ -730,6 +728,7 @@ export const commandsConfig: CommandsConfig = {
       {
         flags: '-c --chain-id',
         description: 'Chain ID to connect to and run fork tests with',
+        defaultValue: ANVIL_CHAIN_ID_DEFAULT_VALUE,
       },
       {
         flags: '-p --preset <preset>',
@@ -768,6 +767,7 @@ export const commandsConfig: CommandsConfig = {
       {
         flags: '-c --chain-id <chainId>',
         description: 'Chain ID of deployment to interact with ',
+        defaultValue: ANVIL_CHAIN_ID_DEFAULT_VALUE,
       },
       {
         flags: '-n --rpc-url [url]',
