@@ -65,6 +65,10 @@ export type AnvilOptions = {
    */
   noStorageCaching?: boolean | undefined;
   /**
+   * Disables request size limit
+   */
+  noRequestSizeLimit?: boolean | undefined;
+  /**
    * Number of retry requests for spurious networks (timed out requests).
    *
    * @defaultValue 5
