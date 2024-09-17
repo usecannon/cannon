@@ -77,13 +77,14 @@ Scenario: Decoding failed functions
   * User types "0x0000000000000000000000000000000000000000" for "_to" function param
   * User types "1" for "_amount" function param
   * User clicks on the "button" element with text "Simulate transaction"
-  Then View renders a "div" displaying the text "The contract function "mint" reverted with the following reason: FiatToken: caller is not a minter"
+  Then View renders a "div" displaying the text "FiatToken: caller is not a minter"
 
   # Simulating a failed EIP7412 contract call
   Given User opens the "/packages/pyth-erc7412-wrapper/latest/11155111-main/interact" page
   * Wallet is connected
   Then URL includes "/pyth-erc7412-wrapper/PythERC7412Wrapper/0x08C1F629Ec5935F95Ef3e614dF5B94086528C25c"
   * User clicks on the "button" element with text "getLatestPrice(bytes32 priceId,uint256 stalenessTolerance)"
-  * User types "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43" for "bytes32" function param
+  * User types "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43" for "priceId" function param
+  * User types "1" for "stalenessTolerance" function param
   * User clicks on the "button" element with text "Call view function"
-  Then View renders a "div" displaying the text "The contract function "getLatestPrice" reverted. Error: OracleDataRequired(address oracleContract, bytes oracleQuery)" 
+  Then View renders a "div" displaying the text "Error: OracleDataRequired(address oracleContract, bytes oracleQuery)" 
