@@ -1,11 +1,14 @@
 import Debug from 'debug';
+import * as viem from 'viem';
 import _ from 'lodash';
 import { createInitialContext, getArtifacts } from './builder';
 import { ChainDefinition } from './definition';
-import { CannonStorage } from './runtime';
+import { CannonStorage, ChainBuilderRuntime } from './runtime';
+import { CannonRegistry } from './registry';
 import { BundledOutput, ChainArtifacts, DeploymentInfo, StepState } from './types';
 
 import { PackageReference } from './package-reference';
+import { storeRead, storeWrite } from './utils/onchain-store';
 
 const debug = Debug('cannon:builder:package');
 
@@ -82,7 +85,8 @@ export async function pinIpfs(
   fromStorage: CannonStorage,
   toStorage: CannonStorage,
   alreadyCopiedIpfs: Map<string, any>,
-  tags: Array<string>
+  tags: Array<string>,
+  chainId = 0
 ) {
   const checkKeyPreset = deployInfo.def.preset || context?.preset || 'main';
 
@@ -94,7 +98,7 @@ export async function pinIpfs(
 
   const def = new ChainDefinition(deployInfo.def);
 
-  const pkgChainId = deployInfo.chainId!;
+  const pkgChainId = deployInfo.chainId || chainId;
 
   const preCtx = await createInitialContext(def, deployInfo.meta, pkgChainId, deployInfo.options);
 
@@ -180,7 +184,7 @@ export async function preparePublishPackage({
 
   // this internal function will copy one package's ipfs records and return a publish call, without recursing
   const pinPackagesToIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
-    return await pinIpfs(deployInfo, context, fromStorage, toStorage, alreadyCopiedIpfs, tags);
+    return await pinIpfs(deployInfo, context, fromStorage, toStorage, alreadyCopiedIpfs, tags, chainId);
   };
 
   const deployData = await fromStorage.readDeploy(packageReference.fullPackageRef, chainId);
@@ -220,4 +224,54 @@ export async function publishPackage({
   });
 
   return toStorage.registry.publishMany(calls);
+}
+
+export async function findUpgradeFromPackage(
+  registry: CannonRegistry,
+  provider: viem.PublicClient,
+  packageReference: PackageReference,
+  chainId: number,
+  deployers: viem.Address[]
+) {
+  debug('find upgrade from onchain store');
+  let oldDeployHash: string | null = null;
+  let oldDelpoyTimestamp = 0;
+
+  await Promise.all(
+    deployers.map(async (addr) => {
+      try {
+        const [deployTimestamp, deployHash] = (
+          await storeRead(
+            provider,
+            addr,
+            viem.keccak256(viem.stringToBytes(`${packageReference.name}@${packageReference.preset}`))
+          )
+        ).split('_');
+
+        if (deployTimestamp && Number(deployTimestamp) > oldDelpoyTimestamp) {
+          oldDeployHash = deployHash;
+          oldDelpoyTimestamp = Number(deployTimestamp);
+        }
+      } catch (err) {
+        debug('failure while trying to read from onchain store', err);
+      }
+    })
+  );
+
+  if (!oldDeployHash) {
+    debug('fallback: find upgrade from with registry');
+    // fallback to the registry with the same package name
+    oldDeployHash = await registry.getUrl(packageReference.fullPackageRef, chainId);
+  }
+
+  return oldDeployHash;
+}
+
+export async function writeUpgradeFromInfo(runtime: ChainBuilderRuntime, packageRef: PackageReference, deployUrl: string) {
+  return await storeWrite(
+    runtime.provider,
+    await runtime.getDefaultSigner({}),
+    viem.keccak256(viem.stringToBytes(`${packageRef.name}@${packageRef.preset}`)),
+    `${Math.floor(Date.now() / 1000)}_${deployUrl}`
+  );
 }

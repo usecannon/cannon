@@ -218,11 +218,12 @@ export async function loadCannonfile(filepath: string) {
   const def = new ChainDefinition(rawDef, true);
   const pkg = loadPackageJson(path.join(path.dirname(path.resolve(filepath)), 'package.json'));
 
+  // TODO: there should be a helper in the builder to create the initial ctx
   const ctx: ChainBuilderContext = {
     package: pkg,
     chainId: CANNON_CHAIN_ID,
     settings: {},
-    timestamp: '0',
+    timestamp: 0,
 
     contracts: {},
     txns: {},

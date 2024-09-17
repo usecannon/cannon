@@ -14,6 +14,8 @@ import {
   getOutputs,
   PackageReference,
   traceActions,
+  findUpgradeFromPackage,
+  writeUpgradeFromInfo,
 } from '@usecannon/builder';
 import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
 import fs from 'fs-extra';
@@ -29,7 +31,7 @@ import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
-import { log, warn } from '../util/console';
+import { log, warn, error } from '../util/console';
 import { hideApiKey } from '../util/provider';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
 
@@ -168,8 +170,25 @@ export async function build({
   const dump = writeScript ? await createWriteScript(runtime, writeScript, writeScriptFormat) : null;
 
   log(bold('Checking for existing package...'));
-  const prevPkg = upgradeFrom || fullPackageRef;
-  let oldDeployData: DeploymentInfo | null = await runtime.readDeploy(prevPkg, runtime.chainId);
+  let oldDeployData: DeploymentInfo | null = null;
+  if (upgradeFrom) {
+    oldDeployData = await runtime.readDeploy(upgradeFrom, runtime.chainId);
+    if (!oldDeployData) {
+      throw new Error(`Deployment ${upgradeFrom} (${chainId}) not found`);
+    }
+  } else if (def) {
+    const oldDeployHash = await findUpgradeFromPackage(
+      runtime.registry,
+      runtime.provider,
+      packageReference,
+      runtime.chainId,
+      def.getDeployers()
+    );
+    if (oldDeployHash) {
+      log(green(bold('Found deployment state via on-chain store', oldDeployHash)));
+      oldDeployData = (await runtime.readBlob(oldDeployHash)) as DeploymentInfo;
+    }
+  }
 
   // Update pkgInfo (package.json) with information from existing package, if present
   if (oldDeployData) {
@@ -182,11 +201,7 @@ export async function build({
       }
     }
   } else {
-    if (upgradeFrom) {
-      throw new Error(`  ${prevPkg} (Chain ID: ${chainId}) not found`);
-    } else {
-      log(gray(`  ${prevPkg} (Chain ID: ${chainId}) not found`));
-    }
+    log(gray('Starting fresh build...'));
   }
 
   const resolvedSettings = _.pickBy(_.assign((!wipe && oldDeployData?.options) || {}, packageDefinition.settings));
@@ -414,17 +429,19 @@ export async function build({
   chainDef.version = pkgVersion;
 
   if (miscUrl) {
-    const deployUrl = await runtime.putDeploy({
+    const deployUrl = (await runtime.putDeploy({
       generator: `cannon cli ${pkg.version}`,
       timestamp: Math.floor(Date.now() / 1000),
       def: chainDef,
       state: newState,
+      seq: oldDeployData?.seq ? oldDeployData.seq + 1 : 1,
+      track: oldDeployData?.track || Math.random().toString(36).substring(2, 15),
       options: resolvedSettings,
       status: partialDeploy ? 'partial' : 'complete',
       meta: pkgInfo,
       miscUrl: miscUrl,
       chainId: runtime.chainId,
-    });
+    })) as string;
 
     const metadataCache: { [key: string]: string } = {};
 
@@ -439,10 +456,32 @@ export async function build({
 
     const metaUrl = await runtime.putBlob(metadata);
 
+    // write upgrade-from info on-chain
+    if (stepsExecuted && persist) {
+      for (let i = 0; i < 3; i++) {
+        try {
+          log(gray('Writing upgrade info...'));
+          await writeUpgradeFromInfo(runtime, packageReference, deployUrl);
+          break;
+        } catch (err) {
+          error(err);
+          error(red(`Failed to write upgrade record to on-chain state. Try ${i + 1}/3`));
+          if (i === 2) {
+            error(
+              red(
+                bold(
+                  `Failed to write state on-chain. The next time you upgrade your package, you should include the option --upgrade-from ${deployUrl}.`
+                )
+              )
+            );
+          }
+        }
+      }
+    }
+
     await resolver.publish([fullPackageRef, `${name}:latest@${preset}`], runtime.chainId, deployUrl!, metaUrl!);
 
     // detach the process handler
-
     process.off('SIGINT', handler);
     process.off('SIGTERM', handler);
     process.off('SIGQUIT', handler);
