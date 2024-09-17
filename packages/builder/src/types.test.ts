@@ -75,7 +75,7 @@ describe('types.ts', () => {
           },
         },
         {
-          timestamp: '0',
+          timestamp: 0,
           chainId: 0,
           package: {},
           overrideSettings: {},
