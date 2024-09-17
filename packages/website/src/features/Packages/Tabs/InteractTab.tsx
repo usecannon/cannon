@@ -21,6 +21,7 @@ import { useRouter } from 'next/router';
 import { usePackageVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { usePackageByRef } from '@/hooks/api/usePackage';
+import SearchInput from '@/components/SearchInput';
 
 type Option = {
   moduleName: string;
@@ -64,6 +65,7 @@ export const InteractTab: FC<{
   const [otherOptions, setOtherOptions] = useState<Option[]>([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [routing, setRouting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     packagesQuery?.data?.deployUrl,
     !!packagesQuery?.data?.deployUrl
@@ -320,46 +322,59 @@ export const InteractTab: FC<{
                       borderColor="gray.700"
                     >
                       <PopoverBody p={0}>
-                        {otherOptions.map((option, i) => (
-                          <Box
-                            key={i}
-                            cursor={'pointer'}
-                            textAlign="left"
-                            p={2}
-                            background={
-                              isActiveContract(option)
-                                ? 'gray.800'
-                                : 'transparent'
-                            }
-                            _hover={{
-                              background: 'gray.800',
-                            }}
-                            borderBottom="1px solid"
-                            borderColor="gray.700"
-                            onClick={async () => {
-                              setIsPopoverOpen(false);
-                              await selectContract(option);
-                            }}
-                          >
-                            <Text
-                              fontSize="xs"
-                              display="block"
-                              fontWeight="normal"
-                              color="gray.400"
-                              mb="1px"
-                            >
-                              {option.moduleName}
-                            </Text>
-                            <Heading
-                              fontWeight="500"
-                              size="sm"
-                              color="gray.200"
-                              letterSpacing="0.1px"
-                            >
-                              {option.contractName}
-                            </Heading>
+                        {otherOptions.length > 5 && (
+                          <Box mt={4} mx={4} minWidth={300}>
+                            <SearchInput onSearchChange={setSearchTerm} />
                           </Box>
-                        ))}
+                        )}
+                        {otherOptions
+                          .filter((o) =>
+                            searchTerm
+                              ? o.contractName
+                                  .toLowerCase()
+                                  .includes(searchTerm)
+                              : true
+                          )
+                          .map((option, i) => (
+                            <Box
+                              key={i}
+                              cursor={'pointer'}
+                              textAlign="left"
+                              p={2}
+                              background={
+                                isActiveContract(option)
+                                  ? 'gray.800'
+                                  : 'transparent'
+                              }
+                              _hover={{
+                                background: 'gray.800',
+                              }}
+                              borderBottom="1px solid"
+                              borderColor="gray.700"
+                              onClick={async () => {
+                                setIsPopoverOpen(false);
+                                await selectContract(option);
+                              }}
+                            >
+                              <Text
+                                fontSize="xs"
+                                display="block"
+                                fontWeight="normal"
+                                color="gray.400"
+                                mb="1px"
+                              >
+                                {option.moduleName}
+                              </Text>
+                              <Heading
+                                fontWeight="500"
+                                size="sm"
+                                color="gray.200"
+                                letterSpacing="0.1px"
+                              >
+                                {option.contractName}
+                              </Heading>
+                            </Box>
+                          ))}
                       </PopoverBody>
                     </PopoverContent>
                   </Portal>

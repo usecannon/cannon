@@ -108,6 +108,7 @@ describe('steps/pull.ts', () => {
         } as any,
         meta: {},
         miscUrl: 'https://something.com',
+        chainId: 1234,
       });
 
       await expect(() =>
@@ -159,6 +160,7 @@ describe('steps/pull.ts', () => {
         } as any,
         meta: {},
         miscUrl: 'https://something.com',
+        chainId: 1234,
       });
 
       await expect(() =>
@@ -208,6 +210,7 @@ describe('steps/pull.ts', () => {
         } as any,
         meta: {},
         miscUrl: 'https://something.com',
+        chainId: 1234,
       });
 
       const result = await action.exec(
