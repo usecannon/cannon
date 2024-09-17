@@ -46,7 +46,7 @@ export async function loadCannonfile(repo: string, ref: string, filepath: string
     package: {},
     chainId: CANNON_CHAIN_ID,
     settings: {},
-    timestamp: '0',
+    timestamp: 0,
     contracts: {},
     txns: {},
     imports: {},

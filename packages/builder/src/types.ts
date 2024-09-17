@@ -72,7 +72,7 @@ export interface PreChainBuilderContext {
 
   package: any;
 
-  timestamp: string;
+  timestamp: number;
 
   overrideSettings: { [label: string]: string };
 }
@@ -309,7 +309,7 @@ export type DeploymentState = { [label: string]: StepState };
 export function combineCtx(ctxs: ChainBuilderContext[]): ChainBuilderContext {
   const ctx = _.clone(ctxs[0]);
 
-  ctx.timestamp = Math.floor(Date.now() / 1000).toString(); //(await this.provider.getBlock(await this.provider.getBlockNumber())).timestamp.toString();
+  ctx.timestamp = Math.floor(Date.now() / 1000);
 
   // merge all blockchain outputs
   for (const additionalCtx of ctxs.slice(1)) {
