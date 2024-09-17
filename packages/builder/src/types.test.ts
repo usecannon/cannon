@@ -109,7 +109,7 @@ describe('types.ts', () => {
 
       const combinedCtx = combineCtx(ctxs);
 
-      expect(combinedCtx.timestamp).toEqual(Math.floor(CUR_TIME / 1000).toString());
+      expect(combinedCtx.timestamp).toEqual(Math.floor(CUR_TIME / 1000));
       expect(Object.keys(combinedCtx.contracts)).toEqual(expect.arrayContaining(['fake', 'fake2', 'faker', 'faker2']));
       expect(Object.keys(combinedCtx.txns)).toEqual(expect.arrayContaining(['fake']));
       expect(Object.keys(combinedCtx.settings)).toEqual(expect.arrayContaining(['fake']));
