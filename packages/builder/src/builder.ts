@@ -24,7 +24,7 @@ export async function createInitialContext(
 ): Promise<ChainBuilderContext> {
   const preCtx: PreChainBuilderContext = {
     package: pkg,
-    timestamp: Math.floor(Date.now() / 1000).toString(),
+    timestamp: Math.floor(Date.now() / 1000),
     chainId,
     overrideSettings: opts,
   };

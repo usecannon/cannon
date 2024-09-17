@@ -17,7 +17,7 @@ describe('types.ts', () => {
     it('combines context array', () => {
       const ctxs: ChainBuilderContext[] = [
         {
-          timestamp: '0',
+          timestamp: 0,
           chainId: 0,
           package: {},
           overrideSettings: {
@@ -63,7 +63,7 @@ describe('types.ts', () => {
           settings: {},
         },
         {
-          timestamp: '0',
+          timestamp: 0,
           chainId: 0,
           package: {},
           overrideSettings: {},
