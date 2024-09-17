@@ -367,12 +367,12 @@ export function getArtifacts(def: ChainDefinition, state: DeploymentState) {
 }
 
 export async function getOutputs(
-  runtime: ChainBuilderRuntime,
+  runtime: ChainBuilderRuntime | null,
   def: ChainDefinition,
   state: DeploymentState
 ): Promise<ChainArtifacts> {
   const artifacts = getArtifacts(def, state);
-  if (runtime.snapshots) {
+  if (runtime?.snapshots) {
     // need to load state as well. the states that we want to load are the "leaf" layers
     const layers = _.uniq(Object.values(def.getStateLayers()));
 

@@ -1,4 +1,7 @@
-import { loop as registryLoop } from './registry';
 export * from './db';
 
-void registryLoop();
+import(`./${process.argv[2]}`)
+  .then((m) => void m.loop())
+  .catch((e) => {
+    throw e;
+  });

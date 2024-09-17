@@ -1,6 +1,8 @@
 import { createClient } from 'redis';
 import { config } from './config';
 
+export { commandOptions } from 'redis';
+
 export type ActualRedisClientType = ReturnType<typeof createClient>;
 
 export async function useRedis(): Promise<ActualRedisClientType> {

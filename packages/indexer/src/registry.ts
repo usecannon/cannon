@@ -467,6 +467,13 @@ export async function scanChain(
           const feePaid = event.args.feePaid || 0n;
 
           const batch = redis.multi();
+
+          // add an event sourcable record to the index
+          batch.xAdd(`${rkey.RKEY_REGISTRY_STREAM}:${event.chainId}`, `${event.timestamp * 1000}-*`, {
+            event: 'PackagePublish',
+            ..._.mapValues(event.args, (v) => v.toString()),
+          });
+
           switch (event.eventName) {
             case 'PackagePublish':
             case 'PackagePublishWithFee':
@@ -581,6 +588,7 @@ export async function scanChain(
 
       await redis.set(rkey.RKEY_LAST_IDX + ':' + 1, mainnetScan.scanToBlock);
       await redis.set(rkey.RKEY_LAST_IDX + ':' + 10, optimismScan.scanToBlock);
+      await redis.set(rkey.RKEY_START_SYNC, Math.floor(Date.now() / 1000), { NX: true });
       consecutiveFailures = 0;
     } catch (err) {
       console.error('failure while scanning cannon publishes:', err);

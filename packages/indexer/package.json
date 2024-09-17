@@ -18,6 +18,7 @@
   "dependencies": {
     "@usecannon/builder": "workspace:*",
     "@usecannon/cli": "workspace:*",
+    "axios": "^1.7.7",
     "dotenv": "^16.4.5",
     "envalid": "^8.0.0",
     "lodash": "^4.17.21",
