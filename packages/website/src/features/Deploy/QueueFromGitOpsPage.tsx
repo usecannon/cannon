@@ -175,7 +175,7 @@ function QueueFromGitOps() {
   const ctx: ChainBuilderContext = {
     chainId: 0,
     package: {},
-    timestamp: '0',
+    timestamp: 0,
     settings: {},
     contracts: {},
     txns: {},
