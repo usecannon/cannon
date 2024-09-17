@@ -12,7 +12,17 @@ import {
   TransactionMap,
 } from '@usecannon/builder';
 import _ from 'lodash';
-import { Address, decodeAbiParameters, decodeFunctionData, Hex, parseAbiParameters, zeroAddress } from 'viem';
+import {
+  Address,
+  decodeAbiParameters,
+  decodeFunctionData,
+  Hex,
+  parseAbiParameters,
+  isAddressEqual,
+  zeroAddress,
+} from 'viem';
+
+import * as onChainStore from '@/helpers/onchain-store';
 
 export type CannonTransaction = TransactionMap[keyof TransactionMap];
 
@@ -146,7 +156,7 @@ export function parseHintedMulticall(data: Hex): {
   let txns: { to: Address; data: Hex; value: bigint }[] = [];
   if (decoded?.args?.length) {
     txns = (decoded.args[0] as any[])
-      .slice(type === 'deploy' ? 3 : 1)
+      .filter((txn) => !isAddressEqual(txn.target, zeroAddress) && !isAddressEqual(txn.target, onChainStore.deployAddress))
       .map((txn) => ({ to: txn.target, data: txn.callData, value: txn.value }));
   }
 

@@ -78,7 +78,8 @@ describe('alter', () => {
       miscUrl: 'file:/usecannon.com/misc',
       meta: {},
       options: {},
-    };
+      chainId,
+    } satisfies DeploymentInfo;
     jest.spyOn(mockedFallBackRegistry, 'publish').mockResolvedValue([]);
     jest.spyOn(mockedFallBackRegistry, 'getMetaUrl').mockResolvedValue(metaUrl);
     jest.spyOn(CannonStorage.prototype, 'readDeploy').mockResolvedValue(testPkgData);

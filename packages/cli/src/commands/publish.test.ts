@@ -45,6 +45,7 @@ describe('publish command', () => {
     miscUrl: 'file://usecannon.com/misc',
     meta: { itsMeta: 'data' },
     options: {},
+    chainId,
   };
 
   const testPkgDataIpfsUrl = 'ipfs://test-ipfs-url';

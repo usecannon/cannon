@@ -123,7 +123,7 @@ ${printChainDefinitionProblems(problems)}`);
           runtime.updateProviderArtifacts(state[n].artifacts);
         }
 
-        runtime.reportOperatingContext(ctx);
+        runtime.reportOperatingContext(n, ctx);
 
         try {
           const curHashes = await def.getState(n, runtime, ctx, depsTainted);
@@ -174,7 +174,7 @@ ${printChainDefinitionProblems(problems)}`);
     throw err;
   }
 
-  runtime.reportOperatingContext(null);
+  runtime.reportOperatingContext(null, null);
 
   return state;
 }
@@ -235,7 +235,7 @@ export async function buildLayer(
       addOutputsToContext(ctx, state[action].artifacts);
     }
 
-    runtime.reportOperatingContext(ctx);
+    runtime.reportOperatingContext(action, ctx);
 
     try {
       const curHashes = await def.getState(action, runtime, ctx, false);

@@ -2,7 +2,7 @@ name: Upload Website to IPFS
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, alpha, dev]
 
 jobs:
   upload-ipfs:
