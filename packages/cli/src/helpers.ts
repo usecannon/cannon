@@ -323,7 +323,7 @@ export async function ensureChainIdConsistency(rpcUrl?: string, chainId?: number
               '--chain-id'
             )} value (${chainId}). Please ensure that the ${bold(
               '--chain-id'
-            )} value matches the network your provider is connected to.`
+            )} value matches the network your RPC is connected to.`
           )
         );
 
