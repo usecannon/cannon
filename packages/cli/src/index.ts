@@ -13,7 +13,7 @@ import {
   PackageReference,
   traceActions,
 } from '@usecannon/builder';
-import { bold, gray, green, red, yellow } from 'chalk';
+import { bold, gray, green, red, yellow, yellowBright } from 'chalk';
 import { Command } from 'commander';
 import _ from 'lodash';
 import prompts from 'prompts';
@@ -646,11 +646,23 @@ applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(asy
   });
 });
 
-applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, options) {
+applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOptions, options) {
   const cliSettings = resolveCliSettings(options);
 
   if (cliSettings.rpcUrl.startsWith('https')) {
     options.dryRun = true;
+  }
+
+  if (forgeOptions.length) {
+    log();
+    warn(
+      yellowBright(
+        bold(
+          '⚠️  The `--` syntax for passing options to forge or anvil is deprecated. Please use `--forge.*` or `--anvil.*` instead.'
+        )
+      )
+    );
+    log();
   }
 
   // throw an error if the chainId is not consistent with the provider's chainId
@@ -668,7 +680,7 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
 
   const forgeTestArgs = fromFoundryOptionsToArgs(pickedOptions, forgeTestOptions);
 
-  const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeTestArgs], {
+  const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeTestArgs, ...forgeOptions], {
     stdio: 'inherit',
   });
 

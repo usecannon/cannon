@@ -705,13 +705,17 @@ export const commandsConfig: CommandsConfig = {
     ],
   },
   test: {
-    description: 'Run forge tests on a cannon deployment.',
+    description: 'Run forge tests on a cannon deployment. To pass arguments through to `forge test`, use `--`.',
     usage: '[cannonfile]',
     arguments: [
       {
         flags: '[cannonfile]',
         description: 'Path to a cannonfile',
         defaultValue: 'cannonfile.toml',
+      },
+      {
+        flags: '[forge options...]',
+        description: 'Additional options to send to forge',
       },
     ],
     options: [
