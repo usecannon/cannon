@@ -87,4 +87,4 @@ Scenario: Decoding failed functions
   * User types "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43" for "priceId" function param
   * User types "1" for "stalenessTolerance" function param
   * User clicks on the "button" element with text "Call view function"
-  Then View renders a "div" displaying the text "Error: OracleDataRequired(address oracleContract, bytes oracleQuery)" 
+  Then View renders a "div" displaying the text "Error: OracleDataRequired(address oracleContract, bytes oracleQuery)"
