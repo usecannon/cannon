@@ -3,6 +3,7 @@ import { FunctionInput } from '@/features/Packages/FunctionInput';
 import { FunctionOutput } from '@/features/Packages/FunctionOutput';
 import { useQueueTxsStore, useStore } from '@/helpers/store';
 import { useContractCall, useContractTransaction } from '@/hooks/ethereum';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import {
   CheckCircleIcon,
   ChevronDownIcon,
@@ -30,10 +31,11 @@ import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
 import { Abi, AbiFunction } from 'abitype';
 import { useRouter } from 'next/router';
-import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
+import React, { FC, useEffect, useRef, useState } from 'react';
 import { FaCode } from 'react-icons/fa6';
 import {
   Address,
+  createPublicClient,
   encodeFunctionData,
   parseEther,
   toFunctionSelector,
@@ -41,12 +43,30 @@ import {
   TransactionRequestBase,
   zeroAddress,
 } from 'viem';
-import {
-  useAccount,
-  usePublicClient,
-  useSwitchChain,
-  useWalletClient,
-} from 'wagmi';
+import { useAccount, useSwitchChain, useWalletClient } from 'wagmi';
+
+const extractError = (e: any): string => {
+  return typeof e === 'string'
+    ? e
+    : e?.cause?.message || e?.message || e?.error?.message || e?.error || e;
+};
+
+const _isReadOnly = (abiFunction: AbiFunction) =>
+  abiFunction.stateMutability === 'view' ||
+  abiFunction.stateMutability === 'pure';
+
+const _isPayable = (abiFunction: AbiFunction) =>
+  abiFunction.stateMutability === 'payable';
+
+const StatusIcon = ({ error }: { error: boolean }) => (
+  <Box display="inline-block" ml={2}>
+    {error ? (
+      <WarningIcon color="red.700" />
+    ) : (
+      <CheckCircleIcon color="green.500" />
+    )}
+  </Box>
+);
 
 export const Function: FC<{
   selected?: boolean;
@@ -77,12 +97,23 @@ export const Function: FC<{
   const { asPath: pathname } = useRouter();
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
-  const [error, setError] = useState<any>(null);
+  const [methodCallOrQueuedResult, setMethodCallOrQueuedResult] = useState<{
+    value: unknown;
+    error: string | null;
+  } | null>(null);
+  const [hasExpandedSelected, setHasExpandedSelected] = useState(false);
 
   // TODO: don't know why, had to use a ref instead of an array to be able to
   // keep the correct reference.
   const sadParams = useRef(new Array(f.inputs.length).fill(undefined));
   const [params, setParams] = useState<any[] | any>([...sadParams.current]);
+
+  const { getChainById, transports } = useCannonChains();
+  const chain = getChainById(chainId);
+  const publicClient = createPublicClient({
+    chain,
+    transport: transports[chainId],
+  });
 
   const setParam = (index: number, value: any) => {
     sadParams.current[index] = value;
@@ -114,103 +145,85 @@ export const Function: FC<{
 
   const { isConnected, address: from, chain: connectedChain } = useAccount();
   const { openConnectModal } = useConnectModal();
-  const publicClient = usePublicClient({
-    chainId: chainId as number,
-  })!;
+
   const { switchChain } = useSwitchChain();
   const { data: walletClient } = useWalletClient({
     chainId: chainId as number,
   })!;
 
-  const [readContractResult, fetchReadContractResult] = useContractCall(
+  const fetchReadContractResult = useContractCall(
     address,
     f.name,
     [...params],
     abi,
-    publicClient as any // TODO: fix type
+    publicClient
   );
 
-  const [writeContractResult, fetchWriteContractResult] =
-    useContractTransaction(
-      from as Address,
-      address as Address,
-      f.name,
-      [...params],
-      abi,
-      publicClient as any, // TODO: fix type
-      walletClient as any
-    );
-
-  const readOnly = useMemo(
-    () => f.stateMutability == 'view' || f.stateMutability == 'pure',
-    [f.stateMutability]
+  const fetchWriteContractResult = useContractTransaction(
+    from as Address,
+    address as Address,
+    f.name,
+    [...params],
+    abi,
+    publicClient,
+    walletClient as any
   );
 
-  const isPayable = useMemo(
-    () => f.stateMutability == 'payable',
-    [f.stateMutability]
-  );
+  const isFunctionReadOnly = _isReadOnly(f);
+  const isFunctionPayable = _isPayable(f);
 
-  const result = useMemo(
-    () =>
-      readOnly
-        ? readContractResult
-        : simulated
-        ? readContractResult
-        : writeContractResult,
-    [readOnly, simulated, readContractResult, writeContractResult]
-  );
-
-  const submit = async (suppressError = false, simulate = false) => {
+  const submit = async ({ simulate = false }: { simulate?: boolean } = {}) => {
     setLoading(true);
-    setError(null);
+    setMethodCallOrQueuedResult(null);
     setSimulated(simulate);
 
     try {
-      if (readOnly) {
-        await fetchReadContractResult(zeroAddress);
+      if (isFunctionReadOnly) {
+        await handleReadFunction();
       } else {
-        if (!isConnected) {
-          if (openConnectModal) openConnectModal();
-          return;
-        }
-
-        if (connectedChain?.id != chainId) {
-          await switchChain({ chainId: chainId });
-        }
-
-        if (simulate) {
-          await fetchReadContractResult(from);
-        } else {
-          await fetchWriteContractResult();
-        }
-      }
-    } catch (e: any) {
-      if (!suppressError) {
-        setError(
-          typeof e === 'string'
-            ? e
-            : e?.cause?.message ||
-                e?.message ||
-                e?.error?.message ||
-                e?.error ||
-                e
-        );
+        await handleWriteFunction(simulate);
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const statusIcon = result ? (
-    <Box display="inline-block" mx={1}>
-      {error ? (
-        <WarningIcon color="red.700" />
-      ) : (
-        <CheckCircleIcon color="green.500" />
-      )}
-    </Box>
-  ) : null;
+  const handleReadFunction = async () => {
+    const result = await fetchReadContractResult(from ?? zeroAddress);
+    if (result.error) {
+      setMethodCallOrQueuedResult({
+        value: null,
+        error: extractError(result.error),
+      });
+    } else {
+      setMethodCallOrQueuedResult({ value: result.value, error: null });
+    }
+  };
+
+  const handleWriteFunction = async (simulate: boolean) => {
+    if (!isConnected) {
+      if (openConnectModal) openConnectModal();
+      return;
+    }
+
+    if (connectedChain?.id !== chainId) {
+      await switchChain({ chainId: chainId });
+    }
+
+    if (simulate) {
+      await handleReadFunction();
+    } else {
+      const result = await fetchWriteContractResult();
+      if (result.error) {
+        setMethodCallOrQueuedResult({
+          value: null,
+          error: extractError(result.error),
+        });
+      } else {
+        setMethodCallOrQueuedResult({ value: result.value, error: null });
+      }
+    }
+  };
 
   const anchor = `#selector-${toFunctionSelector(f)}`;
 
@@ -256,7 +269,7 @@ export const Function: FC<{
         to: address,
         data: toFunctionSelector(f),
         value:
-          isPayable && value !== undefined
+          isFunctionPayable && value !== undefined
             ? parseEther(value.toString())
             : undefined,
       };
@@ -269,12 +282,15 @@ export const Function: FC<{
             args: params,
           }),
           value:
-            isPayable && value !== undefined
+            isFunctionPayable && value !== undefined
               ? parseEther(value.toString())
               : undefined,
         };
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setMethodCallOrQueuedResult({
+          value: null,
+          error: extractError(err),
+        });
         return;
       }
     }
@@ -298,6 +314,7 @@ export const Function: FC<{
       ],
       safeId: `${currentSafe.chainId}:${currentSafe.address}`,
     });
+
     setLastQueuedTxnsId({
       lastQueuedTxnsId: lastQueuedTxnsId + 1,
       safeId: `${currentSafe.chainId}:${currentSafe.address}`,
@@ -388,7 +405,7 @@ export const Function: FC<{
               );
             })}
 
-            {isPayable && (
+            {isFunctionPayable && (
               <FormControl mb="4">
                 <FormLabel fontSize="sm" mb={1}>
                   Value
@@ -432,7 +449,7 @@ export const Function: FC<{
               </FormControl>
             )}
 
-            {readOnly && (
+            {isFunctionReadOnly && (
               <Button
                 isLoading={loading}
                 colorScheme="teal"
@@ -443,14 +460,14 @@ export const Function: FC<{
                 mr={3}
                 mb={3}
                 onClick={() => {
-                  void submit(false);
+                  void submit();
                 }}
               >
                 Call view function
               </Button>
             )}
 
-            {!readOnly && (
+            {!isFunctionReadOnly && (
               <>
                 <Button
                   isLoading={loading}
@@ -461,13 +478,16 @@ export const Function: FC<{
                   size="xs"
                   mr={3}
                   mb={3}
-                  onClick={() => {
-                    void submit(false, true);
-                  }}
+                  lineHeight="inherit"
+                  onClick={async () => await submit({ simulate: true })}
                 >
-                  Simulate transaction
+                  Simulate transaction{' '}
+                  {simulated && methodCallOrQueuedResult && (
+                    <StatusIcon
+                      error={Boolean(methodCallOrQueuedResult.error)}
+                    />
+                  )}
                 </Button>
-                {simulated && statusIcon}
                 <Button
                   isLoading={loading}
                   colorScheme="teal"
@@ -477,11 +497,15 @@ export const Function: FC<{
                   size="xs"
                   mr={3}
                   mb={3}
-                  onClick={() => {
-                    void submit(false);
-                  }}
+                  lineHeight="inherit"
+                  onClick={async () => await submit()}
                 >
-                  Submit using wallet {!simulated && statusIcon}
+                  Submit using wallet{' '}
+                  {!simulated && methodCallOrQueuedResult && (
+                    <StatusIcon
+                      error={Boolean(methodCallOrQueuedResult.error)}
+                    />
+                  )}
                 </Button>
                 <Button
                   id={`${f.name}-stage-to-safe`}
@@ -500,14 +524,16 @@ export const Function: FC<{
               </>
             )}
 
-            {error && (
+            {methodCallOrQueuedResult?.error && (
               <Alert overflowX="scroll" mt="2" status="error" bg="red.700">
                 {`${
-                  error.includes('Encoded error signature') &&
-                  error.includes('not found on ABI')
+                  methodCallOrQueuedResult.error.includes(
+                    'Encoded error signature'
+                  ) &&
+                  methodCallOrQueuedResult.error.includes('not found on ABI')
                     ? 'Error emitted during ERC-7412 orchestration: '
                     : ''
-                }${error}`}
+                }${methodCallOrQueuedResult.error}`}
               </Alert>
             )}
           </Box>
@@ -538,7 +564,7 @@ export const Function: FC<{
               <CustomSpinner m="auto" />
             ) : (
               <Box flex="1">
-                {f.outputs.length != 0 && result == null && (
+                {f.outputs.length != 0 && methodCallOrQueuedResult == null && (
                   <Flex
                     position="absolute"
                     zIndex={2}
@@ -554,14 +580,14 @@ export const Function: FC<{
                     textShadow="sm"
                     letterSpacing="0.1px"
                   >
-                    {readOnly
+                    {isFunctionReadOnly
                       ? 'Call the view function '
                       : 'Simulate the transaction '}
                     for output
                   </Flex>
                 )}
                 <FunctionOutput
-                  result={!error ? result : null}
+                  result={methodCallOrQueuedResult?.value || null}
                   output={f.outputs}
                 />
               </Box>
@@ -573,10 +599,11 @@ export const Function: FC<{
   );
 
   useEffect(() => {
-    if (selected && !isOpen) {
+    if (!hasExpandedSelected && selected && !isOpen) {
       onToggle();
+      setHasExpandedSelected(true);
     }
-  }, [selected]);
+  }, [selected, isOpen, onToggle, hasExpandedSelected]);
 
   return (
     <>
@@ -606,6 +633,9 @@ export const Function: FC<{
                 display="flex"
                 alignItems="center"
                 gap={2}
+                maxWidth="100%"
+                whiteSpace="normal"
+                wordBreak="break-word"
               >
                 {toFunctionSignature(f)}
                 <Link
