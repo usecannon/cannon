@@ -150,7 +150,7 @@ export const Abi: FC<{
     scrollSpy.update();
   }, []);
 
-  // Add a timeout before scrolling and marking as initialized
+  // Make the auto scroll after the page loads if the url has a selector
   useEffect(() => {
     if (scrollInitialized) return;
 
@@ -162,9 +162,8 @@ export const Abi: FC<{
       const timeoutId = setTimeout(() => {
         scroller.scrollTo(urlSelectorFromPath, scrollOptions);
         setScrollInitialized(true);
-      }, 100); // 100ms delay, adjust as needed
+      }, 100);
 
-      // Cleanup function to clear the timeout if the component unmounts
       return () => clearTimeout(timeoutId);
     }
   }, [
