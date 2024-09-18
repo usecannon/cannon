@@ -1,16 +1,16 @@
-import dynamic from 'next/dynamic';
 import { ReactElement } from 'react';
-
-import InteractLayout from '../../../../_layout';
-import ModuleLayout from '../../../_layout';
 import { NextSeo } from 'next-seo';
+import { useParams } from 'next/navigation';
+
 import defaultSEO from '@/constants/defaultSeo';
+import PageLoading from '@/components/PageLoading';
+import Interact from '@/features/Packages/Interact';
+import PackageNameTagVariantLayout from '@/pages/packages/[name]/[tag]/[variant]/_layout';
+import PackageInteractModuleLayout from '@/pages/packages/[name]/[tag]/[variant]/interact/_layout';
 
-const NoSSRInteract = dynamic(() => import('@/features/Packages/Interact'), {
-  ssr: false,
-});
+export default function InteractPage() {
+  const params = useParams();
 
-export default function Interact() {
   return (
     <>
       <NextSeo
@@ -23,14 +23,15 @@ export default function Interact() {
           description: 'Package',
         }}
       />
-      <NoSSRInteract />
+      {params == null ? <PageLoading /> : <Interact />}
     </>
   );
 }
-Interact.getLayout = function getLayout(page: ReactElement) {
+
+InteractPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <InteractLayout>
-      <ModuleLayout>{page}</ModuleLayout>
-    </InteractLayout>
+    <PackageNameTagVariantLayout>
+      <PackageInteractModuleLayout>{page}</PackageInteractModuleLayout>
+    </PackageNameTagVariantLayout>
   );
 };
