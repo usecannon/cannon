@@ -50,9 +50,9 @@
     "@usecannon/builder": "workspace:*",
     "@usecannon/cli": "workspace:*",
     "chalk": "^4.1.2",
-    "debug": "^4.3.6",
+    "debug": "^4.3.7",
     "fs-extra": "^11.2.0",
-    "viem": "^2.16.5"
+    "viem": "^2.21.9"
   },
   "gitHead": "81979336c4cfe5f1f8ee7677b2b968f886a20a87"
 }
