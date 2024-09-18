@@ -41,7 +41,6 @@ interface Params {
   packageDefinition: PackageSpecification;
   upgradeFrom?: string;
   pkgInfo: any;
-
   getArtifact?: (name: string) => Promise<ContractArtifact>;
   getSigner?: (addr: viem.Address) => Promise<CannonSigner>;
   getDefaultSigner?: () => Promise<CannonSigner>;

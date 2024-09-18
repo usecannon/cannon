@@ -1,5 +1,5 @@
 import type { Option as AnvilOption } from './types';
-import { ANVIL_PORT_DEFAULT_VALUE, ANVIL_CHAIN_ID_DEFAULT_VALUE } from '../../constants';
+import { ANVIL_PORT_DEFAULT_VALUE } from '../../constants';
 
 export const anvilOptions: AnvilOption[] = [
   {
@@ -10,7 +10,6 @@ export const anvilOptions: AnvilOption[] = [
   {
     flags: '--anvil.chain-id <number>',
     description: 'Set the chain id. [default: 13370]',
-    defaultValue: ANVIL_CHAIN_ID_DEFAULT_VALUE,
   },
   {
     flags: '--anvil.compute-units-per-second [number]',
