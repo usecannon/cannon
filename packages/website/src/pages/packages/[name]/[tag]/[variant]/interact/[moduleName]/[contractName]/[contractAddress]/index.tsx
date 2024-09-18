@@ -15,7 +15,7 @@ export default function InteractPage() {
     <>
       <NextSeo
         {...defaultSEO}
-        title="Cannon | Package | Code"
+        title="Cannon | Code"
         description="Package | Code"
         openGraph={{
           ...defaultSEO.openGraph,

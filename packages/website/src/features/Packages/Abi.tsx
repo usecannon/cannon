@@ -85,6 +85,7 @@ export const Abi: FC<{
   const hasSubnav = useContext(SubnavContext);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [selectedSelector, setSelectedSelector] = useState<string | null>(null);
+  const [scrollInitialized, setScrollInitialized] = useState(false);
 
   const allContractMethods = useMemo<AbiFunction[]>(
     () =>
@@ -116,17 +117,21 @@ export const Abi: FC<{
     [allContractMethods]
   );
 
+  const scrollOptions = useMemo(
+    () => ({
+      duration: 1200,
+      smooth: true,
+      offset: (102 + (hasSubnav ? 65 : 0)) * -1,
+    }),
+    [hasSubnav]
+  );
+
   const onSelectedSelector = async (newSelector: string) => {
     // set the selector
     setSelectedSelector(newSelector);
 
     // scroll to the element
-    const adjust = 102 + (hasSubnav ? 65 : 0);
-    scroller.scrollTo(newSelector, {
-      duration: 1200,
-      smooth: true,
-      offset: adjust * -1,
-    });
+    scroller.scrollTo(newSelector, scrollOptions);
 
     await router.push(`${router.asPath.split('#')[0]}#${newSelector}`);
   };
@@ -147,11 +152,24 @@ export const Abi: FC<{
 
   // Initialize the selector from the URL
   useEffect(() => {
+    if (scrollInitialized) return;
+
     const urlSelectorFromPath = router.asPath.split('#')[1];
     if (urlSelectorFromPath || !selectedSelector) {
       setSelectedSelector(urlSelectorFromPath);
+
+      setTimeout(() => {
+        scroller.scrollTo(urlSelectorFromPath, scrollOptions);
+        setScrollInitialized(true);
+      }, 100); // 100ms delay
     }
-  }, [router.asPath, selectedSelector]);
+  }, [
+    hasSubnav,
+    router.asPath,
+    scrollOptions,
+    selectedSelector,
+    scrollInitialized,
+  ]);
 
   return (
     <Flex flex="1" direction="column" maxWidth="100%">
@@ -195,7 +213,9 @@ export const Abi: FC<{
                 <FunctionRowsSkeleton />
               ) : (
                 readContractMethods
-                  ?.filter((f) => f.name.includes(searchTerm))
+                  ?.filter((f) =>
+                    f.name.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
                   .map((f, index) => (
                     <ButtonLink
                       key={index}
@@ -226,7 +246,9 @@ export const Abi: FC<{
                 <FunctionRowsSkeleton />
               ) : (
                 writeContractMethods
-                  ?.filter((f) => f.name.includes(searchTerm))
+                  ?.filter((f) =>
+                    f.name.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
                   .map((f, index) => (
                     <ButtonLink
                       key={index}
@@ -268,6 +290,7 @@ export const Abi: FC<{
             borderColor="gray.700"
             gap={4}
             flex={1}
+            overflowX="auto"
           >
             {isLoading ? (
               <Flex align="center" justify="center" flex={1}>

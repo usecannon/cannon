@@ -412,7 +412,7 @@ export const InteractTab: FC<{
         <Flex
           justifyContent="center"
           alignItems="center"
-          height="100%"
+          flexGrow={1}
           width="100%"
         >
           <CustomSpinner />
