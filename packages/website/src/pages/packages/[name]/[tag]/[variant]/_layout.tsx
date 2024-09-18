@@ -195,7 +195,7 @@ function TagVariantLayout({ children }: { children: ReactNode }) {
   );
 }
 
-export default function WrapperTagVariantLayout({
+export default function PackageNameTagVariantLayout({
   children,
 }: {
   children: ReactNode;

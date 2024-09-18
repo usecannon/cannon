@@ -1,8 +1,10 @@
+'use client';
+
 import QueueDrawer from '@/features/Deploy/QueueDrawer';
 import { Abi } from '@/features/Packages/Abi';
 import { SubnavContext } from '@/features/Packages/Tabs/InteractTab';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
-import { usePackageVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
+import { usePackageNameTagVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import { getOutput } from '@/lib/builder';
 import {
   Box,
@@ -29,7 +31,7 @@ import { usePackageByRef } from '@/hooks/api/usePackage';
 
 const Interact: FC = () => {
   const { variant, tag, name, moduleName, contractName, contractAddress } =
-    usePackageVersionUrlParams();
+    usePackageNameTagVersionUrlParams();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { getExplorerUrl } = useCannonChains();
 
@@ -88,7 +90,14 @@ const Interact: FC = () => {
       }
     };
     findContract(cannonOutputs.contracts, name, cannonOutputs.imports);
-  }, [deploymentData.data, contractName]);
+  }, [
+    contractName,
+    deploymentData.data,
+    deploymentData.isPending,
+    name,
+    moduleName,
+    contractAddress,
+  ]);
 
   const deployUrl = `${
     externalLinks.IPFS_CANNON
