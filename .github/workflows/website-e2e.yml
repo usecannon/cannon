@@ -2,9 +2,9 @@ name: Website-e2e
 
 on:
   push:
-    branches: [main, alpha, dev]
+    branches: [main, alpha, dev, 'fix/cypress']
   pull_request:
-    branches: [main, alpha, dev]
+    branches: [main, alpha, dev, 'fix/cypress']
 
 jobs:
   cypress-run:
@@ -24,9 +24,26 @@ jobs:
         env:
           NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
 
-      - name: Cypress run
-        uses: cypress-io/github-action@v6.7.4
+    - name: Set up Cypress binary cache
+        uses: actions/cache@v4
         with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-cypress-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Cypress install
+        uses: cypress-io/github-action@v6
+        with:
+          runTests: false
+
+      - name: Cypress verify and install - if needed.
+        run: pnpm cypress verify || pnpm cypress install
+        working-directory: packages/website
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v6
+        with:
+          install: false
+          working-directory: packages/website
           command: pnpm -r --filter @usecannon/website run e2e:headless
         env:
           # pass GitHub token to allow accurately detecting a build vs a re-run build
