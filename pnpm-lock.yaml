@@ -5205,12 +5205,12 @@ packages:
   '@ungap/promise-all-settled@1.1.2':
     resolution: {integrity: sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==}
 
-  '@usecannon/builder@2.17.1':
-    resolution: {integrity: sha512-52P+JYaAFQ5kDMWpA+2Mecin0XOPtQObqU3wSlrVsnGS3XxigJA1H6pGYEWB0xxhXPRci+6m0NEFPJdQvrcpzg==}
+  '@usecannon/builder@2.17.2':
+    resolution: {integrity: sha512-wkWXfmMnqwru8gSpFTnpEEUmLzMbfj4J0VYQiIIlmKqcYobQd9YPZg48LB+/+BJdBJ0EAwHhYCr+9qyQQLflRg==}
     engines: {node: '>=16.0.0'}
 
-  '@usecannon/cli@2.17.1':
-    resolution: {integrity: sha512-SSID1UUH84LPMp7PTloC0IijwCJpWfsSQXmvPpyJB8vjbAHOCNLRxsNT3PRgtZvmCWdTrfuYh3FMtsvlpB/UKQ==}
+  '@usecannon/cli@2.17.2':
+    resolution: {integrity: sha512-j9/COHqysb2KEzm0G8+By8h31TT2STX2MeDUGh7osqE16mEL+IkpgVzwF9Wej73UV319gvW3OK8iZfEUXc5s4w==}
     hasBin: true
 
   '@vanilla-extract/css@1.14.0':
@@ -19968,7 +19968,7 @@ snapshots:
 
   '@ungap/promise-all-settled@1.1.2': {}
 
-  '@usecannon/builder@2.17.1(bufferutil@4.0.8)(encoding@0.1.13)(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)(typescript@5.5.4)(utf-8-validate@5.0.10)':
+  '@usecannon/builder@2.17.2(bufferutil@4.0.8)(encoding@0.1.13)(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)(typescript@5.5.4)(utf-8-validate@5.0.10)':
     dependencies:
       '@synthetixio/router': 3.4.0(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)
       axios: 1.7.5(debug@4.3.6)
@@ -19993,10 +19993,10 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@usecannon/cli@2.17.1(bufferutil@4.0.8)(encoding@0.1.13)(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)(typescript@5.5.4)(utf-8-validate@5.0.10)':
+  '@usecannon/cli@2.17.2(bufferutil@4.0.8)(encoding@0.1.13)(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)(typescript@5.5.4)(utf-8-validate@5.0.10)':
     dependencies:
       '@iarna/toml': 3.0.0
-      '@usecannon/builder': 2.17.1(bufferutil@4.0.8)(encoding@0.1.13)(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)(typescript@5.5.4)(utf-8-validate@5.0.10)
+      '@usecannon/builder': 2.17.2(bufferutil@4.0.8)(encoding@0.1.13)(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)(typescript@5.5.4)(utf-8-validate@5.0.10)
       abitype: 1.0.6(typescript@5.5.4)(zod@3.23.8)
       chalk: 4.1.2
       commander: 9.5.0
@@ -22702,7 +22702,7 @@ snapshots:
     dependencies:
       '@pythnetwork/pyth-evm-js': 1.63.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       '@pythnetwork/pyth-sdk-solidity': 2.4.1
-      '@usecannon/cli': 2.17.1(bufferutil@4.0.8)(encoding@0.1.13)(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)(typescript@5.5.4)(utf-8-validate@5.0.10)
+      '@usecannon/cli': 2.17.2(bufferutil@4.0.8)(encoding@0.1.13)(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)(typescript@5.5.4)(utf-8-validate@5.0.10)
       node-fetch: 2.7.0(encoding@0.1.13)
       typechain: 8.3.2(typescript@5.5.4)
       viem: 1.21.4(bufferutil@4.0.8)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8)
