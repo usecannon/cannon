@@ -59,4 +59,8 @@ export const forgeEvmOptions: ForgeEVMOption[] = [
     flags: '--forge.ffi',
     description: 'Enables the FFI cheatcode.',
   },
+  {
+    flags: '--forge.always-use-create-2-factory',
+    description: 'Use the create 2 factory in all cases including tests and non-broadcasting scripts.',
+  },
 ];

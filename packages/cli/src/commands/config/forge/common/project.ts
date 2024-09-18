@@ -7,7 +7,7 @@ export const forgeProjectOptions: ForgeProjectOption[] = [
   },
   {
     flags: '--forge.revert-strings <revert>',
-    description: 'Revert string configuration.',
+    description: 'Revert string configuration. [default, strip, debug, verboseDebug]',
   },
   {
     flags: '--forge.build-info',
