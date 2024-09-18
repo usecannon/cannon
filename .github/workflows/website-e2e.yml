@@ -2,9 +2,9 @@ name: Website-e2e
 
 on:
   push:
-    branches: [main, alpha, dev, 'fix/cypress']
+    branches: [main, alpha, dev]
   pull_request:
-    branches: [main, alpha, dev, 'fix/cypress']
+    branches: [main, alpha, dev]
 
 jobs:
   cypress-run:
