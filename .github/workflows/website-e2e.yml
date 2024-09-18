@@ -35,7 +35,7 @@ jobs:
         with:
           runTests: false
 
-      - name: Cypress verify and install - if needed.
+      - name: Cypress verify
         run: pnpm cypress verify || pnpm cypress install
         working-directory: packages/website
 
