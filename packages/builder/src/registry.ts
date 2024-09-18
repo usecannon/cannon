@@ -500,7 +500,7 @@ export class OnChainRegistry extends CannonRegistry {
     );
 
     if (response.data && response.data.error) {
-      throw response.data.error.message;
+      throw new Error(response.data.error.message);
     }
 
     const url = viem.decodeFunctionResult({
