@@ -3,7 +3,7 @@ import TagVariantLayout from '../_layout';
 import InteractLayout from './_layout';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
-import { usePackageVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
+import { usePackageNameTagVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 function generateMetadata({
@@ -41,7 +41,7 @@ function generateMetadata({
 }
 
 export default function Interact() {
-  const { name, tag, chainId, preset } = usePackageVersionUrlParams();
+  const { name, tag, chainId, preset } = usePackageNameTagVersionUrlParams();
   const { getChainById } = useCannonChains();
   const metadata = generateMetadata({
     name,

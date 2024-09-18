@@ -3,7 +3,6 @@ import { Box, Text, Flex } from '@chakra-ui/react';
 import { AbiParameter } from 'abitype';
 import { isArray, isObject } from 'lodash';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
-import { HiCalculator } from 'react-icons/hi';
 import { Tooltip } from '@chakra-ui/react';
 import { formatEther } from 'viem';
 
@@ -59,6 +58,9 @@ export const FunctionOutput: FC<{
       return isArray(value)
         ? value.map((tupleItem, tupleIndex) => (
             <Box key={tupleIndex} pl="4">
+              <Text as="span" fontSize="xs" color="whiteAlpha.700">
+                tuple[{tupleIndex}]
+              </Text>
               {item.components.map(
                 (component: AbiParameter, compIdx: number) => (
                   <FunctionOutput
@@ -113,7 +115,7 @@ export const FunctionOutput: FC<{
             result ? (
               <>
                 <Tooltip
-                  label={formatEther(result).toString()}
+                  label={`${formatEther(result).toString()} wei`}
                   aria-label="Decimal Representation"
                 >
                   <Flex gap={2} alignItems="center">
@@ -124,7 +126,6 @@ export const FunctionOutput: FC<{
                     >
                       {result !== null || undefined ? String(result) : '---'}
                     </Text>
-                    <HiCalculator color="#0092b4" size={18} />
                   </Flex>
                 </Tooltip>
               </>

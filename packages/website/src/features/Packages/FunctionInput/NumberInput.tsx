@@ -28,6 +28,10 @@ export const NumberInput: FC<{
       size="sm"
       placeholder="0"
       value={currentValue?.toString() || ''}
+      borderColor={'whiteAlpha.400'}
+      _focus={{
+        borderColor: 'blue.300',
+      }}
       onChange={(e) => {
         setUpdateValue(parseValue(e.target.value));
       }}

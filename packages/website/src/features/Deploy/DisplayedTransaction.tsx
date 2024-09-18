@@ -298,7 +298,7 @@ function _encodeArgTooltip(type: string, val: string): string {
     );
   } else if (type == 'bool') {
     return val ? 'true' : 'false';
-  } else if (type.startsWith('uint') || type.startsWith('int')) {
+  } else if (['int256', 'uint256', 'int128', 'uint128'].includes(type)) {
     return val ? formatEther(BigInt(val)) : '0';
   }
 
