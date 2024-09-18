@@ -9,7 +9,6 @@ export function useContractCall(to: Address, functionName: string, params: any, 
   const settings = useStore((s) => s.settings);
   const { addLog } = useLogs();
 
-  // Wrap the fetch function with useCallback
   return useCallback(
     (from: Address) =>
       contractCall(from, to, functionName, params, abi, publicClient, settings.pythUrl)
@@ -37,7 +36,6 @@ export function useContractTransaction(
   const settings = useStore((s) => s.settings);
   const { addLog } = useLogs();
 
-  // Wrap the fetch function with useCallback
   return useCallback(
     () =>
       contractTransaction(from, to, functionName, params, abi, publicClient, walletClient, settings.pythUrl)
