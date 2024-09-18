@@ -68,7 +68,7 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
   if (includeSourceCode) {
     // save build metadata
     const foundryInfo = JSON.parse(
-      await execPromise(`forge inspect ${name} metadata  ${baseDir ? `--root ${baseDir}` : ''} --build-info`)
+      await execPromise(`forge inspect ${name} metadata ${baseDir ? `--root ${baseDir}` : ''} --build-info`)
     );
 
     const evmVersionInfo = JSON.parse(await execPromise('forge config --json')).evm_version;

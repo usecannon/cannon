@@ -4,20 +4,19 @@ import { anvilOptions } from '../commands/config/anvil';
 import { forgeTestOptions } from '../commands/config/forge/test';
 import { forgeBuildOptions } from '../commands/config/forge/build';
 
-// Enum for Foundry tool prefixes
 enum FoundryFlagPrefix {
   FORGE = 'forge.',
   ANVIL = 'anvil.',
 }
 
-// Convert kebab-case to camelCase
+// convert kebab-case to camelCase
 const toCamelCase = (str: string): string => str.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 
-// Normalize flag by removing leading dashes and tool prefixes
+// normalize flag by removing leading dashes and tool prefixes
 const normalizeFlag = (flag: string): string =>
   flag.replace(/^-+/, '').replace(new RegExp(`^(${Object.values(FoundryFlagPrefix).join('|')})`), '');
 
-// Pick and normalize foundry options based on prefixes and valid options
+// pick and normalize foundry options based on prefixes and valid options
 const pickFoundryOptions = (
   prefix: FoundryFlagPrefix,
   options: Record<string, any>,
@@ -35,7 +34,7 @@ const pickFoundryOptions = (
   return _.pick(formattedOptions, validKeys);
 };
 
-// Helper functions to pick options for specific Foundry tools
+// helper functions to pick options for specific Foundry tools
 export const pickForgeBuildOptions = (options: Record<string, any>): Record<string, any> =>
   pickFoundryOptions(FoundryFlagPrefix.FORGE, options, forgeBuildOptions);
 
@@ -45,7 +44,7 @@ export const pickForgeTestOptions = (options: Record<string, any>): Record<strin
 export const pickAnvilOptions = (options: Record<string, any>): Record<string, any> =>
   pickFoundryOptions(FoundryFlagPrefix.ANVIL, options, anvilOptions);
 
-// Convert foundry options to command-line arguments
+// convert foundry options to command-line arguments
 export const fromFoundryOptionsToArgs = (options: Record<string, any>, commandOptions: Option[]): string[] => {
   return Object.entries(options).flatMap(([key, value]) => {
     const option = commandOptions.find((opt) => {
