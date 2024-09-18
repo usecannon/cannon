@@ -47,10 +47,12 @@ function useFetchIpfsData<T>({
           responseType: 'arraybuffer',
           signal,
         })
+        // In case the file fetch failed, let's try using the public ipfs.io gateway
         .catch(async (err) => {
           addLog('error', `IPFS Error: ${err.message}`);
-          //const gatewayQueryUrl = `${ipfsQueryUrl}${cid}`;
-          const gatewayQueryUrl = `http://ipfs.io/ipfs/${cid}`;
+          // Use the same protocol as the users', http on development and https on production
+          const protocol = window.location.protocol.startsWith('http') ? window.location.protocol : 'http:';
+          const gatewayQueryUrl = `${protocol}//ipfs.io/ipfs/${cid}`;
           addLog('info', `Querying IPFS as HTTP gateway: ${gatewayQueryUrl}`);
           return await axios.get<ArrayBuffer>(gatewayQueryUrl, {
             responseType: 'arraybuffer',
