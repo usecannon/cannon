@@ -99,6 +99,16 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
   const createFork = useCreateFork();
   const { address: deployerWalletAddress } = useDeployerWallet(safe?.chainId);
 
+  function reset() {
+    setBuildResult(null);
+    setBuildError(null);
+    setBuildSkippedSteps([]);
+  }
+
+  useEffect(() => {
+    reset();
+  }, [deployerWalletAddress]);
+
   const buildFn = async () => {
     // Wait until finished loading
     if (!safe || !def || !deployerWalletAddress) {
@@ -261,9 +271,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
   };
 
   function doBuild() {
-    setBuildResult(null);
-    setBuildError(null);
-    setBuildSkippedSteps([]);
+    reset();
     setBuildStatus('building');
 
     buildFn()

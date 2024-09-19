@@ -214,13 +214,7 @@ function QueueFromGitOps() {
     prevCannonDeployInfo.pkg
   );
 
-  // TODO: why is this reset necessary? it was causing infinite re-renders.
-  // useEffect(() => {
-  //   buildInfo.reset();
-  // }, [deployerWalletAddress, buildInfo]);
-
   const nextCannonDeployInfo = useMemo(() => {
-    console.log('useMemo nextCannonDeployInfo');
     return cannonDefInfo.def
       ? ({
           generator: `cannon website ${pkg.version}`,
@@ -252,7 +246,6 @@ function QueueFromGitOps() {
     if (['success', 'error'].includes(buildInfo.buildStatus)) {
       uploadToPublishIpfs.writeToIpfsMutation.mutate();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     buildInfo.buildStatus,
     // DO NOT ADD: uploadToPublishIpfs.writeToIpfsMutation
