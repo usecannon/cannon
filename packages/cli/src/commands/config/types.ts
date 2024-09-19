@@ -2,6 +2,7 @@ export type Option = {
   flags: string;
   description: string;
   defaultValue?: string | boolean | string[];
+  alias?: string;
 };
 
 type Argument = {
@@ -16,6 +17,7 @@ type BaseCommand = {
   arguments?: Argument[];
   options?: Option[];
   anvilOptions?: Option[];
+  forgeOptions?: Option[];
 };
 
 type SubCommand = BaseCommand;

@@ -41,7 +41,6 @@ interface Params {
   packageDefinition: PackageSpecification;
   upgradeFrom?: string;
   pkgInfo: any;
-
   getArtifact?: (name: string) => Promise<ContractArtifact>;
   getSigner?: (addr: viem.Address) => Promise<CannonSigner>;
   getDefaultSigner?: () => Promise<CannonSigner>;
@@ -125,7 +124,6 @@ export async function build({
   }
 
   const chainId = await provider.getChainId();
-
   const chainInfo = getChainById(chainId);
   const chainName = chainInfo?.name || 'unknown chain';
   const nativeCurrencySymbol = chainInfo?.nativeCurrency.symbol || 'ETH';

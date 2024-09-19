@@ -13,7 +13,7 @@ import {
   PackageReference,
   traceActions,
 } from '@usecannon/builder';
-import { bold, gray, green, red, yellow } from 'chalk';
+import { bold, gray, green, red, yellow, yellowBright } from 'chalk';
 import { Command } from 'commander';
 import _ from 'lodash';
 import prompts from 'prompts';
@@ -21,13 +21,7 @@ import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commands/config';
-import {
-  checkCannonVersion,
-  checkForgeAstSupport,
-  ensureChainIdConsistency,
-  getPackageReference,
-  setupAnvil,
-} from './helpers';
+import { checkCannonVersion, ensureChainIdConsistency, getPackageReference, setupAnvil } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
 import { createDefaultReadRegistry } from './registry';
@@ -35,12 +29,17 @@ import { CannonRpcNode, getProvider, runRpc } from './rpc';
 import { resolveCliSettings } from './settings';
 import { PackageSpecification } from './types';
 
-import { pickAnvilOptions } from './util/anvil';
 import { doBuild } from './util/build';
 import { setDebugLevel } from './util/debug-level';
 import { error, log, warn } from './util/console';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { applyCommandsConfig } from './util/commands-config';
+import {
+  fromFoundryOptionsToArgs,
+  pickAnvilOptions,
+  pickForgeBuildOptions,
+  pickForgeTestOptions,
+} from './util/foundry-options';
 import { getChainIdFromRpcUrl, isURL, ProviderAction, resolveProviderAndSigners, resolveProvider } from './util/provider';
 import { isPackageRegistered } from './util/register';
 import { writeModuleDeployments } from './util/write-deployments';
@@ -67,6 +66,8 @@ export { run } from './commands/run';
 import { pin } from './commands/pin';
 export { verify } from './commands/verify';
 export { setup } from './commands/setup';
+import { forgeBuildOptions } from './commands/config/forge/build';
+import { forgeTestOptions } from './commands/config/forge/test';
 export { runRpc, getProvider } from './rpc';
 export { createDefaultReadRegistry, createDryRunRegistry } from './registry';
 export { resolveProviderAndSigners } from './util/provider';
@@ -176,10 +177,13 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
 
     log(bold('Building the foundry project...'));
     if (!options.skipCompile) {
-      let forgeBuildArgs = ['build'];
-      if (await checkForgeAstSupport()) {
-        forgeBuildArgs = [...forgeBuildArgs, '--ast'];
-      }
+      // use --build-info to output build info
+      // ref: https://github.com/foundry-rs/foundry/pull/7197
+      const forgeBuildArgs = [
+        'build',
+        '--build-info',
+        ...fromFoundryOptionsToArgs(pickForgeBuildOptions(options), forgeBuildOptions),
+      ];
 
       const forgeBuildProcess = spawn('forge', forgeBuildArgs, { cwd: projectDirectory, shell: true });
 
@@ -642,13 +646,23 @@ applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(asy
   });
 });
 
-applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOpts, options) {
-  options.port = 0;
-
+applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOptions, options) {
   const cliSettings = resolveCliSettings(options);
 
   if (cliSettings.rpcUrl.startsWith('https')) {
     options.dryRun = true;
+  }
+
+  if (forgeOptions.length) {
+    log();
+    warn(
+      yellowBright(
+        bold(
+          '⚠️  The `--` syntax for passing options to forge or anvil is deprecated. Please use `--forge.*` or `--anvil.*` instead.'
+        )
+      )
+    );
+    log();
   }
 
   // throw an error if the chainId is not consistent with the provider's chainId
@@ -662,7 +676,13 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
   // after the build is done we can run the forge tests for the user
   await getProvider(node!)!.mine({ blocks: 1 });
 
-  const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeOpts], { stdio: 'inherit' });
+  const pickedOptions = pickForgeTestOptions(options);
+
+  const forgeTestArgs = fromFoundryOptionsToArgs(pickedOptions, forgeTestOptions);
+
+  const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeTestArgs, ...forgeOptions], {
+    stdio: 'inherit',
+  });
 
   await new Promise(() => {
     forgeProcess.on('close', (code: number) => {

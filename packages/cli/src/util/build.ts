@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { CANNON_CHAIN_ID, CannonError, CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
+import { CannonError, CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
 import Debug from 'debug';
 import * as viem from 'viem';
 import { PackageSpecification } from '../types';
@@ -11,29 +11,29 @@ import { CliSettings, resolveCliSettings } from '../settings';
 import { execPromise, filterSettings, loadCannonfile } from '../helpers';
 import { warn } from './console';
 import { parseSettings } from './params';
-import { pickAnvilOptions } from './anvil';
+import { pickAnvilOptions } from './foundry-options';
 import { setDebugLevel } from './debug-level';
 import { ProviderAction, resolveProvider, isURL, getChainIdFromRpcUrl } from './provider';
 
 import { yellow, bold, italic } from 'chalk';
 
-const debug = Debug('cannon:cli');
+const debug = Debug('cannon:cli:build');
 
 /**
  * Builds the contracts defined in the cannonfile.
  * @param cannonfile Path to the cannonfile.
  * @param settings Array of setting strings for the build process.
- * @param opts Options for the build process.
+ * @param options Options for the build process.
  * @returns An array containing the RPC node, package specification, chain artifacts, and chain builder runtime.
  */
 export async function doBuild(
   cannonfile: string,
   settings: string[],
-  opts: any
+  options: Record<string, any>
 ): Promise<[CannonRpcNode | null, PackageSpecification, ChainArtifacts, ChainBuilderRuntime]> {
   // Set debug level
-  setDebugLevel(opts);
-  debug('do build called with', cannonfile, settings, filterSettings(opts));
+  setDebugLevel(options);
+  debug('do build called with', cannonfile, settings, filterSettings(options));
 
   // If the first param is not a cannonfile, it should be parsed as settings
   cannonfile = setCannonfilePath(cannonfile, settings);
@@ -41,19 +41,19 @@ export async function doBuild(
   const cannonfilePath = path.resolve(cannonfile);
   const projectDirectory = path.resolve(cannonfilePath);
 
-  const cliSettings = resolveCliSettings(opts);
+  const cliSettings = resolveCliSettings(options);
   // Set up provider
-  const { provider, signers, node } = await configureProvider(opts, cliSettings);
+  const { provider, signers, node } = await configureProvider(options, cliSettings);
 
   // Set up signers
   // TODO: why are the provider types borked up here (like they are everywhere)
-  const { getSigner, getDefaultSigner } = await configureSigners(opts, cliSettings, provider as any, signers);
+  const { getSigner, getDefaultSigner } = await configureSigners(options, cliSettings, provider as any, signers);
 
   // Prepare pre-build config
   const buildConfig = await prepareBuildConfig(
     cannonfile,
     projectDirectory,
-    opts,
+    options,
     settings,
     cliSettings,
     provider as any,
@@ -105,7 +105,7 @@ export function setCannonfilePath(cannonfile: string, settings: string[]) {
  * @param cliSettings CLI settings to use in provider configuration.
  * @returns An object containing the configured provider, signers, and an optional RPC node.
  */
-async function configureProvider(options: any, cliSettings: CliSettings) {
+async function configureProvider(options: Record<string, any>, cliSettings: CliSettings) {
   let provider: (viem.PublicClient & viem.WalletClient & viem.TestClient) | undefined = undefined;
   let signers: CannonSigner[] | undefined = undefined;
 
@@ -137,10 +137,6 @@ async function configureProvider(options: any, cliSettings: CliSettings) {
     signers = _provider.signers;
   }
 
-  if (options.dryRun && options.chainId === CANNON_CHAIN_ID) {
-    throw new Error('Cannot perform a dry-run build on local network');
-  }
-
   if (options.dryRun) {
     node = await runRpc(
       {
@@ -161,14 +157,14 @@ async function configureProvider(options: any, cliSettings: CliSettings) {
 /**
  * Configures and returns the signers for transactions. In a dry run, it impersonates a default account.
  * Otherwise, it resolves signers from the provided CLI settings.
- * @param opts Options to influence signer configuration.
+ * @param options Options to influence signer configuration.
  * @param chainId The chain ID for which the signers are configured.
  * @param provider The configured Ethereum provider.
  * @param signers Array of signers.
  * @returns An object containing methods to get a specific signer or the default signer.
  */
 async function configureSigners(
-  opts: any,
+  options: Record<string, any>,
   cliSettings: CliSettings,
   provider: viem.PublicClient & viem.TestClient & viem.WalletClient,
   signers: CannonSigner[] | undefined
@@ -179,9 +175,9 @@ async function configureSigners(
   // Early return, we don't need to configure signers
   const isRpcUrl = isURL(cliSettings.rpcUrl);
 
-  if (!opts.chainId && !isRpcUrl) return { getSigner, getDefaultSigner };
+  if (!options.chainId && !isRpcUrl) return { getSigner, getDefaultSigner };
 
-  if (opts.dryRun) {
+  if (options.dryRun) {
     // Setup for dry run
     getDefaultSigner = async () => {
       const addr = signers && signers.length > 0 ? signers[0].address : ANVIL_FIRST_ADDRESS;
@@ -210,7 +206,7 @@ async function configureSigners(
   if (await getDefaultSigner()) {
     const defaultSignerAddress = (await getDefaultSigner())!.address;
 
-    if (!opts.dryRun && opts.chainId != '13370' && defaultSignerAddress === ANVIL_FIRST_ADDRESS) {
+    if (!options.dryRun && options.chainId != '13370' && defaultSignerAddress === ANVIL_FIRST_ADDRESS) {
       warn(`WARNING: This build is using default anvil address ${ANVIL_FIRST_ADDRESS}`);
     }
   }
@@ -223,7 +219,7 @@ async function configureSigners(
  * Sets up package specifications, artifact resolver, and other options like gas prices.
  * @param cannonfile Path to the cannonfile.
  * @param projectDirectory Directory of the project.
- * @param opts Options for the build configuration.
+ * @param options Options for the build configuration.
  * @param settings Array of setting strings for the build process.
  * @param cliSettings CLI settings for the build process.
  * @param provider Configured Ethereum provider.
@@ -234,7 +230,7 @@ async function configureSigners(
 async function prepareBuildConfig(
   cannonfile: string,
   projectDirectory: string,
-  opts: any,
+  options: Record<string, any>,
   settings: string[],
   cliSettings: CliSettings,
   provider: viem.PublicClient,
@@ -286,7 +282,7 @@ async function prepareBuildConfig(
   // anyway, and it requires a lot of refactoring,
   // so not refactoring this
   const getArtifact = (name: string) => getFoundryArtifact(name, projectDirectory, def.isPublicSourceCode());
-  const overrideResolver = opts.dryRun ? await createDryRunRegistry(cliSettings) : undefined;
+  const overrideResolver = options.dryRun ? await createDryRunRegistry(cliSettings) : undefined;
 
   return {
     provider,
@@ -296,17 +292,17 @@ async function prepareBuildConfig(
     getArtifact,
     getSigner,
     getDefaultSigner,
-    upgradeFrom: opts.upgradeFrom,
-    presetArg: opts.preset,
-    wipe: opts.wipe,
-    persist: !opts.dryRun,
+    upgradeFrom: options.upgradeFrom,
+    presetArg: options.preset,
+    wipe: options.wipe,
+    persist: !options.dryRun,
     overrideResolver,
     rpcUrl: cliSettings.rpcUrl,
-    writeScript: opts.writeScript,
-    writeScriptFormat: opts.writeScriptFormat,
-    gasPrice: parseGwei(opts.gasPrice),
-    gasFee: parseGwei(opts.maxGasFee),
-    priorityGasFee: parseGwei(opts.maxPriorityGasFee),
+    writeScript: options.writeScript,
+    writeScriptFormat: options.writeScriptFormat,
+    gasPrice: parseGwei(options.gasPrice),
+    gasFee: parseGwei(options.maxGasFee),
+    priorityGasFee: parseGwei(options.maxPriorityGasFee),
   };
 }
 
