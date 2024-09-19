@@ -29,7 +29,7 @@ import {
   Tr,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import commandsConfig from '@usecannon/cli/dist/src/commandsConfig';
+import commandsConfig from '@usecannon/cli/dist/src/commands/config';
 import React, { FC } from 'react';
 import { FaYarn } from 'react-icons/fa';
 import { ImNpm } from 'react-icons/im';

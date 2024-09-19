@@ -1,5 +1,4 @@
 import { DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
-import { bold, yellowBright } from 'chalk';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
@@ -10,7 +9,7 @@ import { parseEnv } from 'znv';
 import { z } from 'zod';
 import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY } from './constants';
 import { checkAndNormalizePrivateKey, filterSettings } from './helpers';
-import { log, warn } from './util/console';
+import { deprecatedWarn } from './util/deprecated-warn';
 
 const debug = Debug('cannon:cli:settings');
 
@@ -136,11 +135,10 @@ export type CliSettings = {
 export const DEFAULT_RPC_URL = 'frame,direct';
 let cachedCliSettings: CliSettings | null = null;
 
-const showDeprecationWarning = _.once((oldFlag: string, newFlag: string) => {
-  log();
-  warn(yellowBright(bold(`⚠️ The ${oldFlag} option will be deprecated soon. Use ${newFlag} instead.`)));
-  log();
-});
+/**
+ * Settings zod schema.
+ * Check env vars and set default values if needed
+ */
 
 function createCannonSettingsSchema(fileSettings: CliSettings) {
   return {
@@ -254,7 +252,7 @@ function computeCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
   ) as CliSettings;
 
   if (overrides.providerUrl && !overrides.rpcUrl) {
-    showDeprecationWarning('--provider-url', '--rpc-url');
+    deprecatedWarn('--provider-url', '--rpc-url');
     finalSettings.rpcUrl = overrides.providerUrl;
   }
 

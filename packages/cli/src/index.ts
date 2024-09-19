@@ -20,7 +20,7 @@ import prompts from 'prompts';
 import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
-import commandsConfig from './commandsConfig';
+import commandsConfig from './commands/config';
 import {
   checkCannonVersion,
   checkForgeAstSupport,
@@ -34,17 +34,19 @@ import { createDefaultReadRegistry } from './registry';
 import { CannonRpcNode, getProvider, runRpc } from './rpc';
 import { resolveCliSettings } from './settings';
 import { PackageSpecification } from './types';
+
 import { pickAnvilOptions } from './util/anvil';
 import { doBuild } from './util/build';
 import { setDebugLevel } from './util/debug-level';
 import { error, log, warn } from './util/console';
 import { getContractsRecursive } from './util/contracts-recursive';
-import { parsePackageArguments, parsePackagesArguments } from './util/params';
+import { applyCommandsConfig } from './util/commands-config';
 import { getChainIdFromRpcUrl, isURL, ProviderAction, resolveProviderAndSigners, resolveProvider } from './util/provider';
 import { isPackageRegistered } from './util/register';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
-import { pin } from './commands/pin';
+import { ANVIL_PORT_DEFAULT_VALUE } from './constants';
+import { deprecatedWarn } from './util/deprecated-warn';
 
 export * from './types';
 export * from './constants';
@@ -62,6 +64,7 @@ export { publish } from './commands/publish';
 export { unpublish } from './commands/unpublish';
 export { publishers } from './commands/publishers';
 export { run } from './commands/run';
+import { pin } from './commands/pin';
 export { verify } from './commands/verify';
 export { setup } from './commands/setup';
 export { runRpc, getProvider } from './rpc';
@@ -86,41 +89,6 @@ program
 configureRun(program);
 configureRun(program.command('run'));
 
-function applyCommandsConfig(command: Command, config: any) {
-  if (config.description) {
-    command.description(config.description);
-  }
-  if (config.usage) {
-    command.usage(config.usage);
-  }
-  if (config.arguments) {
-    config.arguments.map((argument: any) => {
-      if (argument.flags === '<packageRefs...>') {
-        command.argument(argument.flags, argument.description, parsePackagesArguments, argument.defaultValue);
-      } else if (command.name() === 'interact' && argument.flags === '<packageRef>') {
-        command.argument(argument.flags, argument.description, parsePackageArguments, argument.defaultValue);
-      } else {
-        command.argument(argument.flags, argument.description, argument.defaultValue);
-      }
-    });
-  }
-  if (config.anvilOptions) {
-    config.anvilOptions.map((option: any) => {
-      option.required
-        ? command.requiredOption(option.flags, option.description, option.defaultValue)
-        : command.option(option.flags, option.description, option.defaultValue);
-    });
-  }
-  if (config.options) {
-    config.options.map((option: any) => {
-      option.required
-        ? command.requiredOption(option.flags, option.description, option.defaultValue)
-        : command.option(option.flags, option.description, option.defaultValue);
-    });
-  }
-  return command;
-}
-
 function configureRun(program: Command) {
   return applyCommandsConfig(program, commandsConfig.run).action(async function (
     packages: PackageSpecification[],
@@ -131,7 +99,13 @@ function configureRun(program: Command) {
 
     const { run } = await import('./commands/run');
 
-    options.port = Number.parseInt(options.port);
+    // backwards compatibility for --port flag
+    if (options.port !== ANVIL_PORT_DEFAULT_VALUE) {
+      deprecatedWarn('--port', '--anvil.port');
+      options['anvil.port'] = options.port;
+    } else {
+      options.port = options['anvil.port'];
+    }
 
     const cliSettings = resolveCliSettings(options);
 
@@ -183,6 +157,14 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, options) => {
     await setupAnvil();
+
+    // backwards compatibility for --port flag
+    if (options.port !== ANVIL_PORT_DEFAULT_VALUE) {
+      deprecatedWarn('--port', '--anvil.port');
+      options['anvil.port'] = options.port;
+    } else {
+      options.port = options['anvil.port'];
+    }
 
     const cannonfilePath = path.resolve(cannonfile);
     const projectDirectory = path.dirname(cannonfilePath);
