@@ -260,14 +260,10 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     };
   };
 
-  function reset() {
+  function doBuild() {
     setBuildResult(null);
     setBuildError(null);
     setBuildSkippedSteps([]);
-  }
-
-  function doBuild() {
-    reset();
     setBuildStatus('building');
 
     buildFn()
@@ -293,7 +289,6 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     buildResult,
     buildError,
     buildSkippedSteps,
-    reset,
     doBuild,
   };
 }

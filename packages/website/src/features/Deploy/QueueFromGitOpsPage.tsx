@@ -88,8 +88,6 @@ function QueueFromGitOps() {
 
   const deployer = useDeployerWallet(currentSafe?.chainId);
 
-  const deployerWalletAddress = deployer.address;
-
   const cannonfileUrlRegex =
     // eslint-disable-next-line no-useless-escape
     /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?\.toml$/i;
@@ -216,9 +214,10 @@ function QueueFromGitOps() {
     prevCannonDeployInfo.pkg
   );
 
-  useEffect(() => {
-    buildInfo.reset();
-  }, [deployerWalletAddress, buildInfo]);
+  // TODO: why is this reset necessary? it was causing infinite re-renders.
+  // useEffect(() => {
+  //   buildInfo.reset();
+  // }, [deployerWalletAddress, buildInfo]);
 
   const uploadToPublishIpfs = useCannonWriteDeployToIpfs(
     buildInfo.buildResult?.runtime,
@@ -467,9 +466,9 @@ function QueueFromGitOps() {
     !cannonDefInfo.def ||
     buildInfo.buildStatus === 'building';
 
-  function PreviewButton(props: any) {
+  function PreviewButton({ message }: { message: string }) {
     return (
-      <Tooltip label={props.message}>
+      <Tooltip label={message}>
         <Button
           width="100%"
           colorScheme="teal"
