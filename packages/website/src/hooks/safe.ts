@@ -15,6 +15,7 @@ import {
 } from 'viem';
 import { useAccount, useReadContracts } from 'wagmi';
 import SafeABI from '@/abi/Safe.json';
+import SafeABI_v1_4_1 from '@/abi/Safe-v1.4.1.json';
 import { chains } from '@/constants/deployChains';
 import * as onchainStore from '@/helpers/onchain-store';
 import { ChainId, SafeDefinition, useStore } from '@/helpers/store';
@@ -238,7 +239,14 @@ export const useSafeTransactionStatus = (chainId: number, transactionHash: Hash 
           logs: receipt.logs,
         });
 
-        const isExecutionFailed = logs.some(
+        const logs_v1_4_1 = parseEventLogs({
+          abi: SafeABI_v1_4_1,
+          logs: receipt.logs,
+        });
+
+        const completeLogs = [...logs, ...logs_v1_4_1];
+
+        const isExecutionFailed = completeLogs.some(
           // @ts-ignore: log.eventName is not typed :/
           (log) => log.eventName === SafeTransactionStatus.EXECUTION_FAILURE
         );
