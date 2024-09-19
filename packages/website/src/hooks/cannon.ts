@@ -8,7 +8,7 @@ import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { useCannonRegistry } from '@/providers/CannonRegistryProvider';
 import { useLogs } from '@/providers/logsProvider';
 import { BaseTransaction } from '@safe-global/safe-apps-sdk';
-import { useMutation, UseMutationOptions, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useDeployerWallet } from './deployer';
 import {
   build as cannonBuild,
@@ -28,7 +28,7 @@ import {
   findUpgradeFromPackage,
 } from '@usecannon/builder';
 import _ from 'lodash';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Abi, Address, createPublicClient, createTestClient, createWalletClient, custom, Hex, isAddressEqual } from 'viem';
 import { useChainId, usePublicClient } from 'wagmi';
 // Needed to prepare mock run step with registerAction
@@ -296,23 +296,22 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 export function useCannonWriteDeployToIpfs(
   runtime?: ChainBuilderRuntime,
   deployInfo?: DeploymentInfo | undefined,
-  metaUrl?: string,
-  mutationOptions: Partial<UseMutationOptions> = {}
+  metaUrl?: string
 ) {
   const settings = useStore((s) => s.settings);
 
+  const def = useMemo(() => deployInfo && new ChainDefinition(deployInfo.def), [deployInfo]);
+
   const writeToIpfsMutation = useMutation({
-    ...mutationOptions,
     mutationFn: async () => {
       if (settings.isIpfsGateway) {
         throw new Error('You cannot write on an IPFS gateway, only read operations can be done');
       }
 
-      if (!runtime || !deployInfo) {
+      if (!runtime || !deployInfo || !def) {
         throw new Error('Missing required parameters');
       }
 
-      const def = new ChainDefinition(deployInfo.def);
       const ctx = await createInitialContext(def, deployInfo.meta, runtime.chainId, deployInfo.options);
 
       const preset = def.getPreset(ctx);
@@ -325,10 +324,9 @@ export function useCannonWriteDeployToIpfs(
         metaUrl || ''
       );
 
-      // eslint-disable-next-line no-console
-      console.log('pushed to memory registry', runtime.registry, packageRef);
-
       const memoryRegistry = new InMemoryRegistry();
+
+      console.log('pinning package:', packageRef, runtime.chainId);
 
       const publishTxns = await publishPackage({
         fromStorage: runtime,
@@ -342,10 +340,6 @@ export function useCannonWriteDeployToIpfs(
         tags: ['latest'],
         includeProvisioned: true,
       });
-
-      // it was published
-      // eslint-disable-next-line no-console
-      console.log('pushed to memory registry', memoryRegistry, packageRef, runtime.chainId);
 
       // load the new ipfs url
       const mainUrl = await memoryRegistry.getUrl(packageRef, runtime.chainId);
