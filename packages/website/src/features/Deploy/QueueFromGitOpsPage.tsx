@@ -46,7 +46,7 @@ import {
   Checkbox,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { ChainBuilderContext } from '@usecannon/builder';
+import { ChainBuilderContext, DeploymentInfo } from '@usecannon/builder';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -87,8 +87,6 @@ function QueueFromGitOps() {
   const { openConnectModal } = useConnectModal();
 
   const deployer = useDeployerWallet(currentSafe?.chainId);
-
-  const deployerWalletAddress = deployer.address;
 
   const cannonfileUrlRegex =
     // eslint-disable-next-line no-useless-escape
@@ -216,14 +214,9 @@ function QueueFromGitOps() {
     prevCannonDeployInfo.pkg
   );
 
-  useEffect(() => {
-    buildInfo.reset();
-  }, [deployerWalletAddress, buildInfo]);
-
-  const uploadToPublishIpfs = useCannonWriteDeployToIpfs(
-    buildInfo.buildResult?.runtime,
-    cannonDefInfo.def
-      ? {
+  const nextCannonDeployInfo = useMemo(() => {
+    return cannonDefInfo.def
+      ? ({
           generator: `cannon website ${pkg.version}`,
           timestamp: Math.floor(Date.now() / 1000),
           def: cannonDefInfo.def.toJson(),
@@ -232,8 +225,20 @@ function QueueFromGitOps() {
           meta: prevCannonDeployInfo.pkg?.meta,
           miscUrl: prevCannonDeployInfo.pkg?.miscUrl || EMPTY_IPFS_MISC_URL,
           chainId: currentSafe.chainId,
-        }
-      : undefined,
+        } satisfies DeploymentInfo)
+      : undefined;
+  }, [
+    buildInfo.buildResult?.state,
+    cannonDefInfo.def,
+    currentSafe.chainId,
+    prevCannonDeployInfo.pkg?.meta,
+    prevCannonDeployInfo.pkg?.miscUrl,
+    prevCannonDeployInfo.pkg?.options,
+  ]);
+
+  const uploadToPublishIpfs = useCannonWriteDeployToIpfs(
+    buildInfo.buildResult?.runtime,
+    nextCannonDeployInfo,
     prevCannonDeployInfo.metaUrl
   );
 
@@ -241,7 +246,10 @@ function QueueFromGitOps() {
     if (['success', 'error'].includes(buildInfo.buildStatus)) {
       uploadToPublishIpfs.writeToIpfsMutation.mutate();
     }
-  }, [buildInfo.buildStatus, uploadToPublishIpfs.writeToIpfsMutation]);
+  }, [
+    buildInfo.buildStatus,
+    // DO NOT ADD: uploadToPublishIpfs.writeToIpfsMutation
+  ]);
 
   const refsInfo = useGitRefsList(gitUrl);
   const foundRef = refsInfo.refs?.find(
@@ -467,9 +475,9 @@ function QueueFromGitOps() {
     !cannonDefInfo.def ||
     buildInfo.buildStatus === 'building';
 
-  function PreviewButton(props: any) {
+  function PreviewButton({ message }: { message?: string }) {
     return (
-      <Tooltip label={props.message}>
+      <Tooltip label={message}>
         <Button
           width="100%"
           colorScheme="teal"
