@@ -334,6 +334,7 @@ export function useCannonWriteDeployToIpfs(
 
       const memoryRegistry = new InMemoryRegistry();
 
+      // eslint-disable-next-line no-console
       console.log('pinning package:', packageRef, runtime.chainId);
 
       const publishTxns = await publishPackage({
