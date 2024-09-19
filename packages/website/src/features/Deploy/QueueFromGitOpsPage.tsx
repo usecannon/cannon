@@ -475,7 +475,7 @@ function QueueFromGitOps() {
     !cannonDefInfo.def ||
     buildInfo.buildStatus === 'building';
 
-  function PreviewButton({ message }: { message: string }) {
+  function PreviewButton({ message }: { message?: string }) {
     return (
       <Tooltip label={message}>
         <Button
