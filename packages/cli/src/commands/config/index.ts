@@ -2,7 +2,7 @@ import { debugVerbosity } from './debug';
 import { CommandsConfig } from './types';
 import { forgeBuildOptions } from './forge/build';
 import { forgeTestOptions } from './forge/test';
-import { anvilOptions, anviloptionsWithFork } from './anvil';
+import { anvilOptions } from './anvil';
 
 import { ANVIL_FIRST_ADDRESS, ANVIL_PORT_DEFAULT_VALUE } from '../../constants';
 
@@ -77,7 +77,7 @@ export const commandsConfig: CommandsConfig = {
       },
       ...debugVerbosity,
     ],
-    anvilOptions: anviloptionsWithFork,
+    anvilOptions,
   },
   build: {
     description: 'Build a package from a Cannonfile.',
