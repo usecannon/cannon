@@ -97,7 +97,10 @@ const processImports = (
   if (imports) {
     Object.entries(imports).forEach(([_moduleName, bundle]) => {
       // Concatenate module names
-      const moduleName = `${parentModuleName}.${_moduleName}`;
+      const moduleName =
+        parentModuleName.length === 0
+          ? _moduleName
+          : `${parentModuleName}.${_moduleName}`;
       processContracts(allContractsRef, bundle.contracts, moduleName);
       // recursively process imports
       processImports(allContractsRef, bundle.imports, moduleName);

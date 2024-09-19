@@ -48,7 +48,7 @@ import { useAccount, useSwitchChain, useWalletClient } from 'wagmi';
 const extractError = (e: any): string => {
   return typeof e === 'string'
     ? e
-    : e?.message || e?.error?.message || e?.error || e;
+    : e?.cause?.message || e?.message || e?.error?.message || e?.error || e;
 };
 
 const _isReadOnly = (abiFunction: AbiFunction) =>
