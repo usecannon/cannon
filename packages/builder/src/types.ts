@@ -5,6 +5,8 @@ import _ from 'lodash';
 
 import type { RawChainDefinition } from './actions';
 
+import { PackageReference } from './package-reference';
+
 // loosely based on the hardhat `Artifact` type
 export type ContractArtifact = {
   contractName: string;
@@ -70,7 +72,7 @@ export interface PreChainBuilderContext {
 
   package: any;
 
-  timestamp: string;
+  timestamp: number;
 
   overrideSettings: { [label: string]: string };
 }
@@ -192,6 +194,9 @@ export interface ChainBuilderRuntimeInfo {
   // Should gracefully continue after failures and return a partial release?
   allowPartialDeploy: boolean;
 
+  // How many layers deep in subpackages are we? 0 = building the top level subpackage
+  subpkgDepth: number;
+
   // Gas price to use for transactions
   gasPrice?: bigint;
 
@@ -201,8 +206,7 @@ export interface ChainBuilderRuntimeInfo {
 }
 
 export interface PackageState {
-  name: string;
-  version: string;
+  ref: PackageReference | null;
   currentLabel: string;
 }
 
@@ -239,6 +243,12 @@ export type DeploymentInfo = {
 
   // defines whether this deployment has been fully completed or only partially or completely unbuilt
   status?: 'complete' | 'partial' | 'none';
+
+  // The package sequence number. Every time the package is deployed, the seq is incremented.
+  seq?: number;
+
+  // A randomly generated unique identifier shared by all the packages in a upgrade sequence. Can be used to verify which packages are part of the same upgrade sequence.
+  track?: string;
 
   // the result of all the build steps for the last build
   state: DeploymentState;
@@ -299,7 +309,7 @@ export type DeploymentState = { [label: string]: StepState };
 export function combineCtx(ctxs: ChainBuilderContext[]): ChainBuilderContext {
   const ctx = _.clone(ctxs[0]);
 
-  ctx.timestamp = Math.floor(Date.now() / 1000).toString(); //(await this.provider.getBlock(await this.provider.getBlockNumber())).timestamp.toString();
+  ctx.timestamp = Math.floor(Date.now() / 1000);
 
   // merge all blockchain outputs
   for (const additionalCtx of ctxs.slice(1)) {

@@ -1,10 +1,10 @@
+'use client';
+
 import QueueDrawer from '@/features/Deploy/QueueDrawer';
 import { Abi } from '@/features/Packages/Abi';
 import { SubnavContext } from '@/features/Packages/Tabs/InteractTab';
-import { getPackage } from '@/helpers/api';
-import chains from '@/helpers/chains';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
-import { usePackageVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
+import { usePackageNameTagVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import { getOutput } from '@/lib/builder';
 import {
   Box,
@@ -17,7 +17,6 @@ import {
   useBreakpointValue,
   useDisclosure,
 } from '@chakra-ui/react';
-import { useQuery } from '@tanstack/react-query';
 import {
   ChainArtifacts,
   ContractData,
@@ -27,25 +26,25 @@ import {
 import { FC, useContext, useEffect, useState } from 'react';
 
 import { externalLinks } from '@/constants/externalLinks';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import { usePackageByRef } from '@/hooks/api/usePackage';
 
 const Interact: FC = () => {
   const { variant, tag, name, moduleName, contractName, contractAddress } =
-    usePackageVersionUrlParams();
+    usePackageNameTagVersionUrlParams();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { getExplorerUrl } = useCannonChains();
 
   const [chainId, preset] = PackageReference.parseVariant(variant);
 
-  const packagesQuery = useQuery({
-    queryKey: ['package', [`${name}:${tag}@${preset}/${chainId}`]],
-    queryFn: getPackage,
-  });
+  const packagesQuery = usePackageByRef({ name, tag, preset, chainId });
 
   const [cannonOutputs, setCannonOutputs] = useState<ChainArtifacts>({});
   const [contract, setContract] = useState<ContractData | undefined>();
 
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
-    packagesQuery?.data?.data.deployUrl,
-    !!packagesQuery?.data?.data.deployUrl
+    packagesQuery?.data?.deployUrl,
+    !!packagesQuery?.data?.deployUrl
   );
 
   useEffect(() => {
@@ -91,24 +90,32 @@ const Interact: FC = () => {
       }
     };
     findContract(cannonOutputs.contracts, name, cannonOutputs.imports);
-  }, [deploymentData.data, contractName]);
+  }, [
+    contractName,
+    deploymentData.data,
+    deploymentData.isPending,
+    name,
+    moduleName,
+    contractAddress,
+  ]);
 
   const deployUrl = `${
     externalLinks.IPFS_CANNON
-  }${packagesQuery.data?.data.deployUrl.replace('ipfs://', '')}`;
+  }${packagesQuery.data?.deployUrl.replace('ipfs://', '')}`;
 
-  const etherscanUrl =
-    (
-      Object.values(chains).find(
-        (chain) => chain.id === packagesQuery.data?.data?.chainId
-      ) as any
-    )?.blockExplorers?.default?.url ?? 'https://etherscan.io';
+  const explorerUrl = packagesQuery.data?.chainId
+    ? getExplorerUrl(packagesQuery.data?.chainId, contractAddress)
+    : null;
 
   const isMobile = useBreakpointValue([true, true, false]);
 
   const subnavContext = useContext(SubnavContext);
 
   const isLoadingData = packagesQuery.isPending || deploymentData.isPending;
+
+  if (!packagesQuery.isLoading && !packagesQuery.data) {
+    throw new Error('Failed to fetch package');
+  }
 
   return (
     <>
@@ -134,19 +141,22 @@ const Interact: FC = () => {
             )}
           </Heading>
           <Text color="gray.300" fontSize="xs" fontFamily="mono">
-            <Link
-              isExternal
-              styleConfig={{ 'text-decoration': 'none' }}
-              borderBottom="1px dotted"
-              borderBottomColor="gray.300"
-              href={`${etherscanUrl}/address/${contractAddress}`}
-            >
-              {isMobile && contractAddress
-                ? `${contractAddress.substring(0, 6)}...${contractAddress.slice(
-                    -4
-                  )}`
-                : contractAddress}
-            </Link>
+            {explorerUrl ? (
+              <Link
+                isExternal
+                styleConfig={{ 'text-decoration': 'none' }}
+                borderBottom="1px dotted"
+                borderBottomColor="gray.300"
+                href={explorerUrl}
+              >
+                {isMobile && contractAddress
+                  ? `${contractAddress.substring(
+                      0,
+                      6
+                    )}...${contractAddress.slice(-4)}`
+                  : contractAddress}
+              </Link>
+            ) : null}
           </Text>
         </Box>
 
@@ -172,11 +182,11 @@ const Interact: FC = () => {
                 href={deployUrl}
               >
                 {isMobile
-                  ? `${packagesQuery.data?.data.deployUrl.substring(
+                  ? `${packagesQuery.data?.deployUrl.substring(
                       0,
                       13
-                    )}...${packagesQuery.data?.data?.deployUrl.slice(-4)}`
-                  : packagesQuery.data?.data?.deployUrl}
+                    )}...${packagesQuery.data?.deployUrl.slice(-4)}`
+                  : packagesQuery.data?.deployUrl}
               </Link>
             </Text>
           </Flex>
@@ -189,9 +199,9 @@ const Interact: FC = () => {
         contractSource={contract?.sourceName}
         address={contractAddress!}
         cannonOutputs={cannonOutputs}
-        chainId={packagesQuery.data?.data?.chainId}
+        chainId={packagesQuery.data!.chainId}
         onDrawerOpen={onOpen}
-        packageUrl={packagesQuery.data?.data.deployUrl}
+        packageUrl={packagesQuery.data?.deployUrl}
       />
       <QueueDrawer isOpen={isOpen} onClose={onClose} onOpen={onOpen} />
     </>

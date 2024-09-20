@@ -1,3 +1,4 @@
+import { DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
@@ -6,9 +7,9 @@ import untildify from 'untildify';
 import * as viem from 'viem';
 import { parseEnv } from 'znv';
 import { z } from 'zod';
-import { DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY } from './constants';
 import { checkAndNormalizePrivateKey, filterSettings } from './helpers';
+import { deprecatedWarn } from './util/deprecated-warn';
 
 const debug = Debug('cannon:cli:settings');
 
@@ -17,12 +18,17 @@ const debug = Debug('cannon:cli:settings');
  */
 export type CliSettings = {
   /**
-   * provider used for `build` defaults to 'frame,direct' https://github.com/floating/eth-provider#presets
+   * (DEPRECATED) Provider used for `build` defaults to 'frame,direct' https://github.com/floating/eth-provider#presets
    */
-  providerUrl: string;
+  providerUrl?: string;
 
   /**
-   * private key(s) of default signer that should be used for build, comma separated
+   * Provider used for `build` defaults to 'frame,direct' https://github.com/floating/eth-provider#presets
+   */
+  rpcUrl: string;
+
+  /**
+   * Private key(s) of default signer that should be used for build, comma separated
    */
   privateKey?: viem.Hex;
 
@@ -60,14 +66,14 @@ export type CliSettings = {
   registries: {
     chainId?: number;
     name: string;
-    providerUrl?: string[];
+    rpcUrl?: string[];
     address: viem.Address;
   }[];
 
   /**
    * URL to use to write a package to the registry.
    */
-  registryProviderUrl?: string;
+  registryRpcUrl?: string;
 
   /**
    * chain Id of the registry. Defaults to `1`.
@@ -88,11 +94,6 @@ export type CliSettings = {
    * Directory to load configurations from and for local registry
    */
   cannonDirectory: string;
-
-  /**
-   * Settings file to load configurations from
-   */
-  cannonSettings?: string;
 
   /**
    * URL of etherscan API for verification
@@ -131,18 +132,19 @@ export type CliSettings = {
   priorityGasFee?: string;
 };
 
-export const PROVIDER_URL_DEFAULT = 'frame,direct';
+export const DEFAULT_RPC_URL = 'frame,direct';
+let cachedCliSettings: CliSettings | null = null;
 
 /**
  * Settings zod schema.
  * Check env vars and set default values if needed
  */
 
-function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>) {
+function createCannonSettingsSchema(fileSettings: CliSettings) {
   return {
-    CANNON_DIRECTORY: z.string().default(DEFAULT_CANNON_DIRECTORY),
-    CANNON_SETTINGS: z.string().optional(),
-    CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || PROVIDER_URL_DEFAULT),
+    CANNON_DIRECTORY: z.string().default(fileSettings.cannonDirectory || DEFAULT_CANNON_DIRECTORY),
+    CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || DEFAULT_RPC_URL),
+    CANNON_RPC_URL: z.string().default(fileSettings.rpcUrl || ''),
     CANNON_PRIVATE_KEY: z
       .string()
       .optional()
@@ -168,7 +170,7 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .url()
       .optional()
       .default(fileSettings.publishIpfsUrl as string),
-    CANNON_REGISTRY_PROVIDER_URL: z.string().url().optional(),
+    CANNON_REGISTRY_RPC_URL: z.string().url().optional(),
     CANNON_REGISTRY_CHAIN_ID: z.string().optional(),
     CANNON_REGISTRY_ADDRESS: z
       .string()
@@ -187,29 +189,27 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
   };
 }
 
-function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
-  const cliSettingsStore = untildify(
-    path.join(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY, CLI_SETTINGS_STORE)
-  );
+function computeCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
+  const settingsPath = untildify(path.join(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY, CLI_SETTINGS_STORE));
 
-  let fileSettings: Omit<CliSettings, 'cannonDirectory'>;
+  let fileSettings: CliSettings;
   if (process.env.CANNON_SETTINGS) {
     fileSettings = JSON.parse(process.env.CANNON_SETTINGS);
   } else {
-    fileSettings = fs.existsSync(cliSettingsStore) ? fs.readJsonSync(cliSettingsStore) : {};
+    fileSettings = fs.existsSync(settingsPath) ? fs.readJsonSync(settingsPath) : {};
   }
 
   const {
     CANNON_DIRECTORY,
-    CANNON_SETTINGS,
     CANNON_PROVIDER_URL,
+    CANNON_RPC_URL,
     CANNON_PRIVATE_KEY,
     CANNON_IPFS_TIMEOUT,
     CANNON_IPFS_RETRIES,
     CANNON_IPFS_URL,
     CANNON_WRITE_IPFS_URL,
     CANNON_PUBLISH_IPFS_URL,
-    CANNON_REGISTRY_PROVIDER_URL,
+    CANNON_REGISTRY_RPC_URL,
     CANNON_REGISTRY_CHAIN_ID,
     CANNON_REGISTRY_ADDRESS,
     CANNON_REGISTRY_PRIORITY,
@@ -218,13 +218,12 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     CANNON_QUIET,
     CANNON_E2E,
     TRACE,
-  } = parseEnv(process.env, cannonSettingsSchema(fileSettings));
+  } = parseEnv(process.env, createCannonSettingsSchema(fileSettings));
 
   const finalSettings = _.assign(
     {
       cannonDirectory: untildify(CANNON_DIRECTORY),
-      cannonSettings: CANNON_SETTINGS,
-      providerUrl: CANNON_PROVIDER_URL,
+      rpcUrl: CANNON_RPC_URL || CANNON_PROVIDER_URL,
       privateKey: CANNON_PRIVATE_KEY,
       ipfsTimeout: CANNON_IPFS_TIMEOUT,
       ipfsRetries: CANNON_IPFS_RETRIES,
@@ -232,16 +231,16 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       writeIpfsUrl: CANNON_WRITE_IPFS_URL,
       publishIpfsUrl: CANNON_PUBLISH_IPFS_URL,
       registries:
-        CANNON_REGISTRY_ADDRESS && (CANNON_REGISTRY_PROVIDER_URL || CANNON_REGISTRY_CHAIN_ID)
+        CANNON_REGISTRY_ADDRESS && (CANNON_REGISTRY_RPC_URL || CANNON_REGISTRY_CHAIN_ID)
           ? [
               {
                 name: 'Custom Network',
-                providerUrl: CANNON_REGISTRY_PROVIDER_URL ? [CANNON_REGISTRY_PROVIDER_URL] : undefined,
+                rpcUrl: CANNON_REGISTRY_RPC_URL ? [CANNON_REGISTRY_RPC_URL] : undefined,
                 chainId: CANNON_REGISTRY_CHAIN_ID ? Number(CANNON_REGISTRY_CHAIN_ID) : undefined,
                 address: CANNON_REGISTRY_ADDRESS as viem.Address,
               },
             ]
-          : DEFAULT_REGISTRY_CONFIG,
+          : fileSettings.registries || DEFAULT_REGISTRY_CONFIG,
       registryPriority: CANNON_REGISTRY_PRIORITY,
       etherscanApiUrl: CANNON_ETHERSCAN_API_URL,
       etherscanApiKey: CANNON_ETHERSCAN_API_KEY,
@@ -252,14 +251,19 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     _.pickBy(overrides)
   ) as CliSettings;
 
-  // Check and normalize private keys
+  if (overrides.providerUrl && !overrides.rpcUrl) {
+    deprecatedWarn('--provider-url', '--rpc-url');
+    finalSettings.rpcUrl = overrides.providerUrl;
+  }
+
+  // check and normalize private keys
   finalSettings.privateKey = checkAndNormalizePrivateKey(finalSettings.privateKey);
 
-  if (overrides.registryAddress && (overrides.registryProviderUrl || overrides.registryChainId)) {
+  if (overrides.registryAddress && (overrides.registryRpcUrl || overrides.registryChainId)) {
     finalSettings.registries = [
       {
         name: 'Custom Network',
-        providerUrl: overrides.registryProviderUrl ? [overrides.registryProviderUrl] : undefined,
+        rpcUrl: overrides.registryRpcUrl ? [overrides.registryRpcUrl] : undefined,
         chainId: overrides.registryChainId ? Number(overrides.registryChainId) : undefined,
         address: overrides.registryAddress ? overrides.registryAddress : (CANNON_REGISTRY_ADDRESS as viem.Address),
       },
@@ -271,4 +275,18 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
   return finalSettings;
 }
 
-export const resolveCliSettings = _.memoize(_resolveCliSettings);
+const memoizedCliSettings = _.memoize((overrides: Partial<CliSettings> = {}): CliSettings => {
+  const result = computeCliSettings(overrides);
+  cachedCliSettings = result;
+  return result;
+});
+
+export const getCliSettings = (overrides: Partial<CliSettings> = {}): CliSettings => {
+  if (_.isEmpty(overrides) && cachedCliSettings) {
+    return cachedCliSettings;
+  }
+  return memoizedCliSettings(overrides);
+};
+
+export const resolveCliSettings = getCliSettings;
+export const resolveCliSettingsNoCache = computeCliSettings;

@@ -1,29 +1,42 @@
 name: Test-snx-ci
 
 on:
-  push:
-    branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, alpha, dev]
 
 jobs:
   test-snx-ci:
     runs-on: ubuntu-latest
+    env:
+      CANNON_DIRECTORY: ${{ github.workspace }}/.cannon
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
+          cache: pnpm
           node-version: '20.5.1'
-          cache: 'npm'
+
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-      - run: npm ci
-      - run: npm run build
+        with:
+          version: nightly-ef62fdbab638a275fc19a2ff8fe8951c3bd1d9aa
+
+      - name: Cache used IPFS files
+        uses: actions/cache@v4
+        with:
+          key: cannon-ipfs-cache_${{ runner.os }}-${{ github.job }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: cannon-ipfs-cache_
+          path: ${{ env.CANNON_DIRECTORY }}/ipfs_cache
+          save-always: true
+
+      - run: pnpm i --prefer-frozen-lockfile
+      - run: pnpm build
         env:
           NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
 
-      - name: Initialize submodules
-        run: git submodule update --init --recursive
-
       - name: Synthetix CI Downstream
-        run: cd ./packages/cli && npm run test-snx-ci
+        run: cd ./packages/cli && pnpm test-snx-ci

@@ -1,5 +1,6 @@
 import Debug from 'debug';
 import _ from 'lodash';
+import * as viem from 'viem';
 import { CannonHelperContext } from './types';
 import { template } from './utils/template';
 
@@ -8,14 +9,14 @@ const debug = Debug('cannon:builder:access-recorder');
 class ExtendableProxy {
   readonly accessed = new Map<string, AccessRecorder>();
 
-  constructor() {
+  constructor(defaultValue?: any) {
     return new Proxy(this, {
       get: (obj: any, prop: string) => {
         if (prop === 'accessed' || prop === 'getAccesses') {
           return obj[prop];
         }
         if (!this.accessed.has(prop)) {
-          this.accessed.set(prop, new AccessRecorder());
+          this.accessed.set(prop, defaultValue === undefined ? new AccessRecorder() : defaultValue);
         }
 
         if (typeof prop === 'symbol') {
@@ -58,29 +59,33 @@ export function computeTemplateAccesses(str?: string, possibleNames: string[] = 
     return { accesses: [], unableToCompute: false };
   }
 
-  const recorders: { [k: string]: AccessRecorder } = {
+  type AccessRecorderMap = { [k: string]: AccessRecorder };
+  const recorders: { [k: string]: AccessRecorder | AccessRecorderMap } = {
     contracts: new AccessRecorder(),
     imports: new AccessRecorder(),
     extras: new AccessRecorder(),
     txns: new AccessRecorder(),
-    settings: new AccessRecorder(),
+    // For settings, we give it a zeroAddress as a best case scenarion that is going
+    // to be working for most cases.
+    // e.g., when calculating a setting value for 'settings.owners.split(',')' or 'settings.someNumber' will work.
+    settings: new AccessRecorder(viem.zeroAddress),
   };
 
-  for (const n in CannonHelperContext) {
-    if (typeof (CannonHelperContext as any)[n] === 'function') {
+  for (const [n, ctxVal] of Object.entries(CannonHelperContext)) {
+    if (typeof ctxVal === 'function') {
       // the types have been a massive unsolvableseeming pain here
       recorders[n] = _.noop as unknown as AccessRecorder;
-    } else if (typeof (CannonHelperContext as any)[n] === 'object') {
-      for (const o in (CannonHelperContext as any)[n]) {
-        if (!recorders[n]) (recorders[n] as any) = {};
-        if (typeof (CannonHelperContext as any)[n][o] === 'function') {
-          (recorders[n] as any)[o] = _.noop as unknown as AccessRecorder;
+    } else if (typeof ctxVal === 'object') {
+      for (const [key, val] of Object.entries(ctxVal)) {
+        if (typeof val === 'function') {
+          if (!recorders[n]) recorders[n] = {} as AccessRecorderMap;
+          (recorders[n] as AccessRecorderMap)[key] = _.noop as unknown as AccessRecorder;
         } else {
-          recorders[n] = (CannonHelperContext as any)[n] as unknown as AccessRecorder;
+          recorders[n] = ctxVal as unknown as AccessRecorder;
         }
       }
     } else {
-      recorders[n] = (CannonHelperContext as any)[n] as unknown as AccessRecorder;
+      recorders[n] = ctxVal as unknown as AccessRecorder;
     }
   }
 

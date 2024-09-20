@@ -1,176 +1,12 @@
-import { ANVIL_FIRST_ADDRESS } from './constants';
+import { debugVerbosity } from './debug';
+import { CommandsConfig } from './types';
+import { forgeBuildOptions } from './forge/build';
+import { forgeTestOptions } from './forge/test';
+import { anvilOptions } from './anvil';
 
-const debugVerbosity = [
-  {
-    flags: '-v',
-    description: 'Print logs for builder, equivalent to DEBUG=cannon:builder',
-  },
-  {
-    flags: '-vv',
-    description:
-      'Print logs for builder and its definition section, equivalent to DEBUG=cannon:builder, cannon:builder:definition',
-  },
-  {
-    flags: '-vvv',
-    description: 'Print logs for builder and its all sub sections, equivalent to DEBUG=cannon:builder*',
-  },
-  {
-    flags: '-vvvv',
-    description: 'Print all cannon logs, equivalent to DEBUG=cannon:*',
-  },
-];
+import { ANVIL_FIRST_ADDRESS, ANVIL_PORT_DEFAULT_VALUE } from '../../constants';
 
-const anvilOptions = [
-  {
-    flags: '-p --port <number>',
-    description: 'Port which the JSON-RPC server will be exposed.',
-    defaultValue: '0', // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
-  },
-  {
-    flags: '-c --chain-id <number>',
-    description: 'The chain id to run against',
-  },
-  {
-    flags: '--compute-units-per-second [number]',
-    description: 'Sets the number of assumed available compute units per second for this fork provider.',
-  },
-  {
-    flags: '--fork-url [url]',
-    description: 'Fetch state over a remote endpoint instead of starting from an empty state.',
-  },
-  {
-    flags: '--fork-block-number [number]',
-    description: 'Fetch state from a specific block number over a remote endpoint.',
-  },
-  {
-    flags: '--fork-chain-id [number]',
-    description: 'Specify chain id to skip fetching it from remote endpoint.',
-  },
-  {
-    flags: '--fork-retry-backoff [number]',
-    description: 'Initial retry backoff on encountering errors.',
-  },
-  {
-    flags: '--no-rate-limit',
-    description: "Disables rate limiting for this node's provider.",
-  },
-  {
-    flags: '--no-storage-caching',
-    description: 'Explicitly disables the use of RPC caching. All storage slots are read entirely from the endpoint.',
-  },
-  {
-    flags: '--retries [number]',
-    description: 'Number of retry requests for spurious networks (timed out requests).',
-  },
-  {
-    flags: '--timeout [number]',
-    description: 'Timeout in ms for requests sent to remote JSON-RPC server in forking mode.',
-  },
-  {
-    flags: '--code-size-limit [number]',
-    description: 'EIP-170: Contract code size limit in bytes. Useful to increase this because of tests.',
-  },
-  {
-    flags: '--disable-block-gas-limit',
-    description: 'Disable the call.gas_limit <= block.gas_limit constraint.',
-  },
-  {
-    flags: '--gas-limit [number]',
-    description: 'The block gas limit.',
-  },
-  {
-    flags: '--accounts [number]',
-    description: 'Number of dev accounts to generate and configure.',
-  },
-  {
-    flags: '--balance [number]',
-    description: 'The balance of every dev account in Ether.',
-  },
-  {
-    flags: '--derivation-path [path]',
-    description: 'Sets the derivation path of the child key to be derived.',
-  },
-  {
-    flags: '--mnemonic [phrase]',
-    description: 'BIP39 mnemonic phrase used for generating accounts.',
-  },
-  {
-    flags: '--steps-tracing',
-    description: 'Enable steps tracing used for debug calls returning geth-style traces.',
-  },
-  {
-    flags: '--timestamp [number]',
-    description: 'The timestamp of the genesis block.',
-  },
-  {
-    flags: '--allow-origin [string]',
-    description: 'Set the Access-Control-Allow-Origin response header (CORS).',
-  },
-  {
-    flags: '--block-time [number]',
-    description: 'Block time in seconds for interval mining.',
-  },
-  {
-    flags: '--config-out [path]',
-    description: 'Writes output of anvil as json to user-specified file.',
-  },
-  {
-    flags: '--dump-state [path]',
-    description: 'Dump the state of chain on exit to the given file.',
-  },
-  {
-    flags: '--hardfork [type]',
-    description: 'The EVM hardfork to use.',
-  },
-  {
-    flags: '--host [string]',
-    description: 'The host the server will listen on.',
-  },
-  {
-    flags: '--init [path]',
-    description: 'Initialize the genesis block with the given genesis.json file.',
-  },
-  {
-    flags: '--ipc [path]',
-    description: 'Launch an ipc server at the given path or default path = /tmp/anvil.ipc.',
-  },
-  {
-    flags: '--load-state [path]',
-    description: 'Initialize the chain from a previously saved state snapshot.',
-  },
-  {
-    flags: '--no-cors',
-    description: 'Disable CORS.',
-  },
-  {
-    flags: '--no-mining',
-    description: 'Disable auto and interval mining, and mine on demand instead.',
-  },
-  {
-    flags: '--order [string]',
-    description: 'How transactions are sorted in the mempool.',
-  },
-  {
-    flags: '--prune-history [value]',
-    description:
-      "Don't keep full chain history. If a number argument is specified, at most this number of states is kept in memory.",
-  },
-  {
-    flags: '--state-interval [number]',
-    description: 'Interval in seconds at which the status is to be dumped to disk.',
-  },
-  {
-    flags: '--state [path]',
-    description:
-      "Alias for both loadState and dumpState. Initializes the chain with the state stored at the file, if it exists, and dumps the chain's state on exit.",
-  },
-  {
-    flags: '--transaction-block-keeper [number]',
-    description: 'Number of blocks with transactions to keep in memory.',
-  },
-];
-
-const commandsConfig = {
+export const commandsConfig: CommandsConfig = {
   run: {
     description: 'Run a local Cannon package (Chain ID: 13370) on a local node for development and testing',
     usage: '[global options] ...[<name>[:<semver>] ...[<key>=<value>]]',
@@ -180,11 +16,23 @@ const commandsConfig = {
         description: 'List of packages to load, optionally with custom settings for each one',
       },
     ],
-    anvilOptions: anvilOptions,
     options: [
       {
-        flags: '-n --provider-url [url]',
+        flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to fork off of',
+      },
+      {
+        flags: '--provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to fork off of',
+      },
+      {
+        flags: '-c --chain-id <chainId>',
+        description: 'Chain Id of the deployment you are running [default: 13370]',
+      },
+      {
+        flags: '--port <number>',
+        description: 'Port which the JSON-RPC server will be exposed. [default: 0]',
+        defaultValue: ANVIL_PORT_DEFAULT_VALUE,
       },
       {
         flags: '--build',
@@ -229,9 +77,10 @@ const commandsConfig = {
       },
       ...debugVerbosity,
     ],
+    anvilOptions,
   },
   build: {
-    description: 'Build a package from a Cannonfile',
+    description: 'Build a package from a Cannonfile.',
     arguments: [
       {
         flags: '[cannonfile]',
@@ -243,15 +92,23 @@ const commandsConfig = {
         description: 'Custom settings for building the cannonfile',
       },
     ],
-    anvilOptions: anvilOptions,
     options: [
       {
-        flags: '-n --provider-url [url]',
+        flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to execute the deployment on',
+      },
+      {
+        flags: '--provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to fork off of',
       },
       {
         flags: '-c --chain-id <number>',
         description: 'The chain id to run against',
+      },
+      {
+        flags: '--port <number>',
+        description: 'Port which the JSON-RPC server will be exposed. [default: 0]',
+        defaultValue: ANVIL_PORT_DEFAULT_VALUE,
       },
       {
         flags: '-p --preset <preset>',
@@ -318,6 +175,8 @@ const commandsConfig = {
       },
       ...debugVerbosity,
     ],
+    anvilOptions: anvilOptions,
+    forgeOptions: forgeBuildOptions,
   },
   verify: {
     description: 'Verify a package on Etherscan',
@@ -340,6 +199,42 @@ const commandsConfig = {
       {
         flags: '-p --preset <preset>',
         description: '(DEPRECATED) Preset of the deployment to verify',
+      },
+      ...debugVerbosity,
+    ],
+  },
+  diff: {
+    description: 'Confirm that the contracts in a package match up with those in a contracts source code directory',
+    arguments: [
+      {
+        flags: '<packageRef>',
+        description:
+          'Name, version and preset of the Cannon package to match up with a source code directory (name:version@preset)',
+      },
+      {
+        flags: '<projectDirectory>',
+        description: 'The directory of the foundry project to be compared against.',
+      },
+    ],
+    options: [
+      {
+        flags: '-c --chain-id <chainId>',
+        description: 'Chain ID of deployment to verify',
+        defaultValue: '13370',
+      },
+      {
+        flags: '-p --preset <preset>',
+        description: '(DEPRECATED) Preset of the deployment to verify',
+      },
+      {
+        flags: '--match-contract <name>',
+        description: 'Regex of contracts to match. Default: compare all contracts',
+        defaultValue: '',
+      },
+      {
+        flags: '--match-source <path>',
+        description: 'Regex of source code file names to match. Default: compare all source code paths',
+        defaultValue: '',
       },
       ...debugVerbosity,
     ],
@@ -372,8 +267,12 @@ const commandsConfig = {
           'When the change needs to be made in a subpackage, specify the step names leading to the subpackage, comma separated.',
       },
       {
-        flags: '-n --provider-url [url]',
+        flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to alter to',
+      },
+      {
+        flags: '--provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to fork off of',
       },
       {
         flags: '-p --preset <preset>',
@@ -427,7 +326,7 @@ const commandsConfig = {
     ],
     options: [
       {
-        flags: '-n --registry-provider-url [url]',
+        flags: '-n --registry-rpc-url [url]',
         description: 'RPC endpoint to publish to',
       },
       {
@@ -499,7 +398,7 @@ const commandsConfig = {
     ],
     options: [
       {
-        flags: '-n --registry-provider-url [url]',
+        flags: '-n --registry-rpc-url [url]',
         description: 'RPC endpoint to unpublish to',
       },
       {
@@ -551,7 +450,7 @@ const commandsConfig = {
     ],
     options: [
       {
-        flags: '-n --registry-provider-url [url]',
+        flags: '-n --registry-rpc-url [url]',
         description: 'RPC endpoint to register your package to',
       },
       {
@@ -611,7 +510,7 @@ const commandsConfig = {
         description: 'List package publishers',
       },
       {
-        flags: '-n --registry-provider-url [url]',
+        flags: '-n --registry-rpc-url [url]',
         description: 'RPC endpoint to add a publisher to your package',
       },
       {
@@ -726,7 +625,7 @@ const commandsConfig = {
       },
       {
         flags: '<transactionHash OR bytes32Data>',
-        description: 'base 16 encoded transaction data to input to a function call, or transaction hash',
+        description: 'bytes32 encoded transaction data to input to a function call, or transaction hash',
       },
     ],
     options: [
@@ -743,7 +642,7 @@ const commandsConfig = {
         description: 'Contract which should be called',
       },
       {
-        flags: '-v --value <value>',
+        flags: '--value <value>',
         description: 'Amonut of gas token to send in the traced call',
       },
       {
@@ -755,8 +654,12 @@ const commandsConfig = {
         description: '(DEPRECATED) Preset of the variant to trace',
       },
       {
-        flags: '-n --provider-url [url]',
+        flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to fork off of',
+      },
+      {
+        flags: '--provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to fork off of',
       },
       {
         flags: '-j --json',
@@ -773,15 +676,22 @@ const commandsConfig = {
         description: 'Name, version and preset of the package to decode from (name:version@preset)',
       },
       {
-        flags: '<bytes32Data...>',
-        description: 'bytes32 encoded transaction data to decode',
+        flags: '<transactionHash OR bytes32Data>',
+        description: 'bytes32 encoded transaction data, or transaction hash',
       },
     ],
     options: [
       {
         flags: '-c --chain-id <chainId>',
         description: 'Chain ID of the variant to inspect',
-        defaultValue: '13370',
+      },
+      {
+        flags: '-n --rpc-url [url]',
+        description: 'RPC endpoint to decode on',
+      },
+      {
+        flags: '--provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to decode on',
       },
       {
         flags: '-p --preset <preset>',
@@ -796,7 +706,7 @@ const commandsConfig = {
   },
   test: {
     description: 'Run forge tests on a cannon deployment. To pass arguments through to `forge test`, use `--`.',
-    usage: '[cannonfile] [-- forge options...]',
+    usage: '[cannonfile]',
     arguments: [
       {
         flags: '[cannonfile]',
@@ -810,8 +720,12 @@ const commandsConfig = {
     ],
     options: [
       {
-        flags: '-n --provider-url [url]',
+        flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to fork off of',
+      },
+      {
+        flags: '--provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to fork off of',
       },
       {
         flags: '-c --chain-id',
@@ -840,6 +754,7 @@ const commandsConfig = {
       },
       ...debugVerbosity,
     ],
+    forgeOptions: forgeTestOptions,
   },
   interact: {
     description: 'Start an interactive terminal against a set of active cannon deployments',
@@ -855,8 +770,12 @@ const commandsConfig = {
         description: 'Chain ID of deployment to interact with ',
       },
       {
-        flags: '-n --provider-url [url]',
+        flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to execute the deployment on',
+      },
+      {
+        flags: '--provider-url [url]',
+        description: '(DEPRECATED) RPC endpoint to fork off of',
       },
       {
         flags: '-p --preset <preset>',

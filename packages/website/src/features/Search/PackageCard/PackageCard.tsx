@@ -3,9 +3,10 @@ import PackageTable from './PackageTable';
 import { Box, Flex, Heading, Link } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { FC } from 'react';
+import { ApiDocument } from '@usecannon/api/dist/src/types';
 
 interface IPackageCardProps {
-  pkgs: any[];
+  pkgs: ApiDocument[];
   maxHeight?: string;
 }
 

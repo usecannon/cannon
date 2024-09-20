@@ -1,5 +1,6 @@
 import { fixtureCtx } from '../../test/fixtures';
 import { fakeRuntime } from './utils.test.helper';
+import { PackageReference } from '../package-reference';
 import action from './var';
 
 describe('steps/var.ts', () => {
@@ -51,8 +52,7 @@ describe('steps/var.ts', () => {
   describe('exec()', () => {
     it('works forwards compatible', async () => {
       const step = {
-        name: 'var-test',
-        version: '0.0.0',
+        ref: new PackageReference('var-test:0.0.0'),
         currentLabel: 'setting.something',
       };
 
@@ -65,8 +65,7 @@ describe('steps/var.ts', () => {
 
     it('works backwards compatible', async () => {
       const step = {
-        name: 'var-test',
-        version: '0.0.0',
+        ref: new PackageReference('var-test:0.0.0'),
         currentLabel: 'var.something',
       };
 

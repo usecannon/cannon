@@ -79,7 +79,9 @@ describe('build', () => {
     let provider: viem.PublicClient & viem.WalletClient & viem.TestClient;
 
     beforeEach(() => {
-      jest.spyOn(helpers, 'loadCannonfile').mockResolvedValue({} as any);
+      jest
+        .spyOn(helpers, 'loadCannonfile')
+        .mockResolvedValue({ def: { danglingDependencies: {}, getDeployers: () => [] } } as any);
       provider = makeFakeProvider();
       jest.spyOn(buildCommand, 'build').mockResolvedValue({ outputs: {}, provider, runtime: {} as any });
       jest.spyOn(utilProvider, 'resolveProvider').mockResolvedValue({ provider: provider as any, signers: [] });
@@ -100,16 +102,15 @@ describe('build', () => {
       });
 
       it('should resolve chainId from provider url', async () => {
-        const providerUrl = `http://127.0.0.1:${port}`;
+        const rpcUrl = `http://127.0.0.1:${port}`;
 
         jest.mocked(provider.getChainId).mockResolvedValue(chainId);
 
-        await cli.parseAsync([...fixedArgs, '--provider-url', providerUrl]);
+        await cli.parseAsync([...fixedArgs, '--rpc-url', rpcUrl]);
 
-        expect((utilProvider.resolveProvider as jest.Mock).mock.calls[0][0].cliSettings.providerUrl).toEqual(providerUrl);
+        expect((utilProvider.resolveProvider as jest.Mock).mock.calls[0][0].cliSettings.rpcUrl).toEqual(rpcUrl);
         expect((utilProvider.resolveProvider as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
         expect(utilProvider.resolveProvider).toHaveBeenCalledTimes(1);
-
         expect((buildCommand.build as jest.Mock).mock.calls[0][0].provider).toEqual(provider);
       });
     });
@@ -121,9 +122,7 @@ describe('build', () => {
 
       await cli.parseAsync(args);
 
-      expect((utilProvider.resolveProvider as jest.Mock).mock.calls[0][0].cliSettings.providerUrl.split(',')[0]).toEqual(
-        'frame'
-      );
+      expect((utilProvider.resolveProvider as jest.Mock).mock.calls[0][0].cliSettings.rpcUrl.split(',')[0]).toEqual('frame');
       expect((utilProvider.resolveProvider as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
       expect(utilProvider.resolveProvider).toHaveBeenCalledTimes(1);
 

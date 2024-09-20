@@ -4,18 +4,21 @@ import { FC } from 'react';
 import { Flex, Container } from '@chakra-ui/react';
 import { PackageCard } from '../Search/PackageCard/PackageCard';
 import { CustomSpinner } from '@/components/CustomSpinner';
-import { useQuery } from '@tanstack/react-query';
-import { getPackage } from '@/helpers/api';
 import Custom404 from '@/pages/404';
+import { usePackageByName } from '@/hooks/api/usePackage';
 
 export const PackagePage: FC<{
   name: string;
 }> = ({ name }) => {
-  // TODO: Handle pagination
-  const packagesQuery = useQuery({
-    queryKey: ['package', name],
-    queryFn: getPackage,
-  });
+  const packagesQuery = usePackageByName({ name });
+
+  if (packagesQuery.isLoading) {
+    return <CustomSpinner m="auto" />;
+  }
+
+  if (packagesQuery.isError) {
+    throw new Error('Failed to fetch package');
+  }
 
   return (
     <Flex flexDirection="column" width="100%">

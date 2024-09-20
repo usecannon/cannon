@@ -1,7 +1,6 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import {
-  CANNON_CHAIN_ID,
   CannonStorage,
   ChainBuilderRuntime,
   ChainDefinition,
@@ -12,46 +11,41 @@ import {
   IPFSLoader,
   OnChainRegistry,
   PackageReference,
-  publishPackage,
   traceActions,
 } from '@usecannon/builder';
-import { bold, gray, green, red, yellow } from 'chalk';
+import { bold, gray, green, red, yellow, yellowBright } from 'chalk';
 import { Command } from 'commander';
-import Debug from 'debug';
 import _ from 'lodash';
 import prompts from 'prompts';
 import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
-import commandsConfig from './commandsConfig';
-import {
-  checkCannonVersion,
-  checkForgeAstSupport,
-  ensureChainIdConsistency,
-  getPackageReference,
-  setupAnvil,
-} from './helpers';
+import commandsConfig from './commands/config';
+import { checkCannonVersion, ensureChainIdConsistency, getPackageReference, setupAnvil } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
 import { createDefaultReadRegistry } from './registry';
 import { CannonRpcNode, getProvider, runRpc } from './rpc';
 import { resolveCliSettings } from './settings';
 import { PackageSpecification } from './types';
-import { pickAnvilOptions } from './util/anvil';
+
 import { doBuild } from './util/build';
+import { setDebugLevel } from './util/debug-level';
 import { error, log, warn } from './util/console';
 import { getContractsRecursive } from './util/contracts-recursive';
-import { parsePackageArguments, parsePackagesArguments } from './util/params';
+import { applyCommandsConfig } from './util/commands-config';
 import {
-  getChainIdFromProviderUrl,
-  isURL,
-  ProviderAction,
-  resolveProvider,
-  resolveProviderAndSigners,
-} from './util/provider';
+  fromFoundryOptionsToArgs,
+  pickAnvilOptions,
+  pickForgeBuildOptions,
+  pickForgeTestOptions,
+} from './util/foundry-options';
+import { getChainIdFromRpcUrl, isURL, ProviderAction, resolveProviderAndSigners, resolveProvider } from './util/provider';
 import { isPackageRegistered } from './util/register';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
+import { ANVIL_PORT_DEFAULT_VALUE } from './constants';
+import { deprecatedWarn } from './util/deprecated-warn';
 
 export * from './types';
 export * from './constants';
@@ -69,8 +63,11 @@ export { publish } from './commands/publish';
 export { unpublish } from './commands/unpublish';
 export { publishers } from './commands/publishers';
 export { run } from './commands/run';
+import { pin } from './commands/pin';
 export { verify } from './commands/verify';
 export { setup } from './commands/setup';
+import { forgeBuildOptions } from './commands/config/forge/build';
+import { forgeTestOptions } from './commands/config/forge/test';
 export { runRpc, getProvider } from './rpc';
 export { createDefaultReadRegistry, createDryRunRegistry } from './registry';
 export { resolveProviderAndSigners } from './util/provider';
@@ -93,58 +90,6 @@ program
 configureRun(program);
 configureRun(program.command('run'));
 
-function applyCommandsConfig(command: Command, config: any) {
-  if (config.description) {
-    command.description(config.description);
-  }
-  if (config.usage) {
-    command.usage(config.usage);
-  }
-  if (config.arguments) {
-    config.arguments.map((argument: any) => {
-      if (argument.flags === '<packageRefs...>') {
-        command.argument(argument.flags, argument.description, parsePackagesArguments, argument.defaultValue);
-      } else if (command.name() === 'interact' && argument.flags === '<packageRef>') {
-        command.argument(argument.flags, argument.description, parsePackageArguments, argument.defaultValue);
-      } else {
-        command.argument(argument.flags, argument.description, argument.defaultValue);
-      }
-    });
-  }
-  if (config.anvilOptions) {
-    config.anvilOptions.map((option: any) => {
-      option.required
-        ? command.requiredOption(option.flags, option.description, option.defaultValue)
-        : command.option(option.flags, option.description, option.defaultValue);
-    });
-  }
-  if (config.options) {
-    config.options.map((option: any) => {
-      option.required
-        ? command.requiredOption(option.flags, option.description, option.defaultValue)
-        : command.option(option.flags, option.description, option.defaultValue);
-    });
-  }
-  return command;
-}
-
-function setDebugLevel(opts: any) {
-  switch (true) {
-    case opts.Vvvv:
-      Debug.enable('cannon:*');
-      break;
-    case opts.Vvv:
-      Debug.enable('cannon:builder*');
-      break;
-    case opts.Vv:
-      Debug.enable('cannon:builder,cannon:builder:definition');
-      break;
-    case opts.v:
-      Debug.enable('cannon:builder');
-      break;
-  }
-}
-
 function configureRun(program: Command) {
   return applyCommandsConfig(program, commandsConfig.run).action(async function (
     packages: PackageSpecification[],
@@ -155,7 +100,13 @@ function configureRun(program: Command) {
 
     const { run } = await import('./commands/run');
 
-    options.port = Number.parseInt(options.port);
+    // backwards compatibility for --port flag
+    if (options.port !== ANVIL_PORT_DEFAULT_VALUE) {
+      deprecatedWarn('--port', '--anvil.port');
+      options['anvil.port'] = options.port;
+    } else {
+      options.port = options['anvil.port'];
+    }
 
     const cliSettings = resolveCliSettings(options);
 
@@ -168,14 +119,14 @@ function configureRun(program: Command) {
       });
 
       // throw an error if the chainId is not consistent with the provider's chainId
-      await ensureChainIdConsistency(cliSettings.providerUrl, options.chainId);
+      await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
 
       node = await runRpc(pickAnvilOptions(options), {
         forkProvider: provider,
       });
     } else {
-      if (isURL(cliSettings.providerUrl)) {
-        options.chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
+      if (isURL(cliSettings.rpcUrl)) {
+        options.chainId = await getChainIdFromRpcUrl(cliSettings.rpcUrl);
 
         const { provider } = await resolveProvider({
           action: ProviderAction.ReadProvider,
@@ -208,20 +159,31 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
   .action(async (cannonfile, settings, options) => {
     await setupAnvil();
 
+    // backwards compatibility for --port flag
+    if (options.port !== ANVIL_PORT_DEFAULT_VALUE) {
+      deprecatedWarn('--port', '--anvil.port');
+      options['anvil.port'] = options.port;
+    } else {
+      options.port = options['anvil.port'];
+    }
+
     const cannonfilePath = path.resolve(cannonfile);
     const projectDirectory = path.dirname(cannonfilePath);
 
     const cliSettings = resolveCliSettings(options);
 
     // throw an error if the chainId is not consistent with the provider's chainId
-    await ensureChainIdConsistency(cliSettings.providerUrl, options.chainId);
+    await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
 
     log(bold('Building the foundry project...'));
     if (!options.skipCompile) {
-      let forgeBuildArgs = ['build'];
-      if (await checkForgeAstSupport()) {
-        forgeBuildArgs = [...forgeBuildArgs, '--ast'];
-      }
+      // use --build-info to output build info
+      // ref: https://github.com/foundry-rs/foundry/pull/7197
+      const forgeBuildArgs = [
+        'build',
+        '--build-info',
+        ...fromFoundryOptionsToArgs(pickForgeBuildOptions(options), forgeBuildOptions),
+      ];
 
       const forgeBuildProcess = spawn('forge', forgeBuildArgs, { cwd: projectDirectory, shell: true });
 
@@ -282,6 +244,29 @@ applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(asy
   await verify(packageName, cliSettings, options.preset, parseInt(options.chainId));
 });
 
+applyCommandsConfig(program.command('diff'), commandsConfig.diff).action(async function (
+  packageName,
+  projectDirectory,
+  options
+) {
+  const { diff } = await import('./commands/diff');
+
+  const cliSettings = resolveCliSettings(options);
+
+  const foundDiffs = await diff(
+    packageName,
+    cliSettings,
+    options.preset,
+    parseInt(options.chainId),
+    projectDirectory,
+    options.matchContract,
+    options.matchSource
+  );
+
+  // exit code is the number of differences found--useful for CI checks
+  process.exit(foundDiffs);
+});
+
 applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async function (
   packageName,
   command,
@@ -293,7 +278,7 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
   const cliSettings = resolveCliSettings(flags);
 
   // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(cliSettings.providerUrl, flags.chainId);
+  await ensureChainIdConsistency(cliSettings.rpcUrl, flags.chainId);
 
   // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
   const newUrl = await alter(
@@ -336,8 +321,6 @@ applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async
 applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async function (ref, options) {
   const cliSettings = resolveCliSettings(options);
 
-  const fullPackageRef = await getPackageReference(ref);
-
   const fromStorage = new CannonStorage(await createDefaultReadRegistry(cliSettings), getMainLoader(cliSettings));
 
   const toStorage = new CannonStorage(new InMemoryRegistry(), {
@@ -346,13 +329,7 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
 
   log('Uploading package data for pinning...');
 
-  await publishPackage({
-    packageRef: fullPackageRef,
-    chainId: 13370,
-    tags: [], // when passing no tags, it will only copy IPFS files, but not publish to registry
-    fromStorage,
-    toStorage,
-  });
+  await pin(ref, fromStorage, toStorage);
 
   log('Done!');
 });
@@ -381,15 +358,17 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     options.chainId = chainIdPrompt.value;
   }
 
-  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
-  if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
+  const isDefaultRegistryChains =
+    cliSettings.registries[0].chainId === DEFAULT_REGISTRY_CONFIG[0].chainId &&
+    cliSettings.registries[1].chainId === DEFAULT_REGISTRY_CONFIG[1].chainId;
+  if (!isDefaultRegistryChains) throw new Error('Only default registries are supported for now');
 
   // mock provider urls when the execution comes from e2e tests
   if (cliSettings.isE2E) {
     // anvil optimism fork
-    cliSettings.registries[0].providerUrl = ['http://127.0.0.1:9546'];
+    cliSettings.registries[0].rpcUrl = ['http://127.0.0.1:9546'];
     // anvil mainnet fork
-    cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
+    cliSettings.registries[1].rpcUrl = ['http://127.0.0.1:9545'];
   }
 
   // initialized optimism as the default registry
@@ -424,13 +403,13 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     resolveProviderAndSigners({
       chainId: writeRegistry.chainId!,
       privateKey: cliSettings.privateKey!,
-      checkProviders: writeRegistry.providerUrl,
+      checkProviders: writeRegistry.rpcUrl,
       action: ProviderAction.WriteProvider,
     }),
     // read from the other one
     resolveProviderAndSigners({
       chainId: readRegistry.chainId!,
-      checkProviders: readRegistry.providerUrl,
+      checkProviders: readRegistry.rpcUrl,
       action: ProviderAction.ReadProvider,
     }),
   ]);
@@ -622,21 +601,21 @@ applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async
 
   const cliSettings = resolveCliSettings(options);
 
-  const isProviderUrl = isURL(cliSettings.providerUrl);
+  const isRpcUrl = isURL(cliSettings.rpcUrl);
 
   let chainId = options.chainId ? Number(options.chainId) : undefined;
 
-  if (!chainId && isProviderUrl) {
-    chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
+  if (!chainId && isRpcUrl) {
+    chainId = await getChainIdFromRpcUrl(cliSettings.rpcUrl);
   }
 
-  // throw an error if both chainId and providerUrl are not provided
-  if (!chainId && !isProviderUrl) {
-    throw new Error('Please provide one of the following options: --chain-id or --provider-url');
+  // throw an error if both chainId and rpcUrl are not provided
+  if (!chainId && !isRpcUrl) {
+    throw new Error('Please provide one of the following options: --chain-id or --rpc-url');
   }
 
   // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(cliSettings.providerUrl, chainId);
+  await ensureChainIdConsistency(cliSettings.rpcUrl, chainId);
 
   await trace({
     packageRef,
@@ -655,26 +634,39 @@ applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async
 applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(async function (packageRef, data, options) {
   const { decode } = await import('./commands/decode');
 
+  const cliSettings = resolveCliSettings(options);
+
   await decode({
     packageRef,
     data,
-    chainId: parseInt(options.chainId || CANNON_CHAIN_ID),
+    chainId: options.chainId ? parseInt(options.chainId) : undefined,
+    rpcUrl: cliSettings.rpcUrl,
     presetArg: options.preset,
     json: options.json,
   });
 });
 
-applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOpts, options) {
-  options.port = 0;
-
+applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOptions, options) {
   const cliSettings = resolveCliSettings(options);
 
-  if (cliSettings.providerUrl.startsWith('https')) {
+  if (cliSettings.rpcUrl.startsWith('https')) {
     options.dryRun = true;
   }
 
+  if (forgeOptions.length) {
+    log();
+    warn(
+      yellowBright(
+        bold(
+          '⚠️  The `--` syntax for passing options to forge or anvil is deprecated. Please use `--forge.*` or `--anvil.*` instead.'
+        )
+      )
+    );
+    log();
+  }
+
   // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(cliSettings.providerUrl, options.chainId);
+  await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
 
   const [node, , outputs] = await doBuild(cannonfile, [], options);
 
@@ -684,7 +676,13 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
   // after the build is done we can run the forge tests for the user
   await getProvider(node!)!.mine({ blocks: 1 });
 
-  const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeOpts], { stdio: 'inherit' });
+  const pickedOptions = pickForgeTestOptions(options);
+
+  const forgeTestArgs = fromFoundryOptionsToArgs(pickedOptions, forgeTestOptions);
+
+  const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeTestArgs, ...forgeOptions], {
+    stdio: 'inherit',
+  });
 
   await new Promise(() => {
     forgeProcess.on('close', (code: number) => {
@@ -703,20 +701,20 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   let chainId: number | undefined = options.chainId ? Number(options.chainId) : undefined;
 
-  const isProviderUrl = isURL(cliSettings.providerUrl);
+  const isRpcUrl = isURL(cliSettings.rpcUrl);
 
   // if chainId is not provided, get it from the provider
-  if (!chainId && isProviderUrl) {
-    chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
+  if (!chainId && isRpcUrl) {
+    chainId = await getChainIdFromRpcUrl(cliSettings.rpcUrl);
   }
 
-  // throw an error if both chainId and providerUrl are not provided
-  if (!chainId && !isProviderUrl) {
-    throw new Error('Please provide one of the following options: --chain-id or --provider-url');
+  // throw an error if both chainId and rpcUrl are not provided
+  if (!chainId && !isRpcUrl) {
+    throw new Error('Please provide one of the following options: --chain-id or --rpc-url');
   }
 
   // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(cliSettings.providerUrl, chainId);
+  await ensureChainIdConsistency(cliSettings.rpcUrl, chainId);
 
   const { provider, signers } = await resolveProvider({
     action: ProviderAction.OptionalWriteProvider,

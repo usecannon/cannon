@@ -19,6 +19,7 @@ import { DownloadIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { isEmpty } from 'lodash';
 import { DeploymentInfo } from '@usecannon/builder';
+import { ApiPackage } from '@usecannon/api/dist/src/types';
 
 const handleDownload = (content: Record<string, unknown>, filename: string) => {
   const blob = new Blob([JSON.stringify(content, null, 2)], {
@@ -81,7 +82,7 @@ const PackageButton: FC<{
 };
 
 export const CodeExplorer: FC<{
-  pkg: any;
+  pkg: ApiPackage;
   name: string;
   moduleName?: string;
   source: string;
@@ -107,12 +108,9 @@ export const CodeExplorer: FC<{
   });
   const { data: metadata } = useQueryIpfsDataParsed<{
     cannonfile: string;
-  }>(pkg?.metaUrl, !!pkg?.metaUrl);
+  }>(pkg.metaUrl);
 
-  const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
-    pkg?.deployUrl,
-    !!pkg?.deployUrl
-  );
+  const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(pkg.deployUrl);
 
   // Provisioned packages could be inside the "provision" (old) or "clone" (current) key
   // So we check both in order to keep backwards compatibility

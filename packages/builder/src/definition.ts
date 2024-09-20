@@ -1,11 +1,14 @@
 import crypto from 'crypto';
 import Debug from 'debug';
 import _ from 'lodash';
+import type { Address } from 'viem';
 import { ActionKinds, RawChainDefinition, validateConfig } from './actions';
 import { ChainBuilderRuntime } from './runtime';
 import { chainDefinitionSchema } from './schemas';
 import { CannonHelperContext, ChainBuilderContext } from './types';
 import { template } from './utils/template';
+
+import { PackageReference } from './package-reference';
 
 const debug = Debug('cannon:builder:definition');
 const debugVerbose = Debug('cannon:verbose:builder:definition');
@@ -65,6 +68,8 @@ export class ChainDefinition {
   readonly dependencyFor = new Map<string, string>();
   readonly resolvedDependencies = new Map<string, string[]>();
 
+  readonly danglingDependencies = new Set<`${string}:${string}`>();
+
   constructor(def: RawChainDefinition, sensitiveDependencies = false) {
     debug('begin chain def init');
     this.raw = def;
@@ -74,7 +79,7 @@ export class ChainDefinition {
 
     // best way to get a list of actions is just to iterate over the entire def, and filter out anything
     // that are not an actions (because those are known)
-    const actionsDef = _.omit(def, 'name', 'version', 'preset', 'description', 'keywords');
+    const actionsDef = _.omit(def, 'name', 'version', 'preset', 'description', 'keywords', 'deployers');
 
     // Used to validate that there are not 2 steps with the same name
     const actionNames: string[] = [];
@@ -96,9 +101,7 @@ export class ChainDefinition {
 
         if (ActionKinds[action] && ActionKinds[action].getOutputs) {
           const actionOutputs = ActionKinds[action].getOutputs!(_.get(def, fullActionName), {
-            // TODO: what to do about name and version? do they even matter?
-            name: '',
-            version: '',
+            ref: null,
             currentLabel: fullActionName,
           });
 
@@ -130,7 +133,8 @@ export class ChainDefinition {
     // get all dependencies, and filter out the extraneous
     for (const action of this.allActionNames) {
       debug(`compute dependencies for ${action}`);
-      this.resolvedDependencies.set(action, this.computeDependencies(action));
+      const deps = this.computeDependencies(action);
+      this.resolvedDependencies.set(action, deps);
     }
 
     debug('finished resolving dependencies');
@@ -199,6 +203,14 @@ export class ChainDefinition {
     return template(this.raw.preset)(ctx) || 'main';
   }
 
+  getPackageRef(ctx: ChainBuilderContext) {
+    return new PackageReference(`${this.getName(ctx)}:${this.getVersion(ctx) || 'latest'}@${this.getPreset(ctx) || 'main'}`);
+  }
+
+  getDeployers() {
+    return (this.raw.deployers as Address[]) || [];
+  }
+
   isPublicSourceCode() {
     return !this.raw.privateSourceCode;
   }
@@ -220,8 +232,7 @@ export class ChainDefinition {
     validateConfig(action.validate, _.get(this.raw, n));
 
     return action.configInject({ ...ctx, ...CannonHelperContext }, _.get(this.raw, n), {
-      name: this.getName(ctx),
-      version: this.getVersion(ctx),
+      ref: this.getPackageRef(ctx),
       currentLabel: n,
     });
   }
@@ -257,8 +268,7 @@ export class ChainDefinition {
       { ...ctx, ...CannonHelperContext },
       this.getConfig(n, ctx) as any,
       {
-        name: this.getName(ctx),
-        version: this.getVersion(ctx),
+        ref: this.getPackageRef(ctx),
         currentLabel: n,
       }
     );
@@ -335,8 +345,7 @@ export class ChainDefinition {
         }
       }
       const accessComputationResults = ActionKinds[n].getInputs!(_.get(this.raw, node), possibleFields, {
-        name: '',
-        version: '',
+        ref: null,
         currentLabel: node,
       });
 
@@ -353,8 +362,9 @@ export class ChainDefinition {
         debug(`deps: ${node} consumes ${input}`);
         if (this.dependencyFor.has(input)) {
           deps.push(this.dependencyFor.get(input)!);
-        } else if (!input.startsWith('settings.')) {
+        } else {
           debug(`WARNING: dependency ${input} not found for operation ${node}`);
+          this.danglingDependencies.add(`${input}:${node}`);
         }
       }
     }

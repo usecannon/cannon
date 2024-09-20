@@ -15,13 +15,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
+          cache: pnpm
           node-version: '20.5.1'
-          cache: 'npm'
 
       - name: Install Dependencies
-        run: npm ci
+        run: pnpm i --prefer-frozen-lockfile
 
       - name: Create Release Pull Request
         id: changesets
@@ -31,6 +32,6 @@ jobs:
 
       - name: Publish to NPM
         if: steps.changesets.outputs.hasChangesets == 'false'
-        run: npx lerna publish from-package --no-push --no-private --yes
+        run: pnpm lerna publish from-package --no-push --no-private --yes
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

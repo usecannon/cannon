@@ -6,9 +6,9 @@ import provider from 'eth-provider';
 import { privateKeyToAccount } from 'viem/accounts';
 import { CannonSigner, traceActions } from '@usecannon/builder';
 
-import { log, error, warn } from './console';
+import { log, error } from './console';
 import { getChainById } from '../chains';
-import { CliSettings, PROVIDER_URL_DEFAULT } from '../settings';
+import { CliSettings } from '../settings';
 
 const debug = Debug('cannon:cli:provider');
 
@@ -37,9 +37,9 @@ export const isURL = (url: string): boolean => {
   }
 };
 
-export const hideApiKey = (providerUrl: string) => {
+export const hideApiKey = (rpcUrl: string) => {
   try {
-    const parsedUrl = new URL(providerUrl);
+    const parsedUrl = new URL(rpcUrl);
     const pathParts = parsedUrl.pathname.split('/');
     const queryParams = parsedUrl.searchParams;
 
@@ -71,14 +71,14 @@ export const hideApiKey = (providerUrl: string) => {
     parsedUrl.pathname = pathParts.join('/');
     return parsedUrl.toString();
   } catch (error) {
-    return providerUrl; // return original URL if parsing fails
+    return rpcUrl; // return original URL if parsing fails
   }
 };
 
-export const getChainIdFromProviderUrl = async (providerUrl: string) => {
-  if (!isURL(providerUrl)) throw new Error('Provider URL has not a valid format');
+export const getChainIdFromRpcUrl = async (rpcUrl: string) => {
+  if (!isURL(rpcUrl)) throw new Error('RPC URL has not a valid format');
 
-  const provider = viem.createPublicClient({ transport: viem.http(providerUrl, { timeout: 180000 }) });
+  const provider = viem.createPublicClient({ transport: viem.http(rpcUrl, { timeout: 180000 }) });
   return provider.getChainId();
 };
 
@@ -94,38 +94,34 @@ export async function resolveProvider({
     log(bold(`Resolving connection to ${chainData.name} (Chain ID: ${chainId})...`));
   }
 
-  // Check if the first provider URL doesn't start with 'http'
-  const isProviderUrl = isURL(cliSettings.providerUrl.split(',')[0]);
+  // Check if the first provider URL is actually an URL.
+  const isRpcUrl = isURL(cliSettings.rpcUrl.split(',')[0]);
 
-  if (!isProviderUrl) {
+  if (!isRpcUrl) {
     // If privateKey is present or no valid http URLs are available in rpcUrls
-    if (cliSettings.privateKey || chainData.rpcUrls.default.http.length === 0) {
+    if (cliSettings.privateKey) {
       if (chainData.rpcUrls.default.http.length === 0) {
         error(
           red(
-            `Failed to establish a connection with any provider. Please specify a valid RPC url using the ${bold(
-              '--provider-url'
+            `Failed to establish a connection with any RPC. Please specify a valid RPC url using the ${bold(
+              '--rpc-url'
             )} flag.`
           )
         );
         process.exit(1);
       }
       // Use default http URLs from chainData
-      cliSettings.providerUrl = chainData.rpcUrls.default.http.join(',');
+      cliSettings.rpcUrl = chainData.rpcUrls.default.http.join(',');
     } else {
       // Merge with viem's default rpc URLs, remove duplicates
-      const providers = [...new Set([...cliSettings.providerUrl.split(','), ...chainData.rpcUrls.default.http])];
-      cliSettings.providerUrl = providers.join(',');
+      const rpcs = [...new Set([...cliSettings.rpcUrl.split(','), ...chainData.rpcUrls.default.http])];
+      cliSettings.rpcUrl = rpcs.join(',');
     }
-  }
-
-  if (cliSettings.providerUrl == PROVIDER_URL_DEFAULT && !cliSettings.quiet) {
-    warn(grey('Set a RPC URL by passing --provider-url or setting the ENV variable CANNON_PROVIDER_URL.\n'));
   }
 
   return resolveProviderAndSigners({
     chainId: chainId!,
-    checkProviders: cliSettings.providerUrl.split(','),
+    checkProviders: cliSettings.rpcUrl.split(','),
     privateKey: cliSettings.privateKey,
     action,
   });
@@ -141,7 +137,7 @@ export async function resolveRegistryProviders({
     resolvedProviders.push(
       await resolveProviderAndSigners({
         chainId: registryInfo.chainId!,
-        checkProviders: registryInfo.providerUrl,
+        checkProviders: registryInfo.rpcUrl,
         privateKey: cliSettings.privateKey!,
         action,
       })
@@ -162,18 +158,22 @@ export async function resolveProviderAndSigners({
   privateKey?: string;
   action: ProviderAction;
 }): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
-  const providerDisplayName = (providerUrl: string) => {
-    switch (providerUrl) {
+  const providerDisplayName = (rpcUrl: string) => {
+    switch (rpcUrl) {
       case 'frame':
         return 'Frame (frame.sh) if running';
       case 'direct':
         return 'default IPC paths, ws://127.0.0.1:8546, or http://127.0.0.1:8545';
       default:
-        return hideApiKey(providerUrl);
+        return hideApiKey(rpcUrl);
     }
   };
 
-  if (ProviderAction.WriteProvider === action || ProviderAction.WriteDryRunProvider === action) {
+  if (
+    ProviderAction.WriteProvider === action ||
+    ProviderAction.WriteDryRunProvider === action ||
+    ProviderAction.OptionalWriteProvider === action
+  ) {
     log(grey(`Attempting to find connection via ${bold(providerDisplayName(checkProviders[0]))}`));
     if (checkProviders.length === 1) log('');
   }
@@ -216,8 +216,8 @@ export async function resolveProviderAndSigners({
       if (checkProviders.length <= 1) {
         error(
           red(
-            `Failed to establish a connection with any provider. Please specify a valid RPC url using the ${bold(
-              '--provider-url'
+            `Failed to establish a connection with any RPC. Please specify a valid RPC url using the ${bold(
+              '--rpc-url'
             )} flag.`
           )
         );
@@ -266,7 +266,7 @@ export async function resolveProviderAndSigners({
           });
 
           if (keyPrompt.value) {
-            const account = privateKeyToAccount(keyPrompt.value as viem.Hex);
+            const account = privateKeyToAccount(normalizePrivateKey(keyPrompt.value as viem.Hex));
 
             signers.push({
               address: account.address,
@@ -317,8 +317,8 @@ export async function resolveProviderAndSigners({
       if (checkProviders.length <= 1) {
         error(
           red(
-            `Failed to establish a connection with any provider. Please specify a valid RPC url using the ${bold(
-              '--provider-url'
+            `Failed to establish a connection with any RPC. Please specify a valid RPC url using the ${bold(
+              '--rpc-url'
             )} flag.`
           )
         );

@@ -30,7 +30,7 @@ function useFetchIpfsData<T>({
       const ipfsQueryUrl = settings.ipfsApiUrl.replace(/\/?$/, '/');
 
       let kuboQueryUrl = `${ipfsQueryUrl}api/v0/cat?arg=${cid}`;
-      addLog(`Querying IPFS: ${kuboQueryUrl}`);
+      addLog('info', `Querying IPFS: ${kuboQueryUrl}`);
 
       const parsedUrl = parseUrl(kuboQueryUrl);
       const headers: { [k: string]: string } = {};
@@ -47,11 +47,13 @@ function useFetchIpfsData<T>({
           responseType: 'arraybuffer',
           signal,
         })
+        // In case the file fetch failed, let's try using the public ipfs.io gateway
         .catch(async (err) => {
-          addLog(`IPFS Error: ${err.message}`);
-          //const gatewayQueryUrl = `${ipfsQueryUrl}${cid}`;
-          const gatewayQueryUrl = `http://ipfs.io/ipfs/${cid}`;
-          addLog(`Querying IPFS as HTTP gateway: ${gatewayQueryUrl}`);
+          addLog('error', `IPFS Error: ${err.message}`);
+          // Use the same protocol as the users', http on development and https on production
+          const protocol = window.location.protocol.startsWith('http') ? window.location.protocol : 'http:';
+          const gatewayQueryUrl = `${protocol}//ipfs.io/ipfs/${cid}`;
+          addLog('info', `Querying IPFS as HTTP gateway: ${gatewayQueryUrl}`);
           return await axios.get<ArrayBuffer>(gatewayQueryUrl, {
             responseType: 'arraybuffer',
             signal,

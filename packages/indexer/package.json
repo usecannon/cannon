@@ -10,9 +10,14 @@
   },
   "author": "",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/usecannon/cannon.git",
+    "directory": "packages/indexer"
+  },
   "dependencies": {
-    "@usecannon/builder": "^2.16.3",
-    "@usecannon/cli": "^2.16.3",
+    "@usecannon/builder": "workspace:*",
+    "@usecannon/cli": "workspace:*",
     "dotenv": "^16.4.5",
     "envalid": "^8.0.0",
     "lodash": "^4.17.21",

@@ -14,6 +14,8 @@ import {
   getOutputs,
   PackageReference,
   traceActions,
+  findUpgradeFromPackage,
+  writeUpgradeFromInfo,
 } from '@usecannon/builder';
 import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
 import fs from 'fs-extra';
@@ -29,7 +31,7 @@ import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
-import { log, warn } from '../util/console';
+import { log, warn, error } from '../util/console';
 import { hideApiKey } from '../util/provider';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
 
@@ -39,7 +41,6 @@ interface Params {
   packageDefinition: PackageSpecification;
   upgradeFrom?: string;
   pkgInfo: any;
-
   getArtifact?: (name: string) => Promise<ContractArtifact>;
   getSigner?: (addr: viem.Address) => Promise<CannonSigner>;
   getDefaultSigner?: () => Promise<CannonSigner>;
@@ -50,7 +51,7 @@ interface Params {
   persist?: boolean;
   plugins?: boolean;
   publicSourceCode?: boolean;
-  providerUrl?: string;
+  rpcUrl?: string;
   registryPriority?: 'local' | 'onchain' | 'offline';
   gasPrice?: bigint;
   gasFee?: bigint;
@@ -74,7 +75,7 @@ export async function build({
   persist = true,
   plugins = true,
   publicSourceCode = false,
-  providerUrl,
+  rpcUrl,
   registryPriority,
   gasPrice,
   gasFee,
@@ -86,9 +87,9 @@ export async function build({
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
   }
 
-  if (!persist && providerUrl) {
+  if (!persist && rpcUrl) {
     log(
-      yellowBright(bold('⚠️  This is a simulation. No changes will be made to the chain. No package data will be saved.\n'))
+      yellowBright(bold('⚠️ This is a simulation. No changes will be made to the chain. No package data will be saved.\n'))
     );
   }
 
@@ -123,7 +124,6 @@ export async function build({
   }
 
   const chainId = await provider.getChainId();
-
   const chainInfo = getChainById(chainId);
   const chainName = chainInfo?.name || 'unknown chain';
   const nativeCurrencySymbol = chainInfo?.nativeCurrency.symbol || 'ETH';
@@ -168,12 +168,26 @@ export async function build({
 
   const dump = writeScript ? await createWriteScript(runtime, writeScript, writeScriptFormat) : null;
 
-  // Check for existing package
-  let oldDeployData: DeploymentInfo | null = null;
-  const prevPkg = upgradeFrom || fullPackageRef;
-
   log(bold('Checking for existing package...'));
-  oldDeployData = await runtime.readDeploy(prevPkg, runtime.chainId);
+  let oldDeployData: DeploymentInfo | null = null;
+  if (upgradeFrom) {
+    oldDeployData = await runtime.readDeploy(upgradeFrom, runtime.chainId);
+    if (!oldDeployData) {
+      throw new Error(`Deployment ${upgradeFrom} (${chainId}) not found`);
+    }
+  } else if (def) {
+    const oldDeployHash = await findUpgradeFromPackage(
+      runtime.registry,
+      runtime.provider,
+      packageReference,
+      runtime.chainId,
+      def.getDeployers()
+    );
+    if (oldDeployHash) {
+      log(green(bold('Found deployment state via on-chain store', oldDeployHash)));
+      oldDeployData = (await runtime.readBlob(oldDeployHash)) as DeploymentInfo;
+    }
+  }
 
   // Update pkgInfo (package.json) with information from existing package, if present
   if (oldDeployData) {
@@ -186,11 +200,7 @@ export async function build({
       }
     }
   } else {
-    if (upgradeFrom) {
-      throw new Error(`  ${prevPkg} (Chain ID: ${chainId}) not found`);
-    } else {
-      log(gray(`  ${prevPkg} (Chain ID: ${chainId}) not found`));
-    }
+    log(gray('Starting fresh build...'));
   }
 
   const resolvedSettings = _.pickBy(_.assign((!wipe && oldDeployData?.options) || {}, packageDefinition.settings));
@@ -228,14 +238,10 @@ export async function build({
   }
   log('');
 
-  const providerUrlMsg =
-    provider.transport.type === 'http'
-      ? provider.transport.url
-      : typeof providerUrl === 'string'
-      ? providerUrl.split(',')[0]
-      : providerUrl;
+  const rpcUrlMsg =
+    provider.transport.type === 'http' ? provider.transport.url : typeof rpcUrl === 'string' ? rpcUrl.split(',')[0] : rpcUrl;
 
-  log(bold(`Building the chain (ID ${chainId})${providerUrlMsg ? ' via ' + hideApiKey(providerUrlMsg) : ''}...`));
+  log(bold(`Building the chain (ID ${chainId})${rpcUrlMsg ? ' via ' + hideApiKey(rpcUrlMsg) : ''}...`));
 
   let defaultSignerAddress: string;
   if (getDefaultSigner) {
@@ -283,6 +289,9 @@ export async function build({
         })`
       )
     );
+  });
+  runtime.on(Events.Notice, (n, msg) => {
+    warn(yellowBright(`WARN: ${n}: ${msg}`));
   });
   runtime.on(Events.PostStepExecute, (t, n, c, ctx, o, d) => {
     for (const txnKey in o.txns) {
@@ -419,17 +428,19 @@ export async function build({
   chainDef.version = pkgVersion;
 
   if (miscUrl) {
-    const deployUrl = await runtime.putDeploy({
+    const deployUrl = (await runtime.putDeploy({
       generator: `cannon cli ${pkg.version}`,
       timestamp: Math.floor(Date.now() / 1000),
       def: chainDef,
       state: newState,
+      seq: oldDeployData?.seq ? oldDeployData.seq + 1 : 1,
+      track: oldDeployData?.track || Math.random().toString(36).substring(2, 15),
       options: resolvedSettings,
       status: partialDeploy ? 'partial' : 'complete',
       meta: pkgInfo,
       miscUrl: miscUrl,
       chainId: runtime.chainId,
-    });
+    })) as string;
 
     const metadataCache: { [key: string]: string } = {};
 
@@ -444,10 +455,32 @@ export async function build({
 
     const metaUrl = await runtime.putBlob(metadata);
 
+    // write upgrade-from info on-chain
+    if (stepsExecuted && persist) {
+      for (let i = 0; i < 3; i++) {
+        try {
+          log(gray('Writing upgrade info...'));
+          await writeUpgradeFromInfo(runtime, packageReference, deployUrl);
+          break;
+        } catch (err) {
+          error(err);
+          error(red(`Failed to write upgrade record to on-chain state. Try ${i + 1}/3`));
+          if (i === 2) {
+            error(
+              red(
+                bold(
+                  `Failed to write state on-chain. The next time you upgrade your package, you should include the option --upgrade-from ${deployUrl}.`
+                )
+              )
+            );
+          }
+        }
+      }
+    }
+
     await resolver.publish([fullPackageRef, `${name}:latest@${preset}`], runtime.chainId, deployUrl!, metaUrl!);
 
     // detach the process handler
-
     process.off('SIGINT', handler);
     process.off('SIGTERM', handler);
     process.off('SIGQUIT', handler);

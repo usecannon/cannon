@@ -7,7 +7,7 @@ import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-record
 import { build, createInitialContext, getOutputs } from '../builder';
 import { CANNON_CHAIN_ID } from '../constants';
 import { ChainDefinition } from '../definition';
-import { PackageReference } from '../package';
+import { PackageReference } from '../package-reference';
 import { ChainBuilderRuntime, Events } from '../runtime';
 import { cloneSchema } from '../schemas';
 import {
@@ -49,7 +49,7 @@ const cloneSpec = {
     config = _.cloneDeep(config);
 
     if (config.target && config.targetPreset) {
-      throw new Error(`only one of \`target\` and \`targetPreset\` can specified for ${packageState.name}`);
+      throw new Error(`only one of \`target\` and \`targetPreset\` can specified for ${packageState.currentLabel}`);
     }
 
     const ref = new PackageReference(template(config.source)(ctx));
@@ -61,7 +61,7 @@ const cloneSpec = {
     }
 
     config.sourcePreset = template(config.sourcePreset)(ctx);
-    config.targetPreset = template(config.targetPreset)(ctx) || `with-${packageState.name}`;
+    config.targetPreset = template(config.targetPreset)(ctx);
     config.target = template(config.target)(ctx);
 
     if (config.var) {
@@ -121,13 +121,29 @@ const cloneSpec = {
     const importLabel = packageState.currentLabel.split('.')[1] || '';
     debug(`[clone.${importLabel}]`, 'exec', config);
 
-    const targetPreset = config.targetPreset ?? 'main';
+    const targetPreset = config.targetPreset || `with-${packageState.ref?.name || 'unknown'}`;
     const sourcePreset = config.sourcePreset;
     const sourceRef = new PackageReference(config.source);
     const source = sourceRef.fullPackageRef;
     const target = config.target || `${sourceRef.name}:${sourceRef.version}@${targetPreset}`;
     const targetRef = new PackageReference(target);
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
+
+    if (sourceRef.version === 'latest') {
+      runtime.emit(
+        Events.Notice,
+        packageState.currentLabel,
+        'To prevent unexpected upgrades, it is strongly recommended to lock the version of the source package by specifying a version in the `source` field.'
+      );
+    }
+
+    if (!config.target && !config.targetPreset) {
+      runtime.emit(
+        Events.Notice,
+        packageState.currentLabel,
+        `Deploying cloned package to default preset ${targetRef.preset}`
+      );
+    }
 
     // try to read the chain definition we are going to use
     const deployInfo = await runtime.readDeploy(source, chainId);
@@ -237,7 +253,7 @@ const cloneSpec = {
       state: builtState,
       meta: deployInfo.meta,
       status: partialDeploy ? 'partial' : 'complete',
-      chainId,
+      chainId: runtime.chainId,
     });
 
     if (!newSubDeployUrl) {

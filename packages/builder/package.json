@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/builder",
-  "version": "2.16.3",
+  "version": "2.17.1",
   "description": "Assembles cannonfile.toml manifests into cannon packages.",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -20,6 +20,11 @@
   ],
   "author": "Cannon",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/usecannon/cannon.git",
+    "directory": "packages/builder"
+  },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-json": "^6.1.0",
@@ -56,5 +61,5 @@
     "node": ">=16.0.0"
   },
   "engineStrict": true,
-  "gitHead": "d00d85088e882381f8972d637fdfdae41c3747e3"
+  "gitHead": "81979336c4cfe5f1f8ee7677b2b968f886a20a87"
 }

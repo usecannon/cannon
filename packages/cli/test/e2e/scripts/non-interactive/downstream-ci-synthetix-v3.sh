@@ -11,4 +11,4 @@ yarn add ./$cli
 yarn add ./$builder
 yarn add ./$hardhat
 
-yarn build
+yarn run build

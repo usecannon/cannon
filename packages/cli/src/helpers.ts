@@ -29,7 +29,7 @@ import { cannonChain, chains } from './chains';
 import { resolveCliSettings } from './settings';
 import { log, warn } from './util/console';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
-import { getChainIdFromProviderUrl, isURL, hideApiKey } from './util/provider';
+import { getChainIdFromRpcUrl, isURL, hideApiKey } from './util/provider';
 import { LocalRegistry } from './registry';
 
 const debug = Debug('cannon:cli:helpers');
@@ -40,8 +40,8 @@ export async function filterSettings(settings: any) {
   const { cannonDirectory, privateKey, etherscanApiKey, ...filteredSettings } = settings;
 
   // Filters out API keys
-  filteredSettings.providerUrl = hideApiKey(filteredSettings.providerUrl);
-  filteredSettings.registryProviderUrl = hideApiKey(filteredSettings.registryProviderUrl);
+  filteredSettings.rpcUrl = hideApiKey(filteredSettings.rpcUrl);
+  filteredSettings.registryRpcUrl = hideApiKey(filteredSettings.registryRpcUrl);
 
   const filterUrlPassword = (uri: string) => {
     try {
@@ -218,11 +218,12 @@ export async function loadCannonfile(filepath: string) {
   const def = new ChainDefinition(rawDef, true);
   const pkg = loadPackageJson(path.join(path.dirname(path.resolve(filepath)), 'package.json'));
 
+  // TODO: there should be a helper in the builder to create the initial ctx
   const ctx: ChainBuilderContext = {
     package: pkg,
     chainId: CANNON_CHAIN_ID,
     settings: {},
-    timestamp: '0',
+    timestamp: 0,
 
     contracts: {},
     txns: {},
@@ -283,21 +284,6 @@ async function loadChainDefinitionToml(filepath: string, trace: string[]): Promi
   return [assembledDef, buf];
 }
 
-/**
- * Forge added a breaking change where it stopped returning the ast on build artifacts,
- * and the user has to add the `--ast` param to have them included.
- * This check is so we make sure to have asts regardless the user's foundry version.
- * Ref: https://github.com/foundry-rs/foundry/pull/7197
- */
-export async function checkForgeAstSupport() {
-  try {
-    const result = await execPromise('forge build --help');
-    return result.toString().includes('--ast');
-  } catch (error) {
-    throw new Error('Could not determine if forge ast flag is available');
-  }
-}
-
 export function getChainName(chainId: number): string {
   return getChainDataFromId(chainId)?.name || 'unknown';
 }
@@ -321,23 +307,23 @@ export function getChainDataFromId(chainId: number): viem.Chain | null {
   return chains.find((c: viem.Chain) => c.id == chainId) || null;
 }
 
-export async function ensureChainIdConsistency(providerUrl?: string, chainId?: number): Promise<void> {
+export async function ensureChainIdConsistency(rpcUrl?: string, chainId?: number): Promise<void> {
   // only if both are defined
-  if (providerUrl && chainId) {
-    const isProviderUrl = isURL(providerUrl);
+  if (rpcUrl && chainId) {
+    const isRpcUrl = isURL(rpcUrl);
 
-    if (isProviderUrl) {
-      const providerChainId = await getChainIdFromProviderUrl(providerUrl);
+    if (isRpcUrl) {
+      const providerChainId = await getChainIdFromRpcUrl(rpcUrl);
 
       // throw an expected error if the chainId is not consistent with the provider's chainId
       if (Number(chainId) !== Number(providerChainId)) {
         log(
           red(
-            `Error: The chainId (${providerChainId}) obtained from the ${bold('--provider-url')} does not match with ${bold(
+            `Error: The chainId (${providerChainId}) obtained from the ${bold('--rpc-url')} does not match with ${bold(
               '--chain-id'
             )} value (${chainId}). Please ensure that the ${bold(
               '--chain-id'
-            )} value matches the network your provider is connected to.`
+            )} value matches the network your RPC is connected to.`
           )
         );
 
@@ -377,45 +363,6 @@ export async function readMetadataCache(packageName: string): Promise<{ [key: st
   } catch {
     return {};
   }
-}
-
-/**
- * Converts a camelCase string to a flag case string.
- *
- * @param key The camelCase string.
- * @returns The flag case string.
- */
-export function toFlagCase(key: string) {
-  return `--${key.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`)}`;
-}
-
-/**
- * Converts an object of options to an array of command line arguments.
- *
- * @param options The options object.
- * @returns The command line arguments.
- */
-export function toArgs(options: { [key: string]: string | boolean | number | bigint | undefined }) {
-  return Object.entries(options).flatMap(([key, value]) => {
-    if (value === undefined) {
-      return [];
-    }
-
-    const flag = toFlagCase(key);
-
-    if (value === false) {
-      return [];
-    } else if (value === true) {
-      return [flag];
-    }
-
-    const stringified = value.toString();
-    if (stringified === '') {
-      return [flag];
-    }
-
-    return [flag, stringified];
-  });
 }
 
 /**
@@ -535,12 +482,6 @@ export async function getPackageReference(ref: string) {
 
     return packageReference;
   } catch (error: any) {
-    if (error.toString().includes('timeout')) {
-      throw new Error(
-        "Could not download package through IPFS, please make sure you set your 'ipfsUrl' to the ipfs url where this hash has been pinned"
-      );
-    }
-
     throw new Error(error);
   }
 }

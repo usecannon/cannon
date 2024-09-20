@@ -8,17 +8,19 @@ export const BUILD_VERSION = 7;
 
 // Production settings (OP Mainnet & ETH Mainnet)
 export const DEFAULT_REGISTRY_ADDRESS: Address = '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba';
+
+// the below RPC configuration is our public infura, but it only allows for requests against the cannon registry contract
 export const DEFAULT_REGISTRY_CONFIG = [
   {
     name: 'OP Mainnet',
     chainId: 10,
-    providerUrl: ['frame', 'direct', 'https://optimism.llamarpc.com'],
+    rpcUrl: ['frame', 'direct', 'https://opt-mainnet.g.alchemy.com/v2/2c6Mq72inJF0FBlKPMK8pe6TolJMar6G'],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
   {
     name: 'Ethereum Mainnet',
     chainId: 1,
-    providerUrl: ['frame', 'direct', 'https://eth.llamarpc.com'],
+    rpcUrl: ['frame', 'direct', 'https://eth-mainnet.g.alchemy.com/v2/2c6Mq72inJF0FBlKPMK8pe6TolJMar6G'],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
 ];
@@ -30,13 +32,13 @@ export const DEFAULT_REGISTRY_CONFIG = [
   {
     name: 'OP Sepolia',
     chainId: 11155420,
-    providerUrl: ['frame', 'direct', 'https://optimism-sepolia-rpc.publicnode.com'],
+    rpcUrl: ['frame', 'direct', 'https://optimism-sepolia-rpc.publicnode.com'],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
   {
     name: 'Ethereum Sepolia',
     chainId: 11155111,
-    providerUrl: ['frame', 'direct', 'https://ethereum-sepolia-rpc.publicnode.com'],
+    rpcUrl: ['frame', 'direct', 'https://ethereum-sepolia-rpc.publicnode.com'],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
 ];

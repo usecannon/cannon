@@ -82,6 +82,7 @@ export const fixtureRuntimeInfo = () => {
     getArtifact: async (contractName: string) => fixtureContractArtifact(contractName),
     snapshots: false,
     allowPartialDeploy: false,
+    subpkgDepth: 0,
   } satisfies ChainBuilderRuntimeInfo;
 };
 

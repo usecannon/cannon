@@ -14,15 +14,15 @@ export async function setup() {
   // Setup Anvil
   await setupAnvil();
 
-  const settings = resolveCliSettings();
-  const cliSettingsStore = untildify(path.join(settings.cannonDirectory, CLI_SETTINGS_STORE));
-
   // Exit if settings is already configured
-  if (settings.cannonSettings) {
+  if (process.env.CANNON_SETTINGS) {
     log('Your Cannon settings are being explicitly defined as follows:');
-    log(JSON.stringify(settings.cannonSettings));
+    log(JSON.stringify(process.env.CANNON_SETTINGS));
     return;
   }
+
+  const settings = resolveCliSettings();
+  const cliSettingsStore = untildify(path.join(settings.cannonDirectory, CLI_SETTINGS_STORE));
   log('Cannon’s settings are optional. They can be defined in a JSON file and overridden with environment variables.\n');
   log(`This will update your settings stored in ${cliSettingsStore}`);
 

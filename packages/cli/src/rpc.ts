@@ -7,9 +7,10 @@ import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { cannonChain, getChainById } from './chains';
-import { execPromise, toArgs } from './helpers';
-import { AnvilOptions } from './util/anvil';
+import { execPromise } from './helpers';
 import { error, log } from './util/console';
+import { anvilOptions as fullAnvilOptions } from './commands/config/anvil';
+import { fromFoundryOptionsToArgs } from './util/foundry-options';
 
 const debug = Debug('cannon:cli:rpc');
 
@@ -42,7 +43,7 @@ export const versionCheck = _.once(async () => {
   }
 });
 
-export async function runRpc(anvilOptions: AnvilOptions, rpcOptions: RpcOptions = {}): Promise<CannonRpcNode> {
+export async function runRpc(anvilOptions: Record<string, any>, rpcOptions: RpcOptions = {}): Promise<CannonRpcNode> {
   debug('run rpc', anvilOptions, rpcOptions);
   const { forkProvider } = rpcOptions;
 
@@ -56,6 +57,8 @@ export async function runRpc(anvilOptions: AnvilOptions, rpcOptions: RpcOptions 
   if (_.isNil(anvilOptions.accounts)) {
     anvilOptions.accounts = 1;
   }
+
+  anvilOptions.noRequestSizeLimit = true;
 
   if (anvilOptions.forkUrl && rpcOptions.forkProvider) {
     throw new Error('Cannot set both an anvil forkUrl and a proxy provider connection');
@@ -86,13 +89,7 @@ export async function runRpc(anvilOptions: AnvilOptions, rpcOptions: RpcOptions 
     );
   }
 
-  let opts = toArgs(anvilOptions);
-
-  // Anvil fails to accept the `forkUrl` and `chainId` options on the Arbitrum network.
-  // Ref: https://github.com/foundry-rs/foundry/issues/4786
-  if ('forkUrl' in anvilOptions) {
-    opts = toArgs(_.omit(anvilOptions, ['chainId']));
-  }
+  const opts = fromFoundryOptionsToArgs(anvilOptions, fullAnvilOptions);
 
   debug('starting anvil instance with options: ', anvilOptions);
 
