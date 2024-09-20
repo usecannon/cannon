@@ -73,6 +73,60 @@ export default function QueueFromGitOpsPage() {
   return <QueueFromGitOps />;
 }
 
+const cannonfileUrlRegex =
+  // eslint-disable-next-line no-useless-escape
+  /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?\.toml$/i;
+
+// TODO: is there any way to make a better context? maybe this means we should get rid of name using context?
+const ctx: ChainBuilderContext = {
+  chainId: 0,
+  package: {},
+  timestamp: 0,
+  settings: {},
+  contracts: {},
+  txns: {},
+  imports: {},
+  overrideSettings: {},
+};
+
+function useMergedCannonDefInfo(
+  gitUrl: string,
+  gitRef: string,
+  gitFile: string,
+  partialDeployIpfs: string
+) {
+  const originalCannonDefInfo = useLoadCannonDefinition(
+    gitUrl,
+    gitRef,
+    gitFile
+  );
+
+  const partialDeployInfo = useCannonPackage(
+    partialDeployIpfs ? `ipfs://${partialDeployIpfs}` : ''
+  );
+
+  const isLoading =
+    originalCannonDefInfo.isLoading || partialDeployInfo.isLoading;
+  const isError = originalCannonDefInfo.isError || partialDeployInfo.isError;
+  const isFetching =
+    originalCannonDefInfo.isFetching || partialDeployInfo.isFetching;
+  const error = partialDeployInfo.error || originalCannonDefInfo.error;
+
+  // Merge the definitions if partial deploy info is available
+  const def = partialDeployInfo.pkg
+    ? new ChainDefinition(partialDeployInfo.pkg.def)
+    : originalCannonDefInfo.def;
+
+  return {
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    def,
+    filesList: originalCannonDefInfo.filesList,
+  };
+}
+
 function QueueFromGitOps() {
   const [selectedDeployType, setSelectedDeployType] = useState('new');
   const [overridePreviousState, setOverridePreviousState] = useState(false);
@@ -85,103 +139,45 @@ function QueueFromGitOps() {
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
   const { openConnectModal } = useConnectModal();
+  const settings = useStore((s) => s.settings);
 
   const deployer = useDeployerWallet(currentSafe?.chainId);
 
-  const cannonfileUrlRegex =
-    // eslint-disable-next-line no-useless-escape
-    /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?\.toml$/i;
-
-  const gitUrl = useMemo(() => {
-    if (!cannonfileUrlRegex.test(cannonfileUrlInput)) {
-      return '';
+  const { gitUrl, gitRef, gitFile } = useMemo(() => {
+    if (
+      !cannonfileUrlRegex.test(cannonfileUrlInput) ||
+      !cannonfileUrlInput.includes('/blob/')
+    ) {
+      return { gitUrl: '', gitRef: '', gitFile: '' };
     }
 
-    if (!cannonfileUrlInput.includes('/blob/')) {
-      return '';
-    }
+    const [url, blobPath] = cannonfileUrlInput.split('/blob/');
+    const urlComponents = blobPath.split('/');
+    const branchName = urlComponents[0];
+    const filePath = urlComponents.slice(1).join('/');
 
-    return cannonfileUrlInput.split('/blob/')[0];
+    return {
+      gitUrl: url,
+      gitRef: branchName,
+      gitFile: filePath,
+    };
   }, [cannonfileUrlInput]);
-
-  const gitRef = useMemo(() => {
-    if (!cannonfileUrlRegex.test(cannonfileUrlInput)) {
-      return '';
-    }
-
-    if (!cannonfileUrlInput.includes('/blob/')) {
-      return '';
-    }
-
-    const branchAndFile = cannonfileUrlInput.split('/blob/')[1];
-    if (!branchAndFile) {
-      return '';
-    }
-
-    const branchName = branchAndFile.split('/')[0];
-    if (!branchName) {
-      return '';
-    }
-
-    return branchName;
-  }, [cannonfileUrlInput]);
-
-  const gitFile = useMemo(() => {
-    if (!cannonfileUrlRegex.test(cannonfileUrlInput)) {
-      return '';
-    }
-
-    if (!cannonfileUrlInput.includes('/blob/')) {
-      return '';
-    }
-
-    const branchAndFile = cannonfileUrlInput.split('/blob/')[1];
-    if (!branchAndFile) {
-      return '';
-    }
-
-    const urlComponents = branchAndFile.split('/');
-    urlComponents.shift();
-    return urlComponents.join('/');
-  }, [cannonfileUrlInput]);
-
-  let cannonDefInfo = useLoadCannonDefinition(gitUrl, gitRef, gitFile);
-
-  const cannonDefInfoError: string = gitUrl
-    ? (cannonDefInfo.error as any)?.toString()
-    : cannonfileUrlInput &&
-      'The format of your URL appears incorrect. Please double check and try again.';
 
   const partialDeployInfo = useCannonPackage(
     partialDeployIpfs ? `ipfs://${partialDeployIpfs}` : ''
   );
 
-  // If its a partial deployment, create the chain definition from the
-  // IPFS partial deployment data
-  if (partialDeployInfo.pkg) {
-    cannonDefInfo = {
-      ...cannonDefInfo,
-      isLoading: partialDeployInfo.isLoading,
-      isFetching: partialDeployInfo.isFetching,
-      isError: partialDeployInfo.isError,
-      error: partialDeployInfo.error,
-      def: new ChainDefinition(partialDeployInfo.pkg.def),
-    };
-  }
+  const cannonDefInfo = useMergedCannonDefInfo(
+    gitUrl,
+    gitRef,
+    gitFile,
+    partialDeployIpfs
+  );
 
-  // TODO: is there any way to make a better context? maybe this means we should get rid of name using context?
-  const ctx: ChainBuilderContext = {
-    chainId: 0,
-    package: {},
-    timestamp: 0,
-    settings: {},
-    contracts: {},
-    txns: {},
-    imports: {},
-    overrideSettings: {},
-  };
-
-  const settings = useStore((s) => s.settings);
+  const cannonDefInfoError: string = gitUrl
+    ? (cannonDefInfo.error as any)?.toString()
+    : cannonfileUrlInput &&
+      'The format of your URL appears incorrect. Please double check and try again.';
 
   const fullPackageRef = cannonDefInfo.def?.getPackageRef(ctx) ?? null;
 
@@ -205,7 +201,7 @@ function QueueFromGitOps() {
     const preset = cannonDefInfo.def.getPreset(ctx);
     setPreviousPackageInput(`${name}:${version}@${preset}`);
     if (selectedDeployType == 'new') setSelectedDeployType('upgrade');
-  }, [cannonDefInfo.def, ctx, selectedDeployType]);
+  }, [cannonDefInfo.def, selectedDeployType]);
 
   // run the build and get the list of transactions we need to run
   const buildInfo = useCannonBuild(
@@ -523,7 +519,7 @@ function QueueFromGitOps() {
           </InputGroup>
         </HStack>
         <FormHelperText color="gray.300">
-          Enter a Git or GitHub URL for the cannonfile you’d like to build.
+          Enter a Git or GitHub URL for the cannonfile you&#39;d like to build.
         </FormHelperText>
         {cannonDefInfoError ? (
           <Alert mt="6" status="error" bg="gray.700">
@@ -584,9 +580,8 @@ function QueueFromGitOps() {
             Queue Deployment
           </Heading>
           <Text color="gray.300">
-            Queue deployments from a cannonfile in a git repository or a partial
-            deployment ipfs hash. After the transactions are executed, the
-            resulting package can be published to the registry.
+            Queue deployments using Safe. After the transactions are executed,
+            the resulting package can be published to the registry.
           </Text>
         </Box>
 
@@ -619,6 +614,12 @@ function QueueFromGitOps() {
                 </Radio>
               </Stack>
             </RadioGroup>
+
+            <Text color="gray.300" mt="2">
+              {selectedDeployType == 'git'
+                ? 'Enter a Git URL repository with a cannonfile to build.'
+                : 'Use a partial deployment from a IPFS hash.'}
+            </Text>
           </FormControl>
 
           {selectedDeployType == 'git' && renderCannonfileInput()}
@@ -632,8 +633,9 @@ function QueueFromGitOps() {
               <Text color="yellow">Deployment from scratch.</Text>
             ))}
 
-          <FormControl>
+          <FormControl display="flex" alignItems="center" my="2">
             <Checkbox
+              mr="2"
               onChange={(evt) =>
                 setOverridePreviousState(evt.currentTarget.checked)
               }
