@@ -13,6 +13,7 @@ import {
   useCannonWriteDeployToIpfs,
   useLoadCannonDefinition,
   useCannonFindUpgradeFromUrl,
+  CannonWriteDeployToIpfsMutationResult,
 } from '@/hooks/cannon';
 import { useGitRefsList } from '@/hooks/git';
 import { useGetPreviousGitInfoQuery } from '@/hooks/safe';
@@ -81,7 +82,7 @@ const cannonfileUrlRegex =
 const ctx: ChainBuilderContext = {
   chainId: 0,
   package: {},
-  timestamp: 0,
+  timestamp: 0 as any, // TODO: fix this
   settings: {},
   contracts: {},
   txns: {},
@@ -139,6 +140,11 @@ function QueueFromGitOps() {
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
   const { openConnectModal } = useConnectModal();
+  const [writeToIpfsMutationRes, setWriteToIpfsMutationRes] = useState<{
+    isLoading: boolean;
+    error: Error | null;
+    data: CannonWriteDeployToIpfsMutationResult | null;
+  } | null>(null);
   const settings = useStore((s) => s.settings);
 
   const deployer = useDeployerWallet(currentSafe?.chainId);
@@ -232,20 +238,39 @@ function QueueFromGitOps() {
     prevCannonDeployInfo.pkg?.options,
   ]);
 
-  const uploadToPublishIpfs = useCannonWriteDeployToIpfs(
+  const writeToIpfsMutation = useCannonWriteDeployToIpfs(
     buildInfo.buildResult?.runtime,
     nextCannonDeployInfo,
     prevCannonDeployInfo.metaUrl
   );
 
   useEffect(() => {
-    if (['success', 'error'].includes(buildInfo.buildStatus)) {
-      uploadToPublishIpfs.writeToIpfsMutation.mutate();
-    }
-  }, [
-    buildInfo.buildStatus,
-    // DO NOT ADD: uploadToPublishIpfs.writeToIpfsMutation
-  ]);
+    const callMutation = async () => {
+      if (['success', 'error'].includes(buildInfo.buildStatus)) {
+        try {
+          setWriteToIpfsMutationRes({
+            isLoading: true,
+            error: null,
+            data: null,
+          });
+          const res = await writeToIpfsMutation.mutateAsync();
+          setWriteToIpfsMutationRes({
+            isLoading: false,
+            error: null,
+            data: res,
+          });
+        } catch (error) {
+          setWriteToIpfsMutationRes({
+            isLoading: false,
+            error: error as Error,
+            data: null,
+          });
+        }
+      }
+    };
+
+    void callMutation();
+  }, [buildInfo.buildStatus, writeToIpfsMutation]);
 
   const refsInfo = useGitRefsList(gitUrl);
   const foundRef = refsInfo.refs?.find(
@@ -274,7 +299,7 @@ function QueueFromGitOps() {
                 [
                   [
                     'deploy',
-                    uploadToPublishIpfs.deployedIpfsHash,
+                    writeToIpfsMutationRes?.data?.mainUrl,
                     prevDeployLocation || '',
                     gitUrl && gitFile ? `${gitUrl}:${gitFile}` : '',
                     gitHash || '',
@@ -309,7 +334,7 @@ function QueueFromGitOps() {
                     functionName: 'set',
                     args: [
                       keccak256(toBytes(`${gitUrl}:${gitFile}cannonPackage`)),
-                      stringToHex(uploadToPublishIpfs.deployedIpfsHash ?? ''),
+                      stringToHex(writeToIpfsMutationRes?.data?.mainUrl ?? ''),
                     ],
                   }),
                 } as Partial<TransactionRequestBase>)
@@ -332,7 +357,7 @@ function QueueFromGitOps() {
                   // TODO: we would really rather have the timestamp be when the txn was executed. something to fix when we have a new state contract
                   stringToHex(
                     `${Math.floor(Date.now() / 1000)}_${
-                      uploadToPublishIpfs.deployedIpfsHash ?? ''
+                      writeToIpfsMutationRes?.data?.mainUrl ?? ''
                     }`
                   ),
                 ],
@@ -570,8 +595,6 @@ function QueueFromGitOps() {
     return <PreviewButton />;
   }
 
-  // eslint-disable-next-line no-console
-
   return (
     <>
       <Container maxWidth="container.md" py={8}>
@@ -789,8 +812,7 @@ function QueueFromGitOps() {
             )}
           {(buildInfo.buildResult?.safeSteps.length || 1) == 0 && (
             <Alert status="error">
-              There are no transactions that would be executed by the gnosis
-              safe.
+              There are no transactions that would be executed by the Safe.
             </Alert>
           )}
           {cannonDefInfo.def && multicallTxn.data && (
@@ -802,7 +824,7 @@ function QueueFromGitOps() {
               </Heading>
             </Box>
           )}
-          {uploadToPublishIpfs.deployedIpfsHash &&
+          {writeToIpfsMutationRes?.data?.mainUrl &&
             multicallTxn.data &&
             stager.safeTxn && (
               <Box mt="4" mb="10">
@@ -815,19 +837,19 @@ function QueueFromGitOps() {
                 />
               </Box>
             )}
-          {uploadToPublishIpfs.writeToIpfsMutation.isPending && (
+          {writeToIpfsMutationRes?.isLoading && (
             <Alert mt="6" status="info" bg="gray.800">
               <Spinner mr={3} boxSize={4} />
               <strong>Uploading build result to IPFS...</strong>
             </Alert>
           )}
-          {uploadToPublishIpfs.writeToIpfsMutation.error && (
+          {writeToIpfsMutationRes?.error && (
             <Text>
               Failed to upload staged transaction to IPFS:{' '}
-              {uploadToPublishIpfs.writeToIpfsMutation.error.toString()}
+              {writeToIpfsMutationRes.error.toString()}
             </Text>
           )}
-          {uploadToPublishIpfs.deployedIpfsHash && multicallTxn.data && (
+          {writeToIpfsMutationRes?.data?.mainUrl && multicallTxn.data && (
             <Box>
               <NoncePicker safe={currentSafe} handleChange={setPickedNonce} />
               <HStack gap="6">

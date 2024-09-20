@@ -301,6 +301,8 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
   };
 }
 
+type CannonWriteDeployToIpfsResult = ReturnType<typeof useCannonWriteDeployToIpfs>;
+export type CannonWriteDeployToIpfsMutationResult = Awaited<ReturnType<CannonWriteDeployToIpfsResult['mutateAsync']>>;
 export function useCannonWriteDeployToIpfs(
   runtime?: ChainBuilderRuntime,
   deployInfo?: DeploymentInfo | undefined,
@@ -310,7 +312,7 @@ export function useCannonWriteDeployToIpfs(
 
   const def = useMemo(() => deployInfo && new ChainDefinition(deployInfo.def), [deployInfo]);
 
-  const writeToIpfsMutation = useMutation({
+  return useMutation({
     mutationFn: async () => {
       if (settings.isIpfsGateway) {
         throw new Error('You cannot write on an IPFS gateway, only read operations can be done');
@@ -360,11 +362,6 @@ export function useCannonWriteDeployToIpfs(
       };
     },
   });
-
-  return {
-    writeToIpfsMutation,
-    deployedIpfsHash: writeToIpfsMutation.data?.mainUrl,
-  };
 }
 
 export function useCannonFindUpgradeFromUrl(packageRef?: PackageReference, chainId?: number, deployers?: Address[]) {
