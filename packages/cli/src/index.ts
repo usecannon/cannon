@@ -344,8 +344,16 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
   const { fullPackageRef, chainId: chainIdFromPackage } = await getPackageInfo(packageRef);
 
-  const chainId = options.chainId ? Number(options.chainId) : chainIdFromPackage ? Number(chainIdFromPackage) : undefined;
+  let chainId: number | undefined = undefined;
 
+  // if it's a ipfs hash, use the chainId from the package
+  if (chainIdFromPackage) {
+    chainId = chainIdFromPackage;
+  } else if (options.chainId) {
+    chainId = Number(options.chainId);
+  }
+
+  // if chainId is still undefined, prompt the user to provide the chainId
   if (!chainId) {
     const chainIdPrompt = await prompts({
       type: 'number',
