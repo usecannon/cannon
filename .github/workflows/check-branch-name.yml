@@ -1,0 +1,31 @@
+name: Validate Branch Name
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  check-branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch name for different base branches
+        run: |
+          BASE="${{ github.event.pull_request.base.ref }}"
+          BRANCH="${{ github.ref }}"
+
+          if [[ "$BASE" == "main" ]]; then
+            if [[ ! "$BRANCH" =~ ^refs/heads/hotfix/.+ ]]; then
+              echo "Branch name must start with 'hotfix/*' for PRs to main"
+              exit 1
+            fi
+          elif [[ "$BASE" == "alpha" ]]; then
+            if [[ ! "$BRANCH" =~ ^refs/heads/hotfix/.+ ]]; then
+              echo "Branch name must start with 'hotfix/*' for PRs to alpha"
+              exit 1
+            fi
+          elif [[ "$BASE" == "dev" ]]; then
+            if [[ ! "$BRANCH" =~ ^refs/heads/(feat|fix|chore|docs|test)/.+ ]]; then
+              echo "Branch name must start with '(feat|fix|chore|docs|test)/*' for PRs to dev"
+              exit 1
+            fi
+          fi
