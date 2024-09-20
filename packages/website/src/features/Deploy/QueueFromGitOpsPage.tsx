@@ -270,7 +270,7 @@ function QueueFromGitOps() {
     };
 
     void callMutation();
-  }, [buildInfo.buildStatus, writeToIpfsMutation]);
+  }, [buildInfo.buildStatus]);
 
   const refsInfo = useGitRefsList(gitUrl);
   const foundRef = refsInfo.refs?.find(
