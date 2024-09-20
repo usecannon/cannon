@@ -36,7 +36,6 @@ export const isPackageRegistered = async (
     onChainRegistries.map((onChainRegistry) => onChainRegistry.getPackageOwner(packageName))
   );
 
-  console.log(packageOwners);
 
   return !packageOwners.some((address) => viem.isAddressEqual(address, viem.zeroAddress));
 };
