@@ -297,13 +297,14 @@ export async function alter(
         deployInfo.state[target].hash = 'INCOMPLETE';
       }
       break;
-    case 'clean-unused':
+    case 'clean-unused': {
       const def = new ChainDefinition(deployInfo.def);
       for (const notDefinedState of _.difference(Object.keys(deployInfo.state), def.topologicalActions)) {
         debug('delete undefined state', notDefinedState, deployInfo.state[notDefinedState]);
         delete deployInfo.state[notDefinedState];
       }
       break;
+    }
     case 'migrate-212':
       // nested provisions also have to be updated
       for (const k in deployInfo.state) {
