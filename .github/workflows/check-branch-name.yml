@@ -13,19 +13,23 @@ jobs:
           BASE="${{ github.base_ref }}"
           BRANCH="${{ github.head_ref }}"
 
+          echo "::group::Checking branch naming convention"
+
           if [[ "$BASE" == "main" ]]; then
             if [[ ! "$BRANCH" =~ "^hotfix/[a-z0-9-_]+$" ]]; then
-              echo "Branch name must start with 'hotfix/*' for PRs to main"
+              echo "::error::Branch name must start with 'hotfix/*' for PRs to main"
               exit 1
             fi
           elif [[ "$BASE" == "alpha" ]]; then
             if [[ ! "$BRANCH" =~ "^hotfix/[a-z0-9-_]+$" ]]; then
-              echo "Branch name must start with 'hotfix/*' for PRs to alpha"
+              echo "::error::Branch name must start with 'hotfix/*' for PRs to alpha"
               exit 1
             fi
           elif [[ "$BASE" == "dev" ]]; then
             if [[ ! "$BRANCH" =~ "^(feat|fix|chore|docs|test)/[A-Za-z0-9-_]+$" ]]; then
-              echo "Branch name must start with '(feat|fix|chore|docs|test)/*' for PRs to dev"
+              echo "::error::Branch name must start with '(feat|fix|chore|docs|test)/*' for PRs to dev"
               exit 1
             fi
           fi
+
+          echo "::endgroup::"
