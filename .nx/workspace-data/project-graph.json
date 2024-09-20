@@ -948,7 +948,7 @@
               "script": "test-e2e-parallel"
             },
             "metadata": {
-              "scriptContent": "./test/e2e/helpers/bats/bin/bats test/e2e/parallel.bats --jobs 13 --timing",
+              "scriptContent": "./test/e2e/helpers/bats/bin/bats test/e2e/parallel.bats --jobs 2 --timing",
               "runCommand": "pnpm run test-e2e-parallel"
             },
             "configurations": {},
@@ -9583,18 +9583,18 @@
       "type": "npm",
       "name": "npm:@usecannon/builder",
       "data": {
-        "version": "2.17.0",
+        "version": "2.17.1",
         "packageName": "@usecannon/builder",
-        "hash": "sha512-03AnPMeQdha5hCEGdJGc8DcZQJAvOqokWHl7zsQowYYHWY6U+fcYsgioA//8UFticOPIWKyr5RLbtwsWD9wIHw=="
+        "hash": "sha512-52P+JYaAFQ5kDMWpA+2Mecin0XOPtQObqU3wSlrVsnGS3XxigJA1H6pGYEWB0xxhXPRci+6m0NEFPJdQvrcpzg=="
       }
     },
     "npm:@usecannon/cli": {
       "type": "npm",
       "name": "npm:@usecannon/cli",
       "data": {
-        "version": "2.17.0",
+        "version": "2.17.1",
         "packageName": "@usecannon/cli",
-        "hash": "sha512-M6r0Ya3z1KZBj79vVY1cN62YQCBt3cg662J8e8pb22DUhqWgYjSzCxWpCQPnY4ahL5jn+w/EBKY2GYF23NDNXA=="
+        "hash": "sha512-SSID1UUH84LPMp7PTloC0IijwCJpWfsSQXmvPpyJB8vjbAHOCNLRxsNT3PRgtZvmCWdTrfuYh3FMtsvlpB/UKQ=="
       }
     },
     "npm:@vanilla-extract/css": {
@@ -12718,6 +12718,15 @@
         "version": "12.0.0",
         "packageName": "commander",
         "hash": "sha512-MwVNWlYjDTtOjX5PiD7o5pK0UrFU/OYgcJfjjK4RaHZETNtjJqrZa9Y9ds88+A+f+d5lv+561eZ+yCKoS3gbAA=="
+      }
+    },
+    "npm:commander@12.1.0": {
+      "type": "npm",
+      "name": "npm:commander@12.1.0",
+      "data": {
+        "version": "12.1.0",
+        "packageName": "commander",
+        "hash": "sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA=="
       }
     },
     "npm:commander@2.20.3": {
@@ -30868,7 +30877,7 @@
       },
       {
         "source": "@usecannon/cli",
-        "target": "npm:commander@9.5.0",
+        "target": "npm:commander@12.1.0",
         "type": "static"
       },
       {
