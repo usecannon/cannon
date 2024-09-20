@@ -1,4 +1,4 @@
-name: Validate Branch Name
+name: Branch Name
 
 on:
   pull_request:
@@ -10,8 +10,8 @@ jobs:
     steps:
       - name: Check branch name for different base branches
         run: |
-          BASE="${{ github.event.pull_request.base.ref }}"
-          BRANCH="${{ github.ref }}"
+          BASE="${{ github.base_ref }}"
+          BRANCH="${{ github.head_ref }}"
 
           if [[ "$BASE" == "main" ]]; then
             if [[ ! "$BRANCH" =~ ^refs/heads/hotfix/.+ ]]; then
