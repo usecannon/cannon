@@ -448,20 +448,21 @@ export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | unde
 
 /**
  *
- * @param ref reference string, can be a package reference or ipfs url
+ * @param packageRef The package reference, eg. name:version@preset or ipfs://<cid>
  * @returns Package Reference string
  */
-export async function getPackageReference(ref: string) {
-  if (ref.startsWith('@')) {
+export async function getPackageInfo(packageRef: string) {
+  if (packageRef.startsWith('@')) {
     log(yellowBright("'@ipfs:' package reference format is deprecated, use 'ipfs://' instead"));
   }
 
-  if (isIPFSUrl(ref)) {
-    ref = normalizeIPFSUrl(ref);
-  } else if (isIPFSCid(ref)) {
-    ref = `ipfs://${ref}`;
+  if (isIPFSUrl(packageRef)) {
+    packageRef = normalizeIPFSUrl(packageRef);
+  } else if (isIPFSCid(packageRef)) {
+    packageRef = `ipfs://${packageRef}`;
   } else {
-    return new PackageReference(ref).fullPackageRef; //If its not an IPFS ref just return the package reference
+    // cant determine chainId from non-ipfs package references
+    return { fullPackageRef: new PackageReference(packageRef).fullPackageRef, chainId: undefined };
   }
 
   const cliSettings = resolveCliSettings();
@@ -471,16 +472,19 @@ export async function getPackageReference(ref: string) {
   const storage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
 
   try {
-    const pkgInfo: DeploymentInfo = await storage.readBlob(ref);
+    const pkgInfo: DeploymentInfo = await storage.readBlob(packageRef);
 
     let version = pkgInfo.def.version;
     if (pkgInfo.def.version.startsWith('<%=')) {
       version = pkgInfo.meta.version;
     }
 
-    const packageReference = `${pkgInfo.def.name}:${version || 'latest'}@${pkgInfo.def.preset || 'main'}`;
+    const fullPackageRef = PackageReference.from(pkgInfo.def.name, version, pkgInfo.def.preset).fullPackageRef;
 
-    return packageReference;
+    return {
+      fullPackageRef,
+      chainId: Number(pkgInfo.chainId),
+    };
   } catch (error: any) {
     throw new Error(error);
   }

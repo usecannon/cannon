@@ -21,7 +21,7 @@ import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commands/config';
-import { checkCannonVersion, ensureChainIdConsistency, getPackageReference, setupAnvil } from './helpers';
+import { checkCannonVersion, ensureChainIdConsistency, getPackageInfo, setupAnvil } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
 import { createDefaultReadRegistry } from './registry';
@@ -341,9 +341,20 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   const { publish } = await import('./commands/publish');
 
   const cliSettings = resolveCliSettings(options);
-  const fullPackageRef = await getPackageReference(packageRef);
 
-  if (!options.chainId) {
+  const { fullPackageRef, chainId: chainIdFromPackage } = await getPackageInfo(packageRef);
+
+  let chainId: number | undefined = undefined;
+
+  // if it's a ipfs hash, use the chainId from the package
+  if (chainIdFromPackage) {
+    chainId = chainIdFromPackage;
+  } else if (options.chainId) {
+    chainId = Number(options.chainId);
+  }
+
+  // if chainId is still undefined, prompt the user to provide the chainId
+  if (!chainId) {
     const chainIdPrompt = await prompts({
       type: 'number',
       name: 'value',
@@ -417,7 +428,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   const [writeRegistryProvider] = registryProviders;
 
   // Check if the package is already registered
-  const isRegistered = await isPackageRegistered(registryProviders, packageRef, [
+  const isRegistered = await isPackageRegistered(registryProviders, fullPackageRef, [
     writeRegistry.address,
     readRegistry.address,
   ]);
@@ -485,11 +496,11 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   );
 
   await publish({
-    packageRef: fullPackageRef,
+    fullPackageRef,
     cliSettings,
     onChainRegistry,
+    chainId,
     tags: options.tags ? options.tags.split(',') : undefined,
-    chainId: options.chainId ? Number(options.chainId) : undefined,
     presetArg: options.preset ? (options.preset as string) : undefined,
     quiet: !!options.quiet,
     includeProvisioned: !options.excludeCloned,
