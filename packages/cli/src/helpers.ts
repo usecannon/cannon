@@ -483,7 +483,7 @@ export async function getPackageInfo(packageRef: string) {
 
     return {
       fullPackageRef,
-      chainId: pkgInfo.chainId,
+      chainId: Number(pkgInfo.chainId),
     };
   } catch (error: any) {
     throw new Error(error);
