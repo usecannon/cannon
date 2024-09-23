@@ -56,19 +56,12 @@ export class CannonStorage extends EventEmitter {
       .join(', ')}`;
   }
 
-  readBlob(url: string) {
+  async readBlob(url: string) {
     const loader = this.lookupLoader(url);
-
-    let loaderLabel;
-
-    if (loader instanceof IPFSLoader) {
-      loaderLabel = loader.ipfsUrl;
-    } else {
-      loaderLabel = loader.getLabel();
-    }
-
+    const blob = await loader.read(url);
+    const loaderLabel = loader.getLabel();
     this.emit(Events.DownloadDeploy, url, loaderLabel, 0);
-    return loader.read(url);
+    return blob;
   }
 
   putBlob(data: any) {
@@ -115,6 +108,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   readonly snapshots: boolean;
   readonly allowPartialDeploy: boolean;
   readonly subpkgDepth: number;
+  currentStep: string | null;
   ctx: ChainBuilderContext | null;
   private publicSourceCode: boolean | undefined;
   private signals: { cancelled: boolean } = { cancelled: false };
@@ -169,6 +163,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
 
     this.misc = { artifacts: {} };
 
+    this.currentStep = null;
     this.ctx = null;
 
     if (info.priorityGasFee) {
@@ -271,7 +266,8 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     this.misc.artifacts[n] = artifact;
   }
 
-  reportOperatingContext(ctx: ChainBuilderContext | null) {
+  reportOperatingContext(n: string | null, ctx: ChainBuilderContext | null) {
+    this.currentStep = n;
     this.ctx = ctx;
   }
 

@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { pickAnvilOptions } from '@usecannon/cli/dist/src/util/anvil';
+import { pickAnvilOptions } from '@usecannon/cli/dist/src/util/foundry-options';
 
 export function parseAnvilOptions(anvilOptionsParam?: string) {
   if (!anvilOptionsParam) return {};

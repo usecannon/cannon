@@ -80,11 +80,11 @@ export const deploySchema = z
          */
         description: z.string().describe('Description of the operation'),
         /**
-         *    Determines whether contract should get priority in displays
+         * Determines whether contract should get priority in displays
          */
         highlight: z.boolean().describe('Determines whether contract should get priority in displays'),
         /**
-         *    Determines whether to deploy the contract using create2
+         * Determines whether to deploy the contract using create2
          */
         create2: z
           .union([z.boolean(), z.string().refine((val) => isAddress(val))])
@@ -92,8 +92,17 @@ export const deploySchema = z
             'Determines whether to deploy the contract using create2. If an address is specified, the arachnid create2 contract will be deployed/used from this address.'
           ),
         /**
-         *    Contract deployer address.
-         *    Must match the ethereum address format
+         * Determines whether to deploy the contract using create2
+         */
+        ifExists: z
+          .enum(['continue'])
+          .optional()
+          .describe(
+            'When deploying a contract with CREATE2, determines the behavior when the target contract is already deployed (ex. due to same bytecode and salt). Set to continue to allow the build to continue if the contract is found to have already been deployed. By default, an error is thrown and the action is halted.'
+          ),
+        /**
+         * Contract deployer address.
+         * Must match the ethereum address format
          */
         from: z
           .string()
@@ -115,7 +124,7 @@ export const deploySchema = z
           })
           .describe('-'),
         /**
-         *  Abi of the contract being deployed
+         * Abi of the contract being deployed
          */
         abi: z
           .string()
@@ -883,6 +892,17 @@ export const chainDefinitionSchema = z
          * Keywords for search indexing
          */
         keywords: z.array(z.string()).describe('Keywords for search indexing'),
+        /**
+         * Any deployers that could publish this package. Will be used for automatic version management.
+         */
+        deployers: z
+          .array(
+            z.string().refine((val) => !!val.match(RegExp(/^0x[a-fA-F0-9]{40}$/, 'gm')), {
+              message: 'Invalid Ethereum address',
+            })
+          )
+          .optional()
+          .describe('Any deployers that could publish this package. Will be used for automatic version management.'),
         /**
          * Object that allows the definition of values for use in next operations
          * ```toml

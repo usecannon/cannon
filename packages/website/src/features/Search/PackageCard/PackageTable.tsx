@@ -4,14 +4,15 @@ import 'prismjs/components/prism-json';
 import 'prismjs/themes/prism.css';
 import { DataTable } from './DataTable';
 import { createColumnHelper } from '@tanstack/react-table';
-import chains from '@/helpers/chains';
 import { Box } from '@chakra-ui/react';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { ApiDocument } from '@usecannon/api/dist/src/types';
 
 const PackageTable: FC<{
   pkgs: ApiDocument[];
   latestOnly: boolean;
 }> = ({ pkgs, latestOnly }) => {
+  const { getChainById } = useCannonChains();
   let data = pkgs.map((v: any) => {
     return {
       version: v.version,
@@ -56,9 +57,7 @@ const PackageTable: FC<{
     data = data.filter((row: any) => row.version === 'latest');
 
     data = data.filter((row: any) => {
-      const matchingChain = Object.values(chains).find((chain) => {
-        return chain.id === row.chain;
-      });
+      const matchingChain = getChainById(row.chain);
       return matchingChain && !(matchingChain as any).testnet;
     });
   }

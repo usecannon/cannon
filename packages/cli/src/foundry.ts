@@ -4,7 +4,7 @@ import { ContractArtifact } from '@usecannon/builder';
 import _ from 'lodash';
 import Debug from 'debug';
 
-import { execPromise, checkForgeAstSupport } from './helpers';
+import { execPromise } from './helpers';
 import { warn } from './util/console';
 
 const debug = Debug('cannon:cli:foundry');
@@ -66,12 +66,9 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
 
   // if source code is not included, we can skip here for a massive speed boost by not executing the inspect commands
   if (includeSourceCode) {
-    const isAstFlagSupported = await checkForgeAstSupport();
     // save build metadata
     const foundryInfo = JSON.parse(
-      await execPromise(
-        `forge inspect ${name} metadata  ${baseDir ? `--root ${baseDir}` : ''} ${isAstFlagSupported ? '--ast' : ''}`
-      )
+      await execPromise(`forge inspect ${name} metadata ${baseDir ? `--root ${baseDir}` : ''} --build-info`)
     );
 
     const evmVersionInfo = JSON.parse(await execPromise('forge config --json')).evm_version;

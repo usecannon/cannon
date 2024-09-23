@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import Debug from 'debug';
 import _ from 'lodash';
+import type { Address } from 'viem';
 import { ActionKinds, RawChainDefinition, validateConfig } from './actions';
 import { ChainBuilderRuntime } from './runtime';
 import { chainDefinitionSchema } from './schemas';
@@ -67,6 +68,8 @@ export class ChainDefinition {
   readonly dependencyFor = new Map<string, string>();
   readonly resolvedDependencies = new Map<string, string[]>();
 
+  readonly danglingDependencies = new Set<`${string}:${string}`>();
+
   constructor(def: RawChainDefinition, sensitiveDependencies = false) {
     debug('begin chain def init');
     this.raw = def;
@@ -76,7 +79,7 @@ export class ChainDefinition {
 
     // best way to get a list of actions is just to iterate over the entire def, and filter out anything
     // that are not an actions (because those are known)
-    const actionsDef = _.omit(def, 'name', 'version', 'preset', 'description', 'keywords');
+    const actionsDef = _.omit(def, 'name', 'version', 'preset', 'description', 'keywords', 'deployers');
 
     // Used to validate that there are not 2 steps with the same name
     const actionNames: string[] = [];
@@ -202,6 +205,10 @@ export class ChainDefinition {
 
   getPackageRef(ctx: ChainBuilderContext) {
     return new PackageReference(`${this.getName(ctx)}:${this.getVersion(ctx) || 'latest'}@${this.getPreset(ctx) || 'main'}`);
+  }
+
+  getDeployers() {
+    return (this.raw.deployers as Address[]) || [];
   }
 
   isPublicSourceCode() {
@@ -355,8 +362,9 @@ export class ChainDefinition {
         debug(`deps: ${node} consumes ${input}`);
         if (this.dependencyFor.has(input)) {
           deps.push(this.dependencyFor.get(input)!);
-        } else if (!input.startsWith('settings.')) {
+        } else {
           debug(`WARNING: dependency ${input} not found for operation ${node}`);
+          this.danglingDependencies.add(`${input}:${node}`);
         }
       }
     }

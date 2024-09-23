@@ -3,9 +3,7 @@
 import { Alert } from '@/components/Alert';
 import Card from '@/components/Card';
 import { parseHintedMulticall } from '@/helpers/cannon';
-import { getChainById, getExplorerUrl } from '@/helpers/chains';
 import { truncateAddress } from '@/helpers/ethereum';
-import { sleep } from '@/helpers/misc';
 import { getSafeTransactionHash } from '@/helpers/safe';
 import { SafeDefinition, useStore } from '@/helpers/store';
 import { useSafeTransactions, useTxnStager } from '@/hooks/backend';
@@ -19,6 +17,7 @@ import {
   useExecutedTransactions,
   useGetPreviousGitInfoQuery,
 } from '@/hooks/safe';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import {
   CheckIcon,
@@ -29,6 +28,7 @@ import {
 import {
   Box,
   Button,
+  ButtonProps,
   Container,
   Flex,
   Grid,
@@ -41,9 +41,16 @@ import {
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import _ from 'lodash';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  FC,
+  PropsWithChildren,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { IoIosContract, IoIosExpand } from 'react-icons/io';
-import { Hex, hexToString, TransactionRequestBase } from 'viem';
+import { Hash, Hex, hexToString, TransactionRequestBase } from 'viem';
 import {
   useAccount,
   useChainId,
@@ -69,18 +76,23 @@ const UnorderedNonceWarning = ({ nextNonce }: { nextNonce: number }) => (
   </Alert>
 );
 
+const CustomButton: FC<ButtonProps & PropsWithChildren> = (props) => (
+  <Button colorScheme="teal" w="100%" {...props}></Button>
+);
+
 function TransactionDetailsPage() {
   const { safeAddress, chainId, nonce, sigHash } =
     useTransactionDetailsParams();
   const { openConnectModal } = useConnectModal();
   const { switchChainAsync } = useSwitchChain();
+  const { getChainById, getExplorerUrl } = useCannonChains();
   const publicClient = usePublicClient();
   const walletChainId = useChainId();
   const account = useAccount();
 
   const currentSafe = useStore((s) => s.currentSafe);
   const [expandDiff, setExpandDiff] = useState<boolean>(false);
-  const [executionTxnHash, setExecutionTxnHash] = useState<string | null>(null);
+  const [executionTxnHash, setExecutionTxnHash] = useState<Hash | null>(null);
   const accountAlreadyConnected = useRef(account.isConnected);
 
   const safe: SafeDefinition = useMemo(
@@ -230,7 +242,7 @@ function TransactionDetailsPage() {
   ]);
 
   // compare proposed build info with expected transaction batch
-  const expectedTxns = buildInfo.buildResult?.steps?.map(
+  const expectedTxns = buildInfo.buildResult?.safeSteps?.map(
     (s) => s.tx as unknown as Partial<TransactionRequestBase>
   );
 
@@ -245,7 +257,7 @@ function TransactionDetailsPage() {
         );
       }));
 
-  const signers: Array<string> = stager.existingSigners.length
+  const signers: Array<Hash> = stager.existingSigners.length
     ? stager.existingSigners
     : safeTxn?.confirmedSigners || [];
 
@@ -275,10 +287,6 @@ function TransactionDetailsPage() {
     if (account.chainId !== currentSafe?.chainId.toString()) {
       try {
         await switchChainAsync({ chainId: currentSafe?.chainId || 1 });
-
-        await sleep(100);
-
-        await stager.sign();
       } catch (e) {
         toast({
           title:
@@ -290,6 +298,40 @@ function TransactionDetailsPage() {
         return;
       }
     }
+  };
+
+  const handleExecuteTx = () => {
+    if (!stager.executeTxnConfig) {
+      throw new Error('Missing execution tx configuration');
+    }
+
+    execTxn.writeContract(stager.executeTxnConfig, {
+      onSuccess: async (hash) => {
+        setExecutionTxnHash(hash);
+        toast({
+          title: 'Transaction sent to network',
+          status: 'info',
+          duration: 5000,
+          isClosable: true,
+        });
+
+        // wait for the transaction to be mined
+        await publicClient!.waitForTransactionReceipt({ hash });
+
+        await stagedQuery.refetch();
+        await nonceQuery.refetch();
+        await refetchHistory();
+
+        toast({
+          title: 'You successfully executed the transaction.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+
+        setExecutionTxnHash(null);
+      },
+    });
   };
 
   if (!hintData) {
@@ -407,9 +449,9 @@ function TransactionDetailsPage() {
                 <Card title="Verify Transactions">
                   {queuedWithGitOps && (
                     <Box>
-                      {buildInfo.buildStatus && (
+                      {buildInfo.buildMessage && (
                         <Text fontSize="sm" mb="2">
-                          {buildInfo.buildStatus}
+                          {buildInfo.buildMessage}
                         </Text>
                       )}
                       {buildInfo.buildError && (
@@ -529,10 +571,8 @@ function TransactionDetailsPage() {
                     {account.isConnected && walletChainId === safe.chainId ? (
                       <>
                         <Tooltip label={stager.signConditionFailed}>
-                          <Button
-                            colorScheme="teal"
+                          <CustomButton
                             mb={3}
-                            w="100%"
                             isDisabled={
                               stager.signing ||
                               stager.alreadySigned ||
@@ -545,81 +585,41 @@ function TransactionDetailsPage() {
                           >
                             {stager.signing ? (
                               <>
-                                Currently Signing
+                                Signing
                                 <Spinner size="sm" ml={2} />
                               </>
                             ) : (
                               'Sign'
                             )}
-                          </Button>
+                          </CustomButton>
                         </Tooltip>
                         <Tooltip label={stager.execConditionFailed}>
-                          <Button
-                            colorScheme="teal"
-                            w="100%"
+                          <CustomButton
                             isDisabled={
+                              stager.signing ||
                               !stager.executeTxnConfig ||
                               executionTxnHash ||
                               ((safeTxn && !!stager.execConditionFailed) as any)
                             }
-                            onClick={() => {
-                              if (!stager.executeTxnConfig) {
-                                throw new Error(
-                                  'Missing execution tx configuration'
-                                );
-                              }
-
-                              execTxn.writeContract(stager.executeTxnConfig, {
-                                onSuccess: async (hash) => {
-                                  setExecutionTxnHash(hash);
-                                  toast({
-                                    title: 'Transaction sent to network',
-                                    status: 'info',
-                                    duration: 5000,
-                                    isClosable: true,
-                                  });
-
-                                  // wait for the transaction to be mined
-                                  await publicClient!.waitForTransactionReceipt(
-                                    { hash }
-                                  );
-
-                                  await stagedQuery.refetch();
-                                  await nonceQuery.refetch();
-                                  await refetchHistory();
-
-                                  toast({
-                                    title:
-                                      'You successfully executed the transaction.',
-                                    status: 'success',
-                                    duration: 5000,
-                                    isClosable: true,
-                                  });
-
-                                  setExecutionTxnHash(null);
-                                },
-                              });
-                            }}
+                            onClick={handleExecuteTx}
                           >
                             Execute
-                          </Button>
+                          </CustomButton>
                         </Tooltip>
                       </>
                     ) : (
-                      <Button
-                        colorScheme="teal"
-                        w="100%"
-                        onClick={handleConnectWalletAndSign}
-                      >
-                        {account.isConnected ? 'Sign' : 'Connect wallet'}
-                      </Button>
+                      <CustomButton onClick={handleConnectWalletAndSign}>
+                        {account.isConnected
+                          ? `Switch to chain  ${safe.chainId}`
+                          : 'Connect wallet'}
+                      </CustomButton>
                     )}
                   </Flex>
                 )}
               </Card>
 
               {/* Cannon package IPFS Info */}
-              {queuedWithGitOps && (
+              {queuedWithGitOps && isTransactionExecuted && (
                 <Card
                   title={
                     <>

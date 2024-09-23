@@ -253,7 +253,7 @@ const cloneSpec = {
       state: builtState,
       meta: deployInfo.meta,
       status: partialDeploy ? 'partial' : 'complete',
-      chainId,
+      chainId: runtime.chainId,
     });
 
     if (!newSubDeployUrl) {

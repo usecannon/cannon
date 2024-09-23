@@ -17,14 +17,15 @@ import { PackageCardExpandable } from './PackageCard/PackageCardExpandable';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { groupBy } from 'lodash';
 import { ChainFilter } from './ChainFilter';
-import chains from '@/helpers/chains';
 import { useQuery } from '@tanstack/react-query';
 import { getChains, getPackages } from '@/helpers/api';
 import SearchInput from '@/components/SearchInput';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 export const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedChains, setSelectedChains] = useState<number[]>([]);
+  const { getChainById } = useCannonChains();
 
   const isSmall = useBreakpointValue({
     base: true,
@@ -56,7 +57,7 @@ export const SearchPage = () => {
 
     ids.forEach((id) => {
       // Check if the chain_id exists in the chains object and if it's a testnet
-      const chain = Object.values(chains).find((chain) => chain.id == id);
+      const chain = getChainById(id);
 
       if ((chain as any)?.testnet) {
         testnetChainIds.add(id);
@@ -87,7 +88,7 @@ export const SearchPage = () => {
   const groupedPackages = groupBy(packagesQuery?.data?.data, 'name');
 
   return (
-    <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
+    <Flex flex="1" direction="column" maxWidth="100vw">
       <Flex flex="1" direction={['column', 'column', 'row']}>
         <Flex
           flexDirection="column"
@@ -103,7 +104,6 @@ export const SearchPage = () => {
             px={4}
             pb={[0, 0, 4]}
             maxHeight={{ base: '210px', md: 'none' }}
-            overflowY="scroll"
             position="relative" // Added to position the pseudo-element
             sx={{
               '&::after': {
@@ -186,7 +186,7 @@ export const SearchPage = () => {
               </Text>
             </Flex>
           ) : (
-            <Box px={[0, 0, 4]} pt={isSmall ? 4 : 8}>
+            <Box px={0} pt={isSmall ? 4 : 8}>
               <Container ml={0} maxWidth="container.xl">
                 {Object.values(groupedPackages).map((pkgs: any) => (
                   <Box mb="8" key={pkgs[0].name}>

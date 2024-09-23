@@ -45,6 +45,7 @@ describe('publish command', () => {
     miscUrl: 'file://usecannon.com/misc',
     meta: { itsMeta: 'data' },
     options: {},
+    chainId,
   };
 
   const testPkgDataIpfsUrl = 'ipfs://test-ipfs-url';
@@ -143,7 +144,7 @@ describe('publish command', () => {
 
       await expect(
         publish({
-          packageRef: fullPackageRef,
+          fullPackageRef,
           cliSettings: resolveCliSettings(),
           onChainRegistry,
           tags,
@@ -167,7 +168,7 @@ describe('publish command', () => {
       ]);
 
       await publish({
-        packageRef: fullPackageRef,
+        fullPackageRef,
         cliSettings: resolveCliSettings(),
         onChainRegistry,
         tags,
@@ -194,7 +195,7 @@ describe('publish command', () => {
       ]);
 
       await publish({
-        packageRef: fullPackageRef,
+        fullPackageRef,
         cliSettings: resolveCliSettings(),
         onChainRegistry,
         tags,
@@ -230,7 +231,7 @@ describe('publish command', () => {
 
     it('should only find single deploy file on chainId and preset set', async () => {
       await publish({
-        packageRef: fullPackageRef,
+        fullPackageRef,
         cliSettings: resolveCliSettings(),
         onChainRegistry,
         tags,
@@ -249,7 +250,7 @@ describe('publish command', () => {
     // But it's the current implementation
     it('should find multiple deploy files on chainId set', async () => {
       await publish({
-        packageRef: fullPackageRef,
+        fullPackageRef,
         cliSettings: resolveCliSettings(),
         onChainRegistry,
         tags,
@@ -268,7 +269,7 @@ describe('publish command', () => {
     // But it's the current implementation
     it('should find multiple deploy files on preset set', async () => {
       await publish({
-        packageRef: fullPackageRef,
+        fullPackageRef,
         cliSettings: resolveCliSettings(),
         onChainRegistry,
         tags,

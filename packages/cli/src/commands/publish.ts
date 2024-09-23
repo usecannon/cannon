@@ -15,10 +15,9 @@ import { log, warn } from '../util/console';
 import { getMainLoader } from '../loader';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';
-import { getPackageReference, isIPFSRef } from '../helpers';
 
 interface Params {
-  packageRef: string;
+  fullPackageRef: string;
   cliSettings: CliSettings;
   tags?: string[];
   onChainRegistry: CannonRegistry;
@@ -37,7 +36,7 @@ interface DeployList {
 }
 
 export async function publish({
-  packageRef,
+  fullPackageRef,
   cliSettings,
   onChainRegistry,
   tags = ['latest'],
@@ -47,10 +46,8 @@ export async function publish({
   includeProvisioned = true,
   skipConfirm = false,
 }: Params) {
-  const fullPackageRef = await getPackageReference(packageRef);
-
   // Handle deprecated preset specification
-  if (presetArg && !isIPFSRef(packageRef)) {
+  if (presetArg) {
     warn(
       yellow(
         bold(
@@ -59,7 +56,7 @@ export async function publish({
       )
     );
 
-    packageRef = packageRef.split('@')[0] + `@${presetArg}`;
+    fullPackageRef = fullPackageRef.split('@')[0] + `@${presetArg}`;
   }
 
   if (onChainRegistry instanceof OnChainRegistry) {
@@ -81,13 +78,7 @@ export async function publish({
   const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
 
   // if the package reference is an ipfs reference (url or hash) we pass it the full package ref since its referencing a specific deploy
-  let deploys;
-  if (isIPFSRef(packageRef)) {
-    deploys = [{ name: fullPackageRef, chainId: 13370 }];
-  } else {
-    // Check for deployments that are relevant to the provided packageRef
-    deploys = await localRegistry.scanDeploys(packageRef, chainId);
-  }
+  let deploys = await localRegistry.scanDeploys(fullPackageRef, chainId);
 
   if (!deploys || deploys.length === 0) {
     throw new Error(
@@ -130,13 +121,12 @@ export async function publish({
 
   // "dedupe" the deploys so that when we iterate we can go over every package deployment by version
   const parentPackages: DeployList[] = deployNames.reduce((result: DeployList[], item) => {
-    const matchingDeploys = result.find((i) => !isIPFSRef(i.name) && i.name === item.name && i.preset === item.preset);
+    const matchingDeploys = result.find((i) => i.name === item.name && i.preset === item.preset);
 
     if (matchingDeploys) {
       matchingDeploys.versions.push(item.version);
     } else {
-      const versions = isIPFSRef(item.name) ? [] : [item.version];
-      result.push({ name: item.name, versions, chainId: item.chainId, preset: item.preset });
+      result.push({ name: item.name, versions: [item.version], chainId: item.chainId, preset: item.preset });
     }
 
     return result;
@@ -166,6 +156,7 @@ export async function publish({
   for (const publishCall of publishCalls) {
     const packageName = new PackageReference(publishCall.packagesNames[0]).name;
     log(blueBright(`\nThis will publish ${bold(packageName)} to the registry:`));
+
     for (const fullPackageRef of publishCall.packagesNames) {
       const { version, preset } = new PackageReference(fullPackageRef);
       log(` - ${version} (preset: ${preset})`);

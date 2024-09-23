@@ -1,5 +1,5 @@
 {
-  "name": "cannon-registry",
+  "name": "@usecannon/registry",
   "version": "0.0.1",
   "private": true,
   "description": "Contract registry for Cannon images",
@@ -9,7 +9,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Synthetixio/cannon.git"
+    "url": "https://github.com/usecannon/cannon.git",
+    "directory": "packages/registry"
   },
   "author": "",
   "license": "MIT",
@@ -24,14 +25,14 @@
     "@typechain/hardhat": "6.1.2",
     "@types/mocha": "9.1.1",
     "@types/node": "18.0.0",
-    "@usecannon/builder": "2.16.6",
-    "@usecannon/cli": "2.16.6",
+    "@usecannon/builder": "workspace:*",
+    "@usecannon/cli": "workspace:*",
     "at-least-node": "^1.0.0",
     "chai": "4.3.6",
     "dotenv": "16.0.1",
     "ethers": "5.7.1",
     "hardhat": "^2.22.3",
-    "hardhat-cannon": "2.16.6",
+    "hardhat-cannon": "workspace:*",
     "hardhat-contract-sizer": "^2.7.0",
     "hardhat-gas-reporter": "^1.0.9",
     "mocha": "10.0.0",

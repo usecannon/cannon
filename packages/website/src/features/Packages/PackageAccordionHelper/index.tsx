@@ -51,6 +51,10 @@ export default function PackageAccordionHelper({
     return null;
   }
 
+  /** Removing any potential run steps from the definition so it doesnt get registered in ChainDefinition */
+  //eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { ['run']: _, ...filteredDefinition } = deploymentInfo.def as any;
+
   return (
     <CustomAccordion allowToggle={!isLoading}>
       <CustomAccordionItem
@@ -91,7 +95,7 @@ export default function PackageAccordionHelper({
             name={name}
             chainId={packagesQuery.data.chainId}
             preset={packagesQuery.data.preset}
-            chainDefinition={new ChainDefinition(deploymentInfo.def)}
+            chainDefinition={new ChainDefinition(filteredDefinition)}
             deploymentState={state}
             version={packagesQuery.data.version}
           />

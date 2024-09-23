@@ -6,11 +6,13 @@ import { makeMultisend } from '@/helpers/multisend';
 import * as onchainStore from '@/helpers/onchain-store';
 import { useStore } from '@/helpers/store';
 import { useTxnStager } from '@/hooks/backend';
+import { useDeployerWallet } from '@/hooks/deployer';
 import {
   useCannonBuild,
   useCannonPackage,
   useCannonWriteDeployToIpfs,
   useLoadCannonDefinition,
+  useCannonFindUpgradeFromUrl,
 } from '@/hooks/cannon';
 import { useGitRefsList } from '@/hooks/git';
 import { useGetPreviousGitInfoQuery } from '@/hooks/safe';
@@ -41,10 +43,10 @@ import {
   Radio,
   RadioGroup,
   Stack,
+  Checkbox,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { ChainBuilderContext, PackageReference } from '@usecannon/builder';
-import _ from 'lodash';
+import { ChainBuilderContext, DeploymentInfo } from '@usecannon/builder';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -64,14 +66,18 @@ import { TransactionDisplay } from './TransactionDisplay';
 import 'react-diff-view/style/index.css';
 import { ChainDefinition } from '@usecannon/builder/dist/src';
 
+const EMPTY_IPFS_MISC_URL =
+  'ipfs://QmeSt2mnJKE8qmRhLyYbHQQxDKpsFbcWnw5e7JF4xVbN6k';
+
 export default function QueueFromGitOpsPage() {
   return <QueueFromGitOps />;
 }
 
 function QueueFromGitOps() {
   const [selectedDeployType, setSelectedDeployType] = useState('new');
+  const [overridePreviousState, setOverridePreviousState] = useState(false);
   const router = useRouter();
-  const currentSafe = useStore((s) => s.currentSafe);
+  const currentSafe = useStore((s) => s.currentSafe)!;
   const { chainId, isConnected } = useAccount();
   const { switchChainAsync } = useSwitchChain();
   const [cannonfileUrlInput, setCannonfileUrlInput] = useState('');
@@ -79,6 +85,8 @@ function QueueFromGitOps() {
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
   const { openConnectModal } = useConnectModal();
+
+  const deployer = useDeployerWallet(currentSafe?.chainId);
 
   const cannonfileUrlRegex =
     // eslint-disable-next-line no-useless-escape
@@ -165,7 +173,7 @@ function QueueFromGitOps() {
   const ctx: ChainBuilderContext = {
     chainId: 0,
     package: {},
-    timestamp: '0',
+    timestamp: 0,
     settings: {},
     contracts: {},
     txns: {},
@@ -175,65 +183,19 @@ function QueueFromGitOps() {
 
   const settings = useStore((s) => s.settings);
 
-  const previousName = useMemo(() => {
-    if (previousPackageInput) {
-      return previousPackageInput.split(':')[0];
-    }
+  const fullPackageRef = cannonDefInfo.def?.getPackageRef(ctx) ?? null;
 
-    if (cannonDefInfo.def) {
-      return cannonDefInfo.def.getName(ctx);
-    }
-
-    return '';
-  }, [previousPackageInput, cannonDefInfo.def]);
-
-  const previousVersion = useMemo(() => {
-    if (previousPackageInput) {
-      return previousPackageInput.split('@')[0]?.split(':')[1];
-    }
-
-    return 'latest';
-  }, [previousPackageInput]);
-
-  const previousPreset = useMemo(() => {
-    if (previousPackageInput) {
-      return previousPackageInput.split('@')[1];
-    }
-
-    return cannonDefInfo.def?.getPreset(ctx) || 'main';
-  }, [previousPackageInput, cannonDefInfo.def?.getPreset(ctx)]);
-
-  const cannonPkgPreviousInfo = useCannonPackage(
-    cannonDefInfo.def && PackageReference.isValid(previousPackageInput)
-      ? `${previousName}:${previousVersion}${
-          previousPreset ? '@' + previousPreset : ''
-        }`
-      : '',
-    chainId
+  const onChainPrevPkgQuery = useCannonFindUpgradeFromUrl(
+    fullPackageRef || undefined,
+    chainId,
+    cannonDefInfo.def?.getDeployers()
   );
 
-  const fullPackageRef =
-    (cannonDefInfo.def &&
-      `${cannonDefInfo.def.getName(ctx)}:${cannonDefInfo.def.getVersion(ctx)}${
-        cannonDefInfo.def.getPreset(ctx)
-          ? '@' + cannonDefInfo.def.getPreset(ctx)
-          : ''
-      }`) ??
-    '';
+  const prevDeployLocation = partialDeployIpfs
+    ? `ipfs://${partialDeployIpfs}`
+    : onChainPrevPkgQuery.url || '';
 
-  const cannonPkgVersionInfo = useCannonPackage(
-    fullPackageRef,
-    currentSafe?.chainId
-  );
-
-  const prevDeployLocation =
-    (partialDeployIpfs ? `ipfs://${partialDeployIpfs}` : null) ||
-    cannonPkgPreviousInfo.pkgUrl ||
-    cannonPkgVersionInfo.pkgUrl;
-
-  const prevCannonDeployInfo = useCannonPackage(
-    prevDeployLocation ? `ipfs://${_.last(prevDeployLocation.split('/'))}` : ''
-  );
+  const prevCannonDeployInfo = useCannonPackage(prevDeployLocation);
 
   useEffect(() => {
     if (!cannonDefInfo.def) return setPreviousPackageInput('');
@@ -243,7 +205,7 @@ function QueueFromGitOps() {
     const preset = cannonDefInfo.def.getPreset(ctx);
     setPreviousPackageInput(`${name}:${version}@${preset}`);
     if (selectedDeployType == 'new') setSelectedDeployType('upgrade');
-  }, [cannonDefInfo.def]);
+  }, [cannonDefInfo.def, ctx, selectedDeployType]);
 
   // run the build and get the list of transactions we need to run
   const buildInfo = useCannonBuild(
@@ -252,27 +214,42 @@ function QueueFromGitOps() {
     prevCannonDeployInfo.pkg
   );
 
-  const uploadToPublishIpfs = useCannonWriteDeployToIpfs(
-    buildInfo.buildResult?.runtime,
-    cannonDefInfo.def
-      ? {
+  const nextCannonDeployInfo = useMemo(() => {
+    return cannonDefInfo.def
+      ? ({
           generator: `cannon website ${pkg.version}`,
           timestamp: Math.floor(Date.now() / 1000),
           def: cannonDefInfo.def.toJson(),
           state: buildInfo.buildResult?.state || {},
           options: prevCannonDeployInfo.pkg?.options || {},
           meta: prevCannonDeployInfo.pkg?.meta,
-          miscUrl: prevCannonDeployInfo.pkg?.miscUrl || '',
-        }
-      : undefined,
+          miscUrl: prevCannonDeployInfo.pkg?.miscUrl || EMPTY_IPFS_MISC_URL,
+          chainId: currentSafe.chainId,
+        } satisfies DeploymentInfo)
+      : undefined;
+  }, [
+    buildInfo.buildResult?.state,
+    cannonDefInfo.def,
+    currentSafe.chainId,
+    prevCannonDeployInfo.pkg?.meta,
+    prevCannonDeployInfo.pkg?.miscUrl,
+    prevCannonDeployInfo.pkg?.options,
+  ]);
+
+  const uploadToPublishIpfs = useCannonWriteDeployToIpfs(
+    buildInfo.buildResult?.runtime,
+    nextCannonDeployInfo,
     prevCannonDeployInfo.metaUrl
   );
 
   useEffect(() => {
-    if (buildInfo.buildResult) {
+    if (['success', 'error'].includes(buildInfo.buildStatus)) {
       uploadToPublishIpfs.writeToIpfsMutation.mutate();
     }
-  }, [buildInfo.buildResult?.steps]);
+  }, [
+    buildInfo.buildStatus,
+    // DO NOT ADD: uploadToPublishIpfs.writeToIpfsMutation
+  ]);
 
   const refsInfo = useGitRefsList(gitUrl);
   const foundRef = refsInfo.refs?.find(
@@ -290,7 +267,7 @@ function QueueFromGitOps() {
   const multicallTxn: /*Partial<TransactionRequestBase>*/ any =
     buildInfo.buildResult &&
     !prevInfoQuery.isLoading &&
-    buildInfo.buildResult.steps.indexOf(null as any) === -1
+    buildInfo.buildResult.safeSteps.indexOf(null as any) === -1
       ? makeMultisend(
           [
             // supply the hint data
@@ -341,8 +318,32 @@ function QueueFromGitOps() {
                   }),
                 } as Partial<TransactionRequestBase>)
               : {},
+            {
+              to: onchainStore.deployAddress,
+              data: encodeFunctionData({
+                abi: onchainStore.ABI,
+                functionName: 'set',
+                args: [
+                  keccak256(
+                    toBytes(
+                      cannonDefInfo.def
+                        ? `${cannonDefInfo.def.getName(
+                            ctx
+                          )}@${cannonDefInfo.def.getPreset(ctx)}`
+                        : ''
+                    )
+                  ),
+                  // TODO: we would really rather have the timestamp be when the txn was executed. something to fix when we have a new state contract
+                  stringToHex(
+                    `${Math.floor(Date.now() / 1000)}_${
+                      uploadToPublishIpfs.deployedIpfsHash ?? ''
+                    }`
+                  ),
+                ],
+              }),
+            } as Partial<TransactionRequestBase>,
           ].concat(
-            buildInfo.buildResult.steps.map(
+            buildInfo.buildResult.safeSteps.map(
               (s) => s.tx as unknown as Partial<TransactionRequestBase>
             )
           )
@@ -351,7 +352,7 @@ function QueueFromGitOps() {
 
   let totalGas = BigInt(0);
 
-  for (const step of buildInfo.buildResult?.steps || []) {
+  for (const step of buildInfo.buildResult?.safeSteps || []) {
     totalGas += BigInt(step.gas.toString());
   }
 
@@ -371,7 +372,7 @@ function QueueFromGitOps() {
     {
       safe: currentSafe,
       async onSignComplete() {
-        await router.push(links.DEPLOY);
+        router.push(links.DEPLOY);
         toast({
           title: 'You successfully signed the transaction.',
           status: 'success',
@@ -384,19 +385,15 @@ function QueueFromGitOps() {
 
   const execTxn = useWriteContract();
 
-  const isPartialDataRequired =
-    buildInfo.buildSkippedSteps.filter(
-      (s) =>
-        s.name.startsWith('contract') ||
-        s.name.startsWith('deploy') ||
-        s.name.startsWith('router')
-    ).length > 0;
+  const isOutsideSafeTxnsRequired =
+    (buildInfo.buildResult?.deployerSteps.length || 0) > 0 &&
+    !deployer.isComplete;
 
   const loadingDataForDeploy =
-    cannonPkgPreviousInfo.isFetching ||
+    prevCannonDeployInfo.isFetching ||
     partialDeployInfo.isFetching ||
-    cannonPkgVersionInfo.isFetching ||
-    buildInfo.isBuilding;
+    onChainPrevPkgQuery.isFetching ||
+    buildInfo.buildStatus === 'building';
 
   const handlePreviewTxnsClick = async () => {
     if (!isConnected) {
@@ -446,6 +443,22 @@ function QueueFromGitOps() {
       );
     }
 
+    if (cannonDefInfo.def && cannonDefInfo.def.danglingDependencies.size > 0) {
+      alertMessage = (
+        <>
+          The cannonfile contains invalid dependencies. Please ensure the
+          following references are defined:
+          {Array.from(cannonDefInfo.def.danglingDependencies).map(
+            ([input, node]) => (
+              <Text key={`${input}:${node}`} as="span" fontFamily="monospace">
+                {input} in {node}
+              </Text>
+            )
+          )}
+        </>
+      );
+    }
+
     return alertMessage ? (
       <VStack mt="6" spacing={2} mb={6}>
         <Alert status="error" bg="gray.700">
@@ -457,16 +470,14 @@ function QueueFromGitOps() {
   };
 
   const disablePreviewButton =
+    loadingDataForDeploy ||
     chainId !== currentSafe?.chainId ||
     !cannonDefInfo.def ||
-    cannonPkgPreviousInfo.isFetching ||
-    partialDeployInfo.isFetching ||
-    cannonPkgVersionInfo.isFetching ||
-    buildInfo.isBuilding;
+    buildInfo.buildStatus === 'building';
 
-  function PreviewButton(props: any) {
+  function PreviewButton({ message }: { message?: string }) {
     return (
-      <Tooltip label={props.message}>
+      <Tooltip label={message}>
         <Button
           width="100%"
           colorScheme="teal"
@@ -543,14 +554,14 @@ function QueueFromGitOps() {
     }
 
     if (
-      cannonPkgPreviousInfo.isFetching ||
-      partialDeployInfo.isFetching ||
-      cannonPkgVersionInfo.isFetching
+      prevCannonDeployInfo.isFetching ||
+      onChainPrevPkgQuery.isFetching ||
+      partialDeployInfo.isFetching
     ) {
       return <PreviewButton message="Fetching package info, please wait..." />;
     }
 
-    if (buildInfo.isBuilding) {
+    if (buildInfo.buildStatus === 'building') {
       return <PreviewButton message="Generating build info, please wait..." />;
     }
 
@@ -562,6 +573,8 @@ function QueueFromGitOps() {
 
     return <PreviewButton />;
   }
+
+  // eslint-disable-next-line no-console
 
   return (
     <>
@@ -588,7 +601,7 @@ function QueueFromGitOps() {
           borderRadius="4px"
         >
           <FormControl mb="4">
-            <FormLabel>Deployment Type</FormLabel>
+            <FormLabel>Deployment Source</FormLabel>
             <RadioGroup
               value={selectedDeployType}
               onChange={setSelectedDeployType}
@@ -598,23 +611,37 @@ function QueueFromGitOps() {
                 spacing={['1', '1', '6']}
                 width="100%"
               >
-                <Radio colorScheme="teal" value="new">
-                  New deployment
+                <Radio colorScheme="teal" value="git">
+                  Git URL
                 </Radio>
-                <Radio colorScheme="teal" value="upgrade">
-                  Upgrade existing package
-                </Radio>
-                <Radio colorScheme="teal" value="partial">
-                  Finish partial deployment
+                <Radio colorScheme="teal" value="stateUrl">
+                  IPFS Hash
                 </Radio>
               </Stack>
             </RadioGroup>
           </FormControl>
 
-          {selectedDeployType != 'partial' && renderCannonfileInput()}
+          {selectedDeployType == 'git' && renderCannonfileInput()}
 
-          {selectedDeployType == 'new' && <Box mb="6" />}
-          {selectedDeployType == 'upgrade' && (
+          {onChainPrevPkgQuery.isFetched &&
+            (prevDeployLocation ? (
+              <Text color="green">
+                Previous Deployment: {prevDeployLocation}
+              </Text>
+            ) : (
+              <Text color="yellow">Deployment from scratch.</Text>
+            ))}
+
+          <FormControl>
+            <Checkbox
+              onChange={(evt) =>
+                setOverridePreviousState(evt.currentTarget.checked)
+              }
+            />{' '}
+            Override Previous State
+          </FormControl>
+
+          {overridePreviousState && (
             <FormControl mb="6">
               <FormLabel>Previous Package</FormLabel>
               <InputGroup>
@@ -623,7 +650,7 @@ function QueueFromGitOps() {
                   type="text"
                   value={previousPackageInput}
                   borderColor={
-                    !previousPackageInput.length || !cannonPkgPreviousInfo.error
+                    !previousPackageInput.length || !prevCannonDeployInfo.error
                       ? 'whiteAlpha.400'
                       : 'red.500'
                   }
@@ -633,12 +660,12 @@ function QueueFromGitOps() {
                   }
                 />
                 <InputRightElement>
-                  {cannonPkgPreviousInfo.isError ? (
+                  {prevCannonDeployInfo.isError ? (
                     <CloseIcon color="red.500" />
                   ) : null}
-                  {cannonPkgPreviousInfo.isFetching ? (
+                  {prevCannonDeployInfo.isFetching ? (
                     <Spinner />
-                  ) : cannonPkgPreviousInfo.pkg ? (
+                  ) : prevCannonDeployInfo.pkg ? (
                     <CheckIcon color="green.500" />
                   ) : null}
                 </InputRightElement>
@@ -649,10 +676,10 @@ function QueueFromGitOps() {
                   <Code>--upgrade-from</Code>
                 </Link>
               </FormHelperText>
-              {cannonPkgPreviousInfo.error ? (
+              {onChainPrevPkgQuery.error ? (
                 <Alert mt="6" status="error" bg="red.700">
                   <AlertIcon mr={3} />
-                  <strong>{cannonPkgPreviousInfo.error.toString()}</strong>
+                  <strong>{onChainPrevPkgQuery.error.toString()}</strong>
                 </Alert>
               ) : undefined}
             </FormControl>
@@ -697,10 +724,10 @@ function QueueFromGitOps() {
 
           {renderAlertMessage()}
           <RenderPreviewButtonTooltip />
-          {buildInfo.buildStatus && (
+          {buildInfo.buildMessage && (
             <Alert mt="6" status="info" bg="gray.800">
               <Spinner mr={3} boxSize={4} />
-              <strong>{buildInfo.buildStatus}</strong>
+              <strong>{buildInfo.buildMessage}</strong>
             </Alert>
           )}
           {buildInfo.buildError && (
@@ -722,19 +749,46 @@ function QueueFromGitOps() {
               ))}
             </Flex>
           )}
-          {isPartialDataRequired && (
-            <Alert mt="6" status="error" bg="red.700" mb="5">
-              <Flex flexDir="column" gap={3}>
-                <Text>
-                  The web deployer is unable to compile and deploy contracts and
-                  routers. Run the following command to generate partial deploy
-                  data:
-                </Text>
-                <Code display="block" p="2">
-                  cannon build {gitFile} --upgrade-from {previousPackageInput}{' '}
-                  --chain-id {currentSafe?.chainId}
-                </Code>
-              </Flex>
+          {!!buildInfo.buildResult?.deployerSteps?.length &&
+            !!buildInfo.buildResult?.safeSteps.length && (
+              <Alert mt="6" status="info" mb="5">
+                {deployer.queuedTransactions.length === 0 ? (
+                  <VStack>
+                    <Text color="black">
+                      Some transactions should be executed outside the safe
+                      before staging. You can execute these now in your browser.
+                      By clicking the button below.
+                    </Text>
+                    <Button
+                      onClick={() =>
+                        deployer.queueTransactions(
+                          buildInfo.buildResult!.deployerSteps.map(
+                            (s) => s.tx as any
+                          )
+                        )
+                      }
+                    >
+                      Execute Outside Safe Txns
+                    </Button>
+                  </VStack>
+                ) : deployer.executionProgress.length <
+                  deployer.queuedTransactions.length ? (
+                  <Text>
+                    Deploying txns {deployer.executionProgress.length + 1} /{' '}
+                    {deployer.queuedTransactions.length}
+                  </Text>
+                ) : (
+                  <Text>
+                    All Transactions Queued Successfully. You may now continue
+                    the safe deployment.
+                  </Text>
+                )}
+              </Alert>
+            )}
+          {(buildInfo.buildResult?.safeSteps.length || 1) == 0 && (
+            <Alert status="error">
+              There are no transactions that would be executed by the gnosis
+              safe.
             </Alert>
           )}
           {cannonDefInfo.def && multicallTxn.data && (
@@ -746,19 +800,24 @@ function QueueFromGitOps() {
               </Heading>
             </Box>
           )}
-          {multicallTxn.data && stager.safeTxn && (
-            <Box mt="4" mb="10">
-              <Heading size="sm" mb={2}>
-                Transactions
-              </Heading>
-              <TransactionDisplay
-                safe={currentSafe as any}
-                safeTxn={stager.safeTxn}
-              />
-            </Box>
-          )}
+          {uploadToPublishIpfs.deployedIpfsHash &&
+            multicallTxn.data &&
+            stager.safeTxn && (
+              <Box mt="4" mb="10">
+                <Heading size="sm" mb={2}>
+                  Transactions
+                </Heading>
+                <TransactionDisplay
+                  safe={currentSafe as any}
+                  safeTxn={stager.safeTxn}
+                />
+              </Box>
+            )}
           {uploadToPublishIpfs.writeToIpfsMutation.isPending && (
-            <Text>Uploading build result to IPFS...</Text>
+            <Alert mt="6" status="info" bg="gray.800">
+              <Spinner mr={3} boxSize={4} />
+              <strong>Uploading build result to IPFS...</strong>
+            </Alert>
           )}
           {uploadToPublishIpfs.writeToIpfsMutation.error && (
             <Text>
@@ -796,14 +855,14 @@ function QueueFromGitOps() {
                 <Tooltip label={stager.execConditionFailed}>
                   <Button
                     isDisabled={
-                      !!stager.execConditionFailed || isPartialDataRequired
+                      !!stager.execConditionFailed || isOutsideSafeTxnsRequired
                     }
                     size="lg"
                     w="100%"
                     onClick={() => {
                       execTxn.writeContract(stager.executeTxnConfig!, {
-                        onSuccess: async () => {
-                          await router.push(links.DEPLOY);
+                        onSuccess: () => {
+                          router.push(links.DEPLOY);
 
                           toast({
                             title: 'You successfully executed the transaction.',

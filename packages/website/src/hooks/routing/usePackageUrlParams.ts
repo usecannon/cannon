@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router';
+import { useMemo } from 'react';
 
 export function usePackageUrlParams() {
   const { query: params } = useRouter();
@@ -6,7 +7,10 @@ export function usePackageUrlParams() {
 
   if (typeof name !== 'string') throw new Error('Missing name param');
 
-  return {
-    name: decodeURIComponent(name),
-  };
+  return useMemo(
+    () => ({
+      name: decodeURIComponent(name),
+    }),
+    [name]
+  );
 }

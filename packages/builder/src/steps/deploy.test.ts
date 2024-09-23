@@ -177,7 +177,26 @@ describe('steps/deploy.ts', () => {
 
   describe('exec()', () => {
     describe('when create2 = true', () => {
-      it('works if contract already deployed', async () => {
+      it('fails if contract already deployed', async () => {
+        jest.mocked(fakeRuntime.provider.getCode).mockResolvedValue('0xabcdef');
+
+        expect(
+          action.exec(
+            fakeRuntime,
+            fakeCtx,
+            {
+              artifact: 'hello',
+              create2: true,
+              args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],
+              salt: 'wohoo',
+              value: '1234',
+            },
+            { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
+          )
+        ).rejects.toThrowErrorMatchingSnapshot();
+      });
+
+      it('works if the contract is already deployed but has ifExists = "continue"', async () => {
         jest.mocked(fakeRuntime.provider.getCode).mockResolvedValue('0xabcdef');
 
         const result = await action.exec(
@@ -186,6 +205,7 @@ describe('steps/deploy.ts', () => {
           {
             artifact: 'hello',
             create2: true,
+            ifExists: 'continue',
             args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],
             salt: 'wohoo',
             value: '1234',
@@ -208,11 +228,11 @@ describe('steps/deploy.ts', () => {
               deployTxnBlockNumber: '',
               deployTimestamp: '',
               deployedOn: 'contract.Woot',
-              gasCost: '0',
-              gasUsed: 0,
               linkedLibraries: {},
               sourceName: undefined,
               highlight: undefined,
+              gasCost: '0',
+              gasUsed: 0,
             },
           },
         });

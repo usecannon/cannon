@@ -11,40 +11,41 @@ import {
   IPFSLoader,
   OnChainRegistry,
   PackageReference,
-  publishPackage,
   traceActions,
 } from '@usecannon/builder';
-import { bold, gray, green, red, yellow } from 'chalk';
+import { bold, gray, green, red, yellow, yellowBright } from 'chalk';
 import { Command } from 'commander';
-import Debug from 'debug';
 import _ from 'lodash';
 import prompts from 'prompts';
 import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
-import commandsConfig from './commandsConfig';
-import {
-  checkCannonVersion,
-  checkForgeAstSupport,
-  ensureChainIdConsistency,
-  getPackageReference,
-  setupAnvil,
-} from './helpers';
+import commandsConfig from './commands/config';
+import { checkCannonVersion, ensureChainIdConsistency, getPackageInfo, setupAnvil } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
 import { createDefaultReadRegistry } from './registry';
 import { CannonRpcNode, getProvider, runRpc } from './rpc';
 import { resolveCliSettings } from './settings';
 import { PackageSpecification } from './types';
-import { pickAnvilOptions } from './util/anvil';
+
 import { doBuild } from './util/build';
+import { setDebugLevel } from './util/debug-level';
 import { error, log, warn } from './util/console';
 import { getContractsRecursive } from './util/contracts-recursive';
-import { parsePackageArguments, parsePackagesArguments } from './util/params';
+import { applyCommandsConfig } from './util/commands-config';
+import {
+  fromFoundryOptionsToArgs,
+  pickAnvilOptions,
+  pickForgeBuildOptions,
+  pickForgeTestOptions,
+} from './util/foundry-options';
 import { getChainIdFromRpcUrl, isURL, ProviderAction, resolveProviderAndSigners, resolveProvider } from './util/provider';
 import { isPackageRegistered } from './util/register';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
+import { ANVIL_PORT_DEFAULT_VALUE } from './constants';
+import { deprecatedWarn } from './util/deprecated-warn';
 
 export * from './types';
 export * from './constants';
@@ -62,8 +63,11 @@ export { publish } from './commands/publish';
 export { unpublish } from './commands/unpublish';
 export { publishers } from './commands/publishers';
 export { run } from './commands/run';
+import { pin } from './commands/pin';
 export { verify } from './commands/verify';
 export { setup } from './commands/setup';
+import { forgeBuildOptions } from './commands/config/forge/build';
+import { forgeTestOptions } from './commands/config/forge/test';
 export { runRpc, getProvider } from './rpc';
 export { createDefaultReadRegistry, createDryRunRegistry } from './registry';
 export { resolveProviderAndSigners } from './util/provider';
@@ -86,58 +90,6 @@ program
 configureRun(program);
 configureRun(program.command('run'));
 
-function applyCommandsConfig(command: Command, config: any) {
-  if (config.description) {
-    command.description(config.description);
-  }
-  if (config.usage) {
-    command.usage(config.usage);
-  }
-  if (config.arguments) {
-    config.arguments.map((argument: any) => {
-      if (argument.flags === '<packageRefs...>') {
-        command.argument(argument.flags, argument.description, parsePackagesArguments, argument.defaultValue);
-      } else if (command.name() === 'interact' && argument.flags === '<packageRef>') {
-        command.argument(argument.flags, argument.description, parsePackageArguments, argument.defaultValue);
-      } else {
-        command.argument(argument.flags, argument.description, argument.defaultValue);
-      }
-    });
-  }
-  if (config.anvilOptions) {
-    config.anvilOptions.map((option: any) => {
-      option.required
-        ? command.requiredOption(option.flags, option.description, option.defaultValue)
-        : command.option(option.flags, option.description, option.defaultValue);
-    });
-  }
-  if (config.options) {
-    config.options.map((option: any) => {
-      option.required
-        ? command.requiredOption(option.flags, option.description, option.defaultValue)
-        : command.option(option.flags, option.description, option.defaultValue);
-    });
-  }
-  return command;
-}
-
-function setDebugLevel(opts: any) {
-  switch (true) {
-    case opts.Vvvv:
-      Debug.enable('cannon:*');
-      break;
-    case opts.Vvv:
-      Debug.enable('cannon:builder*');
-      break;
-    case opts.Vv:
-      Debug.enable('cannon:builder,cannon:builder:definition');
-      break;
-    case opts.v:
-      Debug.enable('cannon:builder');
-      break;
-  }
-}
-
 function configureRun(program: Command) {
   return applyCommandsConfig(program, commandsConfig.run).action(async function (
     packages: PackageSpecification[],
@@ -148,7 +100,13 @@ function configureRun(program: Command) {
 
     const { run } = await import('./commands/run');
 
-    options.port = Number.parseInt(options.port);
+    // backwards compatibility for --port flag
+    if (options.port !== ANVIL_PORT_DEFAULT_VALUE) {
+      deprecatedWarn('--port', '--anvil.port');
+      options['anvil.port'] = options.port;
+    } else {
+      options.port = options['anvil.port'];
+    }
 
     const cliSettings = resolveCliSettings(options);
 
@@ -201,6 +159,14 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
   .action(async (cannonfile, settings, options) => {
     await setupAnvil();
 
+    // backwards compatibility for --port flag
+    if (options.port !== ANVIL_PORT_DEFAULT_VALUE) {
+      deprecatedWarn('--port', '--anvil.port');
+      options['anvil.port'] = options.port;
+    } else {
+      options.port = options['anvil.port'];
+    }
+
     const cannonfilePath = path.resolve(cannonfile);
     const projectDirectory = path.dirname(cannonfilePath);
 
@@ -211,10 +177,13 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
 
     log(bold('Building the foundry project...'));
     if (!options.skipCompile) {
-      let forgeBuildArgs = ['build'];
-      if (await checkForgeAstSupport()) {
-        forgeBuildArgs = [...forgeBuildArgs, '--ast'];
-      }
+      // use --build-info to output build info
+      // ref: https://github.com/foundry-rs/foundry/pull/7197
+      const forgeBuildArgs = [
+        'build',
+        '--build-info',
+        ...fromFoundryOptionsToArgs(pickForgeBuildOptions(options), forgeBuildOptions),
+      ];
 
       const forgeBuildProcess = spawn('forge', forgeBuildArgs, { cwd: projectDirectory, shell: true });
 
@@ -352,8 +321,6 @@ applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async
 applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async function (ref, options) {
   const cliSettings = resolveCliSettings(options);
 
-  const fullPackageRef = await getPackageReference(ref);
-
   const fromStorage = new CannonStorage(await createDefaultReadRegistry(cliSettings), getMainLoader(cliSettings));
 
   const toStorage = new CannonStorage(new InMemoryRegistry(), {
@@ -362,13 +329,7 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
 
   log('Uploading package data for pinning...');
 
-  await publishPackage({
-    packageRef: fullPackageRef,
-    chainId: options.chainId || 13370,
-    tags: [], // when passing no tags, it will only copy IPFS files, but not publish to registry
-    fromStorage,
-    toStorage,
-  });
+  await pin(ref, fromStorage, toStorage);
 
   log('Done!');
 });
@@ -380,9 +341,20 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   const { publish } = await import('./commands/publish');
 
   const cliSettings = resolveCliSettings(options);
-  const fullPackageRef = await getPackageReference(packageRef);
 
-  if (!options.chainId) {
+  const { fullPackageRef, chainId: chainIdFromPackage } = await getPackageInfo(packageRef);
+
+  let chainId: number | undefined = undefined;
+
+  // if it's a ipfs hash, use the chainId from the package
+  if (chainIdFromPackage) {
+    chainId = chainIdFromPackage;
+  } else if (options.chainId) {
+    chainId = Number(options.chainId);
+  }
+
+  // if chainId is still undefined, prompt the user to provide the chainId
+  if (!chainId) {
     const chainIdPrompt = await prompts({
       type: 'number',
       name: 'value',
@@ -456,7 +428,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   const [writeRegistryProvider] = registryProviders;
 
   // Check if the package is already registered
-  const isRegistered = await isPackageRegistered(registryProviders, packageRef, [
+  const isRegistered = await isPackageRegistered(registryProviders, fullPackageRef, [
     writeRegistry.address,
     readRegistry.address,
   ]);
@@ -524,11 +496,11 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   );
 
   await publish({
-    packageRef: fullPackageRef,
+    fullPackageRef,
     cliSettings,
     onChainRegistry,
+    chainId,
     tags: options.tags ? options.tags.split(',') : undefined,
-    chainId: options.chainId ? Number(options.chainId) : undefined,
     presetArg: options.preset ? (options.preset as string) : undefined,
     quiet: !!options.quiet,
     includeProvisioned: !options.excludeCloned,
@@ -685,13 +657,23 @@ applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(asy
   });
 });
 
-applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOpts, options) {
-  options.port = 0;
-
+applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOptions, options) {
   const cliSettings = resolveCliSettings(options);
 
   if (cliSettings.rpcUrl.startsWith('https')) {
     options.dryRun = true;
+  }
+
+  if (forgeOptions.length) {
+    log();
+    warn(
+      yellowBright(
+        bold(
+          '⚠️  The `--` syntax for passing options to forge or anvil is deprecated. Please use `--forge.*` or `--anvil.*` instead.'
+        )
+      )
+    );
+    log();
   }
 
   // throw an error if the chainId is not consistent with the provider's chainId
@@ -705,7 +687,13 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
   // after the build is done we can run the forge tests for the user
   await getProvider(node!)!.mine({ blocks: 1 });
 
-  const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeOpts], { stdio: 'inherit' });
+  const pickedOptions = pickForgeTestOptions(options);
+
+  const forgeTestArgs = fromFoundryOptionsToArgs(pickedOptions, forgeTestOptions);
+
+  const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeTestArgs, ...forgeOptions], {
+    stdio: 'inherit',
+  });
 
   await new Promise(() => {
     forgeProcess.on('close', (code: number) => {

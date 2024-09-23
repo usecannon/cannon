@@ -29,6 +29,7 @@ import { useSwitchChain } from 'wagmi';
 
 import Chain from '@/features/Search/PackageCard/Chain';
 import { truncateAddress } from '@/helpers/ethereum';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 type SafeOption = {
   value: SafeString;
@@ -45,6 +46,7 @@ export function SafeAddressInput() {
   const prependSafeAddress = useStore((s: any) => s.prependSafeAddress);
   const walletSafes = useWalletPublicSafes();
   const pendingServiceTransactions = usePendingTransactions(currentSafe);
+  const { chains } = useCannonChains();
 
   const { switchChain } = useSwitchChain();
 
@@ -65,7 +67,7 @@ export function SafeAddressInput() {
 
     const newSafe = parseSafe(`${chainId}:${address}`);
 
-    if (isValidSafe(newSafe)) {
+    if (isValidSafe(newSafe, chains)) {
       if (!deepEqual(currentSafe, newSafe)) {
         setState({ currentSafe: newSafe });
       }

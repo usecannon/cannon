@@ -10,6 +10,7 @@ import {
   StepState,
   PackageReference,
   ActionKinds,
+  addOutputsToContext,
 } from '@usecannon/builder';
 import { bold, yellow } from 'chalk';
 import Debug from 'debug';
@@ -30,7 +31,15 @@ export async function alter(
   cliSettings: CliSettings,
   presetArg: string,
   meta: any,
-  command: 'set-url' | 'set-misc' | 'set-contract-address' | 'import' | 'mark-complete' | 'mark-incomplete' | 'migrate-212',
+  command:
+    | 'set-url'
+    | 'set-misc'
+    | 'set-contract-address'
+    | 'import'
+    | 'mark-complete'
+    | 'mark-incomplete'
+    | 'migrate-212'
+    | 'clean-unused',
   targets: string[],
   runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
@@ -107,7 +116,7 @@ export async function alter(
   const ctx = await createInitialContext(new ChainDefinition(deployInfo.def), meta, chainId, deployInfo.options);
   const outputs = await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state);
 
-  _.assign(ctx, outputs);
+  addOutputsToContext(ctx, outputs);
 
   debug('alter with ctx', ctx);
 
@@ -205,8 +214,7 @@ export async function alter(
 
             const ctx = await createInitialContext(new ChainDefinition(deployInfo.def), meta, chainId, deployInfo.options);
             const outputs = await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state);
-
-            _.assign(ctx, outputs);
+            addOutputsToContext(ctx, outputs);
 
             deployInfo.state[stepName].artifacts = await stepAction.importExisting(
               runtime,
@@ -289,6 +297,14 @@ export async function alter(
         deployInfo.state[target].hash = 'INCOMPLETE';
       }
       break;
+    case 'clean-unused': {
+      const def = new ChainDefinition(deployInfo.def);
+      for (const notDefinedState of _.difference(Object.keys(deployInfo.state), def.topologicalActions)) {
+        debug('delete undefined state', notDefinedState, deployInfo.state[notDefinedState]);
+        delete deployInfo.state[notDefinedState];
+      }
+      break;
+    }
     case 'migrate-212':
       // nested provisions also have to be updated
       for (const k in deployInfo.state) {

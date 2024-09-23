@@ -1,8 +1,7 @@
 {
   "name": "hardhat-cannon",
-  "version": "2.16.6",
+  "version": "2.18.0-alpha.0",
   "description": "Agnostic chain construction. Select the protocols and configuration you need to quickly and easily verify your project",
-  "repository": "github:usecannon/cannon",
   "author": "Synthetix",
   "license": "MIT",
   "main": "dist/index.js",
@@ -18,7 +17,7 @@
     "lint": "tslint --config tslint.json --project tsconfig.json",
     "build": "tsc",
     "watch": "tsc -w",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "pnpm run build"
   },
   "files": [
     "dist",
@@ -28,27 +27,32 @@
     "README.md",
     "types.ts"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/usecannon/cannon.git",
+    "directory": "packages/hardhat-cannon"
+  },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@types/debug": "^4.1.12",
-    "@types/mocha": "^10.0.7",
-    "@types/node": "^22.5.1",
+    "@types/mocha": "^10.0.8",
+    "@types/node": "^22.5.5",
     "bn.js": "^5.2.1",
-    "hardhat": "^2.22.9",
+    "hardhat": "^2.22.11",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.4"
+    "typescript": "^5.6.2"
   },
   "peerDependencies": {
     "hardhat": ">=2.0.0"
   },
   "dependencies": {
     "@iarna/toml": "^3.0.0",
-    "@usecannon/builder": "2.16.6",
-    "@usecannon/cli": "2.16.6",
+    "@usecannon/builder": "workspace:*",
+    "@usecannon/cli": "workspace:*",
     "chalk": "^4.1.2",
-    "debug": "^4.3.6",
+    "debug": "^4.3.7",
     "fs-extra": "^11.2.0",
-    "viem": "^2.21.1"
+    "viem": "^2.21.10"
   },
   "gitHead": "81979336c4cfe5f1f8ee7677b2b968f886a20a87"
 }

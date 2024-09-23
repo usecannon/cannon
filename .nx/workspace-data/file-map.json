@@ -1,0 +1,5017 @@
+{
+  "version": "6.0",
+  "nxVersion": "19.7.2",
+  "deps": {
+    "@changesets/cli": "^2.26.2",
+    "concat-md": "^0.5.1",
+    "react-multi-ref": "^1.0.2",
+    "scroll-into-view-if-needed": "^3.1.0",
+    "@babel/core": "^7.22.1",
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@babel/plugin-transform-runtime": "^7.17.0",
+    "@babel/preset-env": "^7.16.11",
+    "@babel/preset-typescript": "^7.16.7",
+    "@typescript-eslint/eslint-plugin": "^5.13.0",
+    "@typescript-eslint/parser": "^5.13.0",
+    "eslint": "^8.10.0",
+    "eslint-config-prettier": "^8.4.0",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-prettier": "^4.0.0",
+    "lerna": "^8.0.2",
+    "nx": "^17.3.2",
+    "nx-cloud": "^17.0.0",
+    "prettier": "^2.5.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.19",
+    "react": "^18.2.0",
+    "release-please": "^15.12.0",
+    "solhint": "^3.4.1",
+    "solhint-plugin-prettier": "^0.0.5",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.3"
+  },
+  "pathMappings": {},
+  "nxJsonPlugins": [],
+  "fileMap": {
+    "nonProjectFiles": [
+      {
+        "file": ".changeset/README.md",
+        "hash": "4888845876018830777"
+      },
+      {
+        "file": ".changeset/config.json",
+        "hash": "9436150497285796965"
+      },
+      {
+        "file": ".editorconfig",
+        "hash": "12844250875304638587"
+      },
+      {
+        "file": ".eslintignore",
+        "hash": "2650820535990372883"
+      },
+      {
+        "file": ".eslintrc.json",
+        "hash": "5263792134500466184"
+      },
+      {
+        "file": ".github/dependabot.yml",
+        "hash": "17785986153427496338"
+      },
+      {
+        "file": ".github/workflows/commitlint-pr.yml",
+        "hash": "257279499032214002"
+      },
+      {
+        "file": ".github/workflows/lint.yml",
+        "hash": "14181968353943696113"
+      },
+      {
+        "file": ".github/workflows/release.yml",
+        "hash": "16894990051445007914"
+      },
+      {
+        "file": ".github/workflows/test-e2e.yml",
+        "hash": "18352142412766317756"
+      },
+      {
+        "file": ".github/workflows/test-snx-ci.yml",
+        "hash": "3853397659772544484"
+      },
+      {
+        "file": ".github/workflows/test.yml",
+        "hash": "6739857401617454840"
+      },
+      {
+        "file": ".github/workflows/upload-to-ipfs.yml",
+        "hash": "14126948041455716931"
+      },
+      {
+        "file": ".github/workflows/website-e2e.yml",
+        "hash": "8347317982394333493"
+      },
+      {
+        "file": ".gitignore",
+        "hash": "6395347358878874969"
+      },
+      {
+        "file": ".gitmodules",
+        "hash": "13860333871890155685"
+      },
+      {
+        "file": ".mocharc.json",
+        "hash": "13223162343389838239"
+      },
+      {
+        "file": ".prettierignore",
+        "hash": "5878918345210928365"
+      },
+      {
+        "file": ".prettierrc",
+        "hash": "5400851715388859448"
+      },
+      {
+        "file": ".solhint.json",
+        "hash": "7068450011696771920"
+      },
+      {
+        "file": ".solhintignore",
+        "hash": "14291171810886391975"
+      },
+      {
+        "file": "CODE_OF_CONDUCT.md",
+        "hash": "7359443761280019963"
+      },
+      {
+        "file": "CONTRIBUTING.md",
+        "hash": "3546465377409621033"
+      },
+      {
+        "file": "LICENSE",
+        "hash": "15553496959705771468"
+      },
+      {
+        "file": "README.md",
+        "hash": "12494180869435789022"
+      },
+      {
+        "file": "SECURITY.md",
+        "hash": "15821019023746560109"
+      },
+      {
+        "file": "examples/.eslintrc",
+        "hash": "12919761174095936280"
+      },
+      {
+        "file": "examples/diamond-architecture/.gitignore",
+        "hash": "1972197803267052439"
+      },
+      {
+        "file": "examples/diamond-architecture/README.md",
+        "hash": "11901379935717138200"
+      },
+      {
+        "file": "examples/diamond-architecture/cannonfile.toml",
+        "hash": "9402147275805516341"
+      },
+      {
+        "file": "examples/diamond-architecture/foundry.toml",
+        "hash": "17022801668826136003"
+      },
+      {
+        "file": "examples/diamond-architecture/src/Counter.sol",
+        "hash": "3253543649150228646"
+      },
+      {
+        "file": "examples/diamond-architecture/src/GlobalState.sol",
+        "hash": "17737632686114948403"
+      },
+      {
+        "file": "examples/diamond-architecture/src/Greeter.sol",
+        "hash": "4007247159568222914"
+      },
+      {
+        "file": "examples/router-architecture/.gitignore",
+        "hash": "1972197803267052439"
+      },
+      {
+        "file": "examples/router-architecture/README.md",
+        "hash": "11901379935717138200"
+      },
+      {
+        "file": "examples/router-architecture/cannonfile.toml",
+        "hash": "9490485869668146398"
+      },
+      {
+        "file": "examples/router-architecture/foundry.toml",
+        "hash": "17022801668826136003"
+      },
+      {
+        "file": "examples/router-architecture/src/Counter.sol",
+        "hash": "3253543649150228646"
+      },
+      {
+        "file": "examples/router-architecture/src/GlobalState.sol",
+        "hash": "17737632686114948403"
+      },
+      {
+        "file": "examples/router-architecture/src/Greeter.sol",
+        "hash": "4007247159568222914"
+      },
+      {
+        "file": "lerna.json",
+        "hash": "14155243082343352243"
+      },
+      {
+        "file": "netlify.toml",
+        "hash": "2738307596039763444"
+      },
+      {
+        "file": "nx.json",
+        "hash": "8839361205962660654"
+      },
+      {
+        "file": "package.json",
+        "hash": "14328248740202860865"
+      },
+      {
+        "file": "pnpm-lock.yaml",
+        "hash": "14244476854452075253"
+      },
+      {
+        "file": "pnpm-workspace.yaml",
+        "hash": "16601633810671854477"
+      },
+      {
+        "file": "tsconfig.json",
+        "hash": "14421949690734295062"
+      }
+    ],
+    "projectFileMap": {
+      "sample-hardhat-toolbox": [
+        {
+          "file": "examples/sample-hardhat-toolbox/.gitignore",
+          "hash": "14967769184485981097"
+        },
+        {
+          "file": "examples/sample-hardhat-toolbox/README.md",
+          "hash": "778817554851001312"
+        },
+        {
+          "file": "examples/sample-hardhat-toolbox/cannonfile.toml",
+          "hash": "4462393876116827912"
+        },
+        {
+          "file": "examples/sample-hardhat-toolbox/contracts/Lock.sol",
+          "hash": "14521486884034146640"
+        },
+        {
+          "file": "examples/sample-hardhat-toolbox/hardhat.config.ts",
+          "hash": "3032174525568543361"
+        },
+        {
+          "file": "examples/sample-hardhat-toolbox/package.json",
+          "hash": "7675331689274520733",
+          "deps": [
+            "npm:@nomicfoundation/hardhat-toolbox",
+            "npm:hardhat",
+            "hardhat-cannon"
+          ]
+        },
+        {
+          "file": "examples/sample-hardhat-toolbox/test/.eslintrc.json",
+          "hash": "4799180441438391977"
+        },
+        {
+          "file": "examples/sample-hardhat-toolbox/test/Lock.test.ts",
+          "hash": "824960218300705608"
+        },
+        {
+          "file": "examples/sample-hardhat-toolbox/tsconfig.json",
+          "hash": "4683222762130620071"
+        }
+      ],
+      "@usecannon/repo": [
+        {
+          "file": "packages/repo/.eslintrc",
+          "hash": "12919761174095936280"
+        },
+        {
+          "file": "packages/repo/.gitignore",
+          "hash": "8991966823503952338"
+        },
+        {
+          "file": "packages/repo/cloud-init.sh",
+          "hash": "9070055092749458560"
+        },
+        {
+          "file": "packages/repo/create-do-repo-node.sh",
+          "hash": "2898636182466836839"
+        },
+        {
+          "file": "packages/repo/package.json",
+          "hash": "6371360672240630474",
+          "deps": [
+            "npm:@types/express",
+            "npm:@types/lodash",
+            "npm:@types/morgan",
+            "@usecannon/builder",
+            "@usecannon/indexer",
+            "npm:connect-busboy",
+            "npm:lodash",
+            "npm:morgan",
+            "npm:redis",
+            "npm:typestub-ipfs-only-hash"
+          ]
+        },
+        {
+          "file": "packages/repo/src/cleaner.ts",
+          "hash": "8404905687445304924"
+        },
+        {
+          "file": "packages/repo/src/db.ts",
+          "hash": "11936004867498294955"
+        },
+        {
+          "file": "packages/repo/src/index.ts",
+          "hash": "3523736070168389602"
+        },
+        {
+          "file": "packages/repo/tsconfig.json",
+          "hash": "4821714034731106241"
+        }
+      ],
+      "hardhat-cannon": [
+        {
+          "file": "packages/hardhat-cannon/.eslintrc",
+          "hash": "12919761174095936280"
+        },
+        {
+          "file": "packages/hardhat-cannon/.gitignore",
+          "hash": "14388797753150440555"
+        },
+        {
+          "file": "packages/hardhat-cannon/CHANGELOG.md",
+          "hash": "423566757131718082"
+        },
+        {
+          "file": "packages/hardhat-cannon/LICENSE",
+          "hash": "345500688128491592"
+        },
+        {
+          "file": "packages/hardhat-cannon/README.md",
+          "hash": "10489705097701013807"
+        },
+        {
+          "file": "packages/hardhat-cannon/package.json",
+          "hash": "1096453794445042013",
+          "deps": [
+            "npm:hardhat",
+            "npm:@nomiclabs/hardhat-ethers@2.2.3",
+            "npm:@types/debug",
+            "npm:@types/mocha@10.0.7",
+            "npm:@types/node@22.5.0",
+            "npm:bn.js@5.2.1",
+            "npm:ts-node",
+            "npm:typescript",
+            "npm:@iarna/toml",
+            "@usecannon/builder",
+            "@usecannon/cli",
+            "npm:chalk@4.1.2",
+            "npm:debug@4.3.6",
+            "npm:fs-extra@11.2.0",
+            "npm:viem@2.16.5"
+          ]
+        },
+        {
+          "file": "packages/hardhat-cannon/src/index.ts",
+          "hash": "18218972604408090704"
+        },
+        {
+          "file": "packages/hardhat-cannon/src/internal/augment-provider.ts",
+          "hash": "8472180132546165039"
+        },
+        {
+          "file": "packages/hardhat-cannon/src/internal/cannon.ts",
+          "hash": "11604716093435681786"
+        },
+        {
+          "file": "packages/hardhat-cannon/src/internal/get-hardhat-signers.ts",
+          "hash": "2577842475769194070"
+        },
+        {
+          "file": "packages/hardhat-cannon/src/internal/load-pkg-json.ts",
+          "hash": "12540316362619436486"
+        },
+        {
+          "file": "packages/hardhat-cannon/src/internal/parse-anvil-options.ts",
+          "hash": "13244806402251262087"
+        },
+        {
+          "file": "packages/hardhat-cannon/src/subtasks/get-artifact-data.ts",
+          "hash": "4588333990524974821"
+        },
+        {
+          "file": "packages/hardhat-cannon/src/subtasks/load-package-definition.ts",
+          "hash": "6062581346598788755"
+        },
+        {
+          "file": "packages/hardhat-cannon/src/subtasks/run-anvil-node.ts",
+          "hash": "18247899822399790876"
+        },
+        {
+          "file": "packages/hardhat-cannon/src/task-names.ts",
+          "hash": "7625074084425596148"
+        },
+        {
+          "file": "packages/hardhat-cannon/src/tasks/alter.ts",
+          "hash": "10452407253405227243"
+        },
+        {
+          "file": "packages/hardhat-cannon/src/tasks/build.ts",
+          "hash": "3894293333742345714"
+        },
+        {
+          "file": "packages/hardhat-cannon/src/tasks/inspect.ts",
+          "hash": "11241139333606494527"
+        },
+        {
+          "file": "packages/hardhat-cannon/src/tasks/test.ts",
+          "hash": "2449477220119696718"
+        },
+        {
+          "file": "packages/hardhat-cannon/src/type-extensions.ts",
+          "hash": "4587221350036338636"
+        },
+        {
+          "file": "packages/hardhat-cannon/src/types.ts",
+          "hash": "17722362359027070751"
+        },
+        {
+          "file": "packages/hardhat-cannon/src/utils/index.ts",
+          "hash": "2436800128481555295"
+        },
+        {
+          "file": "packages/hardhat-cannon/src/utils/test.ts",
+          "hash": "9599544362387739782"
+        },
+        {
+          "file": "packages/hardhat-cannon/tsconfig.json",
+          "hash": "30543115147602329"
+        },
+        {
+          "file": "packages/hardhat-cannon/utils/index.js",
+          "hash": "405766488242171165"
+        },
+        {
+          "file": "packages/hardhat-cannon/utils/index.ts",
+          "hash": "1846040257819942407"
+        },
+        {
+          "file": "packages/hardhat-cannon/utils/test.js",
+          "hash": "15852600983579708831"
+        },
+        {
+          "file": "packages/hardhat-cannon/utils/test.ts",
+          "hash": "4883642531416216736"
+        }
+      ],
+      "@usecannon/cli": [
+        {
+          "file": "packages/cli/.gitignore",
+          "hash": "8991966823503952338"
+        },
+        {
+          "file": "packages/cli/CHANGELOG.md",
+          "hash": "16976828290999481512"
+        },
+        {
+          "file": "packages/cli/LICENSE",
+          "hash": "15553496959705771468"
+        },
+        {
+          "file": "packages/cli/README.md",
+          "hash": "6265190894529848673"
+        },
+        {
+          "file": "packages/cli/bin/cannon.js",
+          "hash": "16446245039040770985"
+        },
+        {
+          "file": "packages/cli/error/zod.ts",
+          "hash": "16716047423651445108"
+        },
+        {
+          "file": "packages/cli/jest.config.js",
+          "hash": "4259269035844701693"
+        },
+        {
+          "file": "packages/cli/package.json",
+          "hash": "9282711036949802638",
+          "deps": [
+            "npm:@types/adm-zip",
+            "npm:@types/big.js",
+            "npm:@types/debug",
+            "npm:@types/diff",
+            "npm:@types/fs-extra",
+            "npm:@types/jest",
+            "npm:@types/lodash",
+            "npm:@types/mock-fs",
+            "npm:@types/prompts",
+            "npm:@types/semver",
+            "npm:@types/sinon",
+            "npm:axios@1.7.5",
+            "npm:jest",
+            "npm:mock-fs@5.2.0",
+            "npm:tmp-promise",
+            "npm:ts-jest",
+            "npm:ts-node",
+            "npm:typedoc",
+            "npm:typedoc-plugin-markdown",
+            "npm:typedoc-plugin-zod",
+            "npm:typescript",
+            "npm:@iarna/toml",
+            "@usecannon/builder",
+            "npm:abitype@1.0.6",
+            "npm:chalk@4.1.2",
+            "npm:commander@12.1.0",
+            "npm:debug@4.3.6",
+            "npm:eth-provider",
+            "npm:fastq",
+            "npm:fs-extra@11.2.0",
+            "npm:lodash",
+            "npm:prompts",
+            "npm:semver@7.6.3",
+            "npm:table",
+            "npm:tildify",
+            "npm:untildify",
+            "npm:viem@2.16.5",
+            "npm:znv",
+            "npm:zod"
+          ]
+        },
+        {
+          "file": "packages/cli/scripts/run-e2e.sh",
+          "hash": "14906069392568938075"
+        },
+        {
+          "file": "packages/cli/src/chains.ts",
+          "hash": "6184744117398253148"
+        },
+        {
+          "file": "packages/cli/src/cli.test.ts",
+          "hash": "11349103595288989202"
+        },
+        {
+          "file": "packages/cli/src/commands/alter.test.ts",
+          "hash": "138982682167164314"
+        },
+        {
+          "file": "packages/cli/src/commands/alter.ts",
+          "hash": "4739278706140018024"
+        },
+        {
+          "file": "packages/cli/src/commands/build.test.ts",
+          "hash": "5857617109586732634"
+        },
+        {
+          "file": "packages/cli/src/commands/build.ts",
+          "hash": "3786524796518893947"
+        },
+        {
+          "file": "packages/cli/src/commands/clean.test.ts",
+          "hash": "11101196193572031693"
+        },
+        {
+          "file": "packages/cli/src/commands/clean.ts",
+          "hash": "11776252958146431745"
+        },
+        {
+          "file": "packages/cli/src/commands/config/anvil.ts",
+          "hash": "16169657541559326164"
+        },
+        {
+          "file": "packages/cli/src/commands/config/debug.ts",
+          "hash": "12603705846896117269"
+        },
+        {
+          "file": "packages/cli/src/commands/config/forge/build.ts",
+          "hash": "11898171080481369794"
+        },
+        {
+          "file": "packages/cli/src/commands/config/forge/common/compiler.ts",
+          "hash": "3642510442984668190"
+        },
+        {
+          "file": "packages/cli/src/commands/config/forge/common/display.ts",
+          "hash": "7172533873191917948"
+        },
+        {
+          "file": "packages/cli/src/commands/config/forge/common/evm.ts",
+          "hash": "16998581142817912722"
+        },
+        {
+          "file": "packages/cli/src/commands/config/forge/common/executor.ts",
+          "hash": "6578157358799228489"
+        },
+        {
+          "file": "packages/cli/src/commands/config/forge/common/project.ts",
+          "hash": "10683910928495193707"
+        },
+        {
+          "file": "packages/cli/src/commands/config/forge/test.ts",
+          "hash": "13905762898747271676"
+        },
+        {
+          "file": "packages/cli/src/commands/config/index.ts",
+          "hash": "18229443135773456163"
+        },
+        {
+          "file": "packages/cli/src/commands/config/types.ts",
+          "hash": "6986692720036051807"
+        },
+        {
+          "file": "packages/cli/src/commands/decode.ts",
+          "hash": "14626837851552862161"
+        },
+        {
+          "file": "packages/cli/src/commands/diff.ts",
+          "hash": "16897135897933189711"
+        },
+        {
+          "file": "packages/cli/src/commands/fetch.test.ts",
+          "hash": "12053866986046088811"
+        },
+        {
+          "file": "packages/cli/src/commands/fetch.ts",
+          "hash": "12732614818525670682"
+        },
+        {
+          "file": "packages/cli/src/commands/inspect.test.ts",
+          "hash": "7052420128951067548"
+        },
+        {
+          "file": "packages/cli/src/commands/inspect.ts",
+          "hash": "1088273882518405810"
+        },
+        {
+          "file": "packages/cli/src/commands/interact.test.ts",
+          "hash": "10885764943598876520"
+        },
+        {
+          "file": "packages/cli/src/commands/interact.ts",
+          "hash": "12765450507773751812"
+        },
+        {
+          "file": "packages/cli/src/commands/pin.ts",
+          "hash": "12826217152125269729"
+        },
+        {
+          "file": "packages/cli/src/commands/prune.test.ts",
+          "hash": "17624528859524179666"
+        },
+        {
+          "file": "packages/cli/src/commands/prune.ts",
+          "hash": "3680567974994502342"
+        },
+        {
+          "file": "packages/cli/src/commands/publish.test.ts",
+          "hash": "8053055297676993479"
+        },
+        {
+          "file": "packages/cli/src/commands/publish.ts",
+          "hash": "16115583959758176318"
+        },
+        {
+          "file": "packages/cli/src/commands/publishers.ts",
+          "hash": "12355018448591208896"
+        },
+        {
+          "file": "packages/cli/src/commands/register.ts",
+          "hash": "16412912292755921571"
+        },
+        {
+          "file": "packages/cli/src/commands/run.ts",
+          "hash": "7599463439403814957"
+        },
+        {
+          "file": "packages/cli/src/commands/setup.ts",
+          "hash": "256822170178756301"
+        },
+        {
+          "file": "packages/cli/src/commands/trace.ts",
+          "hash": "14311416927752936164"
+        },
+        {
+          "file": "packages/cli/src/commands/unpublish.ts",
+          "hash": "3992302049366096177"
+        },
+        {
+          "file": "packages/cli/src/commands/verify.ts",
+          "hash": "17458217532154450028"
+        },
+        {
+          "file": "packages/cli/src/constants.ts",
+          "hash": "11754597328776380407"
+        },
+        {
+          "file": "packages/cli/src/custom-steps/run.ts",
+          "hash": "146720276047742326"
+        },
+        {
+          "file": "packages/cli/src/foundry.test.ts",
+          "hash": "14407923309297177541"
+        },
+        {
+          "file": "packages/cli/src/foundry.ts",
+          "hash": "16708729116600031259"
+        },
+        {
+          "file": "packages/cli/src/helpers.test.ts",
+          "hash": "12607283058495152178"
+        },
+        {
+          "file": "packages/cli/src/helpers.ts",
+          "hash": "5399652979261858054"
+        },
+        {
+          "file": "packages/cli/src/index.ts",
+          "hash": "12295982342836740681"
+        },
+        {
+          "file": "packages/cli/src/loader.test.ts",
+          "hash": "1421203978467961991"
+        },
+        {
+          "file": "packages/cli/src/loader.ts",
+          "hash": "1121384737554848660"
+        },
+        {
+          "file": "packages/cli/src/package.test.ts",
+          "hash": "2788552235021394887"
+        },
+        {
+          "file": "packages/cli/src/package.ts",
+          "hash": "13099708254199730946"
+        },
+        {
+          "file": "packages/cli/src/plugins.ts",
+          "hash": "3933214220463047579"
+        },
+        {
+          "file": "packages/cli/src/registry.ts",
+          "hash": "3530758916103197091"
+        },
+        {
+          "file": "packages/cli/src/rpc.ts",
+          "hash": "4697854455915893588"
+        },
+        {
+          "file": "packages/cli/src/schemas.ts",
+          "hash": "13328284653460638295"
+        },
+        {
+          "file": "packages/cli/src/settings.test.ts",
+          "hash": "4424992991821068018"
+        },
+        {
+          "file": "packages/cli/src/settings.ts",
+          "hash": "10907021889239211358"
+        },
+        {
+          "file": "packages/cli/src/types.ts",
+          "hash": "12528919727583619699"
+        },
+        {
+          "file": "packages/cli/src/util/build.ts",
+          "hash": "4059188787788169256"
+        },
+        {
+          "file": "packages/cli/src/util/commands-config.ts",
+          "hash": "14439395296796315190"
+        },
+        {
+          "file": "packages/cli/src/util/console.ts",
+          "hash": "11039155126434857574"
+        },
+        {
+          "file": "packages/cli/src/util/contracts-recursive.ts",
+          "hash": "3244107477306312046"
+        },
+        {
+          "file": "packages/cli/src/util/debug-level.ts",
+          "hash": "2416514905634329839"
+        },
+        {
+          "file": "packages/cli/src/util/deprecated-warn.ts",
+          "hash": "3165573222136695007"
+        },
+        {
+          "file": "packages/cli/src/util/foundry-options.test.ts",
+          "hash": "15952998234503466435"
+        },
+        {
+          "file": "packages/cli/src/util/foundry-options.ts",
+          "hash": "3448906498338657800"
+        },
+        {
+          "file": "packages/cli/src/util/is-connected-to-internet.ts",
+          "hash": "4868830051478846317"
+        },
+        {
+          "file": "packages/cli/src/util/is-tx-hash.ts",
+          "hash": "11512310292256850419"
+        },
+        {
+          "file": "packages/cli/src/util/on-keypress.ts",
+          "hash": "675151276588935767"
+        },
+        {
+          "file": "packages/cli/src/util/params.ts",
+          "hash": "18425622118114490024"
+        },
+        {
+          "file": "packages/cli/src/util/provider.test.ts",
+          "hash": "8277263000882871767"
+        },
+        {
+          "file": "packages/cli/src/util/provider.ts",
+          "hash": "14315056230255775902"
+        },
+        {
+          "file": "packages/cli/src/util/register.ts",
+          "hash": "16106884994665120705"
+        },
+        {
+          "file": "packages/cli/src/util/verify.ts",
+          "hash": "8334109549803467003"
+        },
+        {
+          "file": "packages/cli/src/util/wait-for-event.ts",
+          "hash": "12308715947229807151"
+        },
+        {
+          "file": "packages/cli/src/util/write-deployments.ts",
+          "hash": "5914798100112088987"
+        },
+        {
+          "file": "packages/cli/src/write-script/render-ethers.ts",
+          "hash": "6388232024413740755"
+        },
+        {
+          "file": "packages/cli/src/write-script/render-json.ts",
+          "hash": "6579519213870091111"
+        },
+        {
+          "file": "packages/cli/src/write-script/stream-steps.ts",
+          "hash": "8510515076736072507"
+        },
+        {
+          "file": "packages/cli/src/write-script/types.ts",
+          "hash": "448559920044662952"
+        },
+        {
+          "file": "packages/cli/src/write-script/write.ts",
+          "hash": "2843000896356646908"
+        },
+        {
+          "file": "packages/cli/test/e2e/config/settings.json",
+          "hash": "17970055230152847650"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/.github/workflows/sync-master.yml",
+          "hash": "3127132292474862060"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/.github/workflows/test.yml",
+          "hash": "2011992185008018765"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/.gitignore",
+          "hash": "2902971295549063577"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/LICENSE",
+          "hash": "3578433387200526102"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/README.md",
+          "hash": "17677662094321043611"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/load.bash",
+          "hash": "8483940240607456045"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/package-lock.json",
+          "hash": "11823931592470115145"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/package.json",
+          "hash": "6166453161305957234"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/src/assert.bash",
+          "hash": "7864742875267766215"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/src/assert_equal.bash",
+          "hash": "17942183806799690429"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/src/assert_failure.bash",
+          "hash": "6196303781976459940"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/src/assert_line.bash",
+          "hash": "2008439027701325027"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/src/assert_not_equal.bash",
+          "hash": "6838005344412005199"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/src/assert_output.bash",
+          "hash": "7418213440976908372"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/src/assert_regex.bash",
+          "hash": "7159423622925683644"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/src/assert_success.bash",
+          "hash": "12969197396420184477"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/src/refute.bash",
+          "hash": "8972751749923340565"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/src/refute_line.bash",
+          "hash": "7146271362160851165"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/src/refute_output.bash",
+          "hash": "4030685726850855758"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/src/refute_regex.bash",
+          "hash": "7150155642564688292"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/test/assert.bats",
+          "hash": "13587715113895279945"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/test/assert_equal.bats",
+          "hash": "534169797781379915"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/test/assert_failure.bats",
+          "hash": "12137321170854636486"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/test/assert_line.bats",
+          "hash": "3776281790028949244"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/test/assert_not_equal.bats",
+          "hash": "3364926572776978054"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/test/assert_output.bats",
+          "hash": "8584397273005774110"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/test/assert_regex.bats",
+          "hash": "8266964989319061305"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/test/assert_success.bats",
+          "hash": "13406038723026780732"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/test/refute.bats",
+          "hash": "7928912175457642400"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/test/refute_line.bats",
+          "hash": "11808220025894237034"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/test/refute_output.bats",
+          "hash": "80880507630674548"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/test/refute_regex.bats",
+          "hash": "8650555091351302633"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-assert/test/test_helper.bash",
+          "hash": "1098486172489016722"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/.github/workflows/tests.yml",
+          "hash": "8319865458350716516"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/.gitignore",
+          "hash": "1078123539331749734"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/CHANGELOG.md",
+          "hash": "12659539977776125474"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/LICENSE",
+          "hash": "3578433387200526102"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/README.md",
+          "hash": "520784072373249800"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/Vagrantfile",
+          "hash": "3239696198968923947"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/load.bash",
+          "hash": "3639285450252148458"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/package.json",
+          "hash": "370251702005687887"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/script/install-bats.sh",
+          "hash": "14048364405666683379"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/src/file.bash",
+          "hash": "5316424250870606281"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/src/temp.bash",
+          "hash": "5821222527570802346"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/50-assert-10-assert_exists.bats",
+          "hash": "13633001462687217340"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/50-assert-11-assert_not_exists.bats",
+          "hash": "326354137641248458"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/51-assert-10-assert_file_exists.bats",
+          "hash": "16487911181372582515"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/51-assert-11-assert_file_not_exists.bats",
+          "hash": "326354137641248458"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/52-assert-10-assert_file_executable.bats",
+          "hash": "12733591051895266324"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/52-assert-11-assert_file_not_executable.bats",
+          "hash": "4553855742800730494"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/53-assert-10-assert_link_exists.bats",
+          "hash": "4153142442513311444"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/53-assert-11-assert_link_not_exists.bats",
+          "hash": "2941486896005713088"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/54-assert-10-assert_character_exists.bats",
+          "hash": "14647772082717962833"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/54-assert-11-assert_character_not_exists.bats",
+          "hash": "991839907733065400"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/55-assert-10-assert_block_exists.bats",
+          "hash": "12667476575914410484"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/55-assert-11-assert_block_not_exists.bats",
+          "hash": "354046556950325342"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/56-assert-10-assert_fifo_exists.bats",
+          "hash": "8733876944574190057"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/56-assert-11-assert_fifo_not_exists.bats",
+          "hash": "18245986929329295030"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/57-assert-10-assert_socket_exists.bats",
+          "hash": "689248251056655674"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/57-assert-11-assert_socket_not_exists.bats",
+          "hash": "7594485719807255902"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/58-assert-10-assert_equal_files.bats",
+          "hash": "10780988175718749492"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/58-assert-11-assert_not_equal_files.bats",
+          "hash": "11157728213841623184"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/59-assert-10-assert_file_owner.bats",
+          "hash": "11923872291361083316"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/59-assert-11-assert_not_file_owner.bats",
+          "hash": "12793479348089683996"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/60-assert-10-assert_file_permission.bats",
+          "hash": "4959741503545778441"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/60-assert-11-assert_file_no_permissions.bats",
+          "hash": "5434189731262560430"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/61-assert-10-size_zero.bats",
+          "hash": "15197977106024460742"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/61-assert-11-size_not_zero.bats",
+          "hash": "17434473014261614795"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/62-assert-10-assert_file_group_id_set.bats",
+          "hash": "15601895157518232353"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/62-assert-11-file_not_group_id_set.bats",
+          "hash": "6460835424372431039"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/63-assert-10-assert_file_user_id_set.bats",
+          "hash": "4362163179358623162"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/63-assert-11-file_not_user_id_set.bats",
+          "hash": "3503053368420352497"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/64-assert-10-assert_sticky_bit.bats",
+          "hash": "409472343116735165"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/64-assert-11-assert_no_sticky_bit.bats",
+          "hash": "1594456315375467786"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/65-assert-10-assert_symlink_to.bats",
+          "hash": "1004837556797137782"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/65-assert-11-assert_not_symlink_to.bats",
+          "hash": "7845063209946633798"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/66-assert-10-assert_file_size_equals.bats",
+          "hash": "18197254218983048726"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/67-assert-10-assert_file_contains.bats",
+          "hash": "11893936455285901189"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/67-assert-10-assert_file_not_contains.bats",
+          "hash": "15106793288756131108"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/68-assert-10-assert_file_empty.bats",
+          "hash": "8705617755748427311"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/68-assert-11-assert_file_not_empty.bats",
+          "hash": "7929036338647890733"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/70-temp-10-temp_make.bats",
+          "hash": "5356845423687292123"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/70-temp-11-temp_del.bats",
+          "hash": "8907000391873510147"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/empty/dir/empty-file",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/empty/dir/non-empty-file",
+          "hash": "13086292140435326814"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/exist/dir/.gitignore",
+          "hash": "10406509228963764055"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/symlink/.gitignore",
+          "hash": "10406509228963764055"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/temp/temp_del-fail.bats",
+          "hash": "17193441396257362508"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/temp/temp_del-main.bats",
+          "hash": "971057186093009500"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/temp/temp_del-pass.bats",
+          "hash": "9869724738426029557"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/temp/temp_del-setup.bats",
+          "hash": "15464291135330882722"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/temp/temp_del-setup_file.bats",
+          "hash": "3332623317733999114"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/temp/temp_del-skip.bats",
+          "hash": "10671763389445256012"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/temp/temp_del-teardown.bats",
+          "hash": "13486996249000901783"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/temp/temp_del-teardown_file.bats",
+          "hash": "4799444093663727378"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/temp/temp_del-test.bats",
+          "hash": "10725312753070686709"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/temp/temp_make-main.bats",
+          "hash": "1973326687359559721"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/temp/temp_make-setup.bats",
+          "hash": "12729472526741135661"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/temp/temp_make-setup_file.bats",
+          "hash": "12330226463924404290"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/temp/temp_make-teardown.bats",
+          "hash": "14395858394285748362"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/temp/temp_make-teardown_file.bats",
+          "hash": "17423324021326007432"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/temp/temp_make-test.bats",
+          "hash": "12186663786087895828"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/fixtures/temp/test_helper.bash",
+          "hash": "5955242497123056097"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-file/test/test_helper.bash",
+          "hash": "14830972864211458626"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-helpers.sh",
+          "hash": "900946627119425655"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/.github/workflows/tests.yml",
+          "hash": "6411143529614168152"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/.gitignore",
+          "hash": "12536150275052538207"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/CHANGELOG.md",
+          "hash": "11789729905265179400"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/LICENSE",
+          "hash": "3578433387200526102"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/README.md",
+          "hash": "14180112981687667528"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/load.bash",
+          "hash": "10021142257424568950"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/package.json",
+          "hash": "9287934534685603178"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/src/error.bash",
+          "hash": "14315765105373858887"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/src/lang.bash",
+          "hash": "14734384525285140295"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/src/output.bash",
+          "hash": "17566832135226611980"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/test/50-output-10-batslib_err.bats",
+          "hash": "14055733109451040152"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/test/50-output-11-batslib_count_lines.bats",
+          "hash": "12626740823558582003"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/test/50-output-12-batslib_is_single_line.bats",
+          "hash": "10261623920516302127"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/test/50-output-13-batslib_get_max_single_line_key_width.bats",
+          "hash": "2740273168249631818"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/test/50-output-14-batslib_print_kv_single.bats",
+          "hash": "2018533630252929665"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/test/50-output-15-batslib_print_kv_multi.bats",
+          "hash": "13623357320077003602"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/test/50-output-16-batslib_print_kv_single_or_multi.bats",
+          "hash": "7901029667220438325"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/test/50-output-17-batslib_prefix.bats",
+          "hash": "5213605016520592158"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/test/50-output-18-batslib_mark.bats",
+          "hash": "13093952975495973048"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/test/50-output-19-batslib_decorate.bats",
+          "hash": "339125573829197267"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/test/51-error-10-fail.bats",
+          "hash": "13319047941463896337"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/test/52-lang-10-batslib_is_caller.bats",
+          "hash": "10765934042258434751"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/test/cat",
+          "hash": "15212827343319138474"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats-support/test/test_helper.bash",
+          "hash": "13669316220257037536"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/.codespellrc",
+          "hash": "14021091204470689430"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/.devcontainer/Dockerfile",
+          "hash": "2474991191563614133"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/.devcontainer/devcontainer.json",
+          "hash": "11559806798159096261"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/.editorconfig",
+          "hash": "1083739234828032861"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/.gitattributes",
+          "hash": "6698448605163231787"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/.github/ISSUE_TEMPLATE/bug_report.md",
+          "hash": "5607698992826895337"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/.github/ISSUE_TEMPLATE/feature_request.md",
+          "hash": "6338017177019748567"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/.github/dependabot.yml",
+          "hash": "740167424815585898"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/.github/workflows/check_pr_label.sh",
+          "hash": "9772242397988033670"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/.github/workflows/codespell.yml",
+          "hash": "9364970793534404698"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/.github/workflows/dependency-review.yml",
+          "hash": "17399198469371597744"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/.github/workflows/release.yml",
+          "hash": "13111687398787706867"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/.github/workflows/release_dockerhub.yml",
+          "hash": "18200332969337980594"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/.github/workflows/scorecard.yml",
+          "hash": "16404614149861889837"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/.github/workflows/set_nounset.bash",
+          "hash": "12549387021980085127"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/.github/workflows/tests.yml",
+          "hash": "17777788522915379026"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/.gitignore",
+          "hash": "8600829396159909388"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/.pre-commit-config.yaml",
+          "hash": "17132941441626838759"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/.readthedocs.yml",
+          "hash": "4862090461779809031"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/AUTHORS",
+          "hash": "17364927691891463365"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/Dockerfile",
+          "hash": "7762089208580070973"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/LICENSE.md",
+          "hash": "1112530257137838287"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/README.md",
+          "hash": "13915195975040468967"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/SECURITY.md",
+          "hash": "1408173164196989694"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/bin/bats",
+          "hash": "8971255514918463378"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/contrib/release.sh",
+          "hash": "2683109541785125660"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/contrib/rpm/bats.spec",
+          "hash": "18081986107773547395"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/contrib/semver",
+          "hash": "8009558316959294729"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/docker-compose.override.dist",
+          "hash": "422464920544461514"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/docker-compose.yml",
+          "hash": "7578052488299407248"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/docker/install_libs.sh",
+          "hash": "9013787055638209794"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/docker/install_tini.sh",
+          "hash": "15345808681307143597"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/docker/tini.pubkey.gpg",
+          "hash": "17269299381290608440"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/install.sh",
+          "hash": "6768000184750459255"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/lib/bats-core/common.bash",
+          "hash": "10526133357994842638"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/lib/bats-core/formatter.bash",
+          "hash": "388406919733800328"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/lib/bats-core/preprocessing.bash",
+          "hash": "16638116494357536759"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/lib/bats-core/semaphore.bash",
+          "hash": "10912484988430518397"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/lib/bats-core/test_functions.bash",
+          "hash": "5009404974370229962"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/lib/bats-core/tracing.bash",
+          "hash": "16785066051533284554"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/lib/bats-core/validator.bash",
+          "hash": "8860922258658706919"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/lib/bats-core/warnings.bash",
+          "hash": "7356840098799454614"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/libexec/bats-core/bats",
+          "hash": "17029013970477752599"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/libexec/bats-core/bats-exec-file",
+          "hash": "5555473566141797032"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/libexec/bats-core/bats-exec-suite",
+          "hash": "1578497018436201467"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/libexec/bats-core/bats-exec-test",
+          "hash": "4880321922416650470"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/libexec/bats-core/bats-format-cat",
+          "hash": "5192572171128711216"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/libexec/bats-core/bats-format-junit",
+          "hash": "12555799432227725856"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/libexec/bats-core/bats-format-pretty",
+          "hash": "11984809149426748"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/libexec/bats-core/bats-format-tap",
+          "hash": "16904715750946475157"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/libexec/bats-core/bats-format-tap13",
+          "hash": "11380699300401190408"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/libexec/bats-core/bats-preprocess",
+          "hash": "7475862089944886875"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/man/Makefile",
+          "hash": "1244234415423222454"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/man/README.md",
+          "hash": "6126719601149260535"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/man/bats.1",
+          "hash": "8549223524573332978"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/man/bats.1.ronn",
+          "hash": "18026790254556247161"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/man/bats.7",
+          "hash": "6757389051171848704"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/man/bats.7.ronn",
+          "hash": "10509660962348083619"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/package.json",
+          "hash": "1267028701831239806"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/shellcheck.sh",
+          "hash": "14439605797342451332"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/bats.bats",
+          "hash": "10253098868444721978"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/bats_pipe.bats",
+          "hash": "16134504853572397198"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/cat-formatter.bats",
+          "hash": "9200574515718400086"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/common.bats",
+          "hash": "688425971207341468"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/concurrent-coordination.bash",
+          "hash": "16918954483646116642"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/file_setup_teardown.bats",
+          "hash": "7015645490207747428"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/BATS_TMPDIR.bats",
+          "hash": "4970959074694119911"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/BATS_variables_dont_contain_double_slashes.bats",
+          "hash": "2953384221652348126"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/cmd_using_stdin.bash",
+          "hash": "2965602919730897024"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/comment_style.bats",
+          "hash": "7766269535786358552"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/date",
+          "hash": "3160960997876229135"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/dos_line_no_shellcheck.bats",
+          "hash": "10268204566460771868"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/duplicate-tests_no_shellcheck.bats",
+          "hash": "7223026046792655429"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/empty.bats",
+          "hash": "4055606894390288348"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/environment.bats",
+          "hash": "5256268399729398868"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/evaluation_count/file1.bats",
+          "hash": "3734609743378104967"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/evaluation_count/file2.bats",
+          "hash": "4319357228474432989"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/exit_11.bash",
+          "hash": "2391108960395597363"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/expand_var_in_test_name.bats",
+          "hash": "7503627289766123665"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/exported_function.bats",
+          "hash": "17675148573825664807"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/external_function_calls.bats",
+          "hash": "14231281912227165655"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/external_functions.bash",
+          "hash": "8368450566639874542"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/external_functions.bats",
+          "hash": "12128707794674375863"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/failing.bats",
+          "hash": "13327150218541443029"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/failing_and_passing.bats",
+          "hash": "13592862887055469472"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/failing_helper.bats",
+          "hash": "16952082206519163902"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/failing_setup.bats",
+          "hash": "10084350804515326192"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/failing_teardown.bats",
+          "hash": "16278052237925448253"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/failing_with_bash_cond.bats",
+          "hash": "12689196938154858626"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/failing_with_bash_expression.bats",
+          "hash": "3618535841807944853"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/failing_with_negated_command.bats",
+          "hash": "17487998829930249337"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/failure_in_free_code.bats",
+          "hash": "11939251604578136482"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/focus.bats",
+          "hash": "4513890184929732437"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/gobble_up_stdin_sleep_and_print_finish.bash",
+          "hash": "16570851371932018639"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/hang_after_run.bats",
+          "hash": "11905785932855324259"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/hang_in_run.bats",
+          "hash": "18118931086549824126"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/hang_in_setup_file.bats",
+          "hash": "8657098517040621191"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/hang_in_teardown.bats",
+          "hash": "6882205487603154590"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/hang_in_teardown_file.bats",
+          "hash": "13458879285426716059"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/hang_in_test.bats",
+          "hash": "15446498619661323264"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/intact.bats",
+          "hash": "10759192769516798546"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/issue-205.bats",
+          "hash": "8183078647098794628"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/issue-433/repro1.bats",
+          "hash": "11041849243258781259"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/issue-433/repro2.bats",
+          "hash": "188864738287917457"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/issue-519.bats",
+          "hash": "7656690988652662877"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/load.bats",
+          "hash": "9489902298344587776"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/loop_keep_IFS.bats",
+          "hash": "15964138082890832449"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/many_passing_and_one_failing.bats",
+          "hash": "15993590756976868951"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/no-final-newline.bats",
+          "hash": "232015362901447705"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/output.bats",
+          "hash": "3968474791238262419"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/override_date_on_path.bats",
+          "hash": "16429887400859316818"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/parallel.bats",
+          "hash": "17856854872823447453"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/passing.bats",
+          "hash": "15916514669719815896"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/passing_and_failing.bats",
+          "hash": "2703281322039385424"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/passing_and_skipping.bats",
+          "hash": "11603217876578402026"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/passing_failing_and_skipping.bats",
+          "hash": "7523288652661501999"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/print_output_on_failure.bats",
+          "hash": "13899052015469707251"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/print_output_on_failure_with_stderr.bats",
+          "hash": "10525960047163633682"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/quoted_and_unquoted_test_names_no_shellcheck.bats",
+          "hash": "10224332247619421649"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/read_from_stdin.bats",
+          "hash": "1417239796936425999"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/reference_unset_parameter.bats",
+          "hash": "16677736605136904033"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/reference_unset_parameter_in_setup.bats",
+          "hash": "5978886420702008328"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/reference_unset_parameter_in_teardown.bats",
+          "hash": "7957198407076977919"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/retry.bats",
+          "hash": "1553662991286128133"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/retry_success.bats",
+          "hash": "8846358304738370406"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/run_long_command.bats",
+          "hash": "13206950590797425876"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/set_-eu_in_setup_and_teardown.bats",
+          "hash": "2228189858376138986"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/setup.bats",
+          "hash": "7165545247562292123"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/show-output-of-passing-tests.bats",
+          "hash": "8992979191055596591"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/sigint_in_failing_test.bats",
+          "hash": "12375488137613129499"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/single_line_no_shellcheck.bats",
+          "hash": "17342695385536827025"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/skipped.bats",
+          "hash": "6456682521803891539"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/skipped_with_parens.bats",
+          "hash": "452838327296352913"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/source_nonexistent_file.bats",
+          "hash": "9869263552051924718"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/source_nonexistent_file_in_setup.bats",
+          "hash": "9721328943979707373"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/source_nonexistent_file_in_teardown.bats",
+          "hash": "17058026314683205006"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/tab in filename.bats",
+          "hash": "7052114307945479151"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/teardown.bats",
+          "hash": "8292461324709702638"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/teardown_file_override_status.bats",
+          "hash": "14926681600562708244"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/teardown_override_status.bats",
+          "hash": "15392590945641997934"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/teardown_suite_override_status/setup_suite.bash",
+          "hash": "5985807253134125809"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/teardown_suite_override_status/test.bats",
+          "hash": "11536986289376397363"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/test_helper.bash",
+          "hash": "16665288262174824322"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/test_with_slash.bats",
+          "hash": "6200311435162342714"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/unbound_variable.bats",
+          "hash": "10097920597537984029"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/unofficial_bash_strict_mode.bash",
+          "hash": "16606089862818691942"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/unofficial_bash_strict_mode.bats",
+          "hash": "3977687226772607815"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/update_path_env.bats",
+          "hash": "10454404234707422401"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/verbose-run.bats",
+          "hash": "10173035863064206989"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/whitespace_no_shellcheck.bats",
+          "hash": "1682688716394033394"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/bats/without_trailing_newline.bats",
+          "hash": "6049303700933440512"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/file_setup_teardown/error_in_setup_and_teardown_file.bats",
+          "hash": "5357477295554520242"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/file_setup_teardown/no_setup_file.bats",
+          "hash": "15207573684275278489"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/file_setup_teardown/no_teardown_file.bats",
+          "hash": "2650413645218669738"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/file_setup_teardown/setup_file.bats",
+          "hash": "3714997458429366468"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/file_setup_teardown/setup_file2.bats",
+          "hash": "30529556093463413"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/file_setup_teardown/setup_file_does_not_leak_env.bats",
+          "hash": "5639064350962512809"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/file_setup_teardown/setup_file_does_not_leak_env2.bats",
+          "hash": "4060500984200251823"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/file_setup_teardown/setup_file_even_if_all_tests_are_skipped.bats",
+          "hash": "14506670410246568538"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/file_setup_teardown/setup_file_failed.bats",
+          "hash": "14889864799251857421"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/file_setup_teardown/setup_file_halfway_error.bats",
+          "hash": "2217907375478288164"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/file_setup_teardown/teardown_file.bats",
+          "hash": "9199185947440068716"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/file_setup_teardown/teardown_file2.bats",
+          "hash": "9199185947440068716"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/file_setup_teardown/teardown_file_after_failing_test.bats",
+          "hash": "14273117382581465762"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/file_setup_teardown/teardown_file_after_long_test.bats",
+          "hash": "17926131276882701898"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/file_setup_teardown/teardown_file_does_not_leak.bats",
+          "hash": "12370817755541367828"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/file_setup_teardown/teardown_file_does_not_leak2.bats",
+          "hash": "16498488921851585432"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/file_setup_teardown/teardown_file_even_if_all_tests_are_skipped.bats",
+          "hash": "5637500992946626104"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/file_setup_teardown/teardown_file_failed.bats",
+          "hash": "17869986280443141743"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/file_setup_teardown/teardown_file_halfway_error.bats",
+          "hash": "4342796912720579009"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/formatter/dummy-formatter",
+          "hash": "15174861782053085248"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/formatter/echo-formatter",
+          "hash": "10013679839995749795"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/formatter/failing.bats",
+          "hash": "13327150218541443029"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/formatter/passing.bats",
+          "hash": "15916514669719815896"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/formatter/passing_and_skipping.bats",
+          "hash": "11603217876578402026"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/formatter/passing_failing_and_skipping.bats",
+          "hash": "7523288652661501999"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/formatter/retry.bats",
+          "hash": "16800790903273974219"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/formatter/skipped_with_parens.bats",
+          "hash": "452838327296352913"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/junit-formatter/duplicate/first/file1.bats",
+          "hash": "14066161725030424626"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/junit-formatter/duplicate/second/file1.bats",
+          "hash": "14066161725030424626"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/junit-formatter/issue_360.bats",
+          "hash": "1522599899282684063"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/junit-formatter/issue_531.bats",
+          "hash": "14972986711715306850"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/junit-formatter/skipped.bats",
+          "hash": "4159596079509349662"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/junit-formatter/suite/file1.bats",
+          "hash": "1911159949039705305"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/junit-formatter/suite/file2.bats",
+          "hash": "7824091623658767177"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/junit-formatter/xml-escape.bats",
+          "hash": "8960532739582273618"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/load/ambiguous",
+          "hash": "14886123352593630458"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/load/ambiguous.bash",
+          "hash": "878470466082273047"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/load/bats_load_library.bats",
+          "hash": "10862658447275245769"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/load/exit1.bash",
+          "hash": "17425836489359856369"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/load/failing_bats_load_library.bats",
+          "hash": "8214793301504469174"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/load/failing_load.bats",
+          "hash": "11426389043150234425"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/load/find_library_helper.bats",
+          "hash": "15046975329526941446"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/load/find_library_helper_err.bats",
+          "hash": "17921325508978596999"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/load/load.bats",
+          "hash": "6510963971089770771"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/load/load_in_teardown_after_failure.bats",
+          "hash": "17606356149911593134"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/load/return1.bash",
+          "hash": "13031540434491030241"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/load/test_helper.bash",
+          "hash": "16665288262174824322"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/parallel/must_not_parallelize_across_files/file1.bats",
+          "hash": "3315623096434408955"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/parallel/must_not_parallelize_across_files/file2.bats",
+          "hash": "488206407107902918"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/parallel/must_not_parallelize_within_file.bats",
+          "hash": "5596477575785912120"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/parallel/parallel-preserve-environment.bats",
+          "hash": "1606672511192518326"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/parallel/parallel.bats",
+          "hash": "7297051664959265585"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/parallel/parallel_factor.bats",
+          "hash": "1735698549015983046"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/parallel/setup_file/setup_file.bats",
+          "hash": "14767372850598797748"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/parallel/setup_file/setup_file1.bats",
+          "hash": "14767372850598797748"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/parallel/setup_file/setup_file2.bats",
+          "hash": "14767372850598797748"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/parallel/setup_file/setup_file3.bats",
+          "hash": "14767372850598797748"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/parallel/suite/parallel1.bats",
+          "hash": "12915127047343958897"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/parallel/suite/parallel2.bats",
+          "hash": "12915127047343958897"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/parallel/suite/parallel3.bats",
+          "hash": "12915127047343958897"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/parallel/suite/parallel4.bats",
+          "hash": "12915127047343958897"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/run/failing.bats",
+          "hash": "9224087399221137094"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/run/invalid.bats",
+          "hash": "16984445728333545944"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/empty/.gitkeep",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/filter/a.bats",
+          "hash": "8620366235159937978"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/filter/b.bats",
+          "hash": "16032527703110336589"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/filter/c.bats",
+          "hash": "4603553855198897163"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/multiple/a.bats",
+          "hash": "6049303700933440512"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/multiple/b.bats",
+          "hash": "15269737393438930372"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/override_BATS_FILE_EXTENSION/subfolder/test.other_extension",
+          "hash": "8963818982672509899"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/override_BATS_FILE_EXTENSION/test.bats",
+          "hash": "18369131605632787431"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/override_BATS_FILE_EXTENSION/test.test",
+          "hash": "583315926936007385"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/recursive/subsuite/test2.bats",
+          "hash": "1824598771321190001"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/recursive/test.bats",
+          "hash": "15916514669719815896"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/recursive_with_symlinks/test.bats",
+          "hash": "15916514669719815896"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/single/test.bats",
+          "hash": "15916514669719815896"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/skip/skip-in-setup-and-teardown.bats",
+          "hash": "1045996270404004347"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/skip/skip-in-setup.bats",
+          "hash": "9449606023328789568"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/skip/skip-in-teardown.bats",
+          "hash": "8000205072596454595"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/skip/skip-in-test-and-teardown.bats",
+          "hash": "6393410012338132120"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/skip/skip-in-test.bats",
+          "hash": "12656481861813093815"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/test_number/file1.bats",
+          "hash": "17484927901585508144"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite/test_number/file2.bats",
+          "hash": "12958555943617695308"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/call_load/setup_suite.bash",
+          "hash": "18321579205075104695"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/call_load/test.bats",
+          "hash": "9972231734902144417"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/call_load/test_helper.bash",
+          "hash": "4055606894390288348"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/default_name/setup_suite.bash",
+          "hash": "13035105911432909296"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/default_name/test.bats",
+          "hash": "9972231734902144417"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/error_in_free_code/setup_suite.bash",
+          "hash": "8125456940885003466"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/error_in_free_code/test.bats",
+          "hash": "10475158967218087078"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/error_in_setup_suite/setup_suite.bash",
+          "hash": "1552905504796565373"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/error_in_setup_suite/test.bats",
+          "hash": "10475158967218087078"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/error_in_teardown_suite/setup_suite.bash",
+          "hash": "8893746419176356688"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/error_in_teardown_suite/test.bats",
+          "hash": "10475158967218087078"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/exported_vars/setup_suite.bash",
+          "hash": "7342178074963661321"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/exported_vars/test.bats",
+          "hash": "8724250818576458341"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/failure_in_setup_suite/setup_suite.bash",
+          "hash": "6454416064466183406"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/failure_in_setup_suite/test.bats",
+          "hash": "10475158967218087078"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/failure_in_teardown_suite/setup_suite.bash",
+          "hash": "18273746040629423165"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/failure_in_teardown_suite/test.bats",
+          "hash": "10475158967218087078"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/no_failure_no_output/setup_suite.bash",
+          "hash": "9340793423157345138"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/no_failure_no_output/test.bats",
+          "hash": "9972231734902144417"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/no_setup_suite_function/setup_suite.bash",
+          "hash": "3892293475791435472"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/no_setup_suite_function/test.bats",
+          "hash": "6879924274725484321"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/non_default_name/setup_suite_non_default.bash",
+          "hash": "9527469676060168009"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/non_default_name/test.bats",
+          "hash": "9972231734902144417"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/output_with_failure/setup_suite.bash",
+          "hash": "441478488447026709"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/output_with_failure/test.bats",
+          "hash": "9972231734902144417"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/pick_up_toplevel/folder1/setup_suite.bash",
+          "hash": "1421530371979351341"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/pick_up_toplevel/folder1/test.bats",
+          "hash": "9972231734902144417"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/pick_up_toplevel/folder2/setup_suite.bash",
+          "hash": "1421530371979351341"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/pick_up_toplevel/folder2/test.bats",
+          "hash": "9972231734902144417"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/pick_up_toplevel/setup_suite.bash",
+          "hash": "1421530371979351341"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/pick_up_toplevel/test.bats",
+          "hash": "9972231734902144417"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/return_nonzero_in_teardown_suite/setup_suite.bash",
+          "hash": "2541176344079032782"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/return_nonzero_in_teardown_suite/test.bats",
+          "hash": "10475158967218087078"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/skip_in_setup_file.bats",
+          "hash": "3551209729355186689"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/stderr_in_setup_teardown_suite/setup_suite.bash",
+          "hash": "1119906905603397170"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/stderr_in_setup_teardown_suite/test.bats",
+          "hash": "6879924274725484321"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/syntax_error/setup_suite_no_shellcheck",
+          "hash": "5786427399042991247"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/suite_setup_teardown/syntax_error/test.bats",
+          "hash": "10475158967218087078"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/tagging/BATS_TEST_TAGS.bats",
+          "hash": "11609735403864431225"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/tagging/invalid_tags.bats",
+          "hash": "10545728444383387850"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/tagging/print_tags_on_error.bats",
+          "hash": "16170008735639402924"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/tagging/tagged.bats",
+          "hash": "17682354386396709898"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/tagging/trimming.bats",
+          "hash": "3206153670555993148"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/timeout/sleep2.bats",
+          "hash": "2014783768549174813"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/trace/failing_complex.bats",
+          "hash": "14197471043147476258"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/trace/failing_recursive.bats",
+          "hash": "1427538083874478306"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/warnings/BW01.bats",
+          "hash": "6144739353307321971"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/warnings/BW01_check_exit_code_is_127.bats",
+          "hash": "5829142087243122003"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/warnings/BW01_no_exit_code_check_no_exit_code_127.bats",
+          "hash": "14825654647090092389"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/warnings/BW02.bats",
+          "hash": "14152843369601924836"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/warnings/BW03/define_setup_suite_in_wrong_file.bats",
+          "hash": "16522701480253056691"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/warnings/BW03/non_default_setup_suite.bash",
+          "hash": "6121276266976615191"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/fixtures/warnings/BW03/suppress_warning.bats",
+          "hash": "13962362543188296310"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/formatter.bats",
+          "hash": "17187159426318970175"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/install.bats",
+          "hash": "1288244256314906777"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/junit-formatter.bats",
+          "hash": "1411313352158789566"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/load.bats",
+          "hash": "8346456166180919378"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/parallel.bats",
+          "hash": "11206767030007836319"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/pretty-formatter.bats",
+          "hash": "6824413345847347913"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/root.bats",
+          "hash": "762454302365911707"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/run.bats",
+          "hash": "16527074620543083225"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/suite.bats",
+          "hash": "10761590466521161087"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/suite_setup_teardown.bats",
+          "hash": "13536434690472393734"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/tagging.bats",
+          "hash": "2476386507996309811"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/tap13-formatter.bats",
+          "hash": "4003161570865765701"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/test_helper.bash",
+          "hash": "16003246571113607278"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/timeout.bats",
+          "hash": "3617699118089836807"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/trace.bats",
+          "hash": "4829695368880315488"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/test/warnings.bats",
+          "hash": "10449502516093384555"
+        },
+        {
+          "file": "packages/cli/test/e2e/helpers/bats/uninstall.sh",
+          "hash": "9378657448041838878"
+        },
+        {
+          "file": "packages/cli/test/e2e/parallel.bats",
+          "hash": "7950031440497501769"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/interactive/interact.sh",
+          "hash": "13940567528393279294"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/interactive/publish-interactive.sh",
+          "hash": "8849949023877331544"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/interactive/run.sh",
+          "hash": "12048018040703501910"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/alter-import-contract.sh",
+          "hash": "1291939143823449501"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/alter-import-invoke.sh",
+          "hash": "3774113342515760663"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/build-foundry-live.sh",
+          "hash": "13211145443184766038"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/build-foundry-local-private-source.sh",
+          "hash": "13663916184822110185"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/build-foundry-local.sh",
+          "hash": "9382076932129748766"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/build-foundry-partial.sh",
+          "hash": "10876572462003670096"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/build-hardhat.sh",
+          "hash": "4274884938202309074"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/build-router-live.sh",
+          "hash": "16658817854833744854"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/build-router-local.sh",
+          "hash": "9655050385910147331"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/decode.sh",
+          "hash": "5467551348343551382"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/diff.sh",
+          "hash": "7728585959988858163"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/downstream-ci-synthetix-deployments.sh",
+          "hash": "16906971277904474192"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/downstream-ci-synthetix-v3.sh",
+          "hash": "1279261757450328856"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/fetch.sh",
+          "hash": "13336248764865562359"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/inspect.sh",
+          "hash": "14333080300968751468"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/pin.sh",
+          "hash": "17941330384742672983"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/publish.sh",
+          "hash": "17574868411568748357"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/publishers.sh",
+          "hash": "5884343884415870098"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/register.sh",
+          "hash": "15554543206745844563"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/test.sh",
+          "hash": "7488588062027212020"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/trace-output.sh",
+          "hash": "8791689311777434482"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/trace.sh",
+          "hash": "6583506373352818825"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/unpublish.sh",
+          "hash": "9828561807633371519"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/non-interactive/verify.sh",
+          "hash": "2036907996685677406"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/optimism/CrossDomainMessenger.json",
+          "hash": "6531111461099252677"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/optimism/cross-domain-messenger.js",
+          "hash": "13545668128640416217"
+        },
+        {
+          "file": "packages/cli/test/e2e/scripts/optimism/optimism-emitter.js",
+          "hash": "17065547258810778745"
+        },
+        {
+          "file": "packages/cli/test/e2e/series.bats",
+          "hash": "14522618315276417696"
+        },
+        {
+          "file": "packages/cli/test/e2e/synthetix-ci.bats",
+          "hash": "11609453746785424870"
+        },
+        {
+          "file": "packages/cli/tsconfig.build.json",
+          "hash": "1439389409976227130"
+        },
+        {
+          "file": "packages/cli/tsconfig.json",
+          "hash": "4821714034731106241"
+        },
+        {
+          "file": "packages/cli/typedoc.js",
+          "hash": "14898982927166082612"
+        }
+      ],
+      "sample-foundry-project": [
+        {
+          "file": "examples/sample-foundry-project/.gitignore",
+          "hash": "2796653504622074327"
+        },
+        {
+          "file": "examples/sample-foundry-project/README.md",
+          "hash": "5409404907876927894"
+        },
+        {
+          "file": "examples/sample-foundry-project/cannonfile.consumer.toml",
+          "hash": "15108778116925202807"
+        },
+        {
+          "file": "examples/sample-foundry-project/cannonfile.old.toml",
+          "hash": "9071650487144542565"
+        },
+        {
+          "file": "examples/sample-foundry-project/cannonfile.private.toml",
+          "hash": "10349718416638809109"
+        },
+        {
+          "file": "examples/sample-foundry-project/cannonfile.toml",
+          "hash": "8320383953290314886"
+        },
+        {
+          "file": "examples/sample-foundry-project/foundry.toml",
+          "hash": "7822725742292588963"
+        },
+        {
+          "file": "examples/sample-foundry-project/generate-pkg.js",
+          "hash": "3013547902447006177"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/.github/workflows/test.yml",
+          "hash": "6673601100565913630"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/.gitignore",
+          "hash": "6745600600762063164"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/.gitmodules",
+          "hash": "10053745115957165313"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/foundry.toml",
+          "hash": "17543035054102665394"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/.github/workflows/ci.yml",
+          "hash": "6648259232276312150"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/.gitignore",
+          "hash": "1726114465837318867"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/.gitmodules",
+          "hash": "18076722566187232801"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/LICENSE-APACHE",
+          "hash": "8645871963587928210"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/LICENSE-MIT",
+          "hash": "7371318378930887479"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/README.md",
+          "hash": "3667779930224562465"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/foundry.toml",
+          "hash": "5405390656084732624"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/.gitignore",
+          "hash": "703508115227707471"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/LICENSE",
+          "hash": "5004495261018704297"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/Makefile",
+          "hash": "6295299540469192748"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/default.nix",
+          "hash": "16084914197987726827"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/demo/demo.sol",
+          "hash": "408085037073171762"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/package.json",
+          "hash": "18090932842966521427"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/src/test.sol",
+          "hash": "16400072472004322683"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/package.json",
+          "hash": "2392688885468517211"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/Base.sol",
+          "hash": "11394885370231236847"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/InvariantTest.sol",
+          "hash": "11438965495955728854"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/Script.sol",
+          "hash": "10153053090618463911"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdAssertions.sol",
+          "hash": "10190418926115024007"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdChains.sol",
+          "hash": "10840729868222475036"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdCheats.sol",
+          "hash": "2797691982288536215"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdError.sol",
+          "hash": "11648679669148077555"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdJson.sol",
+          "hash": "17632317346924325737"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdMath.sol",
+          "hash": "8239417701313420922"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdStorage.sol",
+          "hash": "3691320455673057924"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdUtils.sol",
+          "hash": "2801690419083127242"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/Test.sol",
+          "hash": "15143771974341852861"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/Vm.sol",
+          "hash": "2231282179072579547"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/console.sol",
+          "hash": "3543713478972251921"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/console2.sol",
+          "hash": "13455518576609390193"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/interfaces/IERC1155.sol",
+          "hash": "14664864913492177774"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/interfaces/IERC165.sol",
+          "hash": "3603317191258361609"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/interfaces/IERC20.sol",
+          "hash": "8602245455580227877"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/interfaces/IERC4626.sol",
+          "hash": "17833184492172034511"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/interfaces/IERC721.sol",
+          "hash": "11862812099939172962"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/interfaces/IMulticall3.sol",
+          "hash": "13150690351023982849"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdAssertions.t.sol",
+          "hash": "18168052211197727837"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdChains.t.sol",
+          "hash": "2141491185933265151"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdCheats.t.sol",
+          "hash": "7466429095368590457"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdError.t.sol",
+          "hash": "7650463478412535925"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdMath.t.sol",
+          "hash": "11135114168201194499"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdStorage.t.sol",
+          "hash": "4203076586426954447"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdUtils.t.sol",
+          "hash": "3660876300123058628"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/compilation/CompilationScript.sol",
+          "hash": "17212989946410905712"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/compilation/CompilationScriptBase.sol",
+          "hash": "10896569140936439003"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/compilation/CompilationTest.sol",
+          "hash": "14950133970735887686"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/compilation/CompilationTestBase.sol",
+          "hash": "15268175070569028740"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/fixtures/broadcast.log.json",
+          "hash": "14073872679017582533"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/src/Cannon.sol",
+          "hash": "14089959728122896838"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/.github/workflows/ci.yml",
+          "hash": "231302541844351155"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/.github/workflows/sync.yml",
+          "hash": "1323891810883240020"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/.gitignore",
+          "hash": "1726114465837318867"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/.gitmodules",
+          "hash": "18076722566187232801"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/LICENSE-APACHE",
+          "hash": "8645871963587928210"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/LICENSE-MIT",
+          "hash": "7371318378930887479"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/README.md",
+          "hash": "3667779930224562465"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/foundry.toml",
+          "hash": "1144128047489505403"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/.github/workflows/build.yml",
+          "hash": "3431538512810322765"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/.gitignore",
+          "hash": "10353468620772149653"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/LICENSE",
+          "hash": "5004495261018704297"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/Makefile",
+          "hash": "6295299540469192748"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/default.nix",
+          "hash": "16084914197987726827"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/demo/demo.sol",
+          "hash": "408085037073171762"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/package.json",
+          "hash": "18090932842966521427"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/src/test.sol",
+          "hash": "17377388028058931555"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/src/test.t.sol",
+          "hash": "10845214996285260650"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/package.json",
+          "hash": "14625905021324963031"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/Base.sol",
+          "hash": "8014841166277871125"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/Script.sol",
+          "hash": "1850193855923253152"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdAssertions.sol",
+          "hash": "1304173446859912931"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdChains.sol",
+          "hash": "13436530291502478968"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdCheats.sol",
+          "hash": "325691373412183991"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdError.sol",
+          "hash": "11648679669148077555"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdInvariant.sol",
+          "hash": "6692848117565108064"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdJson.sol",
+          "hash": "14552028222819765745"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdMath.sol",
+          "hash": "8239417701313420922"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdStorage.sol",
+          "hash": "2801021992137387371"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdStyle.sol",
+          "hash": "17156021847592170350"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdUtils.sol",
+          "hash": "5660409348738689391"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/Test.sol",
+          "hash": "16629553234846392685"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/Vm.sol",
+          "hash": "16658462190309821019"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/console.sol",
+          "hash": "3543713478972251921"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/console2.sol",
+          "hash": "14102387553343403273"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/interfaces/IERC1155.sol",
+          "hash": "14664864913492177774"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/interfaces/IERC165.sol",
+          "hash": "3603317191258361609"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/interfaces/IERC20.sol",
+          "hash": "8602245455580227877"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/interfaces/IERC4626.sol",
+          "hash": "17833184492172034511"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/interfaces/IERC721.sol",
+          "hash": "11862812099939172962"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/interfaces/IMulticall3.sol",
+          "hash": "13150690351023982849"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/safeconsole.sol",
+          "hash": "3214700531305877739"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/StdAssertions.t.sol",
+          "hash": "16809259703808797368"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/StdChains.t.sol",
+          "hash": "2016402465038542534"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/StdCheats.t.sol",
+          "hash": "14705395505212451621"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/StdError.t.sol",
+          "hash": "18268329672494742982"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/StdMath.t.sol",
+          "hash": "6362172176576071361"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/StdStorage.t.sol",
+          "hash": "2098994485688763282"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/StdStyle.t.sol",
+          "hash": "10782977073391082470"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/StdUtils.t.sol",
+          "hash": "3039087796355348224"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/compilation/CompilationScript.sol",
+          "hash": "17212989946410905712"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/compilation/CompilationScriptBase.sol",
+          "hash": "10896569140936439003"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/compilation/CompilationTest.sol",
+          "hash": "14950133970735887686"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/compilation/CompilationTestBase.sol",
+          "hash": "15268175070569028740"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/fixtures/broadcast.log.json",
+          "hash": "14073872679017582533"
+        },
+        {
+          "file": "examples/sample-foundry-project/package.json",
+          "hash": "17798602320349080482",
+          "deps": [
+            "@usecannon/cli"
+          ]
+        },
+        {
+          "file": "examples/sample-foundry-project/script/Contract.s.sol",
+          "hash": "10188168055373608834"
+        },
+        {
+          "file": "examples/sample-foundry-project/src/ClonedGreeter.sol",
+          "hash": "10026001947181508807"
+        },
+        {
+          "file": "examples/sample-foundry-project/src/Greeter.sol",
+          "hash": "12064849255795828416"
+        },
+        {
+          "file": "examples/sample-foundry-project/src/Library.sol",
+          "hash": "6800948625069285391"
+        },
+        {
+          "file": "examples/sample-foundry-project/test/Contract.t.sol",
+          "hash": "17407694942538035621"
+        }
+      ],
+      "@usecannon/builder": [
+        {
+          "file": "packages/builder/.gitignore",
+          "hash": "14388797753150440555"
+        },
+        {
+          "file": "packages/builder/CHANGELOG.md",
+          "hash": "15649468509657713490"
+        },
+        {
+          "file": "packages/builder/LICENSE",
+          "hash": "345500688128491592"
+        },
+        {
+          "file": "packages/builder/README.md",
+          "hash": "2969761951645752456"
+        },
+        {
+          "file": "packages/builder/jest.config.ts",
+          "hash": "15461521753628087284"
+        },
+        {
+          "file": "packages/builder/package.json",
+          "hash": "8061216167475672637",
+          "deps": [
+            "npm:@rollup/plugin-commonjs",
+            "npm:@rollup/plugin-json",
+            "npm:@rollup/plugin-node-resolve",
+            "npm:@rollup/plugin-terser",
+            "npm:@types/debug",
+            "npm:@types/jest",
+            "npm:@types/lodash",
+            "npm:@types/pako",
+            "npm:jest",
+            "npm:rollup@4.21.0",
+            "npm:ts-jest",
+            "npm:typedoc",
+            "npm:typedoc-plugin-markdown",
+            "npm:typedoc-plugin-zod",
+            "npm:@synthetixio/router",
+            "npm:axios@1.7.5",
+            "npm:axios-retry@4.5.0",
+            "npm:buffer@6.0.3",
+            "npm:chalk@4.1.2",
+            "npm:debug@4.3.6",
+            "npm:form-data@4.0.0",
+            "npm:fuse.js",
+            "npm:lodash",
+            "npm:pako@2.1.0",
+            "npm:promise-events",
+            "npm:typestub-ipfs-only-hash",
+            "npm:viem@2.16.5",
+            "npm:zod"
+          ]
+        },
+        {
+          "file": "packages/builder/rollup.config.mjs",
+          "hash": "17835368690963599791"
+        },
+        {
+          "file": "packages/builder/src/abis/CannonRegistry.ts",
+          "hash": "7590642956359921972"
+        },
+        {
+          "file": "packages/builder/src/abis/Multicall.ts",
+          "hash": "1280456452100684387"
+        },
+        {
+          "file": "packages/builder/src/abis/diamond/Diamond.json",
+          "hash": "17292887706030459701"
+        },
+        {
+          "file": "packages/builder/src/abis/diamond/DiamondCutFacet.json",
+          "hash": "16712297732488949905"
+        },
+        {
+          "file": "packages/builder/src/abis/diamond/DiamondLoupeFacet.json",
+          "hash": "2000466625779660114"
+        },
+        {
+          "file": "packages/builder/src/abis/diamond/DiamondWipeAndPaveFacet.json",
+          "hash": "7246878181853020715"
+        },
+        {
+          "file": "packages/builder/src/abis/diamond/OwnershipFacet.json",
+          "hash": "7202119895783154869"
+        },
+        {
+          "file": "packages/builder/src/access-recorder.test.ts",
+          "hash": "5509371720935050921"
+        },
+        {
+          "file": "packages/builder/src/access-recorder.ts",
+          "hash": "8729704474593086065"
+        },
+        {
+          "file": "packages/builder/src/actions.test.ts",
+          "hash": "12797739039425357883"
+        },
+        {
+          "file": "packages/builder/src/actions.ts",
+          "hash": "6858084381972732208"
+        },
+        {
+          "file": "packages/builder/src/builder.test.ts",
+          "hash": "15866102535557155738"
+        },
+        {
+          "file": "packages/builder/src/builder.ts",
+          "hash": "15373566920854140643"
+        },
+        {
+          "file": "packages/builder/src/consoleLog.ts",
+          "hash": "5224780653573593499"
+        },
+        {
+          "file": "packages/builder/src/constants.ts",
+          "hash": "11553655425055068263"
+        },
+        {
+          "file": "packages/builder/src/create2.test.ts",
+          "hash": "14166973488647144874"
+        },
+        {
+          "file": "packages/builder/src/create2.ts",
+          "hash": "843887535038168222"
+        },
+        {
+          "file": "packages/builder/src/definition.test.ts",
+          "hash": "15166042920471192920"
+        },
+        {
+          "file": "packages/builder/src/definition.ts",
+          "hash": "15125251768844746927"
+        },
+        {
+          "file": "packages/builder/src/error/index.ts",
+          "hash": "9401514644926354426"
+        },
+        {
+          "file": "packages/builder/src/error/zod.ts",
+          "hash": "679041594944103363"
+        },
+        {
+          "file": "packages/builder/src/helpers.test.ts",
+          "hash": "5722121439245160991"
+        },
+        {
+          "file": "packages/builder/src/helpers.ts",
+          "hash": "17842728926178640396"
+        },
+        {
+          "file": "packages/builder/src/index.ts",
+          "hash": "6757847082747228522"
+        },
+        {
+          "file": "packages/builder/src/ipfs.test.ts",
+          "hash": "15034628793838936027"
+        },
+        {
+          "file": "packages/builder/src/ipfs.ts",
+          "hash": "12131027474237138409"
+        },
+        {
+          "file": "packages/builder/src/loader.test.ts",
+          "hash": "10620747430152538710"
+        },
+        {
+          "file": "packages/builder/src/loader.ts",
+          "hash": "7161470314110366843"
+        },
+        {
+          "file": "packages/builder/src/multicall.ts",
+          "hash": "13291978666838013929"
+        },
+        {
+          "file": "packages/builder/src/package-reference.ts",
+          "hash": "13440253379615858685"
+        },
+        {
+          "file": "packages/builder/src/package.test.ts",
+          "hash": "7435438613400066941"
+        },
+        {
+          "file": "packages/builder/src/package.ts",
+          "hash": "483577881236499139"
+        },
+        {
+          "file": "packages/builder/src/precompiles/arbitrum-gas.json",
+          "hash": "239621725820531860"
+        },
+        {
+          "file": "packages/builder/src/precompiles/index.ts",
+          "hash": "535304795238283577"
+        },
+        {
+          "file": "packages/builder/src/registry.test.ts",
+          "hash": "16862016734846030019"
+        },
+        {
+          "file": "packages/builder/src/registry.ts",
+          "hash": "6377186580355921170"
+        },
+        {
+          "file": "packages/builder/src/runtime.test.ts",
+          "hash": "2716827343851742157"
+        },
+        {
+          "file": "packages/builder/src/runtime.ts",
+          "hash": "841865656206576326"
+        },
+        {
+          "file": "packages/builder/src/schemas.ts",
+          "hash": "13687565649261992477"
+        },
+        {
+          "file": "packages/builder/src/steps/__snapshots__/deploy.test.ts.snap",
+          "hash": "6601565020382945740"
+        },
+        {
+          "file": "packages/builder/src/steps/clone.test.ts",
+          "hash": "14163201706119409998"
+        },
+        {
+          "file": "packages/builder/src/steps/clone.ts",
+          "hash": "2712736125551600052"
+        },
+        {
+          "file": "packages/builder/src/steps/deploy.test.ts",
+          "hash": "10499247113355394805"
+        },
+        {
+          "file": "packages/builder/src/steps/deploy.ts",
+          "hash": "9713395787890280215"
+        },
+        {
+          "file": "packages/builder/src/steps/diamond.ts",
+          "hash": "10865457411012092780"
+        },
+        {
+          "file": "packages/builder/src/steps/invoke.test.ts",
+          "hash": "12236112409805808749"
+        },
+        {
+          "file": "packages/builder/src/steps/invoke.ts",
+          "hash": "17956322761444656332"
+        },
+        {
+          "file": "packages/builder/src/steps/keeper.ts",
+          "hash": "2992191730582528775"
+        },
+        {
+          "file": "packages/builder/src/steps/pull.test.ts",
+          "hash": "7044803937660322237"
+        },
+        {
+          "file": "packages/builder/src/steps/pull.ts",
+          "hash": "388467772939592681"
+        },
+        {
+          "file": "packages/builder/src/steps/router.test.ts",
+          "hash": "3057355215019336081"
+        },
+        {
+          "file": "packages/builder/src/steps/router.ts",
+          "hash": "6697375107507123970"
+        },
+        {
+          "file": "packages/builder/src/steps/utils.test.helper.ts",
+          "hash": "946046154365427006"
+        },
+        {
+          "file": "packages/builder/src/steps/var.test.ts",
+          "hash": "10903384898981932846"
+        },
+        {
+          "file": "packages/builder/src/steps/var.ts",
+          "hash": "14389469273050383588"
+        },
+        {
+          "file": "packages/builder/src/trace.test.ts",
+          "hash": "3186221024278908689"
+        },
+        {
+          "file": "packages/builder/src/trace.ts",
+          "hash": "11489176482214259762"
+        },
+        {
+          "file": "packages/builder/src/types.test.ts",
+          "hash": "16884972429280234929"
+        },
+        {
+          "file": "packages/builder/src/types.ts",
+          "hash": "1945997951351723538"
+        },
+        {
+          "file": "packages/builder/src/util.test.ts",
+          "hash": "2390716556607019984"
+        },
+        {
+          "file": "packages/builder/src/util.ts",
+          "hash": "8125724901722195254"
+        },
+        {
+          "file": "packages/builder/src/utils/onchain-store.ts",
+          "hash": "8197329286508457705"
+        },
+        {
+          "file": "packages/builder/src/utils/template.ts",
+          "hash": "10473659218261279898"
+        },
+        {
+          "file": "packages/builder/test/data/Greeter.json",
+          "hash": "13882846643680521981"
+        },
+        {
+          "file": "packages/builder/test/fixtures.ts",
+          "hash": "4449750602539873193"
+        },
+        {
+          "file": "packages/builder/tsconfig.build.json",
+          "hash": "12918333662020111599"
+        },
+        {
+          "file": "packages/builder/tsconfig.json",
+          "hash": "3130019229033826212"
+        },
+        {
+          "file": "packages/builder/typedoc.js",
+          "hash": "9699366121815710647"
+        }
+      ],
+      "@usecannon/website": [
+        {
+          "file": "packages/website/.cypress-cucumber-preprocessorrc.json",
+          "hash": "3872075579202739216"
+        },
+        {
+          "file": "packages/website/.env.local.example",
+          "hash": "18285430806428323236"
+        },
+        {
+          "file": "packages/website/.eslintrc.json",
+          "hash": "5197671769400914822"
+        },
+        {
+          "file": "packages/website/.gitignore",
+          "hash": "11008863597139504185"
+        },
+        {
+          "file": "packages/website/README.md",
+          "hash": "1785866898822000526"
+        },
+        {
+          "file": "packages/website/cypress.config.ts",
+          "hash": "4208063480325401965"
+        },
+        {
+          "file": "packages/website/cypress/integration/Home.feature",
+          "hash": "10898183383573396839"
+        },
+        {
+          "file": "packages/website/cypress/integration/Interact.feature",
+          "hash": "17276497938363698988"
+        },
+        {
+          "file": "packages/website/cypress/integration/StageTxns.feature",
+          "hash": "10709713301445371234"
+        },
+        {
+          "file": "packages/website/cypress/step-definitions/base.ts",
+          "hash": "1685251936120285278"
+        },
+        {
+          "file": "packages/website/cypress/step-definitions/packages.ts",
+          "hash": "16695486496318655048"
+        },
+        {
+          "file": "packages/website/cypress/step-definitions/stage-txns-drawer.ts",
+          "hash": "17467466070808717101"
+        },
+        {
+          "file": "packages/website/cypress/step-definitions/wallet-connector.ts",
+          "hash": "18425372579960640780"
+        },
+        {
+          "file": "packages/website/cypress/support/commands.ts",
+          "hash": "15036975462954888435"
+        },
+        {
+          "file": "packages/website/cypress/tsconfig.json",
+          "hash": "14788874887112922550"
+        },
+        {
+          "file": "packages/website/cypress/utils/E2EWalletConnector.tsx",
+          "hash": "12938299051705746437"
+        },
+        {
+          "file": "packages/website/cypress/utils/slow-request-tracker.ts",
+          "hash": "6273549316684990630"
+        },
+        {
+          "file": "packages/website/cypress/utils/wagmi-mock-config.ts",
+          "hash": "2534495332012651357"
+        },
+        {
+          "file": "packages/website/next-env.d.ts",
+          "hash": "5909181270615354023"
+        },
+        {
+          "file": "packages/website/next.config.js",
+          "hash": "1799799791849653181"
+        },
+        {
+          "file": "packages/website/next.lock/data/https_unpkg.com/ganache_7.9.1_dist_web_ganache.min_d919d608e147e6e309db.js",
+          "hash": "6732250543064900115"
+        },
+        {
+          "file": "packages/website/next.lock/data/https_unpkg.com/prettier_3.1.0_plugins_estree_9ac357a1cd6eb7e8a0ac.js",
+          "hash": "1136246647693397653"
+        },
+        {
+          "file": "packages/website/next.lock/data/https_unpkg.com/prettier_3.1.0_plugins_typescript_9f5c34d0c862925aa333.js",
+          "hash": "13208767819184258783"
+        },
+        {
+          "file": "packages/website/next.lock/data/https_unpkg.com/prettier_3.1.0_standalone_734e6a7dd12d1e07d7c9.js",
+          "hash": "5621285616675022655"
+        },
+        {
+          "file": "packages/website/next.lock/lock.json",
+          "hash": "1391561405897314455"
+        },
+        {
+          "file": "packages/website/package.json",
+          "hash": "14891942093689973583",
+          "deps": [
+            "npm:@nx/nx-darwin-arm64@18.0.4",
+            "npm:ethers@6.13.2",
+            "npm:@badeball/cypress-cucumber-preprocessor",
+            "npm:@bahmutov/cypress-esbuild-preprocessor",
+            "npm:@cypress/webpack-preprocessor",
+            "npm:@types/crypto-js",
+            "npm:@types/cypress",
+            "npm:@types/d3",
+            "npm:@types/diff",
+            "npm:@types/lodash",
+            "npm:@types/pako",
+            "npm:@types/react-scroll",
+            "npm:@types/react-syntax-highlighter",
+            "npm:cypress",
+            "npm:cypress-xpath",
+            "npm:eslint-plugin-cypress",
+            "npm:sass",
+            "npm:serve",
+            "npm:typescript",
+            "npm:@chakra-ui/icons",
+            "npm:@chakra-ui/next-js",
+            "npm:@chakra-ui/react",
+            "npm:@emotion/cache",
+            "npm:@emotion/react",
+            "npm:@emotion/server",
+            "npm:@emotion/styled",
+            "npm:@ethersproject/bignumber",
+            "npm:@iarna/toml",
+            "npm:@isomorphic-git/lightning-fs",
+            "npm:@monaco-editor/react",
+            "npm:@next/bundle-analyzer",
+            "npm:@next/third-parties",
+            "npm:@rainbow-me/rainbowkit",
+            "npm:@safe-global/api-kit",
+            "npm:@safe-global/protocol-kit@1.3.0",
+            "npm:@safe-global/safe-apps-sdk",
+            "npm:@sentry/nextjs",
+            "npm:@synthetixio/router",
+            "npm:@tanstack/react-query",
+            "npm:@tanstack/react-table",
+            "npm:@types/node@20.3.2",
+            "npm:@types/react",
+            "npm:@types/react-dom",
+            "@usecannon/api",
+            "@usecannon/builder",
+            "@usecannon/cli",
+            "npm:@vercel/analytics",
+            "npm:@wagmi/core",
+            "npm:abitype@1.0.6",
+            "npm:axios@1.7.5",
+            "npm:browser-level",
+            "npm:chakra-react-select",
+            "npm:crypto-js",
+            "npm:d3",
+            "npm:date-fns",
+            "npm:deepmerge",
+            "npm:diff@5.2.0",
+            "npm:erc7412",
+            "npm:eslint",
+            "npm:eslint-config-next",
+            "npm:fast-deep-equal",
+            "npm:framer-motion",
+            "npm:gsap",
+            "npm:isomorphic-git",
+            "npm:json-schema-to-typescript",
+            "npm:just-entries",
+            "npm:lodash",
+            "npm:next",
+            "npm:next-seo",
+            "npm:nextjs-toploader",
+            "npm:pako@2.1.0",
+            "npm:react",
+            "npm:react-code-blocks",
+            "npm:react-diff-view",
+            "npm:react-dom",
+            "npm:react-feather",
+            "npm:react-github-btn",
+            "npm:react-icons",
+            "npm:react-markdown",
+            "npm:react-scroll",
+            "npm:react-syntax-highlighter",
+            "npm:remark-gfm@3.0.1",
+            "npm:simple-url",
+            "npm:styled-components",
+            "npm:viem@2.16.5",
+            "npm:wagmi",
+            "npm:zod",
+            "npm:zod-to-json-schema",
+            "npm:zustand@4.5.5"
+          ]
+        },
+        {
+          "file": "packages/website/public/_redirects",
+          "hash": "6744670777187068692"
+        },
+        {
+          "file": "packages/website/public/favicon.ico",
+          "hash": "10093649758924109827"
+        },
+        {
+          "file": "packages/website/public/images/cannon-logomark-outline.svg",
+          "hash": "14584099438357737902"
+        },
+        {
+          "file": "packages/website/public/images/cannon-logomark.svg",
+          "hash": "13270843736182943786"
+        },
+        {
+          "file": "packages/website/public/images/discord.svg",
+          "hash": "15699484611209605449"
+        },
+        {
+          "file": "packages/website/public/images/github-mark-white.svg",
+          "hash": "1778845283576371474"
+        },
+        {
+          "file": "packages/website/public/images/guide_debug_1.png",
+          "hash": "5440110384840754960"
+        },
+        {
+          "file": "packages/website/public/images/guide_debug_2.png",
+          "hash": "2390715596232243984"
+        },
+        {
+          "file": "packages/website/public/images/ipfs.svg",
+          "hash": "11739934658025759024"
+        },
+        {
+          "file": "packages/website/public/images/logo.svg",
+          "hash": "8621290129113308745"
+        },
+        {
+          "file": "packages/website/public/images/logomark.svg",
+          "hash": "15596855293785323309"
+        },
+        {
+          "file": "packages/website/public/images/og.png",
+          "hash": "12939692889360712155"
+        },
+        {
+          "file": "packages/website/public/images/optimism.svg",
+          "hash": "2526176274209320200"
+        },
+        {
+          "file": "packages/website/public/images/safe-logomark.svg",
+          "hash": "18057720778782815338"
+        },
+        {
+          "file": "packages/website/public/images/safe.svg",
+          "hash": "9085488255079205509"
+        },
+        {
+          "file": "packages/website/public/images/tenderly.svg",
+          "hash": "3616137125064514359"
+        },
+        {
+          "file": "packages/website/public/images/terminal-example.svg",
+          "hash": "6276066105196520672"
+        },
+        {
+          "file": "packages/website/public/videos/homepage_background.mp4",
+          "hash": "7030154835665651089"
+        },
+        {
+          "file": "packages/website/sentry.client.config.ts",
+          "hash": "1452275253224327383"
+        },
+        {
+          "file": "packages/website/sentry.edge.config.ts",
+          "hash": "17576856402168424994"
+        },
+        {
+          "file": "packages/website/sentry.server.config.ts",
+          "hash": "11980366286582669459"
+        },
+        {
+          "file": "packages/website/serve.json",
+          "hash": "3592216333984763271"
+        },
+        {
+          "file": "packages/website/src/abi/Multicall.json",
+          "hash": "3370218248860858580"
+        },
+        {
+          "file": "packages/website/src/abi/Safe-v1.4.1.json",
+          "hash": "14560859700354514693"
+        },
+        {
+          "file": "packages/website/src/abi/Safe.json",
+          "hash": "16005668680911481704"
+        },
+        {
+          "file": "packages/website/src/components/Accordion.tsx",
+          "hash": "5630779154001137319"
+        },
+        {
+          "file": "packages/website/src/components/Alert.tsx",
+          "hash": "3415456026538415709"
+        },
+        {
+          "file": "packages/website/src/components/Card.tsx",
+          "hash": "5934527004099018688"
+        },
+        {
+          "file": "packages/website/src/components/ChainSelectorModal.tsx",
+          "hash": "828873550770330063"
+        },
+        {
+          "file": "packages/website/src/components/ClientOnly.tsx",
+          "hash": "4336603906140605458"
+        },
+        {
+          "file": "packages/website/src/components/CodePreview.tsx",
+          "hash": "8928292337485755164"
+        },
+        {
+          "file": "packages/website/src/components/CommandPreview.tsx",
+          "hash": "13642793135129645827"
+        },
+        {
+          "file": "packages/website/src/components/CustomSpinner.tsx",
+          "hash": "868262559190682520"
+        },
+        {
+          "file": "packages/website/src/components/DiscordButton.tsx",
+          "hash": "9753628663550395398"
+        },
+        {
+          "file": "packages/website/src/components/IconText.tsx",
+          "hash": "9162227716292074738"
+        },
+        {
+          "file": "packages/website/src/components/NavLink.tsx",
+          "hash": "14998038033413080542"
+        },
+        {
+          "file": "packages/website/src/components/PageLoading.tsx",
+          "hash": "6367816711156781722"
+        },
+        {
+          "file": "packages/website/src/components/SearchInput.tsx",
+          "hash": "16044770118921176899"
+        },
+        {
+          "file": "packages/website/src/components/buttons/Outlined.tsx",
+          "hash": "7906975158234277218"
+        },
+        {
+          "file": "packages/website/src/constants/defaultSeo.ts",
+          "hash": "14571387503068843315"
+        },
+        {
+          "file": "packages/website/src/constants/deployChains.ts",
+          "hash": "4451590413387331776"
+        },
+        {
+          "file": "packages/website/src/constants/externalLinks.ts",
+          "hash": "526838757936433805"
+        },
+        {
+          "file": "packages/website/src/constants/links.ts",
+          "hash": "8947984618213321821"
+        },
+        {
+          "file": "packages/website/src/constants/misc.ts",
+          "hash": "8597914250822236136"
+        },
+        {
+          "file": "packages/website/src/features/Console/Console.tsx",
+          "hash": "6891288310517441266"
+        },
+        {
+          "file": "packages/website/src/features/Debug/DebugPage.tsx",
+          "hash": "9744893720208655576"
+        },
+        {
+          "file": "packages/website/src/features/Deploy/CustomButton.tsx",
+          "hash": "16603434587138027528"
+        },
+        {
+          "file": "packages/website/src/features/Deploy/DisplayedTransaction.tsx",
+          "hash": "6590440140660642379"
+        },
+        {
+          "file": "packages/website/src/features/Deploy/NoncePicker.tsx",
+          "hash": "15008462918261326511"
+        },
+        {
+          "file": "packages/website/src/features/Deploy/PrepareNetwork.tsx",
+          "hash": "12269481701969472687"
+        },
+        {
+          "file": "packages/website/src/features/Deploy/PublishUtility.tsx",
+          "hash": "16153005612487298618"
+        },
+        {
+          "file": "packages/website/src/features/Deploy/QueueDrawer.tsx",
+          "hash": "16621152028373971445"
+        },
+        {
+          "file": "packages/website/src/features/Deploy/QueueFromGitOpsPage.tsx",
+          "hash": "5616218931260128079"
+        },
+        {
+          "file": "packages/website/src/features/Deploy/QueueTransaction.tsx",
+          "hash": "1258902305400705623"
+        },
+        {
+          "file": "packages/website/src/features/Deploy/SafeAddressInput.tsx",
+          "hash": "7573737226564138714"
+        },
+        {
+          "file": "packages/website/src/features/Deploy/SignTransactionsPage.tsx",
+          "hash": "12949946290208641512"
+        },
+        {
+          "file": "packages/website/src/features/Deploy/SimulateTransactionButton.tsx",
+          "hash": "3061112899755448045"
+        },
+        {
+          "file": "packages/website/src/features/Deploy/Transaction.tsx",
+          "hash": "15388669790407029343"
+        },
+        {
+          "file": "packages/website/src/features/Deploy/TransactionDetailsPage.tsx",
+          "hash": "9782299565205119825"
+        },
+        {
+          "file": "packages/website/src/features/Deploy/TransactionDisplay.tsx",
+          "hash": "17257949492248880480"
+        },
+        {
+          "file": "packages/website/src/features/Deploy/TransactionStepper.tsx",
+          "hash": "9752140536059720451"
+        },
+        {
+          "file": "packages/website/src/features/Deploy/WithSafe.tsx",
+          "hash": "471338036068486134"
+        },
+        {
+          "file": "packages/website/src/features/Docs/DocsCannonfilesPage.tsx",
+          "hash": "9841212199125865330"
+        },
+        {
+          "file": "packages/website/src/features/Docs/DocsCliPage.tsx",
+          "hash": "6786571560486936628"
+        },
+        {
+          "file": "packages/website/src/features/Docs/DocsLandingPage.tsx",
+          "hash": "2164794345921694936"
+        },
+        {
+          "file": "packages/website/src/features/Footer/Footer.tsx",
+          "hash": "15879076718938238652"
+        },
+        {
+          "file": "packages/website/src/features/GetStarted/BuildPage.tsx",
+          "hash": "6015575513644344483"
+        },
+        {
+          "file": "packages/website/src/features/GetStarted/BuildWithCannon.tsx",
+          "hash": "2018373624580296943"
+        },
+        {
+          "file": "packages/website/src/features/GetStarted/GetStartedPage.tsx",
+          "hash": "6552424809572859168"
+        },
+        {
+          "file": "packages/website/src/features/GetStarted/RunPackage.tsx",
+          "hash": "16040279061424718016"
+        },
+        {
+          "file": "packages/website/src/features/GetStarted/SetupSection/FoundryGuide/CreateCannonFile.tsx",
+          "hash": "9126596779071205044"
+        },
+        {
+          "file": "packages/website/src/features/GetStarted/SetupSection/FoundryGuide/DeployYourProtocol.tsx",
+          "hash": "596871656711355155"
+        },
+        {
+          "file": "packages/website/src/features/GetStarted/SetupSection/FoundryGuide/FoundrySetupPanel.tsx",
+          "hash": "17188449498501164467"
+        },
+        {
+          "file": "packages/website/src/features/GetStarted/SetupSection/FoundryGuide/ImportProvisionPackages.tsx",
+          "hash": "3669333409679302878"
+        },
+        {
+          "file": "packages/website/src/features/GetStarted/SetupSection/FoundryGuide/TestYourProtocol.tsx",
+          "hash": "4099852858599734552"
+        },
+        {
+          "file": "packages/website/src/features/GetStarted/SetupSection/HardhatGuide/CreateCannonFile.tsx",
+          "hash": "3315879856577597769"
+        },
+        {
+          "file": "packages/website/src/features/GetStarted/SetupSection/HardhatGuide/DeployYourProtocol.tsx",
+          "hash": "18101912381161753603"
+        },
+        {
+          "file": "packages/website/src/features/GetStarted/SetupSection/HardhatGuide/HardhatSetupPanel.tsx",
+          "hash": "18276089434534931121"
+        },
+        {
+          "file": "packages/website/src/features/GetStarted/SetupSection/HardhatGuide/ImportProvisionPackages.tsx",
+          "hash": "3669333409679302878"
+        },
+        {
+          "file": "packages/website/src/features/GetStarted/SetupSection/HardhatGuide/TestYourProtocol.tsx",
+          "hash": "3206735446822157080"
+        },
+        {
+          "file": "packages/website/src/features/GetStarted/SetupSection/HardhatSetupPanel.tsx",
+          "hash": "3712685252444949619"
+        },
+        {
+          "file": "packages/website/src/features/GetStarted/SetupSection/SetupCustomAlert.tsx",
+          "hash": "8147013269636183641"
+        },
+        {
+          "file": "packages/website/src/features/GetStarted/SetupSection/SetupPanel.tsx",
+          "hash": "11092962114169742157"
+        },
+        {
+          "file": "packages/website/src/features/Header/ConnectWallet.tsx",
+          "hash": "8780890578629547522"
+        },
+        {
+          "file": "packages/website/src/features/Header/Header.tsx",
+          "hash": "3615275024883515193"
+        },
+        {
+          "file": "packages/website/src/features/Header/SearchBar.tsx",
+          "hash": "7328495923260034935"
+        },
+        {
+          "file": "packages/website/src/features/HomePage/ChainDiagram.tsx",
+          "hash": "2002856648172796102"
+        },
+        {
+          "file": "packages/website/src/features/HomePage/CustomLinkButton.tsx",
+          "hash": "6633502592882483717"
+        },
+        {
+          "file": "packages/website/src/features/HomePage/HomePage.tsx",
+          "hash": "12429109060507710460"
+        },
+        {
+          "file": "packages/website/src/features/HomePage/IntegrationDiagram.tsx",
+          "hash": "1244427773364338864"
+        },
+        {
+          "file": "packages/website/src/features/Ipfs/Download.tsx",
+          "hash": "10226022836296255730"
+        },
+        {
+          "file": "packages/website/src/features/Ipfs/History.tsx",
+          "hash": "14217154117136278757"
+        },
+        {
+          "file": "packages/website/src/features/Ipfs/Upload.tsx",
+          "hash": "3668766355268091207"
+        },
+        {
+          "file": "packages/website/src/features/Packages/Abi.tsx",
+          "hash": "3162523198700806855"
+        },
+        {
+          "file": "packages/website/src/features/Packages/CannonfileExplorer.tsx",
+          "hash": "13348723271622854208"
+        },
+        {
+          "file": "packages/website/src/features/Packages/CannonfileGraph.tsx",
+          "hash": "17602615474965249825"
+        },
+        {
+          "file": "packages/website/src/features/Packages/ChainDefinitionSteps.tsx",
+          "hash": "7172948034011223123"
+        },
+        {
+          "file": "packages/website/src/features/Packages/CodeExplorer.tsx",
+          "hash": "17382794154247077272"
+        },
+        {
+          "file": "packages/website/src/features/Packages/CodePage.tsx",
+          "hash": "1912456974973401971"
+        },
+        {
+          "file": "packages/website/src/features/Packages/Contract.tsx",
+          "hash": "8233415059959241252"
+        },
+        {
+          "file": "packages/website/src/features/Packages/ContractStep.tsx",
+          "hash": "9771327661780882640"
+        },
+        {
+          "file": "packages/website/src/features/Packages/ContractsTable.tsx",
+          "hash": "5937734439534554412"
+        },
+        {
+          "file": "packages/website/src/features/Packages/DeploymentExplorer.tsx",
+          "hash": "10151455223801757895"
+        },
+        {
+          "file": "packages/website/src/features/Packages/EventsTable.tsx",
+          "hash": "10476375787561325004"
+        },
+        {
+          "file": "packages/website/src/features/Packages/Function.tsx",
+          "hash": "13217365224833969228"
+        },
+        {
+          "file": "packages/website/src/features/Packages/FunctionInput.tsx",
+          "hash": "144568706557436765"
+        },
+        {
+          "file": "packages/website/src/features/Packages/FunctionInput/AddressInput.tsx",
+          "hash": "10866118844224825770"
+        },
+        {
+          "file": "packages/website/src/features/Packages/FunctionInput/BoolInput.tsx",
+          "hash": "12242733149480858824"
+        },
+        {
+          "file": "packages/website/src/features/Packages/FunctionInput/DefaultInput.tsx",
+          "hash": "17835107967757891980"
+        },
+        {
+          "file": "packages/website/src/features/Packages/FunctionInput/NumberInput.tsx",
+          "hash": "8738312632562374022"
+        },
+        {
+          "file": "packages/website/src/features/Packages/FunctionInput/TupleInput.tsx",
+          "hash": "15062709335888801213"
+        },
+        {
+          "file": "packages/website/src/features/Packages/FunctionOutput.tsx",
+          "hash": "10465977651922640105"
+        },
+        {
+          "file": "packages/website/src/features/Packages/Interact.tsx",
+          "hash": "17783121870794030761"
+        },
+        {
+          "file": "packages/website/src/features/Packages/InvokesTable.tsx",
+          "hash": "8800844943853064535"
+        },
+        {
+          "file": "packages/website/src/features/Packages/IpfsLinks.tsx",
+          "hash": "10897393004934097839"
+        },
+        {
+          "file": "packages/website/src/features/Packages/IpfsUrl.tsx",
+          "hash": "14583870472782165895"
+        },
+        {
+          "file": "packages/website/src/features/Packages/PackageAccordionHelper/IntegrateWithPackage.tsx",
+          "hash": "11897163875446175240"
+        },
+        {
+          "file": "packages/website/src/features/Packages/PackageAccordionHelper/RetrieveAddressAbi.tsx",
+          "hash": "15554137548532758890"
+        },
+        {
+          "file": "packages/website/src/features/Packages/PackageAccordionHelper/RunPackageLocally.tsx",
+          "hash": "3106987113034995161"
+        },
+        {
+          "file": "packages/website/src/features/Packages/PackageAccordionHelper/index.tsx",
+          "hash": "5902690495317787162"
+        },
+        {
+          "file": "packages/website/src/features/Packages/PackageAccordionHelper/utils.tsx",
+          "hash": "10813007426032282085"
+        },
+        {
+          "file": "packages/website/src/features/Packages/PackagePage.tsx",
+          "hash": "12500545999970785611"
+        },
+        {
+          "file": "packages/website/src/features/Packages/ProvisionStep.tsx",
+          "hash": "15205106046108852773"
+        },
+        {
+          "file": "packages/website/src/features/Packages/Tabs/CannonfileTab.tsx",
+          "hash": "9752968137040605533"
+        },
+        {
+          "file": "packages/website/src/features/Packages/Tabs/CodeTab.tsx",
+          "hash": "13494196186520657022"
+        },
+        {
+          "file": "packages/website/src/features/Packages/Tabs/DeploymentTab.tsx",
+          "hash": "4465076568963330888"
+        },
+        {
+          "file": "packages/website/src/features/Packages/Tabs/InteractTab.tsx",
+          "hash": "16553896990322895718"
+        },
+        {
+          "file": "packages/website/src/features/Packages/Tabs/UnderConstruction.tsx",
+          "hash": "7964300289443157483"
+        },
+        {
+          "file": "packages/website/src/features/Packages/VersionSelect.tsx",
+          "hash": "11310245038408304223"
+        },
+        {
+          "file": "packages/website/src/features/Packages/ViewAsCannonFileButton.tsx",
+          "hash": "10682844092995485905"
+        },
+        {
+          "file": "packages/website/src/features/Packages/utils/extractAddressesAndABIs.ts",
+          "hash": "6006005746486174109"
+        },
+        {
+          "file": "packages/website/src/features/Router/RouterPage.tsx",
+          "hash": "14722754337078922584"
+        },
+        {
+          "file": "packages/website/src/features/Search/ChainFilter.tsx",
+          "hash": "3030030226578544407"
+        },
+        {
+          "file": "packages/website/src/features/Search/PackageCard/Chain.tsx",
+          "hash": "6596966915145786926"
+        },
+        {
+          "file": "packages/website/src/features/Search/PackageCard/ChainNav.tsx",
+          "hash": "6684962495761524159"
+        },
+        {
+          "file": "packages/website/src/features/Search/PackageCard/DataTable.tsx",
+          "hash": "6032750337578126548"
+        },
+        {
+          "file": "packages/website/src/features/Search/PackageCard/PackageCard.tsx",
+          "hash": "15400964981959783817"
+        },
+        {
+          "file": "packages/website/src/features/Search/PackageCard/PackageCardExpandable.tsx",
+          "hash": "13148096307313027814"
+        },
+        {
+          "file": "packages/website/src/features/Search/PackageCard/PackageTable.tsx",
+          "hash": "11716237159543941133"
+        },
+        {
+          "file": "packages/website/src/features/Search/PackageCard/PublishInfo.tsx",
+          "hash": "1498481761853263444"
+        },
+        {
+          "file": "packages/website/src/features/Search/SearchPage.tsx",
+          "hash": "13324436041453703305"
+        },
+        {
+          "file": "packages/website/src/features/Settings/CustomProviders.tsx",
+          "hash": "7700251509057567409"
+        },
+        {
+          "file": "packages/website/src/features/Settings/SettingsPage.tsx",
+          "hash": "10471371405108797750"
+        },
+        {
+          "file": "packages/website/src/helpers/api.ts",
+          "hash": "1875493918659062994"
+        },
+        {
+          "file": "packages/website/src/helpers/array.ts",
+          "hash": "12921929722595197860"
+        },
+        {
+          "file": "packages/website/src/helpers/cannon.ts",
+          "hash": "4767423125908136830"
+        },
+        {
+          "file": "packages/website/src/helpers/db.ts",
+          "hash": "12153849687044904892"
+        },
+        {
+          "file": "packages/website/src/helpers/ethereum.ts",
+          "hash": "10637744414763100505"
+        },
+        {
+          "file": "packages/website/src/helpers/formatters/index.ts",
+          "hash": "14020241414477433034"
+        },
+        {
+          "file": "packages/website/src/helpers/git.ts",
+          "hash": "10098583003560013612"
+        },
+        {
+          "file": "packages/website/src/helpers/ipfs.ts",
+          "hash": "18368880739429142779"
+        },
+        {
+          "file": "packages/website/src/helpers/isValidUrl.ts",
+          "hash": "1734123114800997646"
+        },
+        {
+          "file": "packages/website/src/helpers/markdown.ts",
+          "hash": "5763444778266583903"
+        },
+        {
+          "file": "packages/website/src/helpers/misc.ts",
+          "hash": "13672862072674759761"
+        },
+        {
+          "file": "packages/website/src/helpers/multisend.ts",
+          "hash": "4613854721431233831"
+        },
+        {
+          "file": "packages/website/src/helpers/onchain-store.ts",
+          "hash": "3510553847762731836"
+        },
+        {
+          "file": "packages/website/src/helpers/rpc.ts",
+          "hash": "6803529235705406075"
+        },
+        {
+          "file": "packages/website/src/helpers/safe.ts",
+          "hash": "16074117359401456030"
+        },
+        {
+          "file": "packages/website/src/helpers/store.ts",
+          "hash": "14030894959870981639"
+        },
+        {
+          "file": "packages/website/src/helpers/trusted-multicall-forwarder.ts",
+          "hash": "15098477188093648238"
+        },
+        {
+          "file": "packages/website/src/hooks/api/usePackage.ts",
+          "hash": "13526278091550615049"
+        },
+        {
+          "file": "packages/website/src/hooks/backend.ts",
+          "hash": "14904297837271030454"
+        },
+        {
+          "file": "packages/website/src/hooks/cannon.ts",
+          "hash": "17308595169134972539"
+        },
+        {
+          "file": "packages/website/src/hooks/cannonfileSpecs.ts",
+          "hash": "926201349680817124"
+        },
+        {
+          "file": "packages/website/src/hooks/deployer.ts",
+          "hash": "10129412063512633103"
+        },
+        {
+          "file": "packages/website/src/hooks/ethereum.ts",
+          "hash": "12049658023021074610"
+        },
+        {
+          "file": "packages/website/src/hooks/fork.ts",
+          "hash": "17114197615853818501"
+        },
+        {
+          "file": "packages/website/src/hooks/git.ts",
+          "hash": "4099927330174098797"
+        },
+        {
+          "file": "packages/website/src/hooks/ipfs.ts",
+          "hash": "1004014504648523025"
+        },
+        {
+          "file": "packages/website/src/hooks/registry.ts",
+          "hash": "2427466919577099262"
+        },
+        {
+          "file": "packages/website/src/hooks/routing/usePackageNameTagVariantUrlParams.ts",
+          "hash": "15604333458013909789"
+        },
+        {
+          "file": "packages/website/src/hooks/routing/usePackageUrlParams.ts",
+          "hash": "3656867728680542727"
+        },
+        {
+          "file": "packages/website/src/hooks/routing/usePackageVersionUrlParams.ts",
+          "hash": "7310735274160106783"
+        },
+        {
+          "file": "packages/website/src/hooks/routing/useTransactionDetailsParams.ts",
+          "hash": "15163309520396694035"
+        },
+        {
+          "file": "packages/website/src/hooks/safe.ts",
+          "hash": "12386187368050950272"
+        },
+        {
+          "file": "packages/website/src/instrumentation.ts",
+          "hash": "10266195739649168"
+        },
+        {
+          "file": "packages/website/src/lib/builder.ts",
+          "hash": "12527221693206606727"
+        },
+        {
+          "file": "packages/website/src/lib/copy.ts",
+          "hash": "11173315376278897586"
+        },
+        {
+          "file": "packages/website/src/lib/emotion-cache.ts",
+          "hash": "16425682639847272886"
+        },
+        {
+          "file": "packages/website/src/pages/404.tsx",
+          "hash": "3247357686911807049"
+        },
+        {
+          "file": "packages/website/src/pages/_app.tsx",
+          "hash": "7004717325205644142"
+        },
+        {
+          "file": "packages/website/src/pages/_document.tsx",
+          "hash": "656976043744009603"
+        },
+        {
+          "file": "packages/website/src/pages/_error.jsx",
+          "hash": "14563359009865003922"
+        },
+        {
+          "file": "packages/website/src/pages/_providers.tsx",
+          "hash": "15264006470425823246"
+        },
+        {
+          "file": "packages/website/src/pages/deploy/_layout.tsx",
+          "hash": "16952839642782845984"
+        },
+        {
+          "file": "packages/website/src/pages/deploy/gitops/index.tsx",
+          "hash": "4469047169566030321"
+        },
+        {
+          "file": "packages/website/src/pages/deploy/index.tsx",
+          "hash": "10282583944356807936"
+        },
+        {
+          "file": "packages/website/src/pages/deploy/queue/index.tsx",
+          "hash": "12058937762545755283"
+        },
+        {
+          "file": "packages/website/src/pages/deploy/txn/[chainId]/[safeAddress]/[nonce]/[sigHash]/index.tsx",
+          "hash": "2471437153597697128"
+        },
+        {
+          "file": "packages/website/src/pages/index.tsx",
+          "hash": "13555174821088102322"
+        },
+        {
+          "file": "packages/website/src/pages/ipfs/index.tsx",
+          "hash": "14488554809544730974"
+        },
+        {
+          "file": "packages/website/src/pages/ipfs/layout.tsx",
+          "hash": "6280687209853530159"
+        },
+        {
+          "file": "packages/website/src/pages/ipfs/upload/index.tsx",
+          "hash": "6733537922696238233"
+        },
+        {
+          "file": "packages/website/src/pages/learn/_layout.tsx",
+          "hash": "1143388226312826413"
+        },
+        {
+          "file": "packages/website/src/pages/learn/cannonfile/index.tsx",
+          "hash": "5925580087579028362"
+        },
+        {
+          "file": "packages/website/src/pages/learn/cli/index.tsx",
+          "hash": "11079502204941330741"
+        },
+        {
+          "file": "packages/website/src/pages/learn/guides/_layout.tsx",
+          "hash": "17501595483773353398"
+        },
+        {
+          "file": "packages/website/src/pages/learn/guides/build/index.tsx",
+          "hash": "16247375376595108092"
+        },
+        {
+          "file": "packages/website/src/pages/learn/guides/debug/index.tsx",
+          "hash": "11122743989335013810"
+        },
+        {
+          "file": "packages/website/src/pages/learn/guides/get-started/index.tsx",
+          "hash": "5392082985054960919"
+        },
+        {
+          "file": "packages/website/src/pages/learn/guides/index.tsx",
+          "hash": "960369534008300587"
+        },
+        {
+          "file": "packages/website/src/pages/learn/guides/router/index.tsx",
+          "hash": "17224984191498368165"
+        },
+        {
+          "file": "packages/website/src/pages/learn/index.tsx",
+          "hash": "9818935175734984673"
+        },
+        {
+          "file": "packages/website/src/pages/packages/[name]/[tag]/[variant]/_layout.tsx",
+          "hash": "13418632190522561033"
+        },
+        {
+          "file": "packages/website/src/pages/packages/[name]/[tag]/[variant]/cannonfile/index.tsx",
+          "hash": "13678499778305921789"
+        },
+        {
+          "file": "packages/website/src/pages/packages/[name]/[tag]/[variant]/code/[moduleName]/index.tsx",
+          "hash": "4629189763392747335"
+        },
+        {
+          "file": "packages/website/src/pages/packages/[name]/[tag]/[variant]/code/_layout.tsx",
+          "hash": "2289858065723716034"
+        },
+        {
+          "file": "packages/website/src/pages/packages/[name]/[tag]/[variant]/code/index.tsx",
+          "hash": "14386595896465136476"
+        },
+        {
+          "file": "packages/website/src/pages/packages/[name]/[tag]/[variant]/index.tsx",
+          "hash": "6965984132088699780"
+        },
+        {
+          "file": "packages/website/src/pages/packages/[name]/[tag]/[variant]/interact/[moduleName]/[contractName]/[contractAddress]/index.tsx",
+          "hash": "2401902816476273506"
+        },
+        {
+          "file": "packages/website/src/pages/packages/[name]/[tag]/[variant]/interact/_layout.tsx",
+          "hash": "299267591789162871"
+        },
+        {
+          "file": "packages/website/src/pages/packages/[name]/[tag]/[variant]/interact/index.tsx",
+          "hash": "9304304904044312744"
+        },
+        {
+          "file": "packages/website/src/pages/packages/[name]/index.tsx",
+          "hash": "9694691121426082386"
+        },
+        {
+          "file": "packages/website/src/pages/packages/index.tsx",
+          "hash": "10064750471509036504"
+        },
+        {
+          "file": "packages/website/src/pages/sentry-example-page.jsx",
+          "hash": "6843286668548043027"
+        },
+        {
+          "file": "packages/website/src/pages/settings/index.tsx",
+          "hash": "5431197625606530580"
+        },
+        {
+          "file": "packages/website/src/providers/CannonProvidersProvider.tsx",
+          "hash": "14271295851726882045"
+        },
+        {
+          "file": "packages/website/src/providers/CannonRegistryProvider.tsx",
+          "hash": "8136309293459471657"
+        },
+        {
+          "file": "packages/website/src/providers/logsProvider.tsx",
+          "hash": "3477798195705711587"
+        },
+        {
+          "file": "packages/website/src/providers/stepModalProvider.tsx",
+          "hash": "418540372242093598"
+        },
+        {
+          "file": "packages/website/src/providers/walletProvider.tsx",
+          "hash": "16626282147214853565"
+        },
+        {
+          "file": "packages/website/src/styles/globals.css",
+          "hash": "6951483354267957924"
+        },
+        {
+          "file": "packages/website/src/theme/theme.ts",
+          "hash": "13040221692882907721"
+        },
+        {
+          "file": "packages/website/src/types/SafeTransaction.ts",
+          "hash": "1622220985364589076"
+        },
+        {
+          "file": "packages/website/src/types/StagedTransaction.ts",
+          "hash": "9973728727719838316"
+        },
+        {
+          "file": "packages/website/tsconfig.json",
+          "hash": "15704381302719462716"
+        },
+        {
+          "file": "packages/website/typings/cypress-cucumber-preprocessor-esbuild/cypress-cucumber-preprocessor-esbuild.d.ts",
+          "hash": "5825265872064459973"
+        },
+        {
+          "file": "packages/website/typings/ganache/ganache.d.ts",
+          "hash": "1799477948680033311"
+        },
+        {
+          "file": "packages/website/typings/simple-url/simple-url.d.ts",
+          "hash": "17106344232695852163"
+        },
+        {
+          "file": "packages/website/vercel.json",
+          "hash": "7844983345066671673"
+        }
+      ],
+      "@usecannon/api": [
+        {
+          "file": "packages/api/.gitignore",
+          "hash": "14388797753150440555"
+        },
+        {
+          "file": "packages/api/Dockerfile",
+          "hash": "7626734308621320204"
+        },
+        {
+          "file": "packages/api/package.json",
+          "hash": "5931975406786527924",
+          "deps": [
+            "npm:@types/cors",
+            "npm:@types/express",
+            "npm:@types/node@20.16.1",
+            "npm:ts-node-dev",
+            "npm:typescript",
+            "npm:@isaacs/ttlcache",
+            "@usecannon/builder",
+            "@usecannon/cli",
+            "npm:cors",
+            "npm:dotenv@16.4.5",
+            "npm:envalid",
+            "npm:express@5.0.0-beta.3",
+            "npm:express-basic-auth",
+            "npm:express-prom-bundle",
+            "npm:express-rate-limit",
+            "npm:fastest-levenshtein",
+            "npm:fuse.js",
+            "npm:helmet",
+            "npm:prom-client",
+            "npm:redis",
+            "npm:viem@2.16.5"
+          ]
+        },
+        {
+          "file": "packages/api/src/config.ts",
+          "hash": "14147962637497641725"
+        },
+        {
+          "file": "packages/api/src/db/keys.ts",
+          "hash": "12989094698590038929"
+        },
+        {
+          "file": "packages/api/src/db/transformers.ts",
+          "hash": "18243236440760659107"
+        },
+        {
+          "file": "packages/api/src/errors.ts",
+          "hash": "15829161671651102168"
+        },
+        {
+          "file": "packages/api/src/helpers.ts",
+          "hash": "17424252495650931601"
+        },
+        {
+          "file": "packages/api/src/index.ts",
+          "hash": "16468175657546681501"
+        },
+        {
+          "file": "packages/api/src/queries/chains.ts",
+          "hash": "10846925734622898020"
+        },
+        {
+          "file": "packages/api/src/queries/contracts.ts",
+          "hash": "9269554472092156377"
+        },
+        {
+          "file": "packages/api/src/queries/functions.ts",
+          "hash": "8893084055898108133"
+        },
+        {
+          "file": "packages/api/src/queries/packages.ts",
+          "hash": "6035846278815987817"
+        },
+        {
+          "file": "packages/api/src/redis.ts",
+          "hash": "2262754983547913121"
+        },
+        {
+          "file": "packages/api/src/routes/chains.ts",
+          "hash": "14975312999275917300"
+        },
+        {
+          "file": "packages/api/src/routes/index.ts",
+          "hash": "15588844433486703813"
+        },
+        {
+          "file": "packages/api/src/routes/metrics.ts",
+          "hash": "13835883849340694769"
+        },
+        {
+          "file": "packages/api/src/routes/packages.ts",
+          "hash": "13774731108401014016"
+        },
+        {
+          "file": "packages/api/src/routes/search.ts",
+          "hash": "5291306812032256359"
+        },
+        {
+          "file": "packages/api/src/types.ts",
+          "hash": "3777467620586439141"
+        },
+        {
+          "file": "packages/api/tsconfig.json",
+          "hash": "481418350705031235"
+        }
+      ],
+      "sample-hardhat-project": [
+        {
+          "file": "examples/sample-hardhat-project/.env.example",
+          "hash": "8761008469272337885"
+        },
+        {
+          "file": "examples/sample-hardhat-project/.eslintignore",
+          "hash": "738963171455033043"
+        },
+        {
+          "file": "examples/sample-hardhat-project/.gitignore",
+          "hash": "15858630262937560320"
+        },
+        {
+          "file": "examples/sample-hardhat-project/.npmignore",
+          "hash": "7037743028942489028"
+        },
+        {
+          "file": "examples/sample-hardhat-project/.solhintignore",
+          "hash": "7663861978715868291"
+        },
+        {
+          "file": "examples/sample-hardhat-project/README.md",
+          "hash": "2097607723768091059"
+        },
+        {
+          "file": "examples/sample-hardhat-project/cannonfile.consumer.toml",
+          "hash": "950604711740908680"
+        },
+        {
+          "file": "examples/sample-hardhat-project/cannonfile.toml",
+          "hash": "14651497685349733757"
+        },
+        {
+          "file": "examples/sample-hardhat-project/contracts/ClonedGreeter.sol",
+          "hash": "11755472510203802417"
+        },
+        {
+          "file": "examples/sample-hardhat-project/contracts/Greeter.sol",
+          "hash": "13610472522585951842"
+        },
+        {
+          "file": "examples/sample-hardhat-project/contracts/Library.sol",
+          "hash": "14869470390194374368"
+        },
+        {
+          "file": "examples/sample-hardhat-project/hardhat.config.ts",
+          "hash": "1183875519496799115"
+        },
+        {
+          "file": "examples/sample-hardhat-project/package.json",
+          "hash": "1913671514683827895",
+          "deps": [
+            "npm:@nomiclabs/hardhat-etherscan",
+            "npm:@types/chai",
+            "npm:chai",
+            "hardhat-cannon",
+            "npm:hardhat",
+            "npm:hardhat-gas-reporter",
+            "npm:ts-node",
+            "npm:typescript"
+          ]
+        },
+        {
+          "file": "examples/sample-hardhat-project/tasks/get-build-info.ts",
+          "hash": "1488446994428674612"
+        },
+        {
+          "file": "examples/sample-hardhat-project/test/.eslintrc.json",
+          "hash": "4799180441438391977"
+        },
+        {
+          "file": "examples/sample-hardhat-project/test/Greeter.test.ts",
+          "hash": "17556223569748482841"
+        },
+        {
+          "file": "examples/sample-hardhat-project/tsconfig.json",
+          "hash": "3035814477407365291"
+        }
+      ],
+      "@usecannon/indexer": [
+        {
+          "file": "packages/indexer/.gitignore",
+          "hash": "8991966823503952338"
+        },
+        {
+          "file": "packages/indexer/Dockerfile",
+          "hash": "2728971869036647026"
+        },
+        {
+          "file": "packages/indexer/package.json",
+          "hash": "18293438710658882113",
+          "deps": [
+            "npm:@types/connect-busboy",
+            "npm:@types/lodash",
+            "npm:@types/morgan",
+            "@usecannon/builder",
+            "@usecannon/cli",
+            "npm:envalid",
+            "npm:lodash",
+            "npm:redis"
+          ]
+        },
+        {
+          "file": "packages/indexer/src/config.ts",
+          "hash": "94563295998128146"
+        },
+        {
+          "file": "packages/indexer/src/db.ts",
+          "hash": "12989094698590038929"
+        },
+        {
+          "file": "packages/indexer/src/index.ts",
+          "hash": "10700387504398334862"
+        },
+        {
+          "file": "packages/indexer/src/redis.ts",
+          "hash": "5962633842732129862"
+        },
+        {
+          "file": "packages/indexer/src/registry.ts",
+          "hash": "8412314167431159815"
+        },
+        {
+          "file": "packages/indexer/tsconfig.build.json",
+          "hash": "1439389409976227130"
+        },
+        {
+          "file": "packages/indexer/tsconfig.json",
+          "hash": "4821714034731106241"
+        }
+      ],
+      "@usecannon/registry": [
+        {
+          "file": "packages/registry/.gitignore",
+          "hash": "331075484045573835"
+        },
+        {
+          "file": "packages/registry/audits/Cannon_A-1___Macro_Audits___The_0xMacro_Library.pdf",
+          "hash": "7520518020902624708"
+        },
+        {
+          "file": "packages/registry/cannonfile.mainnet.toml",
+          "hash": "18330975625311349602"
+        },
+        {
+          "file": "packages/registry/cannonfile.sepolia.toml",
+          "hash": "16205939239930809371"
+        },
+        {
+          "file": "packages/registry/cannonfile.toml",
+          "hash": "15735076158005290685"
+        },
+        {
+          "file": "packages/registry/contracts/CannonRegistry.sol",
+          "hash": "9104912133600713691"
+        },
+        {
+          "file": "packages/registry/contracts/ERC2771Context.sol",
+          "hash": "14419532604385302264"
+        },
+        {
+          "file": "packages/registry/contracts/EfficientStorage.sol",
+          "hash": "5352251248470001782"
+        },
+        {
+          "file": "packages/registry/contracts/IOptimismL1Sender.sol",
+          "hash": "4485328606535465166"
+        },
+        {
+          "file": "packages/registry/contracts/IOptimismL2Receiver.sol",
+          "hash": "6508885928480579867"
+        },
+        {
+          "file": "packages/registry/contracts/MockOptimismBridge.sol",
+          "hash": "5453284331583903007"
+        },
+        {
+          "file": "packages/registry/contracts/OwnedUpgradable.sol",
+          "hash": "12245100929033926981"
+        },
+        {
+          "file": "packages/registry/contracts/OwnedUpgradableUpdated.sol",
+          "hash": "8927413046358336794"
+        },
+        {
+          "file": "packages/registry/contracts/Proxy.sol",
+          "hash": "18096982941155076434"
+        },
+        {
+          "file": "packages/registry/hardhat.config.ts",
+          "hash": "10241310944027518035"
+        },
+        {
+          "file": "packages/registry/package.json",
+          "hash": "17108043885526118425",
+          "deps": [
+            "npm:@synthetixio/core-contracts",
+            "@usecannon/builder",
+            "@usecannon/cli",
+            "npm:at-least-node",
+            "npm:chai",
+            "npm:hardhat",
+            "hardhat-cannon",
+            "npm:hardhat-contract-sizer",
+            "npm:hardhat-gas-reporter",
+            "npm:ts-node",
+            "npm:typescript"
+          ]
+        },
+        {
+          "file": "packages/registry/scripts/list-packages.ts",
+          "hash": "7128943530492261677"
+        },
+        {
+          "file": "packages/registry/test/.eslintrc.json",
+          "hash": "4799180441438391977"
+        },
+        {
+          "file": "packages/registry/test/contracts/CannonRegistry.test.ts",
+          "hash": "17902216737382160738"
+        },
+        {
+          "file": "packages/registry/test/helpers/assert-revert.ts",
+          "hash": "412457636603289035"
+        },
+        {
+          "file": "packages/registry/tsconfig.json",
+          "hash": "3605050899635666627"
+        }
+      ]
+    }
+  }
+}
