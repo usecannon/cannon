@@ -2,7 +2,7 @@
 
 import { links } from '@/constants/links';
 import { parseIpfsHash } from '@/helpers/ipfs';
-import { makeMultisend } from '@/helpers/multisend';
+import { useMultisendQuery } from '@/helpers/multisend';
 import * as onchainStore from '@/helpers/onchain-store';
 import { useStore } from '@/helpers/store';
 import { useTxnStager } from '@/hooks/backend';
@@ -283,92 +283,104 @@ export default function QueueFromGitOps() {
     gitUrl + ':' + gitFile
   );
 
-  const multicallTxn: /*Partial<TransactionRequestBase>*/ any =
-    !prevInfoQuery.isLoading &&
-    buildState.result &&
-    buildState.result.safeSteps.length > 0
-      ? //buildState.result.safeSteps.indexOf(null as any) === -1
-        makeMultisend(
+  const multisendTxsParam = useMemo(() => {
+    return [
+      // supply the hint data
+      {
+        to: zeroAddress,
+        data: encodeAbiParameters(
+          [{ type: 'string[]' }],
           [
-            // supply the hint data
-            {
-              to: zeroAddress,
-              data: encodeAbiParameters(
-                [{ type: 'string[]' }],
-                [
-                  [
-                    'deploy',
-                    writeToIpfsMutationRes?.data?.mainUrl,
-                    prevDeployLocation || '',
-                    gitUrl && gitFile ? `${gitUrl}:${gitFile}` : '',
-                    gitHash || '',
-                    prevInfoQuery.data &&
-                    typeof prevInfoQuery.data?.[0].result == 'string' &&
-                    (prevInfoQuery.data[0].result as any).length > 2
-                      ? ((prevInfoQuery.data[0].result as any).slice(2) as any)
-                      : '',
-                  ],
-                ]
-              ),
-            } as Partial<TransactionRequestBase>,
-            // write data needed for the subsequent deployment to chain
-            gitUrl && gitFile
-              ? ({
-                  to: onchainStore.deployAddress,
-                  data: encodeFunctionData({
-                    abi: onchainStore.ABI,
-                    functionName: 'set',
-                    args: [
-                      keccak256(toBytes(`${gitUrl}:${gitFile}gitHash`)),
-                      '0x' + gitHash,
-                    ],
-                  }),
-                } as Partial<TransactionRequestBase>)
-              : {},
-            gitUrl && gitFile
-              ? ({
-                  to: onchainStore.deployAddress,
-                  data: encodeFunctionData({
-                    abi: onchainStore.ABI,
-                    functionName: 'set',
-                    args: [
-                      keccak256(toBytes(`${gitUrl}:${gitFile}cannonPackage`)),
-                      stringToHex(writeToIpfsMutationRes?.data?.mainUrl ?? ''),
-                    ],
-                  }),
-                } as Partial<TransactionRequestBase>)
-              : {},
-            {
-              to: onchainStore.deployAddress,
-              data: encodeFunctionData({
-                abi: onchainStore.ABI,
-                functionName: 'set',
-                args: [
-                  keccak256(
-                    toBytes(
-                      cannonDefInfo?.def
-                        ? `${cannonDefInfo.def.getName(
-                            ctx
-                          )}@${cannonDefInfo.def.getPreset(ctx)}`
-                        : ''
-                    )
-                  ),
-                  // TODO: we would really rather have the timestamp be when the txn was executed. something to fix when we have a new state contract
-                  stringToHex(
-                    `${Math.floor(Date.now() / 1000)}_${
-                      writeToIpfsMutationRes?.data?.mainUrl ?? ''
-                    }`
-                  ),
-                ],
-              }),
-            } as Partial<TransactionRequestBase>,
-          ].concat(
-            buildState.result.safeSteps.map(
-              (s) => s.tx as unknown as Partial<TransactionRequestBase>
-            )
-          )
-        )
-      : { value: BigInt(0) };
+            [
+              'deploy',
+              writeToIpfsMutationRes?.data?.mainUrl,
+              prevDeployLocation || '',
+              gitUrl && gitFile ? `${gitUrl}:${gitFile}` : '',
+              gitHash || '',
+              prevInfoQuery.data &&
+              typeof prevInfoQuery.data?.[0].result == 'string' &&
+              (prevInfoQuery.data[0].result as any).length > 2
+                ? ((prevInfoQuery.data[0].result as any).slice(2) as any)
+                : '',
+            ],
+          ]
+        ),
+      } as Partial<TransactionRequestBase>,
+      // write data needed for the subsequent deployment to chain
+      gitUrl && gitFile
+        ? ({
+            to: onchainStore.deployAddress,
+            data: encodeFunctionData({
+              abi: onchainStore.ABI,
+              functionName: 'set',
+              args: [
+                keccak256(toBytes(`${gitUrl}:${gitFile}gitHash`)),
+                '0x' + gitHash,
+              ],
+            }),
+          } as Partial<TransactionRequestBase>)
+        : {},
+      gitUrl && gitFile
+        ? ({
+            to: onchainStore.deployAddress,
+            data: encodeFunctionData({
+              abi: onchainStore.ABI,
+              functionName: 'set',
+              args: [
+                keccak256(toBytes(`${gitUrl}:${gitFile}cannonPackage`)),
+                stringToHex(writeToIpfsMutationRes?.data?.mainUrl ?? ''),
+              ],
+            }),
+          } as Partial<TransactionRequestBase>)
+        : {},
+      {
+        to: onchainStore.deployAddress,
+        data: encodeFunctionData({
+          abi: onchainStore.ABI,
+          functionName: 'set',
+          args: [
+            keccak256(
+              toBytes(
+                cannonDefInfo?.def
+                  ? `${cannonDefInfo.def.getName(
+                      ctx
+                    )}@${cannonDefInfo.def.getPreset(ctx)}`
+                  : ''
+              )
+            ),
+            // TODO: we would really rather have the timestamp be when the txn was executed. something to fix when we have a new state contract
+            stringToHex(
+              `${Math.floor(Date.now() / 1000)}_${
+                writeToIpfsMutationRes?.data?.mainUrl ?? ''
+              }`
+            ),
+          ],
+        }),
+      } as Partial<TransactionRequestBase>,
+    ].concat(
+      buildState.result?.safeSteps.map(
+        (s) => s.tx as unknown as Partial<TransactionRequestBase>
+      ) || []
+    );
+  }, [
+    buildState.result?.safeSteps,
+    cannonDefInfo?.def,
+    gitFile,
+    gitHash,
+    gitUrl,
+    prevDeployLocation,
+    prevInfoQuery.data,
+    writeToIpfsMutationRes?.data?.mainUrl,
+  ]);
+
+  const { data: multicallTxn } = useMultisendQuery(
+    Boolean(
+      !prevInfoQuery.isLoading &&
+        buildState.result &&
+        buildState.status == 'success'
+    ),
+    multisendTxsParam
+  );
 
   let totalGas = BigInt(0);
 
@@ -379,7 +391,7 @@ export default function QueueFromGitOps() {
   const toast = useToast();
 
   const stager = useTxnStager(
-    multicallTxn.data
+    multicallTxn?.data
       ? ({
           to: multicallTxn.to,
           value: multicallTxn.value.toString(),
@@ -771,48 +783,45 @@ export default function QueueFromGitOps() {
               ))}
             </Flex>
           )}
-          {!!buildState.result?.deployerSteps?.length &&
-            !!buildState.result?.safeSteps.length && (
-              <Alert mt="6" status="info" mb="5">
-                {deployer.queuedTransactions.length === 0 ? (
-                  <VStack>
-                    <Text color="black">
-                      Some transactions should be executed outside the safe
-                      before staging. You can execute these now in your browser.
-                      By clicking the button below.
-                    </Text>
-                    <Button
-                      onClick={() =>
-                        deployer.queueTransactions(
-                          buildState.result!.deployerSteps.map(
-                            (s) => s.tx as any
-                          )
-                        )
-                      }
-                    >
-                      Execute Outside Safe Txns
-                    </Button>
-                  </VStack>
-                ) : deployer.executionProgress.length <
-                  deployer.queuedTransactions.length ? (
-                  <Text>
-                    Deploying txns {deployer.executionProgress.length + 1} /{' '}
-                    {deployer.queuedTransactions.length}
+          {!!buildState.result?.deployerSteps?.length && (
+            <Alert mt="6" status="info" mb="5">
+              {deployer.queuedTransactions.length === 0 ? (
+                <VStack>
+                  <Text color="black">
+                    Some transactions should be executed outside the safe before
+                    staging. You can execute these now in your browser. By
+                    clicking the button below.
                   </Text>
-                ) : (
-                  <Text>
-                    All Transactions Queued Successfully. You may now continue
-                    the safe deployment.
-                  </Text>
-                )}
-              </Alert>
-            )}
+                  <Button
+                    onClick={() =>
+                      deployer.queueTransactions(
+                        buildState.result!.deployerSteps.map((s) => s.tx as any)
+                      )
+                    }
+                  >
+                    Execute Outside Safe Txns
+                  </Button>
+                </VStack>
+              ) : deployer.executionProgress.length <
+                deployer.queuedTransactions.length ? (
+                <Text>
+                  Deploying txns {deployer.executionProgress.length + 1} /{' '}
+                  {deployer.queuedTransactions.length}
+                </Text>
+              ) : (
+                <Text>
+                  All Transactions Queued Successfully. You may now continue the
+                  safe deployment.
+                </Text>
+              )}
+            </Alert>
+          )}
           {(buildState.result?.safeSteps.length || 1) == 0 && (
             <Alert status="error">
               There are no transactions that would be executed by the Safe.
             </Alert>
           )}
-          {cannonDefInfo?.def && multicallTxn.data && (
+          {cannonDefInfo?.def && multicallTxn?.data && (
             <Box mt="10">
               <Heading size="md" mt={5}>
                 {cannonDefInfo.def.getName(ctx)}:
@@ -823,7 +832,7 @@ export default function QueueFromGitOps() {
           )}
           {buildState.status == 'success' &&
             writeToIpfsMutationRes?.data?.mainUrl &&
-            !multicallTxn.data && (
+            !multicallTxn?.data && (
               <Alert mt="6" status="info" bg="gray.800">
                 No simulated transactions have succeeded. Please ensure you have
                 selected the correct Safe wallet and that you have sufficient
@@ -831,7 +840,7 @@ export default function QueueFromGitOps() {
               </Alert>
             )}
           {writeToIpfsMutationRes?.data?.mainUrl &&
-            multicallTxn.data &&
+            multicallTxn?.data &&
             stager.safeTxn && (
               <Box mt="4" mb="10">
                 <Heading size="sm" mb={2}>
@@ -855,7 +864,7 @@ export default function QueueFromGitOps() {
               {writeToIpfsMutationRes.error.toString()}
             </Text>
           )}
-          {writeToIpfsMutationRes?.data?.mainUrl && multicallTxn.data && (
+          {writeToIpfsMutationRes?.data?.mainUrl && multicallTxn?.data && (
             <Box>
               <NoncePicker safe={currentSafe} handleChange={setPickedNonce} />
               <HStack gap="6">

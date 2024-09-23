@@ -248,11 +248,9 @@ export function useCannonBuildTmp(safe: SafeDefinition | null) {
     const newState = await cannonBuild(currentRuntime, def, _.cloneDeep(prevDeploy?.state) ?? {}, ctx);
 
     dispatch({ skippedSteps });
-    debugger;
     const allSteps = await Promise.all(
       simulatedTxns.map(async (executedTx) => {
         if (!executedTx) throw new Error('Invalid operation');
-        debugger;
         const tx = await provider.getTransaction({ hash: executedTx.hash as Hex });
         const rx = await provider.getTransactionReceipt({ hash: executedTx.hash as Hex });
         // eslint-disable-next-line no-console
@@ -268,7 +266,6 @@ export function useCannonBuildTmp(safe: SafeDefinition | null) {
         };
       })
     );
-    debugger;
     if (fork) await fork.disconnect();
 
     // eslint-disable-next-line no-console
@@ -473,7 +470,6 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     const allSteps = await Promise.all(
       simulatedTxns.map(async (executedTx) => {
         if (!executedTx) throw new Error('Invalid operation');
-        debugger;
         const tx = await provider.getTransaction({ hash: executedTx.hash as Hex });
         const rx = await provider.getTransactionReceipt({ hash: executedTx.hash as Hex });
         // eslint-disable-next-line no-console
