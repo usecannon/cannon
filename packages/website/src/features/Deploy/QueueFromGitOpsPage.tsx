@@ -175,22 +175,12 @@ export default function QueueFromGitOps() {
     partialDeployIpfs ? `ipfs://${partialDeployIpfs}` : ''
   );
 
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('partialDeployInfo changed', partialDeployInfo);
-  }, [partialDeployInfo]);
-
   const cannonDefInfo = useMergedCannonDefInfo(
     gitUrl,
     gitRef,
     gitFile,
     partialDeployIpfs
   );
-
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('cannonDefInfo changed', cannonDefInfo);
-  }, [cannonDefInfo]);
 
   const cannonDefInfoError: string = gitUrl
     ? (cannonDefInfo?.error as any)?.toString()
@@ -221,13 +211,8 @@ export default function QueueFromGitOps() {
     if (selectedDeployType == 'new') setSelectedDeployType('upgrade');
   }, [cannonDefInfo?.def, selectedDeployType]);
 
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('useEffect: selectedDeployType', selectedDeployType);
-  }, [selectedDeployType]);
-
   // run the build and get the list of transactions we need to run
-  const buildInfo = useCannonBuildTmp(currentSafe);
+  const { buildState, doBuild } = useCannonBuildTmp(currentSafe);
 
   const nextCannonDeployInfo = useMemo(() => {
     return cannonDefInfo?.def
@@ -235,7 +220,7 @@ export default function QueueFromGitOps() {
           generator: `cannon website ${pkg.version}`,
           timestamp: Math.floor(Date.now() / 1000),
           def: cannonDefInfo.def.toJson(),
-          state: buildInfo.buildResult?.state || {},
+          state: buildState.result?.state || {},
           options: prevCannonDeployInfo.pkg?.options || {},
           meta: prevCannonDeployInfo.pkg?.meta,
           miscUrl: prevCannonDeployInfo.pkg?.miscUrl || EMPTY_IPFS_MISC_URL,
@@ -243,7 +228,7 @@ export default function QueueFromGitOps() {
         } satisfies DeploymentInfo)
       : undefined;
   }, [
-    buildInfo.buildResult?.state,
+    buildState.result?.state,
     cannonDefInfo?.def,
     currentSafe.chainId,
     prevCannonDeployInfo.pkg?.meta,
@@ -254,10 +239,8 @@ export default function QueueFromGitOps() {
   const writeToIpfsMutation = useCannonWriteDeployToIpfs();
 
   useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('useEffect: buildStatus', buildInfo.buildStatus);
     const callMutation = async () => {
-      if (['success', 'error'].includes(buildInfo.buildStatus)) {
+      if (['success'].includes(buildState.status)) {
         try {
           setWriteToIpfsMutationRes({
             isLoading: true,
@@ -265,7 +248,7 @@ export default function QueueFromGitOps() {
             data: null,
           });
           const res = await writeToIpfsMutation.mutateAsync({
-            runtime: buildInfo.buildResult?.runtime,
+            runtime: buildState.result?.runtime,
             deployInfo: nextCannonDeployInfo,
             metaUrl: prevCannonDeployInfo.metaUrl,
           });
@@ -285,7 +268,7 @@ export default function QueueFromGitOps() {
     };
 
     void callMutation();
-  }, [buildInfo.buildStatus]); // TODO fix this
+  }, [buildState.status]); // TODO fix this
 
   const refsInfo = useGitRefsList(gitUrl);
   const foundRef = refsInfo.refs?.find(
@@ -301,10 +284,10 @@ export default function QueueFromGitOps() {
   );
 
   const multicallTxn: /*Partial<TransactionRequestBase>*/ any =
-    buildInfo.buildResult &&
     !prevInfoQuery.isLoading &&
-    buildInfo.buildResult.safeSteps.length > 0
-      ? //&& buildInfo.buildResult.safeSteps.indexOf(null as any) === -1
+    buildState.result &&
+    buildState.result.safeSteps.length > 0
+      ? //buildState.result.safeSteps.indexOf(null as any) === -1
         makeMultisend(
           [
             // supply the hint data
@@ -380,7 +363,7 @@ export default function QueueFromGitOps() {
               }),
             } as Partial<TransactionRequestBase>,
           ].concat(
-            buildInfo.buildResult.safeSteps.map(
+            buildState.result.safeSteps.map(
               (s) => s.tx as unknown as Partial<TransactionRequestBase>
             )
           )
@@ -389,7 +372,7 @@ export default function QueueFromGitOps() {
 
   let totalGas = BigInt(0);
 
-  for (const step of buildInfo.buildResult?.safeSteps || []) {
+  for (const step of buildState.result?.safeSteps || []) {
     totalGas += BigInt(step.gas.toString());
   }
 
@@ -423,14 +406,14 @@ export default function QueueFromGitOps() {
   const execTxn = useWriteContract();
 
   const isOutsideSafeTxnsRequired =
-    (buildInfo.buildResult?.deployerSteps.length || 0) > 0 &&
-    !deployer.isComplete;
+    (buildState.result?.deployerSteps.length || 0) > 0 && !deployer.isComplete;
 
   const loadingDataForDeploy =
     prevCannonDeployInfo.isFetching ||
     partialDeployInfo?.isFetching ||
     onChainPrevPkgQuery.isFetching ||
-    buildInfo.buildStatus === 'building';
+    buildState.status === 'building' ||
+    writeToIpfsMutationRes?.isLoading;
 
   const handlePreviewTxnsClick = async () => {
     if (!isConnected) {
@@ -450,8 +433,6 @@ export default function QueueFromGitOps() {
     if (chainId !== currentSafe?.chainId) {
       try {
         await switchChainAsync({ chainId: currentSafe?.chainId || 1 });
-        buildInfo.doBuild(cannonDefInfo?.def, prevCannonDeployInfo.pkg);
-        return;
       } catch (e) {
         toast({
           title:
@@ -464,7 +445,7 @@ export default function QueueFromGitOps() {
       }
     }
 
-    buildInfo.doBuild(cannonDefInfo?.def, prevCannonDeployInfo.pkg);
+    doBuild(cannonDefInfo?.def, prevCannonDeployInfo.pkg);
   };
 
   const renderAlertMessage = () => {
@@ -510,7 +491,7 @@ export default function QueueFromGitOps() {
     loadingDataForDeploy ||
     chainId !== currentSafe?.chainId ||
     !cannonDefInfo?.def ||
-    buildInfo.buildStatus === 'building';
+    buildState.status === 'building';
 
   function PreviewButton({ message }: { message?: string }) {
     return (
@@ -598,7 +579,7 @@ export default function QueueFromGitOps() {
       return <PreviewButton message="Fetching package info, please wait..." />;
     }
 
-    if (buildInfo.buildStatus === 'building') {
+    if (buildState.status === 'building') {
       return <PreviewButton message="Generating build info, please wait..." />;
     }
 
@@ -765,24 +746,24 @@ export default function QueueFromGitOps() {
 
           {renderAlertMessage()}
           <RenderPreviewButtonTooltip />
-          {buildInfo.buildMessage && (
+          {buildState.message && (
             <Alert mt="6" status="info" bg="gray.800">
               <Spinner mr={3} boxSize={4} />
-              <strong>{buildInfo.buildMessage}</strong>
+              <strong>{buildState.message}</strong>
             </Alert>
           )}
-          {buildInfo.buildError && (
+          {buildState.error && (
             <Alert mt="6" status="error" bg="red.700">
               <AlertIcon mr={3} />
-              <strong>{buildInfo.buildError}</strong>
+              <strong>{buildState.error}</strong>
             </Alert>
           )}
-          {buildInfo.buildSkippedSteps.length > 0 && (
+          {buildState.skippedSteps.length > 0 && (
             <Flex flexDir="column" mt="6">
               <Text mb="2" fontWeight="bold">
                 This safe will not be able to complete the following operations:
               </Text>
-              {buildInfo.buildSkippedSteps.map((s, i) => (
+              {buildState.skippedSteps.map((s, i) => (
                 <Text fontFamily="monospace" key={i} mb="2">
                   <strong>{`[${s.name}]: `}</strong>
                   {s.err.toString()}
@@ -790,8 +771,8 @@ export default function QueueFromGitOps() {
               ))}
             </Flex>
           )}
-          {!!buildInfo.buildResult?.deployerSteps?.length &&
-            !!buildInfo.buildResult?.safeSteps.length && (
+          {!!buildState.result?.deployerSteps?.length &&
+            !!buildState.result?.safeSteps.length && (
               <Alert mt="6" status="info" mb="5">
                 {deployer.queuedTransactions.length === 0 ? (
                   <VStack>
@@ -803,7 +784,7 @@ export default function QueueFromGitOps() {
                     <Button
                       onClick={() =>
                         deployer.queueTransactions(
-                          buildInfo.buildResult!.deployerSteps.map(
+                          buildState.result!.deployerSteps.map(
                             (s) => s.tx as any
                           )
                         )
@@ -826,7 +807,7 @@ export default function QueueFromGitOps() {
                 )}
               </Alert>
             )}
-          {(buildInfo.buildResult?.safeSteps.length || 1) == 0 && (
+          {(buildState.result?.safeSteps.length || 1) == 0 && (
             <Alert status="error">
               There are no transactions that would be executed by the Safe.
             </Alert>
@@ -840,13 +821,15 @@ export default function QueueFromGitOps() {
               </Heading>
             </Box>
           )}
-          {writeToIpfsMutationRes?.data?.mainUrl && !multicallTxn.data && (
-            <Alert mt="6" status="info" bg="gray.800">
-              No simulated transactions have succeeded. Please ensure you have
-              selected the correct Safe wallet and that you have sufficient
-              permissions to execute transactions.
-            </Alert>
-          )}
+          {buildState.status == 'success' &&
+            writeToIpfsMutationRes?.data?.mainUrl &&
+            !multicallTxn.data && (
+              <Alert mt="6" status="info" bg="gray.800">
+                No simulated transactions have succeeded. Please ensure you have
+                selected the correct Safe wallet and that you have sufficient
+                permissions to execute transactions.
+              </Alert>
+            )}
           {writeToIpfsMutationRes?.data?.mainUrl &&
             multicallTxn.data &&
             stager.safeTxn && (

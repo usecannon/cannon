@@ -28,7 +28,7 @@ import {
   findUpgradeFromPackage,
 } from '@usecannon/builder';
 import _ from 'lodash';
-import { useEffect, useState } from 'react';
+import { useEffect, useReducer, useState } from 'react';
 import { Abi, Address, createPublicClient, createTestClient, createWalletClient, custom, Hex, isAddressEqual } from 'viem';
 import { useChainId, usePublicClient } from 'wagmi';
 // Needed to prepare mock run step with registerAction
@@ -75,34 +75,43 @@ export function useLoadCannonDefinition(repo: string, ref: string, filepath: str
   };
 }
 
-export function useCannonBuildTmp(safe: SafeDefinition | null) {
-  const { addLog } = useLogs();
-  const settings = useStore((s) => s.settings);
-
-  const [buildMessage, setBuildMessage] = useState('');
-  const [buildStatus, setBuildStatus] = useState<'idle' | 'building' | 'success' | 'error'>('idle');
-
-  const [buildResult, setBuildResult] = useState<{
+type BuildStateTmp = {
+  message: string;
+  status: 'idle' | 'building' | 'success' | 'error';
+  result: {
     runtime: ChainBuilderRuntime;
     state: DeploymentState;
     safeSteps: CannonTxRecord[];
     deployerSteps: CannonTxRecord[];
-  } | null>(null);
+  } | null;
+  error: string | null;
+  skippedSteps: StepExecutionError[];
+};
 
-  const [buildError, setBuildError] = useState<string | null>(null);
+const initialState: BuildStateTmp = {
+  message: '',
+  status: 'idle',
+  result: null,
+  error: null,
+  skippedSteps: [],
+};
 
-  const [buildSkippedSteps, setBuildSkippedSteps] = useState<StepExecutionError[]>([]);
+export function useCannonBuildTmp(safe: SafeDefinition | null) {
+  const { addLog } = useLogs();
+  const settings = useStore((s) => s.settings);
+
+  const [buildState, dispatch] = useReducer(
+    (state: BuildStateTmp, partial: Partial<BuildStateTmp>): BuildStateTmp => ({ ...state, ...partial }),
+    initialState
+  );
 
   const fallbackRegistry = useCannonRegistry();
-
   const { getChainById } = useCannonChains();
   const createFork = useCreateFork();
   const { address: deployerWalletAddress } = useDeployerWallet(safe?.chainId);
 
   function reset() {
-    setBuildResult(null);
-    setBuildError(null);
-    setBuildSkippedSteps([]);
+    dispatch(initialState);
   }
 
   useEffect(() => {
@@ -119,7 +128,7 @@ export function useCannonBuildTmp(safe: SafeDefinition | null) {
 
     const chain = getChainById(safe.chainId);
 
-    setBuildMessage('Creating fork...');
+    dispatch({ message: 'Creating fork...' });
     const fork = await createFork({
       chainId: safe.chainId,
       impersonate: [safe.address, deployerWalletAddress],
@@ -131,7 +140,7 @@ export function useCannonBuildTmp(safe: SafeDefinition | null) {
 
     const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
 
-    setBuildMessage('Loading deployment data...');
+    dispatch({ message: 'Loading deployment data...' });
 
     addLog('info', `cannon.ts: upgrade from: ${prevDeploy?.def.name}:${prevDeploy?.def.version}`);
 
@@ -218,7 +227,7 @@ export function useCannonBuildTmp(safe: SafeDefinition | null) {
         stepOutput.txns![txn].hash = '';
       }
 
-      setBuildMessage(`Building ${stepName}...`);
+      dispatch({ message: `Building ${stepName}...` });
     });
 
     currentRuntime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
@@ -238,11 +247,12 @@ export function useCannonBuildTmp(safe: SafeDefinition | null) {
 
     const newState = await cannonBuild(currentRuntime, def, _.cloneDeep(prevDeploy?.state) ?? {}, ctx);
 
-    setBuildSkippedSteps(skippedSteps);
-
+    dispatch({ skippedSteps });
+    debugger;
     const allSteps = await Promise.all(
       simulatedTxns.map(async (executedTx) => {
         if (!executedTx) throw new Error('Invalid operation');
+        debugger;
         const tx = await provider.getTransaction({ hash: executedTx.hash as Hex });
         const rx = await provider.getTransactionReceipt({ hash: executedTx.hash as Hex });
         // eslint-disable-next-line no-console
@@ -258,7 +268,7 @@ export function useCannonBuildTmp(safe: SafeDefinition | null) {
         };
       })
     );
-
+    debugger;
     if (fork) await fork.disconnect();
 
     // eslint-disable-next-line no-console
@@ -271,34 +281,26 @@ export function useCannonBuildTmp(safe: SafeDefinition | null) {
   };
 
   function doBuild(def?: ChainDefinition, prevDeploy?: DeploymentInfo) {
-    // eslint-disable-next-line no-console
-    console.log('STARTING BUILD!!!!');
     reset();
-    setBuildStatus('building');
+    dispatch({ status: 'building' });
 
     buildFn(def, prevDeploy)
       .then((res) => {
-        setBuildResult(res);
-        setBuildStatus('success');
+        dispatch({ result: res, status: 'success' });
       })
       .catch((err) => {
         // eslint-disable-next-line no-console
         console.error(err);
         addLog('error', `cannon.ts: full build error ${err.toString()}`);
-        setBuildError(err.toString());
-        setBuildStatus('error');
+        dispatch({ error: err.toString(), status: 'error' });
       })
       .finally(() => {
-        setBuildMessage('');
+        dispatch({ message: '' });
       });
   }
 
   return {
-    buildStatus,
-    buildMessage,
-    buildResult,
-    buildError,
-    buildSkippedSteps,
+    buildState,
     doBuild,
   };
 }
@@ -471,6 +473,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     const allSteps = await Promise.all(
       simulatedTxns.map(async (executedTx) => {
         if (!executedTx) throw new Error('Invalid operation');
+        debugger;
         const tx = await provider.getTransaction({ hash: executedTx.hash as Hex });
         const rx = await provider.getTransactionReceipt({ hash: executedTx.hash as Hex });
         // eslint-disable-next-line no-console
