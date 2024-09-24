@@ -50,6 +50,7 @@ import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainBuilderContext, DeploymentInfo } from '@usecannon/builder';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Alert as AlertCannon } from '@/components/Alert';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   encodeAbiParameters,
@@ -211,7 +212,6 @@ export default function QueueFromGitOps() {
     const version = 'latest';
     const preset = cannonDefInfo?.def.getPreset(ctx);
     setPreviousPackageInput(`${name}:${version}@${preset}`);
-    if (selectedDeployType == 'new') setSelectedDeployType('upgrade');
   }, [cannonDefInfo?.def, selectedDeployType]);
 
   // run the build and get the list of transactions we need to run
@@ -531,7 +531,7 @@ export default function QueueFromGitOps() {
 
   function renderCannonfileInput() {
     return (
-      <FormControl mb="4">
+      <FormControl mb="1">
         <FormLabel>
           Cannonfile {selectedDeployType == 'partial' ? '(Optional)' : ''}
         </FormLabel>
@@ -555,9 +555,6 @@ export default function QueueFromGitOps() {
             </InputRightElement>
           </InputGroup>
         </HStack>
-        <FormHelperText color="gray.300">
-          Enter a Git or GitHub URL for the cannonfile you&#39;d like to build.
-        </FormHelperText>
         {cannonDefInfoError ? (
           <Alert mt="6" status="error" bg="gray.700">
             <AlertIcon mr={3} />
@@ -634,7 +631,10 @@ export default function QueueFromGitOps() {
             <FormLabel>Deployment Source</FormLabel>
             <RadioGroup
               value={selectedDeployType}
-              onChange={(value: DeployType) => setSelectedDeployType(value)}
+              onChange={(value: DeployType) => {
+                setCannonfileUrlInput('');
+                setSelectedDeployType(value);
+              }}
             >
               <Stack
                 direction={['column', 'column', 'row']}
@@ -644,7 +644,7 @@ export default function QueueFromGitOps() {
                 <Radio colorScheme="teal" value="git">
                   Git URL
                 </Radio>
-                <Radio colorScheme="teal" value="stateUrl">
+                <Radio colorScheme="teal" value="partial">
                   IPFS Hash
                 </Radio>
               </Stack>
@@ -657,16 +657,30 @@ export default function QueueFromGitOps() {
             </Text>
           </FormControl>
 
-          {selectedDeployType == 'git' && renderCannonfileInput()}
-
-          {onChainPrevPkgQuery.isFetched &&
-            (prevDeployLocation ? (
-              <Text color="green">
-                Previous Deployment: {prevDeployLocation}
-              </Text>
-            ) : (
-              <Text color="yellow">Deployment from scratch.</Text>
-            ))}
+          {selectedDeployType == 'git' && (
+            <Flex flexDir="column" my="4">
+              {renderCannonfileInput()}
+              {onChainPrevPkgQuery.isFetched &&
+                (prevDeployLocation ? (
+                  <AlertCannon borderless status="info">
+                    Previous Deployment:{' '}
+                    <Link
+                      href={`/ipfs?cid=${prevDeployLocation.replace(
+                        'ipfs://',
+                        ''
+                      )}&compressed=true`}
+                      target="_blank"
+                    >
+                      {prevDeployLocation.replace('ipfs://', '')}
+                    </Link>
+                  </AlertCannon>
+                ) : (
+                  <AlertCannon borderless status="info">
+                    Deployment from scratch
+                  </AlertCannon>
+                ))}
+            </Flex>
+          )}
 
           <FormControl display="flex" alignItems="center" my="2">
             <Checkbox
@@ -786,11 +800,19 @@ export default function QueueFromGitOps() {
               ))}
             </Flex>
           )}
+
           {!!buildState.result?.deployerSteps?.length && (
-            <Alert mt="6" status="info" mb="5">
+            <Box
+              mt="6"
+              mb="5"
+              border="1px solid"
+              borderColor="gray.600"
+              p="4"
+              borderRadius="md"
+            >
               {deployer.queuedTransactions.length === 0 ? (
                 <VStack>
-                  <Text color="black">
+                  <Text color="gray.300" mb="4">
                     Some transactions should be executed outside the safe before
                     staging. You can execute these now in your browser. By
                     clicking the button below.
@@ -817,12 +839,7 @@ export default function QueueFromGitOps() {
                   safe deployment.
                 </Text>
               )}
-            </Alert>
-          )}
-          {(buildState.result?.safeSteps.length || 1) == 0 && (
-            <Alert status="error">
-              There are no transactions that would be executed by the Safe.
-            </Alert>
+            </Box>
           )}
           {cannonDefInfo?.def && multicallTxn?.data && (
             <Box mt="10">
@@ -849,10 +866,17 @@ export default function QueueFromGitOps() {
                 <Heading size="sm" mb={2}>
                   Transactions
                 </Heading>
-                <TransactionDisplay
-                  safe={currentSafe as any}
-                  safeTxn={stager.safeTxn}
-                />
+                {buildState.result?.safeSteps.length === 0 ? (
+                  <AlertCannon borderless status="info">
+                    There are no transactions that would be executed by the
+                    Safe.
+                  </AlertCannon>
+                ) : (
+                  <TransactionDisplay
+                    safe={currentSafe as any}
+                    safeTxn={stager.safeTxn}
+                  />
+                )}
               </Box>
             )}
           {writeToIpfsMutationRes?.isLoading && (
