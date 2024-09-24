@@ -4,7 +4,7 @@ import { NextSeo } from 'next-seo';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { ReactElement } from 'react';
-import Layout from '../../../../../_layout';
+import DeployLayout from '@/pages/deploy/deployLayout';
 
 const NoSSRTransactionDetailsPage = dynamic(
   async () => {
@@ -35,5 +35,5 @@ export default function TransactionDetails() {
 }
 
 TransactionDetails.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>;
+  return <DeployLayout>{page}</DeployLayout>;
 };

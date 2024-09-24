@@ -28,14 +28,6 @@ export function safeToString(safe: SafeDefinition): SafeString {
   return `${safe.chainId as ChainId}:${safe.address}`;
 }
 
-export function parseSafe(safeString: string): SafeDefinition {
-  const [chainId, address] = safeString.split(':');
-  return {
-    chainId: Number.parseInt(chainId) as ChainId,
-    address: getAddress(address),
-  };
-}
-
 const addressStringRegex = /^[1-9][0-9]*:0x[a-fA-F0-9]{40}$/;
 
 export function isValidSafeString(safeString: string): boolean {
@@ -45,7 +37,7 @@ export function isValidSafeString(safeString: string): boolean {
   return chains.some((chain) => chain.id === chainId);
 }
 
-export function getSafeFromString(safeString: string): SafeDefinition | null {
+export function parseSafe(safeString: string): SafeDefinition | null {
   if (!isValidSafeString(safeString)) return null;
   const [chainId, address] = safeString.split(':');
   return {

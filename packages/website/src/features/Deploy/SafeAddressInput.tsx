@@ -1,8 +1,8 @@
-import { links } from '@/constants/links';
+'use client';
+
 import { includes } from '@/helpers/array';
 import { State, useStore } from '@/helpers/store';
 import {
-  getSafeFromString,
   isValidSafe,
   isValidSafeString,
   parseSafe,
@@ -19,9 +19,9 @@ import {
   CreatableSelect,
   GroupBase,
   OptionProps,
+  SingleValue,
   SingleValueProps,
 } from 'chakra-react-select';
-import * as viem from 'viem';
 import deepEqual from 'fast-deep-equal';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
@@ -37,150 +37,52 @@ type SafeOption = {
   isDeletable?: boolean;
 };
 
-export function SafeAddressInput() {
-  const currentSafe = useStore((s: any) => s.currentSafe);
-  const safeAddresses = useStore((s: any) => s.safeAddresses);
-  const setState = useStore((s: any) => s.setState);
-  const setCurrentSafe = useStore((s: any) => s.setCurrentSafe);
-  const deleteSafe = useStore((s: any) => s.deleteSafe);
-  const prependSafeAddress = useStore((s: any) => s.prependSafeAddress);
-  const walletSafes = useWalletPublicSafes();
-  const pendingServiceTransactions = usePendingTransactions(currentSafe);
-  const { chains } = useCannonChains();
+import { useCallback } from 'react';
 
+export function SafeAddressInput() {
+  const currentSafe = useStore((s) => s.currentSafe);
+  const safeAddresses = useStore((s) => s.safeAddresses);
+  const setCurrentSafe = useStore((s) => s.setCurrentSafe);
+  const deleteSafe = useStore((s) => s.deleteSafe);
+  const prependSafeAddress = useStore((s) => s.prependSafeAddress);
+
+  const walletSafes = useWalletPublicSafes();
+  const pendingServiceTransactions = usePendingTransactions(
+    currentSafe || undefined
+  );
+  const { chains } = useCannonChains();
   const { switchChain } = useSwitchChain();
 
   const router = useRouter();
-  const { asPath: pathname, query: searchParams } = router;
 
   const safeOptions = _safesToOptions(safeAddresses, { isDeletable: true });
   const walletSafeOptions = _safesToOptions(
     walletSafes.filter((s: any) => !includes(safeAddresses, s))
   );
 
-  // Load the safe address from url
-  useEffect(() => {
-    const { address, chainId } = searchParams;
-
-    if (!Number.isSafeInteger(Number(chainId))) return;
-    if (!viem.isAddress(address as string)) return;
-
-    const newSafe = parseSafe(`${chainId}:${address}`);
-
-    if (isValidSafe(newSafe, chains)) {
-      if (!deepEqual(currentSafe, newSafe)) {
-        setState({ currentSafe: newSafe });
-      }
-
-      if (!includes(safeAddresses, newSafe)) {
-        prependSafeAddress(newSafe);
-      }
-
-      if (switchChain) {
-        switchChain({ chainId: newSafe.chainId });
-      }
-    } else {
-      const newSearchParams = new URLSearchParams(
-        Array.from(Object.entries(searchParams)) as any
-      );
-      newSearchParams.delete('chainId');
-      newSearchParams.delete('address');
-      const search = newSearchParams.toString();
-      const query = `${'?'.repeat(search.length && 1)}${search}`;
-      router
-        .push(`${pathname}${query}`)
-        .then(() => {
-          // do nothing
-        })
-        .catch(() => {
-          // do nothing
-        });
-    }
-  }, [searchParams]);
-
-  // Keep the current safe in the url params
-  useEffect(() => {
-    // can't do it with router().query because it is empty on first render
-    const queryStrings = pathname.split('?').pop();
-    const formattedQueryStrings = new URLSearchParams(queryStrings);
-    const address = formattedQueryStrings.get('address');
-    const chainId = formattedQueryStrings.get('chainId');
-
-    if (
-      pathname.startsWith(links.DEPLOY) &&
-      currentSafe &&
-      !address &&
-      !chainId
-    ) {
-      const newSearchParams = new URLSearchParams();
-      newSearchParams.set('chainId', currentSafe.chainId.toString());
-      newSearchParams.set('address', currentSafe.address);
-      const search = newSearchParams.toString();
-      const query = `${'?'.repeat(search.length && 1)}${search}`;
-
-      router
-        .push(`${pathname}${query}`)
-        .then(() => {
-          // do nothing
-        })
-        .catch(() => {
-          // do nothing
-        });
-    }
-  }, [pathname]);
-
   // If the user puts a correct address in the input, update the url
-  async function handleSafeChange(safeString: SafeString) {
-    if (!safeString) {
-      const newSearchParams = new URLSearchParams(
-        Array.from(Object.entries(searchParams)) as any
-      );
-      newSearchParams.delete('chainId');
-      newSearchParams.delete('address');
-      const search = newSearchParams.toString();
-      const query = `${'?'.repeat(search.length && 1)}${search}`;
-      await router.push(`${pathname}${query}`);
-      setState({ currentSafe: null });
-      return;
-    }
-
-    const selectedSafe = parseSafe(safeString);
-
-    setCurrentSafe(selectedSafe);
-    const newSearchParams = new URLSearchParams(
-      Array.from(Object.entries(searchParams)) as any
-    );
-    newSearchParams.set('chainId', selectedSafe.chainId.toString());
-    newSearchParams.set('address', selectedSafe.address);
-    const search = newSearchParams.toString();
-    const query = `${'?'.repeat(search.length && 1)}${search}`;
-    await router.push(`${pathname}${query}`);
-
-    if (switchChain) {
-      switchChain({ chainId: selectedSafe.chainId });
-    }
-  }
-
-  async function handleSafeCreate(newSafeAddress: string) {
-    const newSafe = getSafeFromString(newSafeAddress);
-    if (newSafe) {
-      prependSafeAddress(newSafe);
-      setState({ currentSafe: newSafe });
-
-      const newSearchParams = new URLSearchParams(
-        Array.from(Object.entries(searchParams)) as any
-      );
-      newSearchParams.set('chainId', newSafe.chainId.toString());
-      newSearchParams.set('address', newSafe.address);
-      const search = newSearchParams.toString();
-      const query = `${'?'.repeat(search.length && 1)}${search}`;
-      await router.push(`${pathname}${query}`);
-
-      if (switchChain) {
-        switchChain({ chainId: newSafe.chainId });
+  const handleNewOrSelectedSafe = useCallback(
+    async (safeString: string) => {
+      const parsedSafeInput = parseSafe(safeString);
+      if (!parsedSafeInput) {
+        return;
       }
-    }
-  }
+
+      if (!isValidSafe(parsedSafeInput, chains)) {
+        return;
+      }
+
+      await router.push({
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          chainId: parsedSafeInput.chainId.toString(),
+          address: parsedSafeInput.address,
+        },
+      });
+    },
+    [chains, router]
+  );
 
   function handleSafeDelete(safeString: SafeString) {
     deleteSafe(parseSafe(safeString));
@@ -234,13 +136,57 @@ export function SafeAddressInput() {
     }),
   };
 
+  // Load the safe address from url
+  useEffect(() => {
+    const loadSafeFromUrl = async () => {
+      const { address, chainId } = router.query;
+
+      // if the chainId:safeAddress is not in the url, use the first safe available
+      // else, try to load the safe from the url
+      if (!address || !chainId) {
+        const targetSafe = currentSafe || safeAddresses[0];
+        if (!targetSafe) return;
+        void handleNewOrSelectedSafe(safeToString(targetSafe));
+        return;
+      } else {
+        const safeFromUrl = parseSafe(`${chainId}:${address}`);
+        if (!safeFromUrl || !isValidSafe(safeFromUrl, chains)) {
+          throw new Error('Safe from url is not valid');
+        }
+
+        if (!deepEqual(currentSafe, safeFromUrl)) {
+          setCurrentSafe(safeFromUrl);
+        }
+
+        if (!includes(safeAddresses, safeFromUrl)) {
+          prependSafeAddress(safeFromUrl);
+        }
+
+        if (switchChain) {
+          await switchChain({ chainId: safeFromUrl.chainId });
+        }
+      }
+    };
+
+    void loadSafeFromUrl();
+  }, [
+    chains,
+    currentSafe,
+    handleNewOrSelectedSafe,
+    prependSafeAddress,
+    router,
+    safeAddresses,
+    setCurrentSafe,
+    switchChain,
+  ]);
+
   return (
     <Flex alignItems="center" gap={3}>
       <FormControl>
         <CreatableSelect
           instanceId={'safe-address-select'}
           chakraStyles={chakraStyles}
-          isClearable
+          //isClearable
           value={currentSafe ? _safeToOption(currentSafe) : null}
           placeholder="Select a Safe"
           noOptionsMessage={() => ''}
@@ -251,18 +197,18 @@ export function SafeAddressInput() {
               options: walletSafeOptions,
             },
           ]}
-          onChange={(selected: any) =>
-            handleSafeChange(selected?.value || null)
+          onChange={(selected) =>
+            handleNewOrSelectedSafe(
+              (selected as SingleValue<SafeOption>)?.value || ''
+            )
           }
-          onCreateOption={handleSafeCreate}
+          onCreateOption={handleNewOrSelectedSafe}
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           //@ts-ignore-next-line
           onDeleteOption={(selected: SafeOption) =>
             handleSafeDelete(selected?.value || null)
           }
-          isValidNewOption={(input: any) => {
-            return isValidSafeString(input);
-          }}
+          isValidNewOption={isValidSafeString}
           components={{
             Option: DeletableOption,
             SingleValue: SelectedOption,
