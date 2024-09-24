@@ -186,7 +186,6 @@ export function SafeAddressInput() {
         <CreatableSelect
           instanceId={'safe-address-select'}
           chakraStyles={chakraStyles}
-          //isClearable
           value={currentSafe ? _safeToOption(currentSafe) : null}
           placeholder="Select a Safe"
           noOptionsMessage={() => ''}
