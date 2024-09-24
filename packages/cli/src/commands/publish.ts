@@ -168,7 +168,7 @@ export async function publish({
     log(blueBright(`\nThis will publish ${bold(packageName)} to the registry:`));
     for (const fullPackageRef of publishCall.packagesNames) {
       const { version, preset } = new PackageReference(fullPackageRef);
-      log(` - ${version} (preset: ${preset})`);
+      log(` - ${version} (chain id: ${publishCall.chainId}, preset: ${preset})`);
     }
   }
 
