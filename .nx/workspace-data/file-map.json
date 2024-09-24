@@ -34,906 +34,332 @@
   "fileMap": {
     "nonProjectFiles": [
       {
-        "file": "CODE_OF_CONDUCT.md",
-        "hash": "7359443761280019963"
-      },
-      {
-        "file": ".github/workflows/test-snx-ci.yml",
-        "hash": "10444381077381050006"
-      },
-      {
-        "file": "pnpm-lock.yaml",
-        "hash": "12937184737386834132"
-      },
-      {
-        "file": ".mocharc.json",
-        "hash": "13223162343389838239"
-      },
-      {
-        "file": "examples/diamond-architecture/README.md",
-        "hash": "11901379935717138200"
-      },
-      {
-        "file": "tsconfig.json",
-        "hash": "14421949690734295062"
-      },
-      {
-        "file": "examples/router-architecture/foundry.toml",
-        "hash": "17022801668826136003"
-      },
-      {
-        "file": "LICENSE",
-        "hash": "15553496959705771468"
-      },
-      {
-        "file": ".prettierignore",
-        "hash": "5878918345210928365"
-      },
-      {
-        "file": ".gitignore",
-        "hash": "6395347358878874969"
-      },
-      {
-        "file": ".changeset/config.json",
-        "hash": "9436150497285796965"
-      },
-      {
-        "file": "netlify.toml",
-        "hash": "2738307596039763444"
-      },
-      {
-        "file": "examples/diamond-architecture/foundry.toml",
-        "hash": "17022801668826136003"
-      },
-      {
-        "file": "examples/router-architecture/README.md",
-        "hash": "11901379935717138200"
-      },
-      {
-        "file": "examples/router-architecture/cannonfile.toml",
-        "hash": "9490485869668146398"
-      },
-      {
-        "file": ".eslintrc.json",
-        "hash": "5263792134500466184"
-      },
-      {
-        "file": "CONTRIBUTING.md",
-        "hash": "3546465377409621033"
-      },
-      {
-        "file": ".github/workflows/upload-to-ipfs.yml",
-        "hash": "3712267378834430520"
-      },
-      {
-        "file": ".changeset/README.md",
-        "hash": "4888845876018830777"
-      },
-      {
-        "file": ".github/workflows/release.yml",
-        "hash": "16894990051445007914"
-      },
-      {
-        "file": ".prettierrc",
-        "hash": "5400851715388859448"
-      },
-      {
-        "file": ".github/workflows/commitlint-pr.yml",
-        "hash": "257279499032214002"
-      },
-      {
-        "file": "examples/router-architecture/src/Greeter.sol",
-        "hash": "4007247159568222914"
-      },
-      {
-        "file": ".gitmodules",
-        "hash": "13860333871890155685"
-      },
-      {
-        "file": ".github/workflows/lint.yml",
-        "hash": "8384125453251554335"
-      },
-      {
-        "file": ".editorconfig",
-        "hash": "12844250875304638587"
-      },
-      {
-        "file": "examples/router-architecture/.gitignore",
-        "hash": "1972197803267052439"
-      },
-      {
-        "file": "examples/.eslintrc",
-        "hash": "12919761174095936280"
-      },
-      {
-        "file": ".eslintignore",
-        "hash": "2650820535990372883"
-      },
-      {
-        "file": "examples/router-architecture/src/GlobalState.sol",
-        "hash": "17737632686114948403"
-      },
-      {
-        "file": ".github/dependabot.yml",
-        "hash": "17785986153427496338"
-      },
-      {
-        "file": ".solhint.json",
-        "hash": "7068450011696771920"
-      },
-      {
-        "file": "lerna.json",
-        "hash": "5888076450229264240"
-      },
-      {
-        "file": "examples/diamond-architecture/.gitignore",
-        "hash": "1972197803267052439"
-      },
-      {
-        "file": "examples/diamond-architecture/src/Counter.sol",
-        "hash": "3253543649150228646"
-      },
-      {
-        "file": "nx.json",
-        "hash": "8839361205962660654"
-      },
-      {
         "file": "SECURITY.md",
         "hash": "15821019023746560109"
-      },
-      {
-        "file": ".github/workflows/test-e2e.yml",
-        "hash": "613420390365186108"
-      },
-      {
-        "file": ".github/workflows/website-e2e.yml",
-        "hash": "11417049993038240611"
-      },
-      {
-        "file": "examples/router-architecture/src/Counter.sol",
-        "hash": "3253543649150228646"
-      },
-      {
-        "file": "examples/diamond-architecture/cannonfile.toml",
-        "hash": "9402147275805516341"
-      },
-      {
-        "file": "README.md",
-        "hash": "12494180869435789022"
       },
       {
         "file": "examples/diamond-architecture/src/GlobalState.sol",
         "hash": "17737632686114948403"
       },
       {
-        "file": "examples/diamond-architecture/src/Greeter.sol",
-        "hash": "4007247159568222914"
+        "file": ".mocharc.json",
+        "hash": "13223162343389838239"
+      },
+      {
+        "file": "examples/diamond-architecture/cannonfile.toml",
+        "hash": "9402147275805516341"
+      },
+      {
+        "file": ".prettierrc",
+        "hash": "5400851715388859448"
+      },
+      {
+        "file": ".github/dependabot.yml",
+        "hash": "17785986153427496338"
       },
       {
         "file": ".solhintignore",
         "hash": "14291171810886391975"
       },
       {
+        "file": ".github/workflows/test-snx-ci.yml",
+        "hash": "10444381077381050006"
+      },
+      {
+        "file": ".changeset/README.md",
+        "hash": "4888845876018830777"
+      },
+      {
         "file": "package.json",
         "hash": "14328248740202860865"
+      },
+      {
+        "file": ".github/workflows/commitlint-pr.yml",
+        "hash": "257279499032214002"
+      },
+      {
+        "file": "examples/router-architecture/foundry.toml",
+        "hash": "17022801668826136003"
+      },
+      {
+        "file": ".editorconfig",
+        "hash": "12844250875304638587"
+      },
+      {
+        "file": "examples/diamond-architecture/src/Greeter.sol",
+        "hash": "4007247159568222914"
+      },
+      {
+        "file": "pnpm-lock.yaml",
+        "hash": "1243882319132258275"
+      },
+      {
+        "file": "examples/diamond-architecture/src/Counter.sol",
+        "hash": "3253543649150228646"
+      },
+      {
+        "file": ".solhint.json",
+        "hash": "7068450011696771920"
+      },
+      {
+        "file": ".gitignore",
+        "hash": "6395347358878874969"
+      },
+      {
+        "file": "examples/router-architecture/src/Counter.sol",
+        "hash": "3253543649150228646"
+      },
+      {
+        "file": "examples/router-architecture/README.md",
+        "hash": "11901379935717138200"
+      },
+      {
+        "file": ".github/workflows/website-e2e.yml",
+        "hash": "11417049993038240611"
+      },
+      {
+        "file": ".github/workflows/test-e2e.yml",
+        "hash": "613420390365186108"
+      },
+      {
+        "file": "netlify.toml",
+        "hash": "2738307596039763444"
+      },
+      {
+        "file": ".eslintrc.json",
+        "hash": "5263792134500466184"
+      },
+      {
+        "file": "examples/router-architecture/src/GlobalState.sol",
+        "hash": "17737632686114948403"
+      },
+      {
+        "file": "README.md",
+        "hash": "12494180869435789022"
+      },
+      {
+        "file": "LICENSE",
+        "hash": "15553496959705771468"
+      },
+      {
+        "file": ".eslintignore",
+        "hash": "2650820535990372883"
+      },
+      {
+        "file": "nx.json",
+        "hash": "8839361205962660654"
+      },
+      {
+        "file": "examples/router-architecture/.gitignore",
+        "hash": "1972197803267052439"
+      },
+      {
+        "file": ".prettierignore",
+        "hash": "5878918345210928365"
+      },
+      {
+        "file": "CODE_OF_CONDUCT.md",
+        "hash": "7359443761280019963"
+      },
+      {
+        "file": "examples/.eslintrc",
+        "hash": "12919761174095936280"
       },
       {
         "file": "pnpm-workspace.yaml",
         "hash": "16601633810671854477"
       },
       {
+        "file": "examples/router-architecture/src/Greeter.sol",
+        "hash": "4007247159568222914"
+      },
+      {
+        "file": "CONTRIBUTING.md",
+        "hash": "3546465377409621033"
+      },
+      {
+        "file": "examples/diamond-architecture/.gitignore",
+        "hash": "1972197803267052439"
+      },
+      {
+        "file": "examples/router-architecture/cannonfile.toml",
+        "hash": "9490485869668146398"
+      },
+      {
+        "file": ".github/workflows/lint.yml",
+        "hash": "8384125453251554335"
+      },
+      {
         "file": ".github/workflows/test.yml",
         "hash": "7781886952440922239"
+      },
+      {
+        "file": ".github/workflows/release.yml",
+        "hash": "16894990051445007914"
+      },
+      {
+        "file": ".changeset/config.json",
+        "hash": "9436150497285796965"
+      },
+      {
+        "file": "examples/diamond-architecture/README.md",
+        "hash": "11901379935717138200"
+      },
+      {
+        "file": "examples/diamond-architecture/foundry.toml",
+        "hash": "17022801668826136003"
+      },
+      {
+        "file": ".github/workflows/upload-to-ipfs.yml",
+        "hash": "3712267378834430520"
+      },
+      {
+        "file": "tsconfig.json",
+        "hash": "14421949690734295062"
+      },
+      {
+        "file": ".gitmodules",
+        "hash": "13860333871890155685"
+      },
+      {
+        "file": "lerna.json",
+        "hash": "10703876247938037258"
       }
     ],
     "projectFileMap": {
-      "@usecannon/repo": [
+      "hardhat-cannon": [
         {
-          "file": "packages/repo/.eslintrc",
+          "file": "packages/hardhat-cannon/.eslintrc",
           "hash": "12919761174095936280"
         },
         {
-          "file": "packages/repo/.gitignore",
-          "hash": "8991966823503952338"
-        },
-        {
-          "file": "packages/repo/cloud-init.sh",
-          "hash": "9070055092749458560"
-        },
-        {
-          "file": "packages/repo/create-do-repo-node.sh",
-          "hash": "2898636182466836839"
-        },
-        {
-          "file": "packages/repo/package.json",
-          "hash": "6371360672240630474",
-          "deps": [
-            "npm:@types/express",
-            "npm:@types/lodash",
-            "npm:@types/morgan",
-            "@usecannon/builder",
-            "@usecannon/indexer",
-            "npm:connect-busboy",
-            "npm:lodash",
-            "npm:morgan",
-            "npm:redis",
-            "npm:typestub-ipfs-only-hash"
-          ]
-        },
-        {
-          "file": "packages/repo/src/cleaner.ts",
-          "hash": "8404905687445304924"
-        },
-        {
-          "file": "packages/repo/src/db.ts",
-          "hash": "11936004867498294955"
-        },
-        {
-          "file": "packages/repo/src/index.ts",
-          "hash": "3523736070168389602"
-        },
-        {
-          "file": "packages/repo/tsconfig.json",
-          "hash": "4821714034731106241"
-        }
-      ],
-      "sample-hardhat-project": [
-        {
-          "file": "examples/sample-hardhat-project/.env.example",
-          "hash": "8761008469272337885"
-        },
-        {
-          "file": "examples/sample-hardhat-project/.eslintignore",
-          "hash": "738963171455033043"
-        },
-        {
-          "file": "examples/sample-hardhat-project/.gitignore",
-          "hash": "15858630262937560320"
-        },
-        {
-          "file": "examples/sample-hardhat-project/.npmignore",
-          "hash": "7037743028942489028"
-        },
-        {
-          "file": "examples/sample-hardhat-project/.solhintignore",
-          "hash": "7663861978715868291"
-        },
-        {
-          "file": "examples/sample-hardhat-project/README.md",
-          "hash": "2097607723768091059"
-        },
-        {
-          "file": "examples/sample-hardhat-project/cannonfile.consumer.toml",
-          "hash": "950604711740908680"
-        },
-        {
-          "file": "examples/sample-hardhat-project/cannonfile.toml",
-          "hash": "14651497685349733757"
-        },
-        {
-          "file": "examples/sample-hardhat-project/contracts/ClonedGreeter.sol",
-          "hash": "11755472510203802417"
-        },
-        {
-          "file": "examples/sample-hardhat-project/contracts/Greeter.sol",
-          "hash": "13610472522585951842"
-        },
-        {
-          "file": "examples/sample-hardhat-project/contracts/Library.sol",
-          "hash": "14869470390194374368"
-        },
-        {
-          "file": "examples/sample-hardhat-project/hardhat.config.ts",
-          "hash": "1183875519496799115"
-        },
-        {
-          "file": "examples/sample-hardhat-project/package.json",
-          "hash": "1913671514683827895",
-          "deps": [
-            "npm:@nomiclabs/hardhat-etherscan",
-            "npm:@types/chai",
-            "npm:chai",
-            "hardhat-cannon",
-            "npm:hardhat",
-            "npm:hardhat-gas-reporter",
-            "npm:ts-node",
-            "npm:typescript"
-          ]
-        },
-        {
-          "file": "examples/sample-hardhat-project/tasks/get-build-info.ts",
-          "hash": "1488446994428674612"
-        },
-        {
-          "file": "examples/sample-hardhat-project/test/.eslintrc.json",
-          "hash": "4799180441438391977"
-        },
-        {
-          "file": "examples/sample-hardhat-project/test/Greeter.test.ts",
-          "hash": "17556223569748482841"
-        },
-        {
-          "file": "examples/sample-hardhat-project/tsconfig.json",
-          "hash": "3035814477407365291"
-        }
-      ],
-      "@usecannon/api": [
-        {
-          "file": "packages/api/.gitignore",
+          "file": "packages/hardhat-cannon/.gitignore",
           "hash": "14388797753150440555"
         },
         {
-          "file": "packages/api/Dockerfile",
-          "hash": "7626734308621320204"
+          "file": "packages/hardhat-cannon/CHANGELOG.md",
+          "hash": "423566757131718082"
         },
         {
-          "file": "packages/api/package.json",
-          "hash": "5931975406786527924",
+          "file": "packages/hardhat-cannon/LICENSE",
+          "hash": "345500688128491592"
+        },
+        {
+          "file": "packages/hardhat-cannon/README.md",
+          "hash": "10489705097701013807"
+        },
+        {
+          "file": "packages/hardhat-cannon/package.json",
+          "hash": "10296860069227103937",
           "deps": [
-            "npm:@types/cors",
-            "npm:@types/express",
-            "npm:@types/node@20.16.1",
-            "npm:ts-node-dev",
+            "npm:hardhat",
+            "npm:@nomiclabs/hardhat-ethers@2.2.3",
+            "npm:@types/debug",
+            "npm:@types/mocha@10.0.7",
+            "npm:@types/node@22.5.0",
+            "npm:bn.js@5.2.1",
+            "npm:ts-node",
             "npm:typescript",
-            "npm:@isaacs/ttlcache",
+            "npm:@iarna/toml",
             "@usecannon/builder",
             "@usecannon/cli",
-            "npm:cors",
-            "npm:dotenv@16.4.5",
-            "npm:envalid",
-            "npm:express@5.0.0-beta.3",
-            "npm:express-basic-auth",
-            "npm:express-prom-bundle",
-            "npm:express-rate-limit",
-            "npm:fastest-levenshtein",
-            "npm:fuse.js",
-            "npm:helmet",
-            "npm:prom-client",
-            "npm:redis",
+            "npm:chalk@4.1.2",
+            "npm:debug@4.3.6",
+            "npm:fs-extra@11.2.0",
             "npm:viem@2.16.5"
           ]
         },
         {
-          "file": "packages/api/src/config.ts",
-          "hash": "14147962637497641725"
+          "file": "packages/hardhat-cannon/src/index.ts",
+          "hash": "18218972604408090704"
         },
         {
-          "file": "packages/api/src/db/keys.ts",
-          "hash": "12989094698590038929"
+          "file": "packages/hardhat-cannon/src/internal/augment-provider.ts",
+          "hash": "8472180132546165039"
         },
         {
-          "file": "packages/api/src/db/transformers.ts",
-          "hash": "18243236440760659107"
+          "file": "packages/hardhat-cannon/src/internal/cannon.ts",
+          "hash": "11604716093435681786"
         },
         {
-          "file": "packages/api/src/errors.ts",
-          "hash": "15829161671651102168"
+          "file": "packages/hardhat-cannon/src/internal/get-hardhat-signers.ts",
+          "hash": "2577842475769194070"
         },
         {
-          "file": "packages/api/src/helpers.ts",
-          "hash": "17424252495650931601"
+          "file": "packages/hardhat-cannon/src/internal/load-pkg-json.ts",
+          "hash": "12540316362619436486"
         },
         {
-          "file": "packages/api/src/index.ts",
-          "hash": "16468175657546681501"
+          "file": "packages/hardhat-cannon/src/internal/parse-anvil-options.ts",
+          "hash": "17442097043211158370"
         },
         {
-          "file": "packages/api/src/queries/chains.ts",
-          "hash": "10846925734622898020"
+          "file": "packages/hardhat-cannon/src/subtasks/get-artifact-data.ts",
+          "hash": "4588333990524974821"
         },
         {
-          "file": "packages/api/src/queries/contracts.ts",
-          "hash": "9269554472092156377"
+          "file": "packages/hardhat-cannon/src/subtasks/load-package-definition.ts",
+          "hash": "6062581346598788755"
         },
         {
-          "file": "packages/api/src/queries/functions.ts",
-          "hash": "8893084055898108133"
+          "file": "packages/hardhat-cannon/src/subtasks/run-anvil-node.ts",
+          "hash": "17868796245855694928"
         },
         {
-          "file": "packages/api/src/queries/packages.ts",
-          "hash": "6035846278815987817"
+          "file": "packages/hardhat-cannon/src/task-names.ts",
+          "hash": "7625074084425596148"
         },
         {
-          "file": "packages/api/src/redis.ts",
-          "hash": "2262754983547913121"
+          "file": "packages/hardhat-cannon/src/tasks/alter.ts",
+          "hash": "10452407253405227243"
         },
         {
-          "file": "packages/api/src/routes/chains.ts",
-          "hash": "14975312999275917300"
+          "file": "packages/hardhat-cannon/src/tasks/build.ts",
+          "hash": "43489518346815729"
         },
         {
-          "file": "packages/api/src/routes/index.ts",
-          "hash": "15588844433486703813"
+          "file": "packages/hardhat-cannon/src/tasks/inspect.ts",
+          "hash": "11241139333606494527"
         },
         {
-          "file": "packages/api/src/routes/metrics.ts",
-          "hash": "13835883849340694769"
+          "file": "packages/hardhat-cannon/src/tasks/test.ts",
+          "hash": "2449477220119696718"
         },
         {
-          "file": "packages/api/src/routes/packages.ts",
-          "hash": "13774731108401014016"
+          "file": "packages/hardhat-cannon/src/type-extensions.ts",
+          "hash": "4587221350036338636"
         },
         {
-          "file": "packages/api/src/routes/search.ts",
-          "hash": "5291306812032256359"
+          "file": "packages/hardhat-cannon/src/types.ts",
+          "hash": "17722362359027070751"
         },
         {
-          "file": "packages/api/src/types.ts",
-          "hash": "3777467620586439141"
+          "file": "packages/hardhat-cannon/src/utils/index.ts",
+          "hash": "2436800128481555295"
         },
         {
-          "file": "packages/api/tsconfig.json",
-          "hash": "481418350705031235"
-        }
-      ],
-      "@usecannon/builder": [
-        {
-          "file": "packages/builder/.gitignore",
-          "hash": "14388797753150440555"
-        },
-        {
-          "file": "packages/builder/CHANGELOG.md",
-          "hash": "15649468509657713490"
-        },
-        {
-          "file": "packages/builder/LICENSE",
-          "hash": "345500688128491592"
-        },
-        {
-          "file": "packages/builder/README.md",
-          "hash": "2969761951645752456"
-        },
-        {
-          "file": "packages/builder/jest.config.ts",
-          "hash": "15461521753628087284"
-        },
-        {
-          "file": "packages/builder/package.json",
-          "hash": "4301594764501405952",
-          "deps": [
-            "npm:@rollup/plugin-commonjs",
-            "npm:@rollup/plugin-json",
-            "npm:@rollup/plugin-node-resolve",
-            "npm:@rollup/plugin-terser",
-            "npm:@types/debug",
-            "npm:@types/jest",
-            "npm:@types/lodash",
-            "npm:@types/pako",
-            "npm:jest",
-            "npm:rollup@4.21.0",
-            "npm:ts-jest",
-            "npm:typedoc",
-            "npm:typedoc-plugin-markdown",
-            "npm:typedoc-plugin-zod",
-            "npm:@synthetixio/router",
-            "npm:axios@1.7.5",
-            "npm:axios-retry@4.5.0",
-            "npm:buffer@6.0.3",
-            "npm:chalk@4.1.2",
-            "npm:debug@4.3.6",
-            "npm:form-data@4.0.0",
-            "npm:fuse.js",
-            "npm:lodash",
-            "npm:pako@2.1.0",
-            "npm:promise-events",
-            "npm:typestub-ipfs-only-hash",
-            "npm:viem@2.16.5",
-            "npm:zod"
-          ]
-        },
-        {
-          "file": "packages/builder/rollup.config.mjs",
-          "hash": "17835368690963599791"
-        },
-        {
-          "file": "packages/builder/src/abis/CannonRegistry.ts",
-          "hash": "7590642956359921972"
-        },
-        {
-          "file": "packages/builder/src/abis/Multicall.ts",
-          "hash": "1280456452100684387"
-        },
-        {
-          "file": "packages/builder/src/abis/diamond/Diamond.json",
-          "hash": "17292887706030459701"
-        },
-        {
-          "file": "packages/builder/src/abis/diamond/DiamondCutFacet.json",
-          "hash": "16712297732488949905"
-        },
-        {
-          "file": "packages/builder/src/abis/diamond/DiamondLoupeFacet.json",
-          "hash": "2000466625779660114"
-        },
-        {
-          "file": "packages/builder/src/abis/diamond/DiamondWipeAndPaveFacet.json",
-          "hash": "7246878181853020715"
-        },
-        {
-          "file": "packages/builder/src/abis/diamond/OwnershipFacet.json",
-          "hash": "7202119895783154869"
-        },
-        {
-          "file": "packages/builder/src/access-recorder.test.ts",
-          "hash": "5509371720935050921"
-        },
-        {
-          "file": "packages/builder/src/access-recorder.ts",
-          "hash": "8729704474593086065"
-        },
-        {
-          "file": "packages/builder/src/actions.test.ts",
-          "hash": "12797739039425357883"
-        },
-        {
-          "file": "packages/builder/src/actions.ts",
-          "hash": "6858084381972732208"
-        },
-        {
-          "file": "packages/builder/src/builder.test.ts",
-          "hash": "6427768986532427027"
-        },
-        {
-          "file": "packages/builder/src/builder.ts",
-          "hash": "13596778448766130246"
-        },
-        {
-          "file": "packages/builder/src/consoleLog.ts",
-          "hash": "5224780653573593499"
-        },
-        {
-          "file": "packages/builder/src/constants.ts",
-          "hash": "11553655425055068263"
-        },
-        {
-          "file": "packages/builder/src/create2.test.ts",
-          "hash": "14166973488647144874"
-        },
-        {
-          "file": "packages/builder/src/create2.ts",
-          "hash": "843887535038168222"
-        },
-        {
-          "file": "packages/builder/src/definition.test.ts",
-          "hash": "15166042920471192920"
-        },
-        {
-          "file": "packages/builder/src/definition.ts",
-          "hash": "11947186786524278720"
-        },
-        {
-          "file": "packages/builder/src/error/index.ts",
-          "hash": "9401514644926354426"
-        },
-        {
-          "file": "packages/builder/src/error/zod.ts",
-          "hash": "679041594944103363"
-        },
-        {
-          "file": "packages/builder/src/helpers.test.ts",
-          "hash": "5722121439245160991"
-        },
-        {
-          "file": "packages/builder/src/helpers.ts",
-          "hash": "17842728926178640396"
-        },
-        {
-          "file": "packages/builder/src/index.ts",
-          "hash": "12895338848458742324"
-        },
-        {
-          "file": "packages/builder/src/ipfs.test.ts",
-          "hash": "15034628793838936027"
-        },
-        {
-          "file": "packages/builder/src/ipfs.ts",
-          "hash": "12131027474237138409"
-        },
-        {
-          "file": "packages/builder/src/loader.test.ts",
-          "hash": "10620747430152538710"
-        },
-        {
-          "file": "packages/builder/src/loader.ts",
-          "hash": "7161470314110366843"
-        },
-        {
-          "file": "packages/builder/src/multicall.ts",
-          "hash": "13291978666838013929"
-        },
-        {
-          "file": "packages/builder/src/package-reference.ts",
-          "hash": "13440253379615858685"
-        },
-        {
-          "file": "packages/builder/src/package.test.ts",
-          "hash": "7435438613400066941"
-        },
-        {
-          "file": "packages/builder/src/package.ts",
-          "hash": "12601780243023310464"
-        },
-        {
-          "file": "packages/builder/src/precompiles/arbitrum-gas.json",
-          "hash": "239621725820531860"
-        },
-        {
-          "file": "packages/builder/src/precompiles/index.ts",
-          "hash": "535304795238283577"
-        },
-        {
-          "file": "packages/builder/src/registry.test.ts",
-          "hash": "16862016734846030019"
-        },
-        {
-          "file": "packages/builder/src/registry.ts",
-          "hash": "6377186580355921170"
-        },
-        {
-          "file": "packages/builder/src/runtime.test.ts",
-          "hash": "2716827343851742157"
-        },
-        {
-          "file": "packages/builder/src/runtime.ts",
-          "hash": "1652352680346209356"
-        },
-        {
-          "file": "packages/builder/src/schemas.ts",
-          "hash": "11758270939589976839"
-        },
-        {
-          "file": "packages/builder/src/steps/__snapshots__/deploy.test.ts.snap",
-          "hash": "6601565020382945740"
-        },
-        {
-          "file": "packages/builder/src/steps/clone.test.ts",
-          "hash": "14163201706119409998"
-        },
-        {
-          "file": "packages/builder/src/steps/clone.ts",
-          "hash": "5843710811663685408"
-        },
-        {
-          "file": "packages/builder/src/steps/deploy.test.ts",
-          "hash": "10499247113355394805"
-        },
-        {
-          "file": "packages/builder/src/steps/deploy.ts",
-          "hash": "9713395787890280215"
-        },
-        {
-          "file": "packages/builder/src/steps/diamond.ts",
-          "hash": "10865457411012092780"
-        },
-        {
-          "file": "packages/builder/src/steps/invoke.test.ts",
-          "hash": "12236112409805808749"
-        },
-        {
-          "file": "packages/builder/src/steps/invoke.ts",
-          "hash": "17956322761444656332"
-        },
-        {
-          "file": "packages/builder/src/steps/keeper.ts",
-          "hash": "2992191730582528775"
-        },
-        {
-          "file": "packages/builder/src/steps/pull.test.ts",
-          "hash": "7044803937660322237"
-        },
-        {
-          "file": "packages/builder/src/steps/pull.ts",
-          "hash": "388467772939592681"
-        },
-        {
-          "file": "packages/builder/src/steps/router.test.ts",
-          "hash": "3057355215019336081"
-        },
-        {
-          "file": "packages/builder/src/steps/router.ts",
-          "hash": "6697375107507123970"
-        },
-        {
-          "file": "packages/builder/src/steps/utils.test.helper.ts",
-          "hash": "946046154365427006"
-        },
-        {
-          "file": "packages/builder/src/steps/var.test.ts",
-          "hash": "10903384898981932846"
-        },
-        {
-          "file": "packages/builder/src/steps/var.ts",
-          "hash": "14389469273050383588"
-        },
-        {
-          "file": "packages/builder/src/trace.test.ts",
-          "hash": "3186221024278908689"
-        },
-        {
-          "file": "packages/builder/src/trace.ts",
-          "hash": "11489176482214259762"
-        },
-        {
-          "file": "packages/builder/src/types.test.ts",
-          "hash": "672866789180492272"
-        },
-        {
-          "file": "packages/builder/src/types.ts",
-          "hash": "12267701586270389358"
-        },
-        {
-          "file": "packages/builder/src/util.test.ts",
-          "hash": "14037729937959547305"
-        },
-        {
-          "file": "packages/builder/src/util.ts",
-          "hash": "8125724901722195254"
-        },
-        {
-          "file": "packages/builder/src/utils/template.ts",
-          "hash": "10473659218261279898"
-        },
-        {
-          "file": "packages/builder/test/data/Greeter.json",
-          "hash": "13882846643680521981"
-        },
-        {
-          "file": "packages/builder/test/fixtures.ts",
-          "hash": "4449750602539873193"
-        },
-        {
-          "file": "packages/builder/tsconfig.build.json",
-          "hash": "12918333662020111599"
-        },
-        {
-          "file": "packages/builder/tsconfig.json",
-          "hash": "3130019229033826212"
-        },
-        {
-          "file": "packages/builder/typedoc.js",
-          "hash": "9699366121815710647"
-        }
-      ],
-      "sample-hardhat-toolbox": [
-        {
-          "file": "examples/sample-hardhat-toolbox/.gitignore",
-          "hash": "14967769184485981097"
-        },
-        {
-          "file": "examples/sample-hardhat-toolbox/README.md",
-          "hash": "778817554851001312"
-        },
-        {
-          "file": "examples/sample-hardhat-toolbox/cannonfile.toml",
-          "hash": "4462393876116827912"
-        },
-        {
-          "file": "examples/sample-hardhat-toolbox/contracts/Lock.sol",
-          "hash": "14521486884034146640"
-        },
-        {
-          "file": "examples/sample-hardhat-toolbox/hardhat.config.ts",
-          "hash": "3032174525568543361"
-        },
-        {
-          "file": "examples/sample-hardhat-toolbox/package.json",
-          "hash": "7675331689274520733",
-          "deps": [
-            "npm:@nomicfoundation/hardhat-toolbox",
-            "npm:hardhat",
-            "hardhat-cannon"
-          ]
-        },
-        {
-          "file": "examples/sample-hardhat-toolbox/test/.eslintrc.json",
-          "hash": "4799180441438391977"
-        },
-        {
-          "file": "examples/sample-hardhat-toolbox/test/Lock.test.ts",
-          "hash": "824960218300705608"
-        },
-        {
-          "file": "examples/sample-hardhat-toolbox/tsconfig.json",
-          "hash": "4683222762130620071"
-        }
-      ],
-      "@usecannon/registry": [
-        {
-          "file": "packages/registry/.gitignore",
-          "hash": "331075484045573835"
-        },
-        {
-          "file": "packages/registry/audits/Cannon_A-1___Macro_Audits___The_0xMacro_Library.pdf",
-          "hash": "7520518020902624708"
-        },
-        {
-          "file": "packages/registry/cannonfile.mainnet.toml",
-          "hash": "18330975625311349602"
-        },
-        {
-          "file": "packages/registry/cannonfile.sepolia.toml",
-          "hash": "16205939239930809371"
-        },
-        {
-          "file": "packages/registry/cannonfile.toml",
-          "hash": "15735076158005290685"
-        },
-        {
-          "file": "packages/registry/contracts/CannonRegistry.sol",
-          "hash": "9104912133600713691"
-        },
-        {
-          "file": "packages/registry/contracts/ERC2771Context.sol",
-          "hash": "14419532604385302264"
-        },
-        {
-          "file": "packages/registry/contracts/EfficientStorage.sol",
-          "hash": "5352251248470001782"
-        },
-        {
-          "file": "packages/registry/contracts/IOptimismL1Sender.sol",
-          "hash": "4485328606535465166"
-        },
-        {
-          "file": "packages/registry/contracts/IOptimismL2Receiver.sol",
-          "hash": "6508885928480579867"
-        },
-        {
-          "file": "packages/registry/contracts/MockOptimismBridge.sol",
-          "hash": "5453284331583903007"
-        },
-        {
-          "file": "packages/registry/contracts/OwnedUpgradable.sol",
-          "hash": "12245100929033926981"
-        },
-        {
-          "file": "packages/registry/contracts/OwnedUpgradableUpdated.sol",
-          "hash": "8927413046358336794"
-        },
-        {
-          "file": "packages/registry/contracts/Proxy.sol",
-          "hash": "18096982941155076434"
-        },
-        {
-          "file": "packages/registry/hardhat.config.ts",
-          "hash": "10241310944027518035"
-        },
-        {
-          "file": "packages/registry/package.json",
-          "hash": "17108043885526118425",
-          "deps": [
-            "npm:@synthetixio/core-contracts",
-            "@usecannon/builder",
-            "@usecannon/cli",
-            "npm:at-least-node",
-            "npm:chai",
-            "npm:hardhat",
-            "hardhat-cannon",
-            "npm:hardhat-contract-sizer",
-            "npm:hardhat-gas-reporter",
-            "npm:ts-node",
-            "npm:typescript"
-          ]
+          "file": "packages/hardhat-cannon/src/utils/test.ts",
+          "hash": "9599544362387739782"
         },
         {
-          "file": "packages/registry/scripts/list-packages.ts",
-          "hash": "7128943530492261677"
+          "file": "packages/hardhat-cannon/tsconfig.json",
+          "hash": "30543115147602329"
         },
         {
-          "file": "packages/registry/test/.eslintrc.json",
-          "hash": "4799180441438391977"
+          "file": "packages/hardhat-cannon/utils/index.js",
+          "hash": "405766488242171165"
         },
         {
-          "file": "packages/registry/test/contracts/CannonRegistry.test.ts",
-          "hash": "17902216737382160738"
+          "file": "packages/hardhat-cannon/utils/index.ts",
+          "hash": "1846040257819942407"
         },
         {
-          "file": "packages/registry/test/helpers/assert-revert.ts",
-          "hash": "412457636603289035"
+          "file": "packages/hardhat-cannon/utils/test.js",
+          "hash": "15852600983579708831"
         },
         {
-          "file": "packages/registry/tsconfig.json",
-          "hash": "3605050899635666627"
+          "file": "packages/hardhat-cannon/utils/test.ts",
+          "hash": "4883642531416216736"
         }
       ],
       "@usecannon/cli": [
@@ -3163,191 +2589,536 @@
           "hash": "14898982927166082612"
         }
       ],
-      "hardhat-cannon": [
+      "sample-foundry-project": [
         {
-          "file": "packages/hardhat-cannon/.eslintrc",
-          "hash": "12919761174095936280"
+          "file": "examples/sample-foundry-project/.gitignore",
+          "hash": "2796653504622074327"
         },
         {
-          "file": "packages/hardhat-cannon/.gitignore",
-          "hash": "14388797753150440555"
+          "file": "examples/sample-foundry-project/README.md",
+          "hash": "5409404907876927894"
         },
         {
-          "file": "packages/hardhat-cannon/CHANGELOG.md",
-          "hash": "423566757131718082"
+          "file": "examples/sample-foundry-project/cannonfile.consumer.toml",
+          "hash": "8997114133968686283"
         },
         {
-          "file": "packages/hardhat-cannon/LICENSE",
-          "hash": "345500688128491592"
+          "file": "examples/sample-foundry-project/cannonfile.old.toml",
+          "hash": "9071650487144542565"
         },
         {
-          "file": "packages/hardhat-cannon/README.md",
-          "hash": "10489705097701013807"
+          "file": "examples/sample-foundry-project/cannonfile.private.toml",
+          "hash": "10349718416638809109"
         },
         {
-          "file": "packages/hardhat-cannon/package.json",
-          "hash": "10296860069227103937",
+          "file": "examples/sample-foundry-project/cannonfile.toml",
+          "hash": "8320383953290314886"
+        },
+        {
+          "file": "examples/sample-foundry-project/foundry.toml",
+          "hash": "7822725742292588963"
+        },
+        {
+          "file": "examples/sample-foundry-project/generate-pkg.js",
+          "hash": "3013547902447006177"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/.github/workflows/test.yml",
+          "hash": "6673601100565913630"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/.gitignore",
+          "hash": "6745600600762063164"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/.gitmodules",
+          "hash": "10053745115957165313"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/foundry.toml",
+          "hash": "17543035054102665394"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/.github/workflows/ci.yml",
+          "hash": "6648259232276312150"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/.gitignore",
+          "hash": "1726114465837318867"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/.gitmodules",
+          "hash": "18076722566187232801"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/LICENSE-APACHE",
+          "hash": "8645871963587928210"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/LICENSE-MIT",
+          "hash": "7371318378930887479"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/README.md",
+          "hash": "3667779930224562465"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/foundry.toml",
+          "hash": "5405390656084732624"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/.gitignore",
+          "hash": "703508115227707471"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/LICENSE",
+          "hash": "5004495261018704297"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/Makefile",
+          "hash": "6295299540469192748"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/default.nix",
+          "hash": "16084914197987726827"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/demo/demo.sol",
+          "hash": "408085037073171762"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/package.json",
+          "hash": "18090932842966521427"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/src/test.sol",
+          "hash": "16400072472004322683"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/package.json",
+          "hash": "2392688885468517211"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/Base.sol",
+          "hash": "11394885370231236847"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/InvariantTest.sol",
+          "hash": "11438965495955728854"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/Script.sol",
+          "hash": "10153053090618463911"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdAssertions.sol",
+          "hash": "10190418926115024007"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdChains.sol",
+          "hash": "10840729868222475036"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdCheats.sol",
+          "hash": "2797691982288536215"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdError.sol",
+          "hash": "11648679669148077555"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdJson.sol",
+          "hash": "17632317346924325737"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdMath.sol",
+          "hash": "8239417701313420922"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdStorage.sol",
+          "hash": "3691320455673057924"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdUtils.sol",
+          "hash": "2801690419083127242"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/Test.sol",
+          "hash": "15143771974341852861"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/Vm.sol",
+          "hash": "2231282179072579547"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/console.sol",
+          "hash": "3543713478972251921"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/console2.sol",
+          "hash": "13455518576609390193"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/interfaces/IERC1155.sol",
+          "hash": "14664864913492177774"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/interfaces/IERC165.sol",
+          "hash": "3603317191258361609"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/interfaces/IERC20.sol",
+          "hash": "8602245455580227877"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/interfaces/IERC4626.sol",
+          "hash": "17833184492172034511"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/interfaces/IERC721.sol",
+          "hash": "11862812099939172962"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/interfaces/IMulticall3.sol",
+          "hash": "13150690351023982849"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdAssertions.t.sol",
+          "hash": "18168052211197727837"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdChains.t.sol",
+          "hash": "2141491185933265151"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdCheats.t.sol",
+          "hash": "7466429095368590457"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdError.t.sol",
+          "hash": "7650463478412535925"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdMath.t.sol",
+          "hash": "11135114168201194499"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdStorage.t.sol",
+          "hash": "4203076586426954447"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdUtils.t.sol",
+          "hash": "3660876300123058628"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/compilation/CompilationScript.sol",
+          "hash": "17212989946410905712"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/compilation/CompilationScriptBase.sol",
+          "hash": "10896569140936439003"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/compilation/CompilationTest.sol",
+          "hash": "14950133970735887686"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/compilation/CompilationTestBase.sol",
+          "hash": "15268175070569028740"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/fixtures/broadcast.log.json",
+          "hash": "14073872679017582533"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/cannon-std/src/Cannon.sol",
+          "hash": "14089959728122896838"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/.github/workflows/ci.yml",
+          "hash": "231302541844351155"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/.github/workflows/sync.yml",
+          "hash": "1323891810883240020"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/.gitignore",
+          "hash": "1726114465837318867"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/.gitmodules",
+          "hash": "18076722566187232801"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/LICENSE-APACHE",
+          "hash": "8645871963587928210"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/LICENSE-MIT",
+          "hash": "7371318378930887479"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/README.md",
+          "hash": "3667779930224562465"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/foundry.toml",
+          "hash": "1144128047489505403"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/.github/workflows/build.yml",
+          "hash": "3431538512810322765"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/.gitignore",
+          "hash": "10353468620772149653"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/LICENSE",
+          "hash": "5004495261018704297"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/Makefile",
+          "hash": "6295299540469192748"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/default.nix",
+          "hash": "16084914197987726827"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/demo/demo.sol",
+          "hash": "408085037073171762"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/package.json",
+          "hash": "18090932842966521427"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/src/test.sol",
+          "hash": "17377388028058931555"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/src/test.t.sol",
+          "hash": "10845214996285260650"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/package.json",
+          "hash": "14625905021324963031"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/Base.sol",
+          "hash": "8014841166277871125"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/Script.sol",
+          "hash": "1850193855923253152"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdAssertions.sol",
+          "hash": "1304173446859912931"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdChains.sol",
+          "hash": "13436530291502478968"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdCheats.sol",
+          "hash": "325691373412183991"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdError.sol",
+          "hash": "11648679669148077555"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdInvariant.sol",
+          "hash": "6692848117565108064"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdJson.sol",
+          "hash": "14552028222819765745"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdMath.sol",
+          "hash": "8239417701313420922"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdStorage.sol",
+          "hash": "2801021992137387371"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdStyle.sol",
+          "hash": "17156021847592170350"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/StdUtils.sol",
+          "hash": "5660409348738689391"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/Test.sol",
+          "hash": "16629553234846392685"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/Vm.sol",
+          "hash": "16658462190309821019"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/console.sol",
+          "hash": "3543713478972251921"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/console2.sol",
+          "hash": "14102387553343403273"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/interfaces/IERC1155.sol",
+          "hash": "14664864913492177774"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/interfaces/IERC165.sol",
+          "hash": "3603317191258361609"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/interfaces/IERC20.sol",
+          "hash": "8602245455580227877"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/interfaces/IERC4626.sol",
+          "hash": "17833184492172034511"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/interfaces/IERC721.sol",
+          "hash": "11862812099939172962"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/interfaces/IMulticall3.sol",
+          "hash": "13150690351023982849"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/src/safeconsole.sol",
+          "hash": "3214700531305877739"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/StdAssertions.t.sol",
+          "hash": "16809259703808797368"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/StdChains.t.sol",
+          "hash": "2016402465038542534"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/StdCheats.t.sol",
+          "hash": "14705395505212451621"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/StdError.t.sol",
+          "hash": "18268329672494742982"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/StdMath.t.sol",
+          "hash": "6362172176576071361"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/StdStorage.t.sol",
+          "hash": "2098994485688763282"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/StdStyle.t.sol",
+          "hash": "10782977073391082470"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/StdUtils.t.sol",
+          "hash": "3039087796355348224"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/compilation/CompilationScript.sol",
+          "hash": "17212989946410905712"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/compilation/CompilationScriptBase.sol",
+          "hash": "10896569140936439003"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/compilation/CompilationTest.sol",
+          "hash": "14950133970735887686"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/compilation/CompilationTestBase.sol",
+          "hash": "15268175070569028740"
+        },
+        {
+          "file": "examples/sample-foundry-project/lib/forge-std/test/fixtures/broadcast.log.json",
+          "hash": "14073872679017582533"
+        },
+        {
+          "file": "examples/sample-foundry-project/package.json",
+          "hash": "17798602320349080482",
           "deps": [
-            "npm:hardhat",
-            "npm:@nomiclabs/hardhat-ethers@2.2.3",
-            "npm:@types/debug",
-            "npm:@types/mocha@10.0.7",
-            "npm:@types/node@22.5.0",
-            "npm:bn.js@5.2.1",
-            "npm:ts-node",
-            "npm:typescript",
-            "npm:@iarna/toml",
-            "@usecannon/builder",
-            "@usecannon/cli",
-            "npm:chalk@4.1.2",
-            "npm:debug@4.3.6",
-            "npm:fs-extra@11.2.0",
-            "npm:viem@2.16.5"
+            "@usecannon/cli"
           ]
         },
         {
-          "file": "packages/hardhat-cannon/src/index.ts",
-          "hash": "18218972604408090704"
+          "file": "examples/sample-foundry-project/script/Contract.s.sol",
+          "hash": "10188168055373608834"
         },
         {
-          "file": "packages/hardhat-cannon/src/internal/augment-provider.ts",
-          "hash": "8472180132546165039"
+          "file": "examples/sample-foundry-project/src/ClonedGreeter.sol",
+          "hash": "10026001947181508807"
         },
         {
-          "file": "packages/hardhat-cannon/src/internal/cannon.ts",
-          "hash": "11604716093435681786"
+          "file": "examples/sample-foundry-project/src/Greeter.sol",
+          "hash": "12064849255795828416"
         },
         {
-          "file": "packages/hardhat-cannon/src/internal/get-hardhat-signers.ts",
-          "hash": "2577842475769194070"
+          "file": "examples/sample-foundry-project/src/Library.sol",
+          "hash": "6800948625069285391"
         },
         {
-          "file": "packages/hardhat-cannon/src/internal/load-pkg-json.ts",
-          "hash": "12540316362619436486"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/internal/parse-anvil-options.ts",
-          "hash": "17442097043211158370"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/subtasks/get-artifact-data.ts",
-          "hash": "4588333990524974821"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/subtasks/load-package-definition.ts",
-          "hash": "6062581346598788755"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/subtasks/run-anvil-node.ts",
-          "hash": "17868796245855694928"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/task-names.ts",
-          "hash": "7625074084425596148"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/tasks/alter.ts",
-          "hash": "10452407253405227243"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/tasks/build.ts",
-          "hash": "43489518346815729"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/tasks/inspect.ts",
-          "hash": "11241139333606494527"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/tasks/test.ts",
-          "hash": "2449477220119696718"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/type-extensions.ts",
-          "hash": "4587221350036338636"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/types.ts",
-          "hash": "17722362359027070751"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/utils/index.ts",
-          "hash": "2436800128481555295"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/utils/test.ts",
-          "hash": "9599544362387739782"
-        },
-        {
-          "file": "packages/hardhat-cannon/tsconfig.json",
-          "hash": "30543115147602329"
-        },
-        {
-          "file": "packages/hardhat-cannon/utils/index.js",
-          "hash": "405766488242171165"
-        },
-        {
-          "file": "packages/hardhat-cannon/utils/index.ts",
-          "hash": "1846040257819942407"
-        },
-        {
-          "file": "packages/hardhat-cannon/utils/test.js",
-          "hash": "15852600983579708831"
-        },
-        {
-          "file": "packages/hardhat-cannon/utils/test.ts",
-          "hash": "4883642531416216736"
+          "file": "examples/sample-foundry-project/test/Contract.t.sol",
+          "hash": "17407694942538035621"
         }
       ],
-      "@usecannon/indexer": [
+      "sample-hardhat-toolbox": [
         {
-          "file": "packages/indexer/.gitignore",
-          "hash": "8991966823503952338"
+          "file": "examples/sample-hardhat-toolbox/.gitignore",
+          "hash": "14967769184485981097"
         },
         {
-          "file": "packages/indexer/Dockerfile",
-          "hash": "2728971869036647026"
+          "file": "examples/sample-hardhat-toolbox/README.md",
+          "hash": "778817554851001312"
         },
         {
-          "file": "packages/indexer/package.json",
-          "hash": "18293438710658882113",
+          "file": "examples/sample-hardhat-toolbox/cannonfile.toml",
+          "hash": "4462393876116827912"
+        },
+        {
+          "file": "examples/sample-hardhat-toolbox/contracts/Lock.sol",
+          "hash": "14521486884034146640"
+        },
+        {
+          "file": "examples/sample-hardhat-toolbox/hardhat.config.ts",
+          "hash": "3032174525568543361"
+        },
+        {
+          "file": "examples/sample-hardhat-toolbox/package.json",
+          "hash": "7675331689274520733",
           "deps": [
-            "npm:@types/connect-busboy",
-            "npm:@types/lodash",
-            "npm:@types/morgan",
-            "@usecannon/builder",
-            "@usecannon/cli",
-            "npm:envalid",
-            "npm:lodash",
-            "npm:redis"
+            "npm:@nomicfoundation/hardhat-toolbox",
+            "npm:hardhat",
+            "hardhat-cannon"
           ]
         },
         {
-          "file": "packages/indexer/src/config.ts",
-          "hash": "94563295998128146"
+          "file": "examples/sample-hardhat-toolbox/test/.eslintrc.json",
+          "hash": "4799180441438391977"
         },
         {
-          "file": "packages/indexer/src/db.ts",
-          "hash": "12989094698590038929"
+          "file": "examples/sample-hardhat-toolbox/test/Lock.test.ts",
+          "hash": "824960218300705608"
         },
         {
-          "file": "packages/indexer/src/index.ts",
-          "hash": "10700387504398334862"
-        },
-        {
-          "file": "packages/indexer/src/redis.ts",
-          "hash": "5962633842732129862"
-        },
-        {
-          "file": "packages/indexer/src/registry.ts",
-          "hash": "8412314167431159815"
-        },
-        {
-          "file": "packages/indexer/tsconfig.build.json",
-          "hash": "1439389409976227130"
-        },
-        {
-          "file": "packages/indexer/tsconfig.json",
-          "hash": "4821714034731106241"
+          "file": "examples/sample-hardhat-toolbox/tsconfig.json",
+          "hash": "4683222762130620071"
         }
       ],
       "@usecannon/website": [
@@ -4459,493 +4230,722 @@
           "hash": "7844983345066671673"
         }
       ],
-      "sample-foundry-project": [
+      "@usecannon/indexer": [
         {
-          "file": "examples/sample-foundry-project/.gitignore",
-          "hash": "2796653504622074327"
+          "file": "packages/indexer/.gitignore",
+          "hash": "8991966823503952338"
         },
         {
-          "file": "examples/sample-foundry-project/README.md",
-          "hash": "5409404907876927894"
+          "file": "packages/indexer/Dockerfile",
+          "hash": "2728971869036647026"
         },
         {
-          "file": "examples/sample-foundry-project/cannonfile.consumer.toml",
-          "hash": "8997114133968686283"
-        },
-        {
-          "file": "examples/sample-foundry-project/cannonfile.old.toml",
-          "hash": "9071650487144542565"
-        },
-        {
-          "file": "examples/sample-foundry-project/cannonfile.private.toml",
-          "hash": "10349718416638809109"
-        },
-        {
-          "file": "examples/sample-foundry-project/cannonfile.toml",
-          "hash": "8320383953290314886"
-        },
-        {
-          "file": "examples/sample-foundry-project/foundry.toml",
-          "hash": "7822725742292588963"
-        },
-        {
-          "file": "examples/sample-foundry-project/generate-pkg.js",
-          "hash": "3013547902447006177"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/.github/workflows/test.yml",
-          "hash": "6673601100565913630"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/.gitignore",
-          "hash": "6745600600762063164"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/.gitmodules",
-          "hash": "10053745115957165313"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/foundry.toml",
-          "hash": "17543035054102665394"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/.github/workflows/ci.yml",
-          "hash": "6648259232276312150"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/.gitignore",
-          "hash": "1726114465837318867"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/.gitmodules",
-          "hash": "18076722566187232801"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/LICENSE-APACHE",
-          "hash": "8645871963587928210"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/LICENSE-MIT",
-          "hash": "7371318378930887479"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/README.md",
-          "hash": "3667779930224562465"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/foundry.toml",
-          "hash": "5405390656084732624"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/.gitignore",
-          "hash": "703508115227707471"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/LICENSE",
-          "hash": "5004495261018704297"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/Makefile",
-          "hash": "6295299540469192748"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/default.nix",
-          "hash": "16084914197987726827"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/demo/demo.sol",
-          "hash": "408085037073171762"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/package.json",
-          "hash": "18090932842966521427"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/lib/ds-test/src/test.sol",
-          "hash": "16400072472004322683"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/package.json",
-          "hash": "2392688885468517211"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/Base.sol",
-          "hash": "11394885370231236847"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/InvariantTest.sol",
-          "hash": "11438965495955728854"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/Script.sol",
-          "hash": "10153053090618463911"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdAssertions.sol",
-          "hash": "10190418926115024007"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdChains.sol",
-          "hash": "10840729868222475036"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdCheats.sol",
-          "hash": "2797691982288536215"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdError.sol",
-          "hash": "11648679669148077555"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdJson.sol",
-          "hash": "17632317346924325737"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdMath.sol",
-          "hash": "8239417701313420922"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdStorage.sol",
-          "hash": "3691320455673057924"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/StdUtils.sol",
-          "hash": "2801690419083127242"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/Test.sol",
-          "hash": "15143771974341852861"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/Vm.sol",
-          "hash": "2231282179072579547"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/console.sol",
-          "hash": "3543713478972251921"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/console2.sol",
-          "hash": "13455518576609390193"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/interfaces/IERC1155.sol",
-          "hash": "14664864913492177774"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/interfaces/IERC165.sol",
-          "hash": "3603317191258361609"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/interfaces/IERC20.sol",
-          "hash": "8602245455580227877"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/interfaces/IERC4626.sol",
-          "hash": "17833184492172034511"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/interfaces/IERC721.sol",
-          "hash": "11862812099939172962"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/src/interfaces/IMulticall3.sol",
-          "hash": "13150690351023982849"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdAssertions.t.sol",
-          "hash": "18168052211197727837"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdChains.t.sol",
-          "hash": "2141491185933265151"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdCheats.t.sol",
-          "hash": "7466429095368590457"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdError.t.sol",
-          "hash": "7650463478412535925"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdMath.t.sol",
-          "hash": "11135114168201194499"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdStorage.t.sol",
-          "hash": "4203076586426954447"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/StdUtils.t.sol",
-          "hash": "3660876300123058628"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/compilation/CompilationScript.sol",
-          "hash": "17212989946410905712"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/compilation/CompilationScriptBase.sol",
-          "hash": "10896569140936439003"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/compilation/CompilationTest.sol",
-          "hash": "14950133970735887686"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/compilation/CompilationTestBase.sol",
-          "hash": "15268175070569028740"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/lib/forge-std/test/fixtures/broadcast.log.json",
-          "hash": "14073872679017582533"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/cannon-std/src/Cannon.sol",
-          "hash": "14089959728122896838"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/.github/workflows/ci.yml",
-          "hash": "231302541844351155"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/.github/workflows/sync.yml",
-          "hash": "1323891810883240020"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/.gitignore",
-          "hash": "1726114465837318867"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/.gitmodules",
-          "hash": "18076722566187232801"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/LICENSE-APACHE",
-          "hash": "8645871963587928210"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/LICENSE-MIT",
-          "hash": "7371318378930887479"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/README.md",
-          "hash": "3667779930224562465"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/foundry.toml",
-          "hash": "1144128047489505403"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/.github/workflows/build.yml",
-          "hash": "3431538512810322765"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/.gitignore",
-          "hash": "10353468620772149653"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/LICENSE",
-          "hash": "5004495261018704297"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/Makefile",
-          "hash": "6295299540469192748"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/default.nix",
-          "hash": "16084914197987726827"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/demo/demo.sol",
-          "hash": "408085037073171762"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/package.json",
-          "hash": "18090932842966521427"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/src/test.sol",
-          "hash": "17377388028058931555"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/lib/ds-test/src/test.t.sol",
-          "hash": "10845214996285260650"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/package.json",
-          "hash": "14625905021324963031"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/Base.sol",
-          "hash": "8014841166277871125"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/Script.sol",
-          "hash": "1850193855923253152"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/StdAssertions.sol",
-          "hash": "1304173446859912931"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/StdChains.sol",
-          "hash": "13436530291502478968"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/StdCheats.sol",
-          "hash": "325691373412183991"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/StdError.sol",
-          "hash": "11648679669148077555"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/StdInvariant.sol",
-          "hash": "6692848117565108064"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/StdJson.sol",
-          "hash": "14552028222819765745"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/StdMath.sol",
-          "hash": "8239417701313420922"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/StdStorage.sol",
-          "hash": "2801021992137387371"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/StdStyle.sol",
-          "hash": "17156021847592170350"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/StdUtils.sol",
-          "hash": "5660409348738689391"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/Test.sol",
-          "hash": "16629553234846392685"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/Vm.sol",
-          "hash": "16658462190309821019"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/console.sol",
-          "hash": "3543713478972251921"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/console2.sol",
-          "hash": "14102387553343403273"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/interfaces/IERC1155.sol",
-          "hash": "14664864913492177774"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/interfaces/IERC165.sol",
-          "hash": "3603317191258361609"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/interfaces/IERC20.sol",
-          "hash": "8602245455580227877"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/interfaces/IERC4626.sol",
-          "hash": "17833184492172034511"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/interfaces/IERC721.sol",
-          "hash": "11862812099939172962"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/interfaces/IMulticall3.sol",
-          "hash": "13150690351023982849"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/src/safeconsole.sol",
-          "hash": "3214700531305877739"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/test/StdAssertions.t.sol",
-          "hash": "16809259703808797368"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/test/StdChains.t.sol",
-          "hash": "2016402465038542534"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/test/StdCheats.t.sol",
-          "hash": "14705395505212451621"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/test/StdError.t.sol",
-          "hash": "18268329672494742982"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/test/StdMath.t.sol",
-          "hash": "6362172176576071361"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/test/StdStorage.t.sol",
-          "hash": "2098994485688763282"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/test/StdStyle.t.sol",
-          "hash": "10782977073391082470"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/test/StdUtils.t.sol",
-          "hash": "3039087796355348224"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/test/compilation/CompilationScript.sol",
-          "hash": "17212989946410905712"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/test/compilation/CompilationScriptBase.sol",
-          "hash": "10896569140936439003"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/test/compilation/CompilationTest.sol",
-          "hash": "14950133970735887686"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/test/compilation/CompilationTestBase.sol",
-          "hash": "15268175070569028740"
-        },
-        {
-          "file": "examples/sample-foundry-project/lib/forge-std/test/fixtures/broadcast.log.json",
-          "hash": "14073872679017582533"
-        },
-        {
-          "file": "examples/sample-foundry-project/package.json",
-          "hash": "17798602320349080482",
+          "file": "packages/indexer/package.json",
+          "hash": "18293438710658882113",
           "deps": [
-            "@usecannon/cli"
+            "npm:@types/connect-busboy",
+            "npm:@types/lodash",
+            "npm:@types/morgan",
+            "@usecannon/builder",
+            "@usecannon/cli",
+            "npm:envalid",
+            "npm:lodash",
+            "npm:redis"
           ]
         },
         {
-          "file": "examples/sample-foundry-project/script/Contract.s.sol",
-          "hash": "10188168055373608834"
+          "file": "packages/indexer/src/config.ts",
+          "hash": "94563295998128146"
         },
         {
-          "file": "examples/sample-foundry-project/src/ClonedGreeter.sol",
-          "hash": "10026001947181508807"
+          "file": "packages/indexer/src/db.ts",
+          "hash": "12989094698590038929"
         },
         {
-          "file": "examples/sample-foundry-project/src/Greeter.sol",
-          "hash": "12064849255795828416"
+          "file": "packages/indexer/src/index.ts",
+          "hash": "10700387504398334862"
         },
         {
-          "file": "examples/sample-foundry-project/src/Library.sol",
-          "hash": "6800948625069285391"
+          "file": "packages/indexer/src/redis.ts",
+          "hash": "5962633842732129862"
         },
         {
-          "file": "examples/sample-foundry-project/test/Contract.t.sol",
-          "hash": "17407694942538035621"
+          "file": "packages/indexer/src/registry.ts",
+          "hash": "8412314167431159815"
+        },
+        {
+          "file": "packages/indexer/tsconfig.build.json",
+          "hash": "1439389409976227130"
+        },
+        {
+          "file": "packages/indexer/tsconfig.json",
+          "hash": "4821714034731106241"
+        }
+      ],
+      "@usecannon/api": [
+        {
+          "file": "packages/api/.gitignore",
+          "hash": "14388797753150440555"
+        },
+        {
+          "file": "packages/api/Dockerfile",
+          "hash": "7626734308621320204"
+        },
+        {
+          "file": "packages/api/package.json",
+          "hash": "5931975406786527924",
+          "deps": [
+            "npm:@types/cors",
+            "npm:@types/express",
+            "npm:@types/node@20.16.1",
+            "npm:ts-node-dev",
+            "npm:typescript",
+            "npm:@isaacs/ttlcache",
+            "@usecannon/builder",
+            "@usecannon/cli",
+            "npm:cors",
+            "npm:dotenv@16.4.5",
+            "npm:envalid",
+            "npm:express@5.0.0-beta.3",
+            "npm:express-basic-auth",
+            "npm:express-prom-bundle",
+            "npm:express-rate-limit",
+            "npm:fastest-levenshtein",
+            "npm:fuse.js",
+            "npm:helmet",
+            "npm:prom-client",
+            "npm:redis",
+            "npm:viem@2.16.5"
+          ]
+        },
+        {
+          "file": "packages/api/src/config.ts",
+          "hash": "14147962637497641725"
+        },
+        {
+          "file": "packages/api/src/db/keys.ts",
+          "hash": "12989094698590038929"
+        },
+        {
+          "file": "packages/api/src/db/transformers.ts",
+          "hash": "18243236440760659107"
+        },
+        {
+          "file": "packages/api/src/errors.ts",
+          "hash": "15829161671651102168"
+        },
+        {
+          "file": "packages/api/src/helpers.ts",
+          "hash": "17424252495650931601"
+        },
+        {
+          "file": "packages/api/src/index.ts",
+          "hash": "16468175657546681501"
+        },
+        {
+          "file": "packages/api/src/queries/chains.ts",
+          "hash": "10846925734622898020"
+        },
+        {
+          "file": "packages/api/src/queries/contracts.ts",
+          "hash": "9269554472092156377"
+        },
+        {
+          "file": "packages/api/src/queries/functions.ts",
+          "hash": "8893084055898108133"
+        },
+        {
+          "file": "packages/api/src/queries/packages.ts",
+          "hash": "6035846278815987817"
+        },
+        {
+          "file": "packages/api/src/redis.ts",
+          "hash": "2262754983547913121"
+        },
+        {
+          "file": "packages/api/src/routes/chains.ts",
+          "hash": "14975312999275917300"
+        },
+        {
+          "file": "packages/api/src/routes/index.ts",
+          "hash": "15588844433486703813"
+        },
+        {
+          "file": "packages/api/src/routes/metrics.ts",
+          "hash": "13835883849340694769"
+        },
+        {
+          "file": "packages/api/src/routes/packages.ts",
+          "hash": "13774731108401014016"
+        },
+        {
+          "file": "packages/api/src/routes/search.ts",
+          "hash": "5291306812032256359"
+        },
+        {
+          "file": "packages/api/src/types.ts",
+          "hash": "3777467620586439141"
+        },
+        {
+          "file": "packages/api/tsconfig.json",
+          "hash": "481418350705031235"
+        }
+      ],
+      "@usecannon/registry": [
+        {
+          "file": "packages/registry/.gitignore",
+          "hash": "331075484045573835"
+        },
+        {
+          "file": "packages/registry/audits/Cannon_A-1___Macro_Audits___The_0xMacro_Library.pdf",
+          "hash": "7520518020902624708"
+        },
+        {
+          "file": "packages/registry/cannonfile.mainnet.toml",
+          "hash": "18330975625311349602"
+        },
+        {
+          "file": "packages/registry/cannonfile.sepolia.toml",
+          "hash": "16205939239930809371"
+        },
+        {
+          "file": "packages/registry/cannonfile.toml",
+          "hash": "15735076158005290685"
+        },
+        {
+          "file": "packages/registry/contracts/CannonRegistry.sol",
+          "hash": "9104912133600713691"
+        },
+        {
+          "file": "packages/registry/contracts/ERC2771Context.sol",
+          "hash": "14419532604385302264"
+        },
+        {
+          "file": "packages/registry/contracts/EfficientStorage.sol",
+          "hash": "5352251248470001782"
+        },
+        {
+          "file": "packages/registry/contracts/IOptimismL1Sender.sol",
+          "hash": "4485328606535465166"
+        },
+        {
+          "file": "packages/registry/contracts/IOptimismL2Receiver.sol",
+          "hash": "6508885928480579867"
+        },
+        {
+          "file": "packages/registry/contracts/MockOptimismBridge.sol",
+          "hash": "5453284331583903007"
+        },
+        {
+          "file": "packages/registry/contracts/OwnedUpgradable.sol",
+          "hash": "12245100929033926981"
+        },
+        {
+          "file": "packages/registry/contracts/OwnedUpgradableUpdated.sol",
+          "hash": "8927413046358336794"
+        },
+        {
+          "file": "packages/registry/contracts/Proxy.sol",
+          "hash": "18096982941155076434"
+        },
+        {
+          "file": "packages/registry/hardhat.config.ts",
+          "hash": "10241310944027518035"
+        },
+        {
+          "file": "packages/registry/package.json",
+          "hash": "17108043885526118425",
+          "deps": [
+            "npm:@synthetixio/core-contracts",
+            "@usecannon/builder",
+            "@usecannon/cli",
+            "npm:at-least-node",
+            "npm:chai",
+            "npm:hardhat",
+            "hardhat-cannon",
+            "npm:hardhat-contract-sizer",
+            "npm:hardhat-gas-reporter",
+            "npm:ts-node",
+            "npm:typescript"
+          ]
+        },
+        {
+          "file": "packages/registry/scripts/list-packages.ts",
+          "hash": "7128943530492261677"
+        },
+        {
+          "file": "packages/registry/test/.eslintrc.json",
+          "hash": "4799180441438391977"
+        },
+        {
+          "file": "packages/registry/test/contracts/CannonRegistry.test.ts",
+          "hash": "17902216737382160738"
+        },
+        {
+          "file": "packages/registry/test/helpers/assert-revert.ts",
+          "hash": "412457636603289035"
+        },
+        {
+          "file": "packages/registry/tsconfig.json",
+          "hash": "3605050899635666627"
+        }
+      ],
+      "@usecannon/repo": [
+        {
+          "file": "packages/repo/.eslintrc",
+          "hash": "12919761174095936280"
+        },
+        {
+          "file": "packages/repo/.gitignore",
+          "hash": "8991966823503952338"
+        },
+        {
+          "file": "packages/repo/cloud-init.sh",
+          "hash": "9070055092749458560"
+        },
+        {
+          "file": "packages/repo/create-do-repo-node.sh",
+          "hash": "2898636182466836839"
+        },
+        {
+          "file": "packages/repo/package.json",
+          "hash": "6371360672240630474",
+          "deps": [
+            "npm:@types/express",
+            "npm:@types/lodash",
+            "npm:@types/morgan",
+            "@usecannon/builder",
+            "@usecannon/indexer",
+            "npm:connect-busboy",
+            "npm:lodash",
+            "npm:morgan",
+            "npm:redis",
+            "npm:typestub-ipfs-only-hash"
+          ]
+        },
+        {
+          "file": "packages/repo/src/cleaner.ts",
+          "hash": "8404905687445304924"
+        },
+        {
+          "file": "packages/repo/src/db.ts",
+          "hash": "11936004867498294955"
+        },
+        {
+          "file": "packages/repo/src/index.ts",
+          "hash": "3523736070168389602"
+        },
+        {
+          "file": "packages/repo/tsconfig.json",
+          "hash": "4821714034731106241"
+        }
+      ],
+      "@usecannon/builder": [
+        {
+          "file": "packages/builder/.gitignore",
+          "hash": "14388797753150440555"
+        },
+        {
+          "file": "packages/builder/CHANGELOG.md",
+          "hash": "15649468509657713490"
+        },
+        {
+          "file": "packages/builder/LICENSE",
+          "hash": "345500688128491592"
+        },
+        {
+          "file": "packages/builder/README.md",
+          "hash": "2969761951645752456"
+        },
+        {
+          "file": "packages/builder/jest.config.ts",
+          "hash": "15461521753628087284"
+        },
+        {
+          "file": "packages/builder/package.json",
+          "hash": "4301594764501405952",
+          "deps": [
+            "npm:@rollup/plugin-commonjs",
+            "npm:@rollup/plugin-json",
+            "npm:@rollup/plugin-node-resolve",
+            "npm:@rollup/plugin-terser",
+            "npm:@types/debug",
+            "npm:@types/jest",
+            "npm:@types/lodash",
+            "npm:@types/pako",
+            "npm:jest",
+            "npm:rollup@4.21.0",
+            "npm:ts-jest",
+            "npm:typedoc",
+            "npm:typedoc-plugin-markdown",
+            "npm:typedoc-plugin-zod",
+            "npm:@synthetixio/router",
+            "npm:axios@1.7.5",
+            "npm:axios-retry@4.5.0",
+            "npm:buffer@6.0.3",
+            "npm:chalk@4.1.2",
+            "npm:debug@4.3.6",
+            "npm:form-data@4.0.0",
+            "npm:fuse.js",
+            "npm:lodash",
+            "npm:pako@2.1.0",
+            "npm:promise-events",
+            "npm:typestub-ipfs-only-hash",
+            "npm:viem@2.16.5",
+            "npm:zod"
+          ]
+        },
+        {
+          "file": "packages/builder/rollup.config.mjs",
+          "hash": "17835368690963599791"
+        },
+        {
+          "file": "packages/builder/src/abis/CannonRegistry.ts",
+          "hash": "7590642956359921972"
+        },
+        {
+          "file": "packages/builder/src/abis/Multicall.ts",
+          "hash": "1280456452100684387"
+        },
+        {
+          "file": "packages/builder/src/abis/diamond/Diamond.json",
+          "hash": "17292887706030459701"
+        },
+        {
+          "file": "packages/builder/src/abis/diamond/DiamondCutFacet.json",
+          "hash": "16712297732488949905"
+        },
+        {
+          "file": "packages/builder/src/abis/diamond/DiamondLoupeFacet.json",
+          "hash": "2000466625779660114"
+        },
+        {
+          "file": "packages/builder/src/abis/diamond/DiamondWipeAndPaveFacet.json",
+          "hash": "7246878181853020715"
+        },
+        {
+          "file": "packages/builder/src/abis/diamond/OwnershipFacet.json",
+          "hash": "7202119895783154869"
+        },
+        {
+          "file": "packages/builder/src/access-recorder.test.ts",
+          "hash": "5509371720935050921"
+        },
+        {
+          "file": "packages/builder/src/access-recorder.ts",
+          "hash": "8729704474593086065"
+        },
+        {
+          "file": "packages/builder/src/actions.test.ts",
+          "hash": "12797739039425357883"
+        },
+        {
+          "file": "packages/builder/src/actions.ts",
+          "hash": "6858084381972732208"
+        },
+        {
+          "file": "packages/builder/src/builder.test.ts",
+          "hash": "6427768986532427027"
+        },
+        {
+          "file": "packages/builder/src/builder.ts",
+          "hash": "13596778448766130246"
+        },
+        {
+          "file": "packages/builder/src/consoleLog.ts",
+          "hash": "5224780653573593499"
+        },
+        {
+          "file": "packages/builder/src/constants.ts",
+          "hash": "11553655425055068263"
+        },
+        {
+          "file": "packages/builder/src/create2.test.ts",
+          "hash": "14166973488647144874"
+        },
+        {
+          "file": "packages/builder/src/create2.ts",
+          "hash": "843887535038168222"
+        },
+        {
+          "file": "packages/builder/src/definition.test.ts",
+          "hash": "15166042920471192920"
+        },
+        {
+          "file": "packages/builder/src/definition.ts",
+          "hash": "11947186786524278720"
+        },
+        {
+          "file": "packages/builder/src/error/index.ts",
+          "hash": "9401514644926354426"
+        },
+        {
+          "file": "packages/builder/src/error/zod.ts",
+          "hash": "679041594944103363"
+        },
+        {
+          "file": "packages/builder/src/helpers.test.ts",
+          "hash": "5722121439245160991"
+        },
+        {
+          "file": "packages/builder/src/helpers.ts",
+          "hash": "17842728926178640396"
+        },
+        {
+          "file": "packages/builder/src/index.ts",
+          "hash": "12895338848458742324"
+        },
+        {
+          "file": "packages/builder/src/ipfs.test.ts",
+          "hash": "15034628793838936027"
+        },
+        {
+          "file": "packages/builder/src/ipfs.ts",
+          "hash": "12131027474237138409"
+        },
+        {
+          "file": "packages/builder/src/loader.test.ts",
+          "hash": "10620747430152538710"
+        },
+        {
+          "file": "packages/builder/src/loader.ts",
+          "hash": "7161470314110366843"
+        },
+        {
+          "file": "packages/builder/src/multicall.ts",
+          "hash": "13291978666838013929"
+        },
+        {
+          "file": "packages/builder/src/package-reference.ts",
+          "hash": "13440253379615858685"
+        },
+        {
+          "file": "packages/builder/src/package.test.ts",
+          "hash": "7435438613400066941"
+        },
+        {
+          "file": "packages/builder/src/package.ts",
+          "hash": "12601780243023310464"
+        },
+        {
+          "file": "packages/builder/src/precompiles/arbitrum-gas.json",
+          "hash": "239621725820531860"
+        },
+        {
+          "file": "packages/builder/src/precompiles/index.ts",
+          "hash": "535304795238283577"
+        },
+        {
+          "file": "packages/builder/src/registry.test.ts",
+          "hash": "16862016734846030019"
+        },
+        {
+          "file": "packages/builder/src/registry.ts",
+          "hash": "6377186580355921170"
+        },
+        {
+          "file": "packages/builder/src/runtime.test.ts",
+          "hash": "2716827343851742157"
+        },
+        {
+          "file": "packages/builder/src/runtime.ts",
+          "hash": "1652352680346209356"
+        },
+        {
+          "file": "packages/builder/src/schemas.ts",
+          "hash": "11758270939589976839"
+        },
+        {
+          "file": "packages/builder/src/steps/__snapshots__/deploy.test.ts.snap",
+          "hash": "6601565020382945740"
+        },
+        {
+          "file": "packages/builder/src/steps/clone.test.ts",
+          "hash": "14163201706119409998"
+        },
+        {
+          "file": "packages/builder/src/steps/clone.ts",
+          "hash": "5843710811663685408"
+        },
+        {
+          "file": "packages/builder/src/steps/deploy.test.ts",
+          "hash": "10499247113355394805"
+        },
+        {
+          "file": "packages/builder/src/steps/deploy.ts",
+          "hash": "9713395787890280215"
+        },
+        {
+          "file": "packages/builder/src/steps/diamond.ts",
+          "hash": "10865457411012092780"
+        },
+        {
+          "file": "packages/builder/src/steps/invoke.test.ts",
+          "hash": "12236112409805808749"
+        },
+        {
+          "file": "packages/builder/src/steps/invoke.ts",
+          "hash": "17956322761444656332"
+        },
+        {
+          "file": "packages/builder/src/steps/keeper.ts",
+          "hash": "2992191730582528775"
+        },
+        {
+          "file": "packages/builder/src/steps/pull.test.ts",
+          "hash": "7044803937660322237"
+        },
+        {
+          "file": "packages/builder/src/steps/pull.ts",
+          "hash": "388467772939592681"
+        },
+        {
+          "file": "packages/builder/src/steps/router.test.ts",
+          "hash": "3057355215019336081"
+        },
+        {
+          "file": "packages/builder/src/steps/router.ts",
+          "hash": "6697375107507123970"
+        },
+        {
+          "file": "packages/builder/src/steps/utils.test.helper.ts",
+          "hash": "946046154365427006"
+        },
+        {
+          "file": "packages/builder/src/steps/var.test.ts",
+          "hash": "10903384898981932846"
+        },
+        {
+          "file": "packages/builder/src/steps/var.ts",
+          "hash": "14389469273050383588"
+        },
+        {
+          "file": "packages/builder/src/trace.test.ts",
+          "hash": "3186221024278908689"
+        },
+        {
+          "file": "packages/builder/src/trace.ts",
+          "hash": "11489176482214259762"
+        },
+        {
+          "file": "packages/builder/src/types.test.ts",
+          "hash": "672866789180492272"
+        },
+        {
+          "file": "packages/builder/src/types.ts",
+          "hash": "12267701586270389358"
+        },
+        {
+          "file": "packages/builder/src/util.test.ts",
+          "hash": "14037729937959547305"
+        },
+        {
+          "file": "packages/builder/src/util.ts",
+          "hash": "8125724901722195254"
+        },
+        {
+          "file": "packages/builder/src/utils/template.ts",
+          "hash": "10473659218261279898"
+        },
+        {
+          "file": "packages/builder/test/data/Greeter.json",
+          "hash": "13882846643680521981"
+        },
+        {
+          "file": "packages/builder/test/fixtures.ts",
+          "hash": "4449750602539873193"
+        },
+        {
+          "file": "packages/builder/tsconfig.build.json",
+          "hash": "12918333662020111599"
+        },
+        {
+          "file": "packages/builder/tsconfig.json",
+          "hash": "3130019229033826212"
+        },
+        {
+          "file": "packages/builder/typedoc.js",
+          "hash": "9699366121815710647"
+        }
+      ],
+      "sample-hardhat-project": [
+        {
+          "file": "examples/sample-hardhat-project/.env.example",
+          "hash": "8761008469272337885"
+        },
+        {
+          "file": "examples/sample-hardhat-project/.eslintignore",
+          "hash": "738963171455033043"
+        },
+        {
+          "file": "examples/sample-hardhat-project/.gitignore",
+          "hash": "15858630262937560320"
+        },
+        {
+          "file": "examples/sample-hardhat-project/.npmignore",
+          "hash": "7037743028942489028"
+        },
+        {
+          "file": "examples/sample-hardhat-project/.solhintignore",
+          "hash": "7663861978715868291"
+        },
+        {
+          "file": "examples/sample-hardhat-project/README.md",
+          "hash": "2097607723768091059"
+        },
+        {
+          "file": "examples/sample-hardhat-project/cannonfile.consumer.toml",
+          "hash": "950604711740908680"
+        },
+        {
+          "file": "examples/sample-hardhat-project/cannonfile.toml",
+          "hash": "14651497685349733757"
+        },
+        {
+          "file": "examples/sample-hardhat-project/contracts/ClonedGreeter.sol",
+          "hash": "11755472510203802417"
+        },
+        {
+          "file": "examples/sample-hardhat-project/contracts/Greeter.sol",
+          "hash": "13610472522585951842"
+        },
+        {
+          "file": "examples/sample-hardhat-project/contracts/Library.sol",
+          "hash": "14869470390194374368"
+        },
+        {
+          "file": "examples/sample-hardhat-project/hardhat.config.ts",
+          "hash": "1183875519496799115"
+        },
+        {
+          "file": "examples/sample-hardhat-project/package.json",
+          "hash": "1913671514683827895",
+          "deps": [
+            "npm:@nomiclabs/hardhat-etherscan",
+            "npm:@types/chai",
+            "npm:chai",
+            "hardhat-cannon",
+            "npm:hardhat",
+            "npm:hardhat-gas-reporter",
+            "npm:ts-node",
+            "npm:typescript"
+          ]
+        },
+        {
+          "file": "examples/sample-hardhat-project/tasks/get-build-info.ts",
+          "hash": "1488446994428674612"
+        },
+        {
+          "file": "examples/sample-hardhat-project/test/.eslintrc.json",
+          "hash": "4799180441438391977"
+        },
+        {
+          "file": "examples/sample-hardhat-project/test/Greeter.test.ts",
+          "hash": "17556223569748482841"
+        },
+        {
+          "file": "examples/sample-hardhat-project/tsconfig.json",
+          "hash": "3035814477407365291"
         }
       ]
     }
