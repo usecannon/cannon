@@ -86,7 +86,7 @@ export async function pinIpfs(
   toStorage: CannonStorage,
   alreadyCopiedIpfs: Map<string, any>,
   tags: Array<string>,
-  chainId = 0
+  chainId?: number
 ) {
   const checkKeyPreset = deployInfo.def.preset || context?.preset || 'main';
 
@@ -98,7 +98,7 @@ export async function pinIpfs(
 
   const def = new ChainDefinition(deployInfo.def);
 
-  const pkgChainId = deployInfo.chainId || chainId;
+  const pkgChainId = chainId || deployInfo.chainId || 0;
 
   const preCtx = await createInitialContext(def, deployInfo.meta, pkgChainId, deployInfo.options);
 
