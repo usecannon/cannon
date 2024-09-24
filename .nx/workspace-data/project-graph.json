@@ -9583,18 +9583,18 @@
       "type": "npm",
       "name": "npm:@usecannon/builder",
       "data": {
-        "version": "2.17.0",
+        "version": "2.17.2",
         "packageName": "@usecannon/builder",
-        "hash": "sha512-03AnPMeQdha5hCEGdJGc8DcZQJAvOqokWHl7zsQowYYHWY6U+fcYsgioA//8UFticOPIWKyr5RLbtwsWD9wIHw=="
+        "hash": "sha512-wkWXfmMnqwru8gSpFTnpEEUmLzMbfj4J0VYQiIIlmKqcYobQd9YPZg48LB+/+BJdBJ0EAwHhYCr+9qyQQLflRg=="
       }
     },
     "npm:@usecannon/cli": {
       "type": "npm",
       "name": "npm:@usecannon/cli",
       "data": {
-        "version": "2.17.0",
+        "version": "2.17.2",
         "packageName": "@usecannon/cli",
-        "hash": "sha512-M6r0Ya3z1KZBj79vVY1cN62YQCBt3cg662J8e8pb22DUhqWgYjSzCxWpCQPnY4ahL5jn+w/EBKY2GYF23NDNXA=="
+        "hash": "sha512-j9/COHqysb2KEzm0G8+By8h31TT2STX2MeDUGh7osqE16mEL+IkpgVzwF9Wej73UV319gvW3OK8iZfEUXc5s4w=="
       }
     },
     "npm:@vanilla-extract/css": {
