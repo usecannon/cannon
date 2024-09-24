@@ -130,8 +130,11 @@ function useMergedCannonDefInfo(
   }, [originalCannonDefInfo, partialDeployInfo, gitUrl, gitRef, gitFile]);
 }
 
+type DeployType = 'git' | 'partial';
+
 export default function QueueFromGitOps() {
-  const [selectedDeployType, setSelectedDeployType] = useState('new');
+  const [selectedDeployType, setSelectedDeployType] =
+    useState<DeployType>('git');
   const [overridePreviousState, setOverridePreviousState] = useState(false);
   const router = useRouter();
   const currentSafe = useStore((s) => s.currentSafe)!;
@@ -631,7 +634,7 @@ export default function QueueFromGitOps() {
             <FormLabel>Deployment Source</FormLabel>
             <RadioGroup
               value={selectedDeployType}
-              onChange={setSelectedDeployType}
+              onChange={(value: DeployType) => setSelectedDeployType(value)}
             >
               <Stack
                 direction={['column', 'column', 'row']}
