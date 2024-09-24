@@ -34,176 +34,64 @@
   "fileMap": {
     "nonProjectFiles": [
       {
-        "file": ".github/workflows/website-e2e.yml",
-        "hash": "11417049993038240611"
-      },
-      {
-        "file": "CONTRIBUTING.md",
-        "hash": "3546465377409621033"
-      },
-      {
-        "file": ".gitignore",
-        "hash": "6395347358878874969"
-      },
-      {
-        "file": ".github/workflows/commitlint-pr.yml",
-        "hash": "257279499032214002"
-      },
-      {
-        "file": "examples/diamond-architecture/cannonfile.toml",
-        "hash": "9402147275805516341"
-      },
-      {
-        "file": "examples/router-architecture/src/Counter.sol",
-        "hash": "3253543649150228646"
-      },
-      {
-        "file": "pnpm-workspace.yaml",
-        "hash": "16601633810671854477"
-      },
-      {
-        "file": "examples/diamond-architecture/README.md",
-        "hash": "11901379935717138200"
-      },
-      {
-        "file": "examples/router-architecture/src/Greeter.sol",
-        "hash": "4007247159568222914"
-      },
-      {
-        "file": ".github/workflows/upload-to-ipfs.yml",
-        "hash": "3712267378834430520"
-      },
-      {
-        "file": "examples/router-architecture/README.md",
-        "hash": "11901379935717138200"
-      },
-      {
-        "file": ".eslintignore",
-        "hash": "2650820535990372883"
-      },
-      {
-        "file": "examples/.eslintrc",
-        "hash": "12919761174095936280"
+        "file": "SECURITY.md",
+        "hash": "15821019023746560109"
       },
       {
         "file": "examples/diamond-architecture/src/GlobalState.sol",
         "hash": "17737632686114948403"
       },
       {
-        "file": "examples/router-architecture/foundry.toml",
-        "hash": "17022801668826136003"
-      },
-      {
-        "file": "README.md",
-        "hash": "12494180869435789022"
-      },
-      {
-        "file": "examples/router-architecture/cannonfile.toml",
-        "hash": "9490485869668146398"
-      },
-      {
-        "file": "CODE_OF_CONDUCT.md",
-        "hash": "7359443761280019963"
-      },
-      {
-        "file": ".github/workflows/test.yml",
-        "hash": "7781886952440922239"
-      },
-      {
-        "file": "examples/router-architecture/.gitignore",
-        "hash": "1972197803267052439"
-      },
-      {
-        "file": ".changeset/config.json",
-        "hash": "9436150497285796965"
-      },
-      {
-        "file": "examples/router-architecture/src/GlobalState.sol",
-        "hash": "17737632686114948403"
-      },
-      {
-        "file": "SECURITY.md",
-        "hash": "15821019023746560109"
-      },
-      {
-        "file": "nx.json",
-        "hash": "8839361205962660654"
-      },
-      {
-        "file": ".eslintrc.json",
-        "hash": "5263792134500466184"
-      },
-      {
-        "file": "lerna.json",
-        "hash": "13295510474223916251"
-      },
-      {
-        "file": "examples/diamond-architecture/.gitignore",
-        "hash": "1972197803267052439"
-      },
-      {
-        "file": ".github/dependabot.yml",
-        "hash": "17785986153427496338"
-      },
-      {
-        "file": ".github/workflows/test-snx-ci.yml",
-        "hash": "10444381077381050006"
-      },
-      {
-        "file": ".solhintignore",
-        "hash": "14291171810886391975"
-      },
-      {
-        "file": ".github/workflows/release.yml",
-        "hash": "16894990051445007914"
-      },
-      {
-        "file": ".github/workflows/test-e2e.yml",
-        "hash": "613420390365186108"
-      },
-      {
-        "file": ".prettierignore",
-        "hash": "5878918345210928365"
-      },
-      {
         "file": ".mocharc.json",
         "hash": "13223162343389838239"
       },
       {
-        "file": "tsconfig.json",
-        "hash": "14421949690734295062"
+        "file": "examples/diamond-architecture/cannonfile.toml",
+        "hash": "9402147275805516341"
       },
       {
         "file": ".prettierrc",
         "hash": "5400851715388859448"
       },
       {
+        "file": ".github/dependabot.yml",
+        "hash": "17785986153427496338"
+      },
+      {
+        "file": ".solhintignore",
+        "hash": "14291171810886391975"
+      },
+      {
+        "file": ".github/workflows/test-snx-ci.yml",
+        "hash": "10444381077381050006"
+      },
+      {
         "file": ".changeset/README.md",
         "hash": "4888845876018830777"
+      },
+      {
+        "file": "package.json",
+        "hash": "14328248740202860865"
+      },
+      {
+        "file": ".github/workflows/commitlint-pr.yml",
+        "hash": "257279499032214002"
+      },
+      {
+        "file": "examples/router-architecture/foundry.toml",
+        "hash": "17022801668826136003"
       },
       {
         "file": ".editorconfig",
         "hash": "12844250875304638587"
       },
       {
-        "file": "examples/diamond-architecture/foundry.toml",
-        "hash": "17022801668826136003"
+        "file": "examples/diamond-architecture/src/Greeter.sol",
+        "hash": "4007247159568222914"
       },
       {
-        "file": "LICENSE",
-        "hash": "15553496959705771468"
-      },
-      {
-        "file": "netlify.toml",
-        "hash": "2738307596039763444"
-      },
-      {
-        "file": ".gitmodules",
-        "hash": "13860333871890155685"
-      },
-      {
-        "file": ".github/workflows/lint.yml",
-        "hash": "8384125453251554335"
+        "file": "pnpm-lock.yaml",
+        "hash": "1243882319132258275"
       },
       {
         "file": "examples/diamond-architecture/src/Counter.sol",
@@ -214,256 +102,264 @@
         "hash": "7068450011696771920"
       },
       {
-        "file": "examples/diamond-architecture/src/Greeter.sol",
+        "file": ".gitignore",
+        "hash": "6395347358878874969"
+      },
+      {
+        "file": "examples/router-architecture/src/Counter.sol",
+        "hash": "3253543649150228646"
+      },
+      {
+        "file": "examples/router-architecture/README.md",
+        "hash": "11901379935717138200"
+      },
+      {
+        "file": ".github/workflows/website-e2e.yml",
+        "hash": "11417049993038240611"
+      },
+      {
+        "file": ".github/workflows/test-e2e.yml",
+        "hash": "613420390365186108"
+      },
+      {
+        "file": "netlify.toml",
+        "hash": "2738307596039763444"
+      },
+      {
+        "file": ".eslintrc.json",
+        "hash": "5263792134500466184"
+      },
+      {
+        "file": "examples/router-architecture/src/GlobalState.sol",
+        "hash": "17737632686114948403"
+      },
+      {
+        "file": "README.md",
+        "hash": "12494180869435789022"
+      },
+      {
+        "file": "LICENSE",
+        "hash": "15553496959705771468"
+      },
+      {
+        "file": ".eslintignore",
+        "hash": "2650820535990372883"
+      },
+      {
+        "file": "nx.json",
+        "hash": "8839361205962660654"
+      },
+      {
+        "file": "examples/router-architecture/.gitignore",
+        "hash": "1972197803267052439"
+      },
+      {
+        "file": ".prettierignore",
+        "hash": "5878918345210928365"
+      },
+      {
+        "file": "CODE_OF_CONDUCT.md",
+        "hash": "7359443761280019963"
+      },
+      {
+        "file": "examples/.eslintrc",
+        "hash": "12919761174095936280"
+      },
+      {
+        "file": "pnpm-workspace.yaml",
+        "hash": "16601633810671854477"
+      },
+      {
+        "file": "examples/router-architecture/src/Greeter.sol",
         "hash": "4007247159568222914"
       },
       {
-        "file": "pnpm-lock.yaml",
-        "hash": "5926294876413809271"
+        "file": "CONTRIBUTING.md",
+        "hash": "3546465377409621033"
       },
       {
-        "file": "package.json",
-        "hash": "14328248740202860865"
+        "file": "examples/diamond-architecture/.gitignore",
+        "hash": "1972197803267052439"
+      },
+      {
+        "file": "examples/router-architecture/cannonfile.toml",
+        "hash": "9490485869668146398"
+      },
+      {
+        "file": ".github/workflows/lint.yml",
+        "hash": "8384125453251554335"
+      },
+      {
+        "file": ".github/workflows/test.yml",
+        "hash": "7781886952440922239"
+      },
+      {
+        "file": ".github/workflows/release.yml",
+        "hash": "16894990051445007914"
+      },
+      {
+        "file": ".changeset/config.json",
+        "hash": "9436150497285796965"
+      },
+      {
+        "file": "examples/diamond-architecture/README.md",
+        "hash": "11901379935717138200"
+      },
+      {
+        "file": "examples/diamond-architecture/foundry.toml",
+        "hash": "17022801668826136003"
+      },
+      {
+        "file": ".github/workflows/upload-to-ipfs.yml",
+        "hash": "3712267378834430520"
+      },
+      {
+        "file": "tsconfig.json",
+        "hash": "14421949690734295062"
+      },
+      {
+        "file": ".gitmodules",
+        "hash": "13860333871890155685"
+      },
+      {
+        "file": "lerna.json",
+        "hash": "10703876247938037258"
       }
     ],
     "projectFileMap": {
-      "@usecannon/repo": [
+      "hardhat-cannon": [
         {
-          "file": "packages/repo/.eslintrc",
+          "file": "packages/hardhat-cannon/.eslintrc",
           "hash": "12919761174095936280"
         },
         {
-          "file": "packages/repo/.gitignore",
-          "hash": "8991966823503952338"
-        },
-        {
-          "file": "packages/repo/cloud-init.sh",
-          "hash": "9070055092749458560"
-        },
-        {
-          "file": "packages/repo/create-do-repo-node.sh",
-          "hash": "2898636182466836839"
-        },
-        {
-          "file": "packages/repo/package.json",
-          "hash": "6371360672240630474",
-          "deps": [
-            "npm:@types/express",
-            "npm:@types/lodash",
-            "npm:@types/morgan",
-            "@usecannon/builder",
-            "@usecannon/indexer",
-            "npm:connect-busboy",
-            "npm:lodash",
-            "npm:morgan",
-            "npm:redis",
-            "npm:typestub-ipfs-only-hash"
-          ]
-        },
-        {
-          "file": "packages/repo/src/cleaner.ts",
-          "hash": "8404905687445304924"
-        },
-        {
-          "file": "packages/repo/src/db.ts",
-          "hash": "11936004867498294955"
-        },
-        {
-          "file": "packages/repo/src/index.ts",
-          "hash": "3523736070168389602"
-        },
-        {
-          "file": "packages/repo/tsconfig.json",
-          "hash": "4821714034731106241"
-        }
-      ],
-      "sample-hardhat-project": [
-        {
-          "file": "examples/sample-hardhat-project/.env.example",
-          "hash": "8761008469272337885"
-        },
-        {
-          "file": "examples/sample-hardhat-project/.eslintignore",
-          "hash": "738963171455033043"
-        },
-        {
-          "file": "examples/sample-hardhat-project/.gitignore",
-          "hash": "15858630262937560320"
-        },
-        {
-          "file": "examples/sample-hardhat-project/.npmignore",
-          "hash": "7037743028942489028"
-        },
-        {
-          "file": "examples/sample-hardhat-project/.solhintignore",
-          "hash": "7663861978715868291"
-        },
-        {
-          "file": "examples/sample-hardhat-project/README.md",
-          "hash": "2097607723768091059"
-        },
-        {
-          "file": "examples/sample-hardhat-project/cannonfile.consumer.toml",
-          "hash": "950604711740908680"
-        },
-        {
-          "file": "examples/sample-hardhat-project/cannonfile.toml",
-          "hash": "14651497685349733757"
-        },
-        {
-          "file": "examples/sample-hardhat-project/contracts/ClonedGreeter.sol",
-          "hash": "11755472510203802417"
-        },
-        {
-          "file": "examples/sample-hardhat-project/contracts/Greeter.sol",
-          "hash": "13610472522585951842"
-        },
-        {
-          "file": "examples/sample-hardhat-project/contracts/Library.sol",
-          "hash": "14869470390194374368"
-        },
-        {
-          "file": "examples/sample-hardhat-project/hardhat.config.ts",
-          "hash": "1183875519496799115"
-        },
-        {
-          "file": "examples/sample-hardhat-project/package.json",
-          "hash": "1913671514683827895",
-          "deps": [
-            "npm:@nomiclabs/hardhat-etherscan",
-            "npm:@types/chai",
-            "npm:chai",
-            "hardhat-cannon",
-            "npm:hardhat",
-            "npm:hardhat-gas-reporter",
-            "npm:ts-node",
-            "npm:typescript"
-          ]
-        },
-        {
-          "file": "examples/sample-hardhat-project/tasks/get-build-info.ts",
-          "hash": "1488446994428674612"
-        },
-        {
-          "file": "examples/sample-hardhat-project/test/.eslintrc.json",
-          "hash": "4799180441438391977"
-        },
-        {
-          "file": "examples/sample-hardhat-project/test/Greeter.test.ts",
-          "hash": "17556223569748482841"
-        },
-        {
-          "file": "examples/sample-hardhat-project/tsconfig.json",
-          "hash": "3035814477407365291"
-        }
-      ],
-      "@usecannon/api": [
-        {
-          "file": "packages/api/.gitignore",
+          "file": "packages/hardhat-cannon/.gitignore",
           "hash": "14388797753150440555"
         },
         {
-          "file": "packages/api/Dockerfile",
-          "hash": "7626734308621320204"
+          "file": "packages/hardhat-cannon/CHANGELOG.md",
+          "hash": "423566757131718082"
         },
         {
-          "file": "packages/api/package.json",
-          "hash": "5931975406786527924",
+          "file": "packages/hardhat-cannon/LICENSE",
+          "hash": "345500688128491592"
+        },
+        {
+          "file": "packages/hardhat-cannon/README.md",
+          "hash": "10489705097701013807"
+        },
+        {
+          "file": "packages/hardhat-cannon/package.json",
+          "hash": "10296860069227103937",
           "deps": [
-            "npm:@types/cors",
-            "npm:@types/express",
-            "npm:@types/node@20.16.1",
-            "npm:ts-node-dev",
+            "npm:hardhat",
+            "npm:@nomiclabs/hardhat-ethers@2.2.3",
+            "npm:@types/debug",
+            "npm:@types/mocha@10.0.7",
+            "npm:@types/node@22.5.0",
+            "npm:bn.js@5.2.1",
+            "npm:ts-node",
             "npm:typescript",
-            "npm:@isaacs/ttlcache",
+            "npm:@iarna/toml",
             "@usecannon/builder",
             "@usecannon/cli",
-            "npm:cors",
-            "npm:dotenv@16.4.5",
-            "npm:envalid",
-            "npm:express@5.0.0-beta.3",
-            "npm:express-basic-auth",
-            "npm:express-prom-bundle",
-            "npm:express-rate-limit",
-            "npm:fastest-levenshtein",
-            "npm:fuse.js",
-            "npm:helmet",
-            "npm:prom-client",
-            "npm:redis",
+            "npm:chalk@4.1.2",
+            "npm:debug@4.3.6",
+            "npm:fs-extra@11.2.0",
             "npm:viem@2.16.5"
           ]
         },
         {
-          "file": "packages/api/src/config.ts",
-          "hash": "14147962637497641725"
+          "file": "packages/hardhat-cannon/src/index.ts",
+          "hash": "18218972604408090704"
         },
         {
-          "file": "packages/api/src/db/keys.ts",
-          "hash": "12989094698590038929"
+          "file": "packages/hardhat-cannon/src/internal/augment-provider.ts",
+          "hash": "8472180132546165039"
         },
         {
-          "file": "packages/api/src/db/transformers.ts",
-          "hash": "18243236440760659107"
+          "file": "packages/hardhat-cannon/src/internal/cannon.ts",
+          "hash": "11604716093435681786"
         },
         {
-          "file": "packages/api/src/errors.ts",
-          "hash": "15829161671651102168"
+          "file": "packages/hardhat-cannon/src/internal/get-hardhat-signers.ts",
+          "hash": "2577842475769194070"
         },
         {
-          "file": "packages/api/src/helpers.ts",
-          "hash": "17424252495650931601"
+          "file": "packages/hardhat-cannon/src/internal/load-pkg-json.ts",
+          "hash": "12540316362619436486"
         },
         {
-          "file": "packages/api/src/index.ts",
-          "hash": "16468175657546681501"
+          "file": "packages/hardhat-cannon/src/internal/parse-anvil-options.ts",
+          "hash": "17442097043211158370"
         },
         {
-          "file": "packages/api/src/queries/chains.ts",
-          "hash": "10846925734622898020"
+          "file": "packages/hardhat-cannon/src/subtasks/get-artifact-data.ts",
+          "hash": "4588333990524974821"
         },
         {
-          "file": "packages/api/src/queries/contracts.ts",
-          "hash": "9269554472092156377"
+          "file": "packages/hardhat-cannon/src/subtasks/load-package-definition.ts",
+          "hash": "6062581346598788755"
         },
         {
-          "file": "packages/api/src/queries/functions.ts",
-          "hash": "8893084055898108133"
+          "file": "packages/hardhat-cannon/src/subtasks/run-anvil-node.ts",
+          "hash": "17868796245855694928"
         },
         {
-          "file": "packages/api/src/queries/packages.ts",
-          "hash": "6035846278815987817"
+          "file": "packages/hardhat-cannon/src/task-names.ts",
+          "hash": "7625074084425596148"
         },
         {
-          "file": "packages/api/src/redis.ts",
-          "hash": "2262754983547913121"
+          "file": "packages/hardhat-cannon/src/tasks/alter.ts",
+          "hash": "10452407253405227243"
         },
         {
-          "file": "packages/api/src/routes/chains.ts",
-          "hash": "14975312999275917300"
+          "file": "packages/hardhat-cannon/src/tasks/build.ts",
+          "hash": "43489518346815729"
         },
         {
-          "file": "packages/api/src/routes/index.ts",
-          "hash": "15588844433486703813"
+          "file": "packages/hardhat-cannon/src/tasks/inspect.ts",
+          "hash": "11241139333606494527"
         },
         {
-          "file": "packages/api/src/routes/metrics.ts",
-          "hash": "13835883849340694769"
+          "file": "packages/hardhat-cannon/src/tasks/test.ts",
+          "hash": "2449477220119696718"
         },
         {
-          "file": "packages/api/src/routes/packages.ts",
-          "hash": "13774731108401014016"
+          "file": "packages/hardhat-cannon/src/type-extensions.ts",
+          "hash": "4587221350036338636"
         },
         {
-          "file": "packages/api/src/routes/search.ts",
-          "hash": "5291306812032256359"
+          "file": "packages/hardhat-cannon/src/types.ts",
+          "hash": "17722362359027070751"
         },
         {
-          "file": "packages/api/src/types.ts",
-          "hash": "3777467620586439141"
+          "file": "packages/hardhat-cannon/src/utils/index.ts",
+          "hash": "2436800128481555295"
         },
         {
-          "file": "packages/api/tsconfig.json",
-          "hash": "481418350705031235"
+          "file": "packages/hardhat-cannon/src/utils/test.ts",
+          "hash": "9599544362387739782"
+        },
+        {
+          "file": "packages/hardhat-cannon/tsconfig.json",
+          "hash": "30543115147602329"
+        },
+        {
+          "file": "packages/hardhat-cannon/utils/index.js",
+          "hash": "405766488242171165"
+        },
+        {
+          "file": "packages/hardhat-cannon/utils/index.ts",
+          "hash": "1846040257819942407"
+        },
+        {
+          "file": "packages/hardhat-cannon/utils/test.js",
+          "hash": "15852600983579708831"
+        },
+        {
+          "file": "packages/hardhat-cannon/utils/test.ts",
+          "hash": "4883642531416216736"
         }
       ],
       "@usecannon/cli": [
@@ -497,7 +393,7 @@
         },
         {
           "file": "packages/cli/package.json",
-          "hash": "1594297064762745105",
+          "hash": "13419920750811861742",
           "deps": [
             "npm:@types/adm-zip",
             "npm:@types/big.js",
@@ -554,7 +450,7 @@
         },
         {
           "file": "packages/cli/src/commands/alter.test.ts",
-          "hash": "18284133431067236978"
+          "hash": "138982682167164314"
         },
         {
           "file": "packages/cli/src/commands/alter.ts",
@@ -586,7 +482,7 @@
         },
         {
           "file": "packages/cli/src/commands/fetch.test.ts",
-          "hash": "15074874494566114556"
+          "hash": "12053866986046088811"
         },
         {
           "file": "packages/cli/src/commands/fetch.ts",
@@ -622,11 +518,11 @@
         },
         {
           "file": "packages/cli/src/commands/publish.test.ts",
-          "hash": "8695568449579348624"
+          "hash": "8053055297676993479"
         },
         {
           "file": "packages/cli/src/commands/publish.ts",
-          "hash": "16115583959758176318"
+          "hash": "1139150344075156168"
         },
         {
           "file": "packages/cli/src/commands/publishers.ts",
@@ -698,7 +594,7 @@
         },
         {
           "file": "packages/cli/src/package.test.ts",
-          "hash": "2284512774545155100"
+          "hash": "2788552235021394887"
         },
         {
           "file": "packages/cli/src/package.ts",
@@ -714,7 +610,7 @@
         },
         {
           "file": "packages/cli/src/rpc.ts",
-          "hash": "17953440332067470463"
+          "hash": "13490627278327511280"
         },
         {
           "file": "packages/cli/src/schemas.ts",
@@ -734,7 +630,7 @@
         },
         {
           "file": "packages/cli/src/util/anvil.ts",
-          "hash": "4420886207066348223"
+          "hash": "8348149394863178872"
         },
         {
           "file": "packages/cli/src/util/build.ts",
@@ -2693,141 +2589,6 @@
           "hash": "14898982927166082612"
         }
       ],
-      "hardhat-cannon": [
-        {
-          "file": "packages/hardhat-cannon/.eslintrc",
-          "hash": "12919761174095936280"
-        },
-        {
-          "file": "packages/hardhat-cannon/.gitignore",
-          "hash": "14388797753150440555"
-        },
-        {
-          "file": "packages/hardhat-cannon/CHANGELOG.md",
-          "hash": "423566757131718082"
-        },
-        {
-          "file": "packages/hardhat-cannon/LICENSE",
-          "hash": "345500688128491592"
-        },
-        {
-          "file": "packages/hardhat-cannon/README.md",
-          "hash": "10489705097701013807"
-        },
-        {
-          "file": "packages/hardhat-cannon/package.json",
-          "hash": "7517499023091858247",
-          "deps": [
-            "npm:hardhat",
-            "npm:@nomiclabs/hardhat-ethers@2.2.3",
-            "npm:@types/debug",
-            "npm:@types/mocha@10.0.7",
-            "npm:@types/node@22.5.0",
-            "npm:bn.js@5.2.1",
-            "npm:ts-node",
-            "npm:typescript",
-            "npm:@iarna/toml",
-            "@usecannon/builder",
-            "@usecannon/cli",
-            "npm:chalk@4.1.2",
-            "npm:debug@4.3.6",
-            "npm:fs-extra@11.2.0",
-            "npm:viem@2.16.5"
-          ]
-        },
-        {
-          "file": "packages/hardhat-cannon/src/index.ts",
-          "hash": "18218972604408090704"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/internal/augment-provider.ts",
-          "hash": "8472180132546165039"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/internal/cannon.ts",
-          "hash": "11604716093435681786"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/internal/get-hardhat-signers.ts",
-          "hash": "2577842475769194070"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/internal/load-pkg-json.ts",
-          "hash": "12540316362619436486"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/internal/parse-anvil-options.ts",
-          "hash": "17442097043211158370"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/subtasks/get-artifact-data.ts",
-          "hash": "4588333990524974821"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/subtasks/load-package-definition.ts",
-          "hash": "6062581346598788755"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/subtasks/run-anvil-node.ts",
-          "hash": "17868796245855694928"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/task-names.ts",
-          "hash": "7625074084425596148"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/tasks/alter.ts",
-          "hash": "10452407253405227243"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/tasks/build.ts",
-          "hash": "43489518346815729"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/tasks/inspect.ts",
-          "hash": "11241139333606494527"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/tasks/test.ts",
-          "hash": "2449477220119696718"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/type-extensions.ts",
-          "hash": "4587221350036338636"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/types.ts",
-          "hash": "17722362359027070751"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/utils/index.ts",
-          "hash": "2436800128481555295"
-        },
-        {
-          "file": "packages/hardhat-cannon/src/utils/test.ts",
-          "hash": "9599544362387739782"
-        },
-        {
-          "file": "packages/hardhat-cannon/tsconfig.json",
-          "hash": "30543115147602329"
-        },
-        {
-          "file": "packages/hardhat-cannon/utils/index.js",
-          "hash": "405766488242171165"
-        },
-        {
-          "file": "packages/hardhat-cannon/utils/index.ts",
-          "hash": "1846040257819942407"
-        },
-        {
-          "file": "packages/hardhat-cannon/utils/test.js",
-          "hash": "15852600983579708831"
-        },
-        {
-          "file": "packages/hardhat-cannon/utils/test.ts",
-          "hash": "4883642531416216736"
-        }
-      ],
       "sample-foundry-project": [
         {
           "file": "examples/sample-foundry-project/.gitignore",
@@ -3317,6 +3078,49 @@
           "hash": "17407694942538035621"
         }
       ],
+      "sample-hardhat-toolbox": [
+        {
+          "file": "examples/sample-hardhat-toolbox/.gitignore",
+          "hash": "14967769184485981097"
+        },
+        {
+          "file": "examples/sample-hardhat-toolbox/README.md",
+          "hash": "778817554851001312"
+        },
+        {
+          "file": "examples/sample-hardhat-toolbox/cannonfile.toml",
+          "hash": "4462393876116827912"
+        },
+        {
+          "file": "examples/sample-hardhat-toolbox/contracts/Lock.sol",
+          "hash": "14521486884034146640"
+        },
+        {
+          "file": "examples/sample-hardhat-toolbox/hardhat.config.ts",
+          "hash": "3032174525568543361"
+        },
+        {
+          "file": "examples/sample-hardhat-toolbox/package.json",
+          "hash": "7675331689274520733",
+          "deps": [
+            "npm:@nomicfoundation/hardhat-toolbox",
+            "npm:hardhat",
+            "hardhat-cannon"
+          ]
+        },
+        {
+          "file": "examples/sample-hardhat-toolbox/test/.eslintrc.json",
+          "hash": "4799180441438391977"
+        },
+        {
+          "file": "examples/sample-hardhat-toolbox/test/Lock.test.ts",
+          "hash": "824960218300705608"
+        },
+        {
+          "file": "examples/sample-hardhat-toolbox/tsconfig.json",
+          "hash": "4683222762130620071"
+        }
+      ],
       "@usecannon/website": [
         {
           "file": "packages/website/.cypress-cucumber-preprocessorrc.json",
@@ -3328,7 +3132,7 @@
         },
         {
           "file": "packages/website/.eslintrc.json",
-          "hash": "17697252859458382389"
+          "hash": "5197671769400914822"
         },
         {
           "file": "packages/website/.gitignore",
@@ -3420,9 +3224,9 @@
         },
         {
           "file": "packages/website/package.json",
-          "hash": "14047629513032687405",
+          "hash": "14891942093689973583",
           "deps": [
-            "npm:@nx/nx-darwin-arm64@18.0.4",
+            "npm:@nx/nx-linux-x64-gnu@18.0.4",
             "npm:ethers@6.13.2",
             "npm:@badeball/cypress-cucumber-preprocessor",
             "npm:@bahmutov/cypress-esbuild-preprocessor",
@@ -3719,7 +3523,7 @@
         },
         {
           "file": "packages/website/src/features/Deploy/QueueFromGitOpsPage.tsx",
-          "hash": "6378996995303165086"
+          "hash": "4710191095007880285"
         },
         {
           "file": "packages/website/src/features/Deploy/QueueTransaction.tsx",
@@ -3743,7 +3547,7 @@
         },
         {
           "file": "packages/website/src/features/Deploy/TransactionDetailsPage.tsx",
-          "hash": "6759006218595935932"
+          "hash": "14157106913746016034"
         },
         {
           "file": "packages/website/src/features/Deploy/TransactionDisplay.tsx",
@@ -3751,7 +3555,7 @@
         },
         {
           "file": "packages/website/src/features/Deploy/TransactionStepper.tsx",
-          "hash": "9443947958267947448"
+          "hash": "9752140536059720451"
         },
         {
           "file": "packages/website/src/features/Deploy/WithSafe.tsx",
@@ -3843,7 +3647,7 @@
         },
         {
           "file": "packages/website/src/features/Header/ConnectWallet.tsx",
-          "hash": "966986451220422072"
+          "hash": "8780890578629547522"
         },
         {
           "file": "packages/website/src/features/Header/Header.tsx",
@@ -4015,7 +3819,7 @@
         },
         {
           "file": "packages/website/src/features/Packages/Tabs/InteractTab.tsx",
-          "hash": "17668635992235740068"
+          "hash": "3081461081841537202"
         },
         {
           "file": "packages/website/src/features/Packages/Tabs/UnderConstruction.tsx",
@@ -4159,7 +3963,7 @@
         },
         {
           "file": "packages/website/src/hooks/cannon.ts",
-          "hash": "6995478612922260845"
+          "hash": "13740166094033936665"
         },
         {
           "file": "packages/website/src/hooks/cannonfileSpecs.ts",
@@ -4203,7 +4007,7 @@
         },
         {
           "file": "packages/website/src/hooks/safe.ts",
-          "hash": "7472487804554399915"
+          "hash": "9415819117552935695"
         },
         {
           "file": "packages/website/src/instrumentation.ts",
@@ -4239,7 +4043,7 @@
         },
         {
           "file": "packages/website/src/pages/_providers.tsx",
-          "hash": "5016210335188588168"
+          "hash": "15264006470425823246"
         },
         {
           "file": "packages/website/src/pages/deploy/_layout.tsx",
@@ -4371,11 +4175,11 @@
         },
         {
           "file": "packages/website/src/providers/CannonProvidersProvider.tsx",
-          "hash": "4524154247071883030"
+          "hash": "14271295851726882045"
         },
         {
           "file": "packages/website/src/providers/CannonRegistryProvider.tsx",
-          "hash": "16764278493825255262"
+          "hash": "8136309293459471657"
         },
         {
           "file": "packages/website/src/providers/logsProvider.tsx",
@@ -4387,7 +4191,7 @@
         },
         {
           "file": "packages/website/src/providers/walletProvider.tsx",
-          "hash": "11181001469298351307"
+          "hash": "16626282147214853565"
         },
         {
           "file": "packages/website/src/styles/globals.css",
@@ -4426,6 +4230,316 @@
           "hash": "7844983345066671673"
         }
       ],
+      "@usecannon/indexer": [
+        {
+          "file": "packages/indexer/.gitignore",
+          "hash": "8991966823503952338"
+        },
+        {
+          "file": "packages/indexer/Dockerfile",
+          "hash": "2728971869036647026"
+        },
+        {
+          "file": "packages/indexer/package.json",
+          "hash": "18293438710658882113",
+          "deps": [
+            "npm:@types/connect-busboy",
+            "npm:@types/lodash",
+            "npm:@types/morgan",
+            "@usecannon/builder",
+            "@usecannon/cli",
+            "npm:envalid",
+            "npm:lodash",
+            "npm:redis"
+          ]
+        },
+        {
+          "file": "packages/indexer/src/config.ts",
+          "hash": "94563295998128146"
+        },
+        {
+          "file": "packages/indexer/src/db.ts",
+          "hash": "12989094698590038929"
+        },
+        {
+          "file": "packages/indexer/src/index.ts",
+          "hash": "10700387504398334862"
+        },
+        {
+          "file": "packages/indexer/src/redis.ts",
+          "hash": "5962633842732129862"
+        },
+        {
+          "file": "packages/indexer/src/registry.ts",
+          "hash": "8412314167431159815"
+        },
+        {
+          "file": "packages/indexer/tsconfig.build.json",
+          "hash": "1439389409976227130"
+        },
+        {
+          "file": "packages/indexer/tsconfig.json",
+          "hash": "4821714034731106241"
+        }
+      ],
+      "@usecannon/api": [
+        {
+          "file": "packages/api/.gitignore",
+          "hash": "14388797753150440555"
+        },
+        {
+          "file": "packages/api/Dockerfile",
+          "hash": "7626734308621320204"
+        },
+        {
+          "file": "packages/api/package.json",
+          "hash": "5931975406786527924",
+          "deps": [
+            "npm:@types/cors",
+            "npm:@types/express",
+            "npm:@types/node@20.16.1",
+            "npm:ts-node-dev",
+            "npm:typescript",
+            "npm:@isaacs/ttlcache",
+            "@usecannon/builder",
+            "@usecannon/cli",
+            "npm:cors",
+            "npm:dotenv@16.4.5",
+            "npm:envalid",
+            "npm:express@5.0.0-beta.3",
+            "npm:express-basic-auth",
+            "npm:express-prom-bundle",
+            "npm:express-rate-limit",
+            "npm:fastest-levenshtein",
+            "npm:fuse.js",
+            "npm:helmet",
+            "npm:prom-client",
+            "npm:redis",
+            "npm:viem@2.16.5"
+          ]
+        },
+        {
+          "file": "packages/api/src/config.ts",
+          "hash": "14147962637497641725"
+        },
+        {
+          "file": "packages/api/src/db/keys.ts",
+          "hash": "12989094698590038929"
+        },
+        {
+          "file": "packages/api/src/db/transformers.ts",
+          "hash": "18243236440760659107"
+        },
+        {
+          "file": "packages/api/src/errors.ts",
+          "hash": "15829161671651102168"
+        },
+        {
+          "file": "packages/api/src/helpers.ts",
+          "hash": "17424252495650931601"
+        },
+        {
+          "file": "packages/api/src/index.ts",
+          "hash": "16468175657546681501"
+        },
+        {
+          "file": "packages/api/src/queries/chains.ts",
+          "hash": "10846925734622898020"
+        },
+        {
+          "file": "packages/api/src/queries/contracts.ts",
+          "hash": "9269554472092156377"
+        },
+        {
+          "file": "packages/api/src/queries/functions.ts",
+          "hash": "8893084055898108133"
+        },
+        {
+          "file": "packages/api/src/queries/packages.ts",
+          "hash": "6035846278815987817"
+        },
+        {
+          "file": "packages/api/src/redis.ts",
+          "hash": "2262754983547913121"
+        },
+        {
+          "file": "packages/api/src/routes/chains.ts",
+          "hash": "14975312999275917300"
+        },
+        {
+          "file": "packages/api/src/routes/index.ts",
+          "hash": "15588844433486703813"
+        },
+        {
+          "file": "packages/api/src/routes/metrics.ts",
+          "hash": "13835883849340694769"
+        },
+        {
+          "file": "packages/api/src/routes/packages.ts",
+          "hash": "13774731108401014016"
+        },
+        {
+          "file": "packages/api/src/routes/search.ts",
+          "hash": "5291306812032256359"
+        },
+        {
+          "file": "packages/api/src/types.ts",
+          "hash": "3777467620586439141"
+        },
+        {
+          "file": "packages/api/tsconfig.json",
+          "hash": "481418350705031235"
+        }
+      ],
+      "@usecannon/registry": [
+        {
+          "file": "packages/registry/.gitignore",
+          "hash": "331075484045573835"
+        },
+        {
+          "file": "packages/registry/audits/Cannon_A-1___Macro_Audits___The_0xMacro_Library.pdf",
+          "hash": "7520518020902624708"
+        },
+        {
+          "file": "packages/registry/cannonfile.mainnet.toml",
+          "hash": "18330975625311349602"
+        },
+        {
+          "file": "packages/registry/cannonfile.sepolia.toml",
+          "hash": "16205939239930809371"
+        },
+        {
+          "file": "packages/registry/cannonfile.toml",
+          "hash": "15735076158005290685"
+        },
+        {
+          "file": "packages/registry/contracts/CannonRegistry.sol",
+          "hash": "9104912133600713691"
+        },
+        {
+          "file": "packages/registry/contracts/ERC2771Context.sol",
+          "hash": "14419532604385302264"
+        },
+        {
+          "file": "packages/registry/contracts/EfficientStorage.sol",
+          "hash": "5352251248470001782"
+        },
+        {
+          "file": "packages/registry/contracts/IOptimismL1Sender.sol",
+          "hash": "4485328606535465166"
+        },
+        {
+          "file": "packages/registry/contracts/IOptimismL2Receiver.sol",
+          "hash": "6508885928480579867"
+        },
+        {
+          "file": "packages/registry/contracts/MockOptimismBridge.sol",
+          "hash": "5453284331583903007"
+        },
+        {
+          "file": "packages/registry/contracts/OwnedUpgradable.sol",
+          "hash": "12245100929033926981"
+        },
+        {
+          "file": "packages/registry/contracts/OwnedUpgradableUpdated.sol",
+          "hash": "8927413046358336794"
+        },
+        {
+          "file": "packages/registry/contracts/Proxy.sol",
+          "hash": "18096982941155076434"
+        },
+        {
+          "file": "packages/registry/hardhat.config.ts",
+          "hash": "10241310944027518035"
+        },
+        {
+          "file": "packages/registry/package.json",
+          "hash": "17108043885526118425",
+          "deps": [
+            "npm:@synthetixio/core-contracts",
+            "@usecannon/builder",
+            "@usecannon/cli",
+            "npm:at-least-node",
+            "npm:chai",
+            "npm:hardhat",
+            "hardhat-cannon",
+            "npm:hardhat-contract-sizer",
+            "npm:hardhat-gas-reporter",
+            "npm:ts-node",
+            "npm:typescript"
+          ]
+        },
+        {
+          "file": "packages/registry/scripts/list-packages.ts",
+          "hash": "7128943530492261677"
+        },
+        {
+          "file": "packages/registry/test/.eslintrc.json",
+          "hash": "4799180441438391977"
+        },
+        {
+          "file": "packages/registry/test/contracts/CannonRegistry.test.ts",
+          "hash": "17902216737382160738"
+        },
+        {
+          "file": "packages/registry/test/helpers/assert-revert.ts",
+          "hash": "412457636603289035"
+        },
+        {
+          "file": "packages/registry/tsconfig.json",
+          "hash": "3605050899635666627"
+        }
+      ],
+      "@usecannon/repo": [
+        {
+          "file": "packages/repo/.eslintrc",
+          "hash": "12919761174095936280"
+        },
+        {
+          "file": "packages/repo/.gitignore",
+          "hash": "8991966823503952338"
+        },
+        {
+          "file": "packages/repo/cloud-init.sh",
+          "hash": "9070055092749458560"
+        },
+        {
+          "file": "packages/repo/create-do-repo-node.sh",
+          "hash": "2898636182466836839"
+        },
+        {
+          "file": "packages/repo/package.json",
+          "hash": "6371360672240630474",
+          "deps": [
+            "npm:@types/express",
+            "npm:@types/lodash",
+            "npm:@types/morgan",
+            "@usecannon/builder",
+            "@usecannon/indexer",
+            "npm:connect-busboy",
+            "npm:lodash",
+            "npm:morgan",
+            "npm:redis",
+            "npm:typestub-ipfs-only-hash"
+          ]
+        },
+        {
+          "file": "packages/repo/src/cleaner.ts",
+          "hash": "8404905687445304924"
+        },
+        {
+          "file": "packages/repo/src/db.ts",
+          "hash": "11936004867498294955"
+        },
+        {
+          "file": "packages/repo/src/index.ts",
+          "hash": "3523736070168389602"
+        },
+        {
+          "file": "packages/repo/tsconfig.json",
+          "hash": "4821714034731106241"
+        }
+      ],
       "@usecannon/builder": [
         {
           "file": "packages/builder/.gitignore",
@@ -4449,7 +4563,7 @@
         },
         {
           "file": "packages/builder/package.json",
-          "hash": "3335165844961360130",
+          "hash": "4301594764501405952",
           "deps": [
             "npm:@rollup/plugin-commonjs",
             "npm:@rollup/plugin-json",
@@ -4571,7 +4685,7 @@
         },
         {
           "file": "packages/builder/src/helpers.test.ts",
-          "hash": "8266628463190746119"
+          "hash": "5722121439245160991"
         },
         {
           "file": "packages/builder/src/helpers.ts",
@@ -4611,7 +4725,7 @@
         },
         {
           "file": "packages/builder/src/package.ts",
-          "hash": "13797745411375539727"
+          "hash": "12601780243023310464"
         },
         {
           "file": "packages/builder/src/precompiles/arbitrum-gas.json",
@@ -4647,7 +4761,7 @@
         },
         {
           "file": "packages/builder/src/steps/clone.test.ts",
-          "hash": "10037572682388155065"
+          "hash": "14163201706119409998"
         },
         {
           "file": "packages/builder/src/steps/clone.ts",
@@ -4679,7 +4793,7 @@
         },
         {
           "file": "packages/builder/src/steps/pull.test.ts",
-          "hash": "8793534950306761550"
+          "hash": "7044803937660322237"
         },
         {
           "file": "packages/builder/src/steps/pull.ts",
@@ -4754,198 +4868,84 @@
           "hash": "9699366121815710647"
         }
       ],
-      "@usecannon/registry": [
+      "sample-hardhat-project": [
         {
-          "file": "packages/registry/.gitignore",
-          "hash": "331075484045573835"
+          "file": "examples/sample-hardhat-project/.env.example",
+          "hash": "8761008469272337885"
         },
         {
-          "file": "packages/registry/audits/Cannon_A-1___Macro_Audits___The_0xMacro_Library.pdf",
-          "hash": "7520518020902624708"
+          "file": "examples/sample-hardhat-project/.eslintignore",
+          "hash": "738963171455033043"
         },
         {
-          "file": "packages/registry/cannonfile.mainnet.toml",
-          "hash": "18330975625311349602"
+          "file": "examples/sample-hardhat-project/.gitignore",
+          "hash": "15858630262937560320"
         },
         {
-          "file": "packages/registry/cannonfile.sepolia.toml",
-          "hash": "16205939239930809371"
+          "file": "examples/sample-hardhat-project/.npmignore",
+          "hash": "7037743028942489028"
         },
         {
-          "file": "packages/registry/cannonfile.toml",
-          "hash": "15735076158005290685"
+          "file": "examples/sample-hardhat-project/.solhintignore",
+          "hash": "7663861978715868291"
         },
         {
-          "file": "packages/registry/contracts/CannonRegistry.sol",
-          "hash": "9104912133600713691"
+          "file": "examples/sample-hardhat-project/README.md",
+          "hash": "2097607723768091059"
         },
         {
-          "file": "packages/registry/contracts/ERC2771Context.sol",
-          "hash": "14419532604385302264"
+          "file": "examples/sample-hardhat-project/cannonfile.consumer.toml",
+          "hash": "950604711740908680"
         },
         {
-          "file": "packages/registry/contracts/EfficientStorage.sol",
-          "hash": "5352251248470001782"
+          "file": "examples/sample-hardhat-project/cannonfile.toml",
+          "hash": "14651497685349733757"
         },
         {
-          "file": "packages/registry/contracts/IOptimismL1Sender.sol",
-          "hash": "4485328606535465166"
+          "file": "examples/sample-hardhat-project/contracts/ClonedGreeter.sol",
+          "hash": "11755472510203802417"
         },
         {
-          "file": "packages/registry/contracts/IOptimismL2Receiver.sol",
-          "hash": "6508885928480579867"
+          "file": "examples/sample-hardhat-project/contracts/Greeter.sol",
+          "hash": "13610472522585951842"
         },
         {
-          "file": "packages/registry/contracts/MockOptimismBridge.sol",
-          "hash": "5453284331583903007"
+          "file": "examples/sample-hardhat-project/contracts/Library.sol",
+          "hash": "14869470390194374368"
         },
         {
-          "file": "packages/registry/contracts/OwnedUpgradable.sol",
-          "hash": "12245100929033926981"
+          "file": "examples/sample-hardhat-project/hardhat.config.ts",
+          "hash": "1183875519496799115"
         },
         {
-          "file": "packages/registry/contracts/OwnedUpgradableUpdated.sol",
-          "hash": "8927413046358336794"
-        },
-        {
-          "file": "packages/registry/contracts/Proxy.sol",
-          "hash": "18096982941155076434"
-        },
-        {
-          "file": "packages/registry/hardhat.config.ts",
-          "hash": "10241310944027518035"
-        },
-        {
-          "file": "packages/registry/package.json",
-          "hash": "17108043885526118425",
+          "file": "examples/sample-hardhat-project/package.json",
+          "hash": "1913671514683827895",
           "deps": [
-            "npm:@synthetixio/core-contracts",
-            "@usecannon/builder",
-            "@usecannon/cli",
-            "npm:at-least-node",
+            "npm:@nomiclabs/hardhat-etherscan",
+            "npm:@types/chai",
             "npm:chai",
-            "npm:hardhat",
             "hardhat-cannon",
-            "npm:hardhat-contract-sizer",
+            "npm:hardhat",
             "npm:hardhat-gas-reporter",
             "npm:ts-node",
             "npm:typescript"
           ]
         },
         {
-          "file": "packages/registry/scripts/list-packages.ts",
-          "hash": "7128943530492261677"
+          "file": "examples/sample-hardhat-project/tasks/get-build-info.ts",
+          "hash": "1488446994428674612"
         },
         {
-          "file": "packages/registry/test/.eslintrc.json",
+          "file": "examples/sample-hardhat-project/test/.eslintrc.json",
           "hash": "4799180441438391977"
         },
         {
-          "file": "packages/registry/test/contracts/CannonRegistry.test.ts",
-          "hash": "17902216737382160738"
+          "file": "examples/sample-hardhat-project/test/Greeter.test.ts",
+          "hash": "17556223569748482841"
         },
         {
-          "file": "packages/registry/test/helpers/assert-revert.ts",
-          "hash": "412457636603289035"
-        },
-        {
-          "file": "packages/registry/tsconfig.json",
-          "hash": "3605050899635666627"
-        }
-      ],
-      "@usecannon/indexer": [
-        {
-          "file": "packages/indexer/.gitignore",
-          "hash": "8991966823503952338"
-        },
-        {
-          "file": "packages/indexer/Dockerfile",
-          "hash": "2728971869036647026"
-        },
-        {
-          "file": "packages/indexer/package.json",
-          "hash": "18293438710658882113",
-          "deps": [
-            "npm:@types/connect-busboy",
-            "npm:@types/lodash",
-            "npm:@types/morgan",
-            "@usecannon/builder",
-            "@usecannon/cli",
-            "npm:envalid",
-            "npm:lodash",
-            "npm:redis"
-          ]
-        },
-        {
-          "file": "packages/indexer/src/config.ts",
-          "hash": "94563295998128146"
-        },
-        {
-          "file": "packages/indexer/src/db.ts",
-          "hash": "12989094698590038929"
-        },
-        {
-          "file": "packages/indexer/src/index.ts",
-          "hash": "10700387504398334862"
-        },
-        {
-          "file": "packages/indexer/src/redis.ts",
-          "hash": "5962633842732129862"
-        },
-        {
-          "file": "packages/indexer/src/registry.ts",
-          "hash": "8412314167431159815"
-        },
-        {
-          "file": "packages/indexer/tsconfig.build.json",
-          "hash": "1439389409976227130"
-        },
-        {
-          "file": "packages/indexer/tsconfig.json",
-          "hash": "4821714034731106241"
-        }
-      ],
-      "sample-hardhat-toolbox": [
-        {
-          "file": "examples/sample-hardhat-toolbox/.gitignore",
-          "hash": "14967769184485981097"
-        },
-        {
-          "file": "examples/sample-hardhat-toolbox/README.md",
-          "hash": "778817554851001312"
-        },
-        {
-          "file": "examples/sample-hardhat-toolbox/cannonfile.toml",
-          "hash": "4462393876116827912"
-        },
-        {
-          "file": "examples/sample-hardhat-toolbox/contracts/Lock.sol",
-          "hash": "14521486884034146640"
-        },
-        {
-          "file": "examples/sample-hardhat-toolbox/hardhat.config.ts",
-          "hash": "3032174525568543361"
-        },
-        {
-          "file": "examples/sample-hardhat-toolbox/package.json",
-          "hash": "7675331689274520733",
-          "deps": [
-            "npm:@nomicfoundation/hardhat-toolbox",
-            "npm:hardhat",
-            "hardhat-cannon"
-          ]
-        },
-        {
-          "file": "examples/sample-hardhat-toolbox/test/.eslintrc.json",
-          "hash": "4799180441438391977"
-        },
-        {
-          "file": "examples/sample-hardhat-toolbox/test/Lock.test.ts",
-          "hash": "824960218300705608"
-        },
-        {
-          "file": "examples/sample-hardhat-toolbox/tsconfig.json",
-          "hash": "4683222762130620071"
+          "file": "examples/sample-hardhat-project/tsconfig.json",
+          "hash": "3035814477407365291"
         }
       ]
     }
