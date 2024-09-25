@@ -38,7 +38,7 @@ export async function readDeployRecursive(packageRef: string, chainId: number): 
     if (result.has(url)) return;
     debug('readDeployTree child', url);
     try {
-      result.set(url, null);
+      result.set(url, null); // Avoid double fetching/recursion
 
       const info = (await store.readBlob(url)) as DeploymentInfo;
       if (!info) throw new Error(`deployment not found: ${url}`);
