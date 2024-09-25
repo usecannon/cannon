@@ -18,34 +18,44 @@ export async function readDeploy(packageRef: string, chainId: number) {
  * Get a list of all the deployments recursively that are imported by the given deployment. Keep in mind
  * that it will only return unique builds, not necessarily one per import/provision.
  */
-export async function readDeployRecursive(packageRef: string, chainId: number) {
+export async function readDeployRecursive(packageRef: string, chainId: number): Promise<DeploymentInfo[]> {
   debug('readDeployTree', packageRef, chainId);
 
   const store = await _getStore();
   const deployInfo = await _readDeploy(store, packageRef, chainId);
 
-  const result = new Map<string, DeploymentInfo | null>();
+  const result = new Map<string, DeploymentInfo>();
 
   const __readImports = async (info: DeploymentInfo) => {
     const importUrls = _deployImports(info).map(({ url }) => url);
+
+    if (!importUrls.length) return;
+
     await Promise.all(importUrls.map((url) => queue.push(url)));
   };
 
   const queue: queueAsPromised<string> = createQueue(async (url) => {
     if (result.has(url)) return;
     debug('readDeployTree child', url);
+    try {
+      const info = (await store.readBlob(url)) as DeploymentInfo;
 
-    result.set(url, null); // Avoid double fetching/recursion
-    const info = (await store.readBlob(url)) as DeploymentInfo;
-    if (!info) throw new Error(`deployment not found: ${url}`);
-    result.set(url, info); // Set fetched value
+      if (!info) throw new Error(`deployment not found: ${url}`);
 
-    await __readImports(info);
+      result.set(url, info);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        debug(`Error processing ${url}: ${error.message}`);
+      }
+    }
   }, 5);
 
   await __readImports(deployInfo);
 
-  return [deployInfo, ...result.values()] as DeploymentInfo[];
+  // wait for all queued tasks to complete
+  await queue.drain();
+
+  return [deployInfo, ...Array.from(result.values())];
 }
 
 function _deployImports(deployInfo: DeploymentInfo) {
