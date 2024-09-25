@@ -1,6 +1,5 @@
 import Debug from 'debug';
 import { CannonStorage, DeploymentInfo } from '@usecannon/builder';
-import { promise as createQueue, queueAsPromised } from 'fastq';
 import { createDefaultReadRegistry } from './registry';
 import { resolveCliSettings } from './settings';
 import { getMainLoader } from './loader';
