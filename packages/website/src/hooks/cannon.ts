@@ -110,12 +110,12 @@ export function useCannonBuildTmp(safe: SafeDefinition | null) {
   const createFork = useCreateFork();
   const { address: deployerWalletAddress } = useDeployerWallet(safe?.chainId);
 
-  function reset() {
+  function resetState() {
     dispatch(initialState);
   }
 
   useEffect(() => {
-    reset();
+    resetState();
   }, [deployerWalletAddress]);
 
   const buildFn = async (def?: ChainDefinition, prevDeploy?: DeploymentInfo) => {
@@ -278,7 +278,7 @@ export function useCannonBuildTmp(safe: SafeDefinition | null) {
   };
 
   function doBuild(def?: ChainDefinition, prevDeploy?: DeploymentInfo) {
-    reset();
+    resetState();
     dispatch({ status: 'building' });
 
     buildFn(def, prevDeploy)
@@ -298,6 +298,7 @@ export function useCannonBuildTmp(safe: SafeDefinition | null) {
 
   return {
     buildState,
+    resetState,
     doBuild,
   };
 }

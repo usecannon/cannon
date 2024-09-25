@@ -25,7 +25,7 @@ interface CannonSafeTransaction {
   sigs: string[];
 }
 
-export function useSafeTransactions(safe: SafeDefinition | null, refetchInterval = 10000) {
+export function useSafeTransactions(safe: SafeDefinition | null, refetchInterval?: number) {
   const [staged, setStaged] = useState<CannonSafeTransaction[]>([]);
   const [nextNonce, setNextNonce] = useState<number | null>(null);
   const stagingUrl = useStore((s) => s.settings.stagingUrl);
@@ -180,7 +180,7 @@ export function useTxnStager(
 
       setAlreadyStagedSigners(signers);
     })();
-  }, [alreadyStaged?.sigs, hashToSign]);
+  }, [alreadyStaged, alreadyStaged?.sigs, hashToSign]);
 
   const sigInsertIdx = _.sortedIndex(
     alreadyStagedSigners.map((s) => s.toLowerCase()),

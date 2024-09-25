@@ -104,10 +104,6 @@ function useMergedCannonDefInfo(
   );
 
   return useMemo(() => {
-    if (!gitUrl || !gitRef || !gitFile) {
-      return null;
-    }
-
     const isLoading =
       originalCannonDefInfo.isLoading || partialDeployInfo?.isLoading;
     const isError = originalCannonDefInfo.isError || partialDeployInfo?.isError;
@@ -126,9 +122,8 @@ function useMergedCannonDefInfo(
       isError,
       error,
       def,
-      filesList: originalCannonDefInfo.filesList,
     };
-  }, [originalCannonDefInfo, partialDeployInfo, gitUrl, gitRef, gitFile]);
+  }, [originalCannonDefInfo, partialDeployInfo]);
 }
 
 type DeployType = 'git' | 'partial';
@@ -215,7 +210,7 @@ export default function QueueFromGitOps() {
   }, [cannonDefInfo?.def, selectedDeployType]);
 
   // run the build and get the list of transactions we need to run
-  const { buildState, doBuild } = useCannonBuildTmp(currentSafe);
+  const { buildState, doBuild, resetState } = useCannonBuildTmp(currentSafe);
 
   const nextCannonDeployInfo = useMemo(() => {
     return cannonDefInfo?.def
@@ -531,7 +526,7 @@ export default function QueueFromGitOps() {
 
   function renderCannonfileInput() {
     return (
-      <FormControl mb="1">
+      <FormControl mb="4">
         <FormLabel>
           Cannonfile {selectedDeployType == 'partial' ? '(Optional)' : ''}
         </FormLabel>
@@ -547,9 +542,11 @@ export default function QueueFromGitOps() {
               onChange={(evt: any) => setCannonfileUrlInput(evt.target.value)}
             />
             <InputRightElement>
-              {cannonDefInfo?.isFetching ? (
+              {cannonfileUrlInput.length > 0 && cannonDefInfo?.isFetching ? (
                 <Spinner />
-              ) : cannonDefInfo?.def ? (
+              ) : cannonfileUrlInput.length > 0 &&
+                !cannonDefInfo.error &&
+                cannonDefInfo?.def ? (
                 <CheckIcon color="green.500" />
               ) : null}
             </InputRightElement>
@@ -632,7 +629,9 @@ export default function QueueFromGitOps() {
             <RadioGroup
               value={selectedDeployType}
               onChange={(value: DeployType) => {
+                resetState();
                 setCannonfileUrlInput('');
+                setPartialDeployIpfs('');
                 setSelectedDeployType(value);
               }}
             >
