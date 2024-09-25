@@ -24,7 +24,7 @@ export async function readDeployRecursive(packageRef: string, chainId: number): 
   const store = await _getStore();
   const deployInfo = await _readDeploy(store, packageRef, chainId);
 
-  const result = new Map<string, DeploymentInfo>();
+  const result = new Map<string, DeploymentInfo | null>();
 
   const __readImports = async (info: DeploymentInfo) => {
     const importUrls = _deployImports(info).map(({ url }) => url);
@@ -38,14 +38,17 @@ export async function readDeployRecursive(packageRef: string, chainId: number): 
     if (result.has(url)) return;
     debug('readDeployTree child', url);
     try {
-      const info = (await store.readBlob(url)) as DeploymentInfo;
+      result.set(url, null);
 
+      const info = (await store.readBlob(url)) as DeploymentInfo;
       if (!info) throw new Error(`deployment not found: ${url}`);
 
       result.set(url, info);
     } catch (error: unknown) {
       if (error instanceof Error) {
         debug(`Error processing ${url}: ${error.message}`);
+      } else {
+        debug(`Error processing ${url}: ${error}`);
       }
     }
   }, 5);
