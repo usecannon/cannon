@@ -1,8 +1,6 @@
 name: Upload Website to IPFS
 
-on:
-  pull_request:
-    branches: [main, alpha, dev]
+on: workflow_dispatch
 
 jobs:
   upload-ipfs:

@@ -1,0 +1,32 @@
+name: Branch Name
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  check-branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch name for different base branches
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const base = '${{ github.base_ref }}'
+            const branch = '${{ github.head_ref }}'
+
+            switch(base) {
+              case 'main':
+              case 'alpha': {
+                if (!/^hotfix\/[a-z0-9-_]+$/.test(branch)) {
+                  console.error(`::error::Branch name must start with 'hotfix/*' for PRs to ${base}`)
+                  process.exit(1)
+                }
+              }
+              case 'dev': {
+                if (!/^(feat|fix|chore|docs|test)\/[a-z0-9-_]+$/.test(branch)) {
+                  console.error(`::error::Branch name must start with '(feat|fix|chore|docs|test)/*' for PRs to ${base}`)
+                  process.exit(1)
+                }
+              }
+            }
