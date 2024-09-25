@@ -26,39 +26,40 @@ export async function readDeployRecursive(packageRef: string, chainId: number): 
 
   const result = new Map<string, DeploymentInfo | null>();
 
-  const __readImports = async (info: DeploymentInfo) => {
+  async function processDeployment(info: DeploymentInfo): Promise<void> {
     const importUrls = _deployImports(info).map(({ url }) => url);
 
-    if (!importUrls.length) return;
+    await Promise.all(
+      importUrls.map(async (url) => {
+        if (result.has(url)) return;
 
-    await Promise.all(importUrls.map((url) => queue.push(url)));
-  };
+        debug('readDeployTree child', url);
+        try {
+          // Avoid double fetching/recursion, by setting an empty value
+          // result.has(url) is going to return true before finishing the readBlob call.
+          result.set(url, null);
 
-  const queue: queueAsPromised<string> = createQueue(async (url) => {
-    if (result.has(url)) return;
-    debug('readDeployTree child', url);
-    try {
-      // Avoid double fetching/recursion, by setting an empty value
-      // result.has(url) is going to return true before finishing the readBlob call.
-      result.set(url, null);
+          const childInfo = (await store.readBlob(url)) as DeploymentInfo;
+          if (!childInfo) throw new Error(`deployment not found: ${url}`);
 
-      const info = (await store.readBlob(url)) as DeploymentInfo;
-      if (!info) throw new Error(`deployment not found: ${url}`);
+          result.set(url, childInfo);
+          await processDeployment(childInfo);
+        } catch (error) {
+          if (error instanceof Error) {
+            debug(`Error processing ${url}: ${error.message}`);
+          } else {
+            debug(`Error processing ${url}: ${error}`);
+          }
+        }
+      })
+    );
+  }
 
-      result.set(url, info);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        debug(`Error processing ${url}: ${error.message}`);
-      } else {
-        debug(`Error processing ${url}: ${error}`);
-      }
-    }
-  }, 5);
-
-  await __readImports(deployInfo);
-
-  // wait for all queued tasks to complete
-  await queue.drain();
+  try {
+    await processDeployment(deployInfo);
+  } catch (error) {
+    debug('Error processing deployments:', error);
+  }
 
   return [deployInfo, ...Array.from(result.values()).filter((val) => !!val)];
 }
