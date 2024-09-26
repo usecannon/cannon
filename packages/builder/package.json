@@ -54,7 +54,7 @@
     "pako": "^2.1.0",
     "promise-events": "^0.2.4",
     "typestub-ipfs-only-hash": "^4.0.0",
-    "viem": "^2.16.5",
+    "viem": "^2.21.15",
     "zod": "^3.23.6"
   },
   "engines": {
