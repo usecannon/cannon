@@ -72,5 +72,5 @@ jspm_packages/
 # local env vars
 .env.local
 
-# nx
+# nx cache folder
 .nx
