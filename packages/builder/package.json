@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/builder",
-  "version": "2.17.3",
+  "version": "2.17.4",
   "description": "Assembles cannonfile.toml manifests into cannon packages.",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
