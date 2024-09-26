@@ -18,6 +18,7 @@ import {
   PackageState,
 } from '../types';
 import { template } from '../utils/template';
+import { compress, getContentCID } from '../ipfs';
 
 const debug = Debug('cannon:builder:clone');
 
@@ -238,7 +239,9 @@ const cloneSpec = {
       };
     }
 
-    const newMiscUrl = await importRuntime.recordMisc();
+    const data = JSON.stringify(importRuntime.misc);
+    const buf = compress(data);
+    const newMiscUrl = 'ipfs://' + await getContentCID(Buffer.from(buf));
 
     debug(`[clone.${importLabel}]`, 'new misc:', newMiscUrl);
 
@@ -255,6 +258,12 @@ const cloneSpec = {
       status: partialDeploy ? 'partial' : 'complete',
       chainId: runtime.chainId,
     });
+
+    const uploadedMiscUrl = await importRuntime.recordMisc();
+
+    if (newMiscUrl !== uploadedMiscUrl) {
+      throw new Error(`Misc url mismatch: ${newMiscUrl} | ${uploadedMiscUrl}`)
+    }
 
     if (!newSubDeployUrl) {
       debug(`[clone.${importLabel}]`, 'warn: cannot record built state for import nested state');

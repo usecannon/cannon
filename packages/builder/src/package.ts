@@ -119,7 +119,9 @@ export async function pinIpfs(
 
   debug('copy ipfs for', packageReference.fullPackageRef, toUrl, fromUrl);
 
+  console.log("Starting deploy info put");
   const url = await toStorage.putBlob(deployInfo!);
+  console.log("Finished", url)
 
   // sometimes the from url is not set because only the top level package exists. If that is the case,
   // we want to check the uploaded ipfs blob and if it matches up, then we should cancel
@@ -130,6 +132,7 @@ export async function pinIpfs(
     return null;
   }
 
+  console.log("Starting misc package put")
   const newMiscUrl = await toStorage.putBlob(await fromStorage.readBlob(deployInfo!.miscUrl));
 
   if (newMiscUrl !== deployInfo.miscUrl) {
