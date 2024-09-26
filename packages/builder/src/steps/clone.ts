@@ -239,9 +239,8 @@ const cloneSpec = {
       };
     }
 
-    const data = JSON.stringify(importRuntime.misc);
-    const buf = compress(data);
-    const newMiscUrl = 'ipfs://' + await getContentCID(Buffer.from(buf));
+    const buffer = compress(JSON.stringify(importRuntime.misc));
+    const newMiscUrl = 'ipfs://' + (await getContentCID(Buffer.from(buffer)));
 
     debug(`[clone.${importLabel}]`, 'new misc:', newMiscUrl);
 
@@ -262,7 +261,7 @@ const cloneSpec = {
     const uploadedMiscUrl = await importRuntime.recordMisc();
 
     if (newMiscUrl !== uploadedMiscUrl) {
-      throw new Error(`Misc url mismatch: ${newMiscUrl} | ${uploadedMiscUrl}`)
+      throw new Error(`Misc url mismatch: ${newMiscUrl} | ${uploadedMiscUrl}`);
     }
 
     if (!newSubDeployUrl) {
