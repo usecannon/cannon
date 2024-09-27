@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { createCommandHelp } from './create-command-help';
+import { formatCommandHelp } from './format-command-help';
 import { parsePackageArguments, parsePackagesArguments } from './params';
 import type { Command as CommandConfig } from '../commands/config/types';
 
@@ -53,11 +53,7 @@ export const applyCommandsConfig = (command: Command, config: CommandConfig) => 
 
   // override the help output to add a header for anvil and forge options
   const originalHelpInformation = command.helpInformation.bind(command);
-  command.helpInformation = () => {
-    let helpText = originalHelpInformation();
-    helpText = createCommandHelp(helpText);
-    return helpText;
-  };
+  command.helpInformation = () => formatCommandHelp(originalHelpInformation());
 
   return command;
 };

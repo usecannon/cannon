@@ -1,4 +1,4 @@
-export function createCommandHelp(inputText: string): string {
+export function formatCommandHelp(inputText: string): string {
   const lines = inputText.split('\n');
   const optionGroups = [
     { prefix: '--anvil.', header: 'Anvil Options:' },

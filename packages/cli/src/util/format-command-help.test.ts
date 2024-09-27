@@ -1,6 +1,6 @@
-import { createCommandHelp } from './create-command-help';
+import { formatCommandHelp } from './format-command-help';
 
-describe('createCommandHelp', () => {
+describe('formatCommandHelp', () => {
   it('should group Anvil options', () => {
     const input = `
       --option1 Description1
@@ -8,7 +8,7 @@ describe('createCommandHelp', () => {
       --anvil.option2 AnvilDescription2
       --option2 Description2
     `;
-    const result = createCommandHelp(input);
+    const result = formatCommandHelp(input);
     expect(result).toContain('Anvil Options:');
     expect(result.indexOf('--anvil.option1')).toBeGreaterThan(result.indexOf('Anvil Options:'));
     expect(result.indexOf('--anvil.option2')).toBeGreaterThan(result.indexOf('Anvil Options:'));
@@ -21,7 +21,7 @@ describe('createCommandHelp', () => {
       --forge.option2 ForgeDescription2
       --option2 Description2
     `;
-    const result = createCommandHelp(input);
+    const result = formatCommandHelp(input);
     expect(result).toContain('Forge Options:');
     expect(result.indexOf('--forge.option1')).toBeGreaterThan(result.indexOf('Forge Options:'));
     expect(result.indexOf('--forge.option2')).toBeGreaterThan(result.indexOf('Forge Options:'));
@@ -34,7 +34,7 @@ describe('createCommandHelp', () => {
       --anvil.option1 AnvilDescription1
       -h, --help Show help
     `;
-    const result = createCommandHelp(input);
+    const result = formatCommandHelp(input);
     const helpIndex = result.indexOf('-h, --help');
     const option2Index = result.indexOf('--option2');
     const anvilOptionIndex = result.indexOf('--anvil.option1');
@@ -47,7 +47,7 @@ describe('createCommandHelp', () => {
       --option1 Description1
       --option2 Description2
     `;
-    const result = createCommandHelp(input);
+    const result = formatCommandHelp(input);
     expect(result).toBe(input);
   });
 });
