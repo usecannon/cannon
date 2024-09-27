@@ -1,7 +1,6 @@
 'use client';
 
 import { links } from '@/constants/links';
-import { parseIpfsHash } from '@/helpers/ipfs';
 import { useMultisendQuery } from '@/helpers/multisend';
 import * as onchainStore from '@/helpers/onchain-store';
 import { useStore } from '@/helpers/store';
@@ -41,10 +40,6 @@ import {
   Tooltip,
   useToast,
   VStack,
-  Radio,
-  RadioGroup,
-  Stack,
-  Checkbox,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainBuilderContext, DeploymentInfo } from '@usecannon/builder';
@@ -131,14 +126,16 @@ type DeployType = 'git' | 'partial';
 export default function QueueFromGitOps() {
   const [selectedDeployType, setSelectedDeployType] =
     useState<DeployType>('git');
-  const [overridePreviousState, setOverridePreviousState] = useState(false);
   const router = useRouter();
   const currentSafe = useStore((s) => s.currentSafe)!;
   const { chainId, isConnected } = useAccount();
   const { switchChainAsync } = useSwitchChain();
+
+  const [genericInput, setGenericInput] = useState('');
   const [cannonfileUrlInput, setCannonfileUrlInput] = useState('');
-  const [previousPackageInput, setPreviousPackageInput] = useState('');
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
+
+  const [previousPackageInput, setPreviousPackageInput] = useState('');
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
   const { openConnectModal } = useConnectModal();
   const [writeToIpfsMutationRes, setWriteToIpfsMutationRes] = useState<{
@@ -210,7 +207,7 @@ export default function QueueFromGitOps() {
   }, [cannonDefInfo?.def, selectedDeployType]);
 
   // run the build and get the list of transactions we need to run
-  const { buildState, doBuild, resetState } = useCannonBuildTmp(currentSafe);
+  const { buildState, doBuild } = useCannonBuildTmp(currentSafe);
 
   const nextCannonDeployInfo = useMemo(() => {
     return cannonDefInfo?.def
@@ -503,6 +500,14 @@ export default function QueueFromGitOps() {
     !cannonDefInfo?.def ||
     buildState.status === 'building';
 
+  const cannonInfoDefinitionLoaded =
+    cannonfileUrlInput.length > 0 && !cannonDefInfo.error && cannonDefInfo?.def;
+
+  const partialDeployInfoLoaded =
+    !partialDeployInfo?.isFetching &&
+    !partialDeployInfo?.isError &&
+    partialDeployInfo?.pkg;
+
   function PreviewButton({ message }: { message?: string }) {
     return (
       <Tooltip label={message}>
@@ -524,17 +529,15 @@ export default function QueueFromGitOps() {
     );
   }
 
-  function renderCannonfileInput() {
+  function renderCannonFileInput() {
     return (
       <FormControl mb="4">
-        <FormLabel>
-          Cannonfile {selectedDeployType == 'partial' ? '(Optional)' : ''}
-        </FormLabel>
+        <FormLabel>Cannonfile (Optional)</FormLabel>
         <HStack>
           <InputGroup>
             <Input
               type="text"
-              placeholder="https://github.com/myorg/myrepo/blob/main/cannonfile.toml"
+              placeholder="URL of the cannonfile used to generate the deployment data to display a git diff in Cannon."
               value={cannonfileUrlInput}
               borderColor={!cannonDefInfoError ? 'whiteAlpha.400' : 'red.500'}
               isDisabled={selectedDeployType == 'partial' && !partialDeployIpfs}
@@ -624,7 +627,7 @@ export default function QueueFromGitOps() {
           borderColor="gray.600"
           borderRadius="4px"
         >
-          <FormControl mb="4">
+          {/* <FormControl mb="4">
             <FormLabel>Deployment Source</FormLabel>
             <RadioGroup
               value={selectedDeployType}
@@ -654,11 +657,66 @@ export default function QueueFromGitOps() {
                 ? 'Enter a Git URL repository with a cannonfile to build.'
                 : 'Use a partial deployment from a IPFS hash.'}
             </Text>
+          </FormControl> */}
+
+          <FormControl mb="4">
+            <FormLabel>Cannonfile URL or Deployment Data IPFS Hash</FormLabel>
+            <HStack>
+              <InputGroup>
+                <Input
+                  type="text"
+                  placeholder="github.com/.../cannonfile.toml or Qm.."
+                  value={genericInput}
+                  borderColor={
+                    !cannonDefInfoError ? 'whiteAlpha.400' : 'red.500'
+                  }
+                  background="black"
+                  onChange={(e) => {
+                    setGenericInput(e.target.value);
+                    if (/^Qm[1-9A-Za-z]{44}$/.test(e.target.value)) {
+                      setSelectedDeployType('partial');
+                      setPartialDeployIpfs(e.target.value);
+                      setCannonfileUrlInput('');
+                    } else if (cannonfileUrlRegex.test(e.target.value)) {
+                      setSelectedDeployType('git');
+                      setCannonfileUrlInput(e.target.value);
+                      setPartialDeployIpfs('');
+                    }
+                  }}
+                />
+                {selectedDeployType == 'git' && (
+                  <InputRightElement>
+                    {cannonfileUrlInput.length > 0 &&
+                    cannonDefInfo?.isFetching ? (
+                      <Spinner />
+                    ) : cannonInfoDefinitionLoaded ? (
+                      <CheckIcon color="green.500" />
+                    ) : null}
+                  </InputRightElement>
+                )}
+                {selectedDeployType == 'partial' && (
+                  <InputRightElement>
+                    {partialDeployInfo?.isError && (
+                      <CloseIcon color="red.500" />
+                    )}
+                    {partialDeployInfo?.isFetching &&
+                      !partialDeployInfo?.isError && <Spinner />}
+                    {partialDeployInfo?.pkg && <CheckIcon color="green.500" />}
+                  </InputRightElement>
+                )}
+              </InputGroup>
+            </HStack>
+            {cannonDefInfoError ? (
+              <Alert mt="6" status="error" bg="gray.700">
+                <AlertIcon mr={3} />
+                <strong>{cannonDefInfoError.toString()}</strong>
+              </Alert>
+            ) : undefined}
           </FormControl>
 
           {selectedDeployType == 'git' && (
             <Flex flexDir="column" my="4">
-              {renderCannonfileInput()}
+              {/* {renderCannonfileInput()} */}
               {onChainPrevPkgQuery.isFetched &&
                 (prevDeployLocation ? (
                   <AlertCannon borderless status="info">
@@ -681,17 +739,20 @@ export default function QueueFromGitOps() {
             </Flex>
           )}
 
-          <FormControl display="flex" alignItems="center" my="2">
-            <Checkbox
-              mr="2"
-              onChange={(evt) =>
-                setOverridePreviousState(evt.currentTarget.checked)
-              }
-            />{' '}
-            Override Previous State
-          </FormControl>
+          {/*  ipfs://Qma8R3UNPp2WQZdwZ7Ri95D4ddqT5auSpU8TUxwh4nLHij */}
+          {/* {(partialDeployIpfs || cannonfileUrlInput) && (
+            <FormControl display="flex" alignItems="center" my="2">
+              <Checkbox
+                mr="2"
+                onChange={(evt) =>
+                  setOverridePreviousState(evt.currentTarget.checked)
+                }
+              />{' '}
+              Override Previous State
+            </FormControl>
+          )} */}
 
-          {overridePreviousState && (
+          {(partialDeployInfo?.pkg || partialDeployInfoLoaded) && (
             <FormControl mb="6">
               <FormLabel>Previous Package</FormLabel>
               <InputGroup>
@@ -735,42 +796,7 @@ export default function QueueFromGitOps() {
             </FormControl>
           )}
 
-          {selectedDeployType == 'partial' && (
-            <FormControl mb="6">
-              <FormLabel>Partial Deployment Data</FormLabel>
-              <InputGroup>
-                <Input
-                  placeholder="Qm..."
-                  type="text"
-                  value={partialDeployIpfs}
-                  borderColor={
-                    !partialDeployIpfs.length ||
-                    partialDeployInfo?.isFetching ||
-                    partialDeployInfo?.pkg
-                      ? 'whiteAlpha.400'
-                      : 'red.500'
-                  }
-                  background="black"
-                  onChange={(evt: any) =>
-                    setPartialDeployIpfs(parseIpfsHash(evt.target.value))
-                  }
-                />
-                <InputRightElement>
-                  {partialDeployInfo?.isError && <CloseIcon color="red.500" />}
-                  {partialDeployInfo?.isFetching &&
-                    !partialDeployInfo?.isError && <Spinner />}
-                  {partialDeployInfo?.pkg && <CheckIcon color="green.500" />}
-                </InputRightElement>
-              </InputGroup>
-              <FormHelperText color="gray.300">
-                If this deployment requires transactions executed in other
-                contexts (e.g. contract deployments or function calls using
-                other signers), provide the IPFS hash generated by building the
-                package using the CLI.
-              </FormHelperText>
-            </FormControl>
-          )}
-          {selectedDeployType == 'partial' && renderCannonfileInput()}
+          {selectedDeployType == 'partial' && renderCannonFileInput()}
 
           {renderAlertMessage()}
           <RenderPreviewButtonTooltip />
