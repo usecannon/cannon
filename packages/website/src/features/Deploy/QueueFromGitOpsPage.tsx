@@ -207,7 +207,7 @@ export default function QueueFromGitOps() {
   }, [cannonDefInfo?.def, selectedDeployType]);
 
   // run the build and get the list of transactions we need to run
-  const { buildState, doBuild } = useCannonBuildTmp(currentSafe);
+  const { buildState, doBuild, resetState } = useCannonBuildTmp(currentSafe);
 
   const nextCannonDeployInfo = useMemo(() => {
     return cannonDefInfo?.def
@@ -533,28 +533,30 @@ export default function QueueFromGitOps() {
     return (
       <FormControl mb="4">
         <FormLabel>Cannonfile (Optional)</FormLabel>
-        <HStack>
-          <InputGroup>
-            <Input
-              type="text"
-              placeholder="URL of the cannonfile used to generate the deployment data to display a git diff in Cannon."
-              value={cannonfileUrlInput}
-              borderColor={!cannonDefInfoError ? 'whiteAlpha.400' : 'red.500'}
-              isDisabled={selectedDeployType == 'partial' && !partialDeployIpfs}
-              background="black"
-              onChange={(evt: any) => setCannonfileUrlInput(evt.target.value)}
-            />
-            <InputRightElement>
-              {cannonfileUrlInput.length > 0 && cannonDefInfo?.isFetching ? (
-                <Spinner />
-              ) : cannonfileUrlInput.length > 0 &&
-                !cannonDefInfo.error &&
-                cannonDefInfo?.def ? (
-                <CheckIcon color="green.500" />
-              ) : null}
-            </InputRightElement>
-          </InputGroup>
-        </HStack>
+        <InputGroup>
+          <Input
+            type="text"
+            placeholder="github.com/.../cannonfile.toml"
+            value={cannonfileUrlInput}
+            borderColor={!cannonDefInfoError ? 'whiteAlpha.400' : 'red.500'}
+            isDisabled={selectedDeployType == 'partial' && !partialDeployIpfs}
+            background="black"
+            onChange={(evt: any) => setCannonfileUrlInput(evt.target.value)}
+          />
+          <InputRightElement>
+            {cannonfileUrlInput.length > 0 && cannonDefInfo?.isFetching ? (
+              <Spinner />
+            ) : cannonfileUrlInput.length > 0 &&
+              !cannonDefInfo.error &&
+              cannonDefInfo?.def ? (
+              <CheckIcon color="green.500" />
+            ) : null}
+          </InputRightElement>
+        </InputGroup>
+        <FormHelperText color="gray.300">
+          The Cannonfile URL is used to generate the deployment data to display
+          a git diff in Cannon.
+        </FormHelperText>
         {cannonDefInfoError ? (
           <Alert mt="6" status="error" bg="gray.700">
             <AlertIcon mr={3} />
@@ -672,15 +674,17 @@ export default function QueueFromGitOps() {
                   }
                   background="black"
                   onChange={(e) => {
+                    resetState();
+                    setCannonfileUrlInput('');
+                    setPartialDeployIpfs('');
+
                     setGenericInput(e.target.value);
                     if (/^Qm[1-9A-Za-z]{44}$/.test(e.target.value)) {
                       setSelectedDeployType('partial');
                       setPartialDeployIpfs(e.target.value);
-                      setCannonfileUrlInput('');
                     } else if (cannonfileUrlRegex.test(e.target.value)) {
                       setSelectedDeployType('git');
                       setCannonfileUrlInput(e.target.value);
-                      setPartialDeployIpfs('');
                     }
                   }}
                 />
@@ -796,7 +800,10 @@ export default function QueueFromGitOps() {
             </FormControl>
           )}
 
-          {selectedDeployType == 'partial' && renderCannonFileInput()}
+          {selectedDeployType == 'partial' &&
+            partialDeployIpfs.length > 0 &&
+            partialDeployInfoLoaded &&
+            renderCannonFileInput()}
 
           {renderAlertMessage()}
           <RenderPreviewButtonTooltip />
