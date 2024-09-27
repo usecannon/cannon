@@ -86,7 +86,8 @@ function useMergedCannonDefInfo(
   gitUrl: string,
   gitRef: string,
   gitFile: string,
-  partialDeployIpfs: string
+  partialDeployIpfs: string,
+  chainId?: number
 ) {
   const originalCannonDefInfo = useLoadCannonDefinition(
     gitUrl,
@@ -95,7 +96,8 @@ function useMergedCannonDefInfo(
   );
 
   const partialDeployInfo = useCannonPackage(
-    partialDeployIpfs ? `ipfs://${partialDeployIpfs}` : ''
+    partialDeployIpfs ? `ipfs://${partialDeployIpfs}` : '',
+    chainId
   );
 
   return useMemo(() => {
@@ -168,14 +170,16 @@ export default function QueueFromGitOps() {
   }, [cannonfileUrlInput]);
 
   const partialDeployInfo = useCannonPackage(
-    partialDeployIpfs ? `ipfs://${partialDeployIpfs}` : ''
+    partialDeployIpfs ? `ipfs://${partialDeployIpfs}` : '',
+    currentSafe?.chainId
   );
 
   const cannonDefInfo = useMergedCannonDefInfo(
     gitUrl,
     gitRef,
     gitFile,
-    partialDeployIpfs
+    partialDeployIpfs,
+    currentSafe?.chainId
   );
 
   const cannonDefInfoError: string = gitUrl
@@ -187,7 +191,7 @@ export default function QueueFromGitOps() {
 
   const onChainPrevPkgQuery = useCannonFindUpgradeFromUrl(
     fullPackageRef || undefined,
-    chainId,
+    currentSafe?.chainId,
     cannonDefInfo?.def?.getDeployers()
   );
 
@@ -195,7 +199,10 @@ export default function QueueFromGitOps() {
     ? `ipfs://${partialDeployIpfs}`
     : onChainPrevPkgQuery.url || '';
 
-  const prevCannonDeployInfo = useCannonPackage(prevDeployLocation);
+  const prevCannonDeployInfo = useCannonPackage(
+    prevDeployLocation,
+    currentSafe?.chainId
+  );
 
   useEffect(() => {
     if (!cannonDefInfo?.def) return setPreviousPackageInput('');
@@ -439,7 +446,7 @@ export default function QueueFromGitOps() {
 
     if (chainId !== currentSafe?.chainId) {
       try {
-        await switchChainAsync({ chainId: currentSafe?.chainId || 1 });
+        await switchChainAsync({ chainId: currentSafe?.chainId || 10 });
       } catch (e) {
         toast({
           title:
@@ -498,7 +505,8 @@ export default function QueueFromGitOps() {
     loadingDataForDeploy ||
     chainId !== currentSafe?.chainId ||
     !cannonDefInfo?.def ||
-    buildState.status === 'building';
+    buildState.status === 'building' ||
+    buildState.status === 'success';
 
   const cannonInfoDefinitionLoaded =
     cannonfileUrlInput.length > 0 && !cannonDefInfo.error && cannonDefInfo?.def;
@@ -508,26 +516,20 @@ export default function QueueFromGitOps() {
     !partialDeployInfo?.isError &&
     partialDeployInfo?.pkg;
 
-  function PreviewButton({ message }: { message?: string }) {
-    return (
-      <Tooltip label={message}>
-        <Button
-          width="100%"
-          colorScheme="teal"
-          isDisabled={disablePreviewButton}
-          onClick={handlePreviewTxnsClick}
-        >
-          {loadingDataForDeploy ? (
-            <>
-              Loading required data <Spinner size="sm" ml={2} />
-            </>
-          ) : (
-            'Preview Transactions to Queue'
-          )}
-        </Button>
-      </Tooltip>
-    );
-  }
+  const PreviewButton = ({ message }: { message?: string }) => (
+    <Tooltip label={message}>
+      <Button
+        width="100%"
+        colorScheme="teal"
+        isDisabled={disablePreviewButton}
+        onClick={handlePreviewTxnsClick}
+      >
+        {loadingDataForDeploy
+          ? 'Loading required data...'
+          : 'Preview Transactions to Queue'}
+      </Button>
+    </Tooltip>
+  );
 
   function renderCannonFileInput() {
     return (
@@ -672,6 +674,7 @@ export default function QueueFromGitOps() {
                   borderColor={
                     !cannonDefInfoError ? 'whiteAlpha.400' : 'red.500'
                   }
+                  disabled={chainId !== currentSafe?.chainId}
                   background="black"
                   onChange={(e) => {
                     resetState();
@@ -806,7 +809,21 @@ export default function QueueFromGitOps() {
             renderCannonFileInput()}
 
           {renderAlertMessage()}
-          <RenderPreviewButtonTooltip />
+
+          {chainId !== currentSafe?.chainId ? (
+            <Button
+              width="100%"
+              colorScheme="teal"
+              onClick={() =>
+                switchChainAsync({ chainId: currentSafe?.chainId || 10 })
+              }
+            >
+              Switch Network
+            </Button>
+          ) : (
+            <RenderPreviewButtonTooltip />
+          )}
+
           {buildState.message && (
             <Alert mt="6" status="info" bg="gray.800">
               <Spinner mr={3} boxSize={4} />
@@ -874,9 +891,9 @@ export default function QueueFromGitOps() {
             </Box>
           )}
           {cannonDefInfo?.def && multicallTxn?.data && (
-            <Box mt="10">
+            <Box mt="4">
               <Heading size="md" mt={5}>
-                {cannonDefInfo.def.getName(ctx)}:
+                Package: {cannonDefInfo.def.getName(ctx)}:
                 {cannonDefInfo.def.getVersion(ctx) || 'latest'}@
                 {cannonDefInfo.def.getPreset(ctx)}
               </Heading>
@@ -894,7 +911,7 @@ export default function QueueFromGitOps() {
           {writeToIpfsMutationRes?.data?.mainUrl &&
             multicallTxn?.data &&
             stager.safeTxn && (
-              <Box mt="4" mb="10">
+              <Box mt="4" mb="4">
                 <Heading size="sm" mb={2}>
                   Transactions
                 </Heading>
@@ -933,6 +950,7 @@ export default function QueueFromGitOps() {
                       isDisabled={
                         !!stager.signConditionFailed || stager.signing
                       }
+                      colorScheme="teal"
                       size="lg"
                       w="100%"
                       onClick={async () => {
@@ -956,6 +974,7 @@ export default function QueueFromGitOps() {
                       !!stager.execConditionFailed || isOutsideSafeTxnsRequired
                     }
                     size="lg"
+                    colorScheme="teal"
                     w="100%"
                     onClick={() => {
                       execTxn.writeContract(stager.executeTxnConfig!, {

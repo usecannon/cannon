@@ -642,14 +642,10 @@ export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?:
   const registryQuery = useQuery({
     queryKey: ['cannon', 'registry-url', urlOrRef, packageChainId],
     queryFn: async () => {
-      if (typeof urlOrRef !== 'string' || urlOrRef.length < 3) {
-        return null;
-      }
+      if (urlOrRef?.startsWith('ipfs://')) return { url: urlOrRef };
+      if (urlOrRef?.startsWith('@ipfs:')) return { url: urlOrRef.replace('@ipfs:', 'ipfs://') };
 
-      if (urlOrRef.startsWith('ipfs://')) return { url: urlOrRef };
-      if (urlOrRef.startsWith('@ipfs:')) return { url: urlOrRef.replace('@ipfs:', 'ipfs://') };
-
-      const url = await registry.getUrl(urlOrRef, packageChainId);
+      const url = await registry.getUrl(urlOrRef!, packageChainId);
 
       if (url) {
         return { url };
@@ -657,6 +653,7 @@ export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?:
         throw new Error(`package not found: ${urlOrRef} (${packageChainId})`);
       }
     },
+    enabled: typeof urlOrRef === 'string' && urlOrRef.length > 3,
     refetchOnWindowFocus: false,
   });
 
