@@ -101,6 +101,10 @@ export function getMergedAbiFromContractPaths(ctx: ChainArtifacts, paths: string
     });
 }
 
+export const stripConstructorFromAbi = (abi: any[]) => {
+  return abi.filter((a) => a.type !== 'constructor');
+};
+
 export function getContractFromPath(ctx: ChainArtifacts, path: string): Contract | null {
   const contract = getContractDefinitionFromPath(ctx, path);
 
