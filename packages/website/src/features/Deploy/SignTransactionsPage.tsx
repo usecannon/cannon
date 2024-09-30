@@ -22,8 +22,10 @@ export default function SignTransactionsPage() {
 
 function SignTransactions() {
   const currentSafe = useStore((s) => s.currentSafe);
-  const { staged, isLoading: isLoadingSafeTxs } =
-    useSafeTransactions(currentSafe);
+  const { staged, isLoading: isLoadingSafeTxs } = useSafeTransactions(
+    currentSafe,
+    10000
+  );
   const { data: history } = useExecutedTransactions(currentSafe);
   const [isChecked, setIsChecked] = useState(true);
 
