@@ -189,6 +189,8 @@ export default function QueueFromGitOps() {
 
   const fullPackageRef = cannonDefInfo?.def?.getPackageRef(ctx) ?? null;
 
+  const hasDeployers = cannonDefInfo.def?.getDeployers()?.length ?? 0 > 0;
+
   const onChainPrevPkgQuery = useCannonFindUpgradeFromUrl(
     fullPackageRef || undefined,
     currentSafe?.chainId,
@@ -724,6 +726,15 @@ export default function QueueFromGitOps() {
           {selectedDeployType == 'git' && (
             <Flex flexDir="column" my="4">
               {/* {renderCannonfileInput()} */}
+
+              {cannonDefInfo.def && !hasDeployers && (
+                <AlertCannon
+                  borderless
+                  title="No deployers found in cannonfile"
+                  status="warning"
+                />
+              )}
+
               {onChainPrevPkgQuery.isFetched &&
                 (prevDeployLocation ? (
                   <AlertCannon borderless status="info">
