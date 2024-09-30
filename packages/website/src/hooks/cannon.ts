@@ -607,7 +607,7 @@ export function useCannonFindUpgradeFromUrl(packageRef?: PackageReference, chain
 
   const onChainDataQuery = useQuery({
     enabled: !!packageRef && !!chainId,
-    queryKey: ['cannon', 'find-upgrade-from', packageRef?.name, packageRef?.preset, chainId, deployers],
+    queryKey: ['cannon', 'find-upgrade-from', packageRef?.name, packageRef?.preset, packageRef?.version, chainId, deployers],
     queryFn: async () => {
       // eslint-disable-next-line no-console
       console.log('find with deployers', deployers);
