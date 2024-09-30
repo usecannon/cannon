@@ -22,11 +22,13 @@ jobs:
                   console.error(`::error::Branch name must start with 'hotfix/*' for PRs to ${base}`)
                   process.exit(1)
                 }
+                break;
               }
               case 'dev': {
                 if (!/^(feat|fix|chore|docs|test)\/[a-z0-9-_\.]+$/.test(branch)) {
                   console.error(`::error::Branch name must start with '(feat|fix|chore|docs|test)/*' for PRs to ${base}`)
                   process.exit(1)
                 }
+                break;
               }
             }
