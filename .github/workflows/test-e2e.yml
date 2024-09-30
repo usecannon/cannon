@@ -35,8 +35,6 @@ jobs:
 
       - run: pnpm i --prefer-frozen-lockfile
       - run: pnpm build
-        env:
-          NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
 
       - name: E2E Tests
         run: cd ./packages/cli && pnpm test-e2e
