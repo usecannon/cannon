@@ -1,4 +1,3 @@
-import { PackageReference } from '@usecannon/builder';
 import { inspect, PackageSpecification, resolveCliSettings } from '@usecannon/cli';
 import { task } from 'hardhat/config';
 import { SUBTASK_LOAD_PACKAGE_DEFINITION, TASK_INSPECT } from '../task-names';

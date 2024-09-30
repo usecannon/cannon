@@ -12,7 +12,6 @@ import {
   ActionKinds,
   addOutputsToContext,
 } from '@usecannon/builder';
-import { bold, yellow } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';

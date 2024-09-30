@@ -47,10 +47,6 @@ export const commandsConfig: CommandsConfig = {
         description: 'Change the default registry to read from first. Default: onchain',
       },
       {
-        flags: '--preset <preset>',
-        description: 'Load an alternate setting preset',
-      },
-      {
         flags: '--logs',
         description: 'Show RPC logs instead of an interactive prompt',
       },
@@ -327,10 +323,6 @@ export const commandsConfig: CommandsConfig = {
       {
         flags: '--chain-id <number>',
         description: 'The chain ID of the package to publish',
-      },
-      {
-        flags: '--preset <preset>',
-        description: 'The preset of the packages to publish',
       },
       {
         flags: '-t --tags <tags>',

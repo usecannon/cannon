@@ -8,10 +8,10 @@ import {
   PackageReference,
   preparePublishPackage,
 } from '@usecannon/builder';
-import { blueBright, bold, gray, yellow } from 'chalk';
+import { blueBright, bold, gray } from 'chalk';
 import prompts from 'prompts';
 import * as viem from 'viem';
-import { log, warn } from '../util/console';
+import { log } from '../util/console';
 import { getMainLoader } from '../loader';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';
