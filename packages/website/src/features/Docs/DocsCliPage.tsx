@@ -202,8 +202,8 @@ const DocumentationSection: React.FC<{
               >
                 Anvil
               </Link>{' '}
-              node to execute this command. The following options can also be
-              passed through to the Anvil process:
+              to execute this command. The following options can also be passed
+              through to the Anvil process:
             </Text>
             <CustomTable title="Option" data={anvilOptionsData} />
           </AccordionPanel>
@@ -229,15 +229,15 @@ const DocumentationSection: React.FC<{
           </h2>
           <AccordionPanel p={0}>
             <Text mt={2} mb={4}>
-              Cannon uses an{' '}
+              Cannon uses{' '}
               <Link
                 isExternal
                 href="https://github.com/foundry-rs/foundry/tree/master/crates/forge"
               >
                 Forge
               </Link>{' '}
-              node to execute this command. The following options can also be
-              passed through to the Forge process:
+              to execute this command. The following options can also be passed
+              through to the Forge process:
             </Text>
             <CustomTable title="Option" data={forgeOptionsData} />
           </AccordionPanel>
