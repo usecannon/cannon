@@ -18,7 +18,7 @@ import {
   PackageState,
 } from '../types';
 import { template } from '../utils/template';
-import { compress, getContentCID } from '../ipfs';
+import { getContentUrl } from '../ipfs';
 
 const debug = Debug('cannon:builder:clone');
 
@@ -239,8 +239,7 @@ const cloneSpec = {
       };
     }
 
-    const buffer = compress(JSON.stringify(importRuntime.misc));
-    const newMiscUrl = 'ipfs://' + (await getContentCID(Buffer.from(buffer)));
+    const newMiscUrl = await getContentUrl(importRuntime.misc);
 
     debug(`[clone.${importLabel}]`, 'new misc:', newMiscUrl);
 
@@ -260,7 +259,7 @@ const cloneSpec = {
 
     const uploadedMiscUrl = await importRuntime.recordMisc();
 
-    if (newMiscUrl !== uploadedMiscUrl) {
+    if (newMiscUrl && newMiscUrl !== uploadedMiscUrl) {
       throw new Error(`Misc url mismatch: ${newMiscUrl} | ${uploadedMiscUrl}`);
     }
 
