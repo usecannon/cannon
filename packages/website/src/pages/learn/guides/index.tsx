@@ -17,7 +17,7 @@ export default function Home() {
       .catch(() => {
         // do nothing
       });
-  }, []);
+  }, [router]);
 
   return (
     <>
