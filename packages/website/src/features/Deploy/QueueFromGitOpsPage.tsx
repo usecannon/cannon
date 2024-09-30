@@ -225,7 +225,7 @@ export default function QueueFromGitOps() {
     const version = 'latest';
     const preset = cannonDefInfo?.def.getPreset(ctx);
     setPreviousPackageInput(`${name}:${version}@${preset}`);
-  }, [cannonDefInfo?.def]);
+  }, [cannonDefInfo?.def, selectedDeployType]);
 
   // run the build and get the list of transactions we need to run
   const { buildState, doBuild, resetState } = useCannonBuildTmp(currentSafe);
