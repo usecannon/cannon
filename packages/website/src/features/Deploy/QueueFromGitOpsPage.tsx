@@ -575,7 +575,7 @@ export default function QueueFromGitOps() {
         <InputGroup>
           <Input
             type="text"
-            placeholder="github.com/.../cannonfile.toml"
+            placeholder="https://github.com/../cannonfile.toml"
             value={cannonfileUrlInput}
             borderColor={!cannonDefInfoError ? 'whiteAlpha.400' : 'red.500'}
             isDisabled={selectedDeployType == 'partial' && !partialDeployIpfs}
@@ -706,7 +706,7 @@ export default function QueueFromGitOps() {
               <InputGroup>
                 <Input
                   type="text"
-                  placeholder="github.com/.../cannonfile.toml or Qm.."
+                  placeholder="https://github.com/../cannonfile.toml or Qm.."
                   value={genericInput}
                   borderColor={
                     !cannonDefInfoError ? 'whiteAlpha.400' : 'red.500'
