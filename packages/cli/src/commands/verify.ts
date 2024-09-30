@@ -12,24 +12,12 @@ import { createDefaultReadRegistry } from '../registry';
 import { getChainById } from '../chains';
 import { getMainLoader } from '../loader';
 
-import { log, warn } from '../util/console';
+import { log } from '../util/console';
 import { isVerified } from '../util/verify';
 
 const debug = Debug('cannon:cli:verify');
 
-export async function verify(packageRef: string, cliSettings: CliSettings, presetArg: string, chainId: number) {
-  // Handle deprecated preset specification
-  if (presetArg) {
-    warn(
-      yellow(
-        bold(
-          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
-        )
-      )
-    );
-    packageRef = packageRef.split('@')[0] + `@${presetArg}`;
-  }
-
+export async function verify(packageRef: string, cliSettings: CliSettings, chainId: number) {
   const { fullPackageRef } = new PackageReference(packageRef);
 
   // create temporary provider

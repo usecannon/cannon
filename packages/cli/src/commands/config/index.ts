@@ -111,11 +111,6 @@ export const commandsConfig: CommandsConfig = {
         defaultValue: ANVIL_PORT_DEFAULT_VALUE,
       },
       {
-        flags: '-p --preset <preset>',
-        description:
-          '(DEPRECATED) The preset label for storing the build with the given settings. Declare a preset in your cannonfile instead.',
-      },
-      {
         flags: '--dry-run',
         description: 'Simulate building on a local fork rather than deploying on the real network',
       },
@@ -196,10 +191,6 @@ export const commandsConfig: CommandsConfig = {
         description: 'Chain ID of deployment to verify',
         defaultValue: '1',
       },
-      {
-        flags: '-p --preset <preset>',
-        description: '(DEPRECATED) Preset of the deployment to verify',
-      },
       ...debugVerbosity,
     ],
   },
@@ -221,10 +212,6 @@ export const commandsConfig: CommandsConfig = {
         flags: '-c --chain-id <chainId>',
         description: 'Chain ID of deployment to verify',
         defaultValue: '13370',
-      },
-      {
-        flags: '-p --preset <preset>',
-        description: '(DEPRECATED) Preset of the deployment to verify',
       },
       {
         flags: '--match-contract <name>',
@@ -273,10 +260,6 @@ export const commandsConfig: CommandsConfig = {
       {
         flags: '--provider-url [url]',
         description: '(DEPRECATED) RPC endpoint to fork off of',
-      },
-      {
-        flags: '-p --preset <preset>',
-        description: '(DEPRECATED) Preset of the deployment to alter',
       },
       ...debugVerbosity,
     ],
@@ -567,10 +550,6 @@ export const commandsConfig: CommandsConfig = {
         defaultValue: '13370',
       },
       {
-        flags: '-p --preset <preset>',
-        description: '(DEPRECATED) Preset of the variant to inspect',
-      },
-      {
         flags: '-j --json',
         description: 'Output as JSON',
       },
@@ -650,10 +629,6 @@ export const commandsConfig: CommandsConfig = {
         description: 'The block to simulate when the call is on',
       },
       {
-        flags: '-p --preset <preset>',
-        description: '(DEPRECATED) Preset of the variant to trace',
-      },
-      {
         flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to fork off of',
       },
@@ -694,10 +669,6 @@ export const commandsConfig: CommandsConfig = {
         description: '(DEPRECATED) RPC endpoint to decode on',
       },
       {
-        flags: '-p --preset <preset>',
-        description: '(DEPRECATED) Preset of the variant to inspect',
-      },
-      {
         flags: '-j --json',
         description: 'Output as JSON',
       },
@@ -730,10 +701,6 @@ export const commandsConfig: CommandsConfig = {
       {
         flags: '-c --chain-id',
         description: 'Chain ID to connect to and run fork tests with',
-      },
-      {
-        flags: '-p --preset <preset>',
-        description: '(DEPRECATED) The preset label for storing the build with the given settings',
       },
       {
         flags: '--wipe',
@@ -776,10 +743,6 @@ export const commandsConfig: CommandsConfig = {
       {
         flags: '--provider-url [url]',
         description: '(DEPRECATED) RPC endpoint to fork off of',
-      },
-      {
-        flags: '-p --preset <preset>',
-        description: '(DEPRECATED) Load an alternate setting preset',
       },
       {
         flags: '--mnemonic <phrase>',
