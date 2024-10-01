@@ -142,6 +142,7 @@ const DocumentationSection: React.FC<{
   description: string;
   argumentsData?: { key: string; value: string }[];
   anvilOptionsData?: { key: string; value: string }[];
+  forgeOptionsData?: { key: string; value: string }[];
   optionsData?: { key: string; value: string }[];
 }> = ({
   id,
@@ -149,6 +150,7 @@ const DocumentationSection: React.FC<{
   description,
   argumentsData,
   anvilOptionsData,
+  forgeOptionsData,
   optionsData,
 }) => (
   <Box mb={16} id={id}>
@@ -200,10 +202,44 @@ const DocumentationSection: React.FC<{
               >
                 Anvil
               </Link>{' '}
-              node to execute this command. The following options can also be
-              passed through to the Anvil process:
+              to execute this command. The following options can also be passed
+              through to the Anvil process:
             </Text>
             <CustomTable title="Option" data={anvilOptionsData} />
+          </AccordionPanel>
+        </AccordionItem>
+      </Accordion>
+    )}
+    {forgeOptionsData && (
+      <Accordion allowToggle>
+        <AccordionItem border="none">
+          <h2>
+            <AccordionButton px={0}>
+              <Button
+                fontWeight={500}
+                size="sm"
+                colorScheme="white"
+                variant="outline"
+                letterSpacing="0.1px"
+                rightIcon={<AccordionIcon />}
+              >
+                Forge Options
+              </Button>
+            </AccordionButton>
+          </h2>
+          <AccordionPanel p={0}>
+            <Text mt={2} mb={4}>
+              Cannon uses{' '}
+              <Link
+                isExternal
+                href="https://github.com/foundry-rs/foundry/tree/master/crates/forge"
+              >
+                Forge
+              </Link>{' '}
+              to execute this command. The following options can also be passed
+              through to the Forge process:
+            </Text>
+            <CustomTable title="Option" data={forgeOptionsData} />
           </AccordionPanel>
         </AccordionItem>
       </Accordion>
@@ -255,6 +291,15 @@ const renderCommandConfig = (commandConfig: any) => {
       anvilOptionsData={
         commandConfig.anvilOptions &&
         commandConfig.anvilOptions.map((option: any) => ({
+          key: option.flags,
+          value:
+            option.description +
+            (option.defaultValue ? ` (default: "${option.defaultValue}")` : ''),
+        }))
+      }
+      forgeOptionsData={
+        commandConfig.forgeOptions &&
+        commandConfig.forgeOptions.map((option: any) => ({
           key: option.flags,
           value:
             option.description +

@@ -6,7 +6,12 @@ import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-record
 import { ChainBuilderRuntime } from '../runtime';
 import { routerSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, ContractMap, PackageState } from '../types';
-import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
+import {
+  encodeDeployData,
+  getContractDefinitionFromPath,
+  removeConstructorFromAbi,
+  getMergedAbiFromContractPaths,
+} from '../util';
 import { template } from '../utils/template';
 
 const debug = Debug('cannon:builder:router');
@@ -135,13 +140,16 @@ const routerStep = {
     const inputData = getCompileInput(contractName, sourceCode, evmVersion);
     const solidityInfo = await compileContract(contractName, sourceCode, evmVersion);
 
-    // the abi is entirely basedon the fallback call so we have to generate ABI here
+    // the ABI is entirely based on the fallback call so we have to generate ABI here
     const routableAbi = getMergedAbiFromContractPaths(ctx, config.contracts);
+
+    // remove constructor from ABI, we don't need it
+    const abi = removeConstructorFromAbi(routableAbi);
 
     runtime.reportContractArtifact(`${contractName}.sol:${contractName}`, {
       contractName,
       sourceName: `${contractName}.sol`,
-      abi: routableAbi,
+      abi,
       bytecode: solidityInfo.bytecode as viem.Hex,
       deployedBytecode: solidityInfo.deployedBytecode,
       linkReferences: {},

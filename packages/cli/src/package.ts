@@ -1,6 +1,5 @@
 import Debug from 'debug';
 import { CannonStorage, DeploymentInfo } from '@usecannon/builder';
-import { promise as createQueue, queueAsPromised } from 'fastq';
 import { createDefaultReadRegistry } from './registry';
 import { resolveCliSettings } from './settings';
 import { getMainLoader } from './loader';
@@ -18,7 +17,7 @@ export async function readDeploy(packageRef: string, chainId: number) {
  * Get a list of all the deployments recursively that are imported by the given deployment. Keep in mind
  * that it will only return unique builds, not necessarily one per import/provision.
  */
-export async function readDeployRecursive(packageRef: string, chainId: number) {
+export async function readDeployRecursive(packageRef: string, chainId: number): Promise<DeploymentInfo[]> {
   debug('readDeployTree', packageRef, chainId);
 
   const store = await _getStore();
@@ -26,26 +25,42 @@ export async function readDeployRecursive(packageRef: string, chainId: number) {
 
   const result = new Map<string, DeploymentInfo | null>();
 
-  const __readImports = async (info: DeploymentInfo) => {
+  async function processDeployment(info: DeploymentInfo): Promise<void> {
     const importUrls = _deployImports(info).map(({ url }) => url);
-    await Promise.all(importUrls.map((url) => queue.push(url)));
-  };
 
-  const queue: queueAsPromised<string> = createQueue(async (url) => {
-    if (result.has(url)) return;
-    debug('readDeployTree child', url);
+    await Promise.all(
+      importUrls.map(async (url) => {
+        if (result.has(url)) return;
 
-    result.set(url, null); // Avoid double fetching/recursion
-    const info = (await store.readBlob(url)) as DeploymentInfo;
-    if (!info) throw new Error(`deployment not found: ${url}`);
-    result.set(url, info); // Set fetched value
+        debug('readDeployTree child', url);
+        try {
+          // Avoid double fetching/recursion, by setting an empty value
+          // result.has(url) is going to return true before finishing the readBlob call.
+          result.set(url, null);
 
-    await __readImports(info);
-  }, 5);
+          const childInfo = (await store.readBlob(url)) as DeploymentInfo;
+          if (!childInfo) throw new Error(`deployment not found: ${url}`);
 
-  await __readImports(deployInfo);
+          result.set(url, childInfo);
+          await processDeployment(childInfo);
+        } catch (error) {
+          if (error instanceof Error) {
+            debug(`Error processing ${url}: ${error.message}`);
+          } else {
+            debug(`Error processing ${url}: ${error}`);
+          }
+        }
+      })
+    );
+  }
 
-  return [deployInfo, ...result.values()] as DeploymentInfo[];
+  try {
+    await processDeployment(deployInfo);
+  } catch (error) {
+    debug('Error processing deployments:', error);
+  }
+
+  return [deployInfo, ...Array.from(result.values()).filter((val) => !!val)];
 }
 
 function _deployImports(deployInfo: DeploymentInfo) {
