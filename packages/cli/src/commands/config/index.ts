@@ -589,7 +589,7 @@ export const commandsConfig: CommandsConfig = {
   },
   trace: {
     description:
-      'Get a full stack trace for a transaction hash or explicit transaction call. This command will sping a fork and simulate the given transaction.',
+      'Get a full stack trace for a transaction hash or explicit transaction call. This command will spin a local fork and simulate the given transaction.',
     arguments: [
       {
         flags: '<packageRef>',
