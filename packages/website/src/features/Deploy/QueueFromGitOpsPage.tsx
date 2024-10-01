@@ -42,7 +42,11 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { ChainBuilderContext, DeploymentInfo } from '@usecannon/builder';
+import {
+  ChainBuilderContext,
+  DeploymentInfo,
+  PackageReference,
+} from '@usecannon/builder';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Alert as AlertCannon } from '@/components/Alert';
@@ -136,6 +140,8 @@ export default function QueueFromGitOps() {
   const [genericInput, setGenericInput] = useState('');
   const [cannonfileUrlInput, setCannonfileUrlInput] = useState('');
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
+  const [prevPackageInputRef, setPrevPackageInputRef] =
+    useState<PackageReference | null>(null);
 
   const [previousPackageInput, setPreviousPackageInput] = useState('');
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
@@ -189,10 +195,8 @@ export default function QueueFromGitOps() {
 
   const fullPackageRef = cannonDefInfo?.def?.getPackageRef(ctx) ?? null;
 
-  const hasDeployers = cannonDefInfo.def?.getDeployers()?.length ?? 0 > 0;
-
   const onChainPrevPkgQuery = useCannonFindUpgradeFromUrl(
-    fullPackageRef || undefined,
+    prevPackageInputRef || fullPackageRef || undefined,
     currentSafe?.chainId,
     cannonDefInfo?.def?.getDeployers()
   );
@@ -205,6 +209,14 @@ export default function QueueFromGitOps() {
     prevDeployLocation,
     currentSafe?.chainId
   );
+
+  useEffect(() => {
+    if (previousPackageInput) {
+      setPrevPackageInputRef(new PackageReference(previousPackageInput));
+    } else {
+      setPrevPackageInputRef(null);
+    }
+  }, [previousPackageInput]);
 
   useEffect(() => {
     if (!cannonDefInfo?.def) return setPreviousPackageInput('');
@@ -479,17 +491,24 @@ export default function QueueFromGitOps() {
 
     if (cannonDefInfo?.def && cannonDefInfo.def.danglingDependencies.size > 0) {
       alertMessage = (
-        <>
-          The cannonfile contains invalid dependencies. Please ensure the
-          following references are defined:
-          {Array.from(cannonDefInfo.def.danglingDependencies).map(
-            ([input, node]) => (
-              <Text key={`${input}:${node}`} as="span" fontFamily="monospace">
-                {input} in {node}
-              </Text>
-            )
-          )}
-        </>
+        <Flex direction="column">
+          <Text>
+            The cannonfile contains invalid dependencies. Please ensure the
+            following references are defined:
+          </Text>
+          <div>
+            {Array.from(cannonDefInfo.def.danglingDependencies).map(
+              (dependency) => (
+                <>
+                  <Text key={dependency} as="span" fontFamily="monospace">
+                    {dependency}
+                  </Text>
+                  <br />
+                </>
+              )
+            )}
+          </div>
+        </Flex>
       );
     }
 
@@ -503,13 +522,6 @@ export default function QueueFromGitOps() {
     ) : null;
   };
 
-  const disablePreviewButton =
-    loadingDataForDeploy ||
-    chainId !== currentSafe?.chainId ||
-    !cannonDefInfo?.def ||
-    buildState.status === 'building' ||
-    buildState.status === 'success';
-
   const cannonInfoDefinitionLoaded =
     cannonfileUrlInput.length > 0 && !cannonDefInfo.error && cannonDefInfo?.def;
 
@@ -517,6 +529,29 @@ export default function QueueFromGitOps() {
     !partialDeployInfo?.isFetching &&
     !partialDeployInfo?.isError &&
     partialDeployInfo?.pkg;
+
+  const hasDeployers = Boolean(
+    cannonDefInfo.def?.getDeployers()?.length ?? 0 > 0
+  );
+  const tomlRequiresPrevPackage = Boolean(
+    cannonfileUrlInput &&
+      cannonDefInfo?.def &&
+      !hasDeployers &&
+      cannonDefInfo.def.allActionNames.some((item) =>
+        item.startsWith('deploy.')
+      )
+  );
+
+  const disablePreviewButton =
+    loadingDataForDeploy ||
+    chainId !== currentSafe?.chainId ||
+    !cannonDefInfo?.def ||
+    buildState.status === 'building' ||
+    buildState.status === 'success' ||
+    (onChainPrevPkgQuery.isFetched &&
+      !prevDeployLocation &&
+      tomlRequiresPrevPackage &&
+      !previousPackageInput);
 
   const PreviewButton = ({ message }: { message?: string }) => (
     <Tooltip label={message}>
@@ -540,7 +575,7 @@ export default function QueueFromGitOps() {
         <InputGroup>
           <Input
             type="text"
-            placeholder="github.com/.../cannonfile.toml"
+            placeholder="https://github.com/../cannonfile.toml"
             value={cannonfileUrlInput}
             borderColor={!cannonDefInfoError ? 'whiteAlpha.400' : 'red.500'}
             isDisabled={selectedDeployType == 'partial' && !partialDeployIpfs}
@@ -671,7 +706,7 @@ export default function QueueFromGitOps() {
               <InputGroup>
                 <Input
                   type="text"
-                  placeholder="github.com/.../cannonfile.toml or Qm.."
+                  placeholder="https://github.com/../cannonfile.toml or Qm.."
                   value={genericInput}
                   borderColor={
                     !cannonDefInfoError ? 'whiteAlpha.400' : 'red.500'
@@ -725,16 +760,6 @@ export default function QueueFromGitOps() {
 
           {selectedDeployType == 'git' && (
             <Flex flexDir="column" my="4">
-              {/* {renderCannonfileInput()} */}
-
-              {cannonDefInfo.def && !hasDeployers && (
-                <AlertCannon
-                  borderless
-                  title="No deployers found in cannonfile"
-                  status="warning"
-                />
-              )}
-
               {onChainPrevPkgQuery.isFetched &&
                 (prevDeployLocation ? (
                   <AlertCannon borderless status="info">
@@ -751,7 +776,9 @@ export default function QueueFromGitOps() {
                   </AlertCannon>
                 ) : (
                   <AlertCannon borderless status="info">
-                    Deployment from scratch
+                    {tomlRequiresPrevPackage
+                      ? 'We couldn\'t find a previous deployment for your cannonfile. Please, enter a value in the "Previous Package" input or modify your cannonfile to include a "deployers" key.'
+                      : 'Deployment from scratch'}
                   </AlertCannon>
                 ))}
             </Flex>
@@ -770,7 +797,7 @@ export default function QueueFromGitOps() {
             </FormControl>
           )} */}
 
-          {(partialDeployInfo?.pkg || partialDeployInfoLoaded) && (
+          {(partialDeployInfoLoaded || tomlRequiresPrevPackage) && (
             <FormControl mb="6">
               <FormLabel>Previous Package</FormLabel>
               <InputGroup>
