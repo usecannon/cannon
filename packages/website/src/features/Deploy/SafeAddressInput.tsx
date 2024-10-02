@@ -181,6 +181,8 @@ export function SafeAddressInput() {
         if (switchChain) {
           await switchChain({ chainId: safeFromUrl.chainId });
         }
+      } else if (currentSafe) {
+        await handleNewOrSelectedSafe(safeToString(currentSafe));
       }
     };
 
