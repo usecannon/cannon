@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs-extra';
+import { glob } from 'glob';
 import { ContractArtifact } from '@usecannon/builder';
 import _ from 'lodash';
 import Debug from 'debug';
@@ -14,6 +15,7 @@ interface FoundryOpts {
   test: string;
   script: string;
   out: string;
+  evm_version: string;
 }
 
 export async function getFoundryOpts(): Promise<FoundryOpts> {
@@ -30,8 +32,11 @@ export async function buildContracts(): Promise<void> {
 }
 
 export async function getFoundryArtifact(name: string, baseDir = '', includeSourceCode = true): Promise<ContractArtifact> {
-  // TODO: Theres a bug that if the file has a different name than the contract it would not work
   const foundryOpts = await getFoundryOpts();
+
+  const splitName = name.split(':');
+  const inputContractName = _.last(splitName)!;
+  const inputSourceName = splitName.length > 1 ? splitName[0] : '';
 
   // Finds root of the foundry project based n owhere the foundry.toml file is within the relative path
   // Linear time complexity O(n) where n is the depth of the directory structure from the initial currentPath to the project root.
@@ -60,24 +65,51 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
 
   baseDir = findProjectRoot(baseDir);
 
-  const artifactPath = path.join(path.join(baseDir, foundryOpts.out), `${name}.sol`, `${name}.json`);
-  const artifactBuffer = await fs.readFile(artifactPath);
-  const artifact = JSON.parse(artifactBuffer.toString()) as any;
+  const outPath = path.join(baseDir, foundryOpts.out);
+
+  const possibleArtifactPaths = await glob(outPath + `/**/${inputContractName}.json`);
+
+  const possibleArtifacts = [];
+  for (const artifactPath of possibleArtifactPaths) {
+    const artifactBuffer = await fs.readFile(artifactPath);
+    possibleArtifacts.push(JSON.parse(artifactBuffer.toString()) as any);
+  }
+
+  if (!possibleArtifacts.length) {
+    throw new Error(`no contract was found by name: ${inputContractName} (from ${name})`);
+  }
+
+  let artifact = possibleArtifacts[0];
+  if (possibleArtifactPaths.length > 1) {
+    const sourceNames = possibleArtifacts.map((v) => v.ast.absolutePath);
+    if (!inputSourceName) {
+      throw new Error(
+        `more than one contract was found with the name ${inputContractName}. Please tell us which file for the contract to use:\n${sourceNames
+          .map((v) => `${v}:${inputContractName}`)
+          .join('\n')}`
+      );
+    }
+
+    const matchingArtifact = possibleArtifacts.find((v) => v.ast.absolutePath == inputSourceName);
+    if (!matchingArtifact) {
+      throw new Error(
+        `no artifact was found at the given source name "${inputSourceName}". Should be one of:\n${sourceNames.join('\n')}`
+      );
+    }
+
+    artifact = matchingArtifact;
+  }
 
   // if source code is not included, we can skip here for a massive speed boost by not executing the inspect commands
   if (includeSourceCode) {
     // save build metadata
-    const foundryInfo = JSON.parse(
-      await execPromise(`forge inspect ${name} metadata ${baseDir ? `--root ${baseDir}` : ''} --build-info`)
-    );
+    const evmVersionInfo = foundryOpts.evm_version;
 
-    const evmVersionInfo = JSON.parse(await execPromise('forge config --json')).evm_version;
-
-    debug('detected foundry info', foundryInfo);
+    debug('detected foundry info', artifact.metadata);
     debug('evm version', evmVersionInfo);
 
-    const solcVersion = foundryInfo.compiler.version;
-    const sources = _.mapValues(foundryInfo.sources, (v, sourcePath) => {
+    const solcVersion = artifact.metadata.compiler.version;
+    const sources = _.mapValues(artifact.metadata.sources, (v, sourcePath) => {
       return {
         content: fs.readFileSync(path.join(baseDir, sourcePath)).toString(),
       };
@@ -89,9 +121,9 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
         language: 'Solidity',
         sources,
         settings: {
-          optimizer: foundryInfo.settings.optimizer,
+          optimizer: artifact.metadata.settings.optimizer,
           evmVersion: evmVersionInfo,
-          remappings: foundryInfo.settings.remappings,
+          remappings: artifact.metadata.settings.remappings,
           outputSelection: {
             '*': {
               '*': ['*'],
@@ -113,7 +145,7 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
   }
 
   return {
-    contractName: name,
+    contractName: inputContractName!,
     sourceName: artifact.ast.absolutePath,
     abi: artifact.abi,
     bytecode: artifact.bytecode.object,
