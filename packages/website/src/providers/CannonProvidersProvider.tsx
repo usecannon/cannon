@@ -82,6 +82,9 @@ const chainMetadata = {
   [chains.reyaNetwork.id]: {
     color: '#04f06a',
   },
+  [chains.snax.id]: {
+    color: '#00D1FF',
+  },
   [cannonNetwork.id]: {
     color: 'gray.400',
   },
