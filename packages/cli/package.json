@@ -72,6 +72,7 @@
     "debug": "^4.3.6",
     "eth-provider": "^0.13.6",
     "fs-extra": "^11.2.0",
+    "glob": "^11.0.0",
     "lodash": "^4.17.21",
     "prompts": "^2.4.2",
     "semver": "^7.6.3",
