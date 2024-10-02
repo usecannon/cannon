@@ -33,7 +33,7 @@
     "helmet": "^7.1.0",
     "prom-client": "^15.1.2",
     "redis": "^4.6.13",
-    "viem": "^2.16.5"
+    "viem": "^2.21.15"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
