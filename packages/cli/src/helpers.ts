@@ -34,6 +34,16 @@ import { LocalRegistry } from './registry';
 
 const debug = Debug('cannon:cli:helpers');
 
+export function stripCredentialsFromURL(uri: string) {
+  const res = new URL(uri);
+
+  if (res.password) {
+    res.password = '*'.repeat(10);
+  }
+
+  return res.toString();
+}
+
 export async function filterSettings(settings: any) {
   // Filter out private key for logging
   /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -45,13 +55,7 @@ export async function filterSettings(settings: any) {
 
   const filterUrlPassword = (uri: string) => {
     try {
-      const res = new URL(uri);
-      // If no password exists, return the string
-      if (!res.password) {
-        return res.toString();
-      }
-      res.password = '*'.repeat(10);
-      return res.toString();
+      return stripCredentialsFromURL(uri);
     } catch (err) {
       debug('Invalid URL', uri);
       return '';
