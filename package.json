@@ -17,7 +17,6 @@
     "version-major": "lerna version major --no-private",
     "publish": "lerna publish from-package --no-private",
     "publish-alpha": "lerna publish from-package --no-private --preid alpha --dist-tag alpha",
-    "website:update-monorepo-deps": "pnpm --filter @usecannon/website i @usecannon/builder@latest @usecannon/cli@latest",
     "test": "pnpm -r --if-present --filter './packages/**' run test",
     "docgen-md": "pnpm -r --if-present run docgen",
     "changeset": "changeset"
