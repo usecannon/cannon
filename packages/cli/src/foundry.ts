@@ -108,6 +108,8 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
     debug('detected foundry info', artifact.metadata);
     debug('evm version', evmVersionInfo);
 
+    console.log({ artifact });
+
     const solcVersion = artifact.metadata.compiler.version;
     const sources = _.mapValues(artifact.metadata.sources, (v, sourcePath) => {
       return {
@@ -116,7 +118,7 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
     });
 
     const source = {
-      solcVersion: solcVersion,
+      solcVersion,
       input: JSON.stringify({
         language: 'Solidity',
         sources,
