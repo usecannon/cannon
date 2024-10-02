@@ -1,7 +1,7 @@
 import * as viem from 'viem';
 import { AbiFunction, AbiEvent } from 'abitype';
 import { bold, gray, green, italic, yellow } from 'chalk';
-import { ContractData, DeploymentInfo, decodeTxError } from '@usecannon/builder';
+import { ContractData, DeploymentInfo, PackageReference, decodeTxError } from '@usecannon/builder';
 
 import { log, error, warn } from '../util/console';
 import { readDeployRecursive } from '../package';
@@ -44,6 +44,8 @@ export async function decode({
     packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
 
+  const { fullPackageRef } = new PackageReference(packageRef);
+
   let inputData = data;
 
   if (isTxHash(data)) {
@@ -72,7 +74,7 @@ export async function decode({
     log();
   }
 
-  const deployInfos = await readDeployRecursive(packageRef, chainId!);
+  const deployInfos = await readDeployRecursive(fullPackageRef, chainId!);
 
   const abis = deployInfos.flatMap((deployData) => _getAbis(deployData));
 
