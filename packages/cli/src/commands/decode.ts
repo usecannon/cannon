@@ -5,7 +5,7 @@ import { ContractData, DeploymentInfo, PackageReference, decodeTxError } from '@
 
 import { log, error } from '../util/console';
 import { readDeployRecursive } from '../package';
-import { ensureChainIdConsistency, formatAbiFunction, getSighash } from '../helpers';
+import { ensureChainIdConsistency, formatAbiFunction, getSighash, stripCredentialsFromURL } from '../helpers';
 import { resolveCliSettings } from '../../src/settings';
 import { isTxHash } from '../util/is-tx-hash';
 import { getChainIdFromRpcUrl, isURL, ProviderAction, resolveProvider } from '../util/provider';
@@ -51,10 +51,10 @@ export async function decode({
 
     inputData = tx.input;
 
-    log('     RPC: ', provider.transport.url);
+    log('     RPC: ', stripCredentialsFromURL(provider.transport.url));
     log('Chain ID: ', tx.chainId);
     log(' TX hash: ', tx.hash);
-    if (tx.from) log('    From: ', tx.from);
+    log('    From: ', tx.from);
     if (tx.to) log('      To: ', tx.to);
     if (tx.value) log('   Value: ', tx.value);
     log();
@@ -72,7 +72,10 @@ export async function decode({
       log(errorMessage);
       return;
     }
-    throw new Error('Could not decode transaction data with the given Cannon package');
+
+    throw new Error(
+      'Could not decode transaction data with the given Cannon package. Please confirm that the given data exists in the ABIs of the package.'
+    );
   }
 
   const fragment = viem.getAbiItem({
