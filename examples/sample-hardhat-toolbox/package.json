@@ -9,6 +9,6 @@
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",
     "hardhat": "^2.19.2",
     "hardhat-cannon": "workspace:*",
-    "viem": "^2.16.5"
+    "viem": "^2.21.15"
   }
 }

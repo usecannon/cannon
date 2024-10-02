@@ -29,13 +29,24 @@ export function useDeployerWallet(chainId?: number) {
         if ((isIdle && !executionProgress.length && queuedTransactions.length) || isConfirmed) {
           // ensure we are on the correct network
           await switchChainAsync({ chainId });
-
           // execute the next transaction
-          sendTransaction(queuedTransactions[executionProgress.length], {
-            onSuccess(hash: viem.Hash) {
-              setExecutionProgress([...executionProgress, hash]);
+          sendTransaction(
+            {
+              ...queuedTransactions[executionProgress.length],
+              type: queuedTransactions[executionProgress.length].type as
+                | 'legacy'
+                | 'eip2930'
+                | 'eip1559'
+                | 'eip4844'
+                | 'eip7702'
+                | undefined,
             },
-          });
+            {
+              onSuccess(hash: viem.Hash) {
+                setExecutionProgress([...executionProgress, hash]);
+              },
+            }
+          );
         }
       })()
         .then(_.noop)
