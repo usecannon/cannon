@@ -1,7 +1,7 @@
 import * as viem from 'viem';
 import { AbiFunction, AbiEvent } from 'abitype';
 import { bold, gray, green, italic } from 'chalk';
-import { ContractData, DeploymentInfo, decodeTxError } from '@usecannon/builder';
+import { ContractData, DeploymentInfo, PackageReference, decodeTxError } from '@usecannon/builder';
 
 import { log, error } from '../util/console';
 import { readDeployRecursive } from '../package';
@@ -29,6 +29,8 @@ export async function decode({
   if (!data.startsWith('0x')) {
     data = ('0x' + data) as viem.Hash;
   }
+
+  const { fullPackageRef } = new PackageReference(packageRef);
 
   let inputData = data;
 
@@ -58,7 +60,7 @@ export async function decode({
     log();
   }
 
-  const deployInfos = await readDeployRecursive(packageRef, chainId!);
+  const deployInfos = await readDeployRecursive(fullPackageRef, chainId!);
 
   const abis = deployInfos.flatMap((deployData) => _getAbis(deployData));
 
