@@ -24,8 +24,9 @@ import {
 } from 'chakra-react-select';
 import deepEqual from 'fast-deep-equal';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSwitchChain } from 'wagmi';
+import omit from 'lodash/omit';
 
 import Chain from '@/features/Search/PackageCard/Chain';
 import { truncateAddress } from '@/helpers/ethereum';
@@ -43,6 +44,15 @@ export function SafeAddressInput() {
   const currentSafe = useStore((s) => s.currentSafe);
   const safeAddresses = useStore((s) => s.safeAddresses);
   const setCurrentSafe = useStore((s) => s.setCurrentSafe);
+
+  // This state prevents the initialization useEffect (which sets the selected safe from the url or the currentSafe)
+  // from running when clearing the input
+  // It's set to true when clearing, which allows us to:
+  // 1. Set currentSafe to null
+  // 2. Wait for the router to clear chainId and address query params
+  // 3. Reset isClearing to false, allowing normal behavior to resume
+  const [isClearing, setIsClearing] = useState(false);
+
   const deleteSafe = useStore((s) => s.deleteSafe);
   const prependSafeAddress = useStore((s) => s.prependSafeAddress);
 
@@ -63,6 +73,17 @@ export function SafeAddressInput() {
   // If the user puts a correct address in the input, update the url
   const handleNewOrSelectedSafe = useCallback(
     async (safeString: string) => {
+      if (safeString == '') {
+        setIsClearing(true);
+        setCurrentSafe(null);
+        await router.push({
+          pathname: router.pathname,
+          query: omit(router.query, ['chainId', 'address']),
+        });
+        setIsClearing(false);
+        return;
+      }
+
       const parsedSafeInput = parseSafe(safeString);
       if (!parsedSafeInput) {
         return;
@@ -81,14 +102,12 @@ export function SafeAddressInput() {
         },
       });
     },
-    [chains, router]
+    [chains, router, setCurrentSafe]
   );
 
   function handleSafeDelete(safeString: SafeString) {
     deleteSafe(parseSafe(safeString));
   }
-
-  const isEmpty = !currentSafe;
 
   const chakraStyles: ChakraStylesConfig<
     SafeOption,
@@ -97,7 +116,7 @@ export function SafeAddressInput() {
   > = {
     container: (provided) => ({
       ...provided,
-      borderColor: isEmpty ? 'teal.700' : 'gray.700',
+      borderColor: !currentSafe ? 'teal.700' : 'gray.700',
       background: 'black',
       cursor: 'pointer',
     }),
@@ -139,16 +158,13 @@ export function SafeAddressInput() {
   // Load the safe address from url
   useEffect(() => {
     const loadSafeFromUrl = async () => {
+      if (isClearing) {
+        return;
+      }
+
       const { address, chainId } = router.query;
 
-      // if the chainId:safeAddress is not in the url, use the first safe available
-      // else, try to load the safe from the url
-      if (!address || !chainId) {
-        const targetSafe = currentSafe || safeAddresses[0];
-        if (!targetSafe) return;
-        void handleNewOrSelectedSafe(safeToString(targetSafe));
-        return;
-      } else {
+      if (address && chainId) {
         const safeFromUrl = parseSafe(`${chainId}:${address}`);
         if (!safeFromUrl || !isValidSafe(safeFromUrl, chains)) {
           throw new Error('Safe from url is not valid');
@@ -173,6 +189,7 @@ export function SafeAddressInput() {
     chains,
     currentSafe,
     handleNewOrSelectedSafe,
+    isClearing,
     prependSafeAddress,
     router,
     safeAddresses,
@@ -189,10 +206,14 @@ export function SafeAddressInput() {
           value={currentSafe ? _safeToOption(currentSafe) : null}
           placeholder="Select a Safe"
           noOptionsMessage={() => ''}
+          isClearable
           options={[
-            ...safeOptions,
             {
-              label: 'Connected Wallet Safes',
+              label: 'Connected Safes',
+              options: safeOptions,
+            },
+            {
+              label: 'Owned Safes',
               options: walletSafeOptions,
             },
           ]}
@@ -294,10 +315,10 @@ function DeletableOption({
 function CustomMenuList({ children, ...props }: any) {
   return (
     <chakraComponents.MenuList {...props}>
-      {children}
-      <Text color="gray.400" fontSize="xs" textAlign="center" mb={2}>
+      <Text color="gray.400" fontSize="xs" my={2} ml={4}>
         To add a Safe, enter it in the format chainId:safeAddress
       </Text>
+      {children}
     </chakraComponents.MenuList>
   );
 }
