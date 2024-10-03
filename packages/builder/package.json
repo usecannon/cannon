@@ -43,19 +43,19 @@
   },
   "dependencies": {
     "@synthetixio/router": "^3.4.0",
-    "axios": "^1.7.2",
-    "axios-retry": "^4.4.2",
+    "axios": "^1.7.7",
+    "axios-retry": "^4.5.0",
     "buffer": "^6.0.3",
     "chalk": "^4.1.2",
-    "debug": "^4.3.6",
+    "debug": "^4.3.7",
     "form-data": "^4.0.0",
     "fuse.js": "^7.0.0",
     "lodash": "^4.17.21",
     "pako": "^2.1.0",
     "promise-events": "^0.2.4",
     "typestub-ipfs-only-hash": "^4.0.0",
-    "viem": "^2.21.15",
-    "zod": "^3.23.6"
+    "viem": "^2.21.16",
+    "zod": "^3.23.8"
   },
   "engines": {
     "node": ">=16.0.0"
