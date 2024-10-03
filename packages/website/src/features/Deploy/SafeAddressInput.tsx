@@ -258,7 +258,10 @@ function SelectedOption({
 }: SingleValueProps<SafeOption> & { selectProps?: { onDeleteOption?: any } }) {
   return (
     <chakraComponents.SingleValue {...props}>
-      <Flex justifyContent="space-between" id="selected-safe-container">
+      <Flex
+        justifyContent="space-between"
+        data-test-id="selected-safe-container"
+      >
         {/* @notice: Tooltip is not working for this component */}
         <Tooltip
           label={props.data.value}

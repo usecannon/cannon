@@ -7,7 +7,7 @@ When('User types and select the safe {string}', (text: string) => {
   const chainId = text.split(':')[0];
   const address = text.split(':')[1];
 
-  cy.get('#selected-safe-container').should(($container) => {
+  cy.get('[data-test-id="selected-safe-container"]').should(($container) => {
     expect($container).to.exist;
     expect($container).to.contain(address.slice(0, 6));
     expect($container).to.contain(address.slice(-4));
