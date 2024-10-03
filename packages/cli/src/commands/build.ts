@@ -230,6 +230,9 @@ export async function build({
   log('Version: ' + cyanBright(`${pkgVersion}`));
   log('Preset: ' + cyanBright(`${preset}`) + (preset == 'main' ? gray(' (default)') : ''));
   log('Chain ID: ' + cyanBright(`${chainId}`));
+  if (!publicSourceCode) {
+    log(`Private Source Code: ${cyanBright('true')} ${gray('(contracts source code will not be included)')}`);
+  }
   if (upgradeFrom) {
     log(`Upgrading from: ${cyanBright(upgradeFrom)}`);
   }
