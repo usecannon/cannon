@@ -57,3 +57,11 @@ contract Greeter {
   event OldGreetingRemoved(string oldGreeting);
   event NewGreetingAdded(string newGreeting);
 }
+
+contract AnotherDummy {
+  string public hello;
+
+  constructor(string memory val) {
+    hello = val;
+  }
+}

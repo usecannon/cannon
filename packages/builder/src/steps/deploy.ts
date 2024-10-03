@@ -65,6 +65,22 @@ function resolveBytecode(
   return [injectedBytecode, linkedLibraries];
 }
 
+function checkConstructorArgs(abi: viem.Abi, args: any[] | undefined) {
+  const abiConstructor = (abi.find((v) => v.type === 'constructor') as unknown as viem.AbiFunction) || {
+    type: 'constructor',
+    inputs: [],
+  };
+
+  const neededArgs = abiConstructor.inputs || [];
+  const suppliedArgs = args || [];
+
+  if (suppliedArgs.length !== neededArgs.length) {
+    throw new Error(
+      `incorrect number of constructor arguments to deploy contract. supplied: ${suppliedArgs.length}, expected: ${neededArgs.length}`
+    );
+  }
+}
+
 function generateOutputs(
   config: Config,
   ctx: ChainBuilderContext,
@@ -246,6 +262,8 @@ const deploySpec = {
     const [injectedBytecode] = resolveBytecode(artifactData, config);
 
     // finally, deploy
+    // check that the correct number of deploy args are given
+    checkConstructorArgs(artifactData.abi, config.args);
     const txn = {
       data: encodeDeployData({
         abi: artifactData.abi,

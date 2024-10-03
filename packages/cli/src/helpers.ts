@@ -71,8 +71,8 @@ export async function setupAnvil(): Promise<void> {
   const versionDate = await getAnvilVersionDate();
 
   if (versionDate) {
-    // Confirm we have a version after the anvil_loadState/anvil_dumpState functionality was added.
-    if (versionDate.getTime() < 1657679573421) {
+    // Confirm we have a version after https://github.com/foundry-rs/foundry/commit/8a8116977b3937ff7e871743f1805157cf242db6
+    if (versionDate.getTime() < 1727051007819) {
       const anvilResponse = await prompts({
         type: 'confirm',
         name: 'confirmation',
@@ -84,7 +84,7 @@ export async function setupAnvil(): Promise<void> {
         log(magentaBright('Upgrading Foundry to the latest version...'));
         await execPromise('foundryup');
       } else {
-        process.exit();
+        process.exit(1);
       }
     }
   } else {
