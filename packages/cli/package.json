@@ -66,11 +66,11 @@
   "dependencies": {
     "@iarna/toml": "^3.0.0",
     "@usecannon/builder": "workspace:*",
-    "abitype": "^1.0.5",
+    "abitype": "^1.0.6",
     "chalk": "^4.1.2",
     "commander": "^12.1.0",
-    "debug": "^4.3.6",
-    "eth-provider": "^0.13.6",
+    "debug": "^4.3.7",
+    "eth-provider": "^0.13.7",
     "fs-extra": "^11.2.0",
     "glob": "^11.0.0",
     "lodash": "^4.17.21",
@@ -79,7 +79,7 @@
     "table": "^6.8.2",
     "tildify": "3.0.0",
     "untildify": "^4.0.0",
-    "viem": "^2.21.15",
+    "viem": "^2.21.16",
     "znv": "^0.4.0",
     "zod": "^3.23.8"
   },
