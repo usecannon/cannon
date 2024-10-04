@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "watch": "tsc -p tsconfig.build.json -w",
+    "clean": "rm -rf ./dist",
     "prepublishOnly": "pnpm run build",
     "test": "jest",
     "test-e2e-prepare": "git submodule update --init --recursive",

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "clean": "rm -rf ./out ./.next",
     "analyze": "ANALYZE=true pnpm run build",
     "tsc:build": "tsc",
     "start": "next start",
