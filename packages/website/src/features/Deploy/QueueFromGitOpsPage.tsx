@@ -66,6 +66,7 @@ import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
 import 'react-diff-view/style/index.css';
 import { ChainDefinition } from '@usecannon/builder/dist/src';
+import { extractIpfsHash } from '@/helpers/ipfs';
 
 const EMPTY_IPFS_MISC_URL =
   'ipfs://QmeSt2mnJKE8qmRhLyYbHQQxDKpsFbcWnw5e7JF4xVbN6k';
@@ -645,6 +646,9 @@ export default function QueueFromGitOps() {
     return <PreviewButton />;
   }
 
+  // Add this state at the top of your component
+  const [inputError, setInputError] = useState<string | null>(null);
+
   return (
     <>
       <Container maxWidth="container.md" py={8}>
@@ -717,14 +721,23 @@ export default function QueueFromGitOps() {
                     resetState();
                     setCannonfileUrlInput('');
                     setPartialDeployIpfs('');
+                    setInputError(null);
 
-                    setGenericInput(e.target.value);
-                    if (/^Qm[1-9A-Za-z]{44}$/.test(e.target.value)) {
-                      setSelectedDeployType('partial');
-                      setPartialDeployIpfs(e.target.value);
-                    } else if (cannonfileUrlRegex.test(e.target.value)) {
+                    const input = e.target.value;
+                    setGenericInput(input);
+                    const isCannonfileUrl = cannonfileUrlRegex.test(input);
+                    const isIpfsHash = extractIpfsHash(input);
+
+                    if (isCannonfileUrl) {
                       setSelectedDeployType('git');
-                      setCannonfileUrlInput(e.target.value);
+                      setCannonfileUrlInput(input);
+                    } else if (isIpfsHash) {
+                      setSelectedDeployType('partial');
+                      setPartialDeployIpfs(isIpfsHash);
+                    } else if (input.trim() !== '') {
+                      setInputError(
+                        'Invalid input. Please enter a valid Cannonfile URL or IPFS hash.'
+                      );
                     }
                   }}
                 />
@@ -756,6 +769,9 @@ export default function QueueFromGitOps() {
                 <strong>{cannonDefInfoError.toString()}</strong>
               </Alert>
             ) : undefined}
+            {inputError && (
+              <FormHelperText color="red.500">{inputError}</FormHelperText>
+            )}
           </FormControl>
 
           {selectedDeployType == 'git' && (
