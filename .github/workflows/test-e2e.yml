@@ -2,7 +2,7 @@ name: Test-e2e
 
 on:
   push:
-    branches: [main, alpha, dev, fix/e2e-tests]
+    branches: [main, alpha, dev]
   pull_request:
     branches: [main, alpha, dev]
 
