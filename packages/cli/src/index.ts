@@ -689,6 +689,12 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
 
   const pickedOptions = pickForgeTestOptions(options);
 
+  // If there is an rpcUrl it was already used to create the node, but we don't need
+  // it after here because the node already includes it.
+  if (pickedOptions.rpcUrl) {
+    delete pickedOptions.rpcUrl;
+  }
+
   const forgeTestArgs = fromFoundryOptionsToArgs(pickedOptions, forgeTestOptions);
 
   const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeTestArgs, ...forgeOptions], {
