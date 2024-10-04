@@ -548,8 +548,8 @@ export default function QueueFromGitOps() {
     cannonfileUrlInput &&
       cannonDefInfo?.def &&
       !hasDeployers &&
-      cannonDefInfo.def.allActionNames.some((item) =>
-        item.startsWith('deploy.')
+      cannonDefInfo.def.allActionNames.some(
+        (item) => item.startsWith('deploy.') || item.startsWith('contract.')
       )
   );
 
