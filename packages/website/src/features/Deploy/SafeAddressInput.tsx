@@ -167,7 +167,7 @@ export function SafeAddressInput() {
       if (address && chainId) {
         const safeFromUrl = parseSafe(`${chainId}:${address}`);
         if (!safeFromUrl || !isValidSafe(safeFromUrl, chains)) {
-          throw new Error('Safe from url is not valid');
+          throw new Error("We couldn't find a safe for the specified chain. If it is a custom chain, please ensure that a custom provider is properly configured in the settings page.");
         }
 
         if (!deepEqual(currentSafe, safeFromUrl)) {
