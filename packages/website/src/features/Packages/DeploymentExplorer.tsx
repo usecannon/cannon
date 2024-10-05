@@ -15,7 +15,7 @@ import NextLink from 'next/link';
 import { links } from '@/constants/links';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
-import { ChevronDownIcon, InfoIcon } from '@chakra-ui/icons';
+import { ChevronDownIcon, ChevronUpIcon, InfoIcon } from '@chakra-ui/icons';
 import { ChainBuilderContext } from '@usecannon/builder';
 import { isEmpty } from 'lodash';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
@@ -224,20 +224,45 @@ export const DeploymentExplorer: FC<{
             pb={2}
             px={4}
             justifyContent={'flex-start'}
-            alignItems={'baseline'}
+            alignItems={'center'}
             direction={['column', 'column', 'row']}
           >
-            <Heading size="md">
-              Contract Deployments
-            </Heading>
-            <Box pl={[0,0,6]}>
-              <SearchInput onSearchChange={setContractSearchTerm}></SearchInput>
+            <Flex width={['100%', '100%', 'auto']} justifyContent="space-between" alignItems="center" mb={[2, 2, 0]}>
+              <Heading size="md">
+                Contract Deployments
+              </Heading>
+              {showContracts ? (
+                <ChevronUpIcon
+                  cursor="pointer"
+                  onClick={handleContractCollapse}
+                  display={['block', 'block', 'none']}
+                />
+              ) : (
+                <ChevronDownIcon
+                  cursor="pointer"
+                  onClick={handleContractCollapse}
+                  display={['block', 'block', 'none']}
+                />
+              )}
+            </Flex>
+            <Box pl={[0, 0, 6]} width={['100%', '100%', 'auto']} mt={[2, 2, 0]}>
+              <SearchInput onSearchChange={setContractSearchTerm} />
             </Box>
+            {showContracts ? (
               <ChevronDownIcon
-                ml={[0,0,"auto"]}
                 cursor="pointer"
                 onClick={handleContractCollapse}
-              ></ChevronDownIcon>
+                display={['none', 'none', 'block']}
+                ml="auto"
+              />
+            ) : (
+              <ChevronUpIcon
+                cursor="pointer"
+                onClick={handleContractCollapse}
+                display={['none', 'none', 'block']}
+                ml="auto"
+              />
+            )}
           </Flex>
           <Collapse in={showContracts}>
             {!isEmpty(filteredContractState) && !isEmpty(addressesAbis) ? (
@@ -267,20 +292,45 @@ export const DeploymentExplorer: FC<{
             pb={2}
             px={4}
             justifyContent={'flex-start'}
-            alignItems={'baseline'}
+            alignItems={'center'}
             direction={['column', 'column', 'row']}
           >
-            <Heading size="md">
-              Function Calls
-            </Heading>
-            <Box pl={[0,0,6]}>
-              <SearchInput onSearchChange={setInvokeSearchTerm}></SearchInput>
+            <Flex width={['100%', '100%', 'auto']} justifyContent="space-between" alignItems="center" mb={[2, 2, 0]}>
+              <Heading size="md">
+                Function Calls
+              </Heading>
+              {showInvoke ? (
+                <ChevronDownIcon
+                  cursor="pointer"
+                  onClick={handleInvokeCollapse}
+                  display={['block', 'block', 'none']}
+                />
+              ) : (
+                <ChevronUpIcon
+                  cursor="pointer"
+                  onClick={handleInvokeCollapse}
+                  display={['block', 'block', 'none']}
+                />
+              )}
+            </Flex>
+            <Box pl={[0, 0, 6]} width={['100%', '100%', 'auto']} mt={[2, 2, 0]}>
+              <SearchInput onSearchChange={setInvokeSearchTerm} />
             </Box>
-            <ChevronDownIcon
-              ml={[0,0,"auto"]}
-              cursor="pointer"
-              onClick={handleInvokeCollapse}
-            ></ChevronDownIcon>
+            {showInvoke ? (
+              <ChevronUpIcon
+                cursor="pointer"
+                onClick={handleInvokeCollapse}
+                display={['none', 'none', 'block']}
+                ml="auto"
+              />
+            ) : (
+              <ChevronDownIcon
+                cursor="pointer"
+                onClick={handleInvokeCollapse}
+                display={['none', 'none', 'block']}
+                ml="auto"
+              />
+            )}
           </Flex>
 
           <Collapse in={showInvoke}>
