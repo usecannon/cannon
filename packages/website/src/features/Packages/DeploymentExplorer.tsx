@@ -227,7 +227,7 @@ export const DeploymentExplorer: FC<{
             alignItems={'center'}
             direction={['column', 'column', 'row']}
           >
-            <Flex width={['100%', '100%', 'auto']} justifyContent="space-between" alignItems="center" mb={[2, 2, 0]}>
+            <Flex width={['100%', '100%', 'auto']} justifyContent="space-between" alignItems="center" mb={[2, 2, 0]} minHeight="32px">
               <Heading size="md">
                 Contract Deployments
               </Heading>
@@ -245,9 +245,11 @@ export const DeploymentExplorer: FC<{
                 />
               )}
             </Flex>
-            <Box pl={[0, 0, 6]} width={['100%', '100%', 'auto']} mt={[2, 2, 0]}>
-              <SearchInput onSearchChange={setContractSearchTerm} />
-            </Box>
+            {showContracts && (
+              <Box pl={[0, 0, 6]} width={['100%', '100%', 'auto']} mt={[2, 2, 0]}>
+                <SearchInput size="sm" onSearchChange={setContractSearchTerm} />
+              </Box>
+            )}
             {showContracts ? (
               <ChevronDownIcon
                 cursor="pointer"
@@ -295,7 +297,7 @@ export const DeploymentExplorer: FC<{
             alignItems={'center'}
             direction={['column', 'column', 'row']}
           >
-            <Flex width={['100%', '100%', 'auto']} justifyContent="space-between" alignItems="center" mb={[2, 2, 0]}>
+            <Flex width={['100%', '100%', 'auto']} justifyContent="space-between" alignItems="center" mb={[2, 2, 0]} minHeight="32px">
               <Heading size="md">
                 Function Calls
               </Heading>
@@ -313,9 +315,11 @@ export const DeploymentExplorer: FC<{
                 />
               )}
             </Flex>
-            <Box pl={[0, 0, 6]} width={['100%', '100%', 'auto']} mt={[2, 2, 0]}>
-              <SearchInput onSearchChange={setInvokeSearchTerm} />
-            </Box>
+            {showInvoke && (
+              <Box pl={[0, 0, 6]} width={['100%', '100%', 'auto']} mt={[2, 2, 0]}>
+                <SearchInput size="sm" onSearchChange={setInvokeSearchTerm} />
+              </Box>
+            )}
             {showInvoke ? (
               <ChevronUpIcon
                 cursor="pointer"
