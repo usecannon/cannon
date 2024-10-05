@@ -20,7 +20,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
   );
 
   return (
-    <InputGroup borderColor="gray.600" mb={[4, 4, 8]}>
+    <InputGroup borderColor="gray.600">
       <InputLeftElement pointerEvents="none">
         <SearchIcon color="gray.500" />
       </InputLeftElement>

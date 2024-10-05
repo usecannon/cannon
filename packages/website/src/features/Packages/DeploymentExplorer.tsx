@@ -82,7 +82,7 @@ export const DeploymentExplorer: FC<{
             stepDefinitions.some((step) => obj[key].deployedOn.includes(step))
           ) {
             mergedContracts[
-              obj[key].contractName || '⚠ Unknown Contract Name'
+              obj[key].contractName || ''
             ] = obj[key];
           }
         }
@@ -96,7 +96,7 @@ export const DeploymentExplorer: FC<{
 
             // Change deployedOn title to parent package
             mergedContracts[
-              obj[key].contractName || '⚠ Unknown Contract Name'
+              obj[key].contractName || ''
             ] = obj[key].artifacts.imports[step].contracts[contract];
           }
         }
@@ -220,26 +220,28 @@ export const DeploymentExplorer: FC<{
       ) : deploymentInfo ? (
         <Box>
           <Flex
-            p={6}
-            mb={1}
+            pt={6}
+            pb={2}
+            px={4}
             justifyContent={'flex-start'}
             alignItems={'baseline'}
             direction={['column', 'column', 'row']}
           >
             <Heading size="md">
               Contract Deployments
-              <ChevronDownIcon
-                ml={2}
-                onClick={handleContractCollapse}
-              ></ChevronDownIcon>
             </Heading>
-            <Box pl={6}>
+            <Box pl={[0,0,6]}>
               <SearchInput onSearchChange={setContractSearchTerm}></SearchInput>
             </Box>
+              <ChevronDownIcon
+                ml={[0,0,"auto"]}
+                cursor="pointer"
+                onClick={handleContractCollapse}
+              ></ChevronDownIcon>
           </Flex>
           <Collapse in={showContracts}>
             {!isEmpty(filteredContractState) && !isEmpty(addressesAbis) ? (
-              <Box mt={2}>
+              <Box>
                 <Box maxW="100%" overflowX="auto">
                   <ContractsTable
                     contractState={filteredContractState}
@@ -261,22 +263,24 @@ export const DeploymentExplorer: FC<{
             )}
           </Collapse>
           <Flex
-            p={6}
-            mt={3}
+            pt={6}
+            pb={2}
+            px={4}
             justifyContent={'flex-start'}
             alignItems={'baseline'}
             direction={['column', 'column', 'row']}
           >
-            <Heading size="md" px={4} mb={3}>
+            <Heading size="md">
               Function Calls
             </Heading>
-            <ChevronDownIcon
-              ml={2}
-              onClick={handleInvokeCollapse}
-            ></ChevronDownIcon>
-            <Box pl={6}>
+            <Box pl={[0,0,6]}>
               <SearchInput onSearchChange={setInvokeSearchTerm}></SearchInput>
             </Box>
+            <ChevronDownIcon
+              ml={[0,0,"auto"]}
+              cursor="pointer"
+              onClick={handleInvokeCollapse}
+            ></ChevronDownIcon>
           </Flex>
 
           <Collapse in={showInvoke}>
