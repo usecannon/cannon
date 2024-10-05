@@ -7,6 +7,9 @@ import {
   ChainDefinition,
   ContractData,
   ContractMap,
+  DeploymentInfo,
+  CannonStorage,
+  PackageReference,
   RawChainDefinition,
 } from '@usecannon/builder';
 import { AbiEvent } from 'abitype';
@@ -20,11 +23,14 @@ import path from 'path';
 import prompts from 'prompts';
 import semver from 'semver';
 import * as viem from 'viem';
+import { getMainLoader } from './loader';
 import { privateKeyToAccount } from 'viem/accounts';
 import { cannonChain, chains } from './chains';
 import { resolveCliSettings } from './settings';
+import { log, warn } from './util/console';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
-import { getChainIdFromProviderUrl, isURL } from './util/provider';
+import { getChainIdFromRpcUrl, isURL, hideApiKey } from './util/provider';
+import { LocalRegistry } from './registry';
 
 const debug = Debug('cannon:cli:helpers');
 
@@ -34,15 +40,16 @@ export async function filterSettings(settings: any) {
   const { cannonDirectory, privateKey, etherscanApiKey, ...filteredSettings } = settings;
 
   // Filters out API keys
-  filteredSettings.providerUrl = filteredSettings.providerUrl?.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32));
-  filteredSettings.registryProviderUrl = filteredSettings.registryProviderUrl?.replace(
-    RegExp(/[=A-Za-z0-9_-]{32,}/),
-    '*'.repeat(32)
-  );
+  filteredSettings.rpcUrl = hideApiKey(filteredSettings.rpcUrl);
+  filteredSettings.registryRpcUrl = hideApiKey(filteredSettings.registryRpcUrl);
 
   const filterUrlPassword = (uri: string) => {
     try {
       const res = new URL(uri);
+      // If no password exists, return the string
+      if (!res.password) {
+        return res.toString();
+      }
       res.password = '*'.repeat(10);
       return res.toString();
     } catch (err) {
@@ -64,8 +71,8 @@ export async function setupAnvil(): Promise<void> {
   const versionDate = await getAnvilVersionDate();
 
   if (versionDate) {
-    // Confirm we have a version after the anvil_loadState/anvil_dumpState functionality was added.
-    if (versionDate.getTime() < 1657679573421) {
+    // Confirm we have a version after https://github.com/foundry-rs/foundry/commit/8a8116977b3937ff7e871743f1805157cf242db6
+    if (versionDate.getTime() < 1727051007819) {
       const anvilResponse = await prompts({
         type: 'confirm',
         name: 'confirmation',
@@ -74,10 +81,10 @@ export async function setupAnvil(): Promise<void> {
       });
 
       if (anvilResponse.confirmation) {
-        console.log(magentaBright('Upgrading Foundry to the latest version...'));
+        log(magentaBright('Upgrading Foundry to the latest version...'));
         await execPromise('foundryup');
       } else {
-        process.exit();
+        process.exit(1);
       }
     }
   } else {
@@ -89,7 +96,7 @@ export async function setupAnvil(): Promise<void> {
     });
 
     if (response.confirmation) {
-      console.log(magentaBright('Installing Foundry...'));
+      log(magentaBright('Installing Foundry...'));
       await execPromise('curl -L https://foundry.paradigm.xyz | bash');
       await execPromise(os.homedir() + '/.foundry/bin/foundryup');
     } else {
@@ -176,7 +183,7 @@ export async function checkCannonVersion(currentVersion: string): Promise<void> 
   const latestVersion = await resolveCannonVersion();
 
   if (latestVersion && currentVersion && semver.lt(currentVersion, latestVersion)) {
-    console.warn(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
+    warn(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
   }
 }
 
@@ -211,11 +218,12 @@ export async function loadCannonfile(filepath: string) {
   const def = new ChainDefinition(rawDef, true);
   const pkg = loadPackageJson(path.join(path.dirname(path.resolve(filepath)), 'package.json'));
 
+  // TODO: there should be a helper in the builder to create the initial ctx
   const ctx: ChainBuilderContext = {
     package: pkg,
     chainId: CANNON_CHAIN_ID,
     settings: {},
-    timestamp: '0',
+    timestamp: 0,
 
     contracts: {},
     txns: {},
@@ -276,21 +284,6 @@ async function loadChainDefinitionToml(filepath: string, trace: string[]): Promi
   return [assembledDef, buf];
 }
 
-/**
- * Forge added a breaking change where it stopped returning the ast on build artifacts,
- * and the user has to add the `--ast` param to have them included.
- * This check is so we make sure to have asts regardless the user's foundry version.
- * Ref: https://github.com/foundry-rs/foundry/pull/7197
- */
-export async function checkForgeAstSupport() {
-  try {
-    const result = await execPromise('forge build --help');
-    return result.toString().includes('--ast');
-  } catch (error) {
-    throw new Error('Could not determine if forge ast flag is available');
-  }
-}
-
 export function getChainName(chainId: number): string {
   return getChainDataFromId(chainId)?.name || 'unknown';
 }
@@ -314,23 +307,23 @@ export function getChainDataFromId(chainId: number): viem.Chain | null {
   return chains.find((c: viem.Chain) => c.id == chainId) || null;
 }
 
-export async function ensureChainIdConsistency(providerUrl?: string, chainId?: number): Promise<void> {
+export async function ensureChainIdConsistency(rpcUrl?: string, chainId?: number): Promise<void> {
   // only if both are defined
-  if (providerUrl && chainId) {
-    const isProviderUrl = isURL(providerUrl);
+  if (rpcUrl && chainId) {
+    const isRpcUrl = isURL(rpcUrl);
 
-    if (isProviderUrl) {
-      const providerChainId = await getChainIdFromProviderUrl(providerUrl);
+    if (isRpcUrl) {
+      const providerChainId = await getChainIdFromRpcUrl(rpcUrl);
 
       // throw an expected error if the chainId is not consistent with the provider's chainId
       if (Number(chainId) !== Number(providerChainId)) {
-        console.log(
+        log(
           red(
-            `Error: The chainId (${providerChainId}) obtained from the ${bold('--provider-url')} does not match with ${bold(
+            `Error: The chainId (${providerChainId}) obtained from the ${bold('--rpc-url')} does not match with ${bold(
               '--chain-id'
             )} value (${chainId}). Please ensure that the ${bold(
               '--chain-id'
-            )} value matches the network your provider is connected to.`
+            )} value matches the network your RPC is connected to.`
           )
         );
 
@@ -342,14 +335,26 @@ export async function ensureChainIdConsistency(providerUrl?: string, chainId?: n
 
 function getMetadataPath(packageName: string): string {
   const cliSettings = resolveCliSettings();
-  return path.join(cliSettings.cannonDirectory, 'metadata_cache', `${packageName.replace(':', '_')}.txt`);
+  return path.join(cliSettings.cannonDirectory, 'metadata_cache', `${packageName.replace(':', '_')}.json`);
 }
 
-export async function saveToMetadataCache(packageName: string, key: string, value: string) {
+export async function saveToMetadataCache(packageName: string, updatedMetadata: { [key: string]: string }) {
   const metadataCache = await readMetadataCache(packageName);
-  metadataCache[key] = value;
+
+  // merge metadatas
+  const updatedMetadataCache = {
+    ...metadataCache,
+    ...updatedMetadata,
+  };
+
+  // create directory if not exists
   await fs.mkdirp(path.dirname(getMetadataPath(packageName)));
-  await fs.writeJson(getMetadataPath(packageName), metadataCache);
+
+  // save metadata to cache
+  await fs.writeJson(getMetadataPath(packageName), updatedMetadataCache);
+
+  // return updated metadata cache
+  return updatedMetadataCache;
 }
 
 export async function readMetadataCache(packageName: string): Promise<{ [key: string]: string }> {
@@ -358,45 +363,6 @@ export async function readMetadataCache(packageName: string): Promise<{ [key: st
   } catch {
     return {};
   }
-}
-
-/**
- * Converts a camelCase string to a flag case string.
- *
- * @param key The camelCase string.
- * @returns The flag case string.
- */
-export function toFlagCase(key: string) {
-  return `--${key.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`)}`;
-}
-
-/**
- * Converts an object of options to an array of command line arguments.
- *
- * @param options The options object.
- * @returns The command line arguments.
- */
-export function toArgs(options: { [key: string]: string | boolean | number | bigint | undefined }) {
-  return Object.entries(options).flatMap(([key, value]) => {
-    if (value === undefined) {
-      return [];
-    }
-
-    const flag = toFlagCase(key);
-
-    if (value === false) {
-      return [];
-    } else if (value === true) {
-      return [flag];
-    }
-
-    const stringified = value.toString();
-    if (stringified === '') {
-      return [flag];
-    }
-
-    return [flag, stringified];
-  });
 }
 
 /**
@@ -478,4 +444,81 @@ export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | unde
   });
 
   return normalizedPrivateKeys.join(',') as viem.Hex;
+}
+
+/**
+ *
+ * @param packageRef The package reference, eg. name:version@preset or ipfs://<cid>
+ * @returns Package Reference string
+ */
+export async function getPackageInfo(packageRef: string) {
+  if (packageRef.startsWith('@')) {
+    log(yellowBright("'@ipfs:' package reference format is deprecated, use 'ipfs://' instead"));
+  }
+
+  if (isIPFSUrl(packageRef)) {
+    packageRef = normalizeIPFSUrl(packageRef);
+  } else if (isIPFSCid(packageRef)) {
+    packageRef = `ipfs://${packageRef}`;
+  } else {
+    // cant determine chainId from non-ipfs package references
+    return { fullPackageRef: new PackageReference(packageRef).fullPackageRef, chainId: undefined };
+  }
+
+  const cliSettings = resolveCliSettings();
+
+  const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
+
+  const storage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
+
+  try {
+    const pkgInfo: DeploymentInfo = await storage.readBlob(packageRef);
+
+    let version = pkgInfo.def.version;
+    if (pkgInfo.def.version.startsWith('<%=')) {
+      version = pkgInfo.meta.version;
+    }
+
+    const fullPackageRef = PackageReference.from(pkgInfo.def.name, version, pkgInfo.def.preset).fullPackageRef;
+
+    return {
+      fullPackageRef,
+      chainId: Number(pkgInfo.chainId),
+    };
+  } catch (error: any) {
+    throw new Error(error);
+  }
+}
+
+export function isIPFSUrl(ref: string) {
+  return ref.startsWith('ipfs://') || ref.startsWith('@ipfs:');
+}
+
+export function isIPFSCid(ref: string) {
+  return ref.startsWith('Qm');
+}
+
+export function isIPFSRef(ref: string) {
+  return isIPFSCid(ref) || isIPFSUrl(ref);
+}
+
+export function normalizeIPFSUrl(ref: string) {
+  if (ref.startsWith('@ipfs:')) {
+    return ref.replace('@ipfs:', 'ipfs://');
+  }
+
+  return ref;
+}
+
+export function getCIDfromUrl(ref: string) {
+  if (!isIPFSRef(ref)) {
+    throw new Error(`${ref} is not a valid IPFS url`);
+  }
+
+  if (isIPFSUrl(ref)) {
+    ref = normalizeIPFSUrl(ref);
+    return ref.replace('ipfs://', '');
+  }
+
+  return ref;
 }

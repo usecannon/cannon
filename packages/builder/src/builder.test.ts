@@ -300,7 +300,7 @@ describe('builder.ts', () => {
       runtime.on(Events.PostStepExecute, handler);
       const stepData = await runStep(
         runtime,
-        { name: fakeDefinition.name, version: fakeDefinition.version, currentLabel: 'deploy.Yoop' },
+        { ref: new ChainDefinition(fakeDefinition).getPackageRef({} as any), currentLabel: 'deploy.Yoop' },
         (fakeDefinition as any).deploy.Yoop,
         initialCtx
       );
@@ -317,7 +317,7 @@ describe('builder.ts', () => {
       expect(ctx.chainId).toBe(5);
       expect(ctx.package).toBe(pkg);
       expect(ctx.overrideSettings.baz).toStrictEqual('boop');
-      expect(parseInt(ctx.timestamp)).toBeCloseTo(Date.now() / 1000, -2);
+      expect(ctx.timestamp).toBeCloseTo(Date.now() / 1000, -2);
       expect(ctx.contracts).toStrictEqual({});
       expect(ctx.txns).toStrictEqual({});
       expect(ctx.imports).toStrictEqual({});

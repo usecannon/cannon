@@ -6,7 +6,7 @@ const CrossDomainMessengerABI = require('./CrossDomainMessenger.json');
 
 const L1CrossDomainMessenger = '0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1';
 
-const mainnetForkProviderUrl = 'http://127.0.0.1:9545';
+const mainnetForkRpcUrl = 'http://127.0.0.1:9545';
 
 const SentMessageEvent = 'SentMessage';
 const StoppedEvent = 'Stopped';
@@ -19,8 +19,6 @@ class OptimismEmitter extends EventEmitter {
   }
 
   start() {
-    console.log(`Starting to listen for ${SentMessageEvent} events`);
-
     const event = viem.getAbiItem({
       abi: CrossDomainMessengerABI,
       name: SentMessageEvent,
@@ -29,7 +27,7 @@ class OptimismEmitter extends EventEmitter {
     // create a public client, connected to anvil mainnet fork
     this.client = viem.createPublicClient({
       chain: mainnet,
-      transport: viem.http(mainnetForkProviderUrl),
+      transport: viem.http(mainnetForkRpcUrl),
     });
 
     this.unwatch = this.client.watchEvent({

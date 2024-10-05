@@ -3,9 +3,10 @@ import {
   DeploymentInfo,
   InMemoryRegistry,
   IPFSLoader,
-  OnChainRegistry,
   preparePublishPackage,
+  OnChainRegistry,
 } from '@usecannon/builder';
+import * as builder from '@usecannon/builder';
 import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
@@ -44,6 +45,7 @@ describe('publish command', () => {
     miscUrl: 'file://usecannon.com/misc',
     meta: { itsMeta: 'data' },
     options: {},
+    chainId,
   };
 
   const testPkgDataIpfsUrl = 'ipfs://test-ipfs-url';
@@ -60,7 +62,7 @@ describe('publish command', () => {
       jest.fn().mockReturnValue({
         ipfsUrl: 'http://127.0.0.1:5001',
         publishIpfsUrl: 'http://127.0.0.1:5001',
-        registryProviderUrl: 'http://localhost:3000',
+        registryRpcUrl: 'http://localhost:3000',
         registryAddress: viem.zeroAddress,
         registryChainId: '123', // or whatever value is appropriate in your case
         cannonDirectory: dirSync().name,
@@ -136,37 +138,75 @@ describe('publish command', () => {
     jest.spyOn(OnChainRegistry.prototype, 'publish').mockResolvedValue([]);
   });
 
-  it('should publish the package to the registry', async () => {
-    // jest spy on fs readdir which return string[] of package.json
-    await publish({
-      packageRef: fullPackageRef,
-      cliSettings: resolveCliSettings(),
-      onChainRegistry,
-      tags,
-      chainId,
-      quiet: true,
-      includeProvisioned: false,
-      skipConfirm: true,
+  describe('publish', () => {
+    it('should not publish if there are no new packages', async () => {
+      jest.spyOn(builder, 'preparePublishPackage').mockResolvedValue([]);
+
+      await expect(
+        publish({
+          fullPackageRef,
+          cliSettings: resolveCliSettings(),
+          onChainRegistry,
+          tags,
+          chainId,
+          quiet: true,
+          skipConfirm: true,
+          includeProvisioned: false,
+        })
+      ).rejects.toThrow("There isn't anything new to publish.");
     });
 
-    expect(await onChainRegistry.getUrl(fullPackageRef, chainId)).toEqual(testPkgDataNewIpfsUrl);
-    expect(await onChainRegistry.getUrl(`package:tag0@${preset}`, chainId)).toEqual(testPkgDataNewIpfsUrl);
-  });
+    it('should publish the package to the registry', async () => {
+      // jest spy on fs readdir which return string[] of package.json
+      jest.spyOn(builder, 'preparePublishPackage').mockResolvedValue([
+        {
+          packagesNames: [fullPackageRef, `${fullPackageRef}:tag0@${preset}`],
+          chainId,
+          url: 'ipfs://test-ipfs-new-url',
+          metaUrl: '',
+        },
+      ]);
 
-  it('should publish the package to the registry with no tags', async () => {
-    tags = [];
-    await publish({
-      packageRef: fullPackageRef,
-      cliSettings: resolveCliSettings(),
-      onChainRegistry,
-      tags,
-      chainId,
-      quiet: true,
-      skipConfirm: true,
-      includeProvisioned: true,
+      await publish({
+        fullPackageRef,
+        cliSettings: resolveCliSettings(),
+        onChainRegistry,
+        tags,
+        chainId,
+        quiet: true,
+        skipConfirm: true,
+        includeProvisioned: false,
+      });
+
+      expect(await onChainRegistry.getUrl(fullPackageRef, chainId)).toEqual(testPkgDataNewIpfsUrl);
+      expect(await onChainRegistry.getUrl(`${fullPackageRef}:tag0@${preset}`, chainId)).toEqual(testPkgDataNewIpfsUrl);
     });
 
-    expect(await onChainRegistry.getUrl(fullPackageRef, chainId)).toEqual(testPkgDataNewIpfsUrl);
+    it('should publish the package to the registry with no tags', async () => {
+      tags = [];
+
+      jest.spyOn(builder, 'preparePublishPackage').mockResolvedValue([
+        {
+          packagesNames: [fullPackageRef],
+          chainId,
+          url: 'ipfs://test-ipfs-new-url',
+          metaUrl: '',
+        },
+      ]);
+
+      await publish({
+        fullPackageRef,
+        cliSettings: resolveCliSettings(),
+        onChainRegistry,
+        tags,
+        chainId,
+        quiet: true,
+        skipConfirm: true,
+        includeProvisioned: true,
+      });
+
+      expect(await onChainRegistry.getUrl(fullPackageRef, chainId)).toEqual(testPkgDataNewIpfsUrl);
+    });
   });
 
   describe('scanDeploys', () => {
@@ -179,15 +219,19 @@ describe('publish command', () => {
       // @ts-ignore
       jest.spyOn(fs, 'readdir').mockResolvedValue(_deployDataLocalFileNames);
 
-      const builder = await import('@usecannon/builder');
-      jest.spyOn(builder, 'preparePublishPackage').mockImplementation(async () => {
-        return [];
-      });
+      jest.spyOn(builder, 'preparePublishPackage').mockResolvedValue([
+        {
+          packagesNames: [fullPackageRef],
+          chainId,
+          url: 'ipfs://test-ipfs-new-url',
+          metaUrl: '',
+        },
+      ]);
     });
 
     it('should only find single deploy file on chainId and preset set', async () => {
       await publish({
-        packageRef: fullPackageRef,
+        fullPackageRef,
         cliSettings: resolveCliSettings(),
         onChainRegistry,
         tags,
@@ -206,7 +250,7 @@ describe('publish command', () => {
     // But it's the current implementation
     it('should find multiple deploy files on chainId set', async () => {
       await publish({
-        packageRef: fullPackageRef,
+        fullPackageRef,
         cliSettings: resolveCliSettings(),
         onChainRegistry,
         tags,
@@ -225,7 +269,7 @@ describe('publish command', () => {
     // But it's the current implementation
     it('should find multiple deploy files on preset set', async () => {
       await publish({
-        packageRef: fullPackageRef,
+        fullPackageRef,
         cliSettings: resolveCliSettings(),
         onChainRegistry,
         tags,

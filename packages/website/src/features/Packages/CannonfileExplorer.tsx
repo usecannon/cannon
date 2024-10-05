@@ -29,11 +29,12 @@ import { DeploymentInfo } from '@usecannon/builder/src/types';
 import { InfoIcon } from '@chakra-ui/icons';
 import ChainDefinitionSteps from './ChainDefinitionSteps';
 import { isEmpty } from 'lodash';
-import { useQueryIpfsData } from '@/hooks/ipfs';
+import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { CannonfileGraph } from './CannonfileGraph';
 import { StepModalProvider } from '@/providers/stepModalProvider';
 import { stringify } from '@iarna/toml';
 import { PiGraphLight, PiCodeLight, PiListBullets } from 'react-icons/pi';
+import { ApiPackage } from '@usecannon/api/dist/src/types';
 
 function omitEmptyObjects(config: { [x: string]: any }) {
   for (const key in config) {
@@ -54,13 +55,13 @@ function omitEmptyObjects(config: { [x: string]: any }) {
 }
 
 export const CannonfileExplorer: FC<{
-  pkg: any;
+  pkg: ApiPackage;
 }> = ({ pkg }) => {
-  const deploymentData = useQueryIpfsData(pkg?.deployUrl, !!pkg?.deployUrl);
-
-  const deploymentInfo = deploymentData.data
-    ? (deploymentData.data as DeploymentInfo)
-    : undefined;
+  const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
+    pkg?.deployUrl,
+    !!pkg?.deployUrl
+  );
+  const deploymentInfo = deploymentData.data;
 
   const {
     isOpen: isPackageJsonModalOpen,

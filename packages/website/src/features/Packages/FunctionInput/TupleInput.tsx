@@ -1,8 +1,8 @@
 import { Flex, FormControl, FormLabel, Text } from '@chakra-ui/react';
-import { FunctionInput } from '../FunctionInput';
+import { BigNumber } from '@ethersproject/bignumber';
 import { useState } from 'react';
-import { BigNumber } from 'ethers';
 import { AbiParameter } from 'viem';
+import { FunctionInput } from '../FunctionInput';
 
 const TupleInput = ({
   input,
@@ -52,7 +52,7 @@ const TupleInput = ({
           </FormLabel>
           <FunctionInput
             input={component}
-            valueUpdated={(value) => {
+            handleUpdate={(value) => {
               // Since tuple components are represented as a JSON object,
               // We represent the bigint type as a string
               if (typeof value === 'bigint') {

@@ -1,19 +1,32 @@
 import Debug from 'debug';
 import * as viem from 'viem';
+import prompts from 'prompts';
 import { bold, red, grey } from 'chalk';
 import provider from 'eth-provider';
 import { privateKeyToAccount } from 'viem/accounts';
 import { CannonSigner, traceActions } from '@usecannon/builder';
 
+import { log, error } from './console';
 import { getChainById } from '../chains';
-import { CliSettings, PROVIDER_URL_DEFAULT } from '../settings';
+import { CliSettings } from '../settings';
 
 const debug = Debug('cannon:cli:provider');
 
-export enum ProviderOrigin {
-  Registry = 'registry',
-  Write = 'write',
+import { isPrivateKey, normalizePrivateKey } from '../helpers';
+
+export enum ProviderAction {
+  WriteDryRunProvider = 'WriteDryRunProvider',
+  OptionalWriteProvider = 'OptionalWriteProvider',
+  WriteProvider = 'WriteProvider',
+  ReadProvider = 'ReadProvider',
 }
+
+type ProviderParams = {
+  action: ProviderAction;
+  quiet?: boolean;
+  cliSettings: CliSettings;
+  chainId?: number;
+};
 
 export const isURL = (url: string): boolean => {
   try {
@@ -24,68 +37,109 @@ export const isURL = (url: string): boolean => {
   }
 };
 
-export const getChainIdFromProviderUrl = async (providerUrl: string) => {
-  if (!isURL(providerUrl)) throw new Error('Provider URL has not a valid format');
+export const hideApiKey = (rpcUrl: string) => {
+  try {
+    const parsedUrl = new URL(rpcUrl);
+    const pathParts = parsedUrl.pathname.split('/');
+    const queryParams = parsedUrl.searchParams;
 
-  const provider = viem.createPublicClient({ transport: viem.http(providerUrl) });
+    // function to mask a string
+    const maskString = (key: string, visibleChars = 4) => {
+      return key.length > visibleChars ? '*'.repeat(key.length - visibleChars) + key.slice(-visibleChars) : key;
+    };
+
+    // function to check if a string looks like a key or token
+    const isLikelyKey = (key: string) => {
+      // check for strings that look like keys, tokens, or hashes
+      return /^[a-zA-Z0-9_-]+$/.test(key) && key.length > 8;
+    };
+
+    // check and mask path segments
+    pathParts.forEach((part, index) => {
+      if (isLikelyKey(part)) {
+        pathParts[index] = maskString(part);
+      }
+    });
+
+    // check and mask query parameters
+    for (const [key, value] of queryParams.entries()) {
+      if (isLikelyKey(value)) {
+        queryParams.set(key, maskString(value));
+      }
+    }
+
+    parsedUrl.pathname = pathParts.join('/');
+    return parsedUrl.toString();
+  } catch (error) {
+    return rpcUrl; // return original URL if parsing fails
+  }
+};
+
+export const getChainIdFromRpcUrl = async (rpcUrl: string) => {
+  if (!isURL(rpcUrl)) throw new Error('RPC URL has not a valid format');
+
+  const provider = viem.createPublicClient({ transport: viem.http(rpcUrl, { timeout: 180000 }) });
   return provider.getChainId();
 };
 
-export async function resolveWriteProvider(
-  settings: CliSettings,
-  chainId: number
-): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
-  const chainData = getChainById(chainId);
+export async function resolveProvider({
+  cliSettings,
+  chainId,
+  quiet = false,
+  action,
+}: ProviderParams): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
+  const chainData = getChainById(chainId!);
 
-  console.log(bold(`Resolving connection to ${chainData.name} (Chain ID: ${chainId})...`));
-  // Check if the first provider URL doesn't start with 'http'
-  const isProviderUrl = isURL(settings.providerUrl.split(',')[0]);
+  if (!quiet) {
+    log(bold(`Resolving connection to ${chainData.name} (Chain ID: ${chainId})...`));
+  }
 
-  if (!isProviderUrl) {
+  // Check if the first provider URL is actually an URL.
+  const isRpcUrl = isURL(cliSettings.rpcUrl.split(',')[0]);
+
+  if (!isRpcUrl) {
     // If privateKey is present or no valid http URLs are available in rpcUrls
-    if (settings.privateKey || chainData.rpcUrls.default.http.length === 0) {
+    if (cliSettings.privateKey) {
       if (chainData.rpcUrls.default.http.length === 0) {
-        console.error(
+        error(
           red(
-            `Failed to establish a connection with any provider. Please specify a valid RPC url using the ${bold(
-              '--provider-url'
+            `Failed to establish a connection with any RPC. Please specify a valid RPC url using the ${bold(
+              '--rpc-url'
             )} flag.`
           )
         );
         process.exit(1);
       }
       // Use default http URLs from chainData
-      settings.providerUrl = chainData.rpcUrls.default.http.join(',');
+      cliSettings.rpcUrl = chainData.rpcUrls.default.http.join(',');
     } else {
       // Merge with viem's default rpc URLs, remove duplicates
-      const providers = [...new Set([...settings.providerUrl.split(','), ...chainData.rpcUrls.default.http])];
-      settings.providerUrl = providers.join(',');
+      const rpcs = [...new Set([...cliSettings.rpcUrl.split(','), ...chainData.rpcUrls.default.http])];
+      cliSettings.rpcUrl = rpcs.join(',');
     }
   }
 
-  if (settings.providerUrl == PROVIDER_URL_DEFAULT && !settings.quiet) {
-    console.warn(grey('Set a RPC URL by passing --provider-url or setting the ENV variable CANNON_PROVIDER_URL.\n'));
-  }
-
   return resolveProviderAndSigners({
-    chainId,
-    checkProviders: settings.providerUrl.split(','),
-    privateKey: settings.privateKey,
-    origin: ProviderOrigin.Write,
-  }) as any;
+    chainId: chainId!,
+    checkProviders: cliSettings.rpcUrl.split(','),
+    privateKey: cliSettings.privateKey,
+    action,
+  });
 }
 
-export async function resolveRegistryProviders(
-  cliSettings: CliSettings
-): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }[]> {
+export async function resolveRegistryProviders({
+  cliSettings,
+  action,
+}: ProviderParams): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }[]> {
   const resolvedProviders = [];
+
   for (const registryInfo of cliSettings.registries) {
     resolvedProviders.push(
       await resolveProviderAndSigners({
         chainId: registryInfo.chainId!,
-        checkProviders: registryInfo.providerUrl,
-        privateKey: cliSettings.privateKey,
-        origin: ProviderOrigin.Registry,
+        checkProviders: registryInfo.rpcUrl,
+        privateKey: cliSettings.privateKey!,
+        action,
       })
     );
   }
@@ -97,32 +151,36 @@ export async function resolveProviderAndSigners({
   chainId,
   checkProviders = ['frame'],
   privateKey,
-  origin,
+  action,
 }: {
   chainId: number;
   checkProviders?: string[];
   privateKey?: string;
-  origin: ProviderOrigin;
-}): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }> {
-  const providerDisplayName = (provider: string) => {
-    switch (provider) {
+  action: ProviderAction;
+}): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
+  const providerDisplayName = (rpcUrl: string) => {
+    switch (rpcUrl) {
       case 'frame':
         return 'Frame (frame.sh) if running';
       case 'direct':
         return 'default IPC paths, ws://127.0.0.1:8546, or http://127.0.0.1:8545';
       default:
-        return provider;
+        return hideApiKey(rpcUrl);
     }
   };
 
-  if (origin === ProviderOrigin.Write) {
-    console.log(grey(`Attempting to find connection via ${bold(providerDisplayName(checkProviders[0]))}`));
-    if (checkProviders.length === 1) console.log('');
+  if (
+    ProviderAction.WriteProvider === action ||
+    ProviderAction.WriteDryRunProvider === action ||
+    ProviderAction.OptionalWriteProvider === action
+  ) {
+    log(grey(`Attempting to find connection via ${bold(providerDisplayName(checkProviders[0]))}`));
+    if (checkProviders.length === 1) log('');
   }
 
   debug(
     'resolving provider',
-    checkProviders.map((p) => (p ? p.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32)) : p)),
+    checkProviders.map((p) => hideApiKey(p)),
     chainId
   );
 
@@ -132,33 +190,34 @@ export async function resolveProviderAndSigners({
   try {
     rawProvider.setChain(Number.parseInt(chainId.toString())); // its important here we ensure chainId is a number
   } catch (err) {
-    console.error(`Failed to use chain id ${chainId}`, err);
+    error(`Failed to use chain id ${chainId}`, err);
     throw err;
   }
 
-  let publicClient: viem.PublicClient;
+  let publicClient: viem.PublicClient & viem.WalletClient;
 
   // TODO: if at any point we let users provide multiple urls, this will have to be changed.
   // force provider to use JSON-RPC instead of Web3Provider for local http urls
   const signers: CannonSigner[] = [];
+
   if (isURL(checkProviders[0])) {
     debug(
       'use explicit provider url',
-      checkProviders.map((p) => (p ? p.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32)) : p))
+      checkProviders.map((p) => hideApiKey(p))
     );
     try {
       publicClient = (
         viem.createPublicClient({
           chain: getChainById(chainId),
-          transport: viem.http(checkProviders[0]),
+          transport: viem.http(checkProviders[0], { timeout: 180000 }),
         }) as any
       ).extend(traceActions({}));
     } catch (err) {
       if (checkProviders.length <= 1) {
-        console.error(
+        error(
           red(
-            `Failed to establish a connection with any provider. Please specify a valid RPC url using the ${bold(
-              '--provider-url'
+            `Failed to establish a connection with any RPC. Please specify a valid RPC url using the ${bold(
+              '--rpc-url'
             )} flag.`
           )
         );
@@ -169,7 +228,7 @@ export async function resolveProviderAndSigners({
         chainId,
         checkProviders: checkProviders.slice(1),
         privateKey,
-        origin,
+        action,
       });
     }
 
@@ -189,6 +248,48 @@ export async function resolveProviderAndSigners({
       );
     } else {
       debug('no signer supplied for provider');
+
+      switch (action) {
+        case ProviderAction.WriteProvider:
+        case ProviderAction.OptionalWriteProvider: {
+          const isOptional = ProviderAction.OptionalWriteProvider === action;
+
+          const keyPrompt = await prompts({
+            type: 'text',
+            name: 'value',
+            message: `Enter the private key of the address you want to use ${isOptional ? '(Optional)' : ''}:`,
+            style: 'password',
+            validate: (key) => {
+              if (isOptional && !key) return true;
+              return isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid';
+            },
+          });
+
+          if (keyPrompt.value) {
+            const account = privateKeyToAccount(normalizePrivateKey(keyPrompt.value as viem.Hex));
+
+            signers.push({
+              address: account.address,
+              wallet: viem.createWalletClient({
+                account,
+                chain: getChainById(chainId),
+                transport: viem.custom(publicClient.transport),
+              }),
+            });
+          }
+
+          break;
+        }
+
+        case ProviderAction.ReadProvider:
+        case ProviderAction.WriteDryRunProvider: {
+          // No signer needed for this action
+          break;
+        }
+
+        default:
+          break;
+      }
     }
   } else {
     debug('use frame eth provider');
@@ -214,10 +315,10 @@ export async function resolveProviderAndSigners({
       }
     } catch (err: any) {
       if (checkProviders.length <= 1) {
-        console.error(
+        error(
           red(
-            `Failed to establish a connection with any provider. Please specify a valid RPC url using the ${bold(
-              '--provider-url'
+            `Failed to establish a connection with any RPC. Please specify a valid RPC url using the ${bold(
+              '--rpc-url'
             )} flag.`
           )
         );
@@ -228,7 +329,7 @@ export async function resolveProviderAndSigners({
         chainId,
         checkProviders: checkProviders.slice(1),
         privateKey,
-        origin,
+        action,
       });
     }
   }

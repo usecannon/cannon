@@ -1,20 +1,22 @@
 import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
+import { Events } from '../runtime';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
-import { PackageReference } from '../package';
+import { PackageReference } from '../package-reference';
 import { ChainBuilderRuntime } from '../runtime';
 import { pullSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
+import { template } from '../utils/template';
 
-const debug = Debug('cannon:builder:import');
+const debug = Debug('cannon:builder:pull');
 
 /**
- *  Available properties for import operation
+ *  Available properties for pull operation
  *  @public
- *  @group Import
+ *  @group pull
  */
 export type Config = z.infer<typeof pullSchema>;
 
@@ -49,10 +51,10 @@ const pullSpec = {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     config = _.cloneDeep(config);
 
-    const packageRef = new PackageReference(_.template(config.source)(ctx));
+    const packageRef = new PackageReference(template(config.source)(ctx));
 
     config.source = packageRef.fullPackageRef;
-    config.preset = _.template(config.preset)(ctx) || packageRef.preset;
+    config.preset = template(config.preset)(ctx) || packageRef.preset;
 
     return config;
   },
@@ -80,6 +82,14 @@ const pullSpec = {
     const source = config.source;
     const preset = config.preset;
     const chainId = config.chainId ?? runtime.chainId;
+
+    if (new PackageReference(source).version === 'latest') {
+      runtime.emit(
+        Events.Notice,
+        packageState.currentLabel,
+        'To prevent unexpected upgrades, it is strongly recommended to lock the version of the source package by specifying a version in the `source` field.'
+      );
+    }
 
     // try to load the chain definition specific to this chain
     // otherwise, load the top level definition

@@ -140,7 +140,7 @@ describe('util.ts', () => {
     settings: {},
     txns: {},
     chainId: 0,
-    timestamp: '0',
+    timestamp: 0,
     package: {},
   };
 

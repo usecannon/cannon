@@ -3,15 +3,12 @@
   "version": "1.0.0",
   "description": "Example Cannon Hardhat project using @nomicfoundation/hardhat-toolbox",
   "main": "index.ts",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",
     "hardhat": "^2.19.2",
-    "hardhat-cannon": "file:../../packages/hardhat-cannon",
-    "viem": "^2.9.26"
+    "hardhat-cannon": "workspace:*",
+    "viem": "^2.21.15"
   }
 }

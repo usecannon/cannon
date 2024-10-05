@@ -7,8 +7,9 @@ import os from 'os';
 import path from 'path';
 import * as viem from 'viem';
 import { CliSettings } from './settings';
+import { log } from './util/console';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
-import { resolveRegistryProviders } from './util/provider';
+import { resolveRegistryProviders, ProviderAction } from './util/provider';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -175,7 +176,7 @@ async function checkLocalRegistryOverride({
 }) {
   const localResult = await _.last(fallbackRegistry.registries).getUrl(fullPackageRef, chainId);
   if (registry instanceof OnChainRegistry && localResult && localResult != result) {
-    console.log(
+    log(
       yellowBright(
         `⚠️  The package ${fullPackageRef} was found on the official on-chain registry, but you also have a local build of this package. To use this local build instead, run this command with '--registry-priority local'`
       )
@@ -187,7 +188,7 @@ export async function createDefaultReadRegistry(
   cliSettings: CliSettings,
   additionalRegistries: CannonRegistry[] = []
 ): Promise<FallbackRegistry> {
-  const registryProviders = await resolveRegistryProviders(cliSettings);
+  const registryProviders = await resolveRegistryProviders({ cliSettings, action: ProviderAction.ReadProvider });
 
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
   const onChainRegistries = registryProviders.map(
@@ -200,7 +201,7 @@ export async function createDefaultReadRegistry(
   } else if (!(await isConnectedToInternet())) {
     debug('not connected to internet, using local registry only');
     // When not connected to the internet, we don't want to check the on-chain registry version to not throw an error
-    console.log(
+    log(
       yellowBright(
         '⚠️  You are not connected to the internet or using a VPN that is limiting connectivity. Cannon will only use packages available locally.'
       )

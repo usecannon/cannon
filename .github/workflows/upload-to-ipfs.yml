@@ -1,26 +1,26 @@
 name: Upload Website to IPFS
 
-on:
-  pull_request:
-    branches: [main]
+on: workflow_dispatch
 
 jobs:
   upload-ipfs:
     runs-on: ubuntu-latest
-    permissions: 
-       pull-requests: write
+    permissions:
+      pull-requests: write
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
-          cache: npm
+          cache: pnpm
           node-version: '20.5.1'
-      - run: npm ci
-      - run: npm run build
-        env:
-          NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+
+      - run: pnpm i --prefer-frozen-lockfile
+      - run: pnpm build
+
       - run: echo "${{ vars.NEXT_ENV }}" > packages/website/.env.local
-      - run: cd packages/website && npm run build
+      - run: cd packages/website && pnpm build
+
       - uses: dbeal-eth/ipfs-github-action@master
         id: ipfs
         with:

@@ -7,7 +7,7 @@ import { CannonSigner, ChainArtifacts, PackageReference } from './';
 import { traceActions } from './error';
 import { CannonLoader, IPFSLoader } from './loader';
 import { CannonRegistry } from './registry';
-import { ChainBuilderRuntimeInfo, ContractArtifact, DeploymentInfo } from './types';
+import { ChainBuilderRuntimeInfo, ChainBuilderContext, ContractArtifact, DeploymentInfo } from './types';
 import { getExecutionSigner } from './util';
 
 const debug = Debug('cannon:builder:runtime');
@@ -21,6 +21,7 @@ export enum Events {
   SkipDeploy = 'skip-deploy', // step name, error causing skip
   ResolveDeploy = 'resolve-deploy',
   DownloadDeploy = 'download-deploy',
+  Notice = 'notice', // used when there is some warning from the build output
 }
 
 export class CannonStorage extends EventEmitter {
@@ -55,18 +56,12 @@ export class CannonStorage extends EventEmitter {
       .join(', ')}`;
   }
 
-  readBlob(url: string) {
+  async readBlob(url: string) {
     const loader = this.lookupLoader(url);
-    let loaderLabel;
-
-    if (loader instanceof IPFSLoader) {
-      loaderLabel = loader.ipfsUrl;
-    } else {
-      loaderLabel = loader.getLabel();
-    }
-
+    const blob = await loader.read(url);
+    const loaderLabel = loader.getLabel();
     this.emit(Events.DownloadDeploy, url, loaderLabel, 0);
-    return loader.read(url);
+    return blob;
   }
 
   putBlob(data: any) {
@@ -101,12 +96,6 @@ export class CannonStorage extends EventEmitter {
   }
 }
 
-const parseGasValue = (value: string | undefined) => {
-  if (!value) return undefined;
-
-  return viem.parseGwei(value).toString();
-};
-
 export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRuntimeInfo {
   provider: viem.PublicClient;
   readonly chainId: number;
@@ -118,11 +107,14 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   readonly getArtifact: (name: string) => Promise<ContractArtifact>;
   readonly snapshots: boolean;
   readonly allowPartialDeploy: boolean;
+  readonly subpkgDepth: number;
+  currentStep: string | null;
+  ctx: ChainBuilderContext | null;
   private publicSourceCode: boolean | undefined;
   private signals: { cancelled: boolean } = { cancelled: false };
-  private _gasPrice: string | undefined;
-  private _gasFee: string | undefined;
-  private _priorityGasFee: string | undefined;
+  private _gasPrice: bigint | undefined;
+  private _gasFee: bigint | undefined;
+  private _priorityGasFee: bigint | undefined;
 
   private cleanSnapshot: any;
 
@@ -135,10 +127,11 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   };
 
   constructor(
-    info: ChainBuilderRuntimeInfo,
+    info: Omit<ChainBuilderRuntimeInfo, 'subpkgDepth'>,
     registry: CannonRegistry,
     loaders: { [scheme: string]: CannonLoader } = { ipfs: new IPFSLoader('') },
-    defaultLoaderScheme = 'ipfs'
+    defaultLoaderScheme = 'ipfs',
+    subpkgDepth = 0
   ) {
     super(registry, loaders, defaultLoaderScheme);
 
@@ -166,7 +159,12 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
 
     this.allowPartialDeploy = info.allowPartialDeploy;
 
+    this.subpkgDepth = subpkgDepth;
+
     this.misc = { artifacts: {} };
+
+    this.currentStep = null;
+    this.ctx = null;
 
     if (info.priorityGasFee) {
       if (!info.gasFee) {
@@ -174,14 +172,14 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
       }
     }
 
-    this._gasFee = parseGasValue(info.gasFee);
-    this._priorityGasFee = parseGasValue(info.priorityGasFee);
+    this._gasFee = info.gasFee;
+    this._priorityGasFee = info.priorityGasFee;
 
     if (info.gasPrice) {
       if (info.gasFee) {
         debug(yellow('WARNING: gasPrice is ignored when gasFee is set'));
       } else {
-        this._gasPrice = parseGasValue(info.gasPrice);
+        this._gasPrice = info.gasPrice;
       }
     }
   }
@@ -190,13 +188,13 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     this.signals.cancelled = true;
   }
 
-  get gasPrice(): string | undefined {
+  get gasPrice(): bigint | undefined {
     return this._gasPrice;
   }
-  get gasFee(): string | undefined {
+  get gasFee(): bigint | undefined {
     return this._gasFee;
   }
-  get priorityGasFee(): string | undefined {
+  get priorityGasFee(): bigint | undefined {
     return this._priorityGasFee;
   }
 
@@ -268,6 +266,11 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     this.misc.artifacts[n] = artifact;
   }
 
+  reportOperatingContext(n: string | null, ctx: ChainBuilderContext | null) {
+    this.currentStep = n;
+    this.ctx = ctx;
+  }
+
   updateProviderArtifacts(artifacts: ChainArtifacts) {
     this.traceArtifacts = _.merge(this.traceArtifacts, artifacts);
     this.provider = this.provider.extend(traceActions(this.traceArtifacts) as any);
@@ -282,7 +285,8 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
       { ...this, ...overrides },
       this.registry,
       this.loaders,
-      this.defaultLoaderScheme
+      this.defaultLoaderScheme,
+      this.subpkgDepth + 1
     );
 
     newRuntime.signals = this.signals;
@@ -304,6 +308,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
       this.emit(Events.ResolveDeploy, packageName, preset, chainId, registry, d + 1)
     );
     newRuntime.on(Events.DownloadDeploy, (hash, gateway, d) => this.emit(Events.DownloadDeploy, hash, gateway, d + 1));
+    newRuntime.on(Events.Notice, (n, msg, d) => this.emit(Events.Notice, n, msg, d + 1));
 
     return newRuntime;
   }

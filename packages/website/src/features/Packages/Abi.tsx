@@ -4,21 +4,64 @@ import {
   Box,
   Flex,
   Heading,
-  Link,
+  Skeleton,
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import _ from 'lodash';
+import sortBy from 'lodash/sortBy';
 import * as viem from 'viem';
-import NextLink from 'next/link';
-import { useRouter } from 'next/router';
 import { ChainArtifacts } from '@usecannon/builder';
-import { FC, useContext, useEffect, useMemo, useRef } from 'react';
+import { FC, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AbiFunction, Abi as AbiType } from 'abitype';
 import { Function } from '@/features/Packages/Function';
-import { HasSubnavContext } from './Tabs/InteractTab';
+import { SubnavContext } from './Tabs/InteractTab';
+import SearchInput from '@/components/SearchInput';
+import { scroller, Element, scrollSpy } from 'react-scroll';
+
+import { Button, ButtonProps } from '@chakra-ui/react';
+import React from 'react';
+import { useRouter } from 'next/router';
+import { CustomSpinner } from '@/components/CustomSpinner';
+
+const getSelectorSlug = (f: AbiFunction) =>
+  `selector-${viem.toFunctionSelector(f)}`;
+
+const ButtonLink: React.FC<ButtonProps & { selected?: boolean }> = ({
+  children,
+  selected,
+  ...props
+}) => (
+  <Button
+    display="block"
+    borderRadius="md"
+    w="100%"
+    textAlign="left"
+    px="2"
+    cursor={props.disabled ? 'not-allowed' : 'pointer'}
+    fontSize="xs"
+    _hover={{ background: 'gray.800' }}
+    whiteSpace="nowrap"
+    overflow="hidden"
+    textOverflow="ellipsis"
+    color="white"
+    background={selected ? 'gray.800' : 'transparent'}
+    height={30}
+    {...props}
+  >
+    {children}
+  </Button>
+);
+
+const FunctionRowsSkeleton = () => (
+  <Flex direction="column" gap={2}>
+    {Array.from({ length: 7 }).map((_, i) => (
+      <Skeleton key={i} height={3} />
+    ))}
+  </Flex>
+);
 
 export const Abi: FC<{
+  isLoading?: boolean;
   abi?: AbiType;
   address: viem.Address;
   cannonOutputs: ChainArtifacts;
@@ -27,6 +70,7 @@ export const Abi: FC<{
   onDrawerOpen?: () => void;
   packageUrl?: string;
 }> = ({
+  isLoading,
   abi,
   contractSource,
   address,
@@ -35,87 +79,105 @@ export const Abi: FC<{
   onDrawerOpen,
   packageUrl,
 }) => {
-  const params = useRouter().query;
+  const router = useRouter();
+  const isSmall = useBreakpointValue([true, true, false]);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const hasSubnav = useContext(SubnavContext);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [selectedSelector, setSelectedSelector] = useState<string | null>(null);
+  const [scrollInitialized, setScrollInitialized] = useState(false);
 
-  const functions = useMemo<AbiFunction[]>(
+  const allContractMethods = useMemo<AbiFunction[]>(
     () =>
-      _.sortBy(abi?.filter((a) => a.type === 'function') as AbiFunction[], [
+      sortBy(abi?.filter((a) => a.type === 'function') as AbiFunction[], [
         'name',
       ]),
     [abi]
   );
 
-  const readFunctions = useMemo<AbiFunction[]>(
+  const readContractMethods = useMemo(
     () =>
-      _.sortBy(
-        functions?.filter((func) =>
+      sortBy(
+        allContractMethods?.filter((func) =>
           ['view', 'pure'].includes(func.stateMutability)
         ),
         ['name']
       ),
-    [functions]
+    [allContractMethods]
   );
 
-  const writeFunctions = useMemo<AbiFunction[]>(
+  const writeContractMethods = useMemo(
     () =>
-      _.sortBy(
-        functions?.filter(
+      sortBy(
+        allContractMethods?.filter(
           (func) => !['view', 'pure'].includes(func.stateMutability)
         ),
         ['name']
       ),
-    [functions]
+    [allContractMethods]
   );
 
-  const isSmall = useBreakpointValue([true, true, false]);
+  const scrollOptions = useMemo(
+    () => ({
+      duration: 1200,
+      smooth: true,
+      offset: (102 + (hasSubnav ? 65 : 0)) * -1,
+    }),
+    [hasSubnav]
+  );
 
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const onSelectedSelector = async (newSelector: string) => {
+    // set the selector
+    setSelectedSelector(newSelector);
 
-  const hasSubnav = useContext(HasSubnavContext);
+    // scroll to the element
+    scroller.scrollTo(newSelector, scrollOptions);
 
-  const handleHashChange = (firstRender: boolean) => {
-    const hash = window.location.hash;
-
-    if (hash) {
-      const section = document.getElementById(`${hash}`);
-
-      if (section) {
-        const adjust = firstRender ? 162 : 102;
-
-        const topOffset =
-          section.getBoundingClientRect().top + window.scrollY - adjust;
-
-        const button = section.querySelector('h2');
-
-        if (button) {
-          // open the collapsible
-          button.click();
-        }
-
-        window.scrollTo(0, topOffset - (hasSubnav ? 65 : 0));
-      }
-    }
+    await router.push(`${router.asPath.split('#')[0]}#${newSelector}`);
   };
 
-  // hash changed
-  useEffect(() => {
-    handleHashChange(false);
-  }, [params]);
+  const handleMethodClick = async (functionSelector: AbiFunction) => {
+    const newSelector = getSelectorSlug(functionSelector);
+    if (newSelector === selectedSelector) {
+      return;
+    }
 
-  // first render
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      handleHashChange(true);
-    }, 1000);
+    await onSelectedSelector(newSelector);
+  };
 
-    return () => {
-      clearTimeout(timeoutId);
-    };
+  // Updating scrollSpy when the component mounts.
+  useEffect(() => {
+    scrollSpy.update();
   }, []);
+
+  // Make the auto scroll after the page loads if the url has a selector
+  useEffect(() => {
+    if (scrollInitialized) return;
+
+    const urlSelectorFromPath = router.asPath.split('#')[1];
+    if (urlSelectorFromPath || !selectedSelector) {
+      setSelectedSelector(urlSelectorFromPath);
+
+      // Add a timeout to delay the scroll
+      const timeoutId = setTimeout(() => {
+        scroller.scrollTo(urlSelectorFromPath, scrollOptions);
+        setScrollInitialized(true);
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [
+    hasSubnav,
+    router.asPath,
+    scrollOptions,
+    selectedSelector,
+    scrollInitialized,
+  ]);
 
   return (
     <Flex flex="1" direction="column" maxWidth="100%">
       <Flex flex="1" direction={['column', 'column', 'row']}>
+        {/* Methods Sidebar */}
         <Flex
           flexDirection="column"
           maxWidth={['100%', '100%', '320px']}
@@ -135,6 +197,10 @@ export const Abi: FC<{
             overflowY="auto"
           >
             <Box mt={4}>
+              <SearchInput onSearchChange={setSearchTerm} />
+            </Box>
+
+            <Box mt={4}>
               <Flex flexDirection="row" px="2" alignItems="center" mb="1.5">
                 <Heading
                   fontWeight="500"
@@ -146,32 +212,27 @@ export const Abi: FC<{
                 </Heading>
               </Flex>
 
-              {readFunctions?.map((f, index) => (
-                <Link
-                  as={NextLink}
-                  display="block"
-                  borderRadius="md"
-                  mb={0.5}
-                  py={0.5}
-                  px="2"
-                  cursor="pointer"
-                  fontSize="sm"
-                  _hover={{ background: 'gray.800' }}
-                  whiteSpace="nowrap"
-                  overflow="hidden"
-                  textOverflow="ellipsis"
-                  key={index}
-                  href={`#selector-${viem.toFunctionSelector(f)}`}
-                  scroll={false}
-                  textDecoration="none"
-                >
-                  {f.name}(
-                  {f.inputs
-                    .map((i) => i.type + (i.name ? ' ' + i.name : ''))
-                    .join(',')}
+              {isLoading ? (
+                <FunctionRowsSkeleton />
+              ) : (
+                readContractMethods
+                  ?.filter((f) =>
+                    f.name.toLowerCase().includes(searchTerm.toLowerCase())
                   )
-                </Link>
-              ))}
+                  .map((f, index) => (
+                    <ButtonLink
+                      key={index}
+                      selected={selectedSelector == getSelectorSlug(f)}
+                      onClick={() => handleMethodClick(f)}
+                    >
+                      {f.name}(
+                      {f.inputs
+                        .map((i) => i.type + (i.name ? ' ' + i.name : ''))
+                        .join(',')}
+                      )
+                    </ButtonLink>
+                  ))
+              )}
             </Box>
             <Box mt={4}>
               <Flex flexDirection="row" px="2" alignItems="center" mb="1.5">
@@ -184,37 +245,33 @@ export const Abi: FC<{
                   Write Functions
                 </Heading>
               </Flex>
-              {writeFunctions?.map((f, index) => (
-                <Link
-                  as={NextLink}
-                  display="block"
-                  borderRadius="md"
-                  mb={0.5}
-                  py={0.5}
-                  px="2"
-                  cursor="pointer"
-                  fontSize="sm"
-                  _hover={{ background: 'gray.800' }}
-                  whiteSpace="nowrap"
-                  overflow="hidden"
-                  textOverflow="ellipsis"
-                  key={index}
-                  href={`#selector-${viem.toFunctionSelector(f)}`}
-                  scroll={false}
-                  textDecoration="none"
-                >
-                  {f.name}(
-                  {f.inputs
-                    .map((i) => i.type + (i.name ? ' ' + i.name : ''))
-                    .join(',')}
+              {isLoading ? (
+                <FunctionRowsSkeleton />
+              ) : (
+                writeContractMethods
+                  ?.filter((f) =>
+                    f.name.toLowerCase().includes(searchTerm.toLowerCase())
                   )
-                </Link>
-              ))}
+                  .map((f, index) => (
+                    <ButtonLink
+                      key={index}
+                      selected={selectedSelector == getSelectorSlug(f)}
+                      onClick={() => handleMethodClick(f)}
+                    >
+                      {f.name}(
+                      {f.inputs
+                        .map((i) => i.type + (i.name ? ' ' + i.name : ''))
+                        .join(',')}
+                      )
+                    </ButtonLink>
+                  ))
+              )}
             </Box>
           </Box>
         </Flex>
 
-        <Box background="black" ref={containerRef} w="100%">
+        {/* Methods Interactions */}
+        <Flex background="black" ref={containerRef} w="100%" direction="column">
           <Alert
             status="warning"
             bg="gray.900"
@@ -235,24 +292,37 @@ export const Abi: FC<{
             borderBottom="1px solid"
             borderColor="gray.700"
             gap={4}
+            flex={1}
+            overflowX="auto"
           >
-            {functions?.map((f, index) => (
-              <Function
-                key={index}
-                f={f}
-                abi={abi as AbiType}
-                address={address}
-                cannonOutputs={cannonOutputs}
-                chainId={chainId}
-                contractSource={contractSource}
-                onDrawerOpen={onDrawerOpen}
-                collapsible
-                showFunctionSelector={false}
-                packageUrl={packageUrl}
-              />
-            ))}
+            {isLoading ? (
+              <Flex align="center" justify="center" flex={1}>
+                <CustomSpinner />
+              </Flex>
+            ) : (
+              allContractMethods?.map((f) => (
+                <Element
+                  name={getSelectorSlug(f)}
+                  key={`${address}-${getSelectorSlug(f)}`}
+                >
+                  <Function
+                    selected={selectedSelector == getSelectorSlug(f)}
+                    f={f}
+                    abi={abi as AbiType}
+                    address={address}
+                    cannonOutputs={cannonOutputs}
+                    chainId={chainId}
+                    contractSource={contractSource}
+                    onDrawerOpen={onDrawerOpen}
+                    collapsible
+                    showFunctionSelector={false}
+                    packageUrl={packageUrl}
+                  />
+                </Element>
+              ))
+            )}
           </Flex>
-        </Box>
+        </Flex>
       </Flex>
     </Flex>
   );

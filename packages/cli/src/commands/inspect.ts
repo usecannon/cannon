@@ -1,14 +1,23 @@
-import _ from 'lodash';
-import { ContractData, ChainArtifacts, ChainDefinition, DeploymentState } from '@usecannon/builder';
+import {
+  ChainArtifacts,
+  ChainDefinition,
+  ContractData,
+  DeploymentState,
+  fetchIPFSAvailability,
+  PackageReference,
+} from '@usecannon/builder';
 import { bold, cyan, green, yellow } from 'chalk';
-import { PackageReference } from '@usecannon/builder/dist/src/package';
-import { fetchIPFSAvailability } from '@usecannon/builder/dist/src/ipfs';
+import Debug from 'debug';
+import fs from 'fs-extra';
+import _ from 'lodash';
+import path from 'path';
+import { getContractsAndDetails, getSourceFromRegistry } from '../helpers';
+import { getMainLoader } from '../loader';
 import { createDefaultReadRegistry } from '../registry';
 import { CliSettings } from '../settings';
-import fs from 'fs-extra';
-import path from 'path';
-import { getMainLoader } from '../loader';
-import { getContractsAndDetails, getSourceFromRegistry } from '../helpers';
+import { log, warn } from '../util/console';
+
+const debug = Debug('cannon:cli:inspect');
 
 export async function inspect(
   packageRef: string,
@@ -21,7 +30,7 @@ export async function inspect(
 ) {
   // Handle deprecated preset specification
   if (presetArg) {
-    console.warn(
+    warn(
       yellow(
         bold(
           'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
@@ -44,12 +53,21 @@ export async function inspect(
   }
 
   if (!chainId) {
-    console.warn(
+    warn(
       yellow(
         "The deployment data for the latest local version of this package (which runs with 'cannon PACKAGE_NAME') was exported. \
       Specify the --chain-id parameter to retrieve the addresses/ABIs for other deployments."
       )
     );
+  }
+
+  // Mute all build outputs when printing the result to json, this is so it
+  // doesn't break the result.
+  if (json) {
+    // eslint-disable-next-line no-console
+    console.log = debug;
+    // eslint-disable-next-line no-console
+    console.debug = debug;
   }
 
   const deployData = await loader[deployUrl.split(':')[0] as 'ipfs'].read(deployUrl);
@@ -90,59 +108,54 @@ export async function inspect(
     const miscData = await loader.ipfs.read(deployData.miscUrl);
     const contractSources = _listSourceCodeContracts(miscData);
 
-    console.log(green(bold(`\n=============== ${fullPackageRef} ===============`)));
-    console.log();
-    console.log(
+    log(green(bold(`\n=============== ${fullPackageRef} ===============`)));
+    log();
+    log(
       '   Deploy Status:',
       deployData.status === 'partial' ? yellow(bold(deployData.status)) : green(deployData.status || 'complete')
     );
-    console.log(
+    log(
       '         Options:',
       Object.entries(deployData.options)
         .map((o) => `${o[0]}=${o[1]}`)
         .join(' ') || '(none)'
     );
-    packageOwner
-      ? console.log('           Owner:', packageOwner)
-      : console.log('          Source:', localSource || '(none)');
-    console.log('     Package URL:', deployUrl);
-    console.log('        Misc URL:', deployData.miscUrl);
-    console.log('Package Info URL:', metaUrl || '(none)');
-    console.log('Cannon Generator:', deployData.generator);
-    console.log('       Timestamp:', new Date(deployData.timestamp * 1000).toLocaleString());
-    console.log(
-      'Contract Sources:',
-      bold((contractSources.length ? yellow : green)(contractSources.length + ' sources included'))
-    );
-    console.log();
-    console.log('IPFS Availability Score(# of nodes): ', ipfsAvailabilityScore || 'Run IPFS Locally to get this score');
-    console.log();
-    console.log(yellow(bold('Smart Contracts')));
-    console.log(`Note: Any ${bold('contract name')} that is bolded is highlighted and marked as important.`);
-    console.log('Contract Addresses:');
-    console.log('-------------------');
+    packageOwner ? log('           Owner:', packageOwner) : log('          Source:', localSource || '(none)');
+    log('     Package URL:', deployUrl);
+    log('        Misc URL:', deployData.miscUrl);
+    log('Package Info URL:', metaUrl || '(none)');
+    log('Cannon Generator:', deployData.generator);
+    log('       Timestamp:', new Date(deployData.timestamp * 1000).toLocaleString());
+    log('Contract Sources:', bold((contractSources.length ? yellow : green)(contractSources.length + ' sources included')));
+    log();
+    log('IPFS Availability Score(# of nodes): ', ipfsAvailabilityScore || 'Run IPFS Locally to get this score');
+    log();
+    log(yellow(bold('Smart Contracts')));
+    log(`Note: Any ${bold('contract name')} that is bolded is highlighted and marked as important.`);
+    log('Contract Addresses:');
+    log('-------------------');
     for (const contractName in contractsAndDetails) {
       const { address, highlight } = contractsAndDetails[contractName];
       const displayName = highlight ? bold(contractName) : contractName;
-      console.log(`${displayName}: ${address}`);
+      log(`${displayName}: ${address}`);
     }
-    console.log('-------------------');
-    console.log();
+    log('-------------------');
+    log();
     if (sources) {
-      console.log('Contract Info:');
-      console.log('-------------------');
+      log('Contract Info:');
+      log('-------------------');
       for (const contractName in contractsAndDetails) {
         const { sourceName, highlight } = contractsAndDetails[contractName];
         if (sourceName) {
           const displayName = highlight ? bold(contractName) : contractName;
-          console.log(`${displayName}: ${sourceName}`);
+          log(`${displayName}: ${sourceName}`);
         }
       }
-      console.log('-------------------');
+      log('-------------------');
     }
-    console.log();
-    console.log(cyan(bold('Cannonfile Topology')));
-    console.log(cyan(chainDefinition.printTopology().join('\n')));
+    log();
+    log(cyan(bold('Cannonfile Topology')));
+    log(cyan(chainDefinition.printTopology().join('\n')));
   }
 
   return deployData;

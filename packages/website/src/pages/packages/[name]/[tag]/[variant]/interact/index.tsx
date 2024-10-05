@@ -1,33 +1,33 @@
 import { ReactElement } from 'react';
-import Layout from '../_layout';
-import NestedLayout from './_layout';
+import TagVariantLayout from '../_layout';
+import InteractLayout from './_layout';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
-import { useRouter } from 'next/router';
-import { PackageReference } from '@usecannon/builder';
-import { ChainData } from '@/features/Search/PackageCard/Chain';
-import chains from '@/helpers/chains';
-import { find } from 'lodash';
+import { usePackageNameTagVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 function generateMetadata({
-  params,
+  name,
+  tag,
+  chainId,
+  preset,
+  getChainById,
 }: {
-  params: { name: string; tag: string; variant: string };
+  name: string;
+  tag: string;
+  chainId: number;
+  preset: string;
+  getChainById: ReturnType<typeof useCannonChains>['getChainById'];
 }) {
-  const [chainId, preset] = PackageReference.parseVariant(params.variant);
-  const chain: { name: string; id: number } =
-    Number(chainId) == 13370
-      ? { id: 13370, name: 'Cannon' }
-      : (find(chains, (chain: ChainData) => chain.id === Number(chainId)) as {
-          name: string;
-          id: number;
-        });
+  const chain = getChainById(chainId);
 
-  const title = `${params.name} on ${chain.name} | Cannon`;
+  const title = `${name} on ${chain?.name}`;
 
-  const description = `Explore the Cannon package for ${params.name}${
-    params.tag !== 'latest' ? `:${params.tag}` : ''
-  }${preset !== 'main' ? `@${preset}` : ''} on ${chain.name} (ID: ${chain.id})`;
+  const description = `Explore the Cannon package for ${name}${
+    tag !== 'latest' ? `:${tag}` : ''
+  }${preset !== 'main' ? `@${preset}` : ''} on ${chain?.name} (ID: ${
+    chain?.id
+  })`;
 
   const metadata = {
     title,
@@ -41,29 +41,34 @@ function generateMetadata({
 }
 
 export default function Interact() {
-  const params = useRouter().query;
-  const metadata = generateMetadata({ params: params as any });
+  const { name, tag, chainId, preset } = usePackageNameTagVersionUrlParams();
+  const { getChainById } = useCannonChains();
+  const metadata = generateMetadata({
+    name,
+    tag,
+    chainId,
+    preset,
+    getChainById,
+  });
 
   return (
-    <>
-      <NextSeo
-        {...defaultSEO}
-        title={metadata.title}
-        description={metadata.description}
-        openGraph={{
-          ...defaultSEO.openGraph,
-          title: metadata.title,
-          description: metadata.description,
-        }}
-      />
-    </>
+    <NextSeo
+      {...defaultSEO}
+      title={metadata.title}
+      description={metadata.description}
+      openGraph={{
+        ...defaultSEO.openGraph,
+        title: metadata.title,
+        description: metadata.description,
+      }}
+    />
   );
 }
 
 Interact.getLayout = function getLayout(page: ReactElement) {
   return (
-    <Layout>
-      <NestedLayout>{page}</NestedLayout>
-    </Layout>
+    <TagVariantLayout>
+      <InteractLayout>{page}</InteractLayout>
+    </TagVariantLayout>
   );
 };

@@ -22,10 +22,12 @@ contracts = [
   "Greeter",
 ]
 includeReceive = false
+highlight = true
 
 # Deploy a new Proxy using as implementation our just craeted Router
 [provision.proxy]
 source = "transparent-upgradable-proxy:4.9.3"
+target = 'transparent-upgradable-proxy:4.9.3@with-router'
 options.admin = "<%= settings.admin %>"
 options.implementation = "<%= contracts.Router.address %>"
 options.abi = "<%= JSON.stringify(contracts.Router.abi) %>"

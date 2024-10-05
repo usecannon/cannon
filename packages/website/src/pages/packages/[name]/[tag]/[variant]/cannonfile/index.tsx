@@ -5,29 +5,25 @@ import { ReactElement } from 'react';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
 import { PackageReference } from '@usecannon/builder';
-import { ChainData } from '@/features/Search/PackageCard/Chain';
-import chains from '@/helpers/chains';
-import { find } from 'lodash';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 function generateMetadata({
   params,
+  getChainById,
 }: {
   params: { name: string; tag: string; variant: string };
+  getChainById: ReturnType<typeof useCannonChains>['getChainById'];
 }) {
   const [chainId, preset] = PackageReference.parseVariant(params.variant);
-  const chain: { name: string; id: number } =
-    Number(chainId) == 13370
-      ? { id: 13370, name: 'Cannon' }
-      : (find(chains, (chain: ChainData) => chain.id === Number(chainId)) as {
-          name: string;
-          id: number;
-        });
+  const chain = getChainById(chainId);
 
-  const title = `${params.name} on ${chain.name} | Cannon`;
+  const title = `${params.name} on ${chain?.name} | Cannon`;
 
   const description = `Cannon file for package ${params.name}${
     params.tag !== 'latest' ? `:${params.tag}` : ''
-  }${preset !== 'main' ? `@${preset}` : ''} on ${chain.name} (ID: ${chain.id})`;
+  }${preset !== 'main' ? `@${preset}` : ''} on ${chain?.name} (ID: ${
+    chain?.id
+  })`;
 
   const metadata = {
     title,
@@ -51,7 +47,8 @@ const NoSSR = dynamic(
 
 export default function Cannonfile() {
   const params = useRouter().query;
-  const metadata = generateMetadata({ params: params as any });
+  const { getChainById } = useCannonChains();
+  const metadata = generateMetadata({ params: params as any, getChainById });
 
   return (
     <>

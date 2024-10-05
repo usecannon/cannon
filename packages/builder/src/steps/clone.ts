@@ -7,7 +7,7 @@ import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-record
 import { build, createInitialContext, getOutputs } from '../builder';
 import { CANNON_CHAIN_ID } from '../constants';
 import { ChainDefinition } from '../definition';
-import { PackageReference } from '../package';
+import { PackageReference } from '../package-reference';
 import { ChainBuilderRuntime, Events } from '../runtime';
 import { cloneSchema } from '../schemas';
 import {
@@ -17,6 +17,8 @@ import {
   DeploymentState,
   PackageState,
 } from '../types';
+import { template } from '../utils/template';
+import { getContentUrl } from '../ipfs';
 
 const debug = Debug('cannon:builder:clone');
 
@@ -48,10 +50,10 @@ const cloneSpec = {
     config = _.cloneDeep(config);
 
     if (config.target && config.targetPreset) {
-      throw new Error(`only one of \`target\` and \`targetPreset\` can specified for ${packageState.name}`);
+      throw new Error(`only one of \`target\` and \`targetPreset\` can specified for ${packageState.currentLabel}`);
     }
 
-    const ref = new PackageReference(_.template(config.source)(ctx));
+    const ref = new PackageReference(template(config.source)(ctx));
 
     config.source = ref.fullPackageRef;
 
@@ -59,22 +61,22 @@ const cloneSpec = {
       config.source = PackageReference.from(ref.name, ref.version, config.sourcePreset).fullPackageRef;
     }
 
-    config.sourcePreset = _.template(config.sourcePreset)(ctx);
-    config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
-    config.target = _.template(config.target)(ctx);
+    config.sourcePreset = template(config.sourcePreset)(ctx);
+    config.targetPreset = template(config.targetPreset)(ctx);
+    config.target = template(config.target)(ctx);
 
     if (config.var) {
       config.var = _.mapValues(config.var, (v) => {
-        return _.template(v)(ctx);
+        return template(v)(ctx);
       });
     } else if (config.options) {
       config.options = _.mapValues(config.options, (v) => {
-        return _.template(v)(ctx);
+        return template(v)(ctx);
       });
     }
 
     if (config.tags) {
-      config.tags = config.tags.map((t: string) => _.template(t)(ctx));
+      config.tags = config.tags.map((t: string) => template(t)(ctx));
     }
 
     return config;
@@ -85,6 +87,10 @@ const cloneSpec = {
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.target, possibleFields));
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.sourcePreset, possibleFields));
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.targetPreset, possibleFields));
+
+    if (config.var) {
+      _.forEach(config.var, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))));
+    }
 
     if (config.options) {
       _.forEach(
@@ -116,13 +122,29 @@ const cloneSpec = {
     const importLabel = packageState.currentLabel.split('.')[1] || '';
     debug(`[clone.${importLabel}]`, 'exec', config);
 
-    const targetPreset = config.targetPreset ?? 'main';
+    const targetPreset = config.targetPreset || `with-${packageState.ref?.name || 'unknown'}`;
     const sourcePreset = config.sourcePreset;
     const sourceRef = new PackageReference(config.source);
     const source = sourceRef.fullPackageRef;
     const target = config.target || `${sourceRef.name}:${sourceRef.version}@${targetPreset}`;
     const targetRef = new PackageReference(target);
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
+
+    if (sourceRef.version === 'latest') {
+      runtime.emit(
+        Events.Notice,
+        packageState.currentLabel,
+        'To prevent unexpected upgrades, it is strongly recommended to lock the version of the source package by specifying a version in the `source` field.'
+      );
+    }
+
+    if (!config.target && !config.targetPreset) {
+      runtime.emit(
+        Events.Notice,
+        packageState.currentLabel,
+        `Deploying cloned package to default preset ${targetRef.preset}`
+      );
+    }
 
     // try to read the chain definition we are going to use
     const deployInfo = await runtime.readDeploy(source, chainId);
@@ -217,7 +239,7 @@ const cloneSpec = {
       };
     }
 
-    const newMiscUrl = await importRuntime.recordMisc();
+    const newMiscUrl = await getContentUrl(importRuntime.misc);
 
     debug(`[clone.${importLabel}]`, 'new misc:', newMiscUrl);
 
@@ -232,8 +254,14 @@ const cloneSpec = {
       state: builtState,
       meta: deployInfo.meta,
       status: partialDeploy ? 'partial' : 'complete',
-      chainId,
+      chainId: runtime.chainId,
     });
+
+    const uploadedMiscUrl = await importRuntime.recordMisc();
+
+    if (newMiscUrl && newMiscUrl !== uploadedMiscUrl) {
+      throw new Error(`Misc url mismatch: ${newMiscUrl} | ${uploadedMiscUrl}`);
+    }
 
     if (!newSubDeployUrl) {
       debug(`[clone.${importLabel}]`, 'warn: cannot record built state for import nested state');

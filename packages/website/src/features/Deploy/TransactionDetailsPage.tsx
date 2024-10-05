@@ -1,21 +1,23 @@
 'use client';
 
+import { Alert } from '@/components/Alert';
+import Card from '@/components/Card';
 import { parseHintedMulticall } from '@/helpers/cannon';
 import { truncateAddress } from '@/helpers/ethereum';
 import { getSafeTransactionHash } from '@/helpers/safe';
-import { sleep } from '@/helpers/misc';
-import { SafeDefinition } from '@/helpers/store';
+import { SafeDefinition, useStore } from '@/helpers/store';
 import { useSafeTransactions, useTxnStager } from '@/hooks/backend';
-import { useStore } from '@/helpers/store';
 import {
   useCannonBuild,
   useCannonPackage,
   useLoadCannonDefinition,
 } from '@/hooks/cannon';
+import { useTransactionDetailsParams } from '@/hooks/routing/useTransactionDetailsParams';
 import {
   useExecutedTransactions,
   useGetPreviousGitInfoQuery,
 } from '@/hooks/safe';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import {
   CheckIcon,
@@ -26,6 +28,7 @@ import {
 import {
   Box,
   Button,
+  ButtonProps,
   Container,
   Flex,
   Grid,
@@ -36,73 +39,74 @@ import {
   Tooltip,
   useToast,
 } from '@chakra-ui/react';
-import * as chains from '@wagmi/core/chains';
-import _, { find } from 'lodash';
-import { useEffect, useMemo, useState, useRef } from 'react';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+import _ from 'lodash';
 import {
-  Address,
-  hexToString,
-  isAddress,
-  TransactionRequestBase,
-  zeroAddress,
-} from 'viem';
+  FC,
+  PropsWithChildren,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { IoIosContract, IoIosExpand } from 'react-icons/io';
+import { Hash, Hex, hexToString, TransactionRequestBase } from 'viem';
 import {
   useAccount,
   useChainId,
   usePublicClient,
-  useWriteContract,
   useSwitchChain,
+  useWriteContract,
 } from 'wagmi';
 import PublishUtility from './PublishUtility';
 import { SimulateTransactionButton } from './SimulateTransactionButton';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
 import 'react-diff-view/style/index.css';
-import { IoIosContract, IoIosExpand } from 'react-icons/io';
 
-interface Props {
-  safeAddress: string;
-  chainId: string;
-  nonce: string;
-  sigHash: string;
-}
+const AdditionalSignaturesText = ({ amount }: { amount: number }) => (
+  <Text fontWeight="bold" mt="3">
+    {amount} additional {amount === 1 ? 'signature' : 'signatures'} required
+  </Text>
+);
 
-function TransactionDetailsPage({
-  safeAddress,
-  chainId,
-  nonce,
-  sigHash,
-}: Props) {
+const UnorderedNonceWarning = ({ nextNonce }: { nextNonce: number }) => (
+  <Alert status="warning" mt={3}>
+    <Text fontSize="sm">You must execute transaction #{nextNonce} first.</Text>
+  </Alert>
+);
+
+const CustomButton: FC<ButtonProps & PropsWithChildren> = (props) => (
+  <Button colorScheme="teal" w="100%" {...props}></Button>
+);
+
+function TransactionDetailsPage() {
+  const { safeAddress, chainId, nonce, sigHash } =
+    useTransactionDetailsParams();
   const { openConnectModal } = useConnectModal();
-  const currentSafe = useStore((s) => s.currentSafe);
   const { switchChainAsync } = useSwitchChain();
-  const [executionTxnHash, setExecutionTxnHash] = useState<string | null>(null);
+  const { getChainById, getExplorerUrl } = useCannonChains();
   const publicClient = usePublicClient();
   const walletChainId = useChainId();
   const account = useAccount();
-  const parsedChainId = parseInt(chainId ?? '0') || 0;
-  const parsedNonce = parseInt(nonce ?? '0') || 0;
-  const accountAlreadyConnected = useRef(account.isConnected);
+
+  const currentSafe = useStore((s) => s.currentSafe);
   const [expandDiff, setExpandDiff] = useState<boolean>(false);
+  const [executionTxnHash, setExecutionTxnHash] = useState<Hash | null>(null);
+  const accountAlreadyConnected = useRef(account.isConnected);
 
-  if (!isAddress(safeAddress ?? '')) {
-    safeAddress = zeroAddress;
-  }
-
-  const safe = useMemo(
-    () =>
-      ({
-        chainId: parsedChainId,
-        address: safeAddress as Address,
-      } as SafeDefinition),
-    [parsedChainId, safeAddress]
+  const safe: SafeDefinition = useMemo(
+    () => ({
+      chainId,
+      address: safeAddress,
+    }),
+    [chainId, safeAddress]
   );
 
-  const safeChain = useMemo(() => {
-    if (!safe) return;
-    return find(chains, (chain: any) => chain.id === safe.chainId);
-  }, [safe]);
+  const safeChain = useMemo(() => getChainById(safe.chainId), [safe]);
+  if (!safeChain) {
+    throw new Error('Safe Chain not supported');
+  }
 
   const {
     nonce: safeNonce,
@@ -111,7 +115,7 @@ function TransactionDetailsPage({
     nonceQuery,
   } = useSafeTransactions(safe);
 
-  const isTransactionExecuted = parsedNonce < safeNonce;
+  const isTransactionExecuted = nonce < safeNonce;
 
   const { data: history, refetch: refetchHistory } =
     useExecutedTransactions(safe);
@@ -119,26 +123,29 @@ function TransactionDetailsPage({
   // get the txn we want, we can just pluck it out of staged transactions if its there
   let safeTxn: SafeTransaction | null = null;
 
-  if (parsedNonce < safeNonce) {
+  if (safeNonce && nonce < safeNonce) {
     // TODO: the gnosis safe transaction history is quite long, but if its not on the first page, we have to call "next" to get more txns until
     // we find the nonce we want. no way to just get the txn we want unfortunately
     // also todo: code dup
     safeTxn =
       history.results.find(
         (txn: any) =>
-          txn._nonce.toString() === nonce &&
-          (!sigHash || sigHash === getSafeTransactionHash(safe, txn))
+          txn._nonce.toString() === nonce.toString() &&
+          (!sigHash ||
+            sigHash === txn.safeTxHash ||
+            sigHash === getSafeTransactionHash(safe, txn))
       ) || null;
   } else if (Array.isArray(staged) && staged.length) {
     safeTxn =
       staged.find(
         (s) =>
-          s.txn._nonce.toString() === nonce &&
+          s.txn._nonce.toString() === nonce.toString() &&
           (!sigHash || sigHash === getSafeTransactionHash(safe, s.txn))
       )?.txn || null;
   }
 
-  const hintData = parseHintedMulticall(safeTxn?.data as any);
+  const unorderedNonce = safeTxn && safeTxn._nonce > staged[0]?.txn._nonce;
+  const hintData = safeTxn ? parseHintedMulticall(safeTxn.data as Hex) : null;
 
   const queuedWithGitOps = hintData?.type == 'deploy';
 
@@ -165,16 +172,12 @@ function TransactionDetailsPage({
     void switchChain();
   }, [account.isConnected, currentSafe?.chainId]);
 
-  const cannonPackage = useCannonPackage(
-    hintData?.cannonPackage
-      ? `@ipfs:${_.last(hintData?.cannonPackage.split('/'))}`
-      : ''
-  );
+  const cannonPackage = useCannonPackage(hintData?.cannonPackage);
 
   // then reverse check the package referenced by the
   const { pkgUrl: existingRegistryUrl } = useCannonPackage(
-    `${cannonPackage.resolvedName}:${cannonPackage.resolvedVersion}@${cannonPackage.resolvedPreset}`,
-    parsedChainId
+    cannonPackage.fullPackageRef!,
+    chainId
   );
 
   const stager = useTxnStager(safeTxn || {}, { safe: safe });
@@ -210,7 +213,7 @@ function TransactionDetailsPage({
 
   const prevCannonDeployInfo = useCannonPackage(
     (hintData?.cannonUpgradeFromPackage || prevDeployPackageUrl
-      ? `@ipfs:${_.last(
+      ? `ipfs://${_.last(
           (hintData?.cannonUpgradeFromPackage || prevDeployPackageUrl).split(
             '/'
           )
@@ -239,7 +242,7 @@ function TransactionDetailsPage({
   ]);
 
   // compare proposed build info with expected transaction batch
-  const expectedTxns = buildInfo.buildResult?.steps?.map(
+  const expectedTxns = buildInfo.buildResult?.safeSteps?.map(
     (s) => s.tx as unknown as Partial<TransactionRequestBase>
   );
 
@@ -254,10 +257,7 @@ function TransactionDetailsPage({
         );
       }));
 
-  const etherscanUrl =
-    safeChain?.blockExplorers?.default.url || 'https://etherscan.io';
-
-  const signers: Array<string> = stager.existingSigners.length
+  const signers: Array<Hash> = stager.existingSigners.length
     ? stager.existingSigners
     : safeTxn?.confirmedSigners || [];
 
@@ -287,10 +287,6 @@ function TransactionDetailsPage({
     if (account.chainId !== currentSafe?.chainId.toString()) {
       try {
         await switchChainAsync({ chainId: currentSafe?.chainId || 1 });
-
-        await sleep(100);
-
-        await stager.sign();
       } catch (e) {
         toast({
           title:
@@ -304,422 +300,347 @@ function TransactionDetailsPage({
     }
   };
 
+  const handleExecuteTx = () => {
+    if (!stager.executeTxnConfig) {
+      throw new Error('Missing execution tx configuration');
+    }
+
+    execTxn.writeContract(stager.executeTxnConfig, {
+      onSuccess: async (hash) => {
+        setExecutionTxnHash(hash);
+        toast({
+          title: 'Transaction sent to network',
+          status: 'info',
+          duration: 5000,
+          isClosable: true,
+        });
+
+        // wait for the transaction to be mined
+        await publicClient!.waitForTransactionReceipt({ hash });
+
+        await stagedQuery.refetch();
+        await nonceQuery.refetch();
+        await refetchHistory();
+
+        toast({
+          title: 'You successfully executed the transaction.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+
+        setExecutionTxnHash(null);
+      },
+    });
+  };
+
+  if (!hintData) {
+    return (
+      <Container p={24} textAlign="center">
+        <Spinner />
+      </Container>
+    );
+  }
+
+  if (!safeTxn && stagedQuery.isFetched) {
+    return (
+      <Container>
+        <Text>
+          Transaction not found! Current safe nonce:{' '}
+          {safeNonce ? safeNonce.toString() : 'none'}, Highest Staged Nonce:{' '}
+          {(_.last(staged)?.txn._nonce || safeNonce).toString()}
+        </Text>
+      </Container>
+    );
+  }
+
   return (
-    <>
-      {!hintData && (
-        <Container p={24} textAlign="center">
-          <Spinner />
-        </Container>
-      )}
-      {hintData && !safeTxn && stagedQuery.isFetched && (
-        <Container>
-          <Text>
-            Transaction not found! Current safe nonce:{' '}
-            {safeNonce ? safeNonce.toString() : 'none'}, Highest Staged Nonce:{' '}
-            {(_.last(staged)?.txn._nonce || safeNonce).toString()}
-          </Text>
-        </Container>
-      )}
-      {hintData && (safeTxn || !stagedQuery.isFetched) && (
-        <Box maxWidth="100%" mb="6">
-          <Box
-            bg="black"
-            py={[6, 6, 12]}
-            borderBottom="1px solid"
-            borderColor="gray.700"
-          >
-            <Container maxW="container.lg">
-              <Heading size="lg">Transaction #{nonce}</Heading>
-              {(hintData.type == 'deploy' || hintData.type == 'invoke') && (
-                <Box mt={4}>
-                  <TransactionStepper
-                    chainId={parsedChainId}
-                    cannonPackage={cannonPackage}
-                    safeTxn={safeTxn}
-                    published={existingRegistryUrl == hintData?.cannonPackage}
-                    publishable={queuedWithGitOps}
-                    signers={signers}
-                    threshold={threshold}
-                  />
-                </Box>
-              )}
-            </Container>
-          </Box>
-
-          <Container maxW="container.lg" mt={[6, 6, 12]}>
-            {queuedWithGitOps && (
-              <Box
-                position={expandDiff ? 'fixed' : 'static'}
-                top={0}
-                left={0}
-                right={0}
-                bottom={0}
-                zIndex={99}
-                background="gray.800"
-                p={4}
-                borderWidth="1px"
-                borderColor="gray.700"
-                mb={expandDiff ? 0 : 6}
-              >
-                <Flex mb={3} alignItems="center">
-                  <Heading
-                    size="sm"
-                    fontWeight="medium"
-                    textTransform="uppercase"
-                    letterSpacing="1.5px"
-                    fontFamily="var(--font-miriam)"
-                    textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                  >
-                    Cannonfile Diff
-                  </Heading>
-                  <Link
-                    ml="auto"
-                    onClick={() => {
-                      setExpandDiff(!expandDiff);
-                    }}
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'none' }}
-                    display="flex"
-                    alignItems="center"
-                  >
-                    {expandDiff ? <IoIosContract /> : <IoIosExpand />}
-                    <Text
-                      fontSize="xs"
-                      display="inline"
-                      borderBottom="1px solid"
-                      borderBottomColor="gray.500"
-                      ml="1.5"
-                    >
-                      {expandDiff ? 'Collapse' : 'Expand'}
-                    </Text>
-                  </Link>
-                </Flex>
-
-                <Box
-                  h="100%"
-                  overflowY="auto"
-                  maxH={expandDiff ? 'none' : '345px'}
-                >
-                  <Box ref={gitDiffContainerRef} />
-                </Box>
-              </Box>
-            )}
-            <Grid
-              templateColumns={{ base: 'repeat(1, 1fr)', lg: '2fr 1fr' }}
-              gap={6}
-            >
-              <TransactionDisplay
-                safe={safe}
-                safeTxn={safeTxn as any}
-                queuedWithGitOps={queuedWithGitOps}
-                showQueueSource={true}
-                isTransactionExecuted={isTransactionExecuted}
-                containerRef={gitDiffContainerRef}
+    <Box maxWidth="100%" mb="6">
+      <Box
+        bg="black"
+        py={[6, 6, 12]}
+        borderBottom="1px solid"
+        borderColor="gray.700"
+      >
+        <Container maxW="container.lg">
+          <Heading size="lg">Transaction #{nonce}</Heading>
+          {(hintData.type == 'deploy' || hintData.type == 'invoke') && (
+            <Box mt={4}>
+              <TransactionStepper
+                chainId={chainId}
+                cannonPackage={cannonPackage}
+                safeTxn={safeTxn}
+                published={existingRegistryUrl == hintData?.cannonPackage}
+                publishable={queuedWithGitOps}
+                signers={signers}
+                threshold={threshold}
               />
-              <Box position="relative">
-                <Box position="sticky" top={8}>
-                  {!isTransactionExecuted && (
-                    <Box
-                      background="gray.800"
-                      p={4}
-                      borderWidth="1px"
-                      borderColor="gray.700"
-                      mb={8}
-                    >
-                      <Heading
-                        size="sm"
-                        mb={3}
-                        fontWeight="medium"
-                        textTransform="uppercase"
-                        letterSpacing="1.5px"
-                        fontFamily="var(--font-miriam)"
-                        textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                      >
-                        Verify Transactions
-                      </Heading>
-                      {queuedWithGitOps && (
-                        <Box>
-                          {buildInfo.buildStatus && (
-                            <Text fontSize="sm" mb="2">
-                              {buildInfo.buildStatus}
-                            </Text>
-                          )}
-                          {buildInfo.buildError && (
-                            <Text fontSize="sm" mb="2">
-                              {buildInfo.buildError}
-                            </Text>
-                          )}
-                          {buildInfo.buildResult && !unequalTransaction && (
-                            <Text fontSize="sm" mb="2">
-                              The transactions queued to the Safe match the Git
-                              Target
-                            </Text>
-                          )}
-                          {buildInfo.buildResult && unequalTransaction && (
-                            <Text fontSize="sm" mb="2">
-                              <WarningIcon />
-                              &nbsp;Proposed Transactions Do not Match Git Diff.
-                              Could be an attack.
-                            </Text>
-                          )}
-                          {prevDeployPackageUrl &&
-                            hintData.cannonUpgradeFromPackage !==
-                              prevDeployPackageUrl && (
-                              <Flex
-                                fontSize="xs"
-                                fontWeight="medium"
-                                align="top"
-                              >
-                                <InfoOutlineIcon mt="3px" mr={1.5} />
-                                The previous deploy hash does not derive from an
-                                on-chain record.
-                              </Flex>
-                            )}
-                        </Box>
+            </Box>
+          )}
+        </Container>
+      </Box>
+
+      <Container maxW="container.lg" mt={[6, 6, 12]}>
+        {/* Cannon file diff  */}
+        {queuedWithGitOps && (
+          <Card
+            containerProps={{
+              position: expandDiff ? 'fixed' : 'static',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 99,
+              mb: expandDiff ? 0 : 6,
+              p: 4,
+            }}
+            contentProps={{
+              h: '100%',
+              overflowY: 'auto',
+              maxH: expandDiff ? 'none' : '345px',
+            }}
+            title="Cannonfile Diff"
+            titleExtraContent={
+              <Link
+                ml="auto"
+                onClick={() => {
+                  setExpandDiff(!expandDiff);
+                }}
+                textDecoration="none"
+                _hover={{ textDecoration: 'none' }}
+                display="flex"
+                alignItems="center"
+              >
+                {expandDiff ? <IoIosContract /> : <IoIosExpand />}
+                <Text
+                  fontSize="xs"
+                  display="inline"
+                  borderBottom="1px solid"
+                  borderBottomColor="gray.500"
+                  ml="1.5"
+                >
+                  {expandDiff ? 'Collapse' : 'Expand'}
+                </Text>
+              </Link>
+            }
+          >
+            <Box ref={gitDiffContainerRef} pb={expandDiff ? 6 : 0} />
+          </Card>
+        )}
+
+        <Grid
+          templateColumns={{ base: 'repeat(1, 1fr)', lg: '2fr 1fr' }}
+          gap={6}
+        >
+          {/* TX Info: left column */}
+          <TransactionDisplay
+            safe={safe}
+            safeTxn={safeTxn as any}
+            queuedWithGitOps={queuedWithGitOps}
+            showQueueSource={true}
+            isTransactionExecuted={isTransactionExecuted}
+            containerRef={gitDiffContainerRef}
+          />
+          {/* Tx extra data: right column */}
+          <Box position="relative">
+            <Box position="sticky" top={8}>
+              {/* Verify txs */}
+              {!isTransactionExecuted && !unorderedNonce && (
+                <Card title="Verify Transactions">
+                  {queuedWithGitOps && (
+                    <Box>
+                      {buildInfo.buildMessage && (
+                        <Text fontSize="sm" mb="2">
+                          {buildInfo.buildMessage}
+                        </Text>
                       )}
-                      <SimulateTransactionButton
-                        // signer is the one who queued the transaction
-                        signer={signers[0]}
-                        safe={safe}
-                        safeTxn={safeTxn}
-                        execTransactionData={stager.execTransactionData}
-                      />
+                      {buildInfo.buildError && (
+                        <Text fontSize="sm" mb="2">
+                          {buildInfo.buildError}
+                        </Text>
+                      )}
+                      {buildInfo.buildResult && !unequalTransaction && (
+                        <Text fontSize="sm" mb="2">
+                          The transactions queued to the Safe match the Git
+                          Target
+                        </Text>
+                      )}
+                      {buildInfo.buildResult && unequalTransaction && (
+                        <Text fontSize="sm" mb="2">
+                          <WarningIcon />
+                          &nbsp;Proposed Transactions Do not Match Git Diff.
+                          Could be an attack.
+                        </Text>
+                      )}
+                      {prevDeployPackageUrl &&
+                        hintData.cannonUpgradeFromPackage !==
+                          prevDeployPackageUrl && (
+                          <Flex fontSize="xs" fontWeight="medium" align="top">
+                            <InfoOutlineIcon mt="3px" mr={1.5} />
+                            The previous deploy hash does not derive from an
+                            on-chain record.
+                          </Flex>
+                        )}
                     </Box>
                   )}
-                  <Box
-                    background="gray.800"
-                    p={4}
-                    borderWidth="1px"
-                    borderColor="gray.700"
-                    mb={6}
+                  <SimulateTransactionButton
+                    // signer is the one who queued the transaction
+                    signer={signers[0]}
+                    safe={safe}
+                    safeTxn={safeTxn}
+                    execTransactionData={stager.execTransactionData}
+                  />
+                </Card>
+              )}
+
+              {/* Signatures or Execute info  */}
+              <Card
+                title={executionTxnHash ? 'Execution' : 'Signatures'}
+                subtitle={executionTxnHash ? 'Transaction pending' : undefined}
+              >
+                {executionTxnHash ? (
+                  /* Execution */
+                  <Link
+                    href={getExplorerUrl(safeChain?.id, executionTxnHash)}
+                    isExternal
+                    fontSize="sm"
+                    fontWeight="medium"
+                    mt={3}
                   >
-                    {!executionTxnHash ? (
-                      <>
-                        <Heading
-                          size="sm"
-                          mb="3"
-                          fontWeight="medium"
-                          textTransform="uppercase"
-                          letterSpacing="1.5px"
-                          fontFamily="var(--font-miriam)"
-                          textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
+                    {truncateAddress((executionTxnHash || '') as string, 8)}
+                    <ExternalLinkIcon transform="translateY(-1px)" ml={1} />
+                  </Link>
+                ) : (
+                  /* Signatures */
+                  <>
+                    {/* Show signatures collected */}
+                    {signers?.map((s) => (
+                      <Box mt={2.5} key={s}>
+                        <Box
+                          backgroundColor="teal.500"
+                          borderRadius="full"
+                          display="inline-flex"
+                          alignItems="center"
+                          justifyContent="center"
+                          boxSize={5}
+                          mr={2.5}
                         >
-                          Signatures
-                        </Heading>
+                          <CheckIcon color="white" boxSize={2.5} />
+                        </Box>
+                        <Text
+                          display="inline"
+                          fontFamily="mono"
+                          fontWeight={200}
+                          color="gray.200"
+                        >
+                          {`${s.substring(0, 8)}...${s.slice(-6)}`}
+                          <Link
+                            isExternal
+                            styleConfig={{ 'text-decoration': 'none' }}
+                            href={getExplorerUrl(safeChain?.id, s)}
+                            ml={1}
+                          >
+                            <ExternalLinkIcon transform="translateY(-1px)" />
+                          </Link>
+                        </Text>
+                      </Box>
+                    ))}
 
-                        {signers?.map((s) => (
-                          <Box mt={2.5} key={s}>
-                            <Box
-                              backgroundColor="teal.500"
-                              borderRadius="full"
-                              display="inline-flex"
-                              alignItems="center"
-                              justifyContent="center"
-                              boxSize={5}
-                              mr={2.5}
-                            >
-                              <CheckIcon color="white" boxSize={2.5} />
-                            </Box>
-                            <Text
-                              display="inline"
-                              fontFamily="mono"
-                              fontWeight={200}
-                              color="gray.200"
-                            >
-                              {`${s.substring(0, 8)}...${s.slice(-6)}`}
-                              <Link
-                                isExternal
-                                styleConfig={{ 'text-decoration': 'none' }}
-                                href={`${etherscanUrl}/address/${s}`}
-                                ml={1}
-                              >
-                                <ExternalLinkIcon transform="translateY(-1px)" />
-                              </Link>
-                            </Text>
-                          </Box>
-                        ))}
-
-                        {!isTransactionExecuted && remainingSignatures > 0 && (
-                          <Text fontWeight="bold" mt="3">
-                            {remainingSignatures} additional{' '}
-                            {remainingSignatures === 1
-                              ? 'signature'
-                              : 'signatures'}{' '}
-                            required
-                          </Text>
+                    {!isTransactionExecuted && (
+                      <>
+                        {/* Required signatures to reach threshold */}
+                        {remainingSignatures > 0 && (
+                          <AdditionalSignaturesText
+                            amount={remainingSignatures}
+                          />
                         )}
+
+                        {/* Warning if trying to sign a nonce bigger than the next to be executed */}
+                        {unorderedNonce && (
+                          <UnorderedNonceWarning
+                            nextNonce={staged[0]?.txn._nonce}
+                          />
+                        )}
+                      </>
+                    )}
+                  </>
+                )}
+
+                {!isTransactionExecuted && !executionTxnHash && (
+                  <Flex mt={4} gap={4}>
+                    {account.isConnected && walletChainId === safe.chainId ? (
+                      <>
+                        <Tooltip label={stager.signConditionFailed}>
+                          <CustomButton
+                            mb={3}
+                            isDisabled={
+                              stager.signing ||
+                              stager.alreadySigned ||
+                              executionTxnHash ||
+                              ((safeTxn && !!stager.signConditionFailed) as any)
+                            }
+                            onClick={async () => {
+                              await stager.sign();
+                            }}
+                          >
+                            {stager.signing ? (
+                              <>
+                                Signing
+                                <Spinner size="sm" ml={2} />
+                              </>
+                            ) : (
+                              'Sign'
+                            )}
+                          </CustomButton>
+                        </Tooltip>
+                        <Tooltip label={stager.execConditionFailed}>
+                          <CustomButton
+                            isDisabled={
+                              stager.signing ||
+                              !stager.executeTxnConfig ||
+                              executionTxnHash ||
+                              ((safeTxn && !!stager.execConditionFailed) as any)
+                            }
+                            onClick={handleExecuteTx}
+                          >
+                            Execute
+                          </CustomButton>
+                        </Tooltip>
                       </>
                     ) : (
-                      <>
-                        <Heading
-                          size="sm"
-                          mb="3"
-                          fontWeight="medium"
-                          textTransform="uppercase"
-                          letterSpacing="1.5px"
-                          fontFamily="var(--font-miriam)"
-                          textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                        >
-                          Execution
-                        </Heading>
-
-                        <Text fontSize="sm" fontWeight="medium" mt={3}>
-                          Transaction pending on network
-                        </Text>
-                        <Link
-                          href={`${etherscanUrl}/tx/${executionTxnHash}`}
-                          isExternal
-                          fontSize="sm"
-                          fontWeight="medium"
-                          mt={3}
-                        >
-                          {truncateAddress(
-                            (executionTxnHash || '') as string,
-                            8
-                          )}
-                          <ExternalLinkIcon
-                            transform="translateY(-1px)"
-                            ml={1}
-                          />
-                        </Link>
-                      </>
+                      <CustomButton onClick={handleConnectWalletAndSign}>
+                        {account.isConnected
+                          ? `Switch to chain  ${safe.chainId}`
+                          : 'Connect wallet'}
+                      </CustomButton>
                     )}
+                  </Flex>
+                )}
+              </Card>
 
-                    {!isTransactionExecuted && !executionTxnHash && (
-                      <Flex mt={4} gap={4}>
-                        {account.isConnected &&
-                        walletChainId === safe.chainId ? (
-                          <>
-                            <Tooltip label={stager.signConditionFailed}>
-                              <Button
-                                colorScheme="teal"
-                                mb={3}
-                                w="100%"
-                                isDisabled={
-                                  stager.signing ||
-                                  stager.alreadySigned ||
-                                  executionTxnHash ||
-                                  ((safeTxn &&
-                                    !!stager.signConditionFailed) as any)
-                                }
-                                onClick={async () => {
-                                  await stager.sign();
-                                }}
-                              >
-                                {stager.signing ? (
-                                  <>
-                                    Currently Signing
-                                    <Spinner size="sm" ml={2} />
-                                  </>
-                                ) : (
-                                  'Sign'
-                                )}
-                              </Button>
-                            </Tooltip>
-                            <Tooltip label={stager.execConditionFailed}>
-                              <Button
-                                colorScheme="teal"
-                                w="100%"
-                                isDisabled={
-                                  !stager.executeTxnConfig ||
-                                  executionTxnHash ||
-                                  ((safeTxn &&
-                                    !!stager.execConditionFailed) as any)
-                                }
-                                onClick={() => {
-                                  if (!stager.executeTxnConfig) {
-                                    throw new Error(
-                                      'Missing execution tx configuration'
-                                    );
-                                  }
-
-                                  execTxn.writeContract(
-                                    stager.executeTxnConfig,
-                                    {
-                                      onSuccess: async (hash) => {
-                                        setExecutionTxnHash(hash);
-                                        toast({
-                                          title: 'Transaction sent to network',
-                                          status: 'info',
-                                          duration: 5000,
-                                          isClosable: true,
-                                        });
-
-                                        // wait for the transaction to be mined
-                                        await publicClient!.waitForTransactionReceipt(
-                                          { hash }
-                                        );
-
-                                        await stagedQuery.refetch();
-                                        await nonceQuery.refetch();
-                                        await refetchHistory();
-
-                                        toast({
-                                          title:
-                                            'You successfully executed the transaction.',
-                                          status: 'success',
-                                          duration: 5000,
-                                          isClosable: true,
-                                        });
-
-                                        setExecutionTxnHash(null);
-                                      },
-                                    }
-                                  );
-                                }}
-                              >
-                                Execute
-                              </Button>
-                            </Tooltip>
-                          </>
-                        ) : (
-                          <Button
-                            colorScheme="teal"
-                            w="100%"
-                            onClick={handleConnectWalletAndSign}
-                          >
-                            {account.isConnected ? 'Sign' : 'Connect wallet'}
-                          </Button>
-                        )}
-                      </Flex>
-                    )}
-                  </Box>
-                  {queuedWithGitOps && (
-                    <Box
-                      background="gray.800"
-                      p={4}
-                      borderWidth="1px"
-                      borderColor="gray.700"
-                      mb={8}
-                    >
-                      <Heading
-                        size="sm"
-                        mb={3}
-                        fontWeight="medium"
-                        textTransform="uppercase"
-                        letterSpacing="1.5px"
-                        fontFamily="var(--font-miriam)"
-                        textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-                      >
-                        Cannon Package
-                        <Tooltip label="Packages include data about this deployment (including smart contract addresses, ABIs, and source code). When publishing, the registry collects some ETH (indicated as the 'value' for the transaction in your wallet) to support an IPFS cluster that pins package data.">
-                          <InfoOutlineIcon ml={1.5} opacity={0.8} mt={-0.5} />
-                        </Tooltip>
-                      </Heading>
-
-                      <PublishUtility
-                        deployUrl={hintData.cannonPackage}
-                        targetChainId={safe.chainId}
-                      />
-                    </Box>
-                  )}
-                </Box>
-              </Box>
-            </Grid>
-          </Container>
-        </Box>
-      )}
-    </>
+              {/* Cannon package IPFS Info */}
+              {queuedWithGitOps && isTransactionExecuted && (
+                <Card
+                  title={
+                    <>
+                      Cannon Package
+                      <Tooltip label="Packages include data about this deployment (including smart contract addresses, ABIs, and source code). When publishing, the registry collects some ETH (indicated as the 'value' for the transaction in your wallet) to support an IPFS cluster that pins package data.">
+                        <InfoOutlineIcon ml={1.5} opacity={0.8} mt={-0.5} />
+                      </Tooltip>
+                    </>
+                  }
+                >
+                  <PublishUtility
+                    deployUrl={hintData.cannonPackage}
+                    targetChainId={safe.chainId}
+                  />
+                </Card>
+              )}
+            </Box>
+          </Box>
+        </Grid>
+      </Container>
+    </Box>
   );
 }
 

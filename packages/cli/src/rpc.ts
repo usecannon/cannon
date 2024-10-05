@@ -1,14 +1,16 @@
 import { ChildProcess, spawn } from 'node:child_process';
 import http from 'node:http';
 import { Readable } from 'node:stream';
-import { CANNON_CHAIN_ID } from '@usecannon/builder';
+import { CANNON_CHAIN_ID, loadPrecompiles } from '@usecannon/builder';
 import { gray } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { cannonChain, getChainById } from './chains';
-import { execPromise, toArgs } from './helpers';
-import { AnvilOptions } from './util/anvil';
+import { execPromise } from './helpers';
+import { error, log } from './util/console';
+import { anvilOptions as fullAnvilOptions } from './commands/config/anvil';
+import { fromFoundryOptionsToArgs } from './util/foundry-options';
 
 const debug = Debug('cannon:cli:rpc');
 
@@ -41,7 +43,7 @@ export const versionCheck = _.once(async () => {
   }
 });
 
-export async function runRpc(anvilOptions: AnvilOptions, rpcOptions: RpcOptions = {}): Promise<CannonRpcNode> {
+export async function runRpc(anvilOptions: Record<string, any>, rpcOptions: RpcOptions = {}): Promise<CannonRpcNode> {
   debug('run rpc', anvilOptions, rpcOptions);
   const { forkProvider } = rpcOptions;
 
@@ -56,6 +58,8 @@ export async function runRpc(anvilOptions: AnvilOptions, rpcOptions: RpcOptions 
     anvilOptions.accounts = 1;
   }
 
+  anvilOptions.noRequestSizeLimit = true;
+
   if (anvilOptions.forkUrl && rpcOptions.forkProvider) {
     throw new Error('Cannot set both an anvil forkUrl and a proxy provider connection');
   }
@@ -67,7 +71,7 @@ export async function runRpc(anvilOptions: AnvilOptions, rpcOptions: RpcOptions 
   }
 
   if (anvilInstance && anvilInstance.exitCode === null) {
-    console.log('shutting down existing anvil subprocess', anvilInstance.pid);
+    log('shutting down existing anvil subprocess', anvilInstance.pid);
 
     return viem.withTimeout(
       () =>
@@ -85,13 +89,7 @@ export async function runRpc(anvilOptions: AnvilOptions, rpcOptions: RpcOptions 
     );
   }
 
-  let opts = toArgs(anvilOptions);
-
-  // Anvil fails to accept the `forkUrl` and `chainId` options on the Arbitrum network.
-  // Ref: https://github.com/foundry-rs/foundry/issues/4786
-  if ('forkUrl' in anvilOptions) {
-    opts = toArgs(_.omit(anvilOptions, ['chainId']));
-  }
+  const opts = fromFoundryOptionsToArgs(anvilOptions, fullAnvilOptions);
 
   debug('starting anvil instance with options: ', anvilOptions);
 
@@ -137,20 +135,25 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
           if (m) {
             const host = 'http://' + m[1];
             state = 'listening';
-            console.log(gray('Anvil instance running on:', host, '\n'));
+            log(gray('Anvil instance running on:', host, '\n'));
 
             // TODO: why is this type not working out? (something about mode being wrong?)
             anvilProvider = viem
               .createTestClient({
                 mode: 'anvil',
                 chain: anvilOptions.chainId ? getChainById(anvilOptions.chainId) || cannonChain : cannonChain,
-                transport: viem.http(host),
+                transport: viem.http(host, { timeout: 180000 }),
               })
               .extend(viem.publicActions)
               .extend(viem.walletActions) as any;
 
             anvilInstance!.host = host;
-            resolve(anvilInstance!);
+
+            loadPrecompiles(anvilProvider as viem.TestClient)
+              .then(() => resolve(anvilInstance!))
+              .catch((err: any) => {
+                throw err;
+              });
           }
 
           debug(chunk);
@@ -158,7 +161,7 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
 
         anvilInstance.stderr?.on('data', (rawChunk) => {
           const chunk = rawChunk.toString('utf8');
-          console.error(chunk.split('\n').map((m: string) => 'anvil: ' + m));
+          error(chunk.split('\n').map((m: string) => 'anvil: ' + m));
         });
       }),
     {
@@ -196,7 +199,7 @@ export function createProviderProxy(provider: viem.Client): Promise<string> {
           })
         );
       } catch (err) {
-        console.log('got rpc error', err);
+        log('got rpc error', err);
         res.writeHead(400);
         res.end(
           JSON.stringify({

@@ -1,8 +1,8 @@
-import { createClient } from 'redis';
+import { createClient, RedisClientType } from 'redis';
 import { config } from './config';
 import { ServiceUnavailableError } from './errors';
 
-const client = createClient({
+const client: RedisClientType = createClient({
   url: config.REDIS_URL,
   socket: {
     reconnectStrategy: (retries, err) => {
@@ -30,7 +30,7 @@ client.on('error', (err) => {
 
 void client.connect();
 
-export async function useRedis() {
+export async function useRedis(): Promise<RedisClientType> {
   if (!client.isReady) throw new ServiceUnavailableError();
   return client;
 }

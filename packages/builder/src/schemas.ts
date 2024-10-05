@@ -10,19 +10,23 @@ const argtype: z.ZodLazy<any> = z.lazy(() =>
 
 // Different regular expressions used to validate formats like
 // <%=  string interpolation %>, step.names or property.names, packages:versions
-const interpolatedRegex = RegExp(/^<%=\s\w+.+[\w()[\]-]+\s%>$/, 'i');
+const interpolatedRegex = RegExp(/\w*<%= [^%]* %>\w*|[^<%=]*<%= [^%]* %>[^<%=]*/, 'i');
 const stepRegex = RegExp(/^[\w-]+\.[.\w-]+$/, 'i');
-const packageRegex = RegExp(/^(?<name>@?[a-z0-9][a-z0-9-]{1,29}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/, 'i');
+const packageRegex = RegExp(/^(?<name>@?[a-z0-9][a-z0-9-]{1,}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/, 'i');
 const jsonAbiPathRegex = RegExp(/^(?!.*\.d?$).*\.json?$/, 'i');
 
 // This regex matches artifact names which are just capitalized words like solidity contract names
 const artifactNameRegex = RegExp(/^[A-Z]{1}[\w]+$/, 'i');
 const artifactPathRegex = RegExp(/^.*\.sol:\w+/, 'i');
 
+// Because of a weird type cohercion, after using viem.isAddress during website build,
+// the string type of the given value gets invalid to "never", and breaks the build.
+const isAddress = (val: any): boolean => typeof val === 'string' && viem.isAddress(val);
+
 // Invoke target string schema
 const targetString = z.string().refine(
   (val) =>
-    viem.isAddress(val) ||
+    !!isAddress(val) ||
     !!val.match(interpolatedRegex) ||
     !!val.match(stepRegex) ||
     !!val.match(artifactNameRegex) ||
@@ -76,25 +80,34 @@ export const deploySchema = z
          */
         description: z.string().describe('Description of the operation'),
         /**
-         *    Determines whether contract should get priority in displays
+         * Determines whether contract should get priority in displays
          */
         highlight: z.boolean().describe('Determines whether contract should get priority in displays'),
         /**
-         *    Determines whether to deploy the contract using create2
+         * Determines whether to deploy the contract using create2
          */
         create2: z
-          .union([z.boolean(), z.string().refine((val) => viem.isAddress(val))])
+          .union([z.boolean(), z.string().refine((val) => isAddress(val))])
           .describe(
             'Determines whether to deploy the contract using create2. If an address is specified, the arachnid create2 contract will be deployed/used from this address.'
           ),
         /**
-         *    Contract deployer address.
-         *    Must match the ethereum address format
+         * Determines whether to deploy the contract using create2
+         */
+        ifExists: z
+          .enum(['continue'])
+          .optional()
+          .describe(
+            'When deploying a contract with CREATE2, determines the behavior when the target contract is already deployed (ex. due to same bytecode and salt). Set to continue to allow the build to continue if the contract is found to have already been deployed. By default, an error is thrown and the action is halted.'
+          ),
+        /**
+         * Contract deployer address.
+         * Must match the ethereum address format
          */
         from: z
           .string()
           .refine(
-            (val) => viem.isAddress(val) || !!val.match(interpolatedRegex),
+            (val) => isAddress(val) || !!val.match(interpolatedRegex),
             (val) => ({ message: `"${val}" is not a valid ethereum address` })
           )
           .describe('Contract deployer address. Must match the ethereum address format'),
@@ -111,7 +124,7 @@ export const deploySchema = z
           })
           .describe('-'),
         /**
-         *  Abi of the contract being deployed
+         * Abi of the contract being deployed
          */
         abi: z
           .string()
@@ -123,7 +136,7 @@ export const deploySchema = z
               tryParseJson(val),
             {
               message:
-                'ABI must be a valid JSON ABI string, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
+                'ABI must be a valid JSON ABI string or artifact name or artifact name, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
             }
           )
           .describe('Abi of the contract being deployed'),
@@ -172,6 +185,7 @@ export const deploySchema = z
         overrides: z
           .object({
             gasLimit: z.string(),
+            simulate: z.boolean(),
           })
           .describe('Override transaction settings'),
 
@@ -208,6 +222,34 @@ export const pullSchema = z
         (val) => ({
           message: `Source value: ${val} must match package formats: "package:version" or "package:version@preset" or operation name "import.Contract" or be an interpolated value`,
         })
+      )
+      .refine(
+        (val) => {
+          const match = val.match(packageRegex);
+
+          if (match) {
+            const nameSize = match!.groups!.name.length;
+
+            return nameSize <= 32;
+          } else {
+            return true;
+          }
+        },
+        (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
+      )
+      .refine(
+        (val) => {
+          const match = val.match(packageRegex);
+
+          if (match && match!.groups!.version) {
+            const versionSize = match!.groups!.version.length;
+
+            return versionSize <= 32;
+          } else {
+            return true;
+          }
+        },
+        (val) => ({ message: `Package reference "${val}" is too long. Package version exceeds 32 bytes` })
       )
       .describe('Source of the cannonfile package to import from. Can be a cannonfile operation name or package name'),
   })
@@ -320,7 +362,7 @@ export const invokeSchema = z
               tryParseJson(val),
             {
               message:
-                'ABI must be a valid JSON ABI string, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
+                'ABI must be a valid JSON ABI string or artifact name, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
             }
           )
           .describe(
@@ -337,7 +379,7 @@ export const invokeSchema = z
         from: z
           .string()
           .refine(
-            (val) => viem.isAddress(val) || !!val.match(interpolatedRegex),
+            (val) => isAddress(val) || !!val.match(interpolatedRegex),
             (val) => ({ message: `"${val}" must be a valid ethereum address` })
           )
           .describe('The calling address to use when invoking this call.'),
@@ -444,6 +486,22 @@ export const invokeSchema = z
                   'An array of contract artifacts that have already been deployed with Cannon. Used if the code for the deployed contract is not available in the artifacts.'
                 ),
 
+              abi: z
+                .string()
+                .refine(
+                  (val) =>
+                    !!val.match(artifactNameRegex) ||
+                    !!val.match(jsonAbiPathRegex) ||
+                    !!val.match(interpolatedRegex) ||
+                    tryParseJson(val),
+                  {
+                    message:
+                      'ABI must be a valid JSON ABI string or artifact name, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
+                  }
+                )
+                .optional()
+                .describe('Abi of the contract being deployed'),
+
               /**
                *   Constructor or initializer args
                */
@@ -502,6 +560,33 @@ export const cloneSchema = z
           message: `Source value: ${val} must match package formats: "package:version" or "package:version@preset" or be an interpolated value`,
         })
       )
+      .refine(
+        (val) => {
+          const match = val.match(packageRegex);
+          if (match) {
+            const nameSize = match!.groups!.name.length;
+
+            return nameSize <= 32;
+          } else {
+            return true;
+          }
+        },
+        (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
+      )
+      .refine(
+        (val) => {
+          const match = val.match(packageRegex);
+
+          if (match && match!.groups!.version) {
+            const versionSize = match!.groups!.version.length;
+
+            return versionSize <= 32;
+          } else {
+            return true;
+          }
+        },
+        (val) => ({ message: `Package reference "${val}" is too long. Package version exceeds 32 bytes` })
+      )
       .describe('Name of the package to provision'),
   })
   .merge(
@@ -536,12 +621,43 @@ export const cloneSchema = z
               message: `Target value: ${val} must match package formats: "package:version" or "package:version@preset" or be an interpolated value`,
             })
           )
-          .describe('Name of the package to provision'),
+          .refine(
+            (val) => {
+              const match = val.match(packageRegex);
+              if (match) {
+                const nameSize = match!.groups!.name.length;
+
+                return nameSize <= 32;
+              } else {
+                return true;
+              }
+            },
+            (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
+          )
+          .refine(
+            (val) => {
+              const match = val.match(packageRegex);
+
+              if (match && match!.groups!.version) {
+                const versionSize = match!.groups!.version.length;
+
+                return versionSize <= 32;
+              } else {
+                return true;
+              }
+            },
+            (val) => ({ message: `Package reference "${val}" is too long. Package version exceeds 32 bytes` })
+          )
+          .describe('Name of the package to clone'),
         /**
          *  (DEPRECATED) use `target` instead. Set the new preset to use for this package.
          * Default - "main"
          */
-        targetPreset: z.string().describe('Set the new preset to use for this package. Default - "main"'),
+        targetPreset: z
+          .string()
+          .describe(
+            '⚠ Deprecated in favor using target only with format packageName:version@targetPreset. Set the new preset to use for this package. Default - "main"'
+          ),
         /**
          *  The settings to be used when initializing this Cannonfile.
          *  Overrides any defaults preset in the source package.
@@ -610,6 +726,15 @@ export const routerSchema = z
      */
     salt: z.string().optional().describe('Used to force new copy of a contract (not actually used)'),
     /**
+     *   Override transaction settings
+     */
+    overrides: z
+      .object({
+        gasLimit: z.string().optional(),
+      })
+      .optional()
+      .describe('Override transaction settings'),
+    /**
      *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
      */
     depends: z
@@ -618,6 +743,57 @@ export const routerSchema = z
       .describe(
         'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
       ),
+    highlight: z.boolean().optional().describe('Determines whether contract should get priority in displays'),
+  })
+  .strict();
+
+export const diamondSchema = z
+  .object({
+    /**
+     * Set of contracts that will be passed to the router
+     */
+    contracts: z.array(z.string()).describe('Set of contracts that should be facets of the Diamond proxy'),
+    /**
+     * Description of the operation
+     */
+    description: z.string().optional().describe('Description of the action'),
+    /**
+     *   Used to force new copy of a new diamond proxy
+     */
+    salt: z.string().describe('Used to force new copy of a contract.'),
+    /**
+     *   Override transaction settings
+     */
+    diamondArgs: z.object({
+      owner: z.string().describe('Address has permission to change Diamond facets (ie proxied contracts to upgrade)'),
+      init: z
+        .string()
+        .optional()
+        .describe('Address to DELEGATECALL on diamondCut() or constructor after the facets have been set'),
+      initCalldata: z.string().optional().describe('Additional data to send to the `init` DELEGATECALL'),
+    }),
+    immutable: z
+      .boolean()
+      .optional()
+      .describe(
+        'Prevents the diamond proxy from being modified in the future. Setting this value to `true` is irreversable once deployed.'
+      ),
+    overrides: z
+      .object({
+        gasLimit: z.string().optional(),
+      })
+      .optional()
+      .describe('Override transaction settings'),
+    /**
+     *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
+     */
+    depends: z
+      .array(z.string())
+      .optional()
+      .describe(
+        'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+      ),
+    highlight: z.boolean().optional().describe('Determines whether contract should get priority in displays'),
   })
   .strict();
 
@@ -654,7 +830,12 @@ export const chainDefinitionSchema = z
     name: z
       .string()
       .min(3)
-      .max(31)
+      .refine(
+        (val) => {
+          return new Blob([val]).size <= 32;
+        },
+        (val) => ({ message: `Package name "${val}" is too long. Package name exceeds 32 bytes` })
+      )
       .refine((val) => !!val.match(RegExp(/[a-zA-Z0-9-]+/, 'gm')), {
         message: 'Name cannot contain any special characters',
       })
@@ -664,7 +845,12 @@ export const chainDefinitionSchema = z
      */
     version: z
       .string()
-      .max(31)
+      .refine(
+        (val) => {
+          return new Blob([val]).size <= 32;
+        },
+        (val) => ({ message: `Package version "${val}" is too long. Package version exceeds 32 bytes` })
+      )
       .refine((val) => !!val.match(RegExp(/[\w.]+/, 'gm')), {
         message: 'Version cannot contain any special characters',
       })
@@ -706,6 +892,17 @@ export const chainDefinitionSchema = z
          * Keywords for search indexing
          */
         keywords: z.array(z.string()).describe('Keywords for search indexing'),
+        /**
+         * Any deployers that could publish this package. Will be used for automatic version management.
+         */
+        deployers: z
+          .array(
+            z.string().refine((val) => !!val.match(RegExp(/^0x[a-fA-F0-9]{40}$/, 'gm')), {
+              message: 'Invalid Ethereum address',
+            })
+          )
+          .optional()
+          .describe('Any deployers that could publish this package. Will be used for automatic version management.'),
         /**
          * Object that allows the definition of values for use in next operations
          * ```toml
@@ -785,6 +982,14 @@ export const chainDefinitionSchema = z
         router: z
           .record(routerSchema)
           .describe('Generate a contract that proxies calls to multiple contracts using the synthetix router codegen.'),
+        /**
+         * @internal
+         */
+        diamond: z
+          .record(diamondSchema)
+          .describe(
+            'Generate a upgradable contract that proxies calls to multiple contracts using a ERC2535 Diamond standard.'
+          ),
         /**
          * @internal
          */

@@ -1,19 +1,15 @@
 'use client';
 import NextLink from 'next/link';
 import {
-  Alert,
-  AlertIcon,
   Box,
   Button,
   Code,
   Container,
-  Flex,
   FormControl,
   FormErrorMessage,
   FormHelperText,
   FormLabel,
   Heading,
-  IconButton,
   Input,
   Link,
   Table,
@@ -25,10 +21,11 @@ import {
   Thead,
   Tr,
 } from '@chakra-ui/react';
-import { CloseIcon } from '@chakra-ui/icons';
 import entries from 'just-entries';
 import { Store, initialState, useStore } from '@/helpers/store';
 import { links } from '@/constants/links';
+import { Alert } from '@/components/Alert';
+import CustomProviders from '@/features/Settings/CustomProviders';
 
 type Setting = {
   title: string;
@@ -68,38 +65,21 @@ export default function SettingsPage() {
   const settings = useStore((s) => s.settings);
   const setSettings = useStore((s) => s.setSettings);
 
-  const addProvider = () => {
-    setSettings({ customProviders: [...settings.customProviders, ''] });
-  };
-
-  const updateProvider = (index: number, value: string) => {
-    const updatedProviders = [...settings.customProviders];
-    updatedProviders[index] = value;
-    setSettings({ customProviders: updatedProviders });
-  };
-
-  const removeProvider = (index: number) => {
-    const updatedProviders = [...settings.customProviders];
-    updatedProviders.splice(index, 1);
-    setSettings({ customProviders: updatedProviders });
-  };
-
   return (
     <Container maxW="100%" w="container.md">
       <Box>
-        <Alert
-          bg="gray.800"
-          status="info"
-          my="10"
-          border="1px solid"
-          borderColor="gray.700"
-        >
-          <AlertIcon />
+        <Alert status="info" my="10">
           Changes to settings automatically persist in your web browser.
         </Alert>
+
         <Heading size="lg" mb={6}>
           Settings
         </Heading>
+
+        <Box mb="6">
+          <CustomProviders />
+        </Box>
+
         <Box
           mb={6}
           p={6}
@@ -113,66 +93,8 @@ export default function SettingsPage() {
           <Heading size="md" mb={3}>
             Ethereum
           </Heading>
-          <Box mb="6">
-            <Heading size="sm" fontWeight={600} mb={1}>
-              Provider
-            </Heading>
-            <Text fontSize="sm" mb={3}>
-              Cannon will use custom providers (which may include{' '}
-              <Link isExternal href="https://www.alchemy.com/">
-                Alchemy
-              </Link>{' '}
-              or{' '}
-              <Link isExternal href="https://www.infura.io/">
-                Infura
-              </Link>{' '}
-              endpoints) added below if available for the target chain.
-              Otherwise, it will use a{' '}
-              <Link
-                isExternal
-                href="https://github.com/wevm/viem/tree/main/src/chains/definitions"
-              >
-                default RPC url
-              </Link>
-              .
-            </Text>
-            <FormLabel>Custom Providers</FormLabel>
+          <Box mb="6"></Box>
 
-            {settings.customProviders.map((provider, index) => (
-              <Flex key={index} mb={3}>
-                <Input
-                  bg="black"
-                  borderColor="whiteAlpha.400"
-                  placeholder="e.g. https://mainnet.infura.io/v3/api_key"
-                  value={provider}
-                  onChange={(e) => updateProvider(index, e.target.value)}
-                />
-                {settings.customProviders.length > 1 && (
-                  <Box ml="3">
-                    <IconButton
-                      colorScheme="blackAlpha"
-                      background="transparent"
-                      icon={<CloseIcon opacity="0.5" />}
-                      aria-label={'Remove provider'}
-                      onClick={() => removeProvider(index)}
-                    />
-                  </Box>
-                )}
-              </Flex>
-            ))}
-
-            <Button
-              variant="outline"
-              size="xs"
-              colorScheme="green"
-              color="green.400"
-              borderColor="green.400"
-              _hover={{ bg: 'green.900' }}
-              onClick={addProvider}
-            >
-              Add Provider
-            </Button>
-          </Box>
           <Heading size="sm" fontWeight={600} mb={1}>
             Oracle Multicalls
           </Heading>
@@ -296,6 +218,7 @@ export default function SettingsPage() {
             </Button>
           ) : null}
         </Box>
+
         <Box
           mb={6}
           p={6}
@@ -352,17 +275,7 @@ export default function SettingsPage() {
             );
           })}
         </Box>
-        <Alert
-          bg="gray.800"
-          status="info"
-          mt="10"
-          mb="5"
-          border="1px solid"
-          borderColor="gray.700"
-        >
-          <AlertIcon />
-          Changes to settings automatically persist in your web browser.
-        </Alert>
+
         <FormControl>
           <FormHelperText color="gray.300" mb={5} textAlign="right">
             <Link

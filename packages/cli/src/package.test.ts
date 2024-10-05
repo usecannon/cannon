@@ -20,6 +20,7 @@ describe('readDeploy', () => {
       state: {},
       meta: {},
       miscUrl: 'http://mock.url',
+      chainId,
     };
 
     jest.spyOn(CannonStorage.prototype, 'readDeploy').mockResolvedValueOnce(deployInfo);
@@ -44,6 +45,7 @@ describe('readDeployRecursive', () => {
       state: {},
       meta: {},
       miscUrl: 'http://mock.url',
+      chainId,
     };
 
     jest.spyOn(CannonStorage.prototype, 'readBlob').mockResolvedValueOnce(deployInfo);

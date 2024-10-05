@@ -66,6 +66,11 @@ export const theme = extendTheme({
         },
       },
     },
+    Skeleton: {
+      baseStyle: {
+        opacity: 0.1,
+      },
+    },
   },
   styles: {
     global: (props: any) => ({

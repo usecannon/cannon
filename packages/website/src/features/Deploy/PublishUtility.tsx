@@ -1,11 +1,11 @@
+import { externalLinks } from '@/constants/externalLinks';
 import { truncateAddress } from '@/helpers/ethereum';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { sleep } from '@/helpers/misc';
-import { findChain } from '@/helpers/rpc';
 import { useStore } from '@/helpers/store';
 import { useCannonPackage } from '@/hooks/cannon';
-import { useProviders } from '@/hooks/providers';
 import { useCannonPackagePublishers } from '@/hooks/registry';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import {
   ExternalLinkIcon,
   InfoOutlineIcon,
@@ -18,7 +18,8 @@ import {
   Image,
   Link,
   ListItem,
-  Spinner,
+  Skeleton,
+  Stack,
   Text,
   Tooltip,
   UnorderedList,
@@ -33,7 +34,7 @@ import {
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { PublicClient, createPublicClient, http, isAddressEqual } from 'viem';
+import * as viem from 'viem';
 import { mainnet, optimism } from 'viem/chains';
 import { useSwitchChain, useWalletClient } from 'wagmi';
 
@@ -53,7 +54,7 @@ export default function PublishUtility(props: {
     resolvedVersion,
     resolvedPreset,
     ipfsQuery: ipfsPkgQuery,
-  } = useCannonPackage('@' + props.deployUrl.replace('://', ':'));
+  } = useCannonPackage(props.deployUrl);
 
   // then reverse check the package referenced by the
   const {
@@ -72,15 +73,15 @@ export default function PublishUtility(props: {
     resolvedVersion ? ':' + resolvedVersion : ''
   }${resolvedPreset ? '@' + resolvedPreset : ''}`;
 
-  const publishers = useCannonPackagePublishers(resolvedName!);
+  const publishers = useCannonPackagePublishers(resolvedName);
 
   const canPublish = publishers.some(
     ({ publisher }) =>
       wc.data?.account.address &&
-      isAddressEqual(publisher, wc.data?.account.address)
+      viem.isAddressEqual(publisher, wc.data?.account.address)
   );
 
-  const { transports } = useProviders();
+  const { transports, getExplorerUrl } = useCannonChains();
 
   const prepareAndPublishPackage = async (publishChainId: number) => {
     if (!wc.data) {
@@ -92,20 +93,20 @@ export default function PublishUtility(props: {
     const targetRegistry = new FallbackRegistry(
       [
         new OnChainRegistry({
-          signer: { address: walletAddress, wallet: wc.data },
+          signer: { address: walletAddress, wallet: wc.data as any },
           address: DEFAULT_REGISTRY_ADDRESS,
-          provider: createPublicClient({
+          provider: viem.createPublicClient({
             chain: optimism,
-            transport: transports[optimism.id] || http(),
-          }) as PublicClient,
+            transport: transports[optimism.id] || viem.http(),
+          }) as any, // TODO: fix type
         }),
         new OnChainRegistry({
-          signer: { address: walletAddress, wallet: wc.data },
+          signer: { address: walletAddress, wallet: wc.data as any },
           address: DEFAULT_REGISTRY_ADDRESS,
-          provider: createPublicClient({
+          provider: viem.createPublicClient({
             chain: mainnet,
-            transport: transports[mainnet.id] || http(),
-          }),
+            transport: transports[mainnet.id] || viem.http(),
+          }) as any, // TODO: fix type
         }),
       ],
       publishChainId === 10 ? 0 : 1
@@ -122,7 +123,7 @@ export default function PublishUtility(props: {
     );
 
     const loader = new IPFSBrowserLoader(
-      settings.ipfsApiUrl || 'https://repo.usecannon.com/'
+      settings.ipfsApiUrl || externalLinks.IPFS_CANNON
     );
 
     const fromStorage = new CannonStorage(
@@ -156,12 +157,21 @@ export default function PublishUtility(props: {
     onError(err) {
       // eslint-disable-next-line no-console
       console.error(err);
-      toast({
-        title: 'Error Publishing Package',
-        status: 'error',
-        duration: 30000,
-        isClosable: true,
-      });
+      if (err.message.includes('exceeds the balance of the account')) {
+        toast({
+          title: 'Error Publishing Package: Insufficient Funds',
+          status: 'error',
+          duration: 10000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: 'Error Publishing Package',
+          status: 'error',
+          duration: 10000,
+          isClosable: true,
+        });
+      }
     },
   });
 
@@ -175,20 +185,32 @@ export default function PublishUtility(props: {
     onError(err) {
       // eslint-disable-next-line no-console
       console.error(err);
-      toast({
-        title: 'Error Publishing Package',
-        status: 'error',
-        duration: 10000,
-        isClosable: true,
-      });
+
+      if (err.message.includes('exceeds the balance of the account')) {
+        toast({
+          title: 'Error Publishing Package: Insufficient Funds',
+          status: 'error',
+          duration: 10000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: 'Error Publishing Package',
+          status: 'error',
+          duration: 10000,
+          isClosable: true,
+        });
+      }
     },
   });
 
   if (ipfsPkgQuery.isFetching || ipfsChkQuery.isFetching) {
     return (
-      <Text textAlign="center">
-        <Spinner boxSize={6} opacity={0.8} mt={3} />
-      </Text>
+      <Stack>
+        <Skeleton height="20px" />
+        <Skeleton height="60px" />
+        <Skeleton height="20px" />
+      </Stack>
     );
   } else if (existingRegistryUrl !== props.deployUrl) {
     // Any difference means that this deployment is not technically published
@@ -257,10 +279,7 @@ export default function PublishUtility(props: {
                     <Link
                       isExternal
                       styleConfig={{ 'text-decoration': 'none' }}
-                      href={`${
-                        findChain(chainId).blockExplorers?.default?.url ||
-                        'https://etherscan.io'
-                      }/address/${publisher}`}
+                      href={getExplorerUrl(chainId, publisher)}
                       ml={1}
                     >
                       <ExternalLinkIcon transform="translateY(-1px)" />

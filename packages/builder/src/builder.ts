@@ -24,7 +24,7 @@ export async function createInitialContext(
 ): Promise<ChainBuilderContext> {
   const preCtx: PreChainBuilderContext = {
     package: pkg,
-    timestamp: Math.floor(Date.now() / 1000).toString(),
+    timestamp: Math.floor(Date.now() / 1000),
     chainId,
     overrideSettings: opts,
   };
@@ -71,8 +71,7 @@ ${printChainDefinitionProblems(problems)}`);
   const topologicalActions = def.topologicalActions;
   let ctx;
 
-  const name = def.getName(initialCtx);
-  const version = def.getVersion(initialCtx);
+  const ref = def.getPackageRef(initialCtx);
 
   // whether or not source code is included in deployment artifacts or not is controlled by cannonfile config, so we set it here
   runtime.setPublicSourceCode(def.isPublicSourceCode());
@@ -121,7 +120,10 @@ ${printChainDefinitionProblems(problems)}`);
           // also add self artifacts here so that we can self-reference from inside the step
           debug('adding self artifacts to context', state[n].artifacts);
           addOutputsToContext(ctx, state[n].artifacts);
+          runtime.updateProviderArtifacts(state[n].artifacts);
         }
+
+        runtime.reportOperatingContext(n, ctx);
 
         try {
           const curHashes = await def.getState(n, runtime, ctx, depsTainted);
@@ -129,7 +131,7 @@ ${printChainDefinitionProblems(problems)}`);
           debug('comparing states', state[n] ? state[n].hash : null, curHashes);
           if (!state[n] || (state[n].hash !== 'SKIP' && curHashes && !curHashes.includes(state[n].hash || ''))) {
             debug('run isolated', n);
-            const newArtifacts = await runStep(runtime, { name, version, currentLabel: n }, def.getConfig(n, ctx), ctx);
+            const newArtifacts = await runStep(runtime, { ref, currentLabel: n }, def.getConfig(n, ctx), ctx);
 
             // some steps may be self introspective, causing a step to be giving the wrong hash initially. to counteract this, we recompute the hash
             addOutputsToContext(ctx, newArtifacts);
@@ -172,6 +174,8 @@ ${printChainDefinitionProblems(problems)}`);
     throw err;
   }
 
+  runtime.reportOperatingContext(null, null);
+
   return state;
 }
 
@@ -195,8 +199,7 @@ export async function buildLayer(
 
   debug('eval build layer name', cur);
 
-  const name = def.getName(baseCtx);
-  const version = def.getVersion(baseCtx);
+  const ref = def.getPackageRef(baseCtx);
 
   // check all dependencies. If the dependency is not done, run the dep layer first
   let isCompleteLayer = true;
@@ -231,6 +234,8 @@ export async function buildLayer(
       // also add self artifacts here so that we can self-reference from inside the step
       addOutputsToContext(ctx, state[action].artifacts);
     }
+
+    runtime.reportOperatingContext(action, ctx);
 
     try {
       const curHashes = await def.getState(action, runtime, ctx, false);
@@ -287,14 +292,14 @@ export async function buildLayer(
       if (state[action] && state[action].artifacts) {
         debug('adding self artifacts to context', state[action].artifacts);
         addOutputsToContext(ctx, state[action].artifacts);
+        runtime.updateProviderArtifacts(state[action].artifacts);
       }
 
       debug('run action in layer', action);
       const newArtifacts = await runStep(
         runtime,
         {
-          name,
-          version,
+          ref,
           currentLabel: action,
         },
         def.getConfig(action, ctx),
@@ -365,7 +370,7 @@ export async function getOutputs(
   runtime: ChainBuilderRuntime,
   def: ChainDefinition,
   state: DeploymentState
-): Promise<ChainArtifacts | null> {
+): Promise<ChainArtifacts> {
   const artifacts = getArtifacts(def, state);
   if (runtime.snapshots) {
     // need to load state as well. the states that we want to load are the "leaf" layers

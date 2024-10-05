@@ -5,7 +5,6 @@ import { subtask } from 'hardhat/config';
 import { SUBTASK_RUN_ANVIL_NODE } from '../task-names';
 
 import type { CannonRpcNode, RpcOptions } from '@usecannon/cli/src/rpc';
-import type { AnvilOptions } from '@usecannon/cli/src/util/anvil';
 
 export type SubtaskRunAnvilNodeResult = CannonRpcNode | undefined;
 
@@ -13,7 +12,7 @@ subtask(SUBTASK_RUN_ANVIL_NODE).setAction(async ({ dryRun, anvilOptions }, hre):
   if (hre.network.name === 'hardhat') return;
   if (!dryRun && hre.network.name !== 'cannon') return;
 
-  const nodeOptions: AnvilOptions = {
+  const nodeOptions: Record<string, any> = {
     accounts: 10, // in hardhat, default is 10
     ...(anvilOptions || {}),
   };

@@ -11,11 +11,11 @@ import { alter } from './alter';
 // Jest Mocking
 jest.mock('../settings', () => ({
   resolveCliSettings: jest.fn().mockReturnValue({
-    registryProviderUrl: 'http://localhost:3000',
+    registryRpcUrl: 'http://localhost:3000',
     registryChainId: '123', // or whatever value is appropriate in your case
     privateKey: generatePrivateKey(), // or whatever value is appropriate in your case
     cannonDirectory: dirSync().name,
-    providerUrl: 'http://localhost:8545',
+    rpcUrl: 'http://localhost:8545',
     // Add other properties as needed
   }),
 }));
@@ -78,7 +78,8 @@ describe('alter', () => {
       miscUrl: 'file:/usecannon.com/misc',
       meta: {},
       options: {},
-    };
+      chainId,
+    } satisfies DeploymentInfo;
     jest.spyOn(mockedFallBackRegistry, 'publish').mockResolvedValue([]);
     jest.spyOn(mockedFallBackRegistry, 'getMetaUrl').mockResolvedValue(metaUrl);
     jest.spyOn(CannonStorage.prototype, 'readDeploy').mockResolvedValue(testPkgData);

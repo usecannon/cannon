@@ -1,12 +1,12 @@
 import { OnChainRegistry, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
-import { blueBright, green } from 'chalk';
+import { blueBright, green, bold } from 'chalk';
 import _ from 'lodash';
 import prompts from 'prompts';
 import * as viem from 'viem';
-import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';
-import { resolveRegistryProviders } from '../util/provider';
+import { resolveProviderAndSigners, ProviderAction } from '../util/provider';
+import { log } from '../util/console';
 
 interface Params {
   cliSettings: CliSettings;
@@ -30,25 +30,7 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     options.chainId = Number(chainIdPrompt.value);
   }
 
-  console.log();
-
-  if (!cliSettings.privateKey) {
-    const keyPrompt = await prompts({
-      type: 'text',
-      name: 'value',
-      message: 'Enter the private key of the package owner to unpublish',
-      style: 'password',
-      validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
-    });
-
-    if (!keyPrompt.value) {
-      throw new Error('A valid private key is required.');
-    }
-
-    cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
-  }
-
-  console.log();
+  log();
 
   const fullPackageRef = new PackageReference(packageRef).fullPackageRef;
 
@@ -67,39 +49,69 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     overrides.value = options.value;
   }
 
-  const registryProviders = await resolveRegistryProviders(cliSettings);
-
-  // Initialize pickedRegistryProvider with the first provider
-  let [pickedRegistryProvider] = registryProviders;
-
   // if it's using the default config, prompt the user to choose a registry provider
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Custom registry settings are not supported yet.');
 
-  const choices = registryProviders.reverse().map((p) => ({
-    title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
-    value: p,
-  }));
+  if (cliSettings.isE2E) {
+    // anvil optimism fork
+    cliSettings.registries[0].rpcUrl = ['http://127.0.0.1:9546'];
+    // anvil mainnet fork
+    cliSettings.registries[1].rpcUrl = ['http://127.0.0.1:9545'];
+  }
 
-  // Override pickedRegistryProvider with the selected provider
-  pickedRegistryProvider = (
-    await prompts([
-      {
-        type: 'select',
-        name: 'pickedRegistryProvider',
-        message: 'Which registry would you like to use? (Cannon will find the package on either.):',
-        choices,
-      },
-    ])
-  ).pickedRegistryProvider;
+  // initialized optimism as the default registry
+  let [writeRegistry] = cliSettings.registries;
+
+  if (!cliSettings.isE2E) {
+    const choices = cliSettings.registries.map((p) => ({
+      title: `${p.name ?? 'Unknown Network'} (Chain ID: ${p.chainId})`,
+      value: p,
+    }));
+
+    // override writeRegistry with the picked provider
+    writeRegistry = (
+      await prompts([
+        {
+          type: 'select',
+          name: 'writeRegistry',
+          message: 'Which registry would you like to use? (Cannon will find the package on either):',
+          choices,
+        },
+      ])
+    ).writeRegistry;
+
+    log();
+  }
+
+  log(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
+
+  const readRegistry = _.differenceWith(cliSettings.registries, [writeRegistry], _.isEqual)[0];
+  const registryProviders = await Promise.all([
+    // write to picked provider
+    resolveProviderAndSigners({
+      chainId: writeRegistry.chainId!,
+      privateKey: cliSettings.privateKey!,
+      checkProviders: writeRegistry.rpcUrl,
+      action: ProviderAction.WriteProvider,
+    }),
+    // read from the other one
+    resolveProviderAndSigners({
+      chainId: readRegistry.chainId!,
+      checkProviders: readRegistry.rpcUrl,
+      action: ProviderAction.ReadProvider,
+    }),
+  ]);
+
+  const [writeRegistryProvider] = registryProviders;
 
   const registryAddress =
-    cliSettings.registries.find((registry) => registry.chainId === pickedRegistryProvider.provider.chain?.id)?.address ||
+    cliSettings.registries.find((registry) => registry.chainId === writeRegistryProvider.provider.chain?.id)?.address ||
     DEFAULT_REGISTRY_CONFIG[0].address;
 
   const onChainRegistry = new OnChainRegistry({
-    signer: pickedRegistryProvider.signers[0],
-    provider: pickedRegistryProvider.provider,
+    signer: writeRegistryProvider.signers[0],
+    provider: writeRegistryProvider.provider,
     address: registryAddress,
     overrides,
   });
@@ -111,7 +123,7 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     // if user has specified a full package ref, use it to fetch the deployment
     deploys = [{ name: fullPackageRef, chainId: options.chainId }];
   } else {
-    // Check for deployments that are relevant to the provided packageRef
+    // check for deployments that are relevant to the provided packageRef
     deploys = await localRegistry.scanDeploys(packageRef, Number(options.chainId));
   }
 
@@ -129,10 +141,9 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
 
   const publishedDeploys = deploys.reduce((acc: any[], deploy, index) => {
     const [url, metaUrl] = onChainResults[index];
-    if (url && metaUrl) {
-      // note: name should be an array to be used in _preparePackageData function
-      acc.push({ ...deploy, name: [deploy.name], url, metaUrl });
-    }
+    // note: name should be an array to be used in _preparePackageData function
+    acc.push({ ...deploy, name: [deploy.name], url, metaUrl });
+
     return acc;
   }, []);
 
@@ -142,7 +153,7 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
 
   let selectedDeploys;
   if (publishedDeploys.length > 1) {
-    console.log();
+    log();
 
     const prompt = await prompts({
       type: 'multiselect',
@@ -162,7 +173,7 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     });
 
     if (!prompt.value) {
-      console.log('You must select a package to unpublish');
+      log('You must select a package to unpublish');
       process.exit(1);
     }
 
@@ -171,8 +182,8 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     selectedDeploys = publishedDeploys;
   }
 
-  console.log();
-  console.log(
+  log();
+  log(
     `\nSettings:\n - Max Fee Per Gas: ${
       overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
     }\n - Max Priority Fee Per Gas: ${
@@ -180,16 +191,19 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     }\n - Gas Limit: ${overrides.gasLimit ? overrides.gasLimit : 'default'}\n` +
       " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
   );
-  console.log();
+
+  log();
+  log('Submitting transaction, waiting for transaction to succeed...');
+  log();
 
   if (selectedDeploys.length > 1) {
     const [hash] = await onChainRegistry.unpublishMany(selectedDeploys);
 
-    console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+    log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
   } else {
     const [deploy] = selectedDeploys;
     const hash = await onChainRegistry.unpublish(deploy.name, deploy.chainId);
 
-    console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+    log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
   }
 }

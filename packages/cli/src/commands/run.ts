@@ -9,23 +9,22 @@ import {
   getOutputs,
   PackageReference,
   renderTrace,
+  TraceEntry,
 } from '@usecannon/builder';
-import { TraceEntry } from '@usecannon/builder/src';
+import { bold, gray, green, greenBright, yellow } from 'chalk';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { bold, gray, green, greenBright, yellow } from 'chalk';
-
+import { ANVIL_FIRST_ADDRESS } from '../constants';
 import { setupAnvil } from '../helpers';
 import { getMainLoader } from '../loader';
-import onKeypress from '../util/on-keypress';
-import { PackageSpecification } from '../types';
-import { resolveCliSettings } from '../settings';
-import { ANVIL_FIRST_ADDRESS } from '../constants';
-import { CannonRpcNode, getProvider } from '../rpc';
 import { createDefaultReadRegistry } from '../registry';
+import { CannonRpcNode, getProvider } from '../rpc';
+import { resolveCliSettings } from '../settings';
+import { PackageSpecification } from '../types';
+import { log, warn } from '../util/console';
 import { getContractsRecursive } from '../util/contracts-recursive';
-
+import onKeypress from '../util/on-keypress';
 import { build } from './build';
 import { interact } from './interact';
 
@@ -116,7 +115,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
     // Handle deprecated preset specification
     if (options.presetArg) {
-      console.warn(
+      warn(
         yellow(
           bold(
             'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
@@ -159,15 +158,15 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       buildOutputs.push({ pkg, outputs });
     }
 
-    console.log(greenBright(`${bold(`${name}:${version}@${preset}`)} has been deployed to a local node.`));
+    log(greenBright(`${bold(`${name}:${version}@${preset}`)} has been deployed to a local node.`));
 
     if (node.forkProvider) {
-      console.log(gray('Running from fork provider'));
+      log(gray('Running from fork provider'));
     }
   }
 
   if (!signers.length) {
-    console.warn(
+    warn(
       yellow(
         '\nWARNING: no signers resolved. Specify signers with --mnemonic or --private-key (or use --impersonate if on a fork).'
       )
@@ -176,7 +175,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
   if (options.logs) {
     await new Promise(() => {
-      console.log('Displaying node logs.....');
+      log('Displaying node logs.....');
       nodeLogging.enable();
     });
   }
@@ -205,21 +204,21 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
         let renderedTrace = renderTrace(mergedOutputs, traces);
 
         if (traceLevel === 1) {
-          // only show lines containing `console.log`s, and prettify
+          // only show lines containing `log`s, and prettify
           renderedTrace = renderedTrace
             .split('\n')
-            .filter((l) => l.includes('console.log('))
+            .filter((l) => l.includes('log('))
             .map((l) => l.trim())
             .join('\n');
         }
 
         if (renderedTrace) {
-          console.log(`trace: ${txn.hash}`);
-          console.log(renderedTrace);
-          console.log();
+          log(`trace: ${txn.hash}`);
+          log(renderedTrace);
+          log();
         }
       } catch (err) {
-        console.log('could not render trace for transaction:', err);
+        log('could not render trace for transaction:', err);
       }
     }
   }
@@ -229,12 +228,12 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
   if (options.nonInteractive) {
     await new Promise(() => {
-      console.log(gray('Non-interactive mode enabled. Press Ctrl+C to exit.'));
+      log(gray('Non-interactive mode enabled. Press Ctrl+C to exit.'));
     });
   } else {
-    console.log();
-    console.log(INITIAL_INSTRUCTIONS);
-    console.log(INSTRUCTIONS);
+    log();
+    log(INITIAL_INSTRUCTIONS);
+    log(INSTRUCTIONS);
 
     await onKeypress(async (evt, { pause, stop }) => {
       if (evt.ctrl && evt.name === 'c') {
@@ -243,11 +242,11 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       } else if (evt.name === 'a') {
         // Toggle showAnvilLogs when the user presses "a"
         if (nodeLogging.enabled()) {
-          console.log(gray('Paused anvil logs...'));
-          console.log(INSTRUCTIONS);
+          log(gray('Paused anvil logs...'));
+          log(INSTRUCTIONS);
           nodeLogging.disable();
         } else {
-          console.log(gray('Unpaused anvil logs...'));
+          log(gray('Unpaused anvil logs...'));
           nodeLogging.enable();
         }
       } else if (evt.name === 'i') {
@@ -267,26 +266,26 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
           });
         });
 
-        console.log(INITIAL_INSTRUCTIONS);
-        console.log(INSTRUCTIONS);
+        log(INITIAL_INSTRUCTIONS);
+        log(INSTRUCTIONS);
       } else if (evt.name == 'v') {
         // Toggle showAnvilLogs when the user presses "a"
         if (traceLevel === 0) {
           traceLevel = 1;
-          console.log(gray('Enabled display of console.log events from transactions...'));
+          log(gray('Enabled display of log events from transactions...'));
         } else if (traceLevel === 1) {
           traceLevel = 2;
-          console.log(gray('Enabled display of full transaction logs...'));
+          log(gray('Enabled display of full transaction logs...'));
         } else {
           traceLevel = 0;
-          console.log(gray('Disabled transaction tracing...'));
+          log(gray('Disabled transaction tracing...'));
         }
       } else if (evt.name === 'h') {
         if (nodeLogging.enabled()) return;
 
-        if (options.helpInformation) console.log('\n' + options.helpInformation);
-        console.log();
-        console.log(INSTRUCTIONS);
+        if (options.helpInformation) log('\n' + options.helpInformation);
+        log();
+        log(INSTRUCTIONS);
       }
     });
   }
@@ -305,7 +304,7 @@ async function createLoggingInterface(node: CannonRpcNode) {
       .join('\n');
 
     if (enabled) {
-      console.log(newData);
+      log(newData);
     } else {
       outputBuffer += '\n' + newData;
     }
@@ -316,7 +315,7 @@ async function createLoggingInterface(node: CannonRpcNode) {
 
     enable: () => {
       if (outputBuffer) {
-        console.log(outputBuffer);
+        log(outputBuffer);
         outputBuffer = '';
       }
 

@@ -3,6 +3,7 @@ import { BUILD_VERSION } from '../constants';
 import { InMemoryRegistry } from '../registry';
 import action from './pull';
 import { fakeCtx, fakeRuntime } from './utils.test.helper';
+import { PackageReference } from '../package-reference';
 
 jest.mock('../loader');
 
@@ -63,9 +64,113 @@ describe('steps/pull.ts', () => {
           fakeRuntime,
           fakeCtx,
           { source: 'undefined-deployment:1.0.0' },
-          { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
+          { ref: new PackageReference('package:1.0.0'), currentLabel: 'import.something' }
         )
       ).rejects.toThrowError('deployment not found');
+    });
+
+    it('throws if target name is longer than 32 bytes', async () => {
+      jest.mocked(fakeRuntime.readDeploy).mockResolvedValue({
+        generator: 'cannon test',
+        timestamp: 1234,
+        state: {
+          'deploy.Woot': {
+            version: BUILD_VERSION,
+            hash: 'arst',
+            artifacts: {
+              contracts: {
+                Woot: {
+                  address: '0xfoobar',
+                  abi: [],
+                  deployTxnHash: '0x',
+                  contractName: 'Woot',
+                  sourceName: 'Woot.sol',
+                  deployedOn: 'deploy.Woot',
+                  gasCost: '0',
+                  gasUsed: 0,
+                },
+              },
+            },
+          },
+        },
+        options: {},
+        def: {
+          name: 'package',
+          version: '1.0.0',
+          var: {
+            main: {
+              sophisticated: 'fast',
+            },
+          },
+          pull: {
+            source: { source: 'package-name-longer-than-32bytes1337:1.0.0' },
+          },
+        } as any,
+        meta: {},
+        miscUrl: 'https://something.com',
+        chainId: 1234,
+      });
+
+      await expect(() =>
+        action.exec(
+          fakeRuntime,
+          fakeCtx,
+          { source: 'package-name-longer-than-32bytes1337:1.0.0' },
+          { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.whatever' }
+        )
+      ).rejects.toThrowError('Package name exceeds 32 bytes');
+    });
+
+    it('throws if target version is longer than 32 bytes', async () => {
+      jest.mocked(fakeRuntime.readDeploy).mockResolvedValue({
+        generator: 'cannon test',
+        timestamp: 1234,
+        state: {
+          'deploy.Woot': {
+            version: BUILD_VERSION,
+            hash: 'arst',
+            artifacts: {
+              contracts: {
+                Woot: {
+                  address: '0xfoobar',
+                  abi: [],
+                  deployTxnHash: '0x',
+                  contractName: 'Woot',
+                  sourceName: 'Woot.sol',
+                  deployedOn: 'deploy.Woot',
+                  gasCost: '0',
+                  gasUsed: 0,
+                },
+              },
+            },
+          },
+        },
+        options: {},
+        def: {
+          name: 'package',
+          version: '1.0.0',
+          var: {
+            main: {
+              sophisticated: 'fast',
+            },
+          },
+          pull: {
+            source: { source: 'package:package-version-longer-than-32bytes1337' },
+          },
+        } as any,
+        meta: {},
+        miscUrl: 'https://something.com',
+        chainId: 1234,
+      });
+
+      await expect(() =>
+        action.exec(
+          fakeRuntime,
+          fakeCtx,
+          { source: 'package:package-version-longer-than-32bytes1337' },
+          { ref: new PackageReference('package:1.0.0'), currentLabel: 'pull.whatever' }
+        )
+      ).rejects.toThrowError('Package version exceeds 32 bytes');
     });
 
     it('works properly', async () => {
@@ -105,13 +210,14 @@ describe('steps/pull.ts', () => {
         } as any,
         meta: {},
         miscUrl: 'https://something.com',
+        chainId: 1234,
       });
 
       const result = await action.exec(
         fakeRuntime,
         fakeCtx,
         { source: 'hello:1.0.0' },
-        { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
+        { ref: new PackageReference('package:1.0.0'), currentLabel: 'import.something' }
       );
 
       expect(result).toStrictEqual({
@@ -138,7 +244,7 @@ describe('steps/pull.ts', () => {
         fakeRuntime,
         fakeCtx,
         { source: 'hello:1.0.0@main' },
-        { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
+        { ref: new PackageReference('package:1.0.0'), currentLabel: 'import.something' }
       );
 
       expect(withPreset).toStrictEqual({
@@ -165,7 +271,7 @@ describe('steps/pull.ts', () => {
         fakeRuntime,
         fakeCtx,
         { source: 'hello@main' },
-        { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
+        { ref: new PackageReference('package:1.0.0'), currentLabel: 'import.something' }
       );
 
       expect(withoutVersion).toStrictEqual({
@@ -192,7 +298,7 @@ describe('steps/pull.ts', () => {
         fakeRuntime,
         fakeCtx,
         { source: 'hello' },
-        { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
+        { ref: new PackageReference('package:1.0.0'), currentLabel: 'import.something' }
       );
 
       expect(onlyName).toStrictEqual({

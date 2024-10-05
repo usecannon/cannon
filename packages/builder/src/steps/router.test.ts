@@ -1,6 +1,7 @@
 import { fixtureContractData, fixtureCtx, fixtureSigner, fixtureTransactionReceipt } from '../../test/fixtures';
 import { validateConfig } from '../actions';
 import action from './router';
+import { PackageReference } from '../package-reference';
 import { fakeRuntime } from './utils.test.helper';
 
 describe('steps/router.ts', () => {
@@ -66,8 +67,7 @@ describe('steps/router.ts', () => {
     it('throws an error on missing contract file', async () => {
       const contracts = { Greeter: fixtureContractData('Greeter') };
       const step = {
-        name: 'router-test',
-        version: '0.0.0',
+        ref: new PackageReference('router-test:0.0.0'),
         currentLabel: 'router.Router',
       };
 
@@ -83,8 +83,7 @@ describe('steps/router.ts', () => {
       const contracts = { Greeter: fixtureContractData('Greeter') };
 
       const step = {
-        name: 'router-test',
-        version: '0.0.0',
+        ref: new PackageReference('router-test:0.0.0'),
         currentLabel: 'router.Router',
       };
 

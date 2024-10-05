@@ -1,4 +1,5 @@
 # Cannon
+
 ![Cannon](packages/website/public/images/terminal-example.svg)
 
 Cannon is a DevOps tool for EVM chains. It's a tool for testing, deploying, and publishing of smart contracts.
@@ -30,34 +31,36 @@ Cannon is 100% open-source, from the dev tooling to our hosted infrastructure.
 
 Community contributions to Cannon are greatly appreciated. Please open pull requests, issues, and discussions in the GitHub repository.
 
-To load a development version of Cannon, start by installing the dependencies from the root directory:
+To load a development version of Cannon, first start by making sure you have the correct node and [pnpm](https://pnpm.io/installation) versions installed.
+
+Then, install the dependencies from the root directory:
 
 ```
-npm ci
+pnpm i
 ```
 
 After making changes, rebuild the project:
 
 ```
-npm run build
+pnpm build
 ```
 
 Use the development version of the CLI:
 
 ```
-cd ./packages/cli && npm start -- <package:version>
+cd ./packages/cli && pnpm start -- <package:version>
 ```
 
 Test changes to the Hardhat plug-in in the sample project:
 
 ```
-cd ./examples/sample-hardhat-project && npx hardhat cannon:build
+cd ./examples/sample-hardhat-project && pnpm hardhat cannon:build
 ```
 
 Preview updates to the website
 
 ```
-cd ./packages/website && npm run dev
+cd ./packages/website && pnpm dev
 ```
 
 ### Contribution Guidelines
@@ -74,11 +77,10 @@ We bump and publish manually using lerna's [version and publish](https://lerna.j
 
 - Note, DO NOT use the version name as the branch name as this can cause conflicts with tags. (eg `v2.12.1` as a branch name is incorrect)
 
-2. Run `npm run version-*` where `*` can be patch, minor or major.
+2. Run `pnpm run version-*` where `*` can be patch, minor or major.
 3. Create PR for the release branch
-4. From the branch, run `npm run publish` and follow the prompts.
-5. Run `npm run update-stables` to make sure that all the other private packages reference to new release.
-6. Merge release PR
+4. From the branch, run `pnpm run publish` and follow the prompts.
+5. Merge release PR
 
 #### Alpha Release
 
@@ -86,9 +88,28 @@ We bump and publish manually using lerna's [version and publish](https://lerna.j
 
 - Note, DO NOT use the version name as the branch name as this can cause conflicts with tags. (eg `v2.12.1-alpha.0` as a branch name is incorrect)
 
-2. Run `npm run version-alpha` to bump package versions to an alpha version.
+2. Run `pnpm version-alpha` to bump package versions to an alpha version.
 3. Create PR for the branch and merge when required tests are passing
-4. From the `main` branch, run `npm run publish-alpha` and follow the prompts.
+4. From the `main` branch, run `pnpm publish-alpha` and follow the prompts.
+
+#### Dependabot Configuration
+
+To keep Cannon updated, we recommend using dependabot to regularly check for updates.
+
+Below is an example of a dependabot configuration that checks daily for cannon updates and applies them:
+
+```
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    groups:
+      cannon:
+        patterns:
+          - "@usecannon*"
+          - "*cannon*"
+```
 
 #### Changesets
 
@@ -100,7 +121,7 @@ It only publishes releases if any changeset PR's have been added to the commit h
 To trigger a new version bump run the following command (from the root of the repo):
 
 ```
-  npm run changeset
+  pnpm changeset
 ```
 
 ## License

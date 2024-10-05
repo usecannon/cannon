@@ -3,31 +3,38 @@ import { AbiFunction, AbiEvent } from 'abitype';
 import { bold, gray, green, italic, yellow } from 'chalk';
 import { ContractData, DeploymentInfo, decodeTxError } from '@usecannon/builder';
 
-import { resolveCliSettings } from '../../src/settings';
-
+import { log, error, warn } from '../util/console';
 import { readDeployRecursive } from '../package';
-import { formatAbiFunction, getSighash } from '../helpers';
+import { ensureChainIdConsistency, formatAbiFunction, getSighash } from '../helpers';
+import { resolveCliSettings } from '../../src/settings';
+import { isTxHash } from '../util/is-tx-hash';
+import { getChainIdFromRpcUrl, isURL, ProviderAction, resolveProvider } from '../util/provider';
 
 export async function decode({
   packageRef,
   data,
   chainId,
+  rpcUrl,
   presetArg,
   json = false,
 }: {
   packageRef: string;
-  data: viem.Hash[];
-  chainId: number;
+  data: viem.Hash;
+  chainId?: number;
+  rpcUrl?: string;
   presetArg: string;
   json: boolean;
 }) {
-  if (!data[0].startsWith('0x')) {
-    data[0] = ('0x' + data[0]) as viem.Hash;
+  const cliSettings = resolveCliSettings();
+
+  // Add 0x prefix to data or transaction hash if missing
+  if (!data.startsWith('0x')) {
+    data = ('0x' + data) as viem.Hash;
   }
 
   // Handle deprecated preset specification
   if (presetArg) {
-    console.warn(
+    warn(
       yellow(
         bold(
           'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
@@ -37,15 +44,35 @@ export async function decode({
     packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
 
-  const deployInfos = await readDeployRecursive(packageRef, chainId);
+  let inputData = data;
+
+  if (isTxHash(data)) {
+    if (!chainId && rpcUrl && isURL(rpcUrl)) {
+      chainId = await getChainIdFromRpcUrl(rpcUrl);
+    } else {
+      if (!chainId) throw new Error('--chain-id or --rpc-url is required to decode transaction data');
+    }
+
+    await ensureChainIdConsistency(rpcUrl, chainId);
+
+    const { provider } = await resolveProvider({ action: ProviderAction.ReadProvider, quiet: true, cliSettings, chainId });
+
+    const transaction = await provider.getTransaction({
+      hash: data,
+    });
+
+    inputData = transaction.input;
+  }
+
+  const deployInfos = await readDeployRecursive(packageRef, chainId!);
 
   const abis = deployInfos.flatMap((deployData) => _getAbis(deployData));
-  const parsed = _parseData(abis, data);
+  const parsed = _parseData(abis, inputData);
 
   if (!parsed) {
-    const errorMessage = decodeTxError(data[0], abis);
+    const errorMessage = decodeTxError(inputData, abis);
     if (errorMessage) {
-      console.log(errorMessage);
+      log(errorMessage);
       return;
     }
     throw new Error('Could not decode transaction data');
@@ -62,18 +89,17 @@ export async function decode({
   });
 
   if (json || !fragment) {
-    return console.log(JSON.stringify(parsed.result, null, 2));
+    return log(JSON.stringify(parsed.result, null, 2));
   }
 
   const sighash = getSighash(fragment as AbiFunction | AbiEvent);
 
-  console.log();
-  console.log(green(`${formatAbiFunction(fragment as any)}`), `${sighash ? italic(gray(sighash)) : ''}`);
+  log(green(`${formatAbiFunction(fragment as any)}`), `${sighash ? italic(gray(sighash)) : ''}`);
 
   if ((parsed.result as viem.DecodeErrorResultReturnType).errorName) {
-    const errorMessage = decodeTxError(data[0], abis);
+    const errorMessage = decodeTxError(inputData, abis);
     if (errorMessage) {
-      console.log(errorMessage);
+      log(errorMessage);
       return;
     }
   }
@@ -84,7 +110,7 @@ export async function decode({
     switch (true) {
       case input.type.startsWith('tuple'): {
         // e.g. tuple, tuple[]
-        console.log(renderParam(offset, input));
+        log(renderParam(offset, input));
         // @ts-ignore: TODO - figure out how to type this
         const components = input.components;
         const values = input.type.endsWith('[]') ? value.map(Object.values) : [value];
@@ -93,20 +119,19 @@ export async function decode({
             renderArgs(
               {
                 ...components[i],
-                name: `[${i}]`,
+                name: `${components[i].name}`,
               },
-              v[i],
+              v[`${components[i].name}`] ? v[`${components[i].name}`] : v[i],
               offset.repeat(2)
             );
           }
-          console.log();
         }
         break;
       }
 
       case input.type.endsWith('[]'): {
         //e.g. uint256[], bool[], bytes[], bytes8[], bytes32[], etc
-        console.log(renderParam(offset, input));
+        log(renderParam(offset, input));
         for (let i = 0; i < value.length; i++) {
           renderArgs(
             {
@@ -122,7 +147,7 @@ export async function decode({
       }
 
       default: {
-        console.log(renderParam(offset, input), _renderValue(input, value));
+        log(renderParam(offset, input), _renderValue(input, value));
       }
     }
   };
@@ -132,8 +157,6 @@ export async function decode({
       renderArgs((fragment as viem.AbiFunction).inputs[index], parsed.result.args[index]);
     }
   }
-
-  console.log();
 }
 
 function _getAbis(deployData: DeploymentInfo) {
@@ -148,18 +171,25 @@ function _renderValue(type: viem.AbiParameter, value: string | bigint) {
       return value.toString();
 
     case type.type === 'address':
-      return viem.getAddress(value);
-
+      return viem.getAddress(value as string);
     case type.type == 'bool':
       return typeof value == 'string' && value.startsWith('0x') ? viem.hexToBool(value as viem.Hex) : value;
 
     case type.type.startsWith('bytes'):
       try {
-        return viem.hexToString(value as viem.Hex, { size: 32 });
+        const decodedBytes32 = viem.hexToString(value as viem.Hex, { size: 32 });
+
+        // Check for characters outside the ASCII range (0-127)
+        // in case the bytes32 value isnt meant to be converted (e.g an identifier)
+        if (/[\u0080-\uFFFF]/.test(decodedBytes32)) {
+          return `${value}`;
+        }
+
+        return decodedBytes32;
       } catch (err) {
         const settings = resolveCliSettings();
         if (settings.trace) {
-          console.error(err);
+          error(err);
         }
       }
 
@@ -169,18 +199,18 @@ function _renderValue(type: viem.AbiParameter, value: string | bigint) {
   }
 }
 
-function _parseData(abis: ContractData['abi'][], data: viem.Hash[]) {
-  if (data.length === 0) return null;
+function _parseData(abis: ContractData['abi'][], data: viem.Hash) {
+  if (!data) return null;
 
   for (const abi of abis) {
     const result =
-      _try(() => viem.decodeErrorResult({ abi, data: data[0] })) ||
-      _try(() => viem.decodeFunctionData({ abi, data: data[0] })) ||
+      _try(() => viem.decodeErrorResult({ abi, data: data })) ||
+      _try(() => viem.decodeFunctionData({ abi, data: data })) ||
       _try(() =>
         viem.decodeEventLog({
           abi,
-          topics: (data.length > 1 ? data.slice(0, -1) : data) as [viem.Hex],
-          data: data.length > 1 ? data[data.length - 1] : '0x',
+          topics: [data] as [viem.Hex],
+          data,
         })
       );
 

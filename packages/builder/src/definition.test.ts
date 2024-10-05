@@ -28,6 +28,40 @@ describe('ChainDefinition', () => {
 
       expect(() => new ChainDefinition(rawDef)).toThrow('Unrecognized action type invalid at [invalid.saturday]');
     });
+
+    it('throws an error when trying to use a definition with name over 32 bytes', () => {
+      const rawDef = {
+        name: 'package-name-longer-than-32bytes1337',
+        version: '1.0.0',
+      };
+
+      expect(() => new ChainDefinition(rawDef)).toThrow('Package name exceeds 32 bytes');
+    });
+
+    it('throws an error when trying to use a definition with version over 32 bytes', () => {
+      const rawDef = {
+        name: 'package',
+        version: 'package-version-longer-than-32bytes1337',
+      };
+
+      expect(() => new ChainDefinition(rawDef)).toThrow('Package version exceeds 32 bytes');
+    });
+  });
+
+  it('does not have output clash on var or settings', () => {
+    const rawDef: RawChainDefinition = {
+      name: 'test',
+      version: '1.0.0',
+      var: {
+        a: { b: '<%= settings.c %>', description: 'desc 1' },
+        d: { c: '1234', description: 'desc 2' },
+      },
+      deploy: {
+        woot: { artifact: 'wohoo', args: ['<%= settings.b %>'], depends: [] },
+      },
+    };
+
+    expect(new ChainDefinition(rawDef)).toBeTruthy;
   });
 
   describe('validatePackageName()', () => {

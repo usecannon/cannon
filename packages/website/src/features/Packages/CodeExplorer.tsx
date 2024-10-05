@@ -14,12 +14,14 @@ import {
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 import { CodePreview } from '@/components/CodePreview';
-import { useQueryIpfsData } from '@/hooks/ipfs';
+import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { DownloadIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { isEmpty } from 'lodash';
+import { DeploymentInfo } from '@usecannon/builder';
+import { ApiPackage } from '@usecannon/api/dist/src/types';
 
-const handleDownload = (content: JSON, filename: string) => {
+const handleDownload = (content: Record<string, unknown>, filename: string) => {
   const blob = new Blob([JSON.stringify(content, null, 2)], {
     type: 'application/json',
   });
@@ -80,7 +82,7 @@ const PackageButton: FC<{
 };
 
 export const CodeExplorer: FC<{
-  pkg: any;
+  pkg: ApiPackage;
   name: string;
   moduleName?: string;
   source: string;
@@ -104,9 +106,11 @@ export const CodeExplorer: FC<{
     name,
     key: -1,
   });
-  const { data: metadata } = useQueryIpfsData(pkg?.metaUrl, !!pkg?.metaUrl);
+  const { data: metadata } = useQueryIpfsDataParsed<{
+    cannonfile: string;
+  }>(pkg.metaUrl);
 
-  const deploymentData = useQueryIpfsData(pkg?.deployUrl, !!pkg?.deployUrl);
+  const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(pkg.deployUrl);
 
   // Provisioned packages could be inside the "provision" (old) or "clone" (current) key
   // So we check both in order to keep backwards compatibility
@@ -114,7 +118,8 @@ export const CodeExplorer: FC<{
     deploymentData?.data?.def?.provision || deploymentData?.data?.def?.clone
       ? Object.keys(
           deploymentData?.data?.def?.provision ||
-            deploymentData?.data?.def?.clone
+            deploymentData?.data?.def?.clone ||
+            {}
         )
       : [];
   const provisionArtifacts = provisionedPackagesKeys.map((k: string) => {
@@ -144,31 +149,32 @@ export const CodeExplorer: FC<{
   const {
     data: provisionedPackageData,
     isLoading: isLoadingProvisionedPackageData,
-  } = useQueryIpfsData(
-    provisionArtifacts[selectedPackage.key]?.artifacts?.imports[
+  } = useQueryIpfsDataParsed<{ miscUrl: string }>(
+    provisionArtifacts[selectedPackage.key]?.artifacts?.imports?.[
       selectedPackage.name
     ]?.url,
-    !!provisionArtifacts[selectedPackage.key]?.artifacts?.imports[
+    !!provisionArtifacts[selectedPackage.key]?.artifacts?.imports?.[
       selectedPackage.name
     ]?.url
   );
-
   const provisionedMiscUrl = provisionedPackageData?.miscUrl;
+
   const { data: provisionedMiscData, isLoading: isLoadingProvisionedMiscData } =
-    useQueryIpfsData(provisionedMiscUrl, !!provisionedMiscUrl);
+    useQueryIpfsDataParsed<{ artifacts: Record<string, unknown> }>(
+      provisionedMiscUrl,
+      !!provisionedMiscUrl
+    );
 
   let miscUrl: string | undefined;
   if (deploymentData?.data) {
-    miscUrl =
-      typeof deploymentData?.data === 'string'
-        ? JSON.parse(deploymentData?.data)?.miscUrl
-        : JSON.parse(JSON.stringify((deploymentData as any)?.data))?.miscUrl;
+    miscUrl = deploymentData?.data?.miscUrl;
   }
 
-  const { data: miscData, isLoading: isLoadingMiscData } = useQueryIpfsData(
-    miscUrl,
-    !!miscUrl
-  );
+  const { data: miscData, isLoading: isLoadingMiscData } =
+    useQueryIpfsDataParsed<{ artifacts: Record<string, unknown> }>(
+      miscUrl,
+      !!miscUrl
+    );
 
   const isSelectedPackage = ({ key, name }: { key: number; name: string }) =>
     selectedPackage.key === key && selectedPackage.name === name;
@@ -346,7 +352,7 @@ export const CodeExplorer: FC<{
     window.history.pushState(
       null,
       '',
-      `/packages/${name}/${pkg.version}/${pkg.name}/code/${
+      `/packages/${name}/${pkg.version}/${pkg.chainId}-${pkg.preset}/code/${
         selectedPackage.name
       }?source=${encodeURIComponent(sourceKey)}`
     );
@@ -408,7 +414,7 @@ export const CodeExplorer: FC<{
               maxHeight={['140px', '140px', 'calc(100vh - 236px)']}
             >
               <Box px={3} pb={2}>
-                {artifacts.map(([artifactKey, artifactValue]: [any, any]) => {
+                {artifacts?.map(([artifactKey, artifactValue]: [any, any]) => {
                   return (
                     <Box key={artifactKey} mt={4}>
                       <Flex
@@ -504,7 +510,7 @@ export const CodeExplorer: FC<{
                   );
                 })}
 
-                {metadata?.cannonfile && (
+                {metadata?.cannonfile !== undefined && (
                   <>
                     <Box mt={4}>
                       <Flex

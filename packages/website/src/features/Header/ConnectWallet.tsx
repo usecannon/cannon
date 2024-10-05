@@ -1,6 +1,8 @@
+'use client';
+
+import { FC, ReactNode, useState } from 'react';
 import { Button, Flex, Image, useBreakpointValue } from '@chakra-ui/react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { FC, ReactNode, useState } from 'react';
 import ChainSelectorModal from '@/components/ChainSelectorModal';
 
 const styleMap = {
@@ -54,7 +56,7 @@ const CustomButton = ({
   </Button>
 );
 
-export const ConnectWallet: FC = () => {
+const ConnectWallet: FC = () => {
   const isMobile = useBreakpointValue([true, true, false]);
   const [showingChainModal, setShowingChainModal] = useState(false);
 
@@ -163,3 +165,5 @@ export const ConnectWallet: FC = () => {
     </ConnectButton.Custom>
   );
 };
+
+export default ConnectWallet;

@@ -20,6 +20,7 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
 
   return (
     <Flex flexDir="column" width="100%">
+      {/* Header */}
       <Box bg="black" borderBottom="1px solid" borderColor="gray.700">
         <Flex
           alignItems="center"
@@ -54,7 +55,7 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
               href={links.QUEUEFROMGITOPS}
               isActive={pathname.startsWith(links.QUEUEFROMGITOPS)}
             >
-              {isLarge && 'Queue '} Cannonfile
+              {isLarge && 'Queue '} Deployment
             </NavLink>
             <NavLink
               isSmall
@@ -66,6 +67,8 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
           </Flex>
         </Flex>
       </Box>
+
+      {/* Body */}
       <NoSSRWithSafe>{children}</NoSSRWithSafe>
     </Flex>
   );

@@ -5,9 +5,10 @@ import {
   ChainBuilderContext,
   ChainBuilderRuntimeInfo,
   computeTemplateAccesses,
+  mergeTemplateAccesses,
   PackageState,
   registerAction,
-  mergeTemplateAccesses,
+  template,
 } from '@usecannon/builder';
 import crypto from 'crypto';
 import Debug from 'debug';
@@ -89,7 +90,7 @@ const runAction = {
         return hashFs(pathToScan).toString('hex');
       } catch (err) {
         if ((err as any).code === 'ENOENT') {
-          //console.warn(`warning: could not check modified file at path '${pathToScan}'. this may be an error.`);
+          //warn(`warning: could not check modified file at path '${pathToScan}'. this may be an error.`);
           //return 'notfound';
 
           // TODO: there is no other way to tell if the runtime state is even supposed to be evaluated other than the existance or not of modified file paths
@@ -114,22 +115,22 @@ const runAction = {
   configInject(ctx: ChainBuilderContext, config: Config) {
     config = _.cloneDeep(config);
 
-    config.exec = _.template(config.exec)(ctx);
+    config.exec = template(config.exec)(ctx);
 
     config.modified = _.map(config.modified, (v) => {
-      return _.template(v)(ctx);
+      return template(v)(ctx);
     }) as [string, ...string[]];
 
     if (config.args) {
       config.args = _.map(config.args, (v) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
-        return JSON.parse(JSON.stringify(_.template(v)(ctx)));
+        return JSON.parse(JSON.stringify(template(v)(ctx)));
       });
     }
 
     if (config.env) {
       config.env = _.map(config.env, (v) => {
-        return _.template(v)(ctx);
+        return template(v)(ctx);
       });
     }
 
@@ -157,6 +158,12 @@ const runAction = {
     packageState: PackageState
   ): Promise<ChainArtifacts> {
     debug('exec', config);
+
+    // can only actually execute this step when the current runtime context is in the top level
+    // otherwise its a possible security issue because running arbitrary code
+    if (runtime.subpkgDepth > 0) {
+      throw new Error('Cannot execute `run` step outside its original context. Please contact the package owner.');
+    }
 
     if (!fs.statSync(config.exec).isFile()) {
       throw new Error(`Invalid "exec" value for "run" operation. Path "${config.exec}" not found.`);

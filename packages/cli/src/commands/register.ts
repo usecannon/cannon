@@ -2,13 +2,14 @@ import _ from 'lodash';
 import Debug from 'debug';
 import * as viem from 'viem';
 import prompts from 'prompts';
-import { blueBright, gray, green } from 'chalk';
+import { blueBright, gray, green, bold } from 'chalk';
 import { OnChainRegistry, prepareMulticall, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 
 import { CliSettings } from '../settings';
-import { resolveRegistryProviders } from '../util/provider';
-import { isPackageRegistered, waitForEvent } from '../util/register';
-import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
+import { log } from '../util/console';
+import { waitForEvent } from '../util/wait-for-event';
+import { resolveProviderAndSigners, ProviderAction } from '../util/provider';
+import { isPackageRegistered } from '../util/register';
 
 const debug = Debug('cannon:cli:register');
 
@@ -20,37 +21,40 @@ interface Params {
 }
 
 export async function register({ cliSettings, options, packageRefs, fromPublish }: Params) {
-  if (!cliSettings.privateKey) {
-    const keyPrompt = await prompts({
-      type: 'text',
-      name: 'value',
-      message: 'Enter the private key for the signer that will register packages',
-      style: 'password',
-      validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
-    });
-
-    if (!keyPrompt.value) {
-      throw new Error('A valid private key is required.');
-    }
-
-    cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
-  }
-
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
   // mock provider urls when the execution comes from e2e tests
   if (cliSettings.isE2E) {
     // anvil optimism fork
-    cliSettings.registries[0].providerUrl = ['http://127.0.0.1:9546'];
+    cliSettings.registries[0].rpcUrl = ['http://127.0.0.1:9546'];
     // anvil mainnet fork
-    cliSettings.registries[1].providerUrl = ['http://127.0.0.1:9545'];
+    cliSettings.registries[1].rpcUrl = ['http://127.0.0.1:9545'];
   }
 
   debug('Registries list: ', cliSettings.registries);
 
+  // [optimism registry, mainnet registry]
+  const [readRegistry, writeRegistry] = cliSettings.registries;
+
+  log(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
+
+  const registryProviders = await Promise.all([
+    resolveProviderAndSigners({
+      chainId: readRegistry.chainId!,
+      checkProviders: readRegistry.rpcUrl,
+      action: ProviderAction.ReadProvider,
+    }),
+    resolveProviderAndSigners({
+      chainId: writeRegistry.chainId!,
+      privateKey: cliSettings.privateKey!,
+      checkProviders: writeRegistry.rpcUrl,
+      action: ProviderAction.WriteProvider,
+    }),
+  ]);
+
   const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
-  const [optimismRegistryProvider, mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
+  const [optimismRegistryProvider, mainnetRegistryProvider] = registryProviders;
 
   // if any of the packages are registered, throw an error
   const isRegistered = await Promise.all(
@@ -141,14 +145,12 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
 
   const currentGasPrice = await mainnetRegistryProvider.provider.getGasPrice();
 
-  console.log('');
-  console.log('You are about to register the following packages:');
-  packageRefs.forEach((pkg: PackageReference) => console.log(' - Package:', blueBright(pkg.name)));
-  console.log();
-  console.log(
-    `The transaction will cost ~${viem.formatEther(estimateGas * currentGasPrice)} ETH on ${mainnetRegistryConfig.name}.`
-  );
-  console.log('');
+  log('');
+  log('You are about to register the following packages:');
+  packageRefs.forEach((pkg: PackageReference) => log(' - Package:', blueBright(pkg.name)));
+  log();
+  log(`The transaction will cost ~${viem.formatEther(estimateGas * currentGasPrice)} ETH on ${mainnetRegistryConfig.name}.`);
+  log('');
 
   if (!options.skipConfirm) {
     const confirm = await prompts({
@@ -158,26 +160,27 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
     });
 
     if (!confirm.confirmation) {
-      console.log('Cancelled');
+      log('Cancelled');
       process.exit(1);
     }
   }
 
-  console.log('Submitting transaction...');
+  log('Submitting transaction, waiting for transaction to succeed...');
+  log();
 
   try {
     const [hash] = await Promise.all([
       (async () => {
         const hash = await mainnetRegistry.setPackageOwnership(multicallTx);
 
-        console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
-        console.log('');
-        console.log(
+        log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+        log('');
+        log(
           gray(
             `Waiting for the transaction to propagate to ${optimismRegistryConfig.name}... It may take approximately 1-3 minutes.`
           )
         );
-        console.log('');
+        log('');
 
         return hash;
       })(),
@@ -191,7 +194,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
               waitForEvent({
                 eventName: 'PackageOwnerChanged',
                 abi: mainnetRegistry.contract.abi,
-                providerUrl: optimismRegistryConfig.providerUrl![0],
+                rpcUrl: _.last(optimismRegistryConfig.rpcUrl)!,
                 expectedArgs: {
                   name: packageNameHex,
                   owner: userAddress,
@@ -200,7 +203,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
               waitForEvent({
                 eventName: 'PackagePublishersChanged',
                 abi: mainnetRegistry.contract.abi,
-                providerUrl: optimismRegistryConfig.providerUrl![0],
+                rpcUrl: _.last(optimismRegistryConfig.rpcUrl)!,
                 expectedArgs: {
                   name: packageNameHex,
                   publisher: [userAddress],
@@ -212,12 +215,13 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
       })(),
     ]);
 
+    packageRefs.map(async (pkg) => {
+      log(green(`Success - Package "${pkg.name}" has been registered.`));
+    });
+
     if (fromPublish) {
-      console.log(gray('We will continue with the publishing process.'));
-    } else {
-      packageRefs.map(async (pkg) => {
-        console.log(green(`Success - Package "${pkg.name}" has been registered.`));
-      });
+      log('');
+      log(gray('We will continue with the publishing process.'));
     }
 
     return hash;

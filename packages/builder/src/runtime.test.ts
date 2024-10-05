@@ -172,73 +172,73 @@ describe('runtime.ts', () => {
           newRuntime.emit(Events[evt], 'dummy');
         }
 
-        expect(receiver).toBeCalledTimes(Object.keys(Events).length);
+        expect(receiver).toHaveBeenCalledTimes(Object.keys(Events).length);
       });
     });
 
     describe('gas settings', () => {
       it('sets the gas price', async () => {
-        const gasPrice = '123456';
+        const gasPrice = viem.parseGwei('123456');
         const newRuntime = runtime.derive({
           gasPrice,
         });
 
-        expect(newRuntime.gasPrice).toBe(viem.parseGwei(gasPrice).toString());
+        expect(newRuntime.gasPrice).toBe(gasPrice);
         expect(newRuntime.gasFee).toBeUndefined();
         expect(newRuntime.priorityGasFee).toBeUndefined();
       });
       it('sets the gas price and derive again', async () => {
-        const gasPrice = '123456';
+        const gasPrice = viem.parseGwei('123456');
         const newRuntime = runtime.derive({
           gasPrice,
         });
 
         const newNewRuntime = newRuntime.derive({});
 
-        expect(newNewRuntime.gasPrice).toBe(viem.parseGwei(gasPrice).toString());
+        expect(newNewRuntime.gasPrice).toBe(gasPrice);
         expect(newNewRuntime.gasFee).toBeUndefined();
         expect(newNewRuntime.priorityGasFee).toBeUndefined();
       });
 
       it('sets gas fee price', async () => {
-        const gasFee = '123456';
+        const gasFee = viem.parseGwei('123456');
         const newRuntime = runtime.derive({
           gasFee,
         });
 
-        expect(newRuntime.gasFee).toBe(viem.parseGwei(gasFee).toString());
+        expect(newRuntime.gasFee).toBe(gasFee);
         expect(newRuntime.gasPrice).toBeUndefined();
         expect(newRuntime.priorityGasFee).toBeUndefined();
       });
 
       it('sets priority gas fee price', async () => {
-        const gasFee = '123456';
-        const priorityGasFee = '012345';
+        const gasFee = viem.parseGwei('123456');
+        const priorityGasFee = viem.parseGwei('012345');
         const newRuntime = runtime.derive({
           gasFee,
           priorityGasFee,
         });
 
-        expect(newRuntime.gasFee).toBe(viem.parseGwei(gasFee).toString());
-        expect(newRuntime.priorityGasFee).toBe(viem.parseGwei(priorityGasFee).toString());
+        expect(newRuntime.gasFee).toBe(gasFee);
+        expect(newRuntime.priorityGasFee).toBe(priorityGasFee);
         expect(newRuntime.gasPrice).toBeUndefined();
       });
 
       it('ignore gas price if gas fee is set', async () => {
-        const gasFee = '123456';
-        const gasPrice = '012345';
+        const gasFee = viem.parseGwei('123456');
+        const gasPrice = viem.parseGwei('012345');
         const newRuntime = runtime.derive({
           gasFee,
           gasPrice,
         });
 
-        expect(newRuntime.gasFee).toBe(viem.parseGwei(gasFee).toString());
+        expect(newRuntime.gasFee).toBe(gasFee);
         expect(newRuntime.priorityGasFee).toBeUndefined();
         expect(newRuntime.gasPrice).toBeUndefined();
       });
 
       it('throw if priority gas fee is set without gas fee', async () => {
-        const priorityGasFee = '012345';
+        const priorityGasFee = viem.parseGwei('012345');
         expect(() =>
           runtime.derive({
             priorityGasFee,

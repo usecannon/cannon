@@ -7,7 +7,7 @@ import EventEmitter from 'promise-events';
 import * as viem from 'viem';
 import CannonRegistryAbi from './abis/CannonRegistry';
 import { prepareMulticall, TxData } from './multicall';
-import { PackageReference } from './package';
+import { PackageReference } from './package-reference';
 import { CannonSigner } from './types';
 
 const debug = Debug('cannon:builder:registry');
@@ -26,14 +26,13 @@ export abstract class CannonRegistry {
     return receipts;
   }
 
-  // in general a "catchall" is that if the fullPackageRef is in format "@service:path", then
-  // that is a direct service resolve
-  // ex @ipfs:Qm... is ipfs://Qm...
+  // in general a "catchall" is that if the fullPackageRef is an ipfs url (ex. ipfs://Qm..) , then that is a direct service resolve.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getUrl(serviceRef: string, chainId: number): Promise<string | null> {
     // Check if its an ipfs hash / url, if so we make sure to remove any incorrectly appended presets (like @main);
-    if (serviceRef.startsWith('@')) {
-      const result = serviceRef.replace(':', '://').replace('@', '');
+    if (serviceRef.startsWith('@ipfs:') || serviceRef.startsWith('ipfs://') || serviceRef.startsWith('Qm')) {
+      const ref = serviceRef.replace('@ipfs:', 'ipfs://');
+      const result = ref.startsWith('Qm') ? 'ipfs://' + ref : ref;
       return result.indexOf('@') !== -1 ? result.slice(0, result.indexOf('@')) : result;
     }
 
@@ -153,6 +152,8 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
               `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`
           );
         }
+
+        throw new Error(err);
       }
     }
 
@@ -178,6 +179,8 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
               `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`
           );
         }
+
+        throw new Error(err);
       }
     }
 

@@ -25,7 +25,7 @@ interface CannonSafeTransaction {
   sigs: string[];
 }
 
-export function useSafeTransactions(safe: SafeDefinition | null) {
+export function useSafeTransactions(safe: SafeDefinition | null, refetchInterval?: number) {
   const [staged, setStaged] = useState<CannonSafeTransaction[]>([]);
   const [nextNonce, setNextNonce] = useState<number | null>(null);
   const stagingUrl = useStore((s) => s.settings.stagingUrl);
@@ -35,10 +35,9 @@ export function useSafeTransactions(safe: SafeDefinition | null) {
     enabled: !!safe,
     queryFn: async () => {
       if (!safe) return;
-      const res = await axios.get(`${stagingUrl}/${safe.chainId}/${safe.address}`);
-      return res as { data: CannonSafeTransaction[] };
+      return axios.get<CannonSafeTransaction[]>(`${stagingUrl}/${safe.chainId}/${safe.address}`);
     },
-    refetchInterval: 10000,
+    refetchInterval,
   });
 
   const nonceQuery = useReadContract({
@@ -76,6 +75,7 @@ export function useSafeTransactions(safe: SafeDefinition | null) {
   }, [stagedQuery.isSuccess, stagedQuery.data, nonceQuery.isSuccess, nonceQuery.data]);
 
   return {
+    isLoading: stagedQuery.isLoading || nonceQuery.isLoading,
     isSuccess: nonceQuery.isSuccess && stagedQuery.isSuccess,
     nonceQuery,
     stagedQuery,
@@ -170,7 +170,9 @@ export function useTxnStager(
         const signature = viem.toBytes(sig);
         signature[signature.length - 1] -= 4; // remove 4 at the end from gnosis signature version code
         const signerAddress = await viem.recoverAddress({
-          hash: viem.hashMessage({ raw: hashToSign }),
+          hash: viem.hashMessage({
+            raw: hashToSign as any, // TODO: fix type
+          }),
           signature,
         });
         signers.push(signerAddress);
@@ -178,7 +180,7 @@ export function useTxnStager(
 
       setAlreadyStagedSigners(signers);
     })();
-  }, [alreadyStaged?.sigs, hashToSign]);
+  }, [alreadyStaged, alreadyStaged?.sigs, hashToSign]);
 
   const sigInsertIdx = _.sortedIndex(
     alreadyStagedSigners.map((s) => s.toLowerCase()),
@@ -220,7 +222,7 @@ export function useTxnStager(
     functionName: 'execTransaction',
     args: [
       safeTxn.to,
-      Number(safeTxn.value).toString() || '0',
+      BigInt(safeTxn.value.toString() || '0'),
       safeTxn.data,
       safeTxn.operation,
       safeTxn.safeTxGas,
@@ -259,7 +261,7 @@ export function useTxnStager(
   } else if (existingSigsCount < requiredSigs && (signConditionFailed || existingSigsCount + 1 < requiredSigs)) {
     execConditionFailed = `insufficient signers to execute (required: ${requiredSigs})`;
   } else if (stageTxnMutate.isError) {
-    execConditionFailed = `Simluation error: ${stageTxnMutate.failureReason}`;
+    execConditionFailed = `Simulation error: ${stageTxnMutate.failureReason}`;
   }
 
   return {

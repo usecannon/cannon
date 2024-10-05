@@ -3,7 +3,11 @@
 !.env.*.example
 local.graphql
 
+tsconfig.tsbuildinfo
 
 # next.js build output
 .next/
 out/
+
+# Sentry Config File
+.env.sentry-build-plugin

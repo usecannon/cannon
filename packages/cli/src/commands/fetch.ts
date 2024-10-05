@@ -1,6 +1,4 @@
 import { blueBright } from 'chalk';
-import { LocalRegistry } from '../registry';
-import { resolveCliSettings } from '../settings';
 import {
   DeploymentInfo,
   IPFSLoader,
@@ -15,7 +13,11 @@ import fs from 'node:fs';
 import path from 'path';
 import util from 'util';
 
-const debug = Debug('cannon:cli:clean');
+import { log } from '../util/console';
+import { LocalRegistry } from '../registry';
+import { resolveCliSettings } from '../settings';
+
+const debug = Debug('cannon:cli:fetch');
 
 const mkdir = util.promisify(fs.mkdir);
 const writeFile = util.promisify(fs.writeFile);
@@ -52,8 +54,8 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
     ipfs: new IPFSLoader(cliSettings.publishIpfsUrl! || getCannonRepoRegistryUrl()),
   });
 
-  console.log(blueBright('Fetching IPFS data from: '));
-  console.log(`\n - ${hash}`);
+  log(blueBright('Fetching IPFS data from: '));
+  log(`\n - ${hash}`);
 
   try {
     const ipfsUrl = 'ipfs://' + hash;
@@ -97,8 +99,8 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
       await storeDeployReference(deployMetadataPath, ipfsUrl);
     }
 
-    console.log(`\n\nSuccessfully fetched and saved deployment data for the following package: ${pkgName}`);
-    console.log(
+    log(`\n\nSuccessfully fetched and saved deployment data for the following package: ${pkgName}`);
+    log(
       `run 'cannon publish ${pkgName} --chain-id <CHAIN_ID> --private-key <PRIVATE_KEY>' to publish the package to the registry`
     );
   } catch (e: any) {
