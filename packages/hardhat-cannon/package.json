@@ -17,6 +17,7 @@
     "lint": "tslint --config tslint.json --project tsconfig.json",
     "build": "tsc",
     "watch": "tsc -w",
+    "clean": "rm -rf ./dist",
     "prepublishOnly": "pnpm run build"
   },
   "files": [

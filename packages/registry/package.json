@@ -4,6 +4,7 @@
   "private": true,
   "description": "Contract registry for Cannon images",
   "scripts": {
+    "clean": "rm -rf ./cache ./artifacts ./typechain-types",
     "test": "hardhat compile && hardhat --network hardhat test",
     "coverage": "hardhat coverage"
   },
