@@ -255,7 +255,6 @@ describe('publish command', () => {
         onChainRegistry,
         tags,
         chainId,
-        presetArg: '',
         quiet: true,
         skipConfirm: true,
       });
@@ -274,7 +273,6 @@ describe('publish command', () => {
         onChainRegistry,
         tags,
         chainId: 0,
-        presetArg: preset,
         quiet: true,
         skipConfirm: true,
       });
