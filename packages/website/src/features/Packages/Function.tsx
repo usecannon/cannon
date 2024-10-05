@@ -16,7 +16,6 @@ import {
   Button,
   Flex,
   FormControl,
-  FormHelperText,
   FormLabel,
   Heading,
   Input,
@@ -355,7 +354,7 @@ export const Function: FC<{
             >
               <Tooltip
                 label={`Selector: ${toFunctionSelector(
-                  toFunctionSignature(f)
+                  (f)
                 )}`}
               >
                 {toFunctionSignature(f)}
@@ -645,14 +644,7 @@ export const Function: FC<{
                 whiteSpace="normal"
                 wordBreak="break-word"
               >
-                <Tooltip
-                  label={`Selector: ${toFunctionSelector(
-                    toFunctionSignature(f)
-                  )}`}
-                >
-                  {toFunctionSignature(f)}
-                </Tooltip>
-
+                {toFunctionSignature(f)}
                 <Link
                   color="gray.300"
                   ml={1}
@@ -677,11 +669,14 @@ export const Function: FC<{
                 )}
               </Heading>
             )}
+            <Flex flexDirection='row' alignItems='center' gap={3}>
+            <Text color="gray.500" fontSize="xs">Selector: {toFunctionSelector(f)}</Text>
             {isOpen ? (
               <ChevronUpIcon boxSize="5" />
             ) : (
               <ChevronDownIcon boxSize="5" />
             )}
+            </Flex>
           </Flex>
           {isOpen && renderFunctionContent()}
         </Flex>
