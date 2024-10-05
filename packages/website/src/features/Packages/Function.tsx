@@ -16,16 +16,17 @@ import {
   Button,
   Flex,
   FormControl,
-  FormHelperText,
   FormLabel,
   Heading,
   Input,
   InputGroup,
   InputRightAddon,
+  FormHelperText,
+  Tooltip,
   Link,
   Text,
   useDisclosure,
-  useToast,
+  useToast
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
@@ -351,7 +352,13 @@ export const Function: FC<{
               alignItems="center"
               gap={2}
             >
-              {toFunctionSignature(f)}
+              <Tooltip
+                label={`Selector: ${toFunctionSelector(
+                  (f)
+                )}`}
+              >
+                {toFunctionSignature(f)}
+              </Tooltip>
               <Link
                 color="gray.300"
                 ml={1}
@@ -662,11 +669,14 @@ export const Function: FC<{
                 )}
               </Heading>
             )}
+            <Flex flexDirection='row' alignItems='center' gap={3}>
+            <Text display={['none', 'none', 'none', 'inline']} color="gray.500" fontSize="xs">Selector: {toFunctionSelector(f)}</Text>
             {isOpen ? (
               <ChevronUpIcon boxSize="5" />
             ) : (
               <ChevronDownIcon boxSize="5" />
             )}
+            </Flex>
           </Flex>
           {isOpen && renderFunctionContent()}
         </Flex>
