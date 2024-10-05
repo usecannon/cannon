@@ -670,7 +670,7 @@ export const Function: FC<{
               </Heading>
             )}
             <Flex flexDirection='row' alignItems='center' gap={3}>
-            <Text color="gray.500" fontSize="xs">Selector: {toFunctionSelector(f)}</Text>
+            <Text display={['none', 'none', 'none', 'inline']} color="gray.500" fontSize="xs">Selector: {toFunctionSelector(f)}</Text>
             {isOpen ? (
               <ChevronUpIcon boxSize="5" />
             ) : (
