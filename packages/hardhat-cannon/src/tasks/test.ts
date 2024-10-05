@@ -6,7 +6,6 @@ const DEFAULT_CANNONFILE = 'cannonfile.toml';
 task(TASK_TEST, 'Utility for running hardhat tests on the cannon network')
   .addOptionalPositionalParam('cannonfile', 'Path to a test cannonfile to build', DEFAULT_CANNONFILE)
   .addOptionalVariadicPositionalParam('settings', 'Custom settings for building the cannonfile', [])
-  .addOptionalParam('preset', '(Optional) The preset label for storing the build with the given settings')
   .addOptionalParam(
     'anvilOptions',
     '(Optional) Custom anvil options json string or json file to configure when running on the cannon network or a local forked node'
