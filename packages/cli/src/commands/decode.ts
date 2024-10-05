@@ -1,9 +1,9 @@
 import * as viem from 'viem';
 import { AbiFunction, AbiEvent } from 'abitype';
-import { bold, gray, green, italic, yellow } from 'chalk';
+import { bold, gray, green, italic } from 'chalk';
 import { ContractData, DeploymentInfo, decodeTxError } from '@usecannon/builder';
 
-import { log, error, warn } from '../util/console';
+import { log, error } from '../util/console';
 import { readDeployRecursive } from '../package';
 import { ensureChainIdConsistency, formatAbiFunction, getSighash } from '../helpers';
 import { resolveCliSettings } from '../../src/settings';
@@ -15,14 +15,12 @@ export async function decode({
   data,
   chainId,
   rpcUrl,
-  presetArg,
   json = false,
 }: {
   packageRef: string;
   data: viem.Hash;
   chainId?: number;
   rpcUrl?: string;
-  presetArg: string;
   json: boolean;
 }) {
   const cliSettings = resolveCliSettings();
@@ -30,18 +28,6 @@ export async function decode({
   // Add 0x prefix to data or transaction hash if missing
   if (!data.startsWith('0x')) {
     data = ('0x' + data) as viem.Hash;
-  }
-
-  // Handle deprecated preset specification
-  if (presetArg) {
-    warn(
-      yellow(
-        bold(
-          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
-        )
-      )
-    );
-    packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
 
   let inputData = data;

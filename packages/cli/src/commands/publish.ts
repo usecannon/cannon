@@ -8,10 +8,10 @@ import {
   PackageReference,
   preparePublishPackage,
 } from '@usecannon/builder';
-import { blueBright, bold, gray, yellow } from 'chalk';
+import { blueBright, bold, gray } from 'chalk';
 import prompts from 'prompts';
 import * as viem from 'viem';
-import { log, warn } from '../util/console';
+import { log } from '../util/console';
 import { getMainLoader } from '../loader';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';
@@ -22,7 +22,6 @@ interface Params {
   tags?: string[];
   onChainRegistry: CannonRegistry;
   chainId?: number;
-  presetArg?: string;
   quiet?: boolean;
   includeProvisioned?: boolean;
   skipConfirm?: boolean;
@@ -41,24 +40,10 @@ export async function publish({
   onChainRegistry,
   tags = ['latest'],
   chainId,
-  presetArg,
   quiet = false,
   includeProvisioned = true,
   skipConfirm = false,
 }: Params) {
-  // Handle deprecated preset specification
-  if (presetArg) {
-    warn(
-      yellow(
-        bold(
-          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
-        )
-      )
-    );
-
-    fullPackageRef = fullPackageRef.split('@')[0] + `@${presetArg}`;
-  }
-
   if (onChainRegistry instanceof OnChainRegistry) {
     if (!onChainRegistry.signer) {
       throw new Error('signer not provided in registry');

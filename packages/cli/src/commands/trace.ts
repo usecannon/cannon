@@ -26,7 +26,6 @@ export async function trace({
   packageRef: string;
   data: viem.Hex;
   chainId: number;
-  preset: string;
   cliSettings: CliSettings;
   from?: viem.Address;
   to?: viem.Address;

@@ -127,7 +127,7 @@ describe('alter', () => {
     jest.spyOn(localLoader, 'read').mockImplementation(mockReadDeploy);
 
     // Call the 'alter' function with the necessary arguments
-    await alter(packageName, subpkg, chainId, cliSettings, preset, testPkgData.meta, command, targets, runtimeOverrides);
+    await alter(packageName, subpkg, chainId, cliSettings, testPkgData.meta, command, targets, runtimeOverrides);
 
     expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(newTestPkgData);
@@ -145,7 +145,7 @@ describe('alter', () => {
     const targets = ['TestContract', '0x2222222222222222222222222222222222222222'];
 
     // Call the 'alter' function with the necessary arguments
-    await alter(packageName, subpkg, chainId, cliSettings, preset, testPkgData.meta, command, targets, runtimeOverrides);
+    await alter(packageName, subpkg, chainId, cliSettings, testPkgData.meta, command, targets, runtimeOverrides);
 
     expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
@@ -168,7 +168,7 @@ describe('alter', () => {
     jest.spyOn(ChainDefinition.prototype, 'getState').mockResolvedValue(hash);
 
     // Call the 'alter' function with the necessary arguments
-    await alter(packageName, subpkg, chainId, cliSettings, preset, testPkgData.meta, command, targets, runtimeOverrides);
+    await alter(packageName, subpkg, chainId, cliSettings, testPkgData.meta, command, targets, runtimeOverrides);
 
     expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
@@ -190,7 +190,7 @@ describe('alter', () => {
     const targets = ['provision.dummyStep'];
 
     // Call the 'alter' function with the necessary arguments
-    await alter(packageName, subpkg, chainId, cliSettings, preset, testPkgData.meta, command, targets, runtimeOverrides);
+    await alter(packageName, subpkg, chainId, cliSettings, testPkgData.meta, command, targets, runtimeOverrides);
 
     expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
@@ -212,7 +212,7 @@ describe('alter', () => {
     const targets: string[] = ['TestContract', '0x2222222222222222222222222222222222222222'];
 
     // Call the 'alter' function with the necessary arguments
-    await alter(packageName, subpkg, chainId, cliSettings, preset, testPkgData.meta, command, targets, runtimeOverrides);
+    await alter(packageName, subpkg, chainId, cliSettings, testPkgData.meta, command, targets, runtimeOverrides);
 
     expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);

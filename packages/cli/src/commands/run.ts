@@ -33,7 +33,6 @@ export interface RunOptions {
   resolver?: CannonRegistry;
   logs?: boolean;
   pkgInfo: any;
-  presetArg?: string;
   impersonate: string;
   mnemonic?: string;
   privateKey?: viem.Hash;
@@ -110,22 +109,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   );
 
   for (const pkg of packages) {
-    const { name, version } = pkg;
-    let { preset } = pkg;
-
-    // Handle deprecated preset specification
-    if (options.presetArg) {
-      warn(
-        yellow(
-          bold(
-            'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
-          )
-        )
-      );
-      preset = options.presetArg;
-      pkg.preset = preset;
-    }
-
+    const { name, version, preset } = pkg;
     const { fullPackageRef } = PackageReference.from(name, version, preset);
 
     if (options.build || (pkg.settings && Object.keys(pkg.settings).length > 0)) {

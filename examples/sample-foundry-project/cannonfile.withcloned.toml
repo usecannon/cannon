@@ -1,0 +1,33 @@
+name = "owned-greeter"
+version = "1.0.0"
+description = "Simple greeter project that can be owned"
+keywords = ["sample", "greeter", "owned"]
+
+[setting.salt]
+defaultValue = "owned-greeter"
+
+[provision.usd]
+source = "mintable-token@permissionless-mint"
+options.symbol = "USD"
+options.name = "Mintable USD"
+options.salt = "usd"
+
+[provision.oracle_manager]
+source = "oracle-manager"
+options.salt = "0x3330363734343032330000000000000000000000000000000000000000000000-oracle"
+options.owner = "0x6E1613B5c68B4Cf2A58400D8019a97849A678139"
+
+[provision.chainlink]
+source = "chainlink"
+
+[contract.Greeter]
+artifact = "Greeter"
+args = ['0x70997970C51812dc3A010C7d01b50e0d17dc79C8']
+salt = "<%= settings.salt %>"
+
+# Call Greeter.setGreeting
+[invoke.setGreeting]
+target = ["Greeter"]
+func = "setGreeting"
+from = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
+args = [0, "hello world!"]

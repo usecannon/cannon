@@ -23,23 +23,10 @@ export async function inspect(
   packageRef: string,
   cliSettings: CliSettings,
   chainId: number,
-  presetArg: string,
   json: boolean,
   writeDeployments: string,
   sources: boolean
 ) {
-  // Handle deprecated preset specification
-  if (presetArg) {
-    warn(
-      yellow(
-        bold(
-          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
-        )
-      )
-    );
-    packageRef = packageRef.split('@')[0] + `@${presetArg}`;
-  }
-
   const { fullPackageRef } = new PackageReference(packageRef);
 
   const resolver = await createDefaultReadRegistry(cliSettings);

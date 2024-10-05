@@ -293,7 +293,6 @@ async function prepareBuildConfig(
     getSigner,
     getDefaultSigner,
     upgradeFrom: options.upgradeFrom,
-    presetArg: options.preset,
     wipe: options.wipe,
     persist: !options.dryRun,
     overrideResolver,

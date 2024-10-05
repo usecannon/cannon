@@ -241,7 +241,7 @@ applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(asy
 
   const cliSettings = resolveCliSettings(options);
 
-  await verify(packageName, cliSettings, options.preset, parseInt(options.chainId));
+  await verify(packageName, cliSettings, parseInt(options.chainId));
 });
 
 applyCommandsConfig(program.command('diff'), commandsConfig.diff).action(async function (
@@ -256,7 +256,6 @@ applyCommandsConfig(program.command('diff'), commandsConfig.diff).action(async f
   const foundDiffs = await diff(
     packageName,
     cliSettings,
-    options.preset,
     parseInt(options.chainId),
     projectDirectory,
     options.matchContract,
@@ -286,7 +285,6 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
     flags.subpkg ? flags.subpkg.split(',') : [],
     parseInt(flags.chainId),
     cliSettings,
-    flags.preset,
     {},
     command,
     options,
@@ -501,7 +499,6 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     onChainRegistry,
     chainId,
     tags: options.tags ? options.tags.split(',') : undefined,
-    presetArg: options.preset ? (options.preset as string) : undefined,
     quiet: !!options.quiet,
     includeProvisioned: !options.excludeCloned,
     skipConfirm: !!options.skipConfirm,
@@ -537,15 +534,7 @@ applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(a
 
   const cliSettings = resolveCliSettings(options);
 
-  await inspect(
-    packageName,
-    cliSettings,
-    options.chainId,
-    options.preset,
-    options.json,
-    options.writeDeployments,
-    options.sources
-  );
+  await inspect(packageName, cliSettings, options.chainId, options.json, options.writeDeployments, options.sources);
 });
 
 applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async function (options) {
@@ -632,7 +621,6 @@ applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async
     packageRef,
     data,
     chainId: chainId!, // chainId is guaranteed to be defined here
-    preset: options.preset,
     cliSettings,
     from: options.from,
     to: options.to,
@@ -652,7 +640,6 @@ applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(asy
     data,
     chainId: options.chainId ? parseInt(options.chainId) : undefined,
     rpcUrl: cliSettings.rpcUrl,
-    presetArg: options.preset,
     json: options.json,
   });
 });
@@ -735,20 +722,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   const resolver = await createDefaultReadRegistry(cliSettings);
 
-  const [name, version] = [packageDefinition.name, packageDefinition.version];
-  let preset = packageDefinition.preset;
-
-  // Handle deprecated preset specification
-  if (options.preset) {
-    warn(
-      yellow(
-        bold(
-          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
-        )
-      )
-    );
-    preset = options.preset;
-  }
+  const { name, version, preset } = packageDefinition;
 
   const fullPackageRef = PackageReference.from(name, version, preset).fullPackageRef;
 

@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           cache: pnpm
-          node-version: '20.5.1'
+          node-version: '20.18.0'
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1

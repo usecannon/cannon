@@ -2,7 +2,6 @@ import Debug from 'debug';
 import * as Diff from 'diff';
 import * as viem from 'viem';
 import { getFoundryArtifact, buildContracts } from '../foundry';
-import { bold, yellow } from 'chalk';
 import { ChainDefinition, ChainBuilderRuntime, DeploymentInfo, getArtifacts, PackageReference } from '@usecannon/builder';
 
 import { CliSettings } from '../settings';
@@ -11,31 +10,18 @@ import { createDefaultReadRegistry } from '../registry';
 
 import { getMainLoader } from '../loader';
 
-import { log, warn, error } from '../util/console';
+import { log, error } from '../util/console';
 
 const debug = Debug('cannon:cli:diff');
 
 export async function diff(
   packageRef: string,
   cliSettings: CliSettings,
-  presetArg: string,
   chainId: number,
   projectDirectory: string,
   matchContract = '',
   matchPath = ''
 ): Promise<number> {
-  // Handle deprecated preset specification
-  if (presetArg) {
-    warn(
-      yellow(
-        bold(
-          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
-        )
-      )
-    );
-    packageRef = packageRef.split('@')[0] + `@${presetArg}`;
-  }
-
   const { fullPackageRef } = new PackageReference(packageRef);
 
   // create temporary provider

@@ -19,7 +19,6 @@ import { CannonError } from '@usecannon/builder';
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
   .addOptionalVariadicPositionalParam('settings', 'Custom settings for building the cannonfile', [])
-  .addOptionalParam('preset', '(Optional) The preset label for storing the build with the given settings')
   .addOptionalParam('registryPriority', '(Optional) Which registry should be used first? Default: onchain')
   .addOptionalParam(
     'anvilOptions',
@@ -48,7 +47,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         cannonfile,
         settings,
         upgradeFrom,
-        preset: presetArg,
         noCompile,
         wipe,
         usePlugins,
@@ -191,7 +189,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         getDefaultSigner: defaultSigner ? async () => defaultSigner! : undefined,
         pkgInfo: loadPackageJson(path.join(hre.config.paths.root, 'package.json')),
         projectDirectory: hre.config.paths.root,
-        presetArg,
         upgradeFrom,
         wipe,
         registryPriority,
