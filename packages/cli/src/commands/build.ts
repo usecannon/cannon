@@ -502,16 +502,8 @@ export async function build({
         log(gray(`Estimated Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
         log();
 
-        log(
-          bold(
-            `Package data would be stored locally${
-              filteredSettings.writeIpfsUrl && ' and pinned to ' + filteredSettings.writeIpfsUrl
-            }`
-          )
-        );
-        log();
-
-        log('(Note: These files will not be saved)');
+        log(bold(`Package Data`) + ' from simulation');
+        log(gray('This package data has been stored locally'));
       } else {
         if (chainId == 13370) {
           log(bold(`💥 ${fullPackageRef} built for Cannon (Chain ID: ${chainId})`));
