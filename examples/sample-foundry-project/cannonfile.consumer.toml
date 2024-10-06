@@ -60,7 +60,7 @@ func = "setGreeting"
 args = ["<%= settings.NewCloneGreeting %>", false]
 
 [invoke.set_dummy]
-target = ["<%= AddressZero %>"]
+target = ["0x0000000000000000000000000000000000000000"]
 abi = '[{"type":"function","name":"test","inputs":[{"type": "string"},{"type":"string"}]}]'
 func = "test"
 args = ["true", "FALSE"]
