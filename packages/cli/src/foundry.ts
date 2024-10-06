@@ -72,11 +72,15 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
   const possibleArtifacts = [];
   for (const artifactPath of possibleArtifactPaths) {
     const artifactBuffer = await fs.readFile(artifactPath);
-    possibleArtifacts.push(JSON.parse(artifactBuffer.toString()) as any);
+    const artifact = JSON.parse(artifactBuffer.toString()) as any;
+    if (!artifact.ast) {
+      throw new Error(`Unable to find output from forge with ast for ${inputContractName} (from ${name}). Before running this command, run forge build --ast`);
+    }
+    possibleArtifacts.push(artifact);
   }
 
   if (!possibleArtifacts.length) {
-    throw new Error(`no contract was found by name: ${inputContractName} (from ${name})`);
+    throw new Error(`Unable to find output from forge with ast for ${inputContractName} (from ${name}). Before running this command, run forge build --ast`);
   }
 
   let artifact = possibleArtifacts[0];
