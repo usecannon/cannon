@@ -1,22 +1,19 @@
+import _ from 'lodash';
 import * as viem from 'viem';
 import * as viemUtils from 'viem/utils';
 import * as viemNumbers from 'viem/constants/number';
 import * as viemAddresses from 'viem/constants/address';
 import * as viemBytes from 'viem/constants/bytes';
-import { Abi, Address, Hash, Hex, SendTransactionParameters } from 'viem';
-
-import _ from 'lodash';
+import { PackageReference } from './package-reference';
 
 import type { RawChainDefinition } from './actions';
-
-import { PackageReference } from './package-reference';
 
 // loosely based on the hardhat `Artifact` type
 export type ContractArtifact = {
   contractName: string;
   sourceName: string;
-  abi: Abi;
-  bytecode: Hex;
+  abi: viem.Abi;
+  bytecode: viem.Hex;
   deployedBytecode: string;
   linkReferences: {
     [fileName: string]: {
@@ -33,8 +30,8 @@ export type ContractArtifact = {
 };
 
 export type ContractData = {
-  address: Address;
-  abi: Abi;
+  address: viem.Address;
+  abi: viem.Abi;
   constructorArgs?: any[]; // only needed for external verification
   linkedLibraries?: { [sourceName: string]: { [libName: string]: string } }; // only needed for external verification
   deployTxnHash: string;
@@ -54,7 +51,7 @@ export type ContractMap = {
 
 export type TransactionMap = {
   [label: string]: {
-    hash: Hash | '';
+    hash: viem.Hash | '';
     blockNumber?: string;
     timestamp?: string;
     events: EventMap;
@@ -164,14 +161,14 @@ const ethersStyleConstants = {
   decodeFunctionData: viem.decodeFunctionData,
   encodeFunctionResult: viem.encodeFunctionResult,
   decodeFunctionResult: viem.decodeFunctionResult,
-}
+};
 
 export const CannonHelperContext = {
   ...viemUtils,
   ...viemNumbers,
   ...viemAddresses,
   ...viemBytes,
-  ...ethersStyleConstants
+  ...ethersStyleConstants,
 };
 
 export type ChainBuilderContextWithHelpers = ChainBuilderContext & typeof CannonHelperContext;
@@ -180,7 +177,7 @@ export type BuildOptions = { [val: string]: string };
 
 export type StorageMode = 'all' | 'metadata' | 'none';
 
-export type CannonSigner = { wallet: viem.WalletClient; address: Address };
+export type CannonSigner = { wallet: viem.WalletClient; address: viem.Address };
 
 export type Contract = Pick<viem.SimulateContractParameters, 'abi' | 'address'>;
 
@@ -195,7 +192,10 @@ export interface ChainBuilderRuntimeInfo {
   getSigner: (addr: viem.Address) => Promise<CannonSigner>;
 
   // returns a signer which should be used for sending the specified transaction.
-  getDefaultSigner?: (txn: Omit<SendTransactionParameters, 'account' | 'chain'>, salt?: string) => Promise<CannonSigner>;
+  getDefaultSigner?: (
+    txn: Omit<viem.SendTransactionParameters, 'account' | 'chain'>,
+    salt?: string
+  ) => Promise<CannonSigner>;
 
   // returns contract information from the specified artifact name.
   getArtifact?: (name: string) => Promise<ContractArtifact>;
@@ -313,7 +313,7 @@ export type StepState = {
   artifacts: ChainArtifacts;
 
   // If this is a cannon network build, the full dump of the chain blob is recorded
-  chainDump?: Hex | null; // only included if cannon network build
+  chainDump?: viem.Hex | null; // only included if cannon network build
 };
 
 export type DeploymentState = { [label: string]: StepState };
