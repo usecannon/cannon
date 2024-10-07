@@ -326,7 +326,20 @@ export const DocsCannonfilesPage: FC = () => {
                   templates
                 </Link>{' '}
                 like
-                <Code>name=&lt;%= settings.name %&gt;</Code>). The templates can also use <Link href="https://docs.ethers.org/v6/api/utils/" isExternal>utilities</Link> and <Link href="https://docs.ethers.org/v6/api/constants/" isExternal>constants</Link> from ethers v6. The objects are
+                <Code>name=&lt;%= settings.name %&gt;</Code>). The templates can also use{' '}
+                <Link href="https://github.com/wevm/viem/tree/main/src/utils" isExternal>
+                  utilities
+                </Link>,{' '}
+                <Link href="https://github.com/wevm/viem/blob/main/src/constants/number.ts" isExternal>
+                  number constants
+                </Link>, and{' '}
+                <Link href="https://github.com/wevm/viem/blob/main/src/constants/address.ts" isExternal>
+                  some
+                </Link>{' '}
+                <Link href="https://github.com/wevm/viem/blob/main/src/constants/bytes.ts" isExternal>
+                  others
+                </Link>{' '}
+                from <Link href="https://viem.sh/" isExternal>viem</Link>. The objects are
                 also passed into cannonfiles that reference them with the{' '}
                 <Code>pull</Code> and <Code>clone</Code> operations.
               </Text>

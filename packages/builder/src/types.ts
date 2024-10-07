@@ -1,4 +1,8 @@
 import * as viem from 'viem';
+import * as viemUtils from 'viem/utils';
+import * as viemNumbers from 'viem/constants/number';
+import * as viemAddresses from 'viem/constants/address';
+import * as viemBytes from 'viem/constants/bytes';
 import { Abi, Address, Hash, Hex, SendTransactionParameters } from 'viem';
 
 import _ from 'lodash';
@@ -94,13 +98,13 @@ export interface ChainBuilderContext extends PreChainBuilderContext {
 
 const etherUnitNames = ['wei', 'kwei', 'mwei', 'gwei', 'szabo', 'finney', 'ether'];
 
-export const CannonHelperContext = {
-  // ethers style constants
+// Mappings to make the functions more like ethers syntax
+// Consider deprecating
+const ethersStyleConstants = {
   AddressZero: viem.zeroAddress,
   HashZero: viem.zeroHash,
   MaxUint256: viem.maxUint256,
 
-  // ethers style utils
   defaultAbiCoder: {
     encode: (a: string[], v: any[]) => {
       return viem.encodeAbiParameters(
@@ -160,6 +164,14 @@ export const CannonHelperContext = {
   decodeFunctionData: viem.decodeFunctionData,
   encodeFunctionResult: viem.encodeFunctionResult,
   decodeFunctionResult: viem.decodeFunctionResult,
+}
+
+export const CannonHelperContext = {
+  ...viemUtils,
+  ...viemNumbers,
+  ...viemAddresses,
+  ...viemBytes,
+  ...ethersStyleConstants
 };
 
 export type ChainBuilderContextWithHelpers = ChainBuilderContext & typeof CannonHelperContext;
