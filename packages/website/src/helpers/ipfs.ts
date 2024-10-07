@@ -36,3 +36,20 @@ export function createIpfsUrl(base: string, pathname = '') {
 
   return { url: createUrl(uri), headers };
 }
+
+/**
+ * Extracts the IPFS hash from various input formats.
+ * @param input - The input string containing an IPFS resource.
+ * @returns The IPFS hash if found, or null if not detected.
+ */
+export function extractIpfsHash(input: string): string | null {
+  if (typeof input !== 'string' || !input.trim()) {
+    return null;
+  }
+
+  // Regular expression to match IPFS hashes in the ipfs://[hash] format
+  const ipfsHashRegex = /^ipfs:\/\/([a-zA-Z0-9]{46})$/i;
+  const match = input.match(ipfsHashRegex);
+
+  return match ? match[1] : null;
+}
