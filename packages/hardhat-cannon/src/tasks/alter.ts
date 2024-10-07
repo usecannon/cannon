@@ -5,7 +5,7 @@ import { loadPackageJson } from '../internal/load-pkg-json';
 import { SUBTASK_GET_ARTIFACT, SUBTASK_LOAD_PACKAGE_DEFINITION, TASK_ALTER } from '../task-names';
 
 task(TASK_ALTER, 'Make a change to a cannon package outside the regular build process')
-  .addPositionalParam('packageName', 'Name and version of the cannon package to inspect')
+  .addPositionalParam('packageRef', 'Name, version, and preset of the cannon package to inspect')
   .addPositionalParam(
     'command',
     'Alteration command to execute. Current options: set-url, set-contract-address, mark-complete'
@@ -18,21 +18,19 @@ task(TASK_ALTER, 'Make a change to a cannon package outside the regular build pr
   )
   .addOptionalParam('rpcUrl', 'RPC endpoint of the variant to inspect')
   .addOptionalParam('providerUrl', '(DEPRECATED) RPC endpoint of the variant to inspect')
-  .addOptionalParam('preset', 'Preset of the variant to inspect')
-  .setAction(async ({ packageName, subpkg, chainId, providerUrl, rpcUrl, preset, command, options }, hre) => {
+  .setAction(async ({ packageRef, subpkg, chainId, providerUrl, rpcUrl, command, options }, hre) => {
     const packageSpec: PackageSpecification = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
-      packageWithSettingsParams: packageName ? [packageName] : [],
+      packageWithSettingsParams: packageRef ? [packageRef] : [],
     });
     if (!chainId) {
       chainId = hre?.network?.config?.chainId || 13370;
     }
 
     await alter(
-      `${packageSpec.name}:${packageSpec.version}`,
+      `${packageSpec.name}:${packageSpec.version}@${packageSpec.preset}`,
       subpkg.split(',').filter((s: string) => s.length > 0),
       chainId,
       rpcUrl || providerUrl,
-      preset,
       loadPackageJson(path.join(hre.config.paths.root, 'package.json')),
       command,
       options,

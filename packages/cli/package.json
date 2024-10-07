@@ -1,11 +1,12 @@
 {
   "name": "@usecannon/cli",
-  "version": "2.18.0",
+  "version": "2.18.1",
   "description": "Utility for instantly loading cannon packages in standalone contexts",
   "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "watch": "tsc -p tsconfig.build.json -w",
+    "clean": "rm -rf ./dist",
     "prepublishOnly": "pnpm run build",
     "test": "jest",
     "test-e2e-prepare": "git submodule update --init --recursive",
