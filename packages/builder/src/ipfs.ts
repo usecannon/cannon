@@ -24,6 +24,12 @@ export async function getContentCID(value: string | Buffer): Promise<string> {
   return Hash.of(value);
 }
 
+export async function getContentUrl(content?: any): Promise<string | null> {
+  if (!content) return null;
+  const buffer = compress(JSON.stringify(content));
+  return 'ipfs://' + (await getContentCID(Buffer.from(buffer)));
+}
+
 export function setAxiosRetries(totalRetries = 3) {
   axiosRetry(axios, {
     retries: totalRetries,
