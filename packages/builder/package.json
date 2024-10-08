@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/builder",
-  "version": "2.18.0-alpha.0",
+  "version": "2.18.1",
   "description": "Assembles cannonfile.toml manifests into cannon packages.",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -12,6 +12,7 @@
     "test": "jest",
     "build": "tsc -p tsconfig.build.json && rollup -c",
     "watch": "tsc -p tsconfig.build.json -w",
+    "clean": "rm -rf ./dist",
     "prepublishOnly": "npm run build",
     "docgen": "typedoc"
   },
@@ -54,7 +55,7 @@
     "pako": "^2.1.0",
     "promise-events": "^0.2.4",
     "typestub-ipfs-only-hash": "^4.0.0",
-    "viem": "^2.16.5",
+    "viem": "^2.21.15",
     "zod": "^3.23.6"
   },
   "engines": {

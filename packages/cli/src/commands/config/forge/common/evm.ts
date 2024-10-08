@@ -2,10 +2,6 @@ import type { Option as ForgeEVMOption } from '../../types';
 
 export const forgeEvmOptions: ForgeEVMOption[] = [
   {
-    flags: '--forge.rpc-url <url>',
-    description: 'Fetch state over a remote endpoint instead of starting from an empty state.',
-  },
-  {
     flags: '--forge.fork-url <url>',
     description:
       'Fetch state over a remote endpoint. If you want to fetch state from a specific block number, see --forge.fork-block-number.',

@@ -2,9 +2,11 @@ import { getFoundryOpts, getFoundryArtifact, buildContracts } from './foundry';
 import * as helpers from './helpers';
 
 import fs from 'fs-extra';
+import { glob } from 'glob';
 
 jest.mock('./helpers');
 jest.mock('fs-extra');
+jest.mock('glob');
 
 describe('getFoundryOpts', () => {
   it('should return the correct options', async () => {
@@ -27,6 +29,8 @@ describe('buildContracts', () => {
 
 describe('getFoundryArtifact', () => {
   it('should return the correct artifact', async () => {
+    jest.mocked(glob).mockResolvedValueOnce(['out/Test.json']);
+
     jest
       .mocked(helpers.execPromise)
       .mockResolvedValueOnce('{"src":"src","test":"test","script":"script","out":"out"}')
@@ -41,6 +45,11 @@ describe('getFoundryArtifact', () => {
     jest.mocked(fs.readFile).mockResolvedValue(
       Buffer.from(
         JSON.stringify({
+          metadata: {
+            compiler: { version: '0.8.1' },
+            sources: { 'test.sol': {} },
+            settings: { optimizer: {}, remappings: {}, outputSelection: { '*': { '*': ['*'] } } },
+          },
           ast: { absolutePath: 'test.sol' },
           abi: [],
           bytecode: { object: '0x1234', linkReferences: {} },

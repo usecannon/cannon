@@ -45,7 +45,6 @@ interface Params {
   getSigner?: (addr: viem.Address) => Promise<CannonSigner>;
   getDefaultSigner?: () => Promise<CannonSigner>;
   projectDirectory?: string;
-  presetArg?: string;
   overrideResolver?: CannonRegistry;
   wipe?: boolean;
   persist?: boolean;
@@ -69,7 +68,6 @@ export async function build({
   getArtifact,
   getSigner,
   getDefaultSigner,
-  presetArg,
   overrideResolver,
   wipe = false,
   persist = true,
@@ -102,19 +100,7 @@ export async function build({
   );
 
   const { fullPackageRef, packageRef } = packageReference;
-  const { name, version } = packageReference;
-  const preset = presetArg || packageReference.preset;
-
-  // Handle deprecated preset specification
-  if (presetArg) {
-    warn(
-      yellow(
-        bold(
-          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
-        )
-      )
-    );
-  }
+  const { name, version, preset } = packageReference;
 
   const cliSettings = resolveCliSettings({ registryPriority });
   const filteredSettings = await filterSettings(cliSettings);
@@ -230,6 +216,9 @@ export async function build({
   log('Version: ' + cyanBright(`${pkgVersion}`));
   log('Preset: ' + cyanBright(`${preset}`) + (preset == 'main' ? gray(' (default)') : ''));
   log('Chain ID: ' + cyanBright(`${chainId}`));
+  if (!publicSourceCode) {
+    log(`Private Source Code: ${cyanBright('true')} ${gray('(contracts source code will not be included)')}`);
+  }
   if (upgradeFrom) {
     log(`Upgrading from: ${cyanBright(upgradeFrom)}`);
   }

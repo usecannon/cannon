@@ -7,6 +7,7 @@
   "scripts": {
     "db-prepare": "cp ../indexer/src/db.ts ./src/db/keys.ts",
     "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf ./dist",
     "start": "node dist/src/index.js",
     "dev": "NODE_ENV=development ts-node-dev src/index.ts"
   },
@@ -33,7 +34,7 @@
     "helmet": "^7.1.0",
     "prom-client": "^15.1.2",
     "redis": "^4.6.13",
-    "viem": "^2.16.5"
+    "viem": "^2.21.15"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
