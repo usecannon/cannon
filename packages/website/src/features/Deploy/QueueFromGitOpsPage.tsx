@@ -534,6 +534,16 @@ export default function QueueFromGitOps() {
   const hasDeployers = Boolean(
     cannonDefInfo.def?.getDeployers()?.length ?? 0 > 0
   );
+
+  const canTomlBeDeployedUsingWebsite = Boolean(
+    cannonfileUrlInput &&
+      cannonDefInfo?.def &&
+      !cannonDefInfo.def.allActionNames.some(
+        (item) => item.startsWith('deploy.') || item.startsWith('contract.')
+      )
+  );
+
+  // This condition checks if the cannonfile requires to enter a value in the "Previous Package" input
   const tomlRequiresPrevPackage = Boolean(
     cannonfileUrlInput &&
       cannonDefInfo?.def &&
@@ -552,7 +562,8 @@ export default function QueueFromGitOps() {
     (onChainPrevPkgQuery.isFetched &&
       !prevDeployLocation &&
       tomlRequiresPrevPackage &&
-      !previousPackageInput);
+      !previousPackageInput) ||
+    canTomlBeDeployedUsingWebsite;
 
   const PreviewButton = ({ message }: { message?: string }) => (
     <Tooltip label={message}>
@@ -891,17 +902,31 @@ export default function QueueFromGitOps() {
             </Alert>
           )}
           {buildState.skippedSteps.length > 0 && (
-            <Flex flexDir="column" mt="6">
-              <Text mb="2" fontWeight="bold">
-                This safe will not be able to complete the following operations:
-              </Text>
-              {buildState.skippedSteps.map((s, i) => (
-                <Text fontFamily="monospace" key={i} mb="2">
-                  <strong>{`[${s.name}]: `}</strong>
-                  {s.err.toString()}
+            <>
+              <AlertCannon mt={2} status="warning">
+                {!canTomlBeDeployedUsingWebsite && (
+                  <Text fontFamily="monospace" mb="2">
+                    This cannonfile is attempting to build and deploy a contract
+                    from source code, which cannot be done from the website. You
+                    should first build your cannonfile using the CLI and
+                    continue the deployment from a partial build.
+                  </Text>
+                )}
+              </AlertCannon>
+
+              <AlertCannon my={2} status="error">
+                <Text mb="2" fontWeight="bold">
+                  This safe will not be able to complete the following
+                  operations:
                 </Text>
-              ))}
-            </Flex>
+                {buildState.skippedSteps.map((s, i) => (
+                  <Text fontFamily="monospace" key={i} mb="2">
+                    <strong>{`[${s.name}]: `}</strong>
+                    {s.err.toString()}
+                  </Text>
+                ))}
+              </AlertCannon>
+            </>
           )}
 
           {!!buildState.result?.deployerSteps?.length && (
