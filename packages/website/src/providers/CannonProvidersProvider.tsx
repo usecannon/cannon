@@ -115,6 +115,9 @@ export const chainMetadata = {
     shortName: 'aurora',
     serviceUrl: 'https://safe-transaction-aurora.safe.global',
   },
+  [chains.snax.id]: {
+    color: '#00D1FF',
+  },
   [cannonNetwork.id]: {
     color: 'gray.400',
   },

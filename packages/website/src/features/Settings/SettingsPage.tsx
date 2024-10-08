@@ -6,7 +6,6 @@ import {
   Code,
   Container,
   FormControl,
-  FormErrorMessage,
   FormHelperText,
   FormLabel,
   Heading,
@@ -21,45 +20,27 @@ import {
   Thead,
   Tr,
 } from '@chakra-ui/react';
-import entries from 'just-entries';
-import { Store, initialState, useStore } from '@/helpers/store';
 import { links } from '@/constants/links';
 import { Alert } from '@/components/Alert';
 import CustomProviders from '@/features/Settings/CustomProviders';
+import SafeTransactionService from '@/features/Settings/SafeTransactionService';
+import { initialState, useStore } from '@/helpers/store';
+import { FC, PropsWithChildren } from 'react';
 
-type Setting = {
-  title: string;
-  placeholder?: string;
-  description?: string;
-  password?: boolean;
-  optional?: boolean;
-  // Validate function should return an error message if the value is invalid
-  validate?: (value: any) => string | undefined;
-};
-
-const SETTINGS: Record<
-  Exclude<
-    keyof Store['settings'],
-    'ipfsApiUrl' | 'isIpfsGateway' | 'customProviders' | 'pythUrl'
-  >,
-  Setting
-> = {
-  stagingUrl: {
-    title: 'Safe Signature Collection Service',
-    placeholder: 'https://service.com',
-    description:
-      'The same collection service URL must be used by all signers for a given transaction. Hosting Instructions: https://github.com/usecannon/cannon-safe-app-backend ',
-  },
-};
-
-export function useSettingsValidation() {
-  const settings = useStore((s) => s.settings);
-
-  return !entries(SETTINGS).some(([key, s]) => {
-    const val = settings[key];
-    return (!s.optional && !val) || !!s.validate?.(val);
-  });
-}
+const SectionBox: FC<PropsWithChildren> = ({ children }) => (
+  <Box
+    mb={6}
+    p={6}
+    bg="gray.800"
+    display="block"
+    borderWidth="1px"
+    borderStyle="solid"
+    borderColor="gray.600"
+    borderRadius="4px"
+  >
+    {children}
+  </Box>
+);
 
 export default function SettingsPage() {
   const settings = useStore((s) => s.settings);
@@ -76,20 +57,11 @@ export default function SettingsPage() {
           Settings
         </Heading>
 
-        <Box mb="6">
+        <SectionBox>
           <CustomProviders />
-        </Box>
+        </SectionBox>
 
-        <Box
-          mb={6}
-          p={6}
-          bg="gray.800"
-          display="block"
-          borderWidth="1px"
-          borderStyle="solid"
-          borderColor="gray.600"
-          borderRadius="4px"
-        >
+        <SectionBox>
           <Heading size="md" mb={3}>
             Ethereum
           </Heading>
@@ -167,18 +139,9 @@ export default function SettingsPage() {
               </Table>
             </TableContainer>
           </Box>
-        </Box>
+        </SectionBox>
 
-        <Box
-          mb={6}
-          p={6}
-          bg="gray.800"
-          display="block"
-          borderWidth="1px"
-          borderStyle="solid"
-          borderColor="gray.600"
-          borderRadius="4px"
-        >
+        <SectionBox>
           <Heading size="md" mb={2}>
             IPFS
           </Heading>
@@ -217,64 +180,11 @@ export default function SettingsPage() {
               Test IPFS Endpoint
             </Button>
           ) : null}
-        </Box>
+        </SectionBox>
 
-        <Box
-          mb={6}
-          p={6}
-          bg="gray.800"
-          display="block"
-          borderWidth="1px"
-          borderStyle="solid"
-          borderColor="gray.600"
-          borderRadius="4px"
-        >
-          <Heading size="md" mb={2}>
-            Deployer
-          </Heading>
-
-          <Text fontSize="md" mb={4}>
-            Configure the{' '}
-            <Link as={NextLink} href="/deploy">
-              deployer
-            </Link>
-            , which allows the staging and execution of builds for protocols
-            controlled by{' '}
-            <Link isExternal href="https://safe.global/">
-              Safes
-            </Link>
-            .
-          </Text>
-
-          {entries(SETTINGS).map(([key, s]) => {
-            const val = settings[key];
-            const validationError =
-              !val && val.length ? s.description : s.validate?.(settings[key]);
-
-            return (
-              <FormControl key={key} isInvalid={!!validationError} mb="4">
-                <FormLabel>{s.title}</FormLabel>
-                <Input
-                  bg="black"
-                  borderColor="whiteAlpha.400"
-                  type={s.password ? 'password' : 'text'}
-                  name={key}
-                  placeholder={s.placeholder}
-                  value={settings[key]}
-                  onChange={(evt) => setSettings({ [key]: evt.target.value })}
-                />
-                {!validationError && s.description && (
-                  <FormHelperText color="gray.300">
-                    {s.description}
-                  </FormHelperText>
-                )}
-                {validationError && (
-                  <FormErrorMessage>{validationError}</FormErrorMessage>
-                )}
-              </FormControl>
-            );
-          })}
-        </Box>
+        <SectionBox>
+          <SafeTransactionService />
+        </SectionBox>
 
         <FormControl>
           <FormHelperText color="gray.300" mb={5} textAlign="right">

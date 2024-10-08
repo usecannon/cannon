@@ -12,7 +12,6 @@ import {
   ActionKinds,
   addOutputsToContext,
 } from '@usecannon/builder';
-import { bold, yellow } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
@@ -29,7 +28,6 @@ export async function alter(
   subpkg: string[],
   chainId: number,
   cliSettings: CliSettings,
-  presetArg: string,
   meta: any,
   command:
     | 'set-url'
@@ -43,20 +41,7 @@ export async function alter(
   targets: string[],
   runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
-  // Handle deprecated preset specification
-  let { fullPackageRef } = new PackageReference(packageRef);
-
-  // Once preset arg is removed from the cli args we can remove this logic
-  if (presetArg) {
-    fullPackageRef = `${fullPackageRef.split('@')[0]}@${presetArg}`;
-    warn(
-      yellow(
-        bold(
-          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
-        )
-      )
-    );
-  }
+  const { fullPackageRef } = new PackageReference(packageRef);
 
   const { provider } = await resolveProvider({ action: ProviderAction.ReadProvider, quiet: true, cliSettings, chainId });
   const resolver = await createDefaultReadRegistry(cliSettings);
@@ -316,7 +301,6 @@ export async function alter(
             [],
             chainId,
             cliSettings,
-            presetArg,
             meta,
             'migrate-212',
             targets,
