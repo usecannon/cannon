@@ -23,7 +23,7 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '--provider-url [url]',
-        description: '(DEPRECATED) RPC endpoint to fork off of',
+        description: '(DEPRECATED) RPC endpoint to fork off of. Use --rpc-url',
       },
       {
         flags: '-c --chain-id <chainId>',
@@ -95,7 +95,7 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '--provider-url [url]',
-        description: '(DEPRECATED) RPC endpoint to fork off of',
+        description: '(DEPRECATED) RPC endpoint to fork off of. Use --rpc-url',
       },
       {
         flags: '-c --chain-id <number>',
@@ -255,7 +255,7 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '--provider-url [url]',
-        description: '(DEPRECATED) RPC endpoint to fork off of',
+        description: '(DEPRECATED) RPC endpoint to fork off of. Use --rpc-url',
       },
       ...debugVerbosity,
     ],
@@ -626,7 +626,7 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '--provider-url [url]',
-        description: '(DEPRECATED) RPC endpoint to fork off of',
+        description: '(DEPRECATED) RPC endpoint to fork off of. Use --rpc-url',
       },
       {
         flags: '-j --json',
@@ -688,7 +688,7 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '--provider-url [url]',
-        description: '(DEPRECATED) RPC endpoint to fork off of',
+        description: '(DEPRECATED) RPC endpoint to fork off of. Use --rpc-url',
       },
       {
         flags: '-c --chain-id',
@@ -734,7 +734,7 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '--provider-url [url]',
-        description: '(DEPRECATED) RPC endpoint to fork off of',
+        description: '(DEPRECATED) RPC endpoint to fork off of. Use --rpc-url',
       },
       {
         flags: '--mnemonic <phrase>',
