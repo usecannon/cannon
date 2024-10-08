@@ -7,6 +7,7 @@ import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-record
 import { build, createInitialContext, getOutputs } from '../builder';
 import { CANNON_CHAIN_ID } from '../constants';
 import { ChainDefinition } from '../definition';
+import { getContentUrl } from '../ipfs';
 import { PackageReference } from '../package-reference';
 import { ChainBuilderRuntime, Events } from '../runtime';
 import { cloneSchema } from '../schemas';
@@ -238,7 +239,7 @@ const cloneSpec = {
       };
     }
 
-    const newMiscUrl = await importRuntime.recordMisc();
+    const newMiscUrl = await getContentUrl(importRuntime.misc);
 
     debug(`[clone.${importLabel}]`, 'new misc:', newMiscUrl);
 
@@ -255,6 +256,12 @@ const cloneSpec = {
       status: partialDeploy ? 'partial' : 'complete',
       chainId,
     });
+
+    const uploadedMiscUrl = await importRuntime.recordMisc();
+
+    if (newMiscUrl && newMiscUrl !== uploadedMiscUrl) {
+      throw new Error(`Misc url mismatch: ${newMiscUrl} | ${uploadedMiscUrl}`);
+    }
 
     if (!newSubDeployUrl) {
       debug(`[clone.${importLabel}]`, 'warn: cannot record built state for import nested state');
