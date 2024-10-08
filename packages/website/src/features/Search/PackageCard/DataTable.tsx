@@ -193,9 +193,19 @@ export function DataTable<Data extends object>({
                     }
                     whiteSpace="nowrap"
                   >
-                    <Link zIndex={10} as={NextLink} href={`/packages/${packageName}/${row.original.version}/${variant}`} position="absolute" display="block" w="100%" h="100%" top={0} left={0} />
+                    <Link
+                      zIndex={10}
+                      as={NextLink}
+                      href={`/packages/${packageName}/${row.original.version}/${variant}`}
+                      position="absolute"
+                      display="block"
+                      w="100%"
+                      h="100%"
+                      top={0}
+                      left={0}
+                    />
                     <Box position="relative" zIndex={1}>
-                    {getCellContent({ cell })}
+                      {getCellContent({ cell })}
                     </Box>
                   </Td>
                 );

@@ -81,9 +81,7 @@ export const DeploymentExplorer: FC<{
           if (
             stepDefinitions.some((step) => obj[key].deployedOn.includes(step))
           ) {
-            mergedContracts[
-              obj[key].contractName || ''
-            ] = obj[key];
+            mergedContracts[obj[key].contractName || ''] = obj[key];
           }
         }
 
@@ -95,9 +93,8 @@ export const DeploymentExplorer: FC<{
               key;
 
             // Change deployedOn title to parent package
-            mergedContracts[
-              obj[key].contractName || ''
-            ] = obj[key].artifacts.imports[step].contracts[contract];
+            mergedContracts[obj[key].contractName || ''] =
+              obj[key].artifacts.imports[step].contracts[contract];
           }
         }
 
@@ -227,10 +224,14 @@ export const DeploymentExplorer: FC<{
             alignItems={'center'}
             direction={['column', 'column', 'row']}
           >
-            <Flex width={['100%', '100%', 'auto']} justifyContent="space-between" alignItems="center" mb={[2, 2, 0]} minHeight="32px">
-              <Heading size="md">
-                Contract Deployments
-              </Heading>
+            <Flex
+              width={['100%', '100%', 'auto']}
+              justifyContent="space-between"
+              alignItems="center"
+              mb={[2, 2, 0]}
+              minHeight="32px"
+            >
+              <Heading size="md">Contract Deployments</Heading>
               {showContracts ? (
                 <ChevronUpIcon
                   cursor="pointer"
@@ -246,7 +247,11 @@ export const DeploymentExplorer: FC<{
               )}
             </Flex>
             {showContracts && (
-              <Box pl={[0, 0, 6]} width={['100%', '100%', 'auto']} mt={[2, 2, 0]}>
+              <Box
+                pl={[0, 0, 6]}
+                width={['100%', '100%', 'auto']}
+                mt={[2, 2, 0]}
+              >
                 <SearchInput size="sm" onSearchChange={setContractSearchTerm} />
               </Box>
             )}
@@ -297,10 +302,14 @@ export const DeploymentExplorer: FC<{
             alignItems={'center'}
             direction={['column', 'column', 'row']}
           >
-            <Flex width={['100%', '100%', 'auto']} justifyContent="space-between" alignItems="center" mb={[2, 2, 0]} minHeight="32px">
-              <Heading size="md">
-                Function Calls
-              </Heading>
+            <Flex
+              width={['100%', '100%', 'auto']}
+              justifyContent="space-between"
+              alignItems="center"
+              mb={[2, 2, 0]}
+              minHeight="32px"
+            >
+              <Heading size="md">Function Calls</Heading>
               {showInvoke ? (
                 <ChevronDownIcon
                   cursor="pointer"
@@ -316,7 +325,11 @@ export const DeploymentExplorer: FC<{
               )}
             </Flex>
             {showInvoke && (
-              <Box pl={[0, 0, 6]} width={['100%', '100%', 'auto']} mt={[2, 2, 0]}>
+              <Box
+                pl={[0, 0, 6]}
+                width={['100%', '100%', 'auto']}
+                mt={[2, 2, 0]}
+              >
                 <SearchInput size="sm" onSearchChange={setInvokeSearchTerm} />
               </Box>
             )}
