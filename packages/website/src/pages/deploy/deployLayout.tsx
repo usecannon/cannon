@@ -8,17 +8,22 @@ import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
 import { SafeAddressInput } from '@/features/Deploy/SafeAddressInput';
 import ClientOnly from '@/components/ClientOnly';
+import { useParams } from 'next/navigation';
+import PageLoading from '@/components/PageLoading';
 
 const NoSSRWithSafe = dynamic(() => import('@/features/Deploy/WithSafe'), {
   ssr: false,
 });
 
 export default function DeployLayout({ children }: { children: ReactNode }) {
+  const params = useParams();
   const pathname = useRouter().pathname;
 
   const isLarge = useBreakpointValue({ base: false, lg: true });
 
-  return (
+  return params == null ? (
+    <PageLoading />
+  ) : (
     <Flex flexDir="column" width="100%">
       {/* Header */}
       <Box bg="black" borderBottom="1px solid" borderColor="gray.700">

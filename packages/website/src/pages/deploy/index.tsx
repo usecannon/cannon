@@ -2,7 +2,7 @@ import defaultSEO from '@/constants/defaultSeo';
 import { NextSeo } from 'next-seo';
 import dynamic from 'next/dynamic';
 import { ReactElement } from 'react';
-import Layout from './_layout';
+import DeployLayout from '@/pages/deploy/deployLayout';
 
 const NoSSR = dynamic(() => import('@/features/Deploy/SignTransactionsPage'), {
   ssr: false,
@@ -26,5 +26,5 @@ export default function SignTransactions() {
   );
 }
 SignTransactions.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>;
+  return <DeployLayout>{page}</DeployLayout>;
 };
