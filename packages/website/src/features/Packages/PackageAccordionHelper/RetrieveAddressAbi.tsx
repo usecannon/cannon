@@ -63,7 +63,7 @@ export default function RetrieveAddressAbi({
       }
     >
       <CommandPreview
-        command={`cannon inspect ${name}${_version}${_preset}${_chainId} --write-deployments ~/cannon/${name}:${version}`}
+        command={`cannon inspect ${name}${_version}${_preset}${_chainId} --write-deployments ./deployment`}
       />
     </ItemBodyWrapper>
   );
