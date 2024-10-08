@@ -321,14 +321,14 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
             {showInvoke ? (
-              <ChevronUpIcon
+              <ChevronDownIcon
                 cursor="pointer"
                 onClick={handleInvokeCollapse}
                 display={['none', 'none', 'block']}
                 ml="auto"
               />
             ) : (
-              <ChevronDownIcon
+              <ChevronUpIcon
                 cursor="pointer"
                 onClick={handleInvokeCollapse}
                 display={['none', 'none', 'block']}
