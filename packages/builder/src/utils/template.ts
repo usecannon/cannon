@@ -3,6 +3,20 @@ import _ from 'lodash';
 
 import type { TemplateOptions } from 'lodash';
 
+export function isTemplateString(str: string) {
+  return /<%[=-]([\s\S]+?)%>/.test(str);
+}
+
+/**
+ * Find all the matches on the given string for a template string.
+ * e.g.:
+ *   getTemplateMatches('<%= some.val %>-<%- another.val %>') // ['<%= some.val %>', '<%- another.val %>']
+ */
+export function getTemplateMatches(str: string) {
+  const results = Array.from(str.matchAll(/<%[=-]([\s\S]+?)%>/g));
+  return results.map((r) => r[0]);
+}
+
 export function template(str?: string, options?: TemplateOptions) {
   const render = _.template(str, options);
 

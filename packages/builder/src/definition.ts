@@ -344,6 +344,7 @@ export class ChainDefinition {
           possibleFields.push(baseName);
         }
       }
+
       const accessComputationResults = ActionKinds[n].getInputs!(_.get(this.raw, node), possibleFields, {
         ref: null,
         currentLabel: node,
