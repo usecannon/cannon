@@ -283,16 +283,12 @@ async function importTxnData(
         abi,
         //deployTxnHash: txns[0].hash, // TODO: find the hash for the actual txn we are reading?
         deployTxnHash: '',
-        deployTxnBlockNumber: '',
-        deployTimestamp: '',
         constructorArgs: factoryInfo.constructorArgs,
         sourceName: sourceName,
         contractName: contractName,
         deployedOn: packageState.currentLabel,
-
-        // contract was deployed as part of another transaction that was alreayd counted for gas usage, so we mark gas cost/usage as 0 here
-        gasUsed: 0,
-        gasCost: '0',
+        chainId: ctx.chainId,
+        // contract was deployed as part of another transaction that was alreayd counted for gas usage, so gas cost/usage are undefined
       };
 
       if (factoryInfo.highlight) {

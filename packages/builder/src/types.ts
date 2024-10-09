@@ -33,15 +33,16 @@ export type ContractData = {
   abi: Abi;
   constructorArgs?: any[]; // only needed for external verification
   linkedLibraries?: { [sourceName: string]: { [libName: string]: string } }; // only needed for external verification
-  deployTxnHash: string;
-  deployTxnBlockNumber?: string;
-  deployTimestamp?: string;
+  deployTxnHash?: string;
+  deployTxnBlockNumber?: bigint;
+  deployTimestamp?: bigint;
   contractName: string;
   sourceName: string;
   deployedOn: string;
   highlight?: boolean;
-  gasUsed: number;
-  gasCost: string;
+  gasUsed?: bigint;
+  gasCost?: bigint;
+  chainId: number;
 };
 
 export type ContractMap = {

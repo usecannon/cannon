@@ -315,13 +315,14 @@ async function firstTimeDeploy(
         abi: contract.abi,
         deployedOn: packageState.currentLabel,
         deployTxnHash: receipt.transactionHash,
-        deployTxnBlockNumber: receipt.blockNumber.toString(),
-        deployTimestamp: block.timestamp.toString(),
+        deployTxnBlockNumber: receipt.blockNumber,
+        deployTimestamp: block.timestamp,
         contractName: contract.contractName,
         sourceName: contract.sourceName,
         highlight: deployedContractLabel === stepName ? config.highlight : false,
-        gasUsed: Number(receipt.gasUsed),
-        gasCost: receipt.effectiveGasPrice.toString(),
+        gasUsed: receipt.gasUsed,
+        gasCost: receipt.effectiveGasPrice,
+        chainId: runtime.chainId,
       };
     } else {
       outputContracts[deployedContractLabel] = {
@@ -329,13 +330,10 @@ async function firstTimeDeploy(
         abi: contract.abi,
         deployedOn: packageState.currentLabel,
         deployTxnHash: '',
-        deployTxnBlockNumber: '',
-        deployTimestamp: '',
         contractName: contract.contractName,
         sourceName: contract.sourceName,
         highlight: deployedContractLabel === stepName ? config.highlight : false,
-        gasUsed: Number(0),
-        gasCost: '0',
+        chainId: runtime.chainId,
       };
     }
 
