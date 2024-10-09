@@ -15,7 +15,7 @@ import NextLink from 'next/link';
 import { links } from '@/constants/links';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
-import { ChevronDownIcon, InfoIcon } from '@chakra-ui/icons';
+import { ChevronDownIcon, ChevronUpIcon, InfoIcon } from '@chakra-ui/icons';
 import { ChainBuilderContext } from '@usecannon/builder';
 import { isEmpty } from 'lodash';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
@@ -81,9 +81,7 @@ export const DeploymentExplorer: FC<{
           if (
             stepDefinitions.some((step) => obj[key].deployedOn.includes(step))
           ) {
-            mergedContracts[
-              obj[key].contractName || '⚠ Unknown Contract Name'
-            ] = obj[key];
+            mergedContracts[obj[key].contractName || ''] = obj[key];
           }
         }
 
@@ -95,9 +93,8 @@ export const DeploymentExplorer: FC<{
               key;
 
             // Change deployedOn title to parent package
-            mergedContracts[
-              obj[key].contractName || '⚠ Unknown Contract Name'
-            ] = obj[key].artifacts.imports[step].contracts[contract];
+            mergedContracts[obj[key].contractName || ''] =
+              obj[key].artifacts.imports[step].contracts[contract];
           }
         }
 
@@ -220,26 +217,63 @@ export const DeploymentExplorer: FC<{
       ) : deploymentInfo ? (
         <Box>
           <Flex
-            p={6}
-            mb={1}
+            pt={6}
+            pb={2}
+            px={4}
             justifyContent={'flex-start'}
-            alignItems={'baseline'}
+            alignItems={'center'}
             direction={['column', 'column', 'row']}
           >
-            <Heading size="md">
-              Contract Deployments
+            <Flex
+              width={['100%', '100%', 'auto']}
+              justifyContent="space-between"
+              alignItems="center"
+              mb={[2, 2, 0]}
+              minHeight="32px"
+            >
+              <Heading size="md">Contract Deployments</Heading>
+              {showContracts ? (
+                <ChevronUpIcon
+                  cursor="pointer"
+                  onClick={handleContractCollapse}
+                  display={['block', 'block', 'none']}
+                />
+              ) : (
+                <ChevronDownIcon
+                  cursor="pointer"
+                  onClick={handleContractCollapse}
+                  display={['block', 'block', 'none']}
+                />
+              )}
+            </Flex>
+            {showContracts && (
+              <Box
+                pl={[0, 0, 6]}
+                width={['100%', '100%', 'auto']}
+                mt={[2, 2, 0]}
+              >
+                <SearchInput size="sm" onSearchChange={setContractSearchTerm} />
+              </Box>
+            )}
+            {showContracts ? (
               <ChevronDownIcon
-                ml={2}
+                cursor="pointer"
                 onClick={handleContractCollapse}
-              ></ChevronDownIcon>
-            </Heading>
-            <Box pl={6}>
-              <SearchInput onSearchChange={setContractSearchTerm}></SearchInput>
-            </Box>
+                display={['none', 'none', 'block']}
+                ml="auto"
+              />
+            ) : (
+              <ChevronUpIcon
+                cursor="pointer"
+                onClick={handleContractCollapse}
+                display={['none', 'none', 'block']}
+                ml="auto"
+              />
+            )}
           </Flex>
           <Collapse in={showContracts}>
             {!isEmpty(filteredContractState) && !isEmpty(addressesAbis) ? (
-              <Box mt={2}>
+              <Box>
                 <Box maxW="100%" overflowX="auto">
                   <ContractsTable
                     contractState={filteredContractState}
@@ -261,22 +295,59 @@ export const DeploymentExplorer: FC<{
             )}
           </Collapse>
           <Flex
-            p={6}
-            mt={3}
+            pt={6}
+            pb={2}
+            px={4}
             justifyContent={'flex-start'}
-            alignItems={'baseline'}
+            alignItems={'center'}
             direction={['column', 'column', 'row']}
           >
-            <Heading size="md" px={4} mb={3}>
-              Function Calls
-            </Heading>
-            <ChevronDownIcon
-              ml={2}
-              onClick={handleInvokeCollapse}
-            ></ChevronDownIcon>
-            <Box pl={6}>
-              <SearchInput onSearchChange={setInvokeSearchTerm}></SearchInput>
-            </Box>
+            <Flex
+              width={['100%', '100%', 'auto']}
+              justifyContent="space-between"
+              alignItems="center"
+              mb={[2, 2, 0]}
+              minHeight="32px"
+            >
+              <Heading size="md">Function Calls</Heading>
+              {showInvoke ? (
+                <ChevronDownIcon
+                  cursor="pointer"
+                  onClick={handleInvokeCollapse}
+                  display={['block', 'block', 'none']}
+                />
+              ) : (
+                <ChevronUpIcon
+                  cursor="pointer"
+                  onClick={handleInvokeCollapse}
+                  display={['block', 'block', 'none']}
+                />
+              )}
+            </Flex>
+            {showInvoke && (
+              <Box
+                pl={[0, 0, 6]}
+                width={['100%', '100%', 'auto']}
+                mt={[2, 2, 0]}
+              >
+                <SearchInput size="sm" onSearchChange={setInvokeSearchTerm} />
+              </Box>
+            )}
+            {showInvoke ? (
+              <ChevronDownIcon
+                cursor="pointer"
+                onClick={handleInvokeCollapse}
+                display={['none', 'none', 'block']}
+                ml="auto"
+              />
+            ) : (
+              <ChevronUpIcon
+                cursor="pointer"
+                onClick={handleInvokeCollapse}
+                display={['none', 'none', 'block']}
+                ml="auto"
+              />
+            )}
           </Flex>
 
           <Collapse in={showInvoke}>

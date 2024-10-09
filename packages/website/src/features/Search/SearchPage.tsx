@@ -119,7 +119,9 @@ export const SearchPage = () => {
               },
             }}
           >
-            <SearchInput onSearchChange={setSearchTerm} />
+            <Box mb={[4, 4, 8]}>
+              <SearchInput onSearchChange={setSearchTerm} />
+            </Box>
 
             <Text mb={1.5} color="gray.200" fontSize="sm" fontWeight={500}>
               Filter by Chain

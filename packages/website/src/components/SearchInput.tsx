@@ -7,12 +7,14 @@ interface SearchInputProps {
   onSearchChange: (value: string) => void;
   debounceDelay?: number;
   placeholder?: string;
+  size?: string;
 }
 
 const SearchInput: React.FC<SearchInputProps> = ({
   onSearchChange,
   debounceDelay = 300,
   placeholder = 'Search...',
+  size,
 }) => {
   const debouncedHandleSearch = React.useMemo(
     () => debounce(onSearchChange, debounceDelay),
@@ -20,7 +22,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
   );
 
   return (
-    <InputGroup borderColor="gray.600" mb={[4, 4, 8]}>
+    <InputGroup borderColor="gray.600" size={size}>
       <InputLeftElement pointerEvents="none">
         <SearchIcon color="gray.500" />
       </InputLeftElement>

@@ -205,7 +205,11 @@ export const ContractsTable: React.FC<{
                           );
                         }
                         case 'name': {
-                          return (
+                          return !cell.row.original.name.length ? (
+                            <Text color="gray.500" fontStyle="italic">
+                              Unavailable
+                            </Text>
+                          ) : (
                             <Text fontWeight="bold">
                               {cell.row.original.name}
                             </Text>

@@ -11,6 +11,7 @@ import {
   chakra,
   Tooltip,
   Text,
+  Box,
 } from '@chakra-ui/react';
 import {
   ChevronDownIcon,
@@ -50,12 +51,6 @@ const formatIPFS = (input: string, partLength: number): string => {
 
   return `${prefix}${startPart}...${endPart}`;
 };
-
-const LinkableCell = ({ href }: { href: string }) => (
-  <NextLink href={href} passHref>
-    <Link position="absolute" display="block" w="100%" h="100%" />
-  </NextLink>
-);
 
 // TODO: add types
 const getCellContent = ({ cell }: { cell: any }) => {
@@ -198,10 +193,20 @@ export function DataTable<Data extends object>({
                     }
                     whiteSpace="nowrap"
                   >
-                    <LinkableCell
+                    <Link
+                      zIndex={10}
+                      as={NextLink}
                       href={`/packages/${packageName}/${row.original.version}/${variant}`}
+                      position="absolute"
+                      display="block"
+                      w="100%"
+                      h="100%"
+                      top={0}
+                      left={0}
                     />
-                    {getCellContent({ cell })}
+                    <Box position="relative" zIndex={1}>
+                      {getCellContent({ cell })}
+                    </Box>
                   </Td>
                 );
               })}
