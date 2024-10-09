@@ -1,9 +1,6 @@
 import _ from 'lodash';
 import * as viem from 'viem';
-import * as viemUtils from 'viem/utils';
-import * as viemNumbers from 'viem/constants/number';
-import * as viemAddresses from 'viem/constants/address';
-import * as viemBytes from 'viem/constants/bytes';
+import { viemContext } from './utils/viem-context';
 import { PackageReference } from './package-reference';
 
 import type { RawChainDefinition } from './actions';
@@ -95,8 +92,7 @@ export interface ChainBuilderContext extends PreChainBuilderContext {
 
 const etherUnitNames = ['wei', 'kwei', 'mwei', 'gwei', 'szabo', 'finney', 'ether'];
 
-// Mappings to make the functions more like ethers syntax
-// Consider deprecating
+// Ethers.js compatible context functions. Consider deprecating.
 const ethersStyleConstants = {
   AddressZero: viem.zeroAddress,
   HashZero: viem.zeroHash,
@@ -164,10 +160,7 @@ const ethersStyleConstants = {
 };
 
 export const CannonHelperContext = {
-  ...viemUtils,
-  ...viemNumbers,
-  ...viemAddresses,
-  ...viemBytes,
+  ...viemContext,
   ...ethersStyleConstants,
 };
 
