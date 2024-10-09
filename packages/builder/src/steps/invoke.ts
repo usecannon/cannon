@@ -442,7 +442,7 @@ const invokeSpec = {
       if (isStepName(target)) {
         accesses.accesses.push(`contracts.${target}`);
       } else if (isStepPath(target)) {
-        accesses.accesses.push(`imports.${target}`);
+        accesses.accesses.push(`imports.${target.split('.')[0]}`);
       } else if (isTemplateString(target)) {
         for (const match of getTemplateMatches(target)) {
           accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(match, possibleFields));
