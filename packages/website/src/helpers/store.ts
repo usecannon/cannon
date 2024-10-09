@@ -4,7 +4,6 @@ import uniqWith from 'lodash/uniqWith';
 import { Address, TransactionRequestBase, AbiFunction } from 'viem';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { chains } from '@/constants/deployChains';
 import { BuildState } from '@/hooks/cannon';
 import { includes } from '@/helpers/array';
 import { externalLinks } from '@/constants/externalLinks';
@@ -19,8 +18,6 @@ export type IdentifiableTxn = {
   chainId: number;
   pkgUrl: string;
 };
-
-export type ChainId = (typeof chains)[number]['id'];
 
 export type SafeDefinition = {
   chainId: number;
