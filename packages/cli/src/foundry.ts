@@ -175,6 +175,7 @@ if (!options.skipCompile) {
   const forgeBuildArgs = [
     'build',
     '--build-info',
+    '--ast',
     ...fromFoundryOptionsToArgs(pickForgeBuildOptions(options), forgeBuildOptions),
   ];
 
