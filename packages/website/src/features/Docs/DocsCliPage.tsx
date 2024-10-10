@@ -318,8 +318,7 @@ const renderCommandConfig = (commandConfig: any) => {
     />
   );
 };
-
-export const DocsCliPage: FC = () => {
+const DocsCliPage: FC = () => {
   const isSmall = useBreakpointValue({
     base: true,
     sm: true,
@@ -504,3 +503,5 @@ export const DocsCliPage: FC = () => {
     </Flex>
   );
 };
+
+export default DocsCliPage;
