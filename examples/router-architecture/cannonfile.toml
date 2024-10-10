@@ -45,3 +45,10 @@ args = [0]
 target = ["proxy.Proxy"]
 func = "setGreeting"
 args = ["hello world!"]
+
+# Call Greeter.setGreeting
+[invoke.setGreetingWithTemplateString]
+target = ["<%= imports.proxy.contracts.Proxy.address %>"]
+abi = "<%= JSON.stringify(imports.proxy.contracts.Proxy.abi) %>"
+func = "setGreeting"
+args = ["hello world 2!"]
