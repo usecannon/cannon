@@ -115,7 +115,7 @@ export async function build({
   const nativeCurrencySymbol = chainInfo?.nativeCurrency.symbol || 'ETH';
   let totalCost = BigInt(0);
   let balance = BigInt(0);
-  
+
   const runtimeOptions = {
     provider,
     chainId,
@@ -125,7 +125,7 @@ export async function build({
       async function (addr: viem.Address) {
         const client = provider as unknown as viem.TestClient;
 
-        balance = await provider.getBalance({address: addr});
+        balance = await provider.getBalance({ address: addr });
 
         // on test network any user can be conjured
         await client.impersonateAccount({ address: addr });
