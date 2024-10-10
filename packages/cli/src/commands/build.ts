@@ -524,9 +524,6 @@ export async function build({
         } else {
           log(bold(`💥 ${fullPackageRef} built on ${chainName} (Chain ID: ${chainId})`));
           log(gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
-          if (totalCost > balance) {
-            log(yellow(`Your wallet does not have enough ${nativeCurrencySymbol} to complete this build`));
-          }
           log();
         }
         log();
