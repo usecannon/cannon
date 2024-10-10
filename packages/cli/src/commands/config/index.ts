@@ -711,6 +711,10 @@ export const commandsConfig: CommandsConfig = {
         description: 'Use an alternative forge call, such as "coverage"',
         defaultValue: 'test',
       },
+      {
+        flags: '--skip-compile',
+        description: 'Skip the compilation step and use the existing artifacts',
+      },
       ...debugVerbosity,
     ],
     forgeOptions: forgeTestOptions,
