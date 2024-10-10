@@ -1,4 +1,4 @@
-import { ReactElement, Suspense } from 'react';
+import { ReactElement } from 'react';
 import dynamic from 'next/dynamic';
 import Layout from '../_layout';
 import { NextSeo } from 'next-seo';
@@ -23,9 +23,7 @@ export default function Docs() {
           description: 'CLI Docs',
         }}
       />
-      <Suspense fallback={<p>Loading...</p>}>
-        <DocsCliPage />
-      </Suspense>
+      <DocsCliPage />
     </>
   );
 }
