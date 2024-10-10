@@ -1027,7 +1027,8 @@ export default function QueueFromGitOps() {
             <Box>
               <NoncePicker safe={currentSafe} handleChange={setPickedNonce} />
               <HStack gap="6">
-                {stager.execConditionFailed ? (
+                {stager.execConditionFailed &&
+                (buildState.result?.safeSteps.length || 0) > 0 ? (
                   <Tooltip label={stager.signConditionFailed}>
                     <Button
                       isDisabled={
