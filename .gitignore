@@ -76,3 +76,6 @@ jspm_packages/
 .nx
 
 .contentlayer
+
+# docker-compose data
+/data
