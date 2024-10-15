@@ -43,7 +43,7 @@ const linkStyle = {
   _hover: { borderBottomColor: 'gray.400' },
 };
 
-export const DocsLandingPage = () => {
+const DocsLandingPage = () => {
   const isLargeScreen = useBreakpointValue({ base: false, md: true });
 
   return (
@@ -304,3 +304,5 @@ export const DocsLandingPage = () => {
     </Flex>
   );
 };
+
+export default DocsLandingPage;
