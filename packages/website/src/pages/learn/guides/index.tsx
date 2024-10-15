@@ -2,7 +2,7 @@ import { useEffect, ReactElement } from 'react';
 import { useRouter } from 'next/router';
 import { links } from '@/constants/links';
 import Layout from '../_layout';
-import NestedLayout from './_layout';
+import GuideLayout from './guideLayout';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
 
@@ -17,7 +17,7 @@ export default function Home() {
       .catch(() => {
         // do nothing
       });
-  }, []);
+  }, [router]);
 
   return (
     <>
@@ -37,7 +37,7 @@ export default function Home() {
 Home.getLayout = function getLayout(page: ReactElement) {
   return (
     <Layout>
-      <NestedLayout>{page}</NestedLayout>
+      <GuideLayout>{page}</GuideLayout>
     </Layout>
   );
 };

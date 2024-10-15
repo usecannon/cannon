@@ -1,7 +1,7 @@
 import { GetStartedPage } from '@/features/GetStarted/GetStartedPage';
 import { ReactElement } from 'react';
 import Layout from '../../_layout';
-import NestedLayout from '../_layout';
+import NestedLayout from '../guideLayout';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
 

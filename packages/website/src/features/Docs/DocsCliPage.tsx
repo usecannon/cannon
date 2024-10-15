@@ -29,28 +29,14 @@ import {
   Tr,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import commandsConfig from '@usecannon/cli/dist/src/commands/config';
 import React, { FC } from 'react';
 import { FaYarn } from 'react-icons/fa';
 import { ImNpm } from 'react-icons/im';
 import { SiPnpm } from 'react-icons/si';
+import { useCommandsConfig } from '@/hooks/useCommandsConfig';
+import { CustomSpinner } from '@/components/CustomSpinner';
 
 const basicCommands = ['run', 'build', 'verify', 'publish'];
-
-const commandsData: any[] = [];
-
-const collectCommandsData = (config: any, parentName?: string) => {
-  Object.entries(config).forEach(([k, v]) => {
-    const name = parentName ? `${parentName} ${k}` : k;
-    if ((v as any).commands) {
-      collectCommandsData((v as any).commands, name);
-    } else {
-      commandsData.push({ ...(v as any), name });
-    }
-  });
-};
-
-collectCommandsData(commandsConfig);
 
 interface CustomLinkProps {
   href: string;
@@ -319,12 +305,22 @@ const renderCommandConfig = (commandConfig: any) => {
   );
 };
 
-export const DocsCliPage: FC = () => {
+const DocsCliPage: FC = () => {
+  const { commandsData, isLoading, error } = useCommandsConfig();
+
   const isSmall = useBreakpointValue({
     base: true,
     sm: true,
     md: false,
   });
+
+  if (isLoading) {
+    return <CustomSpinner m="auto" />;
+  }
+
+  if (error) {
+    return <Box>Error: {error.message}</Box>;
+  }
 
   return (
     <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
@@ -504,3 +500,5 @@ export const DocsCliPage: FC = () => {
     </Flex>
   );
 };
+
+export default DocsCliPage;

@@ -214,17 +214,21 @@ const CustomTable: React.FC<{
   </Box>
 );
 
-export const DocsCannonfilesPage: FC = () => {
+const DocsCannonfilesPage: FC = () => {
   const isSmall = useBreakpointValue({
     base: true,
     sm: true,
     md: false,
   });
 
-  const cannonfileSpecs = useCannonfileSpecs();
+  const { isLoading, data: cannonfileSpecs, error } = useCannonfileSpecs();
+
+  if (isLoading) {
+    return <CustomSpinner m="auto" />;
+  }
 
   if (!cannonfileSpecs) {
-    return <CustomSpinner m="auto" />;
+    return <Text>Error: {error?.message}</Text>;
   }
 
   return (
@@ -789,3 +793,5 @@ export const DocsCannonfilesPage: FC = () => {
     </Flex>
   );
 };
+
+export default DocsCannonfilesPage;
