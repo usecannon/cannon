@@ -28,7 +28,6 @@ import {
 import { useMutation } from '@tanstack/react-query';
 import {
   CannonStorage,
-  DEFAULT_REGISTRY_ADDRESS,
   DEFAULT_REGISTRY_CONFIG,
   FallbackRegistry,
   InMemoryRegistry,
