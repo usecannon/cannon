@@ -81,7 +81,7 @@ export default function PublishUtility(props: {
       viem.isAddressEqual(publisher, wc.data?.account.address)
   );
 
-  const { getChainById, transports, getExplorerUrl } = useCannonChains();
+  const { getChainById, customTransports, getExplorerUrl } = useCannonChains();
 
   const prepareAndPublishPackage = async (publishChainId: number) => {
     if (!wc.data) {
@@ -100,7 +100,7 @@ export default function PublishUtility(props: {
         address: config.address,
         provider: viem.createPublicClient({
           chain: getChainById(config.chainId),
-          transport: transports[config.chainId] || viem.http(rpcUrl),
+          transport: customTransports[config.chainId] || viem.http(rpcUrl),
         }),
       });
     });
