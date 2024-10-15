@@ -534,6 +534,16 @@ export default function QueueFromGitOps() {
   const hasDeployers = Boolean(
     cannonDefInfo.def?.getDeployers()?.length ?? 0 > 0
   );
+
+  const canTomlBeDeployedUsingWebsite = Boolean(
+    cannonfileUrlInput &&
+      cannonDefInfo?.def &&
+      !cannonDefInfo.def.allActionNames.some(
+        (item) => item.startsWith('deploy.') || item.startsWith('contract.')
+      )
+  );
+
+  // This condition checks if the cannonfile requires to enter a value in the "Previous Package" input
   const tomlRequiresPrevPackage = Boolean(
     cannonfileUrlInput &&
       cannonDefInfo?.def &&
@@ -552,7 +562,8 @@ export default function QueueFromGitOps() {
     (onChainPrevPkgQuery.isFetched &&
       !prevDeployLocation &&
       tomlRequiresPrevPackage &&
-      !previousPackageInput);
+      !previousPackageInput) ||
+    canTomlBeDeployedUsingWebsite;
 
   const PreviewButton = ({ message }: { message?: string }) => (
     <Tooltip label={message}>
@@ -891,17 +902,20 @@ export default function QueueFromGitOps() {
             </Alert>
           )}
           {buildState.skippedSteps.length > 0 && (
-            <Flex flexDir="column" mt="6">
+            <AlertCannon my={2} status="error">
               <Text mb="2" fontWeight="bold">
                 This safe will not be able to complete the following operations:
               </Text>
               {buildState.skippedSteps.map((s, i) => (
                 <Text fontFamily="monospace" key={i} mb="2">
                   <strong>{`[${s.name}]: `}</strong>
-                  {s.err.toString()}
+                  {s.name.startsWith('deploy.') ||
+                  s.name.startsWith('contract.')
+                    ? 'Is not possible to build and deploy a contract from source code from the website. You should first build your cannonfile using the CLI and continue the deployment from a partial build.'
+                    : s.err.toString()}
                 </Text>
               ))}
-            </Flex>
+            </AlertCannon>
           )}
 
           {!!buildState.result?.deployerSteps?.length && (
@@ -982,6 +996,21 @@ export default function QueueFromGitOps() {
                 )}
               </Box>
             )}
+
+          {writeToIpfsMutationRes?.data?.mainUrl &&
+            multicallTxn?.data &&
+            stager.safeTxn &&
+            (buildState.result?.safeSteps.length || 0) > 0 &&
+            buildState.skippedSteps.length > 0 && (
+              <AlertCannon borderless status="warning" mt="0">
+                We have detected transactions in your Cannonfile that cannot be
+                executed, which may lead to undesired effects on your
+                deployment. We advise you not to proceed unless you are
+                absolutely certain of what you are doing, as this will result in
+                a partial deployment package.
+              </AlertCannon>
+            )}
+
           {writeToIpfsMutationRes?.isLoading && (
             <Alert mt="6" status="info" bg="gray.800">
               <Spinner mr={3} boxSize={4} />
