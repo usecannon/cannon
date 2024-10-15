@@ -1,5 +1,5 @@
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
-import { DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_CONFIG, OnChainRegistry } from '@usecannon/builder';
+import { DEFAULT_REGISTRY_CONFIG, OnChainRegistry } from '@usecannon/builder';
 import { useEffect, useState } from 'react';
 import * as viem from 'viem';
 
@@ -11,18 +11,20 @@ type Publishers = {
 
 export function useCannonPackagePublishers(packageName?: string) {
   const [publishers, setPublishers] = useState<Publishers[]>([]);
-  const { getChainById } = useCannonChains();
+  const { getChainById, customTransports } = useCannonChains();
 
   useEffect(() => {
     if (!packageName) return setPublishers([]);
 
     const onChainRegistries = DEFAULT_REGISTRY_CONFIG.map((config) => {
+      const rpcUrl = config.rpcUrl.find((url) => url.startsWith('https://') || url.startsWith('wss://'));
+
       return new OnChainRegistry({
-        address: DEFAULT_REGISTRY_ADDRESS,
+        address: config.address,
         provider: viem.createPublicClient({
           chain: getChainById(config.chainId),
-          transport: viem.http(),
-        }) as any, // TODO: fix type
+          transport: customTransports[config.chainId] || viem.http(rpcUrl),
+        }),
       });
     });
 

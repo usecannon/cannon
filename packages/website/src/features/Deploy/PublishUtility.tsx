@@ -28,7 +28,7 @@ import {
 import { useMutation } from '@tanstack/react-query';
 import {
   CannonStorage,
-  DEFAULT_REGISTRY_ADDRESS,
+  DEFAULT_REGISTRY_CONFIG,
   FallbackRegistry,
   InMemoryRegistry,
   OnChainRegistry,
@@ -81,7 +81,7 @@ export default function PublishUtility(props: {
       viem.isAddressEqual(publisher, wc.data?.account.address)
   );
 
-  const { transports, getExplorerUrl } = useCannonChains();
+  const { getChainById, customTransports, getExplorerUrl } = useCannonChains();
 
   const prepareAndPublishPackage = async (publishChainId: number) => {
     if (!wc.data) {
@@ -90,25 +90,23 @@ export default function PublishUtility(props: {
 
     const [walletAddress] = await wc.data.getAddresses();
 
+    const onChainRegistries = DEFAULT_REGISTRY_CONFIG.map((config) => {
+      const rpcUrl = config.rpcUrl.find(
+        (url) => url.startsWith('https://') || url.startsWith('wss://')
+      );
+
+      return new OnChainRegistry({
+        signer: { address: walletAddress, wallet: wc.data as any },
+        address: config.address,
+        provider: viem.createPublicClient({
+          chain: getChainById(config.chainId),
+          transport: customTransports[config.chainId] || viem.http(rpcUrl),
+        }),
+      });
+    });
+
     const targetRegistry = new FallbackRegistry(
-      [
-        new OnChainRegistry({
-          signer: { address: walletAddress, wallet: wc.data as any },
-          address: DEFAULT_REGISTRY_ADDRESS,
-          provider: viem.createPublicClient({
-            chain: optimism,
-            transport: transports[optimism.id] || viem.http(),
-          }) as any, // TODO: fix type
-        }),
-        new OnChainRegistry({
-          signer: { address: walletAddress, wallet: wc.data as any },
-          address: DEFAULT_REGISTRY_ADDRESS,
-          provider: viem.createPublicClient({
-            chain: mainnet,
-            transport: transports[mainnet.id] || viem.http(),
-          }) as any, // TODO: fix type
-        }),
-      ],
+      onChainRegistries,
       publishChainId === 10 ? 0 : 1
     );
 

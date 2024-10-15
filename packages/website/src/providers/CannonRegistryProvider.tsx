@@ -3,7 +3,6 @@
 import { inMemoryRegistry } from '@/helpers/cannon';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import {
-  DEFAULT_REGISTRY_ADDRESS,
   DEFAULT_REGISTRY_CONFIG,
   FallbackRegistry,
   OnChainRegistry,
@@ -20,17 +19,18 @@ type Props = {
   children: React.ReactNode;
 };
 export const CannonRegistryProvider: React.FC<Props> = ({ children }) => {
-  const { getChainById, transports } = useCannonChains();
-  const onChainRegistries = DEFAULT_REGISTRY_CONFIG.map(
-    (registry) => registry.chainId
-  ).map((chainId: number) => {
-    const chain = getChainById(chainId);
+  const { getChainById, customTransports } = useCannonChains();
+
+  const onChainRegistries = DEFAULT_REGISTRY_CONFIG.map((config) => {
+    const rpcUrl = config.rpcUrl.find(
+      (url) => url.startsWith('https://') || url.startsWith('wss://')
+    );
 
     return new OnChainRegistry({
-      address: DEFAULT_REGISTRY_ADDRESS,
+      address: config.address,
       provider: createPublicClient({
-        chain,
-        transport: transports[chainId] || http(),
+        chain: getChainById(config.chainId),
+        transport: customTransports[config.chainId] || http(rpcUrl),
       }),
     });
   });

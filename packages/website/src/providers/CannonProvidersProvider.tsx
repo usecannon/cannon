@@ -8,14 +8,7 @@ import React, {
   useContext,
   useMemo,
 } from 'react';
-import {
-  Chain,
-  Hash,
-  http,
-  HttpTransport,
-  isAddress,
-  createPublicClient,
-} from 'viem';
+import * as viem from 'viem';
 // eslint-disable-next-line no-restricted-imports
 import * as chains from 'viem/chains';
 import sortBy from 'lodash/sortBy';
@@ -27,11 +20,12 @@ import { useQuery } from '@tanstack/react-query';
 
 type CustomProviders =
   | {
-      chains: Chain[];
+      chains: viem.Chain[];
       chainMetadata: Record<number, { color: string }>;
-      transports: Record<number, HttpTransport>;
-      getChainById: (chainId: number) => Chain | undefined;
-      getExplorerUrl: (chainId: number, hash: Hash) => string;
+      transports: Record<number, viem.HttpTransport>;
+      customTransports: Record<number, viem.HttpTransport>;
+      getChainById: (chainId: number) => viem.Chain | undefined;
+      getExplorerUrl: (chainId: number, hash: viem.Hash) => string;
     }
   | undefined;
 const ProvidersContext = createContext<CustomProviders>(undefined);
@@ -40,7 +34,7 @@ const cannonNetwork = {
   ...chains.localhost,
   id: 13370,
   name: 'Cannon',
-} as Chain;
+} as viem.Chain;
 
 const chainMetadata = {
   [chains.arbitrum.id]: {
@@ -93,11 +87,11 @@ const chainMetadata = {
 export const supportedChains = [cannonNetwork, ...Object.values(chains)];
 
 export const defaultTransports = supportedChains.reduce((transports, chain) => {
-  transports[chain.id] = http();
+  transports[chain.id] = viem.http();
   return transports;
-}, {} as Record<number, HttpTransport>);
+}, {} as Record<number, viem.HttpTransport>);
 
-type RpcUrlAndTransport = { rpcUrl: string; transport: HttpTransport };
+type RpcUrlAndTransport = { rpcUrl: string; transport: viem.HttpTransport };
 
 async function _getProvidersChainId({ queryKey }: { queryKey: string[] }) {
   const [, ...providerUrls] = queryKey;
@@ -107,8 +101,8 @@ async function _getProvidersChainId({ queryKey }: { queryKey: string[] }) {
   }
 
   const allPromises = providerUrls.map(async (rpcUrl) => {
-    const client = createPublicClient({
-      transport: http(rpcUrl),
+    const client = viem.createPublicClient({
+      transport: viem.http(rpcUrl),
     });
     const chainId = await client.getChainId();
     return {
@@ -122,7 +116,7 @@ async function _getProvidersChainId({ queryKey }: { queryKey: string[] }) {
     if (r.status === 'fulfilled') {
       transports[+r.value.chainId] = {
         rpcUrl: r.value.rpcUrl,
-        transport: http(r.value.rpcUrl),
+        transport: viem.http(r.value.rpcUrl),
       };
     }
 
@@ -131,7 +125,7 @@ async function _getProvidersChainId({ queryKey }: { queryKey: string[] }) {
 }
 
 function _getAllChains(verifiedProviders?: Record<number, RpcUrlAndTransport>) {
-  const customChains: Chain[] = cloneDeep(supportedChains);
+  const customChains: viem.Chain[] = cloneDeep(supportedChains);
 
   if (!verifiedProviders || isEmpty(verifiedProviders)) {
     return customChains;
@@ -177,12 +171,28 @@ function _getAllTransports(
   return customTransports;
 }
 
-function _getChainById(allChains: Chain[], chainId: number) {
+function _getCustomTransports(
+  verifiedProviders?: Record<number, RpcUrlAndTransport>
+) {
+  const customTransports: { [chainId: number]: viem.HttpTransport } = {};
+
+  for (const [chainId, provider] of Object.entries(verifiedProviders || {})) {
+    customTransports[+chainId] = provider.transport;
+  }
+
+  return customTransports;
+}
+
+function _getChainById(allChains: viem.Chain[], chainId: number) {
   const chain = allChains.find((c) => c.id === +chainId);
   return chain;
 }
 
-const _getExplorerUrl = (allChains: Chain[], chainId: number, hash: Hash) => {
+const _getExplorerUrl = (
+  allChains: viem.Chain[],
+  chainId: number,
+  hash: viem.Hash
+) => {
   const chain = _getChainById(allChains, +chainId);
   if (!chain) return externalLinks.ETHERSCAN;
 
@@ -191,7 +201,7 @@ const _getExplorerUrl = (allChains: Chain[], chainId: number, hash: Hash) => {
 
   const url = explorer?.url || externalLinks.ETHERSCAN;
 
-  const type = isAddress(hash) ? 'address' : 'tx';
+  const type = viem.isAddress(hash) ? 'address' : 'tx';
   return `${url}/${type}/${hash}`;
 };
 
@@ -208,10 +218,11 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
   const chainsUrls = Object.values(verifiedProviders || {}).map(
     (v) => v.rpcUrl
   );
-  const [_allChains, _allTransports] = useMemo(
+  const [_allChains, _allTransports, _customTransports] = useMemo(
     () => [
       _getAllChains(verifiedProviders),
       _getAllTransports(verifiedProviders),
+      _getCustomTransports(verifiedProviders),
     ],
     [JSON.stringify(sortBy(chainsUrls))]
   );
@@ -222,8 +233,9 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
         chains: _allChains,
         chainMetadata,
         transports: _allTransports,
+        customTransports: _customTransports,
         getChainById: (chainId: number) => _getChainById(_allChains, chainId),
-        getExplorerUrl: (chainId: number, hash: Hash) =>
+        getExplorerUrl: (chainId: number, hash: viem.Hash) =>
           _getExplorerUrl(_allChains, chainId, hash),
       }}
     >
