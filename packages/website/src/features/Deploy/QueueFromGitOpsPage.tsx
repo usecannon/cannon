@@ -918,46 +918,49 @@ export default function QueueFromGitOps() {
             </AlertCannon>
           )}
 
-          {!!buildState.result?.deployerSteps?.length && (
-            <Box
-              mt="6"
-              mb="5"
-              border="1px solid"
-              borderColor="gray.600"
-              p="4"
-              borderRadius="md"
-            >
-              {deployer.queuedTransactions.length === 0 ? (
-                <VStack>
-                  <Text color="gray.300" mb="4">
-                    Some transactions should be executed outside the safe before
-                    staging. You can execute these now in your browser. By
-                    clicking the button below.
+          {!!buildState.result?.deployerSteps?.length &&
+            (buildState.result?.safeSteps.length || 0) > 0 && (
+              <Box
+                mt="6"
+                mb="5"
+                border="1px solid"
+                borderColor="gray.600"
+                p="4"
+                borderRadius="md"
+              >
+                {deployer.queuedTransactions.length === 0 ? (
+                  <VStack>
+                    <Text color="gray.300" mb="4">
+                      Some transactions should be executed outside the safe
+                      before staging. You can execute these now in your browser.
+                      By clicking the button below.
+                    </Text>
+                    <Button
+                      onClick={() =>
+                        deployer.queueTransactions(
+                          buildState.result!.deployerSteps.map(
+                            (s) => s.tx as any
+                          )
+                        )
+                      }
+                    >
+                      Execute Outside Safe Txns
+                    </Button>
+                  </VStack>
+                ) : deployer.executionProgress.length <
+                  deployer.queuedTransactions.length ? (
+                  <Text>
+                    Deploying txns {deployer.executionProgress.length + 1} /{' '}
+                    {deployer.queuedTransactions.length}
                   </Text>
-                  <Button
-                    onClick={() =>
-                      deployer.queueTransactions(
-                        buildState.result!.deployerSteps.map((s) => s.tx as any)
-                      )
-                    }
-                  >
-                    Execute Outside Safe Txns
-                  </Button>
-                </VStack>
-              ) : deployer.executionProgress.length <
-                deployer.queuedTransactions.length ? (
-                <Text>
-                  Deploying txns {deployer.executionProgress.length + 1} /{' '}
-                  {deployer.queuedTransactions.length}
-                </Text>
-              ) : (
-                <Text>
-                  All Transactions Queued Successfully. You may now continue the
-                  safe deployment.
-                </Text>
-              )}
-            </Box>
-          )}
+                ) : (
+                  <Text>
+                    All Transactions Queued Successfully. You may now continue
+                    the safe deployment.
+                  </Text>
+                )}
+              </Box>
+            )}
           {cannonDefInfo?.def && multicallTxn?.data && (
             <Box mt="4">
               <Heading size="md" mt={5}>
@@ -1027,7 +1030,8 @@ export default function QueueFromGitOps() {
             <Box>
               <NoncePicker safe={currentSafe} handleChange={setPickedNonce} />
               <HStack gap="6">
-                {stager.execConditionFailed ? (
+                {stager.execConditionFailed &&
+                (buildState.result?.safeSteps.length || 0) > 0 ? (
                   <Tooltip label={stager.signConditionFailed}>
                     <Button
                       isDisabled={
