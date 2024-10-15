@@ -101,7 +101,7 @@ export default function PublishUtility(props: {
         address: config.address,
         provider: viem.createPublicClient({
           chain: getChainById(config.chainId),
-          transport: viem.http(rpcUrl),
+          transport: transports[config.chainId] || viem.http(rpcUrl),
         }),
       });
     });

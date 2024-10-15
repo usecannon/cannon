@@ -11,7 +11,7 @@ type Publishers = {
 
 export function useCannonPackagePublishers(packageName?: string) {
   const [publishers, setPublishers] = useState<Publishers[]>([]);
-  const { getChainById } = useCannonChains();
+  const { getChainById, transports } = useCannonChains();
 
   useEffect(() => {
     if (!packageName) return setPublishers([]);
@@ -23,7 +23,7 @@ export function useCannonPackagePublishers(packageName?: string) {
         address: config.address,
         provider: viem.createPublicClient({
           chain: getChainById(config.chainId),
-          transport: viem.http(rpcUrl),
+          transport: transports[config.chainId] || viem.http(rpcUrl),
         }),
       });
     });
