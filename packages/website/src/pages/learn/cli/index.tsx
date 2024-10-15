@@ -1,4 +1,4 @@
-import { ReactElement } from 'react';
+import { ReactElement, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import Layout from '../_layout';
 import { NextSeo } from 'next-seo';
@@ -7,7 +7,7 @@ import PageLoading from '@/components/PageLoading';
 
 // Dynamic import of DocsCliPage
 const DocsCliPage = dynamic(() => import('@/features/Docs/DocsCliPage'), {
-  loading: () => <PageLoading />,
+  ssr: false,
 });
 
 export default function Docs() {
@@ -23,7 +23,9 @@ export default function Docs() {
           description: 'CLI Docs',
         }}
       />
-      <DocsCliPage />
+      <Suspense fallback={<PageLoading />}>
+        <DocsCliPage />
+      </Suspense>
     </>
   );
 }

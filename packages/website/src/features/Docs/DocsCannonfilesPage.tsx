@@ -214,7 +214,7 @@ const CustomTable: React.FC<{
   </Box>
 );
 
-export const DocsCannonfilesPage: FC = () => {
+const DocsCannonfilesPage: FC = () => {
   const isSmall = useBreakpointValue({
     base: true,
     sm: true,
@@ -793,3 +793,5 @@ export const DocsCannonfilesPage: FC = () => {
     </Flex>
   );
 };
+
+export default DocsCannonfilesPage;
