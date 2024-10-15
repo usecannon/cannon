@@ -4,6 +4,7 @@ import { includes } from '@/helpers/array';
 import { State, useStore } from '@/helpers/store';
 import {
   isValidSafe,
+  isValidSafeFromSafeString,
   isValidSafeString,
   parseSafe,
   SafeString,
@@ -12,7 +13,14 @@ import {
   useWalletPublicSafes,
 } from '@/hooks/safe';
 import { CloseIcon, WarningIcon } from '@chakra-ui/icons';
-import { FormControl, IconButton, Text, Flex, Tooltip } from '@chakra-ui/react';
+import {
+  FormControl,
+  IconButton,
+  Text,
+  Flex,
+  Tooltip,
+  FormErrorMessage,
+} from '@chakra-ui/react';
 import {
   chakraComponents,
   ChakraStylesConfig,
@@ -21,10 +29,11 @@ import {
   OptionProps,
   SingleValue,
   SingleValueProps,
+  MenuListProps,
 } from 'chakra-react-select';
 import deepEqual from 'fast-deep-equal';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSwitchChain } from 'wagmi';
 import omit from 'lodash/omit';
 
@@ -44,6 +53,7 @@ export function SafeAddressInput() {
   const currentSafe = useStore((s) => s.currentSafe);
   const safeAddresses = useStore((s) => s.safeAddresses);
   const setCurrentSafe = useStore((s) => s.setCurrentSafe);
+  const [inputErrorText, setInputErrorText] = useState('');
 
   // This state prevents the initialization useEffect (which sets the selected safe from the url or the currentSafe)
   // from running when clearing the input
@@ -84,10 +94,10 @@ export function SafeAddressInput() {
         return;
       }
 
-      const parsedSafeInput = parseSafe(safeString);
-      if (!parsedSafeInput) {
+      if (!isValidSafeString(safeString)) {
         return;
       }
+      const parsedSafeInput = parseSafe(safeString);
 
       if (!isValidSafe(parsedSafeInput, chains)) {
         return;
@@ -106,6 +116,9 @@ export function SafeAddressInput() {
   );
 
   function handleSafeDelete(safeString: SafeString) {
+    if (!isValidSafeString(safeString)) {
+      return;
+    }
     deleteSafe(parseSafe(safeString));
   }
 
@@ -166,7 +179,7 @@ export function SafeAddressInput() {
 
       if (address && chainId) {
         const safeFromUrl = parseSafe(`${chainId}:${address}`);
-        if (!safeFromUrl || !isValidSafe(safeFromUrl, chains)) {
+        if (!isValidSafe(safeFromUrl, chains)) {
           throw new Error(
             "We couldn't find a safe for the specified chain. If it is a custom chain, please ensure that a custom provider is properly configured in the settings page."
           );
@@ -229,17 +242,31 @@ export function SafeAddressInput() {
           onCreateOption={handleNewOrSelectedSafe}
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           //@ts-ignore-next-line
+          //@ts-ignore-next-line
           onDeleteOption={(selected: SafeOption) =>
-            handleSafeDelete(selected?.value || null)
+            handleSafeDelete(selected.value)
           }
-          isValidNewOption={isValidSafeString}
+          isValidNewOption={(safeString) => {
+            setInputErrorText('');
+            const res = isValidSafeFromSafeString(safeString, chains);
+            if (!res && safeString !== '') {
+              setInputErrorText(
+                'Invalid Safe Address. If you are using a custom chain, configure a custom PRC in the settings page.'
+              );
+            }
+            return res;
+          }}
           components={{
             Option: DeletableOption,
             SingleValue: SelectedOption,
-            MenuList: CustomMenuList,
+            MenuList: (props) => (
+              <CustomMenuList {...props} inputErrorText={inputErrorText} />
+            ),
           }}
         />
+        <FormErrorMessage>{inputErrorText}</FormErrorMessage>
       </FormControl>
+
       {currentSafe && pendingServiceTransactions.count > 0 && (
         <Tooltip
           label={`There ${
@@ -319,11 +346,23 @@ function DeletableOption({
   );
 }
 
-function CustomMenuList({ children, ...props }: any) {
+function CustomMenuList({
+  children,
+  inputErrorText,
+  ...props
+}: MenuListProps<SafeOption> & {
+  inputErrorText: string;
+}) {
   return (
     <chakraComponents.MenuList {...props}>
-      <Text color="gray.400" fontSize="xs" my={2} ml={4}>
-        To add a Safe, enter it in the format chainId:safeAddress
+      <Text
+        color={inputErrorText ? 'red.400' : 'gray.400'}
+        fontSize="xs"
+        my={2}
+        ml={4}
+      >
+        {inputErrorText ||
+          'To add a Safe, enter it in the format chainId:safeAddress'}
       </Text>
       {children}
     </chakraComponents.MenuList>

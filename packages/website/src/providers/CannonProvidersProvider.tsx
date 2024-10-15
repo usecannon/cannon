@@ -28,7 +28,10 @@ import { useQuery } from '@tanstack/react-query';
 type CustomProviders =
   | {
       chains: Chain[];
-      chainMetadata: Record<number, { color: string }>;
+      chainMetadata: Record<
+        number,
+        { color?: string; shortName?: string; serviceUrl?: string }
+      >;
       transports: Record<number, HttpTransport>;
       getChainById: (chainId: number) => Chain | undefined;
       getExplorerUrl: (chainId: number, hash: Hash) => string;
@@ -42,33 +45,51 @@ const cannonNetwork = {
   name: 'Cannon',
 } as Chain;
 
-const chainMetadata = {
+// Service urls taken from https://docs.safe.global/learn/safe-core/safe-core-api/available-services
+// shortNames taken from https://github.com/ethereum-lists/chains/blob/master/_data/chains
+// export const chains = [
+
+export const chainMetadata = {
   [chains.arbitrum.id]: {
     color: '#96bedc',
+    shortName: 'arb1',
+    serviceUrl: 'https://safe-transaction-arbitrum.safe.global',
   },
   [chains.avalanche.id]: {
     color: '#e84141',
+    shortName: 'avax',
+    serviceUrl: 'https://safe-transaction-avalanche.safe.global',
   },
   [chains.base.id]: {
     color: '#0052ff',
+    shortName: 'base',
+    serviceUrl: 'https://safe-transaction-base.safe.global',
   },
   [chains.bsc.id]: {
     color: '#ebac0e',
+    shortName: 'bnb',
+    serviceUrl: 'https://safe-transaction-bsc.safe.global',
   },
   [chains.cronos.id]: {
     color: '#002D74',
   },
   [chains.mainnet.id]: {
     color: '#37367b',
+    shortName: 'eth',
+    serviceUrl: 'https://safe-transaction-mainnet.safe.global',
   },
   [chains.hardhat.id]: {
     color: '#f9f7ec',
   },
   [chains.optimism.id]: {
     color: '#ff5a57',
+    shortName: 'oeth',
+    serviceUrl: 'https://safe-transaction-optimism.safe.global',
   },
   [chains.polygon.id]: {
     color: '#9f71ec',
+    shortName: 'matic',
+    serviceUrl: 'https://safe-transaction-polygon.safe.global',
   },
   [chains.zora.id]: {
     color: '#000000',
@@ -78,9 +99,21 @@ const chainMetadata = {
   },
   [chains.gnosis.id]: {
     color: '#3e6957',
+    shortName: 'gno',
+    serviceUrl: 'https://safe-transaction-gnosis-chain.safe.global',
+  },
+  [chains.sepolia.id]: {
+    shortName: 'sepolia',
+    serviceUrl: 'https://safe-transaction-sepolia.safe.global',
   },
   [chains.reyaNetwork.id]: {
     color: '#04f06a',
+    shortName: 'reyaNetwork',
+    serviceUrl: 'https://transaction.safe.reya.network',
+  },
+  [chains.aurora.id]: {
+    shortName: 'aurora',
+    serviceUrl: 'https://safe-transaction-aurora.safe.global',
   },
   [chains.snax.id]: {
     color: '#00D1FF',
@@ -208,6 +241,7 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
   const chainsUrls = Object.values(verifiedProviders || {}).map(
     (v) => v.rpcUrl
   );
+
   const [_allChains, _allTransports] = useMemo(
     () => [
       _getAllChains(verifiedProviders),
