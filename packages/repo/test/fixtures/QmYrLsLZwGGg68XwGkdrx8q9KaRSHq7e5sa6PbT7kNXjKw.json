@@ -1,0 +1,2494 @@
+{
+  "generator": "cannon cli 2.15.1",
+  "timestamp": 1718768839,
+  "def": {
+    "name": "registry",
+    "version": "2.15.1",
+    "setting": {
+      "salt": {
+        "defaultValue": "official-registry"
+      },
+      "initialOwner": {
+        "defaultValue": "0xca7777aB932E8F0b930dE9F0d96f4E9a2a00DdD3"
+      },
+      "l1ChainId": {
+        "defaultValue": "11155111"
+      },
+      "optimismL1Sender": {
+        "defaultValue": "0x58Cc85b8D04EA49cC6DBd3CbFFd00B4B8D6cb3ef"
+      },
+      "optimismL2Receiver": {
+        "defaultValue": "0x4200000000000000000000000000000000000007"
+      }
+    },
+    "contract": {
+      "InitialImpl": {
+        "artifact": "OwnedUpgradable",
+        "salt": "<%= settings.salt %>",
+        "create2": true
+      },
+      "InitialProxy": {
+        "artifact": "Proxy",
+        "abi": "InitialImpl",
+        "create2": true,
+        "salt": "<%= settings.salt %>",
+        "args": [
+          "<%= contracts.InitialImpl.address %>",
+          "<%= settings.initialOwner %>"
+        ],
+        "depends": [
+          "contract.InitialImpl"
+        ]
+      },
+      "Implementation": {
+        "artifact": "CannonRegistry",
+        "args": [
+          "<%= settings.optimismL1Sender %>",
+          "<%= settings.optimismL2Receiver %>",
+          "<%= settings.l1ChainId %>"
+        ]
+      }
+    },
+    "invoke": {
+      "upgrade_proxy": {
+        "target": [
+          "InitialProxy"
+        ],
+        "func": "upgradeTo",
+        "args": [
+          "<%= contracts.Implementation.address %>"
+        ],
+        "fromCall": {
+          "func": "owner"
+        },
+        "factory": {
+          "Proxy": {
+            "abiOf": [
+              "Implementation"
+            ],
+            "event": "Upgraded",
+            "arg": 0,
+            "highlight": true
+          }
+        },
+        "depends": [
+          "contract.InitialProxy",
+          "contract.Implementation"
+        ]
+      }
+    }
+  },
+  "state": {
+    "setting.initialOwner": {
+      "artifacts": {
+        "settings": {
+          "initialOwner": "0xca7777aB932E8F0b930dE9F0d96f4E9a2a00DdD3"
+        }
+      },
+      "hash": "0f24c3d826f780e1aa07a6d8318d945b",
+      "version": 7
+    },
+    "setting.l1ChainId": {
+      "artifacts": {
+        "settings": {
+          "l1ChainId": "11155111"
+        }
+      },
+      "hash": "f4897bb49c4d23c700a43938327bdf65",
+      "version": 7
+    },
+    "setting.optimismL1Sender": {
+      "artifacts": {
+        "settings": {
+          "optimismL1Sender": "0x58Cc85b8D04EA49cC6DBd3CbFFd00B4B8D6cb3ef"
+        }
+      },
+      "hash": "2a6c9f24a1ea70a855ba7f3c68970fad",
+      "version": 7
+    },
+    "setting.optimismL2Receiver": {
+      "artifacts": {
+        "settings": {
+          "optimismL2Receiver": "0x4200000000000000000000000000000000000007"
+        }
+      },
+      "hash": "3ef68917be5171b74a979cd3c2908823",
+      "version": 7
+    },
+    "setting.salt": {
+      "artifacts": {
+        "settings": {
+          "salt": "official-registry"
+        }
+      },
+      "hash": "d79ba4287b599e05608303e9fa557dae",
+      "version": 7
+    },
+    "contract.Implementation": {
+      "artifacts": {
+        "contracts": {
+          "Implementation": {
+            "address": "0xE6351116d4FFAd57E1C22a16B56E47a578477c90",
+            "abi": [
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "_optimismMessenger",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "address",
+                    "name": "_optimismReceiver",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "_l1ChainId",
+                    "type": "uint256"
+                  }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                  }
+                ],
+                "name": "FeeRequired",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "implementation",
+                    "type": "address"
+                  }
+                ],
+                "name": "ImplementationIsSterile",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "InvalidName",
+                "type": "error"
+              },
+              {
+                "inputs": [],
+                "name": "InvalidTags",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "string",
+                    "name": "url",
+                    "type": "string"
+                  }
+                ],
+                "name": "InvalidUrl",
+                "type": "error"
+              },
+              {
+                "inputs": [],
+                "name": "NoChange",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "contr",
+                    "type": "address"
+                  }
+                ],
+                "name": "NotAContract",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "addr",
+                    "type": "address"
+                  }
+                ],
+                "name": "NotNominated",
+                "type": "error"
+              },
+              {
+                "inputs": [],
+                "name": "PackageNotFound",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "addr",
+                    "type": "address"
+                  }
+                ],
+                "name": "Unauthorized",
+                "type": "error"
+              },
+              {
+                "inputs": [],
+                "name": "Unauthorized",
+                "type": "error"
+              },
+              {
+                "inputs": [],
+                "name": "UpgradeSimulationFailed",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "withdrawAmount",
+                    "type": "uint256"
+                  }
+                ],
+                "name": "WithdrawFail",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "expectedChainId",
+                    "type": "uint256"
+                  }
+                ],
+                "name": "WrongChain",
+                "type": "error"
+              },
+              {
+                "inputs": [],
+                "name": "ZeroAddress",
+                "type": "error"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "oldOwner",
+                    "type": "address"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                  }
+                ],
+                "name": "OwnerChanged",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                  }
+                ],
+                "name": "OwnerNominated",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "owner",
+                    "type": "address"
+                  }
+                ],
+                "name": "PackageOwnerChanged",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "currentOwner",
+                    "type": "address"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "nominatedOwner",
+                    "type": "address"
+                  }
+                ],
+                "name": "PackageOwnerNominated",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "tag",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "variant",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "string",
+                    "name": "deployUrl",
+                    "type": "string"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "string",
+                    "name": "metaUrl",
+                    "type": "string"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "owner",
+                    "type": "address"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "feePaid",
+                    "type": "uint256"
+                  }
+                ],
+                "name": "PackagePublishWithFee",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address[]",
+                    "name": "publisher",
+                    "type": "address[]"
+                  }
+                ],
+                "name": "PackagePublishersChanged",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "registrant",
+                    "type": "address"
+                  }
+                ],
+                "name": "PackageRegistered",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "tag",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "variant",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "owner",
+                    "type": "address"
+                  }
+                ],
+                "name": "PackageUnpublish",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "verifier",
+                    "type": "address"
+                  }
+                ],
+                "name": "PackageUnverify",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "verifier",
+                    "type": "address"
+                  }
+                ],
+                "name": "PackageVerify",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "variant",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "tag",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "bytes32",
+                    "name": "versionOfTag",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "TagPublish",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "self",
+                    "type": "address"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "implementation",
+                    "type": "address"
+                  }
+                ],
+                "name": "Upgraded",
+                "type": "event"
+              },
+              {
+                "inputs": [],
+                "name": "MAX_PACKAGE_PUBLISH_TAGS",
+                "outputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "MIN_PACKAGE_NAME_LENGTH",
+                "outputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "acceptOwnership",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "getAdditionalPublishers",
+                "outputs": [
+                  {
+                    "internalType": "address[]",
+                    "name": "additionalPublishers",
+                    "type": "address[]"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "getImplementation",
+                "outputs": [
+                  {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageVersionName",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageVariant",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "getPackageMeta",
+                "outputs": [
+                  {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "getPackageNominatedOwner",
+                "outputs": [
+                  {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "getPackageOwner",
+                "outputs": [
+                  {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageVersionName",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageVariant",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "getPackageUrl",
+                "outputs": [
+                  {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "newNominatedOwner",
+                    "type": "address"
+                  }
+                ],
+                "name": "nominateNewOwner",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "address",
+                    "name": "_newPackageOwner",
+                    "type": "address"
+                  }
+                ],
+                "name": "nominatePackageOwner",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "nominatedOwner",
+                "outputs": [
+                  {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "owner",
+                "outputs": [
+                  {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "bytes32",
+                    "name": "_variant",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "bytes32[]",
+                    "name": "_packageTags",
+                    "type": "bytes32[]"
+                  },
+                  {
+                    "internalType": "string",
+                    "name": "_packageDeployUrl",
+                    "type": "string"
+                  },
+                  {
+                    "internalType": "string",
+                    "name": "_packageMetaUrl",
+                    "type": "string"
+                  }
+                ],
+                "name": "publish",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "publishFee",
+                "outputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "registerFee",
+                "outputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "renounceNomination",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "address[]",
+                    "name": "_additionalPublishersEthereum",
+                    "type": "address[]"
+                  },
+                  {
+                    "internalType": "address[]",
+                    "name": "_additionalPublishersOptimism",
+                    "type": "address[]"
+                  }
+                ],
+                "name": "setAdditionalPublishers",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "_publishFee",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "_registerFee",
+                    "type": "uint256"
+                  }
+                ],
+                "name": "setFees",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "address",
+                    "name": "_owner",
+                    "type": "address"
+                  }
+                ],
+                "name": "setPackageOwnership",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "newImplementation",
+                    "type": "address"
+                  }
+                ],
+                "name": "simulateUpgradeTo",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "bytes32",
+                    "name": "_variant",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "bytes32[]",
+                    "name": "_packageTags",
+                    "type": "bytes32[]"
+                  }
+                ],
+                "name": "unpublish",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "unused",
+                "outputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "unused2",
+                "outputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "unverifyPackage",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "_newImplementation",
+                    "type": "address"
+                  }
+                ],
+                "name": "upgradeTo",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_name",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "validatePackageName",
+                "outputs": [
+                  {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                  }
+                ],
+                "stateMutability": "pure",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "verifyPackage",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "withdraw",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              }
+            ],
+            "constructorArgs": [
+              "0x58Cc85b8D04EA49cC6DBd3CbFFd00B4B8D6cb3ef",
+              "0x4200000000000000000000000000000000000007",
+              "11155111"
+            ],
+            "linkedLibraries": {},
+            "deployTxnHash": "0x0590d201008a2c6f856ee814f4f5b03f24f42e34ca2ecd353d6241e3ec98099b",
+            "sourceName": "contracts/CannonRegistry.sol",
+            "contractName": "CannonRegistry",
+            "deployedOn": "contract.Implementation",
+            "gasUsed": 2172750,
+            "gasCost": "2009152"
+          }
+        }
+      },
+      "hash": "bb462ee34cdfb32dd2dd5f02ddd0569d",
+      "version": 7
+    },
+    "contract.InitialImpl": {
+      "artifacts": {
+        "contracts": {
+          "InitialImpl": {
+            "address": "0x65027Bfbd1644a0188984a17501Fd2682ae7D70E",
+            "abi": [
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "implementation",
+                    "type": "address"
+                  }
+                ],
+                "name": "ImplementationIsSterile",
+                "type": "error"
+              },
+              {
+                "inputs": [],
+                "name": "NoChange",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "contr",
+                    "type": "address"
+                  }
+                ],
+                "name": "NotAContract",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "addr",
+                    "type": "address"
+                  }
+                ],
+                "name": "NotNominated",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "addr",
+                    "type": "address"
+                  }
+                ],
+                "name": "Unauthorized",
+                "type": "error"
+              },
+              {
+                "inputs": [],
+                "name": "UpgradeSimulationFailed",
+                "type": "error"
+              },
+              {
+                "inputs": [],
+                "name": "ZeroAddress",
+                "type": "error"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "oldOwner",
+                    "type": "address"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                  }
+                ],
+                "name": "OwnerChanged",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                  }
+                ],
+                "name": "OwnerNominated",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "self",
+                    "type": "address"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "implementation",
+                    "type": "address"
+                  }
+                ],
+                "name": "Upgraded",
+                "type": "event"
+              },
+              {
+                "inputs": [],
+                "name": "acceptOwnership",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "getImplementation",
+                "outputs": [
+                  {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "newNominatedOwner",
+                    "type": "address"
+                  }
+                ],
+                "name": "nominateNewOwner",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "nominatedOwner",
+                "outputs": [
+                  {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "owner",
+                "outputs": [
+                  {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "renounceNomination",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "newImplementation",
+                    "type": "address"
+                  }
+                ],
+                "name": "simulateUpgradeTo",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "_newImplementation",
+                    "type": "address"
+                  }
+                ],
+                "name": "upgradeTo",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              }
+            ],
+            "constructorArgs": [],
+            "linkedLibraries": {},
+            "deployTxnHash": "",
+            "sourceName": "contracts/OwnedUpgradable.sol",
+            "contractName": "OwnedUpgradable",
+            "deployedOn": "contract.InitialImpl",
+            "gasUsed": 0,
+            "gasCost": "0"
+          }
+        }
+      },
+      "hash": "2404814de42fe80fc60ff3d885b640b2",
+      "version": 7
+    },
+    "contract.InitialProxy": {
+      "artifacts": {
+        "contracts": {
+          "InitialProxy": {
+            "address": "0xEd58414AFA6706d2E19e009C635cC75D25A91f18",
+            "abi": [
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "implementation",
+                    "type": "address"
+                  }
+                ],
+                "name": "ImplementationIsSterile",
+                "type": "error"
+              },
+              {
+                "inputs": [],
+                "name": "NoChange",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "contr",
+                    "type": "address"
+                  }
+                ],
+                "name": "NotAContract",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "addr",
+                    "type": "address"
+                  }
+                ],
+                "name": "NotNominated",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "addr",
+                    "type": "address"
+                  }
+                ],
+                "name": "Unauthorized",
+                "type": "error"
+              },
+              {
+                "inputs": [],
+                "name": "UpgradeSimulationFailed",
+                "type": "error"
+              },
+              {
+                "inputs": [],
+                "name": "ZeroAddress",
+                "type": "error"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "oldOwner",
+                    "type": "address"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                  }
+                ],
+                "name": "OwnerChanged",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                  }
+                ],
+                "name": "OwnerNominated",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "self",
+                    "type": "address"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "implementation",
+                    "type": "address"
+                  }
+                ],
+                "name": "Upgraded",
+                "type": "event"
+              },
+              {
+                "inputs": [],
+                "name": "acceptOwnership",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "getImplementation",
+                "outputs": [
+                  {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "newNominatedOwner",
+                    "type": "address"
+                  }
+                ],
+                "name": "nominateNewOwner",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "nominatedOwner",
+                "outputs": [
+                  {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "owner",
+                "outputs": [
+                  {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "renounceNomination",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "newImplementation",
+                    "type": "address"
+                  }
+                ],
+                "name": "simulateUpgradeTo",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "_newImplementation",
+                    "type": "address"
+                  }
+                ],
+                "name": "upgradeTo",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              }
+            ],
+            "constructorArgs": [
+              "0x65027Bfbd1644a0188984a17501Fd2682ae7D70E",
+              "0xca7777aB932E8F0b930dE9F0d96f4E9a2a00DdD3"
+            ],
+            "linkedLibraries": {},
+            "deployTxnHash": "",
+            "sourceName": "contracts/Proxy.sol",
+            "contractName": "Proxy",
+            "deployedOn": "contract.InitialProxy",
+            "gasUsed": 0,
+            "gasCost": "0"
+          }
+        }
+      },
+      "hash": "408e9d82f4ac8484af7f48c022c79fe8",
+      "version": 7
+    },
+    "invoke.upgrade_proxy": {
+      "artifacts": {
+        "contracts": {
+          "Proxy": {
+            "address": "0xEd58414AFA6706d2E19e009C635cC75D25A91f18",
+            "abi": [
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "_optimismMessenger",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "address",
+                    "name": "_optimismReceiver",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "_l1ChainId",
+                    "type": "uint256"
+                  }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                  }
+                ],
+                "name": "FeeRequired",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "implementation",
+                    "type": "address"
+                  }
+                ],
+                "name": "ImplementationIsSterile",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "InvalidName",
+                "type": "error"
+              },
+              {
+                "inputs": [],
+                "name": "InvalidTags",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "string",
+                    "name": "url",
+                    "type": "string"
+                  }
+                ],
+                "name": "InvalidUrl",
+                "type": "error"
+              },
+              {
+                "inputs": [],
+                "name": "NoChange",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "contr",
+                    "type": "address"
+                  }
+                ],
+                "name": "NotAContract",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "addr",
+                    "type": "address"
+                  }
+                ],
+                "name": "NotNominated",
+                "type": "error"
+              },
+              {
+                "inputs": [],
+                "name": "PackageNotFound",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "addr",
+                    "type": "address"
+                  }
+                ],
+                "name": "Unauthorized",
+                "type": "error"
+              },
+              {
+                "inputs": [],
+                "name": "Unauthorized",
+                "type": "error"
+              },
+              {
+                "inputs": [],
+                "name": "UpgradeSimulationFailed",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "withdrawAmount",
+                    "type": "uint256"
+                  }
+                ],
+                "name": "WithdrawFail",
+                "type": "error"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "expectedChainId",
+                    "type": "uint256"
+                  }
+                ],
+                "name": "WrongChain",
+                "type": "error"
+              },
+              {
+                "inputs": [],
+                "name": "ZeroAddress",
+                "type": "error"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "oldOwner",
+                    "type": "address"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                  }
+                ],
+                "name": "OwnerChanged",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                  }
+                ],
+                "name": "OwnerNominated",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "owner",
+                    "type": "address"
+                  }
+                ],
+                "name": "PackageOwnerChanged",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "currentOwner",
+                    "type": "address"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "nominatedOwner",
+                    "type": "address"
+                  }
+                ],
+                "name": "PackageOwnerNominated",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "tag",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "variant",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "string",
+                    "name": "deployUrl",
+                    "type": "string"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "string",
+                    "name": "metaUrl",
+                    "type": "string"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "owner",
+                    "type": "address"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "feePaid",
+                    "type": "uint256"
+                  }
+                ],
+                "name": "PackagePublishWithFee",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address[]",
+                    "name": "publisher",
+                    "type": "address[]"
+                  }
+                ],
+                "name": "PackagePublishersChanged",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "registrant",
+                    "type": "address"
+                  }
+                ],
+                "name": "PackageRegistered",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "tag",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "variant",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "owner",
+                    "type": "address"
+                  }
+                ],
+                "name": "PackageUnpublish",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "verifier",
+                    "type": "address"
+                  }
+                ],
+                "name": "PackageUnverify",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "verifier",
+                    "type": "address"
+                  }
+                ],
+                "name": "PackageVerify",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "name",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "variant",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "tag",
+                    "type": "bytes32"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "bytes32",
+                    "name": "versionOfTag",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "TagPublish",
+                "type": "event"
+              },
+              {
+                "anonymous": false,
+                "inputs": [
+                  {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "self",
+                    "type": "address"
+                  },
+                  {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "implementation",
+                    "type": "address"
+                  }
+                ],
+                "name": "Upgraded",
+                "type": "event"
+              },
+              {
+                "inputs": [],
+                "name": "MAX_PACKAGE_PUBLISH_TAGS",
+                "outputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "MIN_PACKAGE_NAME_LENGTH",
+                "outputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "acceptOwnership",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "getAdditionalPublishers",
+                "outputs": [
+                  {
+                    "internalType": "address[]",
+                    "name": "additionalPublishers",
+                    "type": "address[]"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "getImplementation",
+                "outputs": [
+                  {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageVersionName",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageVariant",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "getPackageMeta",
+                "outputs": [
+                  {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "getPackageNominatedOwner",
+                "outputs": [
+                  {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "getPackageOwner",
+                "outputs": [
+                  {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageVersionName",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageVariant",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "getPackageUrl",
+                "outputs": [
+                  {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "newNominatedOwner",
+                    "type": "address"
+                  }
+                ],
+                "name": "nominateNewOwner",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "address",
+                    "name": "_newPackageOwner",
+                    "type": "address"
+                  }
+                ],
+                "name": "nominatePackageOwner",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "nominatedOwner",
+                "outputs": [
+                  {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "owner",
+                "outputs": [
+                  {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "bytes32",
+                    "name": "_variant",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "bytes32[]",
+                    "name": "_packageTags",
+                    "type": "bytes32[]"
+                  },
+                  {
+                    "internalType": "string",
+                    "name": "_packageDeployUrl",
+                    "type": "string"
+                  },
+                  {
+                    "internalType": "string",
+                    "name": "_packageMetaUrl",
+                    "type": "string"
+                  }
+                ],
+                "name": "publish",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "publishFee",
+                "outputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "registerFee",
+                "outputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "renounceNomination",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "address[]",
+                    "name": "_additionalPublishersEthereum",
+                    "type": "address[]"
+                  },
+                  {
+                    "internalType": "address[]",
+                    "name": "_additionalPublishersOptimism",
+                    "type": "address[]"
+                  }
+                ],
+                "name": "setAdditionalPublishers",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "_publishFee",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "_registerFee",
+                    "type": "uint256"
+                  }
+                ],
+                "name": "setFees",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "address",
+                    "name": "_owner",
+                    "type": "address"
+                  }
+                ],
+                "name": "setPackageOwnership",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "newImplementation",
+                    "type": "address"
+                  }
+                ],
+                "name": "simulateUpgradeTo",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "bytes32",
+                    "name": "_variant",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "bytes32[]",
+                    "name": "_packageTags",
+                    "type": "bytes32[]"
+                  }
+                ],
+                "name": "unpublish",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "unused",
+                "outputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "unused2",
+                "outputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "unverifyPackage",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "_newImplementation",
+                    "type": "address"
+                  }
+                ],
+                "name": "upgradeTo",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_name",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "validatePackageName",
+                "outputs": [
+                  {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                  }
+                ],
+                "stateMutability": "pure",
+                "type": "function"
+              },
+              {
+                "inputs": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "_packageName",
+                    "type": "bytes32"
+                  }
+                ],
+                "name": "verifyPackage",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              },
+              {
+                "inputs": [],
+                "name": "withdraw",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+              }
+            ],
+            "deployTxnHash": "",
+            "sourceName": "",
+            "contractName": "",
+            "deployedOn": "invoke.upgrade_proxy",
+            "gasUsed": 0,
+            "gasCost": "0",
+            "highlight": true
+          }
+        },
+        "txns": {
+          "upgrade_proxy": {
+            "hash": "0x28ba5ba3f03f40b8fb38c93a42577d0d775275165b9b2b2a8c2e484b3e735f49",
+            "events": {
+              "Upgraded": [
+                {
+                  "name": "Upgraded",
+                  "args": [
+                    "0xEd58414AFA6706d2E19e009C635cC75D25A91f18",
+                    "0xE6351116d4FFAd57E1C22a16B56E47a578477c90"
+                  ]
+                }
+              ]
+            },
+            "deployedOn": "invoke.upgrade_proxy",
+            "gasUsed": 50816,
+            "gasCost": "2015231",
+            "signer": "0xca7777aB932E8F0b930dE9F0d96f4E9a2a00DdD3"
+          }
+        },
+        "settings": {}
+      },
+      "hash": "a98f22a995d17c0e990635db51251fb1",
+      "version": 7
+    }
+  },
+  "options": {},
+  "status": "complete",
+  "meta": {
+    "name": "cannon-registry",
+    "version": "0.0.1",
+    "private": true,
+    "description": "Contract registry for Cannon images",
+    "scripts": {
+      "test": "hardhat compile && hardhat --network hardhat test",
+      "coverage": "hardhat coverage"
+    },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/Synthetixio/cannon.git"
+    },
+    "author": "",
+    "license": "MIT",
+    "bugs": {
+      "url": "https://github.com/Synthetixio/cannon/issues"
+    },
+    "homepage": "https://github.com/Synthetixio/cannon#readme",
+    "devDependencies": {
+      "@nomiclabs/hardhat-ethers": "2.0.6",
+      "@synthetixio/core-contracts": "1.1.1",
+      "@typechain/ethers-v5": "10.1.0",
+      "@typechain/hardhat": "6.1.2",
+      "@types/mocha": "9.1.1",
+      "@types/node": "18.0.0",
+      "@usecannon/builder": "^2.14.3",
+      "@usecannon/cli": "^2.14.3",
+      "at-least-node": "^1.0.0",
+      "chai": "4.3.6",
+      "dotenv": "16.0.1",
+      "ethers": "5.7.1",
+      "hardhat": "^2.22.3",
+      "hardhat-cannon": "^2.14.3",
+      "hardhat-contract-sizer": "^2.7.0",
+      "hardhat-gas-reporter": "^1.0.9",
+      "mocha": "10.0.0",
+      "solidity-coverage": "0.7.21",
+      "ts-node": "10.8.1",
+      "typechain": "8.1.0",
+      "typescript": "^5.3.3"
+    }
+  },
+  "miscUrl": "ipfs://Qmb276cgTKrZULAR1RUUuXBAzFASkCMXLXaWodtb6LxMVZ",
+  "chainId": 11155420
+}
