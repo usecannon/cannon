@@ -168,14 +168,14 @@ export async function forgeBuild(options: Record<string, any>, cannonfile: strin
   const cannonfilePath = path.resolve(cannonfile);
   const projectDirectory = path.dirname(cannonfilePath);
 
-log(bold('Building the foundry project...'));
 if (!options.skipCompile) {
+  log(bold('Building the foundry project...'));
+
   // use --build-info to output build info
   // ref: https://github.com/foundry-rs/foundry/pull/7197
   const forgeBuildArgs = [
     'build',
     '--build-info',
-    '--ast',
     ...fromFoundryOptionsToArgs(pickForgeBuildOptions(options), forgeBuildOptions),
   ];
 
@@ -195,6 +195,6 @@ if (!options.skipCompile) {
     });
   });
 } else {
-  log(yellow('Skipping forge build...'));
+  log(yellow('--skip-compile flag detected. Skipping forge build...'));
 }
 }
