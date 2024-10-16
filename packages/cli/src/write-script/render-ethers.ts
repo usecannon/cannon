@@ -1,6 +1,12 @@
 import { EOL } from 'node:os';
 import { Transform } from 'node:stream';
 
+/**
+ * This script is used to deploy contracts using Ethers.js.
+ * It outputs a JS script that can be used to deploy contracts and execute transactions.
+ * Note: Make sure you add `.js` extension to the output file.
+ */
+
 import type { DumpLine, DumpRenderer } from './types';
 const header = `/* eslint-disable */
 

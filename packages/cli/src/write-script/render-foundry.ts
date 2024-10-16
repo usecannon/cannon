@@ -1,6 +1,12 @@
 import { EOL } from 'node:os';
 import { Transform } from 'node:stream';
 
+/**
+ * This script is used to deploy contracts using Foundry Cast.
+ * It outputs a bash script that can be used to deploy contracts and execute transactions.
+ * Note: Make sure you add `.sh` extension to the output file.
+ */
+
 const header = `#!/bin/bash
 
 # Set your environment variables
