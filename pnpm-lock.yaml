@@ -226,15 +226,15 @@ importers:
 
   packages/builder:
     dependencies:
-      '@synthetixio/router':
-        specifier: ^3.4.0
-        version: 3.4.0(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@22.5.0)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26(debug@4.3.6))
+      '@usecannon/router':
+        specifier: ^4.0.0
+        version: 4.0.0
       axios:
         specifier: ^1.7.2
         version: 1.7.5(debug@4.3.6)
       axios-retry:
         specifier: ^4.4.2
-        version: 4.5.0(axios@1.7.5(debug@4.3.6))
+        version: 4.5.0(axios@1.7.5)
       buffer:
         specifier: ^6.0.3
         version: 6.0.3
@@ -265,6 +265,9 @@ importers:
       viem:
         specifier: ^2.21.15
         version: 2.21.15(bufferutil@4.0.8)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8)
+      web-solc:
+        specifier: ^0.5.1
+        version: 0.5.1
       zod:
         specifier: ^3.23.6
         version: 3.23.8
@@ -5150,6 +5153,9 @@ packages:
     resolution: {integrity: sha512-SSID1UUH84LPMp7PTloC0IijwCJpWfsSQXmvPpyJB8vjbAHOCNLRxsNT3PRgtZvmCWdTrfuYh3FMtsvlpB/UKQ==}
     hasBin: true
 
+  '@usecannon/router@4.0.0':
+    resolution: {integrity: sha512-RP5IlsG2U8xk7dGnoaaZKLoo2WrJ+SMEJyUlgwkrbI49jMLRXEwgmcz8SdqsA1/62n46SLcvpmLiENSKWJet8g==}
+
   '@vanilla-extract/css@1.14.0':
     resolution: {integrity: sha512-rYfm7JciWZ8PFzBM/HDiE2GLnKI3xJ6/vdmVJ5BSgcCZ5CxRlM9Cjqclni9lGzF3eMOijnUhCd/KV8TOzyzbMA==}
 
@@ -6952,6 +6958,15 @@ packages:
       supports-color:
         optional: true
 
+  debug@4.3.7:
+    resolution: {integrity: sha512-Er2nc/H7RrMXZBFCEim6TCmMk02Z8vLC2Rbi1KEBggpo0fS6l0S1nnapwmIi3yW/+GOJap1Krg4w0Hg80oCqgQ==}
+    engines: {node: '>=6.0'}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
+
   decamelize-keys@1.1.1:
     resolution: {integrity: sha512-WiPxgEirIV0/eIOMcnFBA3/IJZAZqKnwAwWyvvdi4lsr1WCN22nhdf/3db3DoZcUjTV2SqfzIwNyp6y2xs3nmg==}
     engines: {node: '>=0.10.0'}
@@ -7530,6 +7545,7 @@ packages:
   eslint@8.43.0:
     resolution: {integrity: sha512-aaCpf2JqqKesMFGgmRPessmVKjcGXqdlAYLLC3THM8t5nBRZRQ+st5WM/hoJXkdioEXLLbXgclUpM0TXo5HX5Q==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   esniff@2.0.1:
@@ -13281,6 +13297,9 @@ packages:
   wcwidth@1.0.1:
     resolution: {integrity: sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==}
 
+  web-solc@0.5.1:
+    resolution: {integrity: sha512-Z/hBplZq1+4i4bYeIeD9N3vP1BLUBXpSDa4h0Ipm2Z2cHv7x7DtZ2zFb0E1L1VZo4BF+OJGVtGlT+nTUXGgncQ==}
+
   web3-bzz@1.10.0:
     resolution: {integrity: sha512-o9IR59io3pDUsXTsps5pO5hW1D5zBmg46iNc2t4j2DkaYHNdDLwk2IP9ukoM2wg47QILfPEJYzhTfkS/CcX0KA==}
     engines: {node: '>=8.0.0'}
@@ -17190,7 +17209,7 @@ snapshots:
     dependencies:
       '@ethereumjs/tx': 4.2.0
       '@types/debug': 4.1.12
-      debug: 4.3.6(supports-color@8.1.1)
+      debug: 4.3.7
       semver: 7.6.3
       superstruct: 1.0.4
     transitivePeerDependencies:
@@ -17426,7 +17445,7 @@ snapshots:
 
   '@nomicfoundation/hardhat-ethers@3.0.7(ethers@6.13.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@22.7.5)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))':
     dependencies:
-      debug: 4.3.6(supports-color@8.1.1)
+      debug: 4.3.7
       ethers: 6.13.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       hardhat: 2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@22.7.5)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10)
       lodash.isequal: 4.5.0
@@ -17464,7 +17483,7 @@ snapshots:
       '@ethersproject/address': 5.7.0
       cbor: 8.1.0
       chalk: 2.4.2
-      debug: 4.3.6(supports-color@8.1.1)
+      debug: 4.3.7
       hardhat: 2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@22.7.5)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10)
       lodash.clonedeep: 4.5.0
       semver: 6.3.1
@@ -19159,16 +19178,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@synthetixio/router@3.4.0(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@22.5.0)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26(debug@4.3.6))':
-    dependencies:
-      '@ethersproject/keccak256': 5.7.0
-      debug: 4.3.6(supports-color@8.1.1)
-      hardhat: 2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@22.5.0)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10)
-      mustache: 4.2.0
-      solc: 0.8.26(debug@4.3.6)
-    transitivePeerDependencies:
-      - supports-color
-
   '@szmarczak/http-timer@1.1.2':
     dependencies:
       defer-to-connect: 1.1.3
@@ -19910,7 +19919,7 @@ snapshots:
     dependencies:
       '@synthetixio/router': 3.4.0(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)
       axios: 1.7.5(debug@4.3.6)
-      axios-retry: 4.5.0(axios@1.7.5(debug@4.3.6))
+      axios-retry: 4.5.0(axios@1.7.5)
       buffer: 6.0.3
       chalk: 4.1.2
       debug: 4.3.6(supports-color@8.1.1)
@@ -19959,6 +19968,14 @@ snapshots:
       - supports-color
       - typescript
       - utf-8-validate
+
+  '@usecannon/router@4.0.0':
+    dependencies:
+      '@ethersproject/keccak256': 5.7.0
+      debug: 4.3.7
+      mustache: 4.2.0
+    transitivePeerDependencies:
+      - supports-color
 
   '@vanilla-extract/css@1.14.0':
     dependencies:
@@ -20838,7 +20855,7 @@ snapshots:
       '@babel/runtime': 7.25.4
       is-retry-allowed: 2.2.0
 
-  axios-retry@4.5.0(axios@1.7.5(debug@4.3.6)):
+  axios-retry@4.5.0(axios@1.7.5):
     dependencies:
       axios: 1.7.5(debug@4.3.6)
       is-retry-allowed: 2.2.0
@@ -22287,6 +22304,10 @@ snapshots:
       ms: 2.1.2
     optionalDependencies:
       supports-color: 8.1.1
+
+  debug@4.3.7:
+    dependencies:
+      ms: 2.1.3
 
   decamelize-keys@1.1.1:
     dependencies:
@@ -31004,6 +31025,10 @@ snapshots:
   wcwidth@1.0.1:
     dependencies:
       defaults: 1.0.4
+
+  web-solc@0.5.1:
+    dependencies:
+      semver: 7.6.3
 
   web3-bzz@1.10.0(bufferutil@4.0.8)(utf-8-validate@5.0.10):
     dependencies:
