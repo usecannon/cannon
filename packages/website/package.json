@@ -84,6 +84,7 @@
     "react-feather": "^2.0.10",
     "react-github-btn": "^1.4.0",
     "react-icons": "^4.11.0",
+    "react-infinite-scroll-component": "^6.1.0",
     "react-markdown": "^8.0.7",
     "react-scroll": "^1.9.0",
     "react-syntax-highlighter": "^15.5.0",

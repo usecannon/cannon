@@ -3,6 +3,7 @@
 import { useStore } from '@/helpers/store';
 import { useSafeTransactions } from '@/hooks/backend';
 import { useExecutedTransactions } from '@/hooks/safe';
+import { useInMemoryPagination } from '@/hooks/useInMemoryPagination';
 import {
   Box,
   Checkbox,
@@ -13,8 +14,9 @@ import {
   Skeleton,
   Text,
 } from '@chakra-ui/react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Transaction } from './Transaction';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 export default function SignTransactionsPage() {
   return <SignTransactions />;
@@ -29,7 +31,19 @@ function SignTransactions() {
   const { data: history } = useExecutedTransactions(currentSafe);
   const [isChecked, setIsChecked] = useState(true);
 
-  const handleCheckboxChange = (e: any) => {
+  const {
+    paginatedData: paginatedStagedTxs,
+    hasMore: hasMoreStagedTxs,
+    fetchMoreData: fetchMoreStagedTxs,
+  } = useInMemoryPagination(staged, 5);
+
+  const {
+    paginatedData: paginatedExecutedTxs,
+    hasMore: hasMoreExecutedTxs,
+    fetchMoreData: fetchMoreExecutedTxs,
+  } = useInMemoryPagination(history.results, 5);
+
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsChecked(e.target.checked);
   };
 
@@ -41,7 +55,7 @@ function SignTransactions() {
           Sign & Execute Transactions
         </Heading>
         <Text color="gray.300">
-          Make sure you’re using the same{' '}
+          Make sure you&apos;re using the same{' '}
           <Link href="/settings">Safe Signature Collection Service</Link> as
           other signers.
         </Text>
@@ -70,15 +84,29 @@ function SignTransactions() {
               There are no transactions queued on the selected safe.
             </Text>
           ) : (
-            staged.map((tx) => (
-              <Transaction
-                key={JSON.stringify(tx.txn)}
-                safe={currentSafe}
-                tx={tx.txn}
-                hideExternal={false}
-                isStaged
-              />
-            ))
+            <Box
+              id="staged-transactions-container"
+              maxHeight="350px"
+              overflowY="auto"
+            >
+              <InfiniteScroll
+                dataLength={paginatedStagedTxs.length}
+                next={fetchMoreStagedTxs}
+                hasMore={hasMoreStagedTxs}
+                loader={<Skeleton height="60px" my={2} />}
+                scrollableTarget="staged-transactions-container"
+              >
+                {paginatedStagedTxs.map((tx) => (
+                  <Transaction
+                    key={JSON.stringify(tx.txn)}
+                    safe={currentSafe}
+                    tx={tx.txn}
+                    hideExternal={false}
+                    isStaged
+                  />
+                ))}
+              </InfiniteScroll>
+            </Box>
           ))
         )}
       </Box>
@@ -110,14 +138,33 @@ function SignTransactions() {
               Show Cannon transactions only
             </Checkbox>
           </Flex>
-          {history.results.map((tx: any) => (
-            <Transaction
-              key={tx.safeTxHash}
-              safe={currentSafe}
-              tx={tx}
-              hideExternal={isChecked}
-            />
-          ))}
+          <Box
+            id="executed-transactions-container"
+            maxHeight="300"
+            overflowY="scroll"
+          >
+            <InfiniteScroll
+              dataLength={paginatedExecutedTxs.length}
+              next={fetchMoreExecutedTxs}
+              hasMore={hasMoreExecutedTxs}
+              loader={<div>aaaa...</div>}
+              scrollableTarget="executed-transactions-container"
+              endMessage={
+                <Text color="gray.300" textAlign="center" mt={4}>
+                  No more transactions to load.
+                </Text>
+              }
+            >
+              {paginatedExecutedTxs.map((tx) => (
+                <Transaction
+                  key={tx.safeTxHash}
+                  safe={currentSafe}
+                  tx={tx}
+                  hideExternal={isChecked}
+                />
+              ))}
+            </InfiniteScroll>
+          </Box>
         </Box>
       )}
     </Container>
