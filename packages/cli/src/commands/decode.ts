@@ -1,11 +1,11 @@
 import * as viem from 'viem';
 import { AbiFunction, AbiEvent } from 'abitype';
 import { bold, gray, green, italic } from 'chalk';
-import { ContractData, DeploymentInfo, decodeTxError } from '@usecannon/builder';
+import { ContractData, DeploymentInfo, PackageReference, decodeTxError } from '@usecannon/builder';
 
 import { log, error } from '../util/console';
 import { readDeployRecursive } from '../package';
-import { ensureChainIdConsistency, formatAbiFunction, getSighash } from '../helpers';
+import { ensureChainIdConsistency, formatAbiFunction, getSighash, stripCredentialsFromURL } from '../helpers';
 import { resolveCliSettings } from '../../src/settings';
 import { isTxHash } from '../util/is-tx-hash';
 import { getChainIdFromRpcUrl, isURL, ProviderAction, resolveProvider } from '../util/provider';
@@ -30,6 +30,8 @@ export async function decode({
     data = ('0x' + data) as viem.Hash;
   }
 
+  const { fullPackageRef } = new PackageReference(packageRef);
+
   let inputData = data;
 
   if (isTxHash(data)) {
@@ -43,16 +45,25 @@ export async function decode({
 
     const { provider } = await resolveProvider({ action: ProviderAction.ReadProvider, quiet: true, cliSettings, chainId });
 
-    const transaction = await provider.getTransaction({
+    const tx = await provider.getTransaction({
       hash: data,
     });
 
-    inputData = transaction.input;
+    inputData = tx.input;
+
+    log('     RPC: ', stripCredentialsFromURL(provider.transport.url));
+    log('Chain ID: ', tx.chainId);
+    log(' TX hash: ', tx.hash);
+    log('    From: ', tx.from);
+    if (tx.to) log('      To: ', tx.to);
+    if (tx.value) log('   Value: ', tx.value);
+    log();
   }
 
-  const deployInfos = await readDeployRecursive(packageRef, chainId!);
+  const deployInfos = await readDeployRecursive(fullPackageRef, chainId!);
 
   const abis = deployInfos.flatMap((deployData) => _getAbis(deployData));
+
   const parsed = _parseData(abis, inputData);
 
   if (!parsed) {
@@ -61,7 +72,10 @@ export async function decode({
       log(errorMessage);
       return;
     }
-    throw new Error('Could not decode transaction data');
+
+    throw new Error(
+      'Could not decode transaction data with the given Cannon package. Please confirm that the given data exists in the ABIs of the package.'
+    );
   }
 
   const fragment = viem.getAbiItem({

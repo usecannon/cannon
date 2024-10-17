@@ -588,7 +588,8 @@ export const commandsConfig: CommandsConfig = {
     ],
   },
   trace: {
-    description: 'Get a full stack trace for a transaction hash or explicit transaction call',
+    description:
+      'Get a full stack trace for a transaction hash or explicit transaction call. This command will spin up a local fork and simulate the given transaction.',
     arguments: [
       {
         flags: '<packageRef>',
@@ -636,15 +637,16 @@ export const commandsConfig: CommandsConfig = {
     ],
   },
   decode: {
-    description: 'decode transaction data using the ABIs of the given Cannon package',
+    description:
+      'Decode the given data using the ABIs from the specified Cannon package. It will try to parse the data as Function Call, Error or Event. If a tx hash is given it will fetch it using the rpc and try to parse the input.',
     arguments: [
       {
         flags: '<packageRef>',
         description: 'Name, version and preset of the package to decode from (name:version@preset)',
       },
       {
-        flags: '<transactionHash OR bytes32Data>',
-        description: 'bytes32 encoded transaction data, or transaction hash',
+        flags: '<transactionHash OR hexData>',
+        description: 'hex encoded transaction data or a transaction hash',
       },
     ],
     options: [
