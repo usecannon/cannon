@@ -5,6 +5,7 @@
   "description": "Management of Cannon Artifacts Uploaded to IPFS",
   "main": "dist/index.js",
   "scripts": {
+    "test": "pnpm ts-node test/index.test.ts",
     "build": "tsc -p tsconfig.json",
     "clean": "rm -rf ./dist",
     "start": "node dist/index.js"
