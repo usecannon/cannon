@@ -5,6 +5,7 @@
   "description": "Management of Cannon Artifacts Uploaded to IPFS",
   "main": "dist/index.js",
   "scripts": {
+    "test": "pnpm ts-node test/index.test.ts",
     "build": "tsc -p tsconfig.json",
     "clean": "rm -rf ./dist",
     "start": "node dist/index.js"
@@ -34,9 +35,18 @@
     "typestub-ipfs-only-hash": "^4.0.0"
   },
   "devDependencies": {
+    "@types/connect-busboy": "^1.0.3",
+    "@types/expect": "^24.3.0",
     "@types/express": "^4.17.21",
     "@types/lodash": "^4.17.7",
-    "@types/morgan": "^1.9.9"
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^22.7.5",
+    "@types/pako": "^2.0.3",
+    "axios": "^1.7.7",
+    "get-port-please": "^3.1.2",
+    "redis-memory-server": "^0.11.0",
+    "tinyexec": "^0.3.1",
+    "ts-node": "^10.9.2"
   },
   "gitHead": "ba373becf7f7ecdf1a26a41cc824a1de9ffe6f16"
 }
