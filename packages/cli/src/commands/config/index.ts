@@ -108,11 +108,7 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '--dry-run',
-        description: 'Simulate building on a local fork rather than deploying on the real network. Impersonate all signers.',
-      },
-      {
-        flags: '--impersonate <address>',
-        description: 'Impersonate transactions from given signers. Only works with --dry-run',
+        description: 'Simulate building on a local fork rather than deploying on the real network.',
       },
       {
         flags: '--keep-alive',
