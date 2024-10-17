@@ -65,7 +65,17 @@ export async function filterSettings(settings: any) {
   return filteredSettings;
 }
 
-export async function setupAnvil(): Promise<void> {
+/**
+ * Installs or upgrades Foundry to ensure compatibility with Cannon.
+ *
+ * This function checks the current version of Anvil (a component of Foundry) and prompts the user
+ * to upgrade if necessary. If Foundry is not installed, it prompts for installation.
+ *
+ * @throws Will exit the process if the user declines to install or upgrade when necessary.
+ * @returns {Promise<void>}
+ */
+
+export async function ensureFoundryCompatibility(): Promise<void> {
   // TODO Setup anvil using https://github.com/foundry-rs/hardhat/tree/develop/packages/easy-foundryup
   //      It also works when the necessary foundry binary is not on PATH
   const versionDate = await getAnvilVersionDate();
