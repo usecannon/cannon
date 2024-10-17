@@ -154,24 +154,28 @@ export async function build({
 
   const dump = writeScript ? await createWriteScript(runtime, writeScript, writeScriptFormat) : null;
 
-  log(bold('Checking for existing package...'));
   let oldDeployData: DeploymentInfo | null = null;
-  if (upgradeFrom) {
-    oldDeployData = await runtime.readDeploy(upgradeFrom, runtime.chainId);
-    if (!oldDeployData) {
-      throw new Error(`Deployment ${upgradeFrom} (${chainId}) not found`);
-    }
-  } else if (def) {
-    const oldDeployHash = await findUpgradeFromPackage(
-      runtime.registry,
-      runtime.provider,
-      packageReference,
-      runtime.chainId,
-      def.getDeployers()
-    );
-    if (oldDeployHash) {
-      log(green(bold('Found deployment state via on-chain store', oldDeployHash)));
-      oldDeployData = (await runtime.readBlob(oldDeployHash)) as DeploymentInfo;
+
+  if (!wipe) {
+    log(bold('Checking for existing package...'));
+
+    if (upgradeFrom) {
+      oldDeployData = await runtime.readDeploy(upgradeFrom, runtime.chainId);
+      if (!oldDeployData) {
+        throw new Error(`Deployment ${upgradeFrom} (Chain ID: ${chainId}) not found`);
+      }
+    } else if (def) {
+      const oldDeployHash = await findUpgradeFromPackage(
+        runtime.registry,
+        runtime.provider,
+        packageReference,
+        runtime.chainId,
+        def.getDeployers()
+      );
+      if (oldDeployHash) {
+        log(green(bold(`Found deployment state via on-chain store: ${oldDeployHash}`)));
+        oldDeployData = (await runtime.readBlob(oldDeployHash)) as DeploymentInfo;
+      }
     }
   }
 
@@ -180,10 +184,7 @@ export async function build({
     log(gray(`  ${fullPackageRef} (Chain ID: ${chainId}) found`));
     if (!wipe) {
       await runtime.restoreMisc(oldDeployData.miscUrl);
-
-      if (!pkgInfo) {
-        pkgInfo = oldDeployData.meta;
-      }
+      pkgInfo = pkgInfo || oldDeployData.meta;
     }
   } else {
     log(gray('Starting fresh build...'));
