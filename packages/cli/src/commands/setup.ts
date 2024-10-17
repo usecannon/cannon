@@ -5,16 +5,16 @@ import untildify from 'untildify';
 import prompts from 'prompts';
 import { bold, gray, green, italic, yellow } from 'chalk';
 
-import { setupAnvil } from '../helpers';
+import { ensureFoundryCompatibility } from '../helpers';
 import { CLI_SETTINGS_STORE } from '../constants';
 import { resolveCliSettings } from '../settings';
 import { log } from '../util/console';
 
 export async function setup() {
-  // Setup Anvil
-  await setupAnvil();
+  // ensure foundry compatibility
+  await ensureFoundryCompatibility();
 
-  // Exit if settings is already configured
+  // exit if settings is already configured
   if (process.env.CANNON_SETTINGS) {
     log('Your Cannon settings are being explicitly defined as follows:');
     log(JSON.stringify(process.env.CANNON_SETTINGS));
