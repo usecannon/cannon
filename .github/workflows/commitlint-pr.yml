@@ -24,3 +24,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           validateSingleCommit: false
+          types: |
+            hotfix
+            feat
+            fix
+            chore
+            docs
+            test
