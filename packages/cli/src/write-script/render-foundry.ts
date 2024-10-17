@@ -10,8 +10,9 @@ import { Transform } from 'node:stream';
 const header = `#!/bin/bash
 
 # Set your environment variables
-export PRIVATE_KEY=<your_private_key>
-export RPC_URL=<your_rpc_url>
+# Set your environment variables
+# export PRIVATE_KEY=<your_private_key>
+# export RPC_URL=<your_rpc_url>
 
 # Start processing transactions
 `;
