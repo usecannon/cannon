@@ -9,7 +9,6 @@
     "sourceMap": true,
     "strict": true,
     "allowSyntheticDefaultImports": true,
-    "allowImportingTsExtensions": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "rootDirs": ["./src"],
