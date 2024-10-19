@@ -134,10 +134,7 @@ const routerStep = {
 
     debug('router source code', sourceCode);
 
-    // On Mainnet, use default local solc evmVersion, for everything else, 'paris'
-    const evmVersion = [1, 5, 11155111].includes(runtime.chainId) ? undefined : '>=0.8.15 <0.8.28';
-
-    const { input: inputData, output: solidityInfo } = await compileContract(contractName, sourceCode, evmVersion);
+    const { input: inputData, output: solidityInfo } = await compileContract(contractName, sourceCode);
 
     // the ABI is entirely based on the fallback call so we have to generate ABI here
     const routableAbi = getMergedAbiFromContractPaths(ctx, config.contracts);

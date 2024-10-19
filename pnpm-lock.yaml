@@ -229,6 +229,9 @@ importers:
       '@usecannon/router':
         specifier: ^4.0.0
         version: 4.0.0
+      '@usecannon/web-solc':
+        specifier: 0.5.1
+        version: 0.5.1
       axios:
         specifier: ^1.7.2
         version: 1.7.5(debug@4.3.6)
@@ -265,9 +268,6 @@ importers:
       viem:
         specifier: ^2.21.15
         version: 2.21.15(bufferutil@4.0.8)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8)
-      web-solc:
-        specifier: ^0.5.1
-        version: 0.5.1
       zod:
         specifier: ^3.23.6
         version: 3.23.8
@@ -5155,6 +5155,9 @@ packages:
 
   '@usecannon/router@4.0.0':
     resolution: {integrity: sha512-RP5IlsG2U8xk7dGnoaaZKLoo2WrJ+SMEJyUlgwkrbI49jMLRXEwgmcz8SdqsA1/62n46SLcvpmLiENSKWJet8g==}
+
+  '@usecannon/web-solc@0.5.1':
+    resolution: {integrity: sha512-wK8J1snp1ikYzpxA8LzhQwp+6cvmLDnFG2EaMLmqtQZD/FIz7xh8IaSgHUliwDBm9zdsPEIvXvhDvanyZ7IBuw==}
 
   '@vanilla-extract/css@1.14.0':
     resolution: {integrity: sha512-rYfm7JciWZ8PFzBM/HDiE2GLnKI3xJ6/vdmVJ5BSgcCZ5CxRlM9Cjqclni9lGzF3eMOijnUhCd/KV8TOzyzbMA==}
@@ -13297,9 +13300,6 @@ packages:
   wcwidth@1.0.1:
     resolution: {integrity: sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==}
 
-  web-solc@0.5.1:
-    resolution: {integrity: sha512-Z/hBplZq1+4i4bYeIeD9N3vP1BLUBXpSDa4h0Ipm2Z2cHv7x7DtZ2zFb0E1L1VZo4BF+OJGVtGlT+nTUXGgncQ==}
-
   web3-bzz@1.10.0:
     resolution: {integrity: sha512-o9IR59io3pDUsXTsps5pO5hW1D5zBmg46iNc2t4j2DkaYHNdDLwk2IP9ukoM2wg47QILfPEJYzhTfkS/CcX0KA==}
     engines: {node: '>=8.0.0'}
@@ -19976,6 +19976,8 @@ snapshots:
       mustache: 4.2.0
     transitivePeerDependencies:
       - supports-color
+
+  '@usecannon/web-solc@0.5.1': {}
 
   '@vanilla-extract/css@1.14.0':
     dependencies:
@@ -31025,10 +31027,6 @@ snapshots:
   wcwidth@1.0.1:
     dependencies:
       defaults: 1.0.4
-
-  web-solc@0.5.1:
-    dependencies:
-      semver: 7.6.3
 
   web3-bzz@1.10.0(bufferutil@4.0.8)(utf-8-validate@5.0.10):
     dependencies:
