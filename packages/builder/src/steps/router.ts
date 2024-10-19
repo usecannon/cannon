@@ -111,6 +111,8 @@ const routerStep = {
         throw new Error(`contract not found: ${n}`);
       }
 
+      const contractName = n.replace('.', '_'); // Use step name, and replace '.' in case is pointing to an import.
+
       return {
         constructorArgs: contract.constructorArgs,
         abi: contract.abi,
@@ -118,9 +120,9 @@ const routerStep = {
         deployTxnHash: contract.deployTxnHash,
         deployTxnBlockNumber: '',
         deployTimestamp: '',
-        contractName: contract.contractName,
+        contractName: contractName,
         sourceName: contract.sourceName,
-        contractFullyQualifiedName: `${contract.sourceName}:${contract.contractName}`,
+        contractFullyQualifiedName: `${contract.sourceName}:${contractName}`,
       };
     });
 

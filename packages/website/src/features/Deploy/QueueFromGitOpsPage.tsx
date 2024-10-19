@@ -535,14 +535,6 @@ export default function QueueFromGitOps() {
     cannonDefInfo.def?.getDeployers()?.length ?? 0 > 0
   );
 
-  const canTomlBeDeployedUsingWebsite = Boolean(
-    cannonfileUrlInput &&
-      cannonDefInfo?.def &&
-      !cannonDefInfo.def.allActionNames.some(
-        (item) => item.startsWith('deploy.') || item.startsWith('contract.')
-      )
-  );
-
   // This condition checks if the cannonfile requires to enter a value in the "Previous Package" input
   const tomlRequiresPrevPackage = Boolean(
     cannonfileUrlInput &&
@@ -562,8 +554,7 @@ export default function QueueFromGitOps() {
     (onChainPrevPkgQuery.isFetched &&
       !prevDeployLocation &&
       tomlRequiresPrevPackage &&
-      !previousPackageInput) ||
-    canTomlBeDeployedUsingWebsite;
+      !previousPackageInput);
 
   const PreviewButton = ({ message }: { message?: string }) => (
     <Tooltip label={message}>
