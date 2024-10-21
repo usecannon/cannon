@@ -234,7 +234,7 @@ importers:
         version: 1.7.5(debug@4.3.6)
       axios-retry:
         specifier: ^4.4.2
-        version: 4.5.0(axios@1.7.5(debug@4.3.6))
+        version: 4.5.0(axios@1.7.5)
       buffer:
         specifier: ^6.0.3
         version: 6.0.3
@@ -515,25 +515,6 @@ importers:
       '@types/morgan':
         specifier: ^1.9.9
         version: 1.9.9
-
-  packages/op-stack:
-    dependencies:
-      viem:
-        specifier: ^2.21.15
-        version: 2.21.15(bufferutil@4.0.8)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.23.8)
-    devDependencies:
-      '@types/node':
-        specifier: ^20.12.7
-        version: 20.16.1
-      '@usecannon/cli':
-        specifier: workspace:*
-        version: link:../cli
-      ts-node:
-        specifier: ^10.9.2
-        version: 10.9.2(@types/node@20.16.1)(typescript@5.5.4)
-      typescript:
-        specifier: ^5.5.4
-        version: 5.5.4
 
   packages/registry:
     devDependencies:
@@ -15864,7 +15845,7 @@ snapshots:
       '@cucumber/ci-environment': 10.0.1
       '@cucumber/cucumber-expressions': 17.1.0
       '@cucumber/gherkin': 28.0.0
-      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)
+      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@25.0.1))(@cucumber/messages@24.1.0)
       '@cucumber/gherkin-utils': 9.0.0
       '@cucumber/html-formatter': 21.6.0(@cucumber/messages@24.1.0)
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -15904,7 +15885,7 @@ snapshots:
       yaml: 2.5.0
       yup: 1.2.0
 
-  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)':
+  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@25.0.1))(@cucumber/messages@24.1.0)':
     dependencies:
       '@cucumber/gherkin': 28.0.0
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -19942,7 +19923,7 @@ snapshots:
     dependencies:
       '@synthetixio/router': 3.4.0(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)
       axios: 1.7.5(debug@4.3.6)
-      axios-retry: 4.5.0(axios@1.7.5(debug@4.3.6))
+      axios-retry: 4.5.0(axios@1.7.5)
       buffer: 6.0.3
       chalk: 4.1.2
       debug: 4.3.6(supports-color@8.1.1)
@@ -20870,7 +20851,7 @@ snapshots:
       '@babel/runtime': 7.25.4
       is-retry-allowed: 2.2.0
 
-  axios-retry@4.5.0(axios@1.7.5(debug@4.3.6)):
+  axios-retry@4.5.0(axios@1.7.5):
     dependencies:
       axios: 1.7.5(debug@4.3.6)
       is-retry-allowed: 2.2.0
