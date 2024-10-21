@@ -11,7 +11,7 @@ services:
       - ./data/redis-data:/data
 
   registry:
-    image: node:22.9-alpine
+    image: supersim
     restart: always
     ports:
       - '6379:6379'
