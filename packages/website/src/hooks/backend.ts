@@ -1,12 +1,12 @@
-import SafeABIJSON from '@/abi/Safe.json';
 import { SafeDefinition, useStore } from '@/helpers/store';
+import { SafeABI } from '@/abi/Safe';
 import { useSafeAddress } from '@/hooks/safe';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { useToast } from '@chakra-ui/react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import _ from 'lodash';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import * as viem from 'viem';
 import {
   useAccount,
@@ -18,27 +18,26 @@ import {
   useWalletClient,
 } from 'wagmi';
 
-const SafeABI = SafeABIJSON as viem.Abi;
-
 interface CannonSafeTransaction {
   txn: SafeTransaction;
   sigs: string[];
 }
 
 export function useSafeTransactions(safe: SafeDefinition | null, refetchInterval?: number) {
-  const [staged, setStaged] = useState<CannonSafeTransaction[]>([]);
-  const [nextNonce, setNextNonce] = useState<number | null>(null);
   const stagingUrl = useStore((s) => s.settings.stagingUrl);
 
   const stagedQuery = useQuery({
     queryKey: ['staged', safe?.chainId, safe?.address],
     enabled: !!safe,
     queryFn: async () => {
-      if (!safe) return;
-      return axios.get<CannonSafeTransaction[]>(`${stagingUrl}/${safe.chainId}/${safe.address}`);
+      if (!safe) return [];
+      const response = await axios.get<CannonSafeTransaction[]>(`${stagingUrl}/${safe.chainId}/${safe.address}`);
+      return response.data;
     },
     refetchInterval,
   });
+  // Use JSON.stringify for deep comparison
+  const stagedQueryDataAsJson = JSON.stringify(stagedQuery.data);
 
   const nonceQuery = useReadContract({
     address: safe?.address,
@@ -47,42 +46,46 @@ export function useSafeTransactions(safe: SafeDefinition | null, refetchInterval
     functionName: 'nonce',
   });
 
-  useEffect(() => {
-    if (
-      !nonceQuery.isSuccess ||
-      !stagedQuery.isSuccess ||
-      !Array.isArray(stagedQuery?.data?.data) ||
-      !stagedQuery.data.data.length
-    ) {
-      setStaged([]);
-      setNextNonce(null);
-      return;
+  const memoizedStaged = useMemo(() => {
+    if (!stagedQuery.isSuccess || !nonceQuery.isSuccess || !Array.isArray(stagedQuery.data)) {
+      return [];
     }
-
-    const safeNonce = Number(nonceQuery.data || 0);
-
-    const stagedQueries = _.sortBy(
-      stagedQuery.data.data.filter((t: any) => {
-        return t.txn._nonce >= safeNonce;
-      }),
+    const nonce = Number(nonceQuery.data || 0);
+    return _.sortBy(
+      stagedQuery.data.filter((t) => t.txn._nonce >= nonce),
       'txn._nonce'
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stagedQuery.isSuccess, nonceQuery.isSuccess, stagedQueryDataAsJson, nonceQuery.data]);
 
-    const lastNonce = stagedQueries.length ? _.last(stagedQueries)?.txn._nonce : safeNonce + 1;
+  const memoizedNextNonce = useMemo(() => {
+    if (memoizedStaged.length === 0 && !nonceQuery.isSuccess) return null;
+    const lastNonce = memoizedStaged.length ? _.last(memoizedStaged)?.txn._nonce : Number(nonceQuery.data || 0);
+    return lastNonce ? lastNonce + 1 : null;
+  }, [memoizedStaged, nonceQuery.data, nonceQuery.isSuccess]);
 
-    setStaged(stagedQueries);
-    setNextNonce(lastNonce ? lastNonce + 1 : null);
-  }, [stagedQuery.isSuccess, stagedQuery.data, nonceQuery.isSuccess, nonceQuery.data]);
+  const isFetched = stagedQuery.isFetched && nonceQuery.isFetched;
+  const isSuccess = stagedQuery.isSuccess && nonceQuery.isSuccess;
+  const isLoading = stagedQuery.isLoading || nonceQuery.isLoading;
+  const stagedQueryRefetch = stagedQuery.refetch;
+  const nonceQueryRefetch = nonceQuery.refetch;
+  const refetch = useCallback(
+    () => Promise.all([stagedQueryRefetch(), nonceQueryRefetch()]),
+    [stagedQueryRefetch, nonceQueryRefetch]
+  );
 
-  return {
-    isLoading: stagedQuery.isLoading || nonceQuery.isLoading,
-    isSuccess: nonceQuery.isSuccess && stagedQuery.isSuccess,
-    nonceQuery,
-    stagedQuery,
-    nonce: nonceQuery.data as bigint,
-    staged,
-    nextNonce,
-  };
+  return useMemo(
+    () => ({
+      isLoading,
+      isSuccess,
+      isFetched,
+      refetch,
+      nonce: BigInt(Number(nonceQuery.data || 0)),
+      staged: memoizedStaged,
+      nextNonce: memoizedNextNonce,
+    }),
+    [isLoading, isSuccess, isFetched, refetch, nonceQuery, memoizedStaged, memoizedNextNonce]
+  );
 }
 
 export function useTxnStager(
@@ -103,7 +106,12 @@ export function useTxnStager(
   const querySafeAddress = options.safe?.address || safeAddress;
   const stagingUrl = useStore((s) => s.settings.stagingUrl);
   const currentSafe = useStore((s) => s.currentSafe);
-  const { nonce, staged, stagedQuery } = useSafeTransactions((options.safe || currentSafe) as any);
+  const {
+    nonce,
+    staged,
+    refetch: refetchSafeTxs,
+    isSuccess: isSuccessSafeTxs,
+  } = useSafeTransactions((options.safe || currentSafe) as any);
   const { switchChainAsync } = useSwitchChain();
 
   const safeTxn: SafeTransaction = {
@@ -190,7 +198,7 @@ export function useTxnStager(
   const mutation = useMutation({
     mutationFn: async ({ txn, sig }: { txn: SafeTransaction; sig: string }) => {
       // see if there is a currently staged transaction matching ours
-      if (!stagedQuery.isSuccess) {
+      if (!isSuccessSafeTxs) {
         return;
       }
 
@@ -200,7 +208,7 @@ export function useTxnStager(
       return await axios.post(`${stagingUrl}/${queryChainId}/${querySafeAddress}`, newStaged);
     },
     onSuccess: async () => {
-      void stagedQuery.refetch();
+      void refetchSafeTxs();
     },
   });
 

@@ -103,7 +103,10 @@ function TransactionDetailsPage() {
     [chainId, safeAddress]
   );
 
-  const safeChain = useMemo(() => getChainById(safe.chainId), [safe]);
+  const safeChain = useMemo(
+    () => getChainById(safe.chainId),
+    [safe, getChainById]
+  );
   if (!safeChain) {
     throw new Error('Safe Chain not supported');
   }
@@ -111,8 +114,8 @@ function TransactionDetailsPage() {
   const {
     nonce: safeNonce,
     staged,
-    stagedQuery,
-    nonceQuery,
+    refetch: refetchSafeTxs,
+    isFetched: isSafeTxsFetched,
   } = useSafeTransactions(safe);
 
   const isTransactionExecuted = nonce < safeNonce;
@@ -318,8 +321,7 @@ function TransactionDetailsPage() {
         // wait for the transaction to be mined
         await publicClient!.waitForTransactionReceipt({ hash });
 
-        await stagedQuery.refetch();
-        await nonceQuery.refetch();
+        await refetchSafeTxs();
         await refetchHistory();
 
         toast({
@@ -342,7 +344,7 @@ function TransactionDetailsPage() {
     );
   }
 
-  if (!safeTxn && stagedQuery.isFetched) {
+  if (!safeTxn && isSafeTxsFetched) {
     return (
       <Container>
         <Text>
