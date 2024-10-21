@@ -877,7 +877,7 @@ export const chainDefinitionSchema = z
     privateSourceCode: z
       .boolean()
       .describe(
-        'Turns off inclusion of source code in packages. When set to true, Cannon cannot verify contracts on Etherscan.'
+        'Turns off inclusion of source code in packages. When set to true, Cannon cannot verify contracts on Etherscan. Defaults to false.'
       )
       .optional(),
   })
