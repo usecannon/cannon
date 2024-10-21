@@ -195,7 +195,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         persist: !dryRun && hre.network.name !== 'hardhat',
         overrideResolver: dryRun ? await createDryRunRegistry(resolveCliSettings()) : undefined,
         plugins: !!usePlugins,
-        publicSourceCode: hre.config.cannon.publicSourceCode,
+        privateSourceCode: !hre.config.cannon.publicSourceCode,
         writeScript,
         writeScriptFormat,
       } as const;
