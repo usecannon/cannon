@@ -81,7 +81,6 @@ export async function build({
   writeScript,
   writeScriptFormat = 'ethers',
 }: Params): Promise<{ outputs: ChainArtifacts; provider: viem.PublicClient; runtime: ChainBuilderRuntime }> {
-  console.log('privateSourceCode: ', privateSourceCode);
   if (wipe && upgradeFrom) {
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
   }
