@@ -563,7 +563,7 @@ export default function QueueFromGitOps() {
       !prevDeployLocation &&
       tomlRequiresPrevPackage &&
       !previousPackageInput) ||
-    canTomlBeDeployedUsingWebsite;
+    !canTomlBeDeployedUsingWebsite;
 
   const PreviewButton = ({ message }: { message?: string }) => (
     <Tooltip label={message}>

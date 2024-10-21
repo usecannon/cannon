@@ -43,7 +43,8 @@
     "typedoc-plugin-zod": "^1.2.0"
   },
   "dependencies": {
-    "@synthetixio/router": "^3.4.0",
+    "@usecannon/router": "^4.0.0",
+    "@usecannon/web-solc": "0.5.1",
     "axios": "^1.7.2",
     "axios-retry": "^4.4.2",
     "buffer": "^6.0.3",
