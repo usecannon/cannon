@@ -230,24 +230,25 @@ export function useCannonBuildTmp(safe: SafeDefinition | null) {
         addLog('info', `cannon.ts: on Events.PostStepExecute operation ${stepName} output: ${JSON.stringify(stepOutput)}`);
 
         // clean out txn hash
-        for (const txn in stepOutput.txns || {}) {
-          stepOutput.txns![txn].hash = '';
-        }
-
-        // clean out deploy txn hash
-        if (result.contracts) {
-          const contractKey = Object.keys(result.contracts)[0];
-          if (result.contracts[contractKey]?.deployTxnHash) {
-            result.contracts[contractKey].deployTxnHash = '';
+        for (const txn of Object.values(stepOutput.txns || {})) {
+          if (txn.hash) {
+            txn.hash = '';
           }
         }
 
-        // clean out deploy txn hash
-        if (result.imports) {
-          const stepKey = Object.keys(result.imports)[0];
-          const contractKey = Object.keys(result.imports[stepKey].contracts || {})[0];
-          if (result.imports[stepKey].contracts?.[contractKey]?.deployTxnHash) {
-            result.imports[stepKey].contracts[contractKey].deployTxnHash = '';
+        // clean out deploy txn deploy hash
+        for (const contractData of Object.values(result.contracts || {})) {
+          if (contractData.deployTxnHash) {
+            contractData.deployTxnHash = '';
+          }
+        }
+
+        // clean out deploy txn deploy hash
+        for (const importData of Object.values(result.imports || {})) {
+          for (const contractData of Object.values(importData.contracts || {})) {
+            if (contractData.deployTxnHash) {
+              contractData.deployTxnHash = '';
+            }
           }
         }
 
