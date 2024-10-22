@@ -10,6 +10,8 @@ export const FunctionOutput: FC<{
   output: AbiParameter | readonly AbiParameter[];
   result: any;
 }> = ({ output, result }) => {
+  console.log('output: ', output);
+  console.log('result: ', result);
   const isArrayOutput = (
     value: AbiParameter | readonly AbiParameter[]
   ): value is readonly AbiParameter[] => isArray(value);
@@ -35,7 +37,11 @@ export const FunctionOutput: FC<{
     </Box>
   );
 
-  const renderOutput = (item: AbiParameter, value: { [key: string]: any }) => {
+  const renderOutput = (
+    item: AbiParameter,
+    value: { [key: string]: any },
+    index?: number
+  ) => {
     if (item.type === 'tuple' && hasComponents(item) && value) {
       return (
         <Box pl="4">
@@ -84,11 +90,29 @@ export const FunctionOutput: FC<{
           </Text>
         );
       } else if (isArray(value)) {
-        return value.map((val, idx) => (
-          <Text fontSize="xs" display="block" key={idx}>
-            {String(val)}
-          </Text>
-        ));
+        if (item.type === 'address[]') {
+          return (
+            <Box>
+              {value.map((val, idx) => (
+                <Text fontSize="xs" display="block" key={idx}>
+                  {String(val)}
+                </Text>
+              ))}
+            </Box>
+          );
+        } else if (index !== undefined) {
+          return (
+            <Text fontSize="xs" display="block">
+              {String(value[index])}
+            </Text>
+          );
+        } else {
+          return value.map((val, idx) => (
+            <Text fontSize="xs" display="block" key={idx}>
+              {String(val)}
+            </Text>
+          ));
+        }
       } else {
         return (
           <Flex
@@ -142,7 +166,7 @@ export const FunctionOutput: FC<{
         output.map((item, index) => (
           <Box overflowX={'scroll'} p={2} key={index}>
             <ItemLabel name={item.name || ''} type={item.internalType || ''} />
-            {renderOutput(item, result)}
+            {renderOutput(item, result, index)}
           </Box>
         ))
       ) : (
