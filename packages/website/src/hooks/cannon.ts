@@ -26,6 +26,7 @@ import {
   PackageReference,
   publishPackage,
   findUpgradeFromPackage,
+  ChainBuilderContext,
 } from '@usecannon/builder';
 import _ from 'lodash';
 import { useEffect, useReducer, useState } from 'react';
@@ -215,20 +216,44 @@ export function useCannonBuildTmp(safe: SafeDefinition | null) {
 
     const skippedSteps: StepExecutionError[] = [];
 
-    currentRuntime.on(Events.PostStepExecute, (stepType: string, stepLabel: string, stepOutput: ChainArtifacts) => {
-      const stepName = `${stepType}.${stepLabel}`;
+    currentRuntime.on(
+      Events.PostStepExecute,
+      (
+        stepType: string,
+        stepLabel: string,
+        stepOutput: ChainArtifacts,
+        _ctx: ChainBuilderContext,
+        result: ChainArtifacts
+      ) => {
+        const stepName = `${stepType}.${stepLabel}`;
 
-      addLog('info', `cannon.ts: on Events.PostStepExecute operation ${stepName} output: ${JSON.stringify(stepOutput)}`);
+        addLog('info', `cannon.ts: on Events.PostStepExecute operation ${stepName} output: ${JSON.stringify(stepOutput)}`);
 
-      //simulatedSteps.push(_.cloneDeep(stepOutput));
-
-      for (const txn in stepOutput.txns || {}) {
         // clean out txn hash
-        stepOutput.txns![txn].hash = '';
-      }
+        for (const txn in stepOutput.txns || {}) {
+          stepOutput.txns![txn].hash = '';
+        }
 
-      dispatch({ message: `Building ${stepName}...` });
-    });
+        // clean out deploy txn hash
+        if (result.contracts) {
+          const contractKey = Object.keys(result.contracts)[0];
+          if (result.contracts[contractKey]?.deployTxnHash) {
+            result.contracts[contractKey].deployTxnHash = '';
+          }
+        }
+
+        // clean out deploy txn hash
+        if (result.imports) {
+          const stepKey = Object.keys(result.imports)[0];
+          const contractKey = Object.keys(result.imports[stepKey].contracts || {})[0];
+          if (result.imports[stepKey].contracts?.[contractKey]?.deployTxnHash) {
+            result.imports[stepKey].contracts[contractKey].deployTxnHash = '';
+          }
+        }
+
+        dispatch({ message: `Building ${stepName}...` });
+      }
+    );
 
     currentRuntime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
       addLog('error', `cannon.ts: on Events.SkipDeploy error ${err.toString()} happened on the operation ${stepName}`);

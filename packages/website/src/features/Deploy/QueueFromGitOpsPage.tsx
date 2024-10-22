@@ -930,10 +930,18 @@ export default function QueueFromGitOps() {
               >
                 {deployer.queuedTransactions.length === 0 ? (
                   <VStack>
-                    <Text color="gray.300" mb="4">
-                      Some transactions should be executed outside the safe
-                      before staging. You can execute these now in your browser.
-                      By clicking the button below.
+                    <Text color="gray.300">
+                      The following steps should be executed outside the safe
+                      before staging.
+                      {buildState.result?.deployerSteps.map((s) => (
+                        <Text color="gray.300" ml="2" key={s.name}>
+                          - {s.name}
+                        </Text>
+                      ))}
+                      <Text color="gray.300" mb="4">
+                        You can execute these now in your browser. By clicking
+                        the button below.
+                      </Text>
                     </Text>
                     <Button
                       onClick={() =>
@@ -984,7 +992,7 @@ export default function QueueFromGitOps() {
             stager.safeTxn && (
               <Box mt="4" mb="4">
                 <Heading size="sm" mb={2}>
-                  Transactions
+                  Safe Transactions:
                 </Heading>
                 {buildState.result?.safeSteps.length === 0 ? (
                   <AlertCannon borderless status="info">
