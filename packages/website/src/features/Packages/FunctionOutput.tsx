@@ -35,11 +35,7 @@ export const FunctionOutput: FC<{
     </Box>
   );
 
-  const renderOutput = (
-    item: AbiParameter,
-    value: { [key: string]: any },
-    index?: number
-  ) => {
+  const renderOutput = (item: AbiParameter, value: { [key: string]: any }) => {
     if (item.type === 'tuple' && hasComponents(item) && value) {
       return (
         <Box pl="4">
