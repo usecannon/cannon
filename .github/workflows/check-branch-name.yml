@@ -19,7 +19,7 @@ jobs:
               case 'main':
               case 'alpha': {
                 if (!/^(hotfix|release)\/[A-Za-z0-9-_\.]+$/.test(branch)) {
-                  console.error(`::error::Branch name must start with 'hotfix/*' or `release/*` for PRs to ${base}`)
+                  console.error(`::error::Branch name must start with 'hotfix/*' or 'release/*' for PRs to ${base}`)
                   process.exit(1)
                 }
                 break;
