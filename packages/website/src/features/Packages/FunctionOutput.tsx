@@ -10,8 +10,6 @@ export const FunctionOutput: FC<{
   output: AbiParameter | readonly AbiParameter[];
   result: any;
 }> = ({ output, result }) => {
-  console.log('output: ', output);
-  console.log('result: ', result);
   const isArrayOutput = (
     value: AbiParameter | readonly AbiParameter[]
   ): value is readonly AbiParameter[] => isArray(value);
