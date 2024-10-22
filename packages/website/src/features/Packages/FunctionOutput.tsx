@@ -88,19 +88,11 @@ export const FunctionOutput: FC<{
           </Text>
         );
       } else if (isArray(value)) {
-        if (index !== undefined) {
-          return (
-            <Text fontSize="xs" display="block">
-              {String(value[index])}
-            </Text>
-          );
-        } else {
-          return value.map((val, idx) => (
-            <Text fontSize="xs" display="block" key={idx}>
-              {String(val)}
-            </Text>
-          ));
-        }
+        return value.map((val, idx) => (
+          <Text fontSize="xs" display="block" key={idx}>
+            {String(val)}
+          </Text>
+        ));
       } else {
         return (
           <Flex
@@ -154,7 +146,7 @@ export const FunctionOutput: FC<{
         output.map((item, index) => (
           <Box overflowX={'scroll'} p={2} key={index}>
             <ItemLabel name={item.name || ''} type={item.internalType || ''} />
-            {renderOutput(item, result, index)}
+            {renderOutput(item, result)}
           </Box>
         ))
       ) : (
