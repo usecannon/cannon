@@ -108,7 +108,7 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '--dry-run',
-        description: 'Simulate building on a local fork rather than deploying on the real network',
+        description: 'Simulate building on a local fork rather than deploying on the real network.',
       },
       {
         flags: '--keep-alive',
