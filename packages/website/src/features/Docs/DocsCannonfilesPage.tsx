@@ -122,27 +122,6 @@ const deploymentDataExample = {
   },
   miscUrl: 'ipfs://Qm...',
 };
-interface CustomLinkProps {
-  href: string;
-  children: React.ReactNode;
-}
-
-const CustomLink: FC<CustomLinkProps> = ({ href, children }) => (
-  <Link
-    display="block"
-    textDecoration="none"
-    borderRadius="md"
-    mb={0.5}
-    py={0.5}
-    px="2"
-    cursor="pointer"
-    fontSize="sm"
-    _hover={{ background: 'gray.800' }}
-    href={href}
-  >
-    {children}
-  </Link>
-);
 
 interface LinkItem {
   href: string;
@@ -159,7 +138,6 @@ const Section: FC<SectionProps> = ({ title, links, monospace }) => (
   <Box my={4}>
     <Heading
       fontWeight="500"
-      fontFamily={monospace ? 'var(--font-mono)' : 'var(--font-miriam)'}
       size="sm"
       color="gray.200"
       letterSpacing="0.1px"
@@ -170,9 +148,22 @@ const Section: FC<SectionProps> = ({ title, links, monospace }) => (
     </Heading>
     <Box mb={6}>
       {links.map((link, index) => (
-        <CustomLink key={index} href={link.href}>
+        <Link
+          key={index}
+          display="block"
+          textDecoration="none"
+          borderRadius="md"
+          mb={0.5}
+          py={0.5}
+          px="2"
+          cursor="pointer"
+          fontSize="sm"
+          _hover={{ background: 'gray.800' }}
+          href={link.href}
+          fontFamily={monospace ? 'monospace' : 'var(--font-miriam)'}
+        >
           {link.text}
-        </CustomLink>
+        </Link>
       ))}
     </Box>
   </Box>
@@ -262,7 +253,7 @@ const DocsCannonfilesPage: FC = () => {
                   )
                   .map((key) => ({
                     href: `#${key}`,
-                    text: key as string,
+                    text: `[${key}.*]`,
                     monospace: true,
                   })),
               ]}
@@ -504,7 +495,7 @@ const DocsCannonfilesPage: FC = () => {
                   <Box key={key} id={key} mb={16}>
                     <Heading mb={4} fontSize="lg">
                       <Code px={0} fontSize="lg">
-                        {key}
+                        [{key}.*]
                       </Code>
                       <Link
                         color="gray.300"
