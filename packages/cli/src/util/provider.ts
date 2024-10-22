@@ -196,8 +196,6 @@ export async function resolveProviderAndSigners({
 
   let publicClient: viem.PublicClient & viem.WalletClient;
 
-  // TODO: if at any point we let users provide multiple urls, this will have to be changed.
-  // force provider to use JSON-RPC instead of Web3Provider for local http urls
   const signers: CannonSigner[] = [];
 
   if (isURL(checkProviders[0])) {

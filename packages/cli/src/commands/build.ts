@@ -42,7 +42,7 @@ interface Params {
   upgradeFrom?: string;
   pkgInfo: any;
   getArtifact?: (name: string) => Promise<ContractArtifact>;
-  getSigner?: (addr: viem.Address) => Promise<CannonSigner>;
+  getSigner: (addr: viem.Address) => Promise<CannonSigner>;
   getDefaultSigner?: () => Promise<CannonSigner>;
   projectDirectory?: string;
   overrideResolver?: CannonRegistry;
@@ -119,27 +119,8 @@ export async function build({
     provider,
     chainId,
     getArtifact,
-    getSigner:
-      getSigner ||
-      async function (addr: viem.Address) {
-        const client = provider as unknown as viem.TestClient;
-
-        // on test network any user can be conjured
-        await client.impersonateAccount({ address: addr });
-        await client.setBalance({ address: addr, value: viem.parseEther('10000') });
-
-        return {
-          address: addr,
-          wallet: viem.createWalletClient({
-            account: addr,
-            chain: provider.chain,
-            transport: viem.custom(provider.transport),
-          }),
-        };
-      },
-
+    getSigner,
     getDefaultSigner,
-
     snapshots: chainId === CANNON_CHAIN_ID,
     allowPartialDeploy: chainId !== CANNON_CHAIN_ID && persist,
     publicSourceCode,
