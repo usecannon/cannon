@@ -243,8 +243,8 @@ const DocsCannonfilesPage: FC = () => {
               title="Cannonfile Spec"
               links={[
                 { href: '#cannonfile-metadata', text: 'Metadata' },
-                { href: '#utilities', text: 'Utilities' },
                 { href: '#constants', text: 'Constants' },
+                { href: '#utilities', text: 'Utilities' },
                 ...Array.from(cannonfileSpecs, ([key]) => key)
                   .filter(
                     (key) =>
