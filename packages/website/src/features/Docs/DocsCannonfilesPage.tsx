@@ -1,5 +1,6 @@
 'use client';
 
+import { CommandPreview } from '@/components/CommandPreview';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { useCannonfileSpecs } from '@/hooks/cannonfileSpecs';
 import {
@@ -151,12 +152,14 @@ interface LinkItem {
 interface SectionProps {
   title: string;
   links: LinkItem[];
+  monospace?: boolean;
 }
 
-const Section: FC<SectionProps> = ({ title, links }) => (
+const Section: FC<SectionProps> = ({ title, links, monospace }) => (
   <Box my={4}>
     <Heading
       fontWeight="500"
+      fontFamily={monospace ? 'var(--font-mono)' : 'var(--font-miriam)'}
       size="sm"
       color="gray.200"
       letterSpacing="0.1px"
@@ -246,9 +249,10 @@ const DocsCannonfilesPage: FC = () => {
         >
           <Box px={3} pb={2}>
             <Section
-              title="Cannonfile Specification"
+              title="Cannonfile Spec"
               links={[
                 { href: '#cannonfile-metadata', text: 'Cannonfile Metadata' },
+                { href: '#utilities', text: 'Utility Functions' },
                 { href: '#constants', text: 'Constants' },
                 ...Array.from(cannonfileSpecs, ([key]) => key)
                   .filter(
@@ -259,6 +263,7 @@ const DocsCannonfilesPage: FC = () => {
                   .map((key) => ({
                     href: `#${key}`,
                     text: key as string,
+                    monospace: true,
                   })),
               ]}
             />
@@ -424,45 +429,64 @@ const DocsCannonfilesPage: FC = () => {
                 <CustomTable
                   data={[
                     {
-                      key: 'Zero',
-                      dataType: 'number',
-                      value: 'The BigNumber value representing "0".',
+                      key: 'AddressZero | zeroAddress',
+                      dataType: 'string',
+                      value:
+                        'Zero Addres string: "0x0000000000000000000000000000000000000000".',
                     },
                     {
-                      key: 'One',
-                      dataType: 'number',
-                      value: 'The BigNumber value representing "1".',
+                      key: 'HashZero | zeroHash',
+                      dataType: 'string',
+                      value:
+                        'Zero hash value: "0x0000000000000000000000000000000000000000000000000000000000000000"',
                     },
                     {
-                      key: 'Two',
-                      dataType: 'number',
-                      value: 'The BigNumber value representing "2".',
-                    },
-                    {
-                      key: 'WeiPerEther',
+                      key: 'maxInt8...256',
                       dataType: 'number',
                       value:
-                        'The BigNumber value representing "1000000000000000000", which is the number of Wei per Ether.',
+                        'BigNumber values representing from maxInt8 to maxInt256.',
                     },
                     {
-                      key: 'MaxUint256',
+                      key: 'minInt8...256',
                       dataType: 'number',
                       value:
-                        'The BigNumber value representing the maximum uint256 value.',
+                        'BigNumber values representing from minInt8 to minInt256.',
                     },
                     {
-                      key: 'MinInt256',
+                      key: 'maxUint8...256',
                       dataType: 'number',
                       value:
-                        'The BigNumber value representing the minimum int256 value.',
-                    },
-                    {
-                      key: 'MaxInt256',
-                      dataType: 'number',
-                      value:
-                        'The BigNumber value representing the maximum int256 value.',
+                        'BigNumber values representing from maxUint8 to maxUint256.',
                     },
                   ]}
+                />
+              </Box>
+              <Box mb={16} id="utilities">
+                <Heading mb={4} fontSize="lg">
+                  Utilities
+                  <Link
+                    color="gray.300"
+                    ml={2}
+                    textDecoration="none"
+                    _hover={{ textDecoration: 'underline' }}
+                    href={'#constants'}
+                  >
+                    #
+                  </Link>
+                </Heading>
+                <Text mb="4">
+                  <Link
+                    href="https://viem.sh/docs/utilities/getAddress"
+                    isExternal
+                  >
+                    Viem.sh
+                  </Link>{' '}
+                  utility functions are available inside interpolation values,
+                  e.g.:
+                </Text>
+                <CommandPreview
+                  backgroundColor="black"
+                  command={'args = ["<%=  keccak256(\'some string\') %>"]'}
                 />
               </Box>
               {Array.from(cannonfileSpecs)
