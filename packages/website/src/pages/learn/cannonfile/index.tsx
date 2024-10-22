@@ -1,8 +1,16 @@
-import { DocsCannonfilesPage } from '@/features/Docs/DocsCannonfilesPage';
-import { ReactElement } from 'react';
+import { ReactElement, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import Layout from '../_layout';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
+import PageLoading from '@/components/PageLoading';
+
+const DynamicDocsCannonfilesPage = dynamic(
+  () => import('@/features/Docs/DocsCannonfilesPage'),
+  {
+    ssr: false,
+  }
+);
 
 export default function Docs() {
   return (
@@ -17,10 +25,13 @@ export default function Docs() {
           description: 'Cannonfile Docs',
         }}
       />
-      <DocsCannonfilesPage />
+      <Suspense fallback={<PageLoading />}>
+        <DynamicDocsCannonfilesPage />
+      </Suspense>
     </>
   );
 }
+
 Docs.getLayout = function getLayout(page: ReactElement) {
   return <Layout>{page}</Layout>;
 };

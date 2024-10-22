@@ -1,7 +1,7 @@
 //import { QueuedTxns } from '@/features/Deploy/QueueDrawer';
 import { Box, Container, Heading, Text } from '@chakra-ui/react';
 import { ReactElement } from 'react';
-import Layout from '../_layout';
+import DeployLayout from '@/pages/deploy/deployLayout';
 import { QueuedTxns } from '@/features/Deploy/QueueDrawer';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
@@ -45,7 +45,7 @@ const QueueTransactions = () => {
   );
 };
 QueueTransactions.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>;
+  return <DeployLayout>{page}</DeployLayout>;
 };
 
 export default QueueTransactions;

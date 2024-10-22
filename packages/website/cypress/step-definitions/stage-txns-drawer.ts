@@ -3,6 +3,16 @@ import { When, Then } from '@badeball/cypress-cucumber-preprocessor';
 When('User types and select the safe {string}', (text: string) => {
   cy.get('input[role="combobox"]').type(text);
   cy.get('input[role="combobox"]').type('{enter}');
+
+  const chainId = text.split(':')[0];
+  const address = text.split(':')[1];
+
+  cy.get('[data-test-id="selected-safe-container"]').should(($container) => {
+    expect($container).to.exist;
+    expect($container).to.contain(address.slice(0, 6));
+    expect($container).to.contain(address.slice(-4));
+    expect($container).to.contain(chainId);
+  });
 });
 
 When('User closes the queue txns drawer', () => {

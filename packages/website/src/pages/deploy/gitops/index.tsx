@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic';
 import { ReactElement } from 'react';
-import Layout from '../_layout';
+import DeployLayout from '@/pages/deploy/deployLayout';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
 
@@ -40,5 +40,5 @@ export default function QueueFromGitOps() {
   );
 }
 QueueFromGitOps.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>;
+  return <DeployLayout>{page}</DeployLayout>;
 };

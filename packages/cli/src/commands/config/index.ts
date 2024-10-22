@@ -23,7 +23,7 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '--provider-url [url]',
-        description: '(DEPRECATED) RPC endpoint to fork off of',
+        description: '(DEPRECATED) RPC endpoint to fork off of. Use --rpc-url',
       },
       {
         flags: '-c --chain-id <chainId>',
@@ -45,10 +45,6 @@ export const commandsConfig: CommandsConfig = {
       {
         flags: '--registry-priority <registry>',
         description: 'Change the default registry to read from first. Default: onchain',
-      },
-      {
-        flags: '--preset <preset>',
-        description: 'Load an alternate setting preset',
       },
       {
         flags: '--logs',
@@ -99,7 +95,7 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '--provider-url [url]',
-        description: '(DEPRECATED) RPC endpoint to fork off of',
+        description: '(DEPRECATED) RPC endpoint to fork off of. Use --rpc-url',
       },
       {
         flags: '-c --chain-id <number>',
@@ -109,11 +105,6 @@ export const commandsConfig: CommandsConfig = {
         flags: '--port <number>',
         description: 'Port which the JSON-RPC server will be exposed. [default: 0]',
         defaultValue: ANVIL_PORT_DEFAULT_VALUE,
-      },
-      {
-        flags: '-p --preset <preset>',
-        description:
-          '(DEPRECATED) The preset label for storing the build with the given settings. Declare a preset in your cannonfile instead.',
       },
       {
         flags: '--dry-run',
@@ -196,10 +187,6 @@ export const commandsConfig: CommandsConfig = {
         description: 'Chain ID of deployment to verify',
         defaultValue: '1',
       },
-      {
-        flags: '-p --preset <preset>',
-        description: '(DEPRECATED) Preset of the deployment to verify',
-      },
       ...debugVerbosity,
     ],
   },
@@ -221,10 +208,6 @@ export const commandsConfig: CommandsConfig = {
         flags: '-c --chain-id <chainId>',
         description: 'Chain ID of deployment to verify',
         defaultValue: '13370',
-      },
-      {
-        flags: '-p --preset <preset>',
-        description: '(DEPRECATED) Preset of the deployment to verify',
       },
       {
         flags: '--match-contract <name>',
@@ -272,11 +255,7 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '--provider-url [url]',
-        description: '(DEPRECATED) RPC endpoint to fork off of',
-      },
-      {
-        flags: '-p --preset <preset>',
-        description: '(DEPRECATED) Preset of the deployment to alter',
+        description: '(DEPRECATED) RPC endpoint to fork off of. Use --rpc-url',
       },
       ...debugVerbosity,
     ],
@@ -344,10 +323,6 @@ export const commandsConfig: CommandsConfig = {
       {
         flags: '--chain-id <number>',
         description: 'The chain ID of the package to publish',
-      },
-      {
-        flags: '--preset <preset>',
-        description: 'The preset of the packages to publish',
       },
       {
         flags: '-t --tags <tags>',
@@ -567,10 +542,6 @@ export const commandsConfig: CommandsConfig = {
         defaultValue: '13370',
       },
       {
-        flags: '-p --preset <preset>',
-        description: '(DEPRECATED) Preset of the variant to inspect',
-      },
-      {
         flags: '-j --json',
         description: 'Output as JSON',
       },
@@ -617,7 +588,8 @@ export const commandsConfig: CommandsConfig = {
     ],
   },
   trace: {
-    description: 'Get a full stack trace for a transaction hash or explicit transaction call',
+    description:
+      'Get a full stack trace for a transaction hash or explicit transaction call. This command will spin up a local fork and simulate the given transaction.',
     arguments: [
       {
         flags: '<packageRef>',
@@ -650,16 +622,12 @@ export const commandsConfig: CommandsConfig = {
         description: 'The block to simulate when the call is on',
       },
       {
-        flags: '-p --preset <preset>',
-        description: '(DEPRECATED) Preset of the variant to trace',
-      },
-      {
         flags: '-n --rpc-url [url]',
         description: 'RPC endpoint to fork off of',
       },
       {
         flags: '--provider-url [url]',
-        description: '(DEPRECATED) RPC endpoint to fork off of',
+        description: '(DEPRECATED) RPC endpoint to fork off of. Use --rpc-url',
       },
       {
         flags: '-j --json',
@@ -669,15 +637,16 @@ export const commandsConfig: CommandsConfig = {
     ],
   },
   decode: {
-    description: 'decode transaction data using the ABIs of the given Cannon package',
+    description:
+      'Decode the given data using the ABIs from the specified Cannon package. It will try to parse the data as Function Call, Error or Event. If a tx hash is given it will fetch it using the rpc and try to parse the input.',
     arguments: [
       {
         flags: '<packageRef>',
         description: 'Name, version and preset of the package to decode from (name:version@preset)',
       },
       {
-        flags: '<transactionHash OR bytes32Data>',
-        description: 'bytes32 encoded transaction data, or transaction hash',
+        flags: '<transactionHash OR hexData>',
+        description: 'hex encoded transaction data or a transaction hash',
       },
     ],
     options: [
@@ -692,10 +661,6 @@ export const commandsConfig: CommandsConfig = {
       {
         flags: '--provider-url [url]',
         description: '(DEPRECATED) RPC endpoint to decode on',
-      },
-      {
-        flags: '-p --preset <preset>',
-        description: '(DEPRECATED) Preset of the variant to inspect',
       },
       {
         flags: '-j --json',
@@ -725,15 +690,11 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '--provider-url [url]',
-        description: '(DEPRECATED) RPC endpoint to fork off of',
+        description: '(DEPRECATED) RPC endpoint to fork off of. Use --rpc-url',
       },
       {
         flags: '-c --chain-id',
         description: 'Chain ID to connect to and run fork tests with',
-      },
-      {
-        flags: '-p --preset <preset>',
-        description: '(DEPRECATED) The preset label for storing the build with the given settings',
       },
       {
         flags: '--wipe',
@@ -775,11 +736,7 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '--provider-url [url]',
-        description: '(DEPRECATED) RPC endpoint to fork off of',
-      },
-      {
-        flags: '-p --preset <preset>',
-        description: '(DEPRECATED) Load an alternate setting preset',
+        description: '(DEPRECATED) RPC endpoint to fork off of. Use --rpc-url',
       },
       {
         flags: '--mnemonic <phrase>',

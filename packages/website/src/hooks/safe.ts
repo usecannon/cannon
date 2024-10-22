@@ -16,40 +16,36 @@ import {
 import { useAccount, useReadContracts } from 'wagmi';
 import SafeABI from '@/abi/Safe.json';
 import SafeABI_v1_4_1 from '@/abi/Safe-v1.4.1.json';
-import { chains } from '@/constants/deployChains';
 import * as onchainStore from '@/helpers/onchain-store';
-import { ChainId, SafeDefinition, useStore } from '@/helpers/store';
+import { SafeDefinition, useStore } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
-import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import { chainMetadata, useCannonChains } from '@/providers/CannonProvidersProvider';
 
-export type SafeString = `${ChainId}:${Address}`;
+export type SafeString = `${number}:${Address}`;
 
 export function safeToString(safe: SafeDefinition): SafeString {
-  return `${safe.chainId as ChainId}:${safe.address}`;
+  return `${safe.chainId}:${safe.address}`;
+}
+
+export function isValidSafeString(safeString: string): boolean {
+  if (typeof safeString !== 'string') return false;
+  const chainId = Number.parseInt(safeString.split(':')[0]);
+  if (isNaN(chainId)) return false;
+  const address = safeString.split(':')[1];
+  return isAddress(address || '');
+}
+
+export function isValidSafeFromSafeString(safeString: string, chains: Chain[]): boolean {
+  if (!isValidSafeString(safeString)) return false;
+  const chainId = Number.parseInt(safeString.split(':')[0]);
+  const existChain = chains.some((chain) => chain.id === chainId);
+  return existChain;
 }
 
 export function parseSafe(safeString: string): SafeDefinition {
   const [chainId, address] = safeString.split(':');
   return {
-    chainId: Number.parseInt(chainId) as ChainId,
-    address: getAddress(address),
-  };
-}
-
-const addressStringRegex = /^[1-9][0-9]*:0x[a-fA-F0-9]{40}$/;
-
-export function isValidSafeString(safeString: string): boolean {
-  if (typeof safeString !== 'string') return false;
-  if (!addressStringRegex.test(safeString)) return false;
-  const chainId = Number.parseInt(safeString.split(':')[0]);
-  return chains.some((chain) => chain.id === chainId);
-}
-
-export function getSafeFromString(safeString: string): SafeDefinition | null {
-  if (!isValidSafeString(safeString)) return null;
-  const [chainId, address] = safeString.split(':');
-  return {
-    chainId: Number.parseInt(chainId) as ChainId,
+    chainId: Number.parseInt(chainId),
     address: getAddress(address),
   };
 }
@@ -63,12 +59,9 @@ export function isValidSafe(safe: SafeDefinition, supportedChains: Chain[]): boo
   );
 }
 
-function _getShortName(safe: SafeDefinition) {
-  return chains.find((chain) => chain.id === safe.chainId)?.shortName;
-}
-
 function _getSafeShortNameAddress(safe: SafeDefinition) {
-  return `${_getShortName(safe)}:${getAddress(safe.address)}`;
+  const metadata = chainMetadata[safe.chainId];
+  return `${metadata.shortName || safe.chainId}:${getAddress(safe.address)}`;
 }
 
 export function getSafeUrl(safe: SafeDefinition, pathname = '/home') {
@@ -79,12 +72,11 @@ export function getSafeUrl(safe: SafeDefinition, pathname = '/home') {
 function _createSafeApiKit(chainId: number) {
   if (!chainId) return null;
 
-  const chain = chains.find((chain) => chain.id === chainId);
-
+  const chain = chainMetadata[chainId];
   if (!chain?.serviceUrl) return null;
 
   return new SafeApiKit({
-    chainId: BigInt(chain.id),
+    chainId: BigInt(chainId),
     txServiceUrl: new URL('/api', chain.serviceUrl).toString(),
   });
 }

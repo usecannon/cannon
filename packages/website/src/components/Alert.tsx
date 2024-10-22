@@ -5,6 +5,7 @@ import {
   AlertDescription,
   AlertIcon,
   AlertTitle,
+  Flex,
 } from '@chakra-ui/react';
 
 type Props = {
@@ -30,9 +31,17 @@ export function Alert({
       borderColor="gray.700"
       {...rest}
     >
-      <AlertIcon />
-      {title && <AlertTitle>{title}</AlertTitle>}
-      {children && <AlertDescription>{children}</AlertDescription>}
+      <Flex flexDirection="row" alignItems="center" width="100%">
+        <AlertIcon />
+        <>
+          {title && <AlertTitle>{title}</AlertTitle>}
+          {children && (
+            <AlertDescription width="100%" wordBreak="break-word">
+              {children}
+            </AlertDescription>
+          )}
+        </>
+      </Flex>
     </ChakraAlert>
   );
 }

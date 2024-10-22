@@ -15,7 +15,6 @@ interface BuildOptions {
   hre: HardhatRuntimeEnvironment;
   node: CannonRpcNode;
   cannonfile: string;
-  preset: string;
   settings: PackageSettings;
   registryPriority?: 'local' | 'onchain' | 'offline';
 }
@@ -56,11 +55,10 @@ export async function cannonBuild(options: BuildOptions) {
     getArtifact: async (contractName: string) => await hre.run(SUBTASK_GET_ARTIFACT, { name: contractName }),
     getSigner,
     getDefaultSigner: async () => getSigner(signers[0].address),
-    presetArg: options.preset,
     pkgInfo: loadPackageJson(path.join(hre.config.paths.root, 'package.json')),
     projectDirectory: hre.config.paths.root,
     registryPriority: options.registryPriority,
-    publicSourceCode: false,
+    privateSourceCode: true,
   });
 
   return { outputs };

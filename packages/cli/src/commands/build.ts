@@ -45,12 +45,11 @@ interface Params {
   getSigner?: (addr: viem.Address) => Promise<CannonSigner>;
   getDefaultSigner?: () => Promise<CannonSigner>;
   projectDirectory?: string;
-  presetArg?: string;
   overrideResolver?: CannonRegistry;
   wipe?: boolean;
   persist?: boolean;
   plugins?: boolean;
-  publicSourceCode?: boolean;
+  privateSourceCode?: boolean;
   rpcUrl?: string;
   registryPriority?: 'local' | 'onchain' | 'offline';
   gasPrice?: bigint;
@@ -69,12 +68,11 @@ export async function build({
   getArtifact,
   getSigner,
   getDefaultSigner,
-  presetArg,
   overrideResolver,
   wipe = false,
   persist = true,
   plugins = true,
-  publicSourceCode = false,
+  privateSourceCode = false,
   rpcUrl,
   registryPriority,
   gasPrice,
@@ -102,19 +100,7 @@ export async function build({
   );
 
   const { fullPackageRef, packageRef } = packageReference;
-  const { name, version } = packageReference;
-  const preset = presetArg || packageReference.preset;
-
-  // Handle deprecated preset specification
-  if (presetArg) {
-    warn(
-      yellow(
-        bold(
-          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
-        )
-      )
-    );
-  }
+  const { name, version, preset } = packageReference;
 
   const cliSettings = resolveCliSettings({ registryPriority });
   const filteredSettings = await filterSettings(cliSettings);
@@ -156,7 +142,8 @@ export async function build({
 
     snapshots: chainId === CANNON_CHAIN_ID,
     allowPartialDeploy: chainId !== CANNON_CHAIN_ID && persist,
-    publicSourceCode,
+    // ChainBuilderRuntime uses publicSourceCode to determine if source code should be included in the package
+    publicSourceCode: !privateSourceCode,
     gasPrice,
     gasFee,
     priorityGasFee,
@@ -168,24 +155,28 @@ export async function build({
 
   const dump = writeScript ? await createWriteScript(runtime, writeScript, writeScriptFormat) : null;
 
-  log(bold('Checking for existing package...'));
   let oldDeployData: DeploymentInfo | null = null;
-  if (upgradeFrom) {
-    oldDeployData = await runtime.readDeploy(upgradeFrom, runtime.chainId);
-    if (!oldDeployData) {
-      throw new Error(`Deployment ${upgradeFrom} (${chainId}) not found`);
-    }
-  } else if (def) {
-    const oldDeployHash = await findUpgradeFromPackage(
-      runtime.registry,
-      runtime.provider,
-      packageReference,
-      runtime.chainId,
-      def.getDeployers()
-    );
-    if (oldDeployHash) {
-      log(green(bold('Found deployment state via on-chain store', oldDeployHash)));
-      oldDeployData = (await runtime.readBlob(oldDeployHash)) as DeploymentInfo;
+
+  if (!wipe) {
+    log(bold('Checking for existing package...'));
+
+    if (upgradeFrom) {
+      oldDeployData = await runtime.readDeploy(upgradeFrom, runtime.chainId);
+      if (!oldDeployData) {
+        throw new Error(`Deployment ${upgradeFrom} (Chain ID: ${chainId}) not found`);
+      }
+    } else if (def) {
+      const oldDeployHash = await findUpgradeFromPackage(
+        runtime.registry,
+        runtime.provider,
+        packageReference,
+        runtime.chainId,
+        def.getDeployers()
+      );
+      if (oldDeployHash) {
+        log(green(bold(`Found deployment state via on-chain store: ${oldDeployHash}`)));
+        oldDeployData = (await runtime.readBlob(oldDeployHash)) as DeploymentInfo;
+      }
     }
   }
 
@@ -194,10 +185,7 @@ export async function build({
     log(gray(`  ${fullPackageRef} (Chain ID: ${chainId}) found`));
     if (!wipe) {
       await runtime.restoreMisc(oldDeployData.miscUrl);
-
-      if (!pkgInfo) {
-        pkgInfo = oldDeployData.meta;
-      }
+      pkgInfo = pkgInfo || oldDeployData.meta;
     }
   } else {
     log(gray('Starting fresh build...'));
@@ -230,11 +218,13 @@ export async function build({
   log('Version: ' + cyanBright(`${pkgVersion}`));
   log('Preset: ' + cyanBright(`${preset}`) + (preset == 'main' ? gray(' (default)') : ''));
   log('Chain ID: ' + cyanBright(`${chainId}`));
+  if (!privateSourceCode) {
+    log(`Private Source Code: ${cyanBright('false')} ${gray('(source code will be included in the package)')}`);
+  } else {
+    log(`Private Source Code: ${cyanBright('true')} ${gray('(source code will not be included in the resulting package)')}`);
+  }
   if (upgradeFrom) {
     log(`Upgrading from: ${cyanBright(upgradeFrom)}`);
-  }
-  if (publicSourceCode) {
-    log(gray('Source code will be included in the package'));
   }
   log('');
 

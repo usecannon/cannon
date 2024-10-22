@@ -66,6 +66,7 @@ import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
 import 'react-diff-view/style/index.css';
 import { ChainDefinition } from '@usecannon/builder/dist/src';
+import { extractIpfsHash } from '@/helpers/ipfs';
 
 const EMPTY_IPFS_MISC_URL =
   'ipfs://QmeSt2mnJKE8qmRhLyYbHQQxDKpsFbcWnw5e7JF4xVbN6k';
@@ -533,12 +534,22 @@ export default function QueueFromGitOps() {
   const hasDeployers = Boolean(
     cannonDefInfo.def?.getDeployers()?.length ?? 0 > 0
   );
+
+  const canTomlBeDeployedUsingWebsite = Boolean(
+    cannonfileUrlInput &&
+      cannonDefInfo?.def &&
+      !cannonDefInfo.def.allActionNames.some(
+        (item) => item.startsWith('deploy.') || item.startsWith('contract.')
+      )
+  );
+
+  // This condition checks if the cannonfile requires to enter a value in the "Previous Package" input
   const tomlRequiresPrevPackage = Boolean(
     cannonfileUrlInput &&
       cannonDefInfo?.def &&
       !hasDeployers &&
-      cannonDefInfo.def.allActionNames.some((item) =>
-        item.startsWith('deploy.')
+      cannonDefInfo.def.allActionNames.some(
+        (item) => item.startsWith('deploy.') || item.startsWith('contract.')
       )
   );
 
@@ -551,7 +562,8 @@ export default function QueueFromGitOps() {
     (onChainPrevPkgQuery.isFetched &&
       !prevDeployLocation &&
       tomlRequiresPrevPackage &&
-      !previousPackageInput);
+      !previousPackageInput) ||
+    !canTomlBeDeployedUsingWebsite;
 
   const PreviewButton = ({ message }: { message?: string }) => (
     <Tooltip label={message}>
@@ -645,6 +657,9 @@ export default function QueueFromGitOps() {
     return <PreviewButton />;
   }
 
+  // Add this state at the top of your component
+  const [inputError, setInputError] = useState<string | null>(null);
+
   return (
     <>
       <Container maxWidth="container.md" py={8}>
@@ -717,14 +732,23 @@ export default function QueueFromGitOps() {
                     resetState();
                     setCannonfileUrlInput('');
                     setPartialDeployIpfs('');
+                    setInputError(null);
 
-                    setGenericInput(e.target.value);
-                    if (/^Qm[1-9A-Za-z]{44}$/.test(e.target.value)) {
-                      setSelectedDeployType('partial');
-                      setPartialDeployIpfs(e.target.value);
-                    } else if (cannonfileUrlRegex.test(e.target.value)) {
+                    const input = e.target.value;
+                    setGenericInput(input);
+                    const isCannonfileUrl = cannonfileUrlRegex.test(input);
+                    const isIpfsHash = extractIpfsHash(input);
+
+                    if (isCannonfileUrl) {
                       setSelectedDeployType('git');
-                      setCannonfileUrlInput(e.target.value);
+                      setCannonfileUrlInput(input);
+                    } else if (isIpfsHash) {
+                      setSelectedDeployType('partial');
+                      setPartialDeployIpfs(isIpfsHash);
+                    } else if (input.trim() !== '') {
+                      setInputError(
+                        'Invalid input. Please enter a valid Cannonfile URL or IPFS hash.'
+                      );
                     }
                   }}
                 />
@@ -756,6 +780,9 @@ export default function QueueFromGitOps() {
                 <strong>{cannonDefInfoError.toString()}</strong>
               </Alert>
             ) : undefined}
+            {inputError && (
+              <FormHelperText color="red.500">{inputError}</FormHelperText>
+            )}
           </FormControl>
 
           {selectedDeployType == 'git' && (
@@ -875,59 +902,73 @@ export default function QueueFromGitOps() {
             </Alert>
           )}
           {buildState.skippedSteps.length > 0 && (
-            <Flex flexDir="column" mt="6">
+            <AlertCannon my={2} status="error">
               <Text mb="2" fontWeight="bold">
                 This safe will not be able to complete the following operations:
               </Text>
               {buildState.skippedSteps.map((s, i) => (
                 <Text fontFamily="monospace" key={i} mb="2">
                   <strong>{`[${s.name}]: `}</strong>
-                  {s.err.toString()}
+                  {s.name.startsWith('deploy.') ||
+                  s.name.startsWith('contract.')
+                    ? 'Is not possible to build and deploy a contract from source code from the website. You should first build your cannonfile using the CLI and continue the deployment from a partial build.'
+                    : s.err.toString()}
                 </Text>
               ))}
-            </Flex>
+            </AlertCannon>
           )}
 
-          {!!buildState.result?.deployerSteps?.length && (
-            <Box
-              mt="6"
-              mb="5"
-              border="1px solid"
-              borderColor="gray.600"
-              p="4"
-              borderRadius="md"
-            >
-              {deployer.queuedTransactions.length === 0 ? (
-                <VStack>
-                  <Text color="gray.300" mb="4">
-                    Some transactions should be executed outside the safe before
-                    staging. You can execute these now in your browser. By
-                    clicking the button below.
+          {!!buildState.result?.deployerSteps?.length &&
+            (buildState.result?.safeSteps.length || 0) > 0 && (
+              <Box
+                mt="6"
+                mb="5"
+                border="1px solid"
+                borderColor="gray.600"
+                p="4"
+                borderRadius="md"
+              >
+                {deployer.queuedTransactions.length === 0 ? (
+                  <VStack>
+                    <Text color="gray.300">
+                      The following steps should be executed outside the safe
+                      before staging.
+                      {buildState.result?.deployerSteps.map((s) => (
+                        <Text color="gray.300" ml="2" key={s.name}>
+                          - {s.name}
+                        </Text>
+                      ))}
+                      <Text color="gray.300" mb="4">
+                        You can execute these now in your browser. By clicking
+                        the button below.
+                      </Text>
+                    </Text>
+                    <Button
+                      onClick={() =>
+                        deployer.queueTransactions(
+                          buildState.result!.deployerSteps.map(
+                            (s) => s.tx as any
+                          )
+                        )
+                      }
+                    >
+                      Execute Outside Safe Txns
+                    </Button>
+                  </VStack>
+                ) : deployer.executionProgress.length <
+                  deployer.queuedTransactions.length ? (
+                  <Text>
+                    Deploying txns {deployer.executionProgress.length + 1} /{' '}
+                    {deployer.queuedTransactions.length}
                   </Text>
-                  <Button
-                    onClick={() =>
-                      deployer.queueTransactions(
-                        buildState.result!.deployerSteps.map((s) => s.tx as any)
-                      )
-                    }
-                  >
-                    Execute Outside Safe Txns
-                  </Button>
-                </VStack>
-              ) : deployer.executionProgress.length <
-                deployer.queuedTransactions.length ? (
-                <Text>
-                  Deploying txns {deployer.executionProgress.length + 1} /{' '}
-                  {deployer.queuedTransactions.length}
-                </Text>
-              ) : (
-                <Text>
-                  All Transactions Queued Successfully. You may now continue the
-                  safe deployment.
-                </Text>
-              )}
-            </Box>
-          )}
+                ) : (
+                  <Text>
+                    All Transactions Queued Successfully. You may now continue
+                    the safe deployment.
+                  </Text>
+                )}
+              </Box>
+            )}
           {cannonDefInfo?.def && multicallTxn?.data && (
             <Box mt="4">
               <Heading size="md" mt={5}>
@@ -951,7 +992,7 @@ export default function QueueFromGitOps() {
             stager.safeTxn && (
               <Box mt="4" mb="4">
                 <Heading size="sm" mb={2}>
-                  Transactions
+                  Safe Transactions:
                 </Heading>
                 {buildState.result?.safeSteps.length === 0 ? (
                   <AlertCannon borderless status="info">
@@ -966,6 +1007,21 @@ export default function QueueFromGitOps() {
                 )}
               </Box>
             )}
+
+          {writeToIpfsMutationRes?.data?.mainUrl &&
+            multicallTxn?.data &&
+            stager.safeTxn &&
+            (buildState.result?.safeSteps.length || 0) > 0 &&
+            buildState.skippedSteps.length > 0 && (
+              <AlertCannon borderless status="warning" mt="0">
+                We have detected transactions in your Cannonfile that cannot be
+                executed, which may lead to undesired effects on your
+                deployment. We advise you not to proceed unless you are
+                absolutely certain of what you are doing, as this will result in
+                a partial deployment package.
+              </AlertCannon>
+            )}
+
           {writeToIpfsMutationRes?.isLoading && (
             <Alert mt="6" status="info" bg="gray.800">
               <Spinner mr={3} boxSize={4} />
@@ -982,7 +1038,8 @@ export default function QueueFromGitOps() {
             <Box>
               <NoncePicker safe={currentSafe} handleChange={setPickedNonce} />
               <HStack gap="6">
-                {stager.execConditionFailed ? (
+                {stager.execConditionFailed &&
+                (buildState.result?.safeSteps.length || 0) > 0 ? (
                   <Tooltip label={stager.signConditionFailed}>
                     <Button
                       isDisabled={

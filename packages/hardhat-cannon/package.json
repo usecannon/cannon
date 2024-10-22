@@ -1,6 +1,6 @@
 {
   "name": "hardhat-cannon",
-  "version": "2.18.2",
+  "version": "2.18.3",
   "description": "Agnostic chain construction. Select the protocols and configuration you need to quickly and easily verify your project",
   "author": "Synthetix",
   "license": "MIT",
@@ -17,6 +17,7 @@
     "lint": "tslint --config tslint.json --project tsconfig.json",
     "build": "tsc",
     "watch": "tsc -w",
+    "clean": "rm -rf ./dist",
     "prepublishOnly": "pnpm run build"
   },
   "files": [

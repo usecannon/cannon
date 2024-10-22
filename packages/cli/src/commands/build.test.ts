@@ -79,9 +79,9 @@ describe('build', () => {
     let provider: viem.PublicClient & viem.WalletClient & viem.TestClient;
 
     beforeEach(() => {
-      jest
-        .spyOn(helpers, 'loadCannonfile')
-        .mockResolvedValue({ def: { danglingDependencies: {}, getDeployers: () => [] } } as any);
+      jest.spyOn(helpers, 'loadCannonfile').mockResolvedValue({
+        def: { danglingDependencies: {}, getDeployers: () => [], isPublicSourceCode: () => false },
+      } as any);
       provider = makeFakeProvider();
       jest.spyOn(buildCommand, 'build').mockResolvedValue({ outputs: {}, provider, runtime: {} as any });
       jest.spyOn(utilProvider, 'resolveProvider').mockResolvedValue({ provider: provider as any, signers: [] });

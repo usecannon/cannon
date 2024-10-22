@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/builder",
-  "version": "2.18.2",
+  "version": "2.18.3",
   "description": "Assembles cannonfile.toml manifests into cannon packages.",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -12,6 +12,7 @@
     "test": "jest",
     "build": "tsc -p tsconfig.build.json && rollup -c",
     "watch": "tsc -p tsconfig.build.json -w",
+    "clean": "rm -rf ./dist",
     "prepublishOnly": "npm run build",
     "docgen": "typedoc"
   },
@@ -42,7 +43,8 @@
     "typedoc-plugin-zod": "^1.2.0"
   },
   "dependencies": {
-    "@synthetixio/router": "^3.4.0",
+    "@usecannon/router": "^4.0.0",
+    "@usecannon/web-solc": "0.5.1",
     "axios": "^1.7.2",
     "axios-retry": "^4.4.2",
     "buffer": "^6.0.3",

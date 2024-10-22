@@ -63,12 +63,12 @@ export default function CustomProviders() {
     } else {
       setInputError(undefined);
     }
-  }, [inputValue]);
+  }, [editProviderIndex, inputValue, settings.customProviders]);
 
   return (
     <>
       <Heading size="sm" fontWeight={600} mb={1}>
-        Provider
+        Custom Providers
       </Heading>
       <Text fontSize="sm" mb={3}>
         Cannon will use custom providers (which may include{' '}
@@ -126,6 +126,9 @@ export default function CustomProviders() {
       {settings.customProviders.map((provider, index) => (
         <Flex key={index} ml={2} alignItems="center">
           <Text
+            textOverflow="ellipsis"
+            whiteSpace="nowrap"
+            overflow="hidden"
             width="100%"
             borderColor="whiteAlpha.400"
             placeholder="e.g. https://mainnet.infura.io/v3/api_key"

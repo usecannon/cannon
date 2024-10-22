@@ -88,7 +88,17 @@ export const FunctionOutput: FC<{
           </Text>
         );
       } else if (isArray(value)) {
-        if (index !== undefined) {
+        if (item.type === 'address[]') {
+          return (
+            <Box>
+              {value.map((val, idx) => (
+                <Text fontSize="xs" display="block" key={idx}>
+                  {String(val)}
+                </Text>
+              ))}
+            </Box>
+          );
+        } else if (index !== undefined) {
           return (
             <Text fontSize="xs" display="block">
               {String(value[index])}

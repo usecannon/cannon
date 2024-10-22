@@ -1,8 +1,16 @@
-import { DocsLandingPage } from '@/features/Docs/DocsLandingPage';
-import { ReactElement } from 'react';
+import { ReactElement, Suspense } from 'react';
 import Layout from './_layout';
+import dynamic from 'next/dynamic';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
+import PageLoading from '@/components/PageLoading';
+
+const DynamicDocsLandingPage = dynamic(
+  () => import('@/features/Docs/DocsLandingPage'),
+  {
+    ssr: false,
+  }
+);
 
 export default function Docs() {
   return (
@@ -17,7 +25,9 @@ export default function Docs() {
           description: 'Docs',
         }}
       />
-      <DocsLandingPage />
+      <Suspense fallback={<PageLoading />}>
+        <DynamicDocsLandingPage />
+      </Suspense>
     </>
   );
 }
