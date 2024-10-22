@@ -49,7 +49,7 @@ interface Params {
   wipe?: boolean;
   persist?: boolean;
   plugins?: boolean;
-  publicSourceCode?: boolean;
+  privateSourceCode?: boolean;
   rpcUrl?: string;
   registryPriority?: 'local' | 'onchain' | 'offline';
   gasPrice?: bigint;
@@ -72,7 +72,7 @@ export async function build({
   wipe = false,
   persist = true,
   plugins = true,
-  publicSourceCode = false,
+  privateSourceCode = false,
   rpcUrl,
   registryPriority,
   gasPrice,
@@ -142,7 +142,8 @@ export async function build({
 
     snapshots: chainId === CANNON_CHAIN_ID,
     allowPartialDeploy: chainId !== CANNON_CHAIN_ID && persist,
-    publicSourceCode,
+    // ChainBuilderRuntime uses publicSourceCode to determine if source code should be included in the package
+    publicSourceCode: !privateSourceCode,
     gasPrice,
     gasFee,
     priorityGasFee,
@@ -217,7 +218,7 @@ export async function build({
   log('Version: ' + cyanBright(`${pkgVersion}`));
   log('Preset: ' + cyanBright(`${preset}`) + (preset == 'main' ? gray(' (default)') : ''));
   log('Chain ID: ' + cyanBright(`${chainId}`));
-  if (publicSourceCode) {
+  if (!privateSourceCode) {
     log(`Private Source Code: ${cyanBright('false')} ${gray('(source code will be included in the package)')}`);
   } else {
     log(`Private Source Code: ${cyanBright('true')} ${gray('(source code will not be included in the resulting package)')}`);
