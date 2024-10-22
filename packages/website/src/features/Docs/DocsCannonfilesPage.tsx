@@ -126,15 +126,15 @@ const deploymentDataExample = {
 interface LinkItem {
   href: string;
   text: string;
+  monospace?: boolean;
 }
 
 interface SectionProps {
   title: string;
   links: LinkItem[];
-  monospace?: boolean;
 }
 
-const Section: FC<SectionProps> = ({ title, links, monospace }) => (
+const Section: FC<SectionProps> = ({ title, links }) => (
   <Box my={4}>
     <Heading
       fontWeight="500"
@@ -158,9 +158,9 @@ const Section: FC<SectionProps> = ({ title, links, monospace }) => (
           px="2"
           cursor="pointer"
           fontSize="sm"
+          fontFamily={link.monospace ? 'var(--font-mono)' : undefined}
           _hover={{ background: 'gray.800' }}
           href={link.href}
-          fontFamily={monospace ? 'monospace' : 'var(--font-miriam)'}
         >
           {link.text}
         </Link>
@@ -242,8 +242,8 @@ const DocsCannonfilesPage: FC = () => {
             <Section
               title="Cannonfile Spec"
               links={[
-                { href: '#cannonfile-metadata', text: 'Cannonfile Metadata' },
-                { href: '#utilities', text: 'Utility Functions' },
+                { href: '#cannonfile-metadata', text: 'Metadata' },
+                { href: '#utilities', text: 'Utilities' },
                 { href: '#constants', text: 'Constants' },
                 ...Array.from(cannonfileSpecs, ([key]) => key)
                   .filter(
