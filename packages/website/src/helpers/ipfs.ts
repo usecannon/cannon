@@ -47,9 +47,10 @@ export function extractIpfsHash(input: string): string | null {
     return null;
   }
 
-  // Regular expression to match IPFS hashes in the ipfs://[hash] format
-  const ipfsHashRegex = /^ipfs:\/\/([a-zA-Z0-9]{46})$/i;
-  const match = input.match(ipfsHashRegex);
+  // Regular expression to match IPFS hashes with or without the ipfs:// protocol
+  const ipfsHashRegex = /^(?:ipfs:\/\/)?([a-zA-Z0-9]{46})$/i;
+  const match = input.trim().match(ipfsHashRegex);
 
+  // If there's a match, return the IPFS hash (captured group)
   return match ? match[1] : null;
 }
