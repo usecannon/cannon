@@ -129,6 +129,8 @@ export async function build({
     priorityGasFee,
   };
 
+  console.log('runtimeOptions: ', runtimeOptions);
+
   const resolver = overrideResolver || (await createDefaultReadRegistry(cliSettings));
 
   const runtime = new ChainBuilderRuntime(runtimeOptions, resolver, getMainLoader(cliSettings), 'ipfs');
