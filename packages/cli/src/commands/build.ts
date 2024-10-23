@@ -47,7 +47,7 @@ interface Params {
   projectDirectory?: string;
   overrideResolver?: CannonRegistry;
   wipe?: boolean;
-  persist?: boolean;
+  dryRun?: boolean;
   plugins?: boolean;
   publicSourceCode?: boolean;
   rpcUrl?: string;
@@ -70,7 +70,7 @@ export async function build({
   getDefaultSigner,
   overrideResolver,
   wipe = false,
-  persist = true,
+  dryRun,
   plugins = true,
   publicSourceCode = false,
   rpcUrl,
@@ -85,7 +85,7 @@ export async function build({
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
   }
 
-  if (!persist && rpcUrl) {
+  if (dryRun && rpcUrl) {
     log(
       yellowBright(bold('⚠️ This is a simulation. No changes will be made to the chain. No package data will be saved.\n'))
     );
@@ -122,14 +122,12 @@ export async function build({
     getSigner,
     getDefaultSigner,
     snapshots: chainId === CANNON_CHAIN_ID,
-    allowPartialDeploy: chainId !== CANNON_CHAIN_ID && persist,
+    allowPartialDeploy: chainId !== CANNON_CHAIN_ID,
     publicSourceCode,
     gasPrice,
     gasFee,
     priorityGasFee,
   };
-
-  console.log('runtimeOptions: ', runtimeOptions);
 
   const resolver = overrideResolver || (await createDefaultReadRegistry(cliSettings));
 
@@ -356,7 +354,7 @@ export async function build({
     }
     ctrlcs++;
   };
-  if (persist && chainId != CANNON_CHAIN_ID) {
+  if (!dryRun && chainId != CANNON_CHAIN_ID) {
     process.on('SIGINT', handler);
     process.on('SIGTERM', handler);
     process.on('SIGQUIT', handler);
@@ -428,7 +426,7 @@ export async function build({
     const metaUrl = await runtime.putBlob(metadata);
 
     // write upgrade-from info on-chain
-    if (stepsExecuted && persist) {
+    if (stepsExecuted && !dryRun) {
       for (let i = 0; i < 3; i++) {
         try {
           log(gray('Writing upgrade info...'));
@@ -480,7 +478,7 @@ export async function build({
           ' to pin the partial deployment package on IPFS. Then use https://usecannon.com/deploy to collect signatures from a Safe for the skipped operations in the partial deployment package.'
       );
     } else {
-      if (!persist) {
+      if (dryRun) {
         log(bold(`💥 ${fullPackageRef} would be successfully built on ${chainName} (Chain ID: ${chainId})`));
         log(gray(`Estimated Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
         log();
@@ -523,7 +521,7 @@ export async function build({
 
       const isMainPreset = preset === PackageReference.DEFAULT_PRESET;
 
-      if (persist) {
+      if (!dryRun) {
         if (isMainPreset) {
           log(
             bold(

@@ -135,6 +135,7 @@ async function configureProvider(options: Record<string, any>, cliSettings: CliS
   if (!provider) {
     const _provider = await resolveProvider({
       action: options.dryRun ? ProviderAction.WriteDryRunProvider : ProviderAction.WriteProvider,
+      impersonate: options.dryRun ? options.impersonate : undefined,
       cliSettings,
       chainId,
     });
@@ -200,8 +201,7 @@ async function configureDryRunSigners(
   signers: CannonSigner[] | undefined
 ): Promise<SignerConfiguration> {
   const getDefaultSigner = async (): Promise<CannonSigner> => {
-    // use the first signer if provided, otherwise use the default anvil address
-    const addr = signers && signers.length > 0 ? signers[0].address : ANVIL_FIRST_ADDRESS;
+    const addr = signers?.[0]?.address ?? ANVIL_FIRST_ADDRESS;
 
     await provider.impersonateAccount({ address: addr });
     await provider.setBalance({ address: addr, value: viem.parseEther('10000') });
@@ -209,8 +209,13 @@ async function configureDryRunSigners(
   };
 
   const getSigner = async (address: viem.Hex): Promise<CannonSigner> => {
-    const client = provider as unknown as viem.TestClient;
+    const shouldImpersonate = signers?.some((s) => viem.isAddressEqual(s.address, address));
 
+    if (!!signers?.length && !shouldImpersonate) {
+      throw new Error(`Can't impersonate this signer: ${address}. Please add --impersonate ${address} to the command line.`);
+    }
+
+    const client = provider as unknown as viem.TestClient;
     await client.impersonateAccount({ address: address });
     await client.setBalance({ address: address, value: viem.parseEther('10000') });
 
@@ -331,7 +336,7 @@ async function prepareBuildConfig(
     getDefaultSigner,
     upgradeFrom: options.upgradeFrom,
     wipe: options.wipe,
-    persist: !options.dryRun,
+    dryRun: options.dryRun,
     overrideResolver,
     rpcUrl: cliSettings.rpcUrl,
     writeScript: options.writeScript,

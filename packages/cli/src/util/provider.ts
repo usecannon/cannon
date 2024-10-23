@@ -24,6 +24,7 @@ export enum ProviderAction {
 type ProviderParams = {
   action: ProviderAction;
   quiet?: boolean;
+  impersonate?: string;
   cliSettings: CliSettings;
   chainId?: number;
 };
@@ -85,6 +86,7 @@ export const getChainIdFromRpcUrl = async (rpcUrl: string) => {
 export async function resolveProvider({
   cliSettings,
   chainId,
+  impersonate,
   quiet = false,
   action,
 }: ProviderParams): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
@@ -123,6 +125,7 @@ export async function resolveProvider({
     chainId: chainId!,
     checkProviders: cliSettings.rpcUrl.split(','),
     privateKey: cliSettings.privateKey,
+    impersonate,
     action,
   });
 }
@@ -151,11 +154,13 @@ export async function resolveProviderAndSigners({
   chainId,
   checkProviders = ['frame'],
   privateKey,
+  impersonate,
   action,
 }: {
   chainId: number;
   checkProviders?: string[];
   privateKey?: string;
+  impersonate?: string;
   action: ProviderAction;
 }): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
   const providerDisplayName = (rpcUrl: string) => {
@@ -225,12 +230,13 @@ export async function resolveProviderAndSigners({
       return await resolveProviderAndSigners({
         chainId,
         checkProviders: checkProviders.slice(1),
+        impersonate,
         privateKey,
         action,
       });
     }
 
-    if (privateKey) {
+    if (privateKey && action !== ProviderAction.WriteDryRunProvider) {
       signers.push(
         ...privateKey.split(',').map((k: string) => {
           const account = privateKeyToAccount(k as viem.Hex);
@@ -279,8 +285,22 @@ export async function resolveProviderAndSigners({
           break;
         }
 
-        case ProviderAction.ReadProvider:
         case ProviderAction.WriteDryRunProvider: {
+          signers.push(
+            ...(impersonate?.split(',') ?? []).map((address) => ({
+              address: address as viem.Address,
+              wallet: viem.createWalletClient({
+                account: address as viem.Address,
+                chain: getChainById(chainId),
+                transport: viem.custom(publicClient.transport),
+              }),
+            }))
+          );
+
+          break;
+        }
+
+        case ProviderAction.ReadProvider: {
           // No signer needed for this action
           break;
         }
@@ -326,6 +346,7 @@ export async function resolveProviderAndSigners({
       return await resolveProviderAndSigners({
         chainId,
         checkProviders: checkProviders.slice(1),
+        impersonate,
         privateKey,
         action,
       });
