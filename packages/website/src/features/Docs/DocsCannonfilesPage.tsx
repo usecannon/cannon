@@ -1,5 +1,6 @@
 'use client';
 
+import { CommandPreview } from '@/components/CommandPreview';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { useCannonfileSpecs } from '@/hooks/cannonfileSpecs';
 import {
@@ -121,31 +122,11 @@ const deploymentDataExample = {
   },
   miscUrl: 'ipfs://Qm...',
 };
-interface CustomLinkProps {
-  href: string;
-  children: React.ReactNode;
-}
-
-const CustomLink: FC<CustomLinkProps> = ({ href, children }) => (
-  <Link
-    display="block"
-    textDecoration="none"
-    borderRadius="md"
-    mb={0.5}
-    py={0.5}
-    px="2"
-    cursor="pointer"
-    fontSize="sm"
-    _hover={{ background: 'gray.800' }}
-    href={href}
-  >
-    {children}
-  </Link>
-);
 
 interface LinkItem {
   href: string;
   text: string;
+  monospace?: boolean;
 }
 
 interface SectionProps {
@@ -167,9 +148,22 @@ const Section: FC<SectionProps> = ({ title, links }) => (
     </Heading>
     <Box mb={6}>
       {links.map((link, index) => (
-        <CustomLink key={index} href={link.href}>
+        <Link
+          key={index}
+          display="block"
+          textDecoration="none"
+          borderRadius="md"
+          mb={0.5}
+          py={0.5}
+          px="2"
+          cursor="pointer"
+          fontSize="sm"
+          fontFamily={link.monospace ? 'var(--font-mono)' : undefined}
+          _hover={{ background: 'gray.800' }}
+          href={link.href}
+        >
           {link.text}
-        </CustomLink>
+        </Link>
       ))}
     </Box>
   </Box>
@@ -246,10 +240,11 @@ const DocsCannonfilesPage: FC = () => {
         >
           <Box px={3} pb={2}>
             <Section
-              title="Cannonfile Specification"
+              title="Cannonfile Spec"
               links={[
-                { href: '#cannonfile-metadata', text: 'Cannonfile Metadata' },
+                { href: '#cannonfile-metadata', text: 'Metadata' },
                 { href: '#constants', text: 'Constants' },
+                { href: '#utilities', text: 'Utilities' },
                 ...Array.from(cannonfileSpecs, ([key]) => key)
                   .filter(
                     (key) =>
@@ -258,7 +253,8 @@ const DocsCannonfilesPage: FC = () => {
                   )
                   .map((key) => ({
                     href: `#${key}`,
-                    text: key as string,
+                    text: `[${key}.*]`,
+                    monospace: true,
                   })),
               ]}
             />
@@ -424,45 +420,64 @@ const DocsCannonfilesPage: FC = () => {
                 <CustomTable
                   data={[
                     {
-                      key: 'Zero',
-                      dataType: 'number',
-                      value: 'The BigNumber value representing "0".',
+                      key: 'AddressZero | zeroAddress',
+                      dataType: 'string',
+                      value:
+                        'Zero Addres string: "0x0000000000000000000000000000000000000000".',
                     },
                     {
-                      key: 'One',
-                      dataType: 'number',
-                      value: 'The BigNumber value representing "1".',
+                      key: 'HashZero | zeroHash',
+                      dataType: 'string',
+                      value:
+                        'Zero hash value: "0x0000000000000000000000000000000000000000000000000000000000000000"',
                     },
                     {
-                      key: 'Two',
-                      dataType: 'number',
-                      value: 'The BigNumber value representing "2".',
-                    },
-                    {
-                      key: 'WeiPerEther',
+                      key: 'maxInt8...256',
                       dataType: 'number',
                       value:
-                        'The BigNumber value representing "1000000000000000000", which is the number of Wei per Ether.',
+                        'BigNumber values representing from maxInt8 to maxInt256.',
                     },
                     {
-                      key: 'MaxUint256',
+                      key: 'minInt8...256',
                       dataType: 'number',
                       value:
-                        'The BigNumber value representing the maximum uint256 value.',
+                        'BigNumber values representing from minInt8 to minInt256.',
                     },
                     {
-                      key: 'MinInt256',
+                      key: 'maxUint8...256',
                       dataType: 'number',
                       value:
-                        'The BigNumber value representing the minimum int256 value.',
-                    },
-                    {
-                      key: 'MaxInt256',
-                      dataType: 'number',
-                      value:
-                        'The BigNumber value representing the maximum int256 value.',
+                        'BigNumber values representing from maxUint8 to maxUint256.',
                     },
                   ]}
+                />
+              </Box>
+              <Box mb={16} id="utilities">
+                <Heading mb={4} fontSize="lg">
+                  Utilities
+                  <Link
+                    color="gray.300"
+                    ml={2}
+                    textDecoration="none"
+                    _hover={{ textDecoration: 'underline' }}
+                    href={'#constants'}
+                  >
+                    #
+                  </Link>
+                </Heading>
+                <Text mb="4">
+                  <Link
+                    href="https://viem.sh/docs/utilities/getAddress"
+                    isExternal
+                  >
+                    Viem.sh
+                  </Link>{' '}
+                  utility functions are available inside interpolation values,
+                  e.g.:
+                </Text>
+                <CommandPreview
+                  backgroundColor="black"
+                  command={'args = ["<%=  keccak256(\'some string\') %>"]'}
                 />
               </Box>
               {Array.from(cannonfileSpecs)
@@ -480,7 +495,7 @@ const DocsCannonfilesPage: FC = () => {
                   <Box key={key} id={key} mb={16}>
                     <Heading mb={4} fontSize="lg">
                       <Code px={0} fontSize="lg">
-                        {key}
+                        [{key}.*]
                       </Code>
                       <Link
                         color="gray.300"
