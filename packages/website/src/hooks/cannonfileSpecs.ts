@@ -70,13 +70,14 @@ async function fetchCannonfileSpecs() {
 
   const result = new Map<string, CannonfileSpec>();
 
-  const metadataKeys = ['name', 'preset', 'version', 'description', 'keywords', 'privateSourceCode'];
+  const metadataKeys = ['name', 'preset', 'version', 'description', 'keywords', 'privateSourceCode', 'deployers'];
   const metadataSpecs: Spec[] = [];
   for (const key of metadataKeys) {
     metadataSpecs.push(await getSpec(chainDefinitionJsonSchema, key));
   }
+
   result.set('metadata', {
-    description: 'Provide metadata for your Cannonfile.',
+    description: 'Provide metadata for your Cannonfile. These are the top-most attributes on your Cannonfile.',
     specs: metadataSpecs,
   });
 
