@@ -2,6 +2,7 @@ import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
+import { generateRouter } from '@usecannon/router';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { ChainBuilderRuntime } from '../runtime';
 import { routerSchema } from '../schemas';
@@ -13,6 +14,7 @@ import {
   getMergedAbiFromContractPaths,
 } from '../util';
 import { template } from '../utils/template';
+import { compileContract } from '../utils/compile';
 
 const debug = Debug('cannon:builder:router');
 
@@ -101,8 +103,6 @@ const routerStep = {
     config: Config,
     packageState: PackageState
   ): Promise<ChainArtifacts> {
-    const { generateRouter, getCompileInput, compileContract } = await import('@synthetixio/router');
-
     debug('exec', config);
 
     const contracts = config.contracts.map((n) => {
@@ -111,6 +111,8 @@ const routerStep = {
         throw new Error(`contract not found: ${n}`);
       }
 
+      const contractName = n.replace('.', '_'); // Use step name, and replace '.' in case is pointing to an import.
+
       return {
         constructorArgs: contract.constructorArgs,
         abi: contract.abi,
@@ -118,9 +120,9 @@ const routerStep = {
         deployTxnHash: contract.deployTxnHash,
         deployTxnBlockNumber: '',
         deployTimestamp: '',
-        contractName: contract.contractName,
+        contractName: contractName,
         sourceName: contract.sourceName,
-        contractFullyQualifiedName: `${contract.sourceName}:${contract.contractName}`,
+        contractFullyQualifiedName: `${contract.sourceName}:${contractName}`,
       };
     });
 
@@ -134,11 +136,7 @@ const routerStep = {
 
     debug('router source code', sourceCode);
 
-    // On Mainnet, use default local solc evmVersion, for everything else, 'paris'
-    const evmVersion = [1, 5, 11155111].includes(runtime.chainId) ? undefined : 'paris';
-
-    const inputData = getCompileInput(contractName, sourceCode, evmVersion);
-    const solidityInfo = await compileContract(contractName, sourceCode, evmVersion);
+    const { input: inputData, output: solidityInfo } = await compileContract(contractName, sourceCode);
 
     // the ABI is entirely based on the fallback call so we have to generate ABI here
     const routableAbi = getMergedAbiFromContractPaths(ctx, config.contracts);

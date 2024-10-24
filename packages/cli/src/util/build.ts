@@ -335,6 +335,7 @@ async function prepareBuildConfig(
     getSigner,
     getDefaultSigner,
     upgradeFrom: options.upgradeFrom,
+    privateSourceCode: !def.isPublicSourceCode(),
     wipe: options.wipe,
     dryRun: options.dryRun,
     overrideResolver,

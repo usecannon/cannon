@@ -877,32 +877,32 @@ export const chainDefinitionSchema = z
     privateSourceCode: z
       .boolean()
       .describe(
-        'Turns off inclusion of source code in packages. When set to true, Cannon cannot verify contracts on Etherscan.'
+        'Turns off inclusion of source code in packages. When set to true, Cannon cannot verify contracts on Etherscan. Defaults to false.'
       )
+      .optional(),
+    /**
+     * Description for the package
+     */
+    description: z.string().describe('Description for the package').optional(),
+    /**
+     * Keywords for search indexing
+     */
+    keywords: z.array(z.string()).describe('Keywords for search indexing').optional(),
+    /**
+     * Any deployers that could publish this package. Will be used for automatic version management.
+     */
+    deployers: z
+      .array(
+        z.string().refine((val) => !!val.match(RegExp(/^0x[a-fA-F0-9]{40}$/, 'gm')), {
+          message: 'Invalid Ethereum address',
+        })
+      )
+      .describe('Any deployers that could publish this package. Will be used for automatic version management.')
       .optional(),
   })
   .merge(
     z
       .object({
-        /**
-         * Description for the package
-         */
-        description: z.string().describe('Description for the package'),
-        /**
-         * Keywords for search indexing
-         */
-        keywords: z.array(z.string()).describe('Keywords for search indexing'),
-        /**
-         * Any deployers that could publish this package. Will be used for automatic version management.
-         */
-        deployers: z
-          .array(
-            z.string().refine((val) => !!val.match(RegExp(/^0x[a-fA-F0-9]{40}$/, 'gm')), {
-              message: 'Invalid Ethereum address',
-            })
-          )
-          .optional()
-          .describe('Any deployers that could publish this package. Will be used for automatic version management.'),
         /**
          * Object that allows the definition of values for use in next operations
          * ```toml

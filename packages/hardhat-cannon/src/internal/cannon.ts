@@ -58,7 +58,7 @@ export async function cannonBuild(options: BuildOptions) {
     pkgInfo: loadPackageJson(path.join(hre.config.paths.root, 'package.json')),
     projectDirectory: hre.config.paths.root,
     registryPriority: options.registryPriority,
-    publicSourceCode: false,
+    privateSourceCode: true,
   });
 
   return { outputs };

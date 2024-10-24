@@ -6,7 +6,7 @@ import * as viem from 'viem';
 import { createStepsStream } from './stream-steps';
 import { DumpRenderer } from './types';
 
-export const WRITE_SCRIPT_FORMATS = ['json', 'ethers'] as const;
+export const WRITE_SCRIPT_FORMATS = ['json', 'ethers', 'foundry'] as const;
 
 export type WriteScriptFormat = (typeof WRITE_SCRIPT_FORMATS)[number];
 

@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/cli",
-  "version": "2.18.2",
+  "version": "2.18.4",
   "description": "Utility for instantly loading cannon packages in standalone contexts",
   "main": "dist/src/index.js",
   "scripts": {

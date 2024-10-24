@@ -26,6 +26,7 @@ jobs:
           validateSingleCommit: false
           types: |
             hotfix
+            release
             feat
             fix
             chore
