@@ -121,7 +121,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
         provider,
         overrideResolver: resolver,
         upgradeFrom: options.upgradeFrom,
-        persist: false,
+        dryRun: true,
       });
 
       buildOutputs.push({ pkg, outputs });

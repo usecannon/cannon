@@ -192,7 +192,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         upgradeFrom,
         wipe,
         registryPriority,
-        persist: !dryRun && hre.network.name !== 'hardhat',
+        dryRun: dryRun || hre.network.name === 'hardhat',
         overrideResolver: dryRun ? await createDryRunRegistry(resolveCliSettings()) : undefined,
         plugins: !!usePlugins,
         privateSourceCode: !hre.config.cannon.publicSourceCode,
