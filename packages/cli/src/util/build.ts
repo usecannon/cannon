@@ -20,8 +20,8 @@ import { yellow, bold, italic } from 'chalk';
 const debug = Debug('cannon:cli:build');
 
 type SignerConfiguration = {
-  getSigner?: (address: viem.Hex) => Promise<CannonSigner>;
-  getDefaultSigner?: () => Promise<CannonSigner>;
+  getSigner: (address: viem.Hex) => Promise<CannonSigner>;
+  getDefaultSigner: () => Promise<CannonSigner>;
 };
 
 /**
@@ -49,9 +49,8 @@ export async function doBuild(
   const cliSettings = resolveCliSettings(options);
   // set up provider
   const { provider, signers, node } = await configureProvider(options, cliSettings);
-
   // set up signers
-  const { getSigner, getDefaultSigner } = await configureSigners(options, provider!, signers);
+  const { getSigner, getDefaultSigner } = await configureSigners(options, cliSettings, provider!, signers);
 
   // Prepare pre-build config
   const buildConfig = await prepareBuildConfig(
@@ -61,7 +60,7 @@ export async function doBuild(
     settings,
     cliSettings,
     provider!,
-    getSigner!,
+    getSigner,
     getDefaultSigner
   );
 
@@ -171,10 +170,15 @@ async function configureProvider(options: Record<string, any>, cliSettings: CliS
  */
 async function configureSigners(
   options: Record<string, any>,
+  cliSettings: CliSettings,
   provider: viem.PublicClient & viem.TestClient & viem.WalletClient,
   signers: CannonSigner[] | undefined
 ): Promise<SignerConfiguration> {
-  const config = options.dryRun ? await configureDryRunSigners(provider, signers) : await configureLiveSigners(signers);
+  const shouldUseDryRunSigners = options.dryRun || (!options.chainId && !isURL(cliSettings.rpcUrl));
+
+  const config = shouldUseDryRunSigners
+    ? await configureDryRunSigners(provider, signers)
+    : await configureLiveSigners(signers);
 
   const defaultSigner = await config.getDefaultSigner?.();
 
@@ -277,7 +281,7 @@ async function prepareBuildConfig(
   cliSettings: CliSettings,
   provider: viem.PublicClient,
   getSigner: (address: viem.Hex) => Promise<CannonSigner>,
-  getDefaultSigner?: () => Promise<CannonSigner>
+  getDefaultSigner: () => Promise<CannonSigner>
 ) {
   const { name, version, preset, def } = await loadCannonfile(cannonfile);
 
