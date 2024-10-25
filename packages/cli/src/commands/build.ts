@@ -42,12 +42,12 @@ interface Params {
   upgradeFrom?: string;
   pkgInfo: any;
   getArtifact?: (name: string) => Promise<ContractArtifact>;
-  getSigner?: (addr: viem.Address) => Promise<CannonSigner>;
+  getSigner: (addr: viem.Address) => Promise<CannonSigner>;
   getDefaultSigner?: () => Promise<CannonSigner>;
   projectDirectory?: string;
   overrideResolver?: CannonRegistry;
   wipe?: boolean;
-  persist?: boolean;
+  dryRun?: boolean;
   plugins?: boolean;
   privateSourceCode?: boolean;
   rpcUrl?: string;
@@ -70,7 +70,7 @@ export async function build({
   getDefaultSigner,
   overrideResolver,
   wipe = false,
-  persist = true,
+  dryRun,
   plugins = true,
   privateSourceCode = false,
   rpcUrl,
@@ -85,7 +85,7 @@ export async function build({
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
   }
 
-  if (!persist && rpcUrl) {
+  if (dryRun && rpcUrl) {
     log(
       yellowBright(bold('⚠️ This is a simulation. No changes will be made to the chain. No package data will be saved.\n'))
     );
@@ -119,29 +119,10 @@ export async function build({
     provider,
     chainId,
     getArtifact,
-    getSigner:
-      getSigner ||
-      async function (addr: viem.Address) {
-        const client = provider as unknown as viem.TestClient;
-
-        // on test network any user can be conjured
-        await client.impersonateAccount({ address: addr });
-        await client.setBalance({ address: addr, value: viem.parseEther('10000') });
-
-        return {
-          address: addr,
-          wallet: viem.createWalletClient({
-            account: addr,
-            chain: provider.chain,
-            transport: viem.custom(provider.transport),
-          }),
-        };
-      },
-
+    getSigner,
     getDefaultSigner,
-
     snapshots: chainId === CANNON_CHAIN_ID,
-    allowPartialDeploy: chainId !== CANNON_CHAIN_ID && persist,
+    allowPartialDeploy: chainId !== CANNON_CHAIN_ID,
     // ChainBuilderRuntime uses publicSourceCode to determine if source code should be included in the package
     publicSourceCode: !privateSourceCode,
     gasPrice,
@@ -233,11 +214,11 @@ export async function build({
 
   log(bold(`Building the chain (ID ${chainId})${rpcUrlMsg ? ' via ' + hideApiKey(rpcUrlMsg) : ''}...`));
 
-  let defaultSignerAddress: string;
+  let defaultSignerAddress: viem.Address;
   if (getDefaultSigner) {
     const defaultSigner = await getDefaultSigner();
     if (defaultSigner) {
-      defaultSignerAddress = defaultSigner.address;
+      const defaultSignerAddress = defaultSigner.address;
       log(`Using ${defaultSignerAddress}`);
     } else {
       log();
@@ -296,7 +277,7 @@ export async function build({
         log(`${'  '.repeat(d)}  ${green('\u2714')} Successfully performed operation`);
       }
 
-      if (txn.signer != defaultSignerAddress) {
+      if (!viem.isAddressEqual(txn.signer, defaultSignerAddress)) {
         log(gray(`${'  '.repeat(d)}  Signer: ${txn.signer}`));
       }
 
@@ -374,7 +355,7 @@ export async function build({
     }
     ctrlcs++;
   };
-  if (persist && chainId != CANNON_CHAIN_ID) {
+  if (!dryRun && chainId != CANNON_CHAIN_ID) {
     process.on('SIGINT', handler);
     process.on('SIGTERM', handler);
     process.on('SIGQUIT', handler);
@@ -446,7 +427,7 @@ export async function build({
     const metaUrl = await runtime.putBlob(metadata);
 
     // write upgrade-from info on-chain
-    if (stepsExecuted && persist) {
+    if (stepsExecuted && !dryRun) {
       for (let i = 0; i < 3; i++) {
         try {
           log(gray('Writing upgrade info...'));
@@ -498,7 +479,7 @@ export async function build({
           ' to pin the partial deployment package on IPFS. Then use https://usecannon.com/deploy to collect signatures from a Safe for the skipped operations in the partial deployment package.'
       );
     } else {
-      if (!persist) {
+      if (dryRun) {
         log(bold(`💥 ${fullPackageRef} would be successfully built on ${chainName} (Chain ID: ${chainId})`));
         log(gray(`Estimated Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
         log();
@@ -541,7 +522,7 @@ export async function build({
 
       const isMainPreset = preset === PackageReference.DEFAULT_PRESET;
 
-      if (persist) {
+      if (!dryRun) {
         if (isMainPreset) {
           log(
             bold(
