@@ -1,77 +1,81 @@
-import { useAccount, useSendTransaction, useWaitForTransactionReceipt, useSwitchChain } from 'wagmi';
-import _ from 'lodash';
+import { useAccount, useSendTransaction, useSwitchChain } from 'wagmi';
 
 import * as viem from 'viem';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+
+type Status = 'idle' | 'executing' | 'success' | 'error';
 
 export function useDeployerWallet(chainId?: number) {
-  // for now, we just return the currently connected wallet
   const connectedAccount = useAccount();
 
-  const [queuedTransactions, setQueuedTransactions] = useState<viem.TransactionRequestBase[]>([]);
-  const [executionProgress, setExecutionProgress] = useState<viem.Hash[]>([]);
-  const [error, setError] = useState<Error | null>(null);
+  const [transactionStatuses, setTransactionStatuses] = useState<Status[]>([]);
+  const [executionProgress, setExecutionProgress] = useState<{
+    status: Status;
+    message?: string;
+  }>({ status: 'idle' });
 
   const { switchChainAsync } = useSwitchChain();
+  const { sendTransaction } = useSendTransaction();
 
-  const { sendTransaction, isIdle, data: hash, error: txnError } = useSendTransaction();
+  async function queueTransactions(txns: viem.TransactionRequestBase[]) {
+    setTransactionStatuses(Array(txns.length).fill('idle'));
+    setExecutionProgress({ status: 'executing' });
 
-  const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
+    if (!chainId) return;
 
-  useEffect(
-    function () {
-      if (!chainId) {
-        return;
-      }
+    try {
+      for (let i = 0; i < txns.length; i++) {
+        await switchChainAsync({ chainId });
 
-      (async () => {
-        // is this the first transaction, or have we finished executing a transaction?
-        if ((isIdle && !executionProgress.length && queuedTransactions.length) || isConfirmed) {
-          // ensure we are on the correct network
-          await switchChainAsync({ chainId });
-          // execute the next transaction
-          sendTransaction(
-            {
-              ...queuedTransactions[executionProgress.length],
-              type: queuedTransactions[executionProgress.length].type as
-                | 'legacy'
-                | 'eip2930'
-                | 'eip1559'
-                | 'eip4844'
-                | 'eip7702'
-                | undefined,
-            },
-            {
-              onSuccess(hash: viem.Hash) {
-                setExecutionProgress([...executionProgress, hash]);
-              },
-            }
-          );
-        }
-      })()
-        .then(_.noop)
-        .catch((err) => {
-          // unexpected issue in the deployer
-          // eslint-disable-next-line no-console
-          console.error('deployer issue', err);
-          setError(err);
+        setTransactionStatuses((prevStatuses) => {
+          const newStatuses = [...prevStatuses];
+          newStatuses[i] = 'executing';
+          return newStatuses;
         });
-    },
-    [isConfirmed, isIdle, executionProgress.length, queuedTransactions, chainId]
-  );
+
+        sendTransaction(
+          {
+            ...txns[i],
+            type: txns[i].type as 'legacy' | 'eip2930' | 'eip1559' | 'eip4844' | 'eip7702' | undefined,
+          },
+          {
+            onSuccess: () => {
+              setTransactionStatuses((prevStatuses) => {
+                const newStatuses = [...prevStatuses];
+                newStatuses[i] = 'success';
+                return newStatuses;
+              });
+
+              const isLastTransaction = i === txns.length - 1;
+              if (isLastTransaction) {
+                setExecutionProgress({ status: 'success' });
+              }
+            },
+            onError: (error) => {
+              setTransactionStatuses((prevStatuses) => {
+                const newStatuses = [...prevStatuses];
+                newStatuses[i] = 'error';
+                return newStatuses;
+              });
+              setExecutionProgress({ status: 'error', message: error.message });
+              throw error;
+            },
+          }
+        );
+      }
+    } catch (err) {
+      setExecutionProgress({ status: 'error', message: (err as Error).message });
+    }
+  }
 
   return {
     address: connectedAccount.address,
-    queuedTransactions,
+    transactionStatuses,
     executionProgress,
-    isComplete: queuedTransactions.length > 0 && executionProgress.length === queuedTransactions.length,
-    error: error || txnError,
-    queueTransactions: function (txn: viem.TransactionRequestBase[]) {
-      setQueuedTransactions([...queuedTransactions, ...txn]);
-    },
+    queueTransactions,
     reset: function () {
-      setQueuedTransactions([]);
-      setExecutionProgress([]);
+      setTransactionStatuses([]);
+      setExecutionProgress({ status: 'idle' });
     },
   };
 }
