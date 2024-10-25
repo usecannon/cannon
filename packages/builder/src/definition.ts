@@ -307,7 +307,9 @@ export class ChainDefinition {
    * @returns direct dependencies for the specified node
    */
   computeDependencies(node: string) {
-    if (!_.get(this.raw, node)) {
+    const actionConfig = _.get(this.raw, node);
+
+    if (!actionConfig) {
       const stepName = node.split('.')[0];
       const possibleSteps = _.get(this.raw, stepName);
 
@@ -322,7 +324,13 @@ export class ChainDefinition {
         `);
     }
 
-    const deps = _.clone(_.get(this.raw, node)!.depends || []) as string[];
+    if (node.startsWith('setting') || node.startsWith('var')) {
+      if (_.isEmpty(actionConfig)) {
+        throw new Error(`invalid setting: ${node} must have a value defined`);
+      }
+    }
+
+    const deps = _.clone(actionConfig.depends || []) as string[];
 
     const n = node.split('.')[0];
 
@@ -344,13 +352,13 @@ export class ChainDefinition {
           possibleFields.push(baseName);
         }
       }
-      const accessComputationResults = ActionKinds[n].getInputs!(_.get(this.raw, node), possibleFields, {
+      const accessComputationResults = ActionKinds[n].getInputs!(actionConfig, possibleFields, {
         ref: null,
         currentLabel: node,
       });
 
       // Only throw this error if the user hasn't explicitly defined dependencies
-      if (this.sensitiveDependencies && accessComputationResults.unableToCompute && !_.get(this.raw, node).depends) {
+      if (this.sensitiveDependencies && accessComputationResults.unableToCompute && !actionConfig.depends) {
         throw new Error(
           `Unable to compute dependencies for [${node}] because of advanced logic in template strings. Specify dependencies manually, like "depends = ['${_.uniq(
             _.uniq(accessComputationResults.accesses).map((a) => `${this.dependencyFor.get(a)}`)
