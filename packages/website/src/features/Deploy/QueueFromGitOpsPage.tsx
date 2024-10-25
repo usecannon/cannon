@@ -435,7 +435,8 @@ export default function QueueFromGitOps() {
   const execTxn = useWriteContract();
 
   const isOutsideSafeTxnsRequired =
-    (buildState.result?.deployerSteps.length || 0) > 0 && !deployer.isComplete;
+    (buildState.result?.deployerSteps.length || 0) > 0 &&
+    deployer.executionProgress.status !== 'success';
 
   const loadingDataForDeploy =
     prevCannonDeployInfo.isFetching ||
@@ -930,7 +931,7 @@ export default function QueueFromGitOps() {
                 p="4"
                 borderRadius="md"
               >
-                {deployer.queuedTransactions.length === 0 ? (
+                {buildState.result?.deployerSteps.length === 0 ? (
                   <VStack>
                     <Text color="gray.300">
                       The following steps should be executed outside the safe
@@ -957,11 +958,13 @@ export default function QueueFromGitOps() {
                       Execute Outside Safe Txns
                     </Button>
                   </VStack>
-                ) : deployer.executionProgress.length <
-                  deployer.queuedTransactions.length ? (
+                ) : deployer.executionProgress.status === 'executing' ? (
                   <Text>
-                    Deploying txns {deployer.executionProgress.length + 1} /{' '}
-                    {deployer.queuedTransactions.length}
+                    Deploying txns{' '}
+                    {deployer.transactionStatuses.findIndex(
+                      (t) => t === 'executing'
+                    ) + 1}{' '}
+                    / {deployer.transactionStatuses.length}
                   </Text>
                 ) : (
                   <Text>
