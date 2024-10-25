@@ -214,22 +214,9 @@ export async function build({
 
   log(bold(`Building the chain (ID ${chainId})${rpcUrlMsg ? ' via ' + hideApiKey(rpcUrlMsg) : ''}...`));
 
-  let defaultSignerAddress: viem.Address;
   if (getDefaultSigner) {
     const defaultSigner = await getDefaultSigner();
-    if (defaultSigner) {
-      const defaultSignerAddress = defaultSigner.address;
-      log(`Using ${defaultSignerAddress}`);
-    } else {
-      log();
-      log(bold(red('Signer not found.')));
-      log(
-        red(
-          'Provide a signer to execute this build. Add the --private-key option or set the env variable CANNON_PRIVATE_KEY.'
-        )
-      );
-      process.exit(1);
-    }
+    log(`Using ${defaultSigner.address}`);
   }
 
   if (!_.isEmpty(resolvedSettings)) {
@@ -277,9 +264,7 @@ export async function build({
         log(`${'  '.repeat(d)}  ${green('\u2714')} Successfully performed operation`);
       }
 
-      if (!viem.isAddressEqual(txn.signer, defaultSignerAddress)) {
-        log(gray(`${'  '.repeat(d)}  Signer: ${txn.signer}`));
-      }
+      log(gray(`${'  '.repeat(d)}  Signer: ${txn.signer}`));
 
       if (c.target) {
         const contractAddress = getContractFromPath(ctx, c.target[0])?.address;

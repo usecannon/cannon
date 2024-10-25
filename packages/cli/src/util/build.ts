@@ -202,7 +202,7 @@ async function configureSigners(
  * @returns {Promise<SignerConfiguration>} - A promise that resolves to the signer configuration.
  */
 const configureLocalBuildSigners = (provider: viem.PublicClient & viem.TestClient & viem.WalletClient) => {
-  const getSigner = async (address: viem.Address) => {
+  const getSigner = async (address: viem.Address): Promise<CannonSigner> => {
     const client = provider as unknown as viem.TestClient;
     await client.impersonateAccount({ address });
     await client.setBalance({ address, value: viem.parseEther('10000') });
@@ -237,7 +237,7 @@ async function configureDryRunSigners(
     return { address: addr, wallet: provider };
   };
 
-  const getSigner = async (address: viem.Hex): Promise<CannonSigner> => {
+  const getSigner = async (address: viem.Address): Promise<CannonSigner> => {
     const shouldImpersonate = signers?.some((s) => viem.isAddressEqual(s.address, address));
 
     if (!!signers?.length && !shouldImpersonate) {
@@ -245,8 +245,8 @@ async function configureDryRunSigners(
     }
 
     const client = provider as unknown as viem.TestClient;
-    await client.impersonateAccount({ address: address });
-    await client.setBalance({ address: address, value: viem.parseEther('10000') });
+    await client.impersonateAccount({ address });
+    await client.setBalance({ address, value: viem.parseEther('10000') });
 
     return {
       address,
@@ -268,7 +268,7 @@ async function configureDryRunSigners(
  * @returns {SignerConfiguration} - The signer configuration for live networks.
  */
 async function configureLiveSigners(signers: CannonSigner[] | undefined): Promise<SignerConfiguration> {
-  const getSigner = async (address: viem.Hex): Promise<CannonSigner> => {
+  const getSigner = async (address: viem.Address): Promise<CannonSigner> => {
     const signer = signers?.find((s) => viem.isAddressEqual(s.address, address));
     if (!signer) {
       throw new Error(
@@ -305,7 +305,7 @@ async function prepareBuildConfig(
   settings: string[],
   cliSettings: CliSettings,
   provider: viem.PublicClient,
-  getSigner: (address: viem.Hex) => Promise<CannonSigner>,
+  getSigner: (address: viem.Address) => Promise<CannonSigner>,
   getDefaultSigner?: () => Promise<CannonSigner>
 ) {
   const { name, version, preset, def } = await loadCannonfile(cannonfile);
