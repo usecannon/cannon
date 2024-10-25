@@ -125,7 +125,6 @@ export async function build({
     allowPartialDeploy: chainId !== CANNON_CHAIN_ID,
     // ChainBuilderRuntime uses publicSourceCode to determine if source code should be included in the package
     publicSourceCode: !privateSourceCode,
-
     gasPrice,
     gasFee,
     priorityGasFee,
@@ -215,11 +214,11 @@ export async function build({
 
   log(bold(`Building the chain (ID ${chainId})${rpcUrlMsg ? ' via ' + hideApiKey(rpcUrlMsg) : ''}...`));
 
-  let defaultSignerAddress: string;
+  let defaultSignerAddress: viem.Address;
   if (getDefaultSigner) {
     const defaultSigner = await getDefaultSigner();
     if (defaultSigner) {
-      defaultSignerAddress = defaultSigner.address;
+      const defaultSignerAddress = defaultSigner.address;
       log(`Using ${defaultSignerAddress}`);
     } else {
       log();
@@ -278,7 +277,7 @@ export async function build({
         log(`${'  '.repeat(d)}  ${green('\u2714')} Successfully performed operation`);
       }
 
-      if (txn.signer != defaultSignerAddress) {
+      if (!viem.isAddressEqual(txn.signer, defaultSignerAddress)) {
         log(gray(`${'  '.repeat(d)}  Signer: ${txn.signer}`));
       }
 

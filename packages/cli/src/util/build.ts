@@ -21,7 +21,7 @@ const debug = Debug('cannon:cli:build');
 
 type SignerConfiguration = {
   getSigner: (address: viem.Hex) => Promise<CannonSigner>;
-  getDefaultSigner: () => Promise<CannonSigner>;
+  getDefaultSigner?: () => Promise<CannonSigner>;
 };
 
 /**
@@ -174,11 +174,12 @@ async function configureSigners(
   provider: viem.PublicClient & viem.TestClient & viem.WalletClient,
   signers: CannonSigner[] | undefined
 ): Promise<SignerConfiguration> {
-  const shouldUseDryRunSigners = options.dryRun || (!options.chainId && !isURL(cliSettings.rpcUrl));
+  const isBuildOnCannonNetwork = !options.chainId && !isURL(cliSettings.rpcUrl) && !options.dryRun;
+  if (isBuildOnCannonNetwork) {
+    return configureLocalBuildSigners(provider);
+  }
 
-  const config = shouldUseDryRunSigners
-    ? await configureDryRunSigners(provider, signers)
-    : await configureLiveSigners(signers);
+  const config = options.dryRun ? await configureDryRunSigners(provider, signers) : await configureLiveSigners(signers);
 
   const defaultSigner = await config.getDefaultSigner?.();
 
@@ -195,8 +196,32 @@ async function configureSigners(
 }
 
 /**
+ * Configures signers for a local build scenario on the Cannon network.
+ *
+ * @param provider - Ethereum provider
+ * @returns {Promise<SignerConfiguration>} - A promise that resolves to the signer configuration.
+ */
+const configureLocalBuildSigners = (provider: viem.PublicClient & viem.TestClient & viem.WalletClient) => {
+  const getSigner = async (address: viem.Address) => {
+    const client = provider as unknown as viem.TestClient;
+    await client.impersonateAccount({ address });
+    await client.setBalance({ address, value: viem.parseEther('10000') });
+
+    return {
+      address,
+      wallet: viem.createWalletClient({
+        account: address,
+        chain: provider.chain,
+        transport: viem.custom(provider.transport),
+      }),
+    };
+  };
+  return { getSigner, getDefaultSigner: undefined };
+};
+
+/**
  * Configures signers for a dry run scenario.
- * @param provider - The Ethereum provider with test capabilities.
+ * @param provider - The Ethereum provider
  * @param signers - Optional array of existing signers.
  * @returns {Promise<SignerConfiguration>} - A promise that resolves to the signer configuration.
  */
@@ -281,7 +306,7 @@ async function prepareBuildConfig(
   cliSettings: CliSettings,
   provider: viem.PublicClient,
   getSigner: (address: viem.Hex) => Promise<CannonSigner>,
-  getDefaultSigner: () => Promise<CannonSigner>
+  getDefaultSigner?: () => Promise<CannonSigner>
 ) {
   const { name, version, preset, def } = await loadCannonfile(cannonfile);
 
