@@ -14,7 +14,7 @@ export const DeployYourProtocol = () => {
       </Heading>
       <Text mb={4}>Deploying is just building on a remote network!</Text>
       <Box mb={4}>
-        <CommandPreview command="cannon build --network REPLACE_WITH_RPC_ENDPOINT --private-key REPLACE_WITH_KEY_THAT_HAS_GAS_TOKENS" />
+        <CommandPreview command="cannon build --rpc-url REPLACE_WITH_RPC_ENDPOINT --private-key REPLACE_WITH_KEY_THAT_HAS_GAS_TOKENS" />
       </Box>
       <Text mb={4}>
         Verify your project&apos;s contracts on&nbsp;
