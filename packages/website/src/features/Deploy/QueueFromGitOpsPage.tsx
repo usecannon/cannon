@@ -68,6 +68,9 @@ import 'react-diff-view/style/index.css';
 import { ChainDefinition } from '@usecannon/builder/dist/src';
 import { extractIpfsHash } from '@/helpers/ipfs';
 
+//import prevPackageInfo from './prev-package-info.json';
+//import partialPackageInfo from './partial.json';
+
 const EMPTY_IPFS_MISC_URL =
   'ipfs://QmeSt2mnJKE8qmRhLyYbHQQxDKpsFbcWnw5e7JF4xVbN6k';
 
@@ -91,18 +94,12 @@ function useMergedCannonDefInfo(
   gitUrl: string,
   gitRef: string,
   gitFile: string,
-  partialDeployIpfs: string,
-  chainId?: number
+  partialDeployInfo: ReturnType<typeof useCannonPackage>
 ) {
   const originalCannonDefInfo = useLoadCannonDefinition(
     gitUrl,
     gitRef,
     gitFile
-  );
-
-  const partialDeployInfo = useCannonPackage(
-    partialDeployIpfs ? `ipfs://${partialDeployIpfs}` : '',
-    chainId
   );
 
   return useMemo(() => {
@@ -114,8 +111,8 @@ function useMergedCannonDefInfo(
     const error = partialDeployInfo?.error || originalCannonDefInfo.error;
 
     // Merge the definitions if partial deploy info is available
-    const def = partialDeployInfo?.pkg
-      ? new ChainDefinition(partialDeployInfo.pkg.def)
+    const def = partialDeployInfo?.ipfsQuery.data?.deployInfo
+      ? new ChainDefinition(partialDeployInfo?.ipfsQuery.data?.deployInfo.def)
       : originalCannonDefInfo.def;
 
     return {
@@ -185,8 +182,7 @@ export default function QueueFromGitOps() {
     gitUrl,
     gitRef,
     gitFile,
-    partialDeployIpfs,
-    currentSafe?.chainId
+    partialDeployInfo
   );
 
   const cannonDefInfoError: string = gitUrl
@@ -204,7 +200,7 @@ export default function QueueFromGitOps() {
 
   const prevDeployLocation = partialDeployIpfs
     ? `ipfs://${partialDeployIpfs}`
-    : onChainPrevPkgQuery.url || '';
+    : onChainPrevPkgQuery.data || '';
 
   const prevCannonDeployInfo = useCannonPackage(
     prevDeployLocation,
@@ -238,9 +234,11 @@ export default function QueueFromGitOps() {
           timestamp: Math.floor(Date.now() / 1000),
           def: cannonDefInfo.def.toJson(),
           state: buildState.result?.state || {},
-          options: prevCannonDeployInfo.pkg?.options || {},
-          meta: prevCannonDeployInfo.pkg?.meta,
-          miscUrl: prevCannonDeployInfo.pkg?.miscUrl || EMPTY_IPFS_MISC_URL,
+          options: partialDeployInfo?.ipfsQuery.data?.deployInfo?.options || {},
+          meta: partialDeployInfo?.ipfsQuery.data?.deployInfo?.meta,
+          miscUrl:
+            partialDeployInfo?.ipfsQuery.data?.deployInfo?.miscUrl ||
+            EMPTY_IPFS_MISC_URL,
           chainId: currentSafe.chainId,
         } satisfies DeploymentInfo)
       : undefined;
@@ -248,9 +246,9 @@ export default function QueueFromGitOps() {
     buildState.result?.state,
     cannonDefInfo?.def,
     currentSafe.chainId,
-    prevCannonDeployInfo.pkg?.meta,
-    prevCannonDeployInfo.pkg?.miscUrl,
-    prevCannonDeployInfo.pkg?.options,
+    partialDeployInfo?.ipfsQuery.data?.deployInfo?.meta,
+    partialDeployInfo?.ipfsQuery.data?.deployInfo?.miscUrl,
+    partialDeployInfo?.ipfsQuery.data?.deployInfo?.options,
   ]);
 
   const writeToIpfsMutation = useCannonWriteDeployToIpfs();
@@ -285,7 +283,13 @@ export default function QueueFromGitOps() {
     };
 
     void callMutation();
-  }, [buildState.status]); // TODO fix this
+  }, [
+    buildState.result?.runtime,
+    buildState.status,
+    nextCannonDeployInfo,
+    prevCannonDeployInfo.metaUrl,
+    writeToIpfsMutation,
+  ]);
 
   const refsInfo = useGitRefsList(gitUrl);
   const foundRef = refsInfo.refs?.find(
@@ -474,7 +478,7 @@ export default function QueueFromGitOps() {
       }
     }
 
-    doBuild(cannonDefInfo?.def, prevCannonDeployInfo.pkg);
+    doBuild(cannonDefInfo?.def, partialDeployInfo?.ipfsQuery.data?.deployInfo);
   };
 
   const renderAlertMessage = () => {
@@ -529,7 +533,9 @@ export default function QueueFromGitOps() {
   const partialDeployInfoLoaded =
     !partialDeployInfo?.isFetching &&
     !partialDeployInfo?.isError &&
-    partialDeployInfo?.pkg;
+    partialDeployInfo?.ipfsQuery.data?.deployInfo;
+
+  partialDeployInfo?.ipfsQuery.data?.deployInfo;
 
   const hasDeployers = Boolean(
     cannonDefInfo.def?.getDeployers()?.length ?? 0 > 0
@@ -769,7 +775,9 @@ export default function QueueFromGitOps() {
                     )}
                     {partialDeployInfo?.isFetching &&
                       !partialDeployInfo?.isError && <Spinner />}
-                    {partialDeployInfo?.pkg && <CheckIcon color="green.500" />}
+                    {partialDeployInfo?.ipfsQuery.data?.deployInfo && (
+                      <CheckIcon color="green.500" />
+                    )}
                   </InputRightElement>
                 )}
               </InputGroup>
@@ -848,7 +856,7 @@ export default function QueueFromGitOps() {
                   ) : null}
                   {prevCannonDeployInfo.isFetching ? (
                     <Spinner />
-                  ) : prevCannonDeployInfo.pkg ? (
+                  ) : prevCannonDeployInfo.ipfsQuery.data?.deployInfo ? (
                     <CheckIcon color="green.500" />
                   ) : null}
                 </InputRightElement>
