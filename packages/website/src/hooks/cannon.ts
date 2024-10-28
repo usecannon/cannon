@@ -659,7 +659,7 @@ export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?:
   const connectedChainId = useChainId();
   const registry = useCannonRegistry();
   const settings = useStore((s) => s.settings);
-  const { addLog } = useLogs();
+  // const { addLog } = useLogs();
 
   const packageChainId = chainId ?? connectedChainId;
 

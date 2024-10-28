@@ -233,11 +233,16 @@ function TransactionDetailsPage() {
   const buildInfo = useCannonBuild(
     safe,
     cannonDefInfo.def,
-    prevCannonDeployInfo.pkg
+    prevCannonDeployInfo.ipfsQuery.data?.deployInfo
   );
 
   useEffect(() => {
-    if (!safe || !cannonDefInfo.def || !prevCannonDeployInfo.pkg) return;
+    if (
+      !safe ||
+      !cannonDefInfo.def ||
+      !prevCannonDeployInfo.ipfsQuery.data?.deployInfo
+    )
+      return;
     buildInfo.doBuild();
   }, [
     !isTransactionExecuted &&
