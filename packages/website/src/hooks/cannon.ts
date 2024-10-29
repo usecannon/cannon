@@ -34,7 +34,7 @@ import { Abi, Address, createPublicClient, createTestClient, createWalletClient,
 import { useChainId, usePublicClient } from 'wagmi';
 // Needed to prepare mock run step with registerAction
 import '@/lib/builder';
-import { WorkerResponse, WorkerResponsePayload } from '../workers/cannonPackage.worker';
+import { WorkerResponse, WriteDeployResponse, LoadPackageResponse } from '../workers/cannon-package.worker';
 
 type CannonTxRecord = { name: string; gas: bigint; tx: BaseTransaction };
 
@@ -451,8 +451,8 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       {
         provider: provider as any, // TODO: fix type
         chainId: safe.chainId,
-        getSigner: getSigner as any, // TODO: fix type
-        getDefaultSigner: getDefaultSigner as any, // TODO: fix type
+        getSigner,
+        getDefaultSigner,
         snapshots: false,
         allowPartialDeploy: true,
       },
@@ -576,32 +576,40 @@ export function useCannonWriteDeployToIpfs() {
         throw new Error('You cannot write on an IPFS gateway, only read operations can be done');
       }
 
-      if (!deployInfo) {
+      if (!deployInfo || !runtime) {
         throw new Error('Missing required parameters');
       }
 
-      const def = new ChainDefinition(deployInfo.def);
+      // Update the Promise type to expect WriteDeployResponse
+      const workerResult = await new Promise<WriteDeployResponse>((resolve, reject) => {
+        const worker = new Worker(new URL('../workers/cannon-package.worker.ts', import.meta.url));
 
-      if (!runtime || !deployInfo || !def) {
-        throw new Error('Missing required parameters');
-      }
+        worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
+          const response = event.data;
+          if (response.type === 'DEPLOY_WRITTEN') {
+            resolve(response.payload);
+          } else if (response.type === 'ERROR') {
+            reject(new Error(response.payload.message));
+          }
+          worker.terminate();
+        };
 
-      const ctx = await createInitialContext(def, deployInfo.meta, runtime.chainId, deployInfo.options);
+        worker.postMessage({
+          type: 'WRITE_DEPLOY',
+          payload: {
+            deployInfo,
+            ipfsApiUrl: settings.ipfsApiUrl || externalLinks.IPFS_CANNON,
+            chainId: runtime.chainId,
+          },
+        });
+      });
 
-      const preset = def.getPreset(ctx);
-      const packageRef = PackageReference.from(def.getName(ctx), def.getVersion(ctx), preset).fullPackageRef;
+      console.log('workerResult: ', workerResult);
 
-      await runtime.registry.publish(
-        [packageRef],
-        runtime.chainId,
-        (await runtime.loaders.mem.put(deployInfo)) ?? '',
-        metaUrl || ''
-      );
+      // Continue with registry operations that require runtime
+      await runtime.registry.publish([workerResult.packageRef], runtime.chainId, workerResult.mainUrl, metaUrl || '');
 
       const memoryRegistry = new InMemoryRegistry();
-
-      // eslint-disable-next-line no-console
-      console.log('pinning package:', packageRef, runtime.chainId);
 
       const publishTxns = await publishPackage({
         fromStorage: runtime,
@@ -610,18 +618,15 @@ export function useCannonWriteDeployToIpfs() {
           { ipfs: new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON) },
           'ipfs'
         ),
-        packageRef,
+        packageRef: workerResult.packageRef,
         chainId: runtime.chainId,
         tags: ['latest'],
         includeProvisioned: true,
       });
 
-      // load the new ipfs url
-      const mainUrl = await memoryRegistry.getUrl(packageRef, runtime.chainId);
-
       return {
-        packageRef,
-        mainUrl,
+        packageRef: workerResult.packageRef,
+        mainUrl: workerResult.mainUrl,
         publishTxns,
       };
     },
@@ -681,11 +686,11 @@ export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?:
   });
 
   // IPFS query with proper typing
-  const ipfsQuery = useQuery<WorkerResponsePayload>({
+  const ipfsQuery = useQuery<LoadPackageResponse>({
     queryKey: ['cannon', 'pkg', registryQuery.data?.url],
     queryFn: () => {
-      return new Promise<WorkerResponsePayload>((resolve, reject) => {
-        const worker = new Worker(new URL('../workers/cannonPackage.worker.ts', import.meta.url));
+      return new Promise<LoadPackageResponse>((resolve, reject) => {
+        const worker = new Worker(new URL('../workers/cannon-package.worker.ts', import.meta.url));
 
         worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
           const response = event.data;

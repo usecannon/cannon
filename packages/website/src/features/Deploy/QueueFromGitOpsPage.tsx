@@ -50,7 +50,7 @@ import {
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Alert as AlertCannon } from '@/components/Alert';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   encodeAbiParameters,
   encodeFunctionData,
@@ -67,9 +67,6 @@ import { TransactionDisplay } from './TransactionDisplay';
 import 'react-diff-view/style/index.css';
 import { ChainDefinition } from '@usecannon/builder/dist/src';
 import { extractIpfsHash } from '@/helpers/ipfs';
-
-//import prevPackageInfo from './prev-package-info.json';
-//import partialPackageInfo from './partial.json';
 
 const EMPTY_IPFS_MISC_URL =
   'ipfs://QmeSt2mnJKE8qmRhLyYbHQQxDKpsFbcWnw5e7JF4xVbN6k';
@@ -149,11 +146,12 @@ export default function QueueFromGitOps() {
     error: Error | null;
     data: CannonWriteDeployToIpfsMutationResult | null;
   } | null>(null);
+  const [inputError, setInputError] = useState<string | null>(null);
   const settings = useStore((s) => s.settings);
 
   const deployer = useDeployerWallet(currentSafe?.chainId);
 
-  const { gitUrl, gitRef, gitFile } = useMemo(() => {
+  const gitInfo = useMemo(() => {
     if (
       !cannonfileUrlRegex.test(cannonfileUrlInput) ||
       !cannonfileUrlInput.includes('/blob/')
@@ -179,13 +177,13 @@ export default function QueueFromGitOps() {
   );
 
   const cannonDefInfo = useMergedCannonDefInfo(
-    gitUrl,
-    gitRef,
-    gitFile,
+    gitInfo.gitUrl,
+    gitInfo.gitRef,
+    gitInfo.gitFile,
     partialDeployInfo
   );
 
-  const cannonDefInfoError: string = gitUrl
+  const cannonDefInfoError: string = gitInfo.gitUrl
     ? (cannonDefInfo?.error as any)?.toString()
     : cannonfileUrlInput &&
       'The format of your URL appears incorrect. Please double check and try again.';
@@ -255,6 +253,7 @@ export default function QueueFromGitOps() {
 
   useEffect(() => {
     const callMutation = async () => {
+      console.log('buildState.status', buildState.status);
       if (['success'].includes(buildState.status)) {
         try {
           setWriteToIpfsMutationRes({
@@ -262,17 +261,23 @@ export default function QueueFromGitOps() {
             error: null,
             data: null,
           });
+
+          console.log('writeToIpfsMutation.mutateAsync started');
           const res = await writeToIpfsMutation.mutateAsync({
             runtime: buildState.result?.runtime,
             deployInfo: nextCannonDeployInfo,
             metaUrl: prevCannonDeployInfo.metaUrl,
           });
+
+          console.log('writeToIpfsMutation.mutateAsync ended', res);
+
           setWriteToIpfsMutationRes({
             isLoading: false,
             error: null,
             data: res,
           });
         } catch (error) {
+          console.log('error: ', error);
           setWriteToIpfsMutationRes({
             isLoading: false,
             error: error as Error,
@@ -283,25 +288,21 @@ export default function QueueFromGitOps() {
     };
 
     void callMutation();
-  }, [
-    buildState.result?.runtime,
-    buildState.status,
-    nextCannonDeployInfo,
-    prevCannonDeployInfo.metaUrl,
-    writeToIpfsMutation,
-  ]);
+  }, [buildState.status]);
 
-  const refsInfo = useGitRefsList(gitUrl);
+  const refsInfo = useGitRefsList(gitInfo.gitUrl);
   const foundRef = refsInfo.refs?.find(
     (r) =>
       (r.ref.startsWith('refs/heads/') || r.ref.startsWith('refs/tags/')) &&
-      r.ref.endsWith(gitRef)
+      r.ref.endsWith(gitInfo.gitRef)
   )?.oid;
-  const gitHash = gitRef.match(/^[0-9a-f]+$/) ? foundRef || gitRef : foundRef;
+  const gitHash = gitInfo.gitRef.match(/^[0-9a-f]+$/)
+    ? foundRef || gitInfo.gitRef
+    : foundRef;
 
   const prevInfoQuery = useGetPreviousGitInfoQuery(
     currentSafe as any,
-    gitUrl + ':' + gitFile
+    gitInfo.gitUrl + ':' + gitInfo.gitFile
   );
 
   const multisendTxsParam = useMemo(() => {
@@ -316,7 +317,9 @@ export default function QueueFromGitOps() {
               'deploy',
               writeToIpfsMutationRes?.data?.mainUrl,
               prevDeployLocation || '',
-              gitUrl && gitFile ? `${gitUrl}:${gitFile}` : '',
+              gitInfo.gitUrl && gitInfo.gitFile
+                ? `${gitInfo.gitUrl}:${gitInfo.gitFile}`
+                : '',
               gitHash || '',
               prevInfoQuery.data &&
               typeof prevInfoQuery.data?.[0].result == 'string' &&
@@ -328,27 +331,31 @@ export default function QueueFromGitOps() {
         ),
       } as Partial<TransactionRequestBase>,
       // write data needed for the subsequent deployment to chain
-      gitUrl && gitFile
+      gitInfo.gitUrl && gitInfo.gitFile
         ? ({
             to: onchainStore.deployAddress,
             data: encodeFunctionData({
               abi: onchainStore.ABI,
               functionName: 'set',
               args: [
-                keccak256(toBytes(`${gitUrl}:${gitFile}gitHash`)),
+                keccak256(
+                  toBytes(`${gitInfo.gitUrl}:${gitInfo.gitFile}gitHash`)
+                ),
                 '0x' + gitHash,
               ],
             }),
           } as Partial<TransactionRequestBase>)
         : {},
-      gitUrl && gitFile
+      gitInfo.gitUrl && gitInfo.gitFile
         ? ({
             to: onchainStore.deployAddress,
             data: encodeFunctionData({
               abi: onchainStore.ABI,
               functionName: 'set',
               args: [
-                keccak256(toBytes(`${gitUrl}:${gitFile}cannonPackage`)),
+                keccak256(
+                  toBytes(`${gitInfo.gitUrl}:${gitInfo.gitFile}cannonPackage`)
+                ),
                 stringToHex(writeToIpfsMutationRes?.data?.mainUrl ?? ''),
               ],
             }),
@@ -386,9 +393,9 @@ export default function QueueFromGitOps() {
   }, [
     buildState.result?.safeSteps,
     cannonDefInfo?.def,
-    gitFile,
+    gitInfo.gitFile,
     gitHash,
-    gitUrl,
+    gitInfo.gitUrl,
     prevDeployLocation,
     prevInfoQuery.data,
     writeToIpfsMutationRes?.data?.mainUrl,
@@ -448,7 +455,7 @@ export default function QueueFromGitOps() {
     buildState.status === 'building' ||
     writeToIpfsMutationRes?.isLoading;
 
-  const handlePreviewTxnsClick = async () => {
+  const handlePreviewTxnsClick = useCallback(async () => {
     if (!isConnected) {
       if (openConnectModal) {
         openConnectModal();
@@ -479,152 +486,111 @@ export default function QueueFromGitOps() {
     }
 
     doBuild(cannonDefInfo?.def, partialDeployInfo?.ipfsQuery.data?.deployInfo);
-  };
+  }, [
+    isConnected,
+    openConnectModal,
+    chainId,
+    currentSafe?.chainId,
+    switchChainAsync,
+    doBuild,
+    cannonDefInfo?.def,
+    partialDeployInfo?.ipfsQuery.data?.deployInfo,
+    toast,
+  ]);
 
-  const renderAlertMessage = () => {
-    let alertMessage: React.ReactNode;
+  const hasDeployers = useMemo(() => {
+    return Boolean(cannonDefInfo?.def?.getDeployers()?.length);
+  }, [cannonDefInfo?.def]);
 
-    if (settings.isIpfsGateway) {
-      alertMessage = (
-        <>
-          Your current IPFS URL is set to a gateway. Update your IPFS URL to an
-          API endpoint where you can pin files in.
-          <Link href="/settings">settings</Link>.
-        </>
-      );
-    }
-
-    if (cannonDefInfo?.def && cannonDefInfo.def.danglingDependencies.size > 0) {
-      alertMessage = (
-        <Flex direction="column">
-          <Text>
-            The cannonfile contains invalid dependencies. Please ensure the
-            following references are defined:
-          </Text>
-          <div>
-            {Array.from(cannonDefInfo.def.danglingDependencies).map(
-              (dependency) => (
-                <>
-                  <Text key={dependency} as="span" fontFamily="monospace">
-                    {dependency}
-                  </Text>
-                  <br />
-                </>
-              )
-            )}
-          </div>
-        </Flex>
-      );
-    }
-
-    return alertMessage ? (
-      <VStack mt="6" spacing={2} mb={6}>
-        <Alert status="error" bg="gray.700">
-          <AlertIcon mr={3} />
-          {alertMessage}
-        </Alert>
-      </VStack>
-    ) : null;
-  };
-
-  const cannonInfoDefinitionLoaded =
-    cannonfileUrlInput.length > 0 && !cannonDefInfo.error && cannonDefInfo?.def;
-
-  const partialDeployInfoLoaded =
-    !partialDeployInfo?.isFetching &&
-    !partialDeployInfo?.isError &&
-    partialDeployInfo?.ipfsQuery.data?.deployInfo;
-
-  partialDeployInfo?.ipfsQuery.data?.deployInfo;
-
-  const hasDeployers = Boolean(
-    cannonDefInfo.def?.getDeployers()?.length ?? 0 > 0
+  const tomlRequiresPrevPackage = useMemo(
+    () =>
+      Boolean(
+        cannonfileUrlInput &&
+          cannonDefInfo?.def &&
+          !hasDeployers &&
+          cannonDefInfo.def.allActionNames.some(
+            (item) => item.startsWith('deploy.') || item.startsWith('contract.')
+          )
+      ),
+    [cannonfileUrlInput, cannonDefInfo?.def, hasDeployers]
   );
 
-  const canTomlBeDeployedUsingWebsite = Boolean(
-    cannonfileUrlInput &&
-      cannonDefInfo?.def &&
-      !cannonDefInfo.def.allActionNames.some(
-        (item) => item.startsWith('deploy.') || item.startsWith('contract.')
-      )
-  );
+  const canTomlBeDeployedUsingWebsite = useMemo(() => {
+    if (!cannonDefInfo?.def) return false;
 
-  // This condition checks if the cannonfile requires to enter a value in the "Previous Package" input
-  const tomlRequiresPrevPackage = Boolean(
-    cannonfileUrlInput &&
-      cannonDefInfo?.def &&
+    // If there are no deployers defined and there are deploy/contract actions,
+    // we can't deploy from website
+    if (
       !hasDeployers &&
       cannonDefInfo.def.allActionNames.some(
         (item) => item.startsWith('deploy.') || item.startsWith('contract.')
       )
-  );
+    ) {
+      return false;
+    }
 
-  const disablePreviewButton =
-    loadingDataForDeploy ||
-    chainId !== currentSafe?.chainId ||
-    !cannonDefInfo?.def ||
-    buildState.status === 'building' ||
-    buildState.status === 'success' ||
-    (onChainPrevPkgQuery.isFetched &&
+    return true;
+  }, [cannonDefInfo?.def, hasDeployers]);
+
+  const disablePreviewButton = useMemo(() => {
+    if (
+      loadingDataForDeploy ||
+      chainId !== currentSafe?.chainId ||
+      !cannonDefInfo?.def
+    ) {
+      return true;
+    }
+
+    if (buildState.status === 'building' || buildState.status === 'success') {
+      return true;
+    }
+
+    if (
+      onChainPrevPkgQuery.isFetched &&
       !prevDeployLocation &&
       tomlRequiresPrevPackage &&
-      !previousPackageInput) ||
-    !canTomlBeDeployedUsingWebsite;
+      !previousPackageInput
+    ) {
+      return true;
+    }
 
-  const PreviewButton = ({ message }: { message?: string }) => (
-    <Tooltip label={message}>
-      <Button
-        width="100%"
-        colorScheme="teal"
-        isDisabled={disablePreviewButton}
-        onClick={handlePreviewTxnsClick}
-      >
-        {loadingDataForDeploy
-          ? 'Loading required data...'
-          : 'Preview Transactions to Queue'}
-      </Button>
-    </Tooltip>
+    return !canTomlBeDeployedUsingWebsite;
+  }, [
+    loadingDataForDeploy,
+    chainId,
+    currentSafe?.chainId,
+    cannonDefInfo?.def,
+    buildState.status,
+    onChainPrevPkgQuery.isFetched,
+    prevDeployLocation,
+    tomlRequiresPrevPackage,
+    previousPackageInput,
+    canTomlBeDeployedUsingWebsite,
+  ]);
+
+  const PreviewButton = useCallback(
+    ({ message }: { message?: string }) => {
+      const buttonText = loadingDataForDeploy
+        ? 'Loading required data...'
+        : 'Preview Transactions to Queue';
+
+      return (
+        <Tooltip label={message}>
+          <Button
+            width="100%"
+            colorScheme="teal"
+            isDisabled={disablePreviewButton}
+            onClick={handlePreviewTxnsClick}
+          >
+            {buttonText}
+          </Button>
+        </Tooltip>
+      );
+    },
+    [loadingDataForDeploy, disablePreviewButton, handlePreviewTxnsClick]
   );
 
-  function renderCannonFileInput() {
-    return (
-      <FormControl mb="4">
-        <FormLabel>Cannonfile (Optional)</FormLabel>
-        <InputGroup>
-          <Input
-            type="text"
-            placeholder="https://github.com/../cannonfile.toml"
-            value={cannonfileUrlInput}
-            borderColor={!cannonDefInfoError ? 'whiteAlpha.400' : 'red.500'}
-            isDisabled={selectedDeployType == 'partial' && !partialDeployIpfs}
-            background="black"
-            onChange={(evt: any) => setCannonfileUrlInput(evt.target.value)}
-          />
-          <InputRightElement>
-            {cannonfileUrlInput.length > 0 && cannonDefInfo?.isFetching ? (
-              <Spinner />
-            ) : cannonfileUrlInput.length > 0 &&
-              !cannonDefInfo.error &&
-              cannonDefInfo?.def ? (
-              <CheckIcon color="green.500" />
-            ) : null}
-          </InputRightElement>
-        </InputGroup>
-        <FormHelperText color="gray.300">
-          The Cannonfile URL is used to generate the deployment data to display
-          a git diff in Cannon.
-        </FormHelperText>
-        {cannonDefInfoError ? (
-          <Alert mt="6" status="error" bg="gray.700">
-            <AlertIcon mr={3} />
-            <strong>{cannonDefInfoError.toString()}</strong>
-          </Alert>
-        ) : undefined}
-      </FormControl>
-    );
-  }
-
-  function RenderPreviewButtonTooltip() {
+  const RenderPreviewButtonTooltip = useCallback(() => {
     if (!chainId) {
       return (
         <PreviewButton message="You must connect your wallet to the same chain as the selected safe to continue" />
@@ -661,10 +627,147 @@ export default function QueueFromGitOps() {
     }
 
     return <PreviewButton />;
-  }
+  }, [
+    chainId,
+    currentSafe?.chainId,
+    partialDeployInfo?.isError,
+    partialDeployInfo?.isFetching,
+    partialDeployInfo.error?.message,
+    prevCannonDeployInfo.isFetching,
+    onChainPrevPkgQuery.isFetching,
+    buildState.status,
+    cannonDefInfo?.def,
+    PreviewButton,
+  ]);
 
-  // Add this state at the top of your component
-  const [inputError, setInputError] = useState<string | null>(null);
+  const handleGenericInputChange = useCallback(
+    (input: string) => {
+      resetState();
+      setCannonfileUrlInput('');
+      setPartialDeployIpfs('');
+      setInputError(null);
+
+      const isCannonfileUrl = cannonfileUrlRegex.test(input);
+      const isIpfsHash = extractIpfsHash(input);
+
+      if (isCannonfileUrl) {
+        setSelectedDeployType('git');
+        setCannonfileUrlInput(input);
+      } else if (isIpfsHash) {
+        setSelectedDeployType('partial');
+        setPartialDeployIpfs(isIpfsHash);
+      } else if (input.trim() !== '') {
+        setInputError(
+          'Invalid input. Please enter a valid Cannonfile URL or IPFS hash.'
+        );
+      }
+    },
+    [resetState]
+  );
+
+  const cannonInfoDefinitionLoaded = useMemo(
+    () =>
+      cannonfileUrlInput.length > 0 &&
+      !cannonDefInfo.error &&
+      cannonDefInfo?.def,
+    [cannonfileUrlInput, cannonDefInfo]
+  );
+
+  const partialDeployInfoLoaded = useMemo(
+    () =>
+      !partialDeployInfo?.isFetching &&
+      !partialDeployInfo?.isError &&
+      partialDeployInfo?.ipfsQuery.data?.deployInfo,
+    [partialDeployInfo]
+  );
+
+  const renderAlert = useCallback(() => {
+    if (settings.isIpfsGateway) {
+      return (
+        <Alert status="error" bg="gray.700">
+          <AlertIcon mr={3} />
+          Your current IPFS URL is set to a gateway. Update your IPFS URL to an
+          API endpoint where you can pin files in{' '}
+          <Link as={NextLink} href="/settings">
+            settings
+          </Link>
+          .
+        </Alert>
+      );
+    }
+
+    if (cannonDefInfo?.def && cannonDefInfo.def.danglingDependencies.size > 0) {
+      return (
+        <Alert status="error" bg="gray.700">
+          <AlertIcon mr={3} />
+          <Flex direction="column">
+            <Text>
+              The cannonfile contains invalid dependencies. Please ensure the
+              following references are defined:
+            </Text>
+            <div>
+              {Array.from(cannonDefInfo.def.danglingDependencies).map(
+                (dependency) => (
+                  <React.Fragment key={dependency}>
+                    <Text as="span" fontFamily="monospace">
+                      {dependency}
+                    </Text>
+                    <br />
+                  </React.Fragment>
+                )
+              )}
+            </div>
+          </Flex>
+        </Alert>
+      );
+    }
+
+    return null;
+  }, [settings.isIpfsGateway, cannonDefInfo?.def]);
+
+  const renderCannonFileInput = useCallback(() => {
+    return (
+      <FormControl mb="4">
+        <FormLabel>Cannonfile (Optional)</FormLabel>
+        <InputGroup>
+          <Input
+            type="text"
+            placeholder="https://github.com/../cannonfile.toml"
+            value={cannonfileUrlInput}
+            borderColor={!cannonDefInfoError ? 'whiteAlpha.400' : 'red.500'}
+            isDisabled={selectedDeployType == 'partial' && !partialDeployIpfs}
+            background="black"
+            onChange={(evt) => setCannonfileUrlInput(evt.target.value)}
+          />
+          <InputRightElement>
+            {cannonfileUrlInput.length > 0 && cannonDefInfo?.isFetching ? (
+              <Spinner />
+            ) : cannonfileUrlInput.length > 0 &&
+              !cannonDefInfo.error &&
+              cannonDefInfo?.def ? (
+              <CheckIcon color="green.500" />
+            ) : null}
+          </InputRightElement>
+        </InputGroup>
+        <FormHelperText color="gray.300">
+          The Cannonfile URL is used to generate the deployment data to display
+          a git diff in Cannon.
+        </FormHelperText>
+        {cannonDefInfoError ? (
+          <Alert mt="6" status="error" bg="gray.700">
+            <AlertIcon mr={3} />
+            <strong>{cannonDefInfoError.toString()}</strong>
+          </Alert>
+        ) : undefined}
+      </FormControl>
+    );
+  }, [
+    cannonfileUrlInput,
+    cannonDefInfo,
+    cannonDefInfoError,
+    selectedDeployType,
+    partialDeployIpfs,
+  ]);
 
   return (
     <>
@@ -720,7 +823,6 @@ export default function QueueFromGitOps() {
                 : 'Use a partial deployment from a IPFS hash.'}
             </Text>
           </FormControl> */}
-
           <FormControl mb="4">
             <FormLabel>Cannonfile URL or Deployment Data IPFS Hash</FormLabel>
             <HStack>
@@ -734,28 +836,10 @@ export default function QueueFromGitOps() {
                   }
                   disabled={chainId !== currentSafe?.chainId}
                   background="black"
-                  onChange={(e) => {
-                    resetState();
-                    setCannonfileUrlInput('');
-                    setPartialDeployIpfs('');
-                    setInputError(null);
-
-                    const input = e.target.value;
-                    setGenericInput(input);
-                    const isCannonfileUrl = cannonfileUrlRegex.test(input);
-                    const isIpfsHash = extractIpfsHash(input);
-
-                    if (isCannonfileUrl) {
-                      setSelectedDeployType('git');
-                      setCannonfileUrlInput(input);
-                    } else if (isIpfsHash) {
-                      setSelectedDeployType('partial');
-                      setPartialDeployIpfs(isIpfsHash);
-                    } else if (input.trim() !== '') {
-                      setInputError(
-                        'Invalid input. Please enter a valid Cannonfile URL or IPFS hash.'
-                      );
-                    }
+                  onChange={(evt) => {
+                    const value = evt.target.value;
+                    setGenericInput(value);
+                    handleGenericInputChange(value);
                   }}
                 />
                 {selectedDeployType == 'git' && (
@@ -792,7 +876,6 @@ export default function QueueFromGitOps() {
               <FormHelperText color="red.500">{inputError}</FormHelperText>
             )}
           </FormControl>
-
           {selectedDeployType == 'git' && (
             <Flex flexDir="column" my="4">
               {onChainPrevPkgQuery.isFetched &&
@@ -818,7 +901,6 @@ export default function QueueFromGitOps() {
                 ))}
             </Flex>
           )}
-
           {/*  ipfs://Qma8R3UNPp2WQZdwZ7Ri95D4ddqT5auSpU8TUxwh4nLHij */}
           {/* {(partialDeployIpfs || cannonfileUrlInput) && (
             <FormControl display="flex" alignItems="center" my="2">
@@ -831,7 +913,6 @@ export default function QueueFromGitOps() {
               Override Previous State
             </FormControl>
           )} */}
-
           {(partialDeployInfoLoaded || tomlRequiresPrevPackage) && (
             <FormControl mb="6">
               <FormLabel>Previous Package</FormLabel>
@@ -875,13 +956,12 @@ export default function QueueFromGitOps() {
               ) : undefined}
             </FormControl>
           )}
-
           {selectedDeployType == 'partial' &&
             partialDeployIpfs.length > 0 &&
             partialDeployInfoLoaded &&
             renderCannonFileInput()}
 
-          {renderAlertMessage()}
+          {renderAlert()}
 
           {chainId !== currentSafe?.chainId ? (
             <Button
@@ -896,7 +976,6 @@ export default function QueueFromGitOps() {
           ) : (
             <RenderPreviewButtonTooltip />
           )}
-
           {buildState.message && (
             <Alert mt="6" status="info" bg="gray.800">
               <Spinner mr={3} boxSize={4} />
@@ -927,7 +1006,6 @@ export default function QueueFromGitOps() {
               </Box>
             </AlertCannon>
           )}
-
           {!!buildState.result?.deployerSteps?.length &&
             (buildState.result?.safeSteps.length || 0) > 0 && (
               <Box
@@ -1017,7 +1095,6 @@ export default function QueueFromGitOps() {
                 )}
               </Box>
             )}
-
           {writeToIpfsMutationRes?.data?.mainUrl &&
             multicallTxn?.data &&
             stager.safeTxn &&
@@ -1031,7 +1108,6 @@ export default function QueueFromGitOps() {
                 a partial deployment package.
               </AlertCannon>
             )}
-
           {writeToIpfsMutationRes?.isLoading && (
             <Alert mt="6" status="info" bg="gray.800">
               <Spinner mr={3} boxSize={4} />
