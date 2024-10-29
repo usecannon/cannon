@@ -580,7 +580,6 @@ export function useCannonWriteDeployToIpfs() {
         throw new Error('Missing required parameters');
       }
 
-      // Update the Promise type to expect WriteDeployResponse
       const workerResult = await new Promise<WriteDeployResponse>((resolve, reject) => {
         const worker = new Worker(new URL('../workers/cannon-package.worker.ts', import.meta.url));
 
@@ -604,9 +603,6 @@ export function useCannonWriteDeployToIpfs() {
         });
       });
 
-      console.log('workerResult: ', workerResult);
-
-      // Continue with registry operations that require runtime
       await runtime.registry.publish([workerResult.packageRef], runtime.chainId, workerResult.mainUrl, metaUrl || '');
 
       const memoryRegistry = new InMemoryRegistry();

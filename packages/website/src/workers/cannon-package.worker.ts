@@ -1,7 +1,6 @@
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { ChainDefinition, createInitialContext, DeploymentInfo, PackageReference } from '@usecannon/builder';
 
-// Define message types
 export type WorkerMessage =
   | {
       type: 'LOAD_PACKAGE';
@@ -19,7 +18,6 @@ export type WorkerMessage =
       };
     };
 
-// Split response payloads by operation type
 export type LoadPackageResponse = {
   deployInfo: DeploymentInfo;
   resolvedName: string;
@@ -33,7 +31,6 @@ export type WriteDeployResponse = {
   mainUrl: string;
 };
 
-// Update WorkerResponse to be more specific
 export type WorkerResponse =
   | {
       type: 'PACKAGE_LOADED';
@@ -50,7 +47,7 @@ export type WorkerResponse =
       };
     };
 
-// Handle messages from the main thread
+// handle messages from the main thread
 self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
   if (event.data.type === 'LOAD_PACKAGE') {
     try {

@@ -253,7 +253,6 @@ export default function QueueFromGitOps() {
 
   useEffect(() => {
     const callMutation = async () => {
-      console.log('buildState.status', buildState.status);
       if (['success'].includes(buildState.status)) {
         try {
           setWriteToIpfsMutationRes({
@@ -262,14 +261,11 @@ export default function QueueFromGitOps() {
             data: null,
           });
 
-          console.log('writeToIpfsMutation.mutateAsync started');
           const res = await writeToIpfsMutation.mutateAsync({
             runtime: buildState.result?.runtime,
             deployInfo: nextCannonDeployInfo,
             metaUrl: prevCannonDeployInfo.metaUrl,
           });
-
-          console.log('writeToIpfsMutation.mutateAsync ended', res);
 
           setWriteToIpfsMutationRes({
             isLoading: false,
@@ -277,7 +273,6 @@ export default function QueueFromGitOps() {
             data: res,
           });
         } catch (error) {
-          console.log('error: ', error);
           setWriteToIpfsMutationRes({
             isLoading: false,
             error: error as Error,
