@@ -6,67 +6,77 @@ import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { Tooltip } from '@chakra-ui/react';
 import { formatEther } from 'viem';
 
-export const FunctionOutput: FC<{
-  output: AbiParameter | readonly AbiParameter[];
-  result: any;
-}> = ({ output, result }) => {
-  const isArrayOutput = (
-    value: AbiParameter | readonly AbiParameter[]
-  ): value is readonly AbiParameter[] => isArray(value);
+const isArrayOutput = (
+  value: AbiParameter | readonly AbiParameter[]
+): value is readonly AbiParameter[] => isArray(value);
 
-  const hasComponents = (
-    item: AbiParameter
-  ): item is AbiParameter & { components: readonly AbiParameter[] } => {
-    return 'components' in item && isArray(item.components);
-  };
+const hasComponentsKey = (
+  item: AbiParameter
+): item is AbiParameter & { components: readonly AbiParameter[] } => {
+  return 'components' in item && isArray(item.components);
+};
 
-  const ItemLabel: FC<{ name: string; type: string }> = ({ name, type }) => (
-    <Box alignItems={'center'} gap={1} fontSize="sm" mb={0}>
-      {name?.length ? (
-        <Text pr={1} fontWeight="semibold" as="span">
-          {name}
-        </Text>
-      ) : (
-        ''
-      )}
-      <Text as="span" fontSize="xs" color="whiteAlpha.700">
-        {type}
+const ItemLabel: FC<{ name: string; type: string }> = ({ name, type }) => (
+  <Box alignItems={'center'} gap={1} fontSize="sm" mb={0}>
+    {name?.length ? (
+      <Text pr={1} fontWeight="semibold" as="span">
+        {name}
       </Text>
-    </Box>
-  );
+    ) : (
+      ''
+    )}
+    <Text as="span" fontSize="xs" color="whiteAlpha.700">
+      {type}
+    </Text>
+  </Box>
+);
 
+export const FunctionOutput: FC<{
+  abiParameters: AbiParameter | readonly AbiParameter[];
+  methodResult: any;
+}> = ({ abiParameters, methodResult }) => {
   const renderOutput = (
-    item: AbiParameter,
+    abiParameter: AbiParameter,
     value: { [key: string]: any },
     index?: number
   ) => {
-    if (item.type === 'tuple' && hasComponents(item) && value) {
+    if (
+      abiParameter.type === 'tuple' &&
+      hasComponentsKey(abiParameter) &&
+      value
+    ) {
       return (
         <Box pl="4">
           {Object.values(value).map((component: any, resIdx: number) => {
             return (
               <FunctionOutput
-                output={item.components[resIdx]}
-                result={component}
+                abiParameters={abiParameter.components[resIdx]}
+                methodResult={component}
                 key={resIdx}
               />
             );
           })}
         </Box>
       );
-    } else if (item.type === 'tuple[]' && hasComponents(item) && value) {
+    } else if (
+      abiParameter.type === 'tuple[]' &&
+      hasComponentsKey(abiParameter) &&
+      value
+    ) {
       return isArray(value)
         ? value.map((tupleItem, tupleIndex) => (
             <Box key={tupleIndex} pl="4">
               <Text as="span" fontSize="xs" color="whiteAlpha.700">
                 tuple[{tupleIndex}]
               </Text>
-              {item.components.map(
+              {abiParameter.components.map(
                 (component: AbiParameter, compIdx: number) => (
                   <FunctionOutput
                     key={compIdx}
-                    output={component}
-                    result={isArray(tupleItem) ? tupleItem[compIdx] : tupleItem}
+                    abiParameters={component}
+                    methodResult={
+                      isArray(tupleItem) ? tupleItem[compIdx] : tupleItem
+                    }
                   />
                 )
               )}
@@ -74,8 +84,8 @@ export const FunctionOutput: FC<{
           ))
         : null;
     } else {
-      if (isObject(value) && item.name && item.name in value) {
-        const outputValue = value[item.name];
+      if (isObject(value) && abiParameter.name && abiParameter.name in value) {
+        const outputValue = value[abiParameter.name];
         return (
           <Text
             display="block"
@@ -88,7 +98,7 @@ export const FunctionOutput: FC<{
           </Text>
         );
       } else if (isArray(value)) {
-        if (item.type === 'address[]') {
+        if (abiParameter.type === 'address[]') {
           return (
             <Box>
               {value.map((val, idx) => (
@@ -118,14 +128,15 @@ export const FunctionOutput: FC<{
             gap={2}
             justifyItems="center"
             py={2}
-            data-tooltip-id={`${item.name}${item.type}`}
+            data-tooltip-id={`${abiParameter.name}${abiParameter.type}`}
             data-tooltip-float
           >
-            {(item.type.includes('int128') || item.type.includes('int256')) &&
-            result ? (
+            {(abiParameter.type.includes('int128') ||
+              abiParameter.type.includes('int256')) &&
+            methodResult ? (
               <>
                 <Tooltip
-                  label={`${formatEther(result).toString()} wei`}
+                  label={`${formatEther(methodResult).toString()} wei`}
                   aria-label="Decimal Representation"
                 >
                   <Flex gap={2} alignItems="center">
@@ -134,14 +145,18 @@ export const FunctionOutput: FC<{
                       color="whiteAlpha.900"
                       verticalAlign="center"
                     >
-                      {result !== null || undefined ? String(result) : '---'}
+                      {methodResult !== null || undefined
+                        ? String(methodResult)
+                        : '---'}
                     </Text>
                   </Flex>
                 </Tooltip>
               </>
             ) : (
               <Text fontSize="xs" color="whiteAlpha.900" verticalAlign="center">
-                {result !== null || undefined ? String(result) : '---'}
+                {methodResult !== null || undefined
+                  ? String(methodResult)
+                  : '---'}
               </Text>
             )}
           </Flex>
@@ -152,7 +167,7 @@ export const FunctionOutput: FC<{
 
   return (
     <>
-      {(output as Array<any>).length == 0 && (
+      {(abiParameters as Array<any>).length == 0 && (
         <Flex flex="1">
           <Text fontSize="sm" m="auto" color="gray.500">
             <InfoOutlineIcon mt={-0.5} mr={0.5} /> This function does not return
@@ -160,20 +175,23 @@ export const FunctionOutput: FC<{
           </Text>
         </Flex>
       )}
-      {isArrayOutput(output) ? (
-        output.map((item, index) => (
+      {isArrayOutput(abiParameters) ? (
+        abiParameters.map((abiParameter, index) => (
           <Box overflowX={'scroll'} p={2} key={index}>
-            <ItemLabel name={item.name || ''} type={item.internalType || ''} />
-            {renderOutput(item, result, index)}
+            <ItemLabel
+              name={abiParameter.name || ''}
+              type={abiParameter.internalType || ''}
+            />
+            {renderOutput(abiParameter, methodResult[index], index)}
           </Box>
         ))
       ) : (
         <Box overflowX={'scroll'} p={2}>
           <ItemLabel
-            name={output.name || ''}
-            type={output.internalType || ''}
+            name={abiParameters.name || ''}
+            type={abiParameters.internalType || ''}
           />
-          {renderOutput(output, result)}
+          {renderOutput(abiParameters, methodResult)}
         </Box>
       )}
     </>
