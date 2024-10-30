@@ -46,10 +46,12 @@ import {
   ChainBuilderContext,
   DeploymentInfo,
   PackageReference,
+  RawChainDefinition,
 } from '@usecannon/builder';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Alert as AlertCannon } from '@/components/Alert';
+import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   encodeAbiParameters,
@@ -67,6 +69,7 @@ import { TransactionDisplay } from './TransactionDisplay';
 import 'react-diff-view/style/index.css';
 import { ChainDefinition } from '@usecannon/builder/dist/src';
 import { extractIpfsHash } from '@/helpers/ipfs';
+import { getChainDefinitionFromWorker } from '@/helpers/chain-definition';
 
 const EMPTY_IPFS_MISC_URL =
   'ipfs://QmeSt2mnJKE8qmRhLyYbHQQxDKpsFbcWnw5e7JF4xVbN6k';
@@ -99,27 +102,60 @@ function useMergedCannonDefInfo(
     gitFile
   );
 
-  return useMemo(() => {
-    const isLoading =
-      originalCannonDefInfo.isLoading || partialDeployInfo?.isLoading;
-    const isError = originalCannonDefInfo.isError || partialDeployInfo?.isError;
-    const isFetching =
-      originalCannonDefInfo.isFetching || partialDeployInfo?.isFetching;
-    const error = partialDeployInfo?.error || originalCannonDefInfo.error;
+  const {
+    data: workerDef,
+    error: workerError,
+    isLoading,
+  } = useQuery({
+    queryKey: [
+      'worker-def',
+      gitUrl,
+      gitRef,
+      gitFile,
+      partialDeployInfo?.ipfsQuery.data?.deployInfo,
+    ],
+    queryFn: async () => {
+      if (
+        !partialDeployInfo?.ipfsQuery.data?.deployInfo &&
+        !originalCannonDefInfo.def
+      ) {
+        return null;
+      }
 
-    // Merge the definitions if partial deploy info is available
-    const def = partialDeployInfo?.ipfsQuery.data?.deployInfo
-      ? new ChainDefinition(partialDeployInfo?.ipfsQuery.data?.deployInfo.def)
-      : originalCannonDefInfo.def;
+      const deployInfo =
+        partialDeployInfo?.ipfsQuery.data?.deployInfo?.def ||
+        originalCannonDefInfo.def;
+
+      try {
+        if (deployInfo) {
+          return await getChainDefinitionFromWorker(
+            deployInfo as RawChainDefinition
+          );
+        }
+      } catch (e) {
+        // fallback to non-worker execution if worker fails
+        return new ChainDefinition(deployInfo as RawChainDefinition);
+      }
+      return null;
+    },
+    enabled: Boolean(
+      partialDeployInfo?.ipfsQuery.data?.deployInfo || originalCannonDefInfo.def
+    ),
+  });
+
+  return useMemo(() => {
+    const isError = originalCannonDefInfo.isError || !!workerError;
+    const isFetching = originalCannonDefInfo.isFetching || isLoading;
+    const error = workerError || originalCannonDefInfo.error;
 
     return {
       isLoading,
       isFetching,
       isError,
       error,
-      def,
+      def: workerDef!,
     };
-  }, [originalCannonDefInfo, partialDeployInfo]);
+  }, [originalCannonDefInfo, workerDef, workerError, isLoading]);
 }
 
 type DeployType = 'git' | 'partial';
@@ -220,7 +256,7 @@ export default function QueueFromGitOps() {
     const version = 'latest';
     const preset = cannonDefInfo?.def.getPreset(ctx);
     setPreviousPackageInput(`${name}:${version}@${preset}`);
-  }, [cannonDefInfo?.def, selectedDeployType]);
+  }, [cannonDefInfo, cannonDefInfo?.def, selectedDeployType]);
 
   // run the build and get the list of transactions we need to run
   const { buildState, doBuild, resetState } = useCannonBuildTmp(currentSafe);

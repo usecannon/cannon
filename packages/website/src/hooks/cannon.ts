@@ -34,7 +34,6 @@ import { Abi, Address, createPublicClient, createTestClient, createWalletClient,
 import { useChainId, usePublicClient } from 'wagmi';
 // Needed to prepare mock run step with registerAction
 import '@/lib/builder';
-import { WorkerResponse, WriteDeployResponse, LoadPackageResponse } from '../workers/cannon-package.worker';
 
 type CannonTxRecord = { name: string; gas: bigint; tx: BaseTransaction };
 
@@ -580,30 +579,18 @@ export function useCannonWriteDeployToIpfs() {
         throw new Error('Missing required parameters');
       }
 
-      const workerResult = await new Promise<WriteDeployResponse>((resolve, reject) => {
-        const worker = new Worker(new URL('../workers/cannon-package.worker.ts', import.meta.url));
+      const packageRef = PackageReference.from(
+        deployInfo.def.name,
+        deployInfo.def.version,
+        deployInfo.def.preset
+      ).fullPackageRef;
 
-        worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
-          const response = event.data;
-          if (response.type === 'DEPLOY_WRITTEN') {
-            resolve(response.payload);
-          } else if (response.type === 'ERROR') {
-            reject(new Error(response.payload.message));
-          }
-          worker.terminate();
-        };
-
-        worker.postMessage({
-          type: 'WRITE_DEPLOY',
-          payload: {
-            deployInfo,
-            ipfsApiUrl: settings.ipfsApiUrl || externalLinks.IPFS_CANNON,
-            chainId: runtime.chainId,
-          },
-        });
-      });
-
-      await runtime.registry.publish([workerResult.packageRef], runtime.chainId, workerResult.mainUrl, metaUrl || '');
+      await runtime.registry.publish(
+        [packageRef],
+        runtime.chainId,
+        (await runtime.loaders.mem.put(deployInfo)) ?? '',
+        metaUrl || ''
+      );
 
       const memoryRegistry = new InMemoryRegistry();
 
@@ -614,15 +601,18 @@ export function useCannonWriteDeployToIpfs() {
           { ipfs: new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON) },
           'ipfs'
         ),
-        packageRef: workerResult.packageRef,
+        packageRef,
         chainId: runtime.chainId,
         tags: ['latest'],
         includeProvisioned: true,
       });
 
+      // load the new ipfs url
+      const mainUrl = await memoryRegistry.getUrl(packageRef, runtime.chainId);
+
       return {
-        packageRef: workerResult.packageRef,
-        mainUrl: workerResult.mainUrl,
+        packageRef,
+        mainUrl,
         publishTxns,
       };
     },
@@ -677,40 +667,35 @@ export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?:
     },
     enabled: typeof normalizedUrlOrRef === 'string' && normalizedUrlOrRef.length > 3,
     refetchOnWindowFocus: false,
-
     staleTime: 1000 * 60 * 1,
   });
 
-  // IPFS query with proper typing
-  const ipfsQuery = useQuery<LoadPackageResponse>({
+  const ipfsQuery = useQuery<{
+    deployInfo: DeploymentInfo;
+    resolvedName: string;
+    resolvedVersion: string;
+    resolvedPreset: string;
+    fullPackageRef: string;
+  }>({
     queryKey: ['cannon', 'pkg', registryQuery.data?.url],
-    queryFn: () => {
-      return new Promise<LoadPackageResponse>((resolve, reject) => {
-        const worker = new Worker(new URL('../workers/cannon-package.worker.ts', import.meta.url));
+    queryFn: async () => {
+      const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
 
-        worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
-          const response = event.data;
-          if (response.type === 'PACKAGE_LOADED') {
-            resolve(response.payload);
-          } else if (response.type === 'ERROR') {
-            reject(new Error(response.payload.message));
-          }
-          worker.terminate();
-        };
+      const deployInfo = await ipfsLoader.read(registryQuery.data!.url as any);
+      if (!deployInfo) throw new Error('failed to download package data');
 
-        worker.onerror = (error) => {
-          reject(error);
-          worker.terminate();
-        };
+      const resolvedName = deployInfo.def.name;
+      const resolvedVersion = deployInfo.def.version;
+      const resolvedPreset = deployInfo.def.preset!;
+      const { fullPackageRef } = PackageReference.from(resolvedName, resolvedVersion, resolvedPreset);
 
-        worker.postMessage({
-          type: 'LOAD_PACKAGE',
-          payload: {
-            url: registryQuery.data!.url,
-            ipfsApiUrl: settings.ipfsApiUrl || externalLinks.IPFS_CANNON,
-          },
-        });
-      });
+      return {
+        deployInfo,
+        resolvedName,
+        resolvedVersion,
+        resolvedPreset,
+        fullPackageRef,
+      };
     },
     enabled: !!registryQuery.data?.url,
     staleTime: 1000 * 60 * 1,

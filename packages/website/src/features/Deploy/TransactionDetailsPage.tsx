@@ -63,6 +63,7 @@ import { SimulateTransactionButton } from './SimulateTransactionButton';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 import 'react-diff-view/style/index.css';
+import { ChainDefinition } from '@usecannon/builder';
 
 const AdditionalSignaturesText = ({ amount }: { amount: number }) => (
   <Text fontWeight="bold" mt="3">
@@ -232,7 +233,7 @@ function TransactionDetailsPage() {
 
   const buildInfo = useCannonBuild(
     safe,
-    cannonDefInfo.def,
+    new ChainDefinition(cannonDefInfo.def!),
     prevCannonDeployInfo.ipfsQuery.data?.deployInfo
   );
 

@@ -2,15 +2,7 @@ import MulticallABI from '@/abi/Multicall.json';
 import * as git from '@/helpers/git';
 import toml from '@iarna/toml';
 import path from '@isomorphic-git/lightning-fs/src/path';
-import {
-  CANNON_CHAIN_ID,
-  ChainBuilderContext,
-  ChainDefinition,
-  InMemoryLoader,
-  InMemoryRegistry,
-  RawChainDefinition,
-  TransactionMap,
-} from '@usecannon/builder';
+import { InMemoryLoader, InMemoryRegistry, RawChainDefinition, TransactionMap } from '@usecannon/builder';
 import _ from 'lodash';
 import {
   Address,
@@ -38,24 +30,11 @@ export const inMemoryLoader = new InMemoryLoader(Math.floor(Math.random() * 1000
 
 export async function loadCannonfile(repo: string, ref: string, filepath: string) {
   const filesList = new Set<string>();
-  const [rawDef, buf] = await loadChainDefinitionToml(repo, ref, filepath, [], filesList);
-  const def = new ChainDefinition(rawDef as RawChainDefinition);
-  //const pkg = loadPackageJson(path.join(path.dirname(filepath), 'package.json'));
+  const [def, buf] = await loadChainDefinitionToml(repo, ref, filepath, [], filesList);
 
-  const ctx: ChainBuilderContext = {
-    package: {},
-    chainId: CANNON_CHAIN_ID,
-    settings: {},
-    timestamp: 0 as any, // TODO: fix this
-    contracts: {},
-    txns: {},
-    imports: {},
-    overrideSettings: {},
-  };
-
-  const name = def.getName(ctx);
-  const version = def.getVersion(ctx);
-  const preset = def.getPreset(ctx);
+  const name = def.name;
+  const version = def.version;
+  const preset = def.preset;
 
   return { def, name, version, preset, cannonfile: buf.toString(), filesList };
 }
@@ -66,7 +45,7 @@ async function loadChainDefinitionToml(
   filepath: string,
   trace: string[],
   files: Set<string>
-): Promise<[Partial<RawChainDefinition>, string]> {
+): Promise<[RawChainDefinition, string]> {
   let buf: string;
   try {
     buf = await git.readFile(repo, ref, filepath);
@@ -76,9 +55,9 @@ async function loadChainDefinitionToml(
 
   files.add(path.normalize(filepath));
 
-  let rawDef: Partial<RawChainDefinition> & { include?: string[] };
+  let rawDef: RawChainDefinition & { include?: string[] };
   try {
-    rawDef = toml.parse(buf);
+    rawDef = toml.parse(buf) as RawChainDefinition & { include?: string[] };
   } catch (err: any) {
     throw new Error(`error encountered while parsing toml file ${filepath}: ${err.toString()}`);
   }
@@ -106,7 +85,7 @@ async function loadChainDefinitionToml(
 
   _.mergeWith(assembledDef, _.omit(rawDef, 'include'), customMerge);
 
-  return [assembledDef, buf];
+  return [assembledDef as RawChainDefinition, buf];
 }
 
 export function parseHintedMulticall(data: Hex): {
