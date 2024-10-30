@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { ChainDefinition } from '@usecannon/builder';
 
 self.onmessage = (event) => {

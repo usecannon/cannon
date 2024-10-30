@@ -1,7 +1,7 @@
 // Extracted builder getOutput from ipfs logic
 
 import { getChainDefinitionFromWorker } from '@/helpers/chain-definition';
-import { ChainDefinition, ChainArtifacts, registerAction, DeploymentInfo } from '@usecannon/builder';
+import { ChainArtifacts, registerAction, DeploymentInfo } from '@usecannon/builder';
 import _ from 'lodash';
 import { z } from 'zod';
 
