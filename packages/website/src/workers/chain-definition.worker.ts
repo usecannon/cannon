@@ -1,8 +1,8 @@
+import _ from 'lodash';
 import { ChainDefinition } from '@usecannon/builder';
 
 self.onmessage = (event) => {
   try {
-    // Validate input data exists
     if (!event.data) {
       throw new Error('No chain definition data provided');
     }
@@ -12,7 +12,6 @@ self.onmessage = (event) => {
       throw new Error('Failed to create chain definition');
     }
 
-    // Return the chain definition
     self.postMessage(def);
   } catch (error: any) {
     self.postMessage({ error: error.message });

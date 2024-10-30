@@ -9,6 +9,7 @@ import { useCannonRegistry } from '@/providers/CannonRegistryProvider';
 import { useLogs } from '@/providers/logsProvider';
 import { BaseTransaction } from '@safe-global/safe-apps-sdk';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { getChainDefinitionFromWorker } from '@/helpers/chain-definition';
 import { useDeployerWallet } from './deployer';
 import {
   build as cannonBuild,
@@ -27,6 +28,7 @@ import {
   publishPackage,
   findUpgradeFromPackage,
   ChainBuilderContext,
+  RawChainDefinition,
 } from '@usecannon/builder';
 import _ from 'lodash';
 import { useEffect, useReducer, useState, useMemo } from 'react';
@@ -754,6 +756,47 @@ function getContractsRecursive(outputs: ChainArtifacts, prefix?: string): Contra
   return contracts;
 }
 
+export function useMergedCannonDefInfo(
+  gitUrl: string,
+  gitRef: string,
+  gitFile: string,
+  partialDeployInfo: ReturnType<typeof useCannonPackage>
+) {
+  const originalCannonDefInfo = useLoadCannonDefinition(gitUrl, gitRef, gitFile);
+
+  const {
+    data: workerDef,
+    error: workerError,
+    isLoading,
+  } = useQuery({
+    queryKey: ['merged-cannon-definition', gitUrl, gitRef, gitFile, partialDeployInfo?.ipfsQuery.data?.deployInfo],
+    queryFn: async () => {
+      if (!partialDeployInfo?.ipfsQuery.data?.deployInfo && !originalCannonDefInfo.def) {
+        return null;
+      }
+
+      const deployInfo = partialDeployInfo?.ipfsQuery.data?.deployInfo?.def || originalCannonDefInfo.def;
+
+      return await getChainDefinitionFromWorker(deployInfo as RawChainDefinition);
+    },
+    enabled: Boolean(partialDeployInfo?.ipfsQuery.data?.deployInfo || originalCannonDefInfo.def),
+  });
+
+  return useMemo(() => {
+    const isError = originalCannonDefInfo.isError || !!workerError;
+    const isFetching = originalCannonDefInfo.isFetching || isLoading;
+    const error = workerError || originalCannonDefInfo.error;
+
+    return {
+      isLoading,
+      isFetching,
+      isError,
+      error,
+      def: workerDef!,
+    };
+  }, [originalCannonDefInfo, workerDef, workerError, isLoading]);
+}
+
 export function useCannonPackageContracts(packageRef?: string, chainId?: number) {
   const pkg = useCannonPackage(packageRef, chainId);
   const [contracts, setContracts] = useState<ContractInfo | null>(null);
@@ -779,7 +822,9 @@ export function useCannonPackageContracts(packageRef?: string, chainId?: number)
           { ipfs: loader }
         );
 
-        const outputs = await getOutputs(readRuntime, new ChainDefinition(info.def), info.state);
+        const chainDefinition = await getChainDefinitionFromWorker(info.def);
+
+        const outputs = await getOutputs(readRuntime, chainDefinition, info.state);
 
         if (outputs) {
           setContracts(getContractsRecursive(outputs));

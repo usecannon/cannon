@@ -64,6 +64,7 @@ import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 import 'react-diff-view/style/index.css';
 import { ChainDefinition } from '@usecannon/builder';
+import { getChainDefinitionFromWorker } from '@/helpers/chain-definition';
 
 const AdditionalSignaturesText = ({ amount }: { amount: number }) => (
   <Text fontWeight="bold" mt="3">
@@ -95,6 +96,7 @@ function TransactionDetailsPage() {
   const [expandDiff, setExpandDiff] = useState<boolean>(false);
   const [executionTxnHash, setExecutionTxnHash] = useState<Hash | null>(null);
   const accountAlreadyConnected = useRef(account.isConnected);
+  const [chainDefinition, setChainDefinition] = useState<ChainDefinition>();
 
   const safe: SafeDefinition = useMemo(
     () => ({
@@ -231,16 +233,29 @@ function TransactionDetailsPage() {
     gitFile ?? ''
   );
 
+  useEffect(() => {
+    const getChainDef = async () => {
+      if (!cannonDefInfo.def) return;
+
+      const chainDefition = await getChainDefinitionFromWorker(
+        cannonDefInfo.def
+      );
+      setChainDefinition(chainDefition);
+    };
+
+    void getChainDef();
+  }, [cannonDefInfo.def]);
+
   const buildInfo = useCannonBuild(
     safe,
-    new ChainDefinition(cannonDefInfo.def!),
+    chainDefinition,
     prevCannonDeployInfo.ipfsQuery.data?.deployInfo
   );
 
   useEffect(() => {
     if (
       !safe ||
-      !cannonDefInfo.def ||
+      !chainDefinition ||
       !prevCannonDeployInfo.ipfsQuery.data?.deployInfo
     )
       return;
@@ -248,6 +263,7 @@ function TransactionDetailsPage() {
   }, [
     !isTransactionExecuted &&
       (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
+    chainDefinition,
   ]);
 
   // compare proposed build info with expected transaction batch

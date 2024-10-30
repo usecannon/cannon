@@ -9,7 +9,7 @@ import { useDeployerWallet } from '@/hooks/deployer';
 import {
   useCannonPackage,
   useCannonWriteDeployToIpfs,
-  useLoadCannonDefinition,
+  useMergedCannonDefInfo,
   useCannonFindUpgradeFromUrl,
   CannonWriteDeployToIpfsMutationResult,
   useCannonBuildTmp,
@@ -46,12 +46,10 @@ import {
   ChainBuilderContext,
   DeploymentInfo,
   PackageReference,
-  RawChainDefinition,
 } from '@usecannon/builder';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Alert as AlertCannon } from '@/components/Alert';
-import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   encodeAbiParameters,
@@ -67,9 +65,7 @@ import pkg from '../../../package.json';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
 import 'react-diff-view/style/index.css';
-import { ChainDefinition } from '@usecannon/builder/dist/src';
 import { extractIpfsHash } from '@/helpers/ipfs';
-import { getChainDefinitionFromWorker } from '@/helpers/chain-definition';
 
 const EMPTY_IPFS_MISC_URL =
   'ipfs://QmeSt2mnJKE8qmRhLyYbHQQxDKpsFbcWnw5e7JF4xVbN6k';
@@ -89,74 +85,6 @@ const ctx: ChainBuilderContext = {
   imports: {},
   overrideSettings: {},
 };
-
-function useMergedCannonDefInfo(
-  gitUrl: string,
-  gitRef: string,
-  gitFile: string,
-  partialDeployInfo: ReturnType<typeof useCannonPackage>
-) {
-  const originalCannonDefInfo = useLoadCannonDefinition(
-    gitUrl,
-    gitRef,
-    gitFile
-  );
-
-  const {
-    data: workerDef,
-    error: workerError,
-    isLoading,
-  } = useQuery({
-    queryKey: [
-      'worker-def',
-      gitUrl,
-      gitRef,
-      gitFile,
-      partialDeployInfo?.ipfsQuery.data?.deployInfo,
-    ],
-    queryFn: async () => {
-      if (
-        !partialDeployInfo?.ipfsQuery.data?.deployInfo &&
-        !originalCannonDefInfo.def
-      ) {
-        return null;
-      }
-
-      const deployInfo =
-        partialDeployInfo?.ipfsQuery.data?.deployInfo?.def ||
-        originalCannonDefInfo.def;
-
-      try {
-        if (deployInfo) {
-          return await getChainDefinitionFromWorker(
-            deployInfo as RawChainDefinition
-          );
-        }
-      } catch (e) {
-        // fallback to non-worker execution if worker fails
-        return new ChainDefinition(deployInfo as RawChainDefinition);
-      }
-      return null;
-    },
-    enabled: Boolean(
-      partialDeployInfo?.ipfsQuery.data?.deployInfo || originalCannonDefInfo.def
-    ),
-  });
-
-  return useMemo(() => {
-    const isError = originalCannonDefInfo.isError || !!workerError;
-    const isFetching = originalCannonDefInfo.isFetching || isLoading;
-    const error = workerError || originalCannonDefInfo.error;
-
-    return {
-      isLoading,
-      isFetching,
-      isError,
-      error,
-      def: workerDef!,
-    };
-  }, [originalCannonDefInfo, workerDef, workerError, isLoading]);
-}
 
 type DeployType = 'git' | 'partial';
 
@@ -250,13 +178,15 @@ export default function QueueFromGitOps() {
   }, [previousPackageInput]);
 
   useEffect(() => {
-    if (!cannonDefInfo?.def) return setPreviousPackageInput('');
+    if (!prevCannonDeployInfo.ipfsQuery.data?.deployInfo)
+      return setPreviousPackageInput('');
 
-    const name = cannonDefInfo?.def.getName(ctx);
-    const version = 'latest';
-    const preset = cannonDefInfo?.def.getPreset(ctx);
+    const name = prevCannonDeployInfo.ipfsQuery.data?.deployInfo?.def?.name;
+    const version =
+      prevCannonDeployInfo.ipfsQuery.data?.deployInfo?.def?.version || 'latest';
+    const preset = prevCannonDeployInfo.ipfsQuery.data?.deployInfo?.def?.preset;
     setPreviousPackageInput(`${name}:${version}@${preset}`);
-  }, [cannonDefInfo, cannonDefInfo?.def, selectedDeployType]);
+  }, [prevCannonDeployInfo]);
 
   // run the build and get the list of transactions we need to run
   const { buildState, doBuild, resetState } = useCannonBuildTmp(currentSafe);
@@ -618,7 +548,7 @@ export default function QueueFromGitOps() {
         </Tooltip>
       );
     },
-    [loadingDataForDeploy, disablePreviewButton, handlePreviewTxnsClick]
+    [loadingDataForDeploy, disablePreviewButton]
   );
 
   const RenderPreviewButtonTooltip = useCallback(() => {
@@ -994,7 +924,15 @@ export default function QueueFromGitOps() {
 
           {renderAlert()}
 
-          {chainId !== currentSafe?.chainId ? (
+          {!isConnected ? (
+            <Button
+              width="100%"
+              colorScheme="teal"
+              onClick={() => openConnectModal && openConnectModal()}
+            >
+              Connect wallet
+            </Button>
+          ) : chainId !== currentSafe?.chainId ? (
             <Button
               width="100%"
               colorScheme="teal"

@@ -52,44 +52,49 @@ const Interact: FC = () => {
       return;
     }
 
-    const cannonOutputs: ChainArtifacts = getOutput(deploymentData.data);
+    const processOutputs = async () => {
+      const cannonOutputs: ChainArtifacts = await getOutput(
+        deploymentData.data
+      );
+      setCannonOutputs(cannonOutputs);
 
-    setCannonOutputs(cannonOutputs);
+      const findContract = (
+        contracts: any,
+        parentModuleName: string,
+        imports: any
+      ) => {
+        if (contracts) {
+          Object.entries(contracts).forEach(([k, v]) => {
+            if (
+              parentModuleName === moduleName &&
+              k === contractName &&
+              (v as ContractData).address === contractAddress
+            ) {
+              setContract({
+                ...(v as ContractData),
+                contractName: k,
+              });
+              return;
+            }
+          });
+        }
 
-    const findContract = (
-      contracts: any,
-      parentModuleName: string,
-      imports: any
-    ) => {
-      if (contracts) {
-        Object.entries(contracts).forEach(([k, v]) => {
-          if (
-            parentModuleName === moduleName &&
-            k === contractName &&
-            (v as ContractData).address === contractAddress
-          ) {
-            setContract({
-              ...(v as ContractData),
-              contractName: k,
-            });
-            return;
-          }
-        });
-      }
-
-      if (imports) {
-        Object.entries(imports).forEach(([k, v]) =>
-          findContract(
-            (v as any).contracts,
-            parentModuleName && parentModuleName !== name
-              ? `${parentModuleName}.${k}`
-              : k,
-            (v as any).imports
-          )
-        );
-      }
+        if (imports) {
+          Object.entries(imports).forEach(([k, v]) =>
+            findContract(
+              (v as any).contracts,
+              parentModuleName && parentModuleName !== name
+                ? `${parentModuleName}.${k}`
+                : k,
+              (v as any).imports
+            )
+          );
+        }
+      };
+      findContract(cannonOutputs.contracts, name, cannonOutputs.imports);
     };
-    findContract(cannonOutputs.contracts, name, cannonOutputs.imports);
+
+    void processOutputs();
   }, [
     contractName,
     deploymentData.data,
