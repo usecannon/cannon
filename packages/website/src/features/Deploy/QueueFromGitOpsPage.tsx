@@ -449,14 +449,10 @@ export default function QueueFromGitOps() {
     doBuild(cannonDefInfo?.def, partialDeployInfo?.ipfsQuery.data?.deployInfo);
   }, [
     isConnected,
-    openConnectModal,
     chainId,
     currentSafe?.chainId,
-    switchChainAsync,
-    doBuild,
     cannonDefInfo?.def,
     partialDeployInfo?.ipfsQuery.data?.deployInfo,
-    toast,
   ]);
 
   const hasDeployers = useMemo(() => {
