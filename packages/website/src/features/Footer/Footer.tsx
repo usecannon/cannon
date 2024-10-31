@@ -1,4 +1,3 @@
-import { Flex, Box, Text, Link, Image } from '@chakra-ui/react';
 import GitHubButton from 'react-github-btn';
 import { DiscordButton } from '@/components/DiscordButton';
 
@@ -8,21 +7,17 @@ interface FooterProps {
 
 export const Footer = ({ isFixed }: FooterProps) => {
   return (
-    <Flex
-      borderTop="1px solid"
-      borderColor={isFixed ? "transparent" : "gray.700"}
-      py={[5, 5, 2]}
-      px={2}
-      backgroundColor={isFixed ? "transparent" : "black"}
-      alignItems="center"
-      flexDirection={['column', 'column', 'row']}
-      position={isFixed ? 'fixed' : 'relative'}
-      bottom={isFixed ? 0 : 'auto'}
-      width={isFixed ? '100%' : 'auto'}
-      zIndex={isFixed ? 10 : 'auto'}
+    <div
+      className={`
+        flex items-center px-2 
+        ${isFixed ? 'fixed bottom-0 w-full z-10 bg-transparent' : 'relative bg-black'}
+        ${!isFixed && 'border-t border-gray-700'}
+        flex-col sm:flex-row
+        py-5 sm:py-2
+      `}
     >
-      <Flex height="28px" mb={[3, 3, 0]}>
-        <Box mr={2}>
+      <div className="h-7 mb-3 sm:mb-0 flex">
+        <div className="mr-2">
           <GitHubButton
             href="https://github.com/usecannon/cannon"
             data-color-scheme="no-preference: dark; light: dark; dark: dark;"
@@ -30,8 +25,8 @@ export const Footer = ({ isFixed }: FooterProps) => {
           >
             Cannon on GitHub
           </GitHubButton>
-        </Box>
-        <Box mr={2}>
+        </div>
+        <div className="mr-2">
           <GitHubButton
             href="https://github.com/usecannon/cannon"
             data-color-scheme="no-preference: dark; light: dark; dark: dark;"
@@ -42,54 +37,39 @@ export const Footer = ({ isFixed }: FooterProps) => {
           >
             Star
           </GitHubButton>
-        </Box>
+        </div>
         <DiscordButton />
-      </Flex>
-      <Box ml={[0, 0, 'auto']} mr={[0, 0, 1]}>
-        <Text
-          fontWeight="600"
-          fontSize="md"
-          color="white"
-          opacity={0.8}
-          letterSpacing="0.2px"
-        >
+      </div>
+      <div className="sm:ml-auto sm:mr-1">
+        <p className="font-semibold text-md text-white/80 tracking-wider">
           Supported by
-          <Link
-            display="inline-block"
-            isExternal
-            mx="1.5"
+          <a
+            className="inline-block mx-1.5 text-white no-underline hover:no-underline"
             href="https://optimism.io/"
-            color="white"
-            textDecoration="none"
-            _hover={{ textDecoration: 'none' }}
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            <Image
-              height="12px"
+            <img
+              className="h-3 object-cover"
               src="/images/optimism.svg"
               alt="Optimism"
-              objectFit="cover"
             />
-          </Link>
+          </a>
           and
-          <Link
-            display="inline-block"
-            isExternal
-            mx="2"
+          <a
+            className="inline-block mx-2 text-white no-underline hover:no-underline translate-y-0.5"
             href="https://safe.global/"
-            color="white"
-            textDecoration="none"
-            _hover={{ textDecoration: 'none' }}
-            transform="translateY(2px)"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            <Image
-              height="16px"
+            <img
+              className="h-4 object-cover"
               src="/images/safe.svg"
               alt="Safe"
-              objectFit="cover"
             />
-          </Link>
-        </Text>
-      </Box>
-    </Flex>
+          </a>
+        </p>
+      </div>
+    </div>
   );
 };
