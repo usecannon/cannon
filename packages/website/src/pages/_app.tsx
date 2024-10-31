@@ -2,7 +2,6 @@
 
 import { Footer } from '@/features/Footer/Footer';
 import { Header } from '@/features/Header/Header';
-import { Flex } from '@chakra-ui/react';
 import { Analytics } from '@vercel/analytics/react';
 import NextTopLoader from 'nextjs-toploader';
 import { Inter, Miriam_Libre, Roboto_Mono, Outfit } from 'next/font/google';
@@ -77,19 +76,14 @@ export default function RootLayout({
         height={1}
       />
       <Providers>
-        <Flex
-          flexDirection="column"
-          backgroundColor="black"
-          minHeight="100vh"
-          position="relative"
-        >
+        <div className="flex flex-col bg-black min-h-screen relative">
           <Header />
-          <Flex flex="1" zIndex={1} pb={isHomePage ? '80px' : 0}>
+          <div className="flex flex-1 z-[1] pb-[80px]" style={{ paddingBottom: isHomePage ? '80px' : 0 }}>
             {getLayout(<Component {...pageProps} />)}
-          </Flex>
+          </div>
           <Footer isFixed={isHomePage} />
           <NoSsrE2EWalletConnector />
-        </Flex>
+        </div>
       </Providers>
       <Analytics />
     </>
