@@ -82,9 +82,21 @@ const SettingsButton = () => {
 
 export const Header = () => {
   const breakpoint = useBreakpoint({ ssr: false });
+  const router = useRouter();
+  const isHomePage = router.pathname === '/';
 
   return (
-    <Box bg="black" borderBottom="1px solid" borderColor="gray.700">
+    <Box 
+      position={isHomePage ? "fixed" : "relative"}
+      top={0} 
+      left={0} 
+      right={0} 
+      zIndex={100}
+      borderBottom={isHomePage ? "none" : "1px solid"}
+      borderColor={isHomePage ? "transparent" : "gray.700"}
+      bg={isHomePage ? 'transparent' : 'black'}
+      transition="background-color 0.2s"
+    >
       <Flex align="center" pt={[4, 4, 0]} px={3} flexWrap="wrap">
         <Link
           href={links.HOMEPAGE}
@@ -112,6 +124,7 @@ export const Header = () => {
           letterSpacing="1px"
           fontFamily="var(--font-miriam)"
           pt={0.5}
+          color="gray.100"
         >
           Beta
         </Tag>

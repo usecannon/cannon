@@ -5,13 +5,14 @@ import { Header } from '@/features/Header/Header';
 import { Flex } from '@chakra-ui/react';
 import { Analytics } from '@vercel/analytics/react';
 import NextTopLoader from 'nextjs-toploader';
-import { Inter, Miriam_Libre, Roboto_Mono } from 'next/font/google';
+import { Inter, Miriam_Libre, Roboto_Mono, Outfit } from 'next/font/google';
 import { ReactElement, useEffect } from 'react';
 import Providers from './_providers';
 import { DefaultSeo } from 'next-seo';
 import '@/styles/globals.css';
 import defaultSEO from '@/constants/defaultSeo';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/router';
 
 const NoSsrE2EWalletConnector = dynamic(
   () => import('../../cypress/utils/E2EWalletConnector'),
@@ -35,6 +36,11 @@ const mono = Roboto_Mono({
   weight: ['400'],
   display: 'swap',
 });
+const outfit = Outfit({
+  subsets: ['latin'],
+  weight: ['400'],
+  display: 'swap',
+});
 
 export default function RootLayout({
   Component,
@@ -43,7 +49,9 @@ export default function RootLayout({
   Component: any;
   pageProps: any;
 }) {
+  const router = useRouter();
   const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
+  const isHomePage = router.pathname === '/';
 
   useEffect(() => {
     document.body.classList.remove('fouc-prevention');
@@ -58,9 +66,7 @@ export default function RootLayout({
             --font-miriam: ${miriam.style.fontFamily};
             --font-inter: ${inter.style.fontFamily};
             --font-mono: ${mono.style.fontFamily};
-          }
-          *:focus {
-            outline: none;
+            --font-outfit: ${outfit.style.fontFamily};
           }
         `}
       </style>
@@ -77,9 +83,11 @@ export default function RootLayout({
           minHeight="100vh"
           position="relative"
         >
-          <Header /> {/* 0.1MB */}
-          <Flex flex="1">{getLayout(<Component {...pageProps} />)}</Flex>
-          <Footer />
+          <Header />
+          <Flex flex="1" zIndex={1} pb={isHomePage ? '80px' : 0}>
+            {getLayout(<Component {...pageProps} />)}
+          </Flex>
+          <Footer isFixed={isHomePage} />
           <NoSsrE2EWalletConnector />
         </Flex>
       </Providers>

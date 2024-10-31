@@ -2,16 +2,24 @@ import { Flex, Box, Text, Link, Image } from '@chakra-ui/react';
 import GitHubButton from 'react-github-btn';
 import { DiscordButton } from '@/components/DiscordButton';
 
-export const Footer = () => {
+interface FooterProps {
+  isFixed?: boolean;
+}
+
+export const Footer = ({ isFixed }: FooterProps) => {
   return (
     <Flex
       borderTop="1px solid"
-      borderColor="gray.700"
+      borderColor={isFixed ? "transparent" : "gray.700"}
       py={[5, 5, 2]}
       px={2}
-      backgroundColor="black"
+      backgroundColor={isFixed ? "transparent" : "black"}
       alignItems="center"
       flexDirection={['column', 'column', 'row']}
+      position={isFixed ? 'fixed' : 'relative'}
+      bottom={isFixed ? 0 : 'auto'}
+      width={isFixed ? '100%' : 'auto'}
+      zIndex={isFixed ? 10 : 'auto'}
     >
       <Flex height="28px" mb={[3, 3, 0]}>
         <Box mr={2}>
