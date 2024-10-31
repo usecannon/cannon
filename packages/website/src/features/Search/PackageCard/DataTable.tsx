@@ -2,24 +2,19 @@
 import * as React from 'react';
 import {
   Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  Link,
-  chakra,
-  Tooltip,
-  Text,
-  Box,
-} from '@chakra-ui/react';
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  ArrowUpDownIcon,
+  CaretDownIcon,
+  CaretUpIcon,
+  ArrowDownIcon,
   ArrowRightIcon,
-  QuestionOutlineIcon,
-} from '@chakra-ui/icons';
+  QuestionMarkCircledIcon,
+} from "@radix-ui/react-icons";
 import {
   useReactTable,
   flexRender,
@@ -27,9 +22,10 @@ import {
   SortingState,
   getSortedRowModel,
 } from '@tanstack/react-table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import Chain from './Chain';
 import { format, formatDistanceToNow } from 'date-fns';
-import NextLink from 'next/link';
+import Link from 'next/link';
 
 export type DataTableProps<Data extends object> = {
   data: Data[];
@@ -52,7 +48,6 @@ const formatIPFS = (input: string, partLength: number): string => {
   return `${prefix}${startPart}...${endPart}`;
 };
 
-// TODO: add types
 const getCellContent = ({ cell }: { cell: any }) => {
   const timeAgo = formatDistanceToNow(
     new Date(cell.row.original.published * 1000),
@@ -72,16 +67,23 @@ const getCellContent = ({ cell }: { cell: any }) => {
     }
     case 'deployUrl': {
       return (
-        <Text fontFamily="mono" fontSize="12px" transform="translateY(1px)">
+        <code className="text-xs translate-y-[1px]">
           {formatIPFS(cell.row.original.deployUrl, 10)}
-        </Text>
+        </code>
       );
     }
     case 'published': {
-      return <Tooltip label={tooltipTime}>{timeAgo}</Tooltip>;
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>{timeAgo}</TooltipTrigger>
+            <TooltipContent>{tooltipTime}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
     }
     case 'arrow': {
-      return <ArrowRightIcon boxSize={3} />;
+      return <ArrowRightIcon className="h-3 w-3" />;
     }
     default: {
       return <>{flexRender(cell.column.columnDef.cell, cell.getContext())}</>;
@@ -109,111 +111,83 @@ export function DataTable<Data extends object>({
   });
 
   return (
-    <Table size="sm">
-      <Thead>
+    <Table className="[&_tr:last-child_td]:border-0">
+      <TableHeader>
         {table.getHeaderGroups().map((headerGroup) => (
-          <Tr key={headerGroup.id}>
+          <TableRow key={headerGroup.id}>
             {headerGroup.headers.map((header) => {
-              // see https://tanstack.com/table/v8/docs/api/core/column-def#meta to type this correctly
               const meta: any = header.column.columnDef.meta;
               return (
-                <Th
+                <TableHead
                   key={header.id}
                   onClick={header.column.getToggleSortingHandler()}
-                  isNumeric={meta?.isNumeric}
-                  color="gray.200"
-                  borderColor="gray.600"
-                  textTransform="none"
-                  letterSpacing="normal"
-                  fontSize="sm"
-                  fontWeight={500}
-                  py={2}
-                  cursor="pointer"
-                  whiteSpace="nowrap"
+                  className={`
+                    text-gray-200 border-gray-600 normal-case tracking-normal text-sm font-medium py-2 
+                    cursor-pointer whitespace-nowrap
+                    ${meta?.isNumeric ? 'text-right' : ''}
+                  `}
                 >
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )}
+                  {flexRender(header.column.columnDef.header, header.getContext())}
                   {header.column.columnDef.accessorKey !== 'arrow' && (
-                    <chakra.span display="inline-block" h="12px" w="12px">
+                    <span className="inline-block h-3 w-3">
                       {header.column.getIsSorted() ? (
                         header.column.getIsSorted() === 'desc' ? (
-                          <ChevronDownIcon
-                            boxSize={4}
-                            aria-label="sorted descending"
-                            transform="translateY(2.5px)"
-                          />
+                          <CaretDownIcon className="h-4 w-4 translate-y-[2.5px]" aria-label="sorted descending" />
                         ) : (
-                          <ChevronUpIcon
-                            boxSize={4}
-                            aria-label="sorted ascending"
-                            transform="translateY(-2.5px)"
-                          />
+                          <CaretUpIcon className="h-4 w-4 -translate-y-[2.5px]" aria-label="sorted ascending" />
                         )
                       ) : (
-                        <ArrowUpDownIcon
-                          boxSize={2.5}
-                          transform="translateX(2.5px)"
-                        />
+                        <ArrowDownIcon className="h-2.5 w-2.5 translate-x-[2.5px] rotate-180" />
                       )}
-                    </chakra.span>
+                    </span>
                   )}
-                  {header.column.columnDef.accessorKey == 'preset' && (
-                    <Tooltip label="Presets are useful for distinguishing multiple deployments of the same protocol on the same chain.">
-                      <QuestionOutlineIcon ml={1.5} opacity={0.8} />
-                    </Tooltip>
+                  {header.column.columnDef.accessorKey === 'preset' && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <QuestionMarkCircledIcon className="ml-1.5 opacity-80 h-4 w-4" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Presets are useful for distinguishing multiple deployments of the same protocol on the same chain.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
-                </Th>
+                </TableHead>
               );
             })}
-          </Tr>
+          </TableRow>
         ))}
-      </Thead>
-      <Tbody>
-        {table.getRowModel().rows.map((row, rowInd) => {
+      </TableHeader>
+      <TableBody>
+        {table.getRowModel().rows.map((row) => {
           const variant = `${row.original.chain}-${row.original.preset}`;
           return (
-            <Tr key={row.id} _hover={{ backgroundColor: 'gray.900' }}>
+            <TableRow key={row.id} className="hover:bg-gray-900">
               {row.getVisibleCells().map((cell) => {
-                // see https://tanstack.com/table/v8/docs/api/core/column-def#meta to type this correctly
                 const meta: any = cell.column.columnDef.meta;
-
                 return (
-                  <Td
+                  <TableCell
                     key={cell.id}
-                    position="relative"
-                    overflow="hidden"
-                    isNumeric={meta?.isNumeric}
-                    borderColor="gray.600"
-                    borderBottom={
-                      table.getRowModel().rows.length == rowInd + 1
-                        ? 'none'
-                        : undefined
-                    }
-                    whiteSpace="nowrap"
+                    className={`
+                      relative overflow-hidden border-gray-600 whitespace-nowrap
+                      ${meta?.isNumeric ? 'text-right' : ''}
+                    `}
                   >
                     <Link
-                      zIndex={10}
-                      as={NextLink}
                       href={`/packages/${packageName}/${row.original.version}/${variant}`}
-                      position="absolute"
-                      display="block"
-                      w="100%"
-                      h="100%"
-                      top={0}
-                      left={0}
+                      className="absolute inset-0 z-10 block"
                     />
-                    <Box position="relative" zIndex={1}>
+                    <div className="relative z-1">
                       {getCellContent({ cell })}
-                    </Box>
-                  </Td>
+                    </div>
+                  </TableCell>
                 );
               })}
-            </Tr>
+            </TableRow>
           );
         })}
-      </Tbody>
+      </TableBody>
     </Table>
   );
 }

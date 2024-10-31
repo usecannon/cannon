@@ -1,21 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import { groupBy } from 'lodash';
 import {
-  Flex,
-  Box,
-  Text,
-  useBreakpointValue,
-  Container,
   Accordion,
-  AccordionButton,
-  AccordionIcon,
+  AccordionContent,
   AccordionItem,
-  AccordionPanel,
-} from '@chakra-ui/react';
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { PackageCardExpandable } from './PackageCard/PackageCardExpandable';
 import { CustomSpinner } from '@/components/CustomSpinner';
-import { groupBy } from 'lodash';
 import { ChainFilter } from './ChainFilter';
 import { useQuery } from '@tanstack/react-query';
 import { getChains, getPackages } from '@/helpers/api';
@@ -26,12 +20,6 @@ export const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedChains, setSelectedChains] = useState<number[]>([]);
   const { getChainById } = useCannonChains();
-
-  const isSmall = useBreakpointValue({
-    base: true,
-    sm: true,
-    md: false,
-  });
 
   const toggleChainSelection = (id: number) => {
     setSelectedChains((prevSelectedChains) =>
@@ -88,44 +76,22 @@ export const SearchPage = () => {
   const groupedPackages = groupBy(packagesQuery?.data?.data, 'name');
 
   return (
-    <Flex flex="1" direction="column" maxWidth="100vw">
-      <Flex flex="1" direction={['column', 'column', 'row']}>
-        <Flex
-          flexDirection="column"
-          overflowY="auto"
-          maxWidth={['100%', '100%', '320px']}
-          borderRight={isSmall ? 'none' : '1px solid'}
-          borderColor="gray.700"
-          width={['100%', '100%', '310px']}
-          maxHeight={['none', 'none', 'calc(100vh - 100px)']}
-        >
-          <Box
-            py={[4, 4, 8]}
-            px={4}
-            pb={[0, 0, 4]}
-            maxHeight={{ base: '210px', md: 'none' }}
-            position="relative" // Added to position the pseudo-element
-            sx={{
-              '&::after': {
-                content: '""', // Necessary for the pseudo-element to work
-                position: 'sticky',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                height: '12px', // Height of the shadow
-                background:
-                  'linear-gradient(to bottom, rgba(0, 0, 0, 0), #000000)', // Gradient shadow
-                display: { base: 'block', md: 'none' }, // Only show on base breakpoint
-              },
-            }}
-          >
-            <Box mb={[4, 4, 8]}>
+    <div className="flex flex-1 flex-col max-w-[100vw]">
+      <div className="flex flex-1 flex-col md:flex-row">
+        {/* Sidebar */}
+        <div className="flex flex-col overflow-y-auto w-full md:w-[320px] md:max-w-[320px] md:border-r md:border-gray-700 md:h-[calc(100vh-100px)]">
+          <div className="relative py-4 md:py-8 px-4 md:pb-4 max-h-[210px] md:max-h-none">
+            {/* Shadow overlay for mobile */}
+            <div className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-b from-transparent to-background md:hidden" />
+            
+            <div className="mb-4 md:mb-8">
               <SearchInput onSearchChange={setSearchTerm} />
-            </Box>
+            </div>
 
-            <Text mb={1.5} color="gray.200" fontSize="sm" fontWeight={500}>
+            <p className="mb-1.5 text-gray-200 text-sm font-medium">
               Filter by Chain
-            </Text>
+            </p>
+            
             {sortedMainnetChainIds.map((id) => (
               <ChainFilter
                 key={id}
@@ -135,25 +101,14 @@ export const SearchPage = () => {
               />
             ))}
 
-            <Accordion allowToggle>
-              <AccordionItem border="none">
-                <AccordionButton px={0} pb={0}>
-                  <Text
-                    fontWeight={500}
-                    textTransform="uppercase"
-                    letterSpacing="1px"
-                    fontFamily="var(--font-miriam)"
-                    fontSize="12px"
-                    color="gray.300"
-                    mr={0.5}
-                  >
+            <Accordion type="single" collapsible>
+              <AccordionItem value="testnets">
+                <AccordionTrigger className="px-0 pb-0">
+                  <span className="font-[var(--font-miriam)] uppercase tracking-wider text-xs text-gray-300">
                     Testnets
-                  </Text>
-                  <Box transform="translateY(-0.1rem)">
-                    <AccordionIcon color="gray.300" />
-                  </Box>
-                </AccordionButton>
-                <AccordionPanel px={0} pb={0}>
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="px-0 pb-0">
                   {sortedTestnetChainIds.map((id) => (
                     <ChainFilter
                       key={id}
@@ -162,44 +117,35 @@ export const SearchPage = () => {
                       toggleSelection={toggleChainSelection}
                     />
                   ))}
-                </AccordionPanel>
+                </AccordionContent>
               </AccordionItem>
             </Accordion>
-          </Box>
-        </Flex>
-        <Box
-          flex="1"
-          overflowY="auto"
-          maxHeight={['none', 'none', 'calc(100vh - 100px)']}
-        >
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 overflow-y-auto md:h-[calc(100vh-100px)] px-4">
           {packagesQuery.isPending ? (
-            <Flex
-              justifyContent="center"
-              alignItems="center"
-              flex={1}
-              height="100%"
-            >
+            <div className="flex justify-center items-center flex-1 h-full">
               <CustomSpinner />
-            </Flex>
+            </div>
           ) : Object.values(groupedPackages).length == 0 ? (
-            <Flex w="100%" h="100%">
-              <Text m="auto" color="gray.400">
-                No results
-              </Text>
-            </Flex>
+            <div className="flex w-full h-full">
+              <p className="m-auto text-gray-400">No results</p>
+            </div>
           ) : (
-            <Box px={0} pt={isSmall ? 4 : 8}>
-              <Container ml={0} maxWidth="container.xl">
+            <div className="px-0 pt-4 md:pt-8">
+              <div className="ml-0 max-w-[1280px]">
                 {Object.values(groupedPackages).map((pkgs: any) => (
-                  <Box mb="8" key={pkgs[0].name}>
+                  <div className="mb-8" key={pkgs[0].name}>
                     <PackageCardExpandable pkgs={pkgs} key={pkgs[0].name} />
-                  </Box>
+                  </div>
                 ))}
-              </Container>
-            </Box>
+              </div>
+            </div>
           )}
-        </Box>
-      </Flex>
-    </Flex>
+        </div>
+      </div>
+    </div>
   );
 };
