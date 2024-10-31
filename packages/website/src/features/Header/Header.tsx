@@ -111,7 +111,7 @@ export const Header = () => {
               src="/images/logo.svg"
               alt="Cannon"
               h="28px"
-              w="148px"
+              w="151px"
               objectFit="cover"
             />
           </Flex>
