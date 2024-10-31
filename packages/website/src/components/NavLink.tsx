@@ -26,7 +26,6 @@ export const NavLink: FC<INavLinkProps> = ({
         hover:text-white
         transition-colors
         ${isActive ? 'after:content-[""] after:absolute after:bottom-[-1px] after:left-0 after:right-0 after:h-0.5 after:rounded-sm after:bg-teal-400' : ''}
-        hover:shadow-[0px_0px_4px_rgba(255,255,255,0.44)]
       `}
       {...(href.startsWith('https://') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
     >
