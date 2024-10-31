@@ -22,7 +22,6 @@ import {
   Alert,
   AlertIcon,
   Box,
-  Button,
   Code,
   Container,
   Flex,
@@ -50,6 +49,7 @@ import {
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Alert as AlertCannon } from '@/components/Alert';
+import { Button as ButtonCannon } from '@/components/Button';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   encodeAbiParameters,
@@ -553,31 +553,33 @@ export default function QueueFromGitOps() {
       )
   );
 
-  const disablePreviewButton =
-    loadingDataForDeploy ||
-    chainId !== currentSafe?.chainId ||
-    !cannonDefInfo?.def ||
-    buildState.status === 'building' ||
-    buildState.status === 'success' ||
+  const previewDisabledReason: string =
+    (loadingDataForDeploy && 'Loading package data...') ||
+    (chainId !== currentSafe?.chainId && 'Wallet Chain ID is incorrect') ||
+    (!cannonDefInfo?.def && 'Cannon chain definition could not be loaded') ||
+    (buildState.status === 'building' && 'Simulation in progress...') ||
+    (buildState.status === 'success' && 'Build is complete') ||
     (onChainPrevPkgQuery.isFetched &&
       !prevDeployLocation &&
       tomlRequiresPrevPackage &&
-      !previousPackageInput) ||
-    !canTomlBeDeployedUsingWebsite;
+      !previousPackageInput &&
+      'Loading previous package data...') ||
+    (!canTomlBeDeployedUsingWebsite &&
+      'Package is not deployable with website (see alert)') ||
+    '';
 
+  // TODO: clean up, disabled reason handling is kind of wierd here
   const PreviewButton = ({ message }: { message?: string }) => (
-    <Tooltip label={message}>
-      <Button
-        width="100%"
-        colorScheme="teal"
-        isDisabled={disablePreviewButton}
-        onClick={handlePreviewTxnsClick}
-      >
-        {loadingDataForDeploy
-          ? 'Loading required data...'
-          : 'Preview Transactions to Queue'}
-      </Button>
-    </Tooltip>
+    <ButtonCannon
+      width="100%"
+      colorScheme="teal"
+      disabledReason={message || previewDisabledReason}
+      onClick={handlePreviewTxnsClick}
+    >
+      {loadingDataForDeploy
+        ? 'Loading required data...'
+        : 'Preview Transactions to Queue'}
+    </ButtonCannon>
   );
 
   function renderCannonFileInput() {
@@ -876,7 +878,7 @@ export default function QueueFromGitOps() {
           {renderAlertMessage()}
 
           {chainId !== currentSafe?.chainId ? (
-            <Button
+            <ButtonCannon
               width="100%"
               colorScheme="teal"
               onClick={() =>
@@ -884,7 +886,7 @@ export default function QueueFromGitOps() {
               }
             >
               Switch Network
-            </Button>
+            </ButtonCannon>
           ) : (
             <RenderPreviewButtonTooltip />
           )}
@@ -943,7 +945,7 @@ export default function QueueFromGitOps() {
                         the button below.
                       </Text>
                     </Text>
-                    <Button
+                    <ButtonCannon
                       onClick={() =>
                         deployer.queueTransactions(
                           buildState.result!.deployerSteps.map(
@@ -953,7 +955,7 @@ export default function QueueFromGitOps() {
                       }
                     >
                       Execute Outside Safe Txns
-                    </Button>
+                    </ButtonCannon>
                   </VStack>
                 ) : deployer.executionProgress.length <
                   deployer.queuedTransactions.length ? (
@@ -1040,55 +1042,53 @@ export default function QueueFromGitOps() {
               <HStack gap="6">
                 {stager.execConditionFailed &&
                 (buildState.result?.safeSteps.length || 0) > 0 ? (
-                  <Tooltip label={stager.signConditionFailed}>
-                    <Button
-                      isDisabled={
-                        !!stager.signConditionFailed || stager.signing
-                      }
-                      colorScheme="teal"
-                      size="lg"
-                      w="100%"
-                      onClick={async () => {
-                        await stager.sign();
-                      }}
-                    >
-                      {stager.signing ? (
-                        <>
-                          Currently Signing
-                          <Spinner size="sm" ml={2} />
-                        </>
-                      ) : (
-                        'Queue & Sign'
-                      )}
-                    </Button>
-                  </Tooltip>
-                ) : null}
-                <Tooltip label={stager.execConditionFailed}>
-                  <Button
-                    isDisabled={
-                      !!stager.execConditionFailed || isOutsideSafeTxnsRequired
+                  <ButtonCannon
+                    disabledReason={
+                      stager.signConditionFailed ||
+                      (stager.signing && 'Currently signing (check wallet)...')
                     }
-                    size="lg"
                     colorScheme="teal"
+                    size="lg"
                     w="100%"
-                    onClick={() => {
-                      execTxn.writeContract(stager.executeTxnConfig!, {
-                        onSuccess: () => {
-                          router.push(links.DEPLOY);
-
-                          toast({
-                            title: 'You successfully executed the transaction.',
-                            status: 'success',
-                            duration: 5000,
-                            isClosable: true,
-                          });
-                        },
-                      });
+                    onClick={async () => {
+                      await stager.sign();
                     }}
                   >
-                    Execute
-                  </Button>
-                </Tooltip>
+                    {stager.signing ? (
+                      <>
+                        Currently Signing
+                        <Spinner size="sm" ml={2} />
+                      </>
+                    ) : (
+                      'Queue & Sign'
+                    )}
+                  </ButtonCannon>
+                ) : null}
+                <ButtonCannon
+                  disabledReason={
+                    stager.execConditionFailed ||
+                    (isOutsideSafeTxnsRequired && 'Safe txns not required')
+                  }
+                  size="lg"
+                  colorScheme="teal"
+                  w="100%"
+                  onClick={() => {
+                    execTxn.writeContract(stager.executeTxnConfig!, {
+                      onSuccess: () => {
+                        router.push(links.DEPLOY);
+
+                        toast({
+                          title: 'You successfully executed the transaction.',
+                          status: 'success',
+                          duration: 5000,
+                          isClosable: true,
+                        });
+                      },
+                    });
+                  }}
+                >
+                  Execute
+                </ButtonCannon>
               </HStack>
             </Box>
           )}
