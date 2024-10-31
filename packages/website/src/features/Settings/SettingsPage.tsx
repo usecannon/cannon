@@ -1,45 +1,21 @@
 'use client';
 import NextLink from 'next/link';
-import {
-  Box,
-  Button,
-  Code,
-  Container,
-  FormControl,
-  FormHelperText,
-  FormLabel,
-  Heading,
-  Input,
-  Link,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
-} from '@chakra-ui/react';
 import { links } from '@/constants/links';
 import { Alert } from '@/components/Alert';
 import CustomProviders from '@/features/Settings/CustomProviders';
 import SafeTransactionService from '@/features/Settings/SafeTransactionService';
 import { initialState, useStore } from '@/helpers/store';
 import { FC, PropsWithChildren } from 'react';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
 
 const SectionBox: FC<PropsWithChildren> = ({ children }) => (
-  <Box
-    mb={6}
-    p={6}
-    bg="gray.800"
-    display="block"
-    borderWidth="1px"
-    borderStyle="solid"
-    borderColor="gray.600"
-    borderRadius="4px"
-  >
+  <Card className="mb-6 p-6 bg-gray-900 border border-gray-800 rounded">
     {children}
-  </Box>
+  </Card>
 );
 
 export default function SettingsPage() {
@@ -47,137 +23,113 @@ export default function SettingsPage() {
   const setSettings = useStore((s) => s.setSettings);
 
   return (
-    <Container maxW="100%" w="container.md">
-      <Box>
-        <Alert status="info" my="10">
+    <div className="container.md mx-auto max-w-screen-lg">
+      <div>
+        <Alert status="info" className="my-10">
           Changes to settings automatically persist in your web browser.
         </Alert>
 
-        <Heading size="lg" mb={6}>
-          Settings
-        </Heading>
+        <h1 className="text-2xl font-bold mb-6">Settings</h1>
 
         <SectionBox>
           <CustomProviders />
         </SectionBox>
 
         <SectionBox>
-          <Heading size="md" mb={3}>
-            Ethereum
-          </Heading>
-          <Box mb="6"></Box>
+          <h2 className="text-xl font-semibold mb-3">Ethereum</h2>
+          <div className="mb-6"></div>
 
-          <Heading size="sm" fontWeight={600} mb={1}>
-            Oracle Multicalls
-          </Heading>
-          <Text fontSize="sm" mb={3}>
+          <h3 className="text-lg font-semibold mb-1">Oracle Multicalls</h3>
+          <p className="text-sm mb-3">
             Cannon implements{' '}
-            <Link isExternal href="https://eips.ethereum.org/EIPS/eip-7412">
+            <a 
+              href="https://eips.ethereum.org/EIPS/eip-7412"
+              className="text-blue-400 hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               ERC-7412
-            </Link>{' '}
+            </a>{' '}
             to automatically compose transactions that require oracle data and
             fees. This is primarily used in the Interact tabs in the{' '}
-            <Link as={NextLink} href="/search">
+            <NextLink href="/search" className="text-blue-400 hover:underline">
               package explorer
-            </Link>
+            </NextLink>
             . Multicalls are composed using a{' '}
-            <Link
-              as={NextLink}
+            <NextLink 
               href="/packages/trusted-multicall-forwarder/latest/13370-main"
+              className="text-blue-400 hover:underline"
             >
               trusted multicall forwarder
-            </Link>{' '}
+            </NextLink>{' '}
             if integrated with the target protocol.
-          </Text>
-          <Box>
-            <TableContainer>
-              <Table variant="simple">
-                <Thead>
-                  <Tr>
-                    <Th color="gray.400" px={0} pb={2} borderColor="gray.500">
-                      Oracle ID
-                    </Th>
-                    <Th color="gray.400" px={0} pb={2} borderColor="gray.500">
-                      Settings
-                    </Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  <Tr>
-                    <Td px={0} borderColor="gray.500">
-                      <Code fontSize="lg" p={0}>
-                        PYTH
-                      </Code>
-                    </Td>
-                    <Td px={0} borderColor="gray.500">
-                      <FormControl>
-                        <FormLabel>Price Service Endpoint</FormLabel>
-                        <Input
-                          bg="black"
-                          borderColor="whiteAlpha.400"
-                          type={'text'}
-                          name={'pyth'}
-                          value={settings.pythUrl}
-                          onChange={(evt) =>
-                            setSettings({ pythUrl: evt.target.value })
-                          }
-                        />
-                        <FormHelperText color="gray.400">
-                          You can{' '}
-                          <Link
-                            isExternal
-                            href="https://docs.pyth.network/documentation/pythnet-price-feeds/price-service"
-                          >
-                            host your own price service
-                          </Link>
-                          .
-                        </FormHelperText>
-                      </FormControl>
-                    </Td>
-                  </Tr>
-                </Tbody>
-              </Table>
-            </TableContainer>
-          </Box>
+          </p>
+
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-gray-400 px-0 pb-2 border-gray-500">Oracle ID</TableHead>
+                <TableHead className="text-gray-400 px-0 pb-2 border-gray-500">Settings</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell className="px-0 border-gray-500">
+                  <code className="text-lg bg-gray-700 px-2 py-1 rounded">PYTH</code>
+                </TableCell>
+                <TableCell className="px-0 border-gray-500">
+                  <div className="space-y-2">
+                    <Label htmlFor="pyth">Price Service Endpoint</Label>
+                    <Input
+                      id="pyth"
+                      className="bg-black border-gray-600"
+                      type="text"
+                      name="pyth"
+                      value={settings.pythUrl}
+                      onChange={(evt) => setSettings({ pythUrl: evt.target.value })}
+                    />
+                  </div>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
         </SectionBox>
 
         <SectionBox>
-          <Heading size="md" mb={2}>
-            IPFS
-          </Heading>
-          <Text fontSize="md" mb={4}>
+          <h2 className="text-xl font-semibold mb-2">IPFS</h2>
+          <p className="text-md mb-4">
             Enter a{' '}
-            <Link isExternal href="https://docs.ipfs.tech/reference/kubo/rpc/">
+            <a 
+              href="https://docs.ipfs.tech/reference/kubo/rpc/"
+              className="text-blue-400 hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Kubo RPC API URL
-            </Link>{' '}
+            </a>{' '}
             to download packages and publish them using the deployer.
-          </Text>
-          <FormControl mb={4}>
-            <FormLabel>Kubo RPC API URL</FormLabel>
+          </p>
+          <div className="space-y-2 mb-4">
+            <Label htmlFor="ipfs">Kubo RPC API URL</Label>
             <Input
-              bg="black"
-              borderColor="whiteAlpha.400"
+              id="ipfs"
+              className="bg-black border-gray-600"
               value={settings.ipfsApiUrl}
-              type={'text'}
-              name={'ipfsApiUrl'}
+              type="text"
+              name="ipfsApiUrl"
               onChange={async (evt) => {
                 setSettings({ ipfsApiUrl: evt.target.value });
               }}
             />
-          </FormControl>
+          </div>
           {settings.ipfsApiUrl.length ? (
             <Button
-              as={Link}
-              textDecoration="none"
               variant="outline"
-              size="xs"
-              colorScheme="blue"
-              color="blue.400"
-              borderColor="blue.400"
-              _hover={{ bg: 'blue.800', textDecoration: 'none' }}
-              href={links.IPFS_DOWNLOAD}
+              size="sm"
+              className="text-blue-400 border-blue-400 hover:bg-blue-800 no-underline"
+              asChild
             >
-              Test IPFS Endpoint
+              <a href={links.IPFS_DOWNLOAD}>Test IPFS Endpoint</a>
             </Button>
           ) : null}
         </SectionBox>
@@ -186,27 +138,21 @@ export default function SettingsPage() {
           <SafeTransactionService />
         </SectionBox>
 
-        <FormControl>
-          <FormHelperText color="gray.300" mb={5} textAlign="right">
-            <Link
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                if (
-                  window.confirm(
-                    'Are you sure you want to reset to default settings? This can’t be undone.'
-                  )
-                ) {
-                  setSettings(initialState.settings);
-                  alert('Done!');
-                }
-              }}
-            >
-              Reset to defaults
-            </Link>
-          </FormHelperText>
-        </FormControl>
-      </Box>
-    </Container>
+        <div className="mb-5 text-right">
+          <button
+            className="text-gray-300 hover:underline"
+            onClick={(e) => {
+              e.preventDefault();
+              if (window.confirm('Are you sure you want to reset to default settings? This can\'t be undone.')) {
+                setSettings(initialState.settings);
+                alert('Done!');
+              }
+            }}
+          >
+            Reset to defaults
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
