@@ -2,30 +2,24 @@
 import * as React from 'react';
 import {
   Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  chakra,
-  Text,
-  Link,
-} from '@chakra-ui/react';
-import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  ArrowUpDownIcon,
-} from '@chakra-ui/icons';
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { CaretSortIcon } from '@radix-ui/react-icons';
+import { ChainBuilderContext } from '@usecannon/builder';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import {
   useReactTable,
   flexRender,
   getCoreRowModel,
   SortingState,
   getSortedRowModel,
+  createColumnHelper,
 } from '@tanstack/react-table';
-import { createColumnHelper } from '@tanstack/react-table';
-import { ChainBuilderContext } from '@usecannon/builder';
-import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 type InvokeRow = {
   name: string;
@@ -89,87 +83,50 @@ export const InvokesTable: React.FC<{
   });
 
   return (
-    <Table size="sm">
-      <Thead>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <Tr key={headerGroup.id}>
-            {headerGroup.headers.map((header) => {
-              // see https://tanstack.com/table/v8/docs/api/core/column-def#meta to type this correctly
-              const meta: any = header.column.columnDef.meta;
-              return (
-                <Th
-                  key={header.id}
-                  onClick={header.column.getToggleSortingHandler()}
-                  isNumeric={meta?.isNumeric}
-                  color="gray.200"
-                  borderColor="gray.600"
-                  textTransform="none"
-                  letterSpacing="normal"
-                  fontSize="sm"
-                  fontWeight={500}
-                  py={2}
-                  cursor="pointer"
-                  whiteSpace="nowrap"
-                >
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )}
-                  {header.column.columnDef.accessorKey !== 'arrow' && (
-                    <chakra.span display="inline-block" h="12px" w="12px">
-                      {header.column.getIsSorted() ? (
-                        header.column.getIsSorted() === 'desc' ? (
-                          <ChevronDownIcon
-                            boxSize={4}
-                            aria-label="sorted descending"
-                            transform="translateY(2.5px)"
-                          />
-                        ) : (
-                          <ChevronUpIcon
-                            boxSize={4}
-                            aria-label="sorted ascending"
-                            transform="translateY(-2.5px)"
-                          />
-                        )
-                      ) : (
-                        <ArrowUpDownIcon
-                          boxSize={2.5}
-                          transform="translateX(2.5px)"
-                        />
+    <div className="w-full rounded-md border border-border overflow-x-auto">
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id} className="border-border">
+              {headerGroup.headers.map((header) => {
+                const meta: any = header.column.columnDef.meta;
+                return (
+                  <TableHead
+                    key={header.id}
+                    className={meta?.isNumeric ? 'text-right' : ''}
+                  >
+                    <Button
+                      variant="ghost"
+                      onClick={header.column.getToggleSortingHandler()}
+                      className="h-8 px-2 -ml-2"
+                    >
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
                       )}
-                    </chakra.span>
-                  )}
-                </Th>
-              );
-            })}
-          </Tr>
-        ))}
-      </Thead>
-      <Tbody>
-        {table.getRowModel().rows.map((row, rowInd) => (
-          <Tr key={row.id}>
-            {row.getVisibleCells().map((cell) => {
-              // see https://tanstack.com/table/v8/docs/api/core/column-def#meta to type this correctly
-              const meta: any = cell.column.columnDef.meta;
-              return (
-                <Td
+                      <CaretSortIcon className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                );
+              })}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.map((row) => (
+            <TableRow key={row.id} className="border-border hover:bg-muted/50">
+              {row.getVisibleCells().map((cell) => (
+                <TableCell
                   key={cell.id}
-                  isNumeric={meta?.isNumeric}
-                  borderColor="gray.600"
-                  borderBottom={
-                    table.getRowModel().rows.length == rowInd + 1
-                      ? 'none'
-                      : undefined
-                  }
-                  whiteSpace="nowrap"
+                  className="relative overflow-hidden whitespace-nowrap"
                 >
                   {(() => {
                     switch (cell.column.columnDef.accessorKey) {
                       case 'name': {
                         return (
-                          <Text fontFamily="mono">
+                          <code className="text-xs">
                             [{cell.row.original.name}]
-                          </Text>
+                          </code>
                         );
                       }
                       case 'value': {
@@ -178,41 +135,34 @@ export const InvokesTable: React.FC<{
                           cell.row.original.value
                         );
                         return explorerUrl ? (
-                          <Link
-                            isExternal
+                          <a
                             href={explorerUrl}
-                            fontFamily="mono"
-                            borderBottom="1px dotted"
-                            borderBottomColor="gray.300"
-                            textDecoration="none"
-                            _hover={{ textDecoration: 'none' }}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-mono border-b border-dotted border-muted-foreground hover:border-solid"
                           >
                             {cell.row.original.value}
-                          </Link>
+                          </a>
                         ) : (
-                          <Text fontFamily="mono">
+                          <code className="text-xs">
                             {cell.row.original.value}
-                          </Text>
+                          </code>
                         );
                       }
                       default: {
-                        return (
-                          <>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </>
+                        return flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
                         );
                       }
                     }
                   })()}
-                </Td>
-              );
-            })}
-          </Tr>
-        ))}
-      </Tbody>
-    </Table>
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 };

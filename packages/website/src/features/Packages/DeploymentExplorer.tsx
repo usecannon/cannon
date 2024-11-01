@@ -220,7 +220,7 @@ export const DeploymentExplorer: FC<{
           </div>
 
           {!isEmpty(filteredContractState) && !isEmpty(addressesAbis) ? (
-            <div className="max-w-full overflow-x-auto">
+            <div className="max-w-full mx-4 mt-2">
               <ContractsTable
                 contractState={filteredContractState}
                 chainId={pkg.chainId}
@@ -246,7 +246,7 @@ export const DeploymentExplorer: FC<{
           </div>
 
           {!isEmpty(invokeState) ? (
-            <div className="max-w-full overflow-x-auto">
+            <div className="max-w-full mx-4 mt-2">
               <InvokesTable
                 invokeState={filteredInvokeState}
                 chainId={pkg.chainId}
@@ -278,7 +278,7 @@ export const DeploymentExplorer: FC<{
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <div className="max-w-full overflow-x-auto">
+              <div className="max-w-full mx-4 mt-2">
                 <EventsTable extrasState={mergedExtras} />
               </div>
             </div>
