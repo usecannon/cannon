@@ -6,13 +6,15 @@ import { gray } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
-import { cannonChain, getChainById } from './chains';
+import { getChainById } from './chains';
 import { execPromise } from './helpers';
 import { error, log } from './util/console';
 import { anvilOptions as fullAnvilOptions } from './commands/config/anvil';
 import { fromFoundryOptionsToArgs } from './util/foundry-options';
 
 const debug = Debug('cannon:cli:rpc');
+
+const cannonChain = getChainById(CANNON_CHAIN_ID);
 
 export type RpcOptions = {
   forkProvider?: viem.PublicClient;
