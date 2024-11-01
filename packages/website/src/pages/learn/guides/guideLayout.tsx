@@ -30,61 +30,68 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <SidebarProvider>
-      <div className="md:hidden p-4">
-        <SidebarTrigger>
-          <Button variant="outline" size="icon" className="h-8 w-8">
-            <Menu className="h-4 w-4" />
-          </Button>
-        </SidebarTrigger>
-      </div>
-      <div className="flex flex-1 flex-col max-h-full max-w-full">
-        <div className="flex flex-1 flex-col md:flex-row">
-          <Sidebar className="border-r border-border">
-            <SidebarContent>
-              <SidebarGroup>
-                <SidebarGroupLabel>Use Cannon</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {useCannon.map((item) => (
-                      <SidebarMenuItem key={item.href}>
-                        <SidebarMenuButton
-                          asChild
-                          className={cn(
-                            'w-full',
-                            pathname === item.href && 'bg-muted font-medium'
-                          )}
-                        >
-                          <a href={item.href}>{item.text}</a>
+    <div className="flex flex-1">
+      <div className="container flex-1">
+        <SidebarProvider>
+          {/* Mobile trigger */}
+          <div className="sticky top-0 z-40 md:hidden">
+            <div className="flex h-14 items-center py-4">
+              <SidebarTrigger>
+                <Button variant="ghost" size="sm" className="-ml-2">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Open sidebar</span>
+                </Button>
+              </SidebarTrigger>
+            </div>
+          </div>
+
+          <div className="md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10 h-full">
+            {/* Sidebar */}
+            <Sidebar className="fixed top-14 z-30 -ml-2 hidden w-full shrink-0 md:sticky md:block md:top-0 md:border-none">
+              <SidebarContent className="py-6 lg:py-8 bg-black">
+                <SidebarGroup>
+                  <SidebarGroupLabel>Use Cannon</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {useCannon.map((item) => (
+                        <SidebarMenuItem key={item.href}>
+                          <SidebarMenuButton
+                            asChild
+                            className={cn(
+                              'w-full',
+                              pathname === item.href && 'bg-muted font-medium'
+                            )}
+                          >
+                            <a href={item.href}>{item.text}</a>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+
+                <SidebarGroup>
+                  <SidebarGroupLabel>Build DeFi</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <span className="italic text-gray-400">
+                            Coming Soon
+                          </span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              </SidebarContent>
+            </Sidebar>
 
-              <SidebarGroup>
-                <SidebarGroupLabel>Build DeFi</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild>
-                        <span className="italic text-gray-400">
-                          Coming Soon
-                        </span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            </SidebarContent>
-          </Sidebar>
-
-          <div className="flex-1 overflow-y-auto md:max-h-[calc(100vh-151px)]">
-            <div className="container max-w-[80rem] ml-0 p-8">{children}</div>
+            {/* Main content */}
+            <main className="flex w-full flex-col py-10">{children}</main>
           </div>
-        </div>
+        </SidebarProvider>
       </div>
-    </SidebarProvider>
+    </div>
   );
 }

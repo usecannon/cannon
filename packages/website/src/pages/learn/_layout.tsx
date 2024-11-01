@@ -17,7 +17,7 @@ const NavLink = ({ href, isActive, children }: NavLinkProps) => {
       href={href}
       className={`
         relative py-3 px-4
-        font-medium text-sm tracking-wide
+        font-medium
         text-gray-200 hover:text-white
         transition-colors
         ${
