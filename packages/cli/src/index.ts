@@ -21,7 +21,7 @@ import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commands/config';
-import { checkCannonVersion, ensureChainIdConsistency, getPackageInfo, setupAnvil } from './helpers';
+import { checkCannonVersion, ensureChainIdConsistency, getPackageInfo, ensureFoundryCompatibility } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
 import { createDefaultReadRegistry } from './registry';
@@ -157,7 +157,8 @@ function configureRun(program: Command) {
 applyCommandsConfig(program.command('build'), commandsConfig.build)
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, options) => {
-    await setupAnvil();
+    // ensure foundry compatibility
+    await ensureFoundryCompatibility();
 
     // backwards compatibility for --port flag
     if (options.port !== ANVIL_PORT_DEFAULT_VALUE) {
