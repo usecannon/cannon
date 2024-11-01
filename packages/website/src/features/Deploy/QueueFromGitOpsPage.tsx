@@ -906,15 +906,17 @@ export default function QueueFromGitOps() {
               <Text mb="2" fontWeight="bold">
                 This safe will not be able to complete the following operations:
               </Text>
-              {buildState.skippedSteps.map((s, i) => (
-                <Text fontFamily="monospace" key={i} mb="2">
-                  <strong>{`[${s.name}]: `}</strong>
-                  {s.name.startsWith('deploy.') ||
-                  s.name.startsWith('contract.')
-                    ? 'Is not possible to build and deploy a contract from source code from the website. You should first build your cannonfile using the CLI and continue the deployment from a partial build.'
-                    : s.err.toString()}
-                </Text>
-              ))}
+              <Box maxHeight="300px" overflow="auto">
+                {buildState.skippedSteps.map((s, i) => (
+                  <Text fontFamily="monospace" key={i} mb="2">
+                    <strong>{`[${s.name}]: `}</strong>
+                    {s.name.startsWith('deploy.') ||
+                    s.name.startsWith('contract.')
+                      ? 'Is not possible to build and deploy a contract from source code from the website. You should first build your cannonfile using the CLI and continue the deployment from a partial build.'
+                      : s.err.toString()}
+                  </Text>
+                ))}
+              </Box>
             </AlertCannon>
           )}
 

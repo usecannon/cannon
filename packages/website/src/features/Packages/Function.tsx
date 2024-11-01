@@ -587,8 +587,8 @@ export const Function: FC<{
                   </Flex>
                 )}
                 <FunctionOutput
-                  result={methodCallOrQueuedResult?.value || null}
-                  output={f.outputs}
+                  methodResult={methodCallOrQueuedResult?.value || null}
+                  abiParameters={f.outputs}
                 />
               </Box>
             )}
