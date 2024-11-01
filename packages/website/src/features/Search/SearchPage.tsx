@@ -2,12 +2,6 @@
 
 import { useState } from 'react';
 import { groupBy } from 'lodash';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
 import { PackageCardExpandable } from './PackageCard/PackageCardExpandable';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { ChainFilter } from './ChainFilter';
@@ -15,6 +9,26 @@ import { useQuery } from '@tanstack/react-query';
 import { getChains, getPackages } from '@/helpers/api';
 import SearchInput from '@/components/SearchInput';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import {
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { Menu, ChevronDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -76,50 +90,71 @@ export const SearchPage = () => {
   const groupedPackages = groupBy(packagesQuery?.data?.data, 'name');
 
   return (
-    <div className="flex flex-1 flex-col max-w-[100vw]">
-      <div className="flex flex-1 flex-col md:flex-row">
-        <div className="flex flex-col overflow-y-auto w-full md:w-[320px] md:max-w-[320px] md:border-r md:border-border md:h-[calc(100vh-100px)]">
-          <div className="relative py-4 md:py-8 px-4 md:pb-4 max-h-[210px] md:max-h-none">
-            <div className="mb-4 md:mb-8">
-              <SearchInput onSearchChange={setSearchTerm} />
-            </div>
-
-            <p className="mb-1.5 text-gray-200 text-sm font-medium">
-              Filter by Chain
-            </p>
-
-            {sortedMainnetChainIds.map((id) => (
-              <ChainFilter
-                key={id}
-                id={id}
-                isSelected={selectedChains.includes(id)}
-                toggleSelection={toggleChainSelection}
-              />
-            ))}
-
-            <Accordion type="single" collapsible>
-              <AccordionItem value="testnets">
-                <AccordionTrigger className="px-0 pb-0">
-                  <span className="font-[var(--font-miriam)] uppercase tracking-wider text-xs text-gray-300">
-                    Testnets
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent className="px-0 pb-0">
-                  {sortedTestnetChainIds.map((id) => (
-                    <ChainFilter
-                      key={id}
-                      id={id}
-                      isSelected={selectedChains.includes(id)}
-                      toggleSelection={toggleChainSelection}
-                    />
-                  ))}
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
+    <div className="flex flex-col">
+      <SidebarProvider>
+        <div className="md:hidden p-4">
+          <SidebarTrigger>
+            <Button variant="outline" size="icon" className="h-8 w-8">
+              <Menu className="h-4 w-4" />
+            </Button>
+          </SidebarTrigger>
         </div>
+        <Sidebar className="w-full md:w-[320px] md:max-w-[320px] shrink-0 border-border">
+          <SidebarHeader className="px-4">
+            <SearchInput onSearchChange={setSearchTerm} />
+          </SidebarHeader>
 
-        <div className="flex-1 overflow-y-auto md:h-[calc(100vh-100px)] px-4">
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel className="px-4 text-sm font-medium text-gray-200">
+                Filter by Chain
+              </SidebarGroupLabel>
+              <SidebarGroupContent className="space-y-1 px-2">
+                <SidebarMenu>
+                  {sortedMainnetChainIds.map((id) => (
+                    <SidebarMenuItem key={id}>
+                      <SidebarMenuButton
+                        onClick={() => toggleChainSelection(id)}
+                        isActive={selectedChains.includes(id)}
+                        className="border border-border"
+                      >
+                        <ChainFilter id={id} />
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+
+                <Collapsible className="group/collapsible">
+                  <SidebarMenuItem className="mb-1">
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton>
+                        Testnets
+                        <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                  </SidebarMenuItem>
+                  <CollapsibleContent>
+                    <SidebarMenu>
+                      {sortedTestnetChainIds.map((id) => (
+                        <SidebarMenuItem key={id}>
+                          <SidebarMenuButton
+                            onClick={() => toggleChainSelection(id)}
+                            isActive={selectedChains.includes(id)}
+                            className="border border-border"
+                          >
+                            <ChainFilter id={id} />
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </CollapsibleContent>
+                </Collapsible>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+        </Sidebar>
+
+        <div className="flex-1 overflow-y-auto p-4 md:p-6">
           {packagesQuery.isPending ? (
             <div className="flex justify-center items-center flex-1 h-full">
               <CustomSpinner />
@@ -129,18 +164,16 @@ export const SearchPage = () => {
               <p className="m-auto text-gray-400">No results</p>
             </div>
           ) : (
-            <div className="px-0 pt-4">
-              <div className="ml-0 max-w-[1280px]">
-                {Object.values(groupedPackages).map((pkgs: any) => (
-                  <div className="mb-6" key={pkgs[0].name}>
-                    <PackageCardExpandable pkgs={pkgs} key={pkgs[0].name} />
-                  </div>
-                ))}
-              </div>
+            <div>
+              {Object.values(groupedPackages).map((pkgs: any) => (
+                <div className="mb-6" key={pkgs[0].name}>
+                  <PackageCardExpandable pkgs={pkgs} key={pkgs[0].name} />
+                </div>
+              ))}
             </div>
           )}
         </div>
-      </div>
+      </SidebarProvider>
     </div>
   );
 };

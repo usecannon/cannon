@@ -1,9 +1,23 @@
 'use client';
 
-import { FC, ReactNode } from 'react';
+import { ReactNode } from 'react';
 import { links } from '@/constants/links';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
+import { Menu } from 'lucide-react';
 
 const useCannon = [
   { text: 'Get Started', href: links.GETSTARTED },
@@ -12,78 +26,65 @@ const useCannon = [
   { text: 'Debugging Tips', href: links.DEBUG },
 ];
 
-interface CustomLinkProps {
-  href: string;
-  children: ReactNode;
-}
-
-const CustomLink: FC<CustomLinkProps> = ({ href, children }) => {
-  const pathname = useRouter().pathname;
-  const isActive = href === pathname;
-
-  return (
-    <Link
-      href={href}
-      className={`
-        block py-0.5 px-2 mb-0.5
-        text-sm rounded-md
-        cursor-pointer
-        hover:bg-gray-800
-        ${href === '#' ? 'italic text-gray-400' : ''}
-        ${isActive ? 'font-medium bg-gray-800' : ''}
-      `}
-    >
-      {children}
-    </Link>
-  );
-};
-
-interface SectionProps {
-  title: string;
-  links: { href: string; text: string }[];
-}
-
-const Section: FC<SectionProps> = ({ title, links }) => (
-  <div className="my-4">
-    <h2 className="px-2 mb-1.5 text-sm font-medium text-gray-200 tracking-[0.1px]">
-      {title}
-    </h2>
-    <div className="mb-6">
-      {links.map((link, index) => (
-        <CustomLink key={index} href={link.href}>
-          {link.text}
-        </CustomLink>
-      ))}
-    </div>
-  </div>
-);
-
 export default function GuideLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+
   return (
-    <div className="flex flex-1 flex-col max-h-full max-w-full">
-      <div className="flex flex-1 flex-col md:flex-row">
-        <div
-          className={`
-          flex flex-col overflow-y-auto
-          w-full md:w-[200px] md:max-w-[200px]
-          border-b md:border-b-0 md:border-r
-          border-gray-600 md:border-gray-700
-          max-h-[140px] md:max-h-[calc(100vh-151px)]
-        `}
-        >
-          <div className="px-3 pb-2">
-            <Section title="Use Cannon" links={useCannon} />
-            <Section
-              title="Build DeFi"
-              links={[{ href: '#', text: 'Coming Soon' }]}
-            />
+    <SidebarProvider>
+      <div className="md:hidden p-4">
+        <SidebarTrigger>
+          <Button variant="outline" size="icon" className="h-8 w-8">
+            <Menu className="h-4 w-4" />
+          </Button>
+        </SidebarTrigger>
+      </div>
+      <div className="flex flex-1 flex-col max-h-full max-w-full">
+        <div className="flex flex-1 flex-col md:flex-row">
+          <Sidebar className="border-r border-border">
+            <SidebarContent>
+              <SidebarGroup>
+                <SidebarGroupLabel>Use Cannon</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {useCannon.map((item) => (
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton
+                          asChild
+                          className={cn(
+                            'w-full',
+                            pathname === item.href && 'bg-muted font-medium'
+                          )}
+                        >
+                          <a href={item.href}>{item.text}</a>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+
+              <SidebarGroup>
+                <SidebarGroupLabel>Build DeFi</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <span className="italic text-gray-400">
+                          Coming Soon
+                        </span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            </SidebarContent>
+          </Sidebar>
+
+          <div className="flex-1 overflow-y-auto md:max-h-[calc(100vh-151px)]">
+            <div className="container max-w-[80rem] ml-0 p-8">{children}</div>
           </div>
         </div>
-
-        <div className="flex-1 overflow-y-auto md:max-h-[calc(100vh-151px)]">
-          <div className="container max-w-[80rem] ml-0 p-8">{children}</div>
-        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }

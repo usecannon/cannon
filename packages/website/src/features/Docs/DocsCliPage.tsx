@@ -25,47 +25,21 @@ import {
   SiPnpm as PnpmIcon,
 } from 'react-icons/si';
 import React, { FC } from 'react';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
+import { Menu } from 'lucide-react';
 
 const basicCommands = ['run', 'build', 'verify', 'publish'];
-
-interface CustomLinkProps {
-  href: string;
-  children: React.ReactNode;
-}
-
-const CustomLink: FC<CustomLinkProps> = ({ href, children }) => (
-  <a
-    href={href}
-    className="block text-sm py-0.5 px-2 mb-0.5 rounded-md hover:bg-gray-800 cursor-pointer no-underline"
-  >
-    {children}
-  </a>
-);
-
-interface LinkItem {
-  href: string;
-  text: string;
-}
-
-interface SectionProps {
-  title: string;
-  links: LinkItem[];
-}
-
-const Section: FC<SectionProps> = ({ title, links }) => (
-  <div className="my-4">
-    <h2 className="font-medium text-sm text-gray-200 tracking-wide px-2 mb-1.5">
-      {title}
-    </h2>
-    <div className="mb-6">
-      {links.map((link, index) => (
-        <CustomLink key={index} href={link.href}>
-          {link.text}
-        </CustomLink>
-      ))}
-    </div>
-  </div>
-);
 
 const CustomTable: React.FC<{
   title: string;
@@ -75,10 +49,10 @@ const CustomTable: React.FC<{
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="text-gray-300 pl-0 border-gray-500">
+          <TableHead className="text-gray-300 pl-0 border-border">
             {title}
           </TableHead>
-          <TableHead className="text-gray-300 border-gray-500">
+          <TableHead className="text-gray-300 border-border">
             Description
           </TableHead>
         </TableRow>
@@ -86,10 +60,10 @@ const CustomTable: React.FC<{
       <TableBody>
         {data.map((row) => (
           <TableRow key={row.key}>
-            <TableCell className="pl-0 border-gray-500">
-              <code className="bg-gray-800 px-1 py-0.5 rounded">{row.key}</code>
+            <TableCell className="pl-0 border-border">
+              <code>{row.key}</code>
             </TableCell>
-            <TableCell className="border-gray-500">{row.value}</TableCell>
+            <TableCell className="border-border">{row.value}</TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -275,150 +249,193 @@ const DocsCliPage: FC = () => {
   }
 
   return (
-    <div className="flex flex-1 flex-col max-h-full max-w-full">
-      <div className="flex flex-1 flex-col md:flex-row">
-        <div className="flex flex-col overflow-y-auto max-w-full md:max-w-[240px] w-full md:w-[240px] max-h-[140px] md:max-h-[calc(100vh-151px)] border-b md:border-b-0 md:border-r border-gray-700">
-          <div className="px-3 pb-2">
-            <Section title="Installation" links={[]} />
-            <Section
-              title="Basic Commands"
-              links={basicCommands.map((commandName) => ({
-                href: `#${commandName.replaceAll(' ', '-')}`,
-                text: commandName,
-              }))}
-            />
-            <Section
-              title="Advanced Commands"
-              links={commandsData
-                .filter((command) => !new Set(basicCommands).has(command.name))
-                .map((command) => ({
-                  href: `#${command.name.replaceAll(' ', '-')}`,
-                  text: command.name,
-                }))}
-            />
-          </div>
-        </div>
+    <SidebarProvider>
+      <div className="md:hidden p-4">
+        <SidebarTrigger>
+          <Button variant="outline" size="icon" className="h-8 w-8">
+            <Menu className="h-4 w-4" />
+          </Button>
+        </SidebarTrigger>
+      </div>
+      <div className="flex flex-1 flex-col max-h-full max-w-full">
+        <div className="flex flex-1 flex-col md:flex-row">
+          <Sidebar className="border-r border-border">
+            <SidebarContent>
+              <SidebarGroup>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <a href="#installation">Installation</a>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
 
-        <div className="flex-1 overflow-y-auto max-h-none md:max-h-[calc(100vh-151px)] bg-gray-900">
-          <div className="max-w-[1024px] ml-0 p-8">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold mb-4">
-                Command-Line Interface Documentation
-              </h1>
-              <p className="mb-4">
-                Cannon&apos;s command-line interface (CLI) allows users to
-                deploy, upgrade, and configure protocols using cannonfiles with
-                the <code className="bg-gray-700 px-1 rounded">build</code>{' '}
-                command,{' '}
-                <code className="bg-gray-700 px-1 rounded">publish</code> the
-                resulting packages,{' '}
-                <code className="bg-gray-700 px-1 rounded">run</code> packages
-                locally, and more. Find the code for the CLI{' '}
-                <a
-                  href="https://github.com/usecannon/cannon/tree/main/packages/cli"
-                  className="text-blue-400 hover:text-blue-300"
-                >
-                  on GitHub
-                </a>
-                .
-              </p>
-            </div>
+              <SidebarGroup>
+                <SidebarGroupLabel>Basic Commands</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {basicCommands.map((commandName) => (
+                      <SidebarMenuItem key={commandName}>
+                        <SidebarMenuButton asChild>
+                          <a href={`#${commandName}`}>{commandName}</a>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
 
-            <div className="mb-16">
-              <h2 className="text-2xl font-bold mb-4">Installation</h2>
-              <p className="mb-3">
-                <a
-                  href="https://book.getfoundry.sh/getting-started/installation"
-                  className="text-blue-400 hover:text-blue-300"
-                >
-                  Install Foundry
-                </a>{' '}
-                if you haven&apos;t already. Then, run one of the following
-                commands in your terminal to install (or upgrade) Cannon:
-              </p>
+              <SidebarGroup>
+                <SidebarGroupLabel>Advanced Commands</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {commandsData
+                      .filter(
+                        (command) => !new Set(basicCommands).has(command.name)
+                      )
+                      .map((command) => (
+                        <SidebarMenuItem key={command.name}>
+                          <SidebarMenuButton asChild>
+                            <a href={`#${command.name.replaceAll(' ', '-')}`}>
+                              {command.name}
+                            </a>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            </SidebarContent>
+          </Sidebar>
 
-              <Tabs defaultValue="npm" className="mb-6">
-                <TabsList className="mb-4 border-b border-gray-500">
-                  <TabsTrigger
-                    value="npm"
-                    className="gap-2 font-medium data-[state=active]:text-red-500 data-[state=active]:border-b-2 data-[state=active]:border-red-500"
+          <div className="flex-1 overflow-y-auto md:max-h-[calc(100vh-151px)]">
+            <div className="max-w-[1024px] ml-0 p-8">
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold mb-4">
+                  Command-Line Interface Documentation
+                </h1>
+                <p className="mb-4">
+                  Cannon&apos;s command-line interface (CLI) allows users to
+                  deploy, upgrade, and configure protocols using cannonfiles
+                  with the{' '}
+                  <code className="bg-gray-700 px-1 rounded">build</code>{' '}
+                  command,{' '}
+                  <code className="bg-gray-700 px-1 rounded">publish</code> the
+                  resulting packages,{' '}
+                  <code className="bg-gray-700 px-1 rounded">run</code> packages
+                  locally, and more. Find the code for the CLI{' '}
+                  <a
+                    href="https://github.com/usecannon/cannon/tree/main/packages/cli"
+                    className="text-blue-400 hover:text-blue-300"
                   >
-                    <NpmIcon className="text-red-500" /> npm
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="yarn"
-                    className="gap-2 font-medium data-[state=active]:text-blue-500 data-[state=active]:border-b-2 data-[state=active]:border-blue-500"
+                    on GitHub
+                  </a>
+                  .
+                </p>
+              </div>
+
+              <div className="mb-16">
+                <h2 className="text-2xl font-bold mb-4">Installation</h2>
+                <p className="mb-3">
+                  <a
+                    href="https://book.getfoundry.sh/getting-started/installation"
+                    className="text-blue-400 hover:text-blue-300"
                   >
-                    <YarnIcon className="text-blue-500" /> yarn
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="pnpm"
-                    className="gap-2 font-medium data-[state=active]:text-orange-500 data-[state=active]:border-b-2 data-[state=active]:border-orange-500"
+                    Install Foundry
+                  </a>{' '}
+                  if you haven&apos;t already. Then, run one of the following
+                  commands in your terminal to install (or upgrade) Cannon:
+                </p>
+
+                <Tabs defaultValue="npm" className="mb-6">
+                  <TabsList className="mb-4 border-b border-gray-500">
+                    <TabsTrigger
+                      value="npm"
+                      className="gap-2 font-medium data-[state=active]:text-red-500 data-[state=active]:border-b-2 data-[state=active]:border-red-500"
+                    >
+                      <NpmIcon className="text-red-500" /> npm
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="yarn"
+                      className="gap-2 font-medium data-[state=active]:text-blue-500 data-[state=active]:border-b-2 data-[state=active]:border-blue-500"
+                    >
+                      <YarnIcon className="text-blue-500" /> yarn
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="pnpm"
+                      className="gap-2 font-medium data-[state=active]:text-orange-500 data-[state=active]:border-b-2 data-[state=active]:border-orange-500"
+                    >
+                      <PnpmIcon className="text-orange-500" /> pnpm
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="npm" className="p-0">
+                    <CommandPreview
+                      backgroundColor="black"
+                      command="npm i -g @usecannon/cli"
+                    />
+                  </TabsContent>
+                  <TabsContent value="yarn" className="p-0">
+                    <CommandPreview
+                      backgroundColor="black"
+                      command="yarn global add @usecannon/cli"
+                    />
+                  </TabsContent>
+                  <TabsContent value="pnpm" className="p-0">
+                    <CommandPreview
+                      backgroundColor="black"
+                      command="pnpm add -g @usecannon/cli"
+                    />
+                  </TabsContent>
+                </Tabs>
+
+                <p className="mb-4">
+                  Now you can use all of the following commands your terminal
+                  with{' '}
+                  <code className="bg-gray-700 px-1 rounded">
+                    cannon &lt;command&gt;
+                  </code>
+                  . You can also use the CLI without installing it using npx:{' '}
+                  <code className="bg-gray-700 px-1 rounded">
+                    npx @usecannon/cli &lt;command&gt;
+                  </code>
+                  . If no command is specified, the CLI will execute the{' '}
+                  <code className="bg-gray-700 px-1 rounded">run</code> command.
+                  The{' '}
+                  <a
+                    href="https://github.com/usecannon/cannon/tree/main/packages/hardhat-cannon#readme"
+                    className="text-blue-400 hover:text-blue-300"
                   >
-                    <PnpmIcon className="text-orange-500" /> pnpm
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="npm" className="p-0">
-                  <CommandPreview
-                    backgroundColor="black"
-                    command="npm i -g @usecannon/cli"
-                  />
-                </TabsContent>
-                <TabsContent value="yarn" className="p-0">
-                  <CommandPreview
-                    backgroundColor="black"
-                    command="yarn global add @usecannon/cli"
-                  />
-                </TabsContent>
-                <TabsContent value="pnpm" className="p-0">
-                  <CommandPreview
-                    backgroundColor="black"
-                    command="pnpm add -g @usecannon/cli"
-                  />
-                </TabsContent>
-              </Tabs>
+                    Hardhat plug-in
+                  </a>{' '}
+                  exposes some of the commands as Hardhat tasks.
+                </p>
+              </div>
 
-              <p className="mb-4">
-                Now you can use all of the following commands your terminal with{' '}
-                <code className="bg-gray-700 px-1 rounded">
-                  cannon &lt;command&gt;
-                </code>
-                . You can also use the CLI without installing it using npx:{' '}
-                <code className="bg-gray-700 px-1 rounded">
-                  npx @usecannon/cli &lt;command&gt;
-                </code>
-                . If no command is specified, the CLI will execute the{' '}
-                <code className="bg-gray-700 px-1 rounded">run</code> command.
-                The{' '}
-                <a
-                  href="https://github.com/usecannon/cannon/tree/main/packages/hardhat-cannon#readme"
-                  className="text-blue-400 hover:text-blue-300"
-                >
-                  Hardhat plug-in
-                </a>{' '}
-                exposes some of the commands as Hardhat tasks.
-              </p>
-            </div>
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold mb-5">Basic Commands</h2>
+                {basicCommands.map((commandName) =>
+                  renderCommandConfig(
+                    commandsData.find((command) => command.name === commandName)
+                  )
+                )}
+              </div>
 
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-5">Basic Commands</h2>
-              {basicCommands.map((commandName) =>
-                renderCommandConfig(
-                  commandsData.find((command) => command.name === commandName)
-                )
-              )}
-            </div>
-
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-5">Advanced Commands</h2>
-              {commandsData
-                .filter((command) => !new Set(basicCommands).has(command.name))
-                .map((command) => renderCommandConfig(command))}
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold mb-5">Advanced Commands</h2>
+                {commandsData
+                  .filter(
+                    (command) => !new Set(basicCommands).has(command.name)
+                  )
+                  .map((command) => renderCommandConfig(command))}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 

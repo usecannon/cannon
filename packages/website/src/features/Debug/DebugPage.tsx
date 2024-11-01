@@ -1,7 +1,6 @@
 'use client';
 import { ExternalLink } from 'lucide-react'; // for external link icon
 import { CommandPreview } from '@/components/CommandPreview';
-import Image from 'next/image';
 import Link from 'next/link';
 
 export const DebugPage = () => {
@@ -98,7 +97,11 @@ export const DebugPage = () => {
       </div>
 
       <div className="mb-4 w-full overflow-x-auto">
-        <Image src="/images/guide_debug_1.png" alt="first debug guide" />
+        <img
+          width="100%"
+          src="/images/guide_debug_1.png"
+          alt="first debug guide"
+        />
       </div>
 
       <h3 className="text-xl font-semibold mb-3 mt-9">Trace</h3>
@@ -154,11 +157,10 @@ export const DebugPage = () => {
       </div>
 
       <div className="mb-4 w-full overflow-x-auto">
-        <Image
+        <img
           src="/images/guide_debug_2.png"
           alt="second debug guide"
-          width={800} // adjust based on your needs
-          height={400} // adjust based on your needs
+          width="100%"
         />
       </div>
 

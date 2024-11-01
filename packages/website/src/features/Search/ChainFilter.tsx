@@ -12,21 +12,11 @@ import Chain from './PackageCard/Chain';
 
 interface ChainFilterProps {
   id: number;
-  isSelected: boolean;
-  toggleSelection: (id: number) => void;
 }
 
-export const ChainFilter: FC<ChainFilterProps> = ({
-  id,
-  isSelected,
-  toggleSelection,
-}) => {
+export const ChainFilter: FC<ChainFilterProps> = ({ id }) => {
   return (
-    <div
-      className={`flex items-center mb-2 px-2 py-1 rounded-md border border-border cursor-pointer hover:bg-accent
-        ${isSelected ? 'bg-accent' : ''}`}
-      onClick={() => toggleSelection(id)}
-    >
+    <div className="flex items-center w-full">
       <Chain id={id} />
       {id === 13370 && (
         <div className="ml-auto flex items-center">
