@@ -19,7 +19,7 @@ export const Footer = ({ isFixed }: FooterProps) => {
             ? 'fixed bottom-0 w-full z-10 bg-transparent'
             : 'relative bg-black'
         }
-        ${!isFixed && 'border-t border-gray-700'}
+        ${!isFixed && 'border-t border-border'}
         py-5 sm:py-2
       `}
     >

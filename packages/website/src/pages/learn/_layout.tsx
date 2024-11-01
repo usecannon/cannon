@@ -37,7 +37,7 @@ export default function LearnLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex flex-col w-full">
-      <div className="bg-black border-b border-gray-700">
+      <div className="bg-black border-b border-border">
         <div className="flex items-center justify-center gap-8 flex-nowrap overflow-x-auto whitespace-nowrap">
           <NavLink href={links.LEARN} isActive={links.LEARN === pathname}>
             Overview
