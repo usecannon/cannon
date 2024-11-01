@@ -1,7 +1,6 @@
 import { FC, useState } from 'react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
-import NextLink from 'next/link';
 import { links } from '@/constants/links';
 import { CodePreview } from '@/components/CodePreview';
 import { CustomSpinner } from '@/components/CustomSpinner';
@@ -28,6 +27,7 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from '@/components/ui/tooltip';
+import Link from 'next/link';
 
 function omitEmptyObjects(config: { [x: string]: any }) {
   for (const key in config) {
@@ -101,16 +101,16 @@ export const CannonfileExplorer: FC<{ pkg: ApiPackage }> = ({ pkg }) => {
   return pkg?.deployUrl ? (
     <div className="flex flex-1 flex-col">
       {deploymentData.isLoading ? (
-        <div className="py-20 text-center">
+        <div className="py-20 flex flex-col items-center justify-center text-center">
           <CustomSpinner />
-          <p className="mb-1 text-sm text-gray-400">
+          <p className="text-sm mt-3 mb-1 text-gray-400">
             Fetching {pkg?.deployUrl}
           </p>
-          <p className="text-xs text-gray-500">
+          <p className="text-gray-500 text-xs">
             This could take a minute. You can also{' '}
-            <NextLink href={links.SETTINGS} className="underline">
+            <Link href={links.SETTINGS} className="underline">
               try another IPFS gateway
-            </NextLink>
+            </Link>
             .
           </p>
         </div>

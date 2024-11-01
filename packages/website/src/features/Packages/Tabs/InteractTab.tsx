@@ -30,6 +30,8 @@ import { CustomSpinner } from '@/components/CustomSpinner';
 import { usePackageByRef } from '@/hooks/api/usePackage';
 import SearchInput from '@/components/SearchInput';
 import { Address } from 'viem';
+import Link from 'next/link';
+import { links } from '@/constants/links';
 
 type Option = {
   moduleName: string;
@@ -412,14 +414,19 @@ export const InteractTab: FC<{
       )}
 
       {deploymentData.isLoading || packagesQuery.isLoading ? (
-        <Flex
-          justifyContent="center"
-          alignItems="center"
-          flexGrow={1}
-          width="100%"
-        >
+        <div className="py-20 flex flex-col items-center justify-center text-center">
           <CustomSpinner />
-        </Flex>
+          <p className="text-sm mt-3 mb-1 text-gray-400">
+            Fetching {packagesQuery?.data?.deployUrl}
+          </p>
+          <p className="text-gray-500 text-xs">
+            This could take a minute. You can also{' '}
+            <Link href={links.SETTINGS} className="underline">
+              try another IPFS gateway
+            </Link>
+            .
+          </p>
+        </div>
       ) : (
         <Box>{children}</Box>
       )}
