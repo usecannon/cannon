@@ -1,4 +1,4 @@
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { FoundrySetupPanel } from './FoundryGuide/FoundrySetupPanel';
 import { HardhatSetupPanel } from './HardhatGuide/HardhatSetupPanel';
 
@@ -13,16 +13,10 @@ export const SetupPanel = () => {
       </p>
       <Tabs defaultValue="foundry" className="w-full">
         <TabsList className="gap-3">
-          <TabsTrigger 
-            value="foundry"
-            className="border border-white/10"
-          >
+          <TabsTrigger value="foundry" className="border border-white/10">
             Foundry
           </TabsTrigger>
-          <TabsTrigger 
-            value="hardhat"
-            className="border border-white/10"
-          >
+          <TabsTrigger value="hardhat" className="border border-white/10">
             Hardhat
           </TabsTrigger>
         </TabsList>

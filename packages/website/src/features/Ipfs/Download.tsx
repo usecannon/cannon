@@ -135,9 +135,7 @@ export default function Download() {
   return (
     <div className="container mx-auto py-8 md:py-12 max-w-3xl">
       <div className="p-6 bg-gray-800 border border-gray-600 rounded-md">
-        <h2 className="text-lg font-semibold mb-4">
-          Download from IPFS
-        </h2>
+        <h2 className="text-lg font-semibold mb-4">Download from IPFS</h2>
 
         <p className="mb-4">
           Update your IPFS URL in{' '}
@@ -175,9 +173,7 @@ export default function Download() {
                 onChange={handleSwitchDecompress}
                 className="mr-2"
               />
-              <label htmlFor="decompress">
-                Decompress using zlib
-              </label>
+              <label htmlFor="decompress">Decompress using zlib</label>
             </div>
 
             {ipfsData && (

@@ -4,10 +4,10 @@ import NextLink from 'next/link';
 import React, { useState } from 'react';
 import Editor from '@monaco-editor/react';
 import { useIpfsStore, useStore } from '@/helpers/store';
-import { Button } from "@/components/ui/button"
-import { Card, CardHeader, CardContent } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { UploadIcon } from "@radix-ui/react-icons"
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { UploadIcon } from '@radix-ui/react-icons';
 import { useItemsList, ItemBase } from '@/helpers/db';
 import { History } from './History';
 import { writeIpfs } from '@/hooks/ipfs';
@@ -39,13 +39,14 @@ export default function Upload() {
     <div className="container py-8 md:py-12 max-w-3xl mx-auto">
       <Card className="mb-4 bg-gray-800 border-gray-600">
         <CardHeader>
-          <h2 className="text-lg font-semibold mb-1">
-            Upload to IPFS
-          </h2>
-          
+          <h2 className="text-lg font-semibold mb-1">Upload to IPFS</h2>
+
           <p className="mb-4">
             Update your IPFS URL in{' '}
-            <NextLink href="/settings" className="text-blue-400 hover:text-blue-300 underline">
+            <NextLink
+              href="/settings"
+              className="text-blue-400 hover:text-blue-300 underline"
+            >
               settings
             </NextLink>
             .
@@ -61,7 +62,7 @@ export default function Upload() {
             value={ipfsState.content}
             onChange={(value) => setState(ipfsState, { content: value })}
           />
-          
+
           <div className="mt-2 mb-6 flex items-center space-x-2">
             <Checkbox
               id="compress"

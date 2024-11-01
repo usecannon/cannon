@@ -7,14 +7,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 import {
   CaretDownIcon,
   CaretUpIcon,
   ArrowDownIcon,
   ArrowRightIcon,
   QuestionMarkCircledIcon,
-} from "@radix-ui/react-icons";
+} from '@radix-ui/react-icons';
 import {
   useReactTable,
   flexRender,
@@ -22,7 +22,12 @@ import {
   SortingState,
   getSortedRowModel,
 } from '@tanstack/react-table';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import Chain from './Chain';
 import { format, formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
@@ -127,14 +132,23 @@ export function DataTable<Data extends object>({
                     ${meta?.isNumeric ? 'text-right' : ''}
                   `}
                 >
-                  {flexRender(header.column.columnDef.header, header.getContext())}
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )}
                   {header.column.columnDef.accessorKey !== 'arrow' && (
                     <span className="inline-block h-3 w-3">
                       {header.column.getIsSorted() ? (
                         header.column.getIsSorted() === 'desc' ? (
-                          <CaretDownIcon className="h-4 w-4 translate-y-[2.5px]" aria-label="sorted descending" />
+                          <CaretDownIcon
+                            className="h-4 w-4 translate-y-[2.5px]"
+                            aria-label="sorted descending"
+                          />
                         ) : (
-                          <CaretUpIcon className="h-4 w-4 -translate-y-[2.5px]" aria-label="sorted ascending" />
+                          <CaretUpIcon
+                            className="h-4 w-4 -translate-y-[2.5px]"
+                            aria-label="sorted ascending"
+                          />
                         )
                       ) : (
                         <ArrowDownIcon className="h-2.5 w-2.5 translate-x-[2.5px] rotate-180" />
@@ -148,7 +162,8 @@ export function DataTable<Data extends object>({
                           <QuestionMarkCircledIcon className="ml-1.5 opacity-80 h-4 w-4" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          Presets are useful for distinguishing multiple deployments of the same protocol on the same chain.
+                          Presets are useful for distinguishing multiple
+                          deployments of the same protocol on the same chain.
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>

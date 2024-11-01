@@ -7,16 +7,14 @@ import { ExternalLinkIcon } from '@radix-ui/react-icons';
 export const DeployYourProtocol = () => {
   return (
     <>
-      <h2 className="text-xl font-semibold mb-3 mt-8">
-        Deploy Your Protocol
-      </h2>
+      <h2 className="text-xl font-semibold mb-3 mt-8">Deploy Your Protocol</h2>
       <p className="mb-4">Deploying is just building on a remote network!</p>
       <div className="mb-4">
         <CommandPreview command="cannon build --network REPLACE_WITH_RPC_ENDPOINT --private-key REPLACE_WITH_KEY_THAT_HAS_GAS_TOKENS" />
       </div>
       <p className="mb-4">
         Verify your project&apos;s contracts on{' '}
-        <a 
+        <a
           href={externalLinks.ETHERSCAN}
           className="font-medium text-primary hover:underline inline-flex items-center"
           target="_blank"
@@ -32,7 +30,7 @@ export const DeployYourProtocol = () => {
       </div>
       <p className="mb-4">
         Finally, publish your package on the{' '}
-        <Link 
+        <Link
           href={links.EXPLORE}
           className="font-medium text-primary hover:underline"
         >

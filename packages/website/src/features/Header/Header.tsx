@@ -5,12 +5,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { NavLink } from '@/components/NavLink';
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 import { links } from '@/constants/links';
-import { useMediaQuery } from 'usehooks-ts'
+import { useMediaQuery } from 'usehooks-ts';
 
 const NoSSRConnectWallet = dynamic(
   () => import('@/features/Header/ConnectWallet'),
@@ -43,16 +43,16 @@ const NavLinks = () => {
 const SettingsButton = () => {
   const pathname = useRouter().pathname;
   const isActive = pathname.startsWith('/settings');
-  
+
   return (
     <Button
       asChild
       size="sm"
       variant="outline"
       className={cn(
-        "relative",
-        isActive ? "bg-teal-900 border-teal-700" : "bg-black border-gray-500",
-        "hover:bg-teal-900 hover:border-teal-500"
+        'relative',
+        isActive ? 'bg-teal-900 border-teal-700' : 'bg-black border-gray-500',
+        'hover:bg-teal-900 hover:border-teal-500'
       )}
     >
       <Link href={links.SETTINGS}>
@@ -72,19 +72,19 @@ const SettingsButton = () => {
 export const Header = () => {
   const router = useRouter();
   const isHomePage = router.pathname === '/';
-  
+
   const isDesktop = useMediaQuery('(min-width: 1280px)');
   const isTablet = useMediaQuery('(min-width: 768px) and (max-width: 1279px)');
   const isMobile = useMediaQuery('(max-width: 767px)');
 
   return (
-    <div 
+    <div
       className={cn(
-        "w-full z-50",
-        isHomePage ? "fixed top-0 left-0 right-0" : "relative",
-        isHomePage ? "" : "border-b border-gray-700",
-        isHomePage ? "bg-transparent" : "bg-black",
-        "transition-colors duration-200"
+        'w-full z-50',
+        isHomePage ? 'fixed top-0 left-0 right-0' : 'relative',
+        isHomePage ? '' : 'border-b border-gray-700',
+        isHomePage ? 'bg-transparent' : 'bg-black',
+        'transition-colors duration-200'
       )}
     >
       <div className="flex items-center pt-4 xl:pt-0 px-3 flex-wrap">
@@ -102,9 +102,9 @@ export const Header = () => {
             />
           </div>
         </Link>
-        
-        <Badge 
-          variant="outline" 
+
+        <Badge
+          variant="outline"
           className="ml-3 uppercase tracking-wider font-miriam text-gray-400 border-gray-400"
         >
           Beta
@@ -124,7 +124,7 @@ export const Header = () => {
             </div>
           </>
         )}
-        
+
         {isTablet && (
           <>
             <div className="ml-auto">

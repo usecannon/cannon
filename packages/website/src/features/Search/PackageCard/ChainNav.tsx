@@ -7,7 +7,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from '@/components/ui/tooltip';
 
 const ChainNav: FC<{
   variants: any[];
@@ -34,7 +34,8 @@ const ChainNav: FC<{
               </Link>
             </TooltipTrigger>
             <TooltipContent>
-              {getChainById(variant.chain_id)?.name + ` (ID ${variant.chain_id})`}
+              {getChainById(variant.chain_id)?.name +
+                ` (ID ${variant.chain_id})`}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

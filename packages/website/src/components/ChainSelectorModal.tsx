@@ -8,8 +8,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 
 const ChainButton = ({
   switching,
@@ -113,7 +113,7 @@ const ChainSelectorModal = ({
         <DialogHeader>
           <DialogTitle>Select Chain</DialogTitle>
         </DialogHeader>
-        
+
         <div className="flex flex-col gap-2">
           <div className="relative w-full mb-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 h-4 w-4" />
@@ -129,7 +129,7 @@ const ChainSelectorModal = ({
               No chains found
             </h2>
           )}
-          
+
           {searchTerm && filteredChains.length > 0 && (
             <div className="w-full">
               <h2 className="mb-2 text-zinc-200 text-sm font-medium">
@@ -154,7 +154,7 @@ const ChainSelectorModal = ({
               ))}
             </div>
           )}
-          
+
           {!searchTerm && (
             <div className="w-full">
               <div className="mb-4">

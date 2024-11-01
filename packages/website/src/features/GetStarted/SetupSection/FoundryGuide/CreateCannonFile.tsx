@@ -36,9 +36,7 @@ args = ["<%= settings.number %>"]`;
 export const CreateCannonFile = () => {
   return (
     <>
-      <h2 className="text-xl font-semibold mb-3 mt-8">
-        Create a Cannonfile
-      </h2>
+      <h2 className="text-xl font-semibold mb-3 mt-8">Create a Cannonfile</h2>
       <p className="mb-4">
         Create a new Foundry project with <code>forge init sample-project</code>
         . This will generate the following contract:
@@ -76,7 +74,7 @@ export const CreateCannonFile = () => {
         This compiled your code and created a local deployment of your nascent
         protocol. You can now run this package locally using the command-line
         tool. (Here, we add the <code>--registry-priority local</code> option to
-        ensure we're using the version of this package that you just built,
+        ensure we&apos;re using the version of this package that you just built,
         regardless of what others have published.)
       </p>
       <div className="mb-4">

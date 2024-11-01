@@ -50,12 +50,10 @@ args = ["<%= settings.unlock_time %>"]`;
 export const CreateCannonFile = () => {
   return (
     <>
-      <h2 className="text-xl font-semibold mb-3 mt-8">
-        Create a Cannonfile
-      </h2>
+      <h2 className="text-xl font-semibold mb-3 mt-8">Create a Cannonfile</h2>
       <p className="mb-4">
         Create a new Hardhat project by following the instructions{' '}
-        <a 
+        <a
           href="https://hardhat.org/tutorial/creating-a-new-hardhat-project"
           className="text-blue-500 hover:text-blue-600 underline"
         >
@@ -105,9 +103,12 @@ export const CreateCannonFile = () => {
       <p className="mb-4">
         This compiled your code and created a local deployment of your nascent
         protocol. You can now run this package locally using the command-line
-        tool. (Here, we add the <code className="px-1.5 py-0.5 bg-gray-100 rounded text-sm font-mono">--registry-priority local</code> option to
-        ensure we're using the version of this package that you just built,
-        regardless of what others have published.)
+        tool. (Here, we add the{' '}
+        <code className="px-1.5 py-0.5 bg-gray-100 rounded text-sm font-mono">
+          --registry-priority local
+        </code>{' '}
+        option to ensure we&apos;re using the version of this package that you
+        just built, regardless of what others have published.)
       </p>
       <div className="mb-4">
         <CommandPreview command="cannon sample-hardhat-project --registry-priority local" />

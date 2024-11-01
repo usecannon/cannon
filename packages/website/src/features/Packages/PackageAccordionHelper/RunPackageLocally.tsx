@@ -1,7 +1,7 @@
-import ButtonOutlined from '@/components/buttons/Outlined';
 import { CommandPreview } from '@/components/CommandPreview';
 import { ItemBodyWrapper } from '@/features/Packages/PackageAccordionHelper/utils';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 type Props = {
   name: string;
@@ -26,9 +26,9 @@ export default function RunPackageLocally({
         chainId == 13370 ? 'node' : 'fork'
       }`}
       titleAction={
-        <ButtonOutlined buttonProps={{ as: Link, href: '/learn/cli/' }}>
-          Install CLI
-        </ButtonOutlined>
+        <Button variant="outline" asChild>
+          <Link href="/learn/cli/">Install CLI</Link>
+        </Button>
       }
     >
       <CommandPreview

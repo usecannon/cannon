@@ -83,7 +83,7 @@ export const SearchPage = () => {
           <div className="relative py-4 md:py-8 px-4 md:pb-4 max-h-[210px] md:max-h-none">
             {/* Shadow overlay for mobile */}
             <div className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-b from-transparent to-background md:hidden" />
-            
+
             <div className="mb-4 md:mb-8">
               <SearchInput onSearchChange={setSearchTerm} />
             </div>
@@ -91,7 +91,7 @@ export const SearchPage = () => {
             <p className="mb-1.5 text-gray-200 text-sm font-medium">
               Filter by Chain
             </p>
-            
+
             {sortedMainnetChainIds.map((id) => (
               <ChainFilter
                 key={id}

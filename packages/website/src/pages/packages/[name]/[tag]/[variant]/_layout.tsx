@@ -189,7 +189,7 @@ function TagVariantLayout({ children }: { children: ReactNode }) {
           Package Not Found
         </Text>
       ) : (
-        <CustomSpinner m="auto" />
+        <CustomSpinner />
       )}
     </Flex>
   );

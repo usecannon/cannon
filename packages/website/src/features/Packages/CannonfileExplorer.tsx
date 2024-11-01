@@ -122,7 +122,7 @@ export const CannonfileExplorer: FC<{
           justifyContent="center"
           textAlign="center"
         >
-          <CustomSpinner mx="auto" mb="2" />
+          <CustomSpinner />
           <Text fontSize="sm" mb="1" color="gray.400">
             Fetching {pkg?.deployUrl}
           </Text>

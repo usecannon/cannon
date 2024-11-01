@@ -17,25 +17,22 @@ export const PackageCard: FC<IPackageCardProps> = ({ pkgs, maxHeight }) => {
       className="relative overflow-hidden border border-gray-600 bg-black transition-all duration-[120ms]"
     >
       <CardHeader className="flex justify-between bg-gray-800 p-2">
-        <h4 className="text-sm font-semibold w-full flex">{pkgs[0].name}
+        <h4 className="text-sm font-semibold w-full flex">
+          {pkgs[0].name}
 
-        <Link
-          href={'/packages/' + pkgs[0].name}
-          className="inline-block ml-auto"
-        >
-          <Link2Icon className="h-4 w-4" />
-        </Link>
-
+          <Link
+            href={'/packages/' + pkgs[0].name}
+            className="inline-block ml-auto"
+          >
+            <Link2Icon className="h-4 w-4" />
+          </Link>
         </h4>
       </CardHeader>
 
-      <div
-        className="overflow-auto"
-        style={{ maxHeight: maxHeight }}
-      >
+      <div className="overflow-auto" style={{ maxHeight: maxHeight }}>
         <PackageTable latestOnly={false} pkgs={pkgs} />
       </div>
-      
+
       <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-black/50 to-transparent" />
     </Card>
   );

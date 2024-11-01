@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronRight } from "lucide-react";
+import { ChevronRight } from 'lucide-react';
 import { ItemBase } from '@/helpers/db';
 
 interface HistoryProps {
@@ -10,9 +10,7 @@ interface HistoryProps {
 export function History({ items }: HistoryProps) {
   return (
     <div className="p-6 bg-gray-800 block border border-gray-600 rounded-md">
-      <h2 className="text-lg font-semibold pb-4 mb-4">
-        History
-      </h2>
+      <h2 className="text-lg font-semibold pb-4 mb-4">History</h2>
       <ul className="space-y-2">
         {items.map((item) => (
           <li key={item.id}>

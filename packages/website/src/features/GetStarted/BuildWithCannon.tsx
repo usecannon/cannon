@@ -14,12 +14,10 @@ export const BuildWithCannon = () => {
       </div>
       <p className="mb-4">
         Start by installing/upgrading the Cannon{' '}
-        <a 
-          href={links.CLI}
-          className="text-primary hover:underline"
-        >
+        <a href={links.CLI} className="text-primary hover:underline">
           command-line interface
-        </a>:
+        </a>
+        :
       </p>
       <div className="mb-6">
         <CommandPreview command="npm i -g @usecannon/cli" />

@@ -1,7 +1,7 @@
 'use client';
 
 import { links } from '@/constants/links';
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import NextLink from 'next/link';
 import { createGlobalStyle } from 'styled-components';
 import { useEffect } from 'react';
@@ -41,27 +41,32 @@ const HomePageStyles = createGlobalStyle`
 export default function HomePage() {
   useEffect(() => {
     const videos = document.querySelectorAll('.background-video');
-    
-    // Create an Intersection Observer
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        const index = Array.from(entry.target.parentElement?.children || [])
-          .filter(child => child.classList.contains('section'))
-          .indexOf(entry.target);
 
-        if (entry.isIntersecting) {
-          // Fade out all videos
-          videos.forEach((v) => (v as HTMLVideoElement).style.opacity = '0');
-          // Fade in the corresponding video
-          if (videos[index]) {
-            (videos[index] as HTMLVideoElement).style.opacity = '1';
+    // Create an Intersection Observer
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const index = Array.from(entry.target.parentElement?.children || [])
+            .filter((child) => child.classList.contains('section'))
+            .indexOf(entry.target);
+
+          if (entry.isIntersecting) {
+            // Fade out all videos
+            videos.forEach(
+              (v) => ((v as HTMLVideoElement).style.opacity = '0')
+            );
+            // Fade in the corresponding video
+            if (videos[index]) {
+              (videos[index] as HTMLVideoElement).style.opacity = '1';
+            }
           }
-        }
-      });
-    }, {
-      threshold: 0.5, // Trigger when section is 50% visible
-      root: null // Use viewport as root
-    });
+        });
+      },
+      {
+        threshold: 0.5, // Trigger when section is 50% visible
+        root: null, // Use viewport as root
+      }
+    );
 
     // Observe all sections
     document.querySelectorAll('.section').forEach((section) => {
@@ -89,18 +94,14 @@ export default function HomePage() {
 
       <div className="section flex items-center">
         <div className="container max-w-7xl">
-          <h1 
-            className="mb-4 lg:mb-6 font-miriam font-normal text-[30px] lg:text-[64px] leading-[38px] lg:leading-[76px] tracking-[-2.1px] lg:tracking-[-4.2px] max-w-[480px] lg:max-w-[800px]"
-          >
+          <h1 className="mb-4 lg:mb-6 font-miriam font-normal text-[30px] lg:text-[64px] leading-[38px] lg:leading-[76px] tracking-[-2.1px] lg:tracking-[-4.2px] max-w-[480px] lg:max-w-[800px]">
             Cannon manages protocol deployments on blockchains
           </h1>
-          <h2 
-            className="mb-6 lg:mb-10 font-outfit font-extralight text-lg lg:text-4xl leading-[23px] lg:leading-[46px] tracking-[-0.8px] lg:tracking-[-1.6px] text-gray-100"
-          >
+          <h2 className="mb-6 lg:mb-10 font-outfit font-extralight text-lg lg:text-4xl leading-[23px] lg:leading-[46px] tracking-[-0.8px] lg:tracking-[-1.6px] text-gray-100">
             A DevOps tool for building on Ethereum
           </h2>
           <NextLink href={links.LEARN}>
-            <Button 
+            <Button
               className="font-miriam uppercase tracking-wider font-bold"
               size="lg"
             >
@@ -114,18 +115,16 @@ export default function HomePage() {
         <div className="container max-w-7xl">
           <div className="flex justify-end w-full">
             <div className="max-w-[580px]">
-              <h2 
-                className="text-2xl lg:text-4xl mb-4 font-miriam"
-              >
+              <h2 className="text-2xl lg:text-4xl mb-4 font-miriam">
                 Build apps and bots that connect to protocols on Ethereum
               </h2>
               <p className="text-gray-100 mb-5 font-outfit lg:text-2xl">
-                Easily retrieve ABIs and addresses for development, testnets, and
-                mainnets. Deploy packages on a local node for development with a
-                single command.
+                Easily retrieve ABIs and addresses for development, testnets,
+                and mainnets. Deploy packages on a local node for development
+                with a single command.
               </p>
               <NextLink href={links.GETSTARTED}>
-                <Button 
+                <Button
                   className="font-miriam uppercase tracking-wider font-bold"
                   size="lg"
                 >
@@ -140,9 +139,7 @@ export default function HomePage() {
       <div className="section flex items-center">
         <div className="container max-w-7xl">
           <div className="max-w-[520px]">
-            <h2 
-              className="text-2xl lg:text-4xl mb-4 font-miriam"
-            >
+            <h2 className="text-2xl lg:text-4xl mb-4 font-miriam">
               Write smart contracts that integrate with protocols
             </h2>
             <p className="text-gray-100 mb-5 font-outfit lg:text-2xl">
@@ -151,7 +148,7 @@ export default function HomePage() {
               project so other developers can integrate with it as well.
             </p>
             <NextLink href={links.BUILD}>
-              <Button 
+              <Button
                 className="font-miriam uppercase tracking-wider font-bold"
                 size="lg"
               >
@@ -166,17 +163,16 @@ export default function HomePage() {
         <div className="container max-w-7xl">
           <div className="flex justify-end w-full">
             <div className="max-w-[520px]">
-              <h2 
-                className="text-2xl lg:text-4xl mb-4 font-miriam"
-              >
+              <h2 className="text-2xl lg:text-4xl mb-4 font-miriam">
                 Manage complex deployments across multiple chains
               </h2>
               <p className="text-gray-100 mb-5 font-outfit lg:text-2xl">
-                Maintain Cannonfiles in a GitOps repository. Owners of a Safe can
-                review and sign protocol changes using the Cannon web deployer.
+                Maintain Cannonfiles in a GitOps repository. Owners of a Safe
+                can review and sign protocol changes using the Cannon web
+                deployer.
               </p>
               <NextLink href={links.DEPLOY}>
-                <Button 
+                <Button
                   className="font-miriam uppercase tracking-wider font-bold"
                   size="lg"
                 >

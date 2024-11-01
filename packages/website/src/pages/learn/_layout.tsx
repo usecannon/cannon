@@ -13,14 +13,18 @@ interface NavLinkProps {
 
 const NavLink = ({ href, isActive, children }: NavLinkProps) => {
   return (
-    <Link 
+    <Link
       href={href}
       className={`
         relative py-3 px-4
         font-medium text-sm tracking-wide
         text-gray-200 hover:text-white
         transition-colors
-        ${isActive ? 'after:absolute after:bottom-[-1px] after:left-0 after:right-0 after:h-0.5 after:bg-teal-400 after:rounded-sm' : ''}
+        ${
+          isActive
+            ? 'after:absolute after:bottom-[-1px] after:left-0 after:right-0 after:h-0.5 after:bg-teal-400 after:rounded-sm'
+            : ''
+        }
       `}
     >
       {children}
@@ -38,13 +42,19 @@ export default function LearnLayout({ children }: { children: ReactNode }) {
           <NavLink href={links.LEARN} isActive={links.LEARN === pathname}>
             Overview
           </NavLink>
-          <NavLink href={links.GUIDES} isActive={pathname.startsWith(links.GUIDES)}>
+          <NavLink
+            href={links.GUIDES}
+            isActive={pathname.startsWith(links.GUIDES)}
+          >
             Guides
           </NavLink>
           <NavLink href={links.CLI} isActive={pathname.startsWith(links.CLI)}>
             CLI
           </NavLink>
-          <NavLink href={links.CANNONFILE} isActive={pathname.startsWith(links.CANNONFILE)}>
+          <NavLink
+            href={links.CANNONFILE}
+            isActive={pathname.startsWith(links.CANNONFILE)}
+          >
             Cannonfiles
           </NavLink>
         </div>

@@ -6,11 +6,18 @@ import CustomProviders from '@/features/Settings/CustomProviders';
 import SafeTransactionService from '@/features/Settings/SafeTransactionService';
 import { initialState, useStore } from '@/helpers/store';
 import { FC, PropsWithChildren } from 'react';
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Label } from '@/components/ui/label';
+import { Card } from '@/components/ui/card';
 
 const SectionBox: FC<PropsWithChildren> = ({ children }) => (
   <Card className="mb-6 p-6 bg-gray-900 border border-gray-800 rounded">
@@ -42,7 +49,7 @@ export default function SettingsPage() {
           <h3 className="text-lg font-semibold mb-1">Oracle Multicalls</h3>
           <p className="text-sm mb-3">
             Cannon implements{' '}
-            <a 
+            <a
               href="https://eips.ethereum.org/EIPS/eip-7412"
               className="text-blue-400 hover:underline"
               target="_blank"
@@ -56,7 +63,7 @@ export default function SettingsPage() {
               package explorer
             </NextLink>
             . Multicalls are composed using a{' '}
-            <NextLink 
+            <NextLink
               href="/packages/trusted-multicall-forwarder/latest/13370-main"
               className="text-blue-400 hover:underline"
             >
@@ -68,14 +75,20 @@ export default function SettingsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-gray-400 px-0 pb-2 border-gray-500">Oracle ID</TableHead>
-                <TableHead className="text-gray-400 px-0 pb-2 border-gray-500">Settings</TableHead>
+                <TableHead className="text-gray-400 px-0 pb-2 border-gray-500">
+                  Oracle ID
+                </TableHead>
+                <TableHead className="text-gray-400 px-0 pb-2 border-gray-500">
+                  Settings
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableRow>
                 <TableCell className="px-0 border-gray-500">
-                  <code className="text-lg bg-gray-700 px-2 py-1 rounded">PYTH</code>
+                  <code className="text-lg bg-gray-700 px-2 py-1 rounded">
+                    PYTH
+                  </code>
                 </TableCell>
                 <TableCell className="px-0 border-gray-500">
                   <div className="space-y-2">
@@ -86,7 +99,9 @@ export default function SettingsPage() {
                       type="text"
                       name="pyth"
                       value={settings.pythUrl}
-                      onChange={(evt) => setSettings({ pythUrl: evt.target.value })}
+                      onChange={(evt) =>
+                        setSettings({ pythUrl: evt.target.value })
+                      }
                     />
                   </div>
                 </TableCell>
@@ -99,7 +114,7 @@ export default function SettingsPage() {
           <h2 className="text-xl font-semibold mb-2">IPFS</h2>
           <p className="text-md mb-4">
             Enter a{' '}
-            <a 
+            <a
               href="https://docs.ipfs.tech/reference/kubo/rpc/"
               className="text-blue-400 hover:underline"
               target="_blank"
@@ -143,7 +158,11 @@ export default function SettingsPage() {
             className="text-gray-300 hover:underline"
             onClick={(e) => {
               e.preventDefault();
-              if (window.confirm('Are you sure you want to reset to default settings? This can\'t be undone.')) {
+              if (
+                window.confirm(
+                  "Are you sure you want to reset to default settings? This can't be undone."
+                )
+              ) {
                 setSettings(initialState.settings);
                 alert('Done!');
               }

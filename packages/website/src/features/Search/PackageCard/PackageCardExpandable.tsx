@@ -23,9 +23,7 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
     >
       <div className="flex flex-row items-center p-2 bg-gray-800">
         <div className="px-1">
-          <h4 className="inline-block text-sm font-semibold">
-            {pkgs[0].name}
-          </h4>
+          <h4 className="inline-block text-sm font-semibold">{pkgs[0].name}</h4>
           <Link
             href={'/packages/' + pkgs[0].name}
             className="inline-block ml-1.5 align-middle"
@@ -45,10 +43,7 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
           </Button>
         </div>
       </div>
-      <div 
-        className="align-middle overflow-auto"
-        style={{ maxHeight }}
-      >
+      <div className="align-middle overflow-auto" style={{ maxHeight }}>
         <PackageTable latestOnly={!isOpen} pkgs={pkgs} />
       </div>
     </div>

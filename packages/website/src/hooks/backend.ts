@@ -2,7 +2,7 @@ import { SafeDefinition, useStore } from '@/helpers/store';
 import { SafeABI } from '@/abi/Safe';
 import { useSafeAddress } from '@/hooks/safe';
 import { SafeTransaction } from '@/types/SafeTransaction';
-import { toast } from "sonner";
+import { toast } from 'sonner';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import _ from 'lodash';

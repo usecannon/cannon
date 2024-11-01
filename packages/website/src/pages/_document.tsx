@@ -9,7 +9,7 @@ import Document, {
   Main,
   NextScript,
 } from 'next/document';
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from '@/components/ui/sonner';
 
 import emotionCache from '@/lib/emotion-cache';
 

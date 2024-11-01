@@ -20,7 +20,7 @@ interface CustomLinkProps {
 const CustomLink: FC<CustomLinkProps> = ({ href, children }) => {
   const pathname = useRouter().pathname;
   const isActive = href === pathname;
-  
+
   return (
     <Link
       href={href}
@@ -40,7 +40,7 @@ const CustomLink: FC<CustomLinkProps> = ({ href, children }) => {
 
 interface SectionProps {
   title: string;
-  links: { href: string; text: string; }[];
+  links: { href: string; text: string }[];
 }
 
 const Section: FC<SectionProps> = ({ title, links }) => (
@@ -62,13 +62,15 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex flex-1 flex-col max-h-full max-w-full">
       <div className="flex flex-1 flex-col md:flex-row">
-        <div className={`
+        <div
+          className={`
           flex flex-col overflow-y-auto
           w-full md:w-[200px] md:max-w-[200px]
           border-b md:border-b-0 md:border-r
           border-gray-600 md:border-gray-700
           max-h-[140px] md:max-h-[calc(100vh-151px)]
-        `}>
+        `}
+        >
           <div className="px-3 pb-2">
             <Section title="Use Cannon" links={useCannon} />
             <Section
@@ -79,9 +81,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
         </div>
 
         <div className="flex-1 overflow-y-auto md:max-h-[calc(100vh-151px)]">
-          <div className="container max-w-[80rem] ml-0 p-8">
-            {children}
-          </div>
+          <div className="container max-w-[80rem] ml-0 p-8">{children}</div>
         </div>
       </div>
     </div>

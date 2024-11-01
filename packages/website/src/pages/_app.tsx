@@ -78,7 +78,10 @@ export default function RootLayout({
       <Providers>
         <div className="flex flex-col bg-black min-h-screen relative">
           <Header />
-          <div className="flex flex-1 z-[1] pb-[80px]" style={{ paddingBottom: isHomePage ? '80px' : 0 }}>
+          <div
+            className="flex flex-1 z-[1] pb-[80px]"
+            style={{ paddingBottom: isHomePage ? '80px' : 0 }}
+          >
             {getLayout(<Component {...pageProps} />)}
           </div>
           <Footer isFixed={isHomePage} />

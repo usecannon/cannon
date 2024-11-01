@@ -36,7 +36,7 @@ export const ChainFilter: FC<ChainFilterProps> = ({
               <TooltipTrigger>
                 <InfoCircledIcon className="text-gray-300 hover:opacity-80" />
               </TooltipTrigger>
-              <TooltipContent 
+              <TooltipContent
                 className="max-w-[250px] bg-gray-700 border-gray-800"
                 onClick={(e) => e.stopPropagation()}
               >

@@ -1,5 +1,4 @@
 import { FC, useMemo } from 'react';
-import { CircleIcon } from '@radix-ui/react-icons';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 export type ChainData = {
@@ -30,7 +29,7 @@ const Chain: FC<{
           alt="Cannon"
         />
       ) : (
-        <div 
+        <div
           className="h-3 w-3 rounded-full flex-shrink-0"
           style={{ backgroundColor: color }}
         />

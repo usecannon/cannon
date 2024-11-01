@@ -28,9 +28,7 @@ contract SampleIntegrationTest is Test {
 export const TestYourProtocol = () => {
   return (
     <>
-      <h2 className="text-xl font-semibold mb-3 mt-8">
-        Test Your Protocol
-      </h2>
+      <h2 className="text-xl font-semibold mb-3 mt-8">Test Your Protocol</h2>
       <p className="mb-4">Install Cannon for Foundry:</p>
       <div className="mb-4">
         <CommandPreview command="forge install usecannon/cannon-std" />

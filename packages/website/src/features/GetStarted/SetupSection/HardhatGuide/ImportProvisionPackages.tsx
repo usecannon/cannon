@@ -41,7 +41,7 @@ export const ImportProvisionPackages = () => {
         </code>
         &nbsp; packages to reference the addresses in their deployment data.
         Find which networks each package has deployment data for on the&nbsp;
-        <Link 
+        <Link
           href={links.EXPLORE}
           className="text-blue-600 dark:text-blue-400 hover:underline"
         >
@@ -51,7 +51,7 @@ export const ImportProvisionPackages = () => {
       </p>
       <p className="mb-4">
         For example, the Synthetix Sandbox contains a&nbsp;
-        <a 
+        <a
           href="https://github.com/Synthetixio/synthetix-sandbox/blob/main/cannonfile.prod.toml"
           className="text-blue-600 dark:text-blue-400 hover:underline"
         >
@@ -71,7 +71,7 @@ export const ImportProvisionPackages = () => {
       </p>
       <p className="mb-4">
         For example, the Synthetix Sandbox contains a&nbsp;
-        <a 
+        <a
           href="https://github.com/Synthetixio/synthetix-sandbox/blob/main/cannonfile.toml"
           className="text-blue-600 dark:text-blue-400 hover:underline"
         >

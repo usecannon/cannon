@@ -29,7 +29,11 @@ const SearchInput: React.FC<SearchInputProps> = ({
         name="search"
         placeholder={placeholder}
         className={`pl-8 ${
-          size === 'sm' ? 'h-8 text-sm' : size === 'lg' ? 'h-12 text-lg' : 'h-10'
+          size === 'sm'
+            ? 'h-8 text-sm'
+            : size === 'lg'
+            ? 'h-12 text-lg'
+            : 'h-10'
         }`}
       />
     </div>

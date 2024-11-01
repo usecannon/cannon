@@ -367,7 +367,7 @@ export const CodeExplorer: FC<{
   return (
     <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
       {isLoading ? (
-        <CustomSpinner m="auto" />
+        <CustomSpinner />
       ) : artifacts?.length || provisionedPackagesKeys.length ? (
         <>
           {!!provisionedPackagesKeys.length && (

@@ -10,7 +10,11 @@ export const Footer = ({ isFixed }: FooterProps) => {
     <div
       className={`
         flex items-center px-2 
-        ${isFixed ? 'fixed bottom-0 w-full z-10 bg-transparent' : 'relative bg-black'}
+        ${
+          isFixed
+            ? 'fixed bottom-0 w-full z-10 bg-transparent'
+            : 'relative bg-black'
+        }
         ${!isFixed && 'border-t border-gray-700'}
         flex-col sm:flex-row
         py-5 sm:py-2

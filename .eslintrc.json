@@ -19,7 +19,6 @@
       "extends": [
         "eslint:recommended",
         "prettier",
-        "next",
         "plugin:@typescript-eslint/recommended"
       ],
       "parserOptions": {

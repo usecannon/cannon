@@ -6,12 +6,10 @@ import { links } from '@/constants/links';
 export const DeployYourProtocol = () => {
   return (
     <>
-      <h2 className="text-xl font-semibold mb-3 mt-8">
-        Deploy Your Protocol
-      </h2>
+      <h2 className="text-xl font-semibold mb-3 mt-8">Deploy Your Protocol</h2>
       <p className="mb-4">
         Deploying is just building on a remote network! Be sure to use a network
-        name that you've&nbsp;
+        name that you&apos;ve&nbsp;
         <a
           className="text-primary hover:underline inline-flex items-center gap-1"
           href="https://hardhat.org/tutorial/deploying-to-a-live-network#deploying-to-remote-networks"
@@ -34,7 +32,7 @@ export const DeployYourProtocol = () => {
           target="_blank"
           rel="noopener noreferrer"
         >
-          and verify your project's contracts
+          and verify your project&apos;s contracts
           <ExternalLinkIcon className="h-4 w-4" />
         </a>
         :
@@ -44,10 +42,7 @@ export const DeployYourProtocol = () => {
       </div>
       <p className="mb-4">
         Finally, publish your package on the&nbsp;
-        <NextLink 
-          href={links.EXPLORE}
-          className="text-primary hover:underline"
-        >
+        <NextLink href={links.EXPLORE} className="text-primary hover:underline">
           Cannon registry
         </NextLink>
         :

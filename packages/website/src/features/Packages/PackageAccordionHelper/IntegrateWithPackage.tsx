@@ -6,7 +6,12 @@ import camelCase from 'lodash/camelCase';
 import { ChainDefinition, getArtifacts } from '@usecannon/builder';
 import { DeploymentState } from '@usecannon/builder/src';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from '@/components/ui/tooltip';
 
 function generateSettingsText(settings?: Record<string, unknown>) {
   let text = '';
@@ -70,7 +75,8 @@ ${generateSettingsText(contextDataCode.settings)}
               <InfoCircledIcon className="h-3 w-3" />
             </TooltipTrigger>
             <TooltipContent>
-              Options listed below show their default values. You can override them or omit them from your cannonfiles.
+              Options listed below show their default values. You can override
+              them or omit them from your cannonfiles.
             </TooltipContent>
           </Tooltip>
         </div>
@@ -89,7 +95,9 @@ ${generateSettingsText(contextDataCode.settings)}
         />
 
         <div className="flex items-center mt-4 mb-2">
-          <p className="mr-1.5 text-sm text-gray-200">Cannonfile Context Data</p>
+          <p className="mr-1.5 text-sm text-gray-200">
+            Cannonfile Context Data
+          </p>
           <Tooltip>
             <TooltipTrigger>
               <InfoCircledIcon className="h-3 w-3" />

@@ -1,5 +1,5 @@
 import { CodePreview } from '@/components/CodePreview';
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink } from 'lucide-react';
 
 const code = `import { expect } from 'chai';
 import { Contract } from 'ethers';
@@ -30,13 +30,10 @@ describe('Greeter', function () {
 export const TestYourProtocol = () => {
   return (
     <>
-      <h2 className="text-xl font-semibold mb-3 mt-8">
-        Test Your Protocol
-      </h2>
+      <h2 className="text-xl font-semibold mb-3 mt-8">Test Your Protocol</h2>
       <p className="mb-4">
-        You can use the build task in your tests and optionally use the
-        built-in{' '}
-        <a 
+        You can use the build task in your tests and optionally use the built-in{' '}
+        <a
           href="https://github.com/dethcrypto/TypeChain"
           target="_blank"
           rel="noopener noreferrer"
@@ -44,8 +41,8 @@ export const TestYourProtocol = () => {
         >
           TypeChain
           <ExternalLink className="h-3 w-3" />
-        </a>
-        {' '}support. Here&apos;s an example from the{' '}
+        </a>{' '}
+        support. Here&apos;s an example from the{' '}
         <a
           href="https://github.com/usecannon/cannon/tree/main/packages/sample-hardhat-project"
           target="_blank"

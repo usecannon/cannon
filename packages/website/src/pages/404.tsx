@@ -5,9 +5,7 @@ export default function Custom404({
 }) {
   return (
     <div className="flex w-full">
-      <p className="m-auto font-miriam uppercase tracking-wider">
-        {text}
-      </p>
+      <p className="m-auto font-miriam uppercase tracking-wider">{text}</p>
     </div>
   );
 }

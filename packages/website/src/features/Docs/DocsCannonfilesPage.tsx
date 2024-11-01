@@ -10,8 +10,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import React, { FC } from 'react';
 import { a11yDark, CodeBlock } from 'react-code-blocks';
 
@@ -152,23 +152,29 @@ const CustomTable: React.FC<{
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="text-gray-300 pl-0 border-gray-500">Name</TableHead>
-          <TableHead className="text-gray-300 border-gray-500 max-w-[180px]">Type</TableHead>
-          <TableHead className="text-gray-300 border-gray-500 max-w-[180px]">Description</TableHead>
+          <TableHead className="text-gray-300 pl-0 border-gray-500">
+            Name
+          </TableHead>
+          <TableHead className="text-gray-300 border-gray-500 max-w-[180px]">
+            Type
+          </TableHead>
+          <TableHead className="text-gray-300 border-gray-500 max-w-[180px]">
+            Description
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {data.map((row) => (
           <TableRow key={row.key}>
-            <TableCell className="pl-0 border-gray-500">
-              {row.key}
-            </TableCell>
+            <TableCell className="pl-0 border-gray-500">{row.key}</TableCell>
             <TableCell className="border-gray-500 max-w-[180px]">
               <span className="text-gray-300 text-xs font-medium">
                 {row.dataType}
               </span>
             </TableCell>
-            <TableCell className="border-gray-500 max-w-[180px]">{row.value}</TableCell>
+            <TableCell className="border-gray-500 max-w-[180px]">
+              {row.value}
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -190,12 +196,14 @@ const DocsCannonfilesPage: FC = () => {
   return (
     <div className="flex flex-1 flex-col max-h-full max-w-full">
       <div className="flex flex-1 flex-col md:flex-row">
-        <div className="
+        <div
+          className="
           flex flex-col overflow-y-auto 
           w-full md:w-[240px] md:max-w-[240px]
           max-h-[140px] md:max-h-[calc(100vh-151px)]
           border-b border-gray-600 md:border-b-0 md:border-r md:border-gray-700
-        ">
+        "
+        >
           <div className="px-3 pb-2">
             <Section
               title="Cannonfile Spec"
@@ -311,10 +319,13 @@ const DocsCannonfilesPage: FC = () => {
               <p className="mb-4">
                 Packages that result from <code>build</code>s consist of three
                 JSON files, which are compressed and uploaded using IPFS:{' '}
-                <a href="#deployment-data" className="text-blue-400 hover:text-blue-300">
+                <a
+                  href="#deployment-data"
+                  className="text-blue-400 hover:text-blue-300"
+                >
                   deployment data
-                </a>,{' '}
-                <a href="#package-code">code</a>, and{' '}
+                </a>
+                , <a href="#package-code">code</a>, and{' '}
                 <a href="#metadata">metadata</a>.
               </p>
             </div>
@@ -486,9 +497,7 @@ const DocsCannonfilesPage: FC = () => {
                       Commit hash of the changes in which the last instance of
                       the package were made
                     </li>
-                    <li>
-                      Link to the package git repo README file
-                    </li>
+                    <li>Link to the package git repo README file</li>
                   </ul>
                   Metadata is also stored on IPFS and is locally stored in your
                   filesystem in the default storage location
@@ -536,7 +545,9 @@ const DocsCannonfilesPage: FC = () => {
                   <code className="block">
                     factory.MyPoolDeployment.event = &quot;NewDeployment&quot;
                   </code>
-                  <code className="block">factory.MyPoolDeployment.arg = 0</code>
+                  <code className="block">
+                    factory.MyPoolDeployment.arg = 0
+                  </code>
                 </div>
 
                 <p className="mb-4">
@@ -570,7 +581,9 @@ const DocsCannonfilesPage: FC = () => {
               </div>
 
               <div className="mb-16" id="var">
-                <h3 className="text-lg mb-4">Save Emitted Event Data in a Variable</h3>
+                <h3 className="text-lg mb-4">
+                  Save Emitted Event Data in a Variable
+                </h3>
                 <p className="mb-4">
                   If an invoked function emits an event, cannon can parse the
                   event data in your cannonfile by using the var property, This

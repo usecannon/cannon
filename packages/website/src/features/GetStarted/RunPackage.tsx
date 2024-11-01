@@ -22,13 +22,13 @@ export const RunPackage = () => {
           Install Foundry
           <ExternalLinkIcon className="h-4 w-4" />
         </a>{' '}
-        if you haven't already.
+        if you haven&apos;t already.
       </p>
       <p className="mb-4">
         <CommandPreview command="curl -L https://foundry.paradigm.xyz | bash" />
       </p>
       <p className="mb-4">
-        Install Cannon's{' '}
+        Install Cannon&apos;s{' '}
         <Link href={links.CLI} className="text-primary hover:underline">
           command-line interface
         </Link>
