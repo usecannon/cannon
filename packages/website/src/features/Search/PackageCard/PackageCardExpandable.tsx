@@ -19,23 +19,22 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
   return (
     <div
       key={pkgs[0].name}
-      className="block overflow-hidden border border-gray-600 rounded bg-black transition-all duration-120"
+      className="block overflow-hidden border border-border rounded bg-black transition-all duration-120"
     >
-      <div className="flex flex-row items-center p-2 bg-gray-800">
-        <div className="px-1">
-          <h4 className="inline-block text-sm font-semibold">{pkgs[0].name}</h4>
+      <div className="flex flex-row items-center p-2">
+        <div className="px-1 flex items-center">
+          <h4 className="font-semibold text-lg">{pkgs[0].name}</h4>
           <Link
             href={'/packages/' + pkgs[0].name}
-            className="inline-block ml-1.5 align-middle"
+            className="ml-2 flex items-center"
           >
-            <Link2Icon className="w-3 h-3 translate-y-[0.5px]" />
+            <Link2Icon className="w-4 h-4" />
           </Link>
         </div>
         <div className="ml-auto">
           <Button
             size="sm"
-            variant="outline"
-            className="font-[var(--font-miriam)] px-2 text-xs font-medium uppercase tracking-wider text-shadow-sm bg-gray-900 border-gray-500 hover:bg-gray-800"
+            variant="secondary"
             onClick={onToggle}
             id={`${pkgs[0].name}-expandable-button`}
           >

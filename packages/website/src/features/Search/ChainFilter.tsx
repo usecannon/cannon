@@ -23,24 +23,23 @@ export const ChainFilter: FC<ChainFilterProps> = ({
 }) => {
   return (
     <div
-      className={`flex items-center mb-2 px-2 py-1 rounded-md border cursor-pointer
-        ${isSelected ? 'bg-gray-700 border-gray-700' : 'border-gray-700'}
-        ${isSelected ? 'hover:bg-gray-600' : 'hover:bg-gray-800'}`}
+      className={`flex items-center mb-2 px-2 py-1 rounded-md border border-border cursor-pointer hover:bg-accent
+        ${isSelected ? 'bg-accent' : ''}`}
       onClick={() => toggleSelection(id)}
     >
       <Chain id={id} />
       {id === 13370 && (
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center">
           <TooltipProvider>
             <Tooltip delayDuration={0}>
-              <TooltipTrigger>
-                <InfoCircledIcon className="text-gray-300 hover:opacity-80" />
+              <TooltipTrigger className="flex items-center">
+                <InfoCircledIcon className="text-gray-300" />
               </TooltipTrigger>
               <TooltipContent
-                className="max-w-[250px] bg-gray-700 border-gray-800"
+                className="max-w-[250px] bg-hover border-border bg-black"
                 onClick={(e) => e.stopPropagation()}
               >
-                <p className="p-2 text-sm text-gray-200">
+                <p className="text-sm text-gray-200">
                   These packages can be{' '}
                   <Link
                     href={links.DOCS_CLI_RUN}

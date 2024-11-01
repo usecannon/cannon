@@ -51,7 +51,7 @@ const SettingsButton = () => {
       variant="outline"
       className={cn(
         'relative',
-        isActive ? 'bg-teal-900 border-teal-700' : 'bg-black border-gray-500',
+        isActive ? 'bg-teal-900 border-teal-700' : 'bg-black border-border',
         'hover:bg-teal-900 hover:border-teal-500'
       )}
     >
@@ -82,7 +82,7 @@ export const Header = () => {
       className={cn(
         'w-full z-50',
         isHomePage ? 'fixed top-0 left-0 right-0' : 'relative',
-        isHomePage ? '' : 'border-b border-gray-700',
+        isHomePage ? '' : 'border-b border-border',
         isHomePage ? 'bg-transparent' : 'bg-black',
         'transition-colors duration-200'
       )}
@@ -105,7 +105,7 @@ export const Header = () => {
 
         <Badge
           variant="outline"
-          className="ml-3 uppercase tracking-wider font-miriam text-gray-400 border-gray-400"
+          className="ml-3 uppercase tracking-wider font-miriam text-gray-400 border-border"
         >
           Beta
         </Badge>

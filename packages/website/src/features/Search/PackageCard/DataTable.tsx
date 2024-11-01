@@ -8,13 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  CaretDownIcon,
-  CaretUpIcon,
-  ArrowDownIcon,
-  ArrowRightIcon,
-  QuestionMarkCircledIcon,
-} from '@radix-ui/react-icons';
+import { ArrowRightIcon, CaretSortIcon } from '@radix-ui/react-icons';
 import {
   useReactTable,
   flexRender,
@@ -31,6 +25,7 @@ import {
 import Chain from './Chain';
 import { format, formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export type DataTableProps<Data extends object> = {
   data: Data[];
@@ -116,93 +111,100 @@ export function DataTable<Data extends object>({
   });
 
   return (
-    <Table className="[&_tr:last-child_td]:border-0">
-      <TableHeader>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <TableRow key={headerGroup.id}>
-            {headerGroup.headers.map((header) => {
-              const meta: any = header.column.columnDef.meta;
-              return (
-                <TableHead
-                  key={header.id}
-                  onClick={header.column.getToggleSortingHandler()}
-                  className={`
-                    text-gray-200 border-gray-600 normal-case tracking-normal text-sm font-medium py-2 
-                    cursor-pointer whitespace-nowrap
-                    ${meta?.isNumeric ? 'text-right' : ''}
-                  `}
-                >
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )}
-                  {header.column.columnDef.accessorKey !== 'arrow' && (
-                    <span className="inline-block h-3 w-3">
-                      {header.column.getIsSorted() ? (
-                        header.column.getIsSorted() === 'desc' ? (
-                          <CaretDownIcon
-                            className="h-4 w-4 translate-y-[2.5px]"
-                            aria-label="sorted descending"
-                          />
-                        ) : (
-                          <CaretUpIcon
-                            className="h-4 w-4 -translate-y-[2.5px]"
-                            aria-label="sorted ascending"
-                          />
-                        )
+    <div className="w-full">
+      <div className="border-border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="border-border">
+                {headerGroup.headers.map((header) => {
+                  const meta: any = header.column.columnDef.meta;
+                  return (
+                    <TableHead
+                      key={header.id}
+                      className={`
+                        ${meta?.isNumeric ? 'text-right' : ''}
+                        ${
+                          header.column.columnDef.accessorKey === 'version'
+                            ? 'pl-3'
+                            : ''
+                        }
+                      `}
+                    >
+                      {header.column.columnDef.accessorKey !== 'arrow' ? (
+                        <Button
+                          variant="ghost"
+                          onClick={header.column.getToggleSortingHandler()}
+                          className="h-8 px-2 -ml-2"
+                        >
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                          <CaretSortIcon className="ml-2 h-4 w-4" />
+                        </Button>
                       ) : (
-                        <ArrowDownIcon className="h-2.5 w-2.5 translate-x-[2.5px] rotate-180" />
+                        flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )
                       )}
-                    </span>
-                  )}
-                  {header.column.columnDef.accessorKey === 'preset' && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <QuestionMarkCircledIcon className="ml-1.5 opacity-80 h-4 w-4" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Presets are useful for distinguishing multiple
-                          deployments of the same protocol on the same chain.
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </TableHead>
-              );
-            })}
-          </TableRow>
-        ))}
-      </TableHeader>
-      <TableBody>
-        {table.getRowModel().rows.map((row) => {
-          const variant = `${row.original.chain}-${row.original.preset}`;
-          return (
-            <TableRow key={row.id} className="hover:bg-gray-900">
-              {row.getVisibleCells().map((cell) => {
-                const meta: any = cell.column.columnDef.meta;
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => {
+                const variant = `${row.original.chain}-${row.original.preset}`;
                 return (
-                  <TableCell
-                    key={cell.id}
-                    className={`
-                      relative overflow-hidden border-gray-600 whitespace-nowrap
-                      ${meta?.isNumeric ? 'text-right' : ''}
-                    `}
+                  <TableRow
+                    key={row.id}
+                    className="border-border hover:bg-muted/50"
                   >
-                    <Link
-                      href={`/packages/${packageName}/${row.original.version}/${variant}`}
-                      className="absolute inset-0 z-10 block"
-                    />
-                    <div className="relative z-1">
-                      {getCellContent({ cell })}
-                    </div>
-                  </TableCell>
+                    {row.getVisibleCells().map((cell) => {
+                      const meta: any = cell.column.columnDef.meta;
+                      return (
+                        <TableCell
+                          key={cell.id}
+                          className={`
+                            relative overflow-hidden whitespace-nowrap
+                            ${meta?.isNumeric ? 'text-right' : ''}
+                            ${
+                              cell.column.columnDef.accessorKey === 'version'
+                                ? 'pl-3'
+                                : ''
+                            }
+                          `}
+                        >
+                          <Link
+                            href={`/packages/${packageName}/${row.original.version}/${variant}`}
+                            className="absolute inset-0 z-10 block"
+                          />
+                          <div className="relative z-1">
+                            {getCellContent({ cell })}
+                          </div>
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
                 );
-              })}
-            </TableRow>
-          );
-        })}
-      </TableBody>
-    </Table>
+              })
+            ) : (
+              <TableRow className="border-border">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
   );
 }

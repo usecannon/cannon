@@ -79,7 +79,7 @@ export const SearchPage = () => {
     <div className="flex flex-1 flex-col max-w-[100vw]">
       <div className="flex flex-1 flex-col md:flex-row">
         {/* Sidebar */}
-        <div className="flex flex-col overflow-y-auto w-full md:w-[320px] md:max-w-[320px] md:border-r md:border-gray-700 md:h-[calc(100vh-100px)]">
+        <div className="flex flex-col overflow-y-auto w-full md:w-[320px] md:max-w-[320px] md:border-r md:border-border md:h-[calc(100vh-100px)]">
           <div className="relative py-4 md:py-8 px-4 md:pb-4 max-h-[210px] md:max-h-none">
             {/* Shadow overlay for mobile */}
             <div className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-b from-transparent to-background md:hidden" />
@@ -134,10 +134,10 @@ export const SearchPage = () => {
               <p className="m-auto text-gray-400">No results</p>
             </div>
           ) : (
-            <div className="px-0 pt-4 md:pt-8">
+            <div className="px-0 pt-4">
               <div className="ml-0 max-w-[1280px]">
                 {Object.values(groupedPackages).map((pkgs: any) => (
-                  <div className="mb-8" key={pkgs[0].name}>
+                  <div className="mb-6" key={pkgs[0].name}>
                     <PackageCardExpandable pkgs={pkgs} key={pkgs[0].name} />
                   </div>
                 ))}
