@@ -152,7 +152,7 @@ export const CannonfileExplorer: FC<{ pkg: ApiPackage }> = ({ pkg }) => {
               </div>
 
               <div
-                className={`container mx-auto max-w-4xl py-14 ${
+                className={`container mx-auto max-w-5xl py-14 ${
                   displayMode === 2 ? 'block' : 'hidden'
                 }`}
               >

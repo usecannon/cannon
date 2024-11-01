@@ -20,7 +20,6 @@ import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { DeploymentInfo } from '@usecannon/builder';
 
 import PageLoading from '@/components/PageLoading';
-import PackageAccordionHelper from '@/features/Packages/PackageAccordionHelper';
 import { usePackageNameTagVariantUrlParams } from '@/hooks/routing/usePackageNameTagVariantUrlParams';
 import { usePackageByRef } from '@/hooks/api/usePackage';
 
@@ -88,18 +87,19 @@ function TagVariantLayout({ children }: { children: ReactNode }) {
                 </div>
               </div>
 
-              <PackageAccordionHelper
-                name={name}
-                tag={tag}
-                chainId={chainId}
-                preset={preset}
-              />
-
-              {/* Package Tabs */}
               <div className="flex gap-8 items-center max-w-full overflow-x-auto overflow-y-hidden">
                 <NavLink
                   isActive={pathname == '/packages/[name]/[tag]/[variant]'}
                   href={`/packages/${packagesQuery.data.name}/${params.tag}/${params.variant}`}
+                  isSmall
+                >
+                  Overview
+                </NavLink>
+                <NavLink
+                  isActive={pathname.startsWith(
+                    '/packages/[name]/[tag]/[variant]/deployment'
+                  )}
+                  href={`/packages/${packagesQuery.data.name}/${params.tag}/${params.variant}/deployment`}
                   isSmall
                 >
                   Deployment
