@@ -1,5 +1,4 @@
 import { CommandPreview } from '@/components/CommandPreview';
-import { ItemBodyWrapper } from '@/features/Packages/PackageAccordionHelper/utils';
 import { Button } from '@/components/ui/button';
 
 type Props = {
@@ -35,20 +34,19 @@ export default function RetrieveAddressAbi({
   const _preset = preset !== 'main' ? `@${preset}` : '';
   const _chainId = chainId != 13370 ? ` --chain-id ${chainId}` : '';
   return (
-    <ItemBodyWrapper
-      titleText="Retrieve addresses and ABIs"
-      titleAction={
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium">Retrieve addresses and ABIs</h3>
         <Button
           variant="secondary"
           onClick={() => handleDownload(addressesAbis)}
         >
           Download JSON
         </Button>
-      }
-    >
+      </div>
       <CommandPreview
         command={`cannon inspect ${name}${_version}${_preset}${_chainId} --write-deployments ./deployment`}
       />
-    </ItemBodyWrapper>
+    </div>
   );
 }

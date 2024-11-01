@@ -1,5 +1,4 @@
 import CodePreview from '@/components/CodePreview';
-import { ItemBodyWrapper } from '@/features/Packages/PackageAccordionHelper/utils';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import camelCase from 'lodash/camelCase';
@@ -60,14 +59,16 @@ ${generateSettingsText(contextDataCode.settings)}
 
   return (
     <TooltipProvider>
-      <ItemBodyWrapper
-        titleText="Use this package in your cannonfile"
-        titleAction={
+      <div>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-medium">
+            Use this package in your cannonfile
+          </h3>
           <Button variant="secondary" asChild>
             <Link href="/learn/cannonfile/">Build a Cannonfile</Link>
           </Button>
-        }
-      >
+        </div>
+
         <div className="flex items-center mb-2">
           <p className="mr-1.5 text-sm text-gray-200">Add to Cannonfile</p>
           <Tooltip>
@@ -122,7 +123,7 @@ ${generateSettingsText(contextDataCode.settings)}
             },
           }}
         />
-      </ItemBodyWrapper>
+      </div>
     </TooltipProvider>
   );
 }

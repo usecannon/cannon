@@ -65,7 +65,7 @@ export default function Overview() {
         }}
       />
       <div className="flex flex-col w-full">
-        <div className="container mx-auto max-w-5xl">
+        <div className="container mx-auto max-w-5xl py-6">
           <PackageAccordionHelper
             name={name}
             tag={tag}

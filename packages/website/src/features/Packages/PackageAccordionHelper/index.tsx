@@ -1,4 +1,9 @@
-import { CustomAccordion, CustomAccordionItem } from '@/components/Accordion';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import RunPackageLocally from '@/features/Packages/PackageAccordionHelper/RunPackageLocally';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
@@ -49,44 +54,53 @@ export default function PackageAccordionHelper({
   const { ['run']: _, ...filteredDefinition } = deploymentInfo.def as any;
 
   return (
-    <CustomAccordion>
-      <CustomAccordionItem title="Run Package Locally">
-        <RunPackageLocally
-          name={name}
-          chainId={packagesQuery.data.chainId}
-          version={packagesQuery.data.version}
-          preset={packagesQuery.data.preset}
-        />
-      </CustomAccordionItem>
-
-      <CustomAccordionItem title="Retrieve Addresses + ABIs">
-        <RetrieveAddressAbi
-          name={name}
-          chainId={packagesQuery.data.chainId}
-          version={packagesQuery.data.version}
-          preset={packagesQuery.data.preset}
-          addressesAbis={
-            deploymentData.data?.state
-              ? extractAddressesAbis(deploymentData.data.state)
-              : {}
-          }
-        />
-      </CustomAccordionItem>
-
-      <CustomAccordionItem title="Integrate with this package">
-        {state && deploymentInfo ? (
-          <IntegrateWithPackage
+    <Accordion type="single" collapsible>
+      <AccordionItem value="run-locally">
+        <AccordionTrigger>Run Package Locally</AccordionTrigger>
+        <AccordionContent>
+          <RunPackageLocally
             name={name}
             chainId={packagesQuery.data.chainId}
-            preset={packagesQuery.data.preset}
-            chainDefinition={new ChainDefinition(filteredDefinition)}
-            deploymentState={state}
             version={packagesQuery.data.version}
+            preset={packagesQuery.data.preset}
           />
-        ) : (
-          <p>Error retrieving deployment data</p>
-        )}
-      </CustomAccordionItem>
-    </CustomAccordion>
+        </AccordionContent>
+      </AccordionItem>
+
+      <AccordionItem value="addresses-abis">
+        <AccordionTrigger>Retrieve Addresses + ABIs</AccordionTrigger>
+        <AccordionContent>
+          <RetrieveAddressAbi
+            name={name}
+            chainId={packagesQuery.data.chainId}
+            version={packagesQuery.data.version}
+            preset={packagesQuery.data.preset}
+            addressesAbis={
+              deploymentData.data?.state
+                ? extractAddressesAbis(deploymentData.data.state)
+                : {}
+            }
+          />
+        </AccordionContent>
+      </AccordionItem>
+
+      <AccordionItem value="integrate">
+        <AccordionTrigger>Integrate with this package</AccordionTrigger>
+        <AccordionContent>
+          {state && deploymentInfo ? (
+            <IntegrateWithPackage
+              name={name}
+              chainId={packagesQuery.data.chainId}
+              preset={packagesQuery.data.preset}
+              chainDefinition={new ChainDefinition(filteredDefinition)}
+              deploymentState={state}
+              version={packagesQuery.data.version}
+            />
+          ) : (
+            <p>Error retrieving deployment data</p>
+          )}
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 }

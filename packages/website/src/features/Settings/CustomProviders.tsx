@@ -1,14 +1,7 @@
 import { isValidUrl } from '@/helpers/isValidUrl';
 import { useStore } from '@/helpers/store';
 
-import {
-  Flex,
-  FormLabel,
-  IconButton,
-  Input,
-  Link,
-  Text,
-} from '@chakra-ui/react';
+import { Flex, FormLabel, IconButton, Input, Text } from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
 import { PlusIcon } from '@radix-ui/react-icons';
 import { Cross2Icon, Pencil1Icon } from '@radix-ui/react-icons';
@@ -66,27 +59,7 @@ export default function CustomProviders() {
 
   return (
     <>
-      <Text fontSize="sm" mb={3}>
-        Cannon will use custom providers (which may include{' '}
-        <Link isExternal href="https://www.alchemy.com/">
-          Alchemy
-        </Link>{' '}
-        or{' '}
-        <Link isExternal href="https://www.infura.io/">
-          Infura
-        </Link>{' '}
-        endpoints) added below if available for the target chain. Otherwise, it
-        will use a{' '}
-        <Link
-          isExternal
-          href="https://github.com/wevm/viem/tree/main/src/chains/definitions"
-        >
-          default RPC url
-        </Link>
-        .
-      </Text>
-      <FormLabel>Custom Providers</FormLabel>
-
+      <FormLabel>Ethereum RPC URLs</FormLabel>
       <Flex mb="3">
         <Flex direction="column" width="100%">
           <Input

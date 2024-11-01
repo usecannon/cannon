@@ -14,6 +14,7 @@ import {
   Encodings,
   EncodingsKeys,
 } from '@/helpers/misc';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 function parseJson(data: ArrayBuffer | undefined, decompress?: boolean) {
   if (!data || decompress === undefined) return false;
@@ -134,87 +135,93 @@ export default function Download() {
 
   return (
     <div className="container mx-auto py-8 md:py-12 max-w-3xl">
-      <div className="p-6 bg-gray-800 border border-gray-600 rounded-md">
-        <h2 className="text-lg font-semibold mb-4">Download from IPFS</h2>
+      <Card>
+        <CardHeader>
+          <CardTitle>Download from IPFS</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4">
+            Update your IPFS URL in{' '}
+            <NextLink
+              href="/settings"
+              className="text-blue-500 hover:underline"
+            >
+              settings
+            </NextLink>
+            .
+          </p>
 
-        <p className="mb-4">
-          Update your IPFS URL in{' '}
-          <NextLink href="/settings" className="text-blue-500 hover:underline">
-            settings
-          </NextLink>
-          .
-        </p>
-
-        {ipfsApiUrl?.length && (
-          <>
-            <div className="mb-3">
-              <label htmlFor="cid" className="block text-sm mb-1">
-                CID
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  ipfs://
-                </span>
-                <input
-                  className="w-full pl-16 bg-black border border-white/40 rounded-md h-10 px-3"
-                  placeholder="Qm..."
-                  id="cid"
-                  value={cid}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center mb-2">
-              <input
-                type="checkbox"
-                id="decompress"
-                checked={decompress}
-                onChange={handleSwitchDecompress}
-                className="mr-2"
-              />
-              <label htmlFor="decompress">Decompress using zlib</label>
-            </div>
-
-            {ipfsData && (
-              <div>
-                <div className="mb-8">
-                  <label className="block text-sm mb-1">Decode</label>
-                  <select
-                    value={encoding}
-                    onChange={handleEncodingChange}
-                    className="w-full h-10 px-3 rounded-md border border-gray-600 bg-black mb-2"
-                  >
-                    {Object.entries(Encodings).map(([key, value]) => (
-                      <option key={key} value={key}>
-                        {value}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="mb-4 min-h-[420px]">
-                  <CodePreview
-                    code={String(decodedData)}
-                    language={isJson ? 'json' : undefined}
-                    height="420px"
+          {ipfsApiUrl?.length && (
+            <>
+              <div className="mb-3">
+                <label htmlFor="cid" className="block text-sm mb-1">
+                  CID
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    ipfs://
+                  </span>
+                  <input
+                    className="w-full pl-16 bg-black border border-white/40 rounded-md h-10 px-3"
+                    placeholder="Qm..."
+                    id="cid"
+                    value={cid}
+                    onChange={handleInputChange}
                   />
                 </div>
-
-                <div className="flex justify-end">
-                  <button
-                    onClick={handleDownload}
-                    className="inline-flex items-center px-3 py-1 text-xs border border-gray-500 text-gray-300 rounded hover:bg-gray-700"
-                  >
-                    <DownloadIcon className="mr-2 h-4 w-4" />
-                    Download
-                  </button>
-                </div>
               </div>
-            )}
-          </>
-        )}
-      </div>
+
+              <div className="flex items-center mb-2">
+                <input
+                  type="checkbox"
+                  id="decompress"
+                  checked={decompress}
+                  onChange={handleSwitchDecompress}
+                  className="mr-2"
+                />
+                <label htmlFor="decompress">Decompress using zlib</label>
+              </div>
+
+              {ipfsData && (
+                <div>
+                  <div className="mb-8">
+                    <label className="block text-sm mb-1">Decode</label>
+                    <select
+                      value={encoding}
+                      onChange={handleEncodingChange}
+                      className="w-full h-10 px-3 rounded-md border border-gray-600 bg-black mb-2"
+                    >
+                      {Object.entries(Encodings).map(([key, value]) => (
+                        <option key={key} value={key}>
+                          {value}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="mb-4 min-h-[420px]">
+                    <CodePreview
+                      code={String(decodedData)}
+                      language={isJson ? 'json' : undefined}
+                      height="420px"
+                    />
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleDownload}
+                      className="inline-flex items-center px-3 py-1 text-xs border border-gray-500 text-gray-300 rounded hover:bg-gray-700"
+                    >
+                      <DownloadIcon className="mr-2 h-4 w-4" />
+                      Download
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
