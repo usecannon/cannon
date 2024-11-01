@@ -53,7 +53,7 @@ export const Footer = ({ isFixed }: FooterProps) => {
         </Button>
       </div>
       <div className="sm:ml-auto sm:mr-1 text-center sm:text-left">
-        <p className="font-semibold text-md text-white/80 tracking-wider">
+        <p className="font-semibold text-md tracking-wider">
           Supported by
           <a
             className="inline-block mx-1.5 text-white no-underline hover:no-underline"

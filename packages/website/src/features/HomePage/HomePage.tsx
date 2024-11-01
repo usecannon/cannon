@@ -101,10 +101,7 @@ export default function HomePage() {
             A DevOps tool for building on Ethereum
           </h2>
           <NextLink href={links.LEARN}>
-            <Button
-              className="font-miriam uppercase tracking-wider font-bold"
-              size="lg"
-            >
+            <Button className="font-miriam uppercase tracking-wider font-bold">
               Learn more
             </Button>
           </NextLink>
@@ -114,21 +111,45 @@ export default function HomePage() {
       <div className="section flex items-center">
         <div className="container max-w-7xl">
           <div className="flex justify-end w-full">
-            <div className="max-w-[580px]">
+            <div className="max-w-[640px]">
+              <div className="bg-black/40 rounded-lg p-8">
+                <h2 className="text-2xl lg:text-4xl mb-4 font-miriam">
+                  Build apps and bots that connect to protocols on Ethereum
+                </h2>
+                <p className="text-gray-100 mb-5 font-outfit lg:text-2xl">
+                  Easily retrieve ABIs and addresses for development, testnets,
+                  and mainnets. Deploy packages on a local node for development
+                  with a single command.
+                </p>
+                <NextLink href={links.GETSTARTED}>
+                  <Button
+                    className="font-miriam uppercase tracking-wider font-bold"
+                    size="lg"
+                  >
+                    Run a Cannon Package
+                  </Button>
+                </NextLink>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="section flex items-center">
+        <div className="container max-w-7xl">
+          <div className="max-w-[600px]">
+            <div className="bg-black/40 rounded-lg p-8">
               <h2 className="text-2xl lg:text-4xl mb-4 font-miriam">
-                Build apps and bots that connect to protocols on Ethereum
+                Write smart contracts that integrate with protocols
               </h2>
               <p className="text-gray-100 mb-5 font-outfit lg:text-2xl">
-                Easily retrieve ABIs and addresses for development, testnets,
-                and mainnets. Deploy packages on a local node for development
-                with a single command.
+                Create a Cannonfile to deploy your contracts, configuring them
+                to connect with existing protocols. Publish a package for your
+                project so other developers can integrate with it as well.
               </p>
-              <NextLink href={links.GETSTARTED}>
-                <Button
-                  className="font-miriam uppercase tracking-wider font-bold"
-                  size="lg"
-                >
-                  Run a Cannon Package
+              <NextLink href={links.BUILD}>
+                <Button className="font-miriam uppercase tracking-wider font-bold">
+                  Build a Protocol
                 </Button>
               </NextLink>
             </div>
@@ -138,47 +159,23 @@ export default function HomePage() {
 
       <div className="section flex items-center">
         <div className="container max-w-7xl">
-          <div className="max-w-[520px]">
-            <h2 className="text-2xl lg:text-4xl mb-4 font-miriam">
-              Write smart contracts that integrate with protocols
-            </h2>
-            <p className="text-gray-100 mb-5 font-outfit lg:text-2xl">
-              Create a Cannonfile to deploy your contracts, configuring them to
-              connect with existing protocols. Publish a package for your
-              project so other developers can integrate with it as well.
-            </p>
-            <NextLink href={links.BUILD}>
-              <Button
-                className="font-miriam uppercase tracking-wider font-bold"
-                size="lg"
-              >
-                Build a Protocol
-              </Button>
-            </NextLink>
-          </div>
-        </div>
-      </div>
-
-      <div className="section flex items-center">
-        <div className="container max-w-7xl">
           <div className="flex justify-end w-full">
-            <div className="max-w-[520px]">
-              <h2 className="text-2xl lg:text-4xl mb-4 font-miriam">
-                Manage complex deployments across multiple chains
-              </h2>
-              <p className="text-gray-100 mb-5 font-outfit lg:text-2xl">
-                Maintain Cannonfiles in a GitOps repository. Owners of a Safe
-                can review and sign protocol changes using the Cannon web
-                deployer.
-              </p>
-              <NextLink href={links.DEPLOY}>
-                <Button
-                  className="font-miriam uppercase tracking-wider font-bold"
-                  size="lg"
-                >
-                  Deploy a Protocol
-                </Button>
-              </NextLink>
+            <div className="max-w-[600px]">
+              <div className="bg-black/40 rounded-lg p-8">
+                <h2 className="text-2xl lg:text-4xl mb-4 font-miriam">
+                  Manage complex deployments across multiple chains
+                </h2>
+                <p className="text-gray-100 mb-5 font-outfit lg:text-2xl">
+                  Maintain Cannonfiles in a GitOps repository. Owners of a Safe
+                  can review and sign protocol changes using the Cannon web
+                  deployer.
+                </p>
+                <NextLink href={links.DEPLOY}>
+                  <Button className="font-miriam uppercase tracking-wider font-bold">
+                    Deploy a Protocol
+                  </Button>
+                </NextLink>
+              </div>
             </div>
           </div>
         </div>
