@@ -78,12 +78,8 @@ export const SearchPage = () => {
   return (
     <div className="flex flex-1 flex-col max-w-[100vw]">
       <div className="flex flex-1 flex-col md:flex-row">
-        {/* Sidebar */}
         <div className="flex flex-col overflow-y-auto w-full md:w-[320px] md:max-w-[320px] md:border-r md:border-border md:h-[calc(100vh-100px)]">
           <div className="relative py-4 md:py-8 px-4 md:pb-4 max-h-[210px] md:max-h-none">
-            {/* Shadow overlay for mobile */}
-            <div className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-b from-transparent to-background md:hidden" />
-
             <div className="mb-4 md:mb-8">
               <SearchInput onSearchChange={setSearchTerm} />
             </div>
@@ -123,7 +119,6 @@ export const SearchPage = () => {
           </div>
         </div>
 
-        {/* Main Content */}
         <div className="flex-1 overflow-y-auto md:h-[calc(100vh-100px)] px-4">
           {packagesQuery.isPending ? (
             <div className="flex justify-center items-center flex-1 h-full">

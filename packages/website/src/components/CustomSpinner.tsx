@@ -10,7 +10,10 @@ export const CustomSpinner = ({ className, ...props }: CustomSpinnerProps) => {
     <img
       src="/images/logomark.svg"
       alt="Cannon"
-      className={cn('h-16 w-16 object-cover animate-pulse mx-auto', className)}
+      className={cn(
+        'h-12 w-12 object-contain animate-pulse m-auto opacity-25',
+        className
+      )}
       {...props}
     />
   );

@@ -24,7 +24,7 @@ const Chain: FC<{
     <div className="flex items-center gap-1.5">
       {id === 13370 ? (
         <img
-          className="h-3 w-3 scale-[2.1] translate-y-[0.5px] object-cover"
+          className="h-3 w-3 object-contain"
           src="/images/logomark.svg"
           alt="Cannon"
         />
