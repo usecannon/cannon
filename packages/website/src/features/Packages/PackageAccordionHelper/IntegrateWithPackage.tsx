@@ -4,7 +4,7 @@ import { InfoCircledIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import camelCase from 'lodash/camelCase';
 import { ChainDefinition, getArtifacts } from '@usecannon/builder';
-import { DeploymentState } from '@usecannon/builder/src';
+import { DeploymentState } from '@usecannon/builder';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
