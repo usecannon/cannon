@@ -90,21 +90,27 @@ export const SearchPage = () => {
   const groupedPackages = groupBy(packagesQuery?.data?.data, 'name');
 
   return (
-    <div className="flex flex-col">
+    <div className="flex min-h-screen flex-col max-w-full">
       <SidebarProvider>
-        <div className="md:hidden p-4">
+        {/* Mobile Sidebar Trigger - Fixed to left side */}
+        <div className="fixed left-0 top-1/2 -translate-y-1/2 z-50 md:hidden bg-black border border-border border-l-0 rounded-r-lg">
           <SidebarTrigger>
-            <Button variant="outline" size="icon" className="h-8 w-8">
+            <Button
+              size="icon"
+              className="h-8 w-8 rounded-r-lg rounded-l-none border-l-0"
+            >
               <Menu className="h-4 w-4" />
             </Button>
           </SidebarTrigger>
         </div>
-        <Sidebar className="w-full md:w-[320px] md:max-w-[320px] shrink-0 border-border">
+
+        {/* Sidebar */}
+        <Sidebar className="w-[280px] md:w-[320px] shrink-0 border-r border-border">
           <SidebarHeader className="px-4">
             <SearchInput onSearchChange={setSearchTerm} />
           </SidebarHeader>
 
-          <SidebarContent>
+          <SidebarContent className="overflow-y-auto">
             <SidebarGroup>
               <SidebarGroupLabel className="px-4 text-sm font-medium text-gray-200">
                 Filter by Chain
@@ -154,25 +160,31 @@ export const SearchPage = () => {
           </SidebarContent>
         </Sidebar>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-6">
-          {packagesQuery.isPending ? (
-            <div className="flex justify-center items-center flex-1 h-full">
-              <CustomSpinner />
-            </div>
-          ) : Object.values(groupedPackages).length == 0 ? (
-            <div className="flex w-full h-full">
-              <p className="m-auto text-gray-400">No results</p>
-            </div>
-          ) : (
-            <div>
-              {Object.values(groupedPackages).map((pkgs: any) => (
-                <div className="mb-6" key={pkgs[0].name}>
-                  <PackageCardExpandable pkgs={pkgs} key={pkgs[0].name} />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Main Content */}
+        <main className="flex-1 overflow-y-auto ">
+          <div className="container max-w-100 mx-auto px-4 md:px-6">
+            {packagesQuery.isPending ? (
+              <div className="flex justify-center items-center flex-1 h-full">
+                <CustomSpinner />
+              </div>
+            ) : Object.values(groupedPackages).length == 0 ? (
+              <div className="flex w-full h-full">
+                <p className="m-auto text-gray-400">No results</p>
+              </div>
+            ) : (
+              <div className="space-y-6 py-6">
+                {Object.values(groupedPackages).map((pkgs: any) => (
+                  <div
+                    key={pkgs[0].name}
+                    className="overflow-x-auto md:overflow-x-visible"
+                  >
+                    <PackageCardExpandable pkgs={pkgs} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </main>
       </SidebarProvider>
     </div>
   );
