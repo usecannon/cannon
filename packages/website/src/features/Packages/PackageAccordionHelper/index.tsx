@@ -5,7 +5,6 @@ import { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
 import RetrieveAddressAbi from '@/features/Packages/PackageAccordionHelper/RetrieveAddressAbi';
 import IntegrateWithPackage from '@/features/Packages/PackageAccordionHelper/IntegrateWithPackage';
 import { extractAddressesAbis } from '@/features/Packages/utils/extractAddressesAndABIs';
-import { Skeleton, Stack, Text } from '@chakra-ui/react';
 import { usePackageByRef } from '@/hooks/api/usePackage';
 
 type Props = {
@@ -31,13 +30,7 @@ export default function PackageAccordionHelper({
   const isLoading = packagesQuery.isLoading || deploymentData.isLoading;
 
   if (isLoading) {
-    return (
-      <Stack>
-        <Skeleton height="20px" />
-        <Skeleton height="20px" />
-        <Skeleton height="20px" />
-      </Stack>
-    );
+    return;
   }
 
   if (!packagesQuery.data || !deploymentData.data) {
@@ -100,7 +93,7 @@ export default function PackageAccordionHelper({
             version={packagesQuery.data.version}
           />
         ) : (
-          <Text>Error retrieving deployment data</Text>
+          <p>Error retrieving deployment data</p>
         )}
       </CustomAccordionItem>
     </CustomAccordion>

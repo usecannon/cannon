@@ -1,13 +1,8 @@
-import { useToast } from '@chakra-ui/react';
+import { toast } from 'sonner';
 
 export const useCopy = () => {
-  const toast = useToast();
   const copy = (textToCopy: string) => {
-    toast({
-      title: 'Copied to clipboard',
-      status: 'info',
-      duration: 4000,
-    });
+    toast('Copied to clipboard');
 
     // navigator clipboard api needs a secure context (https)
     if (navigator.clipboard && window.isSecureContext) {

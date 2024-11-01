@@ -1,25 +1,13 @@
 import { FC } from 'react';
-import {
-  Flex,
-  Link,
-  Image,
-  Text,
-  Box,
-  Tooltip,
-  useTheme,
-} from '@chakra-ui/react';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
-import { PiCheckCircleFill, PiMinusCircleFill } from 'react-icons/pi';
+import { CheckCircledIcon, MinusCircledIcon } from '@radix-ui/react-icons';
 import { ApiPackage } from '@usecannon/api/dist/src/types';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export const IpfsLinks: FC<{
   pkg: ApiPackage;
 }> = ({ pkg }) => {
-  const theme = useTheme();
-  const green500Hex = theme.colors.green[500];
-  const yellow400Hex = theme.colors.yellow[400];
-
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     pkg?.deployUrl,
     !!pkg?.deployUrl
@@ -31,102 +19,78 @@ export const IpfsLinks: FC<{
   };
 
   return (
-    <Flex>
-      <Flex
-        gap={6}
-        align="center"
-        color="gray.300"
-        fontSize="xs"
-        fontFamily="mono"
-      >
+    <div className="flex">
+      <div className="flex items-center gap-6 text-gray-300 text-xs font-mono">
         {pkg?.deployUrl && (
-          <Link
+          <a
             href={convertUrl(pkg.deployUrl)}
-            textDecoration="none"
-            _hover={{ textDecoration: 'none' }}
-            display="flex"
-            alignItems="center"
+            className="flex items-center no-underline hover:no-underline"
           >
-            <Image
-              display="inline-block"
+            <img
               src="/images/ipfs.svg"
               alt="IPFS"
-              height="14px"
-              mr={1.5}
+              className="inline-block h-[14px] mr-1.5"
             />
-            <Text
-              display="inline"
-              borderBottom="1px dotted"
-              borderBottomColor="gray.300"
-            >
+            <span className="inline border-b border-dotted border-gray-300">
               Deployment
-            </Text>
-          </Link>
+            </span>
+          </a>
         )}
         {deploymentInfo?.miscUrl && (
-          <Link
+          <a
             href={convertUrl(deploymentInfo.miscUrl)}
-            textDecoration="none"
-            _hover={{ textDecoration: 'none' }}
-            display="flex"
-            alignItems="center"
+            className="flex items-center no-underline hover:no-underline"
           >
-            <Image
-              display="inline-block"
+            <img
               src="/images/ipfs.svg"
               alt="IPFS"
-              height="14px"
-              mr={1.5}
+              className="inline-block h-[14px] mr-1.5"
             />
-            <Text
-              display="inline"
-              borderBottom="1px dotted"
-              borderBottomColor="gray.300"
-            >
+            <span className="inline border-b border-dotted border-gray-300">
               Code
-            </Text>
-          </Link>
+            </span>
+          </a>
         )}
         {pkg?.metaUrl && (
-          <Link
+          <a
             href={convertUrl(pkg.metaUrl)}
-            textDecoration="none"
-            _hover={{ textDecoration: 'none' }}
-            display="flex"
-            alignItems="center"
-            mr={1}
+            className="flex items-center no-underline hover:no-underline mr-1"
           >
-            <Image
-              display="inline-block"
+            <img
               src="/images/ipfs.svg"
               alt="IPFS"
-              height="14px"
-              mr={1.5}
+              className="inline-block h-[14px] mr-1.5"
             />
-            <Text
-              display="inline"
-              borderBottom="1px dotted"
-              borderBottomColor="gray.300"
-            >
+            <span className="inline border-b border-dotted border-gray-300">
               Metadata
-            </Text>
-          </Link>
+            </span>
+          </a>
         )}
-      </Flex>
-      {deploymentInfo?.status == 'complete' && (
-        <Tooltip label="This deployment is complete. The resulting chain state matches the desired chain definition.">
-          <Box pl={[6, 6, 2]}>
-            <PiCheckCircleFill size="20" fill={green500Hex} />
-          </Box>
+      </div>
+      {deploymentInfo?.status === 'complete' && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="pl-[8px] md:pl-2">
+              <CheckCircledIcon className="w-5 h-5 text-green-500" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            This deployment is complete. The resulting chain state matches the desired chain definition.
+          </TooltipContent>
         </Tooltip>
       )}
-      {deploymentInfo?.status == 'partial' && (
-        <Tooltip label="This is a partial deployment. The resulting chain state did not completely match the desired chain definition.">
-          <Box pl={[6, 6, 2]}>
-            <PiMinusCircleFill size="20" fill={yellow400Hex} />
-          </Box>
+      {deploymentInfo?.status === 'partial' && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="pl-[8px] md:pl-2">
+              <MinusCircledIcon className="w-5 h-5 text-yellow-400" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            This is a partial deployment. The resulting chain state did not completely match the desired chain definition.
+          </TooltipContent>
         </Tooltip>
       )}
-    </Flex>
+    </div>
   );
 };
