@@ -4,7 +4,6 @@ import {
   FormLabel,
   Input,
   Text,
-  Heading,
   FormErrorMessage,
   FormHelperText,
 } from '@chakra-ui/react';
@@ -41,9 +40,6 @@ const SafeTransactionService: React.FC = () => {
 
   return (
     <>
-      <Heading size="md" mb={3}>
-        Safe Transaction Service
-      </Heading>
       <Text fontSize="md" mb={4}>
         Enter the URL for the Safe Transaction Service.
       </Text>

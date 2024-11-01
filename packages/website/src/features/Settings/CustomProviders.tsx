@@ -1,18 +1,17 @@
 import { isValidUrl } from '@/helpers/isValidUrl';
 import { useStore } from '@/helpers/store';
-import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 
 import {
   Flex,
   FormLabel,
-  Heading,
   IconButton,
   Input,
   Link,
   Text,
 } from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
-import { Save } from 'react-feather';
+import { PlusIcon } from '@radix-ui/react-icons';
+import { Cross2Icon, Pencil1Icon } from '@radix-ui/react-icons';
 
 export default function CustomProviders() {
   const [editProviderIndex, setEditProviderIndex] = useState<
@@ -27,7 +26,7 @@ export default function CustomProviders() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const addEditProvider = () => {
-    if (inputError) return;
+    if (inputError || !inputValue.trim()) return;
 
     if (editProviderIndex == undefined) {
       setSettings({
@@ -67,9 +66,6 @@ export default function CustomProviders() {
 
   return (
     <>
-      <Heading size="sm" fontWeight={600} mb={1}>
-        Custom Providers
-      </Heading>
       <Text fontSize="sm" mb={3}>
         Cannon will use custom providers (which may include{' '}
         <Link isExternal href="https://www.alchemy.com/">
@@ -108,7 +104,7 @@ export default function CustomProviders() {
           )}
         </Flex>
         <IconButton
-          disabled={inputValue === '' || inputError !== undefined}
+          disabled={!inputValue.trim() || inputError !== undefined}
           ml="3"
           variant="outline"
           background={'teal.900'}
@@ -117,7 +113,7 @@ export default function CustomProviders() {
             background: 'teal.900',
             borderColor: 'teal.700',
           }}
-          icon={<Save opacity="0.5" color="white" size={16} />}
+          icon={<PlusIcon style={{ opacity: 0.5, color: 'white' }} />}
           aria-label={'Add provider'}
           onClick={() => addEditProvider()}
         />
@@ -139,7 +135,7 @@ export default function CustomProviders() {
             ml="2"
             colorScheme="blackAlpha"
             background="transparent"
-            icon={<EditIcon opacity="0.5" />}
+            icon={<Pencil1Icon style={{ opacity: 0.5 }} />}
             aria-label={'Edit provider'}
             onClick={() => {
               setInputValue(provider);
@@ -150,7 +146,7 @@ export default function CustomProviders() {
           <IconButton
             colorScheme="blackAlpha"
             background="transparent"
-            icon={<DeleteIcon opacity="0.5" />}
+            icon={<Cross2Icon style={{ opacity: 0.5 }} />}
             aria-label={'Remove provider'}
             onClick={() => {
               setInputValue('');

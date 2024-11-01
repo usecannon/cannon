@@ -47,7 +47,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
 
           <div className="md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10 h-full">
             {/* Sidebar */}
-            <Sidebar className="fixed top-14 z-30 -ml-2 hidden w-full shrink-0 md:sticky md:block md:top-0 md:border-none">
+            <Sidebar className="z-30 -ml-2 hidden w-full shrink-0 md:sticky md:block md:top-0 md:border-none">
               <SidebarContent className="py-6 lg:py-8 bg-black">
                 <SidebarGroup>
                   <SidebarGroupLabel>Use Cannon</SidebarGroupLabel>
