@@ -49,11 +49,8 @@ export default function PackageAccordionHelper({
   const { ['run']: _, ...filteredDefinition } = deploymentInfo.def as any;
 
   return (
-    <CustomAccordion allowToggle={!isLoading}>
-      <CustomAccordionItem
-        title="Run Package Locally"
-        accordionPanelProps={{ p: 0 }}
-      >
+    <CustomAccordion>
+      <CustomAccordionItem title="Run Package Locally">
         <RunPackageLocally
           name={name}
           chainId={packagesQuery.data.chainId}
@@ -62,10 +59,7 @@ export default function PackageAccordionHelper({
         />
       </CustomAccordionItem>
 
-      <CustomAccordionItem
-        title="Retrieve Addresses + ABIs"
-        accordionPanelProps={{ p: 0 }}
-      >
+      <CustomAccordionItem title="Retrieve Addresses + ABIs">
         <RetrieveAddressAbi
           name={name}
           chainId={packagesQuery.data.chainId}
@@ -79,10 +73,7 @@ export default function PackageAccordionHelper({
         />
       </CustomAccordionItem>
 
-      <CustomAccordionItem
-        title="Integrate with this package"
-        accordionPanelProps={{ p: 0 }}
-      >
+      <CustomAccordionItem title="Integrate with this package">
         {state && deploymentInfo ? (
           <IntegrateWithPackage
             name={name}

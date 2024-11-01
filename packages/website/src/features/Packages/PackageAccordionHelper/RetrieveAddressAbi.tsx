@@ -1,7 +1,6 @@
 import { CommandPreview } from '@/components/CommandPreview';
 import { ItemBodyWrapper } from '@/features/Packages/PackageAccordionHelper/utils';
-import { Button } from '@chakra-ui/react';
-import { FC } from 'react';
+import { Button } from '@/components/ui/button';
 
 type Props = {
   name: string;
@@ -10,26 +9,6 @@ type Props = {
   preset: string;
   addressesAbis: Record<string, unknown>;
 };
-
-const DownloadButton: FC<{ onClick: () => void }> = ({ onClick }) => (
-  <Button
-    variant="outline"
-    colorScheme="white"
-    size="xs"
-    bg="teal.900"
-    borderColor="teal.500"
-    _hover={{ bg: 'teal.800' }}
-    onClick={onClick}
-    textTransform="uppercase"
-    letterSpacing="1px"
-    pt={0.5}
-    fontFamily="var(--font-miriam)"
-    color="gray.200"
-    fontWeight={500}
-  >
-    Download JSON
-  </Button>
-);
 
 const handleDownload = (addressesAbis: Record<string, unknown>) => {
   const blob = new Blob([JSON.stringify(addressesAbis, null, 2)], {
@@ -59,7 +38,12 @@ export default function RetrieveAddressAbi({
     <ItemBodyWrapper
       titleText="Retrieve addresses and ABIs"
       titleAction={
-        <DownloadButton onClick={() => handleDownload(addressesAbis)} />
+        <Button
+          variant="secondary"
+          onClick={() => handleDownload(addressesAbis)}
+        >
+          Download JSON
+        </Button>
       }
     >
       <CommandPreview

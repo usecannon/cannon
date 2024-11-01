@@ -63,8 +63,8 @@ ${generateSettingsText(contextDataCode.settings)}
       <ItemBodyWrapper
         titleText="Use this package in your cannonfile"
         titleAction={
-          <Button variant="outline" asChild>
-            <Link href="/learn/cannonfile/">Build a cannonfile</Link>
+          <Button variant="secondary" asChild>
+            <Link href="/learn/cannonfile/">Build a Cannonfile</Link>
           </Button>
         }
       >

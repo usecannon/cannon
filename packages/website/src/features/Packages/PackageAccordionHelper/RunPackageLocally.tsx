@@ -26,7 +26,7 @@ export default function RunPackageLocally({
         chainId == 13370 ? 'node' : 'fork'
       }`}
       titleAction={
-        <Button variant="outline" asChild>
+        <Button variant="secondary" asChild>
           <Link href="/learn/cli/">Install CLI</Link>
         </Button>
       }
