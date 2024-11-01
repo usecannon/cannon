@@ -1,5 +1,9 @@
-import GitHubButton from 'react-github-btn';
-import { DiscordButton } from '@/components/DiscordButton';
+import { Button } from '@/components/ui/button';
+import {
+  DiscordLogoIcon,
+  GitHubLogoIcon,
+  TwitterLogoIcon,
+} from '@radix-ui/react-icons';
 
 interface FooterProps {
   isFixed?: boolean;
@@ -9,42 +13,46 @@ export const Footer = ({ isFixed }: FooterProps) => {
   return (
     <div
       className={`
-        flex items-center px-2 
+        flex flex-col sm:flex-row items-center px-2 
         ${
           isFixed
             ? 'fixed bottom-0 w-full z-10 bg-transparent'
             : 'relative bg-black'
         }
         ${!isFixed && 'border-t border-gray-700'}
-        flex-col sm:flex-row
         py-5 sm:py-2
       `}
     >
-      <div className="h-7 mb-3 sm:mb-0 flex">
-        <div className="mr-2">
-          <GitHubButton
+      <div className="flex gap-2 justify-center w-full sm:w-auto mb-4 sm:mb-0">
+        <Button variant="ghost" size="icon" asChild>
+          <a
             href="https://github.com/usecannon/cannon"
-            data-color-scheme="no-preference: dark; light: dark; dark: dark;"
-            data-size="large"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            Cannon on GitHub
-          </GitHubButton>
-        </div>
-        <div className="mr-2">
-          <GitHubButton
-            href="https://github.com/usecannon/cannon"
-            data-color-scheme="no-preference: dark; light: dark; dark: dark;"
-            data-size="large"
-            data-icon="octicon-star"
-            data-show-count="true"
-            aria-label="Follow @usecannon on GitHub"
+            <GitHubLogoIcon className="h-5 w-5" />
+          </a>
+        </Button>
+        <Button variant="ghost" size="icon" asChild>
+          <a
+            href="https://twitter.com/usecannon"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            Star
-          </GitHubButton>
-        </div>
-        <DiscordButton />
+            <TwitterLogoIcon className="h-5 w-5" />
+          </a>
+        </Button>
+        <Button variant="ghost" size="icon" asChild>
+          <a
+            href="https://discord.gg/QwarFMb3dS"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <DiscordLogoIcon className="h-5 w-5" />
+          </a>
+        </Button>
       </div>
-      <div className="sm:ml-auto sm:mr-1">
+      <div className="sm:ml-auto sm:mr-1 text-center sm:text-left">
         <p className="font-semibold text-md text-white/80 tracking-wider">
           Supported by
           <a
