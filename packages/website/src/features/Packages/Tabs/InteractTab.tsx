@@ -143,9 +143,9 @@ export const InteractTab: FC<{
       return;
     }
 
-    const processDeploymentData = async (deploymentInfo: DeploymentInfo) => {
+    const processDeploymentData = (deploymentInfo: DeploymentInfo) => {
       const allContracts: AllContracts[] = [];
-      const cannonOutputs = await getOutput(deploymentInfo);
+      const cannonOutputs = getOutput(deploymentInfo);
       processContracts(allContracts, cannonOutputs.contracts, name);
       processImports(allContracts, cannonOutputs.imports);
 

@@ -96,7 +96,7 @@ function TransactionDetailsPage() {
   const [expandDiff, setExpandDiff] = useState<boolean>(false);
   const [executionTxnHash, setExecutionTxnHash] = useState<Hash | null>(null);
   const accountAlreadyConnected = useRef(account.isConnected);
-  const [chainDefinition, setChainDefinition] = useState<ChainDefinition>();
+  const chainDefinitionRef = useRef<ChainDefinition>();
 
   const safe: SafeDefinition = useMemo(
     () => ({
@@ -237,10 +237,9 @@ function TransactionDetailsPage() {
     const getChainDef = async () => {
       if (!cannonDefInfo.def) return;
 
-      const chainDefition = await getChainDefinitionFromWorker(
+      chainDefinitionRef.current = await getChainDefinitionFromWorker(
         cannonDefInfo.def
       );
-      setChainDefinition(chainDefition);
     };
 
     void getChainDef();
@@ -248,14 +247,14 @@ function TransactionDetailsPage() {
 
   const buildInfo = useCannonBuild(
     safe,
-    chainDefinition,
+    chainDefinitionRef.current,
     prevCannonDeployInfo.ipfsQuery.data?.deployInfo
   );
 
   useEffect(() => {
     if (
       !safe ||
-      !chainDefinition ||
+      !chainDefinitionRef.current ||
       !prevCannonDeployInfo.ipfsQuery.data?.deployInfo
     )
       return;
@@ -263,7 +262,7 @@ function TransactionDetailsPage() {
   }, [
     !isTransactionExecuted &&
       (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
-    chainDefinition,
+    chainDefinitionRef.current,
   ]);
 
   // compare proposed build info with expected transaction batch

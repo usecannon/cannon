@@ -52,35 +52,36 @@ const Interact: FC = () => {
       return;
     }
 
-    const processOutputs = async () => {
-      const cannonOutputs: ChainArtifacts = await getOutput(
-        deploymentData.data
-      );
+    const processOutputs = () => {
+      const cannonOutputs: ChainArtifacts = getOutput(deploymentData.data);
+
       setCannonOutputs(cannonOutputs);
 
       const findContract = (
         contracts: any,
         parentModuleName: string,
         imports: any
-      ) => {
+      ): boolean => {
         if (contracts) {
-          Object.entries(contracts).forEach(([k, v]) => {
-            if (
+          const contract = Object.entries(contracts).find(
+            ([k, v]) =>
               parentModuleName === moduleName &&
               k === contractName &&
               (v as ContractData).address === contractAddress
-            ) {
-              setContract({
-                ...(v as ContractData),
-                contractName: k,
-              });
-              return;
-            }
-          });
+          );
+
+          if (contract) {
+            const [k, v] = contract;
+            setContract({
+              ...(v as ContractData),
+              contractName: k,
+            });
+            return true;
+          }
         }
 
         if (imports) {
-          Object.entries(imports).forEach(([k, v]) =>
+          return Object.entries(imports).some(([k, v]) =>
             findContract(
               (v as any).contracts,
               parentModuleName && parentModuleName !== name
@@ -90,7 +91,10 @@ const Interact: FC = () => {
             )
           );
         }
+
+        return false;
       };
+
       findContract(cannonOutputs.contracts, name, cannonOutputs.imports);
     };
 

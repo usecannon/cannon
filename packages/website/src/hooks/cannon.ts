@@ -637,7 +637,7 @@ export function useCannonFindUpgradeFromUrl(packageRef?: PackageReference, chain
         deployers || []
       );
     },
-    staleTime: 1000 * 60 * 1,
+    staleTime: 1000 * 60, // 1 minute
     retry: false,
   });
 }
@@ -652,7 +652,7 @@ export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?:
   const connectedChainId = useChainId();
   const registry = useCannonRegistry();
   const settings = useStore((s) => s.settings);
-  // const { addLog } = useLogs();
+  const { addLog } = useLogs();
 
   const packageChainId = chainId ?? connectedChainId;
 
@@ -669,7 +669,7 @@ export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?:
     },
     enabled: typeof normalizedUrlOrRef === 'string' && normalizedUrlOrRef.length > 3,
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 1,
+    staleTime: 1000 * 60, // 1 minute
   });
 
   const ipfsQuery = useQuery<{
@@ -681,6 +681,7 @@ export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?:
   }>({
     queryKey: ['cannon', 'pkg', registryQuery.data?.url],
     queryFn: async () => {
+      addLog('info', `Loading ${registryQuery.data?.url}`);
       const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
 
       const deployInfo = await ipfsLoader.read(registryQuery.data!.url as any);
@@ -688,7 +689,10 @@ export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?:
 
       const resolvedName = deployInfo.def.name;
       const resolvedVersion = deployInfo.def.version;
-      const resolvedPreset = deployInfo.def.preset!;
+      // default to main if preset is not defined
+      const resolvedPreset = deployInfo.def.preset || 'main';
+
+      addLog('info', `Loaded ${deployInfo.def.name}:${deployInfo.def.version}@${deployInfo.def.preset} from IPFS`);
       const { fullPackageRef } = PackageReference.from(resolvedName, resolvedVersion, resolvedPreset);
 
       return {
@@ -700,7 +704,7 @@ export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?:
       };
     },
     enabled: !!registryQuery.data?.url,
-    staleTime: 1000 * 60 * 1,
+    staleTime: 1000 * 60, // 1 minute
     retry: false,
   });
 
@@ -713,7 +717,7 @@ export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?:
       return metaUrl ? { metaUrl } : null;
     },
     enabled: !!ipfsQuery.data?.fullPackageRef,
-    staleTime: 1000 * 60 * 1,
+    staleTime: 1000 * 60, // 1 minute
     refetchOnWindowFocus: false,
   });
 

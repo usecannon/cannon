@@ -23,8 +23,8 @@ export const getChainDefinitionFromWorker = (deployInfo: RawChainDefinition) => 
 
     const timeout = setTimeout(() => {
       worker.terminate();
-      reject(new Error('Worker timed out after 20 seconds'));
-    }, 20000);
+      reject(new Error('Worker timed out after 1 minute'));
+    }, 60000);
 
     worker.postMessage(deployInfo);
 

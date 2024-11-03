@@ -1,7 +1,5 @@
 // Extracted builder getOutput from ipfs logic
-
-import { getChainDefinitionFromWorker } from '@/helpers/chain-definition';
-import { ChainArtifacts, registerAction, DeploymentInfo } from '@usecannon/builder';
+import { ChainDefinition, ChainArtifacts, registerAction, DeploymentInfo } from '@usecannon/builder';
 import _ from 'lodash';
 import { z } from 'zod';
 
@@ -15,9 +13,11 @@ registerAction({
   validate: z.any(),
 });
 
-export const getOutput = async (deploymentInfo: DeploymentInfo): Promise<ChainArtifacts> => {
+export const getOutput = (deploymentInfo: DeploymentInfo): ChainArtifacts => {
   const { state, def } = deploymentInfo;
-  const chainDefinition = await getChainDefinitionFromWorker(def);
+  // for some reason, we can use workers here since it failed.
+  const chainDefinition = new ChainDefinition(def);
+
   const artifacts: ChainArtifacts = {};
 
   for (const step of chainDefinition.topologicalActions) {
