@@ -1,0 +1,94 @@
+import {
+  SiNpm as NpmIcon,
+  SiYarn as YarnIcon,
+  SiPnpm as PnpmIcon,
+} from 'react-icons/si';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Snippet } from '@/components/snippet';
+
+## Setting up a new project
+
+**Cannon** is a DevOps tool for protocols on Ethereum. It manages protocol and smart contract deployments for local development and live networks replacing deploy scripts with [Cannonfiles](https://usecannon.com/learn/cannonfile).
+
+<br />
+#### Installing Foundry
+
+**Cannon** uses [Foundry](https://book.getfoundry.sh/) to work. Foundry is a toolchain for developing smart contracts, managing dependencies, compiling the project, running tests, deploying your project, and allowing you to interact with the chain from the Cannon CLI.
+
+<br />
+<Alert variant="info">
+  <AlertDescription>
+    📢 If you're already familiar with Foundry, feel free to skip this section.
+  </AlertDescription>
+</Alert>
+
+On your terminal run:
+
+<Snippet>
+  <span class="text-blue-400">curl -L</span> https://foundry.paradigm.xyz
+  <span class="text-yellow-400">|</span> bash
+</Snippet>
+
+This will install **Foundryup**. Simply follow the on-screen instructions, and the `foundryup` command will become available in your CLI.
+
+<br />
+#### Installing Cannon CLI
+
+Cannon’s **command-line interface** (CLI) allows users to deploy, upgrade, and configure protocols using Cannonfiles with the `build` command, `publish` the resulting packages, `run` packages locally, and more. Find the code for the CLI [on GitHub](https://github.com/usecannon/cannon/tree/main/packages/cli).
+
+Run one of the following commands in your terminal to install (or upgrade) Cannon:
+
+<br />
+<Tabs defaultValue="pnpm">
+  <TabsList className="grid w-full grid-cols-3">
+    <TabsTrigger value="pnpm" className="flex items-center gap-x-2">
+      <PnpmIcon className="size-3" />
+      <span>pnpm</span>
+    </TabsTrigger>
+    <TabsTrigger value="npm" className="flex items-center gap-x-2">
+      <NpmIcon className="size-3" />
+      <span>npm</span>
+    </TabsTrigger>
+    <TabsTrigger value="yarn" className="flex items-center gap-x-2">
+      <YarnIcon className="size-3" />
+      <span>yarn</span>
+    </TabsTrigger>
+  </TabsList>
+  <TabsContent value="npm">
+    <Snippet>
+      <span class="text-blue-400">npm</span> install -g
+      <span class="text-yellow-400">@usecannon/cli</span>
+    </Snippet>
+  </TabsContent>
+  <TabsContent value="yarn">
+    <Snippet>
+      <span class="text-blue-400">yarn</span> global add
+      <span class="text-yellow-400">@usecannon/cli</span>
+    </Snippet>
+  </TabsContent>
+  <TabsContent value="pnpm">
+    <Snippet>
+      <span class="text-blue-400">pnpm</span> add -g
+      <span class="text-yellow-400">@usecannon/cli</span>
+    </Snippet>
+  </TabsContent>
+</Tabs>
+
+Once you’re done, run `cannon --version` on a terminal to check your installation.
+
+<Snippet>
+  <span class="text-blue-400">$</span> cannon --version <br />
+  <span class="text-gray-400">2.18.0</span>
+</Snippet>

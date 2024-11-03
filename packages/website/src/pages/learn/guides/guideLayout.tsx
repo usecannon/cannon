@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
+import Link from 'next/link';
 import { links } from '@/constants/links';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -15,12 +16,44 @@ import {
   SidebarMenuButton,
   SidebarProvider,
   SidebarTrigger,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 
 const useCannon = [
-  { text: 'Get Started', href: links.GETSTARTED },
+  {
+    text: 'Get Started',
+    href: `${links.GETSTARTED}`,
+    nav: [
+      {
+        text: 'Setting up a new project',
+        href: `${links.GETSTARTED}?section=introduction`,
+      },
+      {
+        text: 'Creating a project',
+        href: `${links.GETSTARTED}?section=creating-a-project`,
+      },
+      {
+        text: 'Building with Cannon',
+        href: `${links.GETSTARTED}?section=example`,
+      },
+      {
+        text: 'Building to a network',
+        href: `${links.GETSTARTED}?section=example`,
+      },
+      {
+        text: 'Publishing the package',
+        href: `${links.GETSTARTED}?section=example`,
+      },
+      {
+        text: 'Using Cannon explorer',
+        href: `${links.GETSTARTED}?section=example`,
+      },
+      { text: 'Conclusion', href: `${links.GETSTARTED}?section=example` },
+    ],
+  },
   { text: 'Build a Protocol', href: links.BUILD },
   { text: 'Deploy a Router', href: links.ROUTER },
   { text: 'Debugging Tips', href: links.DEBUG },
@@ -62,8 +95,19 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
                               pathname === item.href && 'bg-muted font-medium'
                             )}
                           >
-                            <a href={item.href}>{item.text}</a>
+                            <Link href={item.href}>{item.text}</Link>
                           </SidebarMenuButton>
+                          {item.nav && (
+                            <SidebarMenuSub>
+                              {item.nav?.map((navItem) => (
+                                <SidebarMenuSubItem className="text-neutral-500 py-px hover:text-teal-400 transition-all ease-in-out">
+                                  <Link href={navItem.href}>
+                                    {navItem.text}
+                                  </Link>
+                                </SidebarMenuSubItem>
+                              ))}
+                            </SidebarMenuSub>
+                          )}
                         </SidebarMenuItem>
                       ))}
                     </SidebarMenu>

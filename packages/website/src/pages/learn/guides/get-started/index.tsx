@@ -1,11 +1,28 @@
-import { GetStartedPage } from '@/features/GetStarted/GetStartedPage';
 import { ReactElement } from 'react';
 import Layout from '../../_layout';
 import NestedLayout from '../guideLayout';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
+import { NextPageContext } from 'next';
+import {
+  Introduction,
+  CreatingAProject,
+  Example,
+} from '@/lib/guides/get-started';
 
-export default function Home() {
+type SectionProps = 'introduction' | 'example';
+
+export default function GetStarted({
+  section = 'introduction',
+}: {
+  section: SectionProps;
+}) {
+  const guides: { [key: string]: () => React.ReactNode } = {
+    example: () => <Example />,
+    introduction: () => <Introduction />,
+    'creating-a-project': () => <CreatingAProject />,
+  };
+
   return (
     <>
       <NextSeo
@@ -15,14 +32,19 @@ export default function Home() {
         openGraph={{
           ...defaultSEO.openGraph,
           title: 'Cannon | Get Started',
-          description: 'Get Started',
+          description: `Get Started - ${section}`,
         }}
       />
-      <GetStartedPage />
+      <div className="container max-w-3xl">{guides[section]()}</div>
     </>
   );
 }
-Home.getLayout = function getLayout(page: ReactElement) {
+
+GetStarted.getInitialProps = async (ctx: NextPageContext) => {
+  return { section: ctx.query.section };
+};
+
+GetStarted.getLayout = function getLayout(page: ReactElement) {
   return (
     <Layout>
       <NestedLayout>{page}</NestedLayout>

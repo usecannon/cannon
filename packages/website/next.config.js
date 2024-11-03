@@ -1,4 +1,9 @@
 /** @type {import('next').NextConfig} */
+const createMDX = require('@next/mdx');
+
+const withMDX = createMDX({
+  // Add markdown plugins here, as desired
+});
 
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
@@ -17,12 +22,13 @@ const nextConfig = {
     config.optimization.minimize = false;
     return config;
   },
+  pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   experimental: {
     urlImports: ['https://unpkg.com'],
   },
 };
 
-module.exports = nextConfig;
+module.exports = withMDX(nextConfig);
 
 // Injected content via Sentry wizard below
 
