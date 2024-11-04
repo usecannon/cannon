@@ -118,7 +118,7 @@ export const Header = () => {
             <div className="ml-3">
               <SettingsButton />
             </div>
-            <div className="basis-full mt-4">
+            <div className="basis-full">
               <NavLinks />
             </div>
           </>
@@ -126,17 +126,13 @@ export const Header = () => {
 
         {isMobile && (
           <>
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-3">
+              <NoSSRSearchBar />
               <NoSSRConnectWallet />
-            </div>
-            <div className="ml-3">
               <SettingsButton />
             </div>
-            <div className="basis-full mt-4">
-              <div className="flex flex-col space-y-4">
-                <NoSSRSearchBar />
-                <NavLinks />
-              </div>
+            <div className="basis-full">
+              <NavLinks />
             </div>
           </>
         )}

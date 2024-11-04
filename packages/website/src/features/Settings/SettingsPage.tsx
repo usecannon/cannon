@@ -32,7 +32,7 @@ export default function SettingsPage() {
   const setSettings = useStore((s) => s.setSettings);
 
   return (
-    <div className="container.md mx-auto max-w-screen-md py-12">
+    <div className="container.md mx-auto max-w-screen-md py-12 px-6">
       <h1 className="scroll-m-20 text-3xl font-bold tracking-tight mb-6">
         Settings
       </h1>
