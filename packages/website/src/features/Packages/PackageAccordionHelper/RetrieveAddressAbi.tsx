@@ -1,5 +1,5 @@
 import { CommandPreview } from '@/components/CommandPreview';
-import { Button } from '@/components/ui/button';
+import { DownloadIcon } from '@radix-ui/react-icons';
 
 type Props = {
   name: string;
@@ -34,19 +34,19 @@ export default function RetrieveAddressAbi({
   const _preset = preset !== 'main' ? `@${preset}` : '';
   const _chainId = chainId != 13370 ? ` --chain-id ${chainId}` : '';
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">Retrieve addresses and ABIs</h3>
-        <Button
-          variant="secondary"
-          onClick={() => handleDownload(addressesAbis)}
-        >
-          Download JSON
-        </Button>
-      </div>
+    <div className="space-y-6">
       <CommandPreview
         command={`cannon inspect ${name}${_version}${_preset}${_chainId} --write-deployments ./deployment`}
       />
+      <div className="text-sm text-muted-foreground">
+        <button
+          onClick={() => handleDownload(addressesAbis)}
+          className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
+        >
+          <DownloadIcon className="h-4 w-4" />
+          Download as JSON
+        </button>
+      </div>
     </div>
   );
 }

@@ -26,12 +26,10 @@ import { ChainArtifacts, DeploymentInfo } from '@usecannon/builder';
 import { getOutput } from '@/lib/builder';
 import { useRouter } from 'next/router';
 import { usePackageNameTagVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
-import { CustomSpinner } from '@/components/CustomSpinner';
 import { usePackageByRef } from '@/hooks/api/usePackage';
 import SearchInput from '@/components/SearchInput';
 import { Address } from 'viem';
-import Link from 'next/link';
-import { links } from '@/constants/links';
+import { IpfsSpinner } from '@/components/IpfsSpinner';
 
 type Option = {
   moduleName: string;
@@ -414,18 +412,8 @@ export const InteractTab: FC<{
       )}
 
       {deploymentData.isLoading || packagesQuery.isLoading ? (
-        <div className="py-20 flex flex-col items-center justify-center text-center">
-          <CustomSpinner />
-          <p className="text-sm mt-3 mb-1 text-gray-400">
-            Fetching {packagesQuery?.data?.deployUrl}
-          </p>
-          <p className="text-gray-500 text-xs">
-            This could take a minute. You can also{' '}
-            <Link href={links.SETTINGS} className="underline">
-              try another IPFS gateway
-            </Link>
-            .
-          </p>
+        <div className="py-20">
+          <IpfsSpinner ipfsUrl={packagesQuery?.data?.deployUrl} />
         </div>
       ) : (
         <Box>{children}</Box>

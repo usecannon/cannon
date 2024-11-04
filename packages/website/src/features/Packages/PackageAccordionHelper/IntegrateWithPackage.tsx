@@ -1,10 +1,8 @@
 import CodePreview from '@/components/CodePreview';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
-import Link from 'next/link';
 import camelCase from 'lodash/camelCase';
 import { ChainDefinition, getArtifacts } from '@usecannon/builder';
 import { DeploymentState } from '@usecannon/builder';
-import { Button } from '@/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
@@ -60,15 +58,6 @@ ${generateSettingsText(contextDataCode.settings)}
   return (
     <TooltipProvider>
       <div>
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium">
-            Use this package in your cannonfile
-          </h3>
-          <Button variant="secondary" asChild>
-            <Link href="/learn/cannonfile/">Build a Cannonfile</Link>
-          </Button>
-        </div>
-
         <div className="flex items-center mb-2">
           <p className="mr-1.5 text-sm text-gray-200">Add to Cannonfile</p>
           <Tooltip>

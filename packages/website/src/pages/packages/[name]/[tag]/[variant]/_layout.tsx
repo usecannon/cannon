@@ -42,7 +42,7 @@ function TagVariantLayout({ children }: { children: ReactNode }) {
           <div className="bg-black pt-12 border-b border-gray-700">
             <div className="container max-w-[1024px] mx-auto">
               {/* Header */}
-              <div className="flex flex-col md:flex-row md:items-center mb-5">
+              <div className="flex flex-col md:flex-row md:items-center mb-5 px-6">
                 <div>
                   <h1 className="text-3xl font-bold mb-2">
                     {packagesQuery.data.name}
@@ -87,7 +87,7 @@ function TagVariantLayout({ children }: { children: ReactNode }) {
                 </div>
               </div>
 
-              <div className="flex gap-8 items-center max-w-full overflow-x-auto overflow-y-hidden">
+              <div className="flex gap-8 items-center max-w-full overflow-x-auto overflow-y-hidden px-6">
                 <NavLink
                   isActive={pathname == '/packages/[name]/[tag]/[variant]'}
                   href={`/packages/${packagesQuery.data.name}/${params.tag}/${params.variant}`}

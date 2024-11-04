@@ -100,7 +100,7 @@ const DocumentationSection: React.FC<{
     </div>
     <p className="mb-2 text-lg">{description}</p>
     <div className="mb-5">
-      <CommandPreview backgroundColor="black" command={'cannon ' + command} />
+      <CommandPreview command={'cannon ' + command} />
     </div>
     {argumentsData && <CustomTable title="Argument" data={argumentsData} />}
     {optionsData && <CustomTable title="Option" data={optionsData} />}
@@ -380,22 +380,13 @@ const DocsCliPage: FC = () => {
                       </TabsTrigger>
                     </TabsList>
                     <TabsContent value="npm" className="p-0">
-                      <CommandPreview
-                        backgroundColor="black"
-                        command="npm i -g @usecannon/cli"
-                      />
+                      <CommandPreview command="npm i -g @usecannon/cli" />
                     </TabsContent>
                     <TabsContent value="yarn" className="p-0">
-                      <CommandPreview
-                        backgroundColor="black"
-                        command="yarn global add @usecannon/cli"
-                      />
+                      <CommandPreview command="yarn global add @usecannon/cli" />
                     </TabsContent>
                     <TabsContent value="pnpm" className="p-0">
-                      <CommandPreview
-                        backgroundColor="black"
-                        command="pnpm add -g @usecannon/cli"
-                      />
+                      <CommandPreview command="pnpm add -g @usecannon/cli" />
                     </TabsContent>
                   </Tabs>
 

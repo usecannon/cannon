@@ -173,7 +173,7 @@ const SearchBar = () => {
         variant="outline"
         className={cn(
           'relative h-8 justify-start rounded-sm bg-muted/50 text-sm font-normal text-muted-foreground shadow-none lg:pr-12',
-          'w-8 px-2 lg:w-full lg:p-2'
+          'w-8 px-2 lg:w-full lg:pr-12'
         )}
         onClick={onOpen}
       >

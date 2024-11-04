@@ -1,4 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import RunPackageLocally from '@/features/Packages/PackageAccordionHelper/RunPackageLocally';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
@@ -6,7 +12,7 @@ import RetrieveAddressAbi from '@/features/Packages/PackageAccordionHelper/Retri
 import IntegrateWithPackage from '@/features/Packages/PackageAccordionHelper/IntegrateWithPackage';
 import { extractAddressesAbis } from '@/features/Packages/utils/extractAddressesAndABIs';
 import { usePackageByRef } from '@/hooks/api/usePackage';
-import { CustomSpinner } from '@/components/CustomSpinner';
+import { IpfsSpinner } from '@/components/IpfsSpinner';
 
 type Props = {
   name: string;
@@ -31,7 +37,11 @@ export default function PackageAccordionHelper({
   const isLoading = packagesQuery.isLoading || deploymentData.isLoading;
 
   if (isLoading) {
-    return <CustomSpinner />;
+    return (
+      <div className="py-20">
+        <IpfsSpinner ipfsUrl={packagesQuery?.data?.deployUrl} />
+      </div>
+    );
   }
 
   if (!packagesQuery.data || !deploymentData.data) {
@@ -50,43 +60,54 @@ export default function PackageAccordionHelper({
   const { ['run']: _, ...filteredDefinition } = deploymentInfo.def as any;
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Run Package Locally</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <RunPackageLocally
-            name={name}
-            chainId={packagesQuery.data.chainId}
-            version={packagesQuery.data.version}
-            preset={packagesQuery.data.preset}
-          />
-        </CardContent>
-      </Card>
+    <div className="max-w-screen-lg mx-auto px-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Run Package Locally</CardTitle>
+            <CardDescription>
+              Run this package on a local {chainId == 13370 ? 'node' : 'fork'}.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RunPackageLocally
+              name={name}
+              chainId={packagesQuery.data.chainId}
+              version={packagesQuery.data.version}
+              preset={packagesQuery.data.preset}
+            />
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Retrieve Addresses + ABIs</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <RetrieveAddressAbi
-            name={name}
-            chainId={packagesQuery.data.chainId}
-            version={packagesQuery.data.version}
-            preset={packagesQuery.data.preset}
-            addressesAbis={
-              deploymentData.data?.state
-                ? extractAddressesAbis(deploymentData.data.state)
-                : {}
-            }
-          />
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Retrieve Addresses + ABIs</CardTitle>
+            <CardDescription>
+              Download the deployment data as a JSON file.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RetrieveAddressAbi
+              name={name}
+              chainId={packagesQuery.data.chainId}
+              version={packagesQuery.data.version}
+              preset={packagesQuery.data.preset}
+              addressesAbis={
+                deploymentData.data?.state
+                  ? extractAddressesAbis(deploymentData.data.state)
+                  : {}
+              }
+            />
+          </CardContent>
+        </Card>
+      </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Integrate with this package</CardTitle>
+          <CardDescription>
+            Use this package in your cannonfile.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {state && deploymentInfo ? (

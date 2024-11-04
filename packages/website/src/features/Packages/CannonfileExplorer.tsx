@@ -1,9 +1,7 @@
 import { FC, useState } from 'react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
-import { links } from '@/constants/links';
 import { CodePreview } from '@/components/CodePreview';
-import { CustomSpinner } from '@/components/CustomSpinner';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
 import ChainDefinitionSteps from './ChainDefinitionSteps';
 import { isEmpty } from 'lodash';
@@ -27,7 +25,7 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from '@/components/ui/tooltip';
-import Link from 'next/link';
+import { IpfsSpinner } from '@/components/IpfsSpinner';
 
 function omitEmptyObjects(config: { [x: string]: any }) {
   for (const key in config) {
@@ -101,18 +99,8 @@ export const CannonfileExplorer: FC<{ pkg: ApiPackage }> = ({ pkg }) => {
   return pkg?.deployUrl ? (
     <div className="flex flex-1 flex-col">
       {deploymentData.isLoading ? (
-        <div className="py-20 flex flex-col items-center justify-center text-center">
-          <CustomSpinner />
-          <p className="text-sm mt-3 mb-1 text-gray-400">
-            Fetching {pkg?.deployUrl}
-          </p>
-          <p className="text-gray-500 text-xs">
-            This could take a minute. You can also{' '}
-            <Link href={links.SETTINGS} className="underline">
-              try another IPFS gateway
-            </Link>
-            .
-          </p>
+        <div className="py-20">
+          <IpfsSpinner ipfsUrl={pkg?.deployUrl} />
         </div>
       ) : deploymentInfo ? (
         <div className="relative flex flex-1 flex-col min-h-[420px]">

@@ -1,6 +1,6 @@
 import { CommandPreview } from '@/components/CommandPreview';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { ArchiveIcon } from '@radix-ui/react-icons';
 
 type Props = {
   name: string;
@@ -20,18 +20,20 @@ export default function RunPackageLocally({
   const _chainId = chainId != 13370 ? ` --chain-id ${chainId}` : '';
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">
-          Run this package on a local {chainId == 13370 ? 'node' : 'fork'}
-        </h3>
-        <Button variant="secondary" asChild>
-          <Link href="/learn/cli/">Install CLI</Link>
-        </Button>
-      </div>
+    <div className="space-y-6">
       <CommandPreview
         command={`cannon ${name}${_version}${_preset}${_chainId}`}
       />
+
+      <div className="text-sm text-muted-foreground">
+        <Link
+          href="/learn/cli/"
+          className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
+        >
+          <ArchiveIcon className="h-4 w-4" />
+          Install CLI
+        </Link>
+      </div>
     </div>
   );
 }

@@ -9,9 +9,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import Link from 'next/link';
-import { links } from '@/constants/links';
-import { CustomSpinner } from '@/components/CustomSpinner';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { ContractsTable } from './ContractsTable';
@@ -22,6 +19,7 @@ import { ApiPackage } from '@usecannon/api/dist/src/types';
 import SearchInput from '@/components/SearchInput';
 import isEmpty from 'lodash/isEmpty';
 import { ChainBuilderContext } from '@usecannon/builder';
+import { IpfsSpinner } from '@/components/IpfsSpinner';
 
 export const DeploymentExplorer: FC<{
   pkg: ApiPackage;
@@ -187,18 +185,8 @@ export const DeploymentExplorer: FC<{
   return pkg?.deployUrl ? (
     <div>
       {deploymentData.isLoading ? (
-        <div className="py-20 flex flex-col items-center justify-center text-center">
-          <CustomSpinner />
-          <p className="text-sm mt-3 mb-1 text-gray-400">
-            Fetching {pkg?.deployUrl}
-          </p>
-          <p className="text-gray-500 text-xs">
-            This could take a minute. You can also{' '}
-            <Link href={links.SETTINGS} className="underline">
-              try another IPFS gateway
-            </Link>
-            .
-          </p>
+        <div className="py-20">
+          <IpfsSpinner ipfsUrl={pkg?.deployUrl} />
         </div>
       ) : deploymentInfo ? (
         <div>

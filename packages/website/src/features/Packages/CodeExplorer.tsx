@@ -16,12 +16,10 @@ import 'prismjs/components/prism-toml';
 import { CodePreview } from '@/components/CodePreview';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { DownloadIcon, InfoOutlineIcon } from '@chakra-ui/icons';
-import { CustomSpinner } from '@/components/CustomSpinner';
 import { isEmpty } from 'lodash';
 import { DeploymentInfo } from '@usecannon/builder';
 import { ApiPackage } from '@usecannon/api/dist/src/types';
-import { links } from '@/constants/links';
-import Link from 'next/link';
+import { IpfsSpinner } from '@/components/IpfsSpinner';
 
 const handleDownload = (content: Record<string, unknown>, filename: string) => {
   const blob = new Blob([JSON.stringify(content, null, 2)], {
@@ -369,18 +367,8 @@ export const CodeExplorer: FC<{
   return (
     <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
       {isLoading ? (
-        <div className="py-20 flex flex-col items-center justify-center text-center">
-          <CustomSpinner />
-          <p className="text-sm mt-3 mb-1 text-gray-400">
-            Fetching {pkg?.deployUrl}
-          </p>
-          <p className="text-gray-500 text-xs">
-            This could take a minute. You can also{' '}
-            <Link href={links.SETTINGS} className="underline">
-              try another IPFS gateway
-            </Link>
-            .
-          </p>
+        <div className="py-20">
+          <IpfsSpinner ipfsUrl={pkg?.deployUrl} />
         </div>
       ) : artifacts?.length || provisionedPackagesKeys.length ? (
         <>

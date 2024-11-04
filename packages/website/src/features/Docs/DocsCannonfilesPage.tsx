@@ -442,7 +442,6 @@ const DocsCannonfilesPage: FC = () => {
                       values, e.g.:
                     </p>
                     <CommandPreview
-                      backgroundColor="black"
                       command={'args = ["<%=  keccak256(\'some string\') %>"]'}
                     />
                   </div>
