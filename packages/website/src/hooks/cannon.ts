@@ -9,6 +9,7 @@ import { useCannonRegistry } from '@/providers/CannonRegistryProvider';
 import { useLogs } from '@/providers/logsProvider';
 import { BaseTransaction } from '@safe-global/safe-apps-sdk';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { getChainDefinitionFromWorker } from '@/helpers/chain-definition';
 import { useDeployerWallet } from './deployer';
 import {
   build as cannonBuild,
@@ -27,9 +28,10 @@ import {
   publishPackage,
   findUpgradeFromPackage,
   ChainBuilderContext,
+  RawChainDefinition,
 } from '@usecannon/builder';
 import _ from 'lodash';
-import { useEffect, useReducer, useState } from 'react';
+import { useEffect, useReducer, useState, useMemo } from 'react';
 import { Abi, Address, createPublicClient, createTestClient, createWalletClient, custom, Hex, isAddressEqual } from 'viem';
 import { useChainId, usePublicClient } from 'wagmi';
 // Needed to prepare mock run step with registerAction
@@ -130,6 +132,7 @@ export function useCannonBuildTmp(safe: SafeDefinition | null) {
     const chain = getChainById(safe.chainId);
 
     dispatch({ message: 'Creating fork...' });
+
     const fork = await createFork({
       chainId: safe.chainId,
       impersonate: [safe.address, deployerWalletAddress],
@@ -449,8 +452,8 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
       {
         provider: provider as any, // TODO: fix type
         chainId: safe.chainId,
-        getSigner: getSigner as any, // TODO: fix type
-        getDefaultSigner: getDefaultSigner as any, // TODO: fix type
+        getSigner,
+        getDefaultSigner,
         snapshots: false,
         allowPartialDeploy: true,
       },
@@ -574,20 +577,15 @@ export function useCannonWriteDeployToIpfs() {
         throw new Error('You cannot write on an IPFS gateway, only read operations can be done');
       }
 
-      if (!deployInfo) {
+      if (!deployInfo || !runtime) {
         throw new Error('Missing required parameters');
       }
 
-      const def = new ChainDefinition(deployInfo.def);
-
-      if (!runtime || !deployInfo || !def) {
-        throw new Error('Missing required parameters');
-      }
-
-      const ctx = await createInitialContext(def, deployInfo.meta, runtime.chainId, deployInfo.options);
-
-      const preset = def.getPreset(ctx);
-      const packageRef = PackageReference.from(def.getName(ctx), def.getVersion(ctx), preset).fullPackageRef;
+      const packageRef = PackageReference.from(
+        deployInfo.def.name,
+        deployInfo.def.version,
+        deployInfo.def.preset
+      ).fullPackageRef;
 
       await runtime.registry.publish(
         [packageRef],
@@ -597,9 +595,6 @@ export function useCannonWriteDeployToIpfs() {
       );
 
       const memoryRegistry = new InMemoryRegistry();
-
-      // eslint-disable-next-line no-console
-      console.log('pinning package:', packageRef, runtime.chainId);
 
       const publishTxns = await publishPackage({
         fromStorage: runtime,
@@ -628,15 +623,12 @@ export function useCannonWriteDeployToIpfs() {
 
 export function useCannonFindUpgradeFromUrl(packageRef?: PackageReference, chainId?: number, deployers?: Address[]) {
   const registry = useCannonRegistry();
-
   const publicClient = usePublicClient();
 
-  const onChainDataQuery = useQuery({
-    enabled: !!packageRef && !!chainId,
+  return useQuery({
+    enabled: !!packageRef && !!chainId && !!deployers?.length,
     queryKey: ['cannon', 'find-upgrade-from', packageRef?.name, packageRef?.preset, packageRef?.version, chainId, deployers],
     queryFn: async () => {
-      // eslint-disable-next-line no-console
-      console.log('find with deployers', deployers);
       return await findUpgradeFromPackage(
         registry,
         publicClient as Parameters<typeof findUpgradeFromPackage>[1],
@@ -645,18 +637,17 @@ export function useCannonFindUpgradeFromUrl(packageRef?: PackageReference, chain
         deployers || []
       );
     },
+    staleTime: 1000 * 60, // 1 minute
+    retry: false,
   });
-
-  return {
-    url: onChainDataQuery.data,
-    ...onChainDataQuery,
-  };
 }
 
 export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?: number) {
-  if (urlOrRef && typeof urlOrRef != 'string') {
-    urlOrRef = urlOrRef.fullPackageRef;
-  }
+  const normalizedUrlOrRef = useMemo(() => {
+    if (!urlOrRef) return undefined;
+    if (typeof urlOrRef !== 'string') return urlOrRef.fullPackageRef;
+    return urlOrRef;
+  }, [urlOrRef]);
 
   const connectedChainId = useChainId();
   const registry = useCannonRegistry();
@@ -665,96 +656,89 @@ export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?:
 
   const packageChainId = chainId ?? connectedChainId;
 
+  // Registry query with proper typing
   const registryQuery = useQuery({
-    queryKey: ['cannon', 'registry-url', urlOrRef, packageChainId],
+    queryKey: ['cannon', 'registry-url', normalizedUrlOrRef, packageChainId],
     queryFn: async () => {
-      if (urlOrRef?.startsWith('ipfs://')) return { url: urlOrRef };
-      if (urlOrRef?.startsWith('@ipfs:')) return { url: urlOrRef.replace('@ipfs:', 'ipfs://') };
+      if (normalizedUrlOrRef?.startsWith('ipfs://')) return { url: normalizedUrlOrRef };
+      if (normalizedUrlOrRef?.startsWith('@ipfs:')) return { url: normalizedUrlOrRef.replace('@ipfs:', 'ipfs://') };
 
-      const url = await registry.getUrl(urlOrRef!, packageChainId);
-
-      if (url) {
-        return { url };
-      } else {
-        throw new Error(`package not found: ${urlOrRef} (${packageChainId})`);
-      }
+      const url = await registry.getUrl(normalizedUrlOrRef!, packageChainId);
+      if (!url) throw new Error(`package not found: ${normalizedUrlOrRef} (${packageChainId})`);
+      return { url };
     },
-    enabled: typeof urlOrRef === 'string' && urlOrRef.length > 3,
+    enabled: typeof normalizedUrlOrRef === 'string' && normalizedUrlOrRef.length > 3,
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60, // 1 minute
+  });
+
+  const ipfsQuery = useQuery<{
+    deployInfo: DeploymentInfo;
+    resolvedName: string;
+    resolvedVersion: string;
+    resolvedPreset: string;
+    fullPackageRef: string;
+  }>({
+    queryKey: ['cannon', 'pkg', registryQuery.data?.url],
+    queryFn: async () => {
+      addLog('info', `Loading ${registryQuery.data?.url}`);
+      const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
+
+      const deployInfo = await ipfsLoader.read(registryQuery.data!.url as any);
+      if (!deployInfo) throw new Error('failed to download package data');
+
+      const resolvedName = deployInfo.def.name;
+      const resolvedVersion = deployInfo.def.version;
+      // default to main if preset is not defined
+      const resolvedPreset = deployInfo.def.preset || 'main';
+
+      addLog('info', `Loaded ${deployInfo.def.name}:${deployInfo.def.version}@${deployInfo.def.preset} from IPFS`);
+      const { fullPackageRef } = PackageReference.from(resolvedName, resolvedVersion, resolvedPreset);
+
+      return {
+        deployInfo,
+        resolvedName,
+        resolvedVersion,
+        resolvedPreset,
+        fullPackageRef,
+      };
+    },
+    enabled: !!registryQuery.data?.url,
+    staleTime: 1000 * 60, // 1 minute
+    retry: false,
+  });
+
+  // Meta query with proper typing
+  const registryQueryMeta = useQuery<{ metaUrl: string } | null>({
+    queryKey: ['cannon', 'registry-meta', ipfsQuery.data?.fullPackageRef, packageChainId],
+    queryFn: async () => {
+      if (!ipfsQuery.data?.fullPackageRef) return null;
+      const metaUrl = await registry.getMetaUrl(ipfsQuery.data.fullPackageRef, packageChainId);
+      return metaUrl ? { metaUrl } : null;
+    },
+    enabled: !!ipfsQuery.data?.fullPackageRef,
+    staleTime: 1000 * 60, // 1 minute
     refetchOnWindowFocus: false,
   });
 
-  const pkgUrl = registryQuery.data?.url;
-
-  const ipfsQuery = useQuery({
-    queryKey: ['cannon', 'pkg', pkgUrl],
-    queryFn: async () => {
-      addLog('info', `Loading ${pkgUrl}`);
-
-      if (!pkgUrl) return null;
-
-      try {
-        const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
-
-        const deployInfo: DeploymentInfo = await loader.read(pkgUrl as any);
-
-        const def = new ChainDefinition(deployInfo.def);
-
-        const ctx = await createInitialContext(def, deployInfo.meta, 0, deployInfo.options);
-
-        const resolvedName = def.getName(ctx);
-        const resolvedVersion = def.getVersion(ctx);
-        const resolvedPreset = def.getPreset(ctx);
-        const { fullPackageRef } = PackageReference.from(resolvedName, resolvedVersion, resolvedPreset);
-
-        if (deployInfo) {
-          addLog('info', `Loaded ${resolvedName}:${resolvedVersion}@${resolvedPreset} from IPFS`);
-          return { deployInfo, ctx, resolvedName, resolvedVersion, resolvedPreset, fullPackageRef };
-        } else {
-          throw new Error('failed to download package data');
-        }
-      } catch (err) {
-        addLog('error', `IPFS Error: ${(err as any)?.message ?? 'unknown error'}`);
-        throw err;
-      }
-    },
-    enabled: !!pkgUrl,
-  });
-
-  const fullPackageRef = ipfsQuery.data?.fullPackageRef;
-
-  const registryQueryMeta = useQuery({
-    queryKey: ['cannon', 'registry-meta', fullPackageRef, packageChainId],
-    queryFn: async () => {
-      if (typeof fullPackageRef !== 'string' || fullPackageRef.length < 3) {
-        return null;
-      }
-
-      const metaUrl = await registry.getMetaUrl(fullPackageRef, packageChainId);
-
-      if (metaUrl) {
-        return { metaUrl };
-      } else {
-        return null;
-      }
-    },
-    refetchOnWindowFocus: false,
-  });
-
-  return {
-    isLoading: registryQuery.isLoading || ipfsQuery.isLoading || registryQueryMeta.isLoading,
-    isFetching: registryQuery.isFetching || ipfsQuery.isFetching || registryQueryMeta.isFetching,
-    isError: registryQuery.isError || ipfsQuery.isError || registryQueryMeta.isError,
-    error: registryQuery.error || registryQuery.error || registryQueryMeta.error,
-    registryQuery,
-    ipfsQuery,
-    pkgUrl,
-    metaUrl: registryQueryMeta.data?.metaUrl,
-    pkg: ipfsQuery.data?.deployInfo,
-    resolvedName: ipfsQuery.data?.resolvedName,
-    resolvedVersion: ipfsQuery.data?.resolvedVersion,
-    resolvedPreset: ipfsQuery.data?.resolvedPreset,
-    fullPackageRef,
-  };
+  // Return type with proper typing
+  return useMemo(
+    () => ({
+      isLoading: registryQuery.isLoading || ipfsQuery.isLoading || registryQueryMeta.isLoading,
+      isFetching: registryQuery.isFetching || ipfsQuery.isFetching || registryQueryMeta.isFetching,
+      isError: registryQuery.isError || ipfsQuery.isError || registryQueryMeta.isError,
+      error: registryQuery.error || ipfsQuery.error || registryQueryMeta.error,
+      registryQuery,
+      ipfsQuery,
+      pkgUrl: registryQuery.data?.url,
+      metaUrl: registryQueryMeta.data?.metaUrl,
+      resolvedName: ipfsQuery.data?.resolvedName,
+      resolvedVersion: ipfsQuery.data?.resolvedVersion,
+      resolvedPreset: ipfsQuery.data?.resolvedPreset,
+      fullPackageRef: ipfsQuery.data?.fullPackageRef,
+    }),
+    [registryQuery, ipfsQuery, registryQueryMeta]
+  );
 }
 
 export type ContractInfo = {
@@ -776,6 +760,47 @@ function getContractsRecursive(outputs: ChainArtifacts, prefix?: string): Contra
   return contracts;
 }
 
+export function useMergedCannonDefInfo(
+  gitUrl: string,
+  gitRef: string,
+  gitFile: string,
+  partialDeployInfo: ReturnType<typeof useCannonPackage>
+) {
+  const originalCannonDefInfo = useLoadCannonDefinition(gitUrl, gitRef, gitFile);
+
+  const {
+    data: workerDef,
+    error: workerError,
+    isLoading,
+  } = useQuery({
+    queryKey: ['merged-cannon-definition', gitUrl, gitRef, gitFile, partialDeployInfo?.ipfsQuery.data?.deployInfo],
+    queryFn: async () => {
+      if (!partialDeployInfo?.ipfsQuery.data?.deployInfo && !originalCannonDefInfo.def) {
+        return null;
+      }
+
+      const deployInfo = partialDeployInfo?.ipfsQuery.data?.deployInfo?.def || originalCannonDefInfo.def;
+
+      return await getChainDefinitionFromWorker(deployInfo as RawChainDefinition);
+    },
+    enabled: Boolean(partialDeployInfo?.ipfsQuery.data?.deployInfo || originalCannonDefInfo.def),
+  });
+
+  return useMemo(() => {
+    const isError = originalCannonDefInfo.isError || !!workerError;
+    const isFetching = originalCannonDefInfo.isFetching || isLoading;
+    const error = workerError || originalCannonDefInfo.error;
+
+    return {
+      isLoading,
+      isFetching,
+      isError,
+      error,
+      def: workerDef!,
+    };
+  }, [originalCannonDefInfo, workerDef, workerError, isLoading]);
+}
+
 export function useCannonPackageContracts(packageRef?: string, chainId?: number) {
   const pkg = useCannonPackage(packageRef, chainId);
   const [contracts, setContracts] = useState<ContractInfo | null>(null);
@@ -783,8 +808,8 @@ export function useCannonPackageContracts(packageRef?: string, chainId?: number)
 
   useEffect(() => {
     const getContracts = async () => {
-      if (pkg.pkg) {
-        const info = pkg.pkg;
+      if (pkg.ipfsQuery.data?.deployInfo) {
+        const info = pkg.ipfsQuery.data.deployInfo;
 
         const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
         const readRuntime = new ChainBuilderRuntime(
@@ -801,7 +826,9 @@ export function useCannonPackageContracts(packageRef?: string, chainId?: number)
           { ipfs: loader }
         );
 
-        const outputs = await getOutputs(readRuntime, new ChainDefinition(info.def), info.state);
+        const chainDefinition = await getChainDefinitionFromWorker(info.def);
+
+        const outputs = await getOutputs(readRuntime, chainDefinition, info.state);
 
         if (outputs) {
           setContracts(getContractsRecursive(outputs));
@@ -814,7 +841,7 @@ export function useCannonPackageContracts(packageRef?: string, chainId?: number)
     };
 
     void getContracts();
-  }, [pkg.pkg, packageRef, settings.ipfsApiUrl]);
+  }, [pkg.ipfsQuery.data?.deployInfo, packageRef, settings.ipfsApiUrl]);
 
   return { contracts, ...pkg };
 }

@@ -7,6 +7,8 @@ import IntegrateWithPackage from '@/features/Packages/PackageAccordionHelper/Int
 import { extractAddressesAbis } from '@/features/Packages/utils/extractAddressesAndABIs';
 import { Skeleton, Stack, Text } from '@chakra-ui/react';
 import { usePackageByRef } from '@/hooks/api/usePackage';
+import { useState, useEffect } from 'react';
+import { getChainDefinitionFromWorker } from '@/helpers/chain-definition';
 
 type Props = {
   name: string;
@@ -21,6 +23,9 @@ export default function PackageAccordionHelper({
   preset,
   chainId,
 }: Props) {
+  const [chainDefinition, setChainDefinition] =
+    useState<ChainDefinition | null>(null);
+
   const packagesQuery = usePackageByRef({ name, tag, preset, chainId });
 
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
@@ -29,6 +34,25 @@ export default function PackageAccordionHelper({
   );
 
   const isLoading = packagesQuery.isLoading || deploymentData.isLoading;
+
+  useEffect(() => {
+    async function loadChainDefinition() {
+      if (deploymentData.data?.def) {
+        /** Removing any potential run steps from the definition so it doesnt get registered in ChainDefinition */
+        //eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { ['run']: _, ...filteredDefinition } = deploymentData.data
+          .def as any;
+
+        const chainDefinition = await getChainDefinitionFromWorker(
+          filteredDefinition
+        );
+
+        setChainDefinition(chainDefinition);
+      }
+    }
+
+    void loadChainDefinition();
+  }, [deploymentData.data?.def]);
 
   if (isLoading) {
     return (
@@ -50,10 +74,6 @@ export default function PackageAccordionHelper({
   if (!state || !deploymentInfo) {
     return null;
   }
-
-  /** Removing any potential run steps from the definition so it doesnt get registered in ChainDefinition */
-  //eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { ['run']: _, ...filteredDefinition } = deploymentInfo.def as any;
 
   return (
     <CustomAccordion allowToggle={!isLoading}>
@@ -90,17 +110,17 @@ export default function PackageAccordionHelper({
         title="Integrate with this package"
         accordionPanelProps={{ p: 0 }}
       >
-        {state && deploymentInfo ? (
+        {state && deploymentInfo && chainDefinition ? (
           <IntegrateWithPackage
             name={name}
             chainId={packagesQuery.data.chainId}
             preset={packagesQuery.data.preset}
-            chainDefinition={new ChainDefinition(filteredDefinition)}
+            chainDefinition={chainDefinition}
             deploymentState={state}
             version={packagesQuery.data.version}
           />
         ) : (
-          <Text>Error retrieving deployment data</Text>
+          <Text>Loading deployment data...</Text>
         )}
       </CustomAccordionItem>
     </CustomAccordion>

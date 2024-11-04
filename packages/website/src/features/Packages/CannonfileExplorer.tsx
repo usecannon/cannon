@@ -195,7 +195,7 @@ export const CannonfileExplorer: FC<{
               flex="1"
               direction="column"
             >
-              <CannonfileGraph deploymentInfo={deploymentInfo} />
+              <CannonfileGraph deploymentDefinition={deploymentInfo.def} />
             </Flex>
             <Container
               maxW="container.lg"
