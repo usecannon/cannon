@@ -457,6 +457,7 @@ export default function QueueFromGitOps() {
     currentSafe?.chainId,
     cannonDefInfo?.def,
     partialDeployInfo?.ipfsQuery.data?.deployInfo,
+    prevCannonDeployInfo?.ipfsQuery.data?.deployInfo
   ]);
 
   const hasDeployers = useMemo(() => {
