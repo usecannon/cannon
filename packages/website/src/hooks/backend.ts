@@ -240,7 +240,7 @@ export function useTxnStager(
       safeTxn.refundReceiver,
       '0x' + execSig.map((s) => s.slice(2)).join(''),
     ],
-      gas: BigInt(Math.floor((parseInt(safeTxn.safeTxGas) + 500000) * 1.1))
+    gas: BigInt(Math.floor((parseInt(safeTxn.safeTxGas) + 500000) * 1.1)),
   };
 
   const stageTxnMutate = useSimulateContract(execTransactionData);
