@@ -145,9 +145,7 @@ export const FunctionOutput: FC<{
                       color="whiteAlpha.900"
                       verticalAlign="center"
                     >
-                      {methodResult !== null || undefined
-                        ? String(methodResult)
-                        : '---'}
+                      {String(methodResult)}
                     </Text>
                   </Flex>
                 </Tooltip>
@@ -156,7 +154,7 @@ export const FunctionOutput: FC<{
               <Text fontSize="xs" color="whiteAlpha.900" verticalAlign="center">
                 {methodResult !== null || undefined
                   ? String(methodResult)
-                  : '---'}
+                  : '(no result)'}
               </Text>
             )}
           </Flex>
@@ -182,7 +180,11 @@ export const FunctionOutput: FC<{
               name={abiParameter.name || ''}
               type={abiParameter.internalType || ''}
             />
-            {renderOutput(abiParameter, methodResult[index], index)}
+            {renderOutput(
+              abiParameter,
+              methodResult?.[index] || methodResult,
+              index
+            )}
           </Box>
         ))
       ) : (
