@@ -1,9 +1,4 @@
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import RunPackageLocally from '@/features/Packages/PackageAccordionHelper/RunPackageLocally';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
@@ -11,6 +6,7 @@ import RetrieveAddressAbi from '@/features/Packages/PackageAccordionHelper/Retri
 import IntegrateWithPackage from '@/features/Packages/PackageAccordionHelper/IntegrateWithPackage';
 import { extractAddressesAbis } from '@/features/Packages/utils/extractAddressesAndABIs';
 import { usePackageByRef } from '@/hooks/api/usePackage';
+import { CustomSpinner } from '@/components/CustomSpinner';
 
 type Props = {
   name: string;
@@ -35,7 +31,7 @@ export default function PackageAccordionHelper({
   const isLoading = packagesQuery.isLoading || deploymentData.isLoading;
 
   if (isLoading) {
-    return;
+    return <CustomSpinner />;
   }
 
   if (!packagesQuery.data || !deploymentData.data) {
@@ -54,22 +50,26 @@ export default function PackageAccordionHelper({
   const { ['run']: _, ...filteredDefinition } = deploymentInfo.def as any;
 
   return (
-    <Accordion type="single" collapsible>
-      <AccordionItem value="run-locally">
-        <AccordionTrigger>Run Package Locally</AccordionTrigger>
-        <AccordionContent>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Run Package Locally</CardTitle>
+        </CardHeader>
+        <CardContent>
           <RunPackageLocally
             name={name}
             chainId={packagesQuery.data.chainId}
             version={packagesQuery.data.version}
             preset={packagesQuery.data.preset}
           />
-        </AccordionContent>
-      </AccordionItem>
+        </CardContent>
+      </Card>
 
-      <AccordionItem value="addresses-abis">
-        <AccordionTrigger>Retrieve Addresses + ABIs</AccordionTrigger>
-        <AccordionContent>
+      <Card>
+        <CardHeader>
+          <CardTitle>Retrieve Addresses + ABIs</CardTitle>
+        </CardHeader>
+        <CardContent>
           <RetrieveAddressAbi
             name={name}
             chainId={packagesQuery.data.chainId}
@@ -81,12 +81,14 @@ export default function PackageAccordionHelper({
                 : {}
             }
           />
-        </AccordionContent>
-      </AccordionItem>
+        </CardContent>
+      </Card>
 
-      <AccordionItem value="integrate">
-        <AccordionTrigger>Integrate with this package</AccordionTrigger>
-        <AccordionContent>
+      <Card>
+        <CardHeader>
+          <CardTitle>Integrate with this package</CardTitle>
+        </CardHeader>
+        <CardContent>
           {state && deploymentInfo ? (
             <IntegrateWithPackage
               name={name}
@@ -99,8 +101,8 @@ export default function PackageAccordionHelper({
           ) : (
             <p>Error retrieving deployment data</p>
           )}
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

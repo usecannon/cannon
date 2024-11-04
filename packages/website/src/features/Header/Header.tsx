@@ -42,21 +42,10 @@ const NavLinks = () => {
 };
 
 const SettingsButton = () => {
-  const pathname = useRouter().pathname;
-  const isActive = pathname.startsWith('/settings');
-
   return (
-    <Button
-      asChild
-      size="icon"
-      variant="outline"
-      className={cn(
-        isActive ? 'bg-teal-900 border-teal-700' : 'bg-black border-gray-500',
-        'hover:bg-teal-900 hover:border-teal-500'
-      )}
-    >
+    <Button asChild size="icon" variant="outline" className="bg-muted/50">
       <Link href={links.SETTINGS}>
-        <GearIcon className="h-4 w-4" />
+        <GearIcon />
       </Link>
     </Button>
   );
@@ -98,7 +87,7 @@ export const Header = () => {
 
         <Badge
           variant="outline"
-          className="ml-3 uppercase tracking-wider font-miriam text-gray-400 border-border"
+          className="opacity-50 ml-3 uppercase tracking-wider font-miriam"
         >
           Beta
         </Badge>
