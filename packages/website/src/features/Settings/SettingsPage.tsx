@@ -41,10 +41,8 @@ export default function SettingsPage() {
         <CardHeader>
           <CardTitle>Custom Providers</CardTitle>
           <CardDescription>
-            Cannon will use custom providers (which may include{' '}
-            <Link href="https://www.alchemy.com/">Alchemy</Link> or{' '}
-            <Link href="https://www.infura.io/">Infura</Link> endpoints) added
-            below if available for the target chain. Otherwise, it will use a{' '}
+            Cannon will use custom providers added below if available for the
+            target chain. Otherwise, it will use a{' '}
             <Link href="https://github.com/wevm/viem/tree/main/src/chains/definitions">
               default RPC url
             </Link>
@@ -69,14 +67,14 @@ export default function SettingsPage() {
               ERC-7412
             </a>{' '}
             to automatically compose transactions that require oracle data and
-            fees. This is primarily used in the Interact tabs in the{' '}
+            fees when using the Interact tabs in the{' '}
             <NextLink href="/search" className="underline">
               package explorer
             </NextLink>
             .
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pb-2">
           <Table>
             <TableHeader>
               <TableRow className="border-b border-border hover:bg-transparent">
@@ -162,17 +160,18 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <div className="my-10 flex gap-4">
-        <Alert className="flex-1">
-          <div className="flex gap-2">
-            <InfoCircledIcon />
-            <AlertTitle>
+      <div className="my-10 flex flex-col sm:flex-row gap-4">
+        <Alert className="flex-1 flex items-center min-h-[44px]">
+          <div className="flex items-center gap-2">
+            <InfoCircledIcon className="h-4 w-4" />
+            <AlertTitle className="mb-0">
               Changes to settings automatically persist in your web browser.
             </AlertTitle>
           </div>
         </Alert>
         <Button
           variant="destructive"
+          className="h-auto"
           onClick={(e) => {
             e.preventDefault();
             if (
