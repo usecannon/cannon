@@ -79,26 +79,21 @@ export default function SettingsPage() {
         <CardContent>
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead className="text-gray-400 px-0 pb-2 border-gray-500">
-                  Oracle ID
-                </TableHead>
-                <TableHead className="text-gray-400 px-0 pb-2 border-gray-500">
-                  Settings
-                </TableHead>
+              <TableRow className="border-b border-border hover:bg-transparent">
+                <TableHead>Oracle ID</TableHead>
+                <TableHead>Settings</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow>
-                <TableCell className="px-0 border-gray-500">
+              <TableRow className="border-b border-border hover:bg-transparent">
+                <TableCell>
                   <code className="text-lg">PYTH</code>
                 </TableCell>
-                <TableCell className="px-0 border-gray-500">
-                  <div className="space-y-2">
+                <TableCell>
+                  <div className="space-y-2 my-2">
                     <Label htmlFor="pyth">Price Service Endpoint</Label>
                     <Input
                       id="pyth"
-                      className="bg-black border-gray-600"
                       type="text"
                       name="pyth"
                       value={settings.pythUrl}
