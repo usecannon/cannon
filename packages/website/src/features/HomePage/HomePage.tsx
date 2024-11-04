@@ -112,7 +112,7 @@ export default function HomePage() {
         <div className="container max-w-7xl">
           <div className="flex justify-end w-full">
             <div className="max-w-[640px]">
-              <div className="bg-black/40 rounded-lg p-8">
+              <div className="bg-black/30 rounded-lg p-8">
                 <h2 className="text-2xl lg:text-4xl mb-4 font-miriam">
                   Build apps and bots that connect to protocols on Ethereum
                 </h2>
@@ -138,7 +138,7 @@ export default function HomePage() {
       <div className="section flex items-center">
         <div className="container max-w-7xl">
           <div className="max-w-[600px]">
-            <div className="bg-black/40 rounded-lg p-8">
+            <div className="bg-black/30 rounded-lg p-8">
               <h2 className="text-2xl lg:text-4xl mb-4 font-miriam">
                 Write smart contracts that integrate with protocols
               </h2>
@@ -161,7 +161,7 @@ export default function HomePage() {
         <div className="container max-w-7xl">
           <div className="flex justify-end w-full">
             <div className="max-w-[600px]">
-              <div className="bg-black/40 rounded-lg p-8">
+              <div className="bg-black/30 rounded-lg p-8">
                 <h2 className="text-2xl lg:text-4xl mb-4 font-miriam">
                   Manage complex deployments across multiple chains
                 </h2>
