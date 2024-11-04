@@ -402,7 +402,7 @@ export default function QueueFromGitOps() {
   let totalGas = BigInt(0);
 
   for (const step of buildState.result?.safeSteps || []) {
-    totalGas += BigInt(step.gas.toString());
+    totalGas += BigInt(step.gas.toString()) + BigInt(50000);
   }
 
   const toast = useToast();
