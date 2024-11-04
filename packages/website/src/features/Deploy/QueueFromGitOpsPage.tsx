@@ -446,7 +446,7 @@ export default function QueueFromGitOps() {
       }
     }
 
-    doBuild(cannonDefInfo?.def, partialDeployInfo?.ipfsQuery.data?.deployInfo);
+    doBuild(cannonDefInfo?.def,partialDeployInfo?.ipfsQuery.data?.deployInfo ?? prevCannonDeployInfo.ipfsQuery.data?.deployInfo);
   }, [
     isConnected,
     chainId,
