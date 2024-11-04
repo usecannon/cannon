@@ -13,6 +13,8 @@ import IntegrateWithPackage from '@/features/Packages/PackageAccordionHelper/Int
 import { extractAddressesAbis } from '@/features/Packages/utils/extractAddressesAndABIs';
 import { usePackageByRef } from '@/hooks/api/usePackage';
 import { IpfsSpinner } from '@/components/IpfsSpinner';
+import { useState, useEffect } from 'react';
+import { getChainDefinitionFromWorker } from '@/helpers/chain-definition';
 
 type Props = {
   name: string;
@@ -27,6 +29,9 @@ export default function PackageAccordionHelper({
   preset,
   chainId,
 }: Props) {
+  const [chainDefinition, setChainDefinition] =
+    useState<ChainDefinition | null>(null);
+
   const packagesQuery = usePackageByRef({ name, tag, preset, chainId });
 
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
@@ -35,6 +40,25 @@ export default function PackageAccordionHelper({
   );
 
   const isLoading = packagesQuery.isLoading || deploymentData.isLoading;
+
+  useEffect(() => {
+    async function loadChainDefinition() {
+      if (deploymentData.data?.def) {
+        /** Removing any potential run steps from the definition so it doesnt get registered in ChainDefinition */
+        //eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { ['run']: _, ...filteredDefinition } = deploymentData.data
+          .def as any;
+
+        const chainDefinition = await getChainDefinitionFromWorker(
+          filteredDefinition
+        );
+
+        setChainDefinition(chainDefinition);
+      }
+    }
+
+    void loadChainDefinition();
+  }, [deploymentData.data?.def]);
 
   if (isLoading) {
     return (
@@ -54,10 +78,6 @@ export default function PackageAccordionHelper({
   if (!state || !deploymentInfo) {
     return null;
   }
-
-  /** Removing any potential run steps from the definition so it doesnt get registered in ChainDefinition */
-  //eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { ['run']: _, ...filteredDefinition } = deploymentInfo.def as any;
 
   return (
     <div className="max-w-screen-lg mx-auto px-6">
@@ -110,12 +130,12 @@ export default function PackageAccordionHelper({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {state && deploymentInfo ? (
+          {state && deploymentInfo && chainDefinition ? (
             <IntegrateWithPackage
               name={name}
               chainId={packagesQuery.data.chainId}
               preset={packagesQuery.data.preset}
-              chainDefinition={new ChainDefinition(filteredDefinition)}
+              chainDefinition={chainDefinition}
               deploymentState={state}
               version={packagesQuery.data.version}
             />

@@ -136,7 +136,7 @@ export const CannonfileExplorer: FC<{ pkg: ApiPackage }> = ({ pkg }) => {
               <div
                 className={`flex-1 ${displayMode === 1 ? 'block' : 'hidden'}`}
               >
-                <CannonfileGraph deploymentInfo={deploymentInfo} />
+                <CannonfileGraph deploymentDefinition={deploymentInfo.def} />
               </div>
 
               <div
