@@ -219,7 +219,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     }
 
     if (options.keepAlive && node) {
-      log(`The local node will continue running at ${node.host}`);
+      log(`The local node will continue running at ${node!.host}`);
 
       const { run } = await import('./commands/run');
 
