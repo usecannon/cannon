@@ -117,10 +117,11 @@ export default function PackageAccordionHelper({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <CommandPreview2>
-              cannon {packageRef}{' '}
-              {chainId != 13370 ? `--chain-id ${chainId}` : ''}
-            </CommandPreview2>
+            <CommandPreview2
+              command={`cannon ${packageRef} ${
+                chainId != 13370 ? `--chain-id ${chainId}` : ''
+              }`}
+            />
           </CardContent>
           <CardFooter>
             <div className="text-sm text-muted-foreground">
