@@ -38,6 +38,12 @@ const HomePageStyles = createGlobalStyle`
           object-position: 0% center;
           }
         }
+
+      &:nth-child(4) {
+        @media (max-width: 768px) {
+          object-position: 10% center;
+          }
+        }
   }
 
   .section {
