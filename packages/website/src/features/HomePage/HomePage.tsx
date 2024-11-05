@@ -11,7 +11,7 @@ const HomePageStyles = createGlobalStyle`
   html, body {
     scroll-snap-type: y mandatory;
     overflow-y: scroll;
-    height: 100vh;
+    height: 100dvh;
     overflow-x: hidden;
   }
 
@@ -19,17 +19,30 @@ const HomePageStyles = createGlobalStyle`
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100dvw;
+    height: 100dvh;
     object-fit: cover;
+    object-position: center;
     z-index: 0;
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
+
+    &:nth-child(1) {
+      @media (max-width: 768px) {
+        object-position: 75% center;
+        }
+      }
+
+      &:nth-child(2) {
+        @media (max-width: 768px) {
+          object-position: 0% center;
+          }
+        }
   }
 
   .section {
-    min-height: 100vh;
-    height: 100vh;
+    min-height: 100dvh;
+    height: 100dvh;
     position: relative;
     z-index: 1;
     scroll-snap-align: start;

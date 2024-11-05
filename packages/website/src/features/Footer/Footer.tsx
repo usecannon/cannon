@@ -20,10 +20,10 @@ export const Footer = ({ isFixed }: FooterProps) => {
             : 'relative bg-black'
         }
         ${!isFixed && 'border-t border-border'}
-        py-5 sm:py-2
+        pb-3 pt-2 md:py-1
       `}
     >
-      <div className="flex gap-2 justify-center w-full sm:w-auto mb-4 sm:mb-0">
+      <div className="flex gap-2 justify-center w-full sm:w-auto">
         <Button variant="ghost" size="icon" asChild>
           <a
             href="https://github.com/usecannon/cannon"

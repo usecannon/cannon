@@ -87,7 +87,7 @@ export const Header = () => {
 
         <Badge
           variant="outline"
-          className="opacity-50 ml-3 uppercase tracking-wider font-miriam"
+          className="opacity-50 ml-3 uppercase tracking-wider font-miriam hidden lg:inline-flex"
         >
           Beta
         </Badge>
@@ -129,10 +129,10 @@ export const Header = () => {
             <div className="ml-auto flex items-center gap-3">
               <NoSSRSearchBar />
               <NoSSRConnectWallet />
-              <SettingsButton />
             </div>
-            <div className="basis-full">
+            <div className="basis-full flex items-center justify-between">
               <NavLinks />
+              <SettingsButton />
             </div>
           </>
         )}

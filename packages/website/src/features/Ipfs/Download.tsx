@@ -6,7 +6,6 @@ import { useQueryIpfsDataRaw } from '@/hooks/ipfs';
 import { CodePreview } from '@/components/CodePreview';
 import { useStore } from '@/helpers/store';
 import { DownloadIcon } from '@radix-ui/react-icons';
-import NextLink from 'next/link';
 import {
   arrayBufferToUtf8,
   decodeData,
@@ -15,6 +14,7 @@ import {
   EncodingsKeys,
 } from '@/helpers/misc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { IpfsSpinner } from '@/components/IpfsSpinner';
 
 function parseJson(data: ArrayBuffer | undefined, decompress?: boolean) {
   if (!data || decompress === undefined) return false;
@@ -140,20 +140,9 @@ export default function Download() {
           <CardTitle>Download from IPFS</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="mb-4">
-            Update your IPFS URL in{' '}
-            <NextLink
-              href="/settings"
-              className="text-blue-500 hover:underline"
-            >
-              settings
-            </NextLink>
-            .
-          </p>
-
           {ipfsApiUrl?.length && (
             <>
-              <div className="mb-3">
+              <div className="mb-4">
                 <label htmlFor="cid" className="block text-sm mb-1">
                   CID
                 </label>
@@ -171,19 +160,25 @@ export default function Download() {
                 </div>
               </div>
 
-              <div className="flex items-center mb-2">
-                <input
-                  type="checkbox"
-                  id="decompress"
-                  checked={decompress}
-                  onChange={handleSwitchDecompress}
-                  className="mr-2"
-                />
-                <label htmlFor="decompress">Decompress using zlib</label>
-              </div>
+              {cid && !ipfsData && (
+                <div className="py-20">
+                  <IpfsSpinner ipfsUrl={`ipfs://${cid}`} />
+                </div>
+              )}
 
               {ipfsData && (
                 <div>
+                  <div className="flex items-center mb-3">
+                    <input
+                      type="checkbox"
+                      id="decompress"
+                      checked={decompress}
+                      onChange={handleSwitchDecompress}
+                      className="mr-2"
+                    />
+                    <label htmlFor="decompress">Decompress using zlib</label>
+                  </div>
+
                   <div className="mb-8">
                     <label className="block text-sm mb-1">Decode</label>
                     <select
