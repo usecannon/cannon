@@ -11,7 +11,7 @@ interface CodeBlockProps extends React.HTMLAttributes<HTMLDivElement> {
   expandButtonTitle?: string;
 }
 
-export const CommandPreview2 = React.forwardRef<HTMLDivElement, CodeBlockProps>(
+export const CommandPreview = React.forwardRef<HTMLDivElement, CodeBlockProps>(
   ({ command = '', className, ...props }, ref) => {
     const [hasCopied, setHasCopied] = React.useState(false);
     const [html, setHtml] = React.useState('');
@@ -50,7 +50,7 @@ export const CommandPreview2 = React.forwardRef<HTMLDivElement, CodeBlockProps>(
       <div
         ref={ref}
         className={cn(
-          'relative rounded-md bg-muted/30 py-2.5 pl-4 font-mono text-sm flex items-center',
+          'relative rounded-md bg-muted/30 py-2.5 pl-4 font-mono text-sm flex items-center border border-border',
           className
         )}
         {...props}
@@ -79,4 +79,4 @@ export const CommandPreview2 = React.forwardRef<HTMLDivElement, CodeBlockProps>(
   }
 );
 
-CommandPreview2.displayName = 'CommandPreview2';
+CommandPreview.displayName = 'CommandPreview';

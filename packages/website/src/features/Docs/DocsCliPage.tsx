@@ -1,6 +1,6 @@
 'use client';
 
-import { CommandPreview2 } from '@/components/CommandPreview';
+import { CommandPreview } from '@/components/CommandPreview';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { useCommandsConfig } from '@/hooks/useCommandsConfig';
 import {
@@ -100,7 +100,7 @@ const DocumentationSection: React.FC<{
     </div>
     <p className="mb-2 text-lg">{description}</p>
     <div className="mb-5">
-      <CommandPreview2>cannon {command}</CommandPreview2>
+      <CommandPreview>cannon {command}</CommandPreview>
     </div>
     {argumentsData && <CustomTable title="Argument" data={argumentsData} />}
     {optionsData && <CustomTable title="Option" data={optionsData} />}
@@ -355,17 +355,17 @@ const DocsCliPage: FC = () => {
                       </TabsTrigger>
                     </TabsList>
                     <TabsContent value="npm" className="p-0">
-                      <CommandPreview2>npm i -g @usecannon/cli</CommandPreview2>
+                      <CommandPreview>npm i -g @usecannon/cli</CommandPreview>
                     </TabsContent>
                     <TabsContent value="yarn" className="p-0">
-                      <CommandPreview2>
+                      <CommandPreview>
                         yarn global add @usecannon/cli
-                      </CommandPreview2>
+                      </CommandPreview>
                     </TabsContent>
                     <TabsContent value="pnpm" className="p-0">
-                      <CommandPreview2>
+                      <CommandPreview>
                         pnpm add -g @usecannon/cli
-                      </CommandPreview2>
+                      </CommandPreview>
                     </TabsContent>
                   </Tabs>
 

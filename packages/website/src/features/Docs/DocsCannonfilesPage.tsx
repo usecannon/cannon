@@ -304,18 +304,15 @@ const DocsCannonfilesPage: FC = () => {
                       href="https://lodash.com/docs/4.17.15#template"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-400 hover:text-blue-300"
                     >
                       templates
-                    </a>
-                    like
-                    <code>name=&lt;%= settings.name %&gt;</code>). The templates
-                    can also use{' '}
+                    </a>{' '}
+                    like <code>name=&lt;%= settings.name %&gt;</code>). The
+                    templates can also use{' '}
                     <a
                       href="https://github.com/wevm/viem/tree/main/src/utils"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-400 hover:text-blue-300"
                     >
                       utilities
                     </a>
@@ -350,14 +347,8 @@ const DocsCannonfilesPage: FC = () => {
                   <p className="mb-4">
                     Packages that result from <code>build</code>s consist of
                     three JSON files, which are compressed and uploaded using
-                    IPFS:{' '}
-                    <a
-                      href="#deployment-data"
-                      className="text-blue-400 hover:text-blue-300"
-                    >
-                      deployment data
-                    </a>
-                    , <a href="#package-code">code</a>, and{' '}
+                    IPFS: <a href="#deployment-data">deployment data</a>,{' '}
+                    <a href="#package-code">code</a>, and{' '}
                     <a href="#metadata">metadata</a>.
                   </p>
                 </div>

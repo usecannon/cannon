@@ -14,8 +14,9 @@ import { usePackageByRef } from '@/hooks/api/usePackage';
 import { IpfsSpinner } from '@/components/IpfsSpinner';
 import { useState, useEffect } from 'react';
 import { getChainDefinitionFromWorker } from '@/helpers/chain-definition';
-import { CommandPreview2 } from '@/components/CommandPreview';
-import { CodeIcon, DownloadIcon } from '@radix-ui/react-icons';
+import { CommandPreview } from '@/components/CommandPreview';
+import { DownloadIcon } from '@radix-ui/react-icons';
+import { Braces } from 'lucide-react';
 import Link from 'next/link';
 
 type Props = {
@@ -117,11 +118,7 @@ export default function PackageAccordionHelper({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <CommandPreview2
-              command={`cannon ${packageRef} ${
-                chainId != 13370 ? `--chain-id ${chainId}` : ''
-              }`}
-            />
+            <CommandPreview command={`cannon ${packageRef}`} />
           </CardContent>
           <CardFooter>
             <div className="text-sm text-muted-foreground">
@@ -145,11 +142,9 @@ export default function PackageAccordionHelper({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <CommandPreview2>
-              cannon inspect {packageRef}{' '}
-              {chainId != 13370 ? `--chain-id ${chainId}` : ''}{' '}
-              --write-deployments ./deployment
-            </CommandPreview2>
+            <CommandPreview
+              command={`cannon inspect ${packageRef} --write-deployments ./deployment`}
+            />
           </CardContent>
           <CardFooter>
             <div className="text-sm text-muted-foreground">
@@ -157,7 +152,7 @@ export default function PackageAccordionHelper({
                 onClick={() => handleDownload(addressesAbis)}
                 className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
               >
-                <CodeIcon className="h-4 w-4" />
+                <Braces className="h-4 w-4" />
                 Download JSON
               </button>
             </div>
@@ -176,9 +171,7 @@ export default function PackageAccordionHelper({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <CommandPreview2>
-                cannon interact {packageRef} --chain-id {chainId}
-              </CommandPreview2>
+              <CommandPreview command={`cannon interact ${packageRef}`} />
             </CardContent>
           </Card>
         )}
@@ -193,7 +186,6 @@ export default function PackageAccordionHelper({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          t.c. improve description here
           {state && deploymentInfo && chainDefinition ? (
             <IntegrateWithPackage
               name={name}
