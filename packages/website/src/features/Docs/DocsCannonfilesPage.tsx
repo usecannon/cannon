@@ -133,30 +133,20 @@ const CustomTable: React.FC<{
   <div className="overflow-x-auto mb-4">
     <Table>
       <TableHeader>
-        <TableRow>
-          <TableHead className="text-gray-300 pl-0 border-gray-500">
-            Name
-          </TableHead>
-          <TableHead className="text-gray-300 border-gray-500 max-w-[180px]">
-            Type
-          </TableHead>
-          <TableHead className="text-gray-300 border-gray-500 max-w-[180px]">
-            Description
-          </TableHead>
+        <TableRow className="border-border">
+          <TableHead className="pl-0 ">Name</TableHead>
+          <TableHead className=" max-w-[180px]">Type</TableHead>
+          <TableHead className=" max-w-[180px]">Description</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {data.map((row) => (
-          <TableRow key={row.key}>
-            <TableCell className="pl-0 border-gray-500">{row.key}</TableCell>
-            <TableCell className="border-gray-500 max-w-[180px]">
-              <span className="text-gray-300 text-xs font-medium">
-                {row.dataType}
-              </span>
+          <TableRow key={row.key} className="border-border">
+            <TableCell className="pl-0 ">{row.key}</TableCell>
+            <TableCell className=" max-w-[180px]">
+              <span className="text-xs font-medium">{row.dataType}</span>
             </TableCell>
-            <TableCell className="border-gray-500 max-w-[180px]">
-              {row.value}
-            </TableCell>
+            <TableCell className=" max-w-[180px]">{row.value}</TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -177,7 +167,7 @@ const DocsCannonfilesPage: FC = () => {
 
   return (
     <div className="flex flex-1">
-      <div className="container flex-1">
+      <div className="container  max-w-4xl flex-1">
         <SidebarProvider>
           {/* Mobile trigger */}
           <div className="sticky top-0 z-40 md:hidden">
@@ -191,7 +181,7 @@ const DocsCannonfilesPage: FC = () => {
             </div>
           </div>
 
-          <div className="md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10 h-full">
+          <div className="md:grid md:grid-cols-[160px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[180px_minmax(0,1fr)] lg:gap-10 h-full">
             {/* Sidebar */}
             <Sidebar className="fixed top-14 z-30 -ml-2 hidden w-full shrink-0 md:sticky md:block md:top-0 md:border-none">
               <SidebarContent className="py-6 lg:py-8 bg-black">
@@ -265,13 +255,13 @@ const DocsCannonfilesPage: FC = () => {
                       <SidebarMenuItem>
                         <SidebarMenuButton asChild>
                           <a href="#factory-deployed-contracts">
-                            Factory-deployed Contracts
+                            Factory Contracts
                           </a>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                       <SidebarMenuItem>
                         <SidebarMenuButton asChild>
-                          <a href="#extras">Use Event Data in a Variable</a>
+                          <a href="#extras">Event Data</a>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                       <SidebarMenuItem>
@@ -462,7 +452,7 @@ const DocsCannonfilesPage: FC = () => {
                           <code className="px-0">{key}</code>
                           <a
                             href={`#${key}`}
-                            className="text-gray-300 ml-2 no-underline hover:underline"
+                            className="ml-2 no-underline hover:underline"
                           >
                             #
                           </a>

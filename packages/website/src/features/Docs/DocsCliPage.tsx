@@ -1,6 +1,6 @@
 'use client';
 
-import { CommandPreview } from '@/components/CommandPreview';
+import { CommandPreview2 } from '@/components/CommandPreview';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { useCommandsConfig } from '@/hooks/useCommandsConfig';
 import {
@@ -48,7 +48,7 @@ const CustomTable: React.FC<{
   <div className="overflow-x-auto mb-4">
     <Table>
       <TableHeader>
-        <TableRow>
+        <TableRow className="border-border">
           <TableHead className="text-gray-300 pl-0 border-border">
             {title}
           </TableHead>
@@ -59,7 +59,7 @@ const CustomTable: React.FC<{
       </TableHeader>
       <TableBody>
         {data.map((row) => (
-          <TableRow key={row.key}>
+          <TableRow key={row.key} className="border-border">
             <TableCell className="pl-0 border-border">
               <code>{row.key}</code>
             </TableCell>
@@ -100,7 +100,7 @@ const DocumentationSection: React.FC<{
     </div>
     <p className="mb-2 text-lg">{description}</p>
     <div className="mb-5">
-      <CommandPreview command={'cannon ' + command} />
+      <CommandPreview2>cannon {command}</CommandPreview2>
     </div>
     {argumentsData && <CustomTable title="Argument" data={argumentsData} />}
     {optionsData && <CustomTable title="Option" data={optionsData} />}
@@ -119,10 +119,7 @@ const DocumentationSection: React.FC<{
           <AccordionContent className="p-0">
             <p className="mt-2 mb-4">
               Cannon uses an{' '}
-              <a
-                href="https://github.com/foundry-rs/foundry/tree/master/crates/anvil"
-                className="text-blue-400 hover:text-blue-300"
-              >
+              <a href="https://github.com/foundry-rs/foundry/tree/master/crates/anvil">
                 Anvil
               </a>{' '}
               to execute this command. The following options can also be passed
@@ -148,10 +145,7 @@ const DocumentationSection: React.FC<{
           <AccordionContent className="p-0">
             <p className="mt-2 mb-4">
               Cannon uses{' '}
-              <a
-                href="https://github.com/foundry-rs/foundry/tree/master/crates/forge"
-                className="text-blue-400 hover:text-blue-300"
-              >
+              <a href="https://github.com/foundry-rs/foundry/tree/master/crates/forge">
                 Forge
               </a>{' '}
               to execute this command. The following options can also be passed
@@ -250,7 +244,7 @@ const DocsCliPage: FC = () => {
 
   return (
     <div className="flex flex-1">
-      <div className="container flex-1">
+      <div className="container max-w-4xl flex-1">
         <SidebarProvider>
           {/* Mobile trigger */}
           <div className="sticky top-0 z-40 md:hidden">
@@ -264,7 +258,7 @@ const DocsCliPage: FC = () => {
             </div>
           </div>
 
-          <div className="md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10 h-full">
+          <div className="md:grid md:grid-cols-[160px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[180px_minmax(0,1fr)] lg:gap-10 h-full">
             {/* Sidebar */}
             <Sidebar className="fixed top-14 z-30 -ml-2 hidden w-full shrink-0 md:sticky md:block md:top-0 md:border-none">
               <SidebarContent className="py-6 lg:py-8 bg-black">
@@ -328,17 +322,10 @@ const DocsCliPage: FC = () => {
                   <p className="mb-4">
                     Cannon&apos;s command-line interface (CLI) allows users to
                     deploy, upgrade, and configure protocols using cannonfiles
-                    with the{' '}
-                    <code className="bg-gray-700 px-1 rounded">build</code>{' '}
-                    command,{' '}
-                    <code className="bg-gray-700 px-1 rounded">publish</code>{' '}
-                    the resulting packages,{' '}
-                    <code className="bg-gray-700 px-1 rounded">run</code>{' '}
-                    packages locally, and more. Find the code for the CLI{' '}
-                    <a
-                      href="https://github.com/usecannon/cannon/tree/main/packages/cli"
-                      className="text-blue-400 hover:text-blue-300"
-                    >
+                    with the <code>build</code> command, <code>publish</code>{' '}
+                    the resulting packages, <code>run</code> packages locally,
+                    and more. Find the code for the CLI{' '}
+                    <a href="https://github.com/usecannon/cannon/tree/main/packages/cli">
                       on GitHub
                     </a>
                     .
@@ -348,10 +335,7 @@ const DocsCliPage: FC = () => {
                 <div className="mb-16">
                   <h2 className="text-2xl font-bold mb-4">Installation</h2>
                   <p className="mb-3">
-                    <a
-                      href="https://book.getfoundry.sh/getting-started/installation"
-                      className="text-blue-400 hover:text-blue-300"
-                    >
+                    <a href="https://book.getfoundry.sh/getting-started/installation">
                       Install Foundry
                     </a>{' '}
                     if you haven&apos;t already. Then, run one of the following
@@ -359,34 +343,29 @@ const DocsCliPage: FC = () => {
                   </p>
 
                   <Tabs defaultValue="npm" className="mb-6">
-                    <TabsList className="mb-4 border-b border-gray-500">
-                      <TabsTrigger
-                        value="npm"
-                        className="gap-2 font-medium data-[state=active]:text-red-500 data-[state=active]:border-b-2 data-[state=active]:border-red-500"
-                      >
+                    <TabsList className="mb-4">
+                      <TabsTrigger value="npm" className="gap-2">
                         <NpmIcon className="text-red-500" /> npm
                       </TabsTrigger>
-                      <TabsTrigger
-                        value="yarn"
-                        className="gap-2 font-medium data-[state=active]:text-blue-500 data-[state=active]:border-b-2 data-[state=active]:border-blue-500"
-                      >
+                      <TabsTrigger value="yarn" className="gap-2">
                         <YarnIcon className="text-blue-500" /> yarn
                       </TabsTrigger>
-                      <TabsTrigger
-                        value="pnpm"
-                        className="gap-2 font-medium data-[state=active]:text-orange-500 data-[state=active]:border-b-2 data-[state=active]:border-orange-500"
-                      >
+                      <TabsTrigger value="pnpm" className="gap-2">
                         <PnpmIcon className="text-orange-500" /> pnpm
                       </TabsTrigger>
                     </TabsList>
                     <TabsContent value="npm" className="p-0">
-                      <CommandPreview command="npm i -g @usecannon/cli" />
+                      <CommandPreview2>npm i -g @usecannon/cli</CommandPreview2>
                     </TabsContent>
                     <TabsContent value="yarn" className="p-0">
-                      <CommandPreview command="yarn global add @usecannon/cli" />
+                      <CommandPreview2>
+                        yarn global add @usecannon/cli
+                      </CommandPreview2>
                     </TabsContent>
                     <TabsContent value="pnpm" className="p-0">
-                      <CommandPreview command="pnpm add -g @usecannon/cli" />
+                      <CommandPreview2>
+                        pnpm add -g @usecannon/cli
+                      </CommandPreview2>
                     </TabsContent>
                   </Tabs>
 
@@ -403,10 +382,7 @@ const DocsCliPage: FC = () => {
                     . If no command is specified, the CLI will execute the{' '}
                     <code className="bg-gray-700 px-1 rounded">run</code>{' '}
                     command. The{' '}
-                    <a
-                      href="https://github.com/usecannon/cannon/tree/main/packages/hardhat-cannon#readme"
-                      className="text-blue-400 hover:text-blue-300"
-                    >
+                    <a href="https://github.com/usecannon/cannon/tree/main/packages/hardhat-cannon#readme">
                       Hardhat plug-in
                     </a>{' '}
                     exposes some of the commands as Hardhat tasks.

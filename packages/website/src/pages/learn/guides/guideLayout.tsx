@@ -31,7 +31,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex flex-1">
-      <div className="container flex-1">
+      <div className="container max-w-4xl flex-1">
         <SidebarProvider>
           {/* Mobile trigger */}
           <div className="sticky top-0 z-40 md:hidden">
@@ -45,7 +45,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          <div className="md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10 h-full">
+          <div className="md:grid md:grid-cols-[160px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[180px_minmax(0,1fr)] lg:gap-10 h-full">
             {/* Sidebar */}
             <Sidebar className="z-30 -ml-2 hidden w-full shrink-0 md:sticky md:block md:top-0 md:border-none">
               <SidebarContent className="py-6 lg:py-8 bg-black">

@@ -128,12 +128,12 @@ export const ContractsTable: React.FC<{
                         header.column.columnDef.header,
                         header.getContext()
                       )}
-                      <CaretSortIcon 
+                      <CaretSortIcon
                         className={`${
-                          header.column.columnDef.accessorKey === 'highlight' 
-                            ? 'h-4 w-4' 
+                          header.column.columnDef.accessorKey === 'highlight'
+                            ? 'h-4 w-4'
                             : 'ml-2 h-4 w-4'
-                        }`} 
+                        }`}
                       />
                     </Button>
                   </TableHead>
