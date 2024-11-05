@@ -1,17 +1,36 @@
 name: usecannon
 
 services:
+  # redis database image, used by indexer and api
   redis:
     image: redis:7.4-alpine
     restart: always
     ports:
-      - '6379:6379'
+      - '6379'
     command: redis-server --save 60 1 --loglevel warning
 
-  registry:
-    image: ghcr.io/usecannon/supersim:0.1.0-alpha.25
+  # supersim spins up the necessary OPs chains for the registry, and makes
+  # sure all cross chain messaging works.
+  # registry:
+  #   image: ghcr.io/usecannon/supersim:0.1.0-alpha.25
+  #   restart: always
+  #   environment:
+  #     ANVIL_IP_ADDR: 0.0.0.0
+  #   ports:
+  #     - '8545' # L1
+  #     - '9545' # L2
+  #   command: --interop.autorelay
+
+  # Deploy the registry on L1
+  # registry-build:
+  #   depends_on:
+  #     - registry
+  #   restart: 'no'
+  #   image: node:22.11.0-alpine
+  #   command: npx @usecannon/cli build registry --wipe --rpc-url https://registry:8545
+
+  # Deploy the registry on L1
+  registry-l1:
     restart: always
-    ports:
-      - '8545:8545' # L1
-      - '9545:9545' # L2
-    entrypoint: 'supersim --interop.autorelay'
+    image: node:22.11.0-alpine
+    command: npx @usecannon/cli build registry --wipe --rpc-url https://registry:8545
