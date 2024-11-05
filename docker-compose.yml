@@ -7,14 +7,11 @@ services:
     ports:
       - '6379:6379'
     command: redis-server --save 60 1 --loglevel warning
-    volumes:
-      - ./data/redis-data:/data
 
   registry:
-    image: supersim
+    image: ghcr.io/usecannon/supersim:0.1.0-alpha.25
     restart: always
     ports:
-      - '6379:6379'
-    command: redis-server --save 60 1 --loglevel warning
-    volumes:
-      - ./data/redis-data:/data
+      - '8545:8545' # L1
+      - '9545:9545' # L2
+    entrypoint: 'supersim --interop.autorelay'
