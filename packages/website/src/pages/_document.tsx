@@ -48,7 +48,7 @@ export default class CustomDocument extends Document {
           `}</style>
           <link rel="icon" href="/favicon.ico" sizes="any" />
         </Head>
-        <body className="fouc-prevention">
+        <body className="fouc-prevention min-h-screen bg-background font-sans antialiased">
           <Main />
           <NextScript />
           <Analytics />
