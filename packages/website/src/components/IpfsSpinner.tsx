@@ -10,7 +10,7 @@ export function IpfsSpinner({ ipfsUrl }: IpfsSpinnerProps) {
   return (
     <div className="flex flex-col items-center justify-center text-center">
       <CustomSpinner />
-      <p className="text-sm mt-3 mb-1 text-gray-400">
+      <p className="text-sm mt-5 mb-1 text-gray-400">
         Fetching {ipfsUrl ? ipfsUrl : 'via IPFS'}
       </p>
       <p className="text-gray-500 text-xs">
