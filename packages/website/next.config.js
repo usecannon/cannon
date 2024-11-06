@@ -1,9 +1,5 @@
 /** @type {import('next').NextConfig} */
-const createMDX = require('@next/mdx');
-
-const withMDX = createMDX({
-  // Add markdown plugins here, as desired
-});
+const { withContentlayer } = require('next-contentlayer');
 
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
@@ -28,7 +24,7 @@ const nextConfig = {
   },
 };
 
-module.exports = withMDX(nextConfig);
+module.exports = withContentlayer(nextConfig);
 
 // Injected content via Sentry wizard below
 
