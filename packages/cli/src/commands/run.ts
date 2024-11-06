@@ -16,7 +16,7 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { ANVIL_FIRST_ADDRESS } from '../constants';
-import { setupAnvil } from '../helpers';
+import { ensureFoundryCompatibility } from '../helpers';
 import { getMainLoader } from '../loader';
 import { createDefaultReadRegistry } from '../registry';
 import { CannonRpcNode, getProvider } from '../rpc';
@@ -57,7 +57,8 @@ const INSTRUCTIONS = green(
 );
 
 export async function run(packages: PackageSpecification[], options: RunOptions): Promise<void> {
-  await setupAnvil();
+  // ensure foundry compatibility
+  await ensureFoundryCompatibility();
 
   // Start the rpc server
   const node = options.node;

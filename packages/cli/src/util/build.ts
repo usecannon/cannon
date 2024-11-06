@@ -179,7 +179,7 @@ async function configureSigners(
     return configureLocalBuildSigners(provider);
   }
 
-  const config = options.dryRun ? await configureDryRunSigners(provider, signers) : await configureLiveSigners(signers);
+  const config = options.dryRun ? configureDryRunSigners(provider, signers) : configureLiveSigners(signers);
 
   const defaultSigner = await config.getDefaultSigner?.();
 
@@ -225,10 +225,10 @@ const configureLocalBuildSigners = (provider: viem.PublicClient & viem.TestClien
  * @param signers - Optional array of existing signers.
  * @returns {Promise<SignerConfiguration>} - A promise that resolves to the signer configuration.
  */
-async function configureDryRunSigners(
+function configureDryRunSigners(
   provider: viem.PublicClient & viem.TestClient & viem.WalletClient,
   signers: CannonSigner[] | undefined
-): Promise<SignerConfiguration> {
+): SignerConfiguration {
   const getDefaultSigner = async (): Promise<CannonSigner> => {
     const addr = signers?.[0]?.address ?? ANVIL_FIRST_ADDRESS;
 
@@ -267,7 +267,7 @@ async function configureDryRunSigners(
  * @param signers - Array of existing signers.
  * @returns {SignerConfiguration} - The signer configuration for live networks.
  */
-async function configureLiveSigners(signers: CannonSigner[] | undefined): Promise<SignerConfiguration> {
+function configureLiveSigners(signers: CannonSigner[] | undefined): SignerConfiguration {
   const getSigner = async (address: viem.Address): Promise<CannonSigner> => {
     const signer = signers?.find((s) => viem.isAddressEqual(s.address, address));
     if (!signer) {

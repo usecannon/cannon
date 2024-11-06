@@ -48,6 +48,7 @@ interface Params {
   overrideResolver?: CannonRegistry;
   wipe?: boolean;
   dryRun?: boolean;
+  skipUpgradeRecord?: false;
   plugins?: boolean;
   privateSourceCode?: boolean;
   rpcUrl?: string;
@@ -71,6 +72,7 @@ export async function build({
   overrideResolver,
   wipe = false,
   dryRun,
+  skipUpgradeRecord = false,
   plugins = true,
   privateSourceCode = false,
   rpcUrl,
@@ -412,7 +414,7 @@ export async function build({
     const metaUrl = await runtime.putBlob(metadata);
 
     // write upgrade-from info on-chain
-    if (stepsExecuted && !dryRun) {
+    if (stepsExecuted && !dryRun && !skipUpgradeRecord) {
       for (let i = 0; i < 3; i++) {
         try {
           log(gray('Writing upgrade info...'));

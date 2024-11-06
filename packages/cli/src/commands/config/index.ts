@@ -130,7 +130,12 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '--upgrade-from [cannon-package:0.0.1]',
-        description: 'Specify a package to use as a new base for the deployment.',
+        description: 'Specify a package to use as a new base for the deployment',
+      },
+      {
+        flags: '--skip-upgrade-record',
+        description:
+          'Skip step taken at the end of the build to save the execution record on-chain, which would be used for future reference on upgrades',
       },
       {
         flags: '--registry-priority <registry>',
