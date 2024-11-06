@@ -1,10 +1,11 @@
+import Link from 'next/link';
+import { NextSeo } from 'next-seo';
 import { useRouter } from 'next/router';
 import { useLiveReload } from 'next-contentlayer/hooks';
 import { allGuides, type Guides } from 'contentlayer/generated';
 import { ReactElement } from 'react';
 import Layout from '../../../_layout';
 import NestedLayout from '../../guideLayout';
-import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
 import { Mdx } from '@/components/mdx-components';
 
@@ -13,8 +14,9 @@ export default function GetStarted() {
   useLiveReload();
   const router = useRouter();
   const guide = allGuides.find(
-    (guide) => guide._raw.flattenedPath === router.query.section
+    (guide: Guides) => guide._raw.flattenedPath === router.query.section
   );
+  console.log('🚀 ~ GetStarted ~ guide:', guide);
 
   if (!guide) return { notFound: true };
 
@@ -30,7 +32,19 @@ export default function GetStarted() {
           description: `Get Started`,
         }}
       />
-      <Mdx code={guide.body.code} />
+      <div className="container max-w-3xl">
+        <Mdx code={guide.body.code} />
+        {guide['before-url'] && (
+          <Link href={`/learn/guides/get-started/${guide['before-url']}`}>
+            Back: {guide['before-title']}
+          </Link>
+        )}
+        {guide['after-url'] && (
+          <Link href={`/learn/guides/get-started/${guide['after-url']}`}>
+            Next: {guide['after-title']}
+          </Link>
+        )}
+      </div>
     </>
   );
 }

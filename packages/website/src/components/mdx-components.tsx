@@ -4,14 +4,10 @@ import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useMDXComponent } from 'next-contentlayer/hooks';
-// import { NpmCommands } from 'types/unist';
 
-import { Event } from '@/lib/events';
 import { cn } from '@/lib/utils';
 import { Callout } from '@/components/callout';
 import { CodeBlockWrapper } from '@/components/code-block-wrapper';
-import { CopyButton, CopyNpmCommandButton } from '@/components/copy-button';
-// import { StyleWrapper } from '@/components/style-wrapper';
 import {
   Accordion,
   AccordionContent,
@@ -21,6 +17,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Snippet } from '@/components/snippet';
 
 const components = {
   Accordion,
@@ -33,7 +30,7 @@ const components = {
   h1: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h1
       className={cn(
-        'font-heading mt-2 scroll-m-20 text-4xl font-bold',
+        'mt-8 scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl',
         className
       )}
       {...props}
@@ -42,7 +39,7 @@ const components = {
   h2: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h2
       className={cn(
-        'font-heading mt-12 scroll-m-20 border-b pb-2 text-2xl font-semibold tracking-tight first:mt-0',
+        'mt-8 scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0',
         className
       )}
       {...props}
@@ -51,7 +48,7 @@ const components = {
   h3: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h3
       className={cn(
-        'font-heading mt-8 scroll-m-20 text-xl font-semibold tracking-tight',
+        'mt-8 scroll-m-20 border-b border-white/40 text-2xl font-semibold tracking-tight',
         className
       )}
       {...props}
@@ -60,7 +57,7 @@ const components = {
   h4: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h4
       className={cn(
-        'font-heading mt-8 scroll-m-20 text-lg font-semibold tracking-tight',
+        'mt-8 scroll-m-20 border-b border-white/40 text-xl font-semibold tracking-tight',
         className
       )}
       {...props}
@@ -160,7 +157,7 @@ const components = {
   code: ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
     <code
       className={cn(
-        'relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm',
+        'relative rounded bg-muted text-red-500 px-[0.3rem] py-[0.2rem] font-mono text-sm',
         className
       )}
       {...props}
@@ -188,43 +185,25 @@ const components = {
     />
   ),
   Tabs: ({ className, ...props }: React.ComponentProps<typeof Tabs>) => (
-    <Tabs className={cn('relative mt-6 w-full', className)} {...props} />
+    <Tabs className={className} {...props} />
   ),
   TabsList: ({
     className,
     ...props
   }: React.ComponentProps<typeof TabsList>) => (
-    <TabsList
-      className={cn(
-        'w-full justify-start rounded-none border-b bg-transparent p-0',
-        className
-      )}
-      {...props}
-    />
+    <TabsList className={className} {...props} />
   ),
   TabsTrigger: ({
     className,
     ...props
   }: React.ComponentProps<typeof TabsTrigger>) => (
-    <TabsTrigger
-      className={cn(
-        'relative h-9 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none',
-        className
-      )}
-      {...props}
-    />
+    <TabsTrigger className={className} {...props} />
   ),
   TabsContent: ({
     className,
     ...props
   }: React.ComponentProps<typeof TabsContent>) => (
-    <TabsContent
-      className={cn(
-        'relative [&_h3.font-heading]:text-base [&_h3.font-heading]:font-semibold',
-        className
-      )}
-      {...props}
-    />
+    <TabsContent className={className} {...props} />
   ),
   Link: ({ className, ...props }: React.ComponentProps<typeof Link>) => (
     <Link
@@ -241,6 +220,7 @@ const components = {
       {...props}
     />
   ),
+  Snippet,
 };
 
 interface MdxProps {

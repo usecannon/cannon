@@ -6,6 +6,10 @@ export const Guides = defineDocumentType(() => ({
   filePathPattern: `**/*.mdx`,
   fields: {
     title: { type: 'string', required: true },
+    'before-url': { type: 'string', required: false },
+    'before-title': { type: 'string', required: false },
+    'after-url': { type: 'string', required: false },
+    'after-title': { type: 'string', required: false },
   },
   computedFields: {
     url: { type: 'string', resolve: (guides) => `/guides/${guides._raw.flattenedPath}` },

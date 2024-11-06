@@ -1,12 +1,24 @@
+import { cn } from '@/lib/utils';
 import { CopyIcon } from '@chakra-ui/icons';
 import { Button } from '@/components/ui/button';
 
-export const Snippet = ({ children }: { children: React.ReactNode }) => {
+export const Snippet = ({
+  children,
+  className,
+  ...props
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
   return (
-    <code className="flex justify-between items-center p-4 relative rounded bg-neutral-900 font-mono text-sm">
+    <code
+      className={cn(
+        'flex justify-between items-center p-4 relative rounded bg-neutral-900 font-mono text-sm',
+        className
+      )}
+      {...props}
+    >
       {children}
-      {/* The styles of the interaction should be defined in the component itself.
-          But don't know if this is going to change so left it here. */}
       <Button
         size="icon"
         variant="link"

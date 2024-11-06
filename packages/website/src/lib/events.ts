@@ -16,7 +16,6 @@ const eventSchema = z.object({
     'copy_chart_data',
     'copy_color',
   ]),
-  // declare type AllowedPropertyValues = string | number | boolean | null
   properties: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])).optional(),
 });
 

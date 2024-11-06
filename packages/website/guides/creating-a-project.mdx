@@ -1,22 +1,11 @@
-import {
-  SiNpm as NpmIcon,
-  SiYarn as YarnIcon,
-  SiPnpm as PnpmIcon,
-} from 'react-icons/si';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Snippet } from '@/components/snippet';
+---
+title: Introduction
+description: Learn how to set up a new project with Cannon.
+after-title: CLI
+after-url: cli
+before-title: Setting up a new project
+before-url: introduction
+---
 
 ## Creating a project
 
@@ -73,11 +62,10 @@ Forge will create the initial project structure for us. The result will be as fo
 At the root folder create your first `cannonfile.toml`.
 
 <Snippet>
-  <p class="text-gray-400">// ./cannonfile.toml</p> <br />
+  <p class="text-gray-400">// ./cannonfile.toml</p>
   name = <span class="text-yellow-400">'learn-cannon'</span> <br />
   version = <span class="text-yellow-400">'0.0.1'</span> <br />
-  description = <span class="text-yellow-400">'Cannon learn - Sample Foundry Project'</span>
-  <br />
+  description = <span class="text-yellow-400">'Cannon learn - Sample Foundry Project'</span> <br />
 </Snippet>
 
 Cannonfiles are like deployment plans. They include operations that specify
@@ -93,24 +81,22 @@ can be uploaded using IPFS and published to the registry on Ethereum.
 In the `/src` folder, Forge will have created the contract called `Counter.sol`.
 A basic contract with two functions: `setNumber` and `increment`.
 
-<br />
 <Alert variant="warning">
   <AlertDescription>
-    ⚠️ In this guide, we won't dive deep into creating and structuring smart contracts.
-    These are simply example cases to get started with Cannon.
+    ⚠️ In this guide, we won't dive deep into creating and structuring smart
+    contracts. These are simply example cases to get started with Cannon.
   </AlertDescription>
 </Alert>
 
-<br />
 <Snippet>
   ```js
  // ./src/Counter.sol
 
- // SPDX-License-Identifier: UNLICENSED
- pragma solidity ^0.8.13;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.13;
 
- contract Counter {
-    uint256 public number;
+contract Counter {
+uint256 public number;
 
     function setNumber(uint256 newNumber) public {
         number = newNumber;
@@ -119,33 +105,33 @@ A basic contract with two functions: `setNumber` and `increment`.
     function increment() public {
         number++;
     }
-  }
- ```
+
+}
+```
 </Snippet>
 
-<br />
 #### Adding steps on the cannonfile
 
 Edit your `cannonfile.toml` with the following steps.
 
 <Snippet>
-  <p class="text-gray-400">// ./cannonfile.toml</p> <br />
-  name = <span class="text-yellow-400">'learn-cannon'</span> <br />
-  version = <span class="text-yellow-400">'0.0.1'</span> <br />
-  description = <span class="text-yellow-400">'Cannon learn - Sample Foundry Project'</span><br /><br />
-  [deploy.counter]<br />
-  artifact = <span class="text-yellow-400">'Counter'</span><br /><br />
-  [deploy.counter]<br />
-  number = <span class="text-yellow-400">'420'</span><br /><br />
-  [invoke.set_number]<br />
-  target = [<span class="text-yellow-400">"counter"</span>]<br />
-  func = <span class="text-yellow-400">"setNumber"</span><br />
-  args = [<span class="text-yellow-400">`"<%= settings.number %>"`</span>]
+ <p class="text-gray-400">// ./cannonfile.toml</p> <br />
+ name = <span class="text-yellow-400">'learn-cannon'</span> <br />
+ version = <span class="text-yellow-400">'0.0.1'</span> <br />
+ description = <span class="text-yellow-400">'Cannon learn - Sample Foundry Project'</span><br /><br />
+ [deploy.counter]<br />
+ artifact = <span class="text-yellow-400">'Counter'</span><br /><br />
+ [deploy.counter]<br />
+ number = <span class="text-yellow-400">'420'</span><br /><br />
+ [invoke.set_number]<br />
+ target = [<span class="text-yellow-400">"counter"</span>]<br />
+ func = <span class="text-yellow-400">"setNumber"</span><br />
+ args = [<span class="text-yellow-400">`"<%= settings.number %>"`</span>]
 </Snippet>
 
 Each step in a cannonfile is composed by a type and a name resulting
 in `[type.name]`, the step name is only referential, made to improve
-the user experience.  In this example we will be covering the `[deploy.counter]`,
+the user experience.  In this** **example we will be covering the `[deploy.counter]`,
 `[var.main]` and the `[invoke.set_number]` steps.
 
 The `[deploy.counter]` step is used to deploy a contract. Below the step
@@ -155,7 +141,7 @@ The `[var.main]` allows Cannon to apply a setting or intermediate value
 to a contract. In our example contract we defined a variable `number`:
 
 <Snippet>
-  <p>uint256 public number;</p>
+ <p>uint256 public number;</p>
 </Snippet>
 
 That variable value can be set in the cannonfile with the `[var.main]` step.
@@ -169,12 +155,12 @@ And finally in the `[invoke.set_number]`  step we define following settings:
 See how the  `<%= settings.number %>`  string template refers to the `number`
 var in the `[var.main]` step.
 
-<br />
 <Alert variant="info">
-  <AlertDescription>
-    📢 Some of the cannonfile steps use templates like `args = ["<%= settings.number %>"]` to modify `settings` and `imports` objects.
-  </AlertDescription>
+ <AlertDescription>
+   📢 Some of the cannonfile steps use templates like `args = ["<%= settings.number %>"]` to modify `settings` and `imports` objects.
+ </AlertDescription>
 </Alert>
 
 You can find the entire list of steps of the Cannon files in the
 [Cannonfile’s guide](https://usecannon.com/learn/cannonfile).
+```
