@@ -38,6 +38,8 @@ export interface RunOptions {
   privateKey?: viem.Hash;
   upgradeFrom?: string;
   getArtifact?: (name: string) => Promise<ContractArtifact>;
+  getSigner: (addr: viem.Address) => Promise<CannonSigner>;
+  getDefaultSigner: () => Promise<CannonSigner>;
   registryPriority: 'local' | 'onchain' | 'offline';
   fundAddresses?: string[];
   helpInformation?: string;
@@ -120,7 +122,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
         provider,
         overrideResolver: resolver,
         upgradeFrom: options.upgradeFrom,
-        persist: false,
+        dryRun: true,
       });
 
       buildOutputs.push({ pkg, outputs });
