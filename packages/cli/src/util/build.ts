@@ -367,6 +367,7 @@ async function prepareBuildConfig(
     privateSourceCode: !def.isPublicSourceCode(),
     wipe: options.wipe,
     dryRun: options.dryRun,
+    skipUpgradeRecord: options.skipUpgradeRecord,
     overrideResolver,
     rpcUrl: cliSettings.rpcUrl,
     writeScript: options.writeScript,
