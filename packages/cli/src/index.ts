@@ -26,7 +26,7 @@ import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
 import { createDefaultReadRegistry } from './registry';
 import { CannonRpcNode, getProvider, runRpc } from './rpc';
-import { resolveCliSettings } from './settings';
+import { DEFAULT_RPC_URL, resolveCliSettings } from './settings';
 import { PackageSpecification } from './types';
 
 import { doBuild } from './util/build';
@@ -160,12 +160,6 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     // ensure foundry compatibility
     await ensureFoundryCompatibility();
 
-    // throw an error if chain id is undefined and dry run is true
-    // chain id undefined means the user wants to use Cannon Network
-    if (options.chainId === undefined && options.dryRun) {
-      throw new Error('Cannot build on Cannon Network with --dry-run flag.');
-    }
-
     // backwards compatibility for --port flag
     if (options.port !== ANVIL_PORT_DEFAULT_VALUE) {
       deprecatedWarn('--port', '--anvil.port');
@@ -178,6 +172,11 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     const projectDirectory = path.dirname(cannonfilePath);
 
     const cliSettings = resolveCliSettings(options);
+
+    // throw an error if chain id and rpc url is undefined and dry run is true
+    if (options.chainId === undefined && cliSettings.rpcUrl === DEFAULT_RPC_URL && options.dryRun) {
+      throw new Error('Cannot build on Cannon Network with --dry-run flag.');
+    }
 
     // throw an error if the chainId is not consistent with the provider's chainId
     await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
