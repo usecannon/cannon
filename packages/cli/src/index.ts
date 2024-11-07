@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import {
+  CANNON_CHAIN_ID,
   CannonStorage,
   ChainBuilderRuntime,
   ChainDefinition,
@@ -159,6 +160,12 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
   .action(async (cannonfile, settings, options) => {
     // ensure foundry compatibility
     await ensureFoundryCompatibility();
+
+    // throw an error if chain id is undefined and dry run is true
+    // chain id undefined means the user wants to use Cannon Network
+    if (options.chainId === undefined && options.dryRun) {
+      throw new Error('Cannot build on Cannon Network with --dry-run flag.');
+    }
 
     // backwards compatibility for --port flag
     if (options.port !== ANVIL_PORT_DEFAULT_VALUE) {
