@@ -1,75 +1,56 @@
 import { links } from '@/constants/links';
-import { InfoIcon } from '@chakra-ui/icons';
-import {
-  Box,
-  Link,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Portal,
-  Text,
-} from '@chakra-ui/react';
-import NextLink from 'next/link';
+import { InfoCircledIcon } from '@radix-ui/react-icons';
+import Link from 'next/link';
 import { FC } from 'react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import Chain from './PackageCard/Chain';
 
 interface ChainFilterProps {
   id: number;
-  isSelected: boolean;
-  toggleSelection: (id: number) => void;
 }
 
-export const ChainFilter: FC<ChainFilterProps> = ({
-  id,
-  isSelected,
-  toggleSelection,
-}) => {
+export const ChainFilter: FC<ChainFilterProps> = ({ id }) => {
   return (
-    <Box
-      cursor="pointer"
-      display="flex"
-      alignItems="center"
-      borderWidth="1px"
-      borderColor={isSelected ? 'gray.700' : 'gray.700'}
-      bg={isSelected ? 'gray.700' : ''}
-      key={id}
-      mb={2}
-      px={2}
-      py={1}
-      borderRadius="md"
-      _hover={{ background: isSelected ? 'whiteAlpha.200' : 'blackAlpha.400' }}
-      onClick={() => toggleSelection(id)}
-    >
+    <div className="flex items-center w-full">
       <Chain id={id} />
       {id === 13370 && (
-        <Box ml="auto">
-          <Popover trigger="hover">
-            <PopoverTrigger>
-              <InfoIcon color="gray.300" />
-            </PopoverTrigger>
-            <Portal>
-              <PopoverContent
+        <div className="ml-auto flex items-center">
+          <TooltipProvider>
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger className="flex items-center">
+                <InfoCircledIcon className="text-gray-300" />
+              </TooltipTrigger>
+              <TooltipContent
+                className="max-w-[250px] bg-hover border-border bg-black"
                 onClick={(e) => e.stopPropagation()}
-                background="gray.700"
-                maxWidth="250px"
-                borderColor="gray.800"
               >
-                <Text p={2} fontSize="sm" color="gray.200">
+                <p className="text-sm text-gray-200">
                   These packages can be{' '}
-                  <Link as={NextLink} href={links.DOCS_CLI_RUN}>
+                  <Link
+                    href={links.DOCS_CLI_RUN}
+                    className="underline hover:text-gray-300"
+                  >
                     run locally
                   </Link>{' '}
                   and{' '}
-                  <Link as={NextLink} href={links.DOCS_CANNONFILE_PROVISION}>
+                  <Link
+                    href={links.DOCS_CANNONFILE_PROVISION}
+                    className="underline hover:text-gray-300"
+                  >
                     cloned by cannonfiles
                   </Link>
                   .
-                </Text>
-              </PopoverContent>
-            </Portal>
-          </Popover>
-        </Box>
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       )}
-    </Box>
+    </div>
   );
 };

@@ -1,44 +1,31 @@
-import {
-  Tabs,
-  TabList,
-  Tab,
-  TabPanels,
-  TabPanel,
-  Text,
-} from '@chakra-ui/react';
-import React from 'react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { FoundrySetupPanel } from './FoundryGuide/FoundrySetupPanel';
 import { HardhatSetupPanel } from './HardhatGuide/HardhatSetupPanel';
 
 export const SetupPanel = () => {
   return (
     <>
-      <Text
-        color="gray.200"
-        textDecoration="none"
-        textTransform={'uppercase'}
-        letterSpacing={'1px'}
-        fontFamily={'var(--font-miriam)'}
-        textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-        mb={2.5}
+      <p
+        className="text-gray-200 uppercase tracking-[1px] font-miriam mb-2.5
+        text-shadow-[0px_0px_4px_rgba(255,255,255,0.33)]"
       >
         Select your framework
-      </Text>
-      <Tabs variant="solid-rounded" colorScheme="gray">
-        <TabList>
-          <Tab mr={3} border="1px solid rgba(255,255,255,0.1)">
+      </p>
+      <Tabs defaultValue="foundry" className="w-full">
+        <TabsList className="gap-3">
+          <TabsTrigger value="foundry" className="border border-white/10">
             Foundry
-          </Tab>
-          <Tab border="1px solid rgba(255,255,255,0.1)">Hardhat</Tab>
-        </TabList>
-        <TabPanels>
-          <TabPanel px={0}>
-            <FoundrySetupPanel />
-          </TabPanel>
-          <TabPanel px={0}>
-            <HardhatSetupPanel />
-          </TabPanel>
-        </TabPanels>
+          </TabsTrigger>
+          <TabsTrigger value="hardhat" className="border border-white/10">
+            Hardhat
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="foundry" className="px-0">
+          <FoundrySetupPanel />
+        </TabsContent>
+        <TabsContent value="hardhat" className="px-0">
+          <HardhatSetupPanel />
+        </TabsContent>
       </Tabs>
     </>
   );

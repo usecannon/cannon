@@ -1,7 +1,6 @@
-import { LinkIcon } from '@chakra-ui/icons';
+import { Link2Icon } from '@radix-ui/react-icons';
 import PackageTable from './PackageTable';
-import { Box, Flex, Heading, Link } from '@chakra-ui/react';
-import NextLink from 'next/link';
+import Link from 'next/link';
 import { FC } from 'react';
 import { ApiDocument } from '@usecannon/api/dist/src/types';
 
@@ -12,46 +11,25 @@ interface IPackageCardProps {
 
 export const PackageCard: FC<IPackageCardProps> = ({ pkgs, maxHeight }) => {
   return (
-    <Box
+    <div
       key={pkgs[0].name}
-      bg="black"
-      display="block"
-      borderWidth="1px"
-      borderStyle="solid"
-      borderColor="gray.600"
-      borderRadius="4px"
-      transition="all 0.12s"
-      overflow="hidden"
-      position="relative"
-      _after={{
-        content: '""',
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: '4px',
-        background: 'linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent)',
-        pointerEvents: 'none',
-      }}
+      className="block overflow-hidden border border-border rounded bg-black transition-all duration-120"
     >
-      <Flex bg="gray.800" p={2}>
-        <Heading as="h4" p={1} size="sm">
-          {pkgs[0].name}
-        </Heading>
-        <Link
-          as={NextLink}
-          href={'/packages/' + pkgs[0].name}
-          display="inline-block"
-          ml="auto"
-          mr={1}
-        >
-          <LinkIcon />
-        </Link>
-      </Flex>
+      <div className="flex flex-row items-center p-2">
+        <div className="px-1 flex items-center">
+          <h4 className="font-semibold text-lg">{pkgs[0].name}</h4>
+          <Link
+            href={'/packages/' + pkgs[0].name}
+            className="ml-2 flex items-center"
+          >
+            <Link2Icon className="w-4 h-4" />
+          </Link>
+        </div>
+      </div>
 
-      <Box verticalAlign="middle" overflow="auto" maxHeight={maxHeight}>
+      <div className="align-middle overflow-auto" style={{ maxHeight }}>
         <PackageTable latestOnly={false} pkgs={pkgs} />
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 };

@@ -1,10 +1,10 @@
 import { ReactNode } from 'react';
 import { useStore } from '@/helpers/store';
-import { Flex, Text, Image, Link, Spinner } from '@chakra-ui/react';
 import { useAccount, useBytecode } from 'wagmi';
 import PrepareNetwork from './PrepareNetwork';
 import * as onchainStore from '../../helpers/onchain-store';
 import * as multicallForwarder from '../../helpers/trusted-multicall-forwarder';
+import { Loader2 } from 'lucide-react'; // for spinner
 
 export default function WithSafe({ children }: { children: ReactNode }) {
   const currentSafe = useStore((s) => s.currentSafe);
@@ -36,54 +36,40 @@ export default function WithSafe({ children }: { children: ReactNode }) {
   };
 
   return (
-    <Flex direction="column" flex="1">
+    <div className="flex flex-col flex-1">
       {currentSafe ? (
         isLoadingNetworkPrepared ? (
-          <Spinner m="auto" size="lg" />
+          <div className="m-auto">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
         ) : isNetworkPrepared ? (
           children
         ) : (
           <PrepareNetwork onNetworkPrepared={handleNetworkPrepared} />
         )
       ) : (
-        <Flex
-          alignItems="center"
-          justifyContent="center"
-          textAlign="center"
-          p={3}
-          flex="1"
-          w="100%"
-          direction="column"
-          bg="blackAlpha.600"
-          mb={{ base: 2, lg: 0 }}
-        >
-          <Text fontSize="lg" color="gray.200" mb="2">
+        <div className="flex flex-col items-center justify-center text-center p-3 flex-1 w-full bg-black/60 mb-2 lg:mb-0">
+          <p className="text-lg text-gray-200 mb-2">
             Queue, sign, and execute deployments using a
-            <Link
-              display="inline-block"
-              isExternal
-              mx="2"
+            <a
               href="https://safe.global/"
-              color="gray.200"
-              textDecoration="none"
-              _hover={{ textDecoration: 'none' }}
-              transform="translateY(3px)"
-              opacity="0.8"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block mx-2 text-gray-200 no-underline hover:no-underline translate-y-[3px] opacity-80"
             >
-              <Image
-                height="18px"
+              <img
+                className="h-[18px] object-cover"
                 src="/images/safe.svg"
                 alt="Safe"
-                objectFit="cover"
               />
-            </Link>
-          </Text>
-          <Text color="gray.300" fontSize="xs" letterSpacing="0.2px">
+            </a>
+          </p>
+          <p className="text-gray-300 text-xs tracking-[0.2px]">
             {isConnected ? 'S' : 'Connect a wallet and s'}elect a Safe from the
             dropdown above.
-          </Text>
-        </Flex>
+          </p>
+        </div>
       )}
-    </Flex>
+    </div>
   );
 }

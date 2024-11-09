@@ -1,32 +1,8 @@
 import { FC, useState } from 'react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
-import {
-  Box,
-  Flex,
-  Container,
-  Heading,
-  Link,
-  Modal,
-  ModalCloseButton,
-  ModalContent,
-  ModalOverlay,
-  Table,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tooltip,
-  Tr,
-  useDisclosure,
-} from '@chakra-ui/react';
-import NextLink from 'next/link';
-import { links } from '@/constants/links';
 import { CodePreview } from '@/components/CodePreview';
-import { CustomSpinner } from '@/components/CustomSpinner';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
-import { InfoIcon } from '@chakra-ui/icons';
 import ChainDefinitionSteps from './ChainDefinitionSteps';
 import { isEmpty } from 'lodash';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
@@ -35,6 +11,21 @@ import { StepModalProvider } from '@/providers/stepModalProvider';
 import { stringify } from '@iarna/toml';
 import { PiGraphLight, PiCodeLight, PiListBullets } from 'react-icons/pi';
 import { ApiPackage } from '@usecannon/api/dist/src/types';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from '@/components/ui/tooltip';
+import { IpfsSpinner } from '@/components/IpfsSpinner';
 
 function omitEmptyObjects(config: { [x: string]: any }) {
   for (const key in config) {
@@ -54,20 +45,12 @@ function omitEmptyObjects(config: { [x: string]: any }) {
   return config;
 }
 
-export const CannonfileExplorer: FC<{
-  pkg: ApiPackage;
-}> = ({ pkg }) => {
+export const CannonfileExplorer: FC<{ pkg: ApiPackage }> = ({ pkg }) => {
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     pkg?.deployUrl,
     !!pkg?.deployUrl
   );
   const deploymentInfo = deploymentData.data;
-
-  const {
-    isOpen: isPackageJsonModalOpen,
-    onOpen: openPackageJsonModal,
-    onClose: closePackageJsonModal,
-  } = useDisclosure();
 
   const [displayMode, setDisplayMode] = useState(1);
 
@@ -114,268 +97,178 @@ export const CannonfileExplorer: FC<{
   };
 
   return pkg?.deployUrl ? (
-    <Flex flex="1" direction="column">
+    <div className="flex flex-1 flex-col">
       {deploymentData.isLoading ? (
-        <Box
-          py="20"
-          alignItems="center"
-          justifyContent="center"
-          textAlign="center"
-        >
-          <CustomSpinner mx="auto" mb="2" />
-          <Text fontSize="sm" mb="1" color="gray.400">
-            Fetching {pkg?.deployUrl}
-          </Text>
-          <Text color="gray.500" fontSize="xs">
-            This could take a minute. You can also{' '}
-            <Link href={links.SETTINGS} as={NextLink}>
-              try another IPFS gateway
-            </Link>
-            .
-          </Text>
-        </Box>
+        <div className="py-20">
+          <IpfsSpinner ipfsUrl={pkg?.deployUrl} />
+        </div>
       ) : deploymentInfo ? (
-        <Flex position="relative" flex="1" direction="column" minHeight="420px">
-          <Flex
-            position="absolute"
-            borderRadius="full"
-            border="1px solid"
-            top="16px"
-            left="50%"
-            transform="translateX(-50%)"
-            overflow="hidden"
-            borderColor="gray.500"
-            background="black"
-            align="center"
-            zIndex={100}
-          >
-            <Link
-              onClick={() => setDisplayMode(1)}
-              p={3}
-              pl={4}
-              display="inline-block"
-              _hover={{ bg: 'gray.900' }}
-            >
-              <PiGraphLight
-                size="24"
-                fill={displayMode == 1 ? '#1ad6ff' : 'white'}
-              />
-            </Link>
-            <Link
-              onClick={() => setDisplayMode(2)}
-              p={3}
-              display="inline-block"
-              borderLeft="1px solid"
-              borderRight="1px solid"
-              borderColor="gray.500"
-              _hover={{ bg: 'gray.900' }}
-            >
-              <PiListBullets
-                size="24"
-                fill={displayMode == 2 ? '#1ad6ff' : 'white'}
-              />
-            </Link>
-            <Link
-              onClick={() => setDisplayMode(3)}
-              p={3}
-              pr={4}
-              display="inline-block"
-              _hover={{ bg: 'gray.900' }}
-            >
-              <PiCodeLight
-                size="24"
-                fill={displayMode == 3 ? '#1ad6ff' : 'white'}
-              />
-            </Link>
-          </Flex>
+        <div className="relative flex flex-1 flex-col min-h-[420px]">
+          <TooltipProvider>
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center rounded-full border border-gray-500 bg-black z-50 overflow-hidden">
+              <button
+                onClick={() => setDisplayMode(1)}
+                className={`p-3 pl-4 hover:bg-gray-900 ${
+                  displayMode === 1 ? 'text-[#1ad6ff]' : 'text-white'
+                }`}
+              >
+                <PiGraphLight size="24" />
+              </button>
+              <button
+                onClick={() => setDisplayMode(2)}
+                className={`p-3 hover:bg-gray-900 ${
+                  displayMode === 2 ? 'text-[#1ad6ff]' : 'text-white'
+                }`}
+              >
+                <PiListBullets size="24" />
+              </button>
+              <button
+                onClick={() => setDisplayMode(3)}
+                className={`p-3 pr-4 hover:bg-gray-900 ${
+                  displayMode === 3 ? 'text-[#1ad6ff]' : 'text-white'
+                }`}
+              >
+                <PiCodeLight size="24" />
+              </button>
+            </div>
 
-          <StepModalProvider>
-            <Flex
-              display={displayMode == 1 ? 'block' : 'none'}
-              flex="1"
-              direction="column"
-            >
-              <CannonfileGraph deploymentDefinition={deploymentInfo.def} />
-            </Flex>
-            <Container
-              maxW="container.lg"
-              py={14}
-              display={displayMode == 2 ? 'block' : 'none'}
-            >
-              {Object.entries(settings).length > 0 && (
-                <Box mt={4}>
-                  <Heading size="md" mb={3}>
-                    Settings
-                  </Heading>
-                  <Box overflowX="auto" mb={6}>
-                    <Table variant="simple" size="sm">
-                      <Thead>
-                        <Tr>
-                          <Th color="gray.300" pl={0} borderColor="gray.500">
-                            Setting
-                          </Th>
-                          <Th color="gray.300" borderColor="gray.500">
-                            Value
-                          </Th>
-                        </Tr>
-                      </Thead>
-                      <Tbody fontFamily={'mono'}>
-                        {Object.entries(settings).map(([key, value]) => (
-                          <Tr key={key}>
-                            <Td pl={0} borderColor="gray.500">
-                              <Tooltip label={value.description}>
-                                {key?.toString()}
-                              </Tooltip>
-                            </Td>
-                            <Td borderColor="gray.500">
-                              {value.option ? (
-                                <>
-                                  {value.option}{' '}
-                                  <Text
-                                    color="gray.500"
-                                    textDecoration="line-through"
-                                    display="inline"
-                                  >
-                                    {value.defaultValue}
-                                  </Text>
-                                </>
-                              ) : (
-                                <>{value.defaultValue}</>
-                              )}
-                            </Td>
-                          </Tr>
-                        ))}
-                      </Tbody>
-                    </Table>
+            <StepModalProvider>
+              <div
+                className={`flex-1 ${displayMode === 1 ? 'block' : 'hidden'}`}
+              >
+                <CannonfileGraph deploymentDefinition={deploymentInfo.def} />
+              </div>
 
-                    {!isEmpty(deploymentInfo?.meta) && (
-                      <>
-                        <Box mt={1.5}>
-                          <Link
-                            isExternal
-                            styleConfig={{ 'text-decoration': 'none' }}
-                            borderBottom="1px dotted"
-                            borderBottomColor="gray.300"
-                            onClick={openPackageJsonModal}
-                            color="gray.300"
-                            fontSize="xs"
-                            fontFamily="mono"
-                            cursor={'pointer'}
-                          >
-                            package.json
-                          </Link>{' '}
-                          <Tooltip
-                            label="Cannon includes a project's package.json in the Cannonfile context."
-                            placement="right"
-                            hasArrow
-                          >
-                            <InfoIcon color="gray.400" boxSize={3} ml={0.5} />
-                          </Tooltip>
-                        </Box>
-                        <Modal
-                          isOpen={isPackageJsonModalOpen}
-                          onClose={closePackageJsonModal}
-                          size="6xl"
-                        >
-                          <ModalOverlay />
-                          <ModalContent>
-                            <ModalCloseButton />
-                            <CodePreview
-                              code={JSON.stringify(
-                                deploymentInfo?.meta,
-                                null,
-                                2
-                              )}
-                              language="json"
-                            />
-                          </ModalContent>
-                        </Modal>
-                      </>
-                    )}
-                  </Box>
-                </Box>
-              )}
-              {deploymentInfo?.def?.var && (
-                <Box mt={4}>
-                  <Heading size="md" mb={3}>
-                    Variable Setting
-                  </Heading>
-                  <ChainDefinitionSteps
-                    name="var"
-                    modules={deploymentInfo?.def?.var}
-                  />
-                </Box>
-              )}
-              {!isEmpty(pulls) && (
-                <Box mt={4}>
-                  <Heading size="md" mb={3}>
-                    Pulled Packages
-                  </Heading>
-                  <ChainDefinitionSteps name="pull" modules={pulls} />
-                </Box>
-              )}
-              {!isEmpty(clones) && (
-                <Box mt={4}>
-                  <Heading size="md" mb={3}>
-                    Cloned Package
-                  </Heading>
-                  <ChainDefinitionSteps name="clone" modules={clones} />
-                </Box>
-              )}
-              {deploymentInfo?.def?.router && (
-                <Box mt={4}>
-                  <Heading size="md" mb={3}>
-                    Router Generation
-                  </Heading>
-                  <ChainDefinitionSteps
-                    name="router"
-                    modules={deploymentInfo.def.router}
-                  />
-                </Box>
-              )}
-              {!isEmpty(deploys) && (
-                <Box mt={4} maxW="100%" overflowX="auto">
-                  <Heading size="md" mb={3}>
-                    Contract Deployments
-                  </Heading>
-                  <ChainDefinitionSteps name="deploy" modules={deploys} />
-                </Box>
-              )}
-              {deploymentInfo?.def?.invoke && (
-                <Box mt={4} maxW="100%" overflowX="auto">
-                  <Heading size="md" mb={3}>
-                    Function Calls
-                  </Heading>
-                  <ChainDefinitionSteps
-                    name="invoke"
-                    modules={deploymentInfo.def.invoke}
-                  />
-                </Box>
-              )}
-            </Container>
+              <div
+                className={`container mx-auto max-w-5xl py-14 ${
+                  displayMode === 2 ? 'block' : 'hidden'
+                }`}
+              >
+                {Object.entries(settings).length > 0 && (
+                  <div className="mt-4">
+                    <h2 className="text-xl font-semibold mb-3">Variables</h2>
+                    <div className="overflow-x-auto mb-6">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="border-border">
+                            <TableHead className="border-border">
+                              <code>var</code>
+                            </TableHead>
+                            <TableHead className="border-border">
+                              Value
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody className="font-mono">
+                          {Object.entries(settings).map(([key, value]) => (
+                            <TableRow key={key} className="border-border">
+                              <TableCell className="border-border">
+                                <Tooltip>
+                                  <TooltipTrigger>{key}</TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{key}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TableCell>
+                              <TableCell className="border-border">
+                                {value.option ? (
+                                  <>
+                                    {value.option}
+                                    <span className="text-gray-500 text-decoration-line-through">
+                                      {value.defaultValue}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>{value.defaultValue}</>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                )}
+                {deploymentInfo?.def?.var && (
+                  <div className="mt-4">
+                    <h2 className="text-xl font-semibold mb-3">
+                      Variable Setting
+                    </h2>
+                    <ChainDefinitionSteps
+                      name="var"
+                      modules={deploymentInfo?.def?.var}
+                    />
+                  </div>
+                )}
+                {!isEmpty(pulls) && (
+                  <div className="mt-4">
+                    <h2 className="text-xl font-semibold mb-3">
+                      Pulled Packages
+                    </h2>
+                    <ChainDefinitionSteps name="pull" modules={pulls} />
+                  </div>
+                )}
+                {!isEmpty(clones) && (
+                  <div className="mt-4">
+                    <h2 className="text-xl font-semibold mb-3">
+                      Cloned Package
+                    </h2>
+                    <ChainDefinitionSteps name="clone" modules={clones} />
+                  </div>
+                )}
+                {deploymentInfo?.def?.router && (
+                  <div className="mt-4">
+                    <h2 className="text-xl font-semibold mb-3">
+                      Router Generation
+                    </h2>
+                    <ChainDefinitionSteps
+                      name="router"
+                      modules={deploymentInfo.def.router}
+                    />
+                  </div>
+                )}
+                {!isEmpty(deploys) && (
+                  <div className="mt-4 max-w-full overflow-x-auto">
+                    <h2 className="text-xl font-semibold mb-3">
+                      Contract Deployments
+                    </h2>
+                    <ChainDefinitionSteps name="deploy" modules={deploys} />
+                  </div>
+                )}
+                {deploymentInfo?.def?.invoke && (
+                  <div className="mt-4 max-w-full overflow-x-auto">
+                    <h2 className="text-xl font-semibold mb-3">
+                      Function Calls
+                    </h2>
+                    <ChainDefinitionSteps
+                      name="invoke"
+                      modules={deploymentInfo.def.invoke}
+                    />
+                  </div>
+                )}
+              </div>
 
-            <Flex
-              display={displayMode == 3 ? 'block' : 'none'}
-              flex="1"
-              direction="column"
-            >
-              <CodePreview
-                code={stringify(processedDeploymentInfo as any)}
-                language="ini"
-                height="100%"
-              />
-            </Flex>
-          </StepModalProvider>
-        </Flex>
+              <div
+                className={`flex-1 ${displayMode === 3 ? 'block' : 'hidden'}`}
+              >
+                <CodePreview
+                  code={stringify(processedDeploymentInfo as any)}
+                  language="ini"
+                  height="100%"
+                />
+              </div>
+            </StepModalProvider>
+          </TooltipProvider>
+        </div>
       ) : (
-        <Box textAlign="center" py="20" opacity="0.5">
+        <div className="text-center py-20 opacity-50">
           Unable to retrieve deployment data
-        </Box>
+        </div>
       )}
-    </Flex>
+    </div>
   ) : (
-    <Box textAlign="center" py="20" opacity="0.5">
+    <div className="text-center py-20 opacity-50">
       No metadata is associated with this package
-    </Box>
+    </div>
   );
 };

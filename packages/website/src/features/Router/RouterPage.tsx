@@ -1,16 +1,6 @@
 'use client';
-import {
-  Box,
-  Heading,
-  Text,
-  Link,
-  Code,
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
-  Divider,
-} from '@chakra-ui/react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { InfoCircledIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import React from 'react';
 import { CodePreview } from '@/components/CodePreview';
@@ -44,226 +34,299 @@ options.abi = "<%= JSON.stringify(contracts.Router.abi) %>"`;
 export const RouterPage = () => {
   return (
     <>
-      <Heading
-        as="h2"
-        size="lg"
-        fontWeight={600}
-        letterSpacing="0.2px"
-        mb={2.5}
-      >
+      <h2 className="text-2xl font-semibold tracking-wide mb-2.5">
         Deploy a Router
-      </Heading>
-      <Text
-        pb={4}
-        mb={4}
-        borderBottom="1px solid"
-        borderBottomColor="gray.600"
-        fontSize="xl"
-        color="gray.400"
-      >
-        Build an upgradable protocol of any size with Synthetix’s Router plug-in
-      </Text>
-      <Text mb={4}>
+      </h2>
+      <p className="pb-4 mb-4 text-xl text-gray-400 border-b border-gray-600">
+        Build an upgradable protocol of any size with Synthetix&apos;s Router
+        plug-in
+      </p>
+
+      <p className="mb-4">
         There is a limit to the size of smart contracts deployed on EVM
         blockchains. This can create complications during the development of
         protocols, where engineers may want an arbitrary amount of code to be
         executable at a single address.
-      </Text>
-      <Text mb={4}>
+      </p>
+
+      <p className="mb-4">
         To avoid the need to manage complex inheritance and dependency
         structures, Cannon includes{' '}
-        <Link isExternal href="https://github.com/synthetixio/synthetix-router">
-          Synthetix’s Router plug-in
-        </Link>
-        . This can be used by defining a <Code>router</Code> operation in
-        Cannonfiles. This accepts an array of contracts and automatically
-        generates a router contract which will delegate calls to them. For a
-        more technical explanation of the router, review its{' '}
-        <Link
-          isExternal
+        <a
+          className="text-blue-400 hover:text-blue-300 underline"
+          href="https://github.com/synthetixio/synthetix-router"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Synthetix&apos;s Router plug-in
+        </a>
+        . This can be used by defining a{' '}
+        <code className="px-1.5 py-0.5 bg-gray-700 rounded text-sm">
+          router
+        </code>{' '}
+        operation in Cannonfiles. This accepts an array of contracts and
+        automatically generates a router contract which will delegate calls to
+        them. For a more technical explanation of the router, review its{' '}
+        <a
+          className="text-blue-400 hover:text-blue-300 underline"
           href="https://github.com/synthetixio/synthetix-router#readme"
+          target="_blank"
+          rel="noopener noreferrer"
         >
           README
-        </Link>
+        </a>
         .
-      </Text>
-      <Text mb={4}>
-        In this guide, we’ll walk through{' '}
-        <Link
-          isExternal
+      </p>
+
+      <p className="mb-4">
+        In this guide, we&apos;ll walk through{' '}
+        <a
+          className="text-blue-400 hover:text-blue-300 underline"
           href="https://github.com/usecannon/cannon/tree/main/examples/router-architecture"
+          target="_blank"
+          rel="noopener noreferrer"
         >
           a simple example
-        </Link>{' '}
+        </a>{' '}
         that uses the router and adds a transparent upgradable proxy.
-      </Text>
+      </p>
 
-      <Heading size="md" mb={4} mt={6}>
-        Create a Router
-      </Heading>
-      <Text mb={4}>Start by installing/upgrading Cannon:</Text>
-      <Box mb={4}>
+      <h3 className="text-xl font-semibold mt-6 mb-4">Create a Router</h3>
+
+      <p className="mb-4">Start by installing/upgrading Cannon:</p>
+      <div className="mb-4">
         <CommandPreview command="npm i -g @usecannon/cli" />
-      </Box>
-      <Text mb={4}>
+      </div>
+
+      <p className="mb-4">
         Then set up a new{' '}
-        <Link href="https://github.com/foundry-rs/foundry" isExternal>
+        <a
+          className="text-blue-400 hover:text-blue-300 underline"
+          href="https://github.com/foundry-rs/foundry"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           Foundry
-        </Link>{' '}
+        </a>{' '}
         project:
-      </Text>
-      <Box mb={4}>
+      </p>
+
+      <div className="mb-4">
         <CommandPreview command="forge init" />
-      </Box>
-      <Text mb={4}>
-        This project will include a <Code>Counter.sol</Code> contract by
-        default. Duplicate this contract, rename it, and alter the function
-        names in it. For this example, we’ll assume you’ve renamed the file and
-        contract to <Code>AnotherCounter</Code>.
-      </Text>
-      <Text mb={4}>
-        Create <Code>cannonfile.toml</Code> that deploys the two contracts and a
-        router:
-      </Text>
-      <Box mb={4}>
+      </div>
+
+      <p className="mb-4">
+        This project will include a{' '}
+        <code className="px-1.5 py-0.5 bg-gray-700 rounded text-sm">
+          Counter.sol
+        </code>{' '}
+        contract by default. Duplicate this contract, rename it, and alter the
+        function names in it. For this example, we&apos;ll assume you&apos;ve
+        renamed the file and contract to{' '}
+        <code className="px-1.5 py-0.5 bg-gray-700 rounded text-sm">
+          AnotherCounter
+        </code>
+        .
+      </p>
+
+      <p className="mb-4">
+        Create{' '}
+        <code className="px-1.5 py-0.5 bg-gray-700 rounded text-sm">
+          cannonfile.toml
+        </code>{' '}
+        that deploys the two contracts and a router:
+      </p>
+
+      <div className="mb-4">
         <CodePreview code={code1} language="ini" />
-      </Box>
-      <Text mb={4}>Build the Cannonfile:</Text>
-      <Box mb={4}>
+      </div>
+
+      <p className="mb-4">Build the Cannonfile:</p>
+      <div className="mb-4">
         <CommandPreview command="cannon build" />
-      </Box>
-      <Text mb={4}>
+      </div>
+
+      <p className="mb-4">
         Run it. (By default, Cannon runs packages from the{' '}
-        <Link as={NextLink} href="/search">
+        <NextLink
+          href="/search"
+          className="text-blue-400 hover:text-blue-300 underline"
+        >
           package manager
-        </Link>
-        . Here, we add the <Code>--registry-priority local</Code> option to
-        ensure we’re using the version of this package that you just built,
-        regardless of what others have published.)
-      </Text>
-      <Box mb={4}>
+        </NextLink>
+        . Here, we add the{' '}
+        <code className="px-1.5 py-0.5 bg-gray-700 rounded text-sm">
+          --registry-priority local
+        </code>{' '}
+        option to ensure we&apos;re using the version of this package that you
+        just built, regardless of what others have published.)
+      </p>
+
+      <div className="mb-4">
         <CommandPreview command="cannon sample-router-project --registry-priority local" />
-      </Box>
-      <Text mb={4}>
-        Press <Code>i</Code> to interact with the contracts in this project.
-        You’ll see that the router contract exposes the functions from both
-        contracts.
-      </Text>
-      <Alert status="info" mb={4} bg="gray.700">
-        <AlertIcon />
-        <Box>
-          <AlertTitle>Interact with the router contract</AlertTitle>
-          <AlertDescription>
+      </div>
+
+      <p className="mb-4">
+        Press{' '}
+        <code className="px-1.5 py-0.5 bg-gray-700 rounded text-sm">i</code> to
+        interact with the contracts in this project. You&apos;ll see that the
+        router contract exposes the functions from both contracts.
+      </p>
+
+      <Alert className="mb-4 bg-gray-700">
+        <InfoCircledIcon className="h-4 w-4" />
+        <AlertDescription>
+          <h4 className="font-semibold mb-1">
+            Interact with the router contract
+          </h4>
+          <p>
             When using this pattern, users should interact with the router and
             not the dependent contracts directly.
-          </AlertDescription>
-        </Box>
+          </p>
+        </AlertDescription>
       </Alert>
 
-      <Heading size="md" mb={4} mt={6}>
+      <h3 className="text-xl font-semibold mt-6 mb-4">
         Add an Upgradability Proxy
-      </Heading>
-      <Text mb={4}>
+      </h3>
+
+      <p className="mb-4">
         We can also deploy a{' '}
-        <Link as={NextLink} href="/packages/transparent-upgradable-proxy">
+        <NextLink
+          href="/packages/transparent-upgradable-proxy"
+          className="text-blue-400 hover:text-blue-300 underline"
+        >
           transparent upgradeable proxy
-        </Link>{' '}
+        </NextLink>{' '}
         pointing at the router, making this protocol upgradeable. In the
         Cannonfile, add a setting for the admin (which will be allowed to
         upgrade the proxy) and then provision the package which includes{' '}
-        <Link
+        <a
+          className="text-blue-400 hover:text-blue-300 underline"
           href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/proxy/transparent/TransparentUpgradeableProxy.sol"
-          isExternal
+          target="_blank"
+          rel="noopener noreferrer"
         >
           the proxy contract
-        </Link>
+        </a>
         :
-      </Text>
-      <Box mb={4}>
+      </p>
+
+      <div className="mb-4">
         <CodePreview code={code2} language="ini" />
-      </Box>
-      <Text mb={4}>
+      </div>
+
+      <p className="mb-4">
         If you alter one of your contracts, when building, Cannon will
         automatically detect this, generate a new router, and upgrade the proxy
-        to point at it. (Old versions of the contracts aren’t included in the
-        router, saving gas.) When building an upgrade, increase the version in
-        your Cannonfile and use the <Code>--upgrade-from</Code> option to
-        reference the package from your previous version.
-      </Text>
-      <Alert status="info" mb={4} bg="gray.700">
-        <AlertIcon />
-        <Box>
-          <AlertTitle>Interact with the proxy contract</AlertTitle>
-          <AlertDescription>
+        to point at it. (Old versions of the contracts aren&apos;t included in
+        the router, saving gas.) When building an upgrade, increase the version
+        in your Cannonfile and use the{' '}
+        <code className="px-1.5 py-0.5 bg-gray-700 rounded text-sm">
+          --upgrade-from
+        </code>{' '}
+        option to reference the package from your previous version.
+      </p>
+
+      <Alert className="mb-4 bg-gray-700">
+        <InfoCircledIcon className="h-4 w-4" />
+        <AlertDescription>
+          <h4 className="font-semibold mb-1">
+            Interact with the proxy contract
+          </h4>
+          <p>
             When using this pattern, users should always interact with the proxy
             contract rather than the router contract.
-          </AlertDescription>
-        </Box>
+          </p>
+        </AlertDescription>
       </Alert>
 
-      <Heading size="md" mb={4} mt={6}>
+      <h3 className="text-xl font-semibold mt-6 mb-4">
         Avoid Storage Collisions
-      </Heading>
-      <Text mb={4}>
+      </h3>
+
+      <p className="mb-4">
         Changing the storage layout in smart contracts can irreversibly corrupt
         protocol data. Thoroughly understand how to avoid{' '}
-        <Link
+        <a
+          className="text-blue-400 hover:text-blue-300 underline"
           href="https://docs.openzeppelin.com/upgrades-plugins/1.x/proxies"
-          isExternal
+          target="_blank"
+          rel="noopener noreferrer"
         >
           storage collisions
-        </Link>{' '}
-        when upgrading. If you’re using Hardhat, check out the{' '}
-        <Link
+        </a>{' '}
+        when upgrading. If you&apos;re using Hardhat, check out the{' '}
+        <a
+          className="text-blue-400 hover:text-blue-300 underline"
           href="https://github.com/Synthetixio/synthetix-v3/tree/main/utils/hardhat-storage"
-          isExternal
+          target="_blank"
+          rel="noopener noreferrer"
         >
           hardhat-storage
-        </Link>{' '}
+        </a>{' '}
         plug-in, which validates storage changes.
-      </Text>
+      </p>
 
-      <Text mb={4}>
+      <p className="mb-4">
         You can use libraries for executing storage reads/writes to create an
         MVC-style architecture. See the{' '}
-        <Link
+        <a
+          className="text-blue-400 hover:text-blue-300 underline"
           href="https://docs.synthetix.io/v/v3/for-developers/technical-architecture"
-          isExternal
+          target="_blank"
+          rel="noopener noreferrer"
         >
           Synthetix V3 documentation
-        </Link>{' '}
+        </a>{' '}
         for inspiration.
-      </Text>
+      </p>
 
-      <Divider opacity={0.1} my={6} />
+      <hr className="my-6 opacity-10" />
 
-      <Text>
+      <p>
         If the protocol is owned by a{' '}
-        <Link isExternal href="https://safe.global/">
+        <a
+          className="text-blue-400 hover:text-blue-300 underline"
+          href="https://safe.global/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           Safe
-        </Link>
+        </a>
         , you can use the{' '}
-        <Link as={NextLink} href="/deploy">
+        <NextLink
+          href="/deploy"
+          className="text-blue-400 hover:text-blue-300 underline"
+        >
           deployer
-        </Link>{' '}
+        </NextLink>{' '}
         to run upgrades. (
-        <Link
-          isExternal
+        <a
+          className="text-blue-400 hover:text-blue-300 underline"
           href="https://docs.safe.global/safe-smart-account/modules"
+          target="_blank"
+          rel="noopener noreferrer"
         >
           Safe Modules
-        </Link>{' '}
+        </a>{' '}
         and{' '}
-        <Link
-          isExternal
+        <a
+          className="text-blue-400 hover:text-blue-300 underline"
           href="https://docs.safe.global/safe-smart-account/guards"
+          target="_blank"
+          rel="noopener noreferrer"
         >
           Safe Guards
-        </Link>{' '}
+        </a>{' '}
         can be developed for additional on-chain, governance-related logic.)
         When your protocol no longer needs to be upgraded, it can be made
-        immutable with a call to <Code>renounceOwnership</Code> on the proxy.
-      </Text>
+        immutable with a call to{' '}
+        <code className="px-1.5 py-0.5 bg-gray-700 rounded text-sm">
+          renounceOwnership
+        </code>{' '}
+        on the proxy.
+      </p>
     </>
   );
 };

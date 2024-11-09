@@ -1,48 +1,82 @@
 'use client';
 
-import { Box, Text, useClipboard } from '@chakra-ui/react';
-import { FC } from 'react';
-import { Copy } from 'react-feather';
+import * as React from 'react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Check, Copy } from 'react-feather';
+import { codeToHtml } from 'shiki';
 
-interface ICommandPreviewProps {
-  command: string;
-  className?: string;
-  backgroundColor?: string;
+interface CodeBlockProps extends React.HTMLAttributes<HTMLDivElement> {
+  command?: string;
+  expandButtonTitle?: string;
 }
 
-export const CommandPreview: FC<ICommandPreviewProps> = ({
-  command,
-  className,
-  backgroundColor = 'black',
-}) => {
-  const { hasCopied, onCopy } = useClipboard(command);
-  const index = command.indexOf(' ');
-  const firstPart = command.substring(0, index);
-  const secondPart = command.substring(index, command.length);
-  return (
-    <Box
-      backgroundColor={backgroundColor}
-      py={1}
-      px={3}
-      position="relative"
-      className={className}
-      borderRadius="md"
-    >
-      <Text fontFamily="var(--font-mono)">
-        <Text as="span" color="#61afef">
-          {firstPart}
-        </Text>
-        <Text as="span">{secondPart}</Text>
-      </Text>
-      <Box
-        position="absolute"
-        top="8px"
-        right="10px"
-        cursor="pointer"
-        onClick={onCopy}
+export const CommandPreview = React.forwardRef<HTMLDivElement, CodeBlockProps>(
+  ({ command = '', className, ...props }, ref) => {
+    const [hasCopied, setHasCopied] = React.useState(false);
+    const [html, setHtml] = React.useState('');
+
+    // Handle the async code highlighting
+    React.useEffect(() => {
+      const highlightCode = async () => {
+        if (!command) return;
+
+        const highlighted = await codeToHtml(command, {
+          lang: 'bash',
+          theme: 'github-dark-default',
+          transformers: [
+            {
+              code(node) {
+                node.properties['data-line-numbers'] = '';
+              },
+            },
+          ],
+        });
+
+        setHtml(highlighted);
+      };
+
+      void highlightCode();
+    }, [command]);
+
+    async function copyToClipboard() {
+      if (!command) return;
+      await navigator.clipboard.writeText(command);
+      setHasCopied(true);
+      setTimeout(() => setHasCopied(false), 2000);
+    }
+
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'relative rounded-md bg-muted/30 py-2.5 pl-4 font-mono text-sm flex items-center border border-border',
+          className
+        )}
+        {...props}
       >
-        {hasCopied ? <Text fontSize="xs">Copied</Text> : <Copy size={16} />}
-      </Box>
-    </Box>
-  );
-};
+        <div
+          className="w-full overflow-x-auto whitespace-nowrap pr-12"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+        {command && (
+          <Button
+            size="icon"
+            variant="ghost"
+            className="flex-shrink-0 h-7 w-7 bg-background border border-border absolute right-3"
+            onClick={copyToClipboard}
+          >
+            {hasCopied ? (
+              <Check className="h-3.5 w-3.5 text-green-500" />
+            ) : (
+              <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+            )}
+            <span className="sr-only">Copy command</span>
+          </Button>
+        )}
+      </div>
+    );
+  }
+);
+
+CommandPreview.displayName = 'CommandPreview';

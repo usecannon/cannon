@@ -1,21 +1,17 @@
 'use client';
 
 import React from 'react';
-import {
-  Flex,
-  IconButton,
-  Image,
-  Box,
-  Tag,
-  Icon,
-  useBreakpoint,
-} from '@chakra-ui/react';
-import { Link } from '@chakra-ui/next-js';
-import NextLink from 'next/link';
-import { links } from '@/constants/links';
-import { NavLink } from '@/components/NavLink';
+import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { NavLink } from '@/components/NavLink';
+import { cn } from '@/lib/utils';
+import { links } from '@/constants/links';
+import { useMediaQuery } from 'usehooks-ts';
+import { GearIcon } from '@radix-ui/react-icons';
 
 const NoSSRConnectWallet = dynamic(
   () => import('@/features/Header/ConnectWallet'),
@@ -31,13 +27,7 @@ const NoSSRSearchBar = dynamic(() => import('@/features/Header/SearchBar'), {
 const NavLinks = () => {
   const pathname = useRouter().pathname;
   return (
-    <Flex
-      width={['auto', 'auto', 'auto']}
-      gap={8}
-      alignItems="center"
-      flexWrap="wrap"
-      justifyContent="center"
-    >
+    <div className="flex items-center justify-center gap-8 flex-wrap">
       <NavLink href={links.EXPLORE} isActive={pathname.startsWith('/packages')}>
         Explore
       </NavLink>
@@ -47,119 +37,106 @@ const NavLinks = () => {
       <NavLink href={links.LEARN} isActive={pathname.startsWith('/learn')}>
         Learn
       </NavLink>
-    </Flex>
+    </div>
   );
 };
 
 const SettingsButton = () => {
-  const pathname = useRouter().pathname;
   return (
-    <IconButton
-      as={Link}
-      href={links.SETTINGS}
-      size="sm"
-      variant="outline"
-      background={pathname.startsWith('/settings') ? 'teal.900' : 'black'}
-      borderColor={pathname.startsWith('/settings') ? 'teal.700' : 'gray.500'}
-      aria-label="Settings"
-      _hover={{
-        background: pathname.startsWith('/settings') ? 'teal.900' : 'teal.900',
-        borderColor: pathname.startsWith('/settings') ? 'teal.700' : 'teal.500',
-      }}
-      icon={
-        <Icon viewBox="0 0 24 24">
-          <path
-            fill="none"
-            stroke="white"
-            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
-          ></path>
-          <circle fill="none" stroke="white" cx="12" cy="12" r="3"></circle>
-        </Icon>
-      }
-    />
+    <Button asChild size="icon" variant="outline" className="bg-muted/50">
+      <Link href={links.SETTINGS}>
+        <GearIcon />
+      </Link>
+    </Button>
   );
 };
 
 export const Header = () => {
-  const breakpoint = useBreakpoint({ ssr: false });
+  const router = useRouter();
+  const isHomePage = router.pathname === '/';
+
+  const isDesktop = useMediaQuery('(min-width: 1280px)');
+  const isTablet = useMediaQuery('(min-width: 768px) and (max-width: 1279px)');
+  const isMobile = useMediaQuery('(max-width: 767px)');
 
   return (
-    <Box bg="black" borderBottom="1px solid" borderColor="gray.700">
-      <Flex align="center" pt={[4, 4, 0]} px={3} flexWrap="wrap">
+    <div
+      className={cn(
+        'w-full z-50',
+        isHomePage ? 'fixed top-0 left-0 right-0' : 'relative',
+        isHomePage ? '' : 'border-b border-border',
+        isHomePage ? 'bg-transparent' : 'bg-black',
+        'transition-colors duration-200'
+      )}
+    >
+      <div className="flex items-center pt-4 xl:pt-0 px-3 flex-wrap">
         <Link
           href={links.HOMEPAGE}
-          color="white"
-          as={NextLink}
-          textDecoration="none"
-          _hover={{ textDecoration: 'none' }}
-          display={['block', 'block', 'inline']}
+          className="text-white no-underline hover:no-underline block xl:inline"
         >
-          <Flex gap={1} alignItems="center">
+          <div className="flex gap-1 items-center">
             <Image
               src="/images/logo.svg"
               alt="Cannon"
-              h="28px"
-              w="148px"
-              objectFit="cover"
+              height={28}
+              width={151}
+              className="object-cover"
             />
-          </Flex>
+          </div>
         </Link>
-        <Tag
-          size="sm"
+
+        <Badge
           variant="outline"
-          textTransform="uppercase"
-          ml={3}
-          letterSpacing="1px"
-          fontFamily="var(--font-miriam)"
-          pt={0.5}
+          className="opacity-50 ml-3 uppercase tracking-wider font-miriam hidden lg:inline-flex"
         >
           Beta
-        </Tag>
-        {(breakpoint == 'xl' || breakpoint == '2xl') && (
+        </Badge>
+
+        {isDesktop && (
           <>
-            <Box ml="auto">
+            <div className="ml-auto">
               <NoSSRSearchBar />
-            </Box>
-            <Box ml="auto" mr="8">
+            </div>
+            <div className="ml-auto mr-8">
               <NavLinks />
-            </Box>
+            </div>
             <NoSSRConnectWallet />
-            <Box ml={3}>
+            <div className="ml-3">
               <SettingsButton />
-            </Box>
+            </div>
           </>
         )}
-        {(breakpoint == 'lg' || breakpoint == 'md') && (
+
+        {isTablet && (
           <>
-            <Box ml="auto" mr="8">
-              <NavLinks />
-            </Box>
-            <NoSSRConnectWallet />
-            <Box ml={3}>
+            <div className="ml-auto">
               <NoSSRSearchBar />
-            </Box>
-            <Box ml={3}>
-              <SettingsButton />
-            </Box>
-          </>
-        )}
-        {(breakpoint == 'base' || breakpoint == 'sm') && (
-          <>
-            <Box ml="auto">
+            </div>
+            <div className="ml-3">
               <NoSSRConnectWallet />
-            </Box>
-            <Flex w="100%" alignItems="center">
+            </div>
+            <div className="ml-3">
+              <SettingsButton />
+            </div>
+            <div className="basis-full">
               <NavLinks />
-              <Box ml="auto">
-                <NoSSRSearchBar />
-              </Box>
-              <Box ml={3}>
-                <SettingsButton />
-              </Box>
-            </Flex>
+            </div>
           </>
         )}
-      </Flex>
-    </Box>
+
+        {isMobile && (
+          <>
+            <div className="ml-auto flex items-center gap-3">
+              <NoSSRSearchBar />
+              <NoSSRConnectWallet />
+            </div>
+            <div className="basis-full flex items-center justify-between">
+              <NavLinks />
+              <SettingsButton />
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   );
 };

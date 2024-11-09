@@ -1,125 +1,74 @@
 'use client';
 
 import { CommandPreview } from '@/components/CommandPreview';
+import { CustomSpinner } from '@/components/CustomSpinner';
+import { useCommandsConfig } from '@/hooks/useCommandsConfig';
 import {
   Accordion,
-  AccordionButton,
-  AccordionIcon,
+  AccordionContent,
   AccordionItem,
-  AccordionPanel,
-  Box,
-  Button,
-  Code,
-  Container,
-  Flex,
-  Heading,
-  Icon,
-  Link,
-  Tab,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import {
   Table,
-  TabList,
-  TabPanel,
-  TabPanels,
-  Tabs,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
-  useBreakpointValue,
-} from '@chakra-ui/react';
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  SiNpm as NpmIcon,
+  SiYarn as YarnIcon,
+  SiPnpm as PnpmIcon,
+} from 'react-icons/si';
 import React, { FC } from 'react';
-import { FaYarn } from 'react-icons/fa';
-import { ImNpm } from 'react-icons/im';
-import { SiPnpm } from 'react-icons/si';
-import { useCommandsConfig } from '@/hooks/useCommandsConfig';
-import { CustomSpinner } from '@/components/CustomSpinner';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
+import { Menu } from 'lucide-react';
 
 const basicCommands = ['run', 'build', 'verify', 'publish'];
-
-interface CustomLinkProps {
-  href: string;
-  children: React.ReactNode;
-}
-
-const CustomLink: FC<CustomLinkProps> = ({ href, children }) => (
-  <Link
-    display="block"
-    textDecoration="none"
-    borderRadius="md"
-    mb={0.5}
-    py={0.5}
-    px="2"
-    cursor="pointer"
-    fontSize="sm"
-    _hover={{ background: 'gray.800' }}
-    href={href}
-  >
-    {children}
-  </Link>
-);
-
-interface LinkItem {
-  href: string;
-  text: string;
-}
-
-interface SectionProps {
-  title: string;
-  links: LinkItem[];
-}
-
-const Section: FC<SectionProps> = ({ title, links }) => (
-  <Box my={4}>
-    <Heading
-      fontWeight="500"
-      size="sm"
-      color="gray.200"
-      letterSpacing="0.1px"
-      px="2"
-      mb="1.5"
-    >
-      {title}
-    </Heading>
-    <Box mb={6}>
-      {links.map((link, index) => (
-        <CustomLink key={index} href={link.href}>
-          {link.text}
-        </CustomLink>
-      ))}
-    </Box>
-  </Box>
-);
 
 const CustomTable: React.FC<{
   title: string;
   data: { key: string; value: string }[];
 }> = ({ title, data }) => (
-  <Box overflowX="auto" mb={4}>
-    <Table variant="simple" size="sm">
-      <Thead>
-        <Tr>
-          <Th color="gray.300" pl={0} borderColor="gray.500">
+  <div className="overflow-x-auto mb-4">
+    <Table>
+      <TableHeader>
+        <TableRow className="border-border">
+          <TableHead className="text-gray-300 pl-0 border-border">
             {title}
-          </Th>
-          <Th color="gray.300" borderColor="gray.500">
+          </TableHead>
+          <TableHead className="text-gray-300 border-border">
             Description
-          </Th>
-        </Tr>
-      </Thead>
-      <Tbody>
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {data.map((row) => (
-          <Tr key={row.key}>
-            <Td pl={0} borderColor="gray.500">
-              <Code>{row.key}</Code>
-            </Td>
-            <Td borderColor="gray.500">{row.value}</Td>
-          </Tr>
+          <TableRow key={row.key} className="border-border">
+            <TableCell className="pl-0 border-border">
+              <code>{row.key}</code>
+            </TableCell>
+            <TableCell className="border-border">{row.value}</TableCell>
+          </TableRow>
         ))}
-      </Tbody>
+      </TableBody>
     </Table>
-  </Box>
+  </div>
 );
 
 const DocumentationSection: React.FC<{
@@ -139,98 +88,75 @@ const DocumentationSection: React.FC<{
   forgeOptionsData,
   optionsData,
 }) => (
-  <Box mb={16} id={id}>
-    <Heading mb={4} fontSize="lg">
-      <Code px={0} fontSize="lg">
-        {id.replace('-', ' ')}
-      </Code>
-      <Link
-        color="gray.300"
-        ml={2}
-        textDecoration="none"
-        _hover={{ textDecoration: 'underline' }}
+  <div className="mb-16" id={id}>
+    <div className="mb-4 text-lg">
+      <code className="text-lg">{id.replace('-', ' ')}</code>
+      <a
+        className="text-gray-300 ml-2 no-underline hover:underline"
         href={'#' + id}
       >
         #
-      </Link>
-    </Heading>
-    <Text mb={2} fontSize="lg">
-      {description}
-    </Text>
-    <Box mb={5}>
-      <CommandPreview backgroundColor="black" command={'cannon ' + command} />
-    </Box>
+      </a>
+    </div>
+    <p className="mb-2 text-lg">{description}</p>
+    <div className="mb-5">
+      <CommandPreview>cannon {command}</CommandPreview>
+    </div>
     {argumentsData && <CustomTable title="Argument" data={argumentsData} />}
     {optionsData && <CustomTable title="Option" data={optionsData} />}
     {anvilOptionsData && (
-      <Accordion allowToggle>
-        <AccordionItem border="none">
-          <h2>
-            <AccordionButton px={0}>
-              <Button
-                fontWeight={500}
-                size="sm"
-                colorScheme="white"
-                variant="outline"
-                letterSpacing="0.1px"
-                rightIcon={<AccordionIcon />}
-              >
-                Anvil Options
-              </Button>
-            </AccordionButton>
-          </h2>
-          <AccordionPanel p={0}>
-            <Text mt={2} mb={4}>
+      <Accordion type="single" collapsible>
+        <AccordionItem value="anvil-options" className="border-none">
+          <AccordionTrigger className="px-0">
+            <Button
+              variant="outline"
+              size="sm"
+              className="font-medium tracking-wide"
+            >
+              Anvil Options
+            </Button>
+          </AccordionTrigger>
+          <AccordionContent className="p-0">
+            <p className="mt-2 mb-4">
               Cannon uses an{' '}
-              <Link
-                isExternal
-                href="https://github.com/foundry-rs/foundry/tree/master/crates/anvil"
-              >
+              <a href="https://github.com/foundry-rs/foundry/tree/master/crates/anvil">
                 Anvil
-              </Link>{' '}
+              </a>{' '}
               to execute this command. The following options can also be passed
               through to the Anvil process:
-            </Text>
+            </p>
             <CustomTable title="Option" data={anvilOptionsData} />
-          </AccordionPanel>
+          </AccordionContent>
         </AccordionItem>
       </Accordion>
     )}
     {forgeOptionsData && (
-      <Accordion allowToggle>
-        <AccordionItem border="none">
-          <h2>
-            <AccordionButton px={0}>
-              <Button
-                fontWeight={500}
-                size="sm"
-                colorScheme="white"
-                variant="outline"
-                letterSpacing="0.1px"
-                rightIcon={<AccordionIcon />}
-              >
-                Forge Options
-              </Button>
-            </AccordionButton>
-          </h2>
-          <AccordionPanel p={0}>
-            <Text mt={2} mb={4}>
+      <Accordion type="single" collapsible>
+        <AccordionItem value="forge-options" className="border-none">
+          <AccordionTrigger className="px-0">
+            <Button
+              variant="outline"
+              size="sm"
+              className="font-medium tracking-wide"
+            >
+              Forge Options
+            </Button>
+          </AccordionTrigger>
+          <AccordionContent className="p-0">
+            <p className="mt-2 mb-4">
               Cannon uses{' '}
-              <Link
-                isExternal
-                href="https://github.com/foundry-rs/foundry/tree/master/crates/forge"
-              >
+              <a href="https://github.com/foundry-rs/foundry/tree/master/crates/forge">
                 Forge
-              </Link>{' '}
+              </a>{' '}
               to execute this command. The following options can also be passed
               through to the Forge process:
-            </Text>
+            </p>
             <CustomTable title="Option" data={forgeOptionsData} />
-          </AccordionPanel>
+          </AccordionContent>
         </AccordionItem>
       </Accordion>
     )}
-  </Box>
+  </div>
 );
 
 const renderCommandConfig = (commandConfig: any) => {
@@ -308,196 +234,186 @@ const renderCommandConfig = (commandConfig: any) => {
 const DocsCliPage: FC = () => {
   const { commandsData, isLoading, error } = useCommandsConfig();
 
-  const isSmall = useBreakpointValue({
-    base: true,
-    sm: true,
-    md: false,
-  });
-
   if (isLoading) {
-    return <CustomSpinner m="auto" />;
+    return <CustomSpinner className="m-auto" />;
   }
 
   if (error) {
-    return <Box>Error: {error.message}</Box>;
+    return <div>Error: {error.message}</div>;
   }
 
   return (
-    <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
-      <Flex flex="1" direction={['column', 'column', 'row']}>
-        <Flex
-          flexDirection="column"
-          overflowY="auto"
-          maxWidth={['100%', '100%', '240px']}
-          borderRight={isSmall ? 'none' : '1px solid'}
-          borderBottom={isSmall ? '1px solid' : 'none'}
-          borderColor={isSmall ? 'gray.600' : 'gray.700'}
-          width={['100%', '100%', '240px']}
-          maxHeight={['140px', '140px', 'calc(100vh - 151px)']}
-        >
-          <Box px={3} pb={2}>
-            <Section title="Installation" links={[]} />
-            <Section
-              title="Basic Commands"
-              links={basicCommands.map((commandName) => ({
-                href: `#${commandName.replaceAll(' ', '-')}`,
-                text: commandName,
-              }))}
-            />
-            <Section
-              title="Advanced Commands"
-              links={commandsData
-                .filter((command) => !new Set(basicCommands).has(command.name))
-                .map((command) => ({
-                  href: `#${command.name.replaceAll(' ', '-')}`,
-                  text: command.name,
-                }))}
-            />
-          </Box>
-        </Flex>
+    <div className="flex flex-1">
+      <div className="container max-w-4xl flex-1">
+        <SidebarProvider>
+          {/* Mobile trigger */}
+          <div className="sticky top-0 z-40 md:hidden">
+            <div className="flex h-14 items-center py-4">
+              <SidebarTrigger>
+                <Button variant="ghost" size="sm" className="-ml-2">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Open sidebar</span>
+                </Button>
+              </SidebarTrigger>
+            </div>
+          </div>
 
-        <Box
-          flex="1"
-          overflowY="auto"
-          maxHeight={['none', 'none', 'calc(100vh - 151px)']}
-          background="gray.800"
-        >
-          <Container maxW="container.lg" ml={0} p={8}>
-            <Box mb={8}>
-              <Heading fontSize="3xl" mb={4}>
-                Command-Line Interface Documentation
-              </Heading>
-              <Text mb={4}>
-                Cannon’s command-line interface (CLI) allows users to deploy,
-                upgrade, and configure protocols using cannonfiles with the{' '}
-                <Code>build</Code> command, <Code>publish</Code> the resulting
-                packages, <Code>run</Code> packages locally, and more. Find the
-                code for the CLI{' '}
-                <Link
-                  isExternal
-                  href="https://github.com/usecannon/cannon/tree/main/packages/cli"
-                >
-                  on GitHub
-                </Link>
-                .
-              </Text>
-            </Box>
-            <Box mb={16}>
-              <Heading fontSize="2xl" mb={4}>
-                Installation
-              </Heading>
-              <Text mb="3">
-                <Link
-                  isExternal
-                  href="https://book.getfoundry.sh/getting-started/installation"
-                >
-                  Install Foundry
-                </Link>{' '}
-                if you haven’t already. Then, run one of the following commands
-                in your terminal to install (or upgrade) Cannon:
-              </Text>
+          <div className="md:grid md:grid-cols-[160px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[180px_minmax(0,1fr)] lg:gap-10 h-full">
+            {/* Sidebar */}
+            <Sidebar className="fixed top-14 z-30 -ml-2 hidden w-full shrink-0 md:sticky md:block md:top-0 md:border-none">
+              <SidebarContent className="py-6 lg:py-8 bg-black">
+                <SidebarGroup>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <a href="#installation">Installation</a>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
 
-              <Tabs mb="6">
-                <TabList mb={4} borderBottomColor="gray.500">
-                  <Tab
-                    gap="2"
-                    fontWeight="medium"
-                    _selected={{
-                      color: 'red.500',
-                      borderBottomWidth: '2px',
-                      borderBottomColor: 'red.500',
-                    }}
-                    _active={{ background: 'whiteAlpha.100' }}
-                  >
-                    <Icon as={ImNpm} color="red.500" /> npm
-                  </Tab>
-                  <Tab
-                    gap="2"
-                    fontWeight="medium"
-                    _selected={{
-                      color: 'blue.500',
-                      borderBottomWidth: '2px',
-                      borderBottomColor: 'blue.500',
-                    }}
-                    _active={{ background: 'whiteAlpha.100' }}
-                  >
-                    <Icon as={FaYarn} fontSize="lg" color="blue.500" /> yarn
-                  </Tab>
-                  <Tab
-                    gap="2"
-                    fontWeight="medium"
-                    _selected={{
-                      color: 'orange.500',
-                      borderBottomWidth: '2px',
-                      borderBottomColor: 'orange.500',
-                    }}
-                    _active={{ background: 'whiteAlpha.100' }}
-                  >
-                    <Icon as={SiPnpm} color="orange.500" /> pnpm
-                  </Tab>
-                </TabList>
-                <TabPanels>
-                  <TabPanel p="0">
-                    <CommandPreview
-                      backgroundColor="black"
-                      command="npm i -g @usecannon/cli"
-                    />
-                  </TabPanel>
-                  <TabPanel p="0">
-                    <CommandPreview
-                      backgroundColor="black"
-                      command="yarn global add @usecannon/cli"
-                    />
-                  </TabPanel>
-                  <TabPanel p="0">
-                    <CommandPreview
-                      backgroundColor="black"
-                      command="pnpm add -g @usecannon/cli"
-                    />
-                  </TabPanel>
-                </TabPanels>
-              </Tabs>
+                <SidebarGroup>
+                  <SidebarGroupLabel>Basic Commands</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {basicCommands.map((commandName) => (
+                        <SidebarMenuItem key={commandName}>
+                          <SidebarMenuButton asChild>
+                            <a href={`#${commandName}`}>{commandName}</a>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
 
-              <Text mb={4}>
-                Now you can use all of the following commands your terminal with{' '}
-                <Code>{'cannon <command>'}</Code>. You can also use the CLI
-                without installing it using npx:{' '}
-                <Code>{'npx @usecannon/cli <command>'}</Code>. If no command is
-                specified, the CLI will execute the <Code>run</Code> command.
-                The{' '}
-                <Link
-                  isExternal
-                  href="https://github.com/usecannon/cannon/tree/main/packages/hardhat-cannon#readme"
-                >
-                  Hardhat plug-in
-                </Link>{' '}
-                exposes some of the commands as Hardhat tasks.
-              </Text>
-            </Box>
+                <SidebarGroup>
+                  <SidebarGroupLabel>Advanced Commands</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {commandsData
+                        .filter(
+                          (command) => !new Set(basicCommands).has(command.name)
+                        )
+                        .map((command) => (
+                          <SidebarMenuItem key={command.name}>
+                            <SidebarMenuButton asChild>
+                              <a href={`#${command.name.replaceAll(' ', '-')}`}>
+                                {command.name}
+                              </a>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              </SidebarContent>
+            </Sidebar>
 
-            <Box mb={8}>
-              <Heading fontSize="2xl" mb={5}>
-                Basic Commands
-              </Heading>
-              {basicCommands.map((commandName) =>
-                renderCommandConfig(
-                  commandsData.find((command) => command.name === commandName)
-                )
-              )}
-            </Box>
+            {/* Main content */}
+            <main className="flex w-full flex-col py-10">
+              <div className="max-w-[1024px]">
+                <div className="mb-8">
+                  <h1 className="text-3xl font-bold mb-4">
+                    Command-Line Interface Documentation
+                  </h1>
+                  <p className="mb-4">
+                    Cannon&apos;s command-line interface (CLI) allows users to
+                    deploy, upgrade, and configure protocols using cannonfiles
+                    with the <code>build</code> command, <code>publish</code>{' '}
+                    the resulting packages, <code>run</code> packages locally,
+                    and more. Find the code for the CLI{' '}
+                    <a href="https://github.com/usecannon/cannon/tree/main/packages/cli">
+                      on GitHub
+                    </a>
+                    .
+                  </p>
+                </div>
 
-            <Box mb={8}>
-              <Heading fontSize="2xl" mb={5}>
-                Advanced Commands
-              </Heading>
-              {commandsData
-                .filter((command) => !new Set(basicCommands).has(command.name))
-                .map((command) => renderCommandConfig(command))}
-            </Box>
-          </Container>
-        </Box>
-      </Flex>
-    </Flex>
+                <div className="mb-16">
+                  <h2 className="text-2xl font-bold mb-4">Installation</h2>
+                  <p className="mb-3">
+                    <a href="https://book.getfoundry.sh/getting-started/installation">
+                      Install Foundry
+                    </a>{' '}
+                    if you haven&apos;t already. Then, run one of the following
+                    commands in your terminal to install (or upgrade) Cannon:
+                  </p>
+
+                  <Tabs defaultValue="npm" className="mb-6">
+                    <TabsList className="mb-4">
+                      <TabsTrigger value="npm" className="gap-2">
+                        <NpmIcon className="text-red-500" /> npm
+                      </TabsTrigger>
+                      <TabsTrigger value="yarn" className="gap-2">
+                        <YarnIcon className="text-blue-500" /> yarn
+                      </TabsTrigger>
+                      <TabsTrigger value="pnpm" className="gap-2">
+                        <PnpmIcon className="text-orange-500" /> pnpm
+                      </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="npm" className="p-0">
+                      <CommandPreview>npm i -g @usecannon/cli</CommandPreview>
+                    </TabsContent>
+                    <TabsContent value="yarn" className="p-0">
+                      <CommandPreview>
+                        yarn global add @usecannon/cli
+                      </CommandPreview>
+                    </TabsContent>
+                    <TabsContent value="pnpm" className="p-0">
+                      <CommandPreview>
+                        pnpm add -g @usecannon/cli
+                      </CommandPreview>
+                    </TabsContent>
+                  </Tabs>
+
+                  <p className="mb-4">
+                    Now you can use all of the following commands your terminal
+                    with{' '}
+                    <code className="bg-gray-700 px-1 rounded">
+                      cannon &lt;command&gt;
+                    </code>
+                    . You can also use the CLI without installing it using npx:{' '}
+                    <code className="bg-gray-700 px-1 rounded">
+                      npx @usecannon/cli &lt;command&gt;
+                    </code>
+                    . If no command is specified, the CLI will execute the{' '}
+                    <code className="bg-gray-700 px-1 rounded">run</code>{' '}
+                    command. The{' '}
+                    <a href="https://github.com/usecannon/cannon/tree/main/packages/hardhat-cannon#readme">
+                      Hardhat plug-in
+                    </a>{' '}
+                    exposes some of the commands as Hardhat tasks.
+                  </p>
+                </div>
+
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold mb-5">Basic Commands</h2>
+                  {basicCommands.map((commandName) =>
+                    renderCommandConfig(
+                      commandsData.find(
+                        (command) => command.name === commandName
+                      )
+                    )
+                  )}
+                </div>
+
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold mb-5">Advanced Commands</h2>
+                  {commandsData
+                    .filter(
+                      (command) => !new Set(basicCommands).has(command.name)
+                    )
+                    .map((command) => renderCommandConfig(command))}
+                </div>
+              </div>
+            </main>
+          </div>
+        </SidebarProvider>
+      </div>
+    </div>
   );
 };
 

@@ -1,17 +1,14 @@
 import { FC, useMemo } from 'react';
-import { Flex, Box, Text } from '@chakra-ui/react';
-import { Image } from '@chakra-ui/react';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 export type ChainData = {
   id: number;
   name: string;
   color?: string;
-  [key: string]: any; // This allows for additional properties without having to specify each one.
+  [key: string]: any;
   hideId?: boolean;
 };
 
-// Also see https://github.com/rainbow-me/rainbowkit/blob/7b31af2431cda62bf215a84b9d40fb7f66f24381/packages/rainbowkit/src/components/RainbowKitProvider/provideRainbowKitChains.ts
 const Chain: FC<{
   id: number;
   isSmall?: boolean;
@@ -21,33 +18,33 @@ const Chain: FC<{
   const { getChainById, chainMetadata } = useCannonChains();
   const chain = useMemo(() => getChainById(+id), [id]);
   const name = chain?.name || 'Unknown Chain';
-  const color = chainMetadata[+id]?.color || 'gray.600';
+  const color = chainMetadata[+id]?.color || '#4B5563';
+
   return (
-    <Flex gap={1.5} alignItems={isSmall ? 'center' : 'baseline'}>
+    <div className="flex items-center gap-1.5">
       {id === 13370 ? (
-        <Image
-          display="block"
+        <img
+          className="h-3 w-3 object-contain"
           src="/images/logomark.svg"
           alt="Cannon"
-          h="0.75rem"
-          w="0.75rem"
-          transform="scale(2.1) translateY(-0.01rem)"
-          objectFit="cover"
         />
       ) : (
-        <Box h="0.75rem" w="0.75rem" borderRadius={999} bg={color} />
+        <div
+          className="h-3 w-3 rounded-full flex-shrink-0"
+          style={{ backgroundColor: color }}
+        />
       )}
       {!isSmall && (
-        <>
-          {name}
+        <div className="flex gap-1.5 items-baseline">
+          <span>{name}</span>
           {!hideId && (
-            <Text fontSize="xs" color="gray.500" letterSpacing={'-0.3px'}>
+            <span className="text-xs text-muted-foreground tracking-[-0.3px]">
               ID {id}
-            </Text>
+            </span>
           )}
-        </>
+        </div>
       )}
-    </Flex>
+    </div>
   );
 };
 

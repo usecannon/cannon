@@ -4,26 +4,30 @@ import { CommandPreview } from '@/components/CommandPreview';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { useCannonfileSpecs } from '@/hooks/cannonfileSpecs';
 import {
-  Flex,
-  Box,
-  useBreakpointValue,
-  Container,
-  Heading,
-  Link,
-  Text,
   Table,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
-  Badge,
-  Code,
-  UnorderedList,
-  ListItem,
-} from '@chakra-ui/react';
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import React, { FC } from 'react';
 import { a11yDark, CodeBlock } from 'react-code-blocks';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
+import { Menu } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const artifactDataExample = {
   artifacts: {
@@ -123,721 +127,579 @@ const deploymentDataExample = {
   miscUrl: 'ipfs://Qm...',
 };
 
-interface LinkItem {
-  href: string;
-  text: string;
-  monospace?: boolean;
-}
-
-interface SectionProps {
-  title: string;
-  links: LinkItem[];
-}
-
-const Section: FC<SectionProps> = ({ title, links }) => (
-  <Box my={4}>
-    <Heading
-      fontWeight="500"
-      size="sm"
-      color="gray.200"
-      letterSpacing="0.1px"
-      px="2"
-      mb="1.5"
-    >
-      {title}
-    </Heading>
-    <Box mb={6}>
-      {links.map((link, index) => (
-        <Link
-          key={index}
-          display="block"
-          textDecoration="none"
-          borderRadius="md"
-          mb={0.5}
-          py={0.5}
-          px="2"
-          cursor="pointer"
-          fontSize="sm"
-          fontFamily={link.monospace ? 'var(--font-mono)' : undefined}
-          _hover={{ background: 'gray.800' }}
-          href={link.href}
-        >
-          {link.text}
-        </Link>
-      ))}
-    </Box>
-  </Box>
-);
-
 const CustomTable: React.FC<{
   data: { key: string; dataType: string; value: string }[];
 }> = ({ data }) => (
-  <Box overflowX="auto" mb={4}>
-    <Table variant="simple" size="sm">
-      <Thead>
-        <Tr>
-          <Th color="gray.300" pl={0} borderColor="gray.500">
-            Name
-          </Th>
-          <Th color="gray.300" borderColor="gray.500" maxWidth="180px">
-            Type
-          </Th>
-          <Th color="gray.300" borderColor="gray.500" maxWidth="180px">
-            Description
-          </Th>
-        </Tr>
-      </Thead>
-      <Tbody>
+  <div className="overflow-x-auto mb-4">
+    <Table>
+      <TableHeader>
+        <TableRow className="border-border">
+          <TableHead className="pl-0 ">Name</TableHead>
+          <TableHead className=" max-w-[180px]">Type</TableHead>
+          <TableHead className=" max-w-[180px]">Description</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {data.map((row) => (
-          <Tr key={row.key}>
-            <Td pl={0} borderColor="gray.500">
-              <Code>{row.key}</Code>
-            </Td>
-            <Td borderColor="gray.500" maxWidth="180px">
-              <Text color="gray.300" fontSize="xs" fontWeight="medium">
-                {row.dataType}
-              </Text>
-            </Td>
-            <Td borderColor="gray.500" maxWidth="180px">
-              {row.value}
-            </Td>
-          </Tr>
+          <TableRow key={row.key} className="border-border">
+            <TableCell className="pl-0 ">{row.key}</TableCell>
+            <TableCell className=" max-w-[180px]">
+              <span className="text-xs font-medium">{row.dataType}</span>
+            </TableCell>
+            <TableCell className=" max-w-[180px]">{row.value}</TableCell>
+          </TableRow>
         ))}
-      </Tbody>
+      </TableBody>
     </Table>
-  </Box>
+  </div>
 );
 
 const DocsCannonfilesPage: FC = () => {
-  const isSmall = useBreakpointValue({
-    base: true,
-    sm: true,
-    md: false,
-  });
-
   const { isLoading, data: cannonfileSpecs, error } = useCannonfileSpecs();
 
   if (isLoading) {
-    return <CustomSpinner m="auto" />;
+    return <CustomSpinner className="m-auto" />;
   }
 
   if (!cannonfileSpecs) {
-    return <Text>Error: {error?.message}</Text>;
+    return <p>Error: {error?.message}</p>;
   }
 
   return (
-    <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
-      <Flex flex="1" direction={['column', 'column', 'row']}>
-        <Flex
-          flexDirection="column"
-          overflowY="auto"
-          maxWidth={['100%', '100%', '240px']}
-          borderRight={isSmall ? 'none' : '1px solid'}
-          borderBottom={isSmall ? '1px solid' : 'none'}
-          borderColor={isSmall ? 'gray.600' : 'gray.700'}
-          width={['100%', '100%', '240px']}
-          maxHeight={['140px', '140px', 'calc(100vh - 151px)']}
-        >
-          <Box px={3} pb={2}>
-            <Section
-              title="Cannonfile Spec"
-              links={[
-                { href: '#cannonfile-metadata', text: 'Metadata' },
-                { href: '#constants', text: 'Constants' },
-                { href: '#utilities', text: 'Utilities' },
-                ...Array.from(cannonfileSpecs, ([key]) => key)
-                  .filter(
-                    (key) =>
-                      key !== 'metadata' &&
-                      !cannonfileSpecs.get(key)?.deprecated
-                  )
-                  .map((key) => ({
-                    href: `#${key}`,
-                    text: `[${key}.*]`,
-                    monospace: true,
-                  })),
-              ]}
-            />
-            <Section
-              title="Package Specification"
-              links={[
-                { href: '#deployment-data', text: 'Deployment Data' },
-                { href: '#package-code', text: 'Package Code' },
-                { href: '#metadata', text: 'Metadata' },
-              ]}
-            />
-            <Section
-              title="Recipes"
-              links={[
-                {
-                  href: '#proxy-router-architecture',
-                  text: 'Proxy Router Architecture',
-                },
-              ]}
-            />
-            <Section
-              title="Advanced Usage"
-              links={[
-                {
-                  href: '#factory-deployed-contracts',
-                  text: 'Factory-deployed Contracts',
-                },
-                {
-                  href: '#extras',
-                  text: 'Save Emitted Event Data in a Variable',
-                },
-                { href: '#event-error-logging', text: 'Event Error Logging' },
-              ]}
-            />
-          </Box>
-        </Flex>
+    <div className="flex flex-1">
+      <div className="container  max-w-4xl flex-1">
+        <SidebarProvider>
+          {/* Mobile trigger */}
+          <div className="sticky top-0 z-40 md:hidden">
+            <div className="flex h-14 items-center py-4">
+              <SidebarTrigger>
+                <Button variant="ghost" size="sm" className="-ml-2">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Open sidebar</span>
+                </Button>
+              </SidebarTrigger>
+            </div>
+          </div>
 
-        <Box
-          flex="1"
-          overflowY="auto"
-          maxHeight={['none', 'none', 'calc(100vh - 151px)']}
-          background="gray.800"
-        >
-          <Container maxW="container.lg" ml={0} p={8}>
-            <Box mb={8}>
-              <Heading fontSize="3xl" mb={4}>
-                Cannonfile Documentation
-              </Heading>
-              <Text mb={4}>
-                Cannonfiles are like deployment plans. They include operations
-                that specify the desired state of a blockchain. The web app and
-                the CLI can be used to <Code>build</Code> the blockchain into
-                this state. This results in a package of data pertaining to the
-                deployment, which can be uploaded using IPFS and published to
-                the registry on Ethereum. Deployments that upgrade from existing
-                packages will recognize which operations have been completed,
-                executing only those that have been added or changed.
-              </Text>
-              <Text mb={4}>
-                Each operation has a type and a name, like{' '}
-                <Code>[deploy.MyContract]</Code>. Each type accepts a specific
-                set of inputs (documented below) and can modify{' '}
-                <Code>settings</Code> and <Code>imports</Code> objects (which
-                can be referenced in{' '}
-                <Link
-                  href="https://lodash.com/docs/4.17.15#template"
-                  isExternal
-                >
-                  templates
-                </Link>{' '}
-                like
-                <Code>name=&lt;%= settings.name %&gt;</Code>). The templates can
-                also use{' '}
-                <Link
-                  href="https://github.com/wevm/viem/tree/main/src/utils"
-                  isExternal
-                >
-                  utilities
-                </Link>
-                ,{' '}
-                <Link
-                  href="https://github.com/wevm/viem/blob/main/src/constants/number.ts"
-                  isExternal
-                >
-                  number constants
-                </Link>
-                , and{' '}
-                <Link
-                  href="https://github.com/wevm/viem/blob/main/src/constants/address.ts"
-                  isExternal
-                >
-                  some
-                </Link>{' '}
-                <Link
-                  href="https://github.com/wevm/viem/blob/main/src/constants/bytes.ts"
-                  isExternal
-                >
-                  others
-                </Link>{' '}
-                from{' '}
-                <Link href="https://viem.sh/" isExternal>
-                  viem
-                </Link>
-                . The objects are also passed into cannonfiles that reference
-                them with the <Code>pull</Code> and <Code>clone</Code>{' '}
-                operations.
-              </Text>
-              <Text mb={4}>
-                Packages that result from <Code>build</Code>s consist of three
-                JSON files, which are compressed and uploaded using IPFS:{' '}
-                <Link href="#deployment-data">deployment data</Link>,{' '}
-                <Link href="#package-code">code</Link>, and{' '}
-                <Link href="#metadata">metadata</Link>.
-              </Text>
-            </Box>
+          <div className="md:grid md:grid-cols-[160px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[180px_minmax(0,1fr)] lg:gap-10 h-full">
+            {/* Sidebar */}
+            <Sidebar className="fixed top-14 z-30 -ml-2 hidden w-full shrink-0 md:sticky md:block md:top-0 md:border-none">
+              <SidebarContent className="py-6 lg:py-8 bg-black">
+                <SidebarGroup>
+                  <SidebarGroupLabel>
+                    Cannonfile Specification
+                  </SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <a href="#cannonfile-metadata">Metadata</a>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <a href="#constants">Constants</a>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <a href="#utilities">Utilities</a>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      {Array.from(cannonfileSpecs, ([key]) => key)
+                        .filter(
+                          (key) =>
+                            key !== 'metadata' &&
+                            !cannonfileSpecs.get(key)?.deprecated
+                        )
+                        .map((key) => (
+                          <SidebarMenuItem key={key}>
+                            <SidebarMenuButton asChild>
+                              <a href={`#${key}`} className="font-mono">
+                                [{key}.*]
+                              </a>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
 
-            <Box mb={8}>
-              <Heading fontSize="2xl" mb={5}>
-                Cannonfile Specification
-              </Heading>
-              <Box mb={16} id="cannonfile-metadata">
-                <Heading mb={4} fontSize="lg">
-                  Metadata
-                  <Link
-                    color="gray.300"
-                    ml={2}
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'underline' }}
-                    href={'#cannonfile-metadata'}
-                  >
-                    #
-                  </Link>
-                </Heading>
-                <Text mb="4">
-                  {cannonfileSpecs.get('metadata')?.description}
-                </Text>
-                <CustomTable
-                  data={
-                    cannonfileSpecs.get('metadata')?.specs.map((spec) => ({
-                      key: spec.name,
-                      dataType: spec.type,
-                      value: spec.description,
-                    })) ?? []
-                  }
-                />
-              </Box>
-              <Box mb={16} id="constants">
-                <Heading mb={4} fontSize="lg">
-                  Constants
-                  <Link
-                    color="gray.300"
-                    ml={2}
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'underline' }}
-                    href={'#constants'}
-                  >
-                    #
-                  </Link>
-                </Heading>
-                <Text mb="4">
-                  The following constants can be referenced in a Cannonfile
-                </Text>
-                <CustomTable
-                  data={[
-                    {
-                      key: 'AddressZero | zeroAddress',
-                      dataType: 'string',
-                      value:
-                        'Zero Addres string: "0x0000000000000000000000000000000000000000".',
-                    },
-                    {
-                      key: 'HashZero | zeroHash',
-                      dataType: 'string',
-                      value:
-                        'Zero hash value: "0x0000000000000000000000000000000000000000000000000000000000000000"',
-                    },
-                    {
-                      key: 'maxInt8...256',
-                      dataType: 'number',
-                      value:
-                        'BigNumber values representing from maxInt8 to maxInt256.',
-                    },
-                    {
-                      key: 'minInt8...256',
-                      dataType: 'number',
-                      value:
-                        'BigNumber values representing from minInt8 to minInt256.',
-                    },
-                    {
-                      key: 'maxUint8...256',
-                      dataType: 'number',
-                      value:
-                        'BigNumber values representing from maxUint8 to maxUint256.',
-                    },
-                  ]}
-                />
-              </Box>
-              <Box mb={16} id="utilities">
-                <Heading mb={4} fontSize="lg">
-                  Utilities
-                  <Link
-                    color="gray.300"
-                    ml={2}
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'underline' }}
-                    href={'#constants'}
-                  >
-                    #
-                  </Link>
-                </Heading>
-                <Text mb="4">
-                  <Link
-                    href="https://viem.sh/docs/utilities/getAddress"
-                    isExternal
-                  >
-                    Viem.sh
-                  </Link>{' '}
-                  utility functions are available inside interpolation values,
-                  e.g.:
-                </Text>
-                <CommandPreview
-                  backgroundColor="black"
-                  command={'args = ["<%=  keccak256(\'some string\') %>"]'}
-                />
-              </Box>
-              {Array.from(cannonfileSpecs)
-                .sort((a, b) => {
-                  const aDeprecated = cannonfileSpecs?.get(a[0])?.deprecated
-                    ? 1
-                    : 0;
-                  const bDeprecated = cannonfileSpecs?.get(b[0])?.deprecated
-                    ? 1
-                    : 0;
-                  return aDeprecated - bDeprecated;
-                })
-                .filter(([key]) => key !== 'metadata')
-                .map(([key, value]) => (
-                  <Box key={key} id={key} mb={16}>
-                    <Heading mb={4} fontSize="lg">
-                      <Code px={0} fontSize="lg">
-                        [{key}.*]
-                      </Code>
-                      <Link
-                        color="gray.300"
-                        ml={2}
-                        textDecoration="none"
-                        _hover={{ textDecoration: 'underline' }}
-                        href={`#${key}`}
-                      >
-                        #
-                      </Link>
-                      {value.deprecated && (
-                        <Badge
-                          colorScheme="teal"
-                          ml="3"
-                          transform="translateY(-1.5px)"
-                          pt={0.5}
-                        >
-                          Deprecated
-                        </Badge>
-                      )}
-                    </Heading>
-                    <Text mb="4">{value.description}</Text>
+                <SidebarGroup>
+                  <SidebarGroupLabel>Package Specification</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <a href="#deployment-data">Deployment Data</a>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <a href="#package-code">Package Code</a>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <a href="#metadata">Metadata</a>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+
+                <SidebarGroup>
+                  <SidebarGroupLabel>Advanced Usage</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <a href="#factory-deployed-contracts">
+                            Factory Contracts
+                          </a>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <a href="#extras">Event Data</a>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <a href="#event-error-logging">Event Error Logging</a>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              </SidebarContent>
+            </Sidebar>
+
+            {/* Main content */}
+            <main className="flex w-full flex-col py-10">
+              <div className="max-w-[1024px]">
+                {/* Rest of your existing content, starting with the title */}
+                <div className="mb-8">
+                  <h1 className="text-3xl font-bold mb-4">
+                    Cannonfile Documentation
+                  </h1>
+                  <p className="mb-4">
+                    Cannonfiles are like deployment plans. They include
+                    operations that specify the desired state of a blockchain.
+                    The web app and the CLI can be used to <code>build</code>{' '}
+                    the blockchain into this state. This results in a package of
+                    data pertaining to the deployment, which can be uploaded
+                    using IPFS and published to the registry on Ethereum.
+                    Deployments that upgrade from existing packages will
+                    recognize which operations have been completed, executing
+                    only those that have been added or changed.
+                  </p>
+                  <p className="mb-4">
+                    Each operation has a type and a name, like{' '}
+                    <code>[deploy.MyContract]</code>. Each type accepts a
+                    specific set of inputs (documented below) and can modify{' '}
+                    <code>settings</code> and <code>imports</code> objects
+                    (which can be referenced in{' '}
+                    <a
+                      href="https://lodash.com/docs/4.17.15#template"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      templates
+                    </a>{' '}
+                    like <code>name=&lt;%= settings.name %&gt;</code>). The
+                    templates can also use{' '}
+                    <a
+                      href="https://github.com/wevm/viem/tree/main/src/utils"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      utilities
+                    </a>
+                    ,{' '}
+                    <a
+                      href="https://github.com/wevm/viem/blob/main/src/constants/number.ts"
+                      target="_blank"
+                    >
+                      number constants
+                    </a>
+                    , and{' '}
+                    <a
+                      href="https://github.com/wevm/viem/blob/main/src/constants/address.ts"
+                      target="_blank"
+                    >
+                      some
+                    </a>{' '}
+                    <a
+                      href="https://github.com/wevm/viem/blob/main/src/constants/bytes.ts"
+                      target="_blank"
+                    >
+                      others
+                    </a>{' '}
+                    from{' '}
+                    <a href="https://viem.sh/" target="_blank">
+                      viem
+                    </a>
+                    . The objects are also passed into cannonfiles that
+                    reference them with the <code>pull</code> and{' '}
+                    <code>clone</code> operations.
+                  </p>
+                  <p className="mb-4">
+                    Packages that result from <code>build</code>s consist of
+                    three JSON files, which are compressed and uploaded using
+                    IPFS: <a href="#deployment-data">deployment data</a>,{' '}
+                    <a href="#package-code">code</a>, and{' '}
+                    <a href="#metadata">metadata</a>.
+                  </p>
+                </div>
+
+                <div className="mb-8">
+                  <h2 className="text-2xl mb-5">Cannonfile Specification</h2>
+                  <div className="mb-16" id="cannonfile-metadata">
+                    <h3 className="text-lg mb-4">Metadata</h3>
+                    <p className="mb-4">
+                      {cannonfileSpecs.get('metadata')?.description}
+                    </p>
                     <CustomTable
-                      data={value.specs.map((spec) => ({
-                        key: spec.name,
-                        dataType: spec.type,
-                        value: spec.description,
-                      }))}
+                      data={
+                        cannonfileSpecs.get('metadata')?.specs.map((spec) => ({
+                          key: spec.name,
+                          dataType: spec.type,
+                          value: spec.description,
+                        })) ?? []
+                      }
                     />
-                  </Box>
-                ))}
-            </Box>
-            <Box mb={8}>
-              <Heading fontSize="2xl" mb={5}>
-                Package Specification
-              </Heading>
+                  </div>
+                  <div className="mb-16" id="constants">
+                    <h3 className="text-lg mb-4">Constants</h3>
+                    <p className="mb-4">
+                      The following constants can be referenced in a Cannonfile
+                    </p>
+                    <CustomTable
+                      data={[
+                        {
+                          key: 'AddressZero | zeroAddress',
+                          dataType: 'string',
+                          value:
+                            'Zero Addres string: "0x0000000000000000000000000000000000000000".',
+                        },
+                        {
+                          key: 'HashZero | zeroHash',
+                          dataType: 'string',
+                          value:
+                            'Zero hash value: "0x0000000000000000000000000000000000000000000000000000000000000000"',
+                        },
+                        {
+                          key: 'maxInt8...256',
+                          dataType: 'number',
+                          value:
+                            'BigNumber values representing from maxInt8 to maxInt256.',
+                        },
+                        {
+                          key: 'minInt8...256',
+                          dataType: 'number',
+                          value:
+                            'BigNumber values representing from minInt8 to minInt256.',
+                        },
+                        {
+                          key: 'maxUint8...256',
+                          dataType: 'number',
+                          value:
+                            'BigNumber values representing from maxUint8 to maxUint256.',
+                        },
+                      ]}
+                    />
+                  </div>
+                  <div className="mb-16" id="utilities">
+                    <h3 className="text-lg mb-4">Utilities</h3>
+                    <p className="mb-4">
+                      <a
+                        href="https://viem.sh/docs/utilities/getAddress"
+                        target="_blank"
+                      >
+                        Viem.sh
+                      </a>{' '}
+                      utility functions are available inside interpolation
+                      values, e.g.:
+                    </p>
+                    <CommandPreview
+                      command={'args = ["<%=  keccak256(\'some string\') %>"]'}
+                    />
+                  </div>
+                  {Array.from(cannonfileSpecs)
+                    .sort((a, b) => {
+                      const aDeprecated = cannonfileSpecs?.get(a[0])?.deprecated
+                        ? 1
+                        : 0;
+                      const bDeprecated = cannonfileSpecs?.get(b[0])?.deprecated
+                        ? 1
+                        : 0;
+                      return aDeprecated - bDeprecated;
+                    })
+                    .filter(([key]) => key !== 'metadata')
+                    .map(([key, value]) => (
+                      <div key={key} id={key} className="mb-16">
+                        <h3 className="text-lg">
+                          <code className="px-0">{key}</code>
+                          <a
+                            href={`#${key}`}
+                            className="ml-2 no-underline hover:underline"
+                          >
+                            #
+                          </a>
+                          {value.deprecated && (
+                            <Badge className="ml-3 transform-translate-y-1.5 pt-0.5">
+                              Deprecated
+                            </Badge>
+                          )}
+                        </h3>
+                        <p className="mb-4">{value.description}</p>
+                        <CustomTable
+                          data={value.specs.map((spec) => ({
+                            key: spec.name,
+                            dataType: spec.type,
+                            value: spec.description,
+                          }))}
+                        />
+                      </div>
+                    ))}
+                </div>
+                <div className="mb-8">
+                  <h2 className="text-2xl mb-5">Package Specification</h2>
 
-              <Box mb={16} id="deployment-data">
-                <Heading mb={4} fontSize="lg">
-                  Deployment Data
-                  <Link
-                    color="gray.300"
-                    ml={2}
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'underline' }}
-                    href={'#deployment-data'}
-                  >
-                    #
-                  </Link>
-                </Heading>
-                <Text color="gray.400">
-                  Primary source of cannon package information which contains
-                  package definition and on-chain state data derived changes
-                  made by defined steps in the cannonfile definition. Deployment
-                  data is stored on IPFS and is locally stored in your
-                  filesystem in the default storage location
-                  <Code>~/.local/share/cannon/tags</Code> or the storage
-                  location defined by the CANNON_DIRECTORY environment variable.
-                  <br />
-                  <br />
-                  Here is an example of a cannon deployment data:
-                  <CodeBlock
-                    text={JSON.stringify(deploymentDataExample, null, 2)}
-                    language="bash"
-                    showLineNumbers={false}
-                    theme={a11yDark}
-                    customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
-                  />
-                </Text>
-              </Box>
+                  <div className="mb-16" id="deployment-data">
+                    <h3 className="text-lg mb-4">Deployment Data</h3>
+                    <p className="text-gray-400">
+                      Primary source of cannon package information which
+                      contains package definition and on-chain state data
+                      derived changes made by defined steps in the cannonfile
+                      definition. Deployment data is stored on IPFS and is
+                      locally stored in your filesystem in the default storage
+                      location
+                      <code>~/.local/share/cannon/tags</code> or the storage
+                      location defined by the CANNON_DIRECTORY environment
+                      variable.
+                      <br />
+                      <br />
+                      Here is an example of a cannon deployment data:
+                      <CodeBlock
+                        text={JSON.stringify(deploymentDataExample, null, 2)}
+                        language="bash"
+                        showLineNumbers={false}
+                        theme={a11yDark}
+                        customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
+                      />
+                    </p>
+                  </div>
 
-              <Box mb={16} id="package-code">
-                <Heading mb={4} fontSize="lg">
-                  Package Code
-                  <Link
-                    color="gray.300"
-                    ml={2}
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'underline' }}
-                    href={'#package-code'}
-                  >
-                    #
-                  </Link>
-                </Heading>
-                <Text color="gray.400">
-                  Contains artifact data and other contract source code data
-                  about the contracts deployed during the build.
-                  <br />
-                  <br />
-                  Here is an example of a deployments package data:
-                  <CodeBlock
-                    text={JSON.stringify(artifactDataExample, null, 2)}
-                    language="bash"
-                    showLineNumbers={false}
-                    theme={a11yDark}
-                    customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
-                  />
-                </Text>
-              </Box>
+                  <div className="mb-16" id="package-code">
+                    <h3 className="text-lg mb-4">Package Code</h3>
+                    <p className="text-gray-400">
+                      Contains artifact data and other contract source code data
+                      about the contracts deployed during the build.
+                      <br />
+                      <br />
+                      Here is an example of a deployments package data:
+                      <CodeBlock
+                        text={JSON.stringify(artifactDataExample, null, 2)}
+                        language="bash"
+                        showLineNumbers={false}
+                        theme={a11yDark}
+                        customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
+                      />
+                    </p>
+                  </div>
 
-              <Box mb={16} id="metadata">
-                <Heading mb={4} fontSize="lg">
-                  Metadata
-                  <Link
-                    color="gray.300"
-                    ml={2}
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'underline' }}
-                    href={'#metadata'}
-                  >
-                    #
-                  </Link>
-                </Heading>
-                <Text color="gray.400">
-                  Metadata contains external information related to the cannon
-                  package. Currently metadata includes the following:
-                  <UnorderedList>
-                    <ListItem> Git Repo URL</ListItem>
-                    <ListItem>
-                      Commit hash of the changes in which the last instance of
-                      the package were made
-                    </ListItem>
-                    <ListItem>
-                      Link to the package git repo README file
-                    </ListItem>
-                  </UnorderedList>
-                  Metadata is also stored on IPFS and is locally stored in your
-                  filesystem in the default storage location
-                  <Code>~/.local/share/cannon/tags</Code> or the storage
-                  location defined by the CANNON_DIRECTORY environment variable.
-                </Text>
-              </Box>
-            </Box>
+                  <div className="mb-16" id="metadata">
+                    <h3 className="text-lg mb-4">Metadata</h3>
+                    <p className="text-gray-400">
+                      Metadata contains external information related to the
+                      cannon package. Currently metadata includes the following:
+                      <ul>
+                        <li> Git Repo URL</li>
+                        <li>
+                          Commit hash of the changes in which the last instance
+                          of the package were made
+                        </li>
+                        <li>Link to the package git repo README file</li>
+                      </ul>
+                      Metadata is also stored on IPFS and is locally stored in
+                      your filesystem in the default storage location
+                      <code>~/.local/share/cannon/tags</code> or the storage
+                      location defined by the CANNON_DIRECTORY environment
+                      variable.
+                    </p>
+                  </div>
+                </div>
 
-            <Box mb={8}>
-              <Heading fontSize="2xl" mb={5}>
-                Recipes
-              </Heading>
+                <div className="mb-8">
+                  <h2 className="text-2xl mb-5">Advanced Usage</h2>
 
-              <Box mb={16} id="proxy-router-architecture">
-                <Heading mb={4} fontSize="lg">
-                  Proxy Router Architecture
-                  <Link
-                    color="gray.300"
-                    ml={2}
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'underline' }}
-                    href={'#proxy-router-architecture'}
-                  >
-                    #
-                  </Link>
-                </Heading>
-                <Text color="gray.400">Coming soon.</Text>
-              </Box>
-            </Box>
+                  <div className="mb-16" id="factory-deployed-contracts">
+                    <h3 className="text-lg mb-4">Factory-deployed Contracts</h3>
+                    <p className="mb-4">
+                      Smart contracts may have functions which deploy other
+                      smart contracts. Contracts which deploy others are
+                      typically referred to as factory contracts. You can
+                      reference contracts deployed by factories in your
+                      cannonfile.
+                    </p>
 
-            <Box mb={8}>
-              <Heading fontSize="2xl" mb={5}>
-                Advanced Usage
-              </Heading>
+                    <p className="mb-4">
+                      For example, if the deployPool function below deploys a
+                      contract, the following invoke command registers that
+                      contract based on event data emitted from that call.
+                    </p>
 
-              <Box mb={16} id="factory-deployed-contracts">
-                <Heading mb={4} fontSize="lg">
-                  Factory-deployed Contracts
-                  <Link
-                    color="gray.300"
-                    ml={2}
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'underline' }}
-                    href={'#factory-deployed-contracts'}
-                  >
-                    #
-                  </Link>
-                </Heading>
-                <Text mb="4">
-                  Smart contracts may have functions which deploy other smart
-                  contracts. Contracts which deploy others are typically
-                  referred to as factory contracts. You can reference contracts
-                  deployed by factories in your cannonfile.
-                </Text>
+                    <div className="mb-4">
+                      <code className="block">[invoke.deployment]</code>
+                      <code className="block">
+                        target = [&quot;PoolFactory&quot;]
+                      </code>
+                      <code className="block">
+                        func = &quot;deployPool&quot;
+                      </code>
+                      <code className="block">
+                        factory.MyPoolDeployment.artifact = &quot;Pool&quot;
+                      </code>
+                      <code className="block">
+                        # alternatively, if the code for the deployed contract
+                        is not available in your artifacts, you can also
+                        reference the ABI like:
+                      </code>
+                      <code className="block">
+                        # factory.MyPoolDeployment.abiOf =
+                        &quot;PreviousPool&quot;
+                      </code>
+                      <code className="block">
+                        factory.MyPoolDeployment.event =
+                        &quot;NewDeployment&quot;
+                      </code>
+                      <code className="block">
+                        factory.MyPoolDeployment.arg = 0
+                      </code>
+                    </div>
 
-                <Text mb="4">
-                  For example, if the deployPool function below deploys a
-                  contract, the following invoke command registers that contract
-                  based on event data emitted from that call.
-                </Text>
+                    <p className="mb-4">
+                      Specifically, this would anticipate this invoke call will
+                      emit an event named NewDeployment with a contract address
+                      as the first data argument (per arg, a zero-based index).
+                      This contract should implement the Pool contract. Now, a
+                      subsequent invoke operation could set target =
+                      [&quot;MyPoolDeployment&quot;].
+                    </p>
 
-                <Box mb="4">
-                  <Code display="block">[invoke.deployment]</Code>
-                  <Code display="block">
-                    target = [&quot;PoolFactory&quot;]
-                  </Code>
-                  <Code display="block">func = &quot;deployPool&quot;</Code>
-                  <Code display="block">
-                    factory.MyPoolDeployment.artifact = &quot;Pool&quot;
-                  </Code>
-                  <Code display="block">
-                    # alternatively, if the code for the deployed contract is
-                    not available in your artifacts, you can also reference the
-                    ABI like:
-                  </Code>
-                  <Code display="block">
-                    # factory.MyPoolDeployment.abiOf = &quot;PreviousPool&quot;
-                  </Code>
-                  <Code display="block">
-                    factory.MyPoolDeployment.event = &quot;NewDeployment&quot;
-                  </Code>
-                  <Code display="block">factory.MyPoolDeployment.arg = 0</Code>
-                </Box>
+                    <p className="mb-4">
+                      To reference contract information for a contract deployed
+                      on a previous invoke operation such as the example shown
+                      above call the contracts object inside your cannonfile.
+                      For example &lt;%= contracts.MyPoolDeployment.address
+                      %&gt; would return the address of the Pool contract
+                      deployed by the PoolFactory contract.
+                    </p>
 
-                <Text mb="4">
-                  Specifically, this would anticipate this invoke call will emit
-                  an event named NewDeployment with a contract address as the
-                  first data argument (per arg, a zero-based index). This
-                  contract should implement the Pool contract. Now, a subsequent
-                  invoke operation could set target =
-                  [&quot;MyPoolDeployment&quot;].
-                </Text>
+                    <p className="mb-4">
+                      If the invoked function deploys multiple contracts of the
+                      same name, you can specify them by index through the
+                      contracts object. &lt;%=
+                      contracts.MyPoolDeployment.address %&gt; would return the
+                      first deployed Pool contract address. &lt;%=
+                      contracts.MyPoolDeployment_0.address %&gt; would return
+                      the second deployed Pool contract address. These contracts
+                      are added to the return object as they would be if
+                      deployed by a contract operation.
+                    </p>
+                  </div>
 
-                <Text mb="4">
-                  To reference contract information for a contract deployed on a
-                  previous invoke operation such as the example shown above call
-                  the contracts object inside your cannonfile. For example
-                  &lt;%= contracts.MyPoolDeployment.address %&gt; would return
-                  the address of the Pool contract deployed by the PoolFactory
-                  contract.
-                </Text>
+                  <div className="mb-16" id="var">
+                    <h3 className="text-lg mb-4">
+                      Use Event Data in a Variable
+                    </h3>
+                    <p className="mb-4">
+                      If an invoked function emits an event, cannon can parse
+                      the event data in your cannonfile by using the var
+                      property, This lets you reference previously emitted
+                      event’s data in subsequent invoke operations.
+                    </p>
+                    <p className="mb-4">
+                      For example, to track the NewDeployment event data from
+                      the PoolFactory deployment from the example above, add the
+                      var property and set an attribute for the event like so:
+                    </p>
 
-                <Text mb="4">
-                  If the invoked function deploys multiple contracts of the same
-                  name, you can specify them by index through the contracts
-                  object. &lt;%= contracts.MyPoolDeployment.address %&gt; would
-                  return the first deployed Pool contract address. &lt;%=
-                  contracts.MyPoolDeployment_0.address %&gt; would return the
-                  second deployed Pool contract address. These contracts are
-                  added to the return object as they would be if deployed by a
-                  contract operation.
-                </Text>
-              </Box>
+                    <div className="mb-4">
+                      <code className="block">[invoke.deployment]</code>
+                      <code className="block">
+                        target = [&quot;PoolFactory&quot;]
+                      </code>
+                      <code className="block"># ....</code>
+                      <code className="block">
+                        var.NewDeploymentEvent.event = &quot;NewDeployment&quot;
+                      </code>
+                      <code className="block">
+                        var.NewDeploymentEvent.arg = 0
+                      </code>
+                    </div>
 
-              <Box mb={16} id="var">
-                <Heading mb={4} fontSize="lg">
-                  Save Emitted Event Data in a Variable
-                  <Link
-                    color="gray.300"
-                    ml={2}
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'underline' }}
-                    href={'#extras'}
-                  >
-                    #
-                  </Link>
-                </Heading>
-                <Text mb="4">
-                  If an invoked function emits an event, cannon can parse the
-                  event data in your cannonfile by using the var property, This
-                  lets you reference previously emitted event’s data in
-                  subsequent invoke operations.
-                </Text>
-                <Text mb={4}>
-                  For example, to track the NewDeployment event data from the
-                  PoolFactory deployment from the example above, add the var
-                  property and set an attribute for the event like so:
-                </Text>
+                    <p className="mb-4">
+                      Now, calling &quot;&lt;% = settings.NewDeploymentEvent
+                      %&gt;&quot; in a subsequent invoke operation would return
+                      the first data argument for NewDeployment.
+                    </p>
 
-                <Box mb="4">
-                  <Code display="block">[invoke.deployment]</Code>
-                  <Code display="block">
-                    target = [&quot;PoolFactory&quot;]
-                  </Code>
-                  <Code display="block"># ....</Code>
-                  <Code display="block">
-                    var.NewDeploymentEvent.event = &quot;NewDeployment&quot;
-                  </Code>
-                  <Code display="block">var.NewDeploymentEvent.arg = 0</Code>
-                </Box>
+                    <p className="mb-4">
+                      If an invoked function emits multiple events you can
+                      specify them by index.
+                    </p>
 
-                <Text mb={4}>
-                  Now, calling &quot;&lt;% = settings.NewDeploymentEvent
-                  %&gt;&quot; in a subsequent invoke operation would return the
-                  first data argument for NewDeployment.
-                </Text>
+                    <p className="mb-4">
+                      For example if the PoolFactory emitted multiple
+                      NewDeployment events: &lt;%= settings.NewDeploymentEvent_0
+                      %&gt; would return the first emitted event of this kind.
+                      &lt;%= settings.NewDeploymentEvent_4 %&gt; would reference
+                      the fifth emitted event of this kind.
+                    </p>
+                  </div>
 
-                <Text mb={4}>
-                  If an invoked function emits multiple events you can specify
-                  them by index.
-                </Text>
+                  <div className="mb-16" id="event-error-logging">
+                    <h3 className="text-lg mb-4">Event Error Logging</h3>
+                    <p className="mb-4">
+                      If an event is specified in the cannonfile but the invoke
+                      function does not emit any events or emits an event that
+                      doesn’t match the one specified in the cannonfile, the
+                      invoke operation will fail with an error.
+                    </p>
 
-                <Text mb={4}>
-                  For example if the PoolFactory emitted multiple NewDeployment
-                  events: &lt;%= settings.NewDeploymentEvent_0 %&gt; would
-                  return the first emitted event of this kind. &lt;%=
-                  settings.NewDeploymentEvent_4 %&gt; would reference the fifth
-                  emitted event of this kind.
-                </Text>
-              </Box>
-
-              <Box mb={16} id="event-error-logging">
-                <Heading mb={4} fontSize="lg">
-                  Event Error Logging
-                  <Link
-                    color="gray.300"
-                    ml={2}
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'underline' }}
-                    href={'#event-error-logging'}
-                  >
-                    #
-                  </Link>
-                </Heading>
-                <Text mb="4">
-                  If an event is specified in the cannonfile but the invoke
-                  function does not emit any events or emits an event that
-                  doesn’t match the one specified in the cannonfile, the invoke
-                  operation will fail with an error.
-                </Text>
-
-                <Text mb="4">
-                  You can bypass the event error logging by setting it like
-                  <Code>var.NewDeploymentEvent.allowEmptyEvents = true</Code> or
-                  <Code>
-                    factory.MyPoolDeployment.allowEmptyEvents = true
-                  </Code>{' '}
-                  under the factory or var property that throws an error.
-                </Text>
-                <Text mb="4">
-                  An useful example would for this would be when an event is
-                  only emitted under certain conditions but you still need to
-                  reference it when it is emitted or don’t want to halt
-                  execution when it’s not emitted.
-                </Text>
-                <Text mb="4">
-                  Keep in mind you wont be able to reference event or contract
-                  data through the contracts or settings properties if a
-                  matching event wasnt emitted
-                </Text>
-              </Box>
-            </Box>
-          </Container>
-        </Box>
-      </Flex>
-    </Flex>
+                    <p className="mb-4">
+                      You can bypass the event error logging by setting it like
+                      <code>
+                        var.NewDeploymentEvent.allowEmptyEvents = true
+                      </code>{' '}
+                      or
+                      <code>
+                        factory.MyPoolDeployment.allowEmptyEvents = true
+                      </code>{' '}
+                      under the factory or var property that throws an error.
+                    </p>
+                    <p className="mb-4">
+                      An useful example would for this would be when an event is
+                      only emitted under certain conditions but you still need
+                      to reference it when it is emitted or don’t want to halt
+                      execution when it’s not emitted.
+                    </p>
+                    <p className="mb-4">
+                      Keep in mind you wont be able to reference event or
+                      contract data through the contracts or settings properties
+                      if a matching event wasnt emitted
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </main>
+          </div>
+        </SidebarProvider>
+      </div>
+    </div>
   );
 };
 

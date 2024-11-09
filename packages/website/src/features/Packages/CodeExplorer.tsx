@@ -16,10 +16,10 @@ import 'prismjs/components/prism-toml';
 import { CodePreview } from '@/components/CodePreview';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { DownloadIcon, InfoOutlineIcon } from '@chakra-ui/icons';
-import { CustomSpinner } from '@/components/CustomSpinner';
 import { isEmpty } from 'lodash';
 import { DeploymentInfo } from '@usecannon/builder';
 import { ApiPackage } from '@usecannon/api/dist/src/types';
+import { IpfsSpinner } from '@/components/IpfsSpinner';
 
 const handleDownload = (content: Record<string, unknown>, filename: string) => {
   const blob = new Blob([JSON.stringify(content, null, 2)], {
@@ -367,7 +367,9 @@ export const CodeExplorer: FC<{
   return (
     <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
       {isLoading ? (
-        <CustomSpinner m="auto" />
+        <div className="py-20">
+          <IpfsSpinner ipfsUrl={pkg?.deployUrl} />
+        </div>
       ) : artifacts?.length || provisionedPackagesKeys.length ? (
         <>
           {!!provisionedPackagesKeys.length && (

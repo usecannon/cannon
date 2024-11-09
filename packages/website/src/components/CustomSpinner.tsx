@@ -1,31 +1,19 @@
-import { Image } from '@chakra-ui/react';
-import { FC, ComponentProps } from 'react';
-import { keyframes } from '@emotion/react';
+import { HTMLAttributes } from 'react';
+import { cn } from '@/lib/utils';
 
-type ImageProps = ComponentProps<typeof Image>;
+interface CustomSpinnerProps extends HTMLAttributes<HTMLImageElement> {
+  className?: string;
+}
 
-const pulse = keyframes`
-  0% {
-    opacity: 0.25;
-  }
-  50% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 0.25;
-  }
-`;
-
-export const CustomSpinner: FC<ImageProps> = (props) => {
+export const CustomSpinner = ({ className, ...props }: CustomSpinnerProps) => {
   return (
-    <Image
-      display="block"
+    <img
       src="/images/logomark.svg"
       alt="Cannon"
-      h="64px"
-      w="64px"
-      objectFit="cover"
-      animation={`${pulse} 2.5s infinite`}
+      className={cn(
+        'h-12 w-12 object-contain animate-pulse m-auto opacity-25',
+        className
+      )}
       {...props}
     />
   );

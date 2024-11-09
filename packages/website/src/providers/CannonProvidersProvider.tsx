@@ -272,7 +272,7 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
           _getExplorerUrl(_allChains, chainId, hash),
       }}
     >
-      {isLoading ? <CustomSpinner m="auto" /> : children}
+      {isLoading ? <CustomSpinner /> : children}
     </ProvidersContext.Provider>
   );
 };

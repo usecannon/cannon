@@ -1,16 +1,23 @@
 'use client';
 
-import { FC, ReactNode } from 'react';
-import {
-  Box,
-  Container,
-  Flex,
-  Heading,
-  Link,
-  useBreakpointValue,
-} from '@chakra-ui/react';
+import { ReactNode } from 'react';
 import { links } from '@/constants/links';
-import { useRouter } from 'next/router';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
+import { Menu } from 'lucide-react';
 
 const useCannon = [
   { text: 'Get Started', href: links.GETSTARTED },
@@ -19,108 +26,72 @@ const useCannon = [
   { text: 'Debugging Tips', href: links.DEBUG },
 ];
 
-interface CustomLinkProps {
-  href: string;
-  children: ReactNode;
-}
-
-const CustomLink: FC<CustomLinkProps> = ({ href, children }) => {
-  const pathname = useRouter().pathname;
-  const isActive = href == pathname;
-  return (
-    <Link
-      display="block"
-      textDecoration="none"
-      borderRadius="md"
-      mb={0.5}
-      py={0.5}
-      px="2"
-      cursor="pointer"
-      fontSize="sm"
-      _hover={{ background: 'gray.800' }}
-      href={href}
-      fontStyle={href == '#' ? 'italic' : 'normal'}
-      color={href == '#' ? 'gray.400' : 'inherit'}
-      fontWeight={isActive ? 'medium' : undefined}
-      background={isActive ? 'gray.800' : undefined}
-    >
-      {children}
-    </Link>
-  );
-};
-
-interface LinkItem {
-  href: string;
-  text: string;
-}
-
-interface SectionProps {
-  title: string;
-  links: LinkItem[];
-}
-
-const Section: FC<SectionProps> = ({ title, links }) => (
-  <Box my={4}>
-    <Heading
-      fontWeight="500"
-      size="sm"
-      color="gray.200"
-      letterSpacing="0.1px"
-      px="2"
-      mb="1.5"
-    >
-      {title}
-    </Heading>
-    <Box mb={6}>
-      {links.map((link, index) => (
-        <CustomLink key={index} href={link.href}>
-          {link.text}
-        </CustomLink>
-      ))}
-    </Box>
-  </Box>
-);
-
-export default function LearnLayout({ children }: { children: ReactNode }) {
-  const isSmall = useBreakpointValue({
-    base: true,
-    sm: true,
-    md: false,
-  });
+export default function GuideLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
 
   return (
-    <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
-      <Flex flex="1" direction={['column', 'column', 'row']}>
-        <Flex
-          flexDirection="column"
-          overflowY="auto"
-          maxWidth={['100%', '100%', '200px']}
-          borderRight={isSmall ? 'none' : '1px solid'}
-          borderBottom={isSmall ? '1px solid' : 'none'}
-          borderColor={isSmall ? 'gray.600' : 'gray.700'}
-          width={['100%', '100%', '200px']}
-          maxHeight={['140px', '140px', 'calc(100vh - 151px)']}
-        >
-          <Box px={3} pb={2}>
-            <Section title="Use Cannon" links={useCannon} />
-            <Section
-              title="Build DeFi"
-              links={[{ href: '#', text: 'Coming Soon' }]}
-            />
-          </Box>
-        </Flex>
+    <div className="flex flex-1">
+      <div className="container max-w-4xl flex-1">
+        <SidebarProvider>
+          {/* Mobile trigger */}
+          <div className="sticky top-0 z-40 md:hidden">
+            <div className="flex h-14 items-center py-4">
+              <SidebarTrigger>
+                <Button variant="ghost" size="sm" className="-ml-2">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Open sidebar</span>
+                </Button>
+              </SidebarTrigger>
+            </div>
+          </div>
 
-        <Box
-          flex="1"
-          overflowY="auto"
-          maxHeight={['none', 'none', 'calc(100vh - 151px)']}
-          background="gray.800"
-        >
-          <Container maxW="container.lg" ml={0} p={8}>
-            {children}
-          </Container>
-        </Box>
-      </Flex>
-    </Flex>
+          <div className="md:grid md:grid-cols-[160px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[180px_minmax(0,1fr)] lg:gap-10 h-full">
+            {/* Sidebar */}
+            <Sidebar className="z-30 -ml-2 hidden w-full shrink-0 md:sticky md:block md:top-0 md:border-none">
+              <SidebarContent className="py-6 lg:py-8 bg-black">
+                <SidebarGroup>
+                  <SidebarGroupLabel>Use Cannon</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {useCannon.map((item) => (
+                        <SidebarMenuItem key={item.href}>
+                          <SidebarMenuButton
+                            asChild
+                            className={cn(
+                              'w-full',
+                              pathname === item.href && 'bg-muted font-medium'
+                            )}
+                          >
+                            <a href={item.href}>{item.text}</a>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+
+                <SidebarGroup>
+                  <SidebarGroupLabel>Build DeFi</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <span className="italic text-gray-400">
+                            Coming Soon
+                          </span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              </SidebarContent>
+            </Sidebar>
+
+            {/* Main content */}
+            <main className="flex w-full flex-col py-10">{children}</main>
+          </div>
+        </SidebarProvider>
+      </div>
+    </div>
   );
 }

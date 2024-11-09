@@ -1,4 +1,3 @@
-import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
@@ -7,15 +6,8 @@ import { PackageReference } from '@usecannon/builder';
 import TagVariantLayout from './_layout';
 import { ReactElement } from 'react';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
-
-const DeploymentTab = dynamic(
-  async () => {
-    return import('@/features/Packages/Tabs/DeploymentTab');
-  },
-  {
-    ssr: false,
-  }
-);
+import PackageAccordionHelper from '@/features/Packages/PackageAccordionHelper';
+import { usePackageNameTagVariantUrlParams } from '@/hooks/routing/usePackageNameTagVariantUrlParams';
 
 function generateMetadata({
   params,
@@ -53,10 +45,13 @@ function generateMetadata({
   return metadata;
 }
 
-export default function Deployment() {
-  const params = useRouter().query;
+export default function Overview() {
+  const { query: params } = useRouter();
   const { getChainById } = useCannonChains();
   const metadata = generateMetadata({ params: params as any, getChainById });
+
+  const { name, tag, chainId, preset } = usePackageNameTagVariantUrlParams();
+
   return (
     <>
       <NextSeo
@@ -69,15 +64,20 @@ export default function Deployment() {
           description: metadata.description,
         }}
       />
-      <DeploymentTab
-        name={decodeURIComponent(params.name as string)}
-        tag={decodeURIComponent(params.tag as string)}
-        variant={decodeURIComponent(params.variant as string)}
-      />
+      <div className="flex flex-col w-full">
+        <div className="container mx-auto max-w-5xl py-6">
+          <PackageAccordionHelper
+            name={name}
+            tag={tag}
+            chainId={chainId}
+            preset={preset}
+          />
+        </div>
+      </div>
     </>
   );
 }
 
-Deployment.getLayout = function getLayout(page: ReactElement) {
+Overview.getLayout = function getLayout(page: ReactElement) {
   return <TagVariantLayout>{page}</TagVariantLayout>;
 };

@@ -1,23 +1,16 @@
 'use client';
 
+import { useRouter } from 'next/router';
 import {
-  Box,
-  Container,
-  Flex,
-  Heading,
   Popover,
   PopoverContent,
   PopoverTrigger,
-  Portal,
-  Spinner,
-  Text,
-} from '@chakra-ui/react';
-import { format } from 'date-fns';
-import { useRouter } from 'next/router';
-import { InfoOutlineIcon } from '@chakra-ui/icons';
+} from '@/components/ui/popover';
+import { InfoIcon } from 'lucide-react';
 import { ReactNode } from 'react';
 import { NavLink } from '@/components/NavLink';
 import { CustomSpinner } from '@/components/CustomSpinner';
+import { format } from 'date-fns';
 
 import { IpfsLinks } from '@/features/Packages/IpfsLinks';
 import { VersionSelect } from '@/features/Packages/VersionSelect';
@@ -27,7 +20,6 @@ import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { DeploymentInfo } from '@usecannon/builder';
 
 import PageLoading from '@/components/PageLoading';
-import PackageAccordionHelper from '@/features/Packages/PackageAccordionHelper';
 import { usePackageNameTagVariantUrlParams } from '@/hooks/routing/usePackageNameTagVariantUrlParams';
 import { usePackageByRef } from '@/hooks/api/usePackage';
 
@@ -44,94 +36,70 @@ function TagVariantLayout({ children }: { children: ReactNode }) {
     );
 
   return (
-    <Flex flexDirection="column" width="100%">
+    <div className="flex flex-col w-full">
       {packagesQuery.isSuccess ? (
         <>
-          <Box
-            bg="black"
-            pt={12}
-            borderBottom="1px solid"
-            borderColor="gray.700"
-          >
-            <Container maxW="container.lg">
+          <div className="bg-black pt-12 border-b border-gray-700">
+            <div className="container max-w-[1024px] mx-auto">
               {/* Header */}
-              <Flex
-                flexDirection={['column', 'column', 'row']}
-                alignItems={['left', 'left', 'center']}
-                mb={5}
-              >
-                <Box>
-                  <Heading as="h1" size="lg" mb="2">
+              <div className="flex flex-col md:flex-row md:items-center mb-5 px-6">
+                <div>
+                  <h1 className="text-3xl font-bold mb-2">
                     {packagesQuery.data.name}
-                    <Popover trigger="hover">
+                    <Popover>
                       <PopoverTrigger>
-                        <InfoOutlineIcon boxSize={4} ml={2} color="gray.400" />
+                        <InfoIcon className="inline-block w-4 h-4 ml-2 text-gray-400" />
                       </PopoverTrigger>
-                      <Portal>
-                        <PopoverContent
-                          background="gray.700"
-                          maxWidth="320px"
-                          borderColor="gray.800"
-                        >
-                          <Flex direction={'column'} p={2} gap={1}>
-                            {isDeploymentInfoLoading ? (
-                              <Spinner />
-                            ) : (
-                              <>
-                                {deploymentInfo?.def?.description && (
-                                  <Text>{deploymentInfo.def.description}</Text>
-                                )}
-                                {(deploymentInfo?.generator ||
-                                  deploymentInfo?.timestamp) && (
-                                  <Text
-                                    color="gray.300"
-                                    fontSize="xs"
-                                    letterSpacing="0.2px"
-                                  >
-                                    {deploymentInfo?.generator &&
-                                      `built with ${deploymentInfo.generator} `}
-                                    {deploymentInfo?.generator &&
-                                      deploymentInfo?.timestamp &&
-                                      `on ${format(
-                                        new Date(
-                                          deploymentInfo?.timestamp * 1000
-                                        ),
-                                        'PPPppp'
-                                      ).toLowerCase()}`}
-                                  </Text>
-                                )}
-                              </>
-                            )}
-                          </Flex>
-                        </PopoverContent>
-                      </Portal>
+                      <PopoverContent className="bg-black max-w-[320px] border-border">
+                        <div className="flex flex-col gap-1">
+                          {isDeploymentInfoLoading ? (
+                            <CustomSpinner />
+                          ) : (
+                            <>
+                              {deploymentInfo?.def?.description && (
+                                <p>{deploymentInfo.def.description}</p>
+                              )}
+                              {(deploymentInfo?.generator ||
+                                deploymentInfo?.timestamp) && (
+                                <p className="text-gray-300 text-xs">
+                                  {deploymentInfo?.generator &&
+                                    `built with ${deploymentInfo.generator} `}
+                                  {deploymentInfo?.generator &&
+                                    deploymentInfo?.timestamp &&
+                                    `on ${format(
+                                      new Date(
+                                        deploymentInfo?.timestamp * 1000
+                                      ),
+                                      'PPPppp'
+                                    ).toLowerCase()}`}
+                                </p>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </PopoverContent>
                     </Popover>
-                  </Heading>
+                  </h1>
                   <PublishInfo p={packagesQuery.data} />
-                </Box>
-                <Box ml={[0, 0, 'auto']} mt={[6, 6, 0]}>
+                </div>
+                <div className="md:ml-auto mt-6 md:mt-0">
                   <VersionSelect pkg={packagesQuery.data} />
-                </Box>
-              </Flex>
+                </div>
+              </div>
 
-              <PackageAccordionHelper
-                name={name}
-                tag={tag}
-                chainId={chainId}
-                preset={preset}
-              />
-
-              {/* Package Tabs */}
-              <Flex
-                gap={8}
-                align="center"
-                maxW="100%"
-                overflowX="auto"
-                overflowY="hidden"
-              >
+              <div className="flex gap-8 items-center max-w-full overflow-x-auto overflow-y-hidden px-6">
                 <NavLink
                   isActive={pathname == '/packages/[name]/[tag]/[variant]'}
                   href={`/packages/${packagesQuery.data.name}/${params.tag}/${params.variant}`}
+                  isSmall
+                >
+                  Overview
+                </NavLink>
+                <NavLink
+                  isActive={pathname.startsWith(
+                    '/packages/[name]/[tag]/[variant]/deployment'
+                  )}
+                  href={`/packages/${packagesQuery.data.name}/${params.tag}/${params.variant}/deployment`}
                   isSmall
                 >
                   Deployment
@@ -171,27 +139,22 @@ function TagVariantLayout({ children }: { children: ReactNode }) {
                 >
                   Cannonfile
                 </NavLink>
-                <Box ml="auto">
+                <div className="ml-auto">
                   <IpfsLinks pkg={packagesQuery?.data} />
-                </Box>
-              </Flex>
-            </Container>
-          </Box>
+                </div>
+              </div>
+            </div>
+          </div>
           {children}
         </>
       ) : packagesQuery.isError ? (
-        <Text
-          textTransform="uppercase"
-          letterSpacing="1px"
-          m="auto"
-          fontFamily="var(--font-miriam)"
-        >
+        <p className="uppercase tracking-wider m-auto font-['var(--font-miriam)']">
           Package Not Found
-        </Text>
+        </p>
       ) : (
-        <CustomSpinner m="auto" />
+        <CustomSpinner />
       )}
-    </Flex>
+    </div>
   );
 }
 
