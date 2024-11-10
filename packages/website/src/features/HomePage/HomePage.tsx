@@ -99,16 +99,52 @@ export default function HomePage() {
     <div className="flex flex-col flex-1 bg-black h-screen px-4">
       {/* Background videos */}
       <video className="background-video" autoPlay muted loop playsInline>
-        <source src="/videos/bg1.mp4" type="video/mp4" />
+        <source
+          src="/videos/bg1.mp4"
+          type="video/mp4"
+          media="(min-width: 769px)"
+        />
+        <source
+          src="/videos/bg1_small.mp4"
+          type="video/mp4"
+          media="(max-width: 768px)"
+        />
       </video>
       <video className="background-video" autoPlay muted loop playsInline>
-        <source src="/videos/bg2.mp4" type="video/mp4" />
+        <source
+          src="/videos/bg2.mp4"
+          type="video/mp4"
+          media="(min-width: 769px)"
+        />
+        <source
+          src="/videos/bg2_small.mp4"
+          type="video/mp4"
+          media="(max-width: 768px)"
+        />
       </video>
       <video className="background-video" autoPlay muted loop playsInline>
-        <source src="/videos/bg3.mp4" type="video/mp4" />
+        <source
+          src="/videos/bg3.mp4"
+          type="video/mp4"
+          media="(min-width: 769px)"
+        />
+        <source
+          src="/videos/bg3_small.mp4"
+          type="video/mp4"
+          media="(max-width: 768px)"
+        />
       </video>
       <video className="background-video" autoPlay muted loop playsInline>
-        <source src="/videos/bg4.mp4" type="video/mp4" />
+        <source
+          src="/videos/bg4.mp4"
+          type="video/mp4"
+          media="(min-width: 769px)"
+        />
+        <source
+          src="/videos/bg4_small.mp4"
+          type="video/mp4"
+          media="(max-width: 768px)"
+        />
       </video>
 
       <div className="section flex items-center">
