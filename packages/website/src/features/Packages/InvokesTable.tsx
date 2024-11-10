@@ -20,6 +20,7 @@ import {
   getSortedRowModel,
   createColumnHelper,
 } from '@tanstack/react-table';
+import UnavailableTransaction from '@/features/Packages/UnavailableTransaction';
 
 type InvokeRow = {
   name: string;
@@ -130,6 +131,9 @@ export const InvokesTable: React.FC<{
                         );
                       }
                       case 'value': {
+                        if (!cell.row.original.value) {
+                          return <UnavailableTransaction />;
+                        }
                         const explorerUrl = getExplorerUrl(
                           chainId,
                           cell.row.original.value
