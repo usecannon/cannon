@@ -35,7 +35,7 @@ const NavLinks = () => {
         Deploy
       </NavLink>
       <NavLink href={links.LEARN} isActive={pathname.startsWith('/learn')}>
-        Learn
+        Docs
       </NavLink>
     </div>
   );
