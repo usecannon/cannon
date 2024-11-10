@@ -17,6 +17,7 @@ import { externalLinks } from '@/constants/externalLinks';
 import isEmpty from 'lodash/isEmpty';
 import cloneDeep from 'lodash/cloneDeep';
 import { useQuery } from '@tanstack/react-query';
+import PageLoading from '@/components/PageLoading';
 
 type CustomProviders =
   | {
@@ -260,13 +261,14 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
   const chainsUrls = Object.values(verifiedProviders || {}).map(
     (v) => v.rpcUrl
   );
+  const chainsUrlsString = JSON.stringify(sortBy(chainsUrls));
   const [_allChains, _allTransports, _customTransports] = useMemo(
     () => [
       _getAllChains(verifiedProviders),
       _getAllTransports(verifiedProviders),
       _getCustomTransports(verifiedProviders),
     ],
-    [JSON.stringify(sortBy(chainsUrls))]
+    [chainsUrlsString]
   );
 
   return (
@@ -281,7 +283,7 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
           _getExplorerUrl(_allChains, chainId, hash),
       }}
     >
-      {isLoading ? <CustomSpinner /> : children}
+      {isLoading ? <PageLoading /> : children}
     </ProvidersContext.Provider>
   );
 };

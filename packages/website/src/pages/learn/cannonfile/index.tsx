@@ -1,9 +1,10 @@
-import { ReactElement, Suspense } from 'react';
+import { ReactElement } from 'react';
 import dynamic from 'next/dynamic';
 import Layout from '../_layout';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
 import PageLoading from '@/components/PageLoading';
+import { useRouter } from 'next/router';
 
 const DynamicDocsCannonfilesPage = dynamic(
   () => import('@/features/Docs/DocsCannonfilesPage'),
@@ -13,6 +14,7 @@ const DynamicDocsCannonfilesPage = dynamic(
 );
 
 export default function Docs() {
+  const router = useRouter();
   return (
     <>
       <NextSeo
@@ -25,9 +27,7 @@ export default function Docs() {
           description: 'Cannonfile Docs',
         }}
       />
-      <Suspense fallback={<PageLoading />}>
-        <DynamicDocsCannonfilesPage />
-      </Suspense>
+      {router.isReady ? <DynamicDocsCannonfilesPage /> : <PageLoading />}
     </>
   );
 }

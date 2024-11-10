@@ -1,4 +1,3 @@
-'use client';
 import { links } from '@/constants/links';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
