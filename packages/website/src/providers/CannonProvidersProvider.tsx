@@ -85,6 +85,9 @@ export const chainMetadata = {
     shortName: 'matic',
     serviceUrl: 'https://safe-transaction-polygon.safe.global',
   },
+  [chains.polygonZkEvm.id]: {
+    color: '#9f71ec',
+  },
   [chains.zora.id]: {
     color: '#000000',
   },
@@ -112,8 +115,14 @@ export const chainMetadata = {
   [chains.snax.id]: {
     color: '#00D1FF',
   },
-  [cannonNetwork.id]: {
+  [chains.cannon.id]: {
     color: 'gray.400',
+  },
+  [chains.blast.id]: {
+    color: '#FCFC06',
+  },
+  [chains.celo.id]: {
+    color: '#fdff52',
   },
 } as const;
 
