@@ -201,13 +201,13 @@ const DocsLandingPage = () => {
       <div className="flex justify-center py-24 lg:py-32">
         <Link href={links.GETSTARTED}>
           <Button
-          className="font-miriam uppercase tracking-[0.5px] font-bold"
-          variant="default"
-          size="lg"
-        >
-          Get Started
-        </Button>
-      </Link>
+            className="font-miriam uppercase tracking-[0.5px] font-bold"
+            variant="default"
+            size="lg"
+          >
+            Get Started
+          </Button>
+        </Link>
       </div>
     </div>
   );
