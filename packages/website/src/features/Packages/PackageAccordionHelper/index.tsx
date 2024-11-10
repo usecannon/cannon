@@ -18,6 +18,7 @@ import { CommandPreview } from '@/components/CommandPreview';
 import { DownloadIcon } from '@radix-ui/react-icons';
 import { Braces } from 'lucide-react';
 import Link from 'next/link';
+import { CustomSpinner } from '@/components/CustomSpinner';
 
 type Props = {
   name: string;
@@ -186,17 +187,26 @@ export default function PackageAccordionHelper({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {state && deploymentInfo && chainDefinition ? (
-            <IntegrateWithPackage
-              name={name}
-              chainId={packagesQuery.data.chainId}
-              preset={packagesQuery.data.preset}
-              chainDefinition={chainDefinition}
-              deploymentState={state}
-              version={packagesQuery.data.version}
-            />
+          {state && deploymentInfo ? (
+            chainDefinition ? (
+              <IntegrateWithPackage
+                name={name}
+                chainId={packagesQuery.data.chainId}
+                preset={packagesQuery.data.preset}
+                chainDefinition={chainDefinition}
+                deploymentState={state}
+                version={packagesQuery.data.version}
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8">
+                <CustomSpinner />
+                <p className="text-sm mt-4 text-muted-foreground">
+                  Processing chain definition...
+                </p>
+              </div>
+            )
           ) : (
-            <p>Error retrieving deployment data</p>
+            <p className="text-red-500">Error retrieving deployment data</p>
           )}
         </CardContent>
       </Card>

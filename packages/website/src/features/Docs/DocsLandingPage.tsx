@@ -2,16 +2,15 @@
 import { links } from '@/constants/links';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 
 const DocsLandingPage = () => {
   return (
-    <div className="container max-w-[48rem] py-8 md:py-16">
+    <div className="container max-w-[42rem] pt-10 md:pt-20">
       <h1 className="scroll-m-20 text-3xl font-bold tracking-tight">
         Introducing Cannon
       </h1>
 
-      <p className="leading-7 [&:not(:first-child)]:mt-6">
+      <p className="leading-7 [&:not(:first-child)]:mt-4">
         <strong>Cannon</strong> is a DevOps tool for protocols on Ethereum. It
         manages protocol and smart contract deployments for local development
         and live networks.
@@ -87,15 +86,13 @@ const DocsLandingPage = () => {
         .
       </p>
 
-      <Separator className="my-6" />
+      <h4 className="text-xl mt-6 lg:mt-24 mb-5">
+        Cannon is useful across the entire protocol development lifecycle...
+      </h4>
 
-      <p className="mb-6">
-        Cannon is useful across the entire protocol development lifecycle.
-      </p>
-
-      <div className="space-y-6 mb-8">
-        <div>
-          <h2 className="scroll-m-20 text-2xl font-semibold tracking-tight flex items-center mb-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="rounded-lg border border-border p-5">
+          <h2 className="scroll-m-20 text-xl lg:text-2xl font-semibold tracking-tight flex items-center mb-2">
             <svg
               className="w-5 h-5 mr-2"
               viewBox="0 0 24 24"
@@ -109,7 +106,7 @@ const DocsLandingPage = () => {
             </svg>
             Protocol Development
           </h2>
-          <p>
+          <p className="text-sm">
             Developers can specify a chain state like ordering a sandwich. The
             ingredients of a{' '}
             <Link
@@ -123,8 +120,8 @@ const DocsLandingPage = () => {
           </p>
         </div>
 
-        <div>
-          <h2 className="scroll-m-20 text-2xl font-semibold tracking-tight flex items-center mb-2">
+        <div className="rounded-lg border border-border p-5">
+          <h2 className="scroll-m-20 text-xl lg:text-2xl font-semibold tracking-tight flex items-center mb-2">
             <svg
               className="w-5 h-5 mr-2"
               viewBox="0 0 24 24"
@@ -136,7 +133,7 @@ const DocsLandingPage = () => {
             </svg>
             Client Development
           </h2>
-          <p>
+          <p className="text-sm">
             The{' '}
             <Link
               href={links.CLI}
@@ -150,8 +147,8 @@ const DocsLandingPage = () => {
           </p>
         </div>
 
-        <div>
-          <h2 className="scroll-m-20 text-2xl font-semibold tracking-tight flex items-center mb-2">
+        <div className="rounded-lg border border-border p-5">
+          <h2 className="scroll-m-20 text-xl lg:text-2xl font-semibold tracking-tight flex items-center mb-2">
             <svg
               className="w-5 h-5 mr-2"
               viewBox="0 0 24 24"
@@ -162,7 +159,7 @@ const DocsLandingPage = () => {
             </svg>
             Automated Testing
           </h2>
-          <p>
+          <p className="text-sm">
             Packages can be tested prior to deployment to ensure implementations
             are robust. Continuous integration pipelines can integrate with
             Cannon to create and maintain sophisticated end-to-end testing
@@ -170,8 +167,8 @@ const DocsLandingPage = () => {
           </p>
         </div>
 
-        <div>
-          <h2 className="scroll-m-20 text-2xl font-semibold tracking-tight flex items-center mb-2">
+        <div className="rounded-lg border border-border p-5">
+          <h2 className="scroll-m-20 text-xl lg:text-2xl font-semibold tracking-tight flex items-center mb-2">
             <svg
               className="w-5 h-5 mr-2"
               viewBox="0 0 24 24"
@@ -182,9 +179,9 @@ const DocsLandingPage = () => {
               <polyline points="16 12 12 8 8 12"></polyline>
               <line x1="12" y1="16" x2="12" y2="8"></line>
             </svg>
-            Deployment, Configuration, and Upgrades
+            IaC for Protocols
           </h2>
-          <p>
+          <p className="text-sm">
             When protocols are ready for deployment, the same cannonfiles used
             during development can be built on live networks. Cannon also
             enables a{' '}
@@ -201,14 +198,17 @@ const DocsLandingPage = () => {
         </div>
       </div>
 
-      <Link href={links.GETSTARTED}>
-        <Button
-          className="font-miriam uppercase tracking-[0.5px] font-bold"
-          variant="default"
-        >
-          Get Started
-        </Button>
-      </Link>
+      <div className="flex justify-center py-24 lg:py-32">
+        <Link href={links.GETSTARTED}>
+          <Button
+            className="font-miriam uppercase tracking-[0.5px] font-bold"
+            variant="default"
+            size="lg"
+          >
+            Get Started
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 };
