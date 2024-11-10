@@ -115,7 +115,7 @@ export const chainMetadata = {
   [chains.snax.id]: {
     color: '#00D1FF',
   },
-  [chains.cannon.id]: {
+  [cannonNetwork.id]: {
     color: 'gray.400',
   },
   [chains.blast.id]: {
