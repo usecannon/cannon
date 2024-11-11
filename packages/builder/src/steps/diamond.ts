@@ -266,9 +266,9 @@ async function firstTimeDeploy(
     salt = ''
   ) {
     debug('deploy contract', contract.contractName, deployedContractLabel, constructorArgs, salt);
-    runtime.reportContractArtifact(`${contract.contractName}.sol:${contract.contractName}`, {
+    runtime.reportContractArtifact(`${contract.sourceName}:${contract.contractName}`, {
       contractName: contract.contractName,
-      sourceName: `${contract.contractName}.sol`,
+      sourceName: contract.sourceName,
       abi: contract.abi as any,
       bytecode: contract.bytecode as viem.Hex,
       deployedBytecode: contract.deployedBytecode,
