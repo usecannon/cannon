@@ -28,6 +28,8 @@ import {
 } from '@/components/ui/sidebar';
 import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/router';
+import scrollIntoView from 'scroll-into-view-if-needed';
 
 const artifactDataExample = {
   artifacts: {
@@ -156,6 +158,28 @@ const CustomTable: React.FC<{
 
 const DocsCannonfilesPage: FC = () => {
   const { isLoading, data: cannonfileSpecs, error } = useCannonfileSpecs();
+  const router = useRouter();
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash) {
+        const element = document.getElementById(hash);
+        if (element) {
+          scrollIntoView(element, {
+            scrollMode: 'if-needed',
+            behavior: 'smooth',
+            block: 'start',
+            inline: 'nearest',
+          });
+        }
+      }
+    };
+
+    if (!isLoading) {
+      handleScroll();
+    }
+  }, [router.events, isLoading]);
 
   if (isLoading) {
     return <CustomSpinner className="m-auto" />;
@@ -544,70 +568,83 @@ const DocsCannonfilesPage: FC = () => {
                       reference contracts deployed by factories in your
                       cannonfile.
                     </p>
-
                     <p className="mb-4">
                       For example, if the deployPool function below deploys a
                       contract, the following invoke command registers that
                       contract based on event data emitted from that call.
                     </p>
-
-                    <div className="mb-4">
-                      <code className="block">[invoke.deployment]</code>
-                      <code className="block">
-                        target = [&quot;PoolFactory&quot;]
-                      </code>
-                      <code className="block">
-                        func = &quot;deployPool&quot;
-                      </code>
-                      <code className="block">
-                        factory.MyPoolDeployment.artifact = &quot;Pool&quot;
-                      </code>
-                      <code className="block">
-                        # alternatively, if the code for the deployed contract
-                        is not available in your artifacts, you can also
-                        reference the ABI like:
-                      </code>
-                      <code className="block">
-                        # factory.MyPoolDeployment.abiOf =
-                        &quot;PreviousPool&quot;
-                      </code>
-                      <code className="block">
-                        factory.MyPoolDeployment.event =
-                        &quot;NewDeployment&quot;
-                      </code>
-                      <code className="block">
-                        factory.MyPoolDeployment.arg = 0
-                      </code>
-                    </div>
-
-                    <p className="mb-4">
+                    <CodeBlock
+                      text={`[invoke.deployment]
+target = ["PoolFactory"]
+func = "deployPool"
+factory.MyPoolDeployment.artifact = "Pool"
+# alternatively, if the code for the deployed contract is not available in your artifacts, you can also reference the ABI like:
+factory.MyPoolDeployment.abiOf = "PreviousPool"
+factory.MyPoolDeployment.event = "NewDeployment"
+factory.MyPoolDeployment.arg = 0
+                        `}
+                      language="yaml"
+                      showLineNumbers={false}
+                      theme={a11yDark}
+                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
+                    />
+                    <p className="mb-4 mt-4">
                       Specifically, this would anticipate this invoke call will
                       emit an event named NewDeployment with a contract address
                       as the first data argument (per arg, a zero-based index).
                       This contract should implement the Pool contract. Now, a
-                      subsequent invoke operation could set target =
-                      [&quot;MyPoolDeployment&quot;].
+                      subsequent invoke operation could set
                     </p>
-
-                    <p className="mb-4">
+                    <CodeBlock
+                      text={'target = ["MyPoolDeployment"]'}
+                      language="yaml"
+                      showLineNumbers={false}
+                      theme={a11yDark}
+                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
+                    />
+                    <p className="mb-4 mt-4">
                       To reference contract information for a contract deployed
                       on a previous invoke operation such as the example shown
                       above call the contracts object inside your cannonfile.
-                      For example &lt;%= contracts.MyPoolDeployment.address
-                      %&gt; would return the address of the Pool contract
-                      deployed by the PoolFactory contract.
+                      For example{' '}
                     </p>
-
+                    <CodeBlock
+                      text={'<%= contracts.MyPoolDeployment.address %>'}
+                      language="yaml"
+                      showLineNumbers={false}
+                      theme={a11yDark}
+                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
+                    />
+                    <p className="mb-4 mt-4">
+                      would return the address of the Pool contract deployed by
+                      the PoolFactory contract.
+                    </p>
                     <p className="mb-4">
                       If the invoked function deploys multiple contracts of the
                       same name, you can specify them by index through the
-                      contracts object. &lt;%=
-                      contracts.MyPoolDeployment.address %&gt; would return the
-                      first deployed Pool contract address. &lt;%=
-                      contracts.MyPoolDeployment_0.address %&gt; would return
-                      the second deployed Pool contract address. These contracts
-                      are added to the return object as they would be if
-                      deployed by a contract operation.
+                      contracts object.
+                    </p>
+                    <CodeBlock
+                      text={'<%= contracts.MyPoolDeployment.address %>'}
+                      language="yaml"
+                      showLineNumbers={false}
+                      theme={a11yDark}
+                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
+                    />
+                    <p className="mb-4 mt-4">
+                      would return the first deployed Pool contract address.
+                    </p>
+                    <CodeBlock
+                      text={'<%= contracts.MyPoolDeployment_0.address %>'}
+                      language="yaml"
+                      showLineNumbers={false}
+                      theme={a11yDark}
+                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
+                    />
+                    <p className="mb-4 mt-4">
+                      would return the second deployed Pool contract address.
+                      These contracts are added to the return object as they
+                      would be if deployed by a contract operation.
                     </p>
                   </div>
 
@@ -626,25 +663,29 @@ const DocsCannonfilesPage: FC = () => {
                       the PoolFactory deployment from the example above, add the
                       var property and set an attribute for the event like so:
                     </p>
+                    <CodeBlock
+                      text={`[invoke.deployment]
+target = ["PoolFactory"]
+var.NewDeploymentEvent.event = "NewDeployment"
+var.NewDeploymentEvent.arg = 0
+                        `}
+                      language="yaml"
+                      theme={a11yDark}
+                      showLineNumbers={false}
+                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
+                    />
 
-                    <div className="mb-4">
-                      <code className="block">[invoke.deployment]</code>
-                      <code className="block">
-                        target = [&quot;PoolFactory&quot;]
-                      </code>
-                      <code className="block"># ....</code>
-                      <code className="block">
-                        var.NewDeploymentEvent.event = &quot;NewDeployment&quot;
-                      </code>
-                      <code className="block">
-                        var.NewDeploymentEvent.arg = 0
-                      </code>
-                    </div>
-
-                    <p className="mb-4">
-                      Now, calling &quot;&lt;% = settings.NewDeploymentEvent
-                      %&gt;&quot; in a subsequent invoke operation would return
-                      the first data argument for NewDeployment.
+                    <p className="mb-4">Now, calling </p>
+                    <CodeBlock
+                      text={'<%= settings.NewDeploymentEvent %>'}
+                      language="yaml"
+                      theme={a11yDark}
+                      showLineNumbers={false}
+                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
+                    />
+                    <p className="mt-4 mb-4">
+                      in a subsequent invoke operation would return the first
+                      data argument for NewDeployment.
                     </p>
 
                     <p className="mb-4">
@@ -654,10 +695,17 @@ const DocsCannonfilesPage: FC = () => {
 
                     <p className="mb-4">
                       For example if the PoolFactory emitted multiple
-                      NewDeployment events: &lt;%= settings.NewDeploymentEvent_0
-                      %&gt; would return the first emitted event of this kind.
-                      &lt;%= settings.NewDeploymentEvent_4 %&gt; would reference
-                      the fifth emitted event of this kind.
+                      NewDeployment events:
+                    </p>
+                    <CodeBlock
+                      text={'<%= settings.NewDeploymentEvent_0 %>'}
+                      language="yaml"
+                      theme={a11yDark}
+                      showLineNumbers={false}
+                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
+                    />
+                    <p className="mt-4 mb-4">
+                      would return the first emitted event of this kind.
                     </p>
                   </div>
 
@@ -671,14 +719,26 @@ const DocsCannonfilesPage: FC = () => {
                     </p>
 
                     <p className="mb-4">
-                      You can bypass the event error logging by setting it like
-                      <code>
-                        var.NewDeploymentEvent.allowEmptyEvents = true
-                      </code>{' '}
-                      or
-                      <code>
-                        factory.MyPoolDeployment.allowEmptyEvents = true
-                      </code>{' '}
+                      You can bypass the event error logging by setting it like{' '}
+                    </p>
+                    <CodeBlock
+                      text={'var.NewDeploymentEvent.allowEmptyEvents = true'}
+                      language="yaml"
+                      theme={a11yDark}
+                      showLineNumbers={false}
+                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
+                    />
+                    <p className="mb-4 mt-4">or </p>
+
+                    <CodeBlock
+                      text={'factory.MyPoolDeployment.allowEmptyEvents = true'}
+                      language="yaml"
+                      theme={a11yDark}
+                      showLineNumbers={false}
+                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
+                    />
+
+                    <p className="mb-4 mt-4">
                       under the factory or var property that throws an error.
                     </p>
                     <p className="mb-4">
