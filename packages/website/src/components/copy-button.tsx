@@ -199,11 +199,6 @@ export function CopyNpmCommandButton({
         >
           pnpm
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => copyCommand(commands.__bunCommand__, 'bun')}
-        >
-          bun
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

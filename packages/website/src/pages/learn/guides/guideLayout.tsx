@@ -29,29 +29,29 @@ const useCannon = [
     nav: [
       {
         text: 'Setting up a new project',
-        href: `${links.GETSTARTED}?section=introduction`,
+        href: `${links.GETSTARTED}/introduction`,
       },
       {
         text: 'Creating a project',
-        href: `${links.GETSTARTED}?section=creating-a-project`,
+        href: `${links.GETSTARTED}/creating-a-project`,
       },
       {
         text: 'Building with Cannon',
-        href: `${links.GETSTARTED}?section=example`,
+        href: `${links.GETSTARTED}/building-with-cannon`,
       },
       {
         text: 'Building to a network',
-        href: `${links.GETSTARTED}?section=example`,
+        href: `${links.GETSTARTED}/building-to-a-network`,
       },
       {
         text: 'Publishing the package',
-        href: `${links.GETSTARTED}?section=example`,
+        href: `${links.GETSTARTED}/publish`,
       },
       {
         text: 'Using Cannon explorer',
-        href: `${links.GETSTARTED}?section=example`,
+        href: `${links.GETSTARTED}/explorer`,
       },
-      { text: 'Conclusion', href: `${links.GETSTARTED}?section=example` },
+      { text: 'Conclusion', href: `${links.GETSTARTED}/conclusion` },
     ],
   },
   { text: 'Build a Protocol', href: links.BUILD },

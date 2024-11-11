@@ -1,4 +1,13 @@
-import { defineDocumentType, makeSource } from 'contentlayer/source-files';
+import { defineDocumentType, defineNestedType, makeSource } from 'contentlayer/source-files';
+
+const Nav = defineNestedType(() => ({
+  name: 'Nav',
+  fields: {
+    title: { type: 'string', required: true },
+    description: { type: 'string', required: true },
+    url: { type: 'string', required: true },
+  },
+}));
 
 export const Guides = defineDocumentType(() => ({
   name: 'Guides',
@@ -6,10 +15,18 @@ export const Guides = defineDocumentType(() => ({
   filePathPattern: `**/*.mdx`,
   fields: {
     title: { type: 'string', required: true },
-    'before-url': { type: 'string', required: false },
-    'before-title': { type: 'string', required: false },
-    'after-url': { type: 'string', required: false },
-    'after-title': { type: 'string', required: false },
+    description: { type: 'string', required: true },
+    options: {
+      type: 'json',
+    },
+    after: {
+      type: 'nested',
+      of: Nav,
+    },
+    before: {
+      type: 'nested',
+      of: Nav,
+    },
   },
   computedFields: {
     url: { type: 'string', resolve: (guides) => `/guides/${guides._raw.flattenedPath}` },

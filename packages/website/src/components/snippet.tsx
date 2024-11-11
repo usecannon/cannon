@@ -1,6 +1,6 @@
-import { cn } from '@/lib/utils';
 import { CopyIcon } from '@chakra-ui/icons';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export const Snippet = ({
   children,
@@ -11,7 +11,7 @@ export const Snippet = ({
   className?: string;
 }) => {
   return (
-    <code
+    <div
       className={cn(
         'flex justify-between items-center p-4 relative rounded bg-neutral-900 font-mono text-sm',
         className
@@ -27,6 +27,6 @@ export const Snippet = ({
       >
         <CopyIcon className="size-4" />
       </Button>
-    </code>
+    </div>
   );
 };

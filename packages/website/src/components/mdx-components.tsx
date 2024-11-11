@@ -4,7 +4,6 @@ import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useMDXComponent } from 'next-contentlayer/hooks';
-
 import { cn } from '@/lib/utils';
 import { Callout } from '@/components/callout';
 import { CodeBlockWrapper } from '@/components/code-block-wrapper';
@@ -154,12 +153,14 @@ const components = {
       {...props}
     />
   ),
+  pre: ({ ...props }: React.HTMLAttributes<HTMLPreElement>) => (
+    <pre className="mb-4 mt-6 max-h-[650px] overflow-x-auto" {...props} />
+  ),
   code: ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
     <code
-      className={cn(
-        'relative rounded bg-muted text-red-500 px-[0.3rem] py-[0.2rem] font-mono text-sm',
-        className
-      )}
+      className={
+        'relative rounded bg-muted text-red-500 px-[0.3rem] py-[0.2rem] font-mono text-sm'
+      }
       {...props}
     />
   ),

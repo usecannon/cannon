@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { NextSeo } from 'next-seo';
 import { useRouter } from 'next/router';
 import { useLiveReload } from 'next-contentlayer/hooks';
@@ -8,6 +7,7 @@ import Layout from '../../../_layout';
 import NestedLayout from '../../guideLayout';
 import defaultSEO from '@/constants/defaultSeo';
 import { Mdx } from '@/components/mdx-components';
+import { DocsNav } from '@/components/docs';
 
 export default function GetStarted() {
   // this only runs during development and has no impact on production
@@ -18,7 +18,7 @@ export default function GetStarted() {
   );
   console.log('🚀 ~ GetStarted ~ guide:', guide);
 
-  if (!guide) return { notFound: true };
+  if (!guide) return router.push('/404');
 
   return (
     <>
@@ -34,16 +34,7 @@ export default function GetStarted() {
       />
       <div className="container max-w-3xl">
         <Mdx code={guide.body.code} />
-        {guide['before-url'] && (
-          <Link href={`/learn/guides/get-started/${guide['before-url']}`}>
-            Back: {guide['before-title']}
-          </Link>
-        )}
-        {guide['after-url'] && (
-          <Link href={`/learn/guides/get-started/${guide['after-url']}`}>
-            Next: {guide['after-title']}
-          </Link>
-        )}
+        <DocsNav guide={guide} />
       </div>
     </>
   );

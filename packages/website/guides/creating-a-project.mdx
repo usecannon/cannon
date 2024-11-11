@@ -1,10 +1,14 @@
 ---
-title: Introduction
-description: Learn how to set up a new project with Cannon.
-after-title: CLI
-after-url: cli
-before-title: Setting up a new project
-before-url: introduction
+title: Creating a project
+description: Learn how to create a project with Cannon.
+before:
+  url: "introduction"
+  title: "Introduction"
+  description: "Learn how to set up a new project with Cannon."
+after:
+  url: "building-with-cannon"
+  title: "Building with Cannon"
+  description: "Use Cannonfiles to build your project."
 ---
 
 ## Creating a project
@@ -47,8 +51,7 @@ Forge will create the initial project structure for us. The result will be as fo
   └── test <br />
   └── Counter.t.sol <br />
 </Snippet>
-<br />
-<Alert variant="info">
+<Alert variant="info" className="mt-8">
   <AlertDescription>
     📢 In this guide, we will not delve into the use of Forge, for more
     information about what can you do visit [**Foundry
@@ -61,7 +64,7 @@ Forge will create the initial project structure for us. The result will be as fo
 
 At the root folder create your first `cannonfile.toml`.
 
-<Snippet>
+<Snippet className="mt-8">
   <p class="text-gray-400">// ./cannonfile.toml</p>
   name = <span class="text-yellow-400">'learn-cannon'</span> <br />
   version = <span class="text-yellow-400">'0.0.1'</span> <br />
@@ -88,26 +91,21 @@ A basic contract with two functions: `setNumber` and `increment`.
   </AlertDescription>
 </Alert>
 
-<Snippet>
-  ```js
- // ./src/Counter.sol
+<Snippet className="flex-col items-start">
+<p class="text-gray-400">// ./src/Counter.sol</p> <br />
+<p class="text-gray-400">// SPDX-License-Identifier: UNLICENSED</p>
+pragma <span class="text-red-500">solidity</span> <span class="text-yellow-400">^0.8.13;</span><br /><br />
+contract <span class="text-yellow-400">Counter \{</span><br />
+<span class="pl-8">uint256 <span class="text-yellow-400">public</span> number;<br /></span>
 
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
-
-contract Counter {
-uint256 public number;
-
-    function setNumber(uint256 newNumber) public {
+<span class="pl-8">function <span class="text-yellow-400">setNumber</span> (uint256 newNumber) public \{<br /></span>
         number = newNumber;
-    }
+    \}
 
-    function increment() public {
+    function increment() public \{
         number++;
-    }
-
-}
-```
+    \}
+\}
 </Snippet>
 
 #### Adding steps on the cannonfile
@@ -163,4 +161,3 @@ var in the `[var.main]` step.
 
 You can find the entire list of steps of the Cannon files in the
 [Cannonfile’s guide](https://usecannon.com/learn/cannonfile).
-```
