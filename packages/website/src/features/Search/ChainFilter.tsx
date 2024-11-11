@@ -26,7 +26,7 @@ export const ChainFilter: FC<ChainFilterProps> = ({ id }) => {
                 <InfoCircledIcon className="text-gray-300" />
               </TooltipTrigger>
               <TooltipContent
-                className="max-w-[250px] bg-hover border-border bg-black"
+                className="max-w-[250px]"
                 onClick={(e) => e.stopPropagation()}
               >
                 <p className="text-sm text-gray-200">
