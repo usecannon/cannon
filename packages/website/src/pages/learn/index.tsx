@@ -1,9 +1,10 @@
-import { ReactElement, Suspense } from 'react';
+import { ReactElement } from 'react';
 import Layout from './_layout';
 import dynamic from 'next/dynamic';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
 import PageLoading from '@/components/PageLoading';
+import { useRouter } from 'next/router';
 
 const DynamicDocsLandingPage = dynamic(
   () => import('@/features/Docs/DocsLandingPage'),
@@ -13,6 +14,7 @@ const DynamicDocsLandingPage = dynamic(
 );
 
 export default function Docs() {
+  const router = useRouter();
   return (
     <>
       <NextSeo
@@ -25,9 +27,7 @@ export default function Docs() {
           description: 'Docs',
         }}
       />
-      <Suspense fallback={<PageLoading />}>
-        <DynamicDocsLandingPage />
-      </Suspense>
+      {router.isReady ? <DynamicDocsLandingPage /> : <PageLoading />}
     </>
   );
 }

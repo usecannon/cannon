@@ -7,14 +7,17 @@ interface CustomSpinnerProps extends HTMLAttributes<HTMLImageElement> {
 
 export const CustomSpinner = ({ className, ...props }: CustomSpinnerProps) => {
   return (
-    <img
-      src="/images/logomark.svg"
-      alt="Cannon"
-      className={cn(
-        'h-12 w-12 object-contain animate-pulse m-auto opacity-25',
-        className
-      )}
-      {...props}
-    />
+    <div className="w-full h-full flex items-center justify-center">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/images/logomark.svg"
+        alt="Cannon"
+        className={cn(
+          'h-12 w-12 object-contain animate-pulse m-auto opacity-25',
+          className
+        )}
+        {...props}
+      />
+    </div>
   );
 };
