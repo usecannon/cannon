@@ -17,6 +17,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Snippet } from '@/components/snippet';
+import { codeToHtml } from 'shiki';
 
 const components = {
   Accordion,
@@ -153,9 +154,37 @@ const components = {
       {...props}
     />
   ),
-  pre: ({ ...props }: React.HTMLAttributes<HTMLPreElement>) => (
-    <pre className="mb-4 mt-6 max-h-[650px] overflow-x-auto" {...props} />
-  ),
+  pre: ({ ...props }: React.HTMLAttributes<HTMLPreElement>) => {
+    const [html, setHtml] = React.useState('');
+    const command = (props.children as any).props.children as string;
+
+    // Handle the async code highlighting
+    React.useEffect(() => {
+      const highlightCode = async () => {
+        if (!command) return;
+
+        console.log(command);
+
+        const highlighted = await codeToHtml(command, {
+          lang: 'bash',
+          theme: 'github-dark-default',
+          transformers: [
+            {
+              code(node) {
+                node.properties['data-line-numbers'] = '';
+              },
+            },
+          ],
+        });
+
+        setHtml(highlighted);
+      };
+
+      void highlightCode();
+    }, [command]);
+
+    return html;
+  },
   code: ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
     <code
       className={

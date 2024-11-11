@@ -22,9 +22,36 @@ First, what we need to do is to build the Cannon package. To do this we will use
 </Alert>
 
 Run in your terminal:
-<Snippet>
-  <span class="text-blue-400">$</span> cannon <span class="text-yellow-400">build</span>
-</Snippet>
+
+```solidity
+// ./test/Counter.t.sol
+
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.13;
+
+import { Test } from "forge-std/Test.sol";
+import { Counter } from "../src/Counter.sol";
+
+contract CounterTest is Test {
+    Counter public counter;
+    
+    Counter counter
+
+    function setUp() public {
+        counter = new Counter();
+        counter.setNumber(0);
+    }
+
+    function test_Increment() public {
+        counter.increment();
+        assertEq(counter.number(), 1);
+    }
+
+    function testFuzz_SetNumber(uint256 x) public {
+        counter.setNumber(x);
+        assertEq(counter.number(), x);
+    }
+```
 
 If everything went well you will see something like this:
 
@@ -296,40 +323,6 @@ We are going to use the `cannon-std` helper library from Cannon to write tests. 
 
 <Snippet className="flex-col items-start mt-6">
 $ forge install usecannon/cannon-std
-</Snippet>
-
-<Snippet className="flex-col items-start mt-6">
-// ./test/Counter.t.sol
-
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
-
-\import "cannon-std/Cannon.sol";
-
-\import \{ Test } from "forge-std/Test.sol";
-\import \{ Counter } from "../src/Counter.sol";
-
-contract CounterTest is Test \{
-		using Cannon for Vm;
-    Counter public counter;
-    
-    Counter counter
-
-    function setUp() public \{
-        counter = Counter(vm.getAddress("Counter")); // Chequear si es el step name o el artifact
-        counter.setNumber(0);
-    }
-
-    function test_Increment() public \{
-        counter.increment();
-        assertEq(counter.number(), 1);
-    }
-
-    function testFuzz_SetNumber(uint256 x) public \{
-        counter.setNumber(x);
-        assertEq(counter.number(), x);
-    }
-}
 </Snippet>
 
 Cannon runs `forge test` in the background, but the `cannon test` command can receive a specific cannonfile as an argument to run the test suites. By default, it uses `cannonfile.toml`.
