@@ -158,7 +158,7 @@ const diamondStep = {
     debug('first time deploy? ', !!ctx.contracts[stepName]);
     let outputContracts = ctx.contracts[stepName] ? ctx.contracts : await firstTimeDeploy(runtime, config, packageState);
     const deployedContracts = config.immutable
-      ? [stepName + 'OwnershipFacet', stepName + 'DiamondLoupeFacet']
+      ? [stepName + 'DiamondLoupeFacet']
       : [
           stepName + 'OwnershipFacet',
           stepName + 'DiamondLoupeFacet',
@@ -166,7 +166,10 @@ const diamondStep = {
           stepName + 'DiamondWipeAndPaveFacet',
         ];
     outputContracts = _.pick(outputContracts, [stepName, ...deployedContracts]);
-    debug('output contracts', deployedContracts);
+    debug('output contracts', [stepName, ...deployedContracts]);
+
+    // ensure that diamond errors can be decoded if we run into an error on the next step(s)
+    runtime.updateProviderArtifacts({ contracts: outputContracts });
 
     const proxyAddress = outputContracts[stepName].address;
 
