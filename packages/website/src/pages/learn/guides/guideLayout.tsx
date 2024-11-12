@@ -25,7 +25,7 @@ import { Menu } from 'lucide-react';
 const useCannon = [
   {
     text: 'Get Started',
-    href: `${links.GETSTARTED}`,
+    href: `${links.GETSTARTED}/introduction`,
     nav: [
       {
         text: 'Setting up a new project',
