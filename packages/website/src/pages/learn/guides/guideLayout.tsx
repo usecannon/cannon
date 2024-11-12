@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
+import Link from 'next/link';
 import { links } from '@/constants/links';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -15,12 +16,44 @@ import {
   SidebarMenuButton,
   SidebarProvider,
   SidebarTrigger,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 
 const useCannon = [
-  { text: 'Get Started', href: links.GETSTARTED },
+  {
+    text: 'Get Started',
+    href: `${links.GETSTARTED}`,
+    nav: [
+      {
+        text: 'Setting up a new project',
+        href: `${links.GETSTARTED}/introduction`,
+      },
+      {
+        text: 'Creating a project',
+        href: `${links.GETSTARTED}/creating-a-project`,
+      },
+      {
+        text: 'Building with Cannon',
+        href: `${links.GETSTARTED}/building-with-cannon`,
+      },
+      {
+        text: 'Building to a network',
+        href: `${links.GETSTARTED}/building-to-a-network`,
+      },
+      {
+        text: 'Publishing the package',
+        href: `${links.GETSTARTED}/publish`,
+      },
+      {
+        text: 'Using Cannon explorer',
+        href: `${links.GETSTARTED}/explorer`,
+      },
+      { text: 'Conclusion', href: `${links.GETSTARTED}/conclusion` },
+    ],
+  },
   { text: 'Build a Protocol', href: links.BUILD },
   { text: 'Deploy a Router', href: links.ROUTER },
   { text: 'Debugging Tips', href: links.DEBUG },
@@ -31,7 +64,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex flex-1">
-      <div className="container max-w-4xl flex-1">
+      <div className="container flex-1">
         <SidebarProvider>
           {/* Mobile trigger */}
           <div className="sticky top-0 z-40 md:hidden">
@@ -45,7 +78,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          <div className="md:grid md:grid-cols-[160px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[180px_minmax(0,1fr)] lg:gap-10 h-full">
+          <div className="md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10 h-full">
             {/* Sidebar */}
             <Sidebar className="z-30 -ml-2 hidden w-full shrink-0 md:sticky md:block md:top-0 md:border-none">
               <SidebarContent className="py-6 lg:py-8 bg-black">
@@ -62,8 +95,24 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
                               pathname === item.href && 'bg-muted font-medium'
                             )}
                           >
-                            <a href={item.href}>{item.text}</a>
+                            <Link href={item.href}>{item.text}</Link>
                           </SidebarMenuButton>
+                          {item.nav && (
+                            <SidebarMenuSub>
+                              {item.nav?.map((navItem) => (
+                                <SidebarMenuSubItem
+                                  className={cn(
+                                    'text-neutral-500 py-px hover:text-teal-400 transition-all ease-in-out',
+                                    pathname === navItem.href && 'text-teal-400'
+                                  )}
+                                >
+                                  <Link href={navItem.href}>
+                                    {navItem.text}
+                                  </Link>
+                                </SidebarMenuSubItem>
+                              ))}
+                            </SidebarMenuSub>
+                          )}
                         </SidebarMenuItem>
                       ))}
                     </SidebarMenu>

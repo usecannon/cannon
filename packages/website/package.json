@@ -116,7 +116,16 @@
     "wagmi": "^2.5.13",
     "zod": "^3.23.8",
     "zod-to-json-schema": "^3.21.4",
-    "zustand": "^4.4.1"
+    "zustand": "^4.4.1",
+    "@mdx-js/loader": "^3.1.0",
+    "@mdx-js/react": "^3.1.0",
+    "@next/mdx": "^15.0.2",
+    "@radix-ui/react-aspect-ratio": "^1.1.0",
+    "@radix-ui/react-dropdown-menu": "^2.1.2",
+    "@types/mdx": "^2.0.13",
+    "contentlayer": "^0.3.4",
+    "next-contentlayer": "^0.3.4",
+    "react-syntax-highlighter": "^15.5.0"
   },
   "peerDependencies": {
     "ethers": ">=5.6.0"
