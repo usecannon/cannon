@@ -183,7 +183,12 @@ const components = {
       void highlightCode();
     }, [command]);
 
-    return html;
+    return (
+      <div
+        className="w-full overflow-x-auto whitespace-nowrap pr-12"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    );
   },
   code: ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
     <code
