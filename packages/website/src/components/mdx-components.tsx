@@ -19,6 +19,42 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Snippet } from '@/components/snippet';
 import { codeToHtml } from 'shiki';
 
+// Convert pre to a proper React component
+const PreComponent = ({ ...props }: React.HTMLAttributes<HTMLPreElement>) => {
+  const [html, setHtml] = React.useState('');
+  const command = (props.children as any).props.children as string;
+
+  // Handle the async code highlighting
+  React.useEffect(() => {
+    const highlightCode = async () => {
+      if (!command) return;
+
+      const highlighted = await codeToHtml(command, {
+        lang: 'bash',
+        theme: 'github-dark-default',
+        transformers: [
+          {
+            code(node) {
+              node.properties['data-line-numbers'] = '';
+            },
+          },
+        ],
+      });
+
+      setHtml(highlighted);
+    };
+
+    void highlightCode();
+  }, [command]);
+
+  return (
+    <div
+      className="w-full overflow-x-auto whitespace-nowrap pr-12"
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+};
+
 const components = {
   Accordion,
   AccordionContent,
@@ -154,47 +190,10 @@ const components = {
       {...props}
     />
   ),
-  pre: ({ ...props }: React.HTMLAttributes<HTMLPreElement>) => {
-    const [html, setHtml] = React.useState('');
-    const command = (props.children as any).props.children as string;
-
-    // Handle the async code highlighting
-    React.useEffect(() => {
-      const highlightCode = async () => {
-        if (!command) return;
-
-        console.log(command);
-
-        const highlighted = await codeToHtml(command, {
-          lang: 'bash',
-          theme: 'github-dark-default',
-          transformers: [
-            {
-              code(node) {
-                node.properties['data-line-numbers'] = '';
-              },
-            },
-          ],
-        });
-
-        setHtml(highlighted);
-      };
-
-      void highlightCode();
-    }, [command]);
-
-    return (
-      <div
-        className="w-full overflow-x-auto whitespace-nowrap pr-12"
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
-    );
-  },
-  code: ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
+  pre: PreComponent,
+  code: ({ ...props }: React.HTMLAttributes<HTMLElement>) => (
     <code
-      className={
-        'relative rounded bg-muted text-red-500 px-[0.3rem] py-[0.2rem] font-mono text-sm'
-      }
+      className="relative rounded bg-muted text-red-500 px-[0.3rem] py-[0.2rem] font-mono text-sm"
       {...props}
     />
   ),

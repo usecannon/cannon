@@ -1,6 +1,7 @@
 import { CopyIcon } from '@chakra-ui/icons';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import React from 'react';
 
 export const Snippet = ({
   children,

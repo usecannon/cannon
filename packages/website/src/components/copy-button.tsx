@@ -17,21 +17,19 @@ import {
 
 interface CopyButtonProps extends ButtonProps {
   value: string;
-  src?: string;
   event?: Event['name'];
 }
 
-export async function copyToClipboardWithMeta(value: string, event?: Event) {
-  navigator.clipboard.writeText(value);
+export function copyToClipboardWithMeta(value: string, event?: Event): void {
+  void navigator.clipboard.writeText(value);
   if (event) {
-    trackEvent(event);
+    void trackEvent(event);
   }
 }
 
 export function CopyButton({
   value,
   className,
-  src,
   variant = 'ghost',
   event,
   ...props
@@ -84,7 +82,6 @@ export function CopyWithClassNames({
   value,
   classNames,
   className,
-  ...props
 }: CopyWithClassNamesProps) {
   const [hasCopied, setHasCopied] = React.useState(false);
 
@@ -95,7 +92,7 @@ export function CopyWithClassNames({
   }, [hasCopied]);
 
   const copyToClipboard = React.useCallback((value: string) => {
-    copyToClipboardWithMeta(value);
+    void copyToClipboardWithMeta(value);
     setHasCopied(true);
   }, []);
 
@@ -140,7 +137,6 @@ interface CopyNpmCommandButtonProps extends DropdownMenuTriggerProps {
 export function CopyNpmCommandButton({
   commands,
   className,
-  ...props
 }: CopyNpmCommandButtonProps) {
   const [hasCopied, setHasCopied] = React.useState(false);
 
@@ -152,7 +148,7 @@ export function CopyNpmCommandButton({
 
   const copyCommand = React.useCallback(
     (value: string, pm: 'npm' | 'pnpm' | 'yarn' | 'bun') => {
-      copyToClipboardWithMeta(value, {
+      void copyToClipboardWithMeta(value, {
         name: 'copy_npm_command',
         properties: {
           command: value,

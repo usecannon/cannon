@@ -16,7 +16,6 @@ export default function GetStarted() {
   const guide = allGuides.find(
     (guide: Guides) => guide._raw.flattenedPath === router.query.section
   );
-  console.log('🚀 ~ GetStarted ~ guide:', guide);
 
   if (!guide) return router.push('/404');
 
@@ -29,7 +28,7 @@ export default function GetStarted() {
         openGraph={{
           ...defaultSEO.openGraph,
           title: 'Cannon | Get Started',
-          description: `Get Started`,
+          description: 'Get Started',
         }}
       />
       <div className="container max-w-3xl">

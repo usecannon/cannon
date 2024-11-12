@@ -101,6 +101,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
                             <SidebarMenuSub>
                               {item.nav?.map((navItem) => (
                                 <SidebarMenuSubItem
+                                  key={navItem.href}
                                   className={cn(
                                     'text-neutral-500 py-px hover:text-teal-400 transition-all ease-in-out',
                                     pathname === navItem.href && 'text-teal-400'
