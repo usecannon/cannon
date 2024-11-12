@@ -21,6 +21,7 @@ import {
 import { createColumnHelper } from '@tanstack/react-table';
 import { ChainBuilderContext } from '@usecannon/builder';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import UnavailableTransaction from '@/features/Packages/UnavailableTransaction';
 
 type ContractRow = {
   highlight: boolean;
@@ -182,10 +183,14 @@ export const ContractsTable: React.FC<{
                         }
                         case 'address':
                         case 'deployTxnHash': {
-                          const explorerUrl = getExplorerUrl(
-                            chainId,
-                            cell.row.original[cell.column.columnDef.accessorKey]
-                          );
+                          const value =
+                            cell.row.original[
+                              cell.column.columnDef.accessorKey
+                            ];
+                          if (!value) {
+                            return <UnavailableTransaction />;
+                          }
+                          const explorerUrl = getExplorerUrl(chainId, value);
                           return explorerUrl ? (
                             <a
                               href={explorerUrl}
@@ -193,20 +198,10 @@ export const ContractsTable: React.FC<{
                               rel="noopener noreferrer"
                               className="font-mono border-b border-dotted border-muted-foreground hover:border-solid"
                             >
-                              {
-                                cell.row.original[
-                                  cell.column.columnDef.accessorKey
-                                ]
-                              }
+                              {value}
                             </a>
                           ) : (
-                            <code className="text-xs">
-                              {
-                                cell.row.original[
-                                  cell.column.columnDef.accessorKey
-                                ]
-                              }
-                            </code>
+                            <code className="text-xs">{value}</code>
                           );
                         }
                         default: {
