@@ -1,5 +1,5 @@
+import { NextPageContext } from 'next';
 import { NextSeo } from 'next-seo';
-import { useRouter } from 'next/router';
 import { useLiveReload } from 'next-contentlayer/hooks';
 import { allGuides, type Guides } from 'contentlayer/generated';
 import { ReactElement } from 'react';
@@ -9,15 +9,9 @@ import defaultSEO from '@/constants/defaultSeo';
 import { Mdx } from '@/components/mdx-components';
 import { DocsNav } from '@/components/docs';
 
-export default async function GetStarted() {
+export default function GetStarted({ guide }: { guide: Guides }) {
   // this only runs during development and has no impact on production
   useLiveReload();
-  const router = useRouter();
-  const guide = await allGuides.find(
-    (guide: Guides) => guide._raw.flattenedPath === router.query.section
-  );
-
-  if (!guide) return router.push('/404');
 
   return (
     <>
@@ -38,6 +32,14 @@ export default async function GetStarted() {
     </>
   );
 }
+
+GetStarted.getInitialProps = async (ctx: NextPageContext) => {
+  const guide = await allGuides.find(
+    (guide: Guides) => guide._raw.flattenedPath === ctx.query.section
+  );
+
+  return { guide: guide || 'introduction' };
+};
 
 GetStarted.getLayout = function getLayout(page: ReactElement) {
   return (
