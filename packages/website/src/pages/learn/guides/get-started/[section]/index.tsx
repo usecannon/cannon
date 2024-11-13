@@ -9,11 +9,11 @@ import defaultSEO from '@/constants/defaultSeo';
 import { Mdx } from '@/components/mdx-components';
 import { DocsNav } from '@/components/docs';
 
-export default function GetStarted() {
+export default async function GetStarted() {
   // this only runs during development and has no impact on production
   useLiveReload();
   const router = useRouter();
-  const guide = allGuides.find(
+  const guide = await allGuides.find(
     (guide: Guides) => guide._raw.flattenedPath === router.query.section
   );
 
