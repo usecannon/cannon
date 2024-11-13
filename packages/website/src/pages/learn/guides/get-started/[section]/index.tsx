@@ -1,34 +1,37 @@
 import { NextPageContext } from 'next';
-import { NextSeo } from 'next-seo';
-import { useLiveReload } from 'next-contentlayer/hooks';
-import { allGuides, type Guides } from 'contentlayer/generated';
 import { ReactElement } from 'react';
-import Layout from '../../../_layout';
-import NestedLayout from '../../guideLayout';
+import { NextSeo } from 'next-seo';
+import { allGuides, type Guides } from 'contentlayer/generated';
 import defaultSEO from '@/constants/defaultSeo';
 import { Mdx } from '@/components/mdx-components';
 import { DocsNav } from '@/components/docs';
+import Custom404 from '@/pages/404';
+import Layout from '../../../_layout';
+import NestedLayout from '../../guideLayout';
 
 export default function GetStarted({ guide }: { guide: Guides }) {
-  // this only runs during development and has no impact on production
-  useLiveReload();
-
   return (
     <>
       <NextSeo
         {...defaultSEO}
-        title="Cannon | Get Started"
-        description="Get Started"
+        title={`Cannon | Get Started | ${guide?.title}`}
+        description={guide?.description}
         openGraph={{
           ...defaultSEO.openGraph,
-          title: 'Cannon | Get Started',
-          description: 'Get Started',
+          title: `Cannon | Get Started | ${guide?.title}`,
+          description: guide?.description,
         }}
       />
-      <div className="container max-w-3xl">
-        <Mdx code={guide.body.code} />
-        <DocsNav guide={guide} />
-      </div>
+      {guide ? (
+        <div className="container max-w-3xl pt-10">
+          <Mdx code={guide.body.code} />
+          <DocsNav guide={guide} />
+        </div>
+      ) : (
+        <div className="pt-10">
+          <Custom404 text="Guide not found" />
+        </div>
+      )}
     </>
   );
 }
@@ -38,7 +41,7 @@ GetStarted.getInitialProps = async (ctx: NextPageContext) => {
     (guide: Guides) => guide._raw.flattenedPath === ctx.query.section
   );
 
-  return { guide: guide || 'introduction' };
+  return { guide: guide };
 };
 
 GetStarted.getLayout = function getLayout(page: ReactElement) {

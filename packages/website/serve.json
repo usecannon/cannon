@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/learn/guides/get-started/:section",
+      "destination": "/learn/guides/get-started/[section].html"
+    },
+    {
       "source": "/packages/:name",
       "destination": "/packages/[name].html"
     },
