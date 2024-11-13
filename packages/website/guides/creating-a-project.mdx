@@ -15,43 +15,131 @@ after:
 
 To start a new project, create a directory for it:
 
-<Snippet>
-  <span class="text-blue-400">$</span> mkdir learn-cannon
-  <span class="text-yellow-400">&&</span> cd learn-cannon
-</Snippet>
+```bash
+$ mkdir learn-cannon && cd learn-cannon
+```
 
 Once inside the folder, initialize the project running `forge init`
 
-<Snippet>
-  <span class="text-blue-400">$</span> forge init
-</Snippet>
+```bash
+$ forge init
+```
 
 Forge will create the initial project structure for us. The result will be as follows:
 
-<Snippet>
-  // TODO: Change this component for file tree component
-  [https://magicui.design/docs/components/file-tree](https://magicui.design/docs/components/file-tree)
-  <p class="text-red-400">.</p>
-  ├── README.md <br />
-  ├── foundry.toml <br />
-  ├── lib <br />
-  │ └── forge-std <br />
-  │ ├── LICENSE-APACHE <br />
-  │ ├── LICENSE-MIT <br />
-  │ ├── README.md <br />
-  │ ├── foundry.toml <br />
-  │ ├── package.json <br />
-  │ ├── scripts <br />
-  │ ├── src <br />
-  │ └── test <br />
-  ├── script <br />
-  │ └── Counter.s.sol <br />
-  ├── src <br />
-  │ └── Counter.sol <br />
-  └── test <br />
-  └── Counter.t.sol <br />
-</Snippet>
-<Alert variant="info" className="mt-8">
+<FilesBlock
+quantity={19}
+elements={[
+  {
+    id: '1',
+    name: './',
+    type: 'folder',
+    children: [
+      {
+        id: '2',
+        name: 'README.md',
+        type: 'file',
+      },
+      {
+        id: '3',
+        name: 'foundry.toml',
+        type: 'file',
+      },
+      {
+        id: '4',
+        name: 'lib',
+        type: 'folder',
+        children: [
+          {
+            id: '5',
+            name: 'forge-std',
+            type: 'folder',
+            children: [
+              {
+                id: '6',
+                name: 'LICENSE-APACHE',
+                type: 'file',
+              },
+              {
+                id: '7',
+                name: 'LICENSE-MIT',
+                type: 'file',
+              },
+              {
+                id: '8',
+                name: 'README.md',
+                type: 'file',
+              },
+              {
+                id: '9',
+                name: 'foundry.toml',
+                type: 'file',
+              },
+              {
+                id: '10',
+                name: 'package.json',
+                type: 'file',
+              },
+              {
+                id: '11',
+                name: 'scripts',
+                type: 'folder',
+              },
+              {
+                id: '12',
+                name: 'src',
+                type: 'folder',
+              },
+              {
+                id: '13',
+                name: 'test',
+                type: 'folder',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: '14',
+        name: 'script',
+        type: 'folder',
+        children: [
+          {
+            id: '15',
+            name: 'Counter.s.sol',
+            type: 'file',
+          },
+        ],
+      },
+      {
+        id: '16',
+        name: 'script',
+        type: 'folder',
+        children: [
+          {
+            id: '17',
+            name: 'Counter.sol',
+            type: 'file',
+          },
+        ],
+      },
+      {
+        id: '18',
+        name: 'test',
+        type: 'folder',
+        children: [
+          {
+            id: '19',
+            name: 'Counter.t.sol',
+            type: 'file',
+          },
+        ],
+      },
+    ],
+  },
+]} />
+
+<Alert variant="info" className="mt-2">
   <AlertDescription>
     📢 In this guide, we will not delve into the use of Forge, for more
     information about what can you do visit [**Foundry
@@ -59,17 +147,17 @@ Forge will create the initial project structure for us. The result will be as fo
   </AlertDescription>
 </Alert>
 
-<br />
 #### Installing Foundry
 
 At the root folder create your first `cannonfile.toml`.
 
-<Snippet className="mt-8">
-  <p class="text-gray-400">// ./cannonfile.toml</p>
-  name = <span class="text-yellow-400">'learn-cannon'</span> <br />
-  version = <span class="text-yellow-400">'0.0.1'</span> <br />
-  description = <span class="text-yellow-400">'Cannon learn - Sample Foundry Project'</span> <br />
-</Snippet>
+```toml
+// ./cannonfile.toml
+
+name = 'learn-cannon'
+version = '0.0.1'
+description = 'Cannon learn - Sample Foundry Project'
+```
 
 Cannonfiles are like deployment plans. They include operations that specify
 the desired state of a blockchain.
@@ -78,54 +166,59 @@ You can use the CLI and our web app to `build` the blockchain into this state.
 This results in a package of data pertaining to the deployment, which
 can be uploaded using IPFS and published to the registry on Ethereum.
 
-<br />
 #### Create a contract
 
 In the `/src` folder, Forge will have created the contract called `Counter.sol`.
 A basic contract with two functions: `setNumber` and `increment`.
 
-<Alert variant="warning">
+<Alert className="mt-2" variant="warning">
   <AlertDescription>
     ⚠️ In this guide, we won't dive deep into creating and structuring smart
     contracts. These are simply example cases to get started with Cannon.
   </AlertDescription>
 </Alert>
 
-<Snippet className="flex-col items-start">
-<p class="text-gray-400">// ./src/Counter.sol</p> <br />
-<p class="text-gray-400">// SPDX-License-Identifier: UNLICENSED</p>
-pragma <span class="text-red-500">solidity</span> <span class="text-yellow-400">^0.8.13;</span><br /><br />
-contract <span class="text-yellow-400">Counter \{</span><br />
-<span class="pl-8">uint256 <span class="text-yellow-400">public</span> number;<br /></span>
+```solidity
+// ./src/Counter.sol
 
-<span class="pl-8">function <span class="text-yellow-400">setNumber</span> (uint256 newNumber) public \{<br /></span>
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.13;
+
+contract Counter {
+    uint256 public number;
+
+    function setNumber(uint256 newNumber) public {
         number = newNumber;
-    \}
+    }
 
-    function increment() public \{
+    function increment() public {
         number++;
-    \}
-\}
-</Snippet>
+    }
+}
+```
 
 #### Adding steps on the cannonfile
 
 Edit your `cannonfile.toml` with the following steps.
 
-<Snippet>
- <p class="text-gray-400">// ./cannonfile.toml</p> <br />
- name = <span class="text-yellow-400">'learn-cannon'</span> <br />
- version = <span class="text-yellow-400">'0.0.1'</span> <br />
- description = <span class="text-yellow-400">'Cannon learn - Sample Foundry Project'</span><br /><br />
- [deploy.counter]<br />
- artifact = <span class="text-yellow-400">'Counter'</span><br /><br />
- [deploy.counter]<br />
- number = <span class="text-yellow-400">'420'</span><br /><br />
- [invoke.set_number]<br />
- target = [<span class="text-yellow-400">"counter"</span>]<br />
- func = <span class="text-yellow-400">"setNumber"</span><br />
- args = [<span class="text-yellow-400">`"<%= settings.number %>"`</span>]
-</Snippet>
+```toml
+// ./cannonfile.toml
+
+name = "learn-cannon"
+version = "0.0.1"
+description = "Cannon learn - Sample Foundry Project"
+
+[deploy.counter]
+artifact = "Counter"
+
+[var.main]
+number = "420"
+
+[invoke.set_number]
+target = ["counter"]
+func = "setNumber"
+args = ["<%= settings.number %>"]
+```
 
 Each step in a cannonfile is composed by a type and a name resulting
 in `[type.name]`, the step name is only referential, made to improve
@@ -138,9 +231,9 @@ is declared the `artifact` configuration which is the name of the target contrac
 The `[var.main]` allows Cannon to apply a setting or intermediate value
 to a contract. In our example contract we defined a variable `number`:
 
-<Snippet>
- <p>uint256 public number;</p>
-</Snippet>
+```solidity
+uint256 public number;
+```
 
 That variable value can be set in the cannonfile with the `[var.main]` step.
 
@@ -153,7 +246,7 @@ And finally in the `[invoke.set_number]`  step we define following settings:
 See how the  `<%= settings.number %>`  string template refers to the `number`
 var in the `[var.main]` step.
 
-<Alert variant="info">
+<Alert className="mt-2" variant="info">
  <AlertDescription>
    📢 Some of the cannonfile steps use templates like `args = ["<%= settings.number %>"]` to modify `settings` and `imports` objects.
  </AlertDescription>

@@ -15,19 +15,17 @@ after:
 
 **Cannon** uses [Foundry](https://book.getfoundry.sh/) to work. Foundry is a toolchain for developing smart contracts, managing dependencies, compiling the project, running tests, deploying your project, and allowing you to interact with the chain from the Cannon CLI.
 
-<Callout variant="info" className="mt-4">
-
-📢 If you're already familiar with Foundry, feel free to skip this section.
-
-</Callout>
+<Alert variant="info" className="mt-2">
+  <AlertDescription>
+    📢 If you're already familiar with Foundry, feel free to skip this section.
+  </AlertDescription>
+</Alert>
 
 On your terminal run:
 
-<Snippet className="mt-2">
-  <span class="text-blue-400">curl -L</span> https://foundry.paradigm.xyz
-  <span class="text-yellow-400">|</span> bash
-</Snippet>
-
+```bash
+curl -L https://foundry.paradigm.xyz | bash
+```
 This will install **Foundryup**. Simply follow the on-screen instructions, and the `foundryup` command will become available in your CLI.
 
 #### Installing Cannon CLI
@@ -39,41 +37,35 @@ Run one of the following commands in your terminal to install (or upgrade) Canno
 <Tabs defaultValue="pnpm" className="mt-2">
   <TabsList className="w-full">
     <TabsTrigger value="pnpm" className="w-full">
-      {/* <PnpmIcon className="size-3" /> */}
       <span>pnpm</span>
     </TabsTrigger>
     <TabsTrigger value="npm" className="w-full">
-      {/* <NpmIcon className="size-3" /> */}
       <span>npm</span>
     </TabsTrigger>
     <TabsTrigger value="yarn" className="w-full">
-      {/* <YarnIcon className="size-3" /> */}
       <span>yarn</span>
     </TabsTrigger>
   </TabsList>
   <TabsContent value="npm">
-    <Snippet>
-      <span class="text-blue-400">npm</span> install -g
-      <span class="text-yellow-400">@usecannon/cli</span>
-    </Snippet>
+    ```bash
+    npm install -g @usecannon/cli
+    ```
   </TabsContent>
   <TabsContent value="yarn">
-    <Snippet>
-      <span class="text-blue-400">yarn</span> global add
-      <span class="text-yellow-400">@usecannon/cli</span>
-    </Snippet>
+    ```bash
+    yarn global add @usecannon/cli
+    ```
   </TabsContent>
   <TabsContent value="pnpm">
-    <Snippet>
-      <span class="text-blue-400">pnpm</span> add -g
-      <span class="text-yellow-400">@usecannon/cli</span>
-    </Snippet>
+    ```bash
+    pnpm add -g @usecannon/cli
+    ```
   </TabsContent>
 </Tabs>
 
 Once you’re done, run `cannon --version` on a terminal to check your installation.
 
-<Snippet className="mt-2">
-  <span class="text-blue-400">$</span> cannon --version <br />
-  <span class="text-gray-400">2.18.0</span>
-</Snippet>
+```bash
+$ cannon --version
+2.18.0
+```

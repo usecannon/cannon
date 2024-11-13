@@ -55,22 +55,22 @@ contract CounterTest is Test {
 
 If everything went well you will see something like this:
 
-<Snippet className="flex-col items-start">
-**Building the foundry project...**
+```bash
+Building the foundry project...
 forge build succeeded
 
 Anvil instance running on: http://127.0.0.1:59576
 
-**Checking for existing package...**
+Checking for existing package...
 Starting fresh build...
 
-**Initializing new package...**
+Initializing new package...
 Name: learn-cannon
 Version: 0.0.1
 Preset: main (default)
 Chain ID: 13370
 
-**Building the chain (ID 13370) via http://127.0.0.1:59576/...**
+Building the chain (ID 13370) via http://127.0.0.1:59576/...
 
 Executing [deploy.counter]...
   ✔ Successfully deployed Counter
@@ -89,10 +89,10 @@ Executing [invoke.set_number]...
   Transaction Cost: 0.00007268124780963 ETH (43,506 gas)
 
 Writing upgrade info...
-**💥 learn-cannon:0.0.1@main built for Cannon (Chain ID: 13370)**
+💥 learn-cannon:0.0.1@main built for Cannon (Chain ID: 13370)
 This package can be run locally and cloned in cannonfiles.
 
-**Package data has been stored locally**
+Package data has been stored locally
 ╔═════════════════╤═══════════════════════════════════════════════════════╗
 ║ Deployment Data │ ipfs://QmVpLGJMKqAd5hD3LgM3oh37NfbmzTS9FUyjCZx1LcB8yW ║
 ╟─────────────────┼───────────────────────────────────────────────────────╢
@@ -101,13 +101,14 @@ This package can be run locally and cloned in cannonfiles.
 ║ Metadata        │ ipfs://QmRsYpSHrvjVmktXJtLYZbmiHD8GNKp64qxoZ2hbGcqEDf ║
 ╚═════════════════╧═══════════════════════════════════════════════════════╝
 
-**Publish learn-cannon:0.0.1 to the registry and pin the IPFS data to**
-\> cannon publish learn-cannon:0.0.1 --chain-id 13370
+Publish learn-cannon:0.0.1 to the registry and pin the IPFS data to
+> cannon publish learn-cannon:0.0.1 --chain-id 13370
 
-**Run this package**
-\> cannon learn-cannon:0.0.1
-</Snippet>
-<Alert variant="info" className="mt-6">
+Run this package
+> cannon learn-cannon:0.0.1
+```
+
+<Alert variant="info" className="mt-4">
   <AlertDescription>
     📢 What Cannon does in this case is run the build on a local Anvil node, but the node is not kept running, resulting in a kind of "compilation". If you want to keep the node running, you can use the `--keep-alive` flag.
   </AlertDescription>
@@ -121,15 +122,15 @@ As we can see, Cannon runs each of the steps we defined in the `cannonfile` prev
 
 By default, Cannon will build the package on a empty local chain with the id 13370. Later we will learn how to build using different chains IDs.
 
-<Snippet>
-...<br />
+```bash
+...
 Building the chain (ID 13370) via http://127.0.0.1:59576/...
-...<br />
-</Snippet>
+...
+```
 
 Once the build is done, the execution of the steps defined in the `cannonfile.toml` begins.
 
-<Snippet className="flex-col items-start">
+```bash
 Executing [deploy.counter]...
   ✔ Successfully deployed Counter
   Contract Address: 0xACEbBC3E0D8BC1bB13a35b40f3714A7c78C158f7
@@ -145,16 +146,16 @@ Executing [invoke.set_number]...
   Contract Address: 0xACEbBC3E0D8BC1bB13a35b40f3714A7c78C158f7
   Transaction Hash: 0x4ceea742fecb9ba8adce1d364beb01f17dc93125b740e532bbdd8ff1068b96eb
   Transaction Cost: 0.00007268124780963 ETH (43,506 gas)
-</Snippet>
+```
 
 Once the build steps are completed, the CLI will notify you that everything went well and provide you with all the build data in IPFS URLs.
 
-<Snippet className="flex-col items-start">
+```bash
 Writing upgrade info...
-**💥 learn-cannon:0.0.1@main built for Cannon (Chain ID: 13370)**
+💥 learn-cannon:0.0.1@main built for Cannon (Chain ID: 13370)
 This package can be run locally and cloned in cannonfiles.
 
-**Package data has been stored locally**
+Package data has been stored locally
 ╔═════════════════╤═══════════════════════════════════════════════════════╗
 ║ Deployment Data │ ipfs://QmVpLGJMKqAd5hD3LgM3oh37NfbmzTS9FUyjCZx1LcB8yW ║
 ╟─────────────────┼───────────────────────────────────────────────────────╢
@@ -162,7 +163,7 @@ This package can be run locally and cloned in cannonfiles.
 ╟─────────────────┼───────────────────────────────────────────────────────╢
 ║ Metadata        │ ipfs://QmRsYpSHrvjVmktXJtLYZbmiHD8GNKp64qxoZ2hbGcqEDf ║
 ╚═════════════════╧═══════════════════════════════════════════════════════╝
-</Snippet>
+```
 
 **Deployment Data**
 
@@ -188,43 +189,43 @@ To run your package locally, you can use the `cannon run` command. The `run` com
 
 To run your package locally use:
 
-<Snippet>
+```bash
 $ cannon run learn-cannon:0.0.1
-</Snippet>
+```
 
 Cannon will create an Anvil node locally with the previously generated build, allowing you to interact with the contract we just created.
 
 The result of running the `run` command should be something like this:
 
-<Snippet className="flex-col items-start">
+```bash
 Starting local node...
 
 Anvil instance running on: http://127.0.0.1:64228
 
 learn-cannon:0.0.1@main has been deployed to a local node.
 
-**Press h to see help information for this command.
+Press h to see help information for this command.
 Press a to toggle displaying the logs from your local node.
 Press i to interact with contracts via the command line.
 Press v to toggle display verbosity of transaction traces as they run.**
-</Snippet>
+```
 
 As you can see, Cannon allows you to interact with your package in a simple way.
 
 - Pressing the letter `h` will show you all the information about the `run` command.
 - Pressing the letter `a` will allow you to see all the logs from your local node.
 
-<Snippet className="flex-col items-start">
+```bash
 ...
 anvil:     Block Number: 3
 anvil:     Block Hash: 0xc6ec0d6a72c8b026ba72887312a491efdca7edf57b7f93e76e93da7d725f7df3
 anvil:     Block Time: "Thu, 10 Oct 2024 17:19:20 +0000"
 ...
-</Snippet>
+```
 
 - Pressing the letter `i` will allow you to interact with the contracts from the CLI. In this case, you will see the following:
 
-<Snippet className="flex-col items-start">
+```bash
 ================================================================================
 > Gas price: provider default
 > Block tag: latest
@@ -235,19 +236,19 @@ anvil:     Block Time: "Thu, 10 Oct 2024 17:19:20 +0000"
 ? Pick a CONTRACT: ›
 ❯   ↩ BACK
     counter
-</Snippet>
+```
 
 Here you will be able to see that the `counter` contract created previously appears. If you had created more contracts, they would also appear in this list.
 
 Once the contract is selected, we will be able to interact with the functions defined in the smart contract. The CLI will allow us to pass arguments to functions that require them for their use, as well as invoke functions without arguments.
 
-<Snippet className="flex-col items-start 6">
+```bash
 ? Pick a FUNCTION: ›
 ❯   ↩ BACK
     function increment()
     function number()
     function setNumber(uint256 newNumber)
-</Snippet>
+```
 
 In this case, we can see how the functions `number` or `increment` are functions that we can invoke and do not require arguments, unlike `setNumber` which does need an argument.
 
@@ -255,16 +256,16 @@ In this case, we can see the argument definition directly in the CLI.
 
 In this case, we will invoke the `number()` function. The result of this function (as we defined in the contract) will be an `int` indicating the number stored in the contract.
 
-<Snippet className="flex-col items-start mt-6">
+```bash
 // function number() output
 
 ✔ Pick a FUNCTION: › function number()
-  \> calldata: 0x8381f58a
-  \> estimated gas required: 23347
+  > calldata: 0x8381f58a
+  > estimated gas required: 23347
   ↪ (uint256):  420
 counter => 0xACEbBC3E0D8BC1bB13a35b40f3714A7c78C158f7
-  \* Signer: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
-</Snippet>
+  * Signer: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+```
 
 What the CLI is showing us here is the execution of the function and its result. Let's analyze it in parts:
 
@@ -288,42 +289,42 @@ By convention, tests in Foundry are located in the `/test` folder and the test f
 
 In this example, we will use the test created by `forge init`. It's an example test created for the `Counter.sol` contract, also created by Forge.
 
-<Snippet className="flex-col items-start mt-6">
+```solidity
 // ./test/Counter.t.sol
 
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-\import \{ Test } from "forge-std/Test.sol";
-\import \{ Counter } from "../src/Counter.sol";
+import { Test } from "forge-std/Test.sol";
+import { Counter } from "../src/Counter.sol";
 
-contract CounterTest is Test \{
+contract CounterTest is Test {
     Counter public counter;
     
     Counter counter
 
-    function setUp() public \{
+    function setUp() public {
         counter = new Counter();
         counter.setNumber(0);
     }
 
-    function test_Increment() public \{
+    function test_Increment() public {
         counter.increment();
         assertEq(counter.number(), 1);
     }
 
-    function testFuzz_SetNumber(uint256 x) public \{
+    function testFuzz_SetNumber(uint256 x) public {
         counter.setNumber(x);
         assertEq(counter.number(), x);
     }
 }
-</Snippet>
+```
 
 We are going to use the `cannon-std` helper library from Cannon to write tests. This library allows us to interact with the previously generated build. Let’s install it, run:
 
-<Snippet className="flex-col items-start mt-6">
+```bash
 $ forge install usecannon/cannon-std
-</Snippet>
+```
 
 Cannon runs `forge test` in the background, but the `cannon test` command can receive a specific cannonfile as an argument to run the test suites. By default, it uses `cannonfile.toml`.
 
@@ -336,7 +337,7 @@ Cannon runs `forge test` in the background, but the `cannon test` command can re
 After running the tests, the CLI will **notify** us that all tests have passed successfully.
 
 
-<Snippet className="flex-col items-start mt-6">
+```bash
 Writing deployment artifacts to ./deployments/test
 [⠊] Compiling...
 No files changed, compilation skipped
@@ -348,4 +349,4 @@ Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 19.96ms (11.97ms CP
 
 Ran 1 test suite in 135.12ms (19.96ms CPU time): 2 tests passed, 0 failed, 0 skipped (2 total tests)
 forge exited with code 0
-</Snippet>
+```

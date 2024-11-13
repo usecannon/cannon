@@ -14,7 +14,7 @@ after:
 ## Building to a network
 
 As we've seen before, building essentially consists of executing all the steps in the cannonfile to obtain a package containing the state, addresses, transactions, artifacts, and source code of the contracts. Now we are ready to see how to build on a remote network.
-<Alert variant="warning" className="mt-6">
+<Alert variant="warning" className="mt-4">
   <AlertDescription>
     ⚠️ Building to a remote network costs gas. For this, you can use the `--dry-run` flag to simulate the gas cost of building to production.
   </AlertDescription>
@@ -26,22 +26,22 @@ To do this, Cannon provides us with two methods: using the **chain id** or the *
 
 To start, let's see how to build to production using the `--chain-id` flag with Cannon.
 
-<table className="text-left">
-  <tr>
-    <th>**OPTION**</th>
-    <th>**DESCRIPTION**</th>
-    <th>**DEFAULT**</th>
-  </tr>
-  <tr>
-    <td>`-c --chain-id <number>`</td>
-    <td>The chain ID to run against</td>
-    <td>13370 (cannon chain id)</td>
-  </tr>
-</table>
+<Table>
+  <Tr>
+    <Th>**OPTION**</Th>
+    <Th>**DESCRIPTION**</Th>
+    <Th>**DEFAULT**</Th>
+  </Tr>
+  <Tr>
+    <Td>`-c --chain-id <number>`</Td>
+    <Td>The chain ID to run against</Td>
+    <Td>13370 (cannon chain id)</Td>
+  </Tr>
+</Table>
 
 As you can see, if no chain id is passed to the build command, it will use the Cannon chain ID by default. This is the case we saw previously when we generated the build locally.
 
-<Alert variant="info" className="mt-6">
+<Alert variant="info" className="mt-4">
   <AlertDescription>
     📢 Keep in mind that technically Cannon is not a network. The id shown above is only used to run a local Anvil node with that chain id and build the package.
   </AlertDescription>
@@ -49,7 +49,7 @@ As you can see, if no chain id is passed to the build command, it will use the C
 
 To run the build on a remote network, you will also need the private key of the wallet you are using.
 
-<Alert variant="info" className="mt-6">
+<Alert variant="info" className="mt-4">
   <AlertDescription>
     📢 In this guide, we will not cover anything about the use and types of wallets that exist. For more information about wallet go to [https://ethereum.org/](https://ethereum.org/en/guides/how-to-create-an-ethereum-account/)
   </AlertDescription>
@@ -57,7 +57,7 @@ To run the build on a remote network, you will also need the private key of the 
 
 In this example, we will use the Sepolia network, a dedicated network for protocol testing. (For more information about Sepolia, visit [www.sepolia.dev](http://www.sepolia.dev)).
 
-<Alert variant="info" className="mt-6">
+<Alert variant="info" className="mt-4">
   <AlertDescription>
     📢 You can find the IDs of all available networks at https://usecannon.com/packages
   </AlertDescription>
@@ -65,11 +65,11 @@ In this example, we will use the Sepolia network, a dedicated network for protoc
 
 We are going to build to the Sepolia network. For this, we will use `--chain-id 11155111` and the private key.
 
-<Snippet>
+```bash
 $ cannon build --chain-id 11155111 --private-key 0xd8...ad
-</Snippet>
+```
 
-<Alert variant="info" className="mt-6">
+<Alert variant="info" className="mt-4">
   <AlertDescription>
     📢 Since building to a remote network requires the use of gas, keep in mind that to run the build command you will need [Sepolia faucets](https://cloud.google.com/application/web3/faucet/ethereum/sepolia) in your wallet.
   </AlertDescription>
@@ -77,23 +77,23 @@ $ cannon build --chain-id 11155111 --private-key 0xd8...ad
 
 The output is almost the same as when we run the build locally, but with some differences.
 
-<Snippet className="flex-col items-start">
-**Building the foundry project...**
+```bash
+Building the foundry project...
 forge build succeeded
 
-**Resolving connection to Sepolia (Chain ID: 11155111)...**
+Resolving connection to Sepolia (Chain ID: 11155111)...
 Attempting to find connection via https://rpc2.sepolia.org/
 
-**Checking for existing package...**
+Checking for existing package...
 Starting fresh build...
 
-**Initializing new package...**
+Initializing new package...
 Name: learn-cannon
 Version: 0.0.1
 Preset: main (default)
 Chain ID: 11155111
 
-**Building the chain (ID 11155111) via https://rpc2.sepolia.org/...**
+Building the chain (ID 11155111) via https://rpc2.sepolia.org/...
 Using 0x88e224762460f5aAcA3Bde86dA4EFa9B13662b80
 
 Executing [deploy.counter]...
@@ -112,10 +112,10 @@ Executing [invoke.set_number]...
   Transaction Cost: 0.00011016614575233 ETH (43,506 gas)
 
 Writing upgrade info...
-**💥 learn-cannon:0.0.1@main built on Sepolia (Chain ID: 11155111)**
+💥 learn-cannon:0.0.1@main built on Sepolia (Chain ID: 11155111)
 This package can be run locally and cloned in cannonfiles.
 
-**Package data has been stored locally**
+Package data has been stored locally
 ╔═════════════════╤═══════════════════════════════════════════════════════╗
 ║ Deployment Data │ ipfs://QmVpLGJMKqAd5hD3LgM3oh37NfbmzTS9FUyjCZx1LcB8yW ║
 ╟─────────────────┼───────────────────────────────────────────────────────╢
@@ -124,41 +124,41 @@ This package can be run locally and cloned in cannonfiles.
 ║ Metadata        │ ipfs://QmRsYpSHrvjVmktXJtLYZbmiHD8GNKp64qxoZ2hbGcqEDf ║
 ╚═════════════════╧═══════════════════════════════════════════════════════╝
 
-**Publish learn-cannon:0.0.1 to the registry and pin the IPFS data to**
-\> cannon publish learn-cannon:0.0.1 --chain-id 11155111
+Publish learn-cannon:0.0.1 to the registry and pin the IPFS data to
+> cannon publish learn-cannon:0.0.1 --chain-id 11155111
 
-**Verify contracts on Etherscan**
-\> cannon verify learn-cannon:0.0.1@main --chain-id 11155111
-</Snippet>
+Verify contracts on Etherscan
+> cannon verify learn-cannon:0.0.1@main --chain-id 11155111
+```
 
 Lets analyze the build. Here we can see how Cannon uses the Sepolia chain ID to connect to the RPC and build the package on that network.
 
-<Snippet className="flex-col items-start">
-**Building the foundry project...**
+```bash
+Building the foundry project...
 forge build succeeded
 
-**Resolving connection to Sepolia (Chain ID: 11155111)...**
+Resolving connection to Sepolia (Chain ID: 11155111)...
 Attempting to find connection via https://rpc2.sepolia.org/
 
-**Checking for existing package...**
+Checking for existing package...
 Starting fresh build...
 
-**Initializing new package...**
+Initializing new package...
 Name: learn-cannon
 Version: 0.0.1
 Preset: main (default)
 Chain ID: 11155111
 
-**Building the chain (ID 11155111) via https://rpc2.sepolia.org/...**
+Building the chain (ID 11155111) via https://rpc2.sepolia.org/...
 Using 0x88e224762460f5aAcA3Bde86dA4EFa9B13662b80
-</Snippet>
+```
 
 And on the other hand, unlike the local build, Cannon gives us the option to verify the package using the `verify` command which we will be covering in another guide.
 
-<Snippet className="flex-col items-start">
-**Verify contracts on Etherscan**
-\> cannon verify learn-cannon:0.0.1@main --chain-id 11155111
-</Snippet>
+```bash
+Verify contracts on Etherscan
+> cannon verify learn-cannon:0.0.1@main --chain-id 11155111
+```
 
 The next step is to publish the package using the `publish` command that Cannon provides. To go to the `publish` section, [click here](https://www.notion.so/Get-started-Guide-1178ffcde6b680b8ae8cee86bfb18608?pvs=21).
 
@@ -166,19 +166,19 @@ The next step is to publish the package using the `publish` command that Cannon 
 
 Another way to build our package to a remote network is by directly using a URL of a specific RPC. For this, we can use the `--rpc-url` parameter and pass as an argument the URL of the RPC we want to use.
 
-<table className="text-left">
-  <tr>
-    <th>**OPTION**</th>
-    <th>**DESCRIPTION**</th>
-    <th>**DEFAULT**</th>
-  </tr>
-  <tr>
-    <td>`-n --rpc-url [url]`</td>
-    <td>RPC endpoint to fork off</td>
-    <td>*none*</td>
-  </tr>
-</table>
-<Alert variant="info" className="mt-6">
+<Table>
+  <Tr>
+    <Th>**OPTION**</Th>
+    <Th>**DESCRIPTION**</Th>
+    <Th>**DEFAULT**</Th>
+  </Tr>
+  <Tr>
+    <Td>`-n --rpc-url [url]`</Td>
+    <Td>RPC endpoint to fork off</Td>
+    <Td>*none*</Td>
+  </Tr>
+</Table>
+<Alert variant="info" className="mt-4">
   <AlertDescription>
     📢 Building using RPC node URLs is a more advanced use case. If you don't have knowledge about RPC nodes, we recommend skipping to the [publish step](https://www.notion.so/Get-started-Guide-1178ffcde6b680b8ae8cee86bfb18608?pvs=21).
   </AlertDescription>
@@ -186,7 +186,7 @@ Another way to build our package to a remote network is by directly using a URL 
 
 We will perform the same build to Sepolia using the Sepolia RPC URL. An RPC URL is an HTTPS endpoint for interacting with a remote network. In this case, we will use the Sepolia URL from Alchemy. You can find the Alchemy RPC endpoints [here](https://www.alchemy.com/chain-connect/endpoints/rpc-sepolia-sepolia).
 
-<Alert variant="info" className="mt-6">
+<Alert variant="info" className="mt-4">
   <AlertDescription>
     📢 To learn more about Alchemy, you can visit [wwww.alchemy.com](https://www.alchemy.com/).
   </AlertDescription>
@@ -194,15 +194,15 @@ We will perform the same build to Sepolia using the Sepolia RPC URL. An RPC URL 
 
 Now, let's run the build again using the `--rpc-url` parameter with the URL as a argument.
 
-<Snippet>
+```bash
 $ cannon build --rpc-url https://rpc2.sepolia.org --private-key 0xd8...ad
-</Snippet>
+```
 
 As you can see, Cannon automatically detects that a deployment has already been made previously and that there were no changes in the package state. Therefore, it reuses the existing package.
 
 The output of this build will be similar to the previous one, but with some differences indicating that the package already exists:
 
-<Snippet className="flex-col items-start">
+```bash
 Building the foundry project...
 forge build succeeded
 
@@ -222,7 +222,7 @@ Chain ID: 11155111
 Building the chain (ID 11155111) via https://rpc2.sepolia.org/...
 Using 0x88e224762460f5aAcA3Bde86dA4EFa9B13662b80
 ...
-</Snippet>
+```
 
 As you may have noticed, using the RPC URL or the chain ID, in this case, results in the same outcome. However, the ability to build using a custom RPC URL provides greater control, performance, and reliability in various scenarios:
 

@@ -17,43 +17,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Snippet } from '@/components/snippet';
-import { codeToHtml } from 'shiki';
-
-// Convert pre to a proper React component
-const PreComponent = ({ ...props }: React.HTMLAttributes<HTMLPreElement>) => {
-  const [html, setHtml] = React.useState('');
-  const command = (props.children as any).props.children as string;
-
-  // Handle the async code highlighting
-  React.useEffect(() => {
-    const highlightCode = async () => {
-      if (!command) return;
-
-      const highlighted = await codeToHtml(command, {
-        lang: 'bash',
-        theme: 'github-dark-default',
-        transformers: [
-          {
-            code(node) {
-              node.properties['data-line-numbers'] = '';
-            },
-          },
-        ],
-      });
-
-      setHtml(highlighted);
-    };
-
-    void highlightCode();
-  }, [command]);
-
-  return (
-    <div
-      className="w-full overflow-x-auto whitespace-nowrap pr-12"
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
-  );
-};
+import { FilesBlock } from '@/components/files-block';
 
 const components = {
   Accordion,
@@ -155,7 +119,7 @@ const components = {
   hr: ({ ...props }: React.HTMLAttributes<HTMLHRElement>) => (
     <hr className="my-4 md:my-8" {...props} />
   ),
-  table: ({ className, ...props }: React.HTMLAttributes<HTMLTableElement>) => (
+  Table: ({ className, ...props }: React.HTMLAttributes<HTMLTableElement>) => (
     <div className="my-6 w-full overflow-y-auto">
       <table
         className={cn(
@@ -166,13 +130,13 @@ const components = {
       />
     </div>
   ),
-  tr: ({ className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) => (
+  Tr: ({ className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) => (
     <tr
       className={cn('last:border-b-none m-0 border-b', className)}
       {...props}
     />
   ),
-  th: ({ className, ...props }: React.HTMLAttributes<HTMLTableCellElement>) => (
+  Th: ({ className, ...props }: React.HTMLAttributes<HTMLTableCellElement>) => (
     <th
       className={cn(
         'px-4 py-2 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right',
@@ -181,7 +145,7 @@ const components = {
       {...props}
     />
   ),
-  td: ({ className, ...props }: React.HTMLAttributes<HTMLTableCellElement>) => (
+  Td: ({ className, ...props }: React.HTMLAttributes<HTMLTableCellElement>) => (
     <td
       className={cn(
         'px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right',
@@ -190,7 +154,7 @@ const components = {
       {...props}
     />
   ),
-  pre: PreComponent,
+  pre: Snippet,
   code: ({ ...props }: React.HTMLAttributes<HTMLElement>) => (
     <code
       className="relative rounded bg-muted text-red-500 px-[0.3rem] py-[0.2rem] font-mono text-sm"
@@ -254,7 +218,7 @@ const components = {
       {...props}
     />
   ),
-  Snippet,
+  FilesBlock,
 };
 
 interface MdxProps {
