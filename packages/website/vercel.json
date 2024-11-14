@@ -38,7 +38,7 @@
     },
     {
       "source": "/learn/guides/get-started/:section",
-      "destination": "/learn/guides/get-started/[section].html"
+      "destination": "/learn/guides/get-started/[section]"
     }
   ],
   "framework": null,
