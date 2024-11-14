@@ -76,6 +76,7 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
       // contracts can either be imported by just their name, or by a full path.
       // technically it may be more correct to just load by the actual name of the `artifact` property used, but that is complicated
       debug('finding contract:', contractInfo.sourceName, contractInfo.contractName);
+      debug('available artifacts', Object.keys(miscData.artifacts));
       const contractArtifact =
         miscData.artifacts[contractInfo.contractName] ||
         miscData.artifacts[`${contractInfo.sourceName}:${contractInfo.contractName}`];

@@ -1,7 +1,6 @@
 'use client';
 
 import { Analytics } from '@vercel/analytics/react';
-import { ColorModeScript } from '@chakra-ui/react';
 import createEmotionServer from '@emotion/server/create-instance';
 import Document, {
   DocumentContext,
@@ -10,6 +9,7 @@ import Document, {
   Main,
   NextScript,
 } from 'next/document';
+import { Toaster } from '@/components/ui/sonner';
 
 import emotionCache from '@/lib/emotion-cache';
 
@@ -36,7 +36,7 @@ export default class CustomDocument extends Document {
 
   render() {
     return (
-      <Html lang="en">
+      <Html lang="en" className="dark">
         <Head>
           <style>{`
             body.fouc-prevention {
@@ -48,11 +48,11 @@ export default class CustomDocument extends Document {
           `}</style>
           <link rel="icon" href="/favicon.ico" sizes="any" />
         </Head>
-        <body className="fouc-prevention">
-          <ColorModeScript />
+        <body className="fouc-prevention min-h-screen bg-background font-sans antialiased">
           <Main />
           <NextScript />
           <Analytics />
+          <Toaster />
         </body>
         <GoogleAnalytics gaId="G-C96791F6NC" />
       </Html>

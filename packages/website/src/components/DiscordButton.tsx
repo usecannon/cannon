@@ -1,28 +1,20 @@
-import { Link, Image } from '@chakra-ui/react';
-import { FC } from 'react';
+import { DiscordLogoIcon } from '@radix-ui/react-icons';
+import { Button } from '@/components/ui/button';
 
-export const DiscordButton: FC = () => {
+export const DiscordButton = () => {
   return (
-    <Link
-      background="#1a1e23"
-      px={1.5}
-      pt="6px"
-      border="1px solid #303539"
-      borderRadius=".25em"
-      isExternal
-      href="https://discord.gg/QwarFMb3dS"
-      _hover={{
-        background: '#292e33',
-        borderColor: '#8b949e',
-      }}
+    <Button
+      asChild
+      variant="outline"
+      className="bg-[#1a1e23] px-1.5 pt-1.5 border-[#303539] hover:bg-[#292e33] hover:border-[#8b949e]"
     >
-      <Image
-        display="block"
-        src="/images/discord.svg"
-        alt="Join the Cannon Discord"
-        h="14px"
-        objectFit="contain"
-      />
-    </Link>
+      <a
+        href="https://discord.gg/QwarFMb3dS"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <DiscordLogoIcon className="h-3.5 w-3.5" />
+      </a>
+    </Button>
   );
 };

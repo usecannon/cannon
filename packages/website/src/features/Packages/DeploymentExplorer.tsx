@@ -2,22 +2,14 @@ import 'prismjs';
 import 'prismjs/components/prism-toml';
 
 import React, { FC, useState } from 'react';
+import { Info } from 'lucide-react';
 import {
-  Box,
-  Collapse,
-  Flex,
-  Heading,
-  Link,
-  Text,
   Tooltip,
-} from '@chakra-ui/react';
-import NextLink from 'next/link';
-import { links } from '@/constants/links';
-import { CustomSpinner } from '@/components/CustomSpinner';
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
-import { ChevronDownIcon, ChevronUpIcon, InfoIcon } from '@chakra-ui/icons';
-import { ChainBuilderContext } from '@usecannon/builder';
-import { isEmpty } from 'lodash';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { ContractsTable } from './ContractsTable';
 import { InvokesTable } from './InvokesTable';
@@ -25,18 +17,15 @@ import { EventsTable } from './EventsTable';
 import { extractAddressesAbis } from '@/features/Packages/utils/extractAddressesAndABIs';
 import { ApiPackage } from '@usecannon/api/dist/src/types';
 import SearchInput from '@/components/SearchInput';
+import isEmpty from 'lodash/isEmpty';
+import { ChainBuilderContext } from '@usecannon/builder';
+import { IpfsSpinner } from '@/components/IpfsSpinner';
 
 export const DeploymentExplorer: FC<{
   pkg: ApiPackage;
 }> = ({ pkg }) => {
   const [contractSearchTerm, setContractSearchTerm] = useState<string>('');
   const [invokeSearchTerm, setInvokeSearchTerm] = useState<string>('');
-
-  const [showInvoke, setShowInvoke] = React.useState(true);
-  const [showContracts, setShowContracts] = React.useState(true);
-
-  const handleContractCollapse = () => setShowContracts(!showContracts);
-  const handleInvokeCollapse = () => setShowInvoke(!showInvoke);
 
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     pkg?.deployUrl,
@@ -194,213 +183,104 @@ export const DeploymentExplorer: FC<{
   const mergedExtras = mergeExtras(deploymentInfo?.state || {});
 
   return pkg?.deployUrl ? (
-    <Box>
+    <div>
       {deploymentData.isLoading ? (
-        <Box
-          py="20"
-          alignItems="center"
-          justifyContent="center"
-          textAlign="center"
-        >
-          <CustomSpinner mx="auto" mb="2" />
-          <Text fontSize="sm" mb="1" color="gray.400">
-            Fetching {pkg?.deployUrl}
-          </Text>
-          <Text color="gray.500" fontSize="xs">
-            This could take a minute. You can also{' '}
-            <Link href={links.SETTINGS} as={NextLink}>
-              try another IPFS gateway
-            </Link>
-            .
-          </Text>
-        </Box>
+        <div className="py-20">
+          <IpfsSpinner ipfsUrl={pkg?.deployUrl} />
+        </div>
       ) : deploymentInfo ? (
-        <Box>
-          <Flex
-            pt={6}
-            pb={2}
-            px={4}
-            justifyContent={'flex-start'}
-            alignItems={'center'}
-            direction={['column', 'column', 'row']}
-          >
-            <Flex
-              width={['100%', '100%', 'auto']}
-              justifyContent="space-between"
-              alignItems="center"
-              mb={[2, 2, 0]}
-              minHeight="32px"
-            >
-              <Heading size="md">Contract Deployments</Heading>
-              {showContracts ? (
-                <ChevronUpIcon
-                  cursor="pointer"
-                  onClick={handleContractCollapse}
-                  display={['block', 'block', 'none']}
-                />
-              ) : (
-                <ChevronDownIcon
-                  cursor="pointer"
-                  onClick={handleContractCollapse}
-                  display={['block', 'block', 'none']}
-                />
-              )}
-            </Flex>
-            {showContracts && (
-              <Box
-                pl={[0, 0, 6]}
-                width={['100%', '100%', 'auto']}
-                mt={[2, 2, 0]}
-              >
-                <SearchInput size="sm" onSearchChange={setContractSearchTerm} />
-              </Box>
-            )}
-            {showContracts ? (
-              <ChevronDownIcon
-                cursor="pointer"
-                onClick={handleContractCollapse}
-                display={['none', 'none', 'block']}
-                ml="auto"
-              />
-            ) : (
-              <ChevronUpIcon
-                cursor="pointer"
-                onClick={handleContractCollapse}
-                display={['none', 'none', 'block']}
-                ml="auto"
-              />
-            )}
-          </Flex>
-          <Collapse in={showContracts}>
-            {!isEmpty(filteredContractState) && !isEmpty(addressesAbis) ? (
-              <Box>
-                <Box maxW="100%" overflowX="auto">
-                  <ContractsTable
-                    contractState={filteredContractState}
-                    chainId={pkg.chainId}
-                  />
-                </Box>
-              </Box>
-            ) : (
-              <Box mt={6}>
-                <Flex
-                  px={4}
-                  mb={3}
-                  justifyContent={'center'}
-                  direction={['column', 'column', 'row']}
-                >
-                  <Heading size="sm"> No Contracts Found</Heading>
-                </Flex>
-              </Box>
-            )}
-          </Collapse>
-          <Flex
-            pt={6}
-            pb={2}
-            px={4}
-            justifyContent={'flex-start'}
-            alignItems={'center'}
-            direction={['column', 'column', 'row']}
-          >
-            <Flex
-              width={['100%', '100%', 'auto']}
-              justifyContent="space-between"
-              alignItems="center"
-              mb={[2, 2, 0]}
-              minHeight="32px"
-            >
-              <Heading size="md">Function Calls</Heading>
-              {showInvoke ? (
-                <ChevronDownIcon
-                  cursor="pointer"
-                  onClick={handleInvokeCollapse}
-                  display={['block', 'block', 'none']}
-                />
-              ) : (
-                <ChevronUpIcon
-                  cursor="pointer"
-                  onClick={handleInvokeCollapse}
-                  display={['block', 'block', 'none']}
-                />
-              )}
-            </Flex>
-            {showInvoke && (
-              <Box
-                pl={[0, 0, 6]}
-                width={['100%', '100%', 'auto']}
-                mt={[2, 2, 0]}
-              >
-                <SearchInput size="sm" onSearchChange={setInvokeSearchTerm} />
-              </Box>
-            )}
-            {showInvoke ? (
-              <ChevronDownIcon
-                cursor="pointer"
-                onClick={handleInvokeCollapse}
-                display={['none', 'none', 'block']}
-                ml="auto"
-              />
-            ) : (
-              <ChevronUpIcon
-                cursor="pointer"
-                onClick={handleInvokeCollapse}
-                display={['none', 'none', 'block']}
-                ml="auto"
-              />
-            )}
-          </Flex>
+        <div>
+          <h2 className="text-muted-foreground px-4 pt-8">
+            {pkg.chainId === 13370
+              ? 'The following operations will be executed by this package.'
+              : 'The following operations were executed when building this package or a package it upgraded from.'}
+          </h2>
 
-          <Collapse in={showInvoke}>
-            {!isEmpty(invokeState) ? (
-              <Box>
-                <Box maxW="100%" overflowX="auto">
-                  <InvokesTable
-                    invokeState={filteredInvokeState}
-                    chainId={pkg.chainId}
-                  />
-                </Box>
-              </Box>
-            ) : (
-              <Box mt={6}>
-                <Flex
-                  px={4}
-                  mb={3}
-                  justifyContent={'center'}
-                  direction={['column', 'column', 'row']}
-                >
-                  <Heading size="sm"> No Functions Found</Heading>
-                </Flex>
-              </Box>
-            )}
-          </Collapse>
+          <div className="pt-6 pb-2 px-4 flex flex-col md:flex-row justify-start items-center">
+            <div className="w-full md:w-auto flex justify-between items-center mb-2 md:mb-0 min-h-[32px]">
+              <h2 className="text-2xl font-bold tracking-tight">
+                Contract Deployments
+              </h2>
+            </div>
+            <div className="pl-0 md:pl-6 w-full md:w-auto md:ml-auto mt-2 md:mt-0">
+              <SearchInput size="sm" onSearchChange={setContractSearchTerm} />
+            </div>
+          </div>
+
+          {!isEmpty(filteredContractState) && !isEmpty(addressesAbis) ? (
+            <div className="max-w-full mx-4 mt-2">
+              <ContractsTable
+                contractState={filteredContractState}
+                chainId={pkg.chainId}
+              />
+            </div>
+          ) : (
+            <div className="mt-6">
+              <div className="px-4 mb-3 flex justify-center flex-col md:flex-row">
+                <h3 className="text-lg font-semibold">No Contracts Found</h3>
+              </div>
+            </div>
+          )}
+
+          <div className="pt-6 pb-2 px-4 flex flex-col md:flex-row justify-start items-center">
+            <div className="w-full md:w-auto flex justify-between items-center mb-2 md:mb-0 min-h-[32px]">
+              <h2 className="text-2xl font-bold tracking-tight">
+                Function Calls
+              </h2>
+            </div>
+            <div className="pl-0 md:pl-6 w-full md:w-auto md:ml-auto mt-2 md:mt-0">
+              <SearchInput size="sm" onSearchChange={setInvokeSearchTerm} />
+            </div>
+          </div>
+
+          {!isEmpty(invokeState) ? (
+            <div className="max-w-full mx-4 mt-2">
+              <InvokesTable
+                invokeState={filteredInvokeState}
+                chainId={pkg.chainId}
+              />
+            </div>
+          ) : (
+            <div className="mt-6">
+              <div className="px-4 mb-3 flex justify-center flex-col md:flex-row">
+                <h3 className="text-lg font-semibold">No Functions Found</h3>
+              </div>
+            </div>
+          )}
 
           {!isEmpty(mergedExtras) && (
-            <Box mt={6}>
-              <Heading size="md" px={4} mb={3}>
-                Event Data{' '}
-                <Tooltip
-                  label="This includes event data captured during the build, to be referenced in dependent operations."
-                  placement="right"
-                  hasArrow
-                >
-                  <InfoIcon color="gray.400" boxSize={3.5} mt={-0.5} ml={0.5} />
-                </Tooltip>
-              </Heading>
-              <Box maxW="100%" overflowX="auto">
+            <div className="mt-6">
+              <div className="px-4 mb-3 flex items-center">
+                <h2 className="text-2xl font-bold tracking-tight">
+                  Event Data
+                </h2>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="h-5 w-5 text-gray-400 ml-2" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      This includes event data captured during the build, to be
+                      referenced in dependent operations.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <div className="max-w-full mx-4 mt-2">
                 <EventsTable extrasState={mergedExtras} />
-              </Box>
-            </Box>
+              </div>
+            </div>
           )}
-        </Box>
+        </div>
       ) : (
-        <Box textAlign="center" py="20" opacity="0.5">
+        <div className="text-center py-20 opacity-50">
           Unable to retrieve deployment data
-        </Box>
+        </div>
       )}
-    </Box>
+    </div>
   ) : (
-    <Box textAlign="center" py="20" opacity="0.5">
+    <div className="text-center py-20 opacity-50">
       No metadata is associated with this package
-    </Box>
+    </div>
   );
 };

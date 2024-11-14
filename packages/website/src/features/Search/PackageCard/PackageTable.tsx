@@ -4,7 +4,6 @@ import 'prismjs/components/prism-json';
 import 'prismjs/themes/prism.css';
 import { DataTable } from './DataTable';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Box } from '@chakra-ui/react';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { ApiDocument } from '@usecannon/api/dist/src/types';
 
@@ -63,12 +62,10 @@ const PackageTable: FC<{
   }
 
   return data.length ? (
-    <Box borderTop="1px solid" borderColor="gray.600">
+    <div className="border-t border-border">
       <DataTable packageName={pkgs[0].name} columns={columns} data={data} />
-    </Box>
-  ) : (
-    <></>
-  );
+    </div>
+  ) : null;
 };
 
 export default PackageTable;

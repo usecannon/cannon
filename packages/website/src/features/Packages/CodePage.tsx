@@ -1,7 +1,6 @@
 'use client';
 
 import { FC } from 'react';
-import { Flex } from '@chakra-ui/react';
 import { CodeExplorer } from '@/features/Packages/CodeExplorer';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { Address } from 'viem';
@@ -25,7 +24,7 @@ export const CodePage: FC<{
   const functionName = (searchParams.function as string) || '';
 
   if (packagesQuery.isPending) {
-    return <CustomSpinner m="auto" />;
+    return <CustomSpinner />;
   }
 
   if (packagesQuery.isError) {
@@ -33,7 +32,7 @@ export const CodePage: FC<{
   }
 
   return (
-    <Flex flexDirection="column" width="100%" flex="1">
+    <div className="flex flex-col w-full flex-1">
       <CodeExplorer
         name={name}
         pkg={packagesQuery.data}
@@ -41,7 +40,7 @@ export const CodePage: FC<{
         source={source}
         functionName={functionName}
       />
-    </Flex>
+    </div>
   );
 };
 

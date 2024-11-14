@@ -1,19 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import {
-  FormControl,
+  FormItem,
   FormLabel,
-  Input,
-  Text,
-  Heading,
-  FormErrorMessage,
-  FormHelperText,
-} from '@chakra-ui/react';
+  FormControl,
+  FormMessage,
+  FormDescription,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { useStore } from '@/helpers/store';
 import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form } from '@/components/ui/form';
+
+const formSchema = z.object({
+  stagingUrl: z.string().url('Change not saved! Invalid URL format'),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 const SafeTransactionService: React.FC = () => {
   const settings = useStore((s) => s.settings);
   const setSettings = useStore((s) => s.setSettings);
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      stagingUrl: settings.stagingUrl,
+    },
+  });
+
   const [inputUrl, setInputUrl] = useState(settings.stagingUrl);
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -40,34 +56,35 @@ const SafeTransactionService: React.FC = () => {
   };
 
   return (
-    <>
-      <Heading size="md" mb={3}>
-        Safe Transaction Service
-      </Heading>
-      <Text fontSize="md" mb={4}>
-        Enter the URL for the Safe Transaction Service.
-      </Text>
-      <FormControl isInvalid={!!validationError}>
-        <FormLabel>Safe Transaction Service URL</FormLabel>
-        <Input
-          bg="black"
-          borderColor="whiteAlpha.400"
-          value={inputUrl}
-          type="text"
-          name="stagingUrl"
-          onChange={handleUrlChange}
-          placeholder="https://safe-transaction.example.com"
-        />
-        {validationError && (
-          <FormErrorMessage>{validationError}</FormErrorMessage>
-        )}
-        <FormHelperText color="gray.300">
-          The same collection service URL must be used by all signers for a
-          given transaction. Hosting Instructions:
-          https://github.com/usecannon/cannon-safe-app-backend
-        </FormHelperText>
-      </FormControl>
-    </>
+    <Form {...form}>
+      <form className="space-y-4">
+        <FormControl>
+          <FormItem className={validationError ? 'space-y-1' : ''}>
+            <FormLabel>Safe Transaction Service URL</FormLabel>
+            <Input
+              className="bg-black border-white/40"
+              value={inputUrl}
+              type="text"
+              name="stagingUrl"
+              onChange={handleUrlChange}
+              placeholder="https://safe-transaction.example.com"
+            />
+            {validationError && <FormMessage>{validationError}</FormMessage>}
+            <FormDescription className="text-gray-300">
+              The same collection service URL must be used by all signers for a
+              given transaction. Hosting Instructions are available on{' '}
+              <a
+                className="underline"
+                href="https://github.com/usecannon/cannon-safe-app-backend"
+              >
+                GitHub
+              </a>
+              .
+            </FormDescription>
+          </FormItem>
+        </FormControl>
+      </form>
+    </Form>
   );
 };
 

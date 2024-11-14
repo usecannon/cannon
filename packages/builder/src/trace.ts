@@ -3,6 +3,9 @@ import { ConsoleLogs } from './consoleLog';
 import * as viem from 'viem';
 import { Abi, Address, Hash, Hex, decodeAbiParameters } from 'viem';
 import { green, grey, bold, red } from 'chalk';
+import Debug from 'debug';
+
+const debug = Debug('cannon:cli:trace');
 
 export const CONSOLE_LOG_ADDRESS = '0x000000000000000000636f6e736f6c652e6c6f67';
 
@@ -147,6 +150,7 @@ export function parseFunctionData(
           })!;
           parsedOutput = renderResult(abiItem.outputs.length > 1 ? decodedOutput : [decodedOutput]);
         } catch (err) {
+          debug('parse function result error', err);
           // if we found an address but the transaction cannot be parsed, it could be decodable error
           try {
             parsedOutput = bold(red(parseContractErrorReason(info.contract, output)));
@@ -156,9 +160,19 @@ export function parseFunctionData(
           }
         }
       } catch (err) {
-        // this shouldn't happen unless the ABI is incomplete or the contract is non-conformant
-        parsedInput = `<unknown function ${input.slice(0, 10)}>`;
-        parsedOutput = output;
+        debug('trace function data error', err);
+
+        // figure out if we can still find the selector (maybe just the following calldata is mangled)
+        const foundFunction = info.contract.abi.find(
+          (item) => item.type === 'function' && viem.toFunctionSelector(item)
+        ) as viem.AbiFunction | null;
+        if (foundFunction) {
+          parsedInput = foundFunction.name + `(<invalid function calldata ${input.slice(10)}>)`;
+          parsedOutput = output;
+        } else {
+          parsedInput = `<unknown function ${input.slice(0, 10)}>`;
+          parsedOutput = output;
+        }
       }
     } else {
       parsedInput = input;

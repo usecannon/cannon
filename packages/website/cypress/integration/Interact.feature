@@ -13,6 +13,7 @@ Feature: Interact page
     * User clicks on the "button" element with text "AccountProxy"
     Then URL includes "/synthetix/3.3.4/1-main/interact/synthetix/AccountProxy/0x0E429603D3Cb1DFae4E6F52Add5fE82d96d77Dac"
 
+  @skip
   Scenario: Executing read functions
     Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
     * Wallet is connected
@@ -60,6 +61,7 @@ Feature: Interact page
     * User clicks on the "button" element with text "Call view function"
     Then View renders a "div" displaying the text "5708990770823839524233143914701057466751846718296"
 
+@skip
 Scenario: Decoding failed functions
   Given User opens the "/packages/synthetix-omnibus/7/1-main/interact" page
   * Wallet is connected

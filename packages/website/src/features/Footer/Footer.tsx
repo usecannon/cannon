@@ -1,87 +1,87 @@
-import { Flex, Box, Text, Link, Image } from '@chakra-ui/react';
-import GitHubButton from 'react-github-btn';
-import { DiscordButton } from '@/components/DiscordButton';
+import { Button } from '@/components/ui/button';
+import {
+  DiscordLogoIcon,
+  GitHubLogoIcon,
+  TwitterLogoIcon,
+} from '@radix-ui/react-icons';
 
-export const Footer = () => {
+interface FooterProps {
+  isFixed?: boolean;
+}
+
+export const Footer = ({ isFixed }: FooterProps) => {
   return (
-    <Flex
-      borderTop="1px solid"
-      borderColor="gray.700"
-      py={[5, 5, 2]}
-      px={2}
-      backgroundColor="black"
-      alignItems="center"
-      flexDirection={['column', 'column', 'row']}
+    <div
+      className={`
+        flex flex-col sm:flex-row items-center px-2 
+        ${
+          isFixed
+            ? 'fixed bottom-0 w-full z-10 bg-transparent'
+            : 'relative bg-black'
+        }
+        ${!isFixed && 'border-t border-border'}
+        pb-3 pt-2 md:py-1
+      `}
     >
-      <Flex height="28px" mb={[3, 3, 0]}>
-        <Box mr={2}>
-          <GitHubButton
+      <div className="flex gap-2 justify-center w-full sm:w-auto">
+        <Button variant="ghost" size="icon" asChild>
+          <a
             href="https://github.com/usecannon/cannon"
-            data-color-scheme="no-preference: dark; light: dark; dark: dark;"
-            data-size="large"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            Cannon on GitHub
-          </GitHubButton>
-        </Box>
-        <Box mr={2}>
-          <GitHubButton
-            href="https://github.com/usecannon/cannon"
-            data-color-scheme="no-preference: dark; light: dark; dark: dark;"
-            data-size="large"
-            data-icon="octicon-star"
-            data-show-count="true"
-            aria-label="Follow @usecannon on GitHub"
+            <GitHubLogoIcon className="h-5 w-5" />
+          </a>
+        </Button>
+        <Button variant="ghost" size="icon" asChild>
+          <a
+            href="https://twitter.com/usecannon"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            Star
-          </GitHubButton>
-        </Box>
-        <DiscordButton />
-      </Flex>
-      <Box ml={[0, 0, 'auto']} mr={[0, 0, 1]}>
-        <Text
-          fontWeight="600"
-          fontSize="md"
-          color="white"
-          opacity={0.8}
-          letterSpacing="0.2px"
-        >
+            <TwitterLogoIcon className="h-5 w-5" />
+          </a>
+        </Button>
+        <Button variant="ghost" size="icon" asChild>
+          <a
+            href="https://discord.gg/QwarFMb3dS"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <DiscordLogoIcon className="h-5 w-5" />
+          </a>
+        </Button>
+      </div>
+      <div className="sm:ml-auto sm:mr-1 text-center sm:text-left">
+        <p className="font-semibold text-md tracking-wider">
           Supported by
-          <Link
-            display="inline-block"
-            isExternal
-            mx="1.5"
+          <a
+            className="inline-block mx-1.5 text-white no-underline hover:no-underline"
             href="https://optimism.io/"
-            color="white"
-            textDecoration="none"
-            _hover={{ textDecoration: 'none' }}
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            <Image
-              height="12px"
+            <img
+              className="h-3 object-cover"
               src="/images/optimism.svg"
               alt="Optimism"
-              objectFit="cover"
             />
-          </Link>
+          </a>
           and
-          <Link
-            display="inline-block"
-            isExternal
-            mx="2"
+          <a
+            className="inline-block mx-2 text-white no-underline hover:no-underline translate-y-0.5"
             href="https://safe.global/"
-            color="white"
-            textDecoration="none"
-            _hover={{ textDecoration: 'none' }}
-            transform="translateY(2px)"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            <Image
-              height="16px"
+            <img
+              className="h-4 object-cover"
               src="/images/safe.svg"
               alt="Safe"
-              objectFit="cover"
             />
-          </Link>
-        </Text>
-      </Box>
-    </Flex>
+          </a>
+        </p>
+      </div>
+    </div>
   );
 };

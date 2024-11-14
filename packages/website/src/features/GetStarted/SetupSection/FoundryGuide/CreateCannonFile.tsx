@@ -1,13 +1,5 @@
-import {
-  Alert,
-  AlertDescription,
-  AlertIcon,
-  AlertTitle,
-  Box,
-  Code,
-  Heading,
-  Text,
-} from '@chakra-ui/react';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CodePreview } from '@/components/CodePreview';
 import { CommandPreview } from '@/components/CommandPreview';
 
@@ -44,54 +36,50 @@ args = ["<%= settings.number %>"]`;
 export const CreateCannonFile = () => {
   return (
     <>
-      <Heading size="md" mb={3} mt={8}>
-        Create a Cannonfile
-      </Heading>
-      <Text mb={4}>
-        Create a new Foundry project with <Code>forge init sample-project</Code>
+      <h2 className="text-xl font-semibold mb-3 mt-8">Create a Cannonfile</h2>
+      <p className="mb-4">
+        Create a new Foundry project with <code>forge init sample-project</code>
         . This will generate the following contract:
-      </Text>
-      <Box mb={4}>
+      </p>
+      <div className="mb-4">
         <CodePreview code={code1} language="sol" />
-      </Box>
-      <Text mb={4}>
+      </div>
+      <p className="mb-4">
         Create a cannonfile.toml in the root directory of the project with the
         following contents. If you plan to publish this package, you should
         customize the name. This will deploy the contract and set the number to
         420:
-      </Text>
-      <Box mb={4}>
+      </p>
+      <div className="mb-4">
         <CodePreview code={code2} language="ini" />
-      </Box>
-      <Alert status="info" mb={4} bg="gray.700">
-        <AlertIcon />
-        <Box>
-          <AlertTitle>Include Idempotent Functions</AlertTitle>
-          <AlertDescription>
-            When building a protocol with Cannon, include methods like{' '}
-            <Code>setConfiguration</Code> (instead of/in addition to
-            <Code>addConfiguration</Code> or <Code>removeConfiguration</Code>)
-            such that changes to an <Code>invoke</Code> operation will result in
-            predictable behavior.
-          </AlertDescription>
-        </Box>
+      </div>
+      <Alert className="mb-4 bg-gray-700">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Include Idempotent Functions</AlertTitle>
+        <AlertDescription>
+          When building a protocol with Cannon, include methods like{' '}
+          <code>setConfiguration</code> (instead of/in addition to
+          <code>addConfiguration</code> or <code>removeConfiguration</code>)
+          such that changes to an <code>invoke</code> operation will result in
+          predictable behavior.
+        </AlertDescription>
       </Alert>
-      <Text mb={4}>
+      <p className="mb-4">
         Now build the cannonfile for local development and testing:
-      </Text>
-      <Box mb={4}>
+      </p>
+      <div className="mb-4">
         <CommandPreview command="cannon build" />
-      </Box>
-      <Text mb={4}>
+      </div>
+      <p className="mb-4">
         This compiled your code and created a local deployment of your nascent
         protocol. You can now run this package locally using the command-line
-        tool. (Here, we add the <Code>--registry-priority local</Code> option to
-        ensure we’re using the version of this package that you just built,
+        tool. (Here, we add the <code>--registry-priority local</code> option to
+        ensure we&apos;re using the version of this package that you just built,
         regardless of what others have published.)
-      </Text>
-      <Box mb={4}>
+      </p>
+      <div className="mb-4">
         <CommandPreview command="cannon sample-foundry-project --registry-priority local" />
-      </Box>
+      </div>
     </>
   );
 };

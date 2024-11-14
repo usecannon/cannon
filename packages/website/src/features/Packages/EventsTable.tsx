@@ -1,19 +1,23 @@
 // @ts-nocheck
 import * as React from 'react';
-import { Table, Thead, Tbody, Tr, Th, Td, chakra } from '@chakra-ui/react';
 import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  ArrowUpDownIcon,
-} from '@chakra-ui/icons';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { CaretSortIcon } from '@radix-ui/react-icons';
 import {
   useReactTable,
   flexRender,
   getCoreRowModel,
   SortingState,
   getSortedRowModel,
+  createColumnHelper,
 } from '@tanstack/react-table';
-import { createColumnHelper } from '@tanstack/react-table';
 
 type NestedObject = { [key: string]: any };
 
@@ -62,81 +66,44 @@ export const EventsTable: React.FC<{
   });
 
   return (
-    <Table size="sm">
-      <Thead>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <Tr key={headerGroup.id}>
-            {headerGroup.headers.map((header) => {
-              return (
-                <Th
-                  key={header.id}
-                  onClick={header.column.getToggleSortingHandler()}
-                  color="gray.200"
-                  borderColor="gray.600"
-                  textTransform="none"
-                  letterSpacing="normal"
-                  fontSize="sm"
-                  fontWeight={500}
-                  py={2}
-                  cursor="pointer"
-                  whiteSpace="nowrap"
-                >
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )}
-                  {
-                    <chakra.span display="inline-block" h="12px" w="12px">
-                      {header.column.getIsSorted() ? (
-                        header.column.getIsSorted() === 'desc' ? (
-                          <ChevronDownIcon
-                            boxSize={4}
-                            aria-label="sorted descending"
-                            transform="translateY(2.5px)"
-                          />
-                        ) : (
-                          <ChevronUpIcon
-                            boxSize={4}
-                            aria-label="sorted ascending"
-                            transform="translateY(-2.5px)"
-                          />
-                        )
-                      ) : (
-                        <ArrowUpDownIcon
-                          boxSize={2.5}
-                          transform="translateX(2.5px)"
-                        />
-                      )}
-                    </chakra.span>
-                  }
-                </Th>
-              );
-            })}
-          </Tr>
-        ))}
-      </Thead>
-      <Tbody>
-        {table.getRowModel().rows.map((row, rowInd) => (
-          <Tr key={row.id}>
-            {row.getVisibleCells().map((cell) => {
-              return (
-                <Td
+    <div className="w-full rounded-md border border-border overflow-x-auto">
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id} className="border-border">
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id}>
+                  <Button
+                    variant="ghost"
+                    onClick={header.column.getToggleSortingHandler()}
+                    className="h-8 px-2 -ml-2"
+                  >
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                    <CaretSortIcon className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.map((row) => (
+            <TableRow key={row.id} className="border-border hover:bg-muted/50">
+              {row.getVisibleCells().map((cell) => (
+                <TableCell
                   key={cell.id}
-                  borderColor="gray.600"
-                  borderBottom={
-                    table.getRowModel().rows.length == rowInd + 1
-                      ? 'none'
-                      : undefined
-                  }
-                  whiteSpace="nowrap"
+                  className="relative overflow-hidden whitespace-nowrap"
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </Td>
-              );
-            })}
-          </Tr>
-        ))}
-      </Tbody>
-    </Table>
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 };

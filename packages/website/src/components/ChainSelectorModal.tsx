@@ -1,23 +1,15 @@
 import { useSwitchChain, useChainId } from 'wagmi';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalHeader,
-  ModalOverlay,
-  ModalCloseButton,
-  Flex,
-  Heading,
-  Text,
-  Box,
-  Input,
-  InputGroup,
-  InputLeftElement,
-} from '@chakra-ui/react';
+import { Search } from 'lucide-react';
 import { debounce } from 'lodash';
-import { SearchIcon } from '@chakra-ui/icons';
 import Chain from '@/features/Search/PackageCard/Chain';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 
 const ChainButton = ({
   switching,
@@ -34,51 +26,31 @@ const ChainButton = ({
   onClick: () => void;
 }) => {
   return (
-    <Box
+    <div
       onClick={onClick}
-      cursor="pointer"
-      display="flex"
-      alignItems="center"
-      borderWidth="1px"
-      borderColor={'gray.700'}
-      key={chain.id}
-      mb={2}
-      px={2}
-      py={1}
-      borderRadius="md"
-      _hover={{ background: 'blackAlpha.400' }}
+      className="flex items-center px-2 py-1 mb-2 cursor-pointer border border-zinc-700 rounded-md hover:bg-black/40"
     >
-      <Flex justifyContent="space-between" alignItems="center" w="100%">
-        <Flex gap={2} alignItems="center">
+      <div className="flex justify-between items-center w-full">
+        <div className="flex gap-2 items-center">
           <Chain id={chain.id} />
-        </Flex>
+        </div>
         {connected ? (
-          <Text
-            color="green.400"
-            fontSize="sm"
-            textShadow="0px 0px 4px #00ff00"
-            fontWeight="medium"
-            textTransform="uppercase"
-            letterSpacing="1.5px"
-            fontFamily="var(--font-miriam)"
+          <span
+            className="text-sm text-emerald-400 font-medium uppercase tracking-wider font-['var(--font-miriam)']"
+            style={{ textShadow: '0px 0px 4px #00ff00' }}
           >
             Connected
-          </Text>
+          </span>
         ) : switching ? (
-          <Text
-            color="yellow.400"
-            fontSize="sm"
-            textShadow="0px 0px 4px #ffff00"
-            fontWeight="medium"
-            textTransform="uppercase"
-            letterSpacing="1.5px"
-            fontFamily="var(--font-miriam)"
+          <span
+            className="text-sm text-yellow-400 font-medium uppercase tracking-wider font-['var(--font-miriam)']"
+            style={{ textShadow: '0px 0px 4px #ffff00' }}
           >
             Confirm in wallet
-          </Text>
+          </span>
         ) : null}
-      </Flex>
-    </Box>
+      </div>
+    </div>
   );
 };
 
@@ -136,135 +108,102 @@ const ChainSelectorModal = ({
   );
 
   return (
-    <>
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay bg={'rgba(0, 0, 0, 0.7)'} />
-        <ModalContent
-          alignSelf={'center'}
-          bg="gray.900"
-          color="white"
-          borderRadius="xl"
-          borderColor="gray.700"
-          h={'50%'}
-          overflow={'auto'}
-        >
-          <ModalHeader>Select Chain</ModalHeader>
-          <ModalCloseButton mt="1.5" />
-          <ModalBody pt={0}>
-            <Flex
-              direction="column"
-              align="center"
-              justify="center"
-              mb="4"
-              gap={2}
-            >
-              <InputGroup borderColor="gray.600" mb={4}>
-                <InputLeftElement pointerEvents="none">
-                  <SearchIcon color="gray.500" />
-                </InputLeftElement>
-                <Input onChange={handleSearchChange} ref={searchInputRef} />
-              </InputGroup>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="bg-zinc-900 text-white border-zinc-700 max-h-[50vh] overflow-auto">
+        <DialogHeader>
+          <DialogTitle>Select Chain</DialogTitle>
+        </DialogHeader>
 
-              {searchTerm && filteredChains.length === 0 && (
-                <Heading
-                  my={32}
-                  color="gray.200"
-                  fontSize="sm"
-                  fontWeight={500}
-                >
-                  No chains found
-                </Heading>
-              )}
-              {searchTerm && filteredChains.length > 0 && (
-                <Box mb="4" w="100%">
-                  <Heading
-                    mb={2}
-                    color="gray.200"
-                    fontSize="sm"
-                    fontWeight={500}
-                  >
-                    Search Results
-                  </Heading>
-                  {filteredChains.map((chain, k) => (
-                    <ChainButton
-                      key={`${chain.id} - ${k}`}
-                      connected={chainId === chain.id}
-                      switching={switchingToChainId === chain.id}
-                      chain={{
-                        id: chain.id,
-                        name: chain.name,
-                      }}
-                      onClick={() => {
-                        setSwitchingToChainId(chain.id);
-                        switchChain({
-                          chainId: chain.id,
-                        });
-                      }}
-                    />
-                  ))}
-                </Box>
-              )}
-              {!searchTerm && (
-                <Box w="100%">
-                  <Box mb="4">
-                    <Heading
-                      mb={2}
-                      color="gray.200"
-                      fontSize="sm"
-                      fontWeight={500}
-                    >
-                      Popular Chains
-                    </Heading>
-                    {popularChains.map((chain, k) => (
-                      <ChainButton
-                        key={`${chain.id} - ${k}`}
-                        connected={chainId === chain.id}
-                        switching={switchingToChainId === chain.id}
-                        chain={{
-                          id: chain.id,
-                          name: chain.name,
-                        }}
-                        onClick={() => {
-                          setSwitchingToChainId(chain.id);
-                          switchChain({
-                            chainId: chain.id,
-                          });
-                        }}
-                      />
-                    ))}
-                  </Box>
-                  <Heading
-                    mb={1.5}
-                    color="gray.200"
-                    fontSize="sm"
-                    fontWeight={500}
-                  >
-                    Other Chains
-                  </Heading>
-                  {otherChains.map((chain, k) => (
-                    <ChainButton
-                      key={`${chain.id} - ${k}`}
-                      switching={switchingToChainId === chain.id}
-                      connected={chainId === chain.id}
-                      chain={{
-                        id: chain.id,
-                        name: chain.name,
-                      }}
-                      onClick={() => {
-                        setSwitchingToChainId(chain.id);
-                        switchChain({
-                          chainId: chain.id,
-                        });
-                      }}
-                    />
-                  ))}
-                </Box>
-              )}
-            </Flex>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
-    </>
+        <div className="flex flex-col gap-2">
+          <div className="relative w-full mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 h-4 w-4" />
+            <Input
+              onChange={handleSearchChange}
+              ref={searchInputRef}
+              className="pl-9 bg-transparent border-zinc-600"
+            />
+          </div>
+
+          {searchTerm && filteredChains.length === 0 && (
+            <h2 className="my-32 text-zinc-200 text-sm font-medium">
+              No chains found
+            </h2>
+          )}
+
+          {searchTerm && filteredChains.length > 0 && (
+            <div className="w-full">
+              <h2 className="mb-2 text-zinc-200 text-sm font-medium">
+                Search Results
+              </h2>
+              {filteredChains.map((chain, k) => (
+                <ChainButton
+                  key={`${chain.id} - ${k}`}
+                  connected={chainId === chain.id}
+                  switching={switchingToChainId === chain.id}
+                  chain={{
+                    id: chain.id,
+                    name: chain.name,
+                  }}
+                  onClick={() => {
+                    setSwitchingToChainId(chain.id);
+                    switchChain({
+                      chainId: chain.id,
+                    });
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+          {!searchTerm && (
+            <div className="w-full">
+              <div className="mb-4">
+                <h2 className="mb-2 text-zinc-200 text-sm font-medium">
+                  Popular Chains
+                </h2>
+                {popularChains.map((chain, k) => (
+                  <ChainButton
+                    key={`${chain.id} - ${k}`}
+                    connected={chainId === chain.id}
+                    switching={switchingToChainId === chain.id}
+                    chain={{
+                      id: chain.id,
+                      name: chain.name,
+                    }}
+                    onClick={() => {
+                      setSwitchingToChainId(chain.id);
+                      switchChain({
+                        chainId: chain.id,
+                      });
+                    }}
+                  />
+                ))}
+              </div>
+              <h2 className="mb-1.5 text-zinc-200 text-sm font-medium">
+                Other Chains
+              </h2>
+              {otherChains.map((chain, k) => (
+                <ChainButton
+                  key={`${chain.id} - ${k}`}
+                  switching={switchingToChainId === chain.id}
+                  connected={chainId === chain.id}
+                  chain={{
+                    id: chain.id,
+                    name: chain.name,
+                  }}
+                  onClick={() => {
+                    setSwitchingToChainId(chain.id);
+                    switchChain({
+                      chainId: chain.id,
+                    });
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

@@ -1,6 +1,5 @@
 'use client';
 
-import { CustomSpinner } from '@/components/CustomSpinner';
 import { useStore } from '@/helpers/store';
 import React, {
   createContext,
@@ -17,6 +16,7 @@ import { externalLinks } from '@/constants/externalLinks';
 import isEmpty from 'lodash/isEmpty';
 import cloneDeep from 'lodash/cloneDeep';
 import { useQuery } from '@tanstack/react-query';
+import PageLoading from '@/components/PageLoading';
 
 type CustomProviders =
   | {
@@ -85,6 +85,9 @@ export const chainMetadata = {
     shortName: 'matic',
     serviceUrl: 'https://safe-transaction-polygon.safe.global',
   },
+  [chains.polygonZkEvm.id]: {
+    color: '#9f71ec',
+  },
   [chains.zora.id]: {
     color: '#000000',
   },
@@ -114,6 +117,12 @@ export const chainMetadata = {
   },
   [cannonNetwork.id]: {
     color: 'gray.400',
+  },
+  [chains.blast.id]: {
+    color: '#FCFC06',
+  },
+  [chains.celo.id]: {
+    color: '#fdff52',
   },
 } as const;
 
@@ -251,13 +260,14 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
   const chainsUrls = Object.values(verifiedProviders || {}).map(
     (v) => v.rpcUrl
   );
+  const chainsUrlsString = JSON.stringify(sortBy(chainsUrls));
   const [_allChains, _allTransports, _customTransports] = useMemo(
     () => [
       _getAllChains(verifiedProviders),
       _getAllTransports(verifiedProviders),
       _getCustomTransports(verifiedProviders),
     ],
-    [JSON.stringify(sortBy(chainsUrls))]
+    [chainsUrlsString]
   );
 
   return (
@@ -272,7 +282,7 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
           _getExplorerUrl(_allChains, chainId, hash),
       }}
     >
-      {isLoading ? <CustomSpinner m="auto" /> : children}
+      {isLoading ? <PageLoading /> : children}
     </ProvidersContext.Provider>
   );
 };
