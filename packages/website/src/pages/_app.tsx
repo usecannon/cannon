@@ -50,7 +50,8 @@ export default function RootLayout({
 }) {
   const router = useRouter();
   const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
-  const isHomePage = router.pathname === '/';
+  const isFooterFixed =
+    router.pathname == '/' || router.pathname == '/packages';
 
   useEffect(() => {
     document.body.classList.remove('fouc-prevention');
@@ -76,15 +77,16 @@ export default function RootLayout({
         height={1}
       />
       <Providers>
-        <div className="flex flex-col bg-black min-h-screen relative">
+        <div className="flex flex-col bg-black relative">
           <Header />
           <div
-            className="flex flex-1 z-[1] pb-[80px]"
-            style={{ paddingBottom: isHomePage ? '80px' : 0 }}
+            //className="flex flex-1 z-[1] pb-[80px]"
+            className="flex flex-1 z-[1]"
+            style={{ paddingBottom: isFooterFixed ? '45px' : 0 }}
           >
             {getLayout(<Component {...pageProps} />)}
           </div>
-          <Footer isFixed={isHomePage} />
+          <Footer isFixed={isFooterFixed} />
           <NoSsrE2EWalletConnector />
         </div>
       </Providers>

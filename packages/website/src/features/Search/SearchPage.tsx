@@ -90,7 +90,7 @@ export const SearchPage = () => {
   const groupedPackages = groupBy(packagesQuery?.data?.data, 'name');
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row w-full">
+    <div className="flex h-100 flex-col md:flex-row w-full">
       <SidebarProvider>
         {/* Mobile Sidebar Trigger - Fixed to left side */}
         <div className="fixed left-0 top-1/2 -translate-y-1/2 z-50 md:hidden bg-black border border-border border-l-0 rounded-r-lg">
@@ -105,7 +105,7 @@ export const SearchPage = () => {
         </div>
 
         {/* Sidebar - updated className */}
-        <Sidebar className="fixed md:sticky md:top-0 w-[280px] md:w-[320px] h-screen shrink-0 border-r border-border">
+        <Sidebar className="test-class-nico h-full w-[280px] md:w-[320px] border-r border-border">
           <SidebarHeader className="px-4">
             <SearchInput onSearchChange={setSearchTerm} />
           </SidebarHeader>
@@ -161,8 +161,8 @@ export const SearchPage = () => {
         </Sidebar>
 
         {/* Main Content - updated className */}
-        <main className="flex-1 overflow-y-auto w-full md:w-[calc(100%-320px)] md:ml-auto">
-          <div className="container max-w-100 mx-auto px-4 md:px-6 lg:px-8 h-screen">
+        <main className="h-100 overflow-y-auto w-full">
+          <div className="container max-w-100 px-4 md:px-6 lg:px-8 h-screen ml-0">
             {packagesQuery.isPending ? (
               <div className="flex justify-center items-center flex-1 h-full">
                 <CustomSpinner />
