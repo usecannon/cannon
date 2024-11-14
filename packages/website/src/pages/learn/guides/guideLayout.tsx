@@ -18,6 +18,7 @@ import {
   SidebarTrigger,
   SidebarMenuSub,
   SidebarMenuSubItem,
+  SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
@@ -64,7 +65,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex flex-1">
-      <div className="container flex-1">
+      <div className="container max-w-4xl flex-1">
         <SidebarProvider>
           {/* Mobile trigger */}
           <div className="sticky top-0 z-40 md:hidden">
@@ -78,7 +79,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          <div className="md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10 h-full">
+          <div className="md:grid md:grid-cols-[250px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[270px_minmax(0,1fr)] lg:gap-10 h-full">
             {/* Sidebar */}
             <Sidebar className="z-30 -ml-2 hidden w-full shrink-0 md:sticky md:block md:top-0 md:border-none">
               <SidebarContent className="py-6 lg:py-8 bg-black">
@@ -92,7 +93,9 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
                             asChild
                             className={cn(
                               'w-full',
-                              pathname === item.href && 'bg-muted font-medium'
+                              pathname === item.href &&
+                                !item.nav &&
+                                'bg-muted font-medium'
                             )}
                           >
                             <Link href={item.href}>{item.text}</Link>
@@ -100,16 +103,20 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
                           {item.nav && (
                             <SidebarMenuSub>
                               {item.nav?.map((navItem) => (
-                                <SidebarMenuSubItem
-                                  key={navItem.href}
-                                  className={cn(
-                                    'text-neutral-500 py-px hover:text-teal-400 transition-all ease-in-out',
-                                    pathname === navItem.href && 'text-teal-400'
-                                  )}
-                                >
-                                  <Link href={navItem.href}>
-                                    {navItem.text}
-                                  </Link>
+                                <SidebarMenuSubItem key={navItem.href}>
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={pathname === navItem.href}
+                                    className={cn(
+                                      'w-full',
+                                      pathname === navItem.href &&
+                                        'bg-muted font-medium'
+                                    )}
+                                  >
+                                    <Link href={navItem.href}>
+                                      {navItem.text}
+                                    </Link>
+                                  </SidebarMenuSubButton>
                                 </SidebarMenuSubItem>
                               ))}
                             </SidebarMenuSub>
@@ -138,7 +145,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
             </Sidebar>
 
             {/* Main content */}
-            <main className="flex w-full flex-col py-10">{children}</main>
+            <main className="flex w-full flex-col">{children}</main>
           </div>
         </SidebarProvider>
       </div>

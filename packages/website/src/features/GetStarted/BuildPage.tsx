@@ -5,9 +5,9 @@ import { SetupPanel } from './SetupSection/SetupPanel';
 
 export const BuildPage = () => {
   return (
-    <>
+    <div className="py-10">
       <BuildWithCannon />
       <SetupPanel />
-    </>
+    </div>
   );
 };

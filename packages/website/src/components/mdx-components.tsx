@@ -18,6 +18,7 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Snippet } from '@/components/snippet';
 import { FilesBlock } from '@/components/files-block';
+import { InfoCircledIcon } from '@radix-ui/react-icons';
 
 const components = {
   Accordion,
@@ -27,6 +28,7 @@ const components = {
   Alert,
   AlertTitle,
   AlertDescription,
+  InfoCircledIcon,
   h1: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h1
       className={cn(
@@ -48,7 +50,7 @@ const components = {
   h3: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h3
       className={cn(
-        'mt-8 scroll-m-20 border-b border-white/40 text-2xl font-semibold tracking-tight',
+        'mt-8 scroll-m-20 border-b border-border pb-3 text-2xl font-semibold tracking-tight',
         className
       )}
       {...props}
@@ -57,7 +59,7 @@ const components = {
   h4: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h4
       className={cn(
-        'mt-8 scroll-m-20 border-b border-white/40 text-xl font-semibold tracking-tight',
+        'mt-8 scroll-m-20 border-b border-border pb-3 text-xl font-semibold tracking-tight',
         className
       )}
       {...props}

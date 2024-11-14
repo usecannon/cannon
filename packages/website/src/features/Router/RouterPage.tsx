@@ -34,10 +34,11 @@ options.abi = "<%= JSON.stringify(contracts.Router.abi) %>"`;
 export const RouterPage = () => {
   return (
     <>
-      <h2 className="text-2xl font-semibold tracking-wide mb-2.5">
+      <h2 className="text-3xl font-semibold tracking-wide mb-2.5">
         Deploy a Router
       </h2>
-      <p className="pb-4 mb-4 text-xl text-gray-400 border-b border-gray-600">
+
+      <p className="pb-4 mb-6 border-b border-border text-xl text-muted-foreground">
         Build an upgradable protocol of any size with Synthetix&apos;s Router
         plug-in
       </p>
