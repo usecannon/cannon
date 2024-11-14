@@ -80,9 +80,9 @@ export default function RootLayout({
         <div className="flex flex-col bg-black relative">
           <Header />
           <div
-            //className="flex flex-1 z-[1] pb-[80px]"
-            className="flex flex-1 z-[1]"
-            style={{ paddingBottom: isFooterFixed ? '45px' : 0 }}
+            className={`flex flex-1 z-[1] ${
+              isFooterFixed ? 'pb-[65px] md:pb-[45px]' : 'pb-0'
+            }`}
           >
             {getLayout(<Component {...pageProps} />)}
           </div>

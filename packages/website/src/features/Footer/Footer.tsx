@@ -4,12 +4,15 @@ import {
   GitHubLogoIcon,
   TwitterLogoIcon,
 } from '@radix-ui/react-icons';
+import { useRouter } from 'next/router';
 
 interface FooterProps {
   isFixed?: boolean;
 }
 
 export const Footer = ({ isFixed }: FooterProps) => {
+  const router = useRouter();
+
   return (
     <div
       className={`
@@ -19,7 +22,7 @@ export const Footer = ({ isFixed }: FooterProps) => {
             ? 'fixed bottom-0 w-full z-10 bg-transparent'
             : 'relative bg-black'
         }
-        ${!isFixed && 'border-t border-border'}
+        ${router.pathname == '/' ? '' : 'border-t border-border'} 
         pb-3 pt-2 md:py-1
       `}
     >
