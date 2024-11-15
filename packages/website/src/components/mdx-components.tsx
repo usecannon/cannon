@@ -192,7 +192,9 @@ const components = {
     />
   ),
   Tabs: ({ className, ...props }: React.ComponentProps<typeof Tabs>) => (
-    <div className="mt-6"><Tabs className={className} {...props} /></div>
+    <div className="mt-6">
+      <Tabs className={className} {...props} />
+    </div>
   ),
   TabsList: ({
     className,
@@ -210,7 +212,9 @@ const components = {
     className,
     ...props
   }: React.ComponentProps<typeof TabsContent>) => (
-    <div className="pt-1"><TabsContent className={className} {...props} /></div>
+    <div className="pt-1">
+      <TabsContent className={className} {...props} />
+    </div>
   ),
   Link: ({ className, ...props }: React.ComponentProps<typeof Link>) => (
     <Link

@@ -148,10 +148,7 @@ export const RouterPage = () => {
 
       <p className="mb-4">
         Run it. (By default, Cannon runs packages from the{' '}
-        <NextLink
-          href="/search"
-          className="underline"
-        >
+        <NextLink href="/search" className="underline">
           package manager
         </NextLink>
         . Here, we add the{' '}
@@ -293,10 +290,7 @@ export const RouterPage = () => {
           Safe
         </a>
         , you can use the{' '}
-        <NextLink
-          href="/deploy"
-          className="underline"
-        >
+        <NextLink href="/deploy" className="underline">
           deployer
         </NextLink>{' '}
         to run upgrades. (
