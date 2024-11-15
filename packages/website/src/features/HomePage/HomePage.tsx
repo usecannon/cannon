@@ -176,7 +176,7 @@ export default function HomePage() {
                   and mainnets. Deploy packages on a local node for development
                   with a single command.
                 </p>
-                <NextLink href={links.GETSTARTED}>
+                <NextLink href={`${links.GETSTARTED}/introduction`}>
                   <Button
                     className="font-miriam uppercase tracking-wider font-bold"
                     size="lg"

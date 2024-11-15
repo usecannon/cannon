@@ -9,3 +9,5 @@ next.lock
 node_modules
 typechain-types
 pnpm-lock.yaml
+
+*.mdx
