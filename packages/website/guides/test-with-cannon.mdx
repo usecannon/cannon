@@ -2,13 +2,13 @@
 title: Test with Cannon
 description: Test your protocol using Cannon.
 before:
-  url: "build-with-cannon"
-  title: "Build with Cannon"
-  description: "Build a protocol using Cannon."
+  url: 'build-with-cannon'
+  title: 'Build with Cannon'
+  description: 'Build a protocol using Cannon.'
 after:
-  url: "deploy-onchain"
-  title: "Deploy Onchain"
-  description: "Deploy your protocol onchain."
+  url: 'deploy-onchain'
+  title: 'Deploy Onchain'
+  description: 'Deploy your protocol onchain.'
 ---
 
 ## Test with Cannon
@@ -28,7 +28,8 @@ By convention, tests in Foundry are located in the `/test` folder and the test f
 
 <Alert variant="warning" className="mt-6">
   <AlertDescription>
-    For more information on how to write and perform tests with Foundry, [review their docs](https://book.getfoundry.sh/forge/tests).
+    For more information on how to write and perform tests with Foundry, [review
+    their docs](https://book.getfoundry.sh/forge/tests).
   </AlertDescription>
 </Alert>
 
@@ -43,7 +44,7 @@ import { Counter } from "../src/Counter.sol";
 
 contract CounterTest is Test {
     Counter public counter;
-    
+
     Counter counter
 
     function setUp() public {
@@ -83,11 +84,11 @@ import { Counter } from "../src/Counter.sol";
 contract CounterTest is Test {
 		using Cannon for Vm;
     Counter public counter;
-    
+
     Counter counter
 
     function setUp() public {
-        counter = Counter(vm.getAddress("Counter")); // Chequear si es el step name o el artifact
+        counter = Counter(vm.getAddress("Counter"));
         counter.setNumber(0);
     }
 
@@ -107,12 +108,13 @@ Cannon runs `forge test` in the background, but the `cannon test` command can re
 
 <Alert variant="warning">
   <AlertDescription>
-    This is a simple case of testing using `cannon test`. Later, we'll see how we can use `usecannon/cannon-std` to interact with the Cannon registry and other contracts deployed in Cannon.
+    This is a simple case of testing using `cannon test`. Later, we'll see how
+    we can use `usecannon/cannon-std` to interact with the Cannon registry and
+    other contracts deployed in Cannon.
   </AlertDescription>
 </Alert>
 
 After running the tests, the CLI will notify us that all tests have passed successfully.
-
 
 ```bash
 Writing deployment artifacts to ./deployments/test
@@ -127,6 +129,7 @@ Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 19.96ms (11.97ms CP
 Ran 1 test suite in 135.12ms (19.96ms CPU time): 2 tests passed, 0 failed, 0 skipped (2 total tests)
 forge exited with code 0
 ```
+
 </TabsContent>
   <TabsContent value="hardhat">
 *Coming soon.*
