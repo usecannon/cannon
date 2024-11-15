@@ -100,6 +100,9 @@ export const theme = extendTheme({
         '--diff-code-insert-background-color': '#1c4532 !important',
         '--diff-code-delete-background-color': '#63171b !important',
       },
+      'div[data-rk]': {
+        height: '100%',
+      },
     }),
   },
   gradients: {

@@ -77,7 +77,7 @@ export default function RootLayout({
         height={1}
       />
       <Providers>
-        <div className="flex flex-col bg-black relative">
+        <div className="flex flex-col bg-black relative h-full">
           <Header />
           <div
             className={`flex flex-1 z-[1] ${
