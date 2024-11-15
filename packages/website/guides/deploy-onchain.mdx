@@ -1,0 +1,106 @@
+---
+title: Deploy Onchain
+description: Deploy your protocol onchain.
+before:
+  url: "test-with-cannon"
+  title: "Test with Cannon"
+  description: "Test your protocol using Cannon."
+after:
+  url: "publish"
+  title: "Publish Your Package"
+  description: "Publish your protocol to the Cannon explorer."
+---
+
+## Deploy Onchain
+
+Deploying onchain is just using the `build` command on a live network instead of a local node.
+
+<Tabs defaultValue="foundry">
+  <TabsList className="w-full">
+    <TabsTrigger value="foundry" className="w-full">
+      <span>Foundry</span>
+    </TabsTrigger>
+    <TabsTrigger value="hardhat" className="w-full">
+      <span>Hardhat</span>
+    </TabsTrigger>
+  </TabsList>
+  <TabsContent value="foundry">
+
+To specify a network, you can either use the `--chain-id` flag or the `--rpc-url` flag. The former will use the default RPC for the chain id, while the latter will use a custom RPC URL (which is recommended).
+
+You will also need to specify a `--private-key` for the wallet you’d like to use for deployment. If you do not want to specify your private key in plain text or you're using a hardware wallet, install [Frame](https://frame.sh/) and the CLI will prompt you to sign transactions through Frame when its running.
+
+In this example, we will use the [Sepolia network](https://sepolia.dev/), a dedicated network for protocol testing. Let's use a specific RPC URL and a private key for a wallet with Sepolia ETH. Let's also use `--dry-run` to simulate what will happen when we deploy before actually deploying.
+
+```bash
+cannon build --rpc-url https://rpc2.sepolia.org/ --private-key 0xd8...ad --dry-run
+```
+
+The output is very similar to what we saw when building locally.
+
+```bash
+Building the foundry project...
+forge build succeeded
+
+Resolving connection to Sepolia (Chain ID: 11155111)...
+Attempting to find connection via https://rpc2.sepolia.org/
+
+Checking for existing package...
+Starting fresh build...
+
+Initializing new package...
+Name: learn-cannon
+Version: 0.0.1
+Preset: main (default)
+Chain ID: 11155111
+
+Building the chain (ID 11155111) via https://rpc2.sepolia.org/...
+Using 0x88e224762460f5aAcA3Bde86dA4EFa9B13662b80
+
+Executing [deploy.counter]...
+  ✔ Successfully deployed Counter
+  Contract Address: 0xc3Ae30bBe8b2209a045b52485FFB6BE549f7dF23
+  Transaction Hash: 0xf25158d22f533cda7db86f225f67e54e68455c23164fe002f6918af57b5c3aa9
+  Transaction Cost: 0.000268927458969908 ETH (106,721 gas)
+
+Executing [var.main]...
+  Setting: number = 420
+
+Executing [invoke.set_number]...
+  ✔ Successfully called setNumber(420)
+  Contract Address: 0xc3Ae30bBe8b2209a045b52485FFB6BE549f7dF23
+  Transaction Hash: 0xa7770d21227d9d9f6d83df9a99eaf28d75ea1cf3ffe4144977835b74b0c30e70
+  Transaction Cost: 0.00011016614575233 ETH (43,506 gas)
+
+Writing upgrade info...
+💥 learn-cannon:0.0.1@main built on Sepolia (Chain ID: 11155111)
+This package can be run locally and cloned in cannonfiles.
+
+Package data has been stored locally
+╔═════════════════╤═══════════════════════════════════════════════════════╗
+║ Deployment Data │ ipfs://QmVpLGJMKqAd5hD3LgM3oh37NfbmzTS9FUyjCZx1LcB8yW ║
+╟─────────────────┼───────────────────────────────────────────────────────╢
+║ Package Code    │ ipfs://QmVhGysWPz2toaL9FVWoyTTgp2Atf4UMESz4Dj5dKvRhWb ║
+╟─────────────────┼───────────────────────────────────────────────────────╢
+║ Metadata        │ ipfs://QmRsYpSHrvjVmktXJtLYZbmiHD8GNKp64qxoZ2hbGcqEDf ║
+╚═════════════════╧═══════════════════════════════════════════════════════╝
+
+Publish learn-cannon:0.0.1 to the registry and pin the IPFS data to
+> cannon publish learn-cannon:0.0.1 --chain-id 11155111
+
+Verify contracts on Etherscan
+> cannon verify learn-cannon:0.0.1@main --chain-id 11155111
+```
+
+After verifying that your build will work as expected, remove the `--dry-run` flag and run the build command again to execute the deployment.
+
+```bash
+cannon build --rpc-url https://rpc2.sepolia.org/ --private-key 0xd8...ad
+```
+
+Nice.
+</TabsContent>
+  <TabsContent value="hardhat">
+*Coming soon.*
+  </TabsContent>
+</Tabs>

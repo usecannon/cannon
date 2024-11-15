@@ -10,7 +10,7 @@ export default function Home() {
   const router = useRouter();
   useEffect(() => {
     router
-      .push(links.GETSTARTED)
+      .push(`${links.GETSTARTED}/introduction`)
       .then(() => {
         // do nothing
       })

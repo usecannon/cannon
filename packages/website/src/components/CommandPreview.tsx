@@ -50,7 +50,7 @@ export const CommandPreview = React.forwardRef<HTMLDivElement, CodeBlockProps>(
       <div
         ref={ref}
         className={cn(
-          'relative rounded-md bg-muted/30 py-2.5 pl-4 font-mono text-sm flex items-center border border-border',
+          'relative rounded-md bg-muted/30 py-2.5 pl-4 font-mono text-sm flex items-center border border-border overflow-hidden',
           className
         )}
         {...props}

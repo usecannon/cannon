@@ -1,6 +1,5 @@
 'use client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoCircledIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import React from 'react';
 import { CodePreview } from '@/components/CodePreview';
@@ -34,10 +33,11 @@ options.abi = "<%= JSON.stringify(contracts.Router.abi) %>"`;
 export const RouterPage = () => {
   return (
     <>
-      <h2 className="text-2xl font-semibold tracking-wide mb-2.5">
+      <h2 className="text-3xl font-semibold tracking-wide mb-2.5">
         Deploy a Router
       </h2>
-      <p className="pb-4 mb-4 text-xl text-gray-400 border-b border-gray-600">
+
+      <p className="pb-4 mb-6 border-b border-border text-xl text-muted-foreground">
         Build an upgradable protocol of any size with Synthetix&apos;s Router
         plug-in
       </p>
@@ -53,7 +53,7 @@ export const RouterPage = () => {
         To avoid the need to manage complex inheritance and dependency
         structures, Cannon includes{' '}
         <a
-          className="text-blue-400 hover:text-blue-300 underline"
+          className="underline"
           href="https://github.com/synthetixio/synthetix-router"
           target="_blank"
           rel="noopener noreferrer"
@@ -68,7 +68,7 @@ export const RouterPage = () => {
         automatically generates a router contract which will delegate calls to
         them. For a more technical explanation of the router, review its{' '}
         <a
-          className="text-blue-400 hover:text-blue-300 underline"
+          className="underline"
           href="https://github.com/synthetixio/synthetix-router#readme"
           target="_blank"
           rel="noopener noreferrer"
@@ -81,7 +81,7 @@ export const RouterPage = () => {
       <p className="mb-4">
         In this guide, we&apos;ll walk through{' '}
         <a
-          className="text-blue-400 hover:text-blue-300 underline"
+          className="underline"
           href="https://github.com/usecannon/cannon/tree/main/examples/router-architecture"
           target="_blank"
           rel="noopener noreferrer"
@@ -101,7 +101,7 @@ export const RouterPage = () => {
       <p className="mb-4">
         Then set up a new{' '}
         <a
-          className="text-blue-400 hover:text-blue-300 underline"
+          className="underline"
           href="https://github.com/foundry-rs/foundry"
           target="_blank"
           rel="noopener noreferrer"
@@ -148,10 +148,7 @@ export const RouterPage = () => {
 
       <p className="mb-4">
         Run it. (By default, Cannon runs packages from the{' '}
-        <NextLink
-          href="/search"
-          className="text-blue-400 hover:text-blue-300 underline"
-        >
+        <NextLink href="/search" className="underline">
           package manager
         </NextLink>
         . Here, we add the{' '}
@@ -173,8 +170,7 @@ export const RouterPage = () => {
         router contract exposes the functions from both contracts.
       </p>
 
-      <Alert className="mb-4 bg-gray-700">
-        <InfoCircledIcon className="h-4 w-4" />
+      <Alert className="mb-4">
         <AlertDescription>
           <h4 className="font-semibold mb-1">
             Interact with the router contract
@@ -194,7 +190,7 @@ export const RouterPage = () => {
         We can also deploy a{' '}
         <NextLink
           href="/packages/transparent-upgradable-proxy"
-          className="text-blue-400 hover:text-blue-300 underline"
+          className="underline"
         >
           transparent upgradeable proxy
         </NextLink>{' '}
@@ -202,7 +198,7 @@ export const RouterPage = () => {
         Cannonfile, add a setting for the admin (which will be allowed to
         upgrade the proxy) and then provision the package which includes{' '}
         <a
-          className="text-blue-400 hover:text-blue-300 underline"
+          className="underline"
           href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/proxy/transparent/TransparentUpgradeableProxy.sol"
           target="_blank"
           rel="noopener noreferrer"
@@ -228,8 +224,7 @@ export const RouterPage = () => {
         option to reference the package from your previous version.
       </p>
 
-      <Alert className="mb-4 bg-gray-700">
-        <InfoCircledIcon className="h-4 w-4" />
+      <Alert className="mb-4">
         <AlertDescription>
           <h4 className="font-semibold mb-1">
             Interact with the proxy contract
@@ -249,7 +244,7 @@ export const RouterPage = () => {
         Changing the storage layout in smart contracts can irreversibly corrupt
         protocol data. Thoroughly understand how to avoid{' '}
         <a
-          className="text-blue-400 hover:text-blue-300 underline"
+          className="underline"
           href="https://docs.openzeppelin.com/upgrades-plugins/1.x/proxies"
           target="_blank"
           rel="noopener noreferrer"
@@ -258,7 +253,7 @@ export const RouterPage = () => {
         </a>{' '}
         when upgrading. If you&apos;re using Hardhat, check out the{' '}
         <a
-          className="text-blue-400 hover:text-blue-300 underline"
+          className="underline"
           href="https://github.com/Synthetixio/synthetix-v3/tree/main/utils/hardhat-storage"
           target="_blank"
           rel="noopener noreferrer"
@@ -272,7 +267,7 @@ export const RouterPage = () => {
         You can use libraries for executing storage reads/writes to create an
         MVC-style architecture. See the{' '}
         <a
-          className="text-blue-400 hover:text-blue-300 underline"
+          className="underline"
           href="https://docs.synthetix.io/v/v3/for-developers/technical-architecture"
           target="_blank"
           rel="noopener noreferrer"
@@ -287,7 +282,7 @@ export const RouterPage = () => {
       <p>
         If the protocol is owned by a{' '}
         <a
-          className="text-blue-400 hover:text-blue-300 underline"
+          className="underline"
           href="https://safe.global/"
           target="_blank"
           rel="noopener noreferrer"
@@ -295,15 +290,12 @@ export const RouterPage = () => {
           Safe
         </a>
         , you can use the{' '}
-        <NextLink
-          href="/deploy"
-          className="text-blue-400 hover:text-blue-300 underline"
-        >
+        <NextLink href="/deploy" className="underline">
           deployer
         </NextLink>{' '}
         to run upgrades. (
         <a
-          className="text-blue-400 hover:text-blue-300 underline"
+          className="underline"
           href="https://docs.safe.global/safe-smart-account/modules"
           target="_blank"
           rel="noopener noreferrer"
@@ -312,7 +304,7 @@ export const RouterPage = () => {
         </a>{' '}
         and{' '}
         <a
-          className="text-blue-400 hover:text-blue-300 underline"
+          className="underline"
           href="https://docs.safe.global/safe-smart-account/guards"
           target="_blank"
           rel="noopener noreferrer"
