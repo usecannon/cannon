@@ -52,10 +52,6 @@ const useCannon = [
         text: 'Publish Your Package',
         href: `${links.GETSTARTED}/publish`,
       },
-      {
-        text: 'Use the Explorer',
-        href: `${links.GETSTARTED}/explorer`,
-      },
     ],
   },
   { text: 'Deploy a Router', href: links.ROUTER },
