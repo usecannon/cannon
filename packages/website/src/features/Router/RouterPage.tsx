@@ -1,6 +1,5 @@
 'use client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoCircledIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import React from 'react';
 import { CodePreview } from '@/components/CodePreview';
@@ -174,8 +173,7 @@ export const RouterPage = () => {
         router contract exposes the functions from both contracts.
       </p>
 
-      <Alert className="mb-4 bg-gray-700">
-        <InfoCircledIcon className="h-4 w-4" />
+      <Alert className="mb-4">
         <AlertDescription>
           <h4 className="font-semibold mb-1">
             Interact with the router contract
@@ -229,8 +227,7 @@ export const RouterPage = () => {
         option to reference the package from your previous version.
       </p>
 
-      <Alert className="mb-4 bg-gray-700">
-        <InfoCircledIcon className="h-4 w-4" />
+      <Alert className="mb-4">
         <AlertDescription>
           <h4 className="font-semibold mb-1">
             Interact with the proxy contract

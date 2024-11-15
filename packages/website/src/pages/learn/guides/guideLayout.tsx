@@ -29,33 +29,31 @@ const useCannon = [
     href: `${links.GETSTARTED}/introduction`,
     nav: [
       {
-        text: 'Setting up a new project',
+        text: 'Set up your dev environment',
         href: `${links.GETSTARTED}/introduction`,
       },
       {
-        text: 'Creating a project',
+        text: 'Create a project',
         href: `${links.GETSTARTED}/creating-a-project`,
       },
       {
-        text: 'Building with Cannon',
+        text: 'Build with Cannon',
         href: `${links.GETSTARTED}/building-with-cannon`,
       },
       {
-        text: 'Building to a network',
+        text: 'Deploy to a blockchain',
         href: `${links.GETSTARTED}/building-to-a-network`,
       },
       {
-        text: 'Publishing the package',
+        text: 'Publish your package',
         href: `${links.GETSTARTED}/publish`,
       },
       {
-        text: 'Using Cannon explorer',
+        text: 'Use the explorer',
         href: `${links.GETSTARTED}/explorer`,
       },
-      { text: 'Conclusion', href: `${links.GETSTARTED}/conclusion` },
     ],
   },
-  { text: 'Build a Protocol', href: links.BUILD },
   { text: 'Deploy a Router', href: links.ROUTER },
   { text: 'Debugging Tips', href: links.DEBUG },
 ];
@@ -79,7 +77,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          <div className="md:grid md:grid-cols-[250px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[270px_minmax(0,1fr)] lg:gap-10 h-full">
+          <div className="md:grid md:grid-cols-[230px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[250px_minmax(0,1fr)] lg:gap-10 h-full">
             {/* Sidebar */}
             <Sidebar className="z-30 -ml-2 hidden w-full shrink-0 md:sticky md:block md:top-0 md:border-none">
               <SidebarContent className="py-6 lg:py-8 bg-black">
@@ -101,7 +99,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
                             <Link href={item.href}>{item.text}</Link>
                           </SidebarMenuButton>
                           {item.nav && (
-                            <SidebarMenuSub>
+                            <SidebarMenuSub className="w-full">
                               {item.nav?.map((navItem) => (
                                 <SidebarMenuSubItem key={navItem.href}>
                                   <SidebarMenuSubButton
@@ -132,7 +130,10 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
                   <SidebarGroupContent>
                     <SidebarMenu>
                       <SidebarMenuItem>
-                        <SidebarMenuButton asChild>
+                        <SidebarMenuButton
+                          asChild
+                          className="pointer-events-none"
+                        >
                           <span className="italic text-gray-400">
                             Coming Soon
                           </span>

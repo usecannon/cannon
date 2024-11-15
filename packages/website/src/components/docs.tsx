@@ -34,7 +34,10 @@ export const NavDocsCard = ({
         )}
       >
         <CardHeader
-          className={cn('flex', type === 'next' ? 'items-end' : 'items-start')}
+          className={cn(
+            'flex',
+            type === 'next' ? 'items-end text-right' : 'items-start text-left'
+          )}
         >
           {icon[type]}
           <CardTitle>{title}</CardTitle>

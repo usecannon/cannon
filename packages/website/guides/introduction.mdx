@@ -7,25 +7,23 @@ after:
   description: "Learn how to create a project with Cannon."
 ---
 
-## Setting up a new project
-
-**Cannon** is a DevOps tool for protocols on Ethereum. It manages protocol and smart contract deployments for local development and live networks replacing deploy scripts with [Cannonfiles](https://usecannon.com/learn/cannonfile).
+## Set up your dev environment
+**Cannon** is a DevOps tool for protocols on Ethereum. It manages protocol and smart contract deployments for local development and live networks, replacing deploy scripts with [Cannonfiles](https://usecannon.com/learn/cannonfile).
 
 #### Installing Foundry
 
-**Cannon** uses [Foundry](https://book.getfoundry.sh/) to work. Foundry is a toolchain for developing smart contracts, managing dependencies, compiling the project, running tests, deploying your project, and allowing you to interact with the chain from the Cannon CLI.
+**Cannon** is built on [Foundry](https://book.getfoundry.sh/) (and is also compatible with Hardhat).
 
-<Alert className="mt-6">
-  <InfoCircledIcon />
+<Alert variant="info">
   <AlertTitle>If you're already familiar with Foundry, feel free to skip this section.</AlertTitle>
 </Alert>
 
-On your terminal run:
+In your terminal, run
 
 ```bash
 curl -L https://foundry.paradigm.xyz | bash
 ```
-This will install **Foundryup**. Simply follow the on-screen instructions, and the `foundryup` command will become available in your CLI.
+This installs the `foundryup` command, which can be run again later to upgrade Foundry to its latest version.
 
 #### Installing Cannon CLI
 
@@ -33,8 +31,8 @@ Cannon’s **command-line interface** (CLI) allows users to deploy, upgrade, and
 
 Run one of the following commands in your terminal to install (or upgrade) Cannon:
 
-<Tabs defaultValue="pnpm" className="mt-2">
-  <TabsList className="w-full">
+<Tabs defaultValue="pnpm" className="mt-4">
+  <TabsList>
     <TabsTrigger value="pnpm" className="w-full">
       <span>pnpm</span>
     </TabsTrigger>

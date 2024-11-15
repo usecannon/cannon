@@ -25,7 +25,14 @@ const components = {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-  Alert,
+  Alert: ({
+    className,
+    ...props
+  }: { className?: string } & React.ComponentProps<typeof Alert>) => (
+    <div className="mt-8 first:mt-0">
+      <Alert className={className} {...props} />
+    </div>
+  ),
   AlertTitle,
   AlertDescription,
   InfoCircledIcon,
@@ -41,7 +48,7 @@ const components = {
   h2: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h2
       className={cn(
-        'mt-8 scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0',
+        'mt-8 scroll-m-20 text-3xl font-semibold tracking-tight first:mt-0',
         className
       )}
       {...props}
