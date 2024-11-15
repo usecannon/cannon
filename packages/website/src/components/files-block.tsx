@@ -20,7 +20,7 @@ export const FilesBlock = ({
   };
 
   return (
-    <div className="relative flex h-fit w-full flex-col items-center justify-center overflow-hidden rounded-lg border border-teal-500 bg-background md:shadow-xl mt-2">
+    <div className="relative flex h-fit w-full flex-col items-center justify-center overflow-hidden rounded-lg border border-border bg-background md:shadow-xl mt-2">
       <Tree
         className="p-2 overflow-hidden rounded-md bg-background"
         initialExpandedItems={initiaExpanded}

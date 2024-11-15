@@ -39,7 +39,7 @@ export const Snippet = ({ ...props }: React.HTMLAttributes<HTMLPreElement>) => {
   }
 
   return (
-    <div className="mt-2 relative rounded-md bg-background font-mono text-sm flex items-start border border-border">
+    <div className="mt-3 first:mt-0 relative rounded-md bg-background font-mono text-sm flex items-start border border-border overflow-hidden">
       <div
         data-section="code"
         className="w-full overflow-x-auto"

@@ -35,12 +35,12 @@ export default function GetStarted() {
         }}
       />
       {guide ? (
-        <div className="container max-w-3xl pt-10">
+        <div className="container max-w-3xl py-10">
           <Mdx code={guide.body.code} />
           <DocsNav guide={guide} />
         </div>
       ) : (
-        <div className="pt-10">
+        <div className="py-10">
           <Custom404 text="Guide not found" />
         </div>
       )}

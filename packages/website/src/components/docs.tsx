@@ -30,12 +30,13 @@ export const NavDocsCard = ({
     <Link className={className} href={href}>
       <Card
         className={cn(
-          'hover:border-px hover:border-teal-500 hover:bg-teal-500/10'
+          'hover:border-px hover:border-teal-500 hover:bg-teal-500/10',
+          'h-full'
         )}
       >
         <CardHeader
           className={cn(
-            'flex',
+            'flex h-full',
             type === 'next' ? 'items-end text-right' : 'items-start text-left'
           )}
         >

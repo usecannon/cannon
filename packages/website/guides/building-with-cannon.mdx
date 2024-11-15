@@ -11,13 +11,24 @@ after:
   description: "Learn how to take your package to production."
 ---
 
-## Building with Cannon
+## Build with Cannon
+
+<Tabs defaultValue="foundry">
+  <TabsList className="w-full">
+    <TabsTrigger value="foundry" className="w-full">
+      <span>Foundry</span>
+    </TabsTrigger>
+    <TabsTrigger value="hardhat" className="w-full">
+      <span>Hardhat</span>
+    </TabsTrigger>
+  </TabsList>
+  <TabsContent value="foundry">
 
 First, what we need to do is to build the Cannon package. To do this we will use the `cannon build` command. This command will build a new package using the `cannonfile.toml`  we created later.
 
 <Alert variant="warning" className="mt-6">
   <AlertDescription>
-    ⚠️ The `cannon build` uses the `cannonfile.toml` by default but you can specify which cannonfile you want to use with the `[cannonfile]` argument. You can find all the CLI commands documentation in the [CLI guide](https://usecannon.com/learn/cli).
+    The `cannon build` uses the `cannonfile.toml` by default but you can specify which cannonfile you want to use with the `[cannonfile]` argument. You can find all the CLI commands documentation in the [CLI guide](https://usecannon.com/learn/cli).
   </AlertDescription>
 </Alert>
 
@@ -110,7 +121,7 @@ Run this package
 
 <Alert variant="info" className="mt-4">
   <AlertDescription>
-    📢 What Cannon does in this case is run the build on a local Anvil node, but the node is not kept running, resulting in a kind of "compilation". If you want to keep the node running, you can use the `--keep-alive` flag.
+    What Cannon does in this case is run the build on a local Anvil node, but the node is not kept running, resulting in a kind of "compilation". If you want to keep the node running, you can use the `--keep-alive` flag.
   </AlertDescription>
 </Alert>
 
@@ -183,7 +194,7 @@ To run your package locally, you can use the `cannon run` command. The `run` com
 
 <Alert variant="info" className="mt-6">
   <AlertDescription>
-    📢 The `cannon run` works with many optional arguments that we will not be covering in this example.  You can find all the CLI commands documentation in the [CLI guide](https://usecannon.com/learn/cli).
+    The `cannon run` works with many optional arguments that we will not be covering in this example.  You can find all the CLI commands documentation in the [CLI guide](https://usecannon.com/learn/cli).
   </AlertDescription>
 </Alert>
 
@@ -350,3 +361,8 @@ Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 19.96ms (11.97ms CP
 Ran 1 test suite in 135.12ms (19.96ms CPU time): 2 tests passed, 0 failed, 0 skipped (2 total tests)
 forge exited with code 0
 ```
+</TabsContent>
+  <TabsContent value="hardhat">
+*Coming soon.*
+  </TabsContent>
+</Tabs>

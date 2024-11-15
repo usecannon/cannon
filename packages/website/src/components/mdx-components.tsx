@@ -29,7 +29,7 @@ const components = {
     className,
     ...props
   }: { className?: string } & React.ComponentProps<typeof Alert>) => (
-    <div className="mt-8 first:mt-0">
+    <div className="mt-6 first:mt-0">
       <Alert className={className} {...props} />
     </div>
   ),
@@ -141,14 +141,14 @@ const components = {
   ),
   Tr: ({ className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) => (
     <tr
-      className={cn('last:border-b-none m-0 border-b', className)}
+      className={cn('last:border-b-none m-0 border-b border-border', className)}
       {...props}
     />
   ),
   Th: ({ className, ...props }: React.HTMLAttributes<HTMLTableCellElement>) => (
     <th
       className={cn(
-        'px-4 py-2 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right',
+        'px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right',
         className
       )}
       {...props}
@@ -192,7 +192,7 @@ const components = {
     />
   ),
   Tabs: ({ className, ...props }: React.ComponentProps<typeof Tabs>) => (
-    <Tabs className={className} {...props} />
+    <div className="mt-6"><Tabs className={className} {...props} /></div>
   ),
   TabsList: ({
     className,
@@ -210,7 +210,7 @@ const components = {
     className,
     ...props
   }: React.ComponentProps<typeof TabsContent>) => (
-    <TabsContent className={className} {...props} />
+    <div className="pt-1"><TabsContent className={className} {...props} /></div>
   ),
   Link: ({ className, ...props }: React.ComponentProps<typeof Link>) => (
     <Link

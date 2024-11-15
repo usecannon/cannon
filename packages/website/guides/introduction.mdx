@@ -7,16 +7,16 @@ after:
   description: "Learn how to create a project with Cannon."
 ---
 
-## Set up your dev environment
+## Set up Your Dev Environment
 **Cannon** is a DevOps tool for protocols on Ethereum. It manages protocol and smart contract deployments for local development and live networks, replacing deploy scripts with [Cannonfiles](https://usecannon.com/learn/cannonfile).
 
 #### Installing Foundry
 
-**Cannon** is built on [Foundry](https://book.getfoundry.sh/) (and is also compatible with Hardhat).
-
 <Alert variant="info">
-  <AlertTitle>If you're already familiar with Foundry, feel free to skip this section.</AlertTitle>
+  <AlertTitle className="mb-0">If you're already familiar with Foundry, feel free to skip this section.</AlertTitle>
 </Alert>
+
+**Cannon** is built on [Foundry](https://book.getfoundry.sh/) (and is also compatible with Hardhat).
 
 In your terminal, run
 
@@ -29,7 +29,7 @@ This installs the `foundryup` command, which can be run again later to upgrade F
 
 Cannon’s **command-line interface** (CLI) allows users to deploy, upgrade, and configure protocols using Cannonfiles with the `build` command, `publish` the resulting packages, `run` packages locally, and more. Find the code for the CLI [on GitHub](https://github.com/usecannon/cannon/tree/main/packages/cli).
 
-Run one of the following commands in your terminal to install (or upgrade) Cannon:
+Run one of the following commands in your terminal to install Cannon, or upgrade to the latest version.
 
 <Tabs defaultValue="pnpm" className="mt-4">
   <TabsList>
@@ -60,9 +60,8 @@ Run one of the following commands in your terminal to install (or upgrade) Canno
   </TabsContent>
 </Tabs>
 
-Once you’re done, run `cannon --version` on a terminal to check your installation.
+Run `cannon --version` to confirm that your installation or upgrade succeeded.
 
 ```bash
-$ cannon --version
-2.18.0
+cannon --version
 ```

@@ -29,11 +29,11 @@ const useCannon = [
     href: `${links.GETSTARTED}/introduction`,
     nav: [
       {
-        text: 'Set up your dev environment',
+        text: 'Set up Dev Environment',
         href: `${links.GETSTARTED}/introduction`,
       },
       {
-        text: 'Create a project',
+        text: 'Create a Project',
         href: `${links.GETSTARTED}/creating-a-project`,
       },
       {
@@ -41,15 +41,15 @@ const useCannon = [
         href: `${links.GETSTARTED}/building-with-cannon`,
       },
       {
-        text: 'Deploy to a blockchain',
+        text: 'Deploy Onchain',
         href: `${links.GETSTARTED}/building-to-a-network`,
       },
       {
-        text: 'Publish your package',
+        text: 'Publish Your Package',
         href: `${links.GETSTARTED}/publish`,
       },
       {
-        text: 'Use the explorer',
+        text: 'Use the Explorer',
         href: `${links.GETSTARTED}/explorer`,
       },
     ],
@@ -77,7 +77,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          <div className="md:grid md:grid-cols-[230px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[250px_minmax(0,1fr)] lg:gap-10 h-full">
+          <div className="md:grid md:grid-cols-[200px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-10 h-full">
             {/* Sidebar */}
             <Sidebar className="z-30 -ml-2 hidden w-full shrink-0 md:sticky md:block md:top-0 md:border-none">
               <SidebarContent className="py-6 lg:py-8 bg-black">

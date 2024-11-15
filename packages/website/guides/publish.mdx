@@ -11,7 +11,7 @@ after:
   description: "Use Cannon explorer to interact with your package."
 ---
 
-## Publishing the package
+## Publish Your Package
 
 Once you have completed the builds of your package, the only thing left to do is to publish it on Cannon. Publishing your package in Cannon serves several important purposes:
 
@@ -23,9 +23,9 @@ Once you have completed the builds of your package, the only thing left to do is
 
 The main reason we do this is to associate your package name with the deployment artifact or deployment data generated earlier in the Cannon registry.
 
-<Alert className="mt-4">
+<Alert variant="info">
   <AlertDescription>
-    👉 You can check out the Cannon Registry contract in [our explorer.](https://usecannon.com/packages/registry/latest/10-main/code/registry?source=contracts%2FCannonRegistry.sol)
+    You can check out the Cannon Registry contract in [our explorer.](https://usecannon.com/packages/registry/latest/10-main/code/registry?source=contracts%2FCannonRegistry.sol)
   </AlertDescription>
 </Alert>
 
@@ -37,9 +37,9 @@ This association in the Cannon registry serves several purposes:
 - It allows others to verify the **authenticity and ownership of the package**.
 - It facilitates **version control** and **updates** for your package.
 
-<Alert variant="info" className="mt-4">
+<Alert variant="info">
   <AlertDescription>
-    📢 When you publish your package, you're essentially registering it in this contract, making it officially recognized within the Cannon ecosystem.
+    When you publish your package, you're essentially registering it in this contract, making it officially recognized within the Cannon ecosystem.
   </AlertDescription>
 </Alert>
 
@@ -64,9 +64,9 @@ If everything went well, in the CLI we will see that it will allow us to choose 
 
 For this example, we will use the Ethereum Mainnet.
 
-<Alert variant="warning" className="mt-4">
+<Alert variant="warning">
   <AlertDescription>
-    ⚠️ Keep in mind that to register your package on either network, you need to have the specific ETH in your wallet.
+    Keep in mind that to register your package on either network, you need to have the specific ETH in your wallet.
   </AlertDescription>
 </Alert>
 
@@ -78,9 +78,9 @@ Once we select the network on which we want to register our package, it will ask
 
 At this step, it's important to highlight that Cannon will detect that this package is not yet registered and will ask us if we want to do so.
 
-<Alert className="mt-4">
+<Alert variant="info">
   <AlertDescription>
-    👉 At this point, it's recommended to do it because if we don't, we won't be able to obtain the benefits of the registry mentioned earlier.
+    At this point, it's recommended to do it because if we don't, we won't be able to obtain the benefits of the registry mentioned earlier.
   </AlertDescription>
 </Alert>
 
@@ -122,9 +122,9 @@ Success - Package "learn-cannon" has been registered.
 
 Once the registration process is complete, the CLI will notify us that the package has been successfully registered and that we can continue with the process of publishing `learn-cannon` to the registry.
 
-<Alert variant="info" className="mt-4">
+<Alert variant="info">
   <AlertDescription>
-    📢 The publish command can use configuration parameters such as `--mas-fee-per-gas`, `--max-priority-fee-per-gas` and `--gas-limit` for transaction execution. We won't be covering these in this guide.
+    The publish command can use configuration parameters such as `--mas-fee-per-gas`, `--max-priority-fee-per-gas` and `--gas-limit` for transaction execution. We won't be covering these in this guide.
   </AlertDescription>
 </Alert>
 
@@ -148,9 +148,9 @@ Total publishing fees: 0.0025 ETH
 ? Proceed? › (y/N)
 ```
 
-<Alert className="mt-4">
+<Alert variant="info">
   <AlertDescription>
-    👉 It's important to clarify that each publish process has a fee of `0.0025 ETH` charged by Cannon. This enables and ensures the maintenance of the package.
+    It's important to clarify that each publish process has a fee of `0.0025 ETH` charged by Cannon. This enables and ensures the maintenance of the package.
   </AlertDescription>
 </Alert>
 

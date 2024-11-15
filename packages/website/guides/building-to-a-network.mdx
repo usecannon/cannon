@@ -11,12 +11,12 @@ after:
   description: "Take your package to production."
 ---
 
-## Building to a network
+## Deploy Onchain
 
 As we've seen before, building essentially consists of executing all the steps in the cannonfile to obtain a package containing the state, addresses, transactions, artifacts, and source code of the contracts. Now we are ready to see how to build on a remote network.
 <Alert variant="warning" className="mt-4">
   <AlertDescription>
-    ⚠️ Building to a remote network costs gas. For this, you can use the `--dry-run` flag to simulate the gas cost of building to production.
+    Building to a remote network costs gas. For this, you can use the `--dry-run` flag to simulate the gas cost of building to production.
   </AlertDescription>
 </Alert>
 
@@ -43,7 +43,7 @@ As you can see, if no chain id is passed to the build command, it will use the C
 
 <Alert variant="info" className="mt-4">
   <AlertDescription>
-    📢 Keep in mind that technically Cannon is not a network. The id shown above is only used to run a local Anvil node with that chain id and build the package.
+    Keep in mind that technically Cannon is not a network. The id shown above is only used to run a local Anvil node with that chain id and build the package.
   </AlertDescription>
 </Alert>
 
@@ -51,7 +51,7 @@ To run the build on a remote network, you will also need the private key of the 
 
 <Alert variant="info" className="mt-4">
   <AlertDescription>
-    📢 In this guide, we will not cover anything about the use and types of wallets that exist. For more information about wallet go to [https://ethereum.org/](https://ethereum.org/en/guides/how-to-create-an-ethereum-account/)
+    In this guide, we will not cover anything about the use and types of wallets that exist. For more information about wallet go to [https://ethereum.org/](https://ethereum.org/en/guides/how-to-create-an-ethereum-account/)
   </AlertDescription>
 </Alert>
 
@@ -59,7 +59,7 @@ In this example, we will use the Sepolia network, a dedicated network for protoc
 
 <Alert variant="info" className="mt-4">
   <AlertDescription>
-    📢 You can find the IDs of all available networks at https://usecannon.com/packages
+    You can find the IDs of all available networks at https://usecannon.com/packages
   </AlertDescription>
 </Alert>
 
@@ -71,7 +71,7 @@ $ cannon build --chain-id 11155111 --private-key 0xd8...ad
 
 <Alert variant="info" className="mt-4">
   <AlertDescription>
-    📢 Since building to a remote network requires the use of gas, keep in mind that to run the build command you will need [Sepolia faucets](https://cloud.google.com/application/web3/faucet/ethereum/sepolia) in your wallet.
+    Since building to a remote network requires the use of gas, keep in mind that to run the build command you will need [Sepolia faucets](https://cloud.google.com/application/web3/faucet/ethereum/sepolia) in your wallet.
   </AlertDescription>
 </Alert>
 
@@ -180,7 +180,7 @@ Another way to build our package to a remote network is by directly using a URL 
 </Table>
 <Alert variant="info" className="mt-4">
   <AlertDescription>
-    📢 Building using RPC node URLs is a more advanced use case. If you don't have knowledge about RPC nodes, we recommend skipping to the [publish step](https://www.notion.so/Get-started-Guide-1178ffcde6b680b8ae8cee86bfb18608?pvs=21).
+    Building using RPC node URLs is a more advanced use case. If you don't have knowledge about RPC nodes, we recommend skipping to the [publish step](https://www.notion.so/Get-started-Guide-1178ffcde6b680b8ae8cee86bfb18608?pvs=21).
   </AlertDescription>
 </Alert>
 
@@ -188,7 +188,7 @@ We will perform the same build to Sepolia using the Sepolia RPC URL. An RPC URL 
 
 <Alert variant="info" className="mt-4">
   <AlertDescription>
-    📢 To learn more about Alchemy, you can visit [wwww.alchemy.com](https://www.alchemy.com/).
+    To learn more about Alchemy, you can visit [wwww.alchemy.com](https://www.alchemy.com/).
   </AlertDescription>
 </Alert>
 
