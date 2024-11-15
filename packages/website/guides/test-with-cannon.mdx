@@ -69,6 +69,40 @@ We are going to use the `cannon-std` helper library from Cannon to write tests. 
 forge install usecannon/cannon-std
 ```
 
+```solidity
+// ./test/Counter.t.sol
+
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.13;
+
+import "cannon-std/Cannon.sol";
+
+import { Test } from "forge-std/Test.sol";
+import { Counter } from "../src/Counter.sol";
+
+contract CounterTest is Test {
+		using Cannon for Vm;
+    Counter public counter;
+    
+    Counter counter
+
+    function setUp() public {
+        counter = Counter(vm.getAddress("Counter")); // Chequear si es el step name o el artifact
+        counter.setNumber(0);
+    }
+
+    function test_Increment() public {
+        counter.increment();
+        assertEq(counter.number(), 1);
+    }
+
+    function testFuzz_SetNumber(uint256 x) public {
+        counter.setNumber(x);
+        assertEq(counter.number(), x);
+    }
+}
+```
+
 Cannon runs `forge test` in the background, but the `cannon test` command can receive a specific cannonfile as an argument to run the test suites. By default, it uses `cannonfile.toml`.
 
 <Alert variant="warning">
