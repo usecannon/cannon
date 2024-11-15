@@ -26,23 +26,27 @@ import { Menu } from 'lucide-react';
 const useCannon = [
   {
     text: 'Get Started',
-    href: `${links.GETSTARTED}/introduction`,
+    href: `${links.GETSTARTED}/setup`,
     nav: [
       {
         text: 'Set up Dev Environment',
-        href: `${links.GETSTARTED}/introduction`,
+        href: `${links.GETSTARTED}/setup`,
       },
       {
         text: 'Create a Project',
-        href: `${links.GETSTARTED}/creating-a-project`,
+        href: `${links.GETSTARTED}/create-a-project`,
       },
       {
         text: 'Build with Cannon',
-        href: `${links.GETSTARTED}/building-with-cannon`,
+        href: `${links.GETSTARTED}/build-with-cannon`,
+      },
+      {
+        text: 'Test with Cannon',
+        href: `${links.GETSTARTED}/test-with-cannon`,
       },
       {
         text: 'Deploy Onchain',
-        href: `${links.GETSTARTED}/building-to-a-network`,
+        href: `${links.GETSTARTED}/deploy-onchain`,
       },
       {
         text: 'Publish Your Package',

@@ -1,25 +1,17 @@
 ---
-title: Creating a project
+title: Create a Project
 description: Learn how to create a project with Cannon.
 before:
   url: "introduction"
   title: "Introduction"
   description: "Learn how to set up a new project with Cannon."
 after:
-  url: "building-with-cannon"
-  title: "Building with Cannon"
+  url: "build-with-cannon"
+  title: "Build with Cannon"
   description: "Use Cannonfiles to build your project."
 ---
 
 ## Create a Project
-
-To start a new project, create a directory and navigate into it.
-
-```bash
-mkdir learn-cannon
-cd learn-cannon
-```
-
 
 <Tabs defaultValue="foundry">
   <TabsList className="w-full">
@@ -31,13 +23,20 @@ cd learn-cannon
     </TabsTrigger>
   </TabsList>
   <TabsContent value="foundry">
-Initialize the Foundry project
+To start a new project, create a directory and navigate into it.
+
+```bash
+mkdir learn-cannon
+cd learn-cannon
+```
+
+Initialize s Foundry project.
 
 ```bash
 forge init
 ```
 
-Forge will create the initial project structure for us:
+Forge will create the initial project structure for us.
 
 <FilesBlock
 quantity={19}
@@ -153,15 +152,14 @@ elements={[
 
 <Alert variant="info">
   <AlertDescription>
-    In this guide, we will not delve into the use of Forge, for more
-    information about what can you do visit [**Foundry
-    documentation**](https://book.getfoundry.sh/config/).
+    For more on this, check out [**Foundry's
+    docs**](https://book.getfoundry.sh/config/).
   </AlertDescription>
 </Alert>
 
 #### Installing Foundry
 
-In the root folder (next to the `foundry.toml` file), create a `cannonfile.toml`
+In the root folder (next to the `foundry.toml` file), create a `cannonfile.toml`.
 
 ```toml
 name = 'learn-cannon'
@@ -178,15 +176,8 @@ can be uploaded using IPFS and published to the registry on Ethereum.
 
 #### Write a smart contract
 
-In the `/src` folder, Forge will have created the contract called `Counter.sol`.
-A basic contract with two functions: `setNumber` and `increment`. Feel free to modify it.
-
-<Alert variant="warning">
-  <AlertDescription>
-    In this guide, we won't dive deep into creating and structuring smart
-    contracts. These are simply example cases to get started with Cannon.
-  </AlertDescription>
-</Alert>
+In the `/src` folder, Forge will have created a contract called `Counter.sol`.
+This is a basic contract with two functions: `setNumber` and `increment`. Feel free to modify it.
 
 ```solidity
 // ./src/Counter.sol
@@ -207,60 +198,34 @@ contract Counter {
 }
 ```
 
-#### Adding steps on the cannonfile
+#### Adding Operations
 
-Edit your `cannonfile.toml` with the following steps.
+Edit your `cannonfile.toml` to include the following operations.
 
 ```toml
-// ./cannonfile.toml
-
 name = "learn-cannon"
 version = "0.0.1"
-description = "Cannon learn - Sample Foundry Project"
+description = "Sample Cannon + Foundry Project"
 
-[deploy.counter]
-artifact = "Counter"
-
-[var.main]
+[var.ProtocolSettings]
 number = "420"
 
-[invoke.set_number]
-target = ["counter"]
+[deploy.Counter]
+artifact = "Counter"
+
+[invoke.SetNumber]
+target = ["Counter"]
 func = "setNumber"
 args = ["<%= settings.number %>"]
 ```
 
-Each step in a cannonfile is composed by a type and a name resulting
-in `[type.name]`, the step name is only referential, made to improve
-the user experience.  In this** **example we will be covering the `[deploy.counter]`,
-`[var.main]` and the `[invoke.set_number]` steps.
+Each operation in a cannonfile is identified with a type and a name, specified like `[type.name]`.
 
-The `[deploy.counter]` step is used to deploy a contract. Below the step
-is declared the `artifact` configuration which is the name of the target contract.
+The `[deploy.counter]` operation is used to deploy a contract. The `artifact` defines which contract to deploy.
 
-The `[var.main]` allows Cannon to apply a setting or intermediate value
-to a contract. In our example contract we defined a variable `number`:
+The `[var.ProtocolSettings]` operation allows Cannon to add values to the `settings` object, which can be referenced in other operation definitions using EJS syntax. In our example, we defined a variable `number`:
 
-```solidity
-uint256 public number;
-```
-
-That variable value can be set in the cannonfile with the `[var.main]` step.
-
-And finally in the `[invoke.set_number]`  step we define following settings:
-
-- `target`, name of the contract to call or contract operation.
-- `func`, name of the function to call on the contract.
-- `args`, this determines the arguments to use when invoking the call (optional).
-
-See how the  `<%= settings.number %>`  string template refers to the `number`
-var in the `[var.main]` step.
-
-<Alert className="mt-2" variant="info">
- <AlertDescription>
-   Some of the cannonfile steps use templates like `args = ["<%= settings.number %>"]` to modify `settings` and `imports` objects.
- </AlertDescription>
-</Alert>
+The `[invoke.set_number]` operation calls a function. `target` specifies the name of the contract to call, `func` specifies the name of the function, and `args` specifies the arguments to use when invoking the call. Note that `<%= settings.number %>` refers to the `number` variable defined in the `[var.ProtocolSettings]` operation.
 
 You can find a full list of operations that can be specified in a Cannonfile in [the docs](/learn/cannonfile).
 

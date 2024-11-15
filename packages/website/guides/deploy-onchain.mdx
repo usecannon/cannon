@@ -1,10 +1,10 @@
 ---
-title: Building to a netkwork
+title: Deploy Onchain
 description: Learn how to build to remote network.
 before:
-  url: "building-with-cannon"
-  title: "Building with Cannon"
-  description: "Learn how to build a package."
+  url: "test-with-cannon"
+  title: "Test with Cannon"
+  description: "Learn how to test a package."
 after:
   url: "publish"
   title: "Publishing the package"
@@ -20,7 +20,18 @@ As we've seen before, building essentially consists of executing all the steps i
   </AlertDescription>
 </Alert>
 
-To do this, Cannon provides us with two methods: using the **chain id** or the **RPC url** where we want to build.
+<Tabs defaultValue="foundry">
+  <TabsList className="w-full">
+    <TabsTrigger value="foundry" className="w-full">
+      <span>Foundry</span>
+    </TabsTrigger>
+    <TabsTrigger value="hardhat" className="w-full">
+      <span>Hardhat</span>
+    </TabsTrigger>
+  </TabsList>
+  <TabsContent value="foundry">
+
+To do this, Cannon provides us with two methods: using the chain id or the RPC url where we want to build.
 
 #### Using the chain id
 
@@ -28,9 +39,9 @@ To start, let's see how to build to production using the `--chain-id` flag with 
 
 <Table>
   <Tr>
-    <Th>**OPTION**</Th>
-    <Th>**DESCRIPTION**</Th>
-    <Th>**DEFAULT**</Th>
+    <Th>OPTION</Th>
+    <Th>DESCRIPTION</Th>
+    <Th>DEFAULT</Th>
   </Tr>
   <Tr>
     <Td>`-c --chain-id <number>`</Td>
@@ -168,9 +179,9 @@ Another way to build our package to a remote network is by directly using a URL 
 
 <Table>
   <Tr>
-    <Th>**OPTION**</Th>
-    <Th>**DESCRIPTION**</Th>
-    <Th>**DEFAULT**</Th>
+    <Th>OPTION</Th>
+    <Th>DESCRIPTION</Th>
+    <Th>DEFAULT</Th>
   </Tr>
   <Tr>
     <Td>`-n --rpc-url [url]`</Td>
@@ -233,3 +244,9 @@ As you may have noticed, using the RPC URL or the chain ID, in this case, result
 These options provide flexibility in your development and deployment process, allowing you to adapt to various scenarios and requirements.
 
 Now that we have successfully built our package, let's move on to the publishing process.
+
+</TabsContent>
+  <TabsContent value="hardhat">
+*Coming soon.*
+  </TabsContent>
+</Tabs>
