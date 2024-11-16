@@ -198,7 +198,7 @@ const DocsLandingPage = () => {
       </div>
 
       <div className="flex justify-center py-24 lg:py-32">
-        <Link href={`${links.GETSTARTED}/introduction`}>
+        <Link href={`${links.GETSTARTED}/setup`}>
           <Button
             className="font-miriam uppercase tracking-[0.5px] font-bold"
             variant="default"
