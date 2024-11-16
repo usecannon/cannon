@@ -78,13 +78,14 @@ export const SearchPage = () => {
   const { mainnet: sortedMainnetChainIds, testnet: sortedTestnetChainIds } =
     getAllChainIds(chainsQuery?.data?.data || []);
 
-  // Ensure 13370 is at the front of the mainnetChainIds array
-  const index13370 = sortedMainnetChainIds.indexOf(
-    '13370' as unknown as number
+  // Filter out NaN values and ensure 13370 is at the front of the mainnetChainIds array
+  const filteredMainnetChainIds = sortedMainnetChainIds.filter(
+    (id) => !isNaN(id)
   );
+  const index13370 = filteredMainnetChainIds.indexOf(13370);
   if (index13370 > -1) {
-    sortedMainnetChainIds.splice(index13370, 1);
-    sortedMainnetChainIds.unshift(13370);
+    filteredMainnetChainIds.splice(index13370, 1);
+    filteredMainnetChainIds.unshift(13370);
   }
 
   const groupedPackages = groupBy(packagesQuery?.data?.data, 'name');
@@ -117,7 +118,7 @@ export const SearchPage = () => {
               </SidebarGroupLabel>
               <SidebarGroupContent className="space-y-1 px-2">
                 <SidebarMenu>
-                  {sortedMainnetChainIds.map((id) => (
+                  {filteredMainnetChainIds.map((id) => (
                     <SidebarMenuItem key={id}>
                       <SidebarMenuButton
                         onClick={() => toggleChainSelection(id)}
