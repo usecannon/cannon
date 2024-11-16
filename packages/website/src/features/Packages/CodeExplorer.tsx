@@ -20,6 +20,7 @@ import { isEmpty } from 'lodash';
 import { DeploymentInfo } from '@usecannon/builder';
 import { ApiPackage } from '@usecannon/api/dist/src/types';
 import { IpfsSpinner } from '@/components/IpfsSpinner';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const handleDownload = (content: Record<string, unknown>, filename: string) => {
   const blob = new Blob([JSON.stringify(content, null, 2)], {
@@ -33,52 +34,6 @@ const handleDownload = (content: Record<string, unknown>, filename: string) => {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-};
-
-const PackageButton: FC<{
-  name: string;
-  selected: boolean;
-  onClick: () => void;
-}> = ({ name, selected, onClick }) => {
-  return (
-    <Button
-      color="white"
-      borderWidth="2px"
-      borderRadius="md"
-      variant="outline"
-      aria-label="contract name"
-      boxShadow="lg"
-      flexShrink={0}
-      background={selected ? 'teal.900' : 'gray.700'}
-      borderColor={selected ? 'teal.600' : 'gray.600'}
-      _hover={
-        selected
-          ? {
-              background: 'teal.800',
-              borderColor: 'teal.500',
-            }
-          : {
-              background: 'gray.600',
-              borderColor: 'teal.500',
-            }
-      }
-      mr={3}
-      height="36px"
-      px={3}
-      onClick={onClick}
-    >
-      <Box textAlign="left">
-        <Heading
-          fontWeight="500"
-          size="sm"
-          color="gray.200"
-          letterSpacing="0.1px"
-        >
-          {name}
-        </Heading>
-      </Box>
-    </Button>
-  );
 };
 
 export const CodeExplorer: FC<{
@@ -381,27 +336,38 @@ export const CodeExplorer: FC<{
               overflowX="scroll"
               overflowY="hidden"
               maxW="100%"
-              p={2}
               borderBottom="1px solid"
               borderColor="gray.800"
               flexWrap="nowrap"
             >
-              {!isEmpty(miscData?.artifacts) && (
-                <PackageButton
-                  key={-1}
-                  name={name}
-                  selected={isSelectedPackage({ name, key: -1 })}
-                  onClick={() => handleSelectPackage({ name, key: -1 })}
-                />
-              )}
-              {provisionedPackagesKeys.map((k: string, i: number) => (
-                <PackageButton
-                  key={k}
-                  name={k}
-                  selected={isSelectedPackage({ name: k, key: i })}
-                  onClick={() => handleSelectPackage({ name: k, key: i })}
-                />
-              ))}
+              <Tabs
+                defaultValue={name}
+                value={selectedPackage.name}
+                onValueChange={(value) => {
+                  const pkg = availablePackages.find((p) => p.name === value);
+                  if (pkg) {
+                    handleSelectPackage(pkg);
+                  }
+                }}
+              >
+                <TabsList className="rounded-none">
+                  {!isEmpty(miscData?.artifacts) && (
+                    <TabsTrigger
+                      value={name}
+                    >
+                      {name}
+                    </TabsTrigger>
+                  )}
+                  {provisionedPackagesKeys.map((k: string) => (
+                    <TabsTrigger
+                      key={k}
+                      value={k}
+                    >
+                      {k}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
             </Flex>
           )}
           <Flex flex="1" direction={['column', 'column', 'row']}>
