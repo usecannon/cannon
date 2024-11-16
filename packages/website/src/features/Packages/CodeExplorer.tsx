@@ -1,16 +1,6 @@
 'use client';
 
 import { FC, useEffect, useState } from 'react';
-import {
-  Box,
-  Button,
-  Flex,
-  Heading,
-  Tooltip,
-  IconButton,
-  Text,
-  useBreakpointValue,
-} from '@chakra-ui/react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 import { CodePreview } from '@/components/CodePreview';
@@ -21,6 +11,8 @@ import { DeploymentInfo } from '@usecannon/builder';
 import { ApiPackage } from '@usecannon/api/dist/src/types';
 import { IpfsSpinner } from '@/components/IpfsSpinner';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from "@/components/ui/button"
+import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 const handleDownload = (content: Record<string, unknown>, filename: string) => {
   const blob = new Blob([JSON.stringify(content, null, 2)], {
@@ -43,11 +35,6 @@ export const CodeExplorer: FC<{
   source: string;
   functionName?: string;
 }> = ({ pkg, name, moduleName, source, functionName }) => {
-  const isSmall = useBreakpointValue({
-    base: true,
-    sm: true,
-    md: false,
-  });
 
   const [selectedCode, setSelectedCode] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('');
@@ -320,7 +307,7 @@ export const CodeExplorer: FC<{
     isLoadingProvisionedMiscData;
 
   return (
-    <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
+    <div className="flex flex-col flex-1 max-h-full max-w-full">
       {isLoading ? (
         <div className="py-20">
           <IpfsSpinner ipfsUrl={pkg?.deployUrl} />
@@ -328,18 +315,7 @@ export const CodeExplorer: FC<{
       ) : artifacts?.length || provisionedPackagesKeys.length ? (
         <>
           {!!provisionedPackagesKeys.length && (
-            <Flex
-              top="0"
-              zIndex={3}
-              bg="gray.900"
-              position={{ md: 'sticky' }}
-              overflowX="scroll"
-              overflowY="hidden"
-              maxW="100%"
-              borderBottom="1px solid"
-              borderColor="gray.800"
-              flexWrap="nowrap"
-            >
+            <div className="flex sticky top-0 z-[3] md:sticky overflow-x-scroll overflow-y-hidden max-w-full border-b border-gray-800 flex-nowrap">
               <Tabs
                 defaultValue={name}
                 value={selectedPackage.name}
@@ -368,60 +344,36 @@ export const CodeExplorer: FC<{
                   ))}
                 </TabsList>
               </Tabs>
-            </Flex>
+            </div>
           )}
-          <Flex flex="1" direction={['column', 'column', 'row']}>
-            <Flex
-              flexDirection="column"
-              overflowY="auto"
-              maxWidth={['100%', '100%', '320px']}
-              borderRight={isSmall ? 'none' : '1px solid'}
-              borderBottom={isSmall ? '1px solid' : 'none'}
-              borderColor={isSmall ? 'gray.600' : 'gray.700'}
-              width={['100%', '100%', '320px']}
-              maxHeight={['140px', '140px', 'calc(100vh - 236px)']}
-            >
-              <Box px={3} pb={2}>
+          <div className="flex flex-1 flex-col md:flex-row">
+            <div className="flex flex-col overflow-y-auto max-w-full md:max-w-[320px] border-b md:border-b-0 md:border-r border-gray-700 w-full md:w-[320px] max-h-[140px] md:max-h-[calc(100vh-236px)]">
+              <div className="px-3 pb-2">
                 {artifacts?.map(([artifactKey, artifactValue]: [any, any]) => {
                   return (
-                    <Box key={artifactKey} mt={4}>
-                      <Flex
-                        flexDirection="row"
-                        px="2"
-                        alignItems="center"
-                        mb="1"
-                      >
-                        <Heading
-                          fontWeight="500"
-                          size="sm"
-                          color="gray.200"
-                          letterSpacing="0.1px"
-                          mr="1"
-                        >
+                    <div key={artifactKey} className="mt-4">
+                      <div className="flex flex-row px-2 items-center mb-1">
+                        <div className="text-sm font-medium text-gray-200 tracking-wide mr-1">
                           {artifactKey.split(':').length > 1
                             ? artifactKey.split(':')[1]
                             : artifactKey}
-                        </Heading>
+                        </div>
 
                         <Button
                           variant="outline"
-                          colorScheme="white"
-                          size="xs"
-                          color="gray.300"
-                          borderColor="gray.500"
-                          _hover={{ bg: 'gray.700' }}
-                          leftIcon={<DownloadIcon />}
+                          size="sm"
+                          className="text-gray-300 border-gray-500 hover:bg-gray-700 ml-auto"
                           onClick={() => {
                             handleDownload(
                               (artifactValue as any)?.abi,
                               'deployments.json'
                             );
                           }}
-                          ml="auto"
                         >
+                          <DownloadIcon className="mr-2" />
                           ABI
                         </Button>
-                      </Flex>
+                      </div>
                       {(artifactValue as any)?.source?.input &&
                         Object.entries(
                           JSON.parse((artifactValue as any).source.input)
@@ -434,118 +386,74 @@ export const CodeExplorer: FC<{
                           })
                           .map(([sourceKey, sourceValue]) => {
                             return (
-                              <Tooltip
-                                label={sourceKey}
-                                key={sourceKey}
-                                placement="right"
-                              >
-                                <Box
-                                  borderRadius="md"
-                                  mb={0.5}
-                                  py={0.5}
-                                  px="2"
-                                  cursor="pointer"
-                                  fontSize="sm"
-                                  _hover={{ background: 'gray.800' }}
-                                  onClick={() =>
-                                    handleSelectFile(sourceKey, sourceValue)
-                                  }
-                                  whiteSpace="nowrap"
-                                  overflow="hidden"
-                                  textOverflow="ellipsis"
-                                  style={{
-                                    direction: 'rtl', // Reverses the text display order
-                                    unicodeBidi: 'bidi-override', // Overrides the default bidi algorithm
-                                  }}
-                                  textAlign="left" // Left-aligns the text
-                                  fontWeight={
-                                    selectedKey == sourceKey
-                                      ? 'medium'
-                                      : undefined
-                                  }
-                                  background={
-                                    selectedKey == sourceKey
-                                      ? 'gray.800'
-                                      : undefined
-                                  }
-                                >
-                                  {sourceKey.split('').reverse().join('')}
-                                </Box>
+                              <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <div
+                                    className={`
+                                      border border-gray-800 rounded-md mb-0.5 py-0.5 px-2 
+                                      cursor-pointer text-sm hover:bg-gray-800
+                                      whitespace-nowrap overflow-hidden text-ellipsis
+                                      rtl text-left
+                                      ${selectedKey == sourceKey ? 'font-medium bg-gray-800' : ''}
+                                    `}
+                                    onClick={() =>
+                                      handleSelectFile(sourceKey, sourceValue)
+                                    }
+                                  >
+                                    {sourceKey.split('').reverse().join('')}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {sourceKey}
+                                </TooltipContent>
                               </Tooltip>
+                              </TooltipProvider>
                             );
                           })}
-                    </Box>
+                    </div>
                   );
                 })}
 
                 {metadata?.cannonfile !== undefined && (
                   <>
-                    <Box mt={4}>
-                      <Flex
-                        flexDirection="row"
-                        px="2"
-                        alignItems="center"
-                        mb="1"
-                      >
-                        <Heading
-                          fontWeight="500"
-                          size="sm"
-                          color="gray.200"
-                          letterSpacing="0.1px"
-                        >
+                    <div className="mt-4">
+                      <div className="flex flex-row px-2 items-center mb-1">
+                        <div className="text-sm font-medium text-gray-200 tracking-wide mr-1">
                           Metadata
-                        </Heading>
+                        </div>
 
-                        <IconButton
-                          aria-label="Download Metadata"
+                        <Button
                           variant="outline"
-                          colorScheme="white"
-                          size="xs"
-                          color="gray.300"
-                          borderColor="gray.500"
-                          _hover={{ bg: 'gray.700' }}
-                          icon={<DownloadIcon />}
+                          size="sm"
+                          className="text-gray-300 border-gray-500 hover:bg-gray-700 ml-auto"
                           onClick={() => {
                             handleDownload(metadata, 'metadata.json');
                           }}
-                          ml="auto"
-                        ></IconButton>
-                      </Flex>
-                    </Box>
+                        >
+                          <DownloadIcon />
+                        </Button>
+                      </div>
+                    </div>
 
-                    <Box
-                      borderRadius="md"
-                      mb={0.5}
-                      py={0.5}
-                      px="2"
-                      cursor="pointer"
-                      fontSize="sm"
-                      _hover={{ background: 'gray.800' }}
+                    <div
+                      className="border border-gray-800 rounded-md mb-0.5 py-0.5 px-2 cursor-pointer font-sm hover:bg-gray-800"
                       onClick={() => {
                         setSelectedCode(metadata.cannonfile);
                         setSelectedLanguage('toml');
                         setSelectedKey('cannonfile');
                       }}
-                      fontWeight={
-                        selectedKey == 'cannonfile' ? 'medium' : undefined
-                      }
                     >
                       Cannonfile
-                    </Box>
+                    </div>
                   </>
                 )}
-              </Box>
-            </Flex>
+              </div>
+            </div>
 
-            <Box
-              flex="1"
-              overflowY="auto"
-              maxHeight={['none', 'none', 'calc(100vh - 236px)']}
-              background="gray.800"
-            >
+            <div className="flex-1 overflow-y-auto md:max-h-[calc(100vh-236px)]">
               {selectedCode.length ? (
                 <>
-                  {/* Make sure code preview is not rendered if function name exists but no selected line is set yet */}
                   {!selectedLine && functionName ? null : (
                     <CodePreview
                       code={selectedCode}
@@ -556,30 +464,24 @@ export const CodeExplorer: FC<{
                   )}
                 </>
               ) : (
-                <Flex
-                  flex="1"
-                  height="100%"
-                  alignItems="center"
-                  justifyContent="center"
-                  p={4}
-                >
-                  <Text color="gray.400">
-                    <InfoOutlineIcon transform="translateY(-1px)" /> Code
-                    unavailable
-                  </Text>
-                </Flex>
+                <div className="flex flex-1 h-full items-center justify-center p-4">
+                  <div className="text-gray-400">
+                    <InfoOutlineIcon className="transform -translate-y-[1px]" /> 
+                    Code unavailable
+                  </div>
+                </div>
               )}
-            </Box>
-          </Flex>
+            </div>
+          </div>
         </>
       ) : (
-        <Flex flex="1" alignItems="center" justifyContent="center" p={4}>
-          <Text color="gray.400">
-            <InfoOutlineIcon transform="translateY(-1px)" /> This package does
+        <div className="flex flex-1 items-center justify-center p-4">
+          <div className="text-gray-400">
+            <InfoOutlineIcon className="transform -translate-y-[1px]" /> This package does
             not contain any code.
-          </Text>
-        </Flex>
+          </div>
+        </div>
       )}
-    </Flex>
+    </div>
   );
 };
