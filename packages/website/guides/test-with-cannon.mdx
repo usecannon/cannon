@@ -33,10 +33,9 @@ By convention, tests in Foundry are located in the `/test` folder and the test f
   </AlertDescription>
 </Alert>
 
-In this example, we will use the test created by `forge init` in `test/Counter.t.sol`. Also we are
-going to use the `cannon-std` helper library from Cannon to write tests.
+In this example, we will add the `cannon-std` helper library to the test created by `forge init` in `test/Counter.t.sol`. This library allows us to access data from the build.
 
-This library allows us to access data from the build. To install it, run:
+To install it, run:
 
 ```bash
 forge install usecannon/cannon-std
@@ -48,7 +47,7 @@ forge install usecannon/cannon-std
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "cannon-std/Cannon.sol";
+import "cannon-std/Cannon.sol"; # Import the library
 
 import { Test } from "forge-std/Test.sol";
 import { Counter } from "../src/Counter.sol";
@@ -60,7 +59,7 @@ contract CounterTest is Test {
     Counter counter
 
     function setUp() public {
-        counter = Counter(vm.getAddress("Counter"));
+        counter = Counter(vm.getAddress("Counter")); # Get the address for the built artifact
         counter.setNumber(0);
     }
 
@@ -76,15 +75,13 @@ contract CounterTest is Test {
 }
 ```
 
-Cannon runs `forge test` in the background, but the `cannon test` command can receive a specific cannonfile as an argument to run the test suites. By default, it uses `cannonfile.toml`.
+Now run the tests with:
 
-<Alert variant="warning">
-  <AlertDescription>
-    This is a simple case of testing using `cannon test`. Later, we'll see how
-    we can use `usecannon/cannon-std` to interact with the Cannon registry and
-    other contracts deployed in Cannon.
-  </AlertDescription>
-</Alert>
+```bash
+cannon test
+```
+
+Cannon runs `forge test` after building your cannonfile. By default, it uses `cannonfile.toml`.
 
 After running the tests, the CLI will notify us that all tests have passed successfully.
 
