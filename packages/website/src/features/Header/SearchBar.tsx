@@ -101,8 +101,6 @@ const SearchBar = () => {
     }
   });
 
-  console.log('results',results);
-
   return (
     <>
       <Button
@@ -130,98 +128,100 @@ const SearchBar = () => {
             onValueChange={setInputValue}
           />
           <CommandList>
-            {searchQuery.isLoading && (
+            {searchQuery.isLoading ? (
               <CommandEmpty>Loading...</CommandEmpty>
-            )}
-            {debouncedValue && 
-              !searchQuery.isLoading && 
-              (!results || results.length === 0) && (
-                <CommandEmpty>No results found.</CommandEmpty>
-            )}
-            {results.length > 0 && (
-              <CommandGroup className="py-2">
-                {results.map((result: any, index: number) => (
-                  <CommandItem
-                    key={index}
-                    onSelect={async () => {
-                      onClose();
-                      await router.push(generateLink(result));
-                    }}
-                    className="flex items-center gap-2"
-                  >
-                    {(() => {
-                      switch (result.type) {
-                        case 'package':
-                          return (
-                            <>
-                              <GoPackage className="h-6 w-6 shrink-0 opacity-50 mr-1" />
-                              <div className="flex flex-col">
-                                <span>{result.name}</span>
-                                <span className="text-sm text-muted-foreground inline-flex items-center gap-1">
-                                  {result.version}@{result.preset}{' '}
-                                  <span className="inline-flex items-center">
+            ) : debouncedValue && (!results || results.length === 0) ? (
+              <CommandEmpty>No results found.</CommandEmpty>
+            ) : (
+              results?.length > 0 &&
+              inputValue?.length > 0 && (
+                <CommandGroup className="py-2">
+                  {results.map((result: any) => (
+                    <CommandItem
+                      key={`${result.type}-${result.name}-${
+                        result.version || ''
+                      }`}
+                      value={`${result.type}-${result.name}`}
+                      onSelect={async () => {
+                        onClose();
+                        await router.push(generateLink(result));
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      {(() => {
+                        switch (result.type) {
+                          case 'package':
+                            return (
+                              <>
+                                <GoPackage className="h-6 w-6 shrink-0 opacity-50 mr-1" />
+                                <div className="flex flex-col">
+                                  <span>{result.name}</span>
+                                  <span className="text-sm text-muted-foreground inline-flex items-center gap-1">
+                                    {result.version}@{result.preset}{' '}
+                                    <span className="inline-flex items-center ml-2">
+                                      <Chain id={result.chainId} />
+                                    </span>
+                                  </span>
+                                </div>
+                              </>
+                            );
+                          case 'namespace':
+                            return (
+                              <>
+                                <BsBoxes className="h-6 w-6 shrink-0 opacity-50 mr-1" />
+                                <div className="flex flex-col">
+                                  <span>{result.name}</span>
+                                  <span className="text-sm text-muted-foreground">
+                                    {result.count} package
+                                    {result.count != 1 && 's'}
+                                  </span>
+                                </div>
+                              </>
+                            );
+                          case 'contract':
+                            return (
+                              <>
+                                <PiFileCode className="h-6 w-6 shrink-0 opacity-50 mr-1" />
+                                <div className="flex flex-col">
+                                  <span>{result.name}</span>
+                                  <span className="text-sm text-muted-foreground inline-flex items-center gap-1">
+                                    {result.address.substring(0, 6)}...
+                                    {result.address.slice(-4)} •{' '}
+                                    {result.packageName}:{result.version}@
+                                    {result.preset} •{' '}
+                                    <span className="inline-flex items-center">
+                                      <Chain id={result.chainId} />
+                                    </span>
+                                  </span>
+                                </div>
+                              </>
+                            );
+                          case 'function':
+                            return (
+                              <>
+                                <FaCode className="h-6 w-6 shrink-0 opacity-50 mr-1" />
+                                <div className="flex flex-col">
+                                  <span>
+                                    {result.contractName}.{result.name}
+                                  </span>
+                                  <span className="text-sm text-muted-foreground">
+                                    {result.address.substring(0, 6)}...
+                                    {result.address.slice(-4)} •{' '}
+                                    {result.packageName}:{result.version}@
+                                    {result.preset} •{' '}
                                     <Chain id={result.chainId} />
                                   </span>
-                                </span>
-                              </div>
-                            </>
-                          );
-                        case 'namespace':
-                          return (
-                            <>
-                              <BsBoxes className="h-6 w-6 shrink-0 opacity-50 mr-1" />
-                              <div className="flex flex-col">
-                                <span>{result.name}</span>
-                                <span className="text-sm text-muted-foreground">
-                                  {result.count} package
-                                  {result.count != 1 && 's'}
-                                </span>
-                              </div>
-                            </>
-                          );
-                        case 'contract':
-                          return (
-                            <>
-                              <PiFileCode className="h-6 w-6 shrink-0 opacity-50 mr-1" />
-                              <div className="flex flex-col">
-                                <span>{result.name}</span>
-                                <span className="text-sm text-muted-foreground inline-flex items-center gap-1">
-                                  {result.address.substring(0, 6)}...
-                                  {result.address.slice(-4)} •{' '}
-                                  {result.packageName}:{result.version}@
-                                  {result.preset} •{' '}
-                                  <span className="inline-flex items-center">
-                                    <Chain id={result.chainId} />
-                                  </span>
-                                </span>
-                              </div>
-                            </>
-                          );
-                        case 'function':
-                          return (
-                            <>
-                              <FaCode className="h-6 w-6 shrink-0 opacity-50 mr-1" />
-                              <div className="flex flex-col">
-                                <span>
-                                  {result.contractName}.{result.name}
-                                </span>
-                                <span className="text-sm text-muted-foreground">
-                                  {result.address.substring(0, 6)}...
-                                  {result.address.slice(-4)} •{' '}
-                                  {result.packageName}:{result.version}@
-                                  {result.preset} •{' '}
-                                  <Chain id={result.chainId} />
-                                </span>
-                              </div>
-                            </>
-                          );
-                        default:
-                          return null;
-                      }
-                    })()}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
+                                </div>
+                              </>
+                            );
+                          default:
+                            return null;
+                        }
+                      })()}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              )
             )}
           </CommandList>
         </Command>

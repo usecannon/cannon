@@ -20,7 +20,7 @@ export const PackagePage: FC<{
   }
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-full px-4">
       {packagesQuery.isPending ? (
         <CustomSpinner />
       ) : packagesQuery.data ? (
