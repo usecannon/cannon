@@ -38,6 +38,12 @@ export const RunPackage = () => {
         <CommandPreview command="curl -L https://foundry.paradigm.xyz | bash" />
       </Box>
       <Text mb={4}>
+        You may need to restart your terminal before running the next command:
+      </Text>
+      <Box mb={4}>
+        <CommandPreview command="foundryup" />
+      </Box>
+      <Text mb={4}>
         Install Cannon’s <Link href={links.CLI}>command-line interface</Link>.
       </Text>
       <Box mb={4}>
