@@ -33,4 +33,9 @@ services:
   registry-l1:
     restart: always
     image: node:22.11.0-alpine
-    command: npx @usecannon/cli build registry --wipe --rpc-url https://registry:8545
+    # command: npx -y @usecannon/cli build  registry --wipe --rpc-url https://registry:8545
+    command: |
+      curl -L https://foundry.paradigm.xyz | bash
+      PATH="/root/.foundry/bin:${PATH}"
+      foundryup --version nightly-17e0981a071fbd3b5a0a59affb4d638a28dfec89
+      npx -y @usecannon/cli run --anvil.host 0.0.0.0 --port 8545 registry
