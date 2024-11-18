@@ -1,5 +1,6 @@
 import _ from 'lodash';
-import { DeploymentInfo, deleteIpfs, readIpfs } from '@usecannon/builder';
+import { DeploymentInfo } from '@usecannon/builder';
+import { deleteIpfs, readIpfs } from '@usecannon/builder/dist/src/ipfs';
 import {
   getDb,
   RKEY_FRESH_UPLOAD_HASHES,

@@ -3,8 +3,9 @@ import express from 'express';
 import morgan from 'morgan';
 import connectBusboy from 'connect-busboy';
 import consumers from 'stream/consumers';
+import { DeploymentInfo } from '@usecannon/builder';
+import { getContentCID, uncompress } from '@usecannon/builder/dist/src/ipfs';
 import { getDb, RKEY_FRESH_UPLOAD_HASHES, RKEY_PKG_HASHES, RKEY_EXTRA_HASHES } from './db';
-import { DeploymentInfo, getContentCID, uncompress } from '@usecannon/builder';
 
 let rdb: Awaited<ReturnType<typeof getDb>>;
 const RKEY_FRESH_GRACE_PERIOD = 5 * 60; // 5 minutes, or else we delete any uploaded artifacts from fresh

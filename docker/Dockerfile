@@ -21,9 +21,9 @@ WORKDIR /usr/app
 RUN npm i -g pnpm
 COPY ./pnpm-workspace.yaml ./package.json ./pnpm-lock.yaml ./
 
-COPY --from=build ./packages/repo/package.json ./packages/repo/tsconfig.json ./packages/repo/
+COPY --from=build /usr/app/packages/repo/package.json /usr/app/packages/repo/tsconfig.json ./packages/repo/
 RUN pnpm i --prod --frozen-lockfile --no-optional -r --filter @usecannon/repo
 
-COPY --from=build ./packages/repo/dist ./packages/repo/dist
+COPY --from=build /usr/app/packages/repo/dist /usr/app/packages/repo/dist
 
 CMD ["node", "dist/src/index.js"]
