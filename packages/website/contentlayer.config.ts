@@ -12,7 +12,7 @@ const Nav = defineNestedType(() => ({
 export const Guides = defineDocumentType(() => ({
   name: 'Guides',
   contentType: 'mdx',
-  filePathPattern: `**/*.mdx`,
+  filePathPattern: '**/*.mdx',
   fields: {
     title: { type: 'string', required: true },
     description: { type: 'string', required: true },

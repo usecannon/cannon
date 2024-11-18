@@ -2,13 +2,13 @@
 title: Test with Cannon
 description: Test your protocol using Cannon.
 before:
-  url: "build-with-cannon"
-  title: "Build with Cannon"
-  description: "Build a protocol using Cannon."
+  url: 'build-with-cannon'
+  title: 'Build with Cannon'
+  description: 'Build a protocol using Cannon.'
 after:
-  url: "deploy-onchain"
-  title: "Deploy Onchain"
-  description: "Deploy your protocol onchain."
+  url: 'deploy-onchain'
+  title: 'Deploy Onchain'
+  description: 'Deploy your protocol onchain.'
 ---
 
 ## Test with Cannon
@@ -28,26 +28,38 @@ By convention, tests in Foundry are located in the `/test` folder and the test f
 
 <Alert variant="warning" className="mt-6">
   <AlertDescription>
-    For more information on how to write and perform tests with Foundry, [review their docs](https://book.getfoundry.sh/forge/tests).
+    For more information on how to write and perform tests with Foundry, [review
+    their docs](https://book.getfoundry.sh/forge/tests).
   </AlertDescription>
 </Alert>
 
-In this example, we will use the test created by `forge init` in `test/Counter.t.sol`.
+In this example, we will add the `cannon-std` helper library to the test created by `forge init` in `test/Counter.t.sol`. This library allows us to access data from the build.
+
+To install it, run:
+
+```bash
+forge install usecannon/cannon-std
+```
 
 ```solidity
+// ./test/Counter.t.sol
+
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
+
+import "cannon-std/Cannon.sol"; # Import the library
 
 import { Test } from "forge-std/Test.sol";
 import { Counter } from "../src/Counter.sol";
 
 contract CounterTest is Test {
+		using Cannon for Vm;
     Counter public counter;
-    
+
     Counter counter
 
     function setUp() public {
-        counter = new Counter();
+        counter = Counter(vm.getAddress("Counter")); # Get the address for the built artifact
         counter.setNumber(0);
     }
 
@@ -63,22 +75,15 @@ contract CounterTest is Test {
 }
 ```
 
-We are going to use the `cannon-std` helper library from Cannon to write tests. This library allows us to access data from the build. To install it, run:
+Now run the tests with:
 
 ```bash
-forge install usecannon/cannon-std
+cannon test
 ```
 
-Cannon runs `forge test` in the background, but the `cannon test` command can receive a specific cannonfile as an argument to run the test suites. By default, it uses `cannonfile.toml`.
-
-<Alert variant="warning">
-  <AlertDescription>
-    This is a simple case of testing using `cannon test`. Later, we'll see how we can use `usecannon/cannon-std` to interact with the Cannon registry and other contracts deployed in Cannon.
-  </AlertDescription>
-</Alert>
+Cannon runs `forge test` after building your cannonfile. By default, it uses `cannonfile.toml`.
 
 After running the tests, the CLI will notify us that all tests have passed successfully.
-
 
 ```bash
 Writing deployment artifacts to ./deployments/test
@@ -93,6 +98,7 @@ Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 19.96ms (11.97ms CP
 Ran 1 test suite in 135.12ms (19.96ms CPU time): 2 tests passed, 0 failed, 0 skipped (2 total tests)
 forge exited with code 0
 ```
+
 </TabsContent>
   <TabsContent value="hardhat">
 *Coming soon.*
