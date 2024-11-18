@@ -22,7 +22,7 @@ jobs:
           node-version: '20.5.1'
 
       - name: Install Dependencies
-        run: pnpm i --prefer-frozen-lockfile
+        run: pnpm i --frozen-lockfile
 
       - name: Create Release Pull Request
         id: changesets
