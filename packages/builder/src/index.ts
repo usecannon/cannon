@@ -32,7 +32,17 @@ export {
   DEFAULT_REGISTRY_CONFIG,
   DEFAULT_REGISTRY_ADDRESS,
 } from './constants';
-export { isIpfsGateway, fetchIPFSAvailability } from './ipfs';
+export {
+  isIpfsGateway,
+  fetchIPFSAvailability,
+  getContentCID,
+  compress,
+  uncompress,
+  getContentUrl,
+  readIpfs,
+  deleteIpfs,
+  writeIpfs,
+} from './ipfs';
 export * from './access-recorder';
 export * from './definition';
 export * from './helpers';

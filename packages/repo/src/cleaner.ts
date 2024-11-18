@@ -1,8 +1,13 @@
 import _ from 'lodash';
-import { deleteIpfs, readIpfs } from '@usecannon/builder/dist/src/ipfs';
-import { DeploymentInfo } from '@usecannon/builder';
-import { getDb, RKEY_FRESH_UPLOAD_HASHES, RKEY_PKG_HASHES, RKEY_EXTRA_HASHES } from './db';
-import { RKEY_LAST_UPDATED, RKEY_FEES_PAID } from '@usecannon/indexer';
+import { DeploymentInfo, deleteIpfs, readIpfs } from '@usecannon/builder';
+import {
+  getDb,
+  RKEY_FRESH_UPLOAD_HASHES,
+  RKEY_PKG_HASHES,
+  RKEY_EXTRA_HASHES,
+  RKEY_LAST_UPDATED,
+  RKEY_FEES_PAID,
+} from './db';
 
 export async function cleanUnregisteredIpfs(
   ipfsUrl: string,

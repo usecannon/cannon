@@ -5,10 +5,11 @@
   "description": "Management of Cannon Artifacts Uploaded to IPFS",
   "main": "dist/index.js",
   "scripts": {
-    "test": "pnpm ts-node test/index.test.ts",
+    "test": "ts-node test/index.test.ts",
     "build": "tsc -p tsconfig.json",
     "clean": "rm -rf ./dist",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts"
   },
   "repository": {
     "type": "git",
@@ -25,14 +26,11 @@
   },
   "homepage": "https://github.com/usecannon/cannon#readme",
   "dependencies": {
-    "@usecannon/builder": "workspace:*",
-    "@usecannon/indexer": "workspace:*",
+    "@usecannon/builder": "*",
     "connect-busboy": "^1.0.0",
     "lodash": "^4.17.21",
     "morgan": "^1.10.0",
-    "pako": "^2.1.0",
-    "redis": "^4.6.13",
-    "typestub-ipfs-only-hash": "^4.0.0"
+    "redis": "^4.6.13"
   },
   "devDependencies": {
     "@types/connect-busboy": "^1.0.3",
@@ -41,12 +39,13 @@
     "@types/lodash": "^4.17.7",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.7.5",
-    "@types/pako": "^2.0.3",
     "axios": "^1.7.7",
     "get-port-please": "^3.1.2",
-    "redis-memory-server": "^0.11.0",
     "tinyexec": "^0.3.1",
     "ts-node": "^10.9.2"
+  },
+  "optionalDependencies": {
+    "redis-memory-server": "^0.11.0"
   },
   "gitHead": "ba373becf7f7ecdf1a26a41cc824a1de9ffe6f16"
 }

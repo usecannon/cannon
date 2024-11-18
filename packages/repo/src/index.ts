@@ -2,11 +2,9 @@ import _ from 'lodash';
 import express from 'express';
 import morgan from 'morgan';
 import connectBusboy from 'connect-busboy';
-import pako from 'pako';
 import consumers from 'stream/consumers';
-import Hash from 'typestub-ipfs-only-hash';
 import { getDb, RKEY_FRESH_UPLOAD_HASHES, RKEY_PKG_HASHES, RKEY_EXTRA_HASHES } from './db';
-import { DeploymentInfo } from '@usecannon/builder';
+import { DeploymentInfo, getContentCID, uncompress } from '@usecannon/builder';
 
 let rdb: Awaited<ReturnType<typeof getDb>>;
 const RKEY_FRESH_GRACE_PERIOD = 5 * 60; // 5 minutes, or else we delete any uploaded artifacts from fresh
@@ -35,7 +33,7 @@ app.post('/api/v0/add', async (req, res) => {
       fileReceived = true;
       // compute resulting IPFS hash from the uploaded data
       const rawData = await consumers.buffer(stream);
-      const ipfsHash = await Hash.of(rawData);
+      const ipfsHash = await getContentCID(rawData);
 
       const now = Math.floor(Date.now() / 1000) + RKEY_FRESH_GRACE_PERIOD;
 
@@ -46,7 +44,7 @@ app.post('/api/v0/add', async (req, res) => {
       // if IPFS hash is not already allowed, lets see if this is a cannon package
       if (!isSavable) {
         try {
-          const pkgData: DeploymentInfo = JSON.parse(pako.inflate(rawData, { to: 'string' }));
+          const pkgData: DeploymentInfo = JSON.parse(uncompress(rawData));
           //const def = new ChainDefinition(pkgData.def);
 
           // package is valid. Add to upload hashes
@@ -138,7 +136,7 @@ app.post('/api/v0/cat', async (req, res) => {
     try {
       const rawData = await upstreamRes.arrayBuffer();
       const uint8Data = new Uint8Array(rawData);
-      const decompressedData = pako.inflate(uint8Data, { to: 'string' });
+      const decompressedData = uncompress(uint8Data);
       JSON.parse(decompressedData);
 
       // appears to be a cannon package. sendit back
