@@ -519,6 +519,22 @@ importers:
         specifier: ^1.9.9
         version: 1.9.9
 
+  packages/lsp:
+    dependencies:
+      '@taplo/lsp':
+        specifier: ^0.8.0
+        version: 0.8.0
+      '@usecannon/builder':
+        specifier: workspace:*
+        version: link:../builder
+      '@usecannon/cli':
+        specifier: workspace:*
+        version: link:../cli
+    devDependencies:
+      zod-to-json-schema:
+        specifier: ^3.21.4
+        version: 3.23.2(zod@3.23.8)
+
   packages/registry:
     devDependencies:
       '@nomiclabs/hardhat-ethers':
@@ -5521,6 +5537,12 @@ packages:
   '@tanstack/table-core@8.20.1':
     resolution: {integrity: sha512-5Ly5TIRHnWH7vSDell9B/OVyV380qqIJVg7H7R7jU4fPEmOD4smqAX7VRflpYI09srWR8aj5OLD2Ccs1pI5mTg==}
     engines: {node: '>=12'}
+
+  '@taplo/core@0.2.0':
+    resolution: {integrity: sha512-r8bl54Zj1In3QLkiW/ex694bVzpPJ9EhwqT9xkcUVODnVUGirdB1JTsmiIv0o1uwqZiwhi8xNnTOQBRQCpizrQ==}
+
+  '@taplo/lsp@0.8.0':
+    resolution: {integrity: sha512-ddXw9MB8vSEmF0HrzyZESAlGpxKqARlthNqIFnBDplnFyiSX9I5jkWtPulFORfW4J+mmttdPJPiG5UihP6T7+w==}
 
   '@teppeis/multimaps@3.0.0':
     resolution: {integrity: sha512-ID7fosbc50TbT0MK0EG12O+gAP3W3Aa/Pz4DaTtQtEvlc9Odaqi0de+xuZ7Li2GtK4HzEX7IuRWS/JmZLksR3Q==}
@@ -21968,6 +21990,12 @@ snapshots:
 
   '@tanstack/table-core@8.20.1': {}
 
+  '@taplo/core@0.2.0': {}
+
+  '@taplo/lsp@0.8.0':
+    dependencies:
+      '@taplo/core': 0.2.0
+
   '@teppeis/multimaps@3.0.0': {}
 
   '@textlint/ast-node-types@12.6.1': {}
@@ -22704,7 +22732,7 @@ snapshots:
     dependencies:
       '@synthetixio/router': 3.4.0(hardhat@2.22.9(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@20.3.2)(typescript@5.5.4))(typescript@5.5.4)(utf-8-validate@5.0.10))(solc@0.8.26)
       axios: 1.7.5(debug@4.3.7)
-      axios-retry: 4.5.0(axios@1.7.5(debug@4.3.7))
+      axios-retry: 4.5.0(axios@1.7.5)
       buffer: 6.0.3
       chalk: 4.1.2
       debug: 4.3.7
@@ -23674,7 +23702,7 @@ snapshots:
       axios: 1.7.5(debug@4.3.6)
       is-retry-allowed: 2.2.0
 
-  axios-retry@4.5.0(axios@1.7.5(debug@4.3.7)):
+  axios-retry@4.5.0(axios@1.7.5):
     dependencies:
       axios: 1.7.5(debug@4.3.7)
       is-retry-allowed: 2.2.0
