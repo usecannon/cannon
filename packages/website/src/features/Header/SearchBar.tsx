@@ -146,7 +146,7 @@ const SearchBar = () => {
                       key={`${result.type}-${result.name}-${
                         'version' in result ? result.version : ''
                       }`}
-                      value={`${result.type}-${result.name}`}
+                      value={`${result.type}-${result.name}-${Math.random()}`}
                       onSelect={async () => {
                         onClose();
                         await router.push(generateLink(result));
