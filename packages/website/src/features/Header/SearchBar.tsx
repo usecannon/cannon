@@ -24,6 +24,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
+import { CustomSpinner } from '@/components/CustomSpinner';
 
 const generateLink = (result: any) => {
   switch (result.type) {
@@ -56,7 +57,9 @@ const SearchBar = () => {
 
   const debouncedSetValue = useRef(
     debounce((value: string) => {
-      setDebouncedValue(value.trim());
+      if (value.trim().length > 2) {
+        setDebouncedValue(value.trim());
+      }
     }, 300)
   ).current;
 
@@ -129,17 +132,19 @@ const SearchBar = () => {
           />
           <CommandList>
             {searchQuery.isLoading ? (
-              <CommandEmpty>Loading...</CommandEmpty>
+              <CommandEmpty>
+                <CustomSpinner className="h-5 w-5" />
+              </CommandEmpty>
             ) : debouncedValue && (!results || results.length === 0) ? (
               <CommandEmpty>No results found.</CommandEmpty>
             ) : (
               results?.length > 0 &&
               inputValue?.length > 0 && (
                 <CommandGroup className="py-2">
-                  {results.map((result: any) => (
+                  {results.map((result) => (
                     <CommandItem
                       key={`${result.type}-${result.name}-${
-                        result.version || ''
+                        'version' in result ? result.version : ''
                       }`}
                       value={`${result.type}-${result.name}`}
                       onSelect={async () => {
