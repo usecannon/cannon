@@ -60,6 +60,7 @@ export default function LearnLayout({ children }: { children: ReactNode }) {
         </div>
       </div>
       <div className="px-4 md:px-8 flex w-full h-full">{children}</div>
+      {/* {children} */}
     </div>
   );
 }
