@@ -14,6 +14,7 @@ FROM node:22.11.0-alpine
 
 ENV NODE_ENV=production
 ENV REDIS_URL=""
+ENV UPSTREAM_IPFS_URL=""
 ENV PORT=8080
 
 WORKDIR /usr/app

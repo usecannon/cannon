@@ -22,14 +22,6 @@ services:
   #   command: --interop.autorelay
 
   # Deploy the registry on L1
-  # registry-build:
-  #   depends_on:
-  #     - registry
-  #   restart: 'no'
-  #   image: node:22.11.0-alpine
-  #   command: npx @usecannon/cli build registry --wipe --rpc-url https://registry:8545
-
-  # Deploy the registry on L1
   registry:
     restart: always
     image: node:22.11.0-alpine
@@ -41,3 +33,16 @@ services:
       DEBUG=cannon* npx -y @usecannon/cli run registry --anvil.host 0.0.0.0 --anvil.port 8545 --anvil.chain-id 1
     ports:
       - '0.0.0.0:8545:8545' # L1
+
+  repo:
+    build:
+      context: .
+      dockerfile: docker/repo.Dockerfile
+    restart: always
+    depends_on:
+      - redis
+    environment:
+      REDIS_URL: redis://redis:6379
+      UPSTREAM_IPFS_URL: http://localhost:9095
+    ports:
+      - '3000:3000'
