@@ -19,7 +19,9 @@
   "dependencies": {
     "@taplo/lsp": "^0.8.0",
     "@usecannon/builder": "workspace:*",
-    "@usecannon/cli": "workspace:*"
+    "@usecannon/cli": "workspace:*",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.12"
   },
   "devDependencies": {
     "zod-to-json-schema": "^3.21.4"
