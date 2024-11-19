@@ -74,7 +74,7 @@ const pullSpec = {
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
     config: Config,
-    packageState: PackageState
+    packageState: PackageState,
   ): Promise<ChainArtifacts> {
     const importLabel = packageState.currentLabel?.split('.')[1] || '';
     debug('exec', config);
@@ -87,7 +87,7 @@ const pullSpec = {
       runtime.emit(
         Events.Notice,
         packageState.currentLabel,
-        'To prevent unexpected upgrades, it is strongly recommended to lock the version of the source package by specifying a version in the `source` field.'
+        'To prevent unexpected upgrades, it is strongly recommended to lock the version of the source package by specifying a version in the `source` field.',
       );
     }
 
@@ -97,13 +97,13 @@ const pullSpec = {
 
     if (!deployInfo) {
       throw new Error(
-        `deployment not found: ${source}. please make sure it exists for the cannon network and ${preset} preset.`
+        `deployment not found: ${source}. please make sure it exists for the cannon network and ${preset} preset.`,
       );
     }
 
     if (deployInfo.status === 'partial') {
       throw new Error(
-        `deployment status is incomplete for ${source}. cannot generate artifacts safely. please complete deployment to continue import.`
+        `deployment status is incomplete for ${source}. cannot generate artifacts safely. please complete deployment to continue import.`,
       );
     }
 
@@ -111,6 +111,7 @@ const pullSpec = {
       imports: {
         [importLabel]: {
           url: (await runtime.registry.getUrl(source, chainId))!, // todo: duplication
+          labels: config.labels,
           ...(await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state))!,
         },
       },

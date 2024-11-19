@@ -38,25 +38,6 @@ const targetRegex = new RegExp(
   ].join('|'),
 );
 
-// stolen from https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string
-function tryParseJson(jsonString: string) {
-  try {
-    const o = JSON.parse(jsonString);
-
-    // Handle non-exception-throwing cases:
-    // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
-    // but... JSON.parse(null) returns null, and typeof null === "object",
-    // so we must check for that, too. Thankfully, null is falsey, so this suffices:
-    if (o && typeof o === 'object') {
-      return o;
-    }
-  } catch (e) {
-    // do nothing
-  }
-
-  return undefined;
-}
-
 // Note: The first schema defined contains required properties, we then merge a schema with the `deepPartial` function which contains the optional properties
 
 const targetSchema = z
@@ -75,6 +56,9 @@ export const sharedActionSchema = z
       .describe(
         'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.',
       ),
+    labels: z
+      .record(z.string().regex(actionNameRegex, 'Must be lowercase with no special characters'), z.string())
+      .describe('Map of keys and values to help identify the outputs of this action'),
   })
   .partial();
 
@@ -150,7 +134,8 @@ export const deploySchema = z
       })
       .partial(),
   )
-  .strict();
+  .strict()
+  .merge(sharedActionSchema);
 
 export const pullSchema = z
   .object({
@@ -170,7 +155,8 @@ export const pullSchema = z
       })
       .partial(),
   )
-  .strict();
+  .strict()
+  .merge(sharedActionSchema);
 
 const invokeVarRecord = z
   .record(
@@ -306,7 +292,8 @@ export const invokeSchema = z
       })
       .partial(),
   )
-  .strict();
+  .strict()
+  .merge(sharedActionSchema);
 
 export const cloneSchema = z
   .object({
@@ -353,7 +340,8 @@ export const cloneSchema = z
       })
       .partial(),
   )
-  .strict();
+  .strict()
+  .merge(sharedActionSchema);
 
 export const routerSchema = z
   .object({
@@ -380,7 +368,8 @@ export const routerSchema = z
       .describe('Override transaction settings.'),
     highlight: z.boolean().optional().describe('Determines whether contract should get priority in displays.'),
   })
-  .strict();
+  .strict()
+  .merge(sharedActionSchema);
 
 export const diamondSchema = z
   .object({
@@ -414,7 +403,8 @@ export const diamondSchema = z
       .describe('Override transaction settings.'),
     highlight: z.boolean().optional().describe('Determines whether contract should get priority in displays'),
   })
-  .strict();
+  .strict()
+  .merge(sharedActionSchema);
 
 export const varSchema = z.object({}).catchall(z.string());
 
@@ -457,6 +447,7 @@ export const chainDefinitionSchema = z
         'Any deployers that could publish this package. Used *only* to automatically detect previous deployed package for version management.',
       )
       .optional(),
+    include: z.array(z.string()).describe('Array of additional files to load into the cannon deployment state.').optional(),
   })
   .merge(
     z
@@ -475,22 +466,22 @@ export const chainDefinitionSchema = z
             '⚠ DEPRECATED. Use `var` instead. A setting is a variable that can be set (or overriden using the CLI) when building a Cannonfile. It is accessible elsewhere in the file a property of the settings object. For example, [setting.sampleSetting] can be referenced with <%= settings.sampleSetting %>',
           ),
         pull: z
-          .record(pullSchema.merge(sharedActionSchema))
+          .record(pullSchema)
           .describe(
             'Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other operations in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.',
           ),
         import: z
-          .record(pullSchema.merge(sharedActionSchema))
+          .record(pullSchema)
           .describe(
             '⚠ DEPRECATED. Use `pull` instead. Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other operations in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.',
           ),
         clone: z
-          .record(cloneSchema.merge(sharedActionSchema))
+          .record(cloneSchema)
           .describe(
             'Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).',
           ),
         provision: z
-          .record(cloneSchema.merge(sharedActionSchema))
+          .record(cloneSchema)
           .describe(
             '⚠ DEPRECATED. Use `clone` instead. Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).',
           ),
@@ -498,14 +489,14 @@ export const chainDefinitionSchema = z
         contract: z.record(deploySchema).describe('⚠ Deprecated in favor of deploy. Deploy a contract.'),
         invoke: z.record(invokeSchema).describe('Call a function.'),
         router: z
-          .record(routerSchema.merge(sharedActionSchema))
+          .record(routerSchema)
           .describe('Generate a contract that proxies calls to multiple contracts using the synthetix router codegen.'),
         diamond: z
-          .record(diamondSchema.merge(sharedActionSchema))
+          .record(diamondSchema)
           .describe(
             'Generate a upgradable contract that proxies calls to multiple contracts using a ERC2535 Diamond standard.',
           ),
-        var: z.record(varSchema.merge(sharedActionSchema)).describe('Apply a setting or intermediate value.'),
+        var: z.record(varSchema).describe('Apply a setting or intermediate value.'),
         // ... there may be others that come from plugins
       })
       .partial(),
