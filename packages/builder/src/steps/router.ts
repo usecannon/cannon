@@ -87,7 +87,7 @@ const routerStep = {
     let accesses = computeTemplateAccesses(config.from);
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt, possibleFields));
     accesses.accesses.push(
-      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`)),
+      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`))
     );
 
     if (config?.overrides) {
@@ -105,7 +105,7 @@ const routerStep = {
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
     config: Config,
-    packageState: PackageState,
+    packageState: PackageState
   ): Promise<ChainArtifacts> {
     debug('exec', config);
 
@@ -150,8 +150,6 @@ const routerStep = {
       'function facetAddress(bytes4 functionSelector) pure returns (address)',
       'function emitDiamondCutEvent() returns (bool)',
     ]);
-
-    console.log('INCLUDE DIAMOND', config.includeDiamondCompatibility);
 
     // the ABI is entirely based on the fallback call so we have to generate ABI here
     // TODO: possible if the user includes their own diamond contracts, they could clash with the abi we are adding here for diamond.
