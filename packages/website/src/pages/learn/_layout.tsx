@@ -59,7 +59,7 @@ export default function LearnLayout({ children }: { children: ReactNode }) {
           </NavLink>
         </div>
       </div>
-      <div className="px-4 md:px-8 flex w-full h-100 overflow-y-auto">
+      <div className="px-4 md:px-8 flex w-full h-full overflow-y-auto">
         {children}
       </div>
     </div>
