@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 import {
@@ -8,6 +8,7 @@ import {
   SidebarContent,
   SidebarProvider,
   SidebarTrigger,
+  useSidebar,
 } from '@/components/ui/sidebar';
 
 interface SidebarLayoutProps {
@@ -39,6 +40,29 @@ const Container = ({
     <>{children}</>
   );
 
+const CloseOnLeave = () => {
+  const { setOpenMobile } = useSidebar();
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      setOpenMobile(false);
+    };
+
+    // Detect initial load and hash change
+    handleHashChange();
+
+    // Add listener for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+
+    // Cleanup the listener on unmount
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, [setOpenMobile]);
+
+  return null;
+};
+
 export function SidebarLayout({
   children,
   sidebarContent,
@@ -48,6 +72,7 @@ export function SidebarLayout({
   return (
     <Layout>
       <SidebarProvider>
+        <CloseOnLeave />
         {/* Mobile Sidebar Trigger - Fixed to left side */}
         <div className="fixed left-0 top-1/2 -translate-y-1/2 z-50 md:hidden bg-black border border-border border-l-0 rounded-r-lg">
           <SidebarTrigger>
@@ -78,7 +103,7 @@ export function SidebarLayout({
         </Container>
 
         {/* Main content */}
-        <main className="h-100 overflow-y-auto w-full">
+        <main className={`h-100 w-full ${centered ? '' : 'overflow-y-auto'}`}>
           <div className="container max-w-100 px-4 md:px-6 lg:px-8 h-screen ml-0">
             {children}
           </div>
