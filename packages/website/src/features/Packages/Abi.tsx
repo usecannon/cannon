@@ -1,13 +1,4 @@
-import {
-  Alert,
-  AlertIcon,
-  Box,
-  Flex,
-  Heading,
-  Skeleton,
-  Text,
-  useBreakpointValue,
-} from '@chakra-ui/react';
+import { Alert, AlertIcon, Flex, Skeleton, Text } from '@chakra-ui/react';
 import sortBy from 'lodash/sortBy';
 import * as viem from 'viem';
 import { ChainArtifacts } from '@usecannon/builder';
@@ -22,6 +13,16 @@ import { Button, ButtonProps } from '@chakra-ui/react';
 import React from 'react';
 import { useRouter } from 'next/router';
 import { CustomSpinner } from '@/components/CustomSpinner';
+import {
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from '@/components/ui/sidebar';
+import { SidebarLayout } from '@/components/layouts/SidebarLayout';
 
 const getSelectorSlug = (f: AbiFunction) =>
   `selector-${viem.toFunctionSelector(f)}`;
@@ -80,7 +81,6 @@ export const Abi: FC<{
   packageUrl,
 }) => {
   const router = useRouter();
-  const isSmall = useBreakpointValue([true, true, false]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const hasSubnav = useContext(SubnavContext);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -174,155 +174,141 @@ export const Abi: FC<{
     scrollInitialized,
   ]);
 
+  const sidebarContent = (
+    <SidebarContent className="overflow-y-auto">
+      <SidebarGroup>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SearchInput onSearchChange={setSearchTerm} />
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+
+      <SidebarGroup>
+        <SidebarGroupLabel>Read Functions</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {isLoading ? (
+              <FunctionRowsSkeleton />
+            ) : (
+              readContractMethods
+                ?.filter((f) =>
+                  f.name.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .map((f, index) => (
+                  <SidebarMenuButton
+                    key={index}
+                    isActive={selectedSelector == getSelectorSlug(f)}
+                    onClick={() => handleMethodClick(f)}
+                  >
+                    {f.name}(
+                    {f.inputs
+                      .map((i) => i.type + (i.name ? ' ' + i.name : ''))
+                      .join(',')}
+                    )
+                  </SidebarMenuButton>
+                ))
+            )}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+
+      <SidebarGroup>
+        <SidebarGroupLabel>Write Functions</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {isLoading ? (
+              <FunctionRowsSkeleton />
+            ) : (
+              writeContractMethods
+                ?.filter((f) =>
+                  f.name.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .map((f, index) => (
+                  <ButtonLink
+                    key={index}
+                    selected={selectedSelector == getSelectorSlug(f)}
+                    onClick={() => handleMethodClick(f)}
+                  >
+                    {f.name}(
+                    {f.inputs
+                      .map((i) => i.type + (i.name ? ' ' + i.name : ''))
+                      .join(',')}
+                    )
+                  </ButtonLink>
+                ))
+            )}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    </SidebarContent>
+  );
+
   return (
     <Flex flex="1" direction="column" maxWidth="100%">
       <Flex flex="1" direction={['column', 'column', 'row']}>
-        {/* Methods Sidebar */}
-        <Flex
-          flexDirection="column"
-          maxWidth={['100%', '100%', '320px']}
-          borderRight={isSmall ? 'none' : '1px solid'}
-          borderBottom={isSmall ? '1px solid' : 'none'}
-          borderColor={isSmall ? 'gray.600' : 'gray.700'}
-          width={['100%', '100%', '320px']}
-          maxHeight={['190px', '190px', 'none']}
-          top="0"
-        >
-          <Box
-            px={3}
-            pb={2}
-            position={{ md: 'sticky' }}
-            top={hasSubnav ? 81 + 65 : 81}
-            maxHeight={{ base: '100%', md: 'calc(100vh - 81px)' }}
-            overflowY="auto"
-          >
-            <Box mt={4}>
-              <SearchInput onSearchChange={setSearchTerm} />
-            </Box>
-
-            <Box mt={4}>
-              <Flex flexDirection="row" px="2" alignItems="center" mb="1.5">
-                <Heading
-                  fontWeight="500"
-                  size="sm"
-                  color="gray.200"
-                  letterSpacing="0.1px"
-                >
-                  Read Functions
-                </Heading>
-              </Flex>
-
-              {isLoading ? (
-                <FunctionRowsSkeleton />
-              ) : (
-                readContractMethods
-                  ?.filter((f) =>
-                    f.name.toLowerCase().includes(searchTerm.toLowerCase())
-                  )
-                  .map((f, index) => (
-                    <ButtonLink
-                      key={index}
-                      selected={selectedSelector == getSelectorSlug(f)}
-                      onClick={() => handleMethodClick(f)}
-                    >
-                      {f.name}(
-                      {f.inputs
-                        .map((i) => i.type + (i.name ? ' ' + i.name : ''))
-                        .join(',')}
-                      )
-                    </ButtonLink>
-                  ))
-              )}
-            </Box>
-            <Box mt={4}>
-              <Flex flexDirection="row" px="2" alignItems="center" mb="1.5">
-                <Heading
-                  fontWeight="500"
-                  size="sm"
-                  color="gray.200"
-                  letterSpacing="0.1px"
-                >
-                  Write Functions
-                </Heading>
-              </Flex>
-              {isLoading ? (
-                <FunctionRowsSkeleton />
-              ) : (
-                writeContractMethods
-                  ?.filter((f) =>
-                    f.name.toLowerCase().includes(searchTerm.toLowerCase())
-                  )
-                  .map((f, index) => (
-                    <ButtonLink
-                      key={index}
-                      selected={selectedSelector == getSelectorSlug(f)}
-                      onClick={() => handleMethodClick(f)}
-                    >
-                      {f.name}(
-                      {f.inputs
-                        .map((i) => i.type + (i.name ? ' ' + i.name : ''))
-                        .join(',')}
-                      )
-                    </ButtonLink>
-                  ))
-              )}
-            </Box>
-          </Box>
-        </Flex>
-
-        {/* Methods Interactions */}
-        <Flex background="black" ref={containerRef} w="100%" direction="column">
-          <Alert
-            status="warning"
-            bg="gray.900"
-            borderBottom="1px solid"
-            borderColor="gray.700"
-          >
-            <AlertIcon />
-            <Text fontWeight="bold">
-              Always review transactions carefully in your wallet application
-              prior to execution.
-            </Text>
-          </Alert>
-
+        <SidebarLayout sidebarContent={sidebarContent} centered={false}>
+          {/* Methods Interactions */}
           <Flex
+            background="black"
+            ref={containerRef}
+            w="100%"
             direction="column"
-            px={4}
             py={4}
-            borderBottom="1px solid"
-            borderColor="gray.700"
-            gap={4}
-            flex={1}
-            overflowX="auto"
           >
-            {isLoading ? (
-              <Flex align="center" justify="center" flex={1}>
-                <CustomSpinner />
-              </Flex>
-            ) : (
-              allContractMethods?.map((f) => (
-                <Element
-                  name={getSelectorSlug(f)}
-                  key={`${address}-${getSelectorSlug(f)}`}
-                >
-                  <Function
-                    selected={selectedSelector == getSelectorSlug(f)}
-                    f={f}
-                    abi={abi as AbiType}
-                    address={address}
-                    cannonOutputs={cannonOutputs}
-                    chainId={chainId}
-                    contractSource={contractSource}
-                    onDrawerOpen={onDrawerOpen}
-                    collapsible
-                    showFunctionSelector={false}
-                    packageUrl={packageUrl}
-                  />
-                </Element>
-              ))
-            )}
+            <Alert
+              status="warning"
+              bg="gray.900"
+              borderBottom="1px solid"
+              borderColor="gray.700"
+            >
+              <AlertIcon />
+              <Text fontWeight="bold">
+                Always review transactions carefully in your wallet application
+                prior to execution.
+              </Text>
+            </Alert>
+
+            <Flex
+              direction="column"
+              py={4}
+              borderBottom="1px solid"
+              borderColor="gray.700"
+              gap={4}
+              flex={1}
+              overflowX="auto"
+            >
+              {isLoading ? (
+                <Flex align="center" justify="center" flex={1}>
+                  <CustomSpinner />
+                </Flex>
+              ) : (
+                allContractMethods?.map((f) => (
+                  <Element
+                    name={getSelectorSlug(f)}
+                    key={`${address}-${getSelectorSlug(f)}`}
+                  >
+                    <Function
+                      selected={selectedSelector == getSelectorSlug(f)}
+                      f={f}
+                      abi={abi as AbiType}
+                      address={address}
+                      cannonOutputs={cannonOutputs}
+                      chainId={chainId}
+                      contractSource={contractSource}
+                      onDrawerOpen={onDrawerOpen}
+                      collapsible
+                      showFunctionSelector={false}
+                      packageUrl={packageUrl}
+                    />
+                  </Element>
+                ))
+              )}
+            </Flex>
           </Flex>
-        </Flex>
+        </SidebarLayout>
       </Flex>
     </Flex>
   );
