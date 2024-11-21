@@ -33,6 +33,7 @@ describe('steps/router.ts', () => {
       expect(result).toStrictEqual({
         contracts: ['A', 'B'],
         from: 'FROM',
+        includeDiamondCompatibility: true,
         salt: 'SALT',
       });
     });
