@@ -227,8 +227,8 @@ importers:
   packages/builder:
     dependencies:
       '@usecannon/router':
-        specifier: ^4.0.1
-        version: 4.0.1
+        specifier: ^4.1.0
+        version: 4.1.0
       '@usecannon/web-solc':
         specifier: 0.5.1
         version: 0.5.1
@@ -6162,8 +6162,8 @@ packages:
     resolution: {integrity: sha512-SSID1UUH84LPMp7PTloC0IijwCJpWfsSQXmvPpyJB8vjbAHOCNLRxsNT3PRgtZvmCWdTrfuYh3FMtsvlpB/UKQ==}
     hasBin: true
 
-  '@usecannon/router@4.0.1':
-    resolution: {integrity: sha512-2dR3tc7Py89FIQdZVdpOowdV4T41xPM9Twvdn2V3QWHsf09jpvP6v3RHnHRLfkf8Xetm3/f5IfUhS+fTR9Mg+g==}
+  '@usecannon/router@4.1.0':
+    resolution: {integrity: sha512-FpEmBz/s+cE4j9gAJecbuir/GgpbJKwhewxIoaUTrIajPNORrC08y4aUu/sF2mxIZvonivkSsBW5WHlsBW5Hug==}
 
   '@usecannon/web-solc@0.5.1':
     resolution: {integrity: sha512-wK8J1snp1ikYzpxA8LzhQwp+6cvmLDnFG2EaMLmqtQZD/FIz7xh8IaSgHUliwDBm9zdsPEIvXvhDvanyZ7IBuw==}
@@ -22782,7 +22782,7 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@usecannon/router@4.0.1':
+  '@usecannon/router@4.1.0':
     dependencies:
       '@ethersproject/abi': 5.7.0
       '@ethersproject/keccak256': 5.7.0
