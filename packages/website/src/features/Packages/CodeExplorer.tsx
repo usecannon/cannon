@@ -1,16 +1,7 @@
 'use client';
 
 import { FC, useEffect, useState } from 'react';
-import {
-  Box,
-  Button,
-  Flex,
-  Heading,
-  Tooltip,
-  IconButton,
-  Text,
-  useBreakpointValue,
-} from '@chakra-ui/react';
+import { Box, Button, Flex, Heading, Text, IconButton } from '@chakra-ui/react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 import { CodePreview } from '@/components/CodePreview';
@@ -20,6 +11,19 @@ import { isEmpty } from 'lodash';
 import { DeploymentInfo } from '@usecannon/builder';
 import { ApiPackage } from '@usecannon/api/dist/src/types';
 import { IpfsSpinner } from '@/components/IpfsSpinner';
+import {
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuItem,
+} from '@/components/ui/sidebar';
+import { SidebarLayout } from '@/components/layouts/SidebarLayout';
+import { buildFileTree } from '@/features/Packages/code/utilts';
+import { FileTreeItem } from '@/features/Packages/code/FileTreeItem';
+import { FileIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const handleDownload = (content: Record<string, unknown>, filename: string) => {
   const blob = new Blob([JSON.stringify(content, null, 2)], {
@@ -88,12 +92,7 @@ export const CodeExplorer: FC<{
   source: string;
   functionName?: string;
 }> = ({ pkg, name, moduleName, source, functionName }) => {
-  const isSmall = useBreakpointValue({
-    base: true,
-    sm: true,
-    md: false,
-  });
-
+  const router = useRouter();
   const [selectedCode, setSelectedCode] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('');
   const [selectedKey, setSelectedKey] = useState('');
@@ -344,14 +343,13 @@ export const CodeExplorer: FC<{
   ]);
 
   const handleSelectFile = (sourceKey: string, sourceValue: any) => {
-    // We can have these lines to keep SPA navigation
+    // Update state for immediate UI feedback
     setSelectedCode(sourceValue.content);
     setSelectedLanguage('sol');
     setSelectedKey(sourceKey);
 
-    window.history.pushState(
-      null,
-      '',
+    // Use Next.js router for navigation
+    router.push(
       `/packages/${name}/${pkg.version}/${pkg.chainId}-${pkg.preset}/code/${
         selectedPackage.name
       }?source=${encodeURIComponent(sourceKey)}`
@@ -363,6 +361,138 @@ export const CodeExplorer: FC<{
     isLoadingProvisionedPackageData ||
     isLoadingMiscData ||
     isLoadingProvisionedMiscData;
+
+  const sidebarContent = (
+    <SidebarContent className="overflow-y-auto">
+      {/* Artifacts */}
+      <SidebarGroup>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {artifacts?.map(([artifactKey, artifactValue]: [any, any]) => {
+              const sources = artifactValue?.source?.input
+                ? JSON.parse(artifactValue.source.input).sources
+                : {};
+
+              const fileTree = buildFileTree(Object.entries(sources));
+
+              return (
+                <Box key={artifactKey} mt={4}>
+                  {/* Artifact name */}
+                  <SidebarMenuItem>
+                    <Flex flexDirection="row" px="2" alignItems="center" mb="1">
+                      <Box maxW="210px" overflow="hidden">
+                        <Heading
+                          fontWeight="500"
+                          size="sm"
+                          color="gray.200"
+                          letterSpacing="0.1px"
+                          mr="1"
+                          isTruncated
+                        >
+                          {artifactKey.split(':').length > 1
+                            ? artifactKey.split(':')[1]
+                            : artifactKey}
+                        </Heading>
+                      </Box>
+
+                      <Button
+                        variant="outline"
+                        colorScheme="white"
+                        size="xs"
+                        color="gray.300"
+                        borderColor="gray.500"
+                        _hover={{ bg: 'gray.700' }}
+                        leftIcon={<DownloadIcon />}
+                        onClick={() => {
+                          handleDownload(
+                            (artifactValue as any)?.abi,
+                            'deployments.json'
+                          );
+                        }}
+                        ml="auto"
+                      >
+                        ABI
+                      </Button>
+                    </Flex>
+                  </SidebarMenuItem>
+                  {/* File tree */}
+                  {Object.values(fileTree).map((node) => (
+                    <FileTreeItem
+                      key={node.path}
+                      node={node}
+                      level={0}
+                      onSelectFile={handleSelectFile}
+                      selectedKey={selectedKey}
+                    />
+                  ))}
+                </Box>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+
+      {/* Metadata */}
+      {metadata?.cannonfile !== undefined && (
+        <SidebarGroup>
+          <SidebarGroupLabel>
+            <Flex px="2" alignItems="center" mb="1">
+              <Heading
+                fontWeight="500"
+                size="sm"
+                color="gray.200"
+                letterSpacing="0.1px"
+              >
+                Metadata
+              </Heading>
+
+              <IconButton
+                aria-label="Download Metadata"
+                variant="outline"
+                colorScheme="white"
+                size="xs"
+                color="gray.300"
+                borderColor="gray.500"
+                _hover={{ bg: 'gray.700' }}
+                icon={<DownloadIcon />}
+                onClick={() => {
+                  handleDownload(metadata, 'metadata.json');
+                }}
+                ml="auto"
+              />
+            </Flex>
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <Box
+                  py={0.5}
+                  px="2"
+                  cursor="pointer"
+                  fontSize="sm"
+                  _hover={{ bg: 'gray.800' }}
+                  onClick={() => {
+                    setSelectedCode(metadata.cannonfile);
+                    setSelectedLanguage('toml');
+                    setSelectedKey('cannonfile');
+                  }}
+                  fontWeight={
+                    selectedKey === 'cannonfile' ? 'medium' : undefined
+                  }
+                  bg={selectedKey === 'cannonfile' ? 'gray.800' : undefined}
+                >
+                  <Flex alignItems="center">
+                    <FileIcon size={16} className="mr-2" />
+                    Cannonfile
+                  </Flex>
+                </Box>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      )}
+    </SidebarContent>
+  );
 
   return (
     <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
@@ -404,179 +534,8 @@ export const CodeExplorer: FC<{
               ))}
             </Flex>
           )}
-          <Flex flex="1" direction={['column', 'column', 'row']}>
-            <Flex
-              flexDirection="column"
-              overflowY="auto"
-              maxWidth={['100%', '100%', '320px']}
-              borderRight={isSmall ? 'none' : '1px solid'}
-              borderBottom={isSmall ? '1px solid' : 'none'}
-              borderColor={isSmall ? 'gray.600' : 'gray.700'}
-              width={['100%', '100%', '320px']}
-              maxHeight={['140px', '140px', 'calc(100vh - 236px)']}
-            >
-              <Box px={3} pb={2}>
-                {artifacts?.map(([artifactKey, artifactValue]: [any, any]) => {
-                  return (
-                    <Box key={artifactKey} mt={4}>
-                      <Flex
-                        flexDirection="row"
-                        px="2"
-                        alignItems="center"
-                        mb="1"
-                      >
-                        <Heading
-                          fontWeight="500"
-                          size="sm"
-                          color="gray.200"
-                          letterSpacing="0.1px"
-                          mr="1"
-                        >
-                          {artifactKey.split(':').length > 1
-                            ? artifactKey.split(':')[1]
-                            : artifactKey}
-                        </Heading>
-
-                        <Button
-                          variant="outline"
-                          colorScheme="white"
-                          size="xs"
-                          color="gray.300"
-                          borderColor="gray.500"
-                          _hover={{ bg: 'gray.700' }}
-                          leftIcon={<DownloadIcon />}
-                          onClick={() => {
-                            handleDownload(
-                              (artifactValue as any)?.abi,
-                              'deployments.json'
-                            );
-                          }}
-                          ml="auto"
-                        >
-                          ABI
-                        </Button>
-                      </Flex>
-                      {(artifactValue as any)?.source?.input &&
-                        Object.entries(
-                          JSON.parse((artifactValue as any).source.input)
-                            .sources
-                        )
-                          .sort(([keyA], [keyB]) => {
-                            const countA = (keyA.match(/\//g) || []).length;
-                            const countB = (keyB.match(/\//g) || []).length;
-                            return countA - countB; // Sorts in ascending order
-                          })
-                          .map(([sourceKey, sourceValue]) => {
-                            return (
-                              <Tooltip
-                                label={sourceKey}
-                                key={sourceKey}
-                                placement="right"
-                              >
-                                <Box
-                                  borderRadius="md"
-                                  mb={0.5}
-                                  py={0.5}
-                                  px="2"
-                                  cursor="pointer"
-                                  fontSize="sm"
-                                  _hover={{ background: 'gray.800' }}
-                                  onClick={() =>
-                                    handleSelectFile(sourceKey, sourceValue)
-                                  }
-                                  whiteSpace="nowrap"
-                                  overflow="hidden"
-                                  textOverflow="ellipsis"
-                                  style={{
-                                    direction: 'rtl', // Reverses the text display order
-                                    unicodeBidi: 'bidi-override', // Overrides the default bidi algorithm
-                                  }}
-                                  textAlign="left" // Left-aligns the text
-                                  fontWeight={
-                                    selectedKey == sourceKey
-                                      ? 'medium'
-                                      : undefined
-                                  }
-                                  background={
-                                    selectedKey == sourceKey
-                                      ? 'gray.800'
-                                      : undefined
-                                  }
-                                >
-                                  {sourceKey.split('').reverse().join('')}
-                                </Box>
-                              </Tooltip>
-                            );
-                          })}
-                    </Box>
-                  );
-                })}
-
-                {metadata?.cannonfile !== undefined && (
-                  <>
-                    <Box mt={4}>
-                      <Flex
-                        flexDirection="row"
-                        px="2"
-                        alignItems="center"
-                        mb="1"
-                      >
-                        <Heading
-                          fontWeight="500"
-                          size="sm"
-                          color="gray.200"
-                          letterSpacing="0.1px"
-                        >
-                          Metadata
-                        </Heading>
-
-                        <IconButton
-                          aria-label="Download Metadata"
-                          variant="outline"
-                          colorScheme="white"
-                          size="xs"
-                          color="gray.300"
-                          borderColor="gray.500"
-                          _hover={{ bg: 'gray.700' }}
-                          icon={<DownloadIcon />}
-                          onClick={() => {
-                            handleDownload(metadata, 'metadata.json');
-                          }}
-                          ml="auto"
-                        ></IconButton>
-                      </Flex>
-                    </Box>
-
-                    <Box
-                      borderRadius="md"
-                      mb={0.5}
-                      py={0.5}
-                      px="2"
-                      cursor="pointer"
-                      fontSize="sm"
-                      _hover={{ background: 'gray.800' }}
-                      onClick={() => {
-                        setSelectedCode(metadata.cannonfile);
-                        setSelectedLanguage('toml');
-                        setSelectedKey('cannonfile');
-                      }}
-                      fontWeight={
-                        selectedKey == 'cannonfile' ? 'medium' : undefined
-                      }
-                    >
-                      Cannonfile
-                    </Box>
-                  </>
-                )}
-              </Box>
-            </Flex>
-
-            <Box
-              flex="1"
-              overflowY="auto"
-              maxHeight={['none', 'none', 'calc(100vh - 236px)']}
-              background="gray.800"
-            >
+          <SidebarLayout sidebarContent={sidebarContent} centered={false}>
+            <Flex className="max-w-[1024px] h-full">
               {selectedCode.length ? (
                 <>
                   {/* Make sure code preview is not rendered if function name exists but no selected line is set yet */}
@@ -603,8 +562,8 @@ export const CodeExplorer: FC<{
                   </Text>
                 </Flex>
               )}
-            </Box>
-          </Flex>
+            </Flex>
+          </SidebarLayout>
         </>
       ) : (
         <Flex flex="1" alignItems="center" justifyContent="center" p={4}>

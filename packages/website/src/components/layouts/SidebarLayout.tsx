@@ -10,6 +10,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { useRouter } from 'next/router';
 
 interface SidebarLayoutProps {
   children: ReactNode;
@@ -42,6 +43,8 @@ const Container = ({
 
 const CloseOnLeave = () => {
   const { setOpenMobile } = useSidebar();
+  const router = useRouter();
+  const fullPath = router.asPath;
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -58,7 +61,7 @@ const CloseOnLeave = () => {
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
-  }, [setOpenMobile]);
+  }, [setOpenMobile, fullPath]);
 
   return null;
 };
