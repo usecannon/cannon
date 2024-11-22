@@ -128,7 +128,7 @@ export function TransactionDisplay(props: {
         justifyContent="center"
         textAlign="center"
       >
-        <CustomSpinner mx="auto" mb="2" />
+        <CustomSpinner />
         <Text fontSize="sm" color="gray.400">
           Parsing transaction data...
         </Text>

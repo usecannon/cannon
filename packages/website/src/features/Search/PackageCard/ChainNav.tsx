@@ -1,8 +1,13 @@
 import { FC } from 'react';
-import { Button, Tooltip, Flex } from '@chakra-ui/react';
-import NextLink from 'next/link';
+import Link from 'next/link';
 import Chain from './Chain';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 const ChainNav: FC<{
   variants: any[];
@@ -16,32 +21,26 @@ const ChainNav: FC<{
   });
 
   return (
-    <Flex gap={2}>
+    <div className="flex gap-2">
       {sortedVariants.map((variant) => (
-        <Tooltip
-          key={variant.id}
-          placement="top"
-          label={
-            getChainById(variant.chain_id)?.name + ` (ID ${variant.chain_id})`
-          }
-        >
-          <Button
-            as={NextLink}
-            p={1}
-            size="xs"
-            variant="outline"
-            colorScheme="black"
-            border="1px solid"
-            borderColor="gray.500"
-            backgroundColor="gray.900"
-            _hover={{ backgroundColor: 'gray.800' }}
-            href={`/packages/${packageName}/${variant.tag.name}/${variant.chain_id}-${variant.preset}`}
-          >
-            <Chain id={variant.chain_id} isSmall />
-          </Button>
-        </Tooltip>
+        <TooltipProvider key={variant.id}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href={`/packages/${packageName}/${variant.tag.name}/${variant.chain_id}-${variant.preset}`}
+                className="inline-flex items-center justify-center px-1 py-1 text-xs border border-gray-500 bg-gray-900 hover:bg-gray-800 rounded-md"
+              >
+                <Chain id={variant.chain_id} isSmall />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              {getChainById(variant.chain_id)?.name +
+                ` (ID ${variant.chain_id})`}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       ))}
-    </Flex>
+    </div>
   );
 };
 

@@ -718,6 +718,10 @@ export const routerSchema = z
      */
     includeReceive: z.boolean().optional(),
     /**
+     * Include additional functions to allow introspection through the EIP-2535 Diamond standard. This will make your router much heavier. By default, diamond compatibility is included.
+     */
+    includeDiamondCompatibility: z.boolean().optional(),
+    /**
      *  Address to pass to the from call
      */
     from: z.string().optional().describe('Address to pass to the from call'),

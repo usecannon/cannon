@@ -25,7 +25,7 @@ import semver from 'semver';
 import * as viem from 'viem';
 import { getMainLoader } from './loader';
 import { privateKeyToAccount } from 'viem/accounts';
-import { cannonChain, chains } from './chains';
+import { getChainById, chains } from './chains';
 import { resolveCliSettings } from './settings';
 import { log, warn } from './util/console';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
@@ -33,6 +33,8 @@ import { getChainIdFromRpcUrl, isURL, hideApiKey } from './util/provider';
 import { LocalRegistry } from './registry';
 
 const debug = Debug('cannon:cli:helpers');
+
+const cannonChain = getChainById(CANNON_CHAIN_ID);
 
 export function stripCredentialsFromURL(uri: string) {
   const res = new URL(uri);
@@ -69,7 +71,17 @@ export async function filterSettings(settings: any) {
   return filteredSettings;
 }
 
-export async function setupAnvil(): Promise<void> {
+/**
+ * Installs or upgrades Foundry to ensure compatibility with Cannon.
+ *
+ * This function checks the current version of Anvil (a component of Foundry) and prompts the user
+ * to upgrade if necessary. If Foundry is not installed, it prompts for installation.
+ *
+ * @throws Will exit the process if the user declines to install or upgrade when necessary.
+ * @returns {Promise<void>}
+ */
+
+export async function ensureFoundryCompatibility(): Promise<void> {
   // TODO Setup anvil using https://github.com/foundry-rs/hardhat/tree/develop/packages/easy-foundryup
   //      It also works when the necessary foundry binary is not on PATH
   const versionDate = await getAnvilVersionDate();

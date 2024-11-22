@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { CannonError, CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
+import { CANNON_CHAIN_ID, CannonError, CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
 import Debug from 'debug';
 import * as viem from 'viem';
 import { PackageSpecification } from '../types';
@@ -19,6 +19,11 @@ import { yellow, bold, italic } from 'chalk';
 
 const debug = Debug('cannon:cli:build');
 
+type SignerConfiguration = {
+  getSigner: (address: viem.Hex) => Promise<CannonSigner>;
+  getDefaultSigner?: () => Promise<CannonSigner>;
+};
+
 /**
  * Builds the contracts defined in the cannonfile.
  * @param cannonfile Path to the cannonfile.
@@ -35,19 +40,17 @@ export async function doBuild(
   setDebugLevel(options);
   debug('do build called with', cannonfile, settings, filterSettings(options));
 
-  // If the first param is not a cannonfile, it should be parsed as settings
+  // if the first param is not a cannonfile, it should be parsed as settings
   cannonfile = setCannonfilePath(cannonfile, settings);
 
   const cannonfilePath = path.resolve(cannonfile);
   const projectDirectory = path.resolve(cannonfilePath);
 
   const cliSettings = resolveCliSettings(options);
-  // Set up provider
+  // set up provider
   const { provider, signers, node } = await configureProvider(options, cliSettings);
-
-  // Set up signers
-  // TODO: why are the provider types borked up here (like they are everywhere)
-  const { getSigner, getDefaultSigner } = await configureSigners(options, cliSettings, provider as any, signers);
+  // set up signers
+  const { getSigner, getDefaultSigner } = await configureSigners(options, cliSettings, provider!, signers);
 
   // Prepare pre-build config
   const buildConfig = await prepareBuildConfig(
@@ -56,7 +59,7 @@ export async function doBuild(
     options,
     settings,
     cliSettings,
-    provider as any,
+    provider!,
     getSigner,
     getDefaultSigner
   );
@@ -64,6 +67,7 @@ export async function doBuild(
   const deployers = buildConfig.def.getDeployers();
 
   const defaultSigner = getDefaultSigner && (await getDefaultSigner());
+
   if (defaultSigner && deployers.includes(defaultSigner.address)) {
     warn(
       yellow(
@@ -130,6 +134,7 @@ async function configureProvider(options: Record<string, any>, cliSettings: CliS
   if (!provider) {
     const _provider = await resolveProvider({
       action: options.dryRun ? ProviderAction.WriteDryRunProvider : ProviderAction.WriteProvider,
+      impersonate: options.dryRun ? options.impersonate : undefined,
       cliSettings,
       chainId,
     });
@@ -155,7 +160,7 @@ async function configureProvider(options: Record<string, any>, cliSettings: CliS
 }
 
 /**
- * Configures and returns the signers for transactions. In a dry run, it impersonates a default account.
+ * Configures and returns the signers for transactions. In a dry run, it impersonates all account.
  * Otherwise, it resolves signers from the provided CLI settings.
  * @param options Options to influence signer configuration.
  * @param chainId The chain ID for which the signers are configured.
@@ -168,48 +173,114 @@ async function configureSigners(
   cliSettings: CliSettings,
   provider: viem.PublicClient & viem.TestClient & viem.WalletClient,
   signers: CannonSigner[] | undefined
-) {
-  let getSigner: ((s: viem.Hex) => Promise<CannonSigner>) | undefined = undefined;
-  let getDefaultSigner: (() => Promise<CannonSigner>) | undefined = undefined;
+): Promise<SignerConfiguration> {
+  const isBuildOnCannonNetwork = !options.chainId && !isURL(cliSettings.rpcUrl) && !options.dryRun;
+  if (isBuildOnCannonNetwork) {
+    return configureLocalBuildSigners(provider);
+  }
 
-  // Early return, we don't need to configure signers
-  const isRpcUrl = isURL(cliSettings.rpcUrl);
+  const config = options.dryRun ? configureDryRunSigners(provider, signers) : configureLiveSigners(signers);
 
-  if (!options.chainId && !isRpcUrl) return { getSigner, getDefaultSigner };
+  const defaultSigner = await config.getDefaultSigner?.();
 
-  if (options.dryRun) {
-    // Setup for dry run
-    getDefaultSigner = async () => {
-      const addr = signers && signers.length > 0 ? signers[0].address : ANVIL_FIRST_ADDRESS;
-      await provider.impersonateAccount({ address: addr });
-      await provider.setBalance({ address: addr, value: viem.parseEther('10000') });
-      return { address: addr, wallet: provider };
+  if (
+    defaultSigner &&
+    !options.dryRun &&
+    Number(options.chainId) !== CANNON_CHAIN_ID &&
+    viem.isAddressEqual(defaultSigner.address, ANVIL_FIRST_ADDRESS)
+  ) {
+    warn(`WARNING: This build is using default anvil address ${ANVIL_FIRST_ADDRESS}`);
+  }
+
+  return config;
+}
+
+/**
+ * Configures signers for a local build scenario on the Cannon network.
+ *
+ * @param provider - Ethereum provider
+ * @returns {Promise<SignerConfiguration>} - A promise that resolves to the signer configuration.
+ */
+const configureLocalBuildSigners = (provider: viem.PublicClient & viem.TestClient & viem.WalletClient) => {
+  const getSigner = async (address: viem.Address): Promise<CannonSigner> => {
+    const client = provider as unknown as viem.TestClient;
+    await client.impersonateAccount({ address });
+    await client.setBalance({ address, value: viem.parseEther('10000') });
+
+    return {
+      address,
+      wallet: viem.createWalletClient({
+        account: address,
+        chain: provider.chain,
+        transport: viem.custom(provider.transport),
+      }),
     };
-  } else {
-    getSigner = async (address: viem.Hex) => {
-      for (const signer of signers || []) {
-        if (viem.isAddressEqual(signer.address, address)) {
-          return signer;
-        }
-      }
+  };
+  return { getSigner, getDefaultSigner: undefined };
+};
 
+/**
+ * Configures signers for a dry run scenario.
+ * @param provider - The Ethereum provider
+ * @param signers - Optional array of existing signers.
+ * @returns {Promise<SignerConfiguration>} - A promise that resolves to the signer configuration.
+ */
+function configureDryRunSigners(
+  provider: viem.PublicClient & viem.TestClient & viem.WalletClient,
+  signers: CannonSigner[] | undefined
+): SignerConfiguration {
+  const getDefaultSigner = async (): Promise<CannonSigner> => {
+    const addr = signers?.[0]?.address ?? ANVIL_FIRST_ADDRESS;
+
+    await provider.impersonateAccount({ address: addr });
+    await provider.setBalance({ address: addr, value: viem.parseEther('10000') });
+    return { address: addr, wallet: provider };
+  };
+
+  const getSigner = async (address: viem.Address): Promise<CannonSigner> => {
+    const shouldImpersonate = signers?.some((s) => viem.isAddressEqual(s.address, address));
+
+    if (!!signers?.length && !shouldImpersonate) {
+      throw new Error(`Can't impersonate this signer: ${address}. Please add --impersonate ${address} to the command line.`);
+    }
+
+    const client = provider as unknown as viem.TestClient;
+    await client.impersonateAccount({ address });
+    await client.setBalance({ address, value: viem.parseEther('10000') });
+
+    return {
+      address,
+      wallet: viem.createWalletClient({
+        account: address,
+        chain: provider.chain,
+        transport: viem.custom(provider.transport),
+      }),
+    };
+  };
+
+  return { getSigner, getDefaultSigner };
+}
+
+/**
+ * Configures signers for a live network scenario.
+ * @param options - The options object containing build configuration.
+ * @param signers - Array of existing signers.
+ * @returns {SignerConfiguration} - The signer configuration for live networks.
+ */
+function configureLiveSigners(signers: CannonSigner[] | undefined): SignerConfiguration {
+  const getSigner = async (address: viem.Address): Promise<CannonSigner> => {
+    const signer = signers?.find((s) => viem.isAddressEqual(s.address, address));
+    if (!signer) {
       throw new Error(
-        `signer not found for address ${viem.getAddress(
+        `Signer not found for address ${viem.getAddress(
           address
         )}. Please add the private key for this address to your command line.`
       );
-    };
-
-    getDefaultSigner = async () => signers![0];
-  }
-
-  if (await getDefaultSigner()) {
-    const defaultSignerAddress = (await getDefaultSigner())!.address;
-
-    if (!options.dryRun && options.chainId != '13370' && defaultSignerAddress === ANVIL_FIRST_ADDRESS) {
-      warn(`WARNING: This build is using default anvil address ${ANVIL_FIRST_ADDRESS}`);
     }
-  }
+    return signer;
+  };
+
+  const getDefaultSigner = async () => signers![0];
 
   return { getSigner, getDefaultSigner };
 }
@@ -234,8 +305,8 @@ async function prepareBuildConfig(
   settings: string[],
   cliSettings: CliSettings,
   provider: viem.PublicClient,
-  getSigner: ((address: viem.Hex) => Promise<CannonSigner>) | undefined,
-  getDefaultSigner: (() => Promise<CannonSigner>) | undefined
+  getSigner: (address: viem.Address) => Promise<CannonSigner>,
+  getDefaultSigner?: () => Promise<CannonSigner>
 ) {
   const { name, version, preset, def } = await loadCannonfile(cannonfile);
 
@@ -295,7 +366,8 @@ async function prepareBuildConfig(
     upgradeFrom: options.upgradeFrom,
     privateSourceCode: !def.isPublicSourceCode(),
     wipe: options.wipe,
-    persist: !options.dryRun,
+    dryRun: options.dryRun,
+    skipUpgradeRecord: options.skipUpgradeRecord,
     overrideResolver,
     rpcUrl: cliSettings.rpcUrl,
     writeScript: options.writeScript,

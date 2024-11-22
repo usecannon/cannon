@@ -21,12 +21,12 @@ import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commands/config';
-import { checkCannonVersion, ensureChainIdConsistency, getPackageInfo, setupAnvil } from './helpers';
+import { checkCannonVersion, ensureChainIdConsistency, getPackageInfo, ensureFoundryCompatibility } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
 import { createDefaultReadRegistry } from './registry';
 import { CannonRpcNode, getProvider, runRpc } from './rpc';
-import { resolveCliSettings } from './settings';
+import { DEFAULT_RPC_URL, resolveCliSettings } from './settings';
 import { PackageSpecification } from './types';
 
 import { doBuild } from './util/build';
@@ -157,7 +157,8 @@ function configureRun(program: Command) {
 applyCommandsConfig(program.command('build'), commandsConfig.build)
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, options) => {
-    await setupAnvil();
+    // ensure foundry compatibility
+    await ensureFoundryCompatibility();
 
     // backwards compatibility for --port flag
     if (options.port !== ANVIL_PORT_DEFAULT_VALUE) {
@@ -171,6 +172,11 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     const projectDirectory = path.dirname(cannonfilePath);
 
     const cliSettings = resolveCliSettings(options);
+
+    // throw an error if chain id and rpc url is undefined and dry run is true
+    if (options.chainId === undefined && cliSettings.rpcUrl === DEFAULT_RPC_URL && options.dryRun) {
+      throw new Error('Cannot build on Cannon Network with --dry-run flag.');
+    }
 
     // throw an error if the chainId is not consistent with the provider's chainId
     await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
@@ -218,7 +224,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     }
 
     if (options.keepAlive && node) {
-      log(`The local node will continue running at ${node.host}`);
+      log(`The local node will continue running at ${node!.host}`);
 
       const { run } = await import('./commands/run');
 

@@ -13,9 +13,7 @@ export function useDeployerWallet(chainId?: number) {
   const [error, setError] = useState<Error | null>(null);
 
   const { switchChainAsync } = useSwitchChain();
-
   const { sendTransaction, isIdle, data: hash, error: txnError } = useSendTransaction();
-
   const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
 
   useEffect(
@@ -57,7 +55,7 @@ export function useDeployerWallet(chainId?: number) {
           setError(err);
         });
     },
-    [isConfirmed, isIdle, executionProgress.length, queuedTransactions, chainId]
+    [isConfirmed, isIdle, executionProgress.length, queuedTransactions, chainId, executionProgress]
   );
 
   return {

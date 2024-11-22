@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/builder",
-  "version": "2.18.4",
+  "version": "2.19.4",
   "description": "Assembles cannonfile.toml manifests into cannon packages.",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -43,7 +43,7 @@
     "typedoc-plugin-zod": "^1.2.0"
   },
   "dependencies": {
-    "@usecannon/router": "^4.0.1",
+    "@usecannon/router": "^4.1.0",
     "@usecannon/web-solc": "0.5.1",
     "axios": "^1.7.2",
     "axios-retry": "^4.4.2",

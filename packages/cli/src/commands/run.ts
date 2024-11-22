@@ -16,7 +16,7 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { ANVIL_FIRST_ADDRESS } from '../constants';
-import { setupAnvil } from '../helpers';
+import { ensureFoundryCompatibility } from '../helpers';
 import { getMainLoader } from '../loader';
 import { createDefaultReadRegistry } from '../registry';
 import { CannonRpcNode, getProvider } from '../rpc';
@@ -38,6 +38,8 @@ export interface RunOptions {
   privateKey?: viem.Hash;
   upgradeFrom?: string;
   getArtifact?: (name: string) => Promise<ContractArtifact>;
+  getSigner: (addr: viem.Address) => Promise<CannonSigner>;
+  getDefaultSigner: () => Promise<CannonSigner>;
   registryPriority: 'local' | 'onchain' | 'offline';
   fundAddresses?: string[];
   helpInformation?: string;
@@ -55,7 +57,8 @@ const INSTRUCTIONS = green(
 );
 
 export async function run(packages: PackageSpecification[], options: RunOptions): Promise<void> {
-  await setupAnvil();
+  // ensure foundry compatibility
+  await ensureFoundryCompatibility();
 
   // Start the rpc server
   const node = options.node;
@@ -119,7 +122,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
         provider,
         overrideResolver: resolver,
         upgradeFrom: options.upgradeFrom,
-        persist: false,
+        dryRun: true,
       });
 
       buildOutputs.push({ pkg, outputs });

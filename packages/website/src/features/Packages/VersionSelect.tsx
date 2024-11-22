@@ -22,7 +22,7 @@ export const VersionSelect: FC<{
   const packagesQuery = usePackageByName({ name: pkg.name });
 
   if (packagesQuery.isPending) {
-    return <CustomSpinner m="auto" />;
+    return <CustomSpinner />;
   }
 
   if (packagesQuery.isError) {

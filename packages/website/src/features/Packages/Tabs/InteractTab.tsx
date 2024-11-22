@@ -26,10 +26,10 @@ import { ChainArtifacts, DeploymentInfo } from '@usecannon/builder';
 import { getOutput } from '@/lib/builder';
 import { useRouter } from 'next/router';
 import { usePackageNameTagVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
-import { CustomSpinner } from '@/components/CustomSpinner';
 import { usePackageByRef } from '@/hooks/api/usePackage';
 import SearchInput from '@/components/SearchInput';
 import { Address } from 'viem';
+import { IpfsSpinner } from '@/components/IpfsSpinner';
 
 type Option = {
   moduleName: string;
@@ -143,78 +143,82 @@ export const InteractTab: FC<{
       return;
     }
 
-    const allContracts: AllContracts[] = [];
-    const cannonOutputs = getOutput(deploymentData.data);
-    processContracts(allContracts, cannonOutputs.contracts, name);
-    processImports(allContracts, cannonOutputs.imports);
+    const processDeploymentData = (deploymentInfo: DeploymentInfo) => {
+      const allContracts: AllContracts[] = [];
+      const cannonOutputs = getOutput(deploymentInfo);
+      processContracts(allContracts, cannonOutputs.contracts, name);
+      processImports(allContracts, cannonOutputs.imports);
 
-    const highlightedContracts = allContracts.filter(
-      (contract) => contract.highlight
-    );
-    const proxyContracts = allContracts.filter((contract) =>
-      contract.contractName.toLowerCase().includes('proxy')
-    );
-
-    let highlightedData: any[] = [];
-    if (highlightedContracts.length > 0) {
-      highlightedData = highlightedContracts;
-    } else if (proxyContracts.length > 0) {
-      highlightedData = proxyContracts;
-    } else {
-      highlightedData = allContracts;
-    }
-
-    const uniqueAddresses = new Set();
-    for (const contractData of highlightedData) {
-      uniqueAddresses.add(contractData.contractAddress);
-    }
-
-    for (const uniqueAddress of uniqueAddresses) {
-      const excessContracts = highlightedData.filter(
-        (contract) => contract.contractAddress === uniqueAddress
+      const highlightedContracts = allContracts.filter(
+        (contract) => contract.highlight
       );
-      excessContracts.sort((a, b) => {
-        const accumulateDeepLevel = (acc: number, cur: string) =>
-          cur === '.' ? acc + 1 : acc;
-        const getModuleNameDeepLevel = (moduleName: string) =>
-          moduleName.split('').reduce(accumulateDeepLevel, 0);
-        const aDeepLevel = getModuleNameDeepLevel(a.moduleName);
-        const bDeepLevel = getModuleNameDeepLevel(b.moduleName);
-        return aDeepLevel - bDeepLevel;
-      });
-      excessContracts.shift();
-      highlightedData = highlightedData.filter(
-        (contract) => !excessContracts.includes(contract)
+      const proxyContracts = allContracts.filter((contract) =>
+        contract.contractName.toLowerCase().includes('proxy')
       );
-    }
 
-    setHighlightedOptions(
-      highlightedData.sort((a, b) => {
-        const valueA: string = a['contractName'];
-        const valueB: string = b['contractName'];
-        return valueA.localeCompare(valueB);
-      })
-    );
+      let highlightedData: any[] = [];
+      if (highlightedContracts.length > 0) {
+        highlightedData = highlightedContracts;
+      } else if (proxyContracts.length > 0) {
+        highlightedData = proxyContracts;
+      } else {
+        highlightedData = allContracts;
+      }
 
-    const otherData = allContracts.filter(
-      (contract) => !highlightedData.includes(contract)
-    );
-    setOtherOptions(
-      otherData.sort((a, b) => {
-        const valueA: string = a['contractName'];
-        const valueB: string = b['contractName'];
-        return valueA.localeCompare(valueB);
-      })
-    );
+      const uniqueAddresses = new Set();
+      for (const contractData of highlightedData) {
+        uniqueAddresses.add(contractData.contractAddress);
+      }
 
-    if (!activeContractOption) {
-      const _contract = highlightedData[0] || otherData[0];
-      if (_contract) {
-        void router.push(
-          `/packages/${name}/${tag}/${variant}/interact/${_contract.moduleName}/${_contract.contractName}/${_contract.contractAddress}`
+      for (const uniqueAddress of uniqueAddresses) {
+        const excessContracts = highlightedData.filter(
+          (contract) => contract.contractAddress === uniqueAddress
+        );
+        excessContracts.sort((a, b) => {
+          const accumulateDeepLevel = (acc: number, cur: string) =>
+            cur === '.' ? acc + 1 : acc;
+          const getModuleNameDeepLevel = (moduleName: string) =>
+            moduleName.split('').reduce(accumulateDeepLevel, 0);
+          const aDeepLevel = getModuleNameDeepLevel(a.moduleName);
+          const bDeepLevel = getModuleNameDeepLevel(b.moduleName);
+          return aDeepLevel - bDeepLevel;
+        });
+        excessContracts.shift();
+        highlightedData = highlightedData.filter(
+          (contract) => !excessContracts.includes(contract)
         );
       }
-    }
+
+      setHighlightedOptions(
+        highlightedData.sort((a, b) => {
+          const valueA: string = a['contractName'];
+          const valueB: string = b['contractName'];
+          return valueA.localeCompare(valueB);
+        })
+      );
+
+      const otherData = allContracts.filter(
+        (contract) => !highlightedData.includes(contract)
+      );
+      setOtherOptions(
+        otherData.sort((a, b) => {
+          const valueA: string = a['contractName'];
+          const valueB: string = b['contractName'];
+          return valueA.localeCompare(valueB);
+        })
+      );
+
+      if (!activeContractOption) {
+        const _contract = highlightedData[0] || otherData[0];
+        if (_contract) {
+          void router.push(
+            `/packages/${name}/${tag}/${variant}/interact/${_contract.moduleName}/${_contract.contractName}/${_contract.contractAddress}`
+          );
+        }
+      }
+    };
+
+    void processDeploymentData(deploymentData.data);
   }, [activeContractOption, deploymentData.data, name, router, tag, variant]);
 
   return (
@@ -412,14 +416,9 @@ export const InteractTab: FC<{
       )}
 
       {deploymentData.isLoading || packagesQuery.isLoading ? (
-        <Flex
-          justifyContent="center"
-          alignItems="center"
-          flexGrow={1}
-          width="100%"
-        >
-          <CustomSpinner />
-        </Flex>
+        <div className="py-20">
+          <IpfsSpinner ipfsUrl={packagesQuery?.data?.deployUrl} />
+        </div>
       ) : (
         <Box>{children}</Box>
       )}

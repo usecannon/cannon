@@ -74,3 +74,5 @@ jspm_packages/
 
 # nx cache folder
 .nx
+
+.contentlayer

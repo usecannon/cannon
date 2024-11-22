@@ -1,92 +1,95 @@
 import { CommandPreview } from '@/components/CommandPreview';
 import { links } from '@/constants/links';
-import { Heading, Text, Box, Link, Kbd } from '@chakra-ui/react';
-import NextLink from 'next/link';
+import { ExternalLinkIcon } from '@radix-ui/react-icons';
+import Link from 'next/link';
 
 export const RunPackage = () => {
   return (
     <>
-      <Heading
-        as="h2"
-        size="lg"
-        fontWeight={600}
-        letterSpacing="0.2px"
-        mb={2.5}
-      >
+      <h2 className="text-3xl font-semibold tracking-tight mb-2.5">
         Run a Cannon Package
-      </Heading>
-      <Text
-        pb={4}
-        mb={4}
-        borderBottom="1px solid"
-        borderBottomColor="gray.600"
-        fontSize="xl"
-        color="gray.400"
-      >
+      </h2>
+      <p className="pb-4 mb-4 text-xl text-muted-foreground border-b border-border">
         Run a package from the explorer on a local node in seconds
-      </Text>
-      <Text mb={4}>
-        <Link
-          isExternal
+      </p>
+      <p className="mb-4">
+        <a
+          className="text-primary hover:underline inline-flex items-center gap-1"
           href="https://book.getfoundry.sh/getting-started/installation"
+          target="_blank"
+          rel="noopener noreferrer"
         >
           Install Foundry
-        </Link>{' '}
-        if you haven’t already.
-      </Text>
-      <Box mb={4}>
+          <ExternalLinkIcon className="h-4 w-4" />
+        </a>{' '}
+        if you haven&apos;t already.
+      </p>
+      <p className="mb-4">
         <CommandPreview command="curl -L https://foundry.paradigm.xyz | bash" />
-      </Box>
-      <Text mb={4}>
-        Install Cannon’s <Link href={links.CLI}>command-line interface</Link>.
-      </Text>
-      <Box mb={4}>
+      </p>
+      <p className="mb-4">
+        Install Cannon&apos;s{' '}
+        <Link href={links.CLI} className="text-primary hover:underline">
+          command-line interface
+        </Link>
+        .
+      </p>
+      <p className="mb-4">
         <CommandPreview command="npm install -g @usecannon/cli" />
-      </Box>
-      <Text mb={4}>
+      </p>
+      <p className="mb-4">
         Run any package from{' '}
-        <Link href={links.EXPLORE} as={NextLink}>
+        <Link href={links.EXPLORE} className="text-primary hover:underline">
           the explorer
         </Link>{' '}
-        with a <em>Cannon</em> deployment. This will start an&nbsp;
-        <Link
+        with a <em>Cannon</em> deployment. This will start an{' '}
+        <a
           href="https://github.com/foundry-rs/foundry/tree/master/crates/anvil"
-          isExternal
+          className="text-primary hover:underline inline-flex items-center gap-1"
+          target="_blank"
+          rel="noopener noreferrer"
         >
           Anvil node
-        </Link>{' '}
+          <ExternalLinkIcon className="h-4 w-4" />
+        </a>{' '}
         with{' '}
-        <Link isExternal href="/packages/greeter/latest/13370-main">
+        <a
+          href="/packages/greeter/latest/13370-main"
+          className="text-primary hover:underline inline-flex items-center gap-1"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           a deployment of the greeter package
-        </Link>{' '}
+          <ExternalLinkIcon className="h-4 w-4" />
+        </a>{' '}
         for local testing and development:
-      </Text>
-      <Box mb={4}>
+      </p>
+      <p className="mb-4">
         <CommandPreview command="cannon greeter" />
-      </Box>
-      <Text mb={4}>
+      </p>
+      <p className="mb-4">
         Export the contract addresses and ABIs as a folder of JSON files. For
         example:
-      </Text>
-      <Box mb={4}>
+      </p>
+      <p className="mb-4">
         <CommandPreview command="cannon inspect greeter --write-deployments ./deployments" />
-      </Box>
-      <Text mb={4}>
+      </p>
+      <p className="mb-4">
         The command-line tool has a lot of additional functionality, including
         the ability to run packages on local forks and interact with deployments
-        on remote networks. For example, press the <Kbd>I</Kbd> key after
-        running a package to interact directly with the contracts using the CLI.
-        <Link href={links.CLI} as={NextLink}>
+        on remote networks. For example, press the <code>I</code> key after
+        running a package to interact directly with the contracts using the CLI.{' '}
+        <Link href={links.CLI} className="text-primary hover:underline">
           Learn more
         </Link>
-      </Text>
-      <Text>
+      </p>
+      <p>
         Next,{' '}
-        <Link href={links.BUILD} as={NextLink}>
+        <Link href={links.BUILD} className="text-primary hover:underline">
           build a protocol and add your own package to the registry
         </Link>
         .
-      </Text>
+      </p>
     </>
   );
 };

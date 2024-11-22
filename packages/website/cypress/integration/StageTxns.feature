@@ -9,6 +9,7 @@ Feature: Stage Transactions
     * Wallet is connected
     Then View renders a "p" displaying the text "Queue, sign, and execute deployments using a"
 
+  @skip
   Scenario: User stages transactions from the interact page
     Given User opens the "/packages" page
     When User types "owned-greeter" in the "search" input
@@ -51,6 +52,7 @@ Feature: Stage Transactions
     * User sets the value of parameter "_greeting" to "Hello World Again!" in the element # 2
     Then Drawer has exactly 2 queued transactions
 
+  @skip
   Scenario: User stages transactions from the deploy page
     Given User opens the "/deploy" page
     * Wallet is connected

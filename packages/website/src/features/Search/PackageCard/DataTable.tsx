@@ -2,24 +2,13 @@
 import * as React from 'react';
 import {
   Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  Link,
-  chakra,
-  Tooltip,
-  Text,
-  Box,
-} from '@chakra-ui/react';
-import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  ArrowUpDownIcon,
-  ArrowRightIcon,
-  QuestionOutlineIcon,
-} from '@chakra-ui/icons';
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { ArrowRightIcon, CaretSortIcon } from '@radix-ui/react-icons';
 import {
   useReactTable,
   flexRender,
@@ -27,9 +16,16 @@ import {
   SortingState,
   getSortedRowModel,
 } from '@tanstack/react-table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import Chain from './Chain';
 import { format, formatDistanceToNow } from 'date-fns';
-import NextLink from 'next/link';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export type DataTableProps<Data extends object> = {
   data: Data[];
@@ -52,7 +48,6 @@ const formatIPFS = (input: string, partLength: number): string => {
   return `${prefix}${startPart}...${endPart}`;
 };
 
-// TODO: add types
 const getCellContent = ({ cell }: { cell: any }) => {
   const timeAgo = formatDistanceToNow(
     new Date(cell.row.original.published * 1000),
@@ -72,16 +67,23 @@ const getCellContent = ({ cell }: { cell: any }) => {
     }
     case 'deployUrl': {
       return (
-        <Text fontFamily="mono" fontSize="12px" transform="translateY(1px)">
+        <code className="text-xs translate-y-[1px]">
           {formatIPFS(cell.row.original.deployUrl, 10)}
-        </Text>
+        </code>
       );
     }
     case 'published': {
-      return <Tooltip label={tooltipTime}>{timeAgo}</Tooltip>;
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>{timeAgo}</TooltipTrigger>
+            <TooltipContent>{tooltipTime}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
     }
     case 'arrow': {
-      return <ArrowRightIcon boxSize={3} />;
+      return <ArrowRightIcon className="h-3 w-3" />;
     }
     default: {
       return <>{flexRender(cell.column.columnDef.cell, cell.getContext())}</>;
@@ -109,111 +111,100 @@ export function DataTable<Data extends object>({
   });
 
   return (
-    <Table size="sm">
-      <Thead>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <Tr key={headerGroup.id}>
-            {headerGroup.headers.map((header) => {
-              // see https://tanstack.com/table/v8/docs/api/core/column-def#meta to type this correctly
-              const meta: any = header.column.columnDef.meta;
-              return (
-                <Th
-                  key={header.id}
-                  onClick={header.column.getToggleSortingHandler()}
-                  isNumeric={meta?.isNumeric}
-                  color="gray.200"
-                  borderColor="gray.600"
-                  textTransform="none"
-                  letterSpacing="normal"
-                  fontSize="sm"
-                  fontWeight={500}
-                  py={2}
-                  cursor="pointer"
-                  whiteSpace="nowrap"
-                >
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )}
-                  {header.column.columnDef.accessorKey !== 'arrow' && (
-                    <chakra.span display="inline-block" h="12px" w="12px">
-                      {header.column.getIsSorted() ? (
-                        header.column.getIsSorted() === 'desc' ? (
-                          <ChevronDownIcon
-                            boxSize={4}
-                            aria-label="sorted descending"
-                            transform="translateY(2.5px)"
-                          />
-                        ) : (
-                          <ChevronUpIcon
-                            boxSize={4}
-                            aria-label="sorted ascending"
-                            transform="translateY(-2.5px)"
-                          />
-                        )
+    <div className="w-full">
+      <div className="border-border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="border-border">
+                {headerGroup.headers.map((header) => {
+                  const meta: any = header.column.columnDef.meta;
+                  return (
+                    <TableHead
+                      key={header.id}
+                      className={`
+                        ${meta?.isNumeric ? 'text-right' : ''}
+                        ${
+                          header.column.columnDef.accessorKey === 'version'
+                            ? 'pl-3'
+                            : ''
+                        }
+                      `}
+                    >
+                      {header.column.columnDef.accessorKey !== 'arrow' ? (
+                        <Button
+                          variant="ghost"
+                          onClick={header.column.getToggleSortingHandler()}
+                          className="h-8 px-2 -ml-2"
+                        >
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                          <CaretSortIcon className="ml-2 h-4 w-4" />
+                        </Button>
                       ) : (
-                        <ArrowUpDownIcon
-                          boxSize={2.5}
-                          transform="translateX(2.5px)"
-                        />
+                        flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )
                       )}
-                    </chakra.span>
-                  )}
-                  {header.column.columnDef.accessorKey == 'preset' && (
-                    <Tooltip label="Presets are useful for distinguishing multiple deployments of the same protocol on the same chain.">
-                      <QuestionOutlineIcon ml={1.5} opacity={0.8} />
-                    </Tooltip>
-                  )}
-                </Th>
-              );
-            })}
-          </Tr>
-        ))}
-      </Thead>
-      <Tbody>
-        {table.getRowModel().rows.map((row, rowInd) => {
-          const variant = `${row.original.chain}-${row.original.preset}`;
-          return (
-            <Tr key={row.id} _hover={{ backgroundColor: 'gray.900' }}>
-              {row.getVisibleCells().map((cell) => {
-                // see https://tanstack.com/table/v8/docs/api/core/column-def#meta to type this correctly
-                const meta: any = cell.column.columnDef.meta;
-
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => {
+                const variant = `${row.original.chain}-${row.original.preset}`;
                 return (
-                  <Td
-                    key={cell.id}
-                    position="relative"
-                    overflow="hidden"
-                    isNumeric={meta?.isNumeric}
-                    borderColor="gray.600"
-                    borderBottom={
-                      table.getRowModel().rows.length == rowInd + 1
-                        ? 'none'
-                        : undefined
-                    }
-                    whiteSpace="nowrap"
+                  <TableRow
+                    key={row.id}
+                    className="border-border hover:bg-muted/50"
                   >
-                    <Link
-                      zIndex={10}
-                      as={NextLink}
-                      href={`/packages/${packageName}/${row.original.version}/${variant}`}
-                      position="absolute"
-                      display="block"
-                      w="100%"
-                      h="100%"
-                      top={0}
-                      left={0}
-                    />
-                    <Box position="relative" zIndex={1}>
-                      {getCellContent({ cell })}
-                    </Box>
-                  </Td>
+                    {row.getVisibleCells().map((cell) => {
+                      const meta: any = cell.column.columnDef.meta;
+                      return (
+                        <TableCell
+                          key={cell.id}
+                          className={`
+                            relative overflow-hidden whitespace-nowrap
+                            ${meta?.isNumeric ? 'text-right' : ''}
+                            ${
+                              cell.column.columnDef.accessorKey === 'version'
+                                ? 'pl-3'
+                                : ''
+                            }
+                          `}
+                        >
+                          <Link
+                            href={`/packages/${packageName}/${row.original.version}/${variant}`}
+                            className="absolute inset-0 z-10 block"
+                          />
+                          <div className="relative z-1">
+                            {getCellContent({ cell })}
+                          </div>
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
                 );
-              })}
-            </Tr>
-          );
-        })}
-      </Tbody>
-    </Table>
+              })
+            ) : (
+              <TableRow className="border-border">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
   );
 }

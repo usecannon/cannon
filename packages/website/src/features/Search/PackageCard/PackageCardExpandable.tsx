@@ -1,15 +1,8 @@
-import { LinkIcon } from '@chakra-ui/icons';
+import { Link2Icon } from '@radix-ui/react-icons';
 import PackageTable from './PackageTable';
-import {
-  Box,
-  Flex,
-  Heading,
-  Link,
-  useDisclosure,
-  Button,
-} from '@chakra-ui/react';
-import NextLink from 'next/link';
-import { FC } from 'react';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { FC, useState } from 'react';
 
 interface IPackageCardProps {
   pkgs: any[];
@@ -20,61 +13,38 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
   pkgs,
   maxHeight,
 }) => {
-  const { isOpen, onToggle } = useDisclosure();
+  const [isOpen, setIsOpen] = useState(false);
+  const onToggle = () => setIsOpen(!isOpen);
 
   return (
-    <Box
+    <div
       key={pkgs[0].name}
-      bg="black"
-      display="block"
-      borderWidth="1px"
-      borderStyle="solid"
-      borderColor="gray.600"
-      borderRadius="4px"
-      transition="all 0.12s"
-      overflow="hidden"
+      className="block overflow-hidden border border-border rounded bg-black transition-all duration-120"
     >
-      <Flex bg="gray.800" flexDirection="row" alignItems="center" p={2}>
-        <Box px={1}>
-          <Heading display="inline-block" as="h4" size="sm">
-            {pkgs[0].name}
-          </Heading>
+      <div className="flex flex-row items-center p-2">
+        <div className="px-1 flex items-center">
+          <h4 className="font-semibold text-lg">{pkgs[0].name}</h4>
           <Link
-            as={NextLink}
             href={'/packages/' + pkgs[0].name}
-            display="inline-block"
-            ml={1.5}
-            transform="translateY(-1px)"
+            className="ml-2 flex items-center"
           >
-            <LinkIcon boxSize="3" />
+            <Link2Icon className="w-4 h-4" />
           </Link>
-        </Box>
-        <Box ml="auto">
+        </div>
+        <div className="ml-auto">
           <Button
-            size="xs"
-            variant="outline"
-            colorScheme="black"
-            fontWeight={500}
-            textTransform="uppercase"
-            letterSpacing="1px"
-            fontFamily="var(--font-miriam)"
-            textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-            fontSize="12px"
-            background="gray.900"
-            borderColor="gray.500"
-            _hover={{
-              background: 'gray.800',
-            }}
+            size="sm"
+            variant="secondary"
             onClick={onToggle}
             id={`${pkgs[0].name}-expandable-button`}
           >
             {isOpen ? 'Show Less' : 'Show More'}
           </Button>
-        </Box>
-      </Flex>
-      <Box verticalAlign="middle" overflow="auto" maxHeight={maxHeight}>
+        </div>
+      </div>
+      <div className="align-middle overflow-auto" style={{ maxHeight }}>
         <PackageTable latestOnly={!isOpen} pkgs={pkgs} />
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 };
