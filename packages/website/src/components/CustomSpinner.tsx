@@ -7,7 +7,7 @@ interface CustomSpinnerProps extends HTMLAttributes<HTMLImageElement> {
 
 export const CustomSpinner = ({ className, ...props }: CustomSpinnerProps) => {
   return (
-    <div className="w-full h-full flex items-center justify-center">
+    <div className="flex flex-1 items-center justify-center">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/images/logomark.svg"
