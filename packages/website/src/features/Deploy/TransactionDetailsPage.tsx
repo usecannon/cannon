@@ -452,7 +452,7 @@ function TransactionDetailsPage() {
         )}
 
         <Grid
-          templateColumns={{ base: 'repeat(1, 1fr)', lg: '2fr 1fr' }}
+          templateColumns={{ base: 'repeat(1, 1fr)', lg: 'auto 320px' }}
           gap={6}
         >
           {/* TX Info: left column */}
