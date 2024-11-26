@@ -1,6 +1,6 @@
 import { after } from 'node:test';
 import { Server } from 'node:http';
-import fs, { promises as fsPromises } from 'node:fs';
+import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import express from 'express';
@@ -13,10 +13,31 @@ after(async function () {
   await Promise.all(servers.map((server) => promisify(server.close.bind(server))()));
 });
 
+/**
+ * Minimal implementation of IPFS cluster KUBO Api, intended for tests
+ */
 export async function ipfsServerMock() {
-  const port = await getPort();
+  const mockStorage = new Map<string, Buffer>();
 
+  await loadFixtures(mockStorage);
+
+  const port = await getPort();
   const app = express();
+
+  app.post('/api/v0/add', async (req, res) => {
+    if (!req.body) {
+      return res.status(400).end('no upload data');
+    }
+
+    try {
+      const data = Buffer.from(compress(JSON.stringify(req.body)));
+      const cid = await getContentCID(data);
+      mockStorage.set(cid, data);
+      res.json({ Hash: cid });
+    } catch (e) {
+      res.status(500).end('ipfs write error');
+    }
+  });
 
   app.post('/api/v0/cat', async (req, res) => {
     const cid = req.query.arg;
@@ -25,18 +46,9 @@ export async function ipfsServerMock() {
       return res.status(400).end('invalid cid');
     }
 
-    const filepath = path.resolve(__dirname, '..', 'fixtures', `${cid}.json`);
-
-    if (!fs.existsSync(filepath)) {
+    const data = mockStorage.get(cid as string);
+    if (!data) {
       return res.status(404).end('file not found on fixtures');
-    }
-
-    const content = await fsPromises.readFile(filepath);
-    const data = Buffer.from(compress(JSON.stringify(JSON.parse(content.toString()))));
-
-    const resultCid = await getContentCID(data);
-    if (resultCid !== cid) {
-      throw new Error(`Result cid "${resultCid}" !== "${cid}"`);
     }
 
     res.send(data).end();
@@ -49,4 +61,24 @@ export async function ipfsServerMock() {
   servers.push(server);
 
   return { ipfsUrl: `http://127.0.0.1:${port}` };
+}
+
+async function loadFixtures(mockStorage: Map<string, Buffer>) {
+  const fixturesDir = path.resolve(__dirname, '..', 'fixtures');
+  const files = await fs.readdir(fixturesDir);
+
+  for (const file of files) {
+    if (file.endsWith('.json')) {
+      const cid = file.replace('.json', '');
+      const content = await fs.readFile(path.join(fixturesDir, file));
+      const data = Buffer.from(compress(JSON.stringify(JSON.parse(content.toString()))));
+
+      const resultCid = await getContentCID(data);
+      if (resultCid !== cid) {
+        throw new Error(`Fixture ${file}: Result cid "${resultCid}" !== "${cid}"`);
+      }
+
+      mockStorage.set(cid, data);
+    }
+  }
 }

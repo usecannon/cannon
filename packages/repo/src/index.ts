@@ -151,6 +151,16 @@ app.post('/api/v0/cat', async (req, res) => {
   return res.status(404).end('unregistered ipfs data');
 });
 
+app.get('/health', async (_req, res) => {
+  try {
+    // Check Redis connection
+    await rdb.ping();
+    res.json({ status: 'ok' });
+  } catch (err) {
+    res.status(503).json({ status: 'error', message: 'Redis connection failed' });
+  }
+});
+
 void getDb(process.env.REDIS_URL!).then(async (createdRdb) => {
   rdb = createdRdb;
   app.listen(port, () => {
