@@ -35,6 +35,10 @@
     {
       "source": "/deploy/txn/:chainId/:safeAddress/:nonce/:sigHash",
       "destination": "/deploy/txn/[chainId]/[safeAddress]/[nonce]/[sigHash]"
+    },
+    {
+      "source": "/learn/guides/get-started/:section",
+      "destination": "/learn/guides/get-started/[section]"
     }
   ],
   "framework": null,

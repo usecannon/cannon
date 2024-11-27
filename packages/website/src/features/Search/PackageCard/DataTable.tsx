@@ -30,7 +30,7 @@ import { Button } from '@/components/ui/button';
 export type DataTableProps<Data extends object> = {
   data: Data[];
   columns: any[];
-  packageName: string;
+  packageName?: string;
 };
 
 const formatIPFS = (input: string, partLength: number): string => {
@@ -180,7 +180,9 @@ export function DataTable<Data extends object>({
                           `}
                         >
                           <Link
-                            href={`/packages/${packageName}/${row.original.version}/${variant}`}
+                            href={`/packages/${
+                              packageName ?? row.original.name
+                            }/${row.original.version}/${variant}`}
                             className="absolute inset-0 z-10 block"
                           />
                           <div className="relative z-1">

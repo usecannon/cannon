@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-
+const { withContentlayer } = require('next-contentlayer');
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 });
@@ -17,12 +17,13 @@ const nextConfig = {
     config.optimization.minimize = false;
     return config;
   },
+  pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   experimental: {
     urlImports: ['https://unpkg.com'],
   },
 };
 
-module.exports = nextConfig;
+module.exports = withContentlayer(nextConfig);
 
 // Injected content via Sentry wizard below
 
