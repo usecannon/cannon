@@ -52,7 +52,7 @@ export async function inspect(
 
   // Mute all build outputs when printing the result to json, this is so it
   // doesn't break the result.
-  if (out !== 'overview') {
+  if (out && out !== 'overview') {
     // eslint-disable-next-line no-console
     console.log = debug;
     // eslint-disable-next-line no-console
