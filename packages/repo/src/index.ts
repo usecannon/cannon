@@ -46,7 +46,6 @@ app.post('/api/v0/add', async (req, res) => {
       if (!isSavable) {
         try {
           const pkgData: DeploymentInfo = JSON.parse(uncompress(rawData));
-          //const def = new ChainDefinition(pkgData.def);
 
           // package is valid. Add to upload hashes
           isSavable = true;

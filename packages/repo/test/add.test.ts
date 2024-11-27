@@ -16,6 +16,18 @@ describe('POST /api/v0/add', async function () {
     });
   });
 
+  it('should return 400 when trying to add non cannon package', async function (t: TestContext) {
+    const { content } = await loadFixture('greeter-misc');
+    const { formData } = await prepareFormData(content);
+
+    const res = await ctx.repo.post('/api/v0/add', formData);
+
+    assertRes(t, res, {
+      status: 400,
+      data: 'does not appear to be cannon package',
+    });
+  });
+
   it('should successfully add valid package data', async function (t: TestContext) {
     const { cid, content } = await loadFixture('registry');
     const { formData } = await prepareFormData(content);
@@ -29,6 +41,17 @@ describe('POST /api/v0/add', async function () {
 
     const saved = JSON.parse(uncompress(ctx.ipfsMockGet(cid)));
     t.assert.deepStrictEqual(saved, content);
+
+    // After adding the package, we should also be able to add the misc data
+    const misc = await loadFixture('registry');
+    const miscData = await prepareFormData(content);
+
+    const miscRes = await ctx.repo.post('/api/v0/add', miscData.formData);
+
+    assertRes(t, miscRes, {
+      status: 200,
+      data: { Hash: misc.cid },
+    });
   });
 
   it('should return same hash for identical data', async function (t: TestContext) {

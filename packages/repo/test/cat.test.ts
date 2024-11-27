@@ -1,5 +1,5 @@
 import { describe, it, TestContext } from 'node:test';
-import { compress, uncompress } from '../../builder/src/ipfs';
+import { uncompress } from '../../builder/src/ipfs';
 import { bootstrap } from './helpers/bootstrap';
 import { loadFixture } from './helpers/fixtures';
 import { assertRes } from './helpers/assert-res';
