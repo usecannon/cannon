@@ -23,9 +23,9 @@ export async function inspect(
   packageRef: string,
   cliSettings: CliSettings,
   chainId: number,
-  json: boolean,
+  out: 'json' | 'misc-json',
   writeDeployments: string,
-  sources: boolean
+  sources: boolean,
 ) {
   const { fullPackageRef } = new PackageReference(packageRef);
 
@@ -43,14 +43,14 @@ export async function inspect(
     warn(
       yellow(
         "The deployment data for the latest local version of this package (which runs with 'cannon PACKAGE_NAME') was exported. \
-      Specify the --chain-id parameter to retrieve the addresses/ABIs for other deployments."
-      )
+      Specify the --chain-id parameter to retrieve the addresses/ABIs for other deployments.",
+      ),
     );
   }
 
   // Mute all build outputs when printing the result to json, this is so it
   // doesn't break the result.
-  if (json) {
+  if (out === 'json') {
     // eslint-disable-next-line no-console
     console.log = debug;
     // eslint-disable-next-line no-console
@@ -72,14 +72,29 @@ export async function inspect(
     await Promise.all(
       files.map(([filepath, contractData]) => {
         return fs.outputFile(filepath, JSON.stringify(contractData, null, 2));
-      })
+      }),
     );
   }
 
-  if (json) {
+  if (out === 'json') {
     // use process.stdout.write and write in chunks because bash piping seems to have some sort of
     // a problem with outputting huge amounts of data all at once while using pipes
     const toOutput = JSON.stringify(deployData, null, 2);
+
+    const chunkSize = 16;
+    for (let i = 0; i < toOutput.length; i += chunkSize) {
+      process.stdout.write(toOutput.slice(i, i + chunkSize));
+    }
+  } else if (out === 'misc-json') {
+    if (!deployData.miscUrl) {
+      console.log('null');
+      return;
+    }
+    const miscData = await loader[deployData.miscUrl.split(':')[0] as 'ipfs'].read(deployData.miscUrl);
+
+    // use process.stdout.write and write in chunks because bash piping seems to have some sort of
+    // a problem with outputting huge amounts of data all at once while using pipes
+    const toOutput = JSON.stringify(miscData, null, 2);
 
     const chunkSize = 16;
     for (let i = 0; i < toOutput.length; i += chunkSize) {
@@ -99,13 +114,13 @@ export async function inspect(
     log();
     log(
       '   Deploy Status:',
-      deployData.status === 'partial' ? yellow(bold(deployData.status)) : green(deployData.status || 'complete')
+      deployData.status === 'partial' ? yellow(bold(deployData.status)) : green(deployData.status || 'complete'),
     );
     log(
       '         Options:',
       Object.entries(deployData.options)
         .map((o) => `${o[0]}=${o[1]}`)
-        .join(' ') || '(none)'
+        .join(' ') || '(none)',
     );
     packageOwner ? log('           Owner:', packageOwner) : log('          Source:', localSource || '(none)');
     log('     Package URL:', deployUrl);

@@ -540,7 +540,7 @@ applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(a
 
   const cliSettings = resolveCliSettings(options);
 
-  await inspect(packageName, cliSettings, options.chainId, options.json, options.writeDeployments, options.sources);
+  await inspect(packageName, cliSettings, options.chainId, options.json ? 'json' : options.out, options.writeDeployments, options.sources);
 });
 
 applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async function (options) {
