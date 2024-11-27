@@ -30,6 +30,21 @@ export async function getContentUrl(content?: any): Promise<string | null> {
   return 'ipfs://' + (await getContentCID(Buffer.from(buffer)));
 }
 
+export async function prepareFormData(info: any) {
+  const data = JSON.stringify(info);
+  const buf = compress(data);
+  const cid = await getContentCID(Buffer.from(buf));
+
+  const formData = new FormData();
+
+  // This check is needed for proper functionality in the browser, as the Buffer is not correctly concatenated
+  // But, for node we still wanna keep using Buffer
+  const content = typeof window !== 'undefined' && typeof Blob !== 'undefined' ? new Blob([buf]) : Buffer.from(buf);
+  formData.append('data', content);
+
+  return { cid, formData };
+}
+
 export function setAxiosRetries(totalRetries = 3) {
   axiosRetry(axios, {
     retries: totalRetries,
@@ -117,23 +132,15 @@ export async function writeIpfs(
 ): Promise<string> {
   setAxiosRetries(retries);
 
-  const data = JSON.stringify(info);
-  const buf = compress(data);
-  const cid = await getContentCID(Buffer.from(buf));
-
   if (isGateway) {
     throw new Error(
       'unable to upload to ipfs: the IPFS url you have configured is either read-only (ie a gateway), or invalid. please double check your configuration.'
     );
   }
 
-  debug('upload to ipfs:', buf.length, Buffer.from(buf).length);
-  const formData = new FormData();
+  const { cid, formData } = await prepareFormData(info);
 
-  // This check is needed for proper functionality in the browser, as the Buffer is not correctly concatenated
-  // But, for node we still wanna keep using Buffer
-  const content = typeof window !== 'undefined' && typeof Blob !== 'undefined' ? new Blob([buf]) : Buffer.from(buf);
-  formData.append('data', content);
+  debug('upload to ipfs:', formData.getLengthSync());
 
   let result: AxiosResponse<any, any>;
   try {

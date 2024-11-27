@@ -75,9 +75,10 @@ app.post('/api/v0/add', async (req, res) => {
           });
 
           const upstreamBody = new TextDecoder().decode(await upstreamRes.arrayBuffer());
-          return res.status(200).end(upstreamBody);
+
+          return res.status(upstreamRes.status).end(upstreamBody);
         } catch (err) {
-          console.log('cannon package upload to IPFS fail', err);
+          console.error('cannon package upload to IPFS fail', err);
           return res.status(500).end('ipfs write error');
         }
       } else {

@@ -9,6 +9,11 @@ export const RKEY_LAST_UPDATED = 'reg:lastTimestamp';
 
 export async function getDb(url: string): Promise<RedisClientType> {
   const client = createClient({ url });
+
+  client.on('error', (err) => {
+    console.error('redis error:', err);
+  });
+
   await client.connect();
   return client as RedisClientType;
 }

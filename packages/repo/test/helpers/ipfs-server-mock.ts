@@ -1,11 +1,10 @@
 import { after } from 'node:test';
 import { Server } from 'node:http';
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
 import { promisify } from 'node:util';
 import express from 'express';
 import { getPort } from 'get-port-please';
-import { compress, getContentCID } from '@usecannon/builder/dist/src/ipfs';
+import connectBusboy from 'connect-busboy';
+import { getContentCID } from '../../../builder/src/ipfs';
 
 const servers: Server[] = [];
 
@@ -19,24 +18,44 @@ after(async function () {
 export async function ipfsServerMock() {
   const mockStorage = new Map<string, Buffer>();
 
-  await loadFixtures(mockStorage);
-
   const port = await getPort();
   const app = express();
 
+  app.use(connectBusboy({ immediate: true }));
+
+  async function ipfsMockAdd(data: Buffer) {
+    const cid = await getContentCID(data);
+    mockStorage.set(cid, data);
+    return cid;
+  }
+
+  function ipfsMockGet(cid: string) {
+    return mockStorage.get(cid);
+  }
+
+  async function ipfsMockRemove(cid: string) {
+    mockStorage.delete(cid);
+  }
+
+  function ipfsMockClear() {
+    mockStorage.clear();
+  }
+
   app.post('/api/v0/add', async (req, res) => {
-    if (!req.body) {
+    if (!req.busboy) {
       return res.status(400).end('no upload data');
     }
 
-    try {
-      const data = Buffer.from(compress(JSON.stringify(req.body)));
-      const cid = await getContentCID(data);
-      mockStorage.set(cid, data);
-      res.json({ Hash: cid });
-    } catch (e) {
-      res.status(500).end('ipfs write error');
-    }
+    req.busboy.on('file', (name, file) => {
+      file.on('data', async (data) => {
+        try {
+          const cid = await ipfsMockAdd(data);
+          res.json({ Hash: cid }).end();
+        } catch (e) {
+          res.status(500).end('ipfs write error');
+        }
+      });
+    });
   });
 
   app.post('/api/v0/cat', async (req, res) => {
@@ -48,7 +67,7 @@ export async function ipfsServerMock() {
 
     const data = mockStorage.get(cid as string);
     if (!data) {
-      return res.status(404).end('file not found on fixtures');
+      return res.status(404).end('file not found on ipfs mocked data');
     }
 
     res.send(data).end();
@@ -60,25 +79,11 @@ export async function ipfsServerMock() {
 
   servers.push(server);
 
-  return { ipfsUrl: `http://127.0.0.1:${port}` };
-}
-
-async function loadFixtures(mockStorage: Map<string, Buffer>) {
-  const fixturesDir = path.resolve(__dirname, '..', 'fixtures');
-  const files = await fs.readdir(fixturesDir);
-
-  for (const file of files) {
-    if (file.endsWith('.json')) {
-      const cid = file.replace('.json', '');
-      const content = await fs.readFile(path.join(fixturesDir, file));
-      const data = Buffer.from(compress(JSON.stringify(JSON.parse(content.toString()))));
-
-      const resultCid = await getContentCID(data);
-      if (resultCid !== cid) {
-        throw new Error(`Fixture ${file}: Result cid "${resultCid}" !== "${cid}"`);
-      }
-
-      mockStorage.set(cid, data);
-    }
-  }
+  return {
+    ipfsUrl: `http://127.0.0.1:${port}`,
+    ipfsMockAdd,
+    ipfsMockGet,
+    ipfsMockRemove,
+    ipfsMockClear,
+  };
 }
