@@ -1,7 +1,6 @@
 'use client';
 
 import { CommandPreview } from '@/components/CommandPreview';
-import { CustomSpinner } from '@/components/CustomSpinner';
 import { useCannonfileSpecs } from '@/hooks/cannonfileSpecs';
 import {
   Table,
@@ -26,6 +25,7 @@ import { useRouter } from 'next/router';
 import scrollIntoView from 'scroll-into-view-if-needed';
 import { Snippet } from '@/components/snippet';
 import { SidebarLayout } from '@/components/layouts/SidebarLayout';
+import MainContentLoading from '@/components/MainContentLoading';
 
 const artifactDataExample = {
   artifacts: {
@@ -178,7 +178,7 @@ const DocsCannonfilesPage: FC = () => {
   }, [router.events, isLoading]);
 
   if (isLoading) {
-    return <CustomSpinner className="m-auto" />;
+    return <MainContentLoading hasSubheader />;
   }
 
   if (!cannonfileSpecs) {

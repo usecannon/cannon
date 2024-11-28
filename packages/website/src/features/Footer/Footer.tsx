@@ -16,6 +16,7 @@ export const Footer = ({ isFixed }: FooterProps) => {
   return (
     <div
       className={`
+        h-[var(--footer-height)]
         flex flex-col sm:flex-row items-center px-2 
         ${
           isFixed

@@ -53,12 +53,16 @@ export default function RootLayout({
   const isFooterFixed =
     router.pathname == '/' || router.pathname == '/packages';
 
+  const mainContentHeight = isFooterFixed
+    ? 'min-h-[calc(100vh-var(--header-height)-var(--footer-height))]'
+    : 'min-h-[calc(100vh-var(--header-height))]';
+
   useEffect(() => {
     document.body.classList.remove('fouc-prevention');
   }, []);
 
   return (
-    <>
+    <div>
       <DefaultSeo {...defaultSEO} />
       <style jsx global>
         {`
@@ -77,20 +81,20 @@ export default function RootLayout({
         height={1}
       />
       <Providers>
-        <div className="flex flex-col bg-black relative h-full">
-          <Header />
-          <div
+        <Header />
+        {/* <div
             className={`flex flex-1 z-[1] ${
               isFooterFixed ? 'pb-[65px] md:pb-[45px]' : 'pb-0'
             }`}
-          >
-            {getLayout(<Component {...pageProps} />)}
-          </div>
-          <Footer isFixed={isFooterFixed} />
+          > */}
+        <div className={`block ${mainContentHeight}`}>
+          {getLayout(<Component {...pageProps} />)}
           <NoSsrE2EWalletConnector />
         </div>
+
+        <Footer isFixed={isFooterFixed} />
       </Providers>
       <Analytics />
-    </>
+    </div>
   );
 }

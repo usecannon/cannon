@@ -43,6 +43,11 @@ export const theme = extendTheme({
     },
   },
   components: {
+    MainHeader: {
+      baseStyle: {
+        minHeight: '60px',
+      },
+    },
     Link: {
       baseStyle: {
         textDecoration: 'underline',

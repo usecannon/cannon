@@ -1,0 +1,41 @@
+.layoutContainer {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px; /* Adjust height as needed */
+  background-color: white;
+  z-index: 100;
+  /* Add your header styles */
+}
+
+.contentWrapper {
+  display: flex;
+  height: calc(100vh - 60px); /* Subtract header height */
+  margin-top: 60px; /* Same as header height */
+}
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 60px; /* Same as header height */
+  bottom: 0;
+  width: 250px; /* Adjust width as needed */
+  overflow-y: auto;
+  background-color: white;
+  /* Add your sidebar styles */
+}
+
+.mainContent {
+  flex: 1;
+  margin-left: 250px; /* Same as sidebar width */
+  overflow-y: auto;
+  height: 100%;
+  /* Add your main content styles */
+} 

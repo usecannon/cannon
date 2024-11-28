@@ -1,7 +1,6 @@
 'use client';
 
 import { CommandPreview } from '@/components/CommandPreview';
-import { CustomSpinner } from '@/components/CustomSpinner';
 import { useCommandsConfig } from '@/hooks/useCommandsConfig';
 import {
   Accordion,
@@ -35,6 +34,7 @@ import {
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
 import { SidebarLayout } from '@/components/layouts/SidebarLayout';
+import MainContentLoading from '@/components/MainContentLoading';
 
 const basicCommands = ['run', 'build', 'verify', 'publish'];
 
@@ -232,7 +232,7 @@ const DocsCliPage: FC = () => {
   const { commandsData, isLoading, error } = useCommandsConfig();
 
   if (isLoading) {
-    return <CustomSpinner className="m-auto" />;
+    return <MainContentLoading hasSubheader />;
   }
 
   if (error) {
@@ -290,7 +290,7 @@ const DocsCliPage: FC = () => {
   );
 
   return (
-    <SidebarLayout sidebarContent={sidebarContent}>
+    <SidebarLayout sidebarContent={sidebarContent} hasSubheader={true}>
       <div className="max-w-[1024px]">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-4">
