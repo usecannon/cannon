@@ -4,7 +4,7 @@ import morgan from 'morgan';
 import connectBusboy from 'connect-busboy';
 import consumers from 'stream/consumers';
 import { DeploymentInfo } from '@usecannon/builder';
-import { getContentCID, uncompress } from '@usecannon/builder/dist/src/ipfs';
+import { getContentCID, uncompress, parseIpfsUrl } from '@usecannon/builder/dist/src/ipfs';
 import { getDb, RKEY_FRESH_UPLOAD_HASHES, RKEY_PKG_HASHES, RKEY_EXTRA_HASHES } from './db';
 
 let rdb: Awaited<ReturnType<typeof getDb>>;
@@ -50,7 +50,11 @@ app.post('/api/v0/add', async (req, res) => {
           // package is valid. Add to upload hashes
           isSavable = true;
 
-          const miscIpfsHash = _.last(pkgData.miscUrl.split('://'))!;
+          const miscIpfsHash = parseIpfsUrl(pkgData.miscUrl);
+
+          if (!miscIpfsHash) {
+            throw new Error(`Invalid package data for "${ipfsHash}"`);
+          }
 
           // as a special step here, we also save the misc url (we dont want to save it anywhere else)
           await rdb.zAdd(RKEY_FRESH_UPLOAD_HASHES, { score: now, value: miscIpfsHash }, { NX: true });

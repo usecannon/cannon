@@ -30,6 +30,12 @@ export async function getContentUrl(content?: any): Promise<string | null> {
   return 'ipfs://' + (await getContentCID(Buffer.from(buffer)));
 }
 
+const FILE_URL_REGEX = /^ipfs:\/\/(?<cid>[a-zA-Z0-9]{46})$/;
+export function parseIpfsUrl(url: string) {
+  if (typeof url !== 'string' || !url) return null;
+  return url.trim().match(FILE_URL_REGEX)?.groups?.cid || null;
+}
+
 export async function prepareFormData(info: any) {
   const data = JSON.stringify(info);
   const buf = compress(data);
