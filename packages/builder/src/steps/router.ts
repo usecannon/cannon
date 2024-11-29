@@ -54,6 +54,16 @@ const routerStep = {
       {
         contractAbis,
         contractAddresses,
+        config: _.omit(newConfig, 'includeReceive', 'includeDiamondCompatibility'),
+      },
+      {
+        contractAbis,
+        contractAddresses,
+        config: _.omit(newConfig, 'includeDiamondCompatibility'),
+      },
+      {
+        contractAbis,
+        contractAddresses,
         config: newConfig,
       },
     ];
@@ -87,7 +97,7 @@ const routerStep = {
     let accesses = computeTemplateAccesses(config.from);
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt, possibleFields));
     accesses.accesses.push(
-      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`))
+      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`)),
     );
 
     if (config?.overrides) {
@@ -105,7 +115,7 @@ const routerStep = {
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
     config: Config,
-    packageState: PackageState
+    packageState: PackageState,
   ): Promise<ChainArtifacts> {
     debug('exec', config);
 
