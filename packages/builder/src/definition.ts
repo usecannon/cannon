@@ -151,8 +151,8 @@ export class ChainDefinition {
           .map((n) => this.getDependencies(n))
           .flatten()
           .uniq()
-          .value(),
-      ),
+          .value()
+      )
     );
 
     debug('start check all');
@@ -226,7 +226,7 @@ export class ChainDefinition {
 
     if (!action) {
       throw new Error(
-        `action kind plugin not installed: "${kind}" (for action: "${n}"). please install the plugin necessary to build this package.`,
+        `action kind plugin not installed: "${kind}" (for action: "${n}"). please install the plugin necessary to build this package.`
       );
     }
 
@@ -248,7 +248,7 @@ export class ChainDefinition {
     n: string,
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
-    tainted: boolean,
+    tainted: boolean
   ): Promise<string[] | null> {
     const kind = n.split('.')[0] as keyof typeof ActionKinds;
 
@@ -271,13 +271,18 @@ export class ChainDefinition {
       {
         ref: this.getPackageRef(ctx),
         currentLabel: n,
-      },
+      }
     );
 
     if (!objs) {
       return null;
     } else {
-      debugVerbose('creating hash of', objs.map(JSON.stringify as any), 'and', objs.map(stableStringify));
+      debugVerbose(
+        'creating hash of',
+        objs.map(JSON.stringify as any),
+        'and',
+        objs.map((o) => stableStringify(o))
+      );
       return [
         ...objs.map((o) => crypto.createHash('md5').update(JSON.stringify(o)).digest('hex')),
         ...objs.map((o) => crypto.createHash('md5').update(stableStringify(o)).digest('hex')),
@@ -301,7 +306,7 @@ export class ChainDefinition {
         source: template(d.source)(ctx),
         chainId: d.chainId || ctx.chainId,
         preset: template(d.preset)(ctx) || 'main',
-      })),
+      }))
     );
   }
 
@@ -357,8 +362,8 @@ export class ChainDefinition {
       if (this.sensitiveDependencies && accessComputationResults.unableToCompute && !_.get(this.raw, node).depends) {
         throw new Error(
           `Unable to compute dependencies for [${node}] because of advanced logic in template strings. Specify dependencies manually, like "depends = ['${_.uniq(
-            _.uniq(accessComputationResults.accesses).map((a) => `${this.dependencyFor.get(a)}`),
-          ).join("', '")}']"`,
+            _.uniq(accessComputationResults.accesses).map((a) => `${this.dependencyFor.get(a)}`)
+          ).join("', '")}']"`
         );
       }
 
@@ -455,7 +460,7 @@ export class ChainDefinition {
   checkCycles(
     actions = this.allActionNames,
     seenNodes = new Set<string>(),
-    currentPath = new Set<string>(),
+    currentPath = new Set<string>()
   ): string[] | null {
     for (const n of actions) {
       if (seenNodes.has(n)) {
@@ -662,7 +667,7 @@ export class ChainDefinition {
     }
     return Math.max(
       layers[n].actions.length + 2,
-      _.sumBy(layers[n].depends, (d) => this.getPrintLinesUsed(d, layers)),
+      _.sumBy(layers[n].depends, (d) => this.getPrintLinesUsed(d, layers))
     );
   }
 
