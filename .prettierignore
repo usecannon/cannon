@@ -1,13 +1,13 @@
 .next
+*.mdx
 artifacts
 cache
 coverage*
 dist
-out
 gasReporterOutput.json
 next.lock
 node_modules
-typechain-types
+out
 pnpm-lock.yaml
-
+typechain-types
 *.mdx
