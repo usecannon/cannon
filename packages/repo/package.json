@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/usecannon/cannon#readme",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.701.0",
     "@usecannon/builder": "workspace:*",
     "connect-busboy": "^1.0.0",
     "lodash": "^4.17.21",
@@ -39,9 +40,13 @@
     "@types/lodash": "^4.17.7",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.7.5",
+    "@types/s3rver": "^3.7.4",
+    "@types/tmp": "^0.2.6",
     "axios": "^1.7.7",
     "get-port-please": "^3.1.2",
+    "s3rver": "^3.7.1",
     "tinyexec": "^0.3.1",
+    "tmp": "^0.2.3",
     "ts-node": "^10.9.2"
   },
   "optionalDependencies": {

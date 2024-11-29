@@ -1,22 +1,15 @@
-import path from 'node:path';
 import { getPort } from 'get-port-please';
-import { spawn } from './spawn';
+import { createServer } from '../../src/server';
 
 // PORT=8328 REDIS_URL=redis://... UPSTREAM_IPFS_URL=http://localhost:9095 node dist/index.js
 export async function repoServer({ redisUrl, ipfsUrl }: { redisUrl: string; ipfsUrl: string }) {
   const port = await getPort();
 
-  const serverPath = path.resolve(__dirname, '..', '..', 'src', 'index.ts');
-
-  const proc = spawn('pnpm', ['ts-node', serverPath], {
-    PORT: port.toString(),
-    REDIS_URL: redisUrl,
-    UPSTREAM_IPFS_URL: ipfsUrl,
+  const server = await createServer({
+    port: port.toString(),
+    redisUrl,
+    upstreamIpfsUrl: ipfsUrl,
   });
 
-  for await (const line of proc) {
-    if (line.includes('listening on port ')) break;
-  }
-
-  return { repoUrl: `http://127.0.0.1:${port}` };
+  return { server, repoUrl: `http://127.0.0.1:${port}` };
 }

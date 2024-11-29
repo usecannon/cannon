@@ -29,29 +29,31 @@ describe('POST /api/v0/add', async function () {
   });
 
   it('should successfully add valid package data', async function (t: TestContext) {
-    const { cid, content } = await loadFixture('registry');
-    const { formData } = await prepareFormData(content);
+    const pkg = await loadFixture('registry');
+    const pkgData = await prepareFormData(pkg.content);
 
-    const res = await ctx.repo.post('/api/v0/add', formData);
+    const res = await ctx.repo.post('/api/v0/add', pkgData.formData);
 
     assertRes(t, res, {
       status: 200,
-      data: { Hash: cid },
+      data: { Hash: pkg.cid },
     });
 
-    const saved = JSON.parse(uncompress(ctx.ipfsMockGet(cid)));
-    t.assert.deepStrictEqual(saved, content);
+    const saved = JSON.parse(uncompress(ctx.ipfsMockGet(pkg.cid)));
+    t.assert.deepStrictEqual(saved, pkg.content);
 
     // After adding the package, we should also be able to add the misc data
-    const misc = await loadFixture('registry');
-    const miscData = await prepareFormData(content);
-
+    const misc = await loadFixture('registry-misc');
+    const miscData = await prepareFormData(misc.content);
     const miscRes = await ctx.repo.post('/api/v0/add', miscData.formData);
 
     assertRes(t, miscRes, {
       status: 200,
       data: { Hash: misc.cid },
     });
+
+    const files = await ctx.s3List();
+    console.log(files);
   });
 
   it('should return same hash for identical data', async function (t: TestContext) {

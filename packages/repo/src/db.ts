@@ -15,5 +15,7 @@ export async function getDb(url: string): Promise<RedisClientType> {
   });
 
   await client.connect();
+  await client.ping();
+
   return client as RedisClientType;
 }
