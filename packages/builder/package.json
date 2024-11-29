@@ -44,7 +44,7 @@
     "typedoc-plugin-zod": "^1.2.0"
   },
   "dependencies": {
-    "@usecannon/router": "^4.1.1-0",
+    "@usecannon/router": "^4.1.2",
     "@usecannon/web-solc": "0.5.1",
     "axios": "^1.7.2",
     "axios-retry": "^4.4.2",
