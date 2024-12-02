@@ -10,4 +10,3 @@ node_modules
 out
 pnpm-lock.yaml
 typechain-types
-*.mdx
