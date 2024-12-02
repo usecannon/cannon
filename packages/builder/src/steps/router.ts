@@ -56,6 +56,16 @@ const routerStep = {
         contractAddresses,
         config: newConfig,
       },
+      {
+        contractAbis,
+        contractAddresses,
+        config: _.omit(newConfig, 'includeDiamondCompatibility'),
+      },
+      {
+        contractAbis,
+        contractAddresses,
+        config: _.omit(newConfig, 'includeReceive', 'includeDiamondCompatibility'),
+      },
     ];
   },
 
