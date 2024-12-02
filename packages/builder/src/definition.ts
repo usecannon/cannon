@@ -7,6 +7,7 @@ import { ChainBuilderRuntime } from './runtime';
 import { chainDefinitionSchema } from './schemas';
 import { CannonHelperContext, ChainBuilderContext } from './types';
 import { template } from './utils/template';
+import stableStringify from 'json-stable-stringify';
 
 import { PackageReference } from './package-reference';
 
@@ -276,8 +277,16 @@ export class ChainDefinition {
     if (!objs) {
       return null;
     } else {
-      debugVerbose('creating hash of', objs.map(JSON.stringify as any));
-      return objs.map((o) => crypto.createHash('md5').update(JSON.stringify(o)).digest('hex'));
+      debugVerbose(
+        'creating hash of',
+        objs.map(JSON.stringify as any),
+        'and',
+        objs.map((o) => stableStringify(o))
+      );
+      return [
+        ...objs.map((o) => crypto.createHash('md5').update(JSON.stringify(o)).digest('hex')),
+        ...objs.map((o) => crypto.createHash('md5').update(stableStringify(o)).digest('hex')),
+      ];
     }
   }
 
