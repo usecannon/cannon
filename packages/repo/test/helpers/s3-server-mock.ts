@@ -20,12 +20,19 @@ export async function s3ServerMock() {
   const port = await getPort();
   const tmpDirectory = tmp.dirSync({ unsafeCleanup: true });
 
-  const server = new S3rver({
-    port,
-    address,
-    silent: false,
-    directory: tmpDirectory.name,
-  });
+  let server;
+
+  try {
+    server = new S3rver({
+      port,
+      address,
+      silent: false,
+      directory: tmpDirectory.name,
+    });
+  } catch (err) {
+    console.error('Error starting S3 server', err);
+    throw err;
+  }
 
   servers.push(server);
 

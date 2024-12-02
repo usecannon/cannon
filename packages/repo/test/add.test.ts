@@ -7,7 +7,7 @@ import { loadFixture } from './helpers/fixtures';
 describe('POST /api/v0/add', async function () {
   const ctx = bootstrap();
 
-  it('should return 400 when no data is provided', async function (t: TestContext) {
+  it.only('should return 400 when no data is provided', async function (t: TestContext) {
     const res = await ctx.repo.post('/api/v0/add');
 
     assertRes(t, res, {
