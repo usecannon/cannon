@@ -163,9 +163,13 @@ ${def.allActionNames.join('\n')}`);
   }
 
   for (const cycle of problems.cycles) {
-    str.push(`${counter}: The operations ${cycle.join(', ')} form a dependency cycle and therefore cannot be deployed.`);
+    str.push(`${counter}: The actions ${cycle.join(', ')} form a dependency cycle.`);
 
     counter++;
+  }
+
+  for (const clash of problems.outputClashes) {
+    str.push(`${counter}: The following actions output the field '${clash.output}': ${clash.actions.join(', ')}. (Only one action can occupy a particular output name)`)
   }
 
   return str;
