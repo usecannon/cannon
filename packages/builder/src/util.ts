@@ -169,7 +169,11 @@ ${def.allActionNames.join('\n')}`);
   }
 
   for (const clash of problems.outputClashes) {
-    str.push(`${counter}: The following actions output the field '${clash.output}': ${clash.actions.join(', ')}. (Only one action can occupy a particular output name)`)
+    str.push(
+      `${counter}: The following actions output the field '${clash.output}': ${clash.actions.join(
+        ', '
+      )}. (Only one action can occupy a particular output name)`
+    );
   }
 
   return str;

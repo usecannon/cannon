@@ -17,7 +17,7 @@ const debugVerbose = Debug('cannon:verbose:builder:definition');
 type OutputClashCheckResult = {
   actions: string[];
   output: string;
-}
+};
 
 export type ChainDefinitionProblems = {
   invalidSchema: any;
@@ -107,7 +107,6 @@ export class ChainDefinition {
 
     // do some preindexing
     this.allActionNames = _.sortBy(actions, _.identity);
-
 
     debug('finished chain def init');
   }
@@ -376,9 +375,9 @@ export class ChainDefinition {
       const cycle = this.checkCycles();
 
       if (cycle) {
-        throw new Error(`could not calculate package action dependency tree: cycle detected: ${cycle.join(', ')}`)
+        throw new Error(`could not calculate package action dependency tree: cycle detected: ${cycle.join(', ')}`);
       }
-    })
+    });
   }
 
   get topologicalActions() {
@@ -403,7 +402,6 @@ export class ChainDefinition {
     return this._leaves;
   }
 
-
   checkAll(): ChainDefinitionProblems | null {
     const invalidSchema = validateConfig(chainDefinitionSchema, this.raw);
 
@@ -420,7 +418,6 @@ export class ChainDefinition {
       }
     }
 
-
     if (!missing.length && !cycle && !extraneousDeps.length) {
       return null;
     }
@@ -430,29 +427,29 @@ export class ChainDefinition {
       missing,
       cycles: cycle ? [cycle] : [],
       extraneousDeps,
-      outputClashes
+      outputClashes,
     };
   }
 
   checkOutputClash(actions = this.allActionNames): OutputClashCheckResult[] {
     const outputClashes: OutputClashCheckResult[] = [];
     for (const fullActionName of actions) {
-        const [actionType] = fullActionName.split('.');
-        if (ActionKinds[actionType] && ActionKinds[actionType].getOutputs) {
-          const actionOutputs = ActionKinds[actionType].getOutputs!(_.get(this.raw, fullActionName), {
-            ref: null,
-            currentLabel: fullActionName,
-          });
+      const [actionType] = fullActionName.split('.');
+      if (ActionKinds[actionType] && ActionKinds[actionType].getOutputs) {
+        const actionOutputs = ActionKinds[actionType].getOutputs!(_.get(this.raw, fullActionName), {
+          ref: null,
+          currentLabel: fullActionName,
+        });
 
-          for (const output of actionOutputs) {
-            debug(`deps: ${fullActionName} provides ${output}`);
-            if (!this.dependencyFor.has(output) || actionType === 'setting' || actionType === 'var') {
-              this.dependencyFor.set(output, fullActionName);
-            } else {
-              throw new Error(`output clash: both ${this.dependencyFor.get(output)} and ${fullActionName} output ${output}`);
-            }
+        for (const output of actionOutputs) {
+          debug(`deps: ${fullActionName} provides ${output}`);
+          if (!this.dependencyFor.has(output) || actionType === 'setting' || actionType === 'var') {
+            this.dependencyFor.set(output, fullActionName);
+          } else {
+            throw new Error(`output clash: both ${this.dependencyFor.get(output)} and ${fullActionName} output ${output}`);
           }
         }
+      }
     }
 
     return outputClashes;
