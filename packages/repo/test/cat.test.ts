@@ -18,20 +18,21 @@ describe('POST /api/v0/cat', async function () {
   });
 
   it('should return a pinned file that is not registered but it is available on ipfs', async function (t: TestContext) {
-    const { cid, data } = await loadFixture('registry');
+    const { cid, data, content } = await loadFixture('registry');
 
     await ctx.ipfsMockAdd(data);
 
     const res = await ctx.repo
       .post(`/api/v0/cat?arg=${cid}`)
       .set('Accept', 'application/octet-stream')
-      .buffer(true)
-      .parse(superagent.parse.buffer)
+      .parse((res, callback) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+        res.on('end', () => callback(null, Buffer.concat(chunks)));
+      })
       .expect(200);
 
-    console.log(res.text);
-
-    const result = JSON.parse(uncompress(res.text));
-    t.assert.strictEqual(result.def.name, 'registry');
+    const result = JSON.parse(uncompress(res.body));
+    t.assert.deepStrictEqual(result, content);
   });
 });
