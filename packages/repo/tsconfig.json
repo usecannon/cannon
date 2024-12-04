@@ -6,12 +6,23 @@
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./dist",
-    "rootDirs": ["./src", "./test"],
+    "rootDirs": [
+      "./src",
+      "./test"
+    ],
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types.d.ts"
+    ],
     "strict": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "skipLibCheck": true
   },
-  "include": ["./test", "./src"]
+  "include": [
+    "./test",
+    "./src",
+    "./src/types.d.ts"
+  ]
 }

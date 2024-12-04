@@ -6,9 +6,17 @@ import connectBusboy from 'connect-busboy';
 import consumers from 'stream/consumers';
 import { DeploymentInfo } from '@usecannon/builder';
 import { getContentCID, uncompress, parseIpfsUrl } from '@usecannon/builder/dist/src/ipfs';
+import { RedisClientType } from 'redis';
 import { getDb, RKEY_FRESH_UPLOAD_HASHES, RKEY_PKG_HASHES, RKEY_EXTRA_HASHES } from './db';
 
 const RKEY_FRESH_GRACE_PERIOD = 5 * 60; // 5 minutes, or else we delete any uploaded artifacts from fresh
+
+// Extend Express Request type
+declare module 'express' {
+  interface Request {
+    rdb: RedisClientType;
+  }
+}
 
 interface Params {
   port: string;
