@@ -23,7 +23,7 @@ export function bootstrap() {
     const repo = await repoServer({ redisUrl, ipfsUrl });
 
     // create a client to make requests to the Repo server
-    ctx.repo = supertest.agent(repo.server);
+    ctx.repo = supertest.agent(repo.app);
 
     ctx.ipfsMockAdd = ipfsMockAdd;
     ctx.ipfsMockGet = ipfsMockGet;

@@ -1,3 +1,4 @@
+import { Server } from 'node:http';
 import _ from 'lodash';
 import express, { Express } from 'express';
 import morgan from 'morgan';
@@ -15,10 +16,8 @@ interface Params {
   upstreamIpfsUrl: string;
 }
 
-export async function createServer({ port, redisUrl, upstreamIpfsUrl }: Params): Promise<Express> {
+export async function createServer({ port, redisUrl, upstreamIpfsUrl }: Params): Promise<{ app: Express; server: Server }> {
   const rdb = await getDb(redisUrl);
-
-  await rdb.ping();
 
   const app = express();
 
@@ -164,12 +163,16 @@ export async function createServer({ port, redisUrl, upstreamIpfsUrl }: Params):
     }
   });
 
-  await new Promise<void>((resolve) => {
-    app.listen(port, () => {
+  const server = await new Promise<Server>((resolve) => {
+    const server = app.listen(port, () => {
       console.log(`listening on port ${port}`);
-      resolve();
+      resolve(server);
     });
   });
 
-  return app;
+  server.on('close', async () => {
+    await rdb.quit();
+  });
+
+  return { app, server };
 }
