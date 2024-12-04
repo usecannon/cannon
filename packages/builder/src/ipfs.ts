@@ -48,7 +48,7 @@ export async function prepareFormData(info: any) {
   const content = typeof window !== 'undefined' && typeof Blob !== 'undefined' ? new Blob([buf]) : Buffer.from(buf);
   formData.append('data', content);
 
-  return { cid, formData };
+  return { cid, formData, content };
 }
 
 export function setAxiosRetries(totalRetries = 3) {

@@ -6,7 +6,7 @@ import { loadFixture } from './helpers/fixtures';
 describe('POST /api/v0/add', async function () {
   const ctx = bootstrap();
 
-  it.only('should return 400 when no data is provided', async function () {
+  it('should return 400 when no data is provided', async function () {
     await ctx.repo.post('/api/v0/add').expect(400, 'no upload data');
   });
 
@@ -14,10 +14,7 @@ describe('POST /api/v0/add', async function () {
     const { content } = await loadFixture('greeter-misc');
     const { formData } = await prepareFormData(content);
 
-    await ctx.repo
-      .post('/api/v0/add')
-      .attach('file', formData.get('file'))
-      .expect(400, 'does not appear to be cannon package');
+    await ctx.repo.post('/api/v0/add').attach('file', content).expect(400, 'does not appear to be cannon package');
   });
 
   it('should successfully add valid package data', async function (t: TestContext) {
