@@ -232,7 +232,7 @@ const DocsCliPage: FC = () => {
   const { commandsData, isLoading, error } = useCommandsConfig();
 
   if (isLoading) {
-    return <MainContentLoading hasSubheader />;
+    return <MainContentLoading />;
   }
 
   if (error) {
@@ -290,93 +290,95 @@ const DocsCliPage: FC = () => {
   );
 
   return (
-    <SidebarLayout sidebarContent={sidebarContent} hasSubheader={true}>
-      <div className="max-w-[1024px]">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-4">
-            Command-Line Interface Documentation
-          </h1>
-          <p className="mb-4">
-            Cannon&apos;s command-line interface (CLI) allows users to deploy,
-            upgrade, and configure protocols using cannonfiles with the{' '}
-            <code>build</code> command, <code>publish</code> the resulting
-            packages, <code>run</code> packages locally, and more. Find the code
-            for the CLI{' '}
-            <a href="https://github.com/usecannon/cannon/tree/main/packages/cli">
-              on GitHub
-            </a>
-            .
-          </p>
+    <div className="container">
+      <SidebarLayout sidebarContent={sidebarContent} centered>
+        <div className="container max-w-3xl py-10">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-4">
+              Command-Line Interface Documentation
+            </h1>
+            <p className="mb-4">
+              Cannon&apos;s command-line interface (CLI) allows users to deploy,
+              upgrade, and configure protocols using cannonfiles with the{' '}
+              <code>build</code> command, <code>publish</code> the resulting
+              packages, <code>run</code> packages locally, and more. Find the
+              code for the CLI{' '}
+              <a href="https://github.com/usecannon/cannon/tree/main/packages/cli">
+                on GitHub
+              </a>
+              .
+            </p>
+          </div>
+
+          <div className="mb-16">
+            <h2 className="text-2xl font-bold mb-4">Installation</h2>
+            <p className="mb-3">
+              <a href="https://book.getfoundry.sh/getting-started/installation">
+                Install Foundry
+              </a>{' '}
+              if you haven&apos;t already. Then, run one of the following
+              commands in your terminal to install (or upgrade) Cannon:
+            </p>
+
+            <Tabs defaultValue="npm" className="mb-6">
+              <TabsList className="mb-4">
+                <TabsTrigger value="npm" className="gap-2">
+                  <NpmIcon className="text-red-500" /> npm
+                </TabsTrigger>
+                <TabsTrigger value="yarn" className="gap-2">
+                  <YarnIcon className="text-blue-500" /> yarn
+                </TabsTrigger>
+                <TabsTrigger value="pnpm" className="gap-2">
+                  <PnpmIcon className="text-orange-500" /> pnpm
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="npm" className="p-0">
+                <CommandPreview command="npm i -g @usecannon/cli" />
+              </TabsContent>
+              <TabsContent value="yarn" className="p-0">
+                <CommandPreview command="yarn global add @usecannon/cli" />
+              </TabsContent>
+              <TabsContent value="pnpm" className="p-0">
+                <CommandPreview command="pnpm add -g @usecannon/cli" />
+              </TabsContent>
+            </Tabs>
+
+            <p className="mb-4">
+              Now you can use all of the following commands your terminal with{' '}
+              <code className="bg-gray-700 px-1 rounded">
+                cannon &lt;command&gt;
+              </code>
+              . You can also use the CLI without installing it using npx:{' '}
+              <code className="bg-gray-700 px-1 rounded">
+                npx @usecannon/cli &lt;command&gt;
+              </code>
+              . If no command is specified, the CLI will execute the{' '}
+              <code className="bg-gray-700 px-1 rounded">run</code> command. The{' '}
+              <a href="https://github.com/usecannon/cannon/tree/main/packages/hardhat-cannon#readme">
+                Hardhat plug-in
+              </a>{' '}
+              exposes some of the commands as Hardhat tasks.
+            </p>
+          </div>
+
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold mb-5">Basic Commands</h2>
+            {basicCommands.map((commandName) =>
+              renderCommandConfig(
+                commandsData.find((command) => command.name === commandName)
+              )
+            )}
+          </div>
+
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold mb-5">Advanced Commands</h2>
+            {commandsData
+              .filter((command) => !new Set(basicCommands).has(command.name))
+              .map((command) => renderCommandConfig(command))}
+          </div>
         </div>
-
-        <div className="mb-16">
-          <h2 className="text-2xl font-bold mb-4">Installation</h2>
-          <p className="mb-3">
-            <a href="https://book.getfoundry.sh/getting-started/installation">
-              Install Foundry
-            </a>{' '}
-            if you haven&apos;t already. Then, run one of the following commands
-            in your terminal to install (or upgrade) Cannon:
-          </p>
-
-          <Tabs defaultValue="npm" className="mb-6">
-            <TabsList className="mb-4">
-              <TabsTrigger value="npm" className="gap-2">
-                <NpmIcon className="text-red-500" /> npm
-              </TabsTrigger>
-              <TabsTrigger value="yarn" className="gap-2">
-                <YarnIcon className="text-blue-500" /> yarn
-              </TabsTrigger>
-              <TabsTrigger value="pnpm" className="gap-2">
-                <PnpmIcon className="text-orange-500" /> pnpm
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="npm" className="p-0">
-              <CommandPreview command="npm i -g @usecannon/cli" />
-            </TabsContent>
-            <TabsContent value="yarn" className="p-0">
-              <CommandPreview command="yarn global add @usecannon/cli" />
-            </TabsContent>
-            <TabsContent value="pnpm" className="p-0">
-              <CommandPreview command="pnpm add -g @usecannon/cli" />
-            </TabsContent>
-          </Tabs>
-
-          <p className="mb-4">
-            Now you can use all of the following commands your terminal with{' '}
-            <code className="bg-gray-700 px-1 rounded">
-              cannon &lt;command&gt;
-            </code>
-            . You can also use the CLI without installing it using npx:{' '}
-            <code className="bg-gray-700 px-1 rounded">
-              npx @usecannon/cli &lt;command&gt;
-            </code>
-            . If no command is specified, the CLI will execute the{' '}
-            <code className="bg-gray-700 px-1 rounded">run</code> command. The{' '}
-            <a href="https://github.com/usecannon/cannon/tree/main/packages/hardhat-cannon#readme">
-              Hardhat plug-in
-            </a>{' '}
-            exposes some of the commands as Hardhat tasks.
-          </p>
-        </div>
-
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-5">Basic Commands</h2>
-          {basicCommands.map((commandName) =>
-            renderCommandConfig(
-              commandsData.find((command) => command.name === commandName)
-            )
-          )}
-        </div>
-
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-5">Advanced Commands</h2>
-          {commandsData
-            .filter((command) => !new Set(basicCommands).has(command.name))
-            .map((command) => renderCommandConfig(command))}
-        </div>
-      </div>
-    </SidebarLayout>
+      </SidebarLayout>
+    </div>
   );
 };
 

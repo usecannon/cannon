@@ -32,7 +32,7 @@ export const CodePage: FC<{
   }
 
   return (
-    <div className="flex flex-col w-full flex-1">
+    <div className="flex flex-col w-full">
       <CodeExplorer
         name={name}
         pkg={packagesQuery.data}

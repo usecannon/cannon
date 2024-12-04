@@ -64,16 +64,17 @@ export default function Overview() {
           description: metadata.description,
         }}
       />
-      <div className="flex flex-col w-full">
-        <div className="container mx-auto max-w-5xl py-6">
-          <PackageAccordionHelper
-            name={name}
-            tag={tag}
-            chainId={chainId}
-            preset={preset}
-          />
-        </div>
-      </div>
+      {/* <div className="flex flex-col w-full">
+        <div className="container mx-auto max-w-5xl py-6"> */}
+
+      <PackageAccordionHelper
+        name={name}
+        tag={tag}
+        chainId={chainId}
+        preset={preset}
+      />
+
+      {/* </div> */}
     </>
   );
 }

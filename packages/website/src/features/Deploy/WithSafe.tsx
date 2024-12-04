@@ -39,7 +39,7 @@ export default function WithSafe({ children }: { children: ReactNode }) {
     <div className="flex flex-col flex-1">
       {currentSafe ? (
         isLoadingNetworkPrepared ? (
-          <MainContentLoading hasSubheader />
+          <MainContentLoading />
         ) : isNetworkPrepared ? (
           children
         ) : (

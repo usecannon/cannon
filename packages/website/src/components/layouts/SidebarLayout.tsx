@@ -12,13 +12,6 @@ import {
 } from '@/components/ui/sidebar';
 import { useRouter } from 'next/router';
 
-interface SidebarLayoutProps {
-  children: ReactNode;
-  sidebarContent: ReactNode;
-  centered?: boolean;
-  hasSubheader?: boolean;
-}
-
 // const Centered = ({ children }: { children: ReactNode }) => (
 //   <div className={`${sidebar} container max-w-4xl flex-1`}>{children}</div>
 // );
@@ -69,26 +62,39 @@ const CloseOnLeave = () => {
   return null;
 };
 
-// ''
+interface SidebarLayoutProps {
+  children: ReactNode;
+  sidebarContent?: ReactNode;
+  centered?: boolean;
+  hasSubheader?: boolean;
+  fixedFooter?: boolean;
+  contentHeight?: string;
+}
 
 export function SidebarLayout({
   children,
   sidebarContent,
   centered = true,
   hasSubheader = false,
+  fixedFooter = true,
+  contentHeight,
 }: SidebarLayoutProps) {
-  const sidebarTop = hasSubheader
-    ? 'top-[calc(var(--header-height)+var(--subheader-height))]'
-    : 'top-[var(--header-height)]';
-  const sidebarHeight = hasSubheader
-    ? 'h-[calc(100vh-var(--header-height)-var(--subheader-height))]'
-    : 'h-[calc(100vh-var(--header-height))]';
-  const position = centered ? 'container max-w-5xl flex-1' : '';
+  const headerVar = 'var(--header-height)';
+  const subheaderVar = hasSubheader ? 'var(--subheader-height)' : '0px';
+  const footerVar = fixedFooter ? 'var(--footer-height)' : '0px';
 
-  //const Layout = centered ? Centered : Left;
+  // const position = centered ? 'container max-w-5xl flex-1' : '';
+
+  const sidebarStyles = {
+    top: `calc(${headerVar} + ${subheaderVar})`,
+    height: contentHeight
+      ? contentHeight
+      : `calc(100vh - ${headerVar} - ${subheaderVar} - ${footerVar})`,
+  };
+
   return (
     <SidebarProvider
-      className={`${position} relative flex min-h-[calc(100vh-var(--header-height))]`}
+    /* className={`${position} relative flex min-h-[calc(100vh-var(--header-height)-${subheaderVar}-${footerVar})]`} */
     >
       <CloseOnLeave />
       {/* Mobile Sidebar Trigger - Fixed to left side */}
@@ -103,26 +109,37 @@ export function SidebarLayout({
         </SidebarTrigger>
       </div>
 
-      <Sidebar
-        /* className={
+      {sidebarContent && (
+        <Sidebar
+          /* className={
               centered
                 ? 'z-30 -ml-2 hidden w-full shrink-0 md:sticky md:block md:top-0 md:border-none'
                 : 'h-full w-[280px] md:w-[320px] border-r border-border'
             } */
-        className={`sticky ${sidebarTop} ${sidebarHeight} w-[280px] overflow-y-auto shrink-0 w-[280px] md:w-[320px] border-r border-border`}
-      >
-        <SidebarContent
-          /* className={centered ? 'py-6 lg:py-8 bg-black' : 'overflow-y-auto'} */
-          className={centered ? 'bg-black' : ''}
+
+          /* className={
+            'sticky w-[280px] overflow-y-auto shrink-0 w-[280px] md:w-[320px] border-r border-border'
+          } */
+          style={sidebarStyles}
+          className="sticky w-[280px] md:w-[320px] shrink-0 overflow-y-auto border-r border-border"
         >
-          {sidebarContent}
-        </SidebarContent>
-      </Sidebar>
+          <SidebarContent
+            /* className={centered ? 'py-6 lg:py-8 bg-black' : 'overflow-y-auto'} */
+            className={centered ? 'bg-black' : ''}
+          >
+            {sidebarContent}
+          </SidebarContent>
+        </Sidebar>
+      )}
+
       {/* Main content */}
-      <main className="flex w-full">
-        <div className="container w-full p-4 md:px-6 lg:px-8 ml-0">
-          {children}
-        </div>
+      <main
+        className={`cannon-page-main-content flex-1 overflow-y-auto h-[${
+          contentHeight ? contentHeight : 'auto'
+        }]`}
+      >
+        {/* container p-4 md:px-6 lg:px-8 ml-0 */}
+        <div className="h-full w-full">{children}</div>
       </main>
     </SidebarProvider>
   );

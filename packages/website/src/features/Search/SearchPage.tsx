@@ -145,7 +145,7 @@ export const SearchPage = () => {
   );
 
   return (
-    <SidebarLayout centered={false} sidebarContent={sidebarContent}>
+    <SidebarLayout sidebarContent={sidebarContent} fixedFooter>
       {packagesQuery.isPending ? (
         <div className="flex justify-center items-center flex-1 h-full">
           <CustomSpinner />

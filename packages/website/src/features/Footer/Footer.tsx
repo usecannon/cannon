@@ -13,17 +13,16 @@ interface FooterProps {
 export const Footer = ({ isFixed }: FooterProps) => {
   const router = useRouter();
 
+  const isHomePage = router.pathname == '/';
+
   return (
     <div
       className={`
         h-[var(--footer-height)]
         flex flex-col sm:flex-row items-center px-2 
-        ${
-          isFixed
-            ? 'fixed bottom-0 w-full z-10 bg-transparent'
-            : 'relative bg-black'
-        }
-        ${router.pathname == '/' ? '' : 'border-t border-border'} 
+        ${isFixed ? 'fixed bottom-0 w-full z-10' : 'relative'}
+        ${isHomePage ? 'bg-transparent' : 'bg-black'}
+        ${isHomePage ? '' : 'border-t border-border'} 
         pb-3 pt-2 md:py-1
       `}
     >

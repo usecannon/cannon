@@ -1,16 +1,14 @@
 import { CustomSpinner } from '@/components/CustomSpinner';
 
-export default function MainContentLoading({
+/* {
   hasSubheader,
 }: {
   hasSubheader?: boolean;
-}) {
+} */
+
+export default function MainContentLoading() {
   return (
-    <div
-      className={`relative flex justify-center items-center min-h-[calc(100vh-var(--header-height)-${
-        hasSubheader ? 'var(--subheader-height)' : '0'
-      })]`}
-    >
+    <div className={'h-screen w-screen flex justify-center items-center'}>
       <CustomSpinner />
     </div>
   );

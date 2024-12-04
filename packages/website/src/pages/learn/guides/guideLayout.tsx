@@ -115,6 +115,10 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
   );
 
   return (
-    <SidebarLayout sidebarContent={sidebarContent}>{children}</SidebarLayout>
+    <div className="container">
+      <SidebarLayout sidebarContent={sidebarContent} centered>
+        {children}
+      </SidebarLayout>
+    </div>
   );
 }

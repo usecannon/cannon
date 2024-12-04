@@ -53,9 +53,20 @@ export default function RootLayout({
   const isFooterFixed =
     router.pathname == '/' || router.pathname == '/packages';
 
-  const mainContentHeight = isFooterFixed
-    ? 'min-h-[calc(100vh-var(--header-height)-var(--footer-height))]'
-    : 'min-h-[calc(100vh-var(--header-height))]';
+  const headerVar = 'var(--header-height)';
+  const footerVar = 'var(--footer-height)';
+
+  const cannonMainStyles = {
+    minHeight: isFooterFixed
+      ? `calc(100vh - ${headerVar} - ${footerVar})`
+      : 'auto',
+  };
+
+  const layoutStyles = {
+    minHeight: isFooterFixed
+      ? 'auto'
+      : `calc(100vh - ${headerVar} - ${footerVar})`,
+  };
 
   useEffect(() => {
     document.body.classList.remove('fouc-prevention');
@@ -82,14 +93,12 @@ export default function RootLayout({
       />
       <Providers>
         <Header />
-        {/* <div
-            className={`flex flex-1 z-[1] ${
-              isFooterFixed ? 'pb-[65px] md:pb-[45px]' : 'pb-0'
-            }`}
-          > */}
-        <div className={`block ${mainContentHeight}`}>
-          {getLayout(<Component {...pageProps} />)}
-          <NoSsrE2EWalletConnector />
+
+        <div className={'cannon-main'} style={cannonMainStyles}>
+          <div className={'cannon-layout flex relative'} style={layoutStyles}>
+            {getLayout(<Component {...pageProps} />)}
+            <NoSsrE2EWalletConnector />
+          </div>
         </div>
 
         <Footer isFixed={isFooterFixed} />

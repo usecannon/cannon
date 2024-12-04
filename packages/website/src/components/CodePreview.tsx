@@ -62,7 +62,7 @@ export const CodePreview: FC<ICodePreviewProps> = ({
     <>
       <EditorStyles />
       <Editor
-        height={height}
+        height={'100%'}
         theme="vs-dark"
         defaultLanguage={language || 'javascript'}
         value={code}

@@ -534,36 +534,42 @@ export const CodeExplorer: FC<{
               ))}
             </Flex>
           )}
-          <SidebarLayout sidebarContent={sidebarContent} centered={false}>
-            <Flex className="max-w-[1024px] h-full">
-              {selectedCode.length ? (
-                <>
-                  {/* Make sure code preview is not rendered if function name exists but no selected line is set yet */}
-                  {!selectedLine && functionName ? null : (
-                    <CodePreview
-                      code={selectedCode}
-                      language={selectedLanguage}
-                      height="100%"
-                      line={selectedLine}
-                    />
-                  )}
-                </>
-              ) : (
-                <Flex
-                  flex="1"
-                  height="100%"
-                  alignItems="center"
-                  justifyContent="center"
-                  p={4}
-                >
-                  <Text color="gray.400">
-                    <InfoOutlineIcon transform="translateY(-1px)" /> Code
-                    unavailable
-                  </Text>
-                </Flex>
-              )}
-            </Flex>
-          </SidebarLayout>
+          <div className="h-[671px]">
+            <SidebarLayout
+              sidebarContent={sidebarContent}
+              centered={false}
+              contentHeight="671px"
+            >
+              <Flex className="h-full">
+                {selectedCode.length ? (
+                  <>
+                    {/* Make sure code preview is not rendered if function name exists but no selected line is set yet */}
+                    {!selectedLine && functionName ? null : (
+                      <CodePreview
+                        code={selectedCode}
+                        language={selectedLanguage}
+                        height="100%"
+                        line={selectedLine}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <Flex
+                    flex="1"
+                    height="100%"
+                    alignItems="center"
+                    justifyContent="center"
+                    p={4}
+                  >
+                    <Text color="gray.400">
+                      <InfoOutlineIcon transform="translateY(-1px)" /> Code
+                      unavailable
+                    </Text>
+                  </Flex>
+                )}
+              </Flex>
+            </SidebarLayout>
+          </div>
         </>
       ) : (
         <Flex flex="1" alignItems="center" justifyContent="center" p={4}>
