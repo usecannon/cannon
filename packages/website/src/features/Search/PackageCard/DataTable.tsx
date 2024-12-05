@@ -139,7 +139,7 @@ export function DataTable<Data extends object>({
                         <Button
                           variant="ghost"
                           onClick={header.column.getToggleSortingHandler()}
-                          className="h-8 px-2 -ml-2"
+                          className="h-8 px-2 -ml-2 inline-flex items-center justify-center"
                         >
                           {flexRender(
                             header.column.columnDef.header,
@@ -150,9 +150,9 @@ export function DataTable<Data extends object>({
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger>
-                                  <QuestionMarkCircledIcon className="inline-block whitespace-nowrap max-w-[250px] items-center justify-center" />
+                                  <QuestionMarkCircledIcon className="inline-block whitespace-nowrap align-sub" />
                                 </TooltipTrigger>
-                                <TooltipContent>
+                                <TooltipContent className="max-w-sm text-center">
                                   Presets are useful for distinguishing multiple
                                   deployments of the same protocol on the same
                                   chain.
