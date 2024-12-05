@@ -221,11 +221,11 @@ args = ["<%= settings.number %>"]
 
 Each operation in a cannonfile is identified with a type and a name, specified like `[type.name]`.
 
-The `[deploy.counter]` operation is used to deploy a contract. The `artifact` defines which contract to deploy.
+The `[deploy.Counter]` operation is used to deploy a contract. The `artifact` defines which contract to deploy.
 
 The `[var.ProtocolSettings]` operation allows Cannon to add values to the `settings` object, which can be referenced in other operation definitions using EJS syntax. In our example, we defined a variable `number`:
 
-The `[invoke.set_number]` operation calls a function. `target` specifies the name of the contract to call, `func` specifies the name of the function, and `args` specifies the arguments to use when invoking the call. Note that `<%= settings.number %>` refers to the `number` variable defined in the `[var.ProtocolSettings]` operation.
+The `[invoke.SetNumber]` operation calls a function. `target` specifies the name of the contract to call, `func` specifies the name of the function, and `args` specifies the arguments to use when invoking the call. Note that `<%= settings.number %>` refers to the `number` variable defined in the `[var.ProtocolSettings]` operation.
 
 You can find a full list of operations that can be specified in a Cannonfile in [the docs](/learn/cannonfile).
 
