@@ -150,7 +150,7 @@ export function DataTable<Data extends object>({
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger>
-                                  <QuestionMarkCircledIcon className="inline-block whitespace-nowrap" />
+                                  <QuestionMarkCircledIcon className="inline-block whitespace-nowrap max-w-[250px] items-center justify-center" />
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   Presets are useful for distinguishing multiple
