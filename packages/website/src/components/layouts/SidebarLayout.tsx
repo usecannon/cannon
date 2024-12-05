@@ -71,6 +71,7 @@ interface SidebarLayoutProps {
   contentHeight?: string;
   sidebarTop?: string;
   mainContentOverflowY?: 'auto' | 'visible';
+  borderlessSidebar?: boolean;
 }
 
 export function SidebarLayout({
@@ -82,6 +83,7 @@ export function SidebarLayout({
   contentHeight,
   sidebarTop,
   mainContentOverflowY = 'auto',
+  borderlessSidebar = false,
 }: SidebarLayoutProps) {
   const headerVar = 'var(--header-height)';
   const subheaderVar = hasSubheader ? 'var(--subheader-height)' : '0px';
@@ -102,7 +104,7 @@ export function SidebarLayout({
     >
       <CloseOnLeave />
       {/* Mobile Sidebar Trigger - Fixed to left side */}
-      <div className="fixed left-0 top-1/2 -translate-y-1/2 z-50 md:hidden bg-black border border-border border-l-0 rounded-r-lg">
+      <div className="fixed left-0 top-1/2 -translate-y-1/2 z-150 md:hidden bg-black border border-border border-l-0 rounded-r-lg">
         <SidebarTrigger>
           <Button
             size="icon"
@@ -125,7 +127,9 @@ export function SidebarLayout({
             'sticky w-[280px] overflow-y-auto shrink-0 w-[280px] md:w-[320px] border-r border-border'
           } */
           style={sidebarStyles}
-          className="sticky w-[280px] md:w-[320px] shrink-0 overflow-y-auto border-r border-border"
+          className={`z-100 sticky w-[280px] md:w-[280px] shrink-0 overflow-y-auto ${
+            borderlessSidebar ? 'border-none' : 'border-r border-border'
+          }`}
         >
           <SidebarContent
             /* className={centered ? 'py-6 lg:py-8 bg-black' : 'overflow-y-auto'} */

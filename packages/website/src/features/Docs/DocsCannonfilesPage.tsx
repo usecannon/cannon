@@ -273,9 +273,15 @@ const DocsCannonfilesPage: FC = () => {
   );
 
   return (
-    <div className="container">
-      <SidebarLayout sidebarContent={sidebarContent} centered>
-        <div className="container max-w-3xl py-10">
+    <div className="container max-w-4xl">
+      <SidebarLayout
+        sidebarContent={sidebarContent}
+        hasSubheader
+        centered
+        borderlessSidebar
+        fixedFooter={false}
+      >
+        <div className="max-w-3xl py-10 pl-10">
           {/* Rest of your existing content, starting with the title */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-4">

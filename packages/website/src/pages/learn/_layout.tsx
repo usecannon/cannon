@@ -39,7 +39,7 @@ export default function LearnLayout({ children }: { children: ReactNode }) {
     <div className="w-full h-full">
       <div
         className="sticky top-[var(--header-height)] bg-black border-b border-border"
-        style={{ zIndex: 100 }}
+        style={{ zIndex: 40 }}
       >
         <div className="flex items-center justify-center md:gap-4 flex-nowrap overflow-x-auto whitespace-nowrap">
           <NavLink href={links.LEARN} isActive={links.LEARN === pathname}>
