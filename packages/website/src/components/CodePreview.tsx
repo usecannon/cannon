@@ -23,7 +23,6 @@ const EditorStyles = createGlobalStyle`
 export const CodePreview: FC<ICodePreviewProps> = ({
   code,
   language,
-  height = '190px',
   line,
   editorProps,
 }) => {
