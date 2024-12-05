@@ -19,7 +19,6 @@ export const FunctionInput: FC<Props> = ({
   handleUpdate,
   initialValue,
 }) => {
-  console.log('input', input);
   const isArray = useMemo(() => !!input?.type?.endsWith('[]'), [input]);
   const [dataArray, setDataArray] = useState<{ val: any | null }[]>([]);
 
@@ -89,7 +88,13 @@ export const FunctionInput: FC<Props> = ({
           />
         );
       case input.type.startsWith('tuple'):
-        return <TupleInput input={input} handleUpdate={_handleUpdate} value={_initialValue} />;
+        return (
+          <TupleInput
+            input={input}
+            handleUpdate={_handleUpdate}
+            value={_initialValue}
+          />
+        );
       default:
         return (
           <DefaultInput

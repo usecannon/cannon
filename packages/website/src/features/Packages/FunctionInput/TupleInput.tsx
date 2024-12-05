@@ -24,22 +24,11 @@ const TupleInput = ({
   const [tupleState, setTupleState] = useState(() =>
     input.components.reduce((acc: any, component: any) => {
       // Use value prop if available, otherwise use default value
-      acc[component.name] = value?.[component.name] ?? getDefaultValueForType(component);
+      acc[component.name] =
+        value?.[component.name] ?? getDefaultValueForType(component);
       return acc;
     }, {})
   );
-
-  // Update tupleState when value prop changes
-  useEffect(() => {
-    if (value) {
-      setTupleState((prevState: any) => ({
-        ...prevState,
-        ...value
-      }));
-    }
-  }, [value]);
-
-  console.log('value', value);
 
   const updateTupleValue = (name: string, value: any) => {
     const updatedTupleState = { ...tupleState, [name]: value };
