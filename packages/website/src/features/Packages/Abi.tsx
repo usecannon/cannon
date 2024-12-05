@@ -249,14 +249,21 @@ export const Abi: FC<{
   return (
     <Flex flex="1" direction="column" maxWidth="100%">
       <Flex flex="1" direction={['column', 'column', 'row']}>
-        <SidebarLayout sidebarContent={sidebarContent} centered={false}>
+        <SidebarLayout
+          sidebarContent={sidebarContent}
+          centered={false}
+          sidebarTop="150px"
+          mainContentOverflowY="visible"
+        >
           {/* Methods Interactions */}
           <Flex
             background="black"
             ref={containerRef}
             w="100%"
             direction="column"
-            py={4}
+            pt={4}
+            pb={2}
+            px={4}
           >
             <Alert
               status="warning"
@@ -273,7 +280,7 @@ export const Abi: FC<{
 
             <Flex
               direction="column"
-              py={4}
+              pt={4}
               borderBottom="1px solid"
               borderColor="gray.700"
               gap={4}

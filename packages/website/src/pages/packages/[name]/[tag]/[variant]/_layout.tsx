@@ -38,7 +38,11 @@ function TagVariantLayout({ children }: { children: ReactNode }) {
     );
 
   return (
-    <SidebarLayout centered hasSubheader>
+    <SidebarLayout
+      centered
+      hasSubheader
+      mainContentOverflowY={asPath.includes('/interact') ? 'visible' : 'auto'}
+    >
       {packagesQuery.isSuccess ? (
         <>
           <div className="bg-black pt-12 border-b border-gray-700">

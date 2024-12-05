@@ -66,6 +66,7 @@ export default function RootLayout({
     minHeight: isFooterFixed
       ? 'auto'
       : `calc(100vh - ${headerVar} - ${footerVar})`,
+    paddingBottom: isFooterFixed ? footerVar : '0',
   };
 
   useEffect(() => {

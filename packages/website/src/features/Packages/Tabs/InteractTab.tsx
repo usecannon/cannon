@@ -226,7 +226,7 @@ export const InteractTab: FC<{
       {hasSubnav && (
         <Flex
           top="0"
-          zIndex={3}
+          zIndex={60}
           bg="gray.900"
           position={{ md: 'sticky' }}
           overflowX="scroll"

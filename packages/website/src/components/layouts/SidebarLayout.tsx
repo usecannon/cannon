@@ -69,6 +69,8 @@ interface SidebarLayoutProps {
   hasSubheader?: boolean;
   fixedFooter?: boolean;
   contentHeight?: string;
+  sidebarTop?: string;
+  mainContentOverflowY?: 'auto' | 'visible';
 }
 
 export function SidebarLayout({
@@ -78,6 +80,8 @@ export function SidebarLayout({
   hasSubheader = false,
   fixedFooter = true,
   contentHeight,
+  sidebarTop,
+  mainContentOverflowY = 'auto',
 }: SidebarLayoutProps) {
   const headerVar = 'var(--header-height)';
   const subheaderVar = hasSubheader ? 'var(--subheader-height)' : '0px';
@@ -86,7 +90,7 @@ export function SidebarLayout({
   // const position = centered ? 'container max-w-5xl flex-1' : '';
 
   const sidebarStyles = {
-    top: `calc(${headerVar} + ${subheaderVar})`,
+    top: sidebarTop ? sidebarTop : `calc(${headerVar} + ${subheaderVar})`,
     height: contentHeight
       ? contentHeight
       : `calc(100vh - ${headerVar} - ${subheaderVar} - ${footerVar})`,
@@ -134,7 +138,7 @@ export function SidebarLayout({
 
       {/* Main content */}
       <main
-        className={`cannon-page-main-content flex-1 overflow-y-auto h-[${
+        className={`cannon-page-main-content overflow-y-${mainContentOverflowY} flex-1 h-[${
           contentHeight ? contentHeight : 'auto'
         }]`}
       >
