@@ -258,10 +258,6 @@ function _encodeArg(type: string, val: string): string {
         return val;
       }
 
-      // if (t === 0) {
-      //   return '';
-      // }
-
       return bytesToString(trim(b, { dir: 'right' }));
     } catch (err) {
       return val.toString();
