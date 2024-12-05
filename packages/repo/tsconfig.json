@@ -10,10 +10,6 @@
       "./src",
       "./test"
     ],
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/types.d.ts"
-    ],
     "strict": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
@@ -22,7 +18,6 @@
   },
   "include": [
     "./test",
-    "./src",
-    "./src/types.d.ts"
+    "./src"
   ]
 }
