@@ -12,10 +12,16 @@
     }
   },
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "prettier"],
+  "plugins": [
+    "@typescript-eslint",
+    "prettier"
+  ],
   "overrides": [
     {
-      "files": ["*.ts", "*.tsx"],
+      "files": [
+        "*.ts",
+        "*.tsx"
+      ],
       "extends": [
         "eslint:recommended",
         "prettier",
@@ -24,11 +30,21 @@
       "parserOptions": {
         "ecmaVersion": "latest",
         "sourceType": "module",
-        "project": ["./tsconfig.json"]
+        "project": [
+          "./tsconfig.json"
+        ]
       },
       "rules": {
-        "prettier/prettier": ["error", { "singleQuote": true }],
-        "no-mixed-spaces-and-tabs": ["warn", "smart-tabs"],
+        "prettier/prettier": [
+          "error",
+          {
+            "singleQuote": true
+          }
+        ],
+        "no-mixed-spaces-and-tabs": [
+          "warn",
+          "smart-tabs"
+        ],
         "comma-dangle": [
           "error",
           {
@@ -40,14 +56,24 @@
           }
         ],
         "indent": "off",
-        "quotes": ["error", "single", { "avoidEscape": true }],
+        "quotes": [
+          "error",
+          "single",
+          {
+            "avoidEscape": true
+          }
+        ],
         "import/no-unresolved": "off", // messed up by lerna hoisting
         "no-undef": "error",
         "import/no-anonymous-default-export": "off",
         "prefer-const": "error",
-        "semi": ["error", "always"],
-        "no-console": ["error"],
-
+        "semi": [
+          "error",
+          "always"
+        ],
+        "no-console": [
+          "error"
+        ],
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/ban-ts-comment": "off",
         "@typescript-eslint/explicit-module-boundary-types": "off",
@@ -57,7 +83,31 @@
       }
     },
     {
-      "files": ["packages/{api,indexer}/**/*.ts"],
+      "files": [
+        "*.test.ts"
+      ],
+      "rules": {
+        "@typescript-eslint/no-floating-promises": [
+          "warn",
+          {
+            "allowForKnownSafeCalls": [
+              {
+                "from": "package",
+                "name": [
+                  "it",
+                  "describe"
+                ],
+                "package": "node:test"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "packages/{api,indexer}/**/*.ts"
+      ],
       "rules": {
         "react-hooks/rules-of-hooks": "off"
       }

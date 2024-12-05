@@ -15,5 +15,5 @@ export async function redisServerMock() {
   const host = await server.getHost();
   const port = await server.getPort();
 
-  return { redisUrl: `redis://${host}:${port}` };
+  return { REDIS_URL: `redis://${host}:${port}` };
 }

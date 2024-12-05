@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import { bootstrap } from './helpers/bootstrap';
 
-describe('GET /health', async function () {
+describe('GET /health', function () {
   const ctx = bootstrap();
 
   it('should return 200 when healthy', async function () {

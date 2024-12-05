@@ -80,7 +80,7 @@ export async function ipfsServerMock() {
   servers.push(server);
 
   return {
-    ipfsUrl: `http://127.0.0.1:${port}`,
+    IPFS_URL: `http://127.0.0.1:${port}`,
     ipfsMockAdd,
     ipfsMockGet,
     ipfsMockRemove,

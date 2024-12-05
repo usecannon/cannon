@@ -2,6 +2,7 @@ import { Server } from 'node:http';
 import { after } from 'node:test';
 import { getPort } from 'get-port-please';
 import { createServer } from '../../src/server';
+import { Config } from '../config';
 
 const servers: Server[] = [];
 
@@ -10,16 +11,15 @@ after(async function () {
 });
 
 // PORT=8328 REDIS_URL=redis://... UPSTREAM_IPFS_URL=http://localhost:9095 node dist/index.js
-export async function repoServer({ redisUrl, ipfsUrl }: { redisUrl: string; ipfsUrl: string }) {
+export async function repoServer(config: Omit<Config, 'PORT'>) {
   const port = await getPort();
 
-  const { app, server } = await createServer({
-    port: port.toString(),
-    redisUrl,
-    upstreamIpfsUrl: ipfsUrl,
+  const { app, server, rdb } = await createServer({
+    ...config,
+    PORT: port.toString(),
   });
 
   servers.push(server);
 
-  return { app, repoUrl: `http://127.0.0.1:${port}` };
+  return { app, rdb, repoUrl: `http://127.0.0.1:${port}` };
 }

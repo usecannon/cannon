@@ -1,9 +1,10 @@
 import { describe, it, TestContext } from 'node:test';
-import { uncompress } from '../../builder/src/ipfs';
+import { parseIpfsUrl, uncompress } from '../../builder/src/ipfs';
 import { bootstrap } from './helpers/bootstrap';
 import { loadFixture } from './helpers/fixtures';
+import { RKEY_FRESH_UPLOAD_HASHES } from '../src/db';
 
-describe('POST /api/v0/add', async function () {
+describe('POST /api/v0/add', function () {
   const ctx = bootstrap();
 
   it('should return 400 when no data is provided', async function () {
@@ -29,8 +30,23 @@ describe('POST /api/v0/add', async function () {
     const saved = JSON.parse(uncompress(ctx.ipfsMockGet(pkg.cid)));
     t.assert.deepStrictEqual(saved, pkg.content);
 
+    // check that the cid was added to the fresh upload hashes
+    const pkgScore = await ctx.rdb.zScore(RKEY_FRESH_UPLOAD_HASHES, pkg.cid);
+    t.assert.ok(pkgScore);
+
     // After adding the package, we should also be able to add the misc data
+    const miscIpfsHash = parseIpfsUrl(pkg.content.miscUrl)!;
+    const miscScore = await ctx.rdb.zScore(RKEY_FRESH_UPLOAD_HASHES, miscIpfsHash);
+    t.assert.ok(miscScore);
+
+    const files = await ctx.s3List();
+    console.log({ files });
+  });
+
+  it('should allow to add a misc file that is already registered', async function (t: TestContext) {
     const misc = await loadFixture('registry-misc');
+
+    await ctx.rdb.zAdd(RKEY_FRESH_UPLOAD_HASHES, { score: Date.now(), value: misc.cid }, { NX: true });
 
     await ctx.repo
       .post('/api/v0/add')
@@ -39,9 +55,6 @@ describe('POST /api/v0/add', async function () {
       .expect((res) => {
         t.assert.deepStrictEqual(JSON.parse(res.text), { Hash: misc.cid });
       });
-
-    const files = await ctx.s3List();
-    console.log(files);
   });
 
   it('should return same hash for identical data', async function (t: TestContext) {

@@ -3,22 +3,20 @@ import _ from 'lodash';
 import express, { Express } from 'express';
 import morgan from 'morgan';
 import connectBusboy from 'connect-busboy';
-import consumers from 'stream/consumers';
+import { RedisClientType } from 'redis';
 import { DeploymentInfo } from '@usecannon/builder';
 import { getContentCID, uncompress, parseIpfsUrl } from '@usecannon/builder/dist/src/ipfs';
 import { getDb, RKEY_FRESH_UPLOAD_HASHES, RKEY_PKG_HASHES, RKEY_EXTRA_HASHES } from './db';
 import { readFile } from './helpers/read-file';
+import { getS3Client } from './s3';
+
+import type { Config } from './config';
 
 const RKEY_FRESH_GRACE_PERIOD = 5 * 60; // 5 minutes, or else we delete any uploaded artifacts from fresh
 
-interface Params {
-  port: string;
-  redisUrl: string;
-  upstreamIpfsUrl: string;
-}
-
-export async function createServer({ port, redisUrl, upstreamIpfsUrl }: Params): Promise<{ app: Express; server: Server }> {
-  const rdb = await getDb(redisUrl);
+export async function createServer(config: Config): Promise<{ app: Express; server: Server; rdb: RedisClientType }> {
+  const rdb = await getDb(config.REDIS_URL);
+  const s3 = getS3Client(config);
 
   const app = express();
 
@@ -33,6 +31,12 @@ export async function createServer({ port, redisUrl, upstreamIpfsUrl }: Params):
     }
 
     const cid = await getContentCID(file);
+
+    const exists = await s3.objectExists(cid);
+
+    if (exists) {
+      return res.json({ Hash: cid }).end();
+    }
 
     const now = Math.floor(Date.now() / 1000) + RKEY_FRESH_GRACE_PERIOD;
 
@@ -65,7 +69,7 @@ export async function createServer({ port, redisUrl, upstreamIpfsUrl }: Params):
     const form = new FormData();
     form.set('file', new File([file], `${cid}.json.gz`));
     try {
-      const upstreamRes = await fetch(upstreamIpfsUrl + req.originalUrl, {
+      const upstreamRes = await fetch(config.IPFS_URL + req.originalUrl, {
         method: 'POST',
         body: form,
       });
@@ -81,7 +85,7 @@ export async function createServer({ port, redisUrl, upstreamIpfsUrl }: Params):
 
   app.post('/api/v0/cat', async (req, res) => {
     // optimistically, start the upstream request immediately to save time
-    const upstreamRes = await fetch(upstreamIpfsUrl + req.url, {
+    const upstreamRes = await fetch(config.IPFS_URL + req.url, {
       method: 'POST',
     });
 
@@ -147,8 +151,8 @@ export async function createServer({ port, redisUrl, upstreamIpfsUrl }: Params):
   });
 
   const server = await new Promise<Server>((resolve) => {
-    const server = app.listen(port, () => {
-      console.log(`listening on port ${port}`);
+    const server = app.listen(config.PORT, () => {
+      console.log(`listening on port ${config.PORT}`);
       resolve(server);
     });
   });
@@ -157,5 +161,5 @@ export async function createServer({ port, redisUrl, upstreamIpfsUrl }: Params):
     await rdb.quit();
   });
 
-  return { app, server };
+  return { app, server, rdb };
 }

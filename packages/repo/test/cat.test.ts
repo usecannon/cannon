@@ -1,11 +1,9 @@
 import { describe, it, TestContext } from 'node:test';
-import superagent from 'superagent';
 import { uncompress } from '../../builder/src/ipfs';
 import { bootstrap } from './helpers/bootstrap';
 import { loadFixture } from './helpers/fixtures';
-// import { assertRes } from './helpers/assert-res';
 
-describe('POST /api/v0/cat', async function () {
+describe('POST /api/v0/cat', function () {
   const ctx = bootstrap();
 
   it('should return 400 on missing ipfshash', async function () {
