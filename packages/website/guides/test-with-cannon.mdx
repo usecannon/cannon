@@ -1,0 +1,106 @@
+---
+title: Test with Cannon
+description: Test your protocol using Cannon.
+before:
+  url: 'build-with-cannon'
+  title: 'Build with Cannon'
+  description: 'Build a protocol using Cannon.'
+after:
+  url: 'deploy-onchain'
+  title: 'Deploy Onchain'
+  description: 'Deploy your protocol onchain.'
+---
+
+## Test with Cannon
+
+<Tabs defaultValue="foundry">
+  <TabsList className="w-full">
+    <TabsTrigger value="foundry" className="w-full">
+      <span>Foundry</span>
+    </TabsTrigger>
+    <TabsTrigger value="hardhat" className="w-full">
+      <span>Hardhat</span>
+    </TabsTrigger>
+  </TabsList>
+  <TabsContent value="foundry">
+
+By convention, tests in Foundry are located in the `/test` folder and the test files have `test` in their name, although `.t.sol` is usually used as the extension.
+
+<Alert variant="warning" className="mt-6">
+  <AlertDescription>
+    For more information on how to write and perform tests with Foundry, [review
+    their docs](https://book.getfoundry.sh/forge/tests).
+  </AlertDescription>
+</Alert>
+
+In this example, we will add the `cannon-std` helper library to the test created by `forge init` in `test/Counter.t.sol`. This library allows us to access data from the build.
+
+To install it, run:
+
+```bash
+forge install usecannon/cannon-std
+```
+
+```solidity
+// ./test/Counter.t.sol
+
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.13;
+
+import "cannon-std/Cannon.sol"; # Import the library
+
+import { Test } from "forge-std/Test.sol";
+import { Counter } from "../src/Counter.sol";
+
+contract CounterTest is Test {
+		using Cannon for Vm;
+    Counter public counter;
+
+    Counter counter
+
+    function setUp() public {
+        counter = Counter(vm.getAddress("Counter")); # Get the address for the built artifact
+        counter.setNumber(0);
+    }
+
+    function test_Increment() public {
+        counter.increment();
+        assertEq(counter.number(), 1);
+    }
+
+    function testFuzz_SetNumber(uint256 x) public {
+        counter.setNumber(x);
+        assertEq(counter.number(), x);
+    }
+}
+```
+
+Now run the tests with:
+
+```bash
+cannon test
+```
+
+Cannon runs `forge test` after building your cannonfile. By default, it uses `cannonfile.toml`.
+
+After running the tests, the CLI will notify us that all tests have passed successfully.
+
+```bash
+Writing deployment artifacts to ./deployments/test
+[⠊] Compiling...
+No files changed, compilation skipped
+
+Ran 2 tests for test/Counter.t.sol:CounterTest
+[PASS] testFuzz_SetNumber(uint256) (runs: 256, μ: 31054, ~: 31288)
+[PASS] test_Increment() (gas: 31303)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 19.96ms (11.97ms CPU time)
+
+Ran 1 test suite in 135.12ms (19.96ms CPU time): 2 tests passed, 0 failed, 0 skipped (2 total tests)
+forge exited with code 0
+```
+
+</TabsContent>
+  <TabsContent value="hardhat">
+*Coming soon.*
+  </TabsContent>
+</Tabs>

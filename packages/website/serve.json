@@ -35,6 +35,10 @@
     {
       "source": "/deploy/txn/:chainId/:safeAddress/:nonce/:sigHash",
       "destination": "/deploy/txn/[chainId]/[safeAddress]/[nonce]/[sigHash].html"
+    },
+    {
+      "source": "/learn/guides/get-started/:section",
+      "destination": "/learn/guides/get-started/[section].html"
     }
   ],
   "cleanUrls": true
