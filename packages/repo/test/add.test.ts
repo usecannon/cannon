@@ -1,4 +1,4 @@
-import { describe, it, TestContext } from 'node:test';
+import { describe, it, afterEach, TestContext } from 'node:test';
 import { parseIpfsUrl, uncompress } from '../../builder/src/ipfs';
 import { bootstrap } from './helpers/bootstrap';
 import { loadFixture } from './helpers/fixtures';
@@ -7,6 +7,10 @@ import { RKEY_FRESH_UPLOAD_HASHES } from '../src/db';
 describe('POST /api/v0/add', function () {
   const ctx = bootstrap();
 
+  afterEach(async function () {
+    await ctx.s3Clean();
+  });
+
   it('should return 400 when no data is provided', async function () {
     await ctx.repo.post('/api/v0/add').expect(400, 'no upload data');
   });
@@ -14,6 +18,20 @@ describe('POST /api/v0/add', function () {
   it('should return 400 when trying to add non cannon package', async function () {
     const { data } = await loadFixture('greeter-misc');
     await ctx.repo.post('/api/v0/add').attach('file', data).expect(400, 'does not appear to be cannon package');
+  });
+
+  it('should return ok for already existing object', async function (t: TestContext) {
+    const { cid, data } = await loadFixture('owned-greeter');
+
+    await ctx.s3.putObject(cid, data);
+
+    await ctx.repo
+      .post('/api/v0/add')
+      .attach('file', data)
+      .expect(200)
+      .expect((res) => {
+        t.assert.deepStrictEqual(JSON.parse(res.text), { Hash: cid });
+      });
   });
 
   it('should successfully add valid package data', async function (t: TestContext) {
@@ -38,9 +56,6 @@ describe('POST /api/v0/add', function () {
     const miscIpfsHash = parseIpfsUrl(pkg.content.miscUrl)!;
     const miscScore = await ctx.rdb.zScore(RKEY_FRESH_UPLOAD_HASHES, miscIpfsHash);
     t.assert.ok(miscScore);
-
-    const files = await ctx.s3List();
-    console.log({ files });
   });
 
   it('should allow to add a misc file that is already registered', async function (t: TestContext) {

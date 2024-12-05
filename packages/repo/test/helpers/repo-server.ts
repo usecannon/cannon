@@ -14,12 +14,12 @@ after(async function () {
 export async function repoServer(config: Omit<Config, 'PORT'>) {
   const port = await getPort();
 
-  const { app, server, rdb } = await createServer({
+  const { app, server, rdb, s3 } = await createServer({
     ...config,
     PORT: port.toString(),
   });
 
   servers.push(server);
 
-  return { app, rdb, repoUrl: `http://127.0.0.1:${port}` };
+  return { app, rdb, s3, repoUrl: `http://127.0.0.1:${port}` };
 }

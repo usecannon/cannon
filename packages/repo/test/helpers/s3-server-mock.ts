@@ -1,6 +1,5 @@
 import { after } from 'node:test';
 import fs from 'node:fs';
-import { readdir } from 'node:fs/promises';
 import { getPort } from 'get-port-please';
 import S3rver from 's3rver';
 import tmp from 'tmp';
@@ -49,21 +48,14 @@ export async function s3ServerMock(bucketName: string) {
   await server.run();
 
   return {
+    async s3Clean() {
+      server.reset();
+      await server.configureBuckets();
+    },
+
     S3_ENDPOINT: `http://${address}:${port}`,
     S3_REGION: 'us-east-1',
     S3_KEY: 'S3RVER',
     S3_SECRET: 'S3RVER',
-
-    async s3List() {
-      const files = await readdir(tmpDirectory.name, {
-        withFileTypes: true, // Get Dirent objects
-      });
-
-      return (
-        files
-          // .filter((file) => file.isFile()) // Only files, no directories
-          .map((file) => file.name)
-      );
-    },
   };
 }

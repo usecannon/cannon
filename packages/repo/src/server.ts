@@ -8,13 +8,15 @@ import { DeploymentInfo } from '@usecannon/builder';
 import { getContentCID, uncompress, parseIpfsUrl } from '@usecannon/builder/dist/src/ipfs';
 import { getDb, RKEY_FRESH_UPLOAD_HASHES, RKEY_PKG_HASHES, RKEY_EXTRA_HASHES } from './db';
 import { readFile } from './helpers/read-file';
-import { getS3Client } from './s3';
+import { getS3Client, S3Client } from './s3';
 
 import type { Config } from './config';
 
 const RKEY_FRESH_GRACE_PERIOD = 5 * 60; // 5 minutes, or else we delete any uploaded artifacts from fresh
 
-export async function createServer(config: Config): Promise<{ app: Express; server: Server; rdb: RedisClientType }> {
+export async function createServer(
+  config: Config
+): Promise<{ app: Express; server: Server; rdb: RedisClientType; s3: S3Client }> {
   const rdb = await getDb(config.REDIS_URL);
   const s3 = getS3Client(config);
 
@@ -33,6 +35,8 @@ export async function createServer(config: Config): Promise<{ app: Express; serv
     const cid = await getContentCID(file);
 
     const exists = await s3.objectExists(cid);
+
+    console.log({ exists });
 
     if (exists) {
       return res.json({ Hash: cid }).end();
@@ -161,5 +165,5 @@ export async function createServer(config: Config): Promise<{ app: Express; serv
     await rdb.quit();
   });
 
-  return { app, server, rdb };
+  return { app, server, rdb, s3 };
 }

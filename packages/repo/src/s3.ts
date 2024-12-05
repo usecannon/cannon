@@ -2,6 +2,8 @@ import { S3 } from '@aws-sdk/client-s3';
 
 import type { Config } from './config';
 
+export type S3Client = ReturnType<typeof getS3Client>;
+
 export function getS3Client(config: Config) {
   const client = new S3({
     forcePathStyle: false, // Configures to use subdomain/virtual calling format.
@@ -27,6 +29,16 @@ export function getS3Client(config: Config) {
 
         throw err;
       }
+    },
+
+    async putObject(key: string, data: Buffer) {
+      const res = await client.putObject({
+        Bucket: config.S3_BUCKET,
+        Key: key,
+        Body: data,
+      });
+
+      return res;
     },
   };
 }
