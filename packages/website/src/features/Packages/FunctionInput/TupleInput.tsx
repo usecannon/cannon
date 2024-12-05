@@ -1,6 +1,6 @@
 import { Flex, FormControl, FormLabel, Text } from '@chakra-ui/react';
 import { BigNumber } from '@ethersproject/bignumber';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AbiParameter } from 'viem';
 import { FunctionInput } from '../FunctionInput';
 
