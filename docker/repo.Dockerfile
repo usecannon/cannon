@@ -13,9 +13,15 @@ RUN pnpm run -r --filter @usecannon/repo build
 FROM node:22.11.0-alpine
 
 ENV NODE_ENV=production
-ENV REDIS_URL=""
-ENV UPSTREAM_IPFS_URL=""
 ENV PORT=8080
+ENV TRUST_PROXY=false
+ENV REDIS_URL=""
+ENV IPFS_URL=""
+ENV S3_ENDPOINT=""
+ENV S3_BUCKET=""
+ENV S3_REGION=""
+ENV S3_KEY=""
+ENV S3_SECRET=""
 
 WORKDIR /usr/app
 

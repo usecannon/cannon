@@ -11,13 +11,15 @@ import {
 } from './db';
 
 export async function cleanUnregisteredIpfs(
+  redisUrl: string,
+  indexerUrl: string,
   ipfsUrl: string,
   gracePeriod: number,
   minFees: { startTimestamp: number; requiredFee: bigint }[]
 ) {
   const now = Math.floor(Date.now() / 1000);
-  const rdb = await getDb(process.env.REDIS_URL!);
-  const indexerRdb = await getDb(process.env.INDEXER_URL!);
+  const rdb = await getDb(redisUrl);
+  const indexerRdb = await getDb(indexerUrl);
 
   console.log('[init] clean cycle');
   const expired = await rdb.zRangeWithScores(RKEY_FRESH_UPLOAD_HASHES, 0, now - gracePeriod, { BY: 'SCORE' });

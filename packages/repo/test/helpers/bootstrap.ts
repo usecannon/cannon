@@ -41,7 +41,7 @@ export function bootstrap() {
     };
 
     const s3 = getS3Client(config);
-    const rdb = await getDb(config);
+    const rdb = await getDb(config.REDIS_URL);
 
     const repo = await repoServer({ config, s3, rdb });
 
