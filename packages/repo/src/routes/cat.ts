@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import _ from 'lodash';
-import { uncompress, parseIpfsCid } from '@usecannon/builder/dist/src/ipfs';
+import { uncompress, parseIpfsCid, parseIpfsUrl } from '@usecannon/builder/dist/src/ipfs';
 import { RKEY_FRESH_UPLOAD_HASHES, RKEY_PKG_HASHES, RKEY_EXTRA_HASHES } from '../db';
 import { RepoContext } from '../types';
 
@@ -55,8 +55,11 @@ export function cat(ctx: RepoContext) {
           res.setHeader('Content-Length', contentLength);
         }
 
-        // TODO: wtp does typescript think this doesn't work. literally on mdn example https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream#async_iteration_of_a_stream_using_for_await...of
-        for await (const chunk of upstreamRes.body! as any) {
+        if (!upstreamRes.body) {
+          return res.status(404).end('unregistered ipfs data');
+        }
+
+        for await (const chunk of upstreamRes.body) {
           res.write(chunk);
         }
 
@@ -71,19 +74,20 @@ export function cat(ctx: RepoContext) {
         const rawData = await upstreamRes.arrayBuffer();
         const uint8Data = new Uint8Array(rawData);
         const decompressedData = uncompress(uint8Data);
+        const pkgData = JSON.parse(decompressedData);
+        const miscIpfsHash = parseIpfsUrl(pkgData.miscUrl);
 
-        JSON.parse(decompressedData);
+        if (!miscIpfsHash) {
+          throw new Error(`Invalid package data for "${cid}"`);
+        }
 
         // appears to be a cannon package. sendit back
         return res.end(Buffer.from(rawData));
       } catch (err) {
-        // intentionally do nothing
         console.error(err);
+        return res.status(404).end('unregistered ipfs data');
       }
     }
-
-    // otherwise dont return
-    return res.status(404).end('unregistered ipfs data');
   });
 
   return app;
