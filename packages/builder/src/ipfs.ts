@@ -31,9 +31,15 @@ export async function getContentUrl(content?: any): Promise<string | null> {
 }
 
 const FILE_URL_REGEX = /^ipfs:\/\/(?<cid>[a-zA-Z0-9]{46})$/;
-export function parseIpfsUrl(url: string) {
+export function parseIpfsUrl(url: any) {
   if (typeof url !== 'string' || !url) return null;
   return url.trim().match(FILE_URL_REGEX)?.groups?.cid || null;
+}
+
+const CID_REGEX = /^(?<cid>[a-zA-Z0-9]{46})$/;
+export function parseIpfsCid(cid: any) {
+  if (typeof cid !== 'string' || !cid) return null;
+  return cid.trim().match(CID_REGEX)?.groups?.cid || null;
 }
 
 export async function prepareFormData(info: any) {

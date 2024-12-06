@@ -45,8 +45,9 @@ describe('POST /api/v0/add', function () {
         t.assert.deepStrictEqual(JSON.parse(res.text), { Hash: pkg.cid });
       });
 
-    const saved = JSON.parse(uncompress(ctx.ipfsMockGet(pkg.cid)));
-    t.assert.deepStrictEqual(saved, pkg.content);
+    const saved = await ctx.s3.getObject(pkg.cid);
+    const parsed = JSON.parse(uncompress(saved));
+    t.assert.deepStrictEqual(parsed, pkg.content);
 
     // check that the cid was added to the fresh upload hashes
     const pkgScore = await ctx.rdb.zScore(RKEY_FRESH_UPLOAD_HASHES, pkg.cid);
@@ -83,8 +84,9 @@ describe('POST /api/v0/add', function () {
         t.assert.deepStrictEqual(JSON.parse(res.text), { Hash: cid });
       });
 
-    const saved = JSON.parse(uncompress(ctx.ipfsMockGet(cid)));
-    t.assert.deepStrictEqual(saved, content);
+    const saved = await ctx.s3.getObject(cid);
+    const parsed = JSON.parse(uncompress(saved));
+    t.assert.deepStrictEqual(parsed, content);
 
     const newData = await loadFixture('owned-greeter');
 
@@ -96,7 +98,8 @@ describe('POST /api/v0/add', function () {
         t.assert.deepStrictEqual(JSON.parse(res.text), { Hash: cid });
       });
 
-    const saved2 = JSON.parse(uncompress(ctx.ipfsMockGet(cid)));
-    t.assert.deepStrictEqual(saved2, content);
+    const saved2 = await ctx.s3.getObject(cid);
+    const parsed2 = JSON.parse(uncompress(saved2));
+    t.assert.deepStrictEqual(parsed2, content);
   });
 });

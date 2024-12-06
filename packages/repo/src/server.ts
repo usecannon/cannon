@@ -5,7 +5,7 @@ import morgan from 'morgan';
 import connectBusboy from 'connect-busboy';
 import { RedisClientType } from 'redis';
 import { DeploymentInfo } from '@usecannon/builder';
-import { getContentCID, uncompress, parseIpfsUrl } from '@usecannon/builder/dist/src/ipfs';
+import { getContentCID, uncompress, parseIpfsUrl, parseIpfsCid } from '@usecannon/builder/dist/src/ipfs';
 import { getDb, RKEY_FRESH_UPLOAD_HASHES, RKEY_PKG_HASHES, RKEY_EXTRA_HASHES } from './db';
 import { readFile } from './helpers/read-file';
 import { getS3Client, S3Client } from './s3';
@@ -35,8 +35,6 @@ export async function createServer(
     const cid = await getContentCID(file);
 
     const exists = await s3.objectExists(cid);
-
-    console.log({ exists });
 
     if (exists) {
       return res.json({ Hash: cid }).end();
@@ -70,39 +68,50 @@ export async function createServer(
     // ensure the file is marked as a fresh upload
     await rdb.zAdd(RKEY_FRESH_UPLOAD_HASHES, { score: now, value: cid }, { NX: true });
 
-    const form = new FormData();
-    form.set('file', new File([file], `${cid}.json.gz`));
     try {
-      const upstreamRes = await fetch(config.IPFS_URL + req.originalUrl, {
-        method: 'POST',
-        body: form,
-      });
-
-      const upstreamBody = new TextDecoder().decode(await upstreamRes.arrayBuffer());
-
-      return res.status(upstreamRes.status).end(upstreamBody);
+      await s3.putObject(cid, file);
+      return res.json({ Hash: cid }).end();
     } catch (err) {
-      console.error('cannon package upload to IPFS fail', err);
-      return res.status(500).end('ipfs write error');
+      console.error('cannon package upload to S3 fail', err);
+      return res.status(500).end('file write error');
     }
   });
 
   app.post('/api/v0/cat', async (req, res) => {
+    const cid = parseIpfsCid(req.query.arg);
+
+    if (!cid) {
+      // the exact error message for this 400 error is necessary for backwards compatibility
+      return res.status(400).end('argument "ipfs-path" is required');
+    }
+
+    const exists = await s3.objectExists(cid);
+
+    if (exists) {
+      const data = await s3.getObjectStream(cid);
+      res.setHeader('Content-Type', 'application/octet-stream');
+
+      if (data.ContentLength) {
+        res.setHeader('Content-Length', data.ContentLength);
+      }
+
+      for await (const chunk of data.Body!.transformToWebStream()) {
+        res.write(chunk);
+      }
+
+      return res.end();
+    }
+
     // optimistically, start the upstream request immediately to save time
     const upstreamRes = await fetch(config.IPFS_URL + req.url, {
       method: 'POST',
     });
 
-    const ipfsHash = req.query.arg as string;
-    if (!ipfsHash || ipfsHash.length === 0) {
-      // the exact error message for this 400 error is necessary for backwards compatibility
-      return res.status(400).end('argument "ipfs-path" is required');
-    }
     // if the IPFS hash is in our database, go ahead and proxy the request
     const batch = rdb.multi();
-    batch.zScore(RKEY_FRESH_UPLOAD_HASHES, ipfsHash);
-    batch.zScore(RKEY_PKG_HASHES, ipfsHash);
-    batch.zScore(RKEY_EXTRA_HASHES, ipfsHash);
+    batch.zScore(RKEY_FRESH_UPLOAD_HASHES, cid);
+    batch.zScore(RKEY_PKG_HASHES, cid);
+    batch.zScore(RKEY_EXTRA_HASHES, cid);
     const existsResult = await batch.exec();
     const hashisRepod = _.some(existsResult, _.isNumber);
 
@@ -110,8 +119,7 @@ export async function createServer(
       try {
         const contentLength = upstreamRes.headers.get('content-length') || '' || upstreamRes.headers.get('x-content-length');
         res.setHeader('Content-Type', 'application/octet-stream');
-        // NOTE: transfer-encoding apparently cant be sent at same time as content-length. and content length is better
-        //res.setHeader('Transfer-Encoding', 'chunked');
+
         if (contentLength) {
           res.setHeader('Content-Length', contentLength);
         }
@@ -120,6 +128,7 @@ export async function createServer(
         for await (const chunk of upstreamRes.body! as any) {
           res.write(Buffer.from(chunk));
         }
+
         return res.end();
       } catch (err) {
         console.log('cannon package download from IPFS fail', err);

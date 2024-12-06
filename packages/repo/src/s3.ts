@@ -1,4 +1,4 @@
-import { S3 } from '@aws-sdk/client-s3';
+import { GetObjectCommandOutput, S3 } from '@aws-sdk/client-s3';
 
 import type { Config } from './config';
 
@@ -15,7 +15,7 @@ export function getS3Client(config: Config) {
     },
   });
 
-  return {
+  const s3 = {
     client,
 
     async objectExists(key: string) {
@@ -36,9 +36,30 @@ export function getS3Client(config: Config) {
         Bucket: config.S3_BUCKET,
         Key: key,
         Body: data,
+        ContentType: 'application/json',
       });
 
       return res;
     },
+
+    async getObjectStream(key: string) {
+      const res = await client.getObject({
+        Bucket: config.S3_BUCKET,
+        Key: key,
+      });
+
+      if (!res.Body) {
+        throw new Error(`no response body for "${key}"`);
+      }
+
+      return res;
+    },
+
+    async getObject(key: string) {
+      const res = await s3.getObjectStream(key);
+      return res.Body!.transformToByteArray();
+    },
   };
+
+  return s3;
 }
