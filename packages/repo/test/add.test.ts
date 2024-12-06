@@ -7,10 +7,6 @@ import { RKEY_FRESH_UPLOAD_HASHES } from '../src/db';
 describe('POST /api/v0/add', function () {
   const ctx = bootstrap();
 
-  afterEach(async function () {
-    await ctx.s3Clean();
-  });
-
   it('should return 400 when no data is provided', async function () {
     await ctx.repo.post('/api/v0/add').expect(400, 'no upload data');
   });

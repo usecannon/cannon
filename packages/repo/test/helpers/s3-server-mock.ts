@@ -1,8 +1,8 @@
-import { after } from 'node:test';
+import { after, afterEach } from 'node:test';
 import fs from 'node:fs';
-import { getPort } from 'get-port-please';
 import S3rver from 's3rver';
 import tmp from 'tmp';
+import { getPort } from './get-port';
 
 tmp.setGracefulCleanup();
 
@@ -10,6 +10,15 @@ const servers: S3rver[] = [];
 
 after(async function () {
   await Promise.all(servers.map((server) => server.close()));
+});
+
+afterEach(async function () {
+  await Promise.all(
+    servers.map(async (server) => {
+      server.reset();
+      await server.configureBuckets();
+    })
+  );
 });
 
 /**
@@ -48,11 +57,6 @@ export async function s3ServerMock(bucketName: string) {
   await server.run();
 
   return {
-    async s3Clean() {
-      server.reset();
-      await server.configureBuckets();
-    },
-
     S3_ENDPOINT: `http://${address}:${port}`,
     S3_REGION: 'us-east-1',
     S3_KEY: 'S3RVER',

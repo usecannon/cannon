@@ -1,4 +1,5 @@
 import { createClient, RedisClientType } from 'redis';
+import { Config } from './config';
 
 export const RKEY_FRESH_UPLOAD_HASHES = 'repo:tempUploadHashes';
 export const RKEY_PKG_HASHES = 'repo:pkgHashes';
@@ -7,8 +8,8 @@ export const RKEY_EXTRA_HASHES = 'repo:longTermHashes';
 export const RKEY_FEES_PAID = 'reg:feesPaid';
 export const RKEY_LAST_UPDATED = 'reg:lastTimestamp';
 
-export async function getDb(url: string): Promise<RedisClientType> {
-  const client = createClient({ url });
+export async function getDb(config: Config): Promise<RedisClientType> {
+  const client = createClient({ url: config.REDIS_URL });
 
   client.on('error', (err) => {
     console.error('redis error:', err);

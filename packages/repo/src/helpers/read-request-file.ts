@@ -1,8 +1,6 @@
 import consumers from 'stream/consumers';
 
-import type { Express } from 'express';
-
-export async function readFile(req: Express.Request) {
+export async function readRequestFile(req: Express.Request) {
   if (!req.busboy) return null;
 
   return new Promise<Buffer>((resolve, reject) => {

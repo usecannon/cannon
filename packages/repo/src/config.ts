@@ -1,7 +1,8 @@
-import { CleanedEnv, CleanedEnvAccessors, cleanEnv, str } from 'envalid';
+import { bool, CleanedEnv, CleanedEnvAccessors, cleanEnv, str } from 'envalid';
 
 const configSpecs = {
   PORT: str({ default: '3000' }),
+  TRUST_PROXY: bool({ devDefault: true, default: false }),
   REDIS_URL: str({ devDefault: 'redis://localhost:6379' }),
   NODE_ENV: str({ choices: ['development', 'test', 'production', 'staging'], default: 'production' }),
   IPFS_URL: str({ devDefault: 'https://ipfs.io' }),

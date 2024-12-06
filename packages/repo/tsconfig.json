@@ -18,6 +18,6 @@
   },
   "include": [
     "./test",
-    "./src"
+    "./src",
   ]
 }

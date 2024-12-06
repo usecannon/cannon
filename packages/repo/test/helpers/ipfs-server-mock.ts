@@ -1,15 +1,32 @@
-import { after } from 'node:test';
+import { after, afterEach } from 'node:test';
 import { Server } from 'node:http';
 import { promisify } from 'node:util';
 import express from 'express';
-import { getPort } from 'get-port-please';
 import connectBusboy from 'connect-busboy';
 import { getContentCID } from '../../../builder/src/ipfs';
+import { getPort } from './get-port';
 
-const servers: Server[] = [];
+export interface IpfsMock {
+  IPFS_URL: string;
+  server: Server;
+  add: (data: Buffer) => Promise<string>;
+  get: (cid: string) => Buffer | undefined;
+  remove: (cid: string) => Promise<void>;
+  clear: () => void;
+}
+
+const mocks: IpfsMock[] = [];
+
+afterEach(async function () {
+  await Promise.all(mocks.map((ipfsMock) => ipfsMock.clear()));
+});
 
 after(async function () {
-  await Promise.all(servers.map((server) => promisify(server.close.bind(server))()));
+  await Promise.all(
+    mocks.map((ipfsMock) => {
+      return promisify(ipfsMock.server.close.bind(ipfsMock.server))();
+    })
+  );
 });
 
 /**
@@ -17,29 +34,33 @@ after(async function () {
  */
 export async function ipfsServerMock() {
   const mockStorage = new Map<string, Buffer>();
-
   const port = await getPort();
+
+  const ipfsMock = {
+    IPFS_URL: `http://127.0.0.1:${port}`,
+
+    async add(data: Buffer) {
+      const cid = await getContentCID(data);
+      mockStorage.set(cid, data);
+      return cid;
+    },
+
+    get(cid: string) {
+      return mockStorage.get(cid);
+    },
+
+    async remove(cid: string) {
+      mockStorage.delete(cid);
+    },
+
+    clear() {
+      mockStorage.clear();
+    },
+  } as IpfsMock;
+
   const app = express();
 
   app.use(connectBusboy({ immediate: true }));
-
-  async function ipfsMockAdd(data: Buffer) {
-    const cid = await getContentCID(data);
-    mockStorage.set(cid, data);
-    return cid;
-  }
-
-  function ipfsMockGet(cid: string) {
-    return mockStorage.get(cid);
-  }
-
-  async function ipfsMockRemove(cid: string) {
-    mockStorage.delete(cid);
-  }
-
-  function ipfsMockClear() {
-    mockStorage.clear();
-  }
 
   app.post('/api/v0/add', async (req, res) => {
     if (!req.busboy) {
@@ -49,7 +70,7 @@ export async function ipfsServerMock() {
     req.busboy.on('file', (name, file) => {
       file.on('data', async (data) => {
         try {
-          const cid = await ipfsMockAdd(data);
+          const cid = await ipfsMock.add(data);
           res.json({ Hash: cid }).end();
         } catch (e) {
           res.status(500).end('ipfs write error');
@@ -70,20 +91,17 @@ export async function ipfsServerMock() {
       return res.status(404).end('file not found on ipfs mocked data');
     }
 
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Length', data.length);
+
     res.send(data).end();
   });
 
-  const server = await new Promise<Server>((resolve) => {
+  ipfsMock.server = await new Promise<Server>((resolve) => {
     const _server = app.listen(port, () => resolve(_server));
   });
 
-  servers.push(server);
+  mocks.push(ipfsMock);
 
-  return {
-    IPFS_URL: `http://127.0.0.1:${port}`,
-    ipfsMockAdd,
-    ipfsMockGet,
-    ipfsMockRemove,
-    ipfsMockClear,
-  };
+  return ipfsMock;
 }

@@ -6,10 +6,6 @@ import { loadFixture } from './helpers/fixtures';
 describe('POST /api/v0/cat', function () {
   const ctx = bootstrap();
 
-  afterEach(async function () {
-    await ctx.s3Clean();
-  });
-
   it('should return 400 on missing ipfshash', async function () {
     await ctx.repo.post('/api/v0/cat').expect(400, 'argument "ipfs-path" is required');
   });
@@ -41,7 +37,7 @@ describe('POST /api/v0/cat', function () {
   it('should return a pinned file that is not registered but it is available on ipfs', async function (t: TestContext) {
     const { cid, data, content } = await loadFixture('registry');
 
-    await ctx.ipfsMockAdd(data);
+    await ctx.ipfsMock.add(data);
 
     const res = await ctx.repo
       .post(`/api/v0/cat?arg=${cid}`)
