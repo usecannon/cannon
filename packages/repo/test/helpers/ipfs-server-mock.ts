@@ -1,4 +1,3 @@
-import { afterEach } from 'vitest';
 import { Server } from 'node:http';
 import { promisify } from 'node:util';
 import express from 'express';
