@@ -5,7 +5,7 @@
   "description": "Management of Cannon Artifacts Uploaded to IPFS",
   "main": "dist/index.js",
   "scripts": {
-    "test": "ts-node test/index.test.ts",
+    "test": "vitest run",
     "build": "tsc -p tsconfig.json",
     "clean": "rm -rf ./dist",
     "start": "node dist/index.js",
@@ -57,10 +57,10 @@
     "s3rver": "^3.7.1",
     "superagent": "^10.1.1",
     "supertest": "^7.0.0",
-    "tinyexec": "^0.3.1",
     "tmp": "^0.2.3",
     "ts-node": "^10.9.2",
-    "ts-node-dev": "^2.0.0"
+    "ts-node-dev": "^2.0.0",
+    "vitest": "^2.1.8"
   },
   "optionalDependencies": {
     "redis-memory-server": "^0.11.0"

@@ -7,6 +7,22 @@ import { RepoContext } from '../types';
 export function cat(ctx: RepoContext) {
   const app: Router = Router();
 
+  app.head('/api/v0/cat', async (req, res) => {
+    const cid = parseIpfsCid(req.query.arg);
+
+    if (!cid) {
+      return res.status(400).end();
+    }
+
+    const exists = await ctx.s3.objectExists(cid);
+
+    if (exists) {
+      return res.status(200).end();
+    }
+
+    return res.status(404).end();
+  });
+
   app.post('/api/v0/cat', async (req, res) => {
     const cid = parseIpfsCid(req.query.arg);
 

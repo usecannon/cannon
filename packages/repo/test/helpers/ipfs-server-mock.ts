@@ -1,4 +1,4 @@
-import { after, afterEach } from 'node:test';
+import { afterEach } from 'vitest';
 import { Server } from 'node:http';
 import { promisify } from 'node:util';
 import express from 'express';
@@ -9,25 +9,14 @@ import { getPort } from './get-port';
 export interface IpfsMock {
   IPFS_URL: string;
   server: Server;
+  close: () => Promise<void>;
   add: (data: Buffer) => Promise<string>;
   get: (cid: string) => Buffer | undefined;
   remove: (cid: string) => Promise<void>;
-  clear: () => void;
+  reset: () => void;
 }
 
 const mocks: IpfsMock[] = [];
-
-afterEach(async function () {
-  await Promise.all(mocks.map((ipfsMock) => ipfsMock.clear()));
-});
-
-after(async function () {
-  await Promise.all(
-    mocks.map((ipfsMock) => {
-      return promisify(ipfsMock.server.close.bind(ipfsMock.server))();
-    })
-  );
-});
 
 /**
  * Minimal implementation of IPFS cluster KUBO Api, intended for tests
@@ -38,6 +27,10 @@ export async function ipfsServerMock() {
 
   const ipfsMock = {
     IPFS_URL: `http://127.0.0.1:${port}`,
+
+    async close() {
+      return promisify(ipfsMock.server.close.bind(ipfsMock.server))();
+    },
 
     async add(data: Buffer) {
       const cid = await getContentCID(data);
@@ -53,7 +46,7 @@ export async function ipfsServerMock() {
       mockStorage.delete(cid);
     },
 
-    clear() {
+    reset() {
       mockStorage.clear();
     },
   } as IpfsMock;
