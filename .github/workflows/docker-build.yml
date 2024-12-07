@@ -5,7 +5,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/repo
 
 jobs:
   repo:
@@ -13,7 +12,8 @@ jobs:
     permissions:
       contents: read
       packages: write
-
+    env:
+      IMAGE_NAME: ${{ github.repository_owner }}/repo
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
