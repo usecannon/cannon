@@ -18,7 +18,7 @@
     "version-major": "lerna version major --no-private",
     "publish": "lerna publish from-package --no-private",
     "publish-alpha": "lerna publish from-package --no-private --preid alpha --dist-tag alpha",
-    "test": "pnpm -r --if-present --filter './packages/**' run test",
+    "test": "pnpm -r --if-present --filter './packages/**' --filter @usecannon/repo run test",
     "docgen-md": "pnpm -r --if-present run docgen",
     "changeset": "changeset"
   },
