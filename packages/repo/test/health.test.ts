@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
+
 import { describe, it } from 'node:test';
 import { version } from '../package.json';
 import { bootstrap } from './helpers/bootstrap';

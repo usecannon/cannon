@@ -1,4 +1,6 @@
-import { describe, it, afterEach, TestContext } from 'node:test';
+/* eslint-disable @typescript-eslint/no-floating-promises */
+
+import { describe, it, TestContext } from 'node:test';
 import { parseIpfsUrl, uncompress } from '../../builder/src/ipfs';
 import { bootstrap } from './helpers/bootstrap';
 import { loadFixture } from './helpers/fixtures';

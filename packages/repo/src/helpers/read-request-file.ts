@@ -1,6 +1,9 @@
+import 'connect-busboy';
 import consumers from 'stream/consumers';
 
-export async function readRequestFile(req: Express.Request) {
+import type { RepoRequest } from '../types';
+
+export async function readRequestFile(req: RepoRequest) {
   if (!req.busboy) return null;
 
   return new Promise<Buffer>((resolve, reject) => {

@@ -1,5 +1,4 @@
 import { createClient, RedisClientType } from 'redis';
-import { Config } from './config';
 
 export const RKEY_FRESH_UPLOAD_HASHES = 'repo:tempUploadHashes';
 export const RKEY_PKG_HASHES = 'repo:pkgHashes';

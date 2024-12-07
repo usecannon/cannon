@@ -1,17 +1,17 @@
 import { Router } from 'express';
-import _ from 'lodash';
 import { getContentCID, parseIpfsUrl, uncompress } from '@usecannon/builder/dist/src/ipfs';
 import { RKEY_FRESH_UPLOAD_HASHES, RKEY_PKG_HASHES } from '../db';
-import { RepoContext } from '../types';
 import { readRequestFile } from '../helpers/read-request-file';
 import { DeploymentInfo } from '@usecannon/builder';
+
+import type { RepoContext, RepoRequest } from '../types';
 
 const RKEY_FRESH_GRACE_PERIOD = 5 * 60; // 5 minutes, or else we delete any uploaded artifacts from fresh
 
 export function add(ctx: RepoContext) {
   const app: Router = Router();
 
-  app.post('/api/v0/add', async (req: Express.Request, res) => {
+  app.post('/api/v0/add', async (req: RepoRequest, res) => {
     const file = await readRequestFile(req);
 
     if (!file) {

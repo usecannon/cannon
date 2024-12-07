@@ -1,4 +1,4 @@
-import { GetObjectCommandOutput, S3 } from '@aws-sdk/client-s3';
+import { S3 } from '@aws-sdk/client-s3';
 
 import type { Config } from './config';
 

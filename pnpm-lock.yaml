@@ -650,6 +650,9 @@ importers:
         specifier: ^0.11.0
         version: 0.11.0
     devDependencies:
+      '@types/busboy':
+        specifier: ^1.5.4
+        version: 1.5.4
       '@types/connect-busboy':
         specifier: ^1.0.3
         version: 1.0.3

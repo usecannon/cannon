@@ -33,7 +33,7 @@ export function cat(ctx: RepoContext) {
     }
 
     // optimistically, start the upstream request immediately to save time
-    const ipfsUrl = new URL(req.url, ctx.config.IPFS_URL);
+    const ipfsUrl = new URL(`/api/v0/cat?arg=${cid}`, ctx.config.IPFS_URL);
     const upstreamRes = await fetch(ipfsUrl, {
       method: 'POST',
     });

@@ -1,6 +1,5 @@
 import { Server } from 'node:http';
 import cors from 'cors';
-import _ from 'lodash';
 import express, { Express } from 'express';
 import morgan from 'morgan';
 import connectBusboy from 'connect-busboy';
