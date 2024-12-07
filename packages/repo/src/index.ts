@@ -19,7 +19,7 @@ async function main() {
 
   const server = await app.start();
 
-  console.log(`\n · status: running · version: ${version} · port ${config.PORT} ·`);
+  console.log(`\n · version: ${version} · endpoint: http://127.0.0.1:${config.PORT} ·`);
 
   server.on('close', async () => {
     await ctx.rdb.quit();

@@ -1,8 +1,12 @@
 import { bool, CleanedEnv, CleanedEnvAccessors, cleanEnv, str } from 'envalid';
 
 const configSpecs = {
-  NODE_ENV: str({ choices: ['development', 'test', 'production', 'staging'], default: 'production' }),
-  PORT: str({ default: '3000' }),
+  NODE_ENV: str({
+    choices: ['development', 'test', 'production', 'staging'],
+    devDefault: 'development',
+    default: 'production',
+  }),
+  PORT: str({ default: '8081' }),
   TRUST_PROXY: bool({ devDefault: true, default: false }),
   REDIS_URL: str({ devDefault: 'redis://localhost:6379' }),
   IPFS_URL: str({ devDefault: 'https://ipfs.io' }),
