@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "clean": "rm -rf ./dist",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts"
   },
   "author": "",
   "license": "ISC",
@@ -19,6 +20,8 @@
   "dependencies": {
     "@usecannon/builder": "workspace:*",
     "@usecannon/cli": "workspace:*",
+    "@usecannon/repo": "workspace:*",
+    "bullmq": "^5.31.2",
     "dotenv": "^16.4.5",
     "envalid": "^8.0.0",
     "lodash": "^4.17.21",
@@ -28,6 +31,7 @@
   "devDependencies": {
     "@types/connect-busboy": "^1.0.3",
     "@types/lodash": "^4.14.202",
-    "@types/morgan": "^1.9.9"
+    "@types/morgan": "^1.9.9",
+    "ts-node": "^10.9.2"
   }
 }

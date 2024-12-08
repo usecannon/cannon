@@ -12,4 +12,10 @@ export const config = cleanEnv(process.env, {
   NOTIFY_PKGS: str({ default: '' }),
   MAINNET_PROVIDER_URL: str({ default: 'https://ethereum-rpc.publicnode.com' }),
   OPTIMISM_PROVIDER_URL: str({ default: 'https://optimism-rpc.publicnode.com' }),
+  S3_ENDPOINT: str({ devDefault: '' }),
+  S3_BUCKET: str({ devDefault: 'cannon' }),
+  S3_FOLDER: str({ devDefault: 'repo-v2' }),
+  S3_REGION: str({ devDefault: 'us-east-1' }),
+  S3_KEY: str({ devDefault: '' }),
+  S3_SECRET: str({ devDefault: '' }),
 });

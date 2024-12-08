@@ -80,6 +80,33 @@ export async function isIpfsGateway(ipfsUrl: string, _customHeaders?: any) {
   return false;
 }
 
+export async function readRawIpfs({
+  ipfsUrl,
+  cid,
+  customHeaders = {},
+  timeout = 1000 * 60,
+}: {
+  ipfsUrl: string;
+  cid: string;
+  customHeaders?: Headers;
+  timeout?: number;
+}) {
+  const url = new URL(`/api/v0/cat?arg=${cid}`, ipfsUrl);
+
+  const res = await axios.post(
+    url.toString(),
+    {},
+    {
+      responseEncoding: 'application/octet-stream',
+      responseType: 'arraybuffer',
+      headers: customHeaders,
+      timeout,
+    }
+  );
+
+  return res.data;
+}
+
 export async function readIpfs(
   ipfsUrl: string,
   hash: string,
@@ -105,16 +132,12 @@ export async function readIpfs(
       // the +ipfs extension used to indicate a gateway is not recognized by
       // axios even though its just regular https
       // so we remove it if it exists
-      result = await axios.post(
-        ipfsUrl.replace('+ipfs', '') + `/api/v0/cat?arg=${hash}`,
-        {},
-        {
-          responseEncoding: 'application/octet-stream',
-          responseType: 'arraybuffer',
-          headers: customHeaders,
-          timeout,
-        }
-      );
+      result = await readRawIpfs({
+        ipfsUrl,
+        cid: hash,
+        customHeaders,
+        timeout,
+      });
     }
   } catch (err: any) {
     let errMsg = `could not download cannon package data from "${hash}": ${err.toString()}`;
