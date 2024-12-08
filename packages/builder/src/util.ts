@@ -153,6 +153,7 @@ export function printChainDefinitionProblems(problems: ChainDefinitionProblems, 
   if (problems.invalidSchema) {
     for (const issue of problems.invalidSchema) {
       str.push(`${counter}: schema error: ${issue.path}: ${issue.message}`);
+      counter++;
     }
   }
 
@@ -172,6 +173,14 @@ ${def.allActionNames.join('\n')}`);
 
       counter++;
     }
+  }
+
+  for (const deps of problems.extraneousDeps) {
+    str.push(
+      `${counter}: extraneous dependency ${deps.extraneous} in action ${deps.node} (note: already depended upon by ${deps.inDep})`
+    );
+
+    counter++;
   }
 
   for (const clash of problems.outputClashes) {
