@@ -11,7 +11,12 @@ import { getPort, setInitialRange } from './get-port';
 
 import type { Config } from '../../src/config';
 
+let bootstrapIndex = 0;
+
 export function bootstrap() {
+  const workerId = parseInt(process.env.VITEST_WORKER_ID || '0');
+  const bootstrapId = bootstrapIndex++;
+
   const ctx = {} as {
     repo: supertest.Agent;
     rdb: RedisClientType;
@@ -23,8 +28,9 @@ export function bootstrap() {
   };
 
   beforeAll(async function () {
-    const WORKER_ID = parseInt(process.env.VITEST_WORKER_ID || '0');
-    setInitialRange(3000 + WORKER_ID * 100);
+    // Make sure that the getPort function does not return the same port when called in a row
+    const startingPort = 3000 + workerId * 100 + bootstrapId * 10;
+    setInitialRange(startingPort);
 
     const [PORT, ipfsMock, redisMock, s3Mock] = await Promise.all([
       getPort().then((port) => port.toString()),
