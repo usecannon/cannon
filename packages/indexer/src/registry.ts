@@ -20,6 +20,7 @@ import { config } from './config';
 import * as rkey from './db';
 import { ActualRedisClientType, useRedis } from './redis';
 import { createRpcClient } from './helpers/rpc';
+import { createQueue, createWorker, PinnerJob, PinnerQueue } from './pinner';
 
 const BLOCK_BATCH_SIZE = 5000;
 
@@ -386,7 +387,8 @@ export async function getNewEvents(
 export async function scanChain(
   mainnetClient: viem.PublicClient,
   optimismClient: viem.PublicClient,
-  registryContract: CannonContract
+  registryContract: CannonContract,
+  queue: PinnerQueue
 ) {
   const redis = await useRedis();
 
@@ -476,7 +478,11 @@ export async function scanChain(
               const deployUrl = event.args.deployUrl ?? event.args.url;
               const metaUrl = event.args.metaUrl ?? '';
 
-              console.log(event.eventName, packageName, packageVersion, deployUrl, metaUrl);
+              await queue.add('PIN_PACKAGE', { cid: deployUrl });
+
+              if (metaUrl) {
+                await queue.add('PIN_CID', { cid: metaUrl });
+              }
 
               // general package name list: used for finding packages by name
               batch.hSet(`${rkey.RKEY_PACKAGE_SEARCHABLE}:${packageRef}#${chainId}`, {
@@ -608,13 +614,28 @@ export async function scanChain(
 export async function loop() {
   const mainnetClient = createRpcClient('mainnet', config.MAINNET_PROVIDER_URL);
   const optimismClient = createRpcClient('optimism', config.OPTIMISM_PROVIDER_URL);
+  const queue = createQueue(config.REDIS_URL);
+  const worker = createWorker(config.REDIS_URL);
 
   console.log('start scan loop');
 
-  await scanChain(mainnetClient, optimismClient as any, {
-    address: DEFAULT_REGISTRY_ADDRESS,
-    abi: CannonRegistryAbi,
+  worker.on('completed', (job: PinnerJob) => {
+    console.log('[worker][pinner] completed: ', job.name, job.data.cid);
   });
+
+  worker.on('failed', (job: PinnerJob | undefined, error: Error) => {
+    console.log('[worker][pinner] failed: ', job?.name, job?.data.cid, error.message);
+  });
+
+  await scanChain(
+    mainnetClient,
+    optimismClient as any,
+    {
+      address: DEFAULT_REGISTRY_ADDRESS,
+      abi: CannonRegistryAbi,
+    },
+    queue
+  );
 
   console.error('error limit exceeded');
   process.exit(1);

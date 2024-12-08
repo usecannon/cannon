@@ -62,9 +62,10 @@ const processors = {
 export type PinnerJobName = keyof typeof processors;
 export type PinnerJobData = Parameters<(typeof processors)[PinnerJobName]>[0];
 export type PinnerJob = Job<PinnerJobData, void, PinnerJobName>;
+export type PinnerQueue = Queue<PinnerJobData, void, PinnerJobName>;
 
-export function createQueue(redisUrl: string) {
-  const queue = new Queue<PinnerJob>(QUEUE_NAME, {
+export function createQueue(redisUrl: string): PinnerQueue {
+  const queue = new Queue<PinnerJobData, void, PinnerJobName>(QUEUE_NAME, {
     connection: parseRedisUrl(redisUrl),
   });
 
