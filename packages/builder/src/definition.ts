@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import Debug from 'debug';
 import _ from 'lodash';
 import type { Address } from 'viem';
-import { ActionKinds, RawChainDefinition, validateConfig } from './actions';
+import { ActionKinds, RawChainDefinition, checkConfig } from './actions';
 import { ChainBuilderRuntime } from './runtime';
 import { chainDefinitionSchema } from './schemas';
 import { CannonHelperContext, ChainBuilderContext } from './types';
@@ -10,6 +10,7 @@ import { template } from './utils/template';
 import stableStringify from 'json-stable-stringify';
 
 import { PackageReference } from './package-reference';
+import { ZodIssue } from 'zod';
 
 const debug = Debug('cannon:builder:definition');
 const debugVerbose = Debug('cannon:verbose:builder:definition');
@@ -20,7 +21,7 @@ type OutputClashCheckResult = {
 };
 
 export type ChainDefinitionProblems = {
-  invalidSchema: any;
+  invalidSchema: ZodIssue[] | null;
   missing: { action: string; dependency: string }[];
   cycles: string[][];
   extraneousDeps: { node: string; extraneous: string; inDep: string }[];
@@ -156,8 +157,6 @@ export class ChainDefinition {
         `action kind plugin not installed: "${kind}" (for action: "${n}"). please install the plugin necessary to build this package.`
       );
     }
-
-    validateConfig(action.validate, _.get(this.raw, n));
 
     return action.configInject({ ...ctx, ...CannonHelperContext }, _.get(this.raw, n), {
       ref: this.getPackageRef(ctx),
@@ -337,6 +336,13 @@ export class ChainDefinition {
 
   initializeComputedDependencies() {
     _.memoize(() => {
+      // checking for output clashes will also fill out the dependency map
+      const clashes = this.checkOutputClash();
+
+      if (clashes.length) {
+        throw new Error(`cannot generate dependency tree: output clashes exist: ${JSON.stringify(clashes)}`);
+      }
+
       // get all dependencies, and filter out the extraneous
       for (const action of this.allActionNames) {
         debug(`compute dependencies for ${action}`);
@@ -348,7 +354,7 @@ export class ChainDefinition {
 
       this._roots = new Set(this.allActionNames.filter((n) => !this.getDependencies(n).length));
 
-      debug(`computed roots: ${Array.from(this.roots.values()).join(', ')}`);
+      debug(`computed roots: ${Array.from(this._roots.values()).join(', ')}`);
 
       this._leaves = new Set(
         _.difference(
@@ -361,23 +367,12 @@ export class ChainDefinition {
         )
       );
 
-      if (this.checkExtraneousDependencies().length > 0) {
-        throw new Error(`extraneous dependencies remain after prune: ${this.checkExtraneousDependencies()}`);
-      }
-
       debug('computed depends dump:');
 
-      for (const action of this.topologicalActions) {
+      for (const action of this.allActionNames) {
         debug(`${action} has depends`, this.resolvedDependencies.get(action));
       }
-
-      // sanity: automatically check for cycles because any attempt to search the dependencies will result in an infinite loop otherwise
-      const cycle = this.checkCycles();
-
-      if (cycle) {
-        throw new Error(`could not calculate package action dependency tree: cycle detected: ${cycle.join(', ')}`);
-      }
-    });
+    })();
   }
 
   get topologicalActions() {
@@ -403,7 +398,7 @@ export class ChainDefinition {
   }
 
   checkAll(): ChainDefinitionProblems | null {
-    const invalidSchema = validateConfig(chainDefinitionSchema, this.raw);
+    const invalidSchema = checkConfig(chainDefinitionSchema, this.raw);
 
     const missing = this.checkMissing();
     const cycle = missing.length ? [] : this.checkCycles();
@@ -418,14 +413,14 @@ export class ChainDefinition {
       }
     }
 
-    if (!missing.length && !cycle && !extraneousDeps.length) {
+    if (!invalidSchema && !missing.length && !cycle && !extraneousDeps.length && !outputClashes.length) {
       return null;
     }
 
     return {
       invalidSchema,
       missing,
-      cycles: cycle ? [cycle] : [],
+      cycles: cycle && cycle.length ? [cycle] : [],
       extraneousDeps,
       outputClashes,
     };
@@ -445,8 +440,8 @@ export class ChainDefinition {
           debug(`deps: ${fullActionName} provides ${output}`);
           if (!this.dependencyFor.has(output) || actionType === 'setting' || actionType === 'var') {
             this.dependencyFor.set(output, fullActionName);
-          } else {
-            throw new Error(`output clash: both ${this.dependencyFor.get(output)} and ${fullActionName} output ${output}`);
+          } else if (this.dependencyFor.get(output) !== fullActionName) {
+            outputClashes.push({ output, actions: [this.dependencyFor.get(output)!, fullActionName] });
           }
         }
       }
@@ -461,6 +456,7 @@ export class ChainDefinition {
    * @returns a list of missing dependencies
    */
   checkMissing(actions = this.allActionNames) {
+    this.initializeComputedDependencies();
     const missing: { action: string; dependency: string }[] = [];
     for (const n of actions) {
       for (const dep of this.getDependencies(n)) {
@@ -485,6 +481,9 @@ export class ChainDefinition {
     seenNodes = new Set<string>(),
     currentPath = new Set<string>()
   ): string[] | null {
+    // resolved dependencies gets set during dependency computation
+    this.initializeComputedDependencies();
+
     for (const n of actions) {
       if (seenNodes.has(n)) {
         return null;

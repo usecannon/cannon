@@ -196,8 +196,8 @@ describe('builder.ts', () => {
       const fakeDefWithBadDep = _.assign({}, fakeDefinition, {
         invoke: { smartFunc: { target: ['something'], func: 'wohoo', depends: ['deploy.Fake'] } },
       });
-      expect(() => build(runtime, new ChainDefinition(fakeDefWithBadDep), {}, initialCtx)).toThrowError(
-        'invalid dependency'
+      await expect(build(runtime, new ChainDefinition(fakeDefWithBadDep), {}, initialCtx)).rejects.toThrowError(
+        'the dependency "deploy.Fake" is not defined elsewhere'
       );
     });
 
