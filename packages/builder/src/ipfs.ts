@@ -30,6 +30,33 @@ export async function getContentUrl(content?: any): Promise<string | null> {
   return 'ipfs://' + (await getContentCID(Buffer.from(buffer)));
 }
 
+const FILE_URL_REGEX = /^ipfs:\/\/(?<cid>[a-zA-Z0-9]{46})$/;
+export function parseIpfsUrl(url: any) {
+  if (typeof url !== 'string' || !url) return null;
+  return url.trim().match(FILE_URL_REGEX)?.groups?.cid || null;
+}
+
+const CID_REGEX = /^(?<cid>[a-zA-Z0-9]{46})$/;
+export function parseIpfsCid(cid: any) {
+  if (typeof cid !== 'string' || !cid) return null;
+  return cid.trim().match(CID_REGEX)?.groups?.cid || null;
+}
+
+export async function prepareFormData(info: any) {
+  const data = JSON.stringify(info);
+  const buf = compress(data);
+  const cid = await getContentCID(Buffer.from(buf));
+
+  const formData = new FormData();
+
+  // This check is needed for proper functionality in the browser, as the Buffer is not correctly concatenated
+  // But, for node we still wanna keep using Buffer
+  const content = typeof window !== 'undefined' && typeof Blob !== 'undefined' ? new Blob([buf]) : Buffer.from(buf);
+  formData.append('data', content);
+
+  return { cid, formData, content };
+}
+
 export function setAxiosRetries(totalRetries = 3) {
   axiosRetry(axios, {
     retries: totalRetries,
@@ -117,23 +144,15 @@ export async function writeIpfs(
 ): Promise<string> {
   setAxiosRetries(retries);
 
-  const data = JSON.stringify(info);
-  const buf = compress(data);
-  const cid = await getContentCID(Buffer.from(buf));
-
   if (isGateway) {
     throw new Error(
       'unable to upload to ipfs: the IPFS url you have configured is either read-only (ie a gateway), or invalid. please double check your configuration.'
     );
   }
 
-  debug('upload to ipfs:', buf.length, Buffer.from(buf).length);
-  const formData = new FormData();
+  const { cid, formData } = await prepareFormData(info);
 
-  // This check is needed for proper functionality in the browser, as the Buffer is not correctly concatenated
-  // But, for node we still wanna keep using Buffer
-  const content = typeof window !== 'undefined' && typeof Blob !== 'undefined' ? new Blob([buf]) : Buffer.from(buf);
-  formData.append('data', content);
+  debug('upload to ipfs:', formData.getLengthSync());
 
   let result: AxiosResponse<any, any>;
   try {

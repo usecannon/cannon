@@ -20,7 +20,9 @@ export default function onKeypress(handleKeyPress: (evt: KeyboardEvent, controls
     });
 
     readline.emitKeypressEvents(process.stdin, rl);
-    process.stdin.setRawMode(true);
+    if (process.stdin.isTTY) {
+      process.stdin.setRawMode(true);
+    }
     process.stdin.resume();
 
     const listener = (_: string, key: KeyboardEvent) => {
