@@ -8,65 +8,84 @@ after:
 ---
 
 ## Set up Your Dev Environment
-**Cannon** is a DevOps tool for protocols on Ethereum. It manages protocol and smart contract deployments for local development and live networks, replacing deploy scripts with [Cannonfiles](https://usecannon.com/learn/cannonfile).
 
-#### Installing Foundry
+Cannon is a powerful developer tool designed to streamline the process of building and deploying blockchain applications on the Ethereum network. It simplifies the management of smart contracts and protocols, making development more efficient and organized. 
+
+Essentially, Cannon acts as a DevOps tool for protocols on Ethereum. It manages protocol and smart contract deployments for local development and live networks, replacing deploy scripts with [Cannonfiles](https://usecannon.com/learn/cannonfile).
+
+[Image or Diagram of Cannon workflow]
+
+### Step 1: Install Foundry
 
 <Alert variant="info">
   <AlertTitle className="mb-0">If you're already familiar with Foundry, feel free to skip this section.</AlertTitle>
 </Alert>
 
-**Cannon** is built on [Foundry](https://book.getfoundry.sh/) (though it is also compatible with Hardhat).
+Cannon is built on [Foundry](https://book.getfoundry.sh/) (though it is also compatible with Hardhat).
 
-In your terminal, run
+1. Open your terminal.
+2. To install Foundry, execute the following command, which installs the `foundryup` command that can be run again later to upgrade Foundry to its latest version:
 
-```bash
-curl -L https://foundry.paradigm.xyz | bash
-```
+   ```bash
+   curl -L [https://foundry.paradigm.xyz](https://foundry.paradigm.xyz) | bash
+   ```
 
-This installs the `foundryup` command, which can be run to install Foundry and re-run later to upgrade Foundry to its latest version. (You may need to restart your terminal first.)
+3. To confirm that Foundry is installed correctly, run the following command in your terminal:
 
-```bash
-foundryup
-```
+   ```bash
+   foundry --version
+   ```
 
-#### Installing Cannon CLI
+### Step 2: Install Cannon CLI
 
-Cannon’s **command-line interface** (CLI) allows users to deploy, upgrade, and configure protocols using Cannonfiles with the `build` command, `publish` the resulting packages, `run` packages locally, and more. Find the code for the CLI [on GitHub](https://github.com/usecannon/cannon/tree/main/packages/cli).
+Cannon’s **command-line interface** (CLI) allows users to deploy, upgrade, and configure protocols using Cannonfiles with the `build` command, `publish` the resulting packages, `run` packages locally, and more. Find the code for the CLI [on GitHub](https://github.com/usecannon/cannon/tree/main/packages/cli).
 
-Run one of the following commands in your terminal to install Cannon. You can run it again later to upgrade to the latest version.
+1. Open your terminal.
+2. To install Cannon, execute one of the following commands in your terminal based on your preferred package manager. These commands can also be used later to upgrade to the latest version.
 
-<Tabs defaultValue="pnpm" className="mt-4">
-  <TabsList>
-    <TabsTrigger value="pnpm" className="w-full">
-      <span>pnpm</span>
-    </TabsTrigger>
-    <TabsTrigger value="npm" className="w-full">
-      <span>npm</span>
-    </TabsTrigger>
-    <TabsTrigger value="yarn" className="w-full">
-      <span>yarn</span>
-    </TabsTrigger>
-  </TabsList>
-<TabsContent value="pnpm">
-  ```bash
-  pnpm add -g @usecannon/cli
-  ```
-</TabsContent>
-<TabsContent value="npm">
-  ```bash
-  npm install -g @usecannon/cli
-  ```
-</TabsContent>
-<TabsContent value="yarn">
-  ```bash
-  yarn global add @usecannon/cli
-  ```
-</TabsContent>
-</Tabs>
+   <Tabs defaultValue="pnpm" className="mt-4">
+     <TabsList>
+       <TabsTrigger value="pnpm" className="w-full">
+         <span>pnpm</span>
+       </TabsTrigger>
+       <TabsTrigger value="npm" className="w-full">
+         <span>npm</span>
+       </TabsTrigger>
+       <TabsTrigger value="yarn" className="w-full">
+         <span>yarn</span>
+       </TabsTrigger>
+     </TabsList>
+   <TabsContent value="pnpm">
+     ```bash
+     pnpm add -g @usecannon/cli
+     ```
+   </TabsContent>
+   <TabsContent value="npm">
+     ```bash
+     npm install -g @usecannon/cli
+     ```
+   </TabsContent>
+   <TabsContent value="yarn">
+     ```bash
+     yarn global add @usecannon/cli
+     ```
+   </TabsContent>
+   </Tabs>
 
-Run `cannon --version` to confirm that your installation or upgrade succeeded.
+3. Run `cannon --version` to confirm that your installation or upgrade succeeded.
 
-```bash
-cannon --version
-```
+   ```bash
+   cannon --version
+   ```
+
+### Next Steps
+
+Now that you have successfully installed Cannon, you can start building your blockchain applications! Here are some resources to help you get started:
+
+* **Tutorials:** [Link to Cannon tutorials]
+* **Examples:** [Link to Cannon example projects]
+* **Documentation:** [Link to Cannon documentation]
+
+### Troubleshooting
+
+If you encounter any issues during the installation process, please refer to our [Troubleshooting Guide] or reach out to our community on [Discord].
