@@ -90,12 +90,13 @@ export function cat(ctx: RepoContext) {
         const rawData = await upstreamRes.arrayBuffer();
         const uint8Data = new Uint8Array(rawData);
         const decompressedData = uncompress(uint8Data);
-        const pkgData = JSON.parse(decompressedData);
-        const miscIpfsHash = parseIpfsUrl(pkgData.miscUrl);
+        JSON.parse(decompressedData);
+        // const pkgData = JSON.parse(decompressedData);
+        // const miscIpfsHash = parseIpfsUrl(pkgData.miscUrl);
 
-        if (!miscIpfsHash) {
-          throw new Error(`Invalid package data for "${cid}"`);
-        }
+        // if (!miscIpfsHash) {
+        //   throw new Error(`Invalid package data for "${cid}"`);
+        // }
 
         // appears to be a cannon package. sendit back
         return res.end(Buffer.from(rawData));
