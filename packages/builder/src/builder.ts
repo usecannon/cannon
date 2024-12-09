@@ -46,15 +46,18 @@ export async function build(
   runtime: ChainBuilderRuntime,
   def: ChainDefinition,
   state: DeploymentState,
-  initialCtx: ChainBuilderContext
+  initialCtx: ChainBuilderContext,
+  skipPreflight?: true
 ): Promise<DeploymentState> {
-  debug('preflight');
+  if (!skipPreflight) {
+    debug('preflight');
 
-  const problems = def.checkAll();
+    const problems = def.checkAll();
 
-  if (problems) {
-    throw new Error(`Your cannonfile is invalid: please resolve the following issues before building your project:
+    if (problems) {
+      throw new Error(`Your cannonfile is invalid: please resolve the following issues before building your project:
 ${printChainDefinitionProblems(problems)}`);
+    }
   }
 
   debug('build', initialCtx.settings);

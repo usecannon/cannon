@@ -85,6 +85,16 @@ export function validateConfig(schema: z.ZodSchema, config: any) {
   return result;
 }
 
+export function checkConfig(schema: z.ZodSchema, config: any) {
+  const result = schema.safeParse(config);
+
+  if (!result.success) {
+    return result.error.errors;
+  }
+
+  return null;
+}
+
 export function registerAction(action: CannonAction) {
   if (typeof action.label !== 'string') {
     throw new Error(`missing "label" property on plugin definition ${JSON.stringify(action)}`);
