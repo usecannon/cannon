@@ -57,6 +57,19 @@ export async function prepareFormData(info: any) {
   return { cid, formData, content };
 }
 
+export async function prepareRawFormData(data: Buffer) {
+  const cid = await getContentCID(data);
+  const formData = new FormData();
+
+  // This check is needed for proper functionality in the browser, as the Buffer is not correctly concatenated
+  // But, for node we still wanna keep using Buffer
+  const content = typeof window !== 'undefined' && typeof Blob !== 'undefined' ? new Blob([data]) : data;
+
+  formData.append('data', content);
+
+  return { cid, formData };
+}
+
 export function setAxiosRetries(totalRetries = 3) {
   axiosRetry(axios, {
     retries: totalRetries,
@@ -91,7 +104,7 @@ export async function readRawIpfs({
   customHeaders?: Headers;
   timeout?: number;
 }) {
-  const url = new URL(`/api/v0/cat?arg=${cid}`, ipfsUrl);
+  const url = new URL(`/api/v0/cat?arg=${cid}`, ipfsUrl.replace('+ipfs', ''));
 
   const res = await axios.post(
     url.toString(),
@@ -122,12 +135,14 @@ export async function readIpfs(
 
   try {
     if (isGateway) {
-      result = await axios.get(ipfsUrl + `/ipfs/${hash}`, {
+      const res = await axios.get(ipfsUrl + `/ipfs/${hash}`, {
         responseType: 'arraybuffer',
         responseEncoding: 'application/octet-stream',
         headers: customHeaders,
         timeout,
       });
+
+      result = res.data;
     } else {
       // the +ipfs extension used to indicate a gateway is not recognized by
       // axios even though its just regular https
@@ -151,10 +166,32 @@ export async function readIpfs(
   }
 
   try {
-    return JSON.parse(uncompress(result.data));
+    return JSON.parse(uncompress(result));
   } catch (err: any) {
     throw new Error(`could not decode cannon package data: ${err.toString()}`);
   }
+}
+
+export async function writeRawIpfs({
+  ipfsUrl,
+  data,
+  customHeaders = {},
+  timeout = 1000 * 60 * 10,
+}: {
+  ipfsUrl: string;
+  data: Buffer;
+  customHeaders?: Headers;
+  timeout?: number;
+}): Promise<string> {
+  const { cid, formData } = await prepareRawFormData(data);
+  const url = new URL(`/api/v0/add?local=true&to-files=%2F${cid}`, ipfsUrl);
+
+  const res = await axios.post(url.toString(), formData, {
+    headers: customHeaders,
+    timeout,
+  });
+
+  return res.data;
 }
 
 export async function writeIpfs(

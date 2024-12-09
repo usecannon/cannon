@@ -1,4 +1,4 @@
-import { bool, CleanedEnv, CleanedEnvAccessors, cleanEnv, str } from 'envalid';
+import { bool, CleanedEnv, CleanedEnvAccessors, cleanEnv, num, str } from 'envalid';
 
 const configSpecs = {
   NODE_ENV: str({
@@ -8,6 +8,8 @@ const configSpecs = {
   }),
   PORT: str({ default: '8081' }),
   TRUST_PROXY: bool({ devDefault: true, default: false }),
+  RATE_LIMIT_WINDOW: num({ default: 10 * 1000 }),
+  RATE_LIMIT_MAX: num({ default: 50 }),
   REDIS_URL: str({ devDefault: 'redis://localhost:6379' }),
   IPFS_URL: str({ devDefault: 'https://ipfs.io' }),
   S3_ENDPOINT: str({ devDefault: '' }),

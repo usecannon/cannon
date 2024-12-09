@@ -1,5 +1,5 @@
 import { Job, Queue, Worker } from 'bullmq';
-import { getDeploymentImports, parseIpfsCid, parseIpfsUrl, readRawIpfs, uncompress } from '@usecannon/builder';
+import { getDeploymentImports, parseIpfsCid, parseIpfsUrl, readRawIpfs, uncompress, writeRawIpfs } from '@usecannon/builder';
 import { getS3Client } from '@usecannon/repo/src/s3';
 import { parseRedisUrl } from './helpers/parse-redis-url';
 import { config } from './config';
@@ -16,15 +16,24 @@ const processors = {
     const cid = parseIpfsUrl(data.cid) || parseIpfsCid(data.cid);
     if (!cid) throw new Error(`Invalid CID ${data.cid}`);
 
-    const exists = await s3.objectExists(cid);
-    if (exists) return;
+    const existsOnS3 = await s3.objectExists(cid);
+    const rawData = Buffer.from(
+      existsOnS3
+        ? await s3.getObject(cid)
+        : await readRawIpfs({
+            ipfsUrl: config.IPFS_URL,
+            cid,
+          })
+    );
 
-    const rawData = await readRawIpfs({
-      ipfsUrl: config.IPFS_URL,
-      cid,
-    });
-
-    await s3.putObject(cid, rawData);
+    if (existsOnS3) {
+      await writeRawIpfs({
+        ipfsUrl: config.IPFS_URL,
+        data: rawData,
+      });
+    } else {
+      await s3.putObject(cid, rawData);
+    }
   },
 
   async PIN_PACKAGE(data: { cid: string }, queue: PinnerQueue) {
@@ -34,18 +43,16 @@ const processors = {
     const cid = parseIpfsUrl(data.cid) || parseIpfsCid(data.cid);
     if (!cid) throw new Error(`Invalid CID ${data.cid}`);
 
-    const exists = await s3.objectExists(cid);
+    const existsOnS3 = await s3.objectExists(cid);
 
-    const rawPackageData = exists
-      ? await s3.getObject(cid)
-      : await readRawIpfs({
-          ipfsUrl: config.IPFS_URL,
-          cid,
-        });
-
-    if (!exists) {
-      await s3.putObject(cid, rawPackageData);
-    }
+    const rawPackageData = Buffer.from(
+      existsOnS3
+        ? await s3.getObject(cid)
+        : await readRawIpfs({
+            ipfsUrl: config.IPFS_URL,
+            cid,
+          })
+    );
 
     const packageData = JSON.parse(uncompress(rawPackageData));
 
@@ -60,6 +67,15 @@ const processors = {
     }
 
     await queue.addBulk(jobs);
+
+    if (existsOnS3) {
+      await writeRawIpfs({
+        ipfsUrl: config.IPFS_URL,
+        data: rawPackageData,
+      });
+    } else {
+      await s3.putObject(cid, rawPackageData);
+    }
   },
 } as const;
 
@@ -115,7 +131,7 @@ export async function runWithPinner(cb: (params: { queue: PinnerQueue; worker: P
 
   worker.on('failed', (job: PinnerJob | undefined, error: Error) => {
     // eslint-disable-next-line no-console
-    console.log('failed: ', job?.name, job?.data.cid, error.message);
+    console.log('failed: ', job?.name, job?.data.cid, error);
   });
 
   // eslint-disable-next-line no-console

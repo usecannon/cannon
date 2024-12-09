@@ -28,8 +28,8 @@ export function createApp(ctx: RepoContext): { app: Express; start: () => Promis
 
   app.use(
     rateLimit({
-      windowMs: 60 * 1000,
-      limit: 100,
+      windowMs: ctx.config.RATE_LIMIT_WINDOW,
+      limit: ctx.config.RATE_LIMIT_MAX,
       standardHeaders: 'draft-7',
       legacyHeaders: false,
       validate: { trustProxy: !ctx.config.TRUST_PROXY },
