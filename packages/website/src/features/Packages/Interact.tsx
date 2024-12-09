@@ -205,6 +205,7 @@ const Interact: FC = () => {
       <Abi
         isLoading={isLoadingData}
         abi={contract?.abi}
+        contractName={contract?.contractName ?? 'Unknown'}
         contractSource={contract?.sourceName}
         address={contractAddress!}
         cannonOutputs={cannonOutputs}

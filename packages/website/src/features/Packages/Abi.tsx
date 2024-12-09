@@ -66,6 +66,7 @@ export const Abi: FC<{
   address: viem.Address;
   cannonOutputs: ChainArtifacts;
   chainId: number;
+  contractName?: string;
   contractSource?: string;
   onDrawerOpen?: () => void;
   packageUrl?: string;
@@ -73,6 +74,7 @@ export const Abi: FC<{
   isLoading,
   abi,
   contractSource,
+  contractName,
   address,
   cannonOutputs,
   chainId,
@@ -313,6 +315,7 @@ export const Abi: FC<{
                     cannonOutputs={cannonOutputs}
                     chainId={chainId}
                     contractSource={contractSource}
+                    contractName={contractName}
                     onDrawerOpen={onDrawerOpen}
                     collapsible
                     showFunctionSelector={false}

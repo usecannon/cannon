@@ -1,0 +1,139 @@
+{
+  "generator": "cannon cli 2.18.2",
+  "timestamp": 1729025823,
+  "def": {
+    "name": "owned-greeter",
+    "version": "0.0.7",
+    "description": "Simple greeter project that can be owned",
+    "keywords": [
+      "sample",
+      "greeter",
+      "owned"
+    ],
+    "deployers": [
+      "0xca7777aB932E8F0b930dE9F0d96f4E9a2a00DdD3"
+    ],
+    "setting": {
+      "salt": {
+        "defaultValue": "owned-greeter"
+      }
+    },
+    "contract": {
+      "Greeter": {
+        "artifact": "src/Greeter.sol:Greeter",
+        "salt": "<%= settings.salt %>"
+      }
+    }
+  },
+  "state": {
+    "setting.salt": {
+      "artifacts": {
+        "settings": {
+          "salt": "owned-greeter"
+        }
+      },
+      "hash": "0a8705bb1c82029829b626998cd845f9",
+      "version": 7,
+      "chainDump": "0x1f8b08000000000000ffed57cb6e5b3710fd17adb3e0fb916550345d745114e8aa088421398c85ea61e8ca8503c3ffde43f24a965425b0016f0af426bee23de40c670e6786e4d322ad77f9afc5c7a7c5f6619378bff8b8108f62f1619177ab6da28907f0ca077287d586a7036deebba004f295a6e57ab5591d069263d6a18d6cda2b8f09748a94a92b28ab5a57f9617df876b2e57ecf7fef695b68f7266b7e6025bc4e4b7ecc3c4dcb661f942feff7abcc8d8919ef63d0b9f82866017ccc83e4f3f38705e5bc7bd81ea626f35aab5cee5cefb64d4bd34b6beaed13ed657c381184134658a54d10d23a298414d63b2809a2169b2cfa85d1e8c07f69cae8d3d6091632435a3bce998c25299b74d6d637948a7299a318a8cf57a801aa280c3451cc513a1e689203cdaefac2822fc772ad426a18d3d152075a6d71858b1f28fb198d32681f69a0559dfb756179efd734a43c4926afd5404d3aa2beb8c469a06eb626904db2a830502f061a9d2e9869d6e0e7b1915df1ace54083bbb646454e5a3277c6a4b443ea843629796457979a8c4d71a0c403353229e329cc6367cead1294cb911ba96634e95894ce0355b3e54e2aaad2cffe28beb611f231564cd467b0b32e616dd54ed5811ed75ab6e8c96aacb58cf3aa42c41a2ccca5e52a065f40d54013b8b1e96566609a03de1883774aa1f51af45a1975305639a144309845451195c53ba8669f6bd12bc7682b8388d0144585f7ce085733163d0b71ec87941cba445f038f306fb34b1dc2718cf3f5eac18c58b2db92f0a8e74db4fddb25492a65c5d9f634454f182395a84699f3b146b0315286681a9704b5d20b6714b2874b69d2202dba96bfa2d9fdc2880b7e66c4376db0cf82111dec0b3f8d97c6576b0511f468d189b57ce907f420bab054b604bab2dc0b246972499387cd977db017badaca49957bc4e4817726315770f41dcedbd81683366ad72a50cfe02e6ddb0cb6e4d87e6336fdb710be67c9112b471ed1aae6ec1b2456acb88d4527756d6fb3cb6b896a689d0fa8533f6cddb4fc6c25c3c917b6bdb2d56b5fdebaca51c30bc45bffedba51112ea3c620ff3d0af3b905fab8f39dfb8aaf16230a71008f7bedd7e232e365abf3f0aeff111253e8d063bde72972f97c346c5256f47fae3229ac7d842f0ebc0485baa3e0744d8c2ac82967ef6a4a916b50a45db464b53715a182b5b3c836832076ac7412acab374e59f6c119af5d7519b1a83b1d786b8dfd6c3aecf6f4b56dab6dc7148f866d4cc604e313ea7f8bdb10a212997ca8a9620b12c944fbea5df25f29ffc68785769d45983c38d7a87a8d16b44cb56de705ff284d30550635aa6d409e0e3e5daba1d85aeb2d5fab8eb538b692a884505d35991da51094573e664c9fa252ce7ddf57255946163926c2fe713cbc9cbcbf9a1393269cbd96fd48b7bc3acf751047953f9f16774ca5f53c2dee69cfdbc32f34ddbdd7c16ab7d9f07e3a69942567533814cede164fd43608a46872391723a920be8d95299a40de485d05b67cb06c4431511bdf0ce72de340b8a2fdb7b79e45710e3df0efbbdde1bdbc3be0143a513eac76dbe9a4d7223324b66689dcb1965cad0165885d545954a48d4d26e044966274994aafdf4ad56459e37c65543b22ef39f3eafe30bda7adebddd7e9d37ab7dbbc8bc2ff9ffff673fb6275552370bff9f5c6450df01f1397d3b0cb2b1eb6ed76bc27746c568fef594be69a7843d97c7bfc99f937de7f6e57b4cb3b64bbad7dbeb27adcea3e8d9e331439fd131d6814d4e7cb1c47b9fc72ac69adfdfce556ffddaa55e155a6f5b2571cc0db87f5faf91f20bf68935d0f0000"
+    },
+    "contract.Greeter": {
+      "artifacts": {
+        "contracts": {
+          "Greeter": {
+            "address": "0xa3A2Bb48BfAaFD5A2F4e66a65CEd1FA0133C17ac",
+            "abi": [
+              {
+                "type": "function",
+                "name": "greet",
+                "inputs": [
+                  {
+                    "name": "_user",
+                    "type": "address",
+                    "internalType": "address"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "name": "",
+                    "type": "string",
+                    "internalType": "string"
+                  }
+                ],
+                "stateMutability": "view"
+              },
+              {
+                "type": "function",
+                "name": "greet",
+                "inputs": [],
+                "outputs": [
+                  {
+                    "name": "",
+                    "type": "string",
+                    "internalType": "string"
+                  }
+                ],
+                "stateMutability": "view"
+              },
+              {
+                "type": "function",
+                "name": "greetings",
+                "inputs": [
+                  {
+                    "name": "",
+                    "type": "address",
+                    "internalType": "address"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "name": "",
+                    "type": "string",
+                    "internalType": "string"
+                  }
+                ],
+                "stateMutability": "view"
+              },
+              {
+                "type": "function",
+                "name": "setGreeting",
+                "inputs": [
+                  {
+                    "name": "_greeting",
+                    "type": "string",
+                    "internalType": "string"
+                  }
+                ],
+                "outputs": [],
+                "stateMutability": "nonpayable"
+              }
+            ],
+            "constructorArgs": [],
+            "linkedLibraries": {},
+            "deployTxnHash": "0x4ef9ea726fc9b3cb33edddc541528266e7ab8f97aa26759e4618ef1afa2cfc97",
+            "deployTxnBlockNumber": "2",
+            "deployTimestamp": "1729025820",
+            "sourceName": "src/Greeter.sol",
+            "contractName": "src/Greeter.sol:Greeter",
+            "deployedOn": "contract.Greeter",
+            "gasUsed": 354280,
+            "gasCost": "1875000000"
+          }
+        }
+      },
+      "hash": "cc765678b3dacdf25ebb5a9bedf967f8",
+      "version": 7,
+      "chainDump": "0x1f8b08000000000000ffed5cd98e5b3712fd977ece03f7c56fb3643201f26004334f83a051dc6c216aa9a125b061f8dfe71479b575abedeeb1339364ae9c4857e465b1582c9e2a1eded6879bb45ce79f6f5e7db859edef52dddcbcba11efd4cd373779bd5825dad65e209ef942bbdde2ae6e777477df1b3a2f6af132a3e20d6d6f978bbbc5ae57c81cb30edc803b6975f4a38df25e642e2e8bd61679bfdcbd1f1aa0e87e537fd9d0aad07a88683214ed7c6b8af09e942ed57addaa52c5594a224ad5aaf6d19089ca12b9229230223aa5647181fb5eaed36d7d97eb767bcbfa41f8edfd66912b1b642aeff7a0f2e695981ae0cb7493fcf8f19b1bca79bd5fedb6dce605a66293af572c85e5d292fa358fcb28ed7509450e8be6751915b8deeed61b7ac3ea71cfcfedcde5a77bbbe8c189201c4c6495364148eba08214d63b0809a2159b2cea85d1a8c07fd29451a7ad1355c88cd6dad59cc95892925b676d3d9752512ed72846a9cf0f4a0d4a1585519a28e6285d1da5498ed2ec9a2f55d4cb7b6b6b426a28d34b4b1ba5cd1657d8f17a69f553699401ee40a3b4a9f3715d68deeb358d569e6425afd52835e950ea8b4b358d52376913c826595418a55e8cd2e874414f93043fdd1bab2bbe6a394a837ba88d8a3569596bb7989476b43a96722b79b0ae2e2d199be228a53a4a8d4cca780ad3bd93cdad1294cbc136524da549c7a2741ea56ad2dc49454dfa693caa3ed411ed636ce8a8f7602759c2daa69d6aa3f430d792bd27ab31d7324eb38a26d660622e355731f802538dd204dbd874ea1965ba06bce31ebca714b8d6a0d6caa883b1ca092582412f2a0a2c7dbc07c5fa39f65e39eeb6320021848ea261f4ce08d732263d0b71a8472b3964893e071e6ecebd4b1dc2e11e869fcb177ac4945d6f8911f575136dffee922495b2aad9f6658a9a30ee54a21965ceef35a21a236588866d49102bbd704661f5d452b8358c161daf5fc17a9f2ce2829f2ce2591af4b3b0880ef6641fb60bdb8baf82087a5cd1d16af9721c9003efc254d912e881e65e609126973479e87c59077d218b674eaadc3d268ff26e49f4151c3d6173be977dd046ed1881fa0aeead2df7604b8efc19b3e99f85f07d6a397ce560475c3573f61d466c98711b8b4eeaa1beac97d71268689d0fc0a94f5e5dd5fc6c26c3712cd576646b0fc7f2d2598e1aa380bff5cf2e1b8870e93506ebdf0398cf35d03a45ca7439567c631f51f0038cb863bf16972b5e32ce6374fd7fc2c2143a745fefeb146bf9fc6ee8a4ace8ff5caba430f7116371b04b400006c6a8d652050ad694b3772da5585b50a45db464b5370dae82b9b3586d064eecaad24954ddbc71ca561f9cf1da3597e18bba9b03ef5a5f899246534d46f886b0df624e141a4593a91109472ab78a74c1e6741625e5659454b2ca58a06b04f8168f75f1b9c86caa8dc998607c42cce1b512425422930f2d35843d914cb4cf8ecc8f60e685af2ab4eb3307338d79d6405a9e0a5c996639da63ce018750550635103e001bc61c3ac66d84f376cdbea40163c9840483a221a966aa73e46cae4536388a4660f1949fb6ef976421c2e4c75988728d675777cfc42a9ef20d23b50b6e4462e1e99085589b8b18715f842987c88d2aa2fe884182d4a318c468c6b2cf5631e2d758e182e80cd9b82f44bc8e4caad453cd4504e2be4b7f0f478948880f98610c5ff5e874ec1ba0f5b86ff477d0a2dfa544b958e1d0a347c48e564887b94c5833b2b5aea36e1d1378166413c35f5853230ef8768c8fd3b542bd8abde48482f0ad496e6d9772fb9c4a3d3203f431a222921ccf9fa2c7206bb83f7c42ee9017e5d48a6528312c8a518dfef84a61348c53d6b016bd96b1504cfa40ea944df11ca3be2f8a0604ebd2d8af0eff42b7a1d62cf584ecc37607abf5a8547805e1caf8291a593159fb114e7e4a56b714f49cbc44022c7e8d9990c95c99098ef2173351dc3366825b7df14c54f3b99988a247b8c9ae9f9e910756542afd2a5604165cb322990b2b2a86fdcf5b91cc175b5105ff2c2b8a2723bdcae205915e15ff54a43f93cf63e6f1b29e8ab34d1e97e8e3811c316518a987c69e877008c2b51a73c0f7f76bdec1b529d3ebb20dcb73428a09c1fa9823bfb30c6869bb95269d781e8fba69534df0c9cb1e29d2c1da86473af60d1ce506c25fcd88ac7964a747a199c7cb60c6f7bb7c797fdf95409f608efa327a800a7928b75b69921255f7247cf63ceb3c6b6629dd626c03f657c619ddba1dbaaf04cdda409ae6a474c84b34e4253ac90b07cf57ec6b48b7fa1e8af70ce2a847d1175a8e15e8a61585b1e85e1bd55847ddc7a71d06e6c14673f2c70346f65166de9f49ce6a794d76dff28d4bfacca5310b925727877c7044b8e3899954eaf14c9ee3c7b0d7341ee30f7e2c4f78a2ba3fb10f394e1cf2612c7d13d15bb10f58c69af4e0ceb1ea2e3d1c392aaf4dc8b763f5729913c758218e9f7d0eaeed288f7e60e2c0657c9ef901be1392fcfe897cb323d401994cb7d714ff9518e8d451a3dbbeaf66c3ac49b78219bd64dfc767c78a1c2b81d717bcd461bf936466e8ea126cff8e156c0f639d1080d7f4a5456584057946135b63b28ee51d4608ec4358fbd84044d35708cf9de49d74f76033ac764001c688437bc53984efe822cff4e47d19f4686c96ae2ddbff1c0f877ce891f813754fee5290c6aa984b23de4a23e7545a320b53c15b15996a2009304ac28397c1ce00125c32ba1a12d9838692fed12ec53cb14b693ab6e2aa95442584e69ac9d5510a417984920c474811eeed9ede31f45d4a15392602f33368c6a77729e83481aabded0cf0ed03fab71782d2fcd7879bb7950ad77cb8b9a74d5dedfe4edbb72f62859f7aa19bf5dd5ddd6c8f1265c9d9941a4a850fc298c4d40e1036b99c8b915480c3c6ca042f218f5cbe71d28ebd8a11c5446d3c2b5e5715c4f18236ef5f4a5d83b6ded51fd7ebddd71add0e6cf596f26eb15e6d8f722df6b4580d5e62d76b2d619f124020541711831b36bc161b2946b4185da6d29917a55ab2558319354a42ee06ceb7b8df6dbfa6aecbf59bed9f97ebf5dd571138bf7edfafeb0730671821c689ce0f570e7450fccf6d2dc7dbae9e08112aee16efbe26964c987845d874caf4b75a5fd7cd777c94c3674d1307361d037df740eb71faf3e75173568a35fd57dad100d48f976b1c70f9d301d3f8fae3379f40cf620528c7e25c053b42ba10e26873be8a06c25031fd900186c673742dc82c08a128d598b1ab4084f0f2b78d9ec0336413092497771ec7730e63c0318d476cc64983f64c8e81fe8eb1827cd229c4c6672fa680114f7c54f0147a7a3e4a415bdd40ad2a95a35731814815c8449cc730bde7a39f04ca09477c2914e4af4563a03a0364cb55f4d436831134c89e985dc429076e44e6d40cd8e4920bf5080e4e5b36e4a584f95120640bd219950beae48c9ef3ebe2f559f454cf434facdd1a3e75a6fe3f46d0d369fd5744d00fe7058c9bdf7eff1ac97be4cbfc9616abefcbd4bba64b9d1f1af560be3b7a77a978d0bc9befa342ddebcd62bd59ecde3f191e7ea1e5fed4056019c3fa61b1dd0db85faceef7bbe7f3d65ca0fa4e77e27874ecfb54ddeacc7bcfbcf7cc7bcfbcf7cc7bcfbcf7cc7bcfbcf7cc7bcfbcf71f90f71e5b20de356f8f57ef5f13a7e0c724fbed9125c9b1790383568fcd7c0304974884fc8f1f351109f22b4687a976ad70460c26412189b0fc6869b0546e98e65edcdd832759af405094db6d5d95691bf6ece7823e3e9fd6f10aa9464e60f08d0ca4bd01939f91b323eb6f4994442405969f0da620f81476e308476d009c863c58ffb6699d822525626d1428ebe4524e8e3410ce679f019a528116313e255903786e1b73558a411f70584c09f4df24c5bf82cc99d6995fa7d767691df985a478fabf20c57fba42f92c566dcd607a56717b8c010880b19207b581934d9db117aaa5946c4dcf9441a07b40628b4046e5402c5704f7509b048c03c2c1105f82ceed02f8ffae9f9db6cdb4b29f1d0820097aaef6cb259fabae2036ef6ea9940dccd2253dfb51c8ae13acd9873f62c851f0dbc512125713bf5486b2fd76b651a9f7bbb7bd68bbef5cd4cdabdd665fd18e96cb974636f059ff99f677f43ed5db7ba0eefaee7eb184668d965b68b1adcb56e0db9bfdb969c6c82eea36b5ed57e576479b377577f58e3e6bad6e3608db130937eefa19730885fff2e3b77ffac7b78f18ba7270c599909b09b999909b09b999909b09b999909b09b999909b09b999907b44c8adf7bb171d61cf19ef9cf1ce19ef9cf1ce19ef9cf1ce19ef9cf1ce19ef9cf1febe325efeada77d3fd840a4c00abdf875aa43119f7cee9917ffb1eef69b553f0badf7d379060e63d785057cb85952aacb0333bde9f7de0e0a7aa2f341cb9f15f081349f2b4ee7221b1c232f566f0e2723f55d3f3a3a76b99e13f339319f13f339319f13f339319f13f339319f13f33931ffe326e6a7df3538a5e8c01704998fc727fcfa7342efefebf12fe98e89fa78022befeff64bda2d7ea9df5df95bba53ea3d3fdc37bf4e2f7e6c6dfc12c6f1b9339723425cc2a6ca488ac160d144ecf5e0d04da782c0d90caf282d8b8a49e4a87d88c9f2df69bbaa656b879fd138feb686e21ddedb05ff08c702bbc2dbfe6cedf470d4c77f03492de95f8b590000"
+    }
+  },
+  "seq": 1,
+  "track": "2ymn2j99ox6",
+  "options": {},
+  "status": "complete",
+  "meta": {
+    "gitUrl": "https://github.com/usecannon/owned-greeter",
+    "commitHash": "fe3d64f2ea3cf02673b814b07a41a8be885c00e1",
+    "readme": "https://github.com/usecannon/owned-greeter/blob/fe3d64f2ea3cf02673b814b07a41a8be885c00e1/README.md"
+  },
+  "miscUrl": "ipfs://QmWPYWDSbBvDu1D2S2mb3vfBT59Z3dMvwaWHKmLfpU6ABC",
+  "chainId": 13370
+}

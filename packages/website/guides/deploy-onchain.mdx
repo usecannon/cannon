@@ -1,0 +1,75 @@
+---
+title: Deploy Onchain
+description: Deploy your protocol onchain.
+before:
+  url: "test-with-cannon"
+  title: "Test with Cannon"
+  description: "Test your protocol using Cannon."
+after:
+  url: "publish"
+  title: "Publish Your Package"
+  description: "Publish your protocol to the Cannon explorer."
+---
+
+## Deploy Onchain
+
+Deploying your Cannon project on a live network is similar to building it locally. The main difference is that you'll use the `build` command with specific flags to target a live blockchain.
+
+<Tabs defaultValue="foundry">
+  <TabsList className="w-full">
+    <TabsTrigger value="foundry" className="w-full">
+      <span>Foundry</span>
+    </TabsTrigger>
+    <TabsTrigger value="hardhat" className="w-full">
+      <span>Hardhat</span>
+    </TabsTrigger>
+  </TabsList>
+  <TabsContent value="foundry">
+
+### Step 1: Choose a network and RPC URL
+
+To specify the network for deployment, you can use either the `--chain-id` flag or the `--rpc-url` flag.
+
+*   The `--chain-id` flag uses the default RPC URL for the specified chain ID.
+*   The `--rpc-url` flag allows you to provide a custom RPC URL. This is generally recommended for better reliability and control.
+
+If both flags are specified at the same time, the given `--rpc-url` is used, and the `--chain-id` is validated to match the response by the RPC server.
+
+For this example, we'll use the Sepolia test network, which is a dedicated network for testing and deploying smart contracts. We'll use a specific RPC URL for Sepolia: `https://rpc2.sepolia.org/`
+
+### Step 2: Provide a private key
+
+You'll need to specify the private key of the wallet you want to use for deployment. You can do this using the `--private-key` flag.
+
+**Important:**
+
+*   **Security:** Be extremely careful when handling private keys. **Never** share your private keys with anyone, and store them securely.
+*   **Hardware wallets:** If you're using a hardware wallet or prefer not to expose your private key in plain text, you can use a tool like [Frame](https://frame.sh/). When Frame is running, the Cannon CLI will prompt you to sign transactions through Frame's secure interface.
+
+### Step 3: Perform a dry run
+
+Before deploying on a live network, it's highly recommended to perform a dry run. This simulates the deployment process without actually sending any transactions, allowing you to verify that everything is set up correctly.
+
+To perform a dry run, use the `--dry-run` flag with the `build` command:
+
+```bash
+cannon build --rpc-url https://rpc2.sepolia.org --private-key 0xd8...ad --dry-run
+```
+
+This command will output the deployment steps, contract addresses, transaction hashes, and gas costs, just like a real deployment, but without actually executing the transactions.
+
+### Step 4: Deploy on Sepolia
+
+Once you've verified your deployment with a dry run, you can proceed with the actual deployment by removing the `--dry-run` flag:
+
+```bash
+cannon build --rpc-url https://rpc2.sepolia.org --private-key 0xd8...ad
+```
+
+This will deploy your Cannon project on the Sepolia network. The output will look almost the same as the local network build from the previous guide.
+
+  </TabsContent>
+  <TabsContent value="hardhat">
+  *Coming soon.*
+  </TabsContent>
+</Tabs>

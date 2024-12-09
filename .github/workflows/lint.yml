@@ -16,5 +16,5 @@ jobs:
         with:
           cache: pnpm
           node-version: '20.5.1'
-      - run: pnpm i --prefer-frozen-lockfile
+      - run: pnpm i --frozen-lockfile
       - run: pnpm lint

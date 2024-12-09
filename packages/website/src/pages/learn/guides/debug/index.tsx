@@ -7,7 +7,7 @@ import defaultSEO from '@/constants/defaultSeo';
 
 export default function Home() {
   return (
-    <>
+    <div className="py-10">
       <NextSeo
         {...defaultSEO}
         title="Cannon | Debugging Tips"
@@ -19,7 +19,7 @@ export default function Home() {
         }}
       />
       <DebugPage />
-    </>
+    </div>
   );
 }
 Home.getLayout = function getLayout(page: ReactElement) {

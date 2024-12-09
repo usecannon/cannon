@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import React, { FC } from 'react';
-import { a11yDark, CodeBlock } from 'react-code-blocks';
 import {
   Sidebar,
   SidebarContent,
@@ -30,6 +29,7 @@ import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/router';
 import scrollIntoView from 'scroll-into-view-if-needed';
+import { Snippet } from '@/components/snippet';
 
 const artifactDataExample = {
   artifacts: {
@@ -447,7 +447,7 @@ const DocsCannonfilesPage: FC = () => {
                       values, e.g.:
                     </p>
                     <CommandPreview
-                      command={'args = ["<%=  keccak256(\'some string\') %>"]'}
+                      command={'args = ["<%= keccak256(\'some string\') %>"]'}
                     />
                   </div>
                   {Array.from(cannonfileSpecs)
@@ -463,7 +463,7 @@ const DocsCannonfilesPage: FC = () => {
                     .filter(([key]) => key !== 'metadata')
                     .map(([key, value]) => (
                       <div key={key} id={key} className="mb-16">
-                        <h3 className="text-lg">
+                        <h3 className="text-lg mb-2">
                           <code className="px-0">{key}</code>
                           <a
                             href={`#${key}`}
@@ -472,7 +472,10 @@ const DocsCannonfilesPage: FC = () => {
                             #
                           </a>
                           {value.deprecated && (
-                            <Badge className="ml-3 transform-translate-y-1.5 pt-0.5">
+                            <Badge
+                              variant="secondary"
+                              className="ml-3 -translate-y-0.5"
+                            >
                               Deprecated
                             </Badge>
                           )}
@@ -493,7 +496,7 @@ const DocsCannonfilesPage: FC = () => {
 
                   <div className="mb-16" id="deployment-data">
                     <h3 className="text-lg mb-4">Deployment Data</h3>
-                    <p className="text-gray-400">
+                    <p className="mb-4">
                       Primary source of cannon package information which
                       contains package definition and on-chain state data
                       derived changes made by defined steps in the cannonfile
@@ -503,40 +506,32 @@ const DocsCannonfilesPage: FC = () => {
                       <code>~/.local/share/cannon/tags</code> or the storage
                       location defined by the CANNON_DIRECTORY environment
                       variable.
-                      <br />
-                      <br />
-                      Here is an example of a cannon deployment data:
-                      <CodeBlock
-                        text={JSON.stringify(deploymentDataExample, null, 2)}
-                        language="bash"
-                        showLineNumbers={false}
-                        theme={a11yDark}
-                        customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
-                      />
                     </p>
+                    <p>Here is an example of a cannon deployment data:</p>
+                    <Snippet>
+                      <code>
+                        {JSON.stringify(deploymentDataExample, null, 2)}
+                      </code>
+                    </Snippet>
                   </div>
 
                   <div className="mb-16" id="package-code">
                     <h3 className="text-lg mb-4">Package Code</h3>
-                    <p className="text-gray-400">
+                    <p className="mb-4">
                       Contains artifact data and other contract source code data
                       about the contracts deployed during the build.
-                      <br />
-                      <br />
-                      Here is an example of a deployments package data:
-                      <CodeBlock
-                        text={JSON.stringify(artifactDataExample, null, 2)}
-                        language="bash"
-                        showLineNumbers={false}
-                        theme={a11yDark}
-                        customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
-                      />
                     </p>
+                    <p>Here is an example of a deployments package data:</p>
+                    <Snippet>
+                      <code>
+                        {JSON.stringify(artifactDataExample, null, 2)}
+                      </code>
+                    </Snippet>
                   </div>
 
                   <div className="mb-16" id="metadata">
                     <h3 className="text-lg mb-4">Metadata</h3>
-                    <p className="text-gray-400">
+                    <p>
                       Metadata contains external information related to the
                       cannon package. Currently metadata includes the following:
                       <ul>
@@ -573,21 +568,16 @@ const DocsCannonfilesPage: FC = () => {
                       contract, the following invoke command registers that
                       contract based on event data emitted from that call.
                     </p>
-                    <CodeBlock
-                      text={`[invoke.deployment]
+                    <Snippet>
+                      <code>{`[invoke.deployment]
 target = ["PoolFactory"]
 func = "deployPool"
 factory.MyPoolDeployment.artifact = "Pool"
 # alternatively, if the code for the deployed contract is not available in your artifacts, you can also reference the ABI like:
 factory.MyPoolDeployment.abiOf = "PreviousPool"
 factory.MyPoolDeployment.event = "NewDeployment"
-factory.MyPoolDeployment.arg = 0
-                        `}
-                      language="yaml"
-                      showLineNumbers={false}
-                      theme={a11yDark}
-                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
-                    />
+factory.MyPoolDeployment.arg = 0`}</code>
+                    </Snippet>
                     <p className="mb-4 mt-4">
                       Specifically, this would anticipate this invoke call will
                       emit an event named NewDeployment with a contract address
@@ -595,26 +585,18 @@ factory.MyPoolDeployment.arg = 0
                       This contract should implement the Pool contract. Now, a
                       subsequent invoke operation could set
                     </p>
-                    <CodeBlock
-                      text={'target = ["MyPoolDeployment"]'}
-                      language="yaml"
-                      showLineNumbers={false}
-                      theme={a11yDark}
-                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
-                    />
+                    <Snippet>
+                      <code>{'target = ["MyPoolDeployment"]'}</code>
+                    </Snippet>
                     <p className="mb-4 mt-4">
                       To reference contract information for a contract deployed
                       on a previous invoke operation such as the example shown
                       above call the contracts object inside your cannonfile.
                       For example{' '}
                     </p>
-                    <CodeBlock
-                      text={'<%= contracts.MyPoolDeployment.address %>'}
-                      language="yaml"
-                      showLineNumbers={false}
-                      theme={a11yDark}
-                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
-                    />
+                    <Snippet>
+                      <code>{'<%= contracts.MyPoolDeployment.address %>'}</code>
+                    </Snippet>
                     <p className="mb-4 mt-4">
                       would return the address of the Pool contract deployed by
                       the PoolFactory contract.
@@ -624,23 +606,17 @@ factory.MyPoolDeployment.arg = 0
                       same name, you can specify them by index through the
                       contracts object.
                     </p>
-                    <CodeBlock
-                      text={'<%= contracts.MyPoolDeployment.address %>'}
-                      language="yaml"
-                      showLineNumbers={false}
-                      theme={a11yDark}
-                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
-                    />
+                    <Snippet>
+                      <code>{'<%= contracts.MyPoolDeployment.address %>'}</code>
+                    </Snippet>
                     <p className="mb-4 mt-4">
                       would return the first deployed Pool contract address.
                     </p>
-                    <CodeBlock
-                      text={'<%= contracts.MyPoolDeployment_0.address %>'}
-                      language="yaml"
-                      showLineNumbers={false}
-                      theme={a11yDark}
-                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
-                    />
+                    <Snippet>
+                      <code>
+                        {'<%= contracts.MyPoolDeployment_0.address %>'}
+                      </code>
+                    </Snippet>
                     <p className="mb-4 mt-4">
                       would return the second deployed Pool contract address.
                       These contracts are added to the return object as they
@@ -663,26 +639,19 @@ factory.MyPoolDeployment.arg = 0
                       the PoolFactory deployment from the example above, add the
                       var property and set an attribute for the event like so:
                     </p>
-                    <CodeBlock
-                      text={`[invoke.deployment]
+                    <Snippet>
+                      <code>{`[invoke.deployment]
 target = ["PoolFactory"]
 var.NewDeploymentEvent.event = "NewDeployment"
 var.NewDeploymentEvent.arg = 0
-                        `}
-                      language="yaml"
-                      theme={a11yDark}
-                      showLineNumbers={false}
-                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
-                    />
-
+                        `}</code>
+                    </Snippet>
                     <p className="mb-4">Now, calling </p>
-                    <CodeBlock
-                      text={'<%= settings.NewDeploymentEvent %>'}
-                      language="yaml"
-                      theme={a11yDark}
-                      showLineNumbers={false}
-                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
-                    />
+
+                    <Snippet>
+                      <code>{'<%= settings.NewDeploymentEvent %>'}</code>
+                    </Snippet>
+
                     <p className="mt-4 mb-4">
                       in a subsequent invoke operation would return the first
                       data argument for NewDeployment.
@@ -697,13 +666,9 @@ var.NewDeploymentEvent.arg = 0
                       For example if the PoolFactory emitted multiple
                       NewDeployment events:
                     </p>
-                    <CodeBlock
-                      text={'<%= settings.NewDeploymentEvent_0 %>'}
-                      language="yaml"
-                      theme={a11yDark}
-                      showLineNumbers={false}
-                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
-                    />
+                    <Snippet>
+                      <code>{'<%= settings.NewDeploymentEvent_0 %>'}</code>
+                    </Snippet>
                     <p className="mt-4 mb-4">
                       would return the first emitted event of this kind.
                     </p>
@@ -721,22 +686,20 @@ var.NewDeploymentEvent.arg = 0
                     <p className="mb-4">
                       You can bypass the event error logging by setting it like{' '}
                     </p>
-                    <CodeBlock
-                      text={'var.NewDeploymentEvent.allowEmptyEvents = true'}
-                      language="yaml"
-                      theme={a11yDark}
-                      showLineNumbers={false}
-                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
-                    />
+
+                    <Snippet>
+                      <code>
+                        {'var.NewDeploymentEvent.allowEmptyEvents = true'}
+                      </code>
+                    </Snippet>
+
                     <p className="mb-4 mt-4">or </p>
 
-                    <CodeBlock
-                      text={'factory.MyPoolDeployment.allowEmptyEvents = true'}
-                      language="yaml"
-                      theme={a11yDark}
-                      showLineNumbers={false}
-                      customStyle={{ fontSize: '14px', maxHeight: '10rem' }}
-                    />
+                    <Snippet>
+                      <code>
+                        {'factory.MyPoolDeployment.allowEmptyEvents = true'}
+                      </code>
+                    </Snippet>
 
                     <p className="mb-4 mt-4">
                       under the factory or var property that throws an error.

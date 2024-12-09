@@ -33,7 +33,7 @@ jobs:
           path: ${{ env.CANNON_DIRECTORY }}/ipfs_cache
           save-always: true
 
-      - run: pnpm i --prefer-frozen-lockfile
+      - run: pnpm i --frozen-lockfile
       - run: pnpm build
 
       - name: E2E Tests

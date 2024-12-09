@@ -6,11 +6,11 @@ import Link from 'next/link';
 export const DebugPage = () => {
   return (
     <>
-      <h2 className="text-2xl font-semibold tracking-tight mb-2.5">
+      <h2 className="text-3xl font-semibold tracking-tight mb-2.5">
         Debugging Tips
       </h2>
 
-      <p className="pb-6 mb-6 border-b border-border text-xl text-muted-foreground">
+      <p className="pb-4 mb-6 border-b border-border text-xl text-muted-foreground">
         Troubleshoot issues with your protocol during development and testing.
       </p>
 

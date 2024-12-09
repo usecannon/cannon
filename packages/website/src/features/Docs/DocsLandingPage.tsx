@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 
 const DocsLandingPage = () => {
   return (
-    <div className="container max-w-[42rem] pt-10 md:pt-20">
+    <div className="container max-w-[42rem] pt-10 md:pt-14">
       <h1 className="scroll-m-20 text-3xl font-bold tracking-tight">
         Introducing Cannon
       </h1>
@@ -198,7 +198,7 @@ const DocsLandingPage = () => {
       </div>
 
       <div className="flex justify-center py-24 lg:py-32">
-        <Link href={links.GETSTARTED}>
+        <Link href={`${links.GETSTARTED}/setup`}>
           <Button
             className="font-miriam uppercase tracking-[0.5px] font-bold"
             variant="default"

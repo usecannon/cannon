@@ -6,12 +6,16 @@
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./dist",
-    "rootDirs": ["./src", "./test"],
+    "rootDirs": [
+      "./src"
+    ],
     "strict": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "skipLibCheck": true
   },
-  "include": ["./test", "./src"]
+  "include": [
+    "./src"
+  ]
 }
