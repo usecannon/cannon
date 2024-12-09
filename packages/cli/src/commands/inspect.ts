@@ -5,7 +5,6 @@ import {
   DeploymentState,
   fetchIPFSAvailability,
   getArtifacts,
-  getOutputs,
   PackageReference,
 } from '@usecannon/builder';
 import { bold, cyan, green, yellow } from 'chalk';
@@ -27,7 +26,7 @@ export async function inspect(
   chainId: number,
   out: 'overview' | 'deploy-json' | 'misc-json' | 'artifact-json',
   writeDeployments: string,
-  sources: boolean,
+  sources: boolean
 ) {
   const { fullPackageRef } = new PackageReference(packageRef);
 
@@ -45,8 +44,8 @@ export async function inspect(
     warn(
       yellow(
         "The deployment data for the latest local version of this package (which runs with 'cannon PACKAGE_NAME') was exported. \
-      Specify the --chain-id parameter to retrieve the addresses/ABIs for other deployments.",
-      ),
+      Specify the --chain-id parameter to retrieve the addresses/ABIs for other deployments."
+      )
     );
   }
 
@@ -74,7 +73,7 @@ export async function inspect(
     await Promise.all(
       files.map(([filepath, contractData]) => {
         return fs.outputFile(filepath, JSON.stringify(contractData, null, 2));
-      }),
+      })
     );
   }
 
@@ -82,7 +81,7 @@ export async function inspect(
     _outputJson(deployData);
   } else if (out === 'misc-json') {
     if (!deployData.miscUrl) {
-      console.log('null');
+      log('null');
       return;
     }
     const miscData = await loader[deployData.miscUrl.split(':')[0] as 'ipfs'].read(deployData.miscUrl);
@@ -103,13 +102,13 @@ export async function inspect(
     log();
     log(
       '   Deploy Status:',
-      deployData.status === 'partial' ? yellow(bold(deployData.status)) : green(deployData.status || 'complete'),
+      deployData.status === 'partial' ? yellow(bold(deployData.status)) : green(deployData.status || 'complete')
     );
     log(
       '         Options:',
       Object.entries(deployData.options)
         .map((o) => `${o[0]}=${o[1]}`)
-        .join(' ') || '(none)',
+        .join(' ') || '(none)'
     );
     packageOwner ? log('           Owner:', packageOwner) : log('          Source:', localSource || '(none)');
     log('     Package URL:', deployUrl);

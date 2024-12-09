@@ -557,7 +557,7 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '-o --out <mode>',
-        description: 'Output the given data. Options: `json` or `misc-json`'
+        description: 'Output the given data. Options: `json` or `misc-json`',
       },
       {
         flags: '-w --write-deployments <writeDeployments>',
