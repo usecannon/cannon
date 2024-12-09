@@ -49,7 +49,7 @@ jobs:
           context: .
           file: ./docker/${{ github.event.inputs.job_to_run }}.Dockerfile
           build-args: |
-            BUILD_REVISION=${{ github.sha }}
+            BUILD_REVISION=${{ github.event.inputs.version || github.sha }}
           push: true
           platforms: linux/amd64
           tags: |

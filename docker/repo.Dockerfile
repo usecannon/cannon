@@ -23,6 +23,7 @@ WORKDIR /usr/app
 COPY --from=build /version.txt /version.txt
 ARG VERSION=$(cat /version.txt)
 ARG BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+ARG BUILD_REVISION=unknown
 
 LABEL org.opencontainers.image.source="https://github.com/usecannon/cannon" \
       org.opencontainers.image.description="Cannon IPFS Repo Service with Kubo interface for fetching and pinning cannon packages" \
@@ -36,6 +37,7 @@ LABEL org.opencontainers.image.source="https://github.com/usecannon/cannon" \
 
 ENV NODE_ENV=production
 ENV PORT=8080
+ENV BUILD_REVISION=${BUILD_REVISION}
 
 COPY --from=build /usr/app/packages/repo/dist .
 
