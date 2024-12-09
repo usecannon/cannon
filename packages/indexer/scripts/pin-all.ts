@@ -58,6 +58,9 @@ async function main() {
     // eslint-disable-next-line no-console
     console.log('queue count: ', count);
   } while (count);
+
+  await queue.close();
+  await worker.close();
 }
 
 async function getPublishedPackages(client: viem.PublicClient, fromBlock: number) {

@@ -1,4 +1,4 @@
-import { cleanEnv, str } from 'envalid';
+import { cleanEnv, str, num } from 'envalid';
 import 'dotenv/config';
 
 export const config = cleanEnv(process.env, {
@@ -12,6 +12,7 @@ export const config = cleanEnv(process.env, {
   NOTIFY_PKGS: str({ default: '' }),
   MAINNET_PROVIDER_URL: str({ default: 'https://ethereum-rpc.publicnode.com' }),
   OPTIMISM_PROVIDER_URL: str({ default: 'https://optimism-rpc.publicnode.com' }),
+  QUEUE_CONCURRENCY: num({ default: 5 }),
   S3_ENDPOINT: str({ devDefault: '' }),
   S3_BUCKET: str({ devDefault: 'cannon' }),
   S3_FOLDER: str({ devDefault: 'repo-v2' }),

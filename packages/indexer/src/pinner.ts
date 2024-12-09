@@ -67,6 +67,13 @@ export type PinnerQueue = Queue<PinnerJobData, void, PinnerJobName>;
 export function createQueue(redisUrl: string): PinnerQueue {
   const queue = new Queue<PinnerJobData, void, PinnerJobName>(QUEUE_NAME, {
     connection: parseRedisUrl(redisUrl),
+    defaultJobOptions: {
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 1000,
+      },
+    },
   });
 
   return queue;
@@ -82,7 +89,10 @@ export function createWorker(redisUrl: string) {
 
       await processors[job.name](job.data);
     },
-    { connection: parseRedisUrl(redisUrl), concurrency: 1 }
+    {
+      connection: parseRedisUrl(redisUrl),
+      concurrency: config.QUEUE_CONCURRENCY,
+    }
   );
 
   return worker;
