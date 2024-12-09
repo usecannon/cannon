@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import _ from 'lodash';
-import { uncompress, parseIpfsCid, parseIpfsUrl } from '@usecannon/builder/dist/src/ipfs';
+import { uncompress, parseIpfsCid } from '@usecannon/builder/dist/src/ipfs';
 import { RKEY_FRESH_UPLOAD_HASHES, RKEY_PKG_HASHES, RKEY_EXTRA_HASHES } from '../db';
 import { RepoContext } from '../types';
 
@@ -91,12 +91,6 @@ export function cat(ctx: RepoContext) {
         const uint8Data = new Uint8Array(rawData);
         const decompressedData = uncompress(uint8Data);
         JSON.parse(decompressedData);
-        // const pkgData = JSON.parse(decompressedData);
-        // const miscIpfsHash = parseIpfsUrl(pkgData.miscUrl);
-
-        // if (!miscIpfsHash) {
-        //   throw new Error(`Invalid package data for "${cid}"`);
-        // }
 
         // appears to be a cannon package. sendit back
         return res.end(Buffer.from(rawData));
