@@ -3,7 +3,7 @@ import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/builder';
 import { createRpcClient } from '../src/helpers/rpc';
 import { batches } from '../src/helpers/batches';
 import { config } from '../src/config';
-import { PinnerJobData, PinnerJobName, PinnerJobRaw, runWithPinner } from '../src/pinner';
+import { PinnerJobRaw, runWithPinner } from '../src/pinner';
 
 const packagePublishEvents = viem.parseAbi([
   'event PackagePublish(bytes32 indexed name, bytes32[] indexed tags, bytes32 variant, string url, address owner)',
