@@ -3,7 +3,7 @@ import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/builder';
 import { createRpcClient } from '../src/helpers/rpc';
 import { batches } from '../src/helpers/batches';
 import { config } from '../src/config';
-import { createQueue, createWorker, PinnerJob } from '../src/pinner';
+import { PinnerJobData, PinnerJobName, PinnerJobRaw, runWithPinner } from '../src/pinner';
 
 const packagePublishEvents = viem.parseAbi([
   'event PackagePublish(bytes32 indexed name, bytes32[] indexed tags, bytes32 variant, string url, address owner)',
@@ -18,49 +18,28 @@ const START_IDS = {
 };
 
 async function main() {
-  const queue = createQueue(config.REDIS_URL);
-  const worker = createWorker(config.REDIS_URL);
+  await runWithPinner(async ({ queue }) => {
+    const mainnetClient = createRpcClient('mainnet', config.MAINNET_PROVIDER_URL);
+    const optimismClient = createRpcClient('optimism', config.OPTIMISM_PROVIDER_URL);
 
-  worker.on('completed', (job: PinnerJob) => {
-    // eslint-disable-next-line no-console
-    console.log('completed: ', job.name, job.data.cid);
+    const mainnetUrls = await getPublishedPackages(mainnetClient, START_IDS['1']);
+    const optimismUrls = await getPublishedPackages(optimismClient, START_IDS['10']);
+
+    const deployUrls = new Set([...mainnetUrls.deployUrls, ...optimismUrls.deployUrls]);
+    const metaUrls = new Set([...mainnetUrls.metaUrls, ...optimismUrls.metaUrls]);
+
+    const jobs: PinnerJobRaw[] = [];
+
+    for (const deployUrl of deployUrls) {
+      jobs.push({ name: 'PIN_PACKAGE', data: { cid: deployUrl } });
+    }
+
+    for (const metaUrl of metaUrls) {
+      jobs.push({ name: 'PIN_CID', data: { cid: metaUrl } });
+    }
+
+    await queue.addBulk(jobs);
   });
-
-  worker.on('failed', (job: PinnerJob | undefined, error: Error) => {
-    // eslint-disable-next-line no-console
-    console.log('failed: ', job?.name, job?.data.cid, error.message);
-  });
-
-  // eslint-disable-next-line no-console
-  console.log('queue count: ', await queue.count());
-
-  const mainnetClient = createRpcClient('mainnet', config.MAINNET_PROVIDER_URL);
-  const optimismClient = createRpcClient('optimism', config.OPTIMISM_PROVIDER_URL);
-
-  const mainnetUrls = await getPublishedPackages(mainnetClient, START_IDS['1']);
-  const optimismUrls = await getPublishedPackages(optimismClient, START_IDS['10']);
-
-  const deployUrls = new Set([...mainnetUrls.deployUrls, ...optimismUrls.deployUrls]);
-  const metaUrls = new Set([...mainnetUrls.metaUrls, ...optimismUrls.metaUrls]);
-
-  for (const deployUrl of deployUrls) {
-    await queue.add('PIN_PACKAGE', { cid: deployUrl });
-  }
-
-  for (const metaUrl of metaUrls) {
-    await queue.add('PIN_CID', { cid: metaUrl });
-  }
-
-  let count = await queue.count();
-  do {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    count = await queue.count();
-    // eslint-disable-next-line no-console
-    console.log('queue count: ', count);
-  } while (count);
-
-  await queue.close();
-  await worker.close();
 }
 
 async function getPublishedPackages(client: viem.PublicClient, fromBlock: number) {

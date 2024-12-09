@@ -1,5 +1,5 @@
 import { Job, Queue, Worker } from 'bullmq';
-import { parseIpfsCid, parseIpfsUrl, readRawIpfs, uncompress } from '@usecannon/builder';
+import { getDeploymentImports, parseIpfsCid, parseIpfsUrl, readRawIpfs, uncompress } from '@usecannon/builder';
 import { getS3Client } from '@usecannon/repo/src/s3';
 import { parseRedisUrl } from './helpers/parse-redis-url';
 import { config } from './config';
@@ -27,7 +27,7 @@ const processors = {
     await s3.putObject(cid, rawData);
   },
 
-  async PIN_PACKAGE(data: { cid: string }) {
+  async PIN_PACKAGE(data: { cid: string }, queue: PinnerQueue) {
     // eslint-disable-next-line no-console
     console.log('PIN_PACKAGE: ', data.cid);
 
@@ -35,34 +35,40 @@ const processors = {
     if (!cid) throw new Error(`Invalid CID ${data.cid}`);
 
     const exists = await s3.objectExists(cid);
-    if (exists) return;
 
-    const rawPackageData = await readRawIpfs({
-      ipfsUrl: config.IPFS_URL,
-      cid,
-    });
+    const rawPackageData = exists
+      ? await s3.getObject(cid)
+      : await readRawIpfs({
+          ipfsUrl: config.IPFS_URL,
+          cid,
+        });
 
-    await s3.putObject(cid, rawPackageData);
+    if (!exists) {
+      await s3.putObject(cid, rawPackageData);
+    }
 
     const packageData = JSON.parse(uncompress(rawPackageData));
 
-    const miscCid = parseIpfsUrl(packageData.miscUrl) || parseIpfsCid(packageData.miscUrl);
+    const jobs: PinnerJobRaw[] = [];
 
-    if (!miscCid) return;
+    if (packageData.miscUrl) {
+      jobs.push({ name: 'PIN_CID', data: { cid: packageData.miscUrl } });
+    }
 
-    const miscData = await readRawIpfs({
-      ipfsUrl: config.IPFS_URL,
-      cid: miscCid,
-    });
+    for (const subPackage of getDeploymentImports(packageData)) {
+      jobs.push({ name: 'PIN_PACKAGE', data: { cid: subPackage.url } });
+    }
 
-    await s3.putObject(miscCid, miscData);
+    await queue.addBulk(jobs);
   },
 } as const;
 
 export type PinnerJobName = keyof typeof processors;
 export type PinnerJobData = Parameters<(typeof processors)[PinnerJobName]>[0];
 export type PinnerJob = Job<PinnerJobData, void, PinnerJobName>;
+export type PinnerJobRaw = { name: PinnerJobName; data: PinnerJobData };
 export type PinnerQueue = Queue<PinnerJobData, void, PinnerJobName>;
+export type PinnerWorker = Worker<PinnerJobData, void, PinnerJobName>;
 
 export function createQueue(redisUrl: string): PinnerQueue {
   const queue = new Queue<PinnerJobData, void, PinnerJobName>(QUEUE_NAME, {
@@ -79,7 +85,7 @@ export function createQueue(redisUrl: string): PinnerQueue {
   return queue;
 }
 
-export function createWorker(redisUrl: string) {
+export function createWorker(redisUrl: string, queue: PinnerQueue) {
   const worker = new Worker<PinnerJobData, any, PinnerJobName>(
     QUEUE_NAME,
     async (job) => {
@@ -87,7 +93,7 @@ export function createWorker(redisUrl: string) {
         throw new Error(`Unknown job name: ${job.name}`);
       }
 
-      await processors[job.name](job.data);
+      await processors[job.name](job.data, queue);
     },
     {
       connection: parseRedisUrl(redisUrl),
@@ -96,4 +102,35 @@ export function createWorker(redisUrl: string) {
   );
 
   return worker;
+}
+
+export async function runWithPinner(cb: (params: { queue: PinnerQueue; worker: PinnerWorker }) => Promise<void>) {
+  const queue = createQueue(config.REDIS_URL);
+  const worker = createWorker(config.REDIS_URL, queue);
+
+  worker.on('completed', (job: PinnerJob) => {
+    // eslint-disable-next-line no-console
+    console.log('completed: ', job.name, job.data.cid);
+  });
+
+  worker.on('failed', (job: PinnerJob | undefined, error: Error) => {
+    // eslint-disable-next-line no-console
+    console.log('failed: ', job?.name, job?.data.cid, error.message);
+  });
+
+  // eslint-disable-next-line no-console
+  console.log('pending jobs: ', await queue.count());
+
+  await cb({ queue, worker });
+
+  let count = await queue.count();
+  do {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    count = await queue.count();
+    // eslint-disable-next-line no-console
+    console.log('pending jobs: ', count);
+  } while (count);
+
+  await queue.close();
+  await worker.close();
 }

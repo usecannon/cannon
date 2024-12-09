@@ -615,7 +615,7 @@ export async function loop() {
   const mainnetClient = createRpcClient('mainnet', config.MAINNET_PROVIDER_URL);
   const optimismClient = createRpcClient('optimism', config.OPTIMISM_PROVIDER_URL);
   const queue = createQueue(config.REDIS_URL);
-  const worker = createWorker(config.REDIS_URL);
+  const worker = createWorker(config.REDIS_URL, queue);
 
   console.log('start scan loop');
 
