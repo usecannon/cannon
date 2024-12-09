@@ -5,13 +5,16 @@ WORKDIR /usr/app
 RUN npm i -g pnpm @vercel/ncc
 COPY ./pnpm-workspace.yaml ./package.json ./pnpm-lock.yaml ./
 COPY ./packages/builder/package.json ./packages/builder/tsconfig.json ./packages/builder/tsconfig.build.json ./packages/builder/
+COPY ./packages/repo/package.json ./packages/repo/tsconfig.json ./packages/repo/
 COPY ./packages/indexer/package.json ./packages/indexer/tsconfig.build.json ./packages/indexer/
 
-RUN pnpm i --frozen-lockfile --no-optional -r --filter @usecannon/builder --filter @usecannon/indexer
+RUN pnpm i --frozen-lockfile --no-optional -r --filter @usecannon/builder --filter @usecannon/repo --filter @usecannon/indexer
 COPY ./packages/builder/ ./packages/builder/
+COPY ./packages/repo/ ./packages/repo/
 COPY ./packages/indexer/ ./packages/indexer/
 
 RUN pnpm run -r --filter @usecannon/builder build:node
+RUN pnpm run -r --filter @usecannon/repo build
 RUN ncc build ./packages/indexer/src/index.ts -o ./packages/indexer/dist
 
 RUN echo $(node -p "require('./packages/indexer/package.json').version") > /version.txt

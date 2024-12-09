@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/indexer",
-  "version": "2.12.0-alpha.0",
+  "version": "2.18.0",
   "description": "Injects Cannon data from raw data sources into Redis",
   "main": "dist/index.js",
   "private": true,

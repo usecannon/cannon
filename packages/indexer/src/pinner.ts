@@ -131,6 +131,6 @@ export async function runWithPinner(cb: (params: { queue: PinnerQueue; worker: P
     console.log('pending jobs: ', count);
   } while (count);
 
-  await queue.close();
-  await worker.close();
+  // await worker.close();
+  // await queue.close();
 }
