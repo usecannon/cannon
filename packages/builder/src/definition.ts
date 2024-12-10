@@ -330,46 +330,57 @@ export class ChainDefinition {
     return [_.uniq(allDeps), maxDepth];
   });
 
-  initializeComputedDependencies() {
-    _.memoize(() => {
-      // checking for output clashes will also fill out the dependency map
-      const clashes = this.checkOutputClash();
+  initializeComputedDependencies = _.memoize(() => {
+    const computeDepsDebug = Debug('cannon:builder:dependencies');
+    computeDepsDebug('start compute dependencies');
+    // checking for output clashes will also fill out the dependency map
+    const clashes = this.checkOutputClash();
 
-      if (clashes.length) {
-        throw new Error(`cannot generate dependency tree: output clashes exist: ${JSON.stringify(clashes)}`);
-      }
+    computeDepsDebug('finished checking clashes');
 
-      // get all dependencies, and filter out the extraneous
-      for (const action of this.allActionNames) {
-        debug(`compute dependencies for ${action}`);
-        const deps = this.computeDependencies(action);
-        this.resolvedDependencies.set(action, deps);
-      }
+    if (clashes.length) {
+      throw new Error(`cannot generate dependency tree: output clashes exist: ${JSON.stringify(clashes)}`);
+    }
 
-      debug('finished resolving dependencies');
+    // get all dependencies, and filter out the extraneous
+    for (const action of this.allActionNames) {
+      debug(`compute dependencies for ${action}`);
+      const deps = this.computeDependencies(action);
+      this.resolvedDependencies.set(action, deps);
+    }
 
-      this._roots = new Set(this.allActionNames.filter((n) => !this.getDependencies(n).length));
+    computeDepsDebug('finished compute dependencies');
 
-      debug(`computed roots: ${Array.from(this._roots.values()).join(', ')}`);
+    this._roots = new Set(this.allActionNames.filter((n) => !this.getDependencies(n).length));
 
-      this._leaves = new Set(
-        _.difference(
-          this.allActionNames,
-          _.chain(this.allActionNames)
-            .map((n) => this.getDependencies(n))
-            .flatten()
-            .uniq()
-            .value()
-        )
-      );
+    if (computeDepsDebug.enabled) {
+      computeDepsDebug(`computed roots: ${Array.from(this._roots.values()).join(', ')}`);
+    }
 
+    this._leaves = new Set(
+      _.difference(
+        this.allActionNames,
+        _.chain(this.allActionNames)
+          .map((n) => this.getDependencies(n))
+          .flatten()
+          .uniq()
+          .value()
+      )
+    );
+
+    if (computeDepsDebug.enabled) {
+      computeDepsDebug(`computed leaves: ${Array.from(this._leaves.values()).join(', ')}`);
+    }
+
+    if (debug.enabled) {
       debug('computed depends dump:');
 
       for (const action of this.allActionNames) {
         debug(`${action} has depends`, this.resolvedDependencies.get(action));
       }
-    })();
-  }
+    }
+    debug('finish compute dependencies');
+  });
 
   get topologicalActions() {
     this.initializeComputedDependencies();
