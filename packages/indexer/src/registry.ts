@@ -12,7 +12,7 @@ import {
 } from '@usecannon/builder';
 import CannonRegistryAbi from '@usecannon/builder/dist/src/abis/CannonRegistry';
 import _ from 'lodash';
-import { RedisClientType, SchemaFieldTypes } from 'redis';
+import { RedisClientType, SchemaFieldTypes, TimeSeriesDuplicatePolicies } from 'redis';
 /* eslint no-console: "off" */
 import * as viem from 'viem';
 import * as viemChains from 'viem/chains';
@@ -245,16 +245,8 @@ export async function handleCannonPublish(
 
           if (contract.deployTxnHash) {
             // note: we dont include chainId in the index here because transaction ids are almost always unique
-            batch.hSetNX(rkey.RKEY_TRANSACTION_TO_PACKAGE, contract.deployTxnHash, packageRef);
-            batch.ts.incrBy(`${rkey.RKEY_TS_TRANSACTION_COUNT}:${chainId}`, 1, {
-              TIMESTAMP: timestamp - (timestamp % 3600000),
-              LABELS: { chainId: `${chainId}`, kind: rkey.RKEY_TS_TRANSACTION_COUNT },
-            });
+            batch.hSetNX(rkey.RKEY_TRANSACTION_TO_PACKAGE + ':' + chainId, contract.deployTxnHash, packageRef);
           }
-          batch.ts.incrBy(`${rkey.RKEY_TS_CONTRACT_COUNT}:${chainId}`, 1, {
-            TIMESTAMP: timestamp - (timestamp % 3600000),
-            LABELS: { chainId: `${chainId}`, kind: rkey.RKEY_TS_CONTRACT_COUNT },
-          });
 
           // process the contract abi as well
           for (const abiItem of contract.abi) {
@@ -278,18 +270,34 @@ export async function handleCannonPublish(
           }
         }
         for (const txn of Object.values(state.artifacts.txns || {})) {
-          batch.hSetNX(rkey.RKEY_TRANSACTION_TO_PACKAGE, txn.hash, packageRef);
-          batch.ts.incrBy(`${rkey.RKEY_TS_TRANSACTION_COUNT}:${chainId}`, 1, {
-            TIMESTAMP: timestamp - (timestamp % 3600000),
-            LABELS: { chainId: `${chainId}`, kind: rkey.RKEY_TS_TRANSACTION_COUNT },
-          });
+          batch.hSetNX(rkey.RKEY_TRANSACTION_TO_PACKAGE + ':' + chainId, txn.hash, packageRef);
         }
         batch.incr(`${rkey.RKEY_COUNTER_STEP_TYPE_PREFIX}:${type}`);
       } else {
         console.log('[warn] step data not found:', actionName);
       }
 
-      await batch.exec();
+      batch.hLen(rkey.RKEY_ADDRESS_TO_PACKAGE + ':' + chainId);
+      batch.hLen(rkey.RKEY_TRANSACTION_TO_PACKAGE + ':' + chainId);
+
+      const result = await batch.exec();
+
+      const contractCount = result[result.length - 2] as number;
+      const transactionCount = result[result.length - 1] as number;
+
+      const tsBatch = redis.multi();
+
+      tsBatch.ts.add(`${rkey.RKEY_TS_CONTRACT_COUNT}:${chainId}`, timestamp, contractCount, {
+        LABELS: { chainId: `${chainId}`, kind: rkey.RKEY_TS_CONTRACT_COUNT },
+        ON_DUPLICATE: TimeSeriesDuplicatePolicies.LAST,
+      });
+
+      tsBatch.ts.add(`${rkey.RKEY_TS_TRANSACTION_COUNT}:${chainId}`, timestamp, transactionCount, {
+        LABELS: { chainId: `${chainId}`, kind: rkey.RKEY_TS_TRANSACTION_COUNT },
+        ON_DUPLICATE: TimeSeriesDuplicatePolicies.LAST,
+      });
+
+      await tsBatch.exec();
     }
   }
 

@@ -10,7 +10,9 @@
   ],
   "scripts": {
     "test": "jest",
-    "build": "tsc -p tsconfig.build.json && rollup -c",
+    "build:node": "tsc -p tsconfig.build.json",
+    "build:browser": "rollup -c",
+    "build": "npm run build:node && npm run build:browser",
     "watch": "tsc -p tsconfig.build.json -w",
     "clean": "rm -rf ./dist",
     "prepublishOnly": "npm run build",
