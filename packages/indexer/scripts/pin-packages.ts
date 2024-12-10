@@ -7,9 +7,12 @@ async function main() {
     .map((cid) => parseIpfsUrl(cid) || parseIpfsCid(cid))
     .filter(Boolean);
 
-  await runWithPinner(async ({ queue }) => {
-    await queue.addBulk(cids.map((cid) => ({ name: 'PIN_PACKAGE', data: { cid } } as PinnerJobRaw)));
-  });
+  await runWithPinner(
+    async ({ queue }) => {
+      await queue.addBulk(cids.map((cid) => ({ name: 'PIN_PACKAGE', data: { cid } } as PinnerJobRaw)));
+    },
+    { withWorker: true }
+  );
 }
 
 main().catch((err) => {

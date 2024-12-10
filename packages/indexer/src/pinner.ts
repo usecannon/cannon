@@ -111,7 +111,7 @@ export function createQueue(redisUrl: string): PinnerQueue {
   return queue;
 }
 
-export function createWorker(redisUrl: string, queue: PinnerQueue) {
+export function createWorker(redisUrl: string, queue: PinnerQueue): PinnerWorker {
   const worker = new Worker<PinnerJobData, any, PinnerJobName>(
     QUEUE_NAME,
     async (job) => {
@@ -130,16 +130,19 @@ export function createWorker(redisUrl: string, queue: PinnerQueue) {
   return worker;
 }
 
-export async function runWithPinner(cb: (params: { queue: PinnerQueue; worker: PinnerWorker }) => Promise<void>) {
+export async function runWithPinner<T extends boolean = false>(
+  cb: (params: { queue: PinnerQueue; worker: T extends true ? PinnerWorker : undefined }) => Promise<void>,
+  opts?: { withWorker: T }
+) {
   const queue = createQueue(config.REDIS_URL);
-  const worker = createWorker(config.REDIS_URL, queue);
+  const worker = opts?.withWorker ? createWorker(config.REDIS_URL, queue) : undefined;
 
-  worker.on('completed', (job: PinnerJob) => {
+  worker?.on('completed', (job: PinnerJob) => {
     // eslint-disable-next-line no-console
     console.log('completed: ', job.name, job.data.cid);
   });
 
-  worker.on('failed', (job: PinnerJob | undefined, error: Error) => {
+  worker?.on('failed', (job: PinnerJob | undefined, error: Error) => {
     // eslint-disable-next-line no-console
     console.log('failed: ', job?.name, job?.data.cid, error);
   });
@@ -147,16 +150,15 @@ export async function runWithPinner(cb: (params: { queue: PinnerQueue; worker: P
   // eslint-disable-next-line no-console
   console.log('pending jobs: ', await queue.count());
 
-  await cb({ queue, worker });
+  await cb({ queue, worker: worker as T extends true ? PinnerWorker : undefined });
 
-  let count = await queue.count();
-  do {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    count = await queue.count();
-    // eslint-disable-next-line no-console
-    console.log('pending jobs: ', count);
-  } while (count);
-
-  // await worker.close();
-  // await queue.close();
+  if (opts?.withWorker) {
+    let count = await queue.count();
+    do {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      count = await queue.count();
+      // eslint-disable-next-line no-console
+      console.log('pending jobs: ', count);
+    } while (count);
+  }
 }

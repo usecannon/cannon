@@ -18,28 +18,31 @@ const START_IDS = {
 };
 
 async function main() {
-  await runWithPinner(async ({ queue }) => {
-    const mainnetClient = createRpcClient('mainnet', config.MAINNET_PROVIDER_URL);
-    const optimismClient = createRpcClient('optimism', config.OPTIMISM_PROVIDER_URL);
+  await runWithPinner(
+    async ({ queue }) => {
+      const mainnetClient = createRpcClient('mainnet', config.MAINNET_PROVIDER_URL);
+      const optimismClient = createRpcClient('optimism', config.OPTIMISM_PROVIDER_URL);
 
-    const mainnetUrls = await getPublishedPackages(mainnetClient, START_IDS['1']);
-    const optimismUrls = await getPublishedPackages(optimismClient, START_IDS['10']);
+      const mainnetUrls = await getPublishedPackages(mainnetClient, START_IDS['1']);
+      const optimismUrls = await getPublishedPackages(optimismClient, START_IDS['10']);
 
-    const deployUrls = new Set([...mainnetUrls.deployUrls, ...optimismUrls.deployUrls]);
-    const metaUrls = new Set([...mainnetUrls.metaUrls, ...optimismUrls.metaUrls]);
+      const deployUrls = new Set([...mainnetUrls.deployUrls, ...optimismUrls.deployUrls]);
+      const metaUrls = new Set([...mainnetUrls.metaUrls, ...optimismUrls.metaUrls]);
 
-    const jobs: PinnerJobRaw[] = [];
+      const jobs: PinnerJobRaw[] = [];
 
-    for (const deployUrl of deployUrls) {
-      jobs.push({ name: 'PIN_PACKAGE', data: { cid: deployUrl } });
-    }
+      for (const deployUrl of deployUrls) {
+        jobs.push({ name: 'PIN_PACKAGE', data: { cid: deployUrl } });
+      }
 
-    for (const metaUrl of metaUrls) {
-      jobs.push({ name: 'PIN_CID', data: { cid: metaUrl } });
-    }
+      for (const metaUrl of metaUrls) {
+        jobs.push({ name: 'PIN_CID', data: { cid: metaUrl } });
+      }
 
-    await queue.addBulk(jobs);
-  });
+      await queue.addBulk(jobs);
+    },
+    { withWorker: true }
+  );
 }
 
 async function getPublishedPackages(client: viem.PublicClient, fromBlock: number) {
