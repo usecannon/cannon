@@ -7,7 +7,6 @@ import { ChainBuilderRuntime } from './runtime';
 import { chainDefinitionSchema } from './schemas';
 import { CannonHelperContext, ChainBuilderContext } from './types';
 import { template } from './utils/template';
-import stableStringify from 'json-stable-stringify';
 
 import { PackageReference } from './package-reference';
 import { ZodIssue } from 'zod';
@@ -170,12 +169,12 @@ export class ChainDefinition {
    * @param ctx context used to generate configuration for the action
    * @returns string representing the current state of the action
    */
-  async getState(
+  async *getState(
     n: string,
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
     tainted: boolean
-  ): Promise<string[] | null> {
+  ): AsyncGenerator<string> {
     const kind = n.split('.')[0] as keyof typeof ActionKinds;
 
     if (!ActionKinds[kind]) {
@@ -203,16 +202,13 @@ export class ChainDefinition {
     if (!objs) {
       return null;
     } else {
-      debugVerbose(
-        'creating hash of',
-        objs.map(JSON.stringify as any),
-        'and',
-        objs.map((o) => stableStringify(o))
-      );
-      return [
-        ...objs.map((o) => crypto.createHash('md5').update(JSON.stringify(o)).digest('hex')),
-        ...objs.map((o) => crypto.createHash('md5').update(stableStringify(o)).digest('hex')),
-      ];
+      if (debugVerbose.enabled) {
+        debugVerbose('creating hash of', objs.map(JSON.stringify as any));
+      }
+
+      for (const o of objs) {
+        yield crypto.createHash('md5').update(JSON.stringify(o)).digest('hex');
+      }
     }
   }
 
