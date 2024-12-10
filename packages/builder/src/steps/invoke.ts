@@ -330,7 +330,7 @@ const invokeSpec = {
       [
         cfg.target?.map((t) => getContractFromPath(ctx, t)?.address), // to
         cfg.func, // func
-        cfg.args?.map((v) => JSON.stringify(v)), // args
+        cfg.args ? JSON.stringify(cfg.args) : null, // args
         cfg.value || '0', // value
         cfg.factory, // factory
         cfg.var || cfg.extra, // var
