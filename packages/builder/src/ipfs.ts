@@ -212,7 +212,7 @@ export async function writeIpfs(
 
   const { cid, formData } = await prepareFormData(info);
 
-  debug('upload to ipfs:', formData.getLengthSync());
+  debug('upload to ipfs:', cid);
 
   let result: AxiosResponse<any, any>;
   try {
