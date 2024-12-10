@@ -8,6 +8,22 @@ const QUEUE_NAME = 'pinner-queue';
 
 const s3 = getS3Client(config);
 
+export const actions = {
+  PIN_CID(data: { cid: string }) {
+    const cid = parseIpfsUrl(data.cid) || parseIpfsCid(data.cid);
+    if (!cid) throw new Error(`Invalid CID ${data.cid}`);
+    const jobId = `PIN_CID_${cid}`;
+    return { name: 'PIN_CID', data: { cid }, opts: { jobId } } satisfies PinnerJobRaw;
+  },
+
+  PIN_PACKAGE(data: { cid: string }) {
+    const cid = parseIpfsUrl(data.cid) || parseIpfsCid(data.cid);
+    if (!cid) throw new Error(`Invalid CID ${data.cid}`);
+    const jobId = `PIN_PACKAGE_${cid}`;
+    return { name: 'PIN_PACKAGE', data: { cid }, opts: { jobId } } satisfies PinnerJobRaw;
+  },
+} as const;
+
 const processors = {
   async PIN_CID(data: { cid: string }) {
     // eslint-disable-next-line no-console
@@ -51,6 +67,7 @@ const processors = {
         : await readRawIpfs({
             ipfsUrl: config.IPFS_URL,
             cid,
+            timeout: 1000 * 30,
           })
     );
 
@@ -58,31 +75,24 @@ const processors = {
 
     const jobs: PinnerJobRaw[] = [];
 
+    jobs.push(actions.PIN_CID({ cid }));
+
     if (packageData.miscUrl) {
-      jobs.push({ name: 'PIN_CID', data: { cid: packageData.miscUrl } });
+      jobs.push(actions.PIN_CID({ cid: packageData.miscUrl }));
     }
 
     for (const subPackage of getDeploymentImports(packageData)) {
-      jobs.push({ name: 'PIN_PACKAGE', data: { cid: subPackage.url } });
+      jobs.push(actions.PIN_PACKAGE({ cid: subPackage.url }));
     }
 
     await queue.addBulk(jobs);
-
-    if (existsOnS3) {
-      await writeRawIpfs({
-        ipfsUrl: config.IPFS_URL,
-        data: rawPackageData,
-      });
-    } else {
-      await s3.putObject(cid, rawPackageData);
-    }
   },
 } as const;
 
 export type PinnerJobName = keyof typeof processors;
 export type PinnerJobData = Parameters<(typeof processors)[PinnerJobName]>[0];
 export type PinnerJob = Job<PinnerJobData, void, PinnerJobName>;
-export type PinnerJobRaw = { name: PinnerJobName; data: PinnerJobData };
+export type PinnerJobRaw = { name: PinnerJobName; data: PinnerJobData; opts?: { jobId: string } };
 export type PinnerQueue = Queue<PinnerJobData, void, PinnerJobName>;
 export type PinnerWorker = Worker<PinnerJobData, void, PinnerJobName>;
 
