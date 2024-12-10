@@ -169,12 +169,12 @@ export class ChainDefinition {
    * @param ctx context used to generate configuration for the action
    * @returns string representing the current state of the action
    */
-  async *getState(
+  async getState(
     n: string,
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
     tainted: boolean
-  ): AsyncGenerator<string> {
+  ): Promise<string[] | null> {
     const kind = n.split('.')[0] as keyof typeof ActionKinds;
 
     if (!ActionKinds[kind]) {
@@ -205,10 +205,7 @@ export class ChainDefinition {
       if (debugVerbose.enabled) {
         debugVerbose('creating hash of', objs.map(JSON.stringify as any));
       }
-
-      for (const o of objs) {
-        yield crypto.createHash('md5').update(JSON.stringify(o)).digest('hex');
-      }
+      return objs.map((o) => crypto.createHash('md5').update(JSON.stringify(o)).digest('hex'));
     }
   }
 

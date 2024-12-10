@@ -210,7 +210,7 @@ export async function alter(
             );
 
             // Recompute hash for this step in case there is a mismatch
-            const h = (await new ChainDefinition(deployInfo.def).getState(stepName, runtime, ctx, false).next()).value;
+            const h = await new ChainDefinition(deployInfo.def).getState(stepName, runtime, ctx, false);
             deployInfo.state[stepName].hash = h ? h[0] : null;
           } catch (err) {
             throw new Error(

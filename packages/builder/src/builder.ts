@@ -129,28 +129,19 @@ ${printChainDefinitionProblems(problems)}`);
         runtime.reportOperatingContext(n, ctx);
 
         try {
-          let match = state[n] && state[n].hash !== 'SKIP';
-          if (state[n] && !match) {
-            for await (const hash of def.getState(n, runtime, ctx, depsTainted)) {
-              debug('comparing states', state[n] ? state[n].hash : null, hash);
+          const curHashes = await def.getState(n, runtime, ctx, depsTainted);
 
-              if (state[n].hash !== 'SKIP' && hash === state[n].hash) {
-                match = true;
-                break;
-              }
-            }
-          }
-
-          if (!match) {
+          debug('comparing states', state[n] ? state[n].hash : null, curHashes);
+          if (!state[n] || (state[n].hash !== 'SKIP' && curHashes && !curHashes.includes(state[n].hash || ''))) {
             debug('run isolated', n);
             const newArtifacts = await runStep(runtime, { ref, currentLabel: n }, def.getConfig(n, ctx), ctx);
 
             // some steps may be self introspective, causing a step to be giving the wrong hash initially. to counteract this, we recompute the hash
             addOutputsToContext(ctx, newArtifacts);
-            const newState = await def.getState(n, runtime, ctx, depsTainted).next();
+            const newStates = await def.getState(n, runtime, ctx, depsTainted);
             state[n] = {
               artifacts: newArtifacts,
-              hash: newState.value,
+              hash: newStates && newStates.length ? newStates[0] : null,
               version: BUILD_VERSION,
             };
             tainted.add(n);
@@ -250,22 +241,12 @@ export async function buildLayer(
     runtime.reportOperatingContext(action, ctx);
 
     try {
+      const curHashes = await def.getState(action, runtime, ctx, false);
+
       if (isCompleteLayer) {
-        let match = state[action] && state[action].hash !== 'SKIP';
-        if (state[action] && !match) {
-          for await (const hash of def.getState(action, runtime, ctx, false)) {
-            debug('comparing layer states', state[action] ? state[action].hash : null, hash);
-
-            if (state[action].hash !== 'SKIP' && hash === state[action].hash) {
-              match = true;
-              break;
-            }
-          }
-        }
-
-        if (!match) {
+        debug('comparing layer states', state[action] ? state[action].hash : null, curHashes);
+        if (!state[action] || (curHashes && !curHashes.includes(state[action].hash || ''))) {
           debug('operation', action, 'in layer needs to be rebuilt');
-
           isCompleteLayer = false;
           break;
         }
@@ -330,10 +311,10 @@ export async function buildLayer(
 
       addOutputsToContext(ctx, newArtifacts);
 
-      const newHash = (await def.getState(action, runtime, ctx, false).next()).value;
+      const newHashes = await def.getState(action, runtime, ctx, false);
       state[action] = {
         artifacts: newArtifacts,
-        hash: newHash,
+        hash: newHashes && newHashes.length ? newHashes[0] : null,
         version: BUILD_VERSION,
         // add the chain dump later once all steps have been executed
       };
