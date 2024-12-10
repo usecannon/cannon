@@ -17,14 +17,7 @@ export { prepareMulticall } from './multicall';
 };
 
 export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from './registry';
-export {
-  publishPackage,
-  preparePublishPackage,
-  forPackageTree,
-  findUpgradeFromPackage,
-  writeUpgradeFromInfo,
-} from './package';
-export type { PackagePublishCall } from './package';
+export * from './package';
 export {
   CANNON_CHAIN_ID,
   getCannonRepoRegistryUrl,

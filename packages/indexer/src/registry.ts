@@ -19,6 +19,8 @@ import * as viemChains from 'viem/chains';
 import { config } from './config';
 import * as rkey from './db';
 import { ActualRedisClientType, useRedis } from './redis';
+import { createRpcClient } from './helpers/rpc';
+import { createQueue, createWorker, PinnerJob, PinnerQueue } from './pinner';
 
 const BLOCK_BATCH_SIZE = 5000;
 
@@ -358,11 +360,11 @@ export async function getNewEvents(
   }
 
   const parsableEvents = [
-    viem.getAbiItem({ abi: registryContract.abi, name: 'PackagePublishWithFee' }) as any,
-    viem.getAbiItem({ abi: registryContract.abi, name: 'TagPublish' }) as any,
-    viem.getAbiItem({ abi: registryContract.abi, name: 'PackageUnpublish' }) as any,
-    viem.getAbiItem({ abi: registryContract.abi, name: 'PackageOwnerChanged' }) as any,
-    viem.getAbiItem({ abi: registryContract.abi, name: 'PackagePublishersChanged' }) as any,
+    viem.getAbiItem({ abi: registryContract.abi, name: 'PackagePublishWithFee' }),
+    viem.getAbiItem({ abi: registryContract.abi, name: 'TagPublish' }),
+    viem.getAbiItem({ abi: registryContract.abi, name: 'PackageUnpublish' }),
+    viem.getAbiItem({ abi: registryContract.abi, name: 'PackageOwnerChanged' }),
+    viem.getAbiItem({ abi: registryContract.abi, name: 'PackagePublishersChanged' }),
     // legacy event
     LEGACY_PACKAGE_PUBLISH_EVENT,
   ];
@@ -393,7 +395,8 @@ export async function getNewEvents(
 export async function scanChain(
   mainnetClient: viem.PublicClient,
   optimismClient: viem.PublicClient,
-  registryContract: CannonContract
+  registryContract: CannonContract,
+  queue: PinnerQueue
 ) {
   const redis = await useRedis();
 
@@ -465,6 +468,7 @@ export async function scanChain(
       // for now process logs sequentially. In the future this could be paralellized
       for (const event of _.sortBy(usableEvents, 'timestamp') as any[]) {
         try {
+          const packageName = viem.hexToString(event.args.name, { size: 32 });
           const variant = viem.hexToString(event.args.variant || '0x', { size: 32 });
           const [chainId, preset] = PackageReference.parseVariant(variant);
 
@@ -477,16 +481,26 @@ export async function scanChain(
           const batch = redis.multi();
           switch (event.eventName) {
             case 'PackagePublish':
-            case 'PackagePublishWithFee':
+            case 'PackagePublishWithFee': {
+              const packageVersion = viem.hexToString(event.args.tag, { size: 32 });
+              const deployUrl = event.args.deployUrl ?? event.args.url;
+              const metaUrl = event.args.metaUrl ?? '';
+
+              await queue.add('PIN_PACKAGE', { cid: deployUrl });
+
+              if (metaUrl) {
+                await queue.add('PIN_CID', { cid: metaUrl });
+              }
+
               // general package name list: used for finding packages by name
               batch.hSet(`${rkey.RKEY_PACKAGE_SEARCHABLE}:${packageRef}#${chainId}`, {
-                name: viem.hexToString(event.args.name, { size: 32 }),
-                version: viem.hexToString(event.args.tag, { size: 32 }),
+                name: packageName,
+                version: packageVersion,
                 preset,
-                chainId: chainId,
+                chainId,
                 type: 'package',
-                deployUrl: event.args.deployUrl,
-                metaUrl: event.args.metaUrl,
+                deployUrl,
+                metaUrl,
                 owner: event.args.owner,
                 timestamp: event.timestamp,
                 feePaid: event.feePaid || 0,
@@ -539,28 +553,32 @@ export async function scanChain(
               //}
 
               break;
-            case 'TagPublish':
+            }
+            case 'TagPublish': {
+              const packageTag = viem.hexToString(event.args.tag, { size: 32 });
+
               await redis.hSet(`${rkey.RKEY_PACKAGE_SEARCHABLE}:${packageRef}#${chainId}`, {
-                name: viem.hexToString(event.args.name, { size: 32 }),
-                tag: viem.hexToString(event.args.tag, { size: 32 }),
+                name: packageName,
+                tag: packageTag,
                 preset,
                 chainId,
                 versionOfTag: viem.hexToString(event.args.versionOfTag, { size: 32 }),
                 type: 'tag',
                 timestamp: event.timestamp,
               });
+
               break;
-            case 'PackageOwnerChanged':
-              await redis.hSet(rkey.RKEY_PACKAGE_OWNERS, viem.hexToString(event.args.name, { size: 32 }), event.args.owner);
+            }
+            case 'PackageOwnerChanged': {
+              await redis.hSet(rkey.RKEY_PACKAGE_OWNERS, packageName, event.args.owner);
               break;
-            case 'PackagePublishersChanged':
-              await redis.hSet(
-                rkey.RKEY_PACKAGE_PUBLISHERS + ':' + chainId,
-                viem.hexToString(event.args.name, { size: 32 }),
-                event.args.publisher.join(' ')
-              );
+            }
+            case 'PackagePublishersChanged': {
+              const key = rkey.RKEY_PACKAGE_PUBLISHERS + ':' + chainId;
+              await redis.hSet(key, packageName, event.args.publisher.join(' '));
               break;
-            case 'PackageUnpublish':
+            }
+            case 'PackageUnpublish': {
               // remove this package ref from the zindex
               // removal from the zindex is enough to constitute that its removed for all intents and purposes
               // unpublishes are generally very rare so we don't want to put a ton of effort into it
@@ -576,6 +594,7 @@ export async function scanChain(
               // TODO: search for tags that depend on this key and delete them as well
 
               break;
+            }
             default:
               console.error('unrecognized event:', event);
               process.exit(1);
@@ -601,21 +620,30 @@ export async function scanChain(
 }
 
 export async function loop() {
-  const mainnetClient = viem.createPublicClient({
-    chain: viemChains.mainnet,
-    transport: viem.http(config.MAINNET_PROVIDER_URL),
-  });
-  const optimismClient = viem.createPublicClient({
-    chain: viemChains.optimism,
-    transport: viem.http(config.OPTIMISM_PROVIDER_URL),
-  });
+  const mainnetClient = createRpcClient('mainnet', config.MAINNET_PROVIDER_URL);
+  const optimismClient = createRpcClient('optimism', config.OPTIMISM_PROVIDER_URL);
+  const queue = createQueue(config.REDIS_URL);
+  const worker = createWorker(config.REDIS_URL, queue);
 
   console.log('start scan loop');
 
-  await scanChain(mainnetClient, optimismClient as any, {
-    address: DEFAULT_REGISTRY_ADDRESS,
-    abi: CannonRegistryAbi,
+  worker.on('completed', (job: PinnerJob) => {
+    console.log('[worker][pinner] completed: ', job.name, job.data.cid);
   });
+
+  worker.on('failed', (job: PinnerJob | undefined, error: Error) => {
+    console.log('[worker][pinner] failed: ', job?.name, job?.data.cid, error.message);
+  });
+
+  await scanChain(
+    mainnetClient,
+    optimismClient as any,
+    {
+      address: DEFAULT_REGISTRY_ADDRESS,
+      abi: CannonRegistryAbi,
+    },
+    queue
+  );
 
   console.error('error limit exceeded');
   process.exit(1);
