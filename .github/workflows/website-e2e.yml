@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, alpha, dev]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   cypress-run:
     runs-on: ubuntu-22.04

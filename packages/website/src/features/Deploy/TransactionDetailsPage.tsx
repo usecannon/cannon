@@ -245,11 +245,7 @@ function TransactionDetailsPage() {
     void getChainDef();
   }, [cannonDefInfo.def]);
 
-  const buildInfo = useCannonBuild(
-    safe,
-    chainDefinitionRef.current,
-    prevCannonDeployInfo.ipfsQuery.data?.deployInfo
-  );
+  const buildInfo = useCannonBuild(safe);
 
   useEffect(() => {
     if (
@@ -258,7 +254,10 @@ function TransactionDetailsPage() {
       !prevCannonDeployInfo.ipfsQuery.data?.deployInfo
     )
       return;
-    buildInfo.doBuild();
+    buildInfo.doBuild(
+      chainDefinitionRef.current,
+      prevCannonDeployInfo.ipfsQuery.data?.deployInfo
+    );
   }, [
     !isTransactionExecuted &&
       (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
@@ -266,7 +265,7 @@ function TransactionDetailsPage() {
   ]);
 
   // compare proposed build info with expected transaction batch
-  const expectedTxns = buildInfo.buildResult?.safeSteps?.map(
+  const expectedTxns = buildInfo.buildState?.result?.safeSteps?.map(
     (s) => s.tx as unknown as Partial<TransactionRequestBase>
   );
 
@@ -472,23 +471,23 @@ function TransactionDetailsPage() {
                 <Card title="Verify Transactions">
                   {queuedWithGitOps && (
                     <Box>
-                      {buildInfo.buildMessage && (
+                      {buildInfo.buildState?.message && (
                         <Text fontSize="sm" mb="2">
-                          {buildInfo.buildMessage}
+                          {buildInfo.buildState.message}
                         </Text>
                       )}
-                      {buildInfo.buildError && (
+                      {buildInfo.buildState?.error && (
                         <Text fontSize="sm" mb="2">
-                          {buildInfo.buildError}
+                          {buildInfo.buildState.error}
                         </Text>
                       )}
-                      {buildInfo.buildResult && !unequalTransaction && (
+                      {buildInfo.buildState?.result && !unequalTransaction && (
                         <Text fontSize="sm" mb="2">
                           The transactions queued to the Safe match the Git
                           Target
                         </Text>
                       )}
-                      {buildInfo.buildResult && unequalTransaction && (
+                      {buildInfo.buildState?.result && unequalTransaction && (
                         <Text fontSize="sm" mb="2">
                           <WarningIcon />
                           &nbsp;Proposed Transactions Do not Match Git Diff.
