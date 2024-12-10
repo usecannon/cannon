@@ -1,22 +1,18 @@
-import path from 'node:path';
-import { getPort } from 'get-port-please';
-import { spawn } from './spawn';
+import { RepoContext } from '../../src/types';
+import { createApp } from '../../src/app';
 
-// PORT=8328 REDIS_URL=redis://... UPSTREAM_IPFS_URL=http://localhost:9095 node dist/index.js
-export async function repoServerMock({ redisUrl, ipfsUrl }: { redisUrl: string; ipfsUrl: string }) {
-  const port = await getPort();
+export async function repoServer(ctx: RepoContext) {
+  const { app, start } = createApp(ctx);
 
-  const serverPath = path.resolve(__dirname, '..', '..', 'src', 'index.ts');
+  const server = await start();
 
-  const proc = spawn('pnpm', ['ts-node', serverPath], {
-    PORT: port.toString(),
-    REDIS_URL: redisUrl,
-    UPSTREAM_IPFS_URL: ipfsUrl,
+  server.on('close', async () => {
+    await ctx.rdb.quit();
   });
 
-  for await (const line of proc) {
-    if (line.includes('listening on port ')) break;
-  }
-
-  return { repoUrl: `http://127.0.0.1:${port}` };
+  return {
+    app,
+    close: server.close.bind(server),
+    repoUrl: `http://127.0.0.1:${ctx.config.PORT}`,
+  };
 }
