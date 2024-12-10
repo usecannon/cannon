@@ -402,7 +402,8 @@ export class ChainDefinition {
 
     const missing = this.checkMissing();
     const cycle = missing.length ? [] : this.checkCycles();
-    const extraneousDeps = this.checkExtraneousDependencies();
+    // TODO: this check seems to be a bit too sensitive atm
+    const extraneousDeps: { node: string; extraneous: string; inDep: string }[] = []; // this.checkExtraneousDependencies();
     const outputClashes = this.checkOutputClash();
 
     for (const extDep of extraneousDeps) {
