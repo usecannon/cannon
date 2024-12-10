@@ -51,17 +51,6 @@ const routerStep = {
     }
 
     return [
-      [
-        contractAbis,
-        contractAddresses,
-        [
-          newConfig.salt,
-          newConfig.overrides,
-          newConfig.includeReceive,
-          newConfig.includeDiamondCompatibility,
-          newConfig.highlight,
-        ],
-      ],
       {
         contractAbis,
         contractAddresses,

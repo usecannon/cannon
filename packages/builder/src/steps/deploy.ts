@@ -145,12 +145,6 @@ const deploySpec = {
     const parsedConfig = this.configInject(ctx, config);
 
     return [
-      [
-        resolveBytecode(await runtime.getArtifact!(parsedConfig.artifact), parsedConfig)[0], // bytecode
-        parsedConfig.args?.map((v) => (typeof v === 'string' ? v : JSON.stringify(v))) || [], // args
-        parsedConfig.salt, // salt
-        parsedConfig.value || [], // value
-      ],
       {
         bytecode: resolveBytecode(await runtime.getArtifact!(parsedConfig.artifact), parsedConfig)[0],
         args: parsedConfig.args?.map((v) => (typeof v === 'string' ? v : JSON.stringify(v))) || [],
