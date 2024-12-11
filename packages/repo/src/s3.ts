@@ -1,4 +1,5 @@
 import { S3 } from '@aws-sdk/client-s3';
+import memoize from 'memoizee';
 
 export type S3Client = ReturnType<typeof getS3Client>;
 
@@ -11,7 +12,7 @@ interface Params {
   S3_SECRET: string;
 }
 
-export function getS3Client(config: Params) {
+export function getS3Client(config: Params, cache = 10_000) {
   const client = new S3({
     forcePathStyle: false, // Configures to use subdomain/virtual calling format.
     endpoint: config.S3_ENDPOINT,
@@ -26,6 +27,8 @@ export function getS3Client(config: Params) {
     client,
 
     async objectExists(key: string) {
+      console.log('[s3][objectExists]', key);
+
       try {
         await client.headObject({ Bucket: config.S3_BUCKET, Key: `${config.S3_FOLDER}/${key}` });
         return true;
@@ -39,6 +42,8 @@ export function getS3Client(config: Params) {
     },
 
     async putObject(key: string, data: Buffer) {
+      console.log('[s3][putObject]', key);
+
       const res = await client.putObject({
         Bucket: config.S3_BUCKET,
         Key: `${config.S3_FOLDER}/${key}`,
@@ -49,7 +54,9 @@ export function getS3Client(config: Params) {
       return res;
     },
 
-    async getObjectStream(key: string) {
+    async getObject(key: string) {
+      console.log('[s3][getObject]', key);
+
       const res = await client.getObject({
         Bucket: config.S3_BUCKET,
         Key: `${config.S3_FOLDER}/${key}`,
@@ -59,14 +66,38 @@ export function getS3Client(config: Params) {
         throw new Error(`no response body for "${key}"`);
       }
 
-      return res;
-    },
-
-    async getObject(key: string) {
-      const res = await s3.getObjectStream(key);
       return res.Body!.transformToByteArray();
     },
+
+    clearCache() {
+      (s3.objectExists as any).clear?.();
+      (s3.putObject as any).clear?.();
+      (s3.getObject as any).clear?.();
+    },
   };
+
+  if (typeof cache === 'number' && cache > 0) {
+    s3.objectExists = memoize(s3.objectExists, {
+      length: 1,
+      primitive: true,
+      promise: true,
+      max: cache,
+    });
+
+    s3.putObject = memoize(s3.putObject, {
+      length: 1,
+      primitive: true,
+      promise: true,
+      max: cache,
+    });
+
+    s3.getObject = memoize(s3.getObject, {
+      length: 1,
+      primitive: true,
+      promise: true,
+      max: cache,
+    });
+  }
 
   return s3;
 }

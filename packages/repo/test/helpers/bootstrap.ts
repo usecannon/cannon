@@ -43,6 +43,9 @@ export function bootstrap() {
       PORT,
       NODE_ENV: 'test',
       TRUST_PROXY: true,
+      MEMORY_CACHE: 10_000,
+      RATE_LIMIT_MAX: 100_000,
+      RATE_LIMIT_WINDOW: 1,
       REDIS_URL: redisMock.REDIS_URL,
       IPFS_URL: ipfsMock.IPFS_URL,
       S3_ENDPOINT: s3Mock.S3_ENDPOINT,
@@ -50,9 +53,10 @@ export function bootstrap() {
       S3_REGION: s3Mock.S3_REGION,
       S3_KEY: s3Mock.S3_KEY,
       S3_SECRET: s3Mock.S3_SECRET,
+      S3_FOLDER: 'repo-v2',
     };
 
-    const s3 = getS3Client(config);
+    const s3 = getS3Client(config, config.MEMORY_CACHE);
     const rdb = await getDb(config.REDIS_URL);
     const server = await repoServer({ config, s3, rdb });
 
@@ -70,6 +74,7 @@ export function bootstrap() {
   afterEach(async function () {
     await ctx.s3Mock.reset();
     ctx.ipfsMock.reset();
+    ctx.s3.clearCache();
   });
 
   afterAll(async function () {
