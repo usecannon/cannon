@@ -55,18 +55,16 @@ export async function filterSettings(settings: any) {
   filteredSettings.rpcUrl = hideApiKey(filteredSettings.rpcUrl);
   filteredSettings.registryRpcUrl = hideApiKey(filteredSettings.registryRpcUrl);
 
-  const filterUrlPassword = (uri: string) => {
-    try {
-      return stripCredentialsFromURL(uri);
-    } catch (err) {
-      debug('Invalid URL', uri);
-      return '';
-    }
-  };
+  const settingsToFilter = ['publishIpfsUrl', 'ipfsUrl', 'writeIpfsUrl'];
 
-  filteredSettings.publishIpfsUrl = filterUrlPassword(filteredSettings.publishIpfsUrl!);
-  filteredSettings.ipfsUrl = filterUrlPassword(filteredSettings.ipfsUrl!);
-  filteredSettings.writeIpfsUrl = filterUrlPassword(filteredSettings.writeIpfsUrl!);
+  for (const setting of settingsToFilter) {
+    const value = filteredSettings[setting];
+    try {
+      filteredSettings[setting] = stripCredentialsFromURL(value);
+    } catch (err) {
+      debug(`Invalid URL for "${setting}": ${value}`);
+    }
+  }
 
   return filteredSettings;
 }

@@ -21,6 +21,10 @@
       "destination": "/packages/[name]/[tag]/[variant]/interact"
     },
     {
+      "source": "/packages/:name/:tag/:variant/deployment",
+      "destination": "/packages/[name]/[tag]/[variant]/deployment"
+    },
+    {
       "source": "/packages/:name/:tag/:variant/interact/:moduleName",
       "destination": "/packages/[name]/[tag]/[variant]/interact/[moduleName]"
     },
