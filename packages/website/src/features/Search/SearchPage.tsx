@@ -144,13 +144,17 @@ export const SearchPage = () => {
     </>
   );
 
+  if (packagesQuery.isPending) {
+    return (
+      <div className="flex w-full h-[calc(100vh-var(--header-height)-var(--footer-height))] items-center justify-center">
+        <CustomSpinner />
+      </div>
+    );
+  }
+
   return (
     <SidebarLayout sidebarContent={sidebarContent} fixedFooter>
-      {packagesQuery.isPending ? (
-        <div className="flex justify-center items-center flex-1 h-full">
-          <CustomSpinner />
-        </div>
-      ) : Object.values(groupedPackages).length == 0 ? (
+      {Object.values(groupedPackages).length == 0 ? (
         <div className="flex w-full h-full">
           <p className="m-auto text-gray-400">No results</p>
         </div>

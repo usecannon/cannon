@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 
 const DocsLandingPage = () => {
   return (
-    <div className="container max-w-[42rem] pt-10 md:pt-14">
+    <div className="container max-w-[42rem] pt-10 px-4 md:pt-14 md:px-0">
       <h1 className="scroll-m-20 text-3xl font-bold tracking-tight">
         Introducing Cannon
       </h1>

@@ -298,7 +298,7 @@ const DocsCliPage: FC = () => {
         borderlessSidebar
         fixedFooter={false}
       >
-        <div className="max-w-3xl py-10 pl-10">
+        <div className="max-w-3xl pr-4 py-10 pl-10">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-4">
               Command-Line Interface Documentation

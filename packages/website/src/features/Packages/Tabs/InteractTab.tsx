@@ -231,7 +231,7 @@ export const InteractTab: FC<{
           position={{ md: 'sticky' }}
           overflowX="scroll"
           overflowY="hidden"
-          maxW="100%"
+          maxW="100vw"
           p={2}
           borderBottom="1px solid"
           borderColor="gray.800"
