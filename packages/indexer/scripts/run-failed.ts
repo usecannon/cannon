@@ -1,18 +1,20 @@
-import { runWithQueue } from '../src/queue';
+import { createQueue } from '../src/queue';
 
 async function main() {
-  await runWithQueue(
-    async ({ queue }) => {
-      const failedJobs = await queue.getFailed();
-      // eslint-disable-next-line no-console
-      console.log('failed jobs: ', failedJobs.length);
+  const queue = createQueue();
+  queue.createWorker();
 
-      for (const job of failedJobs) {
-        await job.retry();
-      }
-    },
-    { startWorker: true }
-  );
+  const failedJobs = await queue.queue.getFailed();
+
+  // eslint-disable-next-line no-console
+  console.log('failed jobs: ', failedJobs.length);
+
+  for (const job of failedJobs) {
+    await job.retry();
+  }
+
+  await queue.waitForIdle();
+  await queue.close();
 }
 
 main().catch((err) => {

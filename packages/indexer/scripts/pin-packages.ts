@@ -1,5 +1,5 @@
 import { parseCid } from '@usecannon/builder';
-import { QueueJobRaw, runWithQueue } from '../src/queue';
+import { createQueue } from '../src/queue';
 
 async function main() {
   const cids = process.argv
@@ -7,18 +7,15 @@ async function main() {
     .map((cid) => parseCid(cid))
     .filter(Boolean);
 
-  await runWithQueue(
-    async ({ queue }) => {
-      const jobs: QueueJobRaw[] = [];
+  const queue = createQueue();
+  queue.createWorker();
 
-      for (const cid of cids) {
-        jobs.push({ name: 'PIN_PACKAGE', data: { cid } });
-      }
+  const batch = queue.createBatch();
+  for (const cid of cids) batch.add('PIN_PACKAGE', { cid });
+  await batch.exec();
 
-      await queue.addBulk(jobs);
-    },
-    { startWorker: true }
-  );
+  await queue.waitForIdle();
+  await queue.close();
 }
 
 main().catch((err) => {

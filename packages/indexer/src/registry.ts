@@ -20,7 +20,7 @@ import { config } from './config';
 import * as rkey from './db';
 import { ActualRedisClientType, useRedis } from './redis';
 import { createRpcClient } from './helpers/rpc';
-import { createQueue, createWorker, PinnerJob, PinnerQueue } from './workers/pinning';
+import { createQueue, Queue } from './queue';
 
 const BLOCK_BATCH_SIZE = 5000;
 
@@ -396,10 +396,9 @@ export async function scanChain(
   mainnetClient: viem.PublicClient,
   optimismClient: viem.PublicClient,
   registryContract: CannonContract,
-  queue: PinnerQueue
+  redis: ActualRedisClientType,
+  queue: Queue
 ) {
-  const redis = await useRedis();
-
   await createIndexesIfNedeed(redis as any);
 
   const storageCtx = new CannonStorage(
@@ -486,11 +485,14 @@ export async function scanChain(
               const deployUrl = event.args.deployUrl ?? event.args.url;
               const metaUrl = event.args.metaUrl ?? '';
 
-              await queue.add('PIN_PACKAGE', { cid: deployUrl });
+              const queueBatch = queue.createBatch();
+              queueBatch.add('PIN_PACKAGE', { cid: deployUrl });
 
               if (metaUrl) {
-                await queue.add('PIN_CID', { cid: metaUrl });
+                queueBatch.add('PIN_CID', { cid: metaUrl });
               }
+
+              await queueBatch.exec();
 
               // general package name list: used for finding packages by name
               batch.hSet(`${rkey.RKEY_PACKAGE_SEARCHABLE}:${packageRef}#${chainId}`, {
@@ -620,12 +622,13 @@ export async function scanChain(
 }
 
 export async function loop() {
+  const redis = await useRedis();
   const mainnetClient = createRpcClient('mainnet', config.MAINNET_PROVIDER_URL);
   const optimismClient = createRpcClient('optimism', config.OPTIMISM_PROVIDER_URL);
-  const queue = createQueue(config.REDIS_URL);
+  const queue = createQueue();
 
   // Initialize worker for pinning images
-  createWorker(config.REDIS_URL, queue);
+  queue.createWorker();
 
   console.log('start scan loop');
 
@@ -636,6 +639,7 @@ export async function loop() {
       address: DEFAULT_REGISTRY_ADDRESS,
       abi: CannonRegistryAbi,
     },
+    redis,
     queue
   );
 

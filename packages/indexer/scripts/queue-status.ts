@@ -1,11 +1,13 @@
-import { runWithQueue } from '../src/queue';
+import { createQueue } from '../src/queue';
 
 async function main() {
-  await runWithQueue(async ({ queue }) => {
-    const counts = await queue.getJobCounts();
-    // eslint-disable-next-line no-console
-    console.log(JSON.stringify(counts, null, 2));
-  });
+  const queue = createQueue();
+  const counts = await queue.queue.getJobCounts();
+
+  // eslint-disable-next-line no-console
+  console.log(JSON.stringify(counts, null, 2));
+
+  await queue.close();
 }
 
 main().catch((err) => {

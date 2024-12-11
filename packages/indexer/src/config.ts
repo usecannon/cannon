@@ -14,6 +14,7 @@ export const config = cleanEnv(process.env, {
   OPTIMISM_PROVIDER_URL: str({ default: 'https://optimism-rpc.publicnode.com' }),
   QUEUE_NAME: str({ default: 'pinner-queue' }),
   QUEUE_CONCURRENCY: num({ default: 5 }),
+  QUEUE_RETRIES: num({ default: 5 }),
   S3_ENDPOINT: str({ devDefault: '' }),
   S3_BUCKET: str({ devDefault: 'cannon' }),
   S3_FOLDER: str({ devDefault: 'repo-v2' }),
