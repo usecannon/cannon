@@ -23,10 +23,17 @@ export function getS3Client(config: Params, cache = 10_000) {
     },
   });
 
+  const cacheOptions = {
+    length: 1,
+    primitive: true,
+    promise: true,
+    max: cache,
+  };
+
   const s3 = {
     client,
 
-    async objectExists(key: string) {
+    objectExists: memoize(async function objectExists(key: string) {
       console.log('[s3][objectExists]', key);
 
       try {
@@ -39,9 +46,9 @@ export function getS3Client(config: Params, cache = 10_000) {
 
         throw err;
       }
-    },
+    }, cacheOptions),
 
-    async putObject(key: string, data: Buffer) {
+    putObject: memoize(async function putObject(key: string, data: Buffer) {
       console.log('[s3][putObject]', key);
 
       const res = await client.putObject({
@@ -51,10 +58,13 @@ export function getS3Client(config: Params, cache = 10_000) {
         ContentType: 'application/json',
       });
 
-      return res;
-    },
+      await s3.objectExists.delete(key);
+      await s3.getObject.delete(key);
 
-    async getObject(key: string) {
+      return res;
+    }, cacheOptions),
+
+    getObject: memoize(async function getObject(key: string) {
       console.log('[s3][getObject]', key);
 
       const res = await client.getObject({
@@ -67,37 +77,14 @@ export function getS3Client(config: Params, cache = 10_000) {
       }
 
       return res.Body!.transformToByteArray();
-    },
+    }, cacheOptions),
 
-    clearCache() {
-      (s3.objectExists as any).clear?.();
-      (s3.putObject as any).clear?.();
-      (s3.getObject as any).clear?.();
+    async clearCache() {
+      s3.objectExists.clear();
+      s3.putObject.clear();
+      s3.getObject.clear();
     },
   };
-
-  if (typeof cache === 'number' && cache > 0) {
-    s3.objectExists = memoize(s3.objectExists, {
-      length: 1,
-      primitive: true,
-      promise: true,
-      max: cache,
-    });
-
-    s3.putObject = memoize(s3.putObject, {
-      length: 1,
-      primitive: true,
-      promise: true,
-      max: cache,
-    });
-
-    s3.getObject = memoize(s3.getObject, {
-      length: 1,
-      primitive: true,
-      promise: true,
-      max: cache,
-    });
-  }
 
   return s3;
 }

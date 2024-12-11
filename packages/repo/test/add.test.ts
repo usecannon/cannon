@@ -33,6 +33,9 @@ describe('POST /api/v0/add', function () {
   it('should successfully add valid package data', async function () {
     const pkg = await loadFixture('registry');
 
+    const prevExists = await ctx.s3.objectExists(pkg.cid);
+    expect(prevExists).toBe(false);
+
     await ctx.repo
       .post('/api/v0/add')
       .attach('file', pkg.data)
@@ -40,6 +43,9 @@ describe('POST /api/v0/add', function () {
       .expect((res) => {
         expect(JSON.parse(res.text)).toEqual({ Hash: pkg.cid });
       });
+
+    const afterExists = await ctx.s3.objectExists(pkg.cid);
+    expect(afterExists).toBe(true);
 
     const saved = await ctx.s3.getObject(pkg.cid);
     const parsed = JSON.parse(uncompress(saved));
