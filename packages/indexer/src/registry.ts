@@ -20,7 +20,7 @@ import { config } from './config';
 import * as rkey from './db';
 import { ActualRedisClientType, useRedis } from './redis';
 import { createRpcClient } from './helpers/rpc';
-import { createQueue, createWorker, PinnerJob, PinnerQueue } from './pinner';
+import { createQueue, createWorker, PinnerJob, PinnerQueue } from './workers/pinning';
 
 const BLOCK_BATCH_SIZE = 5000;
 
@@ -623,17 +623,11 @@ export async function loop() {
   const mainnetClient = createRpcClient('mainnet', config.MAINNET_PROVIDER_URL);
   const optimismClient = createRpcClient('optimism', config.OPTIMISM_PROVIDER_URL);
   const queue = createQueue(config.REDIS_URL);
-  const worker = createWorker(config.REDIS_URL, queue);
+
+  // Initialize worker for pinning images
+  createWorker(config.REDIS_URL, queue);
 
   console.log('start scan loop');
-
-  worker.on('completed', (job: PinnerJob) => {
-    console.log('[worker][pinner] completed: ', job.name, job.data.cid);
-  });
-
-  worker.on('failed', (job: PinnerJob | undefined, error: Error) => {
-    console.log('[worker][pinner] failed: ', job?.name, job?.data.cid, error.message);
-  });
 
   await scanChain(
     mainnetClient,

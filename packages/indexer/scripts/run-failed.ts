@@ -1,7 +1,7 @@
-import { runWithPinner } from '../src/pinner';
+import { runWithQueue } from '../src/queue';
 
 async function main() {
-  await runWithPinner(
+  await runWithQueue(
     async ({ queue }) => {
       const failedJobs = await queue.getFailed();
       // eslint-disable-next-line no-console
@@ -11,7 +11,7 @@ async function main() {
         await job.retry();
       }
     },
-    { withWorker: true }
+    { startWorker: true }
   );
 }
 

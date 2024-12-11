@@ -1,7 +1,7 @@
-import { runWithPinner } from '../src/pinner';
+import { runWithQueue } from '../src/queue';
 
 async function main() {
-  await runWithPinner(async ({ queue }) => {
+  await runWithQueue(async ({ queue }) => {
     const counts = await queue.getJobCounts();
     // eslint-disable-next-line no-console
     console.log(JSON.stringify(counts, null, 2));

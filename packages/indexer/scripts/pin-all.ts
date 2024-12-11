@@ -3,7 +3,7 @@ import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/builder';
 import { createRpcClient } from '../src/helpers/rpc';
 import { batches } from '../src/helpers/batches';
 import { config } from '../src/config';
-import { PinnerJobRaw, runWithPinner } from '../src/pinner';
+import { QueueJobRaw, runWithQueue } from '../src/queue';
 
 const packagePublishEvents = viem.parseAbi([
   'event PackagePublish(bytes32 indexed name, bytes32[] indexed tags, bytes32 variant, string url, address owner)',
@@ -18,7 +18,7 @@ const START_IDS = {
 };
 
 async function main() {
-  await runWithPinner(
+  await runWithQueue(
     async ({ queue }) => {
       const mainnetClient = createRpcClient('mainnet', config.MAINNET_PROVIDER_URL);
       const optimismClient = createRpcClient('optimism', config.OPTIMISM_PROVIDER_URL);
@@ -29,7 +29,7 @@ async function main() {
       const deployUrls = new Set([...mainnetUrls.deployUrls, ...optimismUrls.deployUrls]);
       const metaUrls = new Set([...mainnetUrls.metaUrls, ...optimismUrls.metaUrls]);
 
-      const jobs: PinnerJobRaw[] = [];
+      const jobs: QueueJobRaw[] = [];
 
       for (const deployUrl of deployUrls) {
         jobs.push({ name: 'PIN_PACKAGE', data: { cid: deployUrl } });
@@ -41,7 +41,7 @@ async function main() {
 
       await queue.addBulk(jobs);
     },
-    { withWorker: true }
+    { startWorker: true }
   );
 }
 

@@ -1,17 +1,23 @@
-import { parseIpfsCid, parseIpfsUrl } from '@usecannon/builder';
-import { PinnerJobRaw, runWithPinner } from '../src/pinner';
+import { parseCid } from '@usecannon/builder';
+import { QueueJobRaw, runWithQueue } from '../src/queue';
 
 async function main() {
   const cids = process.argv
     .slice(2)
-    .map((cid) => parseIpfsUrl(cid) || parseIpfsCid(cid))
+    .map((cid) => parseCid(cid))
     .filter(Boolean);
 
-  await runWithPinner(
+  await runWithQueue(
     async ({ queue }) => {
-      await queue.addBulk(cids.map((cid) => ({ name: 'PIN_PACKAGE', data: { cid } } as PinnerJobRaw)));
+      const jobs: QueueJobRaw[] = [];
+
+      for (const cid of cids) {
+        jobs.push({ name: 'PIN_PACKAGE', data: { cid } });
+      }
+
+      await queue.addBulk(jobs);
     },
-    { withWorker: true }
+    { startWorker: true }
   );
 }
 
