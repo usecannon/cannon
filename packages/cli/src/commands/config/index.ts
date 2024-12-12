@@ -547,6 +547,7 @@ export const commandsConfig: CommandsConfig = {
       {
         flags: '-c --chain-id <chainId>',
         description: 'Chain ID of the variant to inspect',
+        defaultValue: '13370',
       },
       {
         flags: '-j --json',
