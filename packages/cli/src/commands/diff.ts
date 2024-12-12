@@ -2,7 +2,7 @@ import Debug from 'debug';
 import * as Diff from 'diff';
 import * as viem from 'viem';
 import { getFoundryArtifact, buildContracts } from '../foundry';
-import { ChainDefinition, ChainBuilderRuntime, DeploymentInfo, getArtifacts, PackageReference } from '@usecannon/builder';
+import { ChainDefinition, ChainBuilderRuntime, DeploymentInfo, getArtifacts } from '@usecannon/builder';
 
 import { CliSettings } from '../settings';
 import { getProvider, runRpc } from '../rpc';

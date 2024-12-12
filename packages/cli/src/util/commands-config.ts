@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { formatCommandHelp } from './format-command-help';
-import { parsePackageArguments, parsePackagesArguments } from './params';
+import { parsePackagesArguments } from './params';
 import type { Command as CommandConfig } from '../commands/config/types';
 
 export const applyCommandsConfig = (command: Command, config: CommandConfig) => {
