@@ -45,3 +45,4 @@ jobs:
         env:
           CANNON_E2E_RPC_URL_OPTIMISM: ${{ secrets.CANNON_E2E_RPC_URL_OPTIMISM }}
           CANNON_E2E_RPC_URL_ETHEREUM: ${{ secrets.CANNON_E2E_RPC_URL_ETHEREUM }}
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
