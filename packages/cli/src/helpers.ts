@@ -7,8 +7,9 @@ import {
   ChainDefinition,
   ContractData,
   ContractMap,
-  DeploymentInfo,
   CannonStorage,
+  DeploymentInfo,
+  getIpfsUrl,
   PackageReference,
   RawChainDefinition,
 } from '@usecannon/builder';
@@ -465,74 +466,24 @@ export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | unde
  * @param packageRef The package reference, eg. name:version@preset or ipfs://<cid>
  * @returns Package Reference string
  */
-export async function getPackageInfo(packageRef: string) {
-  if (packageRef.startsWith('@')) {
-    log(yellowBright("'@ipfs:' package reference format is deprecated, use 'ipfs://' instead"));
-  }
+export async function getPackageInfo(packageRef: string): Promise<{ fullPackageRef: string; chainId?: number }> {
+  const ipfsUrl = getIpfsUrl(packageRef);
 
-  if (isIPFSUrl(packageRef)) {
-    packageRef = normalizeIPFSUrl(packageRef);
-  } else if (isIPFSCid(packageRef)) {
-    packageRef = `ipfs://${packageRef}`;
-  } else {
-    // cant determine chainId from non-ipfs package references
-    return { fullPackageRef: new PackageReference(packageRef).fullPackageRef, chainId: undefined };
+  // if its not an ipfs url, try to parse the package reference, or throw a parsing error
+  if (!ipfsUrl) {
+    const { fullPackageRef } = new PackageReference(packageRef);
+    return { fullPackageRef, chainId: undefined };
   }
 
   const cliSettings = resolveCliSettings();
-
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
-
   const storage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
+  const pkgInfo: DeploymentInfo = await storage.readBlob(ipfsUrl);
+  const version = pkgInfo.def.version.includes('<%=') ? pkgInfo.meta.version : pkgInfo.def.version;
+  const { fullPackageRef } = PackageReference.from(pkgInfo.def.name, version, pkgInfo.def.preset);
 
-  try {
-    const pkgInfo: DeploymentInfo = await storage.readBlob(packageRef);
-
-    let version = pkgInfo.def.version;
-    if (pkgInfo.def.version.startsWith('<%=')) {
-      version = pkgInfo.meta.version;
-    }
-
-    const fullPackageRef = PackageReference.from(pkgInfo.def.name, version, pkgInfo.def.preset).fullPackageRef;
-
-    return {
-      fullPackageRef,
-      chainId: Number(pkgInfo.chainId),
-    };
-  } catch (error: any) {
-    throw new Error(error);
-  }
-}
-
-export function isIPFSUrl(ref: string) {
-  return ref.startsWith('ipfs://') || ref.startsWith('@ipfs:');
-}
-
-export function isIPFSCid(ref: string) {
-  return ref.startsWith('Qm');
-}
-
-export function isIPFSRef(ref: string) {
-  return isIPFSCid(ref) || isIPFSUrl(ref);
-}
-
-export function normalizeIPFSUrl(ref: string) {
-  if (ref.startsWith('@ipfs:')) {
-    return ref.replace('@ipfs:', 'ipfs://');
-  }
-
-  return ref;
-}
-
-export function getCIDfromUrl(ref: string) {
-  if (!isIPFSRef(ref)) {
-    throw new Error(`${ref} is not a valid IPFS url`);
-  }
-
-  if (isIPFSUrl(ref)) {
-    ref = normalizeIPFSUrl(ref);
-    return ref.replace('ipfs://', '');
-  }
-
-  return ref;
+  return {
+    fullPackageRef,
+    chainId: Number(pkgInfo.chainId) || undefined,
+  };
 }

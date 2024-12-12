@@ -29,6 +29,7 @@ import {
   findUpgradeFromPackage,
   ChainBuilderContext,
   RawChainDefinition,
+  getIpfsUrl,
 } from '@usecannon/builder';
 import _ from 'lodash';
 import { useEffect, useReducer, useState, useMemo } from 'react';
@@ -434,9 +435,8 @@ export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?:
   const registryQuery = useQuery({
     queryKey: ['cannon', 'registry-url', normalizedUrlOrRef, packageChainId],
     queryFn: async () => {
-      if (normalizedUrlOrRef?.startsWith('ipfs://')) return { url: normalizedUrlOrRef };
-      if (normalizedUrlOrRef?.startsWith('@ipfs:')) return { url: normalizedUrlOrRef.replace('@ipfs:', 'ipfs://') };
-
+      const ipfsUrl = getIpfsUrl(normalizedUrlOrRef);
+      if (ipfsUrl) return { url: ipfsUrl };
       const url = await registry.getUrl(normalizedUrlOrRef!, packageChainId);
       if (!url) throw new Error(`package not found: ${normalizedUrlOrRef} (${packageChainId})`);
       return { url };
