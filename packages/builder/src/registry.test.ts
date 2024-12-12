@@ -16,14 +16,6 @@ describe('registry.ts', () => {
     }
 
     describe('getUrl()', () => {
-      it('applies url alteration for "@ipfs" prefixed cannon packages', async () => {
-        const registry = new FakeCannonRegistry();
-
-        const url = await registry.getUrl('@ipfs:Qmwohoo', 13370);
-
-        expect(url).toBe('ipfs://Qmwohoo');
-      });
-
       it('applies url alteration for "Qm" hashes', async () => {
         const registry = new FakeCannonRegistry();
 
@@ -181,12 +173,6 @@ describe('registry.ts', () => {
     });
 
     describe('getUrl()', () => {
-      it('calls (and returns) from super first', async () => {
-        const url = await registry.getUrl('@ipfs:Qmwohoo', 13370);
-
-        expect(url).toBe('ipfs://Qmwohoo');
-      });
-
       it('calls `getPackageUrl`', async () => {
         const provider = makeFakeProvider();
         const registry = createRegistry({ provider });

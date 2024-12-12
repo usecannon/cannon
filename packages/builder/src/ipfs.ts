@@ -42,6 +42,15 @@ export function parseIpfsCid(cid: any) {
   return cid.trim().match(CID_REGEX)?.groups?.cid || null;
 }
 
+export function getIpfsCid(str: any): string | null {
+  return parseIpfsUrl(str) || parseIpfsCid(str);
+}
+
+export function getIpfsUrl(str: any): string | null {
+  const cid = parseIpfsCid(str);
+  return cid ? `ipfs://${cid}` : null;
+}
+
 export async function prepareFormData(info: any) {
   const data = JSON.stringify(info);
   const buf = compress(data);
