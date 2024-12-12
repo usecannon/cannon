@@ -72,16 +72,13 @@ export function bootstrap() {
   });
 
   afterEach(async function () {
-    await ctx.s3Mock.reset();
     ctx.ipfsMock.reset();
-    ctx.s3.clearCache();
+    await Promise.all([ctx.s3Mock.reset(), ctx.s3.clearCache()]);
   });
 
   afterAll(async function () {
     await ctx.server.close();
-    await ctx.ipfsMock.close();
-    await ctx.redisMock.close();
-    await ctx.s3Mock.close();
+    await Promise.all([ctx.ipfsMock.close(), ctx.redisMock.close(), ctx.s3Mock.close()]);
   });
 
   return ctx;

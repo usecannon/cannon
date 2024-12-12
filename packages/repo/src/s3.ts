@@ -80,9 +80,9 @@ export function getS3Client(config: Params, cache = 10_000) {
     }, cacheOptions),
 
     async clearCache() {
-      s3.objectExists.clear();
-      s3.putObject.clear();
-      s3.getObject.clear();
+      await s3.objectExists.clear();
+      await s3.putObject.clear();
+      await s3.getObject.clear();
     },
   };
 
