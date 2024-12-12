@@ -461,6 +461,20 @@ export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | unde
   return normalizedPrivateKeys.join(',') as viem.Hex;
 }
 
+export async function getPackageReference(packageRef: string, givenChainId: any, givenRpcUrl?: string) {
+  const { fullPackageRef } = new PackageReference(packageRef);
+  const parsedChainId = Number(givenChainId) || undefined;
+  const chainId =
+    parsedChainId || (isURL(givenRpcUrl) && (await getChainIdFromRpcUrl(givenRpcUrl!))) || (await _promptChainId());
+
+  // throw an error if the chainId is not consistent with the provider's chainId
+  if (isURL(givenRpcUrl)) {
+    await ensureChainIdConsistency(givenRpcUrl, chainId);
+  }
+
+  return { fullPackageRef, chainId };
+}
+
 /**
  *
  * @param packageRef The package reference, eg. name:version@preset or ipfs://<cid>
@@ -468,15 +482,15 @@ export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | unde
  */
 export async function getPackageInfo(
   packageRef: string,
-  givenChainId: any
-): Promise<{ fullPackageRef: string; chainId?: number }> {
+  givenChainId: any,
+  givenRpcUrl: string
+): Promise<{ fullPackageRef: string; chainId: number }> {
   const ipfsUrl = getIpfsUrl(packageRef);
   const parsedChainId = Number(givenChainId) || undefined;
 
   // if its not an ipfs url, try to parse the package reference, or throw a parsing error
   if (!ipfsUrl) {
-    const { fullPackageRef } = new PackageReference(packageRef);
-    return { fullPackageRef, chainId: parsedChainId };
+    return getPackageReference(packageRef, givenChainId, givenRpcUrl);
   }
 
   const cliSettings = resolveCliSettings();
@@ -485,26 +499,31 @@ export async function getPackageInfo(
   const pkgInfo: DeploymentInfo = await storage.readBlob(ipfsUrl);
   const version = pkgInfo.def.version.includes('<%=') ? pkgInfo.meta.version : pkgInfo.def.version;
   const { fullPackageRef } = PackageReference.from(pkgInfo.def.name, version, pkgInfo.def.preset);
-  let chainId = Number(pkgInfo.chainId) || parsedChainId;
-
-  // if chainId is still undefined, prompt the user to provide the chainId
-  if (!chainId) {
-    const chainIdPrompt = await prompts({
-      type: 'number',
-      name: 'value',
-      message: 'Please provide the Chain ID for the package you want to publish',
-      initial: 13370,
-    });
-
-    if (!chainIdPrompt.value) {
-      throw new Error('A valid Chain Id is required.');
-    }
-
-    chainId = Number(chainIdPrompt.value);
-  }
+  const chainId =
+    Number(pkgInfo.chainId) ||
+    parsedChainId ||
+    (givenRpcUrl && (await getChainIdFromRpcUrl(givenRpcUrl))) ||
+    (await _promptChainId());
 
   return {
     fullPackageRef,
     chainId,
   };
+}
+
+async function _promptChainId(): Promise<number> {
+  const chainIdPrompt = await prompts({
+    type: 'number',
+    name: 'value',
+    message: 'Please provide a Chain ID for the given package',
+    initial: 13370,
+  });
+
+  if (!chainIdPrompt.value) {
+    throw new Error('A valid Chain Id is required.');
+  }
+
+  log();
+
+  return Number(chainIdPrompt.value);
 }

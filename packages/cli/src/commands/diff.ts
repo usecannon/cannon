@@ -15,15 +15,13 @@ import { log, error } from '../util/console';
 const debug = Debug('cannon:cli:diff');
 
 export async function diff(
-  packageRef: string,
+  fullPackageRef: string,
   cliSettings: CliSettings,
   chainId: number,
   projectDirectory: string,
   matchContract = '',
   matchPath = ''
 ): Promise<number> {
-  const { fullPackageRef } = new PackageReference(packageRef);
-
   // create temporary provider
   // todo: really shouldn't be necessary
   const node = await runRpc({

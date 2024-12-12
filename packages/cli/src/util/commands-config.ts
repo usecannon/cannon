@@ -16,8 +16,6 @@ export const applyCommandsConfig = (command: Command, config: CommandConfig) => 
     config.arguments.map((argument: any) => {
       if (argument.flags === '<packageRefs...>') {
         command.argument(argument.flags, argument.description, parsePackagesArguments, argument.defaultValue);
-      } else if (command.name() === 'interact' && argument.flags === '<packageRef>') {
-        command.argument(argument.flags, argument.description, parsePackageArguments, argument.defaultValue);
       } else {
         command.argument(argument.flags, argument.description, argument.defaultValue);
       }

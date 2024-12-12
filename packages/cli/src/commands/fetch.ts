@@ -37,16 +37,12 @@ async function storeDeployReference(filePath: string, content: string) {
   }
 }
 
-export async function fetch(packageRef: string, chainId: number, hash: string, metaHash?: string) {
-  if (!/^Qm[1-9A-Za-z]{44}$/.test(hash)) {
-    throw new Error(`"${hash}" does not match the IPFS CID v0 format`);
-  }
-
+export async function fetch(fullPackageRef: string, chainId: number, ipfsUrl: string, metaIpfsUrl?: string) {
   debug('resolving user settings');
 
   const cliSettings = resolveCliSettings();
 
-  const { name, version, preset } = new PackageReference(packageRef);
+  const { name, version, preset } = new PackageReference(fullPackageRef);
 
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
 
@@ -55,55 +51,41 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
   });
 
   log(blueBright('Fetching IPFS data from: '));
-  log(`\n - ${hash}`);
+  log(`\n - ${ipfsUrl}`);
 
-  try {
-    const ipfsUrl = 'ipfs://' + hash;
+  debug('reading deploy from ipfs');
 
-    debug('reading deploy from ipfs');
+  // Fetching deployment info
+  const deployInfo: DeploymentInfo = await storage.readBlob(ipfsUrl);
 
-    // Fetching deployment info
-    const deployInfo: DeploymentInfo = await storage.readBlob(ipfsUrl);
+  const def = new ChainDefinition(deployInfo.def);
 
-    const def = new ChainDefinition(deployInfo.def);
+  const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId || chainId, deployInfo.options);
 
-    const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId || chainId, deployInfo.options);
+  const pkgName = `${name}:${def.getVersion(preCtx) || version}@${preset}`;
 
-    const pkgName = `${name}:${def.getVersion(preCtx) || version}@${preset}`;
-
-    if (!deployInfo || Object.keys(deployInfo).length === 0) {
-      throw new Error(`could not find package data on IPFS using the hash: ${hash}`);
-    }
-
-    if (name !== deployInfo.def.name) {
-      throw new Error(`deployment data at ${hash} does not match the specified package "${pkgName}"`);
-    }
-
-    debug('storing deploy info');
-
-    const deployPath = localRegistry.getTagReferenceStorage(pkgName, deployInfo.chainId || chainId);
-
-    await storeDeployReference(deployPath, ipfsUrl);
-
-    if (metaHash) {
-      if (!/^Qm[1-9A-Za-z]{44}$/.test(metaHash)) {
-        throw new Error(`"${metaHash}" does not match the IPFS CID v0 format`);
-      }
-
-      const ipfsUrl = 'ipfs://' + metaHash;
-
-      debug('reading metadata from ipfs');
-
-      const deployMetadataPath = localRegistry.getMetaTagReferenceStorage(pkgName, chainId);
-
-      await storeDeployReference(deployMetadataPath, ipfsUrl);
-    }
-
-    log(`\n\nSuccessfully fetched and saved deployment data for the following package: ${pkgName}`);
-    log(
-      `run 'cannon publish ${pkgName} --chain-id <CHAIN_ID> --private-key <PRIVATE_KEY>' to publish the package to the registry`
-    );
-  } catch (e: any) {
-    throw new Error(`${e?.message}`);
+  if (!deployInfo || Object.keys(deployInfo).length === 0) {
+    throw new Error(`could not find package data on IPFS using the hash: ${ipfsUrl}`);
   }
+
+  if (name !== deployInfo.def.name) {
+    throw new Error(`deployment data at ${ipfsUrl} does not match the specified package "${pkgName}"`);
+  }
+
+  debug('storing deploy info');
+
+  const deployPath = localRegistry.getTagReferenceStorage(pkgName, deployInfo.chainId || chainId);
+
+  await storeDeployReference(deployPath, ipfsUrl);
+
+  if (metaIpfsUrl) {
+    debug('reading metadata from ipfs');
+    const deployMetadataPath = localRegistry.getMetaTagReferenceStorage(pkgName, chainId);
+    await storeDeployReference(deployMetadataPath, metaIpfsUrl);
+  }
+
+  log(`\n\nSuccessfully fetched and saved deployment data for the following package: ${pkgName}`);
+  log(
+    `run 'cannon publish ${pkgName} --chain-id <CHAIN_ID> --private-key <PRIVATE_KEY>' to publish the package to the registry`
+  );
 }
