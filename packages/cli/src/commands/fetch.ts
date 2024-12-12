@@ -7,6 +7,7 @@ import {
   ChainDefinition,
   createInitialContext,
   getCannonRepoRegistryUrl,
+  getIpfsUrl,
 } from '@usecannon/builder';
 import Debug from 'debug';
 import fs from 'node:fs';
@@ -37,7 +38,14 @@ async function storeDeployReference(filePath: string, content: string) {
   }
 }
 
-export async function fetch(fullPackageRef: string, chainId: number, ipfsUrl: string, metaIpfsUrl?: string) {
+export async function fetch(fullPackageRef: string, chainId: number, _ipfsUrl: string, _metaIpfsUrl?: string) {
+  const ipfsUrl = getIpfsUrl(_ipfsUrl);
+  const metaIpfsUrl = getIpfsUrl(_metaIpfsUrl);
+
+  if (!ipfsUrl) {
+    throw new Error('IPFS URL is required.');
+  }
+
   debug('resolving user settings');
 
   const cliSettings = resolveCliSettings();
