@@ -346,32 +346,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
   const cliSettings = resolveCliSettings(options);
 
-  const { fullPackageRef, chainId: chainIdFromPackage } = await getPackageInfo(packageRef);
-
-  let chainId: number | undefined = undefined;
-
-  // if it's a ipfs hash, use the chainId from the package
-  if (chainIdFromPackage) {
-    chainId = chainIdFromPackage;
-  } else if (options.chainId) {
-    chainId = Number(options.chainId);
-  }
-
-  // if chainId is still undefined, prompt the user to provide the chainId
-  if (!chainId) {
-    const chainIdPrompt = await prompts({
-      type: 'number',
-      name: 'value',
-      message: 'Please provide the Chain ID for the package you want to publish',
-      initial: 13370,
-    });
-
-    if (!chainIdPrompt.value) {
-      throw new Error('A valid Chain Id is required.');
-    }
-
-    chainId = Number(chainIdPrompt.value);
-  }
+  const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId);
 
   const isDefaultRegistryChains =
     cliSettings.registries[0].chainId === DEFAULT_REGISTRY_CONFIG[0].chainId &&
@@ -540,7 +515,11 @@ applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(a
 
   const cliSettings = resolveCliSettings(options);
 
-  await inspect(packageName, cliSettings, options.chainId, options.json, options.writeDeployments, options.sources);
+  const { fullPackageRef, chainId: chainIdFromPackage } = await getPackageInfo(packageName);
+
+  console.log(options);
+
+  await inspect(fullPackageRef, cliSettings, options.chainId, options.json, options.writeDeployments, options.sources);
 });
 
 applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async function (options) {
