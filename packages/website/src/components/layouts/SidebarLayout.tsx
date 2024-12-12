@@ -92,7 +92,7 @@ export function SidebarLayout({
       {sidebarContent && (
         <Sidebar
           style={sidebarStyles}
-          className={`z-[100] sticky w-[280px] md:w-[280px] shrink-0 overflow-y-auto ${
+          className={`z-[20] sticky w-[280px] md:w-[280px] shrink-0 overflow-y-auto ${
             borderlessSidebar ? 'border-none' : 'border-r border-border'
           }`}
         >
