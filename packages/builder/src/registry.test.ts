@@ -19,9 +19,9 @@ describe('registry.ts', () => {
       it('applies url alteration for "Qm" hashes', async () => {
         const registry = new FakeCannonRegistry();
 
-        const url = await registry.getUrl('Qmwohoo', 13370);
+        const url = await registry.getUrl('QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i', 13370);
 
-        expect(url).toBe('ipfs://Qmwohoo');
+        expect(url).toBe('ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i');
       });
 
       it('just passes through for any non "@" prefixed cannon packages', async () => {
@@ -76,7 +76,7 @@ describe('registry.ts', () => {
     describe('publish()', () => {
       it('throws if signer is not specified', async () => {
         await expect(() =>
-          providerOnlyRegistry.publish(['dummy-package:0.0.1'], 1, 'ipfs://Qmsomething')
+          providerOnlyRegistry.publish(['dummy-package:0.0.1'], 1, 'ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i')
         ).rejects.toThrowError('Missing signer for executing registry operations');
       });
 
@@ -88,9 +88,9 @@ describe('registry.ts', () => {
 
         jest.mocked(provider.getBalance).mockResolvedValue(BigInt(0));
 
-        await expect(() => registry.publish(['dummy-package:0.0.1'], 1, 'ipfs://Qmsomething')).rejects.toThrowError(
-          /Signer at .* is not funded with ETH./
-        );
+        await expect(() =>
+          registry.publish(['dummy-package:0.0.1'], 1, 'ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i')
+        ).rejects.toThrowError(/Signer at .* is not funded with ETH./);
       });
 
       it('throws if signer is not the owner of the package', async () => {
@@ -126,7 +126,11 @@ describe('registry.ts', () => {
         jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue(rx);
 
         await expect(
-          registry.publish(['dummy-package:0.0.1@main', 'dummy-package:latest@main'], 1, 'ipfs://Qmsomething')
+          registry.publish(
+            ['dummy-package:0.0.1@main', 'dummy-package:latest@main'],
+            1,
+            'ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i'
+          )
         ).rejects.toThrow(`Signer "${signer.address}" does not have publishing permissions on the "dummy-package" package`);
       });
 
@@ -162,7 +166,7 @@ describe('registry.ts', () => {
         const retValue = await registry.publish(
           ['dummy-package:0.0.1@main', 'dummy-package:latest@main'],
           1,
-          'ipfs://Qmsomething'
+          'ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i'
         );
 
         // should only return the first receipt because its a multicall
@@ -177,11 +181,11 @@ describe('registry.ts', () => {
         const provider = makeFakeProvider();
         const registry = createRegistry({ provider });
 
-        jest.mocked(provider.readContract).mockResolvedValue('ipfs://Qmwohoo');
+        jest.mocked(provider.readContract).mockResolvedValue('ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i');
 
         const url = await registry.getUrl('dummy-package:0.0.1@main', 13370);
 
-        expect(url).toBe('ipfs://Qmwohoo');
+        expect(url).toBe('ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i');
 
         expect(jest.mocked(provider.readContract).mock.lastCall?.[0]).toMatchObject({
           functionName: 'getPackageUrl',
