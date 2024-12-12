@@ -1,4 +1,5 @@
 import { S3 } from '@aws-sdk/client-s3';
+import memoize from 'memoizee';
 
 export type S3Client = ReturnType<typeof getS3Client>;
 
@@ -11,7 +12,7 @@ interface Params {
   S3_SECRET: string;
 }
 
-export function getS3Client(config: Params) {
+export function getS3Client(config: Params, cache = 10_000) {
   const client = new S3({
     forcePathStyle: false, // Configures to use subdomain/virtual calling format.
     endpoint: config.S3_ENDPOINT,
@@ -22,10 +23,19 @@ export function getS3Client(config: Params) {
     },
   });
 
+  const cacheOptions = {
+    length: 1,
+    primitive: true,
+    promise: true,
+    max: cache,
+  };
+
   const s3 = {
     client,
 
-    async objectExists(key: string) {
+    objectExists: memoize(async function objectExists(key: string) {
+      console.log('[s3][objectExists]', key);
+
       try {
         await client.headObject({ Bucket: config.S3_BUCKET, Key: `${config.S3_FOLDER}/${key}` });
         return true;
@@ -36,9 +46,11 @@ export function getS3Client(config: Params) {
 
         throw err;
       }
-    },
+    }, cacheOptions),
 
-    async putObject(key: string, data: Buffer) {
+    putObject: memoize(async function putObject(key: string, data: Buffer) {
+      console.log('[s3][putObject]', key);
+
       const res = await client.putObject({
         Bucket: config.S3_BUCKET,
         Key: `${config.S3_FOLDER}/${key}`,
@@ -46,10 +58,15 @@ export function getS3Client(config: Params) {
         ContentType: 'application/json',
       });
 
-      return res;
-    },
+      await s3.objectExists.delete(key);
+      await s3.getObject.delete(key);
 
-    async getObjectStream(key: string) {
+      return res;
+    }, cacheOptions),
+
+    getObject: memoize(async function getObject(key: string) {
+      console.log('[s3][getObject]', key);
+
       const res = await client.getObject({
         Bucket: config.S3_BUCKET,
         Key: `${config.S3_FOLDER}/${key}`,
@@ -59,12 +76,13 @@ export function getS3Client(config: Params) {
         throw new Error(`no response body for "${key}"`);
       }
 
-      return res;
-    },
-
-    async getObject(key: string) {
-      const res = await s3.getObjectStream(key);
       return res.Body!.transformToByteArray();
+    }, cacheOptions),
+
+    async clearCache() {
+      await s3.objectExists.clear();
+      await s3.putObject.clear();
+      await s3.getObject.clear();
     },
   };
 

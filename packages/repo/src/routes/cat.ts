@@ -34,18 +34,15 @@ export function cat(ctx: RepoContext) {
     const exists = await ctx.s3.objectExists(cid);
 
     if (exists) {
-      const data = await ctx.s3.getObjectStream(cid);
+      const data = await ctx.s3.getObject(cid);
+
       res.setHeader('Content-Type', 'application/octet-stream');
 
-      if (data.ContentLength) {
-        res.setHeader('Content-Length', data.ContentLength);
+      if (data.length) {
+        res.setHeader('Content-Length', data.length);
       }
 
-      for await (const chunk of data.Body!.transformToWebStream()) {
-        res.write(chunk);
-      }
-
-      return res.end();
+      return res.end(data);
     }
 
     // optimistically, start the upstream request immediately to save time

@@ -42,6 +42,12 @@ export function parseIpfsCid(cid: any) {
   return cid.trim().match(CID_REGEX)?.groups?.cid || null;
 }
 
+export function parseCid(str: any): string {
+  const cid = parseIpfsUrl(str) || parseIpfsCid(str);
+  if (!cid) throw new Error(`Invalid CID ${str}`);
+  return cid;
+}
+
 export async function prepareFormData(info: any) {
   const data = JSON.stringify(info);
   const buf = compress(data);

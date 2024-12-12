@@ -12,7 +12,7 @@ async function main() {
 
   const ctx = { config } as unknown as RepoContext;
 
-  ctx.s3 = getS3Client(config);
+  ctx.s3 = getS3Client(config, config.MEMORY_CACHE);
   ctx.rdb = await getDb(config.REDIS_URL);
 
   const app = createApp(ctx);
