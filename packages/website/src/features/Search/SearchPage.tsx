@@ -89,7 +89,7 @@ export const SearchPage = () => {
 
   const sidebarContent = (
     <>
-      <SidebarHeader className="px-4">
+      <SidebarHeader className="px-4 py-6">
         <SearchInput onSearchChange={setSearchTerm} />
       </SidebarHeader>
 
@@ -159,7 +159,7 @@ export const SearchPage = () => {
           <p className="m-auto text-gray-400">No results</p>
         </div>
       ) : (
-        <div className="space-y-6 pt-6 pb-2">
+        <div className="space-y-6 pt-6 px-4 pb-2">
           {Object.values(groupedPackages).map((pkgs: any) => (
             <div
               key={pkgs[0].name}
