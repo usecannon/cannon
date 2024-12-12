@@ -9,7 +9,7 @@ _setup_file() {
 
   require_env_var 'CANNON_E2E_RPC_URL_OPTIMISM'
   require_env_var 'CANNON_E2E_RPC_URL_ETHEREUM'
-  require_env_var 'ETHERSCAN_API_KEY'
+  require_env_var 'CANNON_ETHERSCAN_API_KEY'
 
   # Create temporary directory for tests if necessary
   export CANNON_DIRECTORY="${CANNON_DIRECTORY:="$(mktemp -d)/.cannon"}"
