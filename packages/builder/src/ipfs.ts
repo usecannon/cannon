@@ -53,7 +53,7 @@ export function getIpfsCid(str: any): string | null {
 }
 
 export function getIpfsUrl(str: any): string | null {
-  const cid = parseIpfsCid(str);
+  const cid = getIpfsCid(str);
   return cid ? `ipfs://${cid}` : null;
 }
 
