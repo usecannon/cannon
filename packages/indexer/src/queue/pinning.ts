@@ -1,4 +1,4 @@
-import { getDeploymentImports, parseCid, readRawIpfs, uncompress, writeRawIpfs } from '@usecannon/builder';
+import { getDeploymentImports, extractValidCid, readRawIpfs, uncompress, writeRawIpfs } from '@usecannon/builder';
 import { getS3Client } from '@usecannon/repo/src/s3';
 import { config } from '../config';
 import { createJobs } from '../helpers/create-queue';
@@ -15,7 +15,7 @@ export const pinningJobs = createJobs(
       name: 'PIN_CID',
 
       action(data: { cid: string }) {
-        const cid = parseCid(data.cid);
+        const cid = extractValidCid(data.cid);
         const jobId = `PIN_CID_${cid}`;
         return { name: 'PIN_CID', data: { cid }, opts: { jobId } };
       },
@@ -24,7 +24,7 @@ export const pinningJobs = createJobs(
         // eslint-disable-next-line no-console
         console.log('PIN_CID: ', data.cid);
 
-        const cid = parseCid(data.cid);
+        const cid = extractValidCid(data.cid);
 
         const existsOnS3 = await s3.objectExists(cid);
         const rawData = Buffer.from(
@@ -50,7 +50,7 @@ export const pinningJobs = createJobs(
       name: 'PIN_PACKAGE',
 
       action(data: { cid: string }) {
-        const cid = parseCid(data.cid);
+        const cid = extractValidCid(data.cid);
         const jobId = `PIN_PACKAGE_${cid}`;
         return { name: 'PIN_PACKAGE', data: { cid }, opts: { jobId } };
       },
@@ -59,7 +59,7 @@ export const pinningJobs = createJobs(
         // eslint-disable-next-line no-console
         console.log('PIN_PACKAGE: ', data.cid);
 
-        const cid = parseCid(data.cid);
+        const cid = extractValidCid(data.cid);
 
         const existsOnS3 = await s3.objectExists(cid);
 

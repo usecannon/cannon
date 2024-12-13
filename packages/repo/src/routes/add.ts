@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getContentCID, parseIpfsUrl, uncompress } from '@usecannon/builder/dist/src/ipfs';
+import { getContentCID, getIpfsCid, uncompress } from '@usecannon/builder/dist/src/ipfs';
 import { RKEY_FRESH_UPLOAD_HASHES, RKEY_PKG_HASHES } from '../db';
 import { readRequestFile } from '../helpers/read-request-file';
 import { DeploymentInfo } from '@usecannon/builder';
@@ -37,10 +37,10 @@ export function add(ctx: RepoContext) {
       try {
         const pkgData: DeploymentInfo = JSON.parse(uncompress(file));
 
-        const miscIpfsHash = parseIpfsUrl(pkgData.miscUrl);
+        const miscIpfsHash = getIpfsCid(pkgData.miscUrl);
 
         if (!miscIpfsHash) {
-          throw new Error(`Invalid package data for "${cid}"`);
+          throw new Error(`Invalid miscUrl in package data for "${cid}": "${pkgData.miscUrl}"`);
         }
 
         // as a special step here, we also save the misc url (we dont want to save it anywhere else)

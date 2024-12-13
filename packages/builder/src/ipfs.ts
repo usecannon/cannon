@@ -27,34 +27,31 @@ export async function getContentCID(value: string | Buffer): Promise<string> {
 export async function getContentUrl(content?: any): Promise<string | null> {
   if (!content) return null;
   const buffer = compress(JSON.stringify(content));
-  return 'ipfs://' + (await getContentCID(Buffer.from(buffer)));
+  const cid = await getContentCID(Buffer.from(buffer));
+  return `ipfs://${cid}`;
 }
 
-const FILE_URL_REGEX = /^ipfs:\/\/(?<cid>[a-zA-Z0-9]{46})$/;
-export function parseIpfsUrl(url: any) {
-  if (typeof url !== 'string' || !url) return null;
-  return url.trim().match(FILE_URL_REGEX)?.groups?.cid || null;
-}
-
-const CID_REGEX = /^(?<cid>[a-zA-Z0-9]{46})$/;
+const STRICT_CID_REGEX = /^(?<cid>[a-zA-Z0-9]{46})$/;
 export function parseIpfsCid(cid: any) {
   if (typeof cid !== 'string' || !cid) return null;
-  return cid.trim().match(CID_REGEX)?.groups?.cid || null;
+  return cid.trim().match(STRICT_CID_REGEX)?.groups?.cid || null;
 }
 
-export function parseCid(str: any): string {
-  const cid = parseIpfsUrl(str) || parseIpfsCid(str);
-  if (!cid) throw new Error(`Invalid CID ${str}`);
-  return cid;
-}
-
+const CID_REGEX = /^(?:ipfs:\/\/)?(?<cid>[a-zA-Z0-9]{46})$/;
 export function getIpfsCid(str: any): string | null {
-  return parseIpfsUrl(str) || parseIpfsCid(str);
+  if (typeof str !== 'string' || !str) return null;
+  return str.trim().match(CID_REGEX)?.groups?.cid || null;
 }
 
 export function getIpfsUrl(str: any): string | null {
   const cid = getIpfsCid(str);
   return cid ? `ipfs://${cid}` : null;
+}
+
+export function extractValidCid(str: any): string {
+  const cid = getIpfsCid(str);
+  if (!cid) throw new Error(`Invalid CID ${str}`);
+  return cid;
 }
 
 export async function prepareFormData(info: any) {
