@@ -8,7 +8,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowRightIcon, CaretSortIcon } from '@radix-ui/react-icons';
+import {
+  ArrowRightIcon,
+  CaretSortIcon,
+  QuestionMarkCircledIcon,
+} from '@radix-ui/react-icons';
 import {
   useReactTable,
   flexRender,
@@ -135,13 +139,27 @@ export function DataTable<Data extends object>({
                         <Button
                           variant="ghost"
                           onClick={header.column.getToggleSortingHandler()}
-                          className="h-8 px-2 -ml-2"
+                          className="h-8 px-2 -ml-2 inline-flex items-center justify-center"
                         >
                           {flexRender(
                             header.column.columnDef.header,
                             header.getContext()
                           )}
                           <CaretSortIcon className="ml-2 h-4 w-4" />
+                          {header.column.columnDef.accessorKey == 'preset' && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <QuestionMarkCircledIcon className="inline-block whitespace-nowrap align-sub" />
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-sm text-center">
+                                  Presets are useful for distinguishing multiple
+                                  deployments of the same protocol on the same
+                                  chain.
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
                         </Button>
                       ) : (
                         flexRender(
