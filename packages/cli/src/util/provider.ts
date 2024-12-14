@@ -29,10 +29,10 @@ type ProviderParams = {
   chainId?: number;
 };
 
-export const isURL = (url: string): boolean => {
+export const isURL = (url: any): boolean => {
   try {
-    const tmpUrl = new URL(url);
-    return ['http:', 'https:'].includes(tmpUrl.protocol);
+    new URL(url);
+    return true;
   } catch {
     return false;
   }

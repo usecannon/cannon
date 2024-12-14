@@ -1,11 +1,8 @@
-import { parseCid } from '@usecannon/builder';
+import { extractValidCid } from '@usecannon/builder';
 import { createQueue } from '../src/queue';
 
 async function main() {
-  const cids = process.argv
-    .slice(2)
-    .map((cid) => parseCid(cid))
-    .filter(Boolean);
+  const cids = process.argv.slice(2).map(extractValidCid).filter(Boolean);
 
   const queue = createQueue();
   queue.createWorker();

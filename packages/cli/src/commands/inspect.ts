@@ -15,7 +15,7 @@ import { getContractsAndDetails, getSourceFromRegistry } from '../helpers';
 import { getMainLoader } from '../loader';
 import { createDefaultReadRegistry } from '../registry';
 import { CliSettings } from '../settings';
-import { log, warn } from '../util/console';
+import { log } from '../util/console';
 
 const debug = Debug('cannon:cli:inspect');
 
@@ -30,22 +30,11 @@ export async function inspect(
   const { fullPackageRef } = new PackageReference(packageRef);
 
   const resolver = await createDefaultReadRegistry(cliSettings);
-
   const loader = getMainLoader(cliSettings);
-
   const deployUrl = await resolver.getUrl(fullPackageRef, chainId);
 
   if (!deployUrl) {
     throw new Error(`deployment not found: ${fullPackageRef}. please make sure it exists for chain ID "${chainId}".`);
-  }
-
-  if (!chainId) {
-    warn(
-      yellow(
-        "The deployment data for the latest local version of this package (which runs with 'cannon PACKAGE_NAME') was exported. \
-      Specify the --chain-id parameter to retrieve the addresses/ABIs for other deployments."
-      )
-    );
   }
 
   // Mute all build outputs when printing the result to json, this is so it
@@ -95,7 +84,7 @@ export async function inspect(
     const miscData = await loader.ipfs.read(deployData.miscUrl);
     const contractSources = _listSourceCodeContracts(miscData);
 
-    log(green(bold(`\n=============== ${fullPackageRef} ===============`)));
+    log(green(bold(`\n=============== ${fullPackageRef} (chainId: ${chainId}) ===============`)));
     log();
     log(
       '   Deploy Status:',
