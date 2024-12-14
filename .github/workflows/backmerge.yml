@@ -52,3 +52,19 @@ jobs:
               head: branchName,
               base: 'dev'
             });
+
+            // Request review from Core Contributors team
+            await github.rest.pulls.requestReviewers({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.data.number,
+              team_reviewers: ['core-contributors']
+            });
+
+            // Enable auto-merge
+            await github.rest.pulls.updateBranch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.data.number,
+              merge_method: 'merge'
+            });
