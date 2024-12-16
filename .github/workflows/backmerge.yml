@@ -40,7 +40,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const branchName = `backmerge/main-to-dev-${Date.now()}`;
+            const branchName = `backmerge/main-to-dev-${{ github.sha }}`;
             await exec.exec('git', ['checkout', '-b', branchName]);
             await exec.exec('git', ['push', 'origin', branchName]);
 
