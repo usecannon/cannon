@@ -1,5 +1,6 @@
 import { AddressInput } from '@/features/Packages/FunctionInput/AddressInput';
 import { BoolInput } from '@/features/Packages/FunctionInput/BoolInput';
+import { ByteInput } from '@/features/Packages/FunctionInput/ByteInput';
 import { DefaultInput } from '@/features/Packages/FunctionInput/DefaultInput';
 import { NumberInput } from '@/features/Packages/FunctionInput/NumberInput';
 import { AddIcon, CloseIcon } from '@chakra-ui/icons';
@@ -90,6 +91,14 @@ export const FunctionInput: FC<Props> = ({
       case input.type.startsWith('tuple'):
         // TODO: implement value prop for TupleInput
         return <TupleInput input={input} handleUpdate={_handleUpdate} />;
+      case input.type.startsWith('bytes32'):
+        return (
+          <ByteInput
+            handleUpdate={_handleUpdate}
+            value={_initialValue}
+            byte={32}
+          />
+        );
       default:
         return (
           <DefaultInput

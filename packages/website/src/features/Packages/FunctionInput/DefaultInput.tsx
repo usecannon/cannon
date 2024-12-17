@@ -11,7 +11,10 @@ export const DefaultInput: FC<{
   const [updateValue, setUpdateValue] = useState<string>(value);
   useEffect(() => {
     const bytes32Regex = /^0x[0-9a-fA-F]{64}$/;
-    if (inputType == 'bytes32' && !bytes32Regex.test(updateValue)) {
+    if (
+      (inputType == 'bytes32' || inputType == 'bytes32[]') &&
+      !bytes32Regex.test(updateValue)
+    ) {
       if (updateValue.startsWith('0x')) {
         handleUpdate(updateValue);
       } else {
