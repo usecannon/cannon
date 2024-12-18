@@ -1,17 +1,25 @@
 import _ from 'lodash';
-import { deleteIpfs, readIpfs } from '@usecannon/builder/dist/src/ipfs';
 import { DeploymentInfo } from '@usecannon/builder';
-import { getDb, RKEY_FRESH_UPLOAD_HASHES, RKEY_PKG_HASHES, RKEY_EXTRA_HASHES } from './db';
-import { RKEY_LAST_UPDATED, RKEY_FEES_PAID } from '@usecannon/indexer';
+import { deleteIpfs, readIpfs } from '@usecannon/builder/dist/src/ipfs';
+import {
+  getDb,
+  RKEY_FRESH_UPLOAD_HASHES,
+  RKEY_PKG_HASHES,
+  RKEY_EXTRA_HASHES,
+  RKEY_LAST_UPDATED,
+  RKEY_FEES_PAID,
+} from './db';
 
 export async function cleanUnregisteredIpfs(
+  redisUrl: string,
+  indexerUrl: string,
   ipfsUrl: string,
   gracePeriod: number,
   minFees: { startTimestamp: number; requiredFee: bigint }[]
 ) {
   const now = Math.floor(Date.now() / 1000);
-  const rdb = await getDb(process.env.REDIS_URL!);
-  const indexerRdb = await getDb(process.env.INDEXER_URL!);
+  const rdb = await getDb(redisUrl);
+  const indexerRdb = await getDb(indexerUrl);
 
   console.log('[init] clean cycle');
   const expired = await rdb.zRangeWithScores(RKEY_FRESH_UPLOAD_HASHES, 0, now - gracePeriod, { BY: 'SCORE' });

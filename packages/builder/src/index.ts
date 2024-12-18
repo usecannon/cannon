@@ -17,14 +17,7 @@ export { prepareMulticall } from './multicall';
 };
 
 export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from './registry';
-export {
-  publishPackage,
-  preparePublishPackage,
-  forPackageTree,
-  findUpgradeFromPackage,
-  writeUpgradeFromInfo,
-} from './package';
-export type { PackagePublishCall } from './package';
+export * from './package';
 export {
   CANNON_CHAIN_ID,
   getCannonRepoRegistryUrl,
@@ -32,7 +25,7 @@ export {
   DEFAULT_REGISTRY_CONFIG,
   DEFAULT_REGISTRY_ADDRESS,
 } from './constants';
-export { isIpfsGateway, fetchIPFSAvailability } from './ipfs';
+export * from './ipfs';
 export * from './access-recorder';
 export * from './definition';
 export * from './helpers';

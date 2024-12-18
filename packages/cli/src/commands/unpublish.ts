@@ -8,34 +8,22 @@ import { CliSettings } from '../settings';
 import { resolveProviderAndSigners, ProviderAction } from '../util/provider';
 import { log } from '../util/console';
 
-interface Params {
-  cliSettings: CliSettings;
-  options: any;
-  packageRef: string;
+interface Options {
+  maxFeePerGas?: string;
+  maxPriorityFeePerGas?: string;
+  gasLimit?: number;
+  value?: string;
 }
 
-export async function unpublish({ cliSettings, options, packageRef }: Params) {
-  if (!options.chainId) {
-    const chainIdPrompt = await prompts({
-      type: 'number',
-      name: 'value',
-      message: 'Please provide the Chain ID for the package you want to unpublish',
-      initial: 13370,
-    });
+interface Params {
+  cliSettings: CliSettings;
+  options: Options;
+  fullPackageRef: string;
+  chainId: number;
+}
 
-    if (!chainIdPrompt.value) {
-      throw new Error('A valid Chain Id is required.');
-    }
-
-    options.chainId = Number(chainIdPrompt.value);
-  }
-
-  log();
-
-  const fullPackageRef = new PackageReference(packageRef).fullPackageRef;
-
-  // Get the package name, version, and preset without being defaulted
-  const { name: packageName, version: packageVersion, preset: packagePreset } = PackageReference.parse(packageRef);
+export async function unpublish({ cliSettings, options, fullPackageRef, chainId }: Params) {
+  const { name: packageName, version: packageVersion, preset: packagePreset } = new PackageReference(fullPackageRef);
 
   const overrides: any = {};
 
@@ -121,15 +109,15 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
   let deploys;
   if (packageName && packageVersion && packagePreset) {
     // if user has specified a full package ref, use it to fetch the deployment
-    deploys = [{ name: fullPackageRef, chainId: options.chainId }];
+    deploys = [{ name: fullPackageRef, chainId: chainId }];
   } else {
     // check for deployments that are relevant to the provided packageRef
-    deploys = await localRegistry.scanDeploys(packageRef, Number(options.chainId));
+    deploys = await localRegistry.scanDeploys(fullPackageRef, chainId);
   }
 
   if (!deploys || deploys.length === 0) {
     throw new Error(
-      `Could not find any deployments for ${fullPackageRef} with chain id ${options.chainId}. If you have the IPFS hash of the deployment data, use the fetch command. Otherwise, rebuild the package.`
+      `Could not find any deployments for ${fullPackageRef} with chain id ${chainId}. If you have the IPFS hash of the deployment data, use the fetch command. Otherwise, rebuild the package.`
     );
   }
 

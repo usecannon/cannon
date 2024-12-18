@@ -1,0 +1,70 @@
+name: Backmerge main to dev
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backmerge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Important: fetch all history
+          ref: dev # Checkout dev branch
+
+      - name: Configure Git
+        run: |
+          git config user.name 'Cannon Bot'
+          git config user.email 'noreply@usecannon.com'
+
+      - name: Merge main into dev
+        id: merge
+        continue-on-error: true
+        run: |
+          git fetch origin main
+          git merge origin/main --no-edit
+
+      - name: Push if merge successful
+        if: steps.merge.outcome == 'success'
+        run: git push origin dev
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create PR on merge conflict
+        if: steps.merge.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branchName = `backmerge/main-to-dev-${{ github.sha }}`;
+            await exec.exec('git', ['checkout', '-b', branchName]);
+            await exec.exec('git', ['push', 'origin', branchName]);
+
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'chore(ci): backmerge main → dev',
+              body: 'Automatic merge from main to dev failed. This PR was created to help resolve conflicts.',
+              head: branchName,
+              base: 'dev'
+            });
+
+            // Request review from Core Contributors team
+            await github.rest.pulls.requestReviewers({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.data.number,
+              team_reviewers: ['core-contributors']
+            });
+
+            // Enable auto-merge
+            await github.rest.pulls.updateBranch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.data.number,
+              merge_method: 'merge'
+            });

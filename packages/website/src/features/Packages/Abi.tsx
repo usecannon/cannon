@@ -67,6 +67,7 @@ export const Abi: FC<{
   address: viem.Address;
   cannonOutputs: ChainArtifacts;
   chainId: number;
+  contractName?: string;
   contractSource?: string;
   onDrawerOpen?: () => void;
   packageUrl?: string;
@@ -74,6 +75,7 @@ export const Abi: FC<{
   isLoading,
   abi,
   contractSource,
+  contractName,
   address,
   cannonOutputs,
   chainId,
@@ -265,55 +267,33 @@ export const Abi: FC<{
             pb={2}
             px={4}
           >
-            <Alert
-              status="warning"
-              bg="gray.900"
-              borderBottom="1px solid"
-              borderColor="gray.700"
-            >
-              <AlertIcon />
-              <Text fontWeight="bold">
-                Always review transactions carefully in your wallet application
-                prior to execution.
-              </Text>
-            </Alert>
-
-            <Flex
-              direction="column"
-              pt={4}
-              borderBottom="1px solid"
-              borderColor="gray.700"
-              gap={4}
-              flex={1}
-              overflowX="auto"
-            >
-              {isLoading ? (
-                <Flex align="center" justify="center" flex={1}>
-                  <CustomSpinner />
-                </Flex>
-              ) : (
-                allContractMethods?.map((f) => (
-                  <Element
-                    name={getSelectorSlug(f)}
-                    key={`${address}-${getSelectorSlug(f)}`}
-                  >
-                    <Function
-                      selected={selectedSelector == getSelectorSlug(f)}
-                      f={f}
-                      abi={abi as AbiType}
-                      address={address}
-                      cannonOutputs={cannonOutputs}
-                      chainId={chainId}
-                      contractSource={contractSource}
-                      onDrawerOpen={onDrawerOpen}
-                      collapsible
-                      showFunctionSelector={false}
-                      packageUrl={packageUrl}
-                    />
-                  </Element>
-                ))
-              )}
-            </Flex>
+            {isLoading ? (
+              <Flex align="center" justify="center" flex={1}>
+                <CustomSpinner />
+              </Flex>
+            ) : (
+              allContractMethods?.map((f) => (
+                <Element
+                  name={getSelectorSlug(f)}
+                  key={`${address}-${getSelectorSlug(f)}`}
+                >
+                  <Function
+                    selected={selectedSelector == getSelectorSlug(f)}
+                    f={f}
+                    abi={abi as AbiType}
+                    address={address}
+                    cannonOutputs={cannonOutputs}
+                    chainId={chainId}
+                    contractSource={contractSource}
+                    contractName={contractName}
+                    onDrawerOpen={onDrawerOpen}
+                    collapsible
+                    showFunctionSelector={false}
+                    packageUrl={packageUrl}
+                  />
+                </Element>
+              ))
+            )}
           </Flex>
         </SidebarLayout>
       </Flex>

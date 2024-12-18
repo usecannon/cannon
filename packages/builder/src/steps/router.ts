@@ -51,10 +51,31 @@ const routerStep = {
     }
 
     return [
+      [
+        contractAbis,
+        contractAddresses,
+        [
+          newConfig.salt,
+          newConfig.overrides,
+          newConfig.includeReceive,
+          newConfig.includeDiamondCompatibility,
+          newConfig.highlight,
+        ],
+      ],
       {
         contractAbis,
         contractAddresses,
         config: newConfig,
+      },
+      {
+        contractAbis,
+        contractAddresses,
+        config: _.omit(newConfig, 'includeDiamondCompatibility'),
+      },
+      {
+        contractAbis,
+        contractAddresses,
+        config: _.omit(newConfig, 'includeReceive', 'includeDiamondCompatibility'),
       },
     ];
   },
@@ -74,6 +95,10 @@ const routerStep = {
 
     if (config?.overrides?.gasLimit) {
       config.overrides.gasLimit = template(config.overrides.gasLimit)(ctx);
+    }
+
+    if (_.isUndefined(config.includeDiamondCompatibility)) {
+      config.includeDiamondCompatibility = true;
     }
 
     return config;
@@ -132,14 +157,28 @@ const routerStep = {
       contractName,
       contracts: contracts as any,
       canReceivePlainETH: config.includeReceive,
+      hasDiamondCompat: config.includeDiamondCompatibility,
     });
 
     debug('router source code', sourceCode);
 
     const { input: inputData, output: solidityInfo } = await compileContract(contractName, sourceCode);
 
+    const diamondFacetCompatAbi = viem.parseAbi([
+      'function facets() pure returns ((address facetAddress, bytes4[] functionSelectors)[])',
+      'function facetFunctionSelectors(address facet) pure returns (bytes4[] functionSelectors)',
+      'function facetAddresses() pure returns (address[] addresses)',
+      'function facetAddress(bytes4 functionSelector) pure returns (address)',
+      'function emitDiamondCutEvent() returns (bool)',
+    ]);
+
     // the ABI is entirely based on the fallback call so we have to generate ABI here
-    const routableAbi = getMergedAbiFromContractPaths(ctx, config.contracts);
+    // TODO: possible if the user includes their own diamond contracts, they could clash with the abi we are adding here for diamond.
+    // they will need to turn off diamond compat in that case
+    const routableAbi = [
+      ...(config.includeDiamondCompatibility ? diamondFacetCompatAbi : []),
+      ...getMergedAbiFromContractPaths(ctx, config.contracts),
+    ];
 
     // remove constructor from ABI, we don't need it
     const abi = removeConstructorFromAbi(routableAbi);

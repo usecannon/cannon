@@ -13,7 +13,7 @@ after:
 
 ## Deploy Onchain
 
-Deploying onchain is just using the `build` command on a live network instead of a local node.
+Deploying your Cannon project on a live network is similar to building it locally. The main difference is that you'll use the `build` command with specific flags to target a live blockchain.
 
 <Tabs defaultValue="foundry">
   <TabsList className="w-full">
@@ -26,81 +26,50 @@ Deploying onchain is just using the `build` command on a live network instead of
   </TabsList>
   <TabsContent value="foundry">
 
-To specify a network, you can either use the `--chain-id` flag or the `--rpc-url` flag. The former will use the default RPC for the chain id, while the latter will use a custom RPC URL (which is recommended).
+### Step 1: Choose a network and RPC URL
 
-You will also need to specify a `--private-key` for the wallet you’d like to use for deployment. If you do not want to specify your private key in plain text or you're using a hardware wallet, install [Frame](https://frame.sh/) and the CLI will prompt you to sign transactions through Frame when its running.
+To specify the network for deployment, you can use either the `--chain-id` flag or the `--rpc-url` flag.
 
-In this example, we will use the [Sepolia network](https://sepolia.dev/), a dedicated network for protocol testing. Let's use a specific RPC URL and a private key for a wallet with Sepolia ETH. Let's also use `--dry-run` to simulate what will happen when we deploy before actually deploying.
+*   The `--chain-id` flag uses the default RPC URL for the specified chain ID.
+*   The `--rpc-url` flag allows you to provide a custom RPC URL. This is generally recommended for better reliability and control.
 
-```bash
-cannon build --rpc-url https://rpc2.sepolia.org/ --private-key 0xd8...ad --dry-run
-```
+If both flags are specified at the same time, the given `--rpc-url` is used, and the `--chain-id` is validated to match the response by the RPC server.
 
-The output is very similar to what we saw when building locally.
+For this example, we'll use the Sepolia test network, which is a dedicated network for testing and deploying smart contracts. We'll use a specific RPC URL for Sepolia: `https://rpc2.sepolia.org/`
 
-```bash
-Building the foundry project...
-forge build succeeded
+### Step 2: Provide a private key
 
-Resolving connection to Sepolia (Chain ID: 11155111)...
-Attempting to find connection via https://rpc2.sepolia.org/
+You'll need to specify the private key of the wallet you want to use for deployment. You can do this using the `--private-key` flag.
 
-Checking for existing package...
-Starting fresh build...
+**Important:**
 
-Initializing new package...
-Name: learn-cannon
-Version: 0.0.1
-Preset: main (default)
-Chain ID: 11155111
+*   **Security:** Be extremely careful when handling private keys. **Never** share your private keys with anyone, and store them securely.
+*   **Hardware wallets:** If you're using a hardware wallet or prefer not to expose your private key in plain text, you can use a tool like [Frame](https://frame.sh/). When Frame is running, the Cannon CLI will prompt you to sign transactions through Frame's secure interface.
 
-Building the chain (ID 11155111) via https://rpc2.sepolia.org/...
-Using 0x88e224762460f5aAcA3Bde86dA4EFa9B13662b80
+### Step 3: Perform a dry run
 
-Executing [deploy.counter]...
-  ✔ Successfully deployed Counter
-  Contract Address: 0xc3Ae30bBe8b2209a045b52485FFB6BE549f7dF23
-  Transaction Hash: 0xf25158d22f533cda7db86f225f67e54e68455c23164fe002f6918af57b5c3aa9
-  Transaction Cost: 0.000268927458969908 ETH (106,721 gas)
+Before deploying on a live network, it's highly recommended to perform a dry run. This simulates the deployment process without actually sending any transactions, allowing you to verify that everything is set up correctly.
 
-Executing [var.main]...
-  Setting: number = 420
-
-Executing [invoke.set_number]...
-  ✔ Successfully called setNumber(420)
-  Contract Address: 0xc3Ae30bBe8b2209a045b52485FFB6BE549f7dF23
-  Transaction Hash: 0xa7770d21227d9d9f6d83df9a99eaf28d75ea1cf3ffe4144977835b74b0c30e70
-  Transaction Cost: 0.00011016614575233 ETH (43,506 gas)
-
-Writing upgrade info...
-💥 learn-cannon:0.0.1@main built on Sepolia (Chain ID: 11155111)
-This package can be run locally and cloned in cannonfiles.
-
-Package data has been stored locally
-╔═════════════════╤═══════════════════════════════════════════════════════╗
-║ Deployment Data │ ipfs://QmVpLGJMKqAd5hD3LgM3oh37NfbmzTS9FUyjCZx1LcB8yW ║
-╟─────────────────┼───────────────────────────────────────────────────────╢
-║ Package Code    │ ipfs://QmVhGysWPz2toaL9FVWoyTTgp2Atf4UMESz4Dj5dKvRhWb ║
-╟─────────────────┼───────────────────────────────────────────────────────╢
-║ Metadata        │ ipfs://QmRsYpSHrvjVmktXJtLYZbmiHD8GNKp64qxoZ2hbGcqEDf ║
-╚═════════════════╧═══════════════════════════════════════════════════════╝
-
-Publish learn-cannon:0.0.1 to the registry and pin the IPFS data to
-> cannon publish learn-cannon:0.0.1 --chain-id 11155111
-
-Verify contracts on Etherscan
-> cannon verify learn-cannon:0.0.1@main --chain-id 11155111
-```
-
-After verifying that your build will work as expected, remove the `--dry-run` flag and run the build command again to execute the deployment.
+To perform a dry run, use the `--dry-run` flag with the `build` command:
 
 ```bash
-cannon build --rpc-url https://rpc2.sepolia.org/ --private-key 0xd8...ad
+cannon build --rpc-url https://rpc2.sepolia.org --private-key 0xd8...ad --dry-run
 ```
 
-Nice.
-</TabsContent>
+This command will output the deployment steps, contract addresses, transaction hashes, and gas costs, just like a real deployment, but without actually executing the transactions.
+
+### Step 4: Deploy on Sepolia
+
+Once you've verified your deployment with a dry run, you can proceed with the actual deployment by removing the `--dry-run` flag:
+
+```bash
+cannon build --rpc-url https://rpc2.sepolia.org --private-key 0xd8...ad
+```
+
+This will deploy your Cannon project on the Sepolia network. The output will look almost the same as the local network build from the previous guide.
+
+  </TabsContent>
   <TabsContent value="hardhat">
-*Coming soon.*
+  *Coming soon.*
   </TabsContent>
 </Tabs>

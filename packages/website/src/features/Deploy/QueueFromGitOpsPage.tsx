@@ -12,7 +12,7 @@ import {
   useMergedCannonDefInfo,
   useCannonFindUpgradeFromUrl,
   CannonWriteDeployToIpfsMutationResult,
-  useCannonBuildTmp,
+  useCannonBuild,
 } from '@/hooks/cannon';
 import { useGitRefsList } from '@/hooks/git';
 import { useGetPreviousGitInfoQuery } from '@/hooks/safe';
@@ -189,7 +189,7 @@ export default function QueueFromGitOps() {
   }, [prevCannonDeployInfo]);
 
   // run the build and get the list of transactions we need to run
-  const { buildState, doBuild, resetState } = useCannonBuildTmp(currentSafe);
+  const { buildState, doBuild, resetState } = useCannonBuild(currentSafe);
 
   const nextCannonDeployInfo = useMemo(() => {
     return cannonDefInfo?.def

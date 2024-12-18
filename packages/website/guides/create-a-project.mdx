@@ -13,6 +13,8 @@ after:
 
 ## Create a Project
 
+This guide will walk you through creating your first Cannon project using Foundry. If you're using Hardhat, we will be updating this page shortly with a more detailed guide!
+
 <Tabs defaultValue="foundry">
   <TabsList className="w-full">
     <TabsTrigger value="foundry" className="w-full">
@@ -23,214 +25,225 @@ after:
     </TabsTrigger>
   </TabsList>
   <TabsContent value="foundry">
-To start a new project, create a directory and navigate into it.
 
-```bash
-mkdir learn-cannon
-cd learn-cannon
-```
+### Step 1: Create a new project directory
 
-Initialize s Foundry project.
+1. Open your terminal.
+2. Create a new project directory and navigate into it:
 
-```bash
-forge init
-```
+   ```bash
+   mkdir learn-cannon
+   cd learn-cannon
+   ```
 
-Forge will create the initial project structure for us.
+### Step 2: Initialize a Foundry project
 
-<FilesBlock
-quantity={19}
-elements={[
-  {
-    id: '1',
-    name: './',
-    type: 'folder',
-    children: [
-      {
-        id: '2',
-        name: 'README.md',
-        type: 'file',
-      },
-      {
-        id: '3',
-        name: 'foundry.toml',
-        type: 'file',
-      },
-      {
-        id: '4',
-        name: 'lib',
-        type: 'folder',
-        children: [
-          {
-            id: '5',
-            name: 'forge-std',
-            type: 'folder',
-            children: [
-              {
-                id: '6',
-                name: 'LICENSE-APACHE',
-                type: 'file',
-              },
-              {
-                id: '7',
-                name: 'LICENSE-MIT',
-                type: 'file',
-              },
-              {
-                id: '8',
-                name: 'README.md',
-                type: 'file',
-              },
-              {
-                id: '9',
-                name: 'foundry.toml',
-                type: 'file',
-              },
-              {
-                id: '10',
-                name: 'package.json',
-                type: 'file',
-              },
-              {
-                id: '11',
-                name: 'scripts',
-                type: 'folder',
-              },
-              {
-                id: '12',
-                name: 'src',
-                type: 'folder',
-              },
-              {
-                id: '13',
-                name: 'test',
-                type: 'folder',
-              },
-            ],
-          },
-        ],
-      },
-      {
-        id: '14',
-        name: 'script',
-        type: 'folder',
-        children: [
-          {
-            id: '15',
-            name: 'Counter.s.sol',
-            type: 'file',
-          },
-        ],
-      },
-      {
-        id: '16',
-        name: 'script',
-        type: 'folder',
-        children: [
-          {
-            id: '17',
-            name: 'Counter.sol',
-            type: 'file',
-          },
-        ],
-      },
-      {
-        id: '18',
-        name: 'test',
-        type: 'folder',
-        children: [
-          {
-            id: '19',
-            name: 'Counter.t.sol',
-            type: 'file',
-          },
-        ],
-      },
-    ],
-  },
-]} />
+1. Initialize a Foundry project using the following command:
 
-<Alert variant="info">
-  <AlertDescription>
-    For more on this, check out [**Foundry's
-    docs**](https://book.getfoundry.sh/config/).
-  </AlertDescription>
-</Alert>
+   ```bash
+   forge init
+   ```
 
-#### Installing Foundry
+   This command creates the initial project structure for you.
 
-In the root folder (next to the `foundry.toml` file), create a `cannonfile.toml`.
+   <FilesBlock
+   quantity={19}
+   elements={[
+     {
+       id: '1',
+       name: './',
+       type: 'folder',
+       children: [
+         {
+           id: '2',
+           name: 'README.md',
+           type: 'file',
+         },
+         {
+           id: '3',
+           name: 'foundry.toml',
+           type: 'file',
+         },
+         {
+           id: '4',
+           name: 'lib',
+           type: 'folder',
+           children: [
+             {
+               id: '5',
+               name: 'forge-std',
+               type: 'folder',
+               children: [
+                 {
+                   id: '6',
+                   name: 'LICENSE-APACHE',
+                   type: 'file',
+                 },
+                 {
+                   id: '7',
+                   name: 'LICENSE-MIT',
+                   type: 'file',
+                 },
+                 {
+                   id: '8',
+                   name: 'README.md',
+                   type: 'file',
+                 },
+                 {
+                   id: '9',
+                   name: 'foundry.toml',
+                   type: 'file',
+                 },
+                 {
+                   id: '10',
+                   name: 'package.json',
+                   type: 'file',
+                 },
+                 {
+                   id: '11',
+                   name: 'scripts',
+                   type: 'folder',
+                 },
+                 {
+                   id: '12',
+                   name: 'src',
+                   type: 'folder',
+                 },
+                 {
+                   id: '13',
+                   name: 'test',
+                   type: 'folder',
+                 },
+               ],
+             },
+           ],
+         },
+         {
+           id: '14',
+           name: 'script',
+           type: 'folder',
+           children: [
+             {
+               id: '15',
+               name: 'Counter.s.sol',
+               type: 'file',
+             },
+           ],
+         },
+         {
+           id: '16',
+           name: 'script',
+           type: 'folder',
+           children: [
+             {
+               id: '17',
+               name: 'Counter.sol',
+               type: 'file',
+             },
+           ],
+         },
+         {
+           id: '18',
+           name: 'test',
+           type: 'folder',
+           children: [
+             {
+               id: '19',
+               name: 'Counter.t.sol',
+               type: 'file',
+             },
+           ],
+         },
+       ],
+     },
+   ]} />
 
-```toml
-name = 'learn-cannon'
-version = '0.0.1'
-description = 'Cannon learn - Sample Foundry Project'
-```
+   <Alert variant="info">
+     <AlertDescription>
+       For more on this, check out [**Foundry's
+       docs**](https://book.getfoundry.sh/config/).
+     </AlertDescription>
+   </Alert>
 
-Cannonfiles are like deployment plans. They include operations that specify
-the desired state of a blockchain.
+### Step 3: Create a Cannonfile
 
-You can use the CLI or web app to build a blockchain into this state.
-This results in a package of data pertaining to the deployment, which
-can be uploaded using IPFS and published to the registry on Ethereum.
+1. In the root folder (next to the `foundry.toml` file), create a file named `cannonfile.toml`.
+2. Add the following content to your `cannonfile.toml`:
 
-#### Write a smart contract
+   ```toml
+   name = 'learn-cannon'
+   version = '0.0.1'
+   description = 'Cannon learn - Sample Foundry Project'
+   ```
 
-In the `/src` folder, Forge will have created a contract called `Counter.sol`.
-This is a basic contract with two functions: `setNumber` and `increment`. Feel free to modify it.
+   Cannonfiles are like deployment plans for your blockchain application. They include actions that specify the desired state of a blockchain.
 
-```solidity
-// ./src/Counter.sol
+### Step 4: Write a smart contract
 
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+1. In the `/src` folder, you'll find a contract called `Counter.sol` that Forge created. This is a basic contract with two functions: `setNumber` and `increment`. Feel free to modify it.
 
-contract Counter {
-    uint256 public number;
+   ```solidity
+   // ./src/Counter.sol
 
-    function setNumber(uint256 newNumber) public {
-        number = newNumber;
-    }
+   // SPDX-License-Identifier: UNLICENSED
+   pragma solidity ^0.8.13;
 
-    function increment() public {
-        number++;
-    }
-}
-```
+   contract Counter {
+       uint256 public number;
 
-#### Adding Operations
+       function setNumber(uint256 newNumber) public {
+           number = newNumber;
+       }
 
-Edit your `cannonfile.toml` to include the following operations.
+       function increment() public {
+           number++;
+       }
+   }
+   ```
 
-```toml
-name = "learn-cannon"
-version = "0.0.1"
-description = "Sample Cannon + Foundry Project"
+### Step 5: Add actions to your Cannonfile
 
-[var.ProtocolSettings]
-number = "420"
+Cannon uses [TOML](https://toml.io/en/) to represent deployment definitions. Cannon can also receive JSON input piped from stdin
+(allowing script generators to supply large or more automated configurations). For now, we will create 
+a basic Cannonfile to deploy the Counter contract.
 
-[deploy.Counter]
-artifact = "Counter"
+1. Edit your `cannonfile.toml` to include the following actions:
 
-[invoke.SetNumber]
-target = ["Counter"]
-func = "setNumber"
-args = ["<%= settings.number %>"]
-```
+   ```toml
+   # The top of the file defines basic package information 
+   name = "learn-cannon"
 
-Each operation in a cannonfile is identified with a type and a name, specified like `[type.name]`.
+   # The version can be any human readable value representative of your project's version. Note that cannon internally tracks the version
+   version = "0.0.1"
 
-The `[deploy.counter]` operation is used to deploy a contract. The `artifact` defines which contract to deploy.
+   # Longer, human readable description of the package
+   description = "Sample Cannon + Foundry Project"
 
-The `[var.ProtocolSettings]` operation allows Cannon to add values to the `settings` object, which can be referenced in other operation definitions using EJS syntax. In our example, we defined a variable `number`:
+   # Each of the square bracketed headers below defines a new section defining a particular resource that should be invoked for the deployment.
+   # These can be specified in any order, irrespective of dependencies. Cannon will automatically execute steps in the order that is required to complete the deployment.
+   [var.ProtocolSettings]
+   number = "420"
 
-The `[invoke.set_number]` operation calls a function. `target` specifies the name of the contract to call, `func` specifies the name of the function, and `args` specifies the arguments to use when invoking the call. Note that `<%= settings.number %>` refers to the `number` variable defined in the `[var.ProtocolSettings]` operation.
+   [deploy.Counter]
+   artifact = "Counter"
 
-You can find a full list of operations that can be specified in a Cannonfile in [the docs](/learn/cannonfile).
+   [invoke.SetNumber]
+   target = ["Counter"]
+   func = "setNumber"
+   args = ["<%= settings.number %>"]
+   ```
 
-</TabsContent>
+   Each action in a Cannonfile is identified with a `type` and a `name``, specified like `[type.name]`. Let's break down these actions:
+
+   *   The `[deploy.counter]` action deploys the `Counter` contract. It reads from the Foundry artifact specified by the `artifact` key and stores the resulting contract address, ABI, transaction hash, and gas usage information in a artifact with the same name as the action. Constructor arguments, solidity libraries, and deployments via `create2` are also supported.
+   *   The `[var.ProtocolSettings]` action allows Cannon to add values to the `settings` object, which can be referenced via interpolation (`<% settings.number %>`) in other actions.  Settings can be derived from other settings, fields from deployed contracts, events emitted from previous transactions, or environment factors such as `chainId` or `timestamp`. Here, we define a variable `number` and set it to the string "420".
+   *   The `[invoke.set_number]` action calls the `setNumber` function on the previously deployed `Counter` contract with the argument `420` (from `settings.number`). Similar to `deploy`, `invoke` actions support a number of additional features and capabilities which can be read in the docs.
+
+  Actions can be specified in any order (cannon automatically determines which actions are dependant on other actions). They can also be stored in separate TOML files and pulled in using the `include` header.
+
+   There are more action types to handle more advanced cases than what is shown here. You can find a full list of actions that can be specified in a Cannonfile in [the docs](/learn/cannonfile).
+  </TabsContent>
   <TabsContent value="hardhat">
-*Coming soon.*
+  *Coming soon.*
   </TabsContent>
 </Tabs>
