@@ -10,9 +10,6 @@ export const ByteInput: FC<{
   const bytes32Regex = /^0x[0-9a-fA-F]{64}$/;
   const [updateValue, setUpdateValue] = useState<string>(value);
   const isInvalid = useMemo(() => {
-    // console.log(
-    //   'length : ' + updateValue?.length + ', updateValue ; ' + updateValue
-    // );
     if (updateValue.startsWith('0x')) {
       return updateValue?.length > 0 && !bytes32Regex.test(updateValue);
     } else {
@@ -24,7 +21,7 @@ export const ByteInput: FC<{
       if (updateValue.startsWith('0x')) {
         handleUpdate(updateValue);
       } else {
-        handleUpdate(stringToHex(updateValue.slice(0, byte), { size: 32 }));
+        handleUpdate(stringToHex(updateValue.slice(0, 32), { size: 32 }));
       }
     } else {
       handleUpdate(updateValue || '');

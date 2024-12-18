@@ -1,6 +1,5 @@
 import { FC, useEffect, useState } from 'react';
 import { Input } from '@chakra-ui/react';
-import { stringToHex } from 'viem';
 import { AbiParameter } from 'abitype';
 
 export const DefaultInput: FC<{
@@ -10,25 +9,7 @@ export const DefaultInput: FC<{
 }> = ({ handleUpdate, value = '', inputType }) => {
   const [updateValue, setUpdateValue] = useState<string>(value);
   useEffect(() => {
-    const bytes32Regex = /^0x[0-9a-fA-F]{64}$/;
-    if (
-      (inputType == 'bytes32' || inputType == 'bytes32[]') &&
-      !bytes32Regex.test(updateValue)
-    ) {
-      if (updateValue.startsWith('0x')) {
-        handleUpdate(updateValue);
-      } else {
-        handleUpdate(stringToHex(updateValue, { size: 32 }));
-      }
-    } else if (inputType == 'tuple') {
-      try {
-        handleUpdate(JSON.parse(updateValue));
-      } catch (err) {
-        // ignore
-      }
-    } else {
-      handleUpdate(updateValue || '');
-    }
+    handleUpdate(updateValue || '');
   }, [updateValue]);
   return (
     <Input
