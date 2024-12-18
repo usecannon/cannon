@@ -1,6 +1,12 @@
 import { FC, useEffect, useMemo, useState } from 'react';
 import { Input } from '@chakra-ui/react';
 import { stringToHex } from 'viem';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export const ByteInput: FC<{
   handleUpdate: (value: string) => void;
@@ -29,19 +35,30 @@ export const ByteInput: FC<{
   }, [updateValue]);
 
   return (
-    <Input
-      type="text"
-      bg="black"
-      borderColor={isInvalid ? 'red.500' : 'whiteAlpha.400'}
-      placeholder="0x0000000000000000000000000000000000000000"
-      value={updateValue}
-      size="sm"
-      onChange={(e) => {
-        setUpdateValue(e.target.value || '');
-      }}
-      _focus={{
-        borderColor: isInvalid ? 'red.500' : 'blue.300',
-      }}
-    />
+    <TooltipProvider>
+      <Tooltip open={isInvalid}>
+        <TooltipTrigger className="inline-flex w-full">
+          <Input
+            type="text"
+            bg="black"
+            borderColor={isInvalid ? 'red.500' : 'whiteAlpha.400'}
+            placeholder="0x0000000000000000000000000000000000000000"
+            value={updateValue}
+            size="sm"
+            onChange={(e) => {
+              setUpdateValue(e.target.value || '');
+            }}
+            _focus={{
+              borderColor: isInvalid ? 'red.500' : 'blue.300',
+            }}
+          />
+        </TooltipTrigger>
+        <TooltipContent className="max-w-sm text-center">
+          {updateValue.startsWith('0x') ? 66 : byte} Presets are useful for
+          distinguishing multiple deployments of the same protocol on the same
+          chain.
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
