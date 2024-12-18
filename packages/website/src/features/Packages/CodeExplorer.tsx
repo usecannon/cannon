@@ -502,38 +502,37 @@ export const CodeExplorer: FC<{
         </div>
       ) : artifacts?.length || provisionedPackagesKeys.length ? (
         <>
-          {!!provisionedPackagesKeys.length && (
-            <Flex
-              top="0"
-              zIndex={3}
-              bg="gray.900"
-              position={{ md: 'sticky' }}
-              overflowX="scroll"
-              overflowY="hidden"
-              maxW="100%"
-              p={2}
-              borderBottom="1px solid"
-              borderColor="gray.800"
-              flexWrap="nowrap"
-            >
-              {!isEmpty(miscData?.artifacts) && (
-                <PackageButton
-                  key={-1}
-                  name={name}
-                  selected={isSelectedPackage({ name, key: -1 })}
-                  onClick={() => handleSelectPackage({ name, key: -1 })}
-                />
-              )}
-              {provisionedPackagesKeys.map((k: string, i: number) => (
-                <PackageButton
-                  key={k}
-                  name={k}
-                  selected={isSelectedPackage({ name: k, key: i })}
-                  onClick={() => handleSelectPackage({ name: k, key: i })}
-                />
-              ))}
-            </Flex>
-          )}
+          <Flex
+            top="0"
+            zIndex={3}
+            bg="gray.900"
+            position={{ md: 'sticky' }}
+            overflowX="scroll"
+            overflowY="hidden"
+            maxW="100%"
+            p={2}
+            borderBottom="1px solid"
+            borderColor="gray.800"
+            flexWrap="nowrap"
+          >
+            {!isEmpty(miscData?.artifacts) && (
+              <PackageButton
+                key={-1}
+                name={name}
+                selected={isSelectedPackage({ name, key: -1 })}
+                onClick={() => handleSelectPackage({ name, key: -1 })}
+              />
+            )}
+            {provisionedPackagesKeys.map((k: string, i: number) => (
+              <PackageButton
+                key={k}
+                name={k}
+                selected={isSelectedPackage({ name: k, key: i })}
+                onClick={() => handleSelectPackage({ name: k, key: i })}
+              />
+            ))}
+          </Flex>
+
           <div className="h-[671px]">
             <SidebarLayout
               sidebarContent={sidebarContent}
