@@ -1,4 +1,4 @@
-import { Alert, AlertIcon, Flex, Skeleton, Text } from '@chakra-ui/react';
+import { Flex, Skeleton } from '@chakra-ui/react';
 import sortBy from 'lodash/sortBy';
 import * as viem from 'viem';
 import { ChainArtifacts } from '@usecannon/builder';
