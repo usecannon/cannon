@@ -23,7 +23,7 @@ import {
   SiYarn as YarnIcon,
   SiPnpm as PnpmIcon,
 } from 'react-icons/si';
-import React, { FC } from 'react';
+import React, { FC, useEffect, useMemo, useState } from 'react';
 import {
   SidebarContent,
   SidebarGroup,
@@ -35,6 +35,8 @@ import {
 } from '@/components/ui/sidebar';
 import { SidebarLayout } from '@/components/layouts/SidebarLayout';
 import MainContentLoading from '@/components/MainContentLoading';
+import { scroller, Element, scrollSpy } from 'react-scroll';
+import { useRouter } from 'next/router';
 
 const basicCommands = ['run', 'build', 'verify', 'publish'];
 
@@ -85,75 +87,77 @@ const DocumentationSection: React.FC<{
   forgeOptionsData,
   optionsData,
 }) => (
-  <div className="mb-16" id={id}>
-    <div className="mb-4 text-lg">
-      <code className="text-lg">{id.replace('-', ' ')}</code>
-      <a
-        className="text-gray-300 ml-2 no-underline hover:underline"
-        href={'#' + id}
-      >
-        #
-      </a>
+  <Element name={id} className="mb-16">
+    <div id={id}>
+      <div className="mb-4 text-lg">
+        <code className="text-lg">{id.replace('-', ' ')}</code>
+        <a
+          className="text-gray-300 ml-2 no-underline hover:underline"
+          href={'#' + id}
+        >
+          #
+        </a>
+      </div>
+      <p className="mb-2 text-lg">{description}</p>
+      <div className="mb-5">
+        <CommandPreview command={`cannon ${command}`} />
+      </div>
+      {argumentsData && <CustomTable title="Argument" data={argumentsData} />}
+      {optionsData && <CustomTable title="Option" data={optionsData} />}
+      {anvilOptionsData && (
+        <Accordion type="single" collapsible>
+          <AccordionItem value="anvil-options" className="border-none">
+            <AccordionTrigger className="px-0">
+              <Button
+                variant="outline"
+                size="sm"
+                className="font-medium tracking-wide"
+              >
+                Anvil Options
+              </Button>
+            </AccordionTrigger>
+            <AccordionContent className="p-0">
+              <p className="mt-2 mb-4">
+                Cannon uses an{' '}
+                <a href="https://github.com/foundry-rs/foundry/tree/master/crates/anvil">
+                  Anvil
+                </a>{' '}
+                to execute this command. The following options can also be
+                passed through to the Anvil process:
+              </p>
+              <CustomTable title="Option" data={anvilOptionsData} />
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )}
+      {forgeOptionsData && (
+        <Accordion type="single" collapsible>
+          <AccordionItem value="forge-options" className="border-none">
+            <AccordionTrigger className="px-0">
+              <Button
+                variant="outline"
+                size="sm"
+                className="font-medium tracking-wide"
+              >
+                Forge Options
+              </Button>
+            </AccordionTrigger>
+            <AccordionContent className="p-0">
+              <p className="mt-2 mb-4">
+                Cannon uses{' '}
+                <a href="https://github.com/foundry-rs/foundry/tree/master/crates/forge">
+                  Forge
+                </a>{' '}
+                to execute this command. The following options can also be
+                passed through to the Forge process:
+              </p>
+              <CustomTable title="Option" data={forgeOptionsData} />
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )}
     </div>
-    <p className="mb-2 text-lg">{description}</p>
-    <div className="mb-5">
-      <CommandPreview command={`cannon ${command}`} />
-    </div>
-    {argumentsData && <CustomTable title="Argument" data={argumentsData} />}
-    {optionsData && <CustomTable title="Option" data={optionsData} />}
-    {anvilOptionsData && (
-      <Accordion type="single" collapsible>
-        <AccordionItem value="anvil-options" className="border-none">
-          <AccordionTrigger className="px-0">
-            <Button
-              variant="outline"
-              size="sm"
-              className="font-medium tracking-wide"
-            >
-              Anvil Options
-            </Button>
-          </AccordionTrigger>
-          <AccordionContent className="p-0">
-            <p className="mt-2 mb-4">
-              Cannon uses an{' '}
-              <a href="https://github.com/foundry-rs/foundry/tree/master/crates/anvil">
-                Anvil
-              </a>{' '}
-              to execute this command. The following options can also be passed
-              through to the Anvil process:
-            </p>
-            <CustomTable title="Option" data={anvilOptionsData} />
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-    )}
-    {forgeOptionsData && (
-      <Accordion type="single" collapsible>
-        <AccordionItem value="forge-options" className="border-none">
-          <AccordionTrigger className="px-0">
-            <Button
-              variant="outline"
-              size="sm"
-              className="font-medium tracking-wide"
-            >
-              Forge Options
-            </Button>
-          </AccordionTrigger>
-          <AccordionContent className="p-0">
-            <p className="mt-2 mb-4">
-              Cannon uses{' '}
-              <a href="https://github.com/foundry-rs/foundry/tree/master/crates/forge">
-                Forge
-              </a>{' '}
-              to execute this command. The following options can also be passed
-              through to the Forge process:
-            </p>
-            <CustomTable title="Option" data={forgeOptionsData} />
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-    )}
-  </div>
+  </Element>
 );
 
 const renderCommandConfig = (commandConfig: any) => {
@@ -230,6 +234,50 @@ const renderCommandConfig = (commandConfig: any) => {
 
 const DocsCliPage: FC = () => {
   const { commandsData, isLoading, error } = useCommandsConfig();
+  const router = useRouter();
+  const [selectedSection, setSelectedSection] = useState<string | null>(null);
+  const [scrollInitialized, setScrollInitialized] = useState(false);
+
+  // Scroll options similar to Abi.tsx
+  const scrollOptions = useMemo(
+    () => ({
+      duration: 1200,
+      smooth: true,
+      offset: -150, // Adjust based on your header height
+    }),
+    []
+  );
+
+  const handleSectionClick = async (sectionId: string) => {
+    if (sectionId === selectedSection) {
+      return;
+    }
+    setSelectedSection(sectionId);
+    scroller.scrollTo(sectionId, scrollOptions);
+    await router.push(`${router.asPath.split('#')[0]}#${sectionId}`);
+  };
+
+  // Initialize scrollSpy
+  useEffect(() => {
+    scrollSpy.update();
+  }, []);
+
+  // Handle initial scroll from URL hash
+  useEffect(() => {
+    if (scrollInitialized) return;
+
+    const urlSectionFromPath = router.asPath.split('#')[1];
+    if (urlSectionFromPath || !selectedSection) {
+      setSelectedSection(urlSectionFromPath);
+
+      const timeoutId = setTimeout(() => {
+        scroller.scrollTo(urlSectionFromPath, scrollOptions);
+        setScrollInitialized(true);
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [router.asPath, scrollOptions, selectedSection, scrollInitialized]);
 
   if (isLoading) {
     return <MainContentLoading />;
@@ -245,8 +293,11 @@ const DocsCliPage: FC = () => {
         <SidebarGroupContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <a href="#installation">Installation</a>
+              <SidebarMenuButton
+                onClick={() => handleSectionClick('installation')}
+                isActive={selectedSection === 'installation'}
+              >
+                Installation
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -259,8 +310,11 @@ const DocsCliPage: FC = () => {
           <SidebarMenu>
             {basicCommands.map((commandName) => (
               <SidebarMenuItem key={commandName}>
-                <SidebarMenuButton asChild>
-                  <a href={`#${commandName}`}>{commandName}</a>
+                <SidebarMenuButton
+                  onClick={() => handleSectionClick(commandName)}
+                  isActive={selectedSection === commandName}
+                >
+                  {commandName}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
@@ -274,15 +328,19 @@ const DocsCliPage: FC = () => {
           <SidebarMenu>
             {commandsData
               .filter((command) => !new Set(basicCommands).has(command.name))
-              .map((command) => (
-                <SidebarMenuItem key={command.name}>
-                  <SidebarMenuButton asChild>
-                    <a href={`#${command.name.replaceAll(' ', '-')}`}>
+              .map((command) => {
+                const id = command.name.replaceAll(' ', '-');
+                return (
+                  <SidebarMenuItem key={command.name}>
+                    <SidebarMenuButton
+                      onClick={() => handleSectionClick(id)}
+                      isActive={selectedSection === id}
+                    >
                       {command.name}
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
@@ -298,7 +356,7 @@ const DocsCliPage: FC = () => {
         borderlessSidebar
         fixedFooter={false}
       >
-        <div className="max-w-3xl pr-4 py-10 pl-10">
+        <div className="max-w-3xl px-4 py-10">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-4">
               Command-Line Interface Documentation

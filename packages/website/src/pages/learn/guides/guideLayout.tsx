@@ -57,7 +57,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   const sidebarContent = (
-    <>
+    <div className="md:pt-6">
       <SidebarGroup>
         <SidebarGroupLabel>Use Cannon</SidebarGroupLabel>
         <SidebarGroupContent>
@@ -111,7 +111,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
-    </>
+    </div>
   );
 
   return (

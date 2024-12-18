@@ -7,7 +7,7 @@ import PageLoading from '@/components/PageLoading';
 import { useRouter } from 'next/router';
 
 // Dynamic import of DocsCliPage
-const DocsCliPage = dynamic(() => import('@/features/Docs/DocsCliPage'), {
+const SSRDocsCliPage = dynamic(() => import('@/features/Docs/DocsCliPage'), {
   ssr: false,
 });
 
@@ -25,7 +25,7 @@ export default function Docs() {
           description: 'CLI Docs',
         }}
       />
-      {router.isReady ? <DocsCliPage /> : <PageLoading />}
+      {router.isReady ? <SSRDocsCliPage /> : <PageLoading />}
     </>
   );
 }
