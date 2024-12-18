@@ -497,7 +497,7 @@ export const CodeExplorer: FC<{
   return (
     <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
       {isLoading ? (
-        <div className="py-20">
+        <div className="h-[671px] flex items-center justify-center">
           <IpfsSpinner ipfsUrl={pkg?.deployUrl} />
         </div>
       ) : artifacts?.length || provisionedPackagesKeys.length ? (

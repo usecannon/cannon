@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import NameTagVariantLayout from '../_layout';
+import NameTagVariantLayout from '../NameTagVariantLayout';
 import { ReactElement } from 'react';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';

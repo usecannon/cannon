@@ -25,7 +25,7 @@ import { usePackageByRef } from '@/hooks/api/usePackage';
 import MainContentLoading from '@/components/MainContentLoading';
 import { SidebarLayout } from '@/components/layouts/SidebarLayout';
 
-function TagVariantLayout({ children }: { children: ReactNode }) {
+function _NameTagVariantLayout({ children }: { children: ReactNode }) {
   const { name, tag, chainId, preset } = usePackageNameTagVariantUrlParams();
   const { query: params, pathname, asPath } = useRouter();
 
@@ -165,7 +165,7 @@ function TagVariantLayout({ children }: { children: ReactNode }) {
   );
 }
 
-export default function PackageNameTagVariantLayout({
+export default function NameTagVariantLayout({
   children,
 }: {
   children: ReactNode;
@@ -173,7 +173,7 @@ export default function PackageNameTagVariantLayout({
   const router = useRouter();
 
   return router.isReady ? (
-    <TagVariantLayout>{children}</TagVariantLayout>
+    <_NameTagVariantLayout>{children}</_NameTagVariantLayout>
   ) : (
     <PageLoading />
   );

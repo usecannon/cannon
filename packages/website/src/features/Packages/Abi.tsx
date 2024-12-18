@@ -2,7 +2,7 @@ import { Flex, Skeleton } from '@chakra-ui/react';
 import sortBy from 'lodash/sortBy';
 import * as viem from 'viem';
 import { ChainArtifacts } from '@usecannon/builder';
-import { FC, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { FC, useContext, useEffect, useMemo, useState } from 'react';
 import { AbiFunction, Abi as AbiType } from 'abitype';
 import { Function } from '@/features/Packages/Function';
 import { SubnavContext } from './Tabs/InteractTab';
@@ -85,7 +85,6 @@ export const Abi: FC<{
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState<string>('');
   const hasSubnav = useContext(SubnavContext);
-  const containerRef = useRef<HTMLDivElement | null>(null);
   const [selectedSelector, setSelectedSelector] = useState<string | null>(null);
   const [scrollInitialized, setScrollInitialized] = useState(false);
 
@@ -259,13 +258,14 @@ export const Abi: FC<{
         >
           {/* Methods Interactions */}
           <Flex
-            background="black"
-            ref={containerRef}
-            w="100%"
             direction="column"
-            pt={4}
-            pb={2}
             px={4}
+            py={4}
+            borderBottom="1px solid"
+            borderColor="gray.700"
+            gap={4}
+            flex={1}
+            overflowX="auto"
           >
             {isLoading ? (
               <Flex align="center" justify="center" flex={1}>

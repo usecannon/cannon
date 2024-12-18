@@ -414,7 +414,7 @@ export const InteractTab: FC<{
           }
         </Flex>
       )}
-
+      {/* {deploymentData.isLoading || packagesQuery.isLoading ? ( */}
       {deploymentData.isLoading || packagesQuery.isLoading ? (
         <div className="py-20">
           <IpfsSpinner ipfsUrl={packagesQuery?.data?.deployUrl} />

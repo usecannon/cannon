@@ -3,9 +3,9 @@ import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
 import { usePackageUrlParams } from '@/hooks/routing/usePackageUrlParams';
 
-const NoSSRPackagePage = dynamic(
+const NoSSRPackageByNamePage = dynamic(
   async () => {
-    return import('@/features/Packages/PackagePage');
+    return import('@/features/Packages/PackageByNamePage');
   },
   {
     ssr: false,
@@ -26,7 +26,7 @@ export default function Deployment() {
           description: `Cannon | Package | ${name}`,
         }}
       />
-      <NoSSRPackagePage name={name} />
+      <NoSSRPackageByNamePage name={name} />
     </>
   );
 }

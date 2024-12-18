@@ -1,7 +1,7 @@
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { ReactElement } from 'react';
-import NameTagVariantLayout from '../_layout';
+import NameTagVariantLayout from '../NameTagVariantLayout';
 // import LocalLayout from './_layout';
 // import CodeTab from '@/features/Packages/Tabs/CodeTab';
 import { NextSeo } from 'next-seo';

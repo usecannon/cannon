@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { ReactElement } from 'react';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
-import NameTagVariantLayout from '../../_layout';
+import NameTagVariantLayout from '../../NameTagVariantLayout';
 //import NestedLayout from '../_layout';
 import { PackageReference } from '@usecannon/builder';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
