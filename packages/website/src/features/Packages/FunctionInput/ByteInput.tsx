@@ -54,9 +54,8 @@ export const ByteInput: FC<{
           />
         </TooltipTrigger>
         <TooltipContent className="max-w-sm text-center">
-          {updateValue.startsWith('0x') ? 66 : byte} Presets are useful for
-          distinguishing multiple deployments of the same protocol on the same
-          chain.
+          This field must be {updateValue.startsWith('0x') ? 66 : byte}
+          characters.
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
