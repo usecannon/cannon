@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { z } from 'zod';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderRuntimeInfo } from '../types';
-import { template } from '../utils/template';
+import { executeTemplate } from '../utils/template';
 
 /**
  *  Available properties for keeper operation (Not yet implemented)
@@ -38,17 +38,17 @@ export default {
   configInject(ctx: ChainBuilderContext, config: Config) {
     config = _.cloneDeep(config);
 
-    config.exec = template(config.exec)(ctx);
+    config.exec = executeTemplate(config.exec, ctx, 'ctx');
 
     if (config.args) {
       config.args = _.map(config.args, (v) => {
-        return template(v)(ctx);
+        return executeTemplate(v, ctx, 'ctx');
       });
     }
 
     if (config.env) {
       config.env = _.map(config.env, (v) => {
-        return template(v)(ctx);
+        return executeTemplate(v, ctx, 'ctx');
       });
     }
 

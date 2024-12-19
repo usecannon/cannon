@@ -8,7 +8,7 @@ import {
   mergeTemplateAccesses,
   PackageState,
   registerAction,
-  template,
+  executeTemplate,
 } from '@usecannon/builder';
 import crypto from 'crypto';
 import Debug from 'debug';
@@ -115,22 +115,22 @@ const runAction = {
   configInject(ctx: ChainBuilderContext, config: Config) {
     config = _.cloneDeep(config);
 
-    config.exec = template(config.exec)(ctx);
+    config.exec = executeTemplate(config.exec, ctx, 'ctx');
 
     config.modified = _.map(config.modified, (v) => {
-      return template(v)(ctx);
+      return executeTemplate(v, ctx, 'ctx');
     }) as [string, ...string[]];
 
     if (config.args) {
       config.args = _.map(config.args, (v) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
-        return JSON.parse(JSON.stringify(template(v)(ctx)));
+        return JSON.parse(JSON.stringify(executeTemplate(v, ctx, 'ctx')));
       });
     }
 
     if (config.env) {
       config.env = _.map(config.env, (v) => {
-        return template(v)(ctx);
+        return executeTemplate(v, ctx, 'ctx');
       });
     }
 

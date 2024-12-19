@@ -17,7 +17,7 @@ import {
   DeploymentState,
   PackageState,
 } from '../types';
-import { template } from '../utils/template';
+import { executeTemplate } from '../utils/template';
 import { getContentUrl } from '../ipfs';
 
 const debug = Debug('cannon:builder:clone');
@@ -53,7 +53,7 @@ const cloneSpec = {
       throw new Error(`only one of \`target\` and \`targetPreset\` can specified for ${packageState.currentLabel}`);
     }
 
-    const ref = new PackageReference(template(config.source)(ctx));
+    const ref = new PackageReference(executeTemplate(config.source, ctx, 'ctx'));
 
     config.source = ref.fullPackageRef;
 
@@ -61,22 +61,22 @@ const cloneSpec = {
       config.source = PackageReference.from(ref.name, ref.version, config.sourcePreset).fullPackageRef;
     }
 
-    config.sourcePreset = template(config.sourcePreset)(ctx);
-    config.targetPreset = template(config.targetPreset)(ctx);
-    config.target = template(config.target)(ctx);
+    config.sourcePreset = executeTemplate(config.sourcePreset || '', ctx, 'ctx');
+    config.targetPreset = executeTemplate(config.targetPreset || '', ctx, 'ctx');
+    config.target = executeTemplate(config.target || '', ctx, 'ctx');
 
     if (config.var) {
       config.var = _.mapValues(config.var, (v) => {
-        return template(v)(ctx);
+        return executeTemplate(v, ctx, 'ctx');
       });
     } else if (config.options) {
       config.options = _.mapValues(config.options, (v) => {
-        return template(v)(ctx);
+        return executeTemplate(v, ctx, 'ctx');
       });
     }
 
     if (config.tags) {
-      config.tags = config.tags.map((t: string) => template(t)(ctx));
+      config.tags = config.tags.map((t: string) => executeTemplate(t, ctx, 'ctx'));
     }
 
     return config;

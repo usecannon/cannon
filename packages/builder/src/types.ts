@@ -92,6 +92,23 @@ export interface ChainBuilderContext extends PreChainBuilderContext {
 
 const etherUnitNames = ['wei', 'kwei', 'mwei', 'gwei', 'szabo', 'finney', 'ether'];
 
+// objects that are allowed to be accessed in templates
+const JS_ALLOWED_OBJECTS = {
+  JSON: JSON,
+  console: console,
+  parseInt: parseInt,
+  parseFloat: parseFloat,
+  Math: Math,
+  Date: Date,
+  BigInt: BigInt,
+  Number: Number,
+  Boolean: Boolean,
+  Array: Array,
+  String: String,
+  Set: Set,
+  Map: Map,
+};
+
 // Ethers.js compatible context functions. Consider deprecating.
 const ethersStyleConstants = {
   AddressZero: viem.zeroAddress,
@@ -162,6 +179,7 @@ const ethersStyleConstants = {
 export const CannonHelperContext = {
   ...viemContext,
   ...ethersStyleConstants,
+  ...JS_ALLOWED_OBJECTS,
 };
 
 export type ChainBuilderContextWithHelpers = ChainBuilderContext & typeof CannonHelperContext;

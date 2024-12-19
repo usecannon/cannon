@@ -9,7 +9,7 @@ import { PackageReference } from '../package-reference';
 import { ChainBuilderRuntime } from '../runtime';
 import { pullSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
-import { template } from '../utils/template';
+import { executeTemplate } from '../utils/template';
 
 const debug = Debug('cannon:builder:pull');
 
@@ -52,10 +52,10 @@ const pullSpec = {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     config = _.cloneDeep(config);
 
-    const packageRef = new PackageReference(template(config.source)(ctx));
+    const packageRef = new PackageReference(executeTemplate(config.source, ctx, 'ctx'));
 
     config.source = packageRef.fullPackageRef;
-    config.preset = template(config.preset)(ctx) || packageRef.preset;
+    config.preset = executeTemplate(config.preset || '', ctx, 'ctx') || packageRef.preset;
 
     return config;
   },

@@ -2,7 +2,8 @@ import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { CannonHelperContext } from './types';
-import { template } from './utils/template';
+
+import { validateTemplate, template, executeTemplate } from './utils/template';
 
 const debug = Debug('cannon:builder:access-recorder');
 
@@ -54,26 +55,29 @@ export class AccessRecorder extends ExtendableProxy {
 }
 export type AccessComputationResult = { accesses: string[]; unableToCompute: boolean };
 
-export function computeTemplateAccesses(str?: string, possibleNames: string[] = []): AccessComputationResult {
-  if (!str) {
-    return { accesses: [], unableToCompute: false };
-  }
+type AccessRecorderMap = { [k: string]: AccessRecorder };
 
-  type AccessRecorderMap = { [k: string]: AccessRecorder };
-  const recorders: { [k: string]: AccessRecorder | AccessRecorderMap } = {
+type TemplateContext = {
+  [k: string]: AccessRecorder | AccessRecorderMap;
+};
+
+/**
+ * Setup the template context.
+ * @param possibleNames - The possible names to setup the context for
+ * @returns The template context
+ */
+function setupTemplateContext(possibleNames: string[] = []): TemplateContext {
+  const recorders: TemplateContext = {
     contracts: new AccessRecorder(),
     imports: new AccessRecorder(),
     extras: new AccessRecorder(),
     txns: new AccessRecorder(),
-    // For settings, we give it a zeroAddress as a best case scenarion that is going
-    // to be working for most cases.
-    // e.g., when calculating a setting value for 'settings.owners.split(',')' or 'settings.someNumber' will work.
     settings: new AccessRecorder(viem.zeroAddress),
   };
 
+  // setup CannonHelperContext recorders
   for (const [n, ctxVal] of Object.entries(CannonHelperContext)) {
     if (typeof ctxVal === 'function') {
-      // the types have been a massive unsolvableseeming pain here
       recorders[n] = _.noop as unknown as AccessRecorder;
     } else if (typeof ctxVal === 'object') {
       for (const [key, val] of Object.entries(ctxVal)) {
@@ -89,22 +93,21 @@ export function computeTemplateAccesses(str?: string, possibleNames: string[] = 
     }
   }
 
+  // add possible names
   for (const n of possibleNames) {
     recorders[n] = new AccessRecorder();
   }
 
-  const baseTemplate = template(str, {
-    imports: recorders,
-  });
+  return recorders;
+}
 
-  let unableToCompute = false;
-  try {
-    baseTemplate();
-  } catch (err) {
-    debug('ran into template processing error, mark unable to compute', err);
-    unableToCompute = true;
-  }
-
+/**
+ * Collect the accesses from the recorders.
+ * @param recorders - The recorders to collect accesses from
+ * @param possibleNames - The possible names to collect accesses from
+ * @returns The accesses
+ */
+function collectAccesses(recorders: TemplateContext, possibleNames: string[]): string[] {
   const accesses: string[] = [];
 
   for (const recorder of _.difference(Object.keys(recorders), Object.keys(CannonHelperContext))) {
@@ -117,9 +120,46 @@ export function computeTemplateAccesses(str?: string, possibleNames: string[] = 
     }
   }
 
-  return { accesses, unableToCompute };
+  return accesses;
 }
 
+/**
+ * Compute the accesses from the template.
+ * @param str - The template to compute accesses from
+ * @param possibleNames - The possible names to compute accesses from
+ * @returns The accesses
+ */
+export function computeTemplateAccesses(str?: string, possibleNames: string[] = []): AccessComputationResult {
+  if (!str) {
+    return { accesses: [], unableToCompute: false };
+  }
+
+  const validation = validateTemplate(str);
+  if (!validation.isValid) {
+    debug('Template validation failed:', validation.error);
+    return { accesses: [], unableToCompute: true };
+  }
+
+  const recorders = setupTemplateContext(possibleNames);
+
+  try {
+    // execute the template function in a secure compartment
+    executeTemplate(str, recorders, 'recorders');
+
+    const accesses = collectAccesses(recorders, possibleNames);
+    return { accesses, unableToCompute: false };
+  } catch (err) {
+    debug('Template execution failed:', err);
+    return { accesses: [], unableToCompute: true };
+  }
+}
+
+/**
+ * Merge two template access computation results.
+ * @param r1 - The first result
+ * @param r2 - The second result
+ * @returns The merged result
+ */
 export function mergeTemplateAccesses(r1: AccessComputationResult, r2: AccessComputationResult): AccessComputationResult {
   return {
     accesses: [...r1.accesses, ...r2.accesses],

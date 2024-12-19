@@ -13,7 +13,7 @@ import {
   removeConstructorFromAbi,
   getMergedAbiFromContractPaths,
 } from '../util';
-import { template } from '../utils/template';
+import { executeTemplate } from '../utils/template';
 import { compileContract } from '../utils/compile';
 
 const debug = Debug('cannon:builder:router');
@@ -83,18 +83,18 @@ const routerStep = {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     config = _.cloneDeep(config);
 
-    config.contracts = _.map(config.contracts, (n) => template(n)(ctx));
+    config.contracts = _.map(config.contracts, (n) => executeTemplate(n, ctx, 'ctx'));
 
     if (config.from) {
-      config.from = template(config.from)(ctx);
+      config.from = executeTemplate(config.from, ctx, 'ctx');
     }
 
     if (config.salt) {
-      config.salt = template(config.salt)(ctx);
+      config.salt = executeTemplate(config.salt, ctx, 'ctx');
     }
 
     if (config?.overrides?.gasLimit) {
-      config.overrides.gasLimit = template(config.overrides.gasLimit)(ctx);
+      config.overrides.gasLimit = executeTemplate(config.overrides.gasLimit, ctx, 'ctx');
     }
 
     if (_.isUndefined(config.includeDiamondCompatibility)) {
