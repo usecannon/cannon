@@ -54,7 +54,7 @@ export const ByteInput: FC<{
           />
         </TooltipTrigger>
         <TooltipContent className="max-w-sm text-center">
-          This field must be {updateValue.startsWith('0x') ? 66 : byte}
+          This field must be {updateValue.startsWith('0x') ? 66 : byte}{' '}
           characters.
         </TooltipContent>
       </Tooltip>
