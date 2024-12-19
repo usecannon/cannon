@@ -11,7 +11,7 @@ export interface PinnedPackages {
   metaUrl: string;
 }
 
-export async function pin(hash: string, fromStorage: CannonStorage, toStorage: CannonStorage) {
+export async function pin(ipfsUrl: string, fromStorage: CannonStorage, toStorage: CannonStorage) {
   const alreadyCopiedIpfs = new Map<string, any>();
 
   // this internal function will copy one package's ipfs records and return a publish call, without recursing
@@ -19,11 +19,11 @@ export async function pin(hash: string, fromStorage: CannonStorage, toStorage: C
     return await pinIpfs(deployInfo, context, fromStorage, toStorage, alreadyCopiedIpfs, []);
   };
 
-  const deployData: DeploymentInfo = await fromStorage.readBlob(hash);
+  const deployData: DeploymentInfo = await fromStorage.readBlob(ipfsUrl);
 
   if (!deployData) {
     throw new Error(
-      `could not find deployment artifact the given IPFS hash "${hash}". Please double check your settings, and rebuild your package.`
+      `could not find deployment artifact the given IPFS hash "${ipfsUrl}". Please double check your settings, and rebuild your package.`
     );
   }
 

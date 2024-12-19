@@ -47,7 +47,7 @@ export async function forPackageTree<T extends { url?: string; artifacts?: Chain
 ): Promise<T[]> {
   const results: T[] = [];
 
-  for (const importArtifact of _deployImports(deployInfo)) {
+  for (const importArtifact of getDeploymentImports(deployInfo)) {
     const nestedDeployInfo = await store.readBlob(importArtifact.url);
     const result = await forPackageTree(store, nestedDeployInfo, action, importArtifact, onlyResultProvisioned);
 
@@ -73,7 +73,7 @@ export async function forPackageTree<T extends { url?: string; artifacts?: Chain
   return results;
 }
 
-function _deployImports(deployInfo: DeploymentInfo) {
+export function getDeploymentImports(deployInfo: DeploymentInfo) {
   if (!deployInfo.state) return [];
   return _.flatMap(_.values(deployInfo.state), (state: StepState) => Object.values(state.artifacts.imports || {}));
 }

@@ -2,7 +2,7 @@ import Debug from 'debug';
 import * as Diff from 'diff';
 import * as viem from 'viem';
 import { getFoundryArtifact, buildContracts } from '../foundry';
-import { ChainDefinition, ChainBuilderRuntime, DeploymentInfo, getArtifacts, PackageReference } from '@usecannon/builder';
+import { ChainDefinition, ChainBuilderRuntime, DeploymentInfo, getArtifacts } from '@usecannon/builder';
 
 import { CliSettings } from '../settings';
 import { getProvider, runRpc } from '../rpc';
@@ -15,15 +15,13 @@ import { log, error } from '../util/console';
 const debug = Debug('cannon:cli:diff');
 
 export async function diff(
-  packageRef: string,
+  fullPackageRef: string,
   cliSettings: CliSettings,
   chainId: number,
   projectDirectory: string,
   matchContract = '',
   matchPath = ''
 ): Promise<number> {
-  const { fullPackageRef } = new PackageReference(packageRef);
-
   // create temporary provider
   // todo: really shouldn't be necessary
   const node = await runRpc({

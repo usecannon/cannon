@@ -150,10 +150,15 @@ export function printChainDefinitionProblems(problems: ChainDefinitionProblems, 
   let counter = 1;
   const str: string[] = [];
 
+  if (problems.invalidSchema) {
+    for (const issue of problems.invalidSchema) {
+      str.push(`${counter}: schema error: ${issue.path}: ${issue.message}`);
+      counter++;
+    }
+  }
+
   for (const missing of problems.missing) {
-    str.push(
-      `${counter}: In operation "${missing.action}", the dependency "${missing.dependency}" is not defined elsewhere.`
-    );
+    str.push(`${counter}: In action "${missing.action}", the dependency "${missing.dependency}" is not defined elsewhere.`);
     counter++;
   }
 
@@ -162,10 +167,28 @@ export function printChainDefinitionProblems(problems: ChainDefinitionProblems, 
 ${def.allActionNames.join('\n')}`);
   }
 
-  for (const cycle of problems.cycles) {
-    str.push(`${counter}: The operations ${cycle.join(', ')} form a dependency cycle and therefore cannot be deployed.`);
+  if (problems.cycles && problems.cycles.length) {
+    for (const cycle of problems.cycles) {
+      str.push(`${counter}: The actions ${cycle.join(', ')} form a dependency cycle.`);
+
+      counter++;
+    }
+  }
+
+  for (const deps of problems.extraneousDeps) {
+    str.push(
+      `${counter}: extraneous dependency ${deps.extraneous} in action ${deps.node} (note: already depended upon by ${deps.inDep})`
+    );
 
     counter++;
+  }
+
+  for (const clash of problems.outputClashes) {
+    str.push(
+      `${counter}: The following actions output the field '${clash.output}': ${clash.actions.join(
+        ', '
+      )}. (Only one action can occupy a particular output name)`
+    );
   }
 
   return str;

@@ -89,8 +89,12 @@ export const FunctionInput: FC<Props> = ({
           />
         );
       case input.type.startsWith('tuple'):
-        // TODO: implement value prop for TupleInput
-        return <TupleInput input={input} handleUpdate={_handleUpdate} />;
+        return (
+          <TupleInput
+            input={input}
+            handleUpdate={_handleUpdate}
+            value={_initialValue}
+          />
       case input.type.startsWith('bytes1'):
         return (
           <ByteInput
@@ -137,6 +141,11 @@ export const FunctionInput: FC<Props> = ({
             handleUpdate={_handleUpdate}
             value={_initialValue}
             byte={32}
+        return (
+          <TupleInput
+            input={input}
+            handleUpdate={_handleUpdate}
+            value={_initialValue}
           />
         );
       default:

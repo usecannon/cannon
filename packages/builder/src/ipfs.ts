@@ -27,7 +27,59 @@ export async function getContentCID(value: string | Buffer): Promise<string> {
 export async function getContentUrl(content?: any): Promise<string | null> {
   if (!content) return null;
   const buffer = compress(JSON.stringify(content));
-  return 'ipfs://' + (await getContentCID(Buffer.from(buffer)));
+  const cid = await getContentCID(Buffer.from(buffer));
+  return `ipfs://${cid}`;
+}
+
+const STRICT_CID_REGEX = /^(?<cid>[a-zA-Z0-9]{46})$/;
+export function parseIpfsCid(cid: any) {
+  if (typeof cid !== 'string' || !cid) return null;
+  return cid.trim().match(STRICT_CID_REGEX)?.groups?.cid || null;
+}
+
+const CID_REGEX = /^(?:ipfs:\/\/)?(?<cid>[a-zA-Z0-9]{46})$/;
+export function getIpfsCid(str: any): string | null {
+  if (typeof str !== 'string' || !str) return null;
+  return str.trim().match(CID_REGEX)?.groups?.cid || null;
+}
+
+export function getIpfsUrl(str: any): string | null {
+  const cid = getIpfsCid(str);
+  return cid ? `ipfs://${cid}` : null;
+}
+
+export function extractValidCid(str: any): string {
+  const cid = getIpfsCid(str);
+  if (!cid) throw new Error(`Invalid CID ${str}`);
+  return cid;
+}
+
+export async function prepareFormData(info: any) {
+  const data = JSON.stringify(info);
+  const buf = compress(data);
+  const cid = await getContentCID(Buffer.from(buf));
+
+  const formData = new FormData();
+
+  // This check is needed for proper functionality in the browser, as the Buffer is not correctly concatenated
+  // But, for node we still wanna keep using Buffer
+  const content = typeof window !== 'undefined' && typeof Blob !== 'undefined' ? new Blob([buf]) : Buffer.from(buf);
+  formData.append('data', content);
+
+  return { cid, formData, content };
+}
+
+export async function prepareRawFormData(data: Buffer) {
+  const cid = await getContentCID(data);
+  const formData = new FormData();
+
+  // This check is needed for proper functionality in the browser, as the Buffer is not correctly concatenated
+  // But, for node we still wanna keep using Buffer
+  const content = typeof window !== 'undefined' && typeof Blob !== 'undefined' ? new Blob([data]) : data;
+
+  formData.append('data', content);
+
+  return { cid, formData };
 }
 
 export function setAxiosRetries(totalRetries = 3) {
@@ -53,6 +105,33 @@ export async function isIpfsGateway(ipfsUrl: string, _customHeaders?: any) {
   return false;
 }
 
+export async function readRawIpfs({
+  ipfsUrl,
+  cid,
+  customHeaders = {},
+  timeout = 1000 * 60,
+}: {
+  ipfsUrl: string;
+  cid: string;
+  customHeaders?: Headers;
+  timeout?: number;
+}) {
+  const url = new URL(`/api/v0/cat?arg=${cid}`, ipfsUrl.replace('+ipfs', ''));
+
+  const res = await axios.post(
+    url.toString(),
+    {},
+    {
+      responseEncoding: 'application/octet-stream',
+      responseType: 'arraybuffer',
+      headers: customHeaders,
+      timeout,
+    }
+  );
+
+  return res.data;
+}
+
 export async function readIpfs(
   ipfsUrl: string,
   hash: string,
@@ -68,26 +147,24 @@ export async function readIpfs(
 
   try {
     if (isGateway) {
-      result = await axios.get(ipfsUrl + `/ipfs/${hash}`, {
+      const res = await axios.get(ipfsUrl + `/ipfs/${hash}`, {
         responseType: 'arraybuffer',
         responseEncoding: 'application/octet-stream',
         headers: customHeaders,
         timeout,
       });
+
+      result = res.data;
     } else {
       // the +ipfs extension used to indicate a gateway is not recognized by
       // axios even though its just regular https
       // so we remove it if it exists
-      result = await axios.post(
-        ipfsUrl.replace('+ipfs', '') + `/api/v0/cat?arg=${hash}`,
-        {},
-        {
-          responseEncoding: 'application/octet-stream',
-          responseType: 'arraybuffer',
-          headers: customHeaders,
-          timeout,
-        }
-      );
+      result = await readRawIpfs({
+        ipfsUrl,
+        cid: hash,
+        customHeaders,
+        timeout,
+      });
     }
   } catch (err: any) {
     let errMsg = `could not download cannon package data from "${hash}": ${err.toString()}`;
@@ -101,10 +178,32 @@ export async function readIpfs(
   }
 
   try {
-    return JSON.parse(uncompress(result.data));
+    return JSON.parse(uncompress(result));
   } catch (err: any) {
     throw new Error(`could not decode cannon package data: ${err.toString()}`);
   }
+}
+
+export async function writeRawIpfs({
+  ipfsUrl,
+  data,
+  customHeaders = {},
+  timeout = 1000 * 60 * 10,
+}: {
+  ipfsUrl: string;
+  data: Buffer;
+  customHeaders?: Headers;
+  timeout?: number;
+}): Promise<string> {
+  const { cid, formData } = await prepareRawFormData(data);
+  const url = new URL(`/api/v0/add?local=true&to-files=%2F${cid}`, ipfsUrl);
+
+  const res = await axios.post(url.toString(), formData, {
+    headers: customHeaders,
+    timeout,
+  });
+
+  return res.data;
 }
 
 export async function writeIpfs(
@@ -117,23 +216,15 @@ export async function writeIpfs(
 ): Promise<string> {
   setAxiosRetries(retries);
 
-  const data = JSON.stringify(info);
-  const buf = compress(data);
-  const cid = await getContentCID(Buffer.from(buf));
-
   if (isGateway) {
     throw new Error(
       'unable to upload to ipfs: the IPFS url you have configured is either read-only (ie a gateway), or invalid. please double check your configuration.'
     );
   }
 
-  debug('upload to ipfs:', buf.length, Buffer.from(buf).length);
-  const formData = new FormData();
+  const { cid, formData } = await prepareFormData(info);
 
-  // This check is needed for proper functionality in the browser, as the Buffer is not correctly concatenated
-  // But, for node we still wanna keep using Buffer
-  const content = typeof window !== 'undefined' && typeof Blob !== 'undefined' ? new Blob([buf]) : Buffer.from(buf);
-  formData.append('data', content);
+  debug('upload to ipfs:', cid);
 
   let result: AxiosResponse<any, any>;
   try {

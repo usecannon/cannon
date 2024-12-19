@@ -1,11 +1,6 @@
-import { after } from 'node:test';
 import { RedisMemoryServer } from 'redis-memory-server';
 
 const servers: RedisMemoryServer[] = [];
-
-after(async function () {
-  await Promise.all(servers.map((server) => server.stop()));
-});
 
 export async function redisServerMock() {
   const server = new RedisMemoryServer();
@@ -15,5 +10,8 @@ export async function redisServerMock() {
   const host = await server.getHost();
   const port = await server.getPort();
 
-  return { redisUrl: `redis://${host}:${port}` };
+  return {
+    REDIS_URL: `redis://${host}:${port}`,
+    close: server.stop.bind(server),
+  };
 }
