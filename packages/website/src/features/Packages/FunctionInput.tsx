@@ -95,6 +95,7 @@ export const FunctionInput: FC<Props> = ({
             handleUpdate={_handleUpdate}
             value={_initialValue}
           />
+        );
       case input.type.startsWith('bytes1'):
         return (
           <ByteInput
@@ -141,20 +142,11 @@ export const FunctionInput: FC<Props> = ({
             handleUpdate={_handleUpdate}
             value={_initialValue}
             byte={32}
-        return (
-          <TupleInput
-            input={input}
-            handleUpdate={_handleUpdate}
-            value={_initialValue}
           />
         );
       default:
         return (
-          <DefaultInput
-            handleUpdate={_handleUpdate}
-            inputType={input.type}
-            value={_initialValue}
-          />
+          <DefaultInput handleUpdate={_handleUpdate} value={_initialValue} />
         );
     }
   };
