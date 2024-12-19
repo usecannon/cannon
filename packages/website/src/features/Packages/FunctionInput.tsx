@@ -1,5 +1,6 @@
 import { AddressInput } from '@/features/Packages/FunctionInput/AddressInput';
 import { BoolInput } from '@/features/Packages/FunctionInput/BoolInput';
+import { ByteInput } from '@/features/Packages/FunctionInput/ByteInput';
 import { DefaultInput } from '@/features/Packages/FunctionInput/DefaultInput';
 import { NumberInput } from '@/features/Packages/FunctionInput/NumberInput';
 import { AddIcon, CloseIcon } from '@chakra-ui/icons';
@@ -95,13 +96,57 @@ export const FunctionInput: FC<Props> = ({
             value={_initialValue}
           />
         );
+      case input.type.startsWith('bytes1'):
+        return (
+          <ByteInput
+            handleUpdate={_handleUpdate}
+            value={_initialValue}
+            byte={1}
+          />
+        );
+      case input.type.startsWith('bytes2'):
+        return (
+          <ByteInput
+            handleUpdate={_handleUpdate}
+            value={_initialValue}
+            byte={2}
+          />
+        );
+      case input.type.startsWith('bytes4'):
+        return (
+          <ByteInput
+            handleUpdate={_handleUpdate}
+            value={_initialValue}
+            byte={4}
+          />
+        );
+      case input.type.startsWith('bytes8'):
+        return (
+          <ByteInput
+            handleUpdate={_handleUpdate}
+            value={_initialValue}
+            byte={8}
+          />
+        );
+      case input.type.startsWith('bytes16'):
+        return (
+          <ByteInput
+            handleUpdate={_handleUpdate}
+            value={_initialValue}
+            byte={16}
+          />
+        );
+      case input.type.startsWith('bytes32'):
+        return (
+          <ByteInput
+            handleUpdate={_handleUpdate}
+            value={_initialValue}
+            byte={32}
+          />
+        );
       default:
         return (
-          <DefaultInput
-            handleUpdate={_handleUpdate}
-            inputType={input.type}
-            value={_initialValue}
-          />
+          <DefaultInput handleUpdate={_handleUpdate} value={_initialValue} />
         );
     }
   };
