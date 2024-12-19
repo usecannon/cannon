@@ -17,11 +17,25 @@ export const ByteInput: FC<{
   const [updateValue, setUpdateValue] = useState<string>(value);
   const isInvalid = useMemo(() => {
     if (updateValue.startsWith('0x')) {
-      return updateValue?.length > 0 && !bytes32Regex.test(updateValue);
+      if (updateValue?.length > 0 && updateValue?.length > 66) {
+        return `Input is ${
+          updateValue?.length - 66
+        } too long. It must be 66 characters.`;
+      } else if (updateValue?.length > 0 && updateValue?.length < 66) {
+        return `Input is ${
+          66 - updateValue?.length
+        } characters too short. It must be 66 characters.`;
+      }
     } else {
-      return updateValue?.length > 0 && updateValue?.length > byte;
+      if (updateValue?.length > 0 && updateValue?.length > byte) {
+        return `Input is ${
+          updateValue?.length - byte
+        }  characters too long. It must be ${byte} characters.`;
+      }
     }
+    return null;
   }, [updateValue]);
+
   useEffect(() => {
     if (!bytes32Regex.test(updateValue)) {
       if (updateValue.startsWith('0x')) {
@@ -36,7 +50,7 @@ export const ByteInput: FC<{
 
   return (
     <TooltipProvider>
-      <Tooltip open={isInvalid}>
+      <Tooltip open={!!isInvalid}>
         <TooltipTrigger className="inline-flex w-full">
           <Input
             type="text"
@@ -54,8 +68,7 @@ export const ByteInput: FC<{
           />
         </TooltipTrigger>
         <TooltipContent className="max-w-sm text-center">
-          This field must be {updateValue.startsWith('0x') ? 66 : byte}{' '}
-          characters.
+          {isInvalid}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
