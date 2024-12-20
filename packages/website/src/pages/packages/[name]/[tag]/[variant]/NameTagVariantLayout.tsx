@@ -45,10 +45,10 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
     >
       {packagesQuery.isSuccess ? (
         <>
-          <div className="bg-black pt-12 border-b border-gray-700">
+          <div className="bg-black pt-5 border-b border-gray-700">
             <div className="container max-w-[1024px] mx-auto">
               {/* Package Header */}
-              <div className="flex flex-col h-[136px] md:flex-row md:items-center mb-5 px-6">
+              <div className="flex flex-col h-[136px] md:flex-row md:items-center px-6">
                 <div>
                   <h1 className="text-3xl font-bold mb-2">
                     {packagesQuery.data.name}

@@ -207,7 +207,7 @@ const DocsCannonfilesPage: FC = () => {
   }
 
   const sidebarContent = (
-    <SidebarContent className="overflow-y-auto">
+    <SidebarContent className="overflow-y-auto pt-6">
       <SidebarGroup>
         <SidebarGroupLabel>Cannonfile Specification</SidebarGroupLabel>
         <SidebarGroupContent>

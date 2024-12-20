@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useState, useCallback } from 'react';
 import { Box, Button, Flex, Heading, Text, IconButton } from '@chakra-ui/react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
@@ -24,6 +24,7 @@ import { buildFileTree } from '@/features/Packages/code/utilts';
 import { FileTreeItem } from '@/features/Packages/code/FileTreeItem';
 import { FileIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
 const handleDownload = (content: Record<string, unknown>, filename: string) => {
   const blob = new Blob([JSON.stringify(content, null, 2)], {
@@ -85,6 +86,61 @@ const PackageButton: FC<{
   );
 };
 
+// Utility function to handle URL updates
+const updateUrl = (
+  router: AppRouterInstance,
+  params: {
+    name: string;
+    version: string;
+    chainId: string | number;
+    preset: string;
+    packageName: string;
+    source: string;
+    functionName?: string;
+  }
+) => {
+  const urlParams = new URLSearchParams();
+  urlParams.append('source', params.source);
+  if (params.functionName) {
+    urlParams.append('function', params.functionName);
+  }
+
+  router.replace(
+    `/packages/${params.name}/${params.version}/${params.chainId}-${
+      params.preset
+    }/code/${params.packageName}?${urlParams.toString()}`
+  );
+};
+
+// Utility function to find function line in code
+const findFunctionLine = (code: string, functionName: string): number => {
+  if (!functionName) return -1;
+
+  const escapedFunctionName = functionName.replace(
+    /[-/\\^$*+?.()|[\]{}]/g,
+    '\\$&'
+  );
+  const reg = new RegExp(`\\bfunction\\s+${escapedFunctionName}\\b`, 'i');
+
+  return code.split('\n').findIndex((l: string) => reg.test(l));
+};
+
+// Utility function to handle source selection
+const handleSourceSelection = (
+  sourceKey: string,
+  sourceContent: string,
+  functionName?: string
+) => {
+  const line = findFunctionLine(sourceContent, functionName || '');
+
+  return {
+    code: sourceContent,
+    language: 'sol',
+    key: sourceKey,
+    line: line > -1 ? line : undefined,
+  };
+};
+
 export const CodeExplorer: FC<{
   pkg: ApiPackage;
   name: string;
@@ -105,6 +161,7 @@ export const CodeExplorer: FC<{
     name,
     key: -1,
   });
+
   const { data: metadata } = useQueryIpfsDataParsed<{
     cannonfile: string;
   }>(pkg.metaUrl);
@@ -156,12 +213,11 @@ export const CodeExplorer: FC<{
       selectedPackage.name
     ]?.url
   );
-  const provisionedMiscUrl = provisionedPackageData?.miscUrl;
 
   const { data: provisionedMiscData, isLoading: isLoadingProvisionedMiscData } =
     useQueryIpfsDataParsed<{ artifacts: Record<string, unknown> }>(
-      provisionedMiscUrl,
-      !!provisionedMiscUrl
+      provisionedPackageData?.miscUrl,
+      !!provisionedPackageData?.miscUrl
     );
 
   let miscUrl: string | undefined;
@@ -175,123 +231,102 @@ export const CodeExplorer: FC<{
       !!miscUrl
     );
 
-  const isSelectedPackage = ({ key, name }: { key: number; name: string }) =>
-    selectedPackage.key === key && selectedPackage.name === name;
+  const isSelectedPackage = useCallback(
+    ({ key, name }: { key: number; name: string }) =>
+      selectedPackage.key === key && selectedPackage.name === name,
+    [selectedPackage.key, selectedPackage.name]
+  );
 
+  // Main effect for handling source code selection
   useEffect(() => {
     if (isLoadingMiscData || isLoadingProvisionedMiscData) return;
-    // If the selected package is the main package, select the first source code
-    const selectedMiscData = isSelectedPackage({
-      name,
-      key: -1,
-    })
+
+    const selectedMiscData = isSelectedPackage({ name, key: -1 })
       ? miscData
       : provisionedMiscData;
 
-    if (selectedMiscData) {
-      const artifacts = Object.entries(selectedMiscData.artifacts).sort(
-        ([keyA], [keyB]) => {
-          const countA = (keyA.match(/:/g) || []).length;
-          const countB = (keyB.match(/:/g) || []).length;
-          return countA - countB;
-        }
-      );
+    if (!selectedMiscData) return;
 
-      const availableSources = artifacts.map(([key, value]: [string, any]) => {
-        return {
-          key,
-          value,
-          sources: value.source ? JSON.parse(value.source.input).sources : [],
-        };
-      });
-
-      // find the source code for the selected contract
-      for (const s of availableSources) {
-        if (s.sources[decodeURIComponent(source)]) {
-          const code = (s.sources[decodeURIComponent(source)] as any).content;
-          setSelectedCode(code);
-          setSelectedLanguage('sol');
-          setSelectedKey(decodeURIComponent(source));
-
-          const urlParams = new URLSearchParams({
-            source: decodeURIComponent(source),
-          });
-
-          // set the selected line if a function name is provided
-          const line = functionName
-            ? code
-                .split('\n')
-                // use regex to match the function name
-                .findIndex((l: string) => {
-                  const escapedFunctionName = functionName.replace(
-                    /[-/\\^$*+?.()|[\]{}]/g,
-                    '\\$&'
-                  );
-                  const reg = new RegExp(
-                    `\\bfunction\\s+${escapedFunctionName}\\b`,
-                    'i'
-                  );
-                  return reg.test(l);
-                })
-            : -1;
-
-          if (line > -1 && functionName) {
-            setSelectedLine(line);
-            urlParams.append('function', functionName);
-          }
-          window.history.pushState(
-            null,
-            '',
-            `/packages/${name}/${pkg.version}/${pkg.chainId}-${
-              pkg.preset
-            }/code/${selectedPackage.name}?${urlParams.toString()}`
-          );
-          return;
-        }
+    const artifacts = Object.entries(selectedMiscData.artifacts).sort(
+      ([keyA], [keyB]) => {
+        const countA = (keyA.match(/:/g) || []).length;
+        const countB = (keyB.match(/:/g) || []).length;
+        return countA - countB;
       }
+    );
 
-      // If the selected contract is not found, select the first source code
+    const availableSources = artifacts.map(([key, value]: [string, any]) => ({
+      key,
+      value,
+      sources: value.source ? JSON.parse(value.source.input).sources : [],
+    }));
+
+    // Try to find the specified source
+    const sourceFound = availableSources.some((s) => {
+      const decodedSource = decodeURIComponent(source);
+      const sourceContent = s.sources[decodedSource]?.content;
+      if (sourceContent) {
+        const selection = handleSourceSelection(
+          decodedSource,
+          sourceContent,
+          functionName
+        );
+
+        setSelectedCode(selection.code);
+        setSelectedLanguage(selection.language);
+        setSelectedKey(selection.key);
+        setSelectedLine(selection.line);
+
+        updateUrl(router, {
+          name,
+          version: pkg.version,
+          chainId: pkg.chainId,
+          preset: pkg.preset,
+          packageName: selectedPackage.name,
+          source: decodedSource,
+          functionName,
+        });
+
+        return true;
+      }
+      return false;
+    });
+
+    // If source not found, select first available source
+    if (!sourceFound) {
       const firstArtifact = artifacts[0];
-
       if (firstArtifact) {
         const [, firstArtifactValue] = firstArtifact;
-        const sortedSources = (firstArtifactValue as any)?.source?.input
-          ? Object.entries(
-              JSON.parse((firstArtifactValue as any)?.source?.input).sources
-            ).sort(([keyA], [keyB]) => {
-              const countA = (keyA.match(/\//g) || []).length;
-              const countB = (keyB.match(/\//g) || []).length;
-              return countA - countB;
-            })
-          : [];
+        const sortedSources = Object.entries(
+          JSON.parse((firstArtifactValue as any)?.source?.input).sources
+        ).sort(([keyA], [keyB]) => {
+          const countA = (keyA.match(/\//g) || []).length;
+          const countB = (keyB.match(/\//g) || []).length;
+          return countA - countB;
+        });
 
         if (sortedSources.length) {
           const [sourceKey, sourceValue] = sortedSources[0];
-          setSelectedCode((sourceValue as any)?.content);
-          setSelectedLanguage('sol');
-          setSelectedKey(sourceKey);
-
-          window.history.pushState(
-            null,
-            '',
-            `/packages/${name}/${pkg.version}/${pkg.chainId}-${
-              pkg.preset
-            }/code/${selectedPackage.name}?source=${encodeURIComponent(
-              sourceKey
-            )}`
+          const selection = handleSourceSelection(
+            sourceKey,
+            (sourceValue as any)?.content,
+            functionName
           );
-        } else {
-          setSelectedCode('');
-          setSelectedLanguage('');
-          setSelectedKey('');
 
-          /*
-          window.history.pushState(
-            null,
-            '',
-            `/packages/${name}/${pkg.version}/${pkg.chainId}-${pkg.preset}/code/${selectedPackage.name}`
-          );
-          */
+          setSelectedCode(selection.code);
+          setSelectedLanguage(selection.language);
+          setSelectedKey(selection.key);
+          setSelectedLine(selection.line);
+
+          updateUrl(router, {
+            name,
+            version: pkg.version,
+            chainId: pkg.chainId,
+            preset: pkg.preset,
+            packageName: selectedPackage.name,
+            source: sourceKey,
+            functionName,
+          });
         }
       }
     }
@@ -302,6 +337,13 @@ export const CodeExplorer: FC<{
     isLoadingMiscData,
     isLoadingProvisionedMiscData,
     functionName,
+    isSelectedPackage,
+    name,
+    router,
+    pkg.version,
+    pkg.chainId,
+    pkg.preset,
+    selectedPackage.name,
   ]);
 
   const artifacts =
@@ -318,16 +360,31 @@ export const CodeExplorer: FC<{
   // If the selected package is the main package, select the first source code
   useEffect(() => {
     if (deploymentData.isLoading) return;
+
     const foundPackage = availablePackages.find((p) => p.name === moduleName);
-    if (foundPackage) {
+    const decodedSource = decodeURIComponent(source);
+    if (
+      foundPackage &&
+      (foundPackage.name !== selectedPackage.name ||
+        selectedKey !== decodedSource)
+    ) {
       setSelectedPackage(foundPackage);
-      setSelectedKey(decodeURIComponent(source));
+      setSelectedKey(decodedSource);
     }
-  }, [moduleName, source, availablePackages.length, deploymentData?.isLoading]);
+  }, [
+    moduleName,
+    source,
+    availablePackages.length,
+    deploymentData.isLoading,
+    availablePackages,
+    selectedPackage.name,
+    selectedKey,
+  ]);
 
   // Select the first provisioned package if the main package has no code
   useEffect(() => {
     if (deploymentData.isLoading) return;
+
     if (
       !artifacts?.length &&
       provisionedPackagesKeys.length &&
@@ -337,23 +394,33 @@ export const CodeExplorer: FC<{
     }
   }, [
     artifacts?.length,
-    provisionedPackagesKeys?.length,
-    deploymentData?.isLoading,
+    provisionedPackagesKeys.length,
+    deploymentData.isLoading,
     selectedPackage.key,
+    availablePackages,
   ]);
 
   const handleSelectFile = (sourceKey: string, sourceValue: any) => {
-    // Update state for immediate UI feedback
-    setSelectedCode(sourceValue.content);
-    setSelectedLanguage('sol');
-    setSelectedKey(sourceKey);
-
-    // Use Next.js router for navigation
-    router.push(
-      `/packages/${name}/${pkg.version}/${pkg.chainId}-${pkg.preset}/code/${
-        selectedPackage.name
-      }?source=${encodeURIComponent(sourceKey)}`
+    const selection = handleSourceSelection(
+      sourceKey,
+      sourceValue.content,
+      functionName
     );
+
+    setSelectedCode(selection.code);
+    setSelectedLanguage(selection.language);
+    setSelectedKey(selection.key);
+    setSelectedLine(selection.line);
+
+    updateUrl(router, {
+      name,
+      version: pkg.version,
+      chainId: pkg.chainId,
+      preset: pkg.preset,
+      packageName: selectedPackage.name,
+      source: sourceKey,
+      functionName,
+    });
   };
 
   const isLoading =

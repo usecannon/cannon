@@ -89,7 +89,7 @@ export const SearchPage = () => {
 
   const sidebarContent = (
     <>
-      <SidebarHeader className="px-4 py-6">
+      <SidebarHeader className="px-4 pt-4">
         <SearchInput onSearchChange={setSearchTerm} />
       </SidebarHeader>
 

@@ -9,7 +9,6 @@ import { SubnavContext } from './Tabs/InteractTab';
 import SearchInput from '@/components/SearchInput';
 import { scroller, Element, scrollSpy } from 'react-scroll';
 
-import { Button, ButtonProps } from '@chakra-ui/react';
 import React from 'react';
 import { useRouter } from 'next/router';
 import { CustomSpinner } from '@/components/CustomSpinner';
@@ -26,32 +25,6 @@ import { SidebarLayout } from '@/components/layouts/SidebarLayout';
 
 const getSelectorSlug = (f: AbiFunction) =>
   `selector-${viem.toFunctionSelector(f)}`;
-
-const ButtonLink: React.FC<ButtonProps & { selected?: boolean }> = ({
-  children,
-  selected,
-  ...props
-}) => (
-  <Button
-    display="block"
-    borderRadius="md"
-    w="100%"
-    textAlign="left"
-    px="2"
-    cursor={props.disabled ? 'not-allowed' : 'pointer'}
-    fontSize="xs"
-    _hover={{ background: 'gray.800' }}
-    whiteSpace="nowrap"
-    overflow="hidden"
-    textOverflow="ellipsis"
-    color="white"
-    background={selected ? 'gray.800' : 'transparent'}
-    height={30}
-    {...props}
-  >
-    {children}
-  </Button>
-);
 
 const FunctionRowsSkeleton = () => (
   <Flex direction="column" gap={2}>
@@ -151,28 +124,40 @@ export const Abi: FC<{
     scrollSpy.update();
   }, []);
 
-  // Make the auto scroll after the page loads if the url has a selector
+  // Update the useEffect that handles initial scroll
   useEffect(() => {
-    if (scrollInitialized) return;
+    if (!abi || isLoading) return; // Wait until ABI is loaded
 
     const urlSelectorFromPath = router.asPath.split('#')[1];
-    if (urlSelectorFromPath || !selectedSelector) {
-      setSelectedSelector(urlSelectorFromPath);
+    if (!urlSelectorFromPath || scrollInitialized) return;
 
-      // Add a timeout to delay the scroll
-      const timeoutId = setTimeout(() => {
-        scroller.scrollTo(urlSelectorFromPath, scrollOptions);
+    // Verify if the selector exists in our ABI functions
+    const matchingFunction = allContractMethods?.find(
+      (f) => getSelectorSlug(f) === urlSelectorFromPath
+    );
+
+    if (!matchingFunction) return;
+
+    // Set the selected selector
+    setSelectedSelector(urlSelectorFromPath);
+
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        scroller.scrollTo(urlSelectorFromPath, {
+          ...scrollOptions,
+          ignoreCancelEvents: true,
+          smooth: false,
+        });
         setScrollInitialized(true);
       }, 100);
-
-      return () => clearTimeout(timeoutId);
-    }
+    });
   }, [
-    hasSubnav,
+    abi,
+    isLoading,
     router.asPath,
     scrollOptions,
-    selectedSelector,
     scrollInitialized,
+    allContractMethods,
   ]);
 
   const sidebarContent = (
@@ -187,8 +172,13 @@ export const Abi: FC<{
         </SidebarGroupContent>
       </SidebarGroup>
 
-      <SidebarGroup>
-        <SidebarGroupLabel>Read Functions</SidebarGroupLabel>
+      <SidebarGroup className="pb-0">
+        <SidebarGroupContent>
+          <SidebarGroupLabel className="space-y-2 h-10">
+            Read Functions
+          </SidebarGroupLabel>
+        </SidebarGroupContent>
+
         <SidebarGroupContent>
           <SidebarMenu>
             {isLoading ? (
@@ -200,6 +190,7 @@ export const Abi: FC<{
                 )
                 .map((f, index) => (
                   <SidebarMenuButton
+                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full"
                     key={index}
                     isActive={selectedSelector == getSelectorSlug(f)}
                     onClick={() => handleMethodClick(f)}
@@ -216,8 +207,11 @@ export const Abi: FC<{
         </SidebarGroupContent>
       </SidebarGroup>
 
-      <SidebarGroup>
-        <SidebarGroupLabel>Write Functions</SidebarGroupLabel>
+      <SidebarGroup className="pt-0">
+        <SidebarGroupLabel className="space-y-2 h-10">
+          Write Functions
+        </SidebarGroupLabel>
+
         <SidebarGroupContent>
           <SidebarMenu>
             {isLoading ? (
@@ -228,9 +222,10 @@ export const Abi: FC<{
                   f.name.toLowerCase().includes(searchTerm.toLowerCase())
                 )
                 .map((f, index) => (
-                  <ButtonLink
+                  <SidebarMenuButton
+                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full"
                     key={index}
-                    selected={selectedSelector == getSelectorSlug(f)}
+                    isActive={selectedSelector == getSelectorSlug(f)}
                     onClick={() => handleMethodClick(f)}
                   >
                     {f.name}(
@@ -238,7 +233,7 @@ export const Abi: FC<{
                       .map((i) => i.type + (i.name ? ' ' + i.name : ''))
                       .join(',')}
                     )
-                  </ButtonLink>
+                  </SidebarMenuButton>
                 ))
             )}
           </SidebarMenu>
@@ -253,7 +248,7 @@ export const Abi: FC<{
         <SidebarLayout
           sidebarContent={sidebarContent}
           centered={false}
-          sidebarTop="150px"
+          sidebarTop="138px"
           mainContentOverflowY="visible"
         >
           {/* Methods Interactions */}
