@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseIpfsUrl, uncompress } from '../../builder/src/ipfs';
+import { getIpfsCid, uncompress } from '../../builder/src/ipfs';
 import { bootstrap } from './helpers/bootstrap';
 import { loadFixture } from './helpers/fixtures';
 import { RKEY_FRESH_UPLOAD_HASHES } from '../src/db';
@@ -33,6 +33,9 @@ describe('POST /api/v0/add', function () {
   it('should successfully add valid package data', async function () {
     const pkg = await loadFixture('registry');
 
+    const prevExists = await ctx.s3.objectExists(pkg.cid);
+    expect(prevExists).toBe(false);
+
     await ctx.repo
       .post('/api/v0/add')
       .attach('file', pkg.data)
@@ -40,6 +43,9 @@ describe('POST /api/v0/add', function () {
       .expect((res) => {
         expect(JSON.parse(res.text)).toEqual({ Hash: pkg.cid });
       });
+
+    const afterExists = await ctx.s3.objectExists(pkg.cid);
+    expect(afterExists).toBe(true);
 
     const saved = await ctx.s3.getObject(pkg.cid);
     const parsed = JSON.parse(uncompress(saved));
@@ -50,7 +56,7 @@ describe('POST /api/v0/add', function () {
     expect(pkgScore).toBeGreaterThan(0);
 
     // After adding the package, we should also be able to add the misc data
-    const miscIpfsHash = parseIpfsUrl(pkg.content.miscUrl)!;
+    const miscIpfsHash = getIpfsCid(pkg.content.miscUrl)!;
     const miscScore = await ctx.rdb.zScore(RKEY_FRESH_UPLOAD_HASHES, miscIpfsHash);
     expect(miscScore).toBeGreaterThan(0);
   });

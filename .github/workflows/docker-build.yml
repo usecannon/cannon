@@ -8,6 +8,7 @@ on:
         required: true
         type: choice
         options:
+          - all
           - repo
           - indexer
       version:
@@ -20,12 +21,15 @@ env:
 
 jobs:
   build:
+    strategy:
+      matrix:
+        image: ${{ fromJSON(github.event.inputs.job_to_run == 'all' && '["repo", "indexer"]' || format('["%s"]', github.event.inputs.job_to_run)) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     env:
-      IMAGE_NAME: ${{ github.repository_owner }}/${{ github.event.inputs.job_to_run }}
+      IMAGE_NAME: ${{ github.repository_owner }}/${{ matrix.image }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -55,7 +59,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./docker/${{ github.event.inputs.job_to_run }}.Dockerfile
+          file: ./docker/${{ matrix.image }}.Dockerfile
           build-args: |
             BUILD_REVISION=${{ github.event.inputs.version || github.sha }}
           push: true

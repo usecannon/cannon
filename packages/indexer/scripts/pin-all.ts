@@ -3,7 +3,7 @@ import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/builder';
 import { createRpcClient } from '../src/helpers/rpc';
 import { batches } from '../src/helpers/batches';
 import { config } from '../src/config';
-import { PinnerJobRaw, runWithPinner } from '../src/pinner';
+import { createQueue } from '../src/queue';
 
 const packagePublishEvents = viem.parseAbi([
   'event PackagePublish(bytes32 indexed name, bytes32[] indexed tags, bytes32 variant, string url, address owner)',
@@ -18,28 +18,32 @@ const START_IDS = {
 };
 
 async function main() {
-  await runWithPinner(async ({ queue }) => {
-    const mainnetClient = createRpcClient('mainnet', config.MAINNET_PROVIDER_URL);
-    const optimismClient = createRpcClient('optimism', config.OPTIMISM_PROVIDER_URL);
+  const queue = createQueue();
+  queue.createWorker();
 
-    const mainnetUrls = await getPublishedPackages(mainnetClient, START_IDS['1']);
-    const optimismUrls = await getPublishedPackages(optimismClient, START_IDS['10']);
+  const mainnetClient = createRpcClient('mainnet', config.MAINNET_PROVIDER_URL);
+  const optimismClient = createRpcClient('optimism', config.OPTIMISM_PROVIDER_URL);
 
-    const deployUrls = new Set([...mainnetUrls.deployUrls, ...optimismUrls.deployUrls]);
-    const metaUrls = new Set([...mainnetUrls.metaUrls, ...optimismUrls.metaUrls]);
+  const mainnetUrls = await getPublishedPackages(mainnetClient, START_IDS['1']);
+  const optimismUrls = await getPublishedPackages(optimismClient, START_IDS['10']);
 
-    const jobs: PinnerJobRaw[] = [];
+  const deployUrls = new Set([...mainnetUrls.deployUrls, ...optimismUrls.deployUrls]);
+  const metaUrls = new Set([...mainnetUrls.metaUrls, ...optimismUrls.metaUrls]);
 
-    for (const deployUrl of deployUrls) {
-      jobs.push({ name: 'PIN_PACKAGE', data: { cid: deployUrl } });
-    }
+  const batch = queue.createBatch();
 
-    for (const metaUrl of metaUrls) {
-      jobs.push({ name: 'PIN_CID', data: { cid: metaUrl } });
-    }
+  for (const deployUrl of deployUrls) {
+    batch.add('PIN_PACKAGE', { cid: deployUrl });
+  }
 
-    await queue.addBulk(jobs);
-  });
+  for (const metaUrl of metaUrls) {
+    batch.add('PIN_CID', { cid: metaUrl });
+  }
+
+  await batch.exec();
+
+  await queue.waitForIdle();
+  await queue.close();
 }
 
 async function getPublishedPackages(client: viem.PublicClient, fromBlock: number) {

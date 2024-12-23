@@ -6,6 +6,7 @@ import {
   ChainDefinition,
   DEFAULT_REGISTRY_CONFIG,
   getCannonRepoRegistryUrl,
+  getIpfsUrl,
   getOutputs,
   InMemoryRegistry,
   IPFSLoader,
@@ -21,7 +22,13 @@ import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commands/config';
-import { checkCannonVersion, ensureChainIdConsistency, getPackageInfo, ensureFoundryCompatibility } from './helpers';
+import {
+  checkCannonVersion,
+  ensureChainIdConsistency,
+  getPackageInfo,
+  ensureFoundryCompatibility,
+  getPackageReference,
+} from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
 import { createDefaultReadRegistry } from './registry';
@@ -94,7 +101,7 @@ function configureRun(program: Command) {
   return applyCommandsConfig(program, commandsConfig.run).action(async function (
     packages: PackageSpecification[],
     options,
-    program
+    program,
   ) {
     log(bold('Starting local node...\n'));
 
@@ -239,91 +246,88 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     node?.kill();
   });
 
-applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(async function (packageName, options) {
+applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(async function (packageRef, options) {
   const { verify } = await import('./commands/verify');
 
   // Override CLI settings with --api-key value
   options.etherscanApiKey = options.apiKey;
 
   const cliSettings = resolveCliSettings(options);
+  const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
-  await verify(packageName, cliSettings, parseInt(options.chainId));
+  await verify(fullPackageRef, cliSettings, chainId);
 });
 
-applyCommandsConfig(program.command('diff'), commandsConfig.diff).action(async function (
-  packageName,
-  projectDirectory,
-  options
-) {
-  const { diff } = await import('./commands/diff');
+applyCommandsConfig(program.command('diff'), commandsConfig.diff).action(
+  async function (packageRef, projectDirectory, options) {
+    const { diff } = await import('./commands/diff');
 
-  const cliSettings = resolveCliSettings(options);
+    const cliSettings = resolveCliSettings(options);
+    const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
-  const foundDiffs = await diff(
-    packageName,
-    cliSettings,
-    parseInt(options.chainId),
-    projectDirectory,
-    options.matchContract,
-    options.matchSource
-  );
+    const foundDiffs = await diff(
+      fullPackageRef,
+      cliSettings,
+      chainId,
+      projectDirectory,
+      options.matchContract,
+      options.matchSource,
+    );
 
-  // exit code is the number of differences found--useful for CI checks
-  process.exit(foundDiffs);
-});
+    // exit code is the number of differences found--useful for CI checks
+    process.exit(foundDiffs);
+  },
+);
 
-applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async function (
-  packageName,
-  command,
-  options,
-  flags
-) {
-  const { alter } = await import('./commands/alter');
+applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(
+  async function (packageName, command, options, flags) {
+    const { alter } = await import('./commands/alter');
 
-  const cliSettings = resolveCliSettings(flags);
+    const cliSettings = resolveCliSettings(flags);
 
-  // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(cliSettings.rpcUrl, flags.chainId);
+    // throw an error if the chainId is not consistent with the provider's chainId
+    await ensureChainIdConsistency(cliSettings.rpcUrl, flags.chainId);
 
-  // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
-  const newUrl = await alter(
-    packageName,
-    flags.subpkg ? flags.subpkg.split(',') : [],
-    parseInt(flags.chainId),
-    cliSettings,
-    {},
-    command,
-    options,
-    {}
-  );
+    // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
+    const newUrl = await alter(
+      packageName,
+      flags.subpkg ? flags.subpkg.split(',') : [],
+      parseInt(flags.chainId),
+      cliSettings,
+      {},
+      command,
+      options,
+      {},
+    );
 
-  log(newUrl);
-});
+    log(newUrl);
+  },
+);
 
-applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async function (packageName, ipfsHash, options) {
-  const { fetch } = await import('./commands/fetch');
+applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(
+  async function (packageRef, givenIpfsUrl, options) {
+    const { fetch } = await import('./commands/fetch');
 
-  if (!options.chainId) {
-    const chainIdPrompt = await prompts({
-      type: 'number',
-      name: 'value',
-      message: 'Please provide the Chain ID for the deployment you want to fetch',
-      initial: 13370,
-    });
+    const { fullPackageRef, chainId } = await getPackageReference(packageRef, options.chainId);
+    const ipfsUrl = getIpfsUrl(givenIpfsUrl);
+    const metaIpfsUrl = getIpfsUrl(options.metaHash) || undefined;
 
-    if (!chainIdPrompt.value) {
-      log('Chain ID is required.');
-      process.exit(1);
+    if (!ipfsUrl) {
+      throw new Error('IPFS URL is required.');
     }
 
-    options.chainId = chainIdPrompt.value;
-  }
+    await fetch(fullPackageRef, chainId, ipfsUrl, metaIpfsUrl);
+  },
+);
 
-  await fetch(packageName, parseInt(options.chainId), ipfsHash, options.metaHash);
-});
-
-applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async function (ref, options) {
+applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async function (packageRef, options) {
   const cliSettings = resolveCliSettings(options);
+
+  const ipfsUrl = getIpfsUrl(packageRef);
+
+  if (!ipfsUrl) {
+    throw new Error('IPFS URL is required.');
+  }
 
   const fromStorage = new CannonStorage(await createDefaultReadRegistry(cliSettings), getMainLoader(cliSettings));
 
@@ -333,45 +337,20 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
 
   log('Uploading package data for pinning...');
 
-  await pin(ref, fromStorage, toStorage);
+  await pin(ipfsUrl, fromStorage, toStorage);
 
   log('Done!');
 });
 
 applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (
   packageRef,
-  options: { [opt: string]: string }
+  options: { [opt: string]: string },
 ) {
   const { publish } = await import('./commands/publish');
 
   const cliSettings = resolveCliSettings(options);
 
-  const { fullPackageRef, chainId: chainIdFromPackage } = await getPackageInfo(packageRef);
-
-  let chainId: number | undefined = undefined;
-
-  // if it's a ipfs hash, use the chainId from the package
-  if (chainIdFromPackage) {
-    chainId = chainIdFromPackage;
-  } else if (options.chainId) {
-    chainId = Number(options.chainId);
-  }
-
-  // if chainId is still undefined, prompt the user to provide the chainId
-  if (!chainId) {
-    const chainIdPrompt = await prompts({
-      type: 'number',
-      name: 'value',
-      message: 'Please provide the Chain ID for the package you want to publish',
-      initial: 13370,
-    });
-
-    if (!chainIdPrompt.value) {
-      throw new Error('A valid Chain Id is required.');
-    }
-
-    chainId = Number(chainIdPrompt.value);
-  }
+  const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
   const isDefaultRegistryChains =
     cliSettings.registries[0].chainId === DEFAULT_REGISTRY_CONFIG[0].chainId &&
@@ -442,8 +421,8 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     log();
     log(
       gray(
-        `Package "${pkgRef.name}" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
-      )
+        `Package "${pkgRef.name}" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`,
+      ),
     );
     log();
 
@@ -496,7 +475,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     }\n - Max Priority Fee Per Gas: ${
       overrides.maxPriorityFeePerGas ? overrides.maxPriorityFeePerGas.toString() : 'default'
     }\n - Gas Limit: ${overrides.gasLimit ? overrides.gasLimit : 'default'}\n` +
-      " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
+      " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n",
   );
 
   await publish({
@@ -515,8 +494,9 @@ applyCommandsConfig(program.command('unpublish'), commandsConfig.unpublish).acti
   const { unpublish } = await import('./commands/unpublish');
 
   const cliSettings = resolveCliSettings(options);
+  const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
-  await unpublish({ cliSettings, options, packageRef });
+  await unpublish({ cliSettings, options, fullPackageRef, chainId });
 });
 
 applyCommandsConfig(program.command('register'), commandsConfig.register).action(async function (packageRef, options) {
@@ -535,18 +515,19 @@ applyCommandsConfig(program.command('publishers'), commandsConfig.publishers).ac
   await publishers({ cliSettings, options, packageRef });
 });
 
-applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(async function (packageName, options) {
+applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(async function (packageRef, options) {
   const { inspect } = await import('./commands/inspect');
 
   const cliSettings = resolveCliSettings(options);
+  const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
   await inspect(
-    packageName,
+    fullPackageRef,
     cliSettings,
-    options.chainId,
+    chainId,
     options.json ? 'json' : options.out,
     options.writeDeployments,
-    options.sources
+    options.sources,
   );
 });
 
@@ -567,7 +548,7 @@ applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async
     storage,
     options.filterPackage?.split(',') || '',
     options.filterVariant?.split(',') || '',
-    options.keepAge
+    options.keepAge,
   );
 
   if (pruneUrls.length) {
@@ -613,27 +594,12 @@ applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async
   const { trace } = await import('./commands/trace');
 
   const cliSettings = resolveCliSettings(options);
-
-  const isRpcUrl = isURL(cliSettings.rpcUrl);
-
-  let chainId = options.chainId ? Number(options.chainId) : undefined;
-
-  if (!chainId && isRpcUrl) {
-    chainId = await getChainIdFromRpcUrl(cliSettings.rpcUrl);
-  }
-
-  // throw an error if both chainId and rpcUrl are not provided
-  if (!chainId && !isRpcUrl) {
-    throw new Error('Please provide one of the following options: --chain-id or --rpc-url');
-  }
-
-  // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(cliSettings.rpcUrl, chainId);
+  const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
   await trace({
-    packageRef,
+    packageRef: fullPackageRef,
     data,
-    chainId: chainId!, // chainId is guaranteed to be defined here
+    chainId, // chainId is guaranteed to be defined here
     cliSettings,
     from: options.from,
     to: options.to,
@@ -647,12 +613,12 @@ applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(asy
   const { decode } = await import('./commands/decode');
 
   const cliSettings = resolveCliSettings(options);
+  const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
   await decode({
-    packageRef,
+    packageRef: fullPackageRef,
     data,
-    chainId: options.chainId ? parseInt(options.chainId) : undefined,
-    rpcUrl: cliSettings.rpcUrl,
+    chainId,
     json: options.json,
   });
 });
@@ -669,9 +635,9 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
     warn(
       yellowBright(
         bold(
-          '⚠️  The `--` syntax for passing options to forge or anvil is deprecated. Please use `--forge.*` or `--anvil.*` instead.'
-        )
-      )
+          '⚠️  The `--` syntax for passing options to forge or anvil is deprecated. Please use `--forge.*` or `--anvil.*` instead.',
+        ),
+      ),
     );
     log();
   }
@@ -704,25 +670,9 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
   });
 });
 
-applyCommandsConfig(program.command('interact'), commandsConfig.interact).action(async function (
-  packageDefinition: PackageSpecification,
-  options
-) {
+applyCommandsConfig(program.command('interact'), commandsConfig.interact).action(async function (packageRef, options) {
   const cliSettings = resolveCliSettings(options);
-
-  let chainId: number | undefined = options.chainId ? Number(options.chainId) : undefined;
-
-  const isRpcUrl = isURL(cliSettings.rpcUrl);
-
-  // if chainId is not provided, get it from the provider
-  if (!chainId && isRpcUrl) {
-    chainId = await getChainIdFromRpcUrl(cliSettings.rpcUrl);
-  }
-
-  // throw an error if both chainId and rpcUrl are not provided
-  if (!chainId && !isRpcUrl) {
-    throw new Error('Please provide one of the following options: --chain-id or --rpc-url');
-  }
+  const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
   // throw an error if the chainId is not consistent with the provider's chainId
   await ensureChainIdConsistency(cliSettings.rpcUrl, chainId);
@@ -734,10 +684,6 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
   });
 
   const resolver = await createDefaultReadRegistry(cliSettings);
-
-  const { name, version, preset } = packageDefinition;
-
-  const fullPackageRef = PackageReference.from(name, version, preset).fullPackageRef;
 
   const runtime = new ChainBuilderRuntime(
     {
@@ -756,14 +702,14 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
       priorityGasFee: options.maxPriorityFee,
     },
     resolver,
-    getMainLoader(cliSettings)
+    getMainLoader(cliSettings),
   );
 
   const deployData = await runtime.readDeploy(fullPackageRef, runtime.chainId);
 
   if (!deployData) {
     throw new Error(
-      `deployment not found for package: ${fullPackageRef}. please make sure it exists for the given preset and current network.`
+      `deployment not found for package: ${fullPackageRef} with chaindId ${chainId}. please make sure it exists for the given preset and current network.`,
     );
   }
 
@@ -771,13 +717,20 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   if (!outputs) {
     throw new Error(
-      `no cannon build found for chain ${chainId} with preset "${preset}". Did you mean to run the package instead?`
+      `no cannon build found for ${fullPackageRef} with chaindId ${chainId}. Did you mean to run the package instead?`,
     );
   }
 
   const contracts = [getContractsRecursive(outputs)];
 
   const extendedProvider = provider.extend(traceActions(outputs) as any);
+  const ref = new PackageReference(fullPackageRef);
+  const packageDefinition = {
+    name: ref.name,
+    version: ref.version,
+    preset: ref.preset,
+    settings: {},
+  };
 
   await interact({
     packages: [packageDefinition],
