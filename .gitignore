@@ -64,13 +64,17 @@ jspm_packages/
 
 # environment variables
 .env
+.env.*
+!.env.example
 
 # macOS
 .DS_Store
 .idea
 
-# local env vars
-.env.local
-
 # nx cache folder
 .nx
+
+.contentlayer
+
+# docker-compose data
+/data

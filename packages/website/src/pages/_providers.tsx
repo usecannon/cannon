@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { CacheProvider } from '@chakra-ui/next-js';
-import { ChakraProvider, Flex } from '@chakra-ui/react';
+import { ChakraProvider } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 
 import LogsProvider from '@/providers/logsProvider';
@@ -40,12 +40,7 @@ export default function Providers({ children }: { children: ReactNode }) {
   } as const;
 
   return (
-    <Flex
-      flexDirection="column"
-      backgroundColor="black"
-      minHeight="100vh"
-      position="relative"
-    >
+    <div className="flex flex-col min-h-screen relative bg-black">
       <CacheProvider>
         <ChakraProvider theme={theme} colorModeManager={csm as any}>
           <LogsProvider>
@@ -59,6 +54,6 @@ export default function Providers({ children }: { children: ReactNode }) {
           </LogsProvider>
         </ChakraProvider>
       </CacheProvider>
-    </Flex>
+    </div>
   );
 }

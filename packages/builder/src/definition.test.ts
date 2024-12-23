@@ -16,38 +16,6 @@ function makeFakeChainDefinition(nodes: { [n: string]: any }) {
 }
 
 describe('ChainDefinition', () => {
-  describe('constructor()', () => {
-    it('throws an error when trying to use a definition with invalid action name', () => {
-      const rawDef = {
-        name: 'test',
-        version: '1.0.0',
-        invalid: {
-          saturday: { target: '420' },
-        },
-      };
-
-      expect(() => new ChainDefinition(rawDef)).toThrow('Unrecognized action type invalid at [invalid.saturday]');
-    });
-
-    it('throws an error when trying to use a definition with name over 32 bytes', () => {
-      const rawDef = {
-        name: 'package-name-longer-than-32bytes1337',
-        version: '1.0.0',
-      };
-
-      expect(() => new ChainDefinition(rawDef)).toThrow('Package name exceeds 32 bytes');
-    });
-
-    it('throws an error when trying to use a definition with version over 32 bytes', () => {
-      const rawDef = {
-        name: 'package',
-        version: 'package-version-longer-than-32bytes1337',
-      };
-
-      expect(() => new ChainDefinition(rawDef)).toThrow('Package version exceeds 32 bytes');
-    });
-  });
-
   it('does not have output clash on var or settings', () => {
     const rawDef: RawChainDefinition = {
       name: 'test',
@@ -134,34 +102,32 @@ describe('ChainDefinition', () => {
     });
 
     it('returns cycle when there is one node depending on itself', async () => {
-      expect(() => makeFakeChainDefinition({ 'contract.a': { artifact: 'Xx', depends: ['contract.a'] } })).toThrowError(
-        'contract.a'
-      );
+      const def = makeFakeChainDefinition({ 'contract.a': { artifact: 'Xx', depends: ['contract.a'] } });
+      expect(def.checkCycles()).toEqual(['contract.a']);
     });
 
     it('returns cycle when there are two nodes depending on each other', async () => {
-      expect(() =>
-        makeFakeChainDefinition({
-          'contract.a': { artifact: 'Xx', depends: ['contract.b'] },
-          'contract.b': { artifact: 'Xx', depends: ['contract.a'] },
-        })
-      ).toThrowError('contract.b\ncontract.a');
+      const def = makeFakeChainDefinition({
+        'contract.a': { artifact: 'Xx', depends: ['contract.b'] },
+        'contract.b': { artifact: 'Xx', depends: ['contract.a'] },
+      });
+      expect(def.checkCycles()).toEqual(['contract.b', 'contract.a']);
     });
 
     it('returns cycle when there are three nodes depending on each other with other conforming nodes', async () => {
-      expect(() =>
-        makeFakeChainDefinition({
-          'contract.a': { artifact: 'Xx', depends: [] },
+      const def = makeFakeChainDefinition({
+        'contract.a': { artifact: 'Xx', depends: [] },
 
-          'contract.b': { artifact: 'Xx', depends: ['contract.c'] },
-          'contract.c': { artifact: 'Xx', depends: ['contract.y'] },
+        'contract.b': { artifact: 'Xx', depends: ['contract.c'] },
+        'contract.c': { artifact: 'Xx', depends: ['contract.y'] },
 
-          // cycle
-          'contract.x': { artifact: 'Xx', depends: ['contract.y'] },
-          'contract.y': { artifact: 'Xx', depends: ['contract.z'] },
-          'contract.z': { artifact: 'Xx', depends: ['contract.x'] },
-        })
-      ).toThrowError('contract.z\ncontract.x\ncontract.y');
+        // cycle
+        'contract.x': { artifact: 'Xx', depends: ['contract.y'] },
+        'contract.y': { artifact: 'Xx', depends: ['contract.z'] },
+        'contract.z': { artifact: 'Xx', depends: ['contract.x'] },
+      });
+
+      expect(def.checkCycles()).toEqual(['contract.z', 'contract.x', 'contract.y']);
     });
   });
 

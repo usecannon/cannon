@@ -1,36 +1,25 @@
 import { CommandPreview } from '@/components/CommandPreview';
 import { links } from '@/constants/links';
-import { Heading, Text, Box, Link } from '@chakra-ui/react';
 
 export const BuildWithCannon = () => {
   return (
     <>
-      <Heading
-        as="h2"
-        size="lg"
-        fontWeight={600}
-        letterSpacing="0.2px"
-        mb={2.5}
-      >
+      <h2 className="text-3xl font-semibold tracking-[0.2px] mb-2.5">
         Build with Cannon
-      </Heading>
-      <Text
-        pb={4}
-        mb={4}
-        borderBottom="1px solid"
-        borderBottomColor="gray.600"
-        fontSize="xl"
-        color="gray.400"
-      >
+      </h2>
+      <p className="pb-4 mb-6 border-b border-border text-xl text-muted-foreground">
         Create and deploy a protocol that integrates with Cannon packages
-      </Text>
-      <Text mb={4}>
+      </p>
+      <p className="mb-4">
         Start by installing/upgrading the Cannon{' '}
-        <Link href={links.CLI}>command-line interface</Link>:
-      </Text>
-      <Box mb={6}>
+        <a href={links.CLI} className="text-primary hover:underline">
+          command-line interface
+        </a>
+        :
+      </p>
+      <div className="mb-6">
         <CommandPreview command="npm i -g @usecannon/cli" />
-      </Box>
+      </div>
     </>
   );
 };

@@ -1,5 +1,6 @@
 import { FC, useRef } from 'react';
 import Editor, { type EditorProps } from '@monaco-editor/react';
+import { createGlobalStyle } from 'styled-components';
 
 interface ICodePreviewProps {
   code: string;
@@ -8,6 +9,16 @@ interface ICodePreviewProps {
   line?: number; // The line to highlight
   editorProps?: EditorProps;
 }
+
+const EditorStyles = createGlobalStyle`
+  .myInlineDecoration {
+    cursor: pointer;
+    text-decoration: underline;
+    font-weight: bold;
+    font-style: oblique;
+    background-color: #338fff6c;
+  }
+`;
 
 export const CodePreview: FC<ICodePreviewProps> = ({
   code,
@@ -48,15 +59,18 @@ export const CodePreview: FC<ICodePreviewProps> = ({
   // call highlightLines until the editor is mounted
 
   return (
-    <Editor
-      height={height}
-      theme="vs-dark"
-      defaultLanguage={language || 'javascript'}
-      value={code}
-      options={{ readOnly: true }}
-      onMount={handleEditorDidMount}
-      {...editorProps}
-    />
+    <>
+      <EditorStyles />
+      <Editor
+        height={height}
+        theme="vs-dark"
+        defaultLanguage={language || 'javascript'}
+        value={code}
+        options={{ readOnly: true }}
+        onMount={handleEditorDidMount}
+        {...editorProps}
+      />
+    </>
   );
 };
 

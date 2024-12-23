@@ -25,7 +25,7 @@ import semver from 'semver';
 import * as viem from 'viem';
 import { getMainLoader } from './loader';
 import { privateKeyToAccount } from 'viem/accounts';
-import { cannonChain, chains } from './chains';
+import { getChainById, chains } from './chains';
 import { resolveCliSettings } from './settings';
 import { log, warn } from './util/console';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
@@ -33,6 +33,8 @@ import { getChainIdFromRpcUrl, isURL, hideApiKey } from './util/provider';
 import { LocalRegistry } from './registry';
 
 const debug = Debug('cannon:cli:helpers');
+
+const cannonChain = getChainById(CANNON_CHAIN_ID);
 
 export function stripCredentialsFromURL(uri: string) {
   const res = new URL(uri);
@@ -53,18 +55,16 @@ export async function filterSettings(settings: any) {
   filteredSettings.rpcUrl = hideApiKey(filteredSettings.rpcUrl);
   filteredSettings.registryRpcUrl = hideApiKey(filteredSettings.registryRpcUrl);
 
-  const filterUrlPassword = (uri: string) => {
-    try {
-      return stripCredentialsFromURL(uri);
-    } catch (err) {
-      debug('Invalid URL', uri);
-      return '';
-    }
-  };
+  const settingsToFilter = ['publishIpfsUrl', 'ipfsUrl', 'writeIpfsUrl'];
 
-  filteredSettings.publishIpfsUrl = filterUrlPassword(filteredSettings.publishIpfsUrl!);
-  filteredSettings.ipfsUrl = filterUrlPassword(filteredSettings.ipfsUrl!);
-  filteredSettings.writeIpfsUrl = filterUrlPassword(filteredSettings.writeIpfsUrl!);
+  for (const setting of settingsToFilter) {
+    const value = filteredSettings[setting];
+    try {
+      filteredSettings[setting] = stripCredentialsFromURL(value);
+    } catch (err) {
+      debug(`Invalid URL for "${setting}": ${value}`);
+    }
+  }
 
   return filteredSettings;
 }

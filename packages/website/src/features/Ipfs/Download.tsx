@@ -1,27 +1,11 @@
 'use client';
 
 import React, { ChangeEvent, useEffect, useState } from 'react';
-import {
-  Checkbox,
-  Container,
-  FormControl,
-  FormLabel,
-  Heading,
-  Input,
-  InputGroup,
-  InputLeftElement,
-  Select,
-  Text,
-  Box,
-  Link,
-  Button,
-} from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { useQueryIpfsDataRaw } from '@/hooks/ipfs';
 import { CodePreview } from '@/components/CodePreview';
 import { useStore } from '@/helpers/store';
-import { DownloadIcon } from '@chakra-ui/icons';
-import NextLink from 'next/link';
+import { DownloadIcon } from '@radix-ui/react-icons';
 import {
   arrayBufferToUtf8,
   decodeData,
@@ -29,6 +13,8 @@ import {
   Encodings,
   EncodingsKeys,
 } from '@/helpers/misc';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { IpfsSpinner } from '@/components/IpfsSpinner';
 
 function parseJson(data: ArrayBuffer | undefined, decompress?: boolean) {
   if (!data || decompress === undefined) return false;
@@ -148,101 +134,89 @@ export default function Download() {
   };
 
   return (
-    <Container maxW="container.md" py={{ base: 8, md: 12 }}>
-      <Box
-        p={6}
-        bg="gray.800"
-        display="block"
-        borderWidth="1px"
-        borderStyle="solid"
-        borderColor="gray.600"
-        borderRadius="4px"
-      >
-        <Heading paddingBottom="4" size="md" mb="1">
-          Download from IPFS
-        </Heading>
-
-        <Text mb={4}>
-          <Text>
-            Update your IPFS URL in{' '}
-            <Link as={NextLink} href="/settings">
-              settings
-            </Link>
-            .
-          </Text>
-        </Text>
-
-        {ipfsApiUrl?.length && (
-          <>
-            <FormControl mb={3}>
-              <FormLabel htmlFor="cid" mb={1}>
-                CID
-              </FormLabel>
-              <InputGroup size="md">
-                <InputLeftElement pointerEvents="none" pl={8} color="gray.400">
-                  <span>ipfs://</span>
-                </InputLeftElement>
-                <Input
-                  pl={16}
-                  placeholder="Qm..."
-                  bg="black"
-                  borderColor="whiteAlpha.400"
-                  id="cid"
-                  value={cid}
-                  onChange={handleInputChange}
-                />
-              </InputGroup>
-            </FormControl>
-            <Checkbox
-              mb={2}
-              isChecked={decompress}
-              onChange={handleSwitchDecompress}
-            >
-              Decompress using zlib
-            </Checkbox>
-            {ipfsData && (
-              <Box>
-                <FormControl mb={8}>
-                  <FormLabel mb={1}>Decode</FormLabel>
-                  <Select
-                    value={encoding}
-                    onChange={handleEncodingChange}
-                    mb={2}
-                  >
-                    {Object.entries(Encodings).map(([key, value]) => (
-                      <option key={key} value={key}>
-                        {value}
-                      </option>
-                    ))}
-                  </Select>
-                </FormControl>
-                <Box mb={4} minHeight="420px">
-                  <CodePreview
-                    code={String(decodedData)}
-                    language={isJson ? 'json' : undefined}
-                    height="420px"
+    <div className="container mx-auto py-8 md:py-12 max-w-3xl">
+      <Card>
+        <CardHeader>
+          <CardTitle>Download from IPFS</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {ipfsApiUrl?.length && (
+            <>
+              <div className="mb-4">
+                <label htmlFor="cid" className="block text-sm mb-1">
+                  CID
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    ipfs://
+                  </span>
+                  <input
+                    className="w-full pl-16 bg-black border border-white/40 rounded-md h-10 px-3"
+                    placeholder="Qm..."
+                    id="cid"
+                    value={cid}
+                    onChange={handleInputChange}
                   />
-                </Box>
-                <Box>
-                  <Button
-                    variant="outline"
-                    colorScheme="white"
-                    size="xs"
-                    color="gray.300"
-                    borderColor="gray.500"
-                    _hover={{ bg: 'gray.700' }}
-                    leftIcon={<DownloadIcon />}
-                    onClick={handleDownload}
-                    ml="auto"
-                  >
-                    Download
-                  </Button>
-                </Box>
-              </Box>
-            )}
-          </>
-        )}
-      </Box>
-    </Container>
+                </div>
+              </div>
+
+              {cid && !ipfsData && (
+                <div className="py-20">
+                  <IpfsSpinner ipfsUrl={`ipfs://${cid}`} />
+                </div>
+              )}
+
+              {ipfsData && (
+                <div>
+                  <div className="flex items-center mb-3">
+                    <input
+                      type="checkbox"
+                      id="decompress"
+                      checked={decompress}
+                      onChange={handleSwitchDecompress}
+                      className="mr-2"
+                    />
+                    <label htmlFor="decompress">Decompress using zlib</label>
+                  </div>
+
+                  <div className="mb-8">
+                    <label className="block text-sm mb-1">Decode</label>
+                    <select
+                      value={encoding}
+                      onChange={handleEncodingChange}
+                      className="w-full h-10 px-3 rounded-md border border-gray-600 bg-black mb-2"
+                    >
+                      {Object.entries(Encodings).map(([key, value]) => (
+                        <option key={key} value={key}>
+                          {value}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="mb-4 min-h-[420px]">
+                    <CodePreview
+                      code={String(decodedData)}
+                      language={isJson ? 'json' : undefined}
+                      height="420px"
+                    />
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleDownload}
+                      className="inline-flex items-center px-3 py-1 text-xs border border-gray-500 text-gray-300 rounded hover:bg-gray-700"
+                    >
+                      <DownloadIcon className="mr-2 h-4 w-4" />
+                      Download
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

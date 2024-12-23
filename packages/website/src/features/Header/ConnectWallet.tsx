@@ -1,32 +1,16 @@
 'use client';
 
 import { FC, ReactNode, useState } from 'react';
-import { Button, Flex, Image, useBreakpointValue } from '@chakra-ui/react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import ChainSelectorModal from '@/components/ChainSelectorModal';
+import { Button } from '@/components/ui/button';
+import { useMediaQuery } from 'usehooks-ts';
+import { cn } from '@/lib/utils';
 
 const styleMap = {
-  primary: {
-    background: 'teal.900',
-    borderColor: 'teal.500',
-    _hover: {
-      bg: 'teal.800',
-    },
-  },
-  danger: {
-    background: 'red.900',
-    borderColor: 'red.500',
-    _hover: {
-      bg: 'red.800',
-    },
-  },
-  default: {
-    background: 'gray.900',
-    borderColor: 'gray.500',
-    _hover: {
-      background: 'gray.800',
-    },
-  },
+  primary: 'bg-teal-900 border-teal-500 hover:bg-teal-800',
+  danger: 'bg-red-900 border-red-500 hover:bg-red-800',
+  default: 'bg-gray-900 border-gray-500 hover:bg-gray-800',
 };
 
 const CustomButton = ({
@@ -36,28 +20,24 @@ const CustomButton = ({
 }: {
   onClick: () => void;
   children: ReactNode;
-  variant: string;
+  variant: keyof typeof styleMap;
 }) => (
   <Button
     size="sm"
     variant="outline"
-    colorScheme="black"
-    fontWeight={500}
-    textTransform="uppercase"
-    letterSpacing="1px"
-    fontFamily="var(--font-miriam)"
-    textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-    fontSize="15px"
-    color="gray.200"
-    {...styleMap[variant as keyof typeof styleMap]}
     onClick={onClick}
+    className={cn(
+      'uppercase tracking-wider font-miriam text-[15px] text-gray-200',
+      'shadow-[0px_0px_4px_rgba(255,255,255,0.33)]',
+      styleMap[variant]
+    )}
   >
     {children}
   </Button>
 );
 
 const ConnectWallet: FC = () => {
-  const isMobile = useBreakpointValue([true, true, false]);
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const [showingChainModal, setShowingChainModal] = useState(false);
 
   const handleOpenChainModal = () => {
@@ -87,11 +67,7 @@ const ConnectWallet: FC = () => {
           <div
             {...(!ready && {
               'aria-hidden': true,
-              style: {
-                opacity: 0,
-                pointerEvents: 'none',
-                userSelect: 'none',
-              },
+              className: 'opacity-0 pointer-events-none select-none',
             })}
           >
             {(() => {
@@ -112,7 +88,7 @@ const ConnectWallet: FC = () => {
               }
 
               return (
-                <Flex gap={4}>
+                <div className="flex gap-4">
                   {!isMobile && (
                     <CustomButton
                       onClick={handleOpenChainModal}
@@ -120,22 +96,16 @@ const ConnectWallet: FC = () => {
                     >
                       {chain.hasIcon && (
                         <div
+                          className="w-3.5 h-3.5 rounded-full overflow-hidden mr-1.5 -mt-px"
                           style={{
                             background: chain.iconBackground,
-                            width: 14,
-                            height: 14,
-                            borderRadius: 999,
-                            overflow: 'hidden',
-                            marginRight: 6,
-                            marginTop: -1,
                           }}
                         >
                           {chain.iconUrl && (
-                            <Image
+                            <img
                               alt={chain.name ?? 'Chain icon'}
                               src={chain.iconUrl}
-                              width="14px"
-                              height="14px"
+                              className="w-3.5 h-3.5"
                             />
                           )}
                         </div>
@@ -146,19 +116,14 @@ const ConnectWallet: FC = () => {
 
                   <CustomButton onClick={openAccountModal} variant="default">
                     {account.displayName}
-                    {/* account.displayBalance
-                      ? ` (${account.displayBalance})`
-                        : '' */}
                   </CustomButton>
-                </Flex>
+                </div>
               );
             })()}
-            {
-              <ChainSelectorModal
-                onClose={() => setShowingChainModal(false)}
-                isOpen={showingChainModal}
-              />
-            }
+            <ChainSelectorModal
+              onClose={() => setShowingChainModal(false)}
+              isOpen={showingChainModal}
+            />
           </div>
         );
       }}

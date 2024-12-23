@@ -1,7 +1,5 @@
 import { CodePreview } from '@/components/CodePreview';
 import { CommandPreview } from '@/components/CommandPreview';
-import { Heading, Text, Code, Box } from '@chakra-ui/react';
-import React from 'react';
 
 const code = `pragma solidity ^0.8.13;
 
@@ -30,37 +28,35 @@ contract SampleIntegrationTest is Test {
 export const TestYourProtocol = () => {
   return (
     <>
-      <Heading size="md" mb={3} mt={8}>
-        Test Your Protocol
-      </Heading>
-      <Text mb={4}>Install Cannon for Foundry:</Text>
-      <Box mb={4}>
+      <h2 className="text-xl font-semibold mb-3 mt-8">Test Your Protocol</h2>
+      <p className="mb-4">Install Cannon for Foundry:</p>
+      <div className="mb-4">
         <CommandPreview command="forge install usecannon/cannon-std" />
-      </Box>
-      <Text mb={4}>
+      </div>
+      <p className="mb-4">
         Grant your Foundry project permission to read from the filesystem. Add
         the following line to your{' '}
-        <Code colorScheme="blackAlpha" variant="solid">
+        <code className="bg-secondary px-1.5 py-0.5 rounded-md font-mono text-sm">
           foundry.toml
-        </Code>
+        </code>
         &nbsp; file:
-      </Text>
-      <Box mb={4}>
+      </p>
+      <div className="mb-4">
         <CommandPreview command='fs_permissions = [{ access = "read", path = "./"}]' />
-      </Box>
-      <Text mb={4}>
+      </div>
+      <p className="mb-4">
         Include the Cannon.sol library in your tests. Here&apos;s an example:
-      </Text>
-      <Box mb={4}>
+      </p>
+      <div className="mb-4">
         <CodePreview code={code} language="sol" />
-      </Box>
-      <Text mb={4}>
+      </div>
+      <p className="mb-4">
         Use the test command to run them. (Note that the&nbsp;
-        <Code colorScheme="blackAlpha" variant="solid">
+        <code className="bg-secondary px-1.5 py-0.5 rounded-md font-mono text-sm">
           --chain-id
-        </Code>{' '}
+        </code>{' '}
         option can be used to run tests against a forked network.)
-      </Text>
+      </p>
       <CommandPreview command="npx cannon test" />
     </>
   );

@@ -1,7 +1,6 @@
 'use client';
 
 import { FC } from 'react';
-import { Flex } from '@chakra-ui/react';
 import { PackageReference } from '@usecannon/builder';
 import { DeploymentExplorer } from '@/features/Packages/DeploymentExplorer';
 import { CustomSpinner } from '@/components/CustomSpinner';
@@ -24,7 +23,7 @@ export const DeploymentTab: FC<{
   });
 
   if (packagesQuery.isPending) {
-    return <CustomSpinner m="auto" />;
+    return <CustomSpinner />;
   }
 
   if (packagesQuery.isError) {
@@ -32,9 +31,9 @@ export const DeploymentTab: FC<{
   }
 
   return (
-    <Flex flexDirection="column" width="100%">
+    <div className="flex flex-col w-full">
       <DeploymentExplorer pkg={packagesQuery.data} />
-    </Flex>
+    </div>
   );
 };
 

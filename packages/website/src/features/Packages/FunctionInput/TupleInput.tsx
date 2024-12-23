@@ -7,9 +7,11 @@ import { FunctionInput } from '../FunctionInput';
 const TupleInput = ({
   input,
   handleUpdate,
+  value,
 }: {
   input: any;
   handleUpdate: (value: any) => void;
+  value?: Record<string, any>;
 }) => {
   const getDefaultValueForType = (component: AbiParameter) => {
     if (component.type.startsWith('bool')) return false;
@@ -17,10 +19,13 @@ const TupleInput = ({
     if (component.type.startsWith('uint')) return '0';
     return '';
   };
+
   // Initialize the tuple state as an object, with keys corresponding to tuple property names
   const [tupleState, setTupleState] = useState(() =>
     input.components.reduce((acc: any, component: any) => {
-      acc[component.name] = getDefaultValueForType(component);
+      // Use value prop if available, otherwise use default value
+      acc[component.name] =
+        value?.[component.name] ?? getDefaultValueForType(component);
       return acc;
     }, {})
   );
@@ -60,6 +65,7 @@ const TupleInput = ({
               }
               updateTupleValue(component.name, value);
             }}
+            initialValue={tupleState[component.name]}
           />
         </FormControl>
       ))}

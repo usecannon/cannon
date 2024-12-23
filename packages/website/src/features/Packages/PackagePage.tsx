@@ -1,7 +1,6 @@
 'use client';
 
 import { FC } from 'react';
-import { Flex, Container } from '@chakra-ui/react';
 import { PackageCard } from '../Search/PackageCard/PackageCard';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import Custom404 from '@/pages/404';
@@ -13,7 +12,7 @@ export const PackagePage: FC<{
   const packagesQuery = usePackageByName({ name });
 
   if (packagesQuery.isLoading) {
-    return <CustomSpinner m="auto" />;
+    return <CustomSpinner />;
   }
 
   if (packagesQuery.isError) {
@@ -21,19 +20,19 @@ export const PackagePage: FC<{
   }
 
   return (
-    <Flex flexDirection="column" width="100%">
+    <div className="flex flex-col w-full">
       {packagesQuery.isPending ? (
-        <CustomSpinner m="auto" />
+        <CustomSpinner />
       ) : packagesQuery.data ? (
-        <Container maxW="container.xl" my={[4, 4, 16]}>
+        <div className="container mx-auto my-4 md:my-16 max-w-7xl">
           <PackageCard pkgs={packagesQuery.data.data} />
-        </Container>
+        </div>
       ) : (
-        <Flex m="auto">
+        <div className="m-auto">
           <Custom404 text="Package not found" />
-        </Flex>
+        </div>
       )}
-    </Flex>
+    </div>
   );
 };
 

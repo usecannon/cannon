@@ -4,18 +4,13 @@ import NextLink from 'next/link';
 import React, { useState } from 'react';
 import Editor from '@monaco-editor/react';
 import { useIpfsStore, useStore } from '@/helpers/store';
-import {
-  Container,
-  Link,
-  Heading,
-  Checkbox,
-  Button,
-  Box,
-  Text,
-} from '@chakra-ui/react';
-import { writeIpfs } from '@/hooks/ipfs';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { UploadIcon } from '@radix-ui/react-icons';
 import { useItemsList, ItemBase } from '@/helpers/db';
 import { History } from './History';
+import { writeIpfs } from '@/hooks/ipfs';
 
 export default function Upload() {
   const { add, items } = useItemsList<ItemBase>('upload-history');
@@ -41,66 +36,76 @@ export default function Upload() {
   }
 
   return (
-    <Container maxW="container.md" py={{ base: 8, md: 12 }}>
-      <Box
-        p={6}
-        mb="4"
-        bg="gray.800"
-        display="block"
-        borderWidth="1px"
-        borderStyle="solid"
-        borderColor="gray.600"
-        borderRadius="4px"
-      >
-        <Heading paddingBottom="4" size="md" mb="1">
-          Upload to IPFS
-        </Heading>
+    <div className="container py-8 md:py-12 max-w-3xl mx-auto">
+      <Card className="mb-4 bg-gray-800 border-gray-600">
+        <CardHeader>
+          <h2 className="text-lg font-semibold mb-1">Upload to IPFS</h2>
 
-        <Text mb={4}>
-          <Text>
+          <p className="mb-4">
             Update your IPFS URL in{' '}
-            <Link as={NextLink} href="/settings">
+            <NextLink
+              href="/settings"
+              className="text-blue-400 hover:text-blue-300 underline"
+            >
               settings
-            </Link>
+            </NextLink>
             .
-          </Text>
-        </Text>
+          </p>
+        </CardHeader>
 
-        <Editor
-          height="250px"
-          theme="vs-dark"
-          defaultLanguage="json"
-          defaultValue="Enter file content..."
-          value={ipfsState.content}
-          onChange={(value) => setState(ipfsState, { content: value })}
-        />
-        <Checkbox
-          mt="2"
-          mb="6"
-          defaultChecked={ipfsState.compression}
-          onChange={() =>
-            setState(ipfsState, {
-              cid: '',
-              compression: !ipfsState.compression,
-            })
-          }
-        >
-          Compress (zlib)
-        </Checkbox>
-        <Button
-          width="100%"
-          colorScheme="teal"
-          isLoading={uploading}
-          disabled={
-            !ipfsApiUrl || !ipfsState.content || uploading || !!ipfsState.cid
-          }
-          onClick={upload}
-        >
-          Upload
-        </Button>
-      </Box>
+        <CardContent>
+          <Editor
+            height="250px"
+            theme="vs-dark"
+            defaultLanguage="json"
+            defaultValue="Enter file content..."
+            value={ipfsState.content}
+            onChange={(value) => setState(ipfsState, { content: value })}
+          />
+
+          <div className="mt-2 mb-6 flex items-center space-x-2">
+            <Checkbox
+              id="compress"
+              checked={ipfsState.compression}
+              onCheckedChange={() =>
+                setState(ipfsState, {
+                  cid: '',
+                  compression: !ipfsState.compression,
+                })
+              }
+            />
+            <label
+              htmlFor="compress"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Compress (zlib)
+            </label>
+          </div>
+
+          <Button
+            className="w-full"
+            variant="default"
+            disabled={
+              !ipfsApiUrl || !ipfsState.content || uploading || !!ipfsState.cid
+            }
+            onClick={upload}
+          >
+            {uploading ? (
+              <>
+                <UploadIcon className="mr-2 h-4 w-4 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <UploadIcon className="mr-2 h-4 w-4" />
+                Upload
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
 
       {!!items.length && <History items={items} />}
-    </Container>
+    </div>
   );
 }

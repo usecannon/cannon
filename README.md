@@ -73,7 +73,7 @@ We bump and publish manually using lerna's [version and publish](https://lerna.j
 
 #### Stable Release
 
-1. To create a `stable` release, first checkout to a new branch (it can be called `release-stable` or something similar)
+1. To create a `stable` release, first checkout to a new branch (it should be called `release/*`)
 
 - Note, DO NOT use the version name as the branch name as this can cause conflicts with tags. (eg `v2.12.1` as a branch name is incorrect)
 

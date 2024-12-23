@@ -1,9 +1,10 @@
-import { ReactElement, Suspense } from 'react';
+import { ReactElement } from 'react';
 import dynamic from 'next/dynamic';
 import Layout from '../_layout';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
 import PageLoading from '@/components/PageLoading';
+import { useRouter } from 'next/router';
 
 // Dynamic import of DocsCliPage
 const DocsCliPage = dynamic(() => import('@/features/Docs/DocsCliPage'), {
@@ -11,6 +12,7 @@ const DocsCliPage = dynamic(() => import('@/features/Docs/DocsCliPage'), {
 });
 
 export default function Docs() {
+  const router = useRouter();
   return (
     <>
       <NextSeo
@@ -23,9 +25,7 @@ export default function Docs() {
           description: 'CLI Docs',
         }}
       />
-      <Suspense fallback={<PageLoading />}>
-        <DocsCliPage />
-      </Suspense>
+      {router.isReady ? <DocsCliPage /> : <PageLoading />}
     </>
   );
 }

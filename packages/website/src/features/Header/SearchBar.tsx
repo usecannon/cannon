@@ -4,7 +4,6 @@ import { getSearch } from '@/helpers/api';
 import { SearchIcon } from '@chakra-ui/icons';
 import {
   useDisclosure,
-  IconButton,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -38,6 +37,8 @@ import { FaCode } from 'react-icons/fa6';
 import MultiRef from 'react-multi-ref';
 import scrollIntoView from 'scroll-into-view-if-needed';
 import Chain from '../Search/PackageCard/Chain';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 // Borrowing some code from https://github.com/chakra-ui/chakra-ui/blob/main/website/src/components/omni-search.tsx
 
@@ -57,7 +58,6 @@ const generateLink = (result: any) => {
 };
 
 const SearchBar = () => {
-  const pathname = useRouter().pathname;
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [active, setActive] = useState<number>(0);
@@ -169,38 +169,22 @@ const SearchBar = () => {
 
   return (
     <>
-      <Flex
-        display="inline-flex"
-        alignItems="center"
-        borderRadius="md"
-        border="1px solid"
-        background={pathname.startsWith('/search') ? 'teal.900' : 'black'}
-        borderColor={pathname.startsWith('/search') ? 'teal.700' : 'gray.500'}
-        transition="all 0.2s"
-        _hover={{
-          background: pathname.startsWith('/search') ? 'teal.900' : 'teal.900',
-          borderColor: pathname.startsWith('/search') ? 'teal.700' : 'teal.500',
-        }}
+      <Button
+        variant="outline"
+        className={cn(
+          'relative h-8 justify-start rounded-sm bg-muted/50 text-sm font-normal text-muted-foreground shadow-none lg:pr-12',
+          'w-8 px-2 lg:w-full lg:pr-12'
+        )}
         onClick={onOpen}
-        cursor="pointer"
       >
-        <IconButton
-          size="sm"
-          variant="outline"
-          border="none"
-          _hover={{ background: 'none' }}
-          aria-label="Search"
-          icon={<SearchIcon color="gray.400" />}
-        />
-        <Text
-          pr={2}
-          fontSize="sm"
-          color="gray.500"
-          display={['none', 'none', 'none', 'none', 'inline-block']}
-        >
-          {PLACEHOLDER}
-        </Text>
-      </Flex>
+        <SearchIcon className="h-4 w-4 lg:hidden" />
+        <span className="hidden lg:inline-flex">
+          Search packages, functions, contracts, and addresses...
+        </span>
+        <kbd className="pointer-events-none absolute right-[0.3rem] top-[0.3rem] hidden h-5 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium lg:flex">
+          <span className="text-xs">⌘</span>K
+        </kbd>
+      </Button>
 
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />

@@ -33,6 +33,7 @@ describe('steps/router.ts', () => {
       expect(result).toStrictEqual({
         contracts: ['A', 'B'],
         from: 'FROM',
+        includeDiamondCompatibility: true,
         salt: 'SALT',
       });
     });
@@ -55,11 +56,11 @@ describe('steps/router.ts', () => {
 
       const result = await action.getState(runtime, ctx, config);
 
-      expect(result[0].contractAbis.GreeterOne).toStrictEqual(contracts.GreeterOne.abi);
-      expect(result[0].contractAddresses.GreeterOne).toStrictEqual(contracts.GreeterOne.address);
+      expect((result[0] as any)[0].GreeterOne).toStrictEqual(contracts.GreeterOne.abi);
+      expect((result[0] as any)[1].GreeterOne).toStrictEqual(contracts.GreeterOne.address);
 
-      expect(result[0].contractAbis.GreeterTwo).toStrictEqual(contracts.GreeterTwo.abi);
-      expect(result[0].contractAddresses.GreeterTwo).toStrictEqual(contracts.GreeterTwo.address);
+      expect((result[0] as any)[0].GreeterTwo).toStrictEqual(contracts.GreeterTwo.abi);
+      expect((result[0] as any)[1].GreeterTwo).toStrictEqual(contracts.GreeterTwo.address);
     });
   });
 

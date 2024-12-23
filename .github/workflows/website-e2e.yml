@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, alpha, dev]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   cypress-run:
     runs-on: ubuntu-22.04
@@ -19,7 +23,7 @@ jobs:
           cache: pnpm
           node-version: '20.5.1'
 
-      - run: pnpm i --prefer-frozen-lockfile
+      - run: pnpm i --frozen-lockfile
       - run: pnpm build
 
       - name: Set up Cypress binary cache

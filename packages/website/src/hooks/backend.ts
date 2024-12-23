@@ -2,7 +2,7 @@ import { SafeDefinition, useStore } from '@/helpers/store';
 import { SafeABI } from '@/abi/Safe';
 import { useSafeAddress } from '@/hooks/safe';
 import { SafeTransaction } from '@/types/SafeTransaction';
-import { useToast } from '@chakra-ui/react';
+import { toast } from 'sonner';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import _ from 'lodash';
@@ -100,7 +100,6 @@ export function useTxnStager(
   const walletClient = useWalletClient();
   const safeAddress = useSafeAddress();
   const [signing, setSigning] = useState(false);
-  const toast = useToast();
   const [alreadyStagedSigners, setAlreadyStagedSigners] = useState<viem.Address[]>([]);
   const queryChainId = options.safe?.chainId || chainId.toString();
   const querySafeAddress = options.safe?.address || safeAddress;
@@ -320,12 +319,7 @@ export function useTxnStager(
           options.onSignComplete();
         }
       } catch (e: any) {
-        toast({
-          title: e.message || 'Failed to sign transaction.',
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        });
+        toast(e.message || 'Failed to sign transaction.');
       } finally {
         setSigning(false);
       }

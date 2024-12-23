@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, alpha, dev]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -22,6 +26,7 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
-      - run: pnpm i --prefer-frozen-lockfile
-      - run: pnpm build
-      - run: pnpm test
+      - run: |
+          pnpm i --frozen-lockfile
+          pnpm build
+          pnpm test

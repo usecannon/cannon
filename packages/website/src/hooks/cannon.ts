@@ -78,7 +78,7 @@ export function useLoadCannonDefinition(repo: string, ref: string, filepath: str
   };
 }
 
-type BuildStateTmp = {
+type LocalBuildState = {
   message: string;
   status: 'idle' | 'building' | 'success' | 'error';
   result: {
@@ -91,7 +91,7 @@ type BuildStateTmp = {
   skippedSteps: StepExecutionError[];
 };
 
-const initialState: BuildStateTmp = {
+const initialState: LocalBuildState = {
   message: '',
   status: 'idle',
   result: null,
@@ -99,12 +99,12 @@ const initialState: BuildStateTmp = {
   skippedSteps: [],
 };
 
-export function useCannonBuildTmp(safe: SafeDefinition | null) {
+export function useCannonBuild(safe: SafeDefinition | null) {
   const { addLog } = useLogs();
   const settings = useStore((s) => s.settings);
 
   const [buildState, dispatch] = useReducer(
-    (state: BuildStateTmp, partial: Partial<BuildStateTmp>): BuildStateTmp => ({ ...state, ...partial }),
+    (state: LocalBuildState, partial: Partial<LocalBuildState>): LocalBuildState => ({ ...state, ...partial }),
     initialState
   );
 
@@ -328,232 +328,6 @@ export function useCannonBuildTmp(safe: SafeDefinition | null) {
   return {
     buildState,
     resetState,
-    doBuild,
-  };
-}
-
-export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinition, prevDeploy?: DeploymentInfo) {
-  const { addLog } = useLogs();
-  const settings = useStore((s) => s.settings);
-
-  const [buildMessage, setBuildMessage] = useState('');
-  const [buildStatus, setBuildStatus] = useState<'idle' | 'building' | 'success' | 'error'>('idle');
-
-  const [buildResult, setBuildResult] = useState<{
-    runtime: ChainBuilderRuntime;
-    state: DeploymentState;
-    safeSteps: CannonTxRecord[];
-    deployerSteps: CannonTxRecord[];
-  } | null>(null);
-
-  const [buildError, setBuildError] = useState<string | null>(null);
-
-  const [buildSkippedSteps, setBuildSkippedSteps] = useState<StepExecutionError[]>([]);
-
-  const fallbackRegistry = useCannonRegistry();
-
-  const { getChainById } = useCannonChains();
-  const createFork = useCreateFork();
-  const { address: deployerWalletAddress } = useDeployerWallet(safe?.chainId);
-
-  function reset() {
-    setBuildResult(null);
-    setBuildError(null);
-    setBuildSkippedSteps([]);
-  }
-
-  useEffect(() => {
-    reset();
-  }, [deployerWalletAddress]);
-
-  const buildFn = async () => {
-    // Wait until finished loading
-    if (!safe || !def || !deployerWalletAddress) {
-      throw new Error(
-        `Missing required parameters. has safe: ${!!safe}, def: ${!!def}, deployerWalletAddress: ${deployerWalletAddress}`
-      );
-    }
-
-    const chain = getChainById(safe.chainId);
-
-    setBuildMessage('Creating fork...');
-    const fork = await createFork({
-      chainId: safe.chainId,
-      impersonate: [safe.address, deployerWalletAddress],
-      url: chain?.rpcUrls.default.http[0],
-    }).catch((err) => {
-      err.message = `Could not create local fork for build: ${err.message}`;
-      throw err;
-    });
-
-    const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON);
-
-    setBuildMessage('Loading deployment data...');
-
-    addLog('info', `cannon.ts: upgrade from: ${prevDeploy?.def.name}:${prevDeploy?.def.version}`);
-
-    const simulatedTxns: { hash: string; deployedOn: string }[] = [];
-    const transport = custom({
-      request: async (args) => {
-        const result = await fork.request(args);
-        if (currentRuntime) {
-          switch (args.method) {
-            case 'eth_sendTransaction':
-              // capture the transaction that needs to be sent
-              simulatedTxns.push({ hash: result, deployedOn: currentRuntime.currentStep || '' });
-          }
-        }
-
-        return result;
-      },
-    });
-
-    const provider = createPublicClient({
-      chain,
-      transport,
-    });
-
-    const testProvider = createTestClient({
-      chain,
-      transport,
-      mode: 'ganache',
-    });
-
-    // todo: as usual viem provider types refuse to work
-    await loadPrecompiles(testProvider as any);
-
-    const multiSigWallet = createWalletClient({
-      account: safe.address,
-      chain: getChainById(safe.chainId),
-      transport,
-    });
-
-    const deployerWallet = createWalletClient({
-      account: deployerWalletAddress,
-      chain: getChainById(safe.chainId),
-      transport,
-    });
-
-    const getDefaultSigner = async () => ({ address: deployerWalletAddress, wallet: deployerWallet });
-
-    const loaders = { mem: inMemoryLoader, ipfs: ipfsLoader };
-
-    const getSigner = async (addr: Address) => {
-      if (isAddressEqual(addr, safe.address)) {
-        return { address: safe.address, wallet: multiSigWallet };
-      } else if (isAddressEqual(addr, deployerWalletAddress!)) {
-        return { address: deployerWalletAddress, wallet: deployerWallet };
-      } else {
-        throw new Error(`Could not get signer for "${addr}"`);
-      }
-    };
-
-    currentRuntime = new ChainBuilderRuntime(
-      {
-        provider: provider as any, // TODO: fix type
-        chainId: safe.chainId,
-        getSigner,
-        getDefaultSigner,
-        snapshots: false,
-        allowPartialDeploy: true,
-      },
-      fallbackRegistry,
-      loaders
-    );
-
-    const skippedSteps: StepExecutionError[] = [];
-
-    currentRuntime.on(Events.PostStepExecute, (stepType: string, stepLabel: string, stepOutput: ChainArtifacts) => {
-      const stepName = `${stepType}.${stepLabel}`;
-
-      addLog('info', `cannon.ts: on Events.PostStepExecute operation ${stepName} output: ${JSON.stringify(stepOutput)}`);
-
-      //simulatedSteps.push(_.cloneDeep(stepOutput));
-
-      for (const txn in stepOutput.txns || {}) {
-        // clean out txn hash
-        stepOutput.txns![txn].hash = '';
-      }
-
-      setBuildMessage(`Building ${stepName}...`);
-    });
-
-    currentRuntime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
-      addLog('error', `cannon.ts: on Events.SkipDeploy error ${err.toString()} happened on the operation ${stepName}`);
-      skippedSteps.push({ name: stepName, err });
-    });
-
-    currentRuntime.on(Events.Notice, (stepName: string, msg: string) => {
-      addLog('warn', `${stepName}: ${msg}`);
-    });
-
-    if (prevDeploy) {
-      await currentRuntime.restoreMisc(prevDeploy.miscUrl);
-    }
-
-    const ctx = await createInitialContext(def, prevDeploy?.meta || {}, safe.chainId, prevDeploy?.options || {});
-
-    const newState = await cannonBuild(currentRuntime, def, _.cloneDeep(prevDeploy?.state) ?? {}, ctx);
-
-    setBuildSkippedSteps(skippedSteps);
-
-    const allSteps = await Promise.all(
-      simulatedTxns.map(async (executedTx) => {
-        if (!executedTx) throw new Error('Invalid operation');
-        const tx = await provider.getTransaction({ hash: executedTx.hash as Hex });
-        const rx = await provider.getTransactionReceipt({ hash: executedTx.hash as Hex });
-        // eslint-disable-next-line no-console
-        return {
-          name: executedTx.deployedOn,
-          gas: rx.gasUsed,
-          from: tx.from,
-          tx: {
-            to: tx.to,
-            value: tx.value.toString(),
-            data: tx.input,
-          } as BaseTransaction,
-        };
-      })
-    );
-
-    if (fork) await fork.disconnect();
-
-    // eslint-disable-next-line no-console
-    return {
-      runtime: currentRuntime,
-      state: newState,
-      safeSteps: allSteps.filter((step) => step && isAddressEqual(step.from, safe.address)),
-      deployerSteps: allSteps.filter((step) => isAddressEqual(step.from, deployerWalletAddress)),
-    };
-  };
-
-  function doBuild() {
-    reset();
-    setBuildStatus('building');
-
-    buildFn()
-      .then((res) => {
-        setBuildResult(res);
-        setBuildStatus('success');
-      })
-      .catch((err) => {
-        // eslint-disable-next-line no-console
-        console.error(err);
-        addLog('error', `cannon.ts: full build error ${err.toString()}`);
-        setBuildError(err.toString());
-        setBuildStatus('error');
-      })
-      .finally(() => {
-        setBuildMessage('');
-      });
-  }
-
-  return {
-    buildStatus,
-    buildMessage,
-    buildResult,
-    buildError,
-    buildSkippedSteps,
     doBuild,
   };
 }

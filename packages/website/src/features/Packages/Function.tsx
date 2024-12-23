@@ -75,6 +75,7 @@ export const Function: FC<{
   address: Address;
   cannonOutputs: ChainArtifacts;
   chainId: number;
+  contractName?: string;
   contractSource?: string;
   onDrawerOpen?: () => void;
   collapsible?: boolean;
@@ -86,6 +87,7 @@ export const Function: FC<{
   abi /*, cannonOutputs */,
   address,
   chainId,
+  contractName,
   contractSource,
   onDrawerOpen,
   collapsible,
@@ -294,9 +296,6 @@ export const Function: FC<{
         return;
       }
     }
-
-    const regex = /\/([^/]+)\.sol$/;
-    const contractName = contractSource?.match(regex)?.[1] || 'Unknown';
 
     setQueuedIdentifiableTxns({
       queuedIdentifiableTxns: [
@@ -561,7 +560,7 @@ export const Function: FC<{
             </Heading>
 
             {loading ? (
-              <CustomSpinner m="auto" />
+              <CustomSpinner />
             ) : (
               <Box flex="1">
                 {f.outputs.length != 0 && methodCallOrQueuedResult == null && (

@@ -1,61 +1,49 @@
-import {
-  Accordion as AccordionChakra,
-  AccordionProps,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem as AccordionItemChakra,
-  AccordionItemProps,
-  AccordionPanel,
-  AccordionPanelProps,
-  Box,
-  Text,
-} from '@chakra-ui/react';
 import { FC, PropsWithChildren } from 'react';
+import {
+  Accordion as AccordionRoot,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
-export const CustomAccordion: FC<PropsWithChildren & AccordionProps> = ({
-  children,
-  ...rest
-}) => {
+export const CustomAccordion: FC<
+  PropsWithChildren & { className?: string }
+> = ({ children, className }) => {
   return (
-    <AccordionChakra allowToggle mt={6} mb={4} {...rest}>
+    <AccordionRoot
+      type="single"
+      collapsible
+      className={`my-6 ${className ?? ''}`}
+    >
       {children}
-    </AccordionChakra>
+    </AccordionRoot>
   );
 };
 
 export const CustomAccordionItem: FC<
   PropsWithChildren & {
-    itemProps?: AccordionItemProps;
-    accordionPanelProps: AccordionPanelProps;
+    className?: string;
+    contentClassName?: string;
     title: string;
   }
-> = ({ title, children, itemProps, accordionPanelProps }) => {
+> = ({ title, children, className, contentClassName }) => {
   return (
-    <AccordionItemChakra
-      borderLeft="1px"
-      borderRight="1px"
-      borderColor="gray.500"
-      borderStyle="dotted"
-      {...itemProps}
+    <AccordionItem
+      value={title}
+      className={`border-l border-r first:border-t border-dotted border-gray-500 px-4 ${
+        className ?? ''
+      }`}
     >
-      <h2>
-        <AccordionButton>
-          <Box as="span" flex="1" textAlign="left">
-            <Text
-              color="gray.200"
-              textDecoration="none"
-              textTransform={'uppercase'}
-              letterSpacing={'1px'}
-              fontFamily={'var(--font-miriam)'}
-              textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-            >
-              {title}
-            </Text>
-          </Box>
-          <AccordionIcon />
-        </AccordionButton>
-      </h2>
-      <AccordionPanel {...accordionPanelProps}>{children}</AccordionPanel>
-    </AccordionItemChakra>
+      <AccordionTrigger className="hover:no-underline">
+        <span className="flex-1 text-left">
+          <span className="text-gray-200 uppercase tracking-wider font-miriam text-lg">
+            {title}
+          </span>
+        </span>
+      </AccordionTrigger>
+      <AccordionContent className={contentClassName}>
+        {children}
+      </AccordionContent>
+    </AccordionItem>
   );
 };

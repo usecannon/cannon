@@ -1,6 +1,5 @@
 import { FC, useMemo } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { Box, Link, Text } from '@chakra-ui/react';
 
 type PublishInfo = {
   timestamp: number;
@@ -20,28 +19,27 @@ const PublishInfo: FC<{
   );
 
   return (
-    <Box>
-      <Text color="gray.300" fontSize="xs" fontFamily="mono">
+    <div>
+      <p className="text-xs font-mono text-muted-foreground">
         {!p.publisher && 'last'} published
         {p.publisher && (
           <>
             {' '}
             by{' '}
-            <Link
-              isExternal
-              styleConfig={{ 'text-decoration': 'none' }}
-              borderBottom="1px dotted"
-              borderBottomColor="gray.300"
+            <a
               href={`https://etherscan.io/address/${p.publisher}`}
+              className="inline-flex items-center gap-1 border-b border-dotted border-muted-foreground hover:text-foreground"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               {`${p.publisher.substring(0, 6)}...${p.publisher.slice(-4)}`}
-            </Link>
+            </a>
           </>
         )}
         {lineBreak && <br />}
         {' ' + timeAgo}
-      </Text>
-    </Box>
+      </p>
+    </div>
   );
 };
 
