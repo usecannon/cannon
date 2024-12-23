@@ -5,6 +5,7 @@ import { isArray, isObject } from 'lodash';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { Tooltip } from '@chakra-ui/react';
 import { formatEther } from 'viem';
+import ClipboardButton from '@/components/ClipboardButton';
 
 const isArrayOutput = (
   value: AbiParameter | readonly AbiParameter[]
@@ -30,6 +31,16 @@ const ItemLabel: FC<{ name: string; type: string }> = ({ name, type }) => (
     </Text>
   </Box>
 );
+
+const resultText = (type: string, methodResult: any): string => {
+  if (methodResult !== null && methodResult !== undefined) {
+    return String(methodResult);
+  } else if (type === 'uint256') {
+    return '0';
+  } else {
+    return '(no result)';
+  }
+};
 
 export const FunctionOutput: FC<{
   abiParameters: AbiParameter | readonly AbiParameter[];
@@ -111,7 +122,7 @@ export const FunctionOutput: FC<{
         } else if (index !== undefined) {
           return (
             <Text fontSize="xs" display="block">
-              {String(value[index])}
+              {String(value[index]) === undefined ? String(value[index]) : '[]'}
             </Text>
           );
         } else {
@@ -152,9 +163,10 @@ export const FunctionOutput: FC<{
               </>
             ) : (
               <Text fontSize="xs" color="whiteAlpha.900" verticalAlign="center">
-                {methodResult !== null || undefined
-                  ? String(methodResult)
-                  : '(no result)'}
+                {resultText(abiParameter.type, methodResult)}
+                <ClipboardButton
+                  text={resultText(abiParameter.type, methodResult)}
+                />
               </Text>
             )}
           </Flex>
