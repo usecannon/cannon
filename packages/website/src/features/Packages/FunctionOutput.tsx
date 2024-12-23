@@ -180,11 +180,7 @@ export const FunctionOutput: FC<{
               name={abiParameter.name || ''}
               type={abiParameter.internalType || ''}
             />
-            {renderOutput(
-              abiParameter,
-              methodResult?.[index] || methodResult,
-              index
-            )}
+            {renderOutput(abiParameter, methodResult, index)}
           </Box>
         ))
       ) : (

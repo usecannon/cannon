@@ -3,11 +3,17 @@ name: usecannon
 services:
   # redis database image, used by indexer and api
   redis:
-    image: redis:7.4-alpine
+    image: redis/redis-stack:7.4.0-v1
     restart: always
     ports:
-      - '6379'
-    command: redis-server --save 60 1 --loglevel warning
+      - '6379:6379'
+      - '8001:8001'
+    command: redis-stack-server --save 60 1 --loglevel warning
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   # supersim spins up the necessary OPs chains for the registry, and makes
   # sure all cross chain messaging works.

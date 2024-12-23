@@ -2,22 +2,29 @@ import crypto from 'crypto';
 import Debug from 'debug';
 import _ from 'lodash';
 import type { Address } from 'viem';
-import { ActionKinds, RawChainDefinition, validateConfig } from './actions';
+import { ActionKinds, RawChainDefinition, checkConfig } from './actions';
 import { ChainBuilderRuntime } from './runtime';
 import { chainDefinitionSchema } from './schemas';
 import { CannonHelperContext, ChainBuilderContext } from './types';
 import { template } from './utils/template';
-import stableStringify from 'json-stable-stringify';
 
 import { PackageReference } from './package-reference';
+import { ZodIssue } from 'zod';
 
 const debug = Debug('cannon:builder:definition');
 const debugVerbose = Debug('cannon:verbose:builder:definition');
 
+type OutputClashCheckResult = {
+  actions: string[];
+  output: string;
+};
+
 export type ChainDefinitionProblems = {
-  invalidSchema: any;
+  invalidSchema: ZodIssue[] | null;
   missing: { action: string; dependency: string }[];
   cycles: string[][];
+  extraneousDeps: { node: string; extraneous: string; inDep: string }[];
+  outputClashes: OutputClashCheckResult[];
 };
 
 export type StateLayers = {
@@ -57,11 +64,8 @@ export class ChainDefinition {
 
   readonly allActionNames: string[];
 
-  // actions which have no dependencies
-  readonly roots: Set<string>;
-
-  // actions which are not depended on by anything
-  readonly leaves: Set<string>;
+  private _roots: Set<string> = new Set();
+  private _leaves: Set<string> = new Set();
 
   private cachedLayers: StateLayers | null = null;
   readonly cachedActionDepths = new Map<string, number>();
@@ -76,17 +80,16 @@ export class ChainDefinition {
     this.raw = def;
     this.sensitiveDependencies = sensitiveDependencies;
 
-    const actions = [];
-
     // best way to get a list of actions is just to iterate over the entire def, and filter out anything
     // that are not an actions (because those are known)
     const actionsDef = _.omit(def, 'name', 'version', 'preset', 'description', 'keywords', 'deployers');
 
     // Used to validate that there are not 2 steps with the same name
     const actionNames: string[] = [];
-
+    const actions = [];
     for (const [action, data] of Object.entries(actionsDef)) {
       for (const name of Object.keys(data as any)) {
+        // TODO: remove this?
         if (actionNames.includes(name)) {
           throw new Error(`Duplicated operation name found "${name}"`);
         }
@@ -99,87 +102,11 @@ export class ChainDefinition {
         }
 
         actions.push(fullActionName);
-
-        if (ActionKinds[action] && ActionKinds[action].getOutputs) {
-          const actionOutputs = ActionKinds[action].getOutputs!(_.get(def, fullActionName), {
-            ref: null,
-            currentLabel: fullActionName,
-          });
-
-          for (const output of actionOutputs) {
-            debug(`deps: ${fullActionName} provides ${output}`);
-            if (!this.dependencyFor.has(output) || action === 'setting' || action === 'var') {
-              this.dependencyFor.set(output, fullActionName);
-            } else {
-              throw new Error(`output clash: both ${this.dependencyFor.get(output)} and ${fullActionName} output ${output}`);
-            }
-          }
-        }
       }
     }
 
     // do some preindexing
     this.allActionNames = _.sortBy(actions, _.identity);
-
-    debug('start check cycles');
-
-    const cycles = this.checkCycles();
-
-    if (cycles) {
-      throw new Error(`the following dependency cycle was found in your chain definition:\n${cycles.join('\n')}`);
-    }
-
-    debug('no cycles found');
-
-    // get all dependencies, and filter out the extraneous
-    for (const action of this.allActionNames) {
-      debug(`compute dependencies for ${action}`);
-      const deps = this.computeDependencies(action);
-      this.resolvedDependencies.set(action, deps);
-    }
-
-    debug('finished resolving dependencies');
-
-    this.roots = new Set(this.allActionNames.filter((n) => !this.getDependencies(n).length));
-
-    debug(`computed roots: ${Array.from(this.roots.values()).join(', ')}`);
-
-    this.leaves = new Set(
-      _.difference(
-        this.allActionNames,
-        _.chain(this.allActionNames)
-          .map((n) => this.getDependencies(n))
-          .flatten()
-          .uniq()
-          .value()
-      )
-    );
-
-    debug('start check all');
-    this.checkAll();
-    debug('end check all');
-
-    const extraneousDeps = this.checkExtraneousDependencies();
-
-    debug('found extraneous deps', extraneousDeps);
-
-    for (const extDep of extraneousDeps) {
-      const deps = this.resolvedDependencies.get(extDep.node)!;
-      const depIdx = deps.indexOf(extDep.extraneous);
-      if (depIdx !== -1) {
-        deps.splice(depIdx, 1);
-      }
-    }
-
-    if (this.checkExtraneousDependencies().length > 0) {
-      throw new Error(`extraneous dependencies remain after prune: ${this.checkExtraneousDependencies()}`);
-    }
-
-    debug('final depends dump');
-
-    for (const action of this.topologicalActions) {
-      debug(`${action} has depends`, this.resolvedDependencies.get(action));
-    }
 
     debug('finished chain def init');
   }
@@ -230,8 +157,6 @@ export class ChainDefinition {
       );
     }
 
-    validateConfig(action.validate, _.get(this.raw, n));
-
     return action.configInject({ ...ctx, ...CannonHelperContext }, _.get(this.raw, n), {
       ref: this.getPackageRef(ctx),
       currentLabel: n,
@@ -277,16 +202,10 @@ export class ChainDefinition {
     if (!objs) {
       return null;
     } else {
-      debugVerbose(
-        'creating hash of',
-        objs.map(JSON.stringify as any),
-        'and',
-        objs.map((o) => stableStringify(o))
-      );
-      return [
-        ...objs.map((o) => crypto.createHash('md5').update(JSON.stringify(o)).digest('hex')),
-        ...objs.map((o) => crypto.createHash('md5').update(stableStringify(o)).digest('hex')),
-      ];
+      if (debugVerbose.enabled) {
+        debugVerbose('creating hash of', objs.map(JSON.stringify as any));
+      }
+      return objs.map((o) => crypto.createHash('md5').update(JSON.stringify(o)).digest('hex'));
     }
   }
 
@@ -408,7 +327,60 @@ export class ChainDefinition {
     return [_.uniq(allDeps), maxDepth];
   });
 
+  initializeComputedDependencies = _.memoize(() => {
+    const computeDepsDebug = Debug('cannon:builder:dependencies');
+    computeDepsDebug('start compute dependencies');
+    // checking for output clashes will also fill out the dependency map
+    const clashes = this.checkOutputClash();
+
+    computeDepsDebug('finished checking clashes');
+
+    if (clashes.length) {
+      throw new Error(`cannot generate dependency tree: output clashes exist: ${JSON.stringify(clashes)}`);
+    }
+
+    // get all dependencies, and filter out the extraneous
+    for (const action of this.allActionNames) {
+      debug(`compute dependencies for ${action}`);
+      const deps = this.computeDependencies(action);
+      this.resolvedDependencies.set(action, deps);
+    }
+
+    computeDepsDebug('finished compute dependencies');
+
+    this._roots = new Set(this.allActionNames.filter((n) => !this.getDependencies(n).length));
+
+    if (computeDepsDebug.enabled) {
+      computeDepsDebug(`computed roots: ${Array.from(this._roots.values()).join(', ')}`);
+    }
+
+    this._leaves = new Set(
+      _.difference(
+        this.allActionNames,
+        _.chain(this.allActionNames)
+          .map((n) => this.getDependencies(n))
+          .flatten()
+          .uniq()
+          .value()
+      )
+    );
+
+    if (computeDepsDebug.enabled) {
+      computeDepsDebug(`computed leaves: ${Array.from(this._leaves.values()).join(', ')}`);
+    }
+
+    if (debug.enabled) {
+      debug('computed depends dump:');
+
+      for (const action of this.allActionNames) {
+        debug(`${action} has depends`, this.resolvedDependencies.get(action));
+      }
+    }
+    debug('finish compute dependencies');
+  });
+
   get topologicalActions() {
+    this.initializeComputedDependencies();
     for (const leaf of this.leaves) {
       const [, maxDepth] = this.getDependencyTree(leaf);
       this.cachedActionDepths.set(leaf, maxDepth);
@@ -417,21 +389,70 @@ export class ChainDefinition {
     return _.sortBy(this.allActionNames, (n) => this.cachedActionDepths.get(n));
   }
 
+  // actions which have no dependencies
+  get roots() {
+    this.initializeComputedDependencies();
+    return this._roots;
+  }
+
+  // actions which are not depended on by anything
+  get leaves() {
+    this.initializeComputedDependencies();
+    return this._leaves;
+  }
+
   checkAll(): ChainDefinitionProblems | null {
-    const invalidSchema = validateConfig(chainDefinitionSchema, this.raw);
+    const invalidSchema = checkConfig(chainDefinitionSchema, this.raw);
 
     const missing = this.checkMissing();
     const cycle = missing.length ? [] : this.checkCycles();
+    // TODO: this check seems to be a bit too sensitive atm
+    const extraneousDeps: { node: string; extraneous: string; inDep: string }[] = []; // this.checkExtraneousDependencies();
+    const outputClashes = this.checkOutputClash();
 
-    if (!missing.length && !cycle) {
+    for (const extDep of extraneousDeps) {
+      const deps = this.resolvedDependencies.get(extDep.node)!;
+      const depIdx = deps.indexOf(extDep.extraneous);
+      if (depIdx !== -1) {
+        deps.splice(depIdx, 1);
+      }
+    }
+
+    if (!invalidSchema && !missing.length && !cycle && !extraneousDeps.length && !outputClashes.length) {
       return null;
     }
 
     return {
       invalidSchema,
       missing,
-      cycles: cycle ? [cycle] : [],
+      cycles: cycle && cycle.length ? [cycle] : [],
+      extraneousDeps,
+      outputClashes,
     };
+  }
+
+  checkOutputClash(actions = this.allActionNames): OutputClashCheckResult[] {
+    const outputClashes: OutputClashCheckResult[] = [];
+    for (const fullActionName of actions) {
+      const [actionType] = fullActionName.split('.');
+      if (ActionKinds[actionType] && ActionKinds[actionType].getOutputs) {
+        const actionOutputs = ActionKinds[actionType].getOutputs!(_.get(this.raw, fullActionName), {
+          ref: null,
+          currentLabel: fullActionName,
+        });
+
+        for (const output of actionOutputs) {
+          debug(`deps: ${fullActionName} provides ${output}`);
+          if (!this.dependencyFor.has(output) || actionType === 'setting' || actionType === 'var') {
+            this.dependencyFor.set(output, fullActionName);
+          } else if (this.dependencyFor.get(output) !== fullActionName) {
+            outputClashes.push({ output, actions: [this.dependencyFor.get(output)!, fullActionName] });
+          }
+        }
+      }
+    }
+
+    return outputClashes;
   }
 
   /**
@@ -440,6 +461,7 @@ export class ChainDefinition {
    * @returns a list of missing dependencies
    */
   checkMissing(actions = this.allActionNames) {
+    this.initializeComputedDependencies();
     const missing: { action: string; dependency: string }[] = [];
     for (const n of actions) {
       for (const dep of this.getDependencies(n)) {
@@ -456,12 +478,17 @@ export class ChainDefinition {
    * Determines if the nodes reachable from the given list of actions have any cycles.
    *
    * If any cycles exist, an array of all the nodes involved in the cycle will be returned
+   *
+   * If more than one cycle exists, returns only the first one encountered.
    */
   checkCycles(
     actions = this.allActionNames,
     seenNodes = new Set<string>(),
     currentPath = new Set<string>()
   ): string[] | null {
+    // resolved dependencies gets set during dependency computation
+    this.initializeComputedDependencies();
+
     for (const n of actions) {
       if (seenNodes.has(n)) {
         return null;
@@ -474,10 +501,10 @@ export class ChainDefinition {
 
       currentPath.add(n);
 
-      const cycle = this.checkCycles(this.computeDependencies(n), seenNodes, currentPath);
+      const cycle = this.checkCycles(this.resolvedDependencies.get(n), seenNodes, currentPath);
 
       if (cycle) {
-        if (this.computeDependencies(cycle[cycle.length - 1]).indexOf(cycle[0]) === -1) {
+        if (this.resolvedDependencies.get(cycle[cycle.length - 1])?.indexOf(cycle[0]) === -1) {
           cycle.unshift(n);
         }
 
