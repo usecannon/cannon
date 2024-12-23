@@ -42,6 +42,7 @@ const pullSpec = {
     const url = await runtime.registry.getUrl(source, chainId);
 
     return [
+      [url],
       {
         url,
       },

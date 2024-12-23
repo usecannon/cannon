@@ -16,6 +16,11 @@ import { publish } from '../commands/publish';
 import { LocalLoader } from '../loader';
 import { resolveCliSettings } from '../settings';
 
+jest.mock('@usecannon/builder', () => ({
+  ...jest.requireActual('@usecannon/builder'),
+  preparePublishPackage: jest.fn(),
+}));
+
 describe('publish command', () => {
   let tags = ['tag0', 'tag1'];
   const chainId = 123;

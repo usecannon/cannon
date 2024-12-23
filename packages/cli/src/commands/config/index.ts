@@ -27,7 +27,7 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '-c --chain-id <chainId>',
-        description: 'Chain Id of the deployment you are running [default: 13370]',
+        description: 'Chain Id of the deployment you are running',
       },
       {
         flags: '--port <number>',
@@ -98,7 +98,7 @@ export const commandsConfig: CommandsConfig = {
         description: '(DEPRECATED) RPC endpoint to fork off of. Use --rpc-url',
       },
       {
-        flags: '-c --chain-id <number>',
+        flags: '-c --chain-id <chainId>',
         description: 'The chain id to run against',
       },
       {
@@ -195,7 +195,6 @@ export const commandsConfig: CommandsConfig = {
       {
         flags: '-c --chain-id <chainId>',
         description: 'Chain ID of deployment to verify',
-        defaultValue: '1',
       },
       ...debugVerbosity,
     ],
@@ -217,7 +216,6 @@ export const commandsConfig: CommandsConfig = {
       {
         flags: '-c --chain-id <chainId>',
         description: 'Chain ID of deployment to verify',
-        defaultValue: '13370',
       },
       {
         flags: '--match-contract <name>',
@@ -331,7 +329,7 @@ export const commandsConfig: CommandsConfig = {
         description: 'Private key to use for publishing the registry package',
       },
       {
-        flags: '--chain-id <number>',
+        flags: '--chain-id <chainId>',
         description: 'The chain ID of the package to publish',
       },
       {
@@ -399,7 +397,7 @@ export const commandsConfig: CommandsConfig = {
         description: 'Private key of the package owner',
       },
       {
-        flags: '--chain-id <number>',
+        flags: '--chain-id <chainId>',
         description: 'The chain ID of the package to unpublish',
       },
       {
@@ -703,7 +701,7 @@ export const commandsConfig: CommandsConfig = {
         description: '(DEPRECATED) RPC endpoint to fork off of. Use --rpc-url',
       },
       {
-        flags: '-c --chain-id',
+        flags: '-c --chain-id <chainId>',
         description: 'Chain ID to connect to and run fork tests with',
       },
       {

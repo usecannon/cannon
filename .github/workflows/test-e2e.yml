@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, alpha, dev]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test-e2e:
     runs-on: ubuntu-latest
@@ -41,3 +45,4 @@ jobs:
         env:
           CANNON_E2E_RPC_URL_OPTIMISM: ${{ secrets.CANNON_E2E_RPC_URL_OPTIMISM }}
           CANNON_E2E_RPC_URL_ETHEREUM: ${{ secrets.CANNON_E2E_RPC_URL_ETHEREUM }}
+          CANNON_ETHERSCAN_API_KEY: ${{ secrets.CANNON_ETHERSCAN_API_KEY }}

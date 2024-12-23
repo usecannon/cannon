@@ -219,7 +219,9 @@ const cloneSpec = {
     }
 
     debug(`[clone.${importLabel}]`, 'start build');
-    const builtState = await build(importRuntime, def, prevState, initialCtx);
+    // last argument prevents build from re-running preflight checks.
+    // This might cause issues if an older version of cannon didnt run all checks properly
+    const builtState = await build(importRuntime, def, prevState, initialCtx, true);
     if (importRuntime.isCancelled()) {
       partialDeploy = true;
     }

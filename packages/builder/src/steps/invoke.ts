@@ -327,6 +327,14 @@ const invokeSpec = {
     }
 
     return [
+      [
+        cfg.target?.map((t) => getContractFromPath(ctx, t)?.address), // to
+        cfg.func, // func
+        cfg.args ? JSON.stringify(cfg.args) : null, // args
+        cfg.value || '0', // value
+        cfg.factory, // factory
+        cfg.var || cfg.extra, // var
+      ],
       {
         to: cfg.target?.map((t) => getContractFromPath(ctx, t)?.address),
         func: cfg.func,
