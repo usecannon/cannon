@@ -1,6 +1,8 @@
 import { EOL } from 'node:os';
 import { Transform } from 'node:stream';
 
+import { getAddress } from 'viem';
+
 /**
  * This script is used to deploy contracts using Foundry Cast.
  * It outputs a bash script that can be used to deploy contracts and execute transactions.
@@ -47,7 +49,7 @@ export const createRenderer = () =>
         // Loggin txn types
         for (const c in line.result.contracts) {
           this.push(`${indent}// > CONTRACT DEPLOYED: ${line.result.contracts[c].address}\n`);
-          this.push(`${indent}getAddress[keccak256("${c}")] = address(${line.result.contracts[c].address});\n`);
+          this.push(`${indent}getAddress[keccak256("${c}")] = address(${getAddress(line.result.contracts[c].address)});\n`);
         }
 
         for (const t in line.result.txns) {
@@ -57,7 +59,7 @@ export const createRenderer = () =>
 
       for (const { to, from, input, value } of line.txns) {
         if (from) {
-          this.push(`${indent}vm.broadcast(address(${from}));\n`);
+          this.push(`${indent}vm.broadcast(${getAddress(from)});\n`);
           this.push(`${indent}data = hex"${input.slice(2)}";\n`);
         }
 
