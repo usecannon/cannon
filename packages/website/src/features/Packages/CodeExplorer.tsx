@@ -1,12 +1,12 @@
 'use client';
 
 import { FC, useEffect, useState, useCallback } from 'react';
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 import { CodePreview } from '@/components/CodePreview';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
-import { Download, Info } from "lucide-react";
+import { Download, Info } from 'lucide-react';
 import { isEmpty } from 'lodash';
 import { DeploymentInfo } from '@usecannon/builder';
 import { ApiPackage } from '@usecannon/api/dist/src/types';
@@ -25,7 +25,7 @@ import { FileTreeItem } from '@/features/Packages/code/FileTreeItem';
 import { FileIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const handleDownload = (content: Record<string, unknown>, filename: string) => {
   const blob = new Blob([JSON.stringify(content, null, 2)], {
@@ -410,11 +410,14 @@ export const CodeExplorer: FC<{
                       </div>
 
                       <Button
-                        variant="outline" 
+                        variant="outline"
                         size="icon"
                         className="ml-auto h-7 w-7 text-gray-300 border-gray-500 hover:bg-gray-700"
                         onClick={() => {
-                          handleDownload((artifactValue as any)?.abi, 'deployments.json');
+                          handleDownload(
+                            (artifactValue as any)?.abi,
+                            'deployments.json'
+                          );
                         }}
                       >
                         <Download className="h-3 w-3" />
@@ -464,7 +467,11 @@ export const CodeExplorer: FC<{
               <SidebarMenuItem>
                 <div
                   className={`py-0.5 px-2 cursor-pointer text-sm hover:bg-gray-800 
-                    ${selectedKey === 'cannonfile' ? 'font-medium bg-gray-800' : ''}`}
+                    ${
+                      selectedKey === 'cannonfile'
+                        ? 'font-medium bg-gray-800'
+                        : ''
+                    }`}
                   onClick={() => {
                     setSelectedCode(metadata.cannonfile);
                     setSelectedLanguage('toml');
@@ -492,14 +499,12 @@ export const CodeExplorer: FC<{
         </div>
       ) : artifacts?.length || provisionedPackagesKeys.length ? (
         <>
-          <div
-            className="sticky top-0 z-[3] md:sticky overflow-x-scroll overflow-y-hidden max-w-full border-b border-gray-800"
-          >
+          <div className="sticky top-0 z-[3] md:sticky overflow-x-scroll overflow-y-hidden max-w-full border-b border-gray-800">
             <Tabs
               defaultValue={name}
               value={selectedPackage.name}
               onValueChange={(value) => {
-                const pkg = availablePackages.find(p => p.name === value);
+                const pkg = availablePackages.find((p) => p.name === value);
                 if (pkg) {
                   handleSelectPackage(pkg);
                 }
@@ -507,17 +512,10 @@ export const CodeExplorer: FC<{
             >
               <TabsList className="rounded-none h-full">
                 {!isEmpty(miscData?.artifacts) && (
-                  <TabsTrigger
-                    value={name}
-                  >
-                    {name}
-                  </TabsTrigger>
+                  <TabsTrigger value={name}>{name}</TabsTrigger>
                 )}
                 {provisionedPackagesKeys.map((k: string) => (
-                  <TabsTrigger
-                    key={k}
-                    value={k}
-                  >
+                  <TabsTrigger key={k} value={k}>
                     {k}
                   </TabsTrigger>
                 ))}

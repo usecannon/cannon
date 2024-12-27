@@ -5,16 +5,14 @@ import { Abi } from '@/features/Packages/Abi';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { usePackageNameTagVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import { getOutput } from '@/lib/builder';
-import {
-  useDisclosure,
-} from '@chakra-ui/react';
+import { useDisclosure } from '@chakra-ui/react';
 import {
   ChainArtifacts,
   ContractData,
   DeploymentInfo,
   PackageReference,
 } from '@usecannon/builder';
-import { FC, useContext, useEffect, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 
 import { externalLinks } from '@/constants/externalLinks';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
@@ -116,7 +114,7 @@ const Interact: FC = () => {
   return (
     <>
       {/* Header */}
-      <div 
+      <div
         className={`
           flex flex-col md:flex-row bg-background
           p-2 border-b border-border
@@ -135,30 +133,31 @@ const Interact: FC = () => {
           </h4>
 
           <a
-                className="text-xs text-muted-foreground no-underline border-b border-dotted border-gray-300 font-mono"
-                href={'#'}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                { contract?.sourceName }
-              </a>
+            className="text-xs text-muted-foreground no-underline border-b border-dotted border-gray-300 font-mono"
+            href={'#'}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {contract?.sourceName}
+          </a>
         </div>
 
         {/* IPFS Url */}
         <div className="p-1 md:ml-auto">
           <div className="flex flex-col items-start md:items-end">
             <p className="text-xs text-muted-foreground">
-              
-            {explorerUrl ? (
-              <a
-                className="no-underline border-b border-dotted border-gray-300 font-mono"
-                href={explorerUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {contractAddress.substring(0, 6)}...{contractAddress.slice(-4)}
-              </a>
-            ) : null} from{' '}
+              {explorerUrl ? (
+                <a
+                  className="no-underline border-b border-dotted border-gray-300 font-mono"
+                  href={explorerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {contractAddress.substring(0, 6)}...
+                  {contractAddress.slice(-4)}
+                </a>
+              ) : null}{' '}
+              from{' '}
               <a
                 className="no-underline border-b border-dotted border-gray-300 font-mono"
                 href={deployUrl}

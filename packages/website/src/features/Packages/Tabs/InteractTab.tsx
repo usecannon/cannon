@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  FC,
-  ReactNode,
-  useEffect,
-  useState,
-  useMemo,
-} from 'react';
+import { FC, ReactNode, useEffect, useState, useMemo } from 'react';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { ChainArtifacts, DeploymentInfo } from '@usecannon/builder';
 import { getOutput } from '@/lib/builder';
@@ -20,9 +14,9 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import { MoreHorizontal } from "lucide-react" // For the dots icon
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from '@/components/ui/popover';
+import { MoreHorizontal } from 'lucide-react'; // For the dots icon
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 type Option = {
   moduleName: string;
@@ -208,90 +202,104 @@ export const InteractTab: FC<{
     void processDeploymentData(deploymentData.data);
   }, [activeContractOption, deploymentData.data, name, router, tag, variant]);
 
-  console.log('highlightedOptions', highlightedOptions);
-
-  return (<>
-    <div className="sticky top-0 z-60 bg-gray-900 overflow-x-scroll overflow-y-hidden max-w-[100vw] border-b border-border">
-      <Tabs
-        defaultValue={highlightedOptions[0]?.moduleName + '.' + highlightedOptions[0]?.contractName}
-        value={activeContractOption ? `${activeContractOption.moduleName}.${activeContractOption.contractName}` : undefined}
-        onValueChange={(value) => {
-          const [moduleName, contractName] = value.split('.');
-          const option = [...highlightedOptions, ...otherOptions].find(
-            opt => opt.moduleName === moduleName && opt.contractName === contractName
-          );
-          if (option) {
-            void router.push(
-              `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
-            );
+  return (
+    <>
+      <div className="sticky top-0 z-60 bg-gray-900 overflow-x-scroll overflow-y-hidden max-w-[100vw] border-b border-border">
+        <Tabs
+          defaultValue={
+            highlightedOptions[0]?.moduleName +
+            '.' +
+            highlightedOptions[0]?.contractName
           }
-        }}
-      >
-        <TabsList className="rounded-none h-full">
-          {highlightedOptions.map((option, i) => (
-            <TabsTrigger
-              key={i}
-              value={`${option.moduleName}.${option.contractName}`}
-            >
-              {`${option.moduleName}.${option.contractName}`}
-            </TabsTrigger>
-          ))}
-          
-          {otherOptions.length > 0 && (
-            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-              <PopoverTrigger asChild>
-                <div className={`cursor-pointer px-4 py-2 ${
-                  isPopoverOpen ? 'text-teal-400' : 'text-gray-400 hover:text-gray-200'
-                }`}>
-                  <MoreHorizontal className="h-4 w-4" />
-                </div>
-              </PopoverTrigger>
-              <PopoverContent className="max-h-[45vh] overflow-y-auto overflow-x-hidden w-auto bg-gray-900 border-gray-700 p-0">
-                {otherOptions.length > 5 && (
-                  <div className="mt-4 mx-4 min-w-[300px] mb-[16px] md:mb-[32px]">
-                    <SearchInput onSearchChange={setSearchTerm} />
+          value={
+            activeContractOption
+              ? `${activeContractOption.moduleName}.${activeContractOption.contractName}`
+              : undefined
+          }
+          onValueChange={(value) => {
+            const [moduleName, contractName] = value.split('.');
+            const option = [...highlightedOptions, ...otherOptions].find(
+              (opt) =>
+                opt.moduleName === moduleName &&
+                opt.contractName === contractName
+            );
+            if (option) {
+              void router.push(
+                `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
+              );
+            }
+          }}
+        >
+          <TabsList className="rounded-none h-full">
+            {highlightedOptions.map((option, i) => (
+              <TabsTrigger
+                key={i}
+                value={`${option.moduleName}.${option.contractName}`}
+              >
+                {`${option.moduleName}.${option.contractName}`}
+              </TabsTrigger>
+            ))}
+
+            {otherOptions.length > 0 && (
+              <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <div
+                    className={`cursor-pointer px-4 py-2 ${
+                      isPopoverOpen
+                        ? 'text-teal-400'
+                        : 'text-gray-400 hover:text-gray-200'
+                    }`}
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
                   </div>
-                )}
-                {otherOptions
-                  .filter((o) =>
-                    searchTerm
-                      ? o.contractName.toLowerCase().includes(searchTerm)
-                      : true
-                  )
-                  .map((option, i) => (
-                    <div
-                      key={i}
-                      className={`cursor-pointer p-3 border-b border-gray-700 ${
-                        isActiveContract(option)
-                          ? 'bg-gray-800'
-                          : 'bg-transparent'
-                      } hover:bg-gray-800`}
-                      onClick={async () => {
-                        setIsPopoverOpen(false);
-                        await router.push(
-                          `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
-                        );
-                      }}
-                    >
-                      <span className="text-sm text-gray-200">
-                        {`${option.moduleName}.${option.contractName}`}
-                      </span>
+                </PopoverTrigger>
+                <PopoverContent className="max-h-[45vh] overflow-y-auto overflow-x-hidden w-auto bg-gray-900 border-gray-700 p-0">
+                  {otherOptions.length > 5 && (
+                    <div className="mt-4 mx-4 min-w-[300px] mb-[16px] md:mb-[32px]">
+                      <SearchInput onSearchChange={setSearchTerm} />
                     </div>
-                  ))}
-              </PopoverContent>
-            </Popover>
-          )}
-        </TabsList>
-      </Tabs>
-    </div>
-    {deploymentData.isLoading || packagesQuery.isLoading ? (
-      <div className="py-20">
-        <IpfsSpinner ipfsUrl={packagesQuery?.data?.deployUrl} />
+                  )}
+                  {otherOptions
+                    .filter((o) =>
+                      searchTerm
+                        ? o.contractName.toLowerCase().includes(searchTerm)
+                        : true
+                    )
+                    .map((option, i) => (
+                      <div
+                        key={i}
+                        className={`cursor-pointer p-3 border-b border-gray-700 ${
+                          isActiveContract(option)
+                            ? 'bg-gray-800'
+                            : 'bg-transparent'
+                        } hover:bg-gray-800`}
+                        onClick={async () => {
+                          setIsPopoverOpen(false);
+                          await router.push(
+                            `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
+                          );
+                        }}
+                      >
+                        <span className="text-sm text-gray-200">
+                          {`${option.moduleName}.${option.contractName}`}
+                        </span>
+                      </div>
+                    ))}
+                </PopoverContent>
+              </Popover>
+            )}
+          </TabsList>
+        </Tabs>
       </div>
-    ) : (
-      <div>{children}</div>
-    )}
-  </>);
+      {deploymentData.isLoading || packagesQuery.isLoading ? (
+        <div className="py-20">
+          <IpfsSpinner ipfsUrl={packagesQuery?.data?.deployUrl} />
+        </div>
+      ) : (
+        <div>{children}</div>
+      )}
+    </>
+  );
 };
 
 export default InteractTab;

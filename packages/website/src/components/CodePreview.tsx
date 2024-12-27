@@ -55,7 +55,7 @@ export const CodePreview: FC<ICodePreviewProps> = ({
     monaco.editor.defineTheme('github-dark', githubDark);
     // Set the theme
     monaco.editor.setTheme('github-dark');
-    
+
     editorRef.current = editor;
     if (line) {
       highlightLines(editor, monaco, line + 1);
