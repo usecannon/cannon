@@ -1,12 +1,12 @@
 'use client';
 
 import { FC, useEffect, useState, useCallback } from 'react';
-import { Box, Button, Flex, Heading, Text, IconButton } from '@chakra-ui/react';
+import { Button } from "@/components/ui/button";
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 import { CodePreview } from '@/components/CodePreview';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
-import { DownloadIcon, InfoOutlineIcon } from '@chakra-ui/icons';
+import { Download, Info } from "lucide-react";
 import { isEmpty } from 'lodash';
 import { DeploymentInfo } from '@usecannon/builder';
 import { ApiPackage } from '@usecannon/api/dist/src/types';
@@ -25,6 +25,7 @@ import { FileTreeItem } from '@/features/Packages/code/FileTreeItem';
 import { FileIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const handleDownload = (content: Record<string, unknown>, filename: string) => {
   const blob = new Blob([JSON.stringify(content, null, 2)], {
@@ -38,52 +39,6 @@ const handleDownload = (content: Record<string, unknown>, filename: string) => {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-};
-
-const PackageButton: FC<{
-  name: string;
-  selected: boolean;
-  onClick: () => void;
-}> = ({ name, selected, onClick }) => {
-  return (
-    <Button
-      color="white"
-      borderWidth="2px"
-      borderRadius="md"
-      variant="outline"
-      aria-label="contract name"
-      boxShadow="lg"
-      flexShrink={0}
-      background={selected ? 'teal.900' : 'gray.700'}
-      borderColor={selected ? 'teal.600' : 'gray.600'}
-      _hover={
-        selected
-          ? {
-              background: 'teal.800',
-              borderColor: 'teal.500',
-            }
-          : {
-              background: 'gray.600',
-              borderColor: 'teal.500',
-            }
-      }
-      mr={3}
-      height="36px"
-      px={3}
-      onClick={onClick}
-    >
-      <Box textAlign="left">
-        <Heading
-          fontWeight="500"
-          size="sm"
-          color="gray.200"
-          letterSpacing="0.1px"
-        >
-          {name}
-        </Heading>
-      </Box>
-    </Button>
-  );
 };
 
 // Utility function to handle URL updates
@@ -443,44 +398,28 @@ export const CodeExplorer: FC<{
               const fileTree = buildFileTree(Object.entries(sources));
 
               return (
-                <Box key={artifactKey} mt={4}>
-                  {/* Artifact name */}
+                <div key={artifactKey} className="mt-4">
                   <SidebarMenuItem>
-                    <Flex flexDirection="row" px="2" alignItems="center" mb="1">
-                      <Box maxW="210px" overflow="hidden">
-                        <Heading
-                          fontWeight="500"
-                          size="sm"
-                          color="gray.200"
-                          letterSpacing="0.1px"
-                          mr="1"
-                          isTruncated
-                        >
+                    <div className="flex flex-row px-2 items-center mb-1">
+                      <div className="max-w-[210px] overflow-hidden">
+                        <h3 className="font-medium text-sm text-gray-200 tracking-[0.1px] mr-1 truncate">
                           {artifactKey.split(':').length > 1
                             ? artifactKey.split(':')[1]
                             : artifactKey}
-                        </Heading>
-                      </Box>
+                        </h3>
+                      </div>
 
                       <Button
-                        variant="outline"
-                        colorScheme="white"
-                        size="xs"
-                        color="gray.300"
-                        borderColor="gray.500"
-                        _hover={{ bg: 'gray.700' }}
-                        leftIcon={<DownloadIcon />}
+                        variant="outline" 
+                        size="icon"
+                        className="ml-auto h-7 w-7 text-gray-300 border-gray-500 hover:bg-gray-700"
                         onClick={() => {
-                          handleDownload(
-                            (artifactValue as any)?.abi,
-                            'deployments.json'
-                          );
+                          handleDownload((artifactValue as any)?.abi, 'deployments.json');
                         }}
-                        ml="auto"
                       >
-                        ABI
+                        <Download className="h-3 w-3" />
                       </Button>
-                    </Flex>
+                    </div>
                   </SidebarMenuItem>
                   {/* File tree */}
                   {Object.values(fileTree).map((node) => (
@@ -492,7 +431,7 @@ export const CodeExplorer: FC<{
                       selectedKey={selectedKey}
                     />
                   ))}
-                </Box>
+                </div>
               );
             })}
           </SidebarMenu>
@@ -503,56 +442,40 @@ export const CodeExplorer: FC<{
       {metadata?.cannonfile !== undefined && (
         <SidebarGroup>
           <SidebarGroupLabel>
-            <Flex px="2" alignItems="center" mb="1">
-              <Heading
-                fontWeight="500"
-                size="sm"
-                color="gray.200"
-                letterSpacing="0.1px"
-              >
+            <div className="flex px-2 items-center mb-1">
+              <h3 className="font-medium text-sm text-gray-200 tracking-[0.1px]">
                 Metadata
-              </Heading>
+              </h3>
 
-              <IconButton
-                aria-label="Download Metadata"
+              <Button
                 variant="outline"
-                colorScheme="white"
-                size="xs"
-                color="gray.300"
-                borderColor="gray.500"
-                _hover={{ bg: 'gray.700' }}
-                icon={<DownloadIcon />}
+                size="sm"
+                className="ml-auto text-gray-300 border-gray-500 hover:bg-gray-700"
                 onClick={() => {
                   handleDownload(metadata, 'metadata.json');
                 }}
-                ml="auto"
-              />
-            </Flex>
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            </div>
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <Box
-                  py={0.5}
-                  px="2"
-                  cursor="pointer"
-                  fontSize="sm"
-                  _hover={{ bg: 'gray.800' }}
+                <div
+                  className={`py-0.5 px-2 cursor-pointer text-sm hover:bg-gray-800 
+                    ${selectedKey === 'cannonfile' ? 'font-medium bg-gray-800' : ''}`}
                   onClick={() => {
                     setSelectedCode(metadata.cannonfile);
                     setSelectedLanguage('toml');
                     setSelectedKey('cannonfile');
                   }}
-                  fontWeight={
-                    selectedKey === 'cannonfile' ? 'medium' : undefined
-                  }
-                  bg={selectedKey === 'cannonfile' ? 'gray.800' : undefined}
                 >
-                  <Flex alignItems="center">
+                  <div className="flex items-center">
                     <FileIcon size={16} className="mr-2" />
                     Cannonfile
-                  </Flex>
-                </Box>
+                  </div>
+                </div>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
@@ -562,43 +485,45 @@ export const CodeExplorer: FC<{
   );
 
   return (
-    <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
+    <div className="flex flex-1 flex-col max-h-full max-w-full">
       {isLoading ? (
         <div className="h-[671px] flex items-center justify-center">
           <IpfsSpinner ipfsUrl={pkg?.deployUrl} />
         </div>
       ) : artifacts?.length || provisionedPackagesKeys.length ? (
         <>
-          <Flex
-            top="0"
-            zIndex={3}
-            bg="gray.900"
-            position={{ md: 'sticky' }}
-            overflowX="scroll"
-            overflowY="hidden"
-            maxW="100%"
-            p={2}
-            borderBottom="1px solid"
-            borderColor="gray.800"
-            flexWrap="nowrap"
+          <div
+            className="sticky top-0 z-[3] md:sticky overflow-x-scroll overflow-y-hidden max-w-full border-b border-gray-800"
           >
-            {!isEmpty(miscData?.artifacts) && (
-              <PackageButton
-                key={-1}
-                name={name}
-                selected={isSelectedPackage({ name, key: -1 })}
-                onClick={() => handleSelectPackage({ name, key: -1 })}
-              />
-            )}
-            {provisionedPackagesKeys.map((k: string, i: number) => (
-              <PackageButton
-                key={k}
-                name={k}
-                selected={isSelectedPackage({ name: k, key: i })}
-                onClick={() => handleSelectPackage({ name: k, key: i })}
-              />
-            ))}
-          </Flex>
+            <Tabs
+              defaultValue={name}
+              value={selectedPackage.name}
+              onValueChange={(value) => {
+                const pkg = availablePackages.find(p => p.name === value);
+                if (pkg) {
+                  handleSelectPackage(pkg);
+                }
+              }}
+            >
+              <TabsList className="rounded-none">
+                {!isEmpty(miscData?.artifacts) && (
+                  <TabsTrigger
+                    value={name}
+                  >
+                    {name}
+                  </TabsTrigger>
+                )}
+                {provisionedPackagesKeys.map((k: string) => (
+                  <TabsTrigger
+                    key={k}
+                    value={k}
+                  >
+                    {k}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
 
           <div className="h-[671px]">
             <SidebarLayout
@@ -606,7 +531,7 @@ export const CodeExplorer: FC<{
               centered={false}
               contentHeight="671px"
             >
-              <Flex className="h-full">
+              <div className="h-full flex">
                 {selectedCode.length ? (
                   <>
                     {/* Make sure code preview is not rendered if function name exists but no selected line is set yet */}
@@ -620,31 +545,25 @@ export const CodeExplorer: FC<{
                     )}
                   </>
                 ) : (
-                  <Flex
-                    flex="1"
-                    height="100%"
-                    alignItems="center"
-                    justifyContent="center"
-                    p={4}
-                  >
-                    <Text color="gray.400">
-                      <InfoOutlineIcon transform="translateY(-1px)" /> Code
-                      unavailable
-                    </Text>
-                  </Flex>
+                  <div className="flex-1 flex items-center justify-center p-4">
+                    <span className="text-gray-400">
+                      <Info className="inline mr-2 -translate-y-[1px]" />
+                      This package does not contain any code.
+                    </span>
+                  </div>
                 )}
-              </Flex>
+              </div>
             </SidebarLayout>
           </div>
         </>
       ) : (
-        <Flex flex="1" alignItems="center" justifyContent="center" p={4}>
-          <Text color="gray.400">
-            <InfoOutlineIcon transform="translateY(-1px)" /> This package does
-            not contain any code.
-          </Text>
-        </Flex>
+        <div className="flex-1 flex items-center justify-center p-4">
+          <span className="text-gray-400">
+            <Info className="inline mr-2 -translate-y-[1px]" />
+            This package does not contain any code.
+          </span>
+        </div>
       )}
-    </Flex>
+    </div>
   );
 };
