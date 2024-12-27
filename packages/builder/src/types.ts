@@ -4,6 +4,7 @@ import { viemContext } from './utils/viem-context';
 import { PackageReference } from './package-reference';
 
 import type { RawChainDefinition } from './actions';
+import { PERMITTED_GLOBALS } from './utils/template';
 
 // loosely based on the hardhat `Artifact` type
 export type ContractArtifact = {
@@ -93,21 +94,10 @@ export interface ChainBuilderContext extends PreChainBuilderContext {
 const etherUnitNames = ['wei', 'kwei', 'mwei', 'gwei', 'szabo', 'finney', 'ether'];
 
 // objects that are allowed to be accessed in templates
-const JS_ALLOWED_OBJECTS = {
-  JSON: JSON,
-  console: console,
-  parseInt: parseInt,
-  parseFloat: parseFloat,
-  Math: Math,
-  Date: Date,
-  BigInt: BigInt,
-  Number: Number,
-  Boolean: Boolean,
-  Array: Array,
-  String: String,
-  Set: Set,
-  Map: Map,
-};
+const JS_ALLOWED_OBJECTS = Array.from(PERMITTED_GLOBALS).reduce((ctx, key) => {
+  if (key in globalThis) (ctx as any)[key] = (globalThis as any)[key];
+  return ctx;
+}, {} as Partial<typeof globalThis>);
 
 // Ethers.js compatible context functions. Consider deprecating.
 const ethersStyleConstants = {

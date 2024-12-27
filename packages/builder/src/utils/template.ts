@@ -13,42 +13,19 @@ const debug = Debug('cannon:builder:template');
 /**
  * List of legal and illegal globals so we can use them in validation
  */
-const PERMITTED_GLOBALS = new Set([
-  // Primitive Values
-  'Infinity',
-  'NaN',
-  'undefined',
-  'null',
-  'true',
-  'false',
-
+export const PERMITTED_GLOBALS = new Set([
   // Fundamental objects
+  'Array',
+  'BigInt',
+  'Buffer',
+  'Date',
+  'Map',
   'Number',
   'Object',
-  'Map',
+  'RegExp',
   'Set',
   'String',
-  'Date',
-  'BigInt',
   'Symbol',
-  'RegExp',
-  'Buffer',
-  'Array',
-  'ArrayBuffer',
-  'Int8Array',
-  'Uint8Array',
-  'Uint8ClampedArray',
-  'Int16Array',
-  'Uint16Array',
-  'Int32Array',
-  'Uint32Array',
-  'BigInt64Array',
-  'BigUint64Array',
-  'Float16Array',
-  'Float32Array',
-  'Float64Array',
-  'Map',
-  'Set',
   'WeakMap',
   'WeakSet',
 
