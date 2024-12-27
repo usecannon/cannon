@@ -417,7 +417,7 @@ export async function build({
     if (stepsExecuted && !dryRun && !skipUpgradeRecord) {
       for (let i = 0; i < 3; i++) {
         try {
-          log(gray(`Attesting that ${await runtime.getDefaultSigner({})} deployed ${deployUrl} onchain...`));
+          log(gray(`Attesting that ${(await runtime.getDefaultSigner()).address} deployed ${deployUrl} onchain...`));
           await writeUpgradeFromInfo(runtime, packageReference, deployUrl);
           break;
         } catch (err) {
