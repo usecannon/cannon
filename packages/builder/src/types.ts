@@ -4,7 +4,6 @@ import { viemContext } from './utils/viem-context';
 import { PackageReference } from './package-reference';
 
 import type { RawChainDefinition } from './actions';
-import { PERMITTED_GLOBALS } from './utils/template';
 
 // loosely based on the hardhat `Artifact` type
 export type ContractArtifact = {
@@ -91,13 +90,48 @@ export interface ChainBuilderContext extends PreChainBuilderContext {
   [shortContract: string]: any;
 }
 
-const etherUnitNames = ['wei', 'kwei', 'mwei', 'gwei', 'szabo', 'finney', 'ether'];
+export const CANNON_GLOBALS = ['contracts', 'imports', 'extras', 'txns', 'settings'];
+
+export const JS_GLOBALS = [
+  // Fundamental objects
+  'Array',
+  'BigInt',
+  'Buffer',
+  'Date',
+  'Map',
+  'Number',
+  'Object',
+  'RegExp',
+  'Set',
+  'String',
+  'Symbol',
+  'WeakMap',
+  'WeakSet',
+
+  // Functions
+  'JSON',
+  'Math',
+  'Intl',
+  'parseFloat',
+  'parseInt',
+  'isNaN',
+  'isFinite',
+  'console',
+  'atob',
+  'btoa',
+  'decodeURI',
+  'encodeURI',
+  'decodeURIComponent',
+  'encodeURIComponent',
+];
 
 // objects that are allowed to be accessed in templates
-const JS_ALLOWED_OBJECTS = Array.from(PERMITTED_GLOBALS).reduce((ctx, key) => {
+const jsContext = Array.from(JS_GLOBALS).reduce((ctx, key) => {
   if (key in globalThis) (ctx as any)[key] = (globalThis as any)[key];
   return ctx;
 }, {} as Partial<typeof globalThis>);
+
+const _etherUnitNames = ['wei', 'kwei', 'mwei', 'gwei', 'szabo', 'finney', 'ether'];
 
 // Ethers.js compatible context functions. Consider deprecating.
 const ethersStyleConstants = {
@@ -130,7 +164,7 @@ const ethersStyleConstants = {
   formatEther: viem.formatEther,
   formatUnits: (s: bigint, units: number | string) => {
     if (typeof units === 'string') {
-      const index = etherUnitNames.indexOf(units);
+      const index = _etherUnitNames.indexOf(units);
       if (index < 0) {
         throw new Error(`formatUnits: unknown ethereum unit name: ${units}`);
       }
@@ -142,7 +176,7 @@ const ethersStyleConstants = {
   parseEther: viem.parseEther,
   parseUnits: (s: string, units: number | string) => {
     if (typeof units === 'string') {
-      const index = etherUnitNames.indexOf(units);
+      const index = _etherUnitNames.indexOf(units);
       if (index < 0) {
         throw new Error(`parseUnits: unknown ethereum unit name: ${units}`);
       }
@@ -169,7 +203,7 @@ const ethersStyleConstants = {
 export const CannonHelperContext = {
   ...viemContext,
   ...ethersStyleConstants,
-  ...JS_ALLOWED_OBJECTS,
+  ...jsContext,
 };
 
 export type ChainBuilderContextWithHelpers = ChainBuilderContext & typeof CannonHelperContext;

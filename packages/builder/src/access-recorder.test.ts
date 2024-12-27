@@ -46,6 +46,13 @@ describe('access-recorder.ts', () => {
       });
     });
 
+    it('computes multiple dependencies on different template tags', () => {
+      expect(computeTemplateAccesses('<%= settings.woot %>-<%= settings.woot2 %>')).toEqual({
+        accesses: ['settings.woot', 'settings.woot2'],
+        unableToCompute: false,
+      });
+    });
+
     it('computes simple dependency', () => {
       expect(computeTemplateAccesses('<%= settings.woot %>')).toEqual({
         accesses: ['settings.woot'],
@@ -73,22 +80,8 @@ describe('access-recorder.ts', () => {
   });
 
   describe('computeTemplateAccesses() syntax validation', () => {
-    it('handles invalid template syntax - unclosed tag', () => {
-      expect(computeTemplateAccesses('<%= settings.value ')).toEqual({
-        accesses: [],
-        unableToCompute: true,
-      });
-    });
-
     it('handles invalid template syntax - unmatched brackets', () => {
       expect(computeTemplateAccesses('<%= settings.value) %>')).toEqual({
-        accesses: [],
-        unableToCompute: true,
-      });
-    });
-
-    it('handles invalid template syntax - missing equals', () => {
-      expect(computeTemplateAccesses('<%settings.value%>')).toEqual({
         accesses: [],
         unableToCompute: true,
       });

@@ -1,9 +1,8 @@
 import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
+import { validateTemplate, executeTemplate, TemplateValidationError } from './utils/template';
 import { CannonHelperContext } from './types';
-
-import { validateTemplate, template, executeTemplate } from './utils/template';
 
 const debug = Debug('cannon:builder:access-recorder');
 
@@ -134,10 +133,15 @@ export function computeTemplateAccesses(str?: string, possibleNames: string[] = 
     return { accesses: [], unableToCompute: false };
   }
 
-  const validation = validateTemplate(str);
-  if (!validation.isValid) {
-    debug('Template validation failed:', validation.error);
-    return { accesses: [], unableToCompute: true };
+  try {
+    validateTemplate(str);
+  } catch (err: unknown) {
+    if (err instanceof TemplateValidationError || err instanceof SyntaxError) {
+      debug('Template validation failed:', err);
+      return { accesses: [], unableToCompute: true };
+    }
+
+    throw err;
   }
 
   const recorders = setupTemplateContext(possibleNames);
