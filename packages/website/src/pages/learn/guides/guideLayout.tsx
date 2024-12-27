@@ -123,9 +123,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
         borderlessSidebar
         fixedFooter={false}
       >
-        <div className="max-w-4xl px-4">
-          {children}
-        </div>
+        <div className="max-w-4xl px-4">{children}</div>
       </SidebarLayout>
     </div>
   );
