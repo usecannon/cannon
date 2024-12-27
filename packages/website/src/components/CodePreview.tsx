@@ -1,6 +1,7 @@
 import { FC, useRef } from 'react';
 import Editor, { type EditorProps } from '@monaco-editor/react';
 import { createGlobalStyle } from 'styled-components';
+import githubDark from '@/lib/themes/github-dark';
 
 interface ICodePreviewProps {
   code: string;
@@ -50,6 +51,11 @@ export const CodePreview: FC<ICodePreviewProps> = ({
 
   // Handle editor mount and save the instance
   const handleEditorDidMount = (editor: any, monaco: any) => {
+    // Define the GitHub Dark theme
+    monaco.editor.defineTheme('github-dark', githubDark);
+    // Set the theme
+    monaco.editor.setTheme('github-dark');
+    
     editorRef.current = editor;
     if (line) {
       highlightLines(editor, monaco, line + 1);
@@ -63,7 +69,7 @@ export const CodePreview: FC<ICodePreviewProps> = ({
       <EditorStyles />
       <Editor
         height={height || '100%'}
-        theme="vs-dark"
+        theme="github-dark"
         defaultLanguage={language || 'javascript'}
         value={code}
         options={{ readOnly: true }}
