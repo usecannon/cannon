@@ -12,7 +12,6 @@ import { useQuery } from '@tanstack/react-query';
 import { debounce } from 'lodash';
 import { useRouter } from 'next/router';
 import { useEffect, useRef, useState, useMemo } from 'react';
-import Chain from '../Search/PackageCard/Chain';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,6 +24,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { CustomSpinner } from '@/components/CustomSpinner';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 const generateLink = (result: any) => {
   switch (result.type) {
@@ -62,6 +62,8 @@ const SearchBar = () => {
       }
     }, 300)
   ).current;
+
+  const { getChainById } = useCannonChains();
 
   useEffect(() => {
     debouncedSetValue(inputValue);
@@ -118,7 +120,7 @@ const SearchBar = () => {
         <span className="hidden lg:inline-flex">
           Search packages, functions, contracts, and addresses...
         </span>
-        <kbd className="pointer-events-none absolute right-[0.3rem] top-[0.3rem] hidden h-5 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium lg:flex">
+        <kbd className="pointer-events-none absolute right-[0.3rem] top-[0.3rem] hidden h-5 select-none items-center rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium lg:flex">
           <span className="text-xs">⌘</span>K
         </kbd>
       </Button>
@@ -159,13 +161,11 @@ const SearchBar = () => {
                             return (
                               <>
                                 <GoPackage className="h-6 w-6 shrink-0 opacity-50 mr-1" />
-                                <div className="flex flex-col">
+                                <div className="flex flex-col gap-0.5">
                                   <span>{result.name}</span>
-                                  <span className="text-sm text-muted-foreground inline-flex items-center gap-1">
+                                  <span className="text-xs text-muted-foreground">
                                     {result.version}@{result.preset}{' '}
-                                    <span className="inline-flex items-center ml-2">
-                                      <Chain id={result.chainId} />
-                                    </span>
+                                    {getChainById(result.chainId)?.name || 'Unknown Chain'}
                                   </span>
                                 </div>
                               </>
@@ -174,7 +174,7 @@ const SearchBar = () => {
                             return (
                               <>
                                 <BsBoxes className="h-6 w-6 shrink-0 opacity-50 mr-1" />
-                                <div className="flex flex-col">
+                                <div className="flex flex-col gap-0.5">
                                   <span>{result.name}</span>
                                   <span className="text-sm text-muted-foreground">
                                     {result.count} package
@@ -187,16 +187,14 @@ const SearchBar = () => {
                             return (
                               <>
                                 <PiFileCode className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
-                                <div className="flex flex-col">
+                                <div className="flex flex-col gap-0.5">
                                   <span>{result.name}</span>
-                                  <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                                  <span className="text-xs text-muted-foreground">
                                     {result.address.substring(0, 6)}...
                                     {result.address.slice(-4)} in{' '}
                                     {result.packageName}:{result.version}@
                                     {result.preset} on{' '}
-                                    <span className="inline-flex items-center translate-y-[2px] ml-1">
-                                      <Chain id={result.chainId} hideId />
-                                    </span>
+                                    {getChainById(result.chainId)?.name || 'Unknown Chain'}
                                   </span>
                                 </div>
                               </>
@@ -205,7 +203,7 @@ const SearchBar = () => {
                             return (
                               <>
                                 <FaCode className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
-                                <div className="flex flex-col">
+                                <div className="flex flex-col gap-0.5">
                                   <span>
                                     {result.contractName}.{result.name}
                                   </span>
@@ -214,9 +212,7 @@ const SearchBar = () => {
                                     {result.address.slice(-4)} in{' '}
                                     {result.packageName}:{result.version}@
                                     {result.preset} on{' '}
-                                    <span className="inline-flex items-center translate-y-[2px] ml-1">
-                                      <Chain id={result.chainId} hideId />
-                                    </span>
+                                    {getChainById(result.chainId)?.name || 'Unknown Chain'}
                                   </span>
                                 </div>
                               </>
