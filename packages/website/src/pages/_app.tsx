@@ -50,14 +50,31 @@ export default function RootLayout({
 }) {
   const router = useRouter();
   const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
-  const isHomePage = router.pathname === '/';
+  const isFooterFixed =
+    router.pathname == '/' || router.pathname == '/packages';
+
+  const headerVar = 'var(--header-height)';
+  const footerVar = 'var(--footer-height)';
+
+  const cannonMainStyles = {
+    minHeight: isFooterFixed
+      ? `calc(100vh - ${headerVar} - ${footerVar})`
+      : 'auto',
+  };
+
+  const layoutStyles = {
+    minHeight: isFooterFixed
+      ? 'auto'
+      : `calc(100vh - ${headerVar} - ${footerVar})`,
+    paddingBottom: isFooterFixed ? footerVar : '0',
+  };
 
   useEffect(() => {
     document.body.classList.remove('fouc-prevention');
   }, []);
 
   return (
-    <>
+    <div>
       <DefaultSeo {...defaultSEO} />
       <style jsx global>
         {`
@@ -76,19 +93,18 @@ export default function RootLayout({
         height={1}
       />
       <Providers>
-        <div className="flex flex-col bg-black min-h-screen relative">
-          <Header />
-          <div
-            className="flex flex-1 z-[1] pb-[80px]"
-            style={{ paddingBottom: isHomePage ? '80px' : 0 }}
-          >
+        <Header />
+
+        <div className={'cannon-main'} style={cannonMainStyles}>
+          <div className={'cannon-layout flex relative'} style={layoutStyles}>
             {getLayout(<Component {...pageProps} />)}
+            <NoSsrE2EWalletConnector />
           </div>
-          <Footer isFixed={isHomePage} />
-          <NoSsrE2EWalletConnector />
         </div>
+
+        <Footer isFixed={isFooterFixed} />
       </Providers>
       <Analytics />
-    </>
+    </div>
   );
 }

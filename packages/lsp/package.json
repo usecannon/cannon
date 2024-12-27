@@ -1,0 +1,27 @@
+{
+  "name": "@usecannon/lsp",
+  "version": "2.19.4",
+  "description": "Language Server Protocol implementation for cannonfile tomls",
+  "main": "dist/index.js",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rm -rf ./dist",
+    "start": "node dist/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/usecannon/cannon.git",
+    "directory": "packages/indexer"
+  },
+  "dependencies": {
+    "@taplo/lsp": "^0.8.0",
+    "@usecannon/builder": "workspace:*",
+    "@usecannon/cli": "workspace:*"
+  },
+  "devDependencies": {
+    "zod-to-json-schema": "^3.21.4"
+  }
+}

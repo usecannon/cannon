@@ -4,6 +4,7 @@ import { ChainDefinition, getArtifacts } from '@usecannon/builder';
 import { DeploymentState } from '@usecannon/builder';
 import Link from 'next/link';
 import { badgeVariants } from '@/components/ui/badge';
+import { Snippet } from '@/components/snippet';
 
 function generateSettingsText(settings?: Record<string, unknown>) {
   let text = '';
@@ -51,7 +52,7 @@ ${generateSettingsText(contextDataCode.settings)}
   const displayCode = chainId == 13370 ? cloneCode : pullCode;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 flex flex-col">
       <div>
         <p className="mb-2 flex items-center">
           Add the following to your Cannonfile to{' '}
@@ -78,18 +79,10 @@ ${generateSettingsText(contextDataCode.settings)}
           )}
         </p>
 
-        <CodePreview
-          code={displayCode}
-          height="150px"
-          language="ini"
-          editorProps={{
-            options: {
-              readOnly: true,
-              minimap: { enabled: false },
-              scrollBeyondLastLine: false,
-            },
-          }}
-        />
+        <Snippet>
+          <code>{displayCode}</code>
+        </Snippet>
+
         <p className="text-sm text-foreground/60 mt-1">
           The options listed above show the default values. You can override or
           omit them.

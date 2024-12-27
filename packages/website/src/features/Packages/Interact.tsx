@@ -131,8 +131,8 @@ const Interact: FC = () => {
       {/* Header */}
       <Flex
         position={{ md: 'sticky' }}
-        top={subnavContext.hasSubnav ? 65 : 0}
-        zIndex={3}
+        top={subnavContext.hasSubnav ? 57 : 0}
+        zIndex={120}
         bg="gray.800"
         p={2}
         flexDirection={['column', 'column', 'row']}
@@ -205,6 +205,7 @@ const Interact: FC = () => {
       <Abi
         isLoading={isLoadingData}
         abi={contract?.abi}
+        contractName={contract?.contractName ?? 'Unknown'}
         contractSource={contract?.sourceName}
         address={contractAddress!}
         cannonOutputs={cannonOutputs}

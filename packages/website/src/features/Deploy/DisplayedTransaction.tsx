@@ -31,6 +31,7 @@ import {
   TransactionRequestBase,
   trim,
 } from 'viem';
+import { ClipboardButton } from '@/components/ClipboardButton';
 
 const TxWrapper: FC<{ children: ReactNode }> = ({ children }) => (
   <Box p={6} border="1px solid" borderColor="gray.600" bgColor="black">
@@ -252,13 +253,9 @@ function _encodeArg(type: string, val: string): string {
     try {
       const b = hexToBytes(val as Hex);
       const t = b.findIndex((v) => v < 0x20);
-      if (b[t] != 0 || b.slice(t).find((v) => v != 0)) {
+      if (b[t] != 0 || b.slice(t).find((v) => v != 0) || t === 0) {
         // this doesn't look like a terminated ascii hex string. leave it as hex
         return val;
-      }
-
-      if (t === 0) {
-        return '';
       }
 
       return bytesToString(trim(b, { dir: 'right' }));
@@ -325,29 +322,32 @@ function _renderInput(type: string, val: string) {
       label={_encodeArgTooltip(type, val as string)}
       placement="bottom-start"
     >
-      <Input
-        type="text"
-        size="sm"
-        bg="black"
-        borderColor="whiteAlpha.400"
-        isReadOnly
-        _focus={{
-          boxShadow: 'none !important',
-          outline: 'none !important',
-          borderColor: 'whiteAlpha.400 !important',
-        }}
-        _focusVisible={{
-          boxShadow: 'none !important',
-          outline: 'none !important',
-          borderColor: 'whiteAlpha.400 !important',
-        }}
-        _hover={{
-          boxShadow: 'none !important',
-          outline: 'none !important',
-          borderColor: 'whiteAlpha.400 !important',
-        }}
-        value={_encodeArg(type, (val as string) || '')}
-      />
+      <div>
+        <Input
+          type="text"
+          size="sm"
+          bg="black"
+          borderColor="whiteAlpha.400"
+          isReadOnly
+          _focus={{
+            boxShadow: 'none !important',
+            outline: 'none !important',
+            borderColor: 'whiteAlpha.400 !important',
+          }}
+          _focusVisible={{
+            boxShadow: 'none !important',
+            outline: 'none !important',
+            borderColor: 'whiteAlpha.400 !important',
+          }}
+          _hover={{
+            boxShadow: 'none !important',
+            outline: 'none !important',
+            borderColor: 'whiteAlpha.400 !important',
+          }}
+          value={_encodeArg(type, (val as string) || '')}
+        />
+        <ClipboardButton text={val} className="mt-0.5" />
+      </div>
     </Tooltip>
   );
 }

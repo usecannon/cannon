@@ -24,7 +24,7 @@ export const CannonfileTab: FC<{
   }
 
   return (
-    <div className="flex flex-col w-full flex-1">
+    <div className="flex flex-col w-full">
       <CannonfileExplorer pkg={packagesQuery.data} />
     </div>
   );

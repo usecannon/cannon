@@ -3,7 +3,7 @@ import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
 import { PackageReference } from '@usecannon/builder';
 
-import TagVariantLayout from './_layout';
+import TagVariantLayout from './NameTagVariantLayout';
 import { ReactElement } from 'react';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import PackageAccordionHelper from '@/features/Packages/PackageAccordionHelper';
@@ -64,16 +64,12 @@ export default function Overview() {
           description: metadata.description,
         }}
       />
-      <div className="flex flex-col w-full">
-        <div className="container mx-auto max-w-5xl py-6">
-          <PackageAccordionHelper
-            name={name}
-            tag={tag}
-            chainId={chainId}
-            preset={preset}
-          />
-        </div>
-      </div>
+      <PackageAccordionHelper
+        name={name}
+        tag={tag}
+        chainId={chainId}
+        preset={preset}
+      />
     </>
   );
 }

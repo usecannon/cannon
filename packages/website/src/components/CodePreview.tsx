@@ -23,8 +23,8 @@ const EditorStyles = createGlobalStyle`
 export const CodePreview: FC<ICodePreviewProps> = ({
   code,
   language,
-  height = '190px',
   line,
+  height,
   editorProps,
 }) => {
   const editorRef = useRef<any>(null);
@@ -62,7 +62,7 @@ export const CodePreview: FC<ICodePreviewProps> = ({
     <>
       <EditorStyles />
       <Editor
-        height={height}
+        height={height || '100%'}
         theme="vs-dark"
         defaultLanguage={language || 'javascript'}
         value={code}

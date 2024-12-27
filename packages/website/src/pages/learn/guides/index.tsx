@@ -8,9 +8,10 @@ import defaultSEO from '@/constants/defaultSeo';
 
 export default function Home() {
   const router = useRouter();
+
   useEffect(() => {
     router
-      .push(`${links.GETSTARTED}/introduction`)
+      .push(`${links.GETSTARTED}/setup`)
       .then(() => {
         // do nothing
       })

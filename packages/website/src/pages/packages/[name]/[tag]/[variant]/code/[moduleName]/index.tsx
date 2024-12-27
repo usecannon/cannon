@@ -4,8 +4,8 @@ import { useRouter } from 'next/router';
 import { ReactElement } from 'react';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
-import Layout from '../../_layout';
-import NestedLayout from '../_layout';
+import NameTagVariantLayout from '../../NameTagVariantLayout';
+//import NestedLayout from '../_layout';
 import { PackageReference } from '@usecannon/builder';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
@@ -41,7 +41,7 @@ function generateMetadata({
   return metadata;
 }
 
-const NoSSR = dynamic(() => import('@/features/Packages/CodePage'), {
+const NoSSRCodePage = dynamic(() => import('@/features/Packages/CodePage'), {
   ssr: false,
 });
 
@@ -62,7 +62,7 @@ export default function Interact() {
           description: metadata.description,
         }}
       />
-      <NoSSR
+      <NoSSRCodePage
         name={decodeURIComponent(params.name as string)}
         tag={decodeURIComponent(params.tag as string)}
         variant={decodeURIComponent(params.variant as string)}
@@ -76,9 +76,5 @@ export default function Interact() {
 }
 
 Interact.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <Layout>
-      <NestedLayout>{page}</NestedLayout>
-    </Layout>
-  );
+  return <NameTagVariantLayout>{page}</NameTagVariantLayout>;
 };

@@ -1,7 +1,7 @@
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 
-import TagVariantLayout from '../_layout';
+import TagVariantLayout from '../NameTagVariantLayout';
 import { ReactElement } from 'react';
 
 const DeploymentTab = dynamic(

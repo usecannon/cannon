@@ -14,7 +14,7 @@
     "e2e": "NEXT_PUBLIC_E2E_TESTING_MODE=true pnpm run build && pnpm run serve  && cypress open --e2e",
     "e2e:local": "NEXT_PUBLIC_E2E_TESTING_MODE=true cypress open --e2e",
     "e2e:headless": "NEXT_PUBLIC_E2E_TESTING_MODE=true pnpm run build && pnpm run serve && cypress run --e2e",
-    "production:install": "pnpm i --prefer-frozen-lockfile --filter @usecannon/builder --filter @usecannon/cli --filter @usecannon/api --filter @usecannon/website",
+    "production:install": "pnpm i --frozen-lockfile --filter @usecannon/builder --filter @usecannon/cli --filter @usecannon/api --filter @usecannon/website",
     "production:build": "pnpm --filter @usecannon/builder --filter @usecannon/cli --filter @usecannon/api run build && pnpm --filter @usecannon/website run build",
     "component": "cypress open --component",
     "component:headless": "cypress run --component"
@@ -122,7 +122,6 @@
     "styled-components": "^6.0.7",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
-    "usehooks-ts": "^3.1.0",
     "viem": "^2.21.15",
     "wagmi": "^2.5.13",
     "zod": "^3.23.8",

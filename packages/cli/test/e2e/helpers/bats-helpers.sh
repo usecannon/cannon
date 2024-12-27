@@ -5,6 +5,12 @@
 _setup_file() {
   export CANNON_REPO_DIR="$(git rev-parse --show-toplevel)"
 
+  load_env "$CANNON_REPO_DIR/packages/cli/.env.test"
+
+  require_env_var 'CANNON_E2E_RPC_URL_OPTIMISM'
+  require_env_var 'CANNON_E2E_RPC_URL_ETHEREUM'
+  require_env_var 'CANNON_ETHERSCAN_API_KEY'
+
   # Create temporary directory for tests if necessary
   export CANNON_DIRECTORY="${CANNON_DIRECTORY:="$(mktemp -d)/.cannon"}"
 
@@ -64,4 +70,23 @@ set_custom_config() {
 start_optimism_emitter() {
   $CANNON_OP_EMITTER &
   EMITTER_PID=$!
+}
+
+# Load environment variables from a file
+# Usage: load_env "/path/to/.env"
+load_env() {
+  ENV_FILE="$1"
+  if [[ -f "$ENV_FILE" ]]; then
+    export $(cat "$ENV_FILE" | sed 's/#.*//g' | xargs)
+  fi
+}
+
+# Require an environment variable to be set, exit if it isn't
+# Usage: _require_env_var "VARIABLE_NAME"
+require_env_var() {
+  local var_name="$1"
+  if [[ -z "${!var_name}" ]]; then
+    echo "Error: Required environment variable $var_name is not set" >&2
+    exit 1
+  fi
 }

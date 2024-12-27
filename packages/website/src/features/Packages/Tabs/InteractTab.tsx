@@ -226,12 +226,12 @@ export const InteractTab: FC<{
       {hasSubnav && (
         <Flex
           top="0"
-          zIndex={3}
+          zIndex={60}
           bg="gray.900"
           position={{ md: 'sticky' }}
           overflowX="scroll"
           overflowY="hidden"
-          maxW="100%"
+          maxW="100vw"
           p={2}
           borderBottom="1px solid"
           borderColor="gray.800"
@@ -414,7 +414,7 @@ export const InteractTab: FC<{
           }
         </Flex>
       )}
-
+      {/* {deploymentData.isLoading || packagesQuery.isLoading ? ( */}
       {deploymentData.isLoading || packagesQuery.isLoading ? (
         <div className="py-20">
           <IpfsSpinner ipfsUrl={packagesQuery?.data?.deployUrl} />

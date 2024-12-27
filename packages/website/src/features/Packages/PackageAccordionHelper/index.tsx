@@ -108,7 +108,7 @@ export default function PackageAccordionHelper({
   };
 
   return (
-    <div className="max-w-screen-lg mx-auto px-6">
+    <div className="max-w-screen-lg mx-auto p-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Run Package Card */}
         <Card>
