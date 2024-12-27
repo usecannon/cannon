@@ -41,6 +41,12 @@ const generateLink = (result: any) => {
   }
 };
 
+const formatVersionAndPreset = (version: string, preset: string) => {
+  const formattedVersion = version !== 'latest' ? `:${version}` : '';
+  const formattedPreset = preset !== 'main' ? `@${preset}` : '';
+  return `${formattedVersion}${formattedPreset}`;
+};
+
 const SearchBar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const onOpen = () => setIsOpen(true);
@@ -164,8 +170,15 @@ const SearchBar = () => {
                                 <div className="flex flex-col gap-0.5">
                                   <span>{result.name}</span>
                                   <span className="text-xs text-muted-foreground">
-                                    {result.version}@{result.preset}{' '}
-                                    {getChainById(result.chainId)?.name || 'Unknown Chain'}
+                                    {result.name}
+                                    {formatVersionAndPreset(
+                                      result.version,
+                                      result.preset
+                                    )}{' '}
+                                    on{' '}
+                                    {getChainById(result.chainId)?.name ||
+                                      'Unknown Chain'}{' '}
+                                    (ID: {result.chainId})
                                   </span>
                                 </div>
                               </>
@@ -176,9 +189,9 @@ const SearchBar = () => {
                                 <BsBoxes className="h-6 w-6 shrink-0 opacity-50 mr-1" />
                                 <div className="flex flex-col gap-0.5">
                                   <span>{result.name}</span>
-                                  <span className="text-sm text-muted-foreground">
+                                  <span className="text-xs text-muted-foreground">
                                     {result.count} package
-                                    {result.count != 1 && 's'}
+                                    {result.count !== 1 && 's'}
                                   </span>
                                 </div>
                               </>
@@ -190,11 +203,15 @@ const SearchBar = () => {
                                 <div className="flex flex-col gap-0.5">
                                   <span>{result.name}</span>
                                   <span className="text-xs text-muted-foreground">
-                                    {result.address.substring(0, 6)}...
-                                    {result.address.slice(-4)} in{' '}
-                                    {result.packageName}:{result.version}@
-                                    {result.preset} on{' '}
-                                    {getChainById(result.chainId)?.name || 'Unknown Chain'}
+                                    {result.packageName}
+                                    {formatVersionAndPreset(
+                                      result.version,
+                                      result.preset
+                                    )}{' '}
+                                    on{' '}
+                                    {getChainById(result.chainId)?.name ||
+                                      'Unknown Chain'}{' '}
+                                    (ID: {result.chainId})
                                   </span>
                                 </div>
                               </>
@@ -208,11 +225,15 @@ const SearchBar = () => {
                                     {result.contractName}.{result.name}
                                   </span>
                                   <span className="text-xs text-muted-foreground">
-                                    {result.address.substring(0, 6)}...
-                                    {result.address.slice(-4)} in{' '}
-                                    {result.packageName}:{result.version}@
-                                    {result.preset} on{' '}
-                                    {getChainById(result.chainId)?.name || 'Unknown Chain'}
+                                    {result.packageName}
+                                    {formatVersionAndPreset(
+                                      result.version,
+                                      result.preset
+                                    )}{' '}
+                                    on{' '}
+                                    {getChainById(result.chainId)?.name ||
+                                      'Unknown Chain'}{' '}
+                                    (ID: {result.chainId})
                                   </span>
                                 </div>
                               </>
