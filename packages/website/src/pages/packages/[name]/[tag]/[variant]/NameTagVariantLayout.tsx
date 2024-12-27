@@ -94,7 +94,7 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
               </div>
 
               {/* Package Nav */}
-              <div className="flex gap-8 items-center h-[calc(var(--subheader-height))] max-w-[100vw] overflow-x-auto overflow-y-hidden px-6">
+              <div className="flex gap-8 items-center max-w-[100vw] overflow-x-auto overflow-y-hidden px-6">
                 <NavLink
                   isActive={pathname == '/packages/[name]/[tag]/[variant]'}
                   href={`/packages/${packagesQuery.data.name}/${params.tag}/${params.variant}`}

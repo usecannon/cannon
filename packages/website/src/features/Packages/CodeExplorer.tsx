@@ -505,7 +505,7 @@ export const CodeExplorer: FC<{
                 }
               }}
             >
-              <TabsList className="rounded-none">
+              <TabsList className="rounded-none h-full">
                 {!isEmpty(miscData?.artifacts) && (
                   <TabsTrigger
                     value={name}
@@ -545,7 +545,7 @@ export const CodeExplorer: FC<{
                     )}
                   </>
                 ) : (
-                  <div className="flex-1 flex items-center justify-center p-4">
+                  <div className="flex-1 flex items-center justify-center min-h-[671px]">
                     <span className="text-gray-400">
                       <Info className="inline mr-2 -translate-y-[1px]" />
                       This package does not contain any code.
@@ -557,7 +557,7 @@ export const CodeExplorer: FC<{
           </div>
         </>
       ) : (
-        <div className="flex-1 flex items-center justify-center p-4">
+        <div className="flex-1 flex items-center justify-center min-h-[671px]">
           <span className="text-gray-400">
             <Info className="inline mr-2 -translate-y-[1px]" />
             This package does not contain any code.
