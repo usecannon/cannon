@@ -2,19 +2,10 @@
 
 import QueueDrawer from '@/features/Deploy/QueueDrawer';
 import { Abi } from '@/features/Packages/Abi';
-import { SubnavContext } from '@/features/Packages/Tabs/InteractTab';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { usePackageNameTagVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import { getOutput } from '@/lib/builder';
 import {
-  Box,
-  Code,
-  Flex,
-  Heading,
-  Link,
-  Skeleton,
-  Text,
-  useBreakpointValue,
   useDisclosure,
 } from '@chakra-ui/react';
 import {
@@ -116,10 +107,6 @@ const Interact: FC = () => {
     ? getExplorerUrl(packagesQuery.data?.chainId, contractAddress)
     : null;
 
-  const isMobile = useBreakpointValue([true, true, false]);
-
-  const subnavContext = useContext(SubnavContext);
-
   const isLoadingData = packagesQuery.isPending || deploymentData.isPending;
 
   if (!packagesQuery.isLoading && !packagesQuery.data) {
@@ -129,78 +116,61 @@ const Interact: FC = () => {
   return (
     <>
       {/* Header */}
-      <Flex
-        position={{ md: 'sticky' }}
-        top={subnavContext.hasSubnav ? 57 : 0}
-        zIndex={120}
-        bg="gray.800"
-        p={2}
-        flexDirection={['column', 'column', 'row']}
-        alignItems={['flex-start', 'flex-start', 'center']}
-        borderBottom="1px solid"
-        borderColor="gray.600"
+      <div 
+        className={`
+          flex flex-col md:flex-row bg-background
+          p-2 border-b border-border
+          sticky top-[107px]
+          z-50 items-start md:items-center
+        `}
       >
         {/* Token */}
-        <Box py={2} px={[1, 1, 3]}>
-          <Heading display="inline-block" as="h4" size="md" mb={1.5}>
+        <div className="p-1">
+          <h4 className="inline-block font-bold mr-2.5">
             {isLoadingData ? (
-              <Skeleton height={1} width={100} mt={1} mb={1} />
+              <div className="h-4 w-[100px] mt-1 mb-1 animate-pulse bg-gray-700" />
             ) : (
               contract?.contractName
             )}
-          </Heading>
-          <Text color="gray.300" fontSize="xs" fontFamily="mono">
-            {explorerUrl ? (
-              <Link
-                isExternal
-                styleConfig={{ 'text-decoration': 'none' }}
-                borderBottom="1px dotted"
-                borderBottomColor="gray.300"
-                href={explorerUrl}
+          </h4>
+
+          <a
+                className="text-xs text-muted-foreground no-underline border-b border-dotted border-gray-300 font-mono"
+                href={'#'}
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                {isMobile && contractAddress
-                  ? `${contractAddress.substring(
-                      0,
-                      6
-                    )}...${contractAddress.slice(-4)}`
-                  : contractAddress}
-              </Link>
-            ) : null}
-          </Text>
-        </Box>
+                { contract?.sourceName }
+              </a>
+        </div>
 
         {/* IPFS Url */}
-        <Box p={1} ml={[0, 0, 'auto']}>
-          <Flex
-            justifyContent={['flex-start', 'flex-start', 'flex-end']}
-            flexDirection="column"
-            textAlign={['left', 'left', 'right']}
-          >
-            <Text fontSize="xs" color="gray.200" display="inline" mb={0.5}>
-              via{' '}
-              <Code fontSize="xs" color="gray.200" pr={0} pl={0.5}>
-                {moduleName}
-              </Code>
-            </Text>
-            <Text color="gray.300" fontSize="xs" fontFamily="mono">
-              <Link
-                isExternal
-                styleConfig={{ 'text-decoration': 'none' }}
-                borderBottom="1px dotted"
-                borderBottomColor="gray.300"
-                href={deployUrl}
+        <div className="p-1 md:ml-auto">
+          <div className="flex flex-col items-start md:items-end">
+            <p className="text-xs text-muted-foreground">
+              
+            {explorerUrl ? (
+              <a
+                className="no-underline border-b border-dotted border-gray-300 font-mono"
+                href={explorerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                {isMobile
-                  ? `${packagesQuery.data?.deployUrl.substring(
-                      0,
-                      13
-                    )}...${packagesQuery.data?.deployUrl.slice(-4)}`
-                  : packagesQuery.data?.deployUrl}
-              </Link>
-            </Text>
-          </Flex>
-        </Box>
-      </Flex>
+                {contractAddress.substring(0, 6)}...{contractAddress.slice(-4)}
+              </a>
+            ) : null} from{' '}
+              <a
+                className="no-underline border-b border-dotted border-gray-300 font-mono"
+                href={deployUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                [clone.{moduleName}]
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
 
       <Abi
         isLoading={isLoadingData}

@@ -5,23 +5,9 @@ import {
   ReactNode,
   useEffect,
   useState,
-  createContext,
   useMemo,
 } from 'react';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
-import {
-  Box,
-  Button,
-  Flex,
-  Heading,
-  Icon,
-  Popover,
-  PopoverBody,
-  PopoverContent,
-  PopoverTrigger,
-  Portal,
-  Text,
-} from '@chakra-ui/react';
 import { ChainArtifacts, DeploymentInfo } from '@usecannon/builder';
 import { getOutput } from '@/lib/builder';
 import { useRouter } from 'next/router';
@@ -30,16 +16,19 @@ import { usePackageByRef } from '@/hooks/api/usePackage';
 import SearchInput from '@/components/SearchInput';
 import { Address } from 'viem';
 import { IpfsSpinner } from '@/components/IpfsSpinner';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { MoreHorizontal } from "lucide-react" // For the dots icon
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Option = {
   moduleName: string;
   contractName: string;
   contractAddress: string;
 };
-
-export const SubnavContext = createContext<{ hasSubnav: boolean }>({
-  hasSubnav: true,
-});
 
 function useActiveContract() {
   const pathName = useRouter().asPath;
@@ -126,8 +115,6 @@ export const InteractTab: FC<{
     packagesQuery?.data?.deployUrl,
     !!packagesQuery?.data?.deployUrl
   );
-
-  const hasSubnav = otherOptions.length > 0 || highlightedOptions.length > 1;
 
   const isActiveContract = (contract: Option) => {
     if (!activeContractOption) return false;
@@ -221,209 +208,90 @@ export const InteractTab: FC<{
     void processDeploymentData(deploymentData.data);
   }, [activeContractOption, deploymentData.data, name, router, tag, variant]);
 
-  return (
-    <SubnavContext.Provider value={{ hasSubnav: true }}>
-      {hasSubnav && (
-        <Flex
-          top="0"
-          zIndex={60}
-          bg="gray.900"
-          position={{ md: 'sticky' }}
-          overflowX="scroll"
-          overflowY="hidden"
-          maxW="100vw"
-          p={2}
-          borderBottom="1px solid"
-          borderColor="gray.800"
-          flexWrap="nowrap"
-        >
-          {
-            <>
-              {/* Tabs options */}
-              {highlightedOptions.map((option, i) => (
-                <Button
-                  key={i}
-                  color="white"
-                  borderWidth="2px"
-                  borderRadius="md"
-                  variant="outline"
-                  aria-label="contract name"
-                  boxShadow="lg"
-                  flexShrink={0}
-                  background={
-                    isActiveContract(option) ? 'teal.900' : 'gray.700'
-                  }
-                  borderColor={
-                    isActiveContract(option) ? 'teal.600' : 'gray.600'
-                  }
-                  _hover={
-                    isActiveContract(option)
-                      ? {
-                          background: 'teal.800',
-                          borderColor: 'teal.500',
-                        }
-                      : {
-                          background: 'gray.600',
-                          borderColor: 'teal.500',
-                        }
-                  }
-                  mr={4}
-                  height="48px"
-                  px={2}
-                  onClick={async () =>
-                    await router.push(
-                      `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
-                    )
-                  }
-                >
-                  <Box textAlign="left">
-                    <Text
-                      fontSize="xs"
-                      display="block"
-                      fontWeight="normal"
-                      color="gray.400"
-                      mb="1px"
-                    >
-                      {option.moduleName}
-                    </Text>
-                    <Heading
-                      fontWeight="500"
-                      size="sm"
-                      color="gray.200"
-                      letterSpacing="0.1px"
-                    >
-                      {option.contractName}
-                    </Heading>
-                  </Box>
-                </Button>
-              ))}
-              {/* other options (dots) */}
-              {otherOptions.length > 0 && (
-                <Popover
-                  placement="bottom-start"
-                  isOpen={isPopoverOpen}
-                  onOpen={() => setIsPopoverOpen(true)}
-                  onClose={() => setIsPopoverOpen(false)}
-                >
-                  <PopoverTrigger>
-                    <Button
-                      color="white"
-                      borderColor={'gray.600'}
-                      borderWidth="2px"
-                      borderRadius="md"
-                      variant="outline"
-                      background={'gray.700'}
-                      aria-label="Settings"
-                      boxShadow="lg"
-                      _hover={{
-                        background: 'gray.600',
-                        borderColor: 'teal.500',
-                      }}
-                      height="48px"
-                      width="48px"
-                      flexShrink={0}
-                      p={0}
-                    >
-                      <Icon
-                        boxSize={48}
-                        opacity={0.5}
-                        _hover={{ opacity: 1 }}
-                        viewBox="0 0 48 48"
-                        width="48px"
-                        height="48px"
-                        fill="white"
-                        stroke="none"
-                      >
-                        <circle cx="13" cy="24" r="3"></circle>
-                        <circle cx="24" cy="24" r="3"></circle>
-                        <circle cx="35" cy="24" r="3"></circle>
-                      </Icon>
-                    </Button>
-                  </PopoverTrigger>
-                  <Portal>
-                    <PopoverContent
-                      maxHeight={'45vh'}
-                      overflowY={'auto'}
-                      overflowX={'hidden'}
-                      width="auto"
-                      bg="gray.900"
-                      borderColor="gray.700"
-                    >
-                      <PopoverBody p={0}>
-                        {otherOptions.length > 5 && (
-                          <Box mt={4} mx={4} minWidth={300} mb={[4, 4, 8]}>
-                            <SearchInput onSearchChange={setSearchTerm} />
-                          </Box>
-                        )}
-                        {otherOptions
-                          .filter((o) =>
-                            searchTerm
-                              ? o.contractName
-                                  .toLowerCase()
-                                  .includes(searchTerm)
-                              : true
-                          )
-                          .map((option, i) => (
-                            <Box
-                              key={i}
-                              cursor={'pointer'}
-                              textAlign="left"
-                              p={2}
-                              background={
-                                isActiveContract(option)
-                                  ? 'gray.800'
-                                  : 'transparent'
-                              }
-                              _hover={{
-                                background: 'gray.800',
-                              }}
-                              borderBottom="1px solid"
-                              borderColor="gray.700"
-                              onClick={async () => {
-                                setIsPopoverOpen(false);
-                                await router.push(
-                                  `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
-                                );
-                              }}
-                            >
-                              <Text
-                                fontSize="xs"
-                                display="block"
-                                fontWeight="normal"
-                                color="gray.400"
-                                mb="1px"
-                              >
-                                {option.moduleName}
-                              </Text>
-                              <Heading
-                                fontWeight="500"
-                                size="sm"
-                                color="gray.200"
-                                letterSpacing="0.1px"
-                              >
-                                {option.contractName}
-                              </Heading>
-                            </Box>
-                          ))}
-                      </PopoverBody>
-                    </PopoverContent>
-                  </Portal>
-                </Popover>
-              )}
-            </>
+  console.log('highlightedOptions', highlightedOptions);
+
+  return (<>
+    <div className="sticky top-0 z-60 bg-gray-900 overflow-x-scroll overflow-y-hidden max-w-[100vw] border-b border-border">
+      <Tabs
+        defaultValue={highlightedOptions[0]?.moduleName + '.' + highlightedOptions[0]?.contractName}
+        value={activeContractOption ? `${activeContractOption.moduleName}.${activeContractOption.contractName}` : undefined}
+        onValueChange={(value) => {
+          const [moduleName, contractName] = value.split('.');
+          const option = [...highlightedOptions, ...otherOptions].find(
+            opt => opt.moduleName === moduleName && opt.contractName === contractName
+          );
+          if (option) {
+            void router.push(
+              `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
+            );
           }
-        </Flex>
-      )}
-      {/* {deploymentData.isLoading || packagesQuery.isLoading ? ( */}
-      {deploymentData.isLoading || packagesQuery.isLoading ? (
-        <div className="py-20">
-          <IpfsSpinner ipfsUrl={packagesQuery?.data?.deployUrl} />
-        </div>
-      ) : (
-        <Box>{children}</Box>
-      )}
-    </SubnavContext.Provider>
-  );
+        }}
+      >
+        <TabsList className="rounded-none h-full">
+          {highlightedOptions.map((option, i) => (
+            <TabsTrigger
+              key={i}
+              value={`${option.moduleName}.${option.contractName}`}
+            >
+              {`${option.moduleName}.${option.contractName}`}
+            </TabsTrigger>
+          ))}
+          
+          {otherOptions.length > 0 && (
+            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+              <PopoverTrigger asChild>
+                <div className={`cursor-pointer px-4 py-2 ${
+                  isPopoverOpen ? 'text-teal-400' : 'text-gray-400 hover:text-gray-200'
+                }`}>
+                  <MoreHorizontal className="h-4 w-4" />
+                </div>
+              </PopoverTrigger>
+              <PopoverContent className="max-h-[45vh] overflow-y-auto overflow-x-hidden w-auto bg-gray-900 border-gray-700 p-0">
+                {otherOptions.length > 5 && (
+                  <div className="mt-4 mx-4 min-w-[300px] mb-[16px] md:mb-[32px]">
+                    <SearchInput onSearchChange={setSearchTerm} />
+                  </div>
+                )}
+                {otherOptions
+                  .filter((o) =>
+                    searchTerm
+                      ? o.contractName.toLowerCase().includes(searchTerm)
+                      : true
+                  )
+                  .map((option, i) => (
+                    <div
+                      key={i}
+                      className={`cursor-pointer p-3 border-b border-gray-700 ${
+                        isActiveContract(option)
+                          ? 'bg-gray-800'
+                          : 'bg-transparent'
+                      } hover:bg-gray-800`}
+                      onClick={async () => {
+                        setIsPopoverOpen(false);
+                        await router.push(
+                          `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
+                        );
+                      }}
+                    >
+                      <span className="text-sm text-gray-200">
+                        {`${option.moduleName}.${option.contractName}`}
+                      </span>
+                    </div>
+                  ))}
+              </PopoverContent>
+            </Popover>
+          )}
+        </TabsList>
+      </Tabs>
+    </div>
+    {deploymentData.isLoading || packagesQuery.isLoading ? (
+      <div className="py-20">
+        <IpfsSpinner ipfsUrl={packagesQuery?.data?.deployUrl} />
+      </div>
+    ) : (
+      <div>{children}</div>
+    )}
+  </>);
 };
 
 export default InteractTab;
