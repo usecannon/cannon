@@ -115,7 +115,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
   );
 
   return (
-    <div className="container max-w-4xl">
+    <div className="container max-w-5xl">
       <SidebarLayout
         sidebarContent={sidebarContent}
         hasSubheader
@@ -123,7 +123,9 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
         borderlessSidebar
         fixedFooter={false}
       >
-        {children}
+        <div className="max-w-4xl px-4">
+          {children}
+        </div>
       </SidebarLayout>
     </div>
   );

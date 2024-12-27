@@ -322,7 +322,7 @@ const DocsCannonfilesPage: FC = () => {
   );
 
   return (
-    <div className="container max-w-4xl">
+    <div className="container max-w-5xl">
       <SidebarLayout
         sidebarContent={sidebarContent}
         hasSubheader
@@ -330,7 +330,7 @@ const DocsCannonfilesPage: FC = () => {
         borderlessSidebar
         fixedFooter={false}
       >
-        <div className="max-w-3xl px-4 py-10">
+        <div className="max-w-4xl px-4 py-10">
           <Element name="introduction" className="mb-8">
             <h1 className="text-3xl font-bold mb-4">
               Cannonfile Documentation

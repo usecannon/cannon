@@ -288,7 +288,7 @@ const DocsCliPage: FC = () => {
   }
 
   const sidebarContent = (
-    <SidebarContent className="overflow-y-auto">
+    <SidebarContent className="overflow-y-auto md:pt-6">
       <SidebarGroup>
         <SidebarGroupContent>
           <SidebarMenu>
@@ -348,7 +348,7 @@ const DocsCliPage: FC = () => {
   );
 
   return (
-    <div className="container container max-w-4xl">
+    <div className="container max-w-5xl">
       <SidebarLayout
         sidebarContent={sidebarContent}
         hasSubheader
@@ -356,7 +356,7 @@ const DocsCliPage: FC = () => {
         borderlessSidebar
         fixedFooter={false}
       >
-        <div className="max-w-3xl px-4 py-10">
+        <div className="max-w-4xl px-4 py-10">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-4">
               Command-Line Interface Documentation
