@@ -5,6 +5,7 @@ import { isArray, isObject } from 'lodash';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { Tooltip } from '@chakra-ui/react';
 import { formatEther } from 'viem';
+import ClipboardButton from '@/components/ClipboardButton';
 
 const isArrayOutput = (
   value: AbiParameter | readonly AbiParameter[]
@@ -30,6 +31,25 @@ const ItemLabel: FC<{ name: string; type: string }> = ({ name, type }) => (
     </Text>
   </Box>
 );
+
+const resultText = (type: string, result: any): string => {
+  if (result !== null && result !== undefined) {
+    return String(result);
+  } else if (type === 'string') {
+    return '(empty string)';
+  } else if (type === 'boolean' || type === 'bool') {
+    return '(false)';
+  } else if (
+    type === 'uint256' ||
+    type === 'int256' ||
+    type === 'uint128' ||
+    type === 'int128'
+  ) {
+    return '0';
+  } else {
+    return '(no result)';
+  }
+};
 
 export const FunctionOutput: FC<{
   abiParameters: AbiParameter | readonly AbiParameter[];
@@ -68,6 +88,12 @@ export const FunctionOutput: FC<{
             <Box key={tupleIndex} pl="4">
               <Text as="span" fontSize="xs" color="whiteAlpha.700">
                 tuple[{tupleIndex}]
+                <ClipboardButton
+                  text={resultText(
+                    abiParameter.type,
+                    'tuple[' + tupleIndex + ']'
+                  )}
+                />
               </Text>
               {abiParameter.components.map(
                 (component: AbiParameter, compIdx: number) => (
@@ -94,7 +120,10 @@ export const FunctionOutput: FC<{
             fontSize="xs"
             color="whiteAlpha.900"
           >
-            {String(outputValue)}
+            {resultText(abiParameter.type, outputValue)}
+            <ClipboardButton
+              text={resultText(abiParameter.type, outputValue)}
+            />
           </Text>
         );
       } else if (isArray(value)) {
@@ -103,7 +132,8 @@ export const FunctionOutput: FC<{
             <Box>
               {value.map((val, idx) => (
                 <Text fontSize="xs" display="block" key={idx}>
-                  {String(val)}
+                  {resultText(abiParameter.type, val)}
+                  <ClipboardButton text={resultText(abiParameter.type, val)} />
                 </Text>
               ))}
             </Box>
@@ -111,13 +141,16 @@ export const FunctionOutput: FC<{
         } else if (index !== undefined) {
           return (
             <Text fontSize="xs" display="block">
-              {String(value[index])}
+              {String(value[index]) === undefined
+                ? resultText(abiParameter.type, value[index])
+                : '[]'}
             </Text>
           );
         } else {
           return value.map((val, idx) => (
             <Text fontSize="xs" display="block" key={idx}>
-              {String(val)}
+              {resultText(abiParameter.type, val)}
+              <ClipboardButton text={resultText(abiParameter.type, val)} />
             </Text>
           ));
         }
@@ -145,16 +178,20 @@ export const FunctionOutput: FC<{
                       color="whiteAlpha.900"
                       verticalAlign="center"
                     >
-                      {String(methodResult)}
+                      {resultText(abiParameter.type, methodResult)}
+                      <ClipboardButton
+                        text={resultText(abiParameter.type, methodResult)}
+                      />
                     </Text>
                   </Flex>
                 </Tooltip>
               </>
             ) : (
               <Text fontSize="xs" color="whiteAlpha.900" verticalAlign="center">
-                {methodResult !== null || undefined
-                  ? String(methodResult)
-                  : '(no result)'}
+                {resultText(abiParameter.type, methodResult)}
+                <ClipboardButton
+                  text={resultText(abiParameter.type, methodResult)}
+                />
               </Text>
             )}
           </Flex>
