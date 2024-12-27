@@ -151,7 +151,7 @@ const SearchBar = () => {
                         onClose();
                         await router.push(generateLink(result));
                       }}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 cursor-pointer"
                     >
                       {(() => {
                         switch (result.type) {
@@ -186,16 +186,16 @@ const SearchBar = () => {
                           case 'contract':
                             return (
                               <>
-                                <PiFileCode className="h-6 w-6 shrink-0 opacity-50 mr-1" />
+                                <PiFileCode className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
                                 <div className="flex flex-col">
                                   <span>{result.name}</span>
-                                  <span className="text-sm text-muted-foreground inline-flex items-center gap-1">
+                                  <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
                                     {result.address.substring(0, 6)}...
-                                    {result.address.slice(-4)} •{' '}
+                                    {result.address.slice(-4)} in{' '}
                                     {result.packageName}:{result.version}@
-                                    {result.preset} •{' '}
-                                    <span className="inline-flex items-center">
-                                      <Chain id={result.chainId} />
+                                    {result.preset} on{' '}
+                                    <span className="inline-flex items-center translate-y-[2px] ml-1">
+                                      <Chain id={result.chainId} hideId />
                                     </span>
                                   </span>
                                 </div>
@@ -204,17 +204,19 @@ const SearchBar = () => {
                           case 'function':
                             return (
                               <>
-                                <FaCode className="h-6 w-6 shrink-0 opacity-50 mr-1" />
+                                <FaCode className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
                                 <div className="flex flex-col">
                                   <span>
                                     {result.contractName}.{result.name}
                                   </span>
-                                  <span className="text-sm text-muted-foreground">
+                                  <span className="text-xs text-muted-foreground">
                                     {result.address.substring(0, 6)}...
-                                    {result.address.slice(-4)} •{' '}
+                                    {result.address.slice(-4)} in{' '}
                                     {result.packageName}:{result.version}@
-                                    {result.preset} •{' '}
-                                    <Chain id={result.chainId} />
+                                    {result.preset} on{' '}
+                                    <span className="inline-flex items-center translate-y-[2px] ml-1">
+                                      <Chain id={result.chainId} hideId />
+                                    </span>
                                   </span>
                                 </div>
                               </>
