@@ -6,111 +6,120 @@ import type { TemplateOptions } from 'lodash';
 import * as acorn from 'acorn';
 import { Node, Identifier, MemberExpression } from 'acorn';
 import { CannonHelperContext } from '../types';
+import { getGlobalVars } from './get-global-vars';
 
 const debug = Debug('cannon:builder:template');
 
 /**
- * Gets all global properties from various JavaScript environments
- * @returns Set of all discovered global properties
+ * List of legal and illegal globals so we can use them in validation
  */
-function getAllGlobalProperties(): Set<string> {
-  const globals = new Set<string>();
+const PERMITTED_GLOBALS = new Set([
+  // Primitive Values
+  'Infinity',
+  'NaN',
+  'undefined',
+  'null',
+  'true',
+  'false',
 
-  // Helper to safely get all properties from an object and its prototype chain
-  const getAllPropertiesFromObject = (obj: any) => {
-    while (obj) {
-      try {
-        Object.getOwnPropertyNames(obj).forEach((prop) => globals.add(prop));
-        obj = Object.getPrototypeOf(obj);
-      } catch (e) {
-        break; // Stop if we can't access further
-      }
-    }
-  };
+  // Fundamental objects
+  'Number',
+  'Object',
+  'Map',
+  'Set',
+  'String',
+  'Date',
+  'BigInt',
+  'Symbol',
+  'RegExp',
+  'Buffer',
+  'Array',
+  'ArrayBuffer',
+  'Int8Array',
+  'Uint8Array',
+  'Uint8ClampedArray',
+  'Int16Array',
+  'Uint16Array',
+  'Int32Array',
+  'Uint32Array',
+  'BigInt64Array',
+  'BigUint64Array',
+  'Float16Array',
+  'Float32Array',
+  'Float64Array',
+  'Map',
+  'Set',
+  'WeakMap',
+  'WeakSet',
 
-  // Check globalThis
-  getAllPropertiesFromObject(globalThis);
+  // Functions
+  'JSON',
+  'Math',
+  'Intl',
+  'parseFloat',
+  'parseInt',
+  'isNaN',
+  'isFinite',
+  'console',
+  'atob',
+  'btoa',
+  'decodeURI',
+  'encodeURI',
+  'decodeURIComponent',
+  'encodeURIComponent',
+]);
 
-  // Check window in browser environment
-  if (typeof window !== 'undefined') {
-    getAllPropertiesFromObject(window);
-  }
-
-  // Check global in Node.js environment
-  if (typeof global !== 'undefined') {
-    getAllPropertiesFromObject(global);
-  }
-
-  // Check self (used in Web Workers)
-  if (typeof self !== 'undefined') {
-    getAllPropertiesFromObject(self);
-  }
-
-  // Get properties from Function constructor
-  try {
-    const functionProps = new Function('return Object.getOwnPropertyNames(this)')();
-    functionProps.forEach((prop: string) => globals.add(prop));
-  } catch (e) {
-    // Ignore if blocked
-  }
-
-  // Remove allowed objects like JSON, Number, Math from the global properties
-  // TODO: do we need to whitelist any other objects?
-  const allowedGlobals = ['JSON', 'Number', 'Math', 'String', 'parseFloat', 'parseInt', 'isNaN', 'console'];
-  allowedGlobals.forEach((allowed) => globals.delete(allowed));
-
-  return globals;
-}
-
-/**
- * List of blocked globals so we can use them in validation
- */
 const BLOCKED_GLOBALS = new Set([
-  // reserved keywords
-  'var',
-  'const',
-  'let',
-  'function',
-  'return',
-  'if',
-  'else',
-  'for',
-  'while',
-  'do',
-  'switch',
-  'case',
-  'break',
-  'continue',
-  'throw',
-  'try',
-  'catch',
-  'finally',
-  'import',
-  'export',
-  'async',
-  'await',
-  'this',
-  'super',
-  'new',
-  'class',
-  'extends',
-  'static',
-
-  // other potentially dangerous apis that might not be globals in all environments
-  'constructor',
-  'prototype',
   '__proto__',
   'arguments',
-  'caller',
+  'async',
+  'await',
+  'break',
   'callee',
+  'caller',
+  'case',
+  'catch',
+  'class',
+  'const',
+  'constructor',
+  'continue',
+  'delete',
+  'debugger',
+  'do',
+  'else',
+  'export',
+  'extends',
+  'finally',
+  'for',
+  'function',
+  'function*',
+  'if',
+  'import',
+  'let',
+  'new',
+  'prototype',
+  'return',
+  'static',
+  'super',
+  'switch',
+  'this',
+  'throw',
+  'try',
+  'var',
+  'while',
+  'with',
+  'yield',
 ]);
 
 // Cache the global properties to avoid recomputing them on every validation
-const GLOBAL_PROPERTIES = getAllGlobalProperties();
-const COMPLETE_BLOCKED_GLOBALS = new Set([...Array.from(BLOCKED_GLOBALS), ...Array.from(GLOBAL_PROPERTIES)]);
+const COMPLETE_BLOCKED_GLOBALS = new Set(
+  [...Array.from(BLOCKED_GLOBALS), ...Array.from(getGlobalVars())].filter((g) => !PERMITTED_GLOBALS.has(g))
+);
 
 // Debug log the complete list if needed
-debug('Complete list of blocked globals:', Array.from(COMPLETE_BLOCKED_GLOBALS).sort());
+if (debug.enabled) {
+  debug('Complete list of blocked globals:', Array.from(COMPLETE_BLOCKED_GLOBALS));
+}
 
 /**
  * Get the set of allowed identifiers for template execution.
@@ -170,8 +179,8 @@ export function template(str?: string, options?: TemplateOptions) {
           const match = err.message.match(/\(reading '([^']+)'\)/);
           if (match && match[1]) {
             const desiredKey = match[1];
-            const allKeys = Array.from(getAllKeys(data));
-            const results = fuzzySearch(allKeys, desiredKey);
+            const allKeys = Array.from(_getAllKeys(data));
+            const results = _fuzzySearch(allKeys, desiredKey);
             if (results.length) {
               err.message += "\n\n Here's a list of some fields available in this context, did you mean one of these?";
               for (const res of results) err.message += `\n    ${res}`;
@@ -218,11 +227,11 @@ export function executeTemplate(templateStr: string, context: Record<string, any
  * @param keys - The set of keys to add to
  * @returns Set of keys
  */
-function getAllKeys(obj: { [key: string]: any }, parentKey = '', keys: Set<string> = new Set()) {
+function _getAllKeys(obj: { [key: string]: any }, parentKey = '', keys: Set<string> = new Set()) {
   for (const key of Object.keys(obj)) {
     const fullKey = parentKey ? `${parentKey}.${key}` : key;
     keys.add(fullKey);
-    if (_.isPlainObject(obj[key])) getAllKeys(obj[key], fullKey, keys);
+    if (_.isPlainObject(obj[key])) _getAllKeys(obj[key], fullKey, keys);
   }
 
   return keys;
@@ -234,7 +243,7 @@ function getAllKeys(obj: { [key: string]: any }, parentKey = '', keys: Set<strin
  * @param query - The query string to search for
  * @returns Array of matching items
  */
-function fuzzySearch(data: string[], query: string) {
+function _fuzzySearch(data: string[], query: string) {
   const searcher = new Fuse<string>(data, {
     ignoreLocation: true,
     threshold: 0.3,
@@ -242,6 +251,23 @@ function fuzzySearch(data: string[], query: string) {
 
   return searcher.search(query).map(({ item }) => item);
 }
+
+// list of allowed node types
+type AllowedNodeType =
+  | 'Program'
+  | 'ExpressionStatement'
+  | 'Literal'
+  | 'BinaryExpression'
+  | 'LogicalExpression'
+  | 'ConditionalExpression'
+  | 'MemberExpression'
+  | 'Identifier'
+  | 'CallExpression'
+  | 'ArrayExpression'
+  | 'ObjectExpression'
+  | 'Property'
+  | 'TemplateLiteral'
+  | 'TemplateElement';
 
 /**
  * Validate the given template string.
@@ -251,23 +277,6 @@ function fuzzySearch(data: string[], query: string) {
 export function validateTemplate(templateStr: string): { isValid: boolean; error?: string } {
   try {
     const allowedIdentifiers = getAllowedIdentifiers();
-
-    // list of allowed node types
-    type AllowedNodeType =
-      | 'Program'
-      | 'ExpressionStatement'
-      | 'Literal'
-      | 'BinaryExpression'
-      | 'LogicalExpression'
-      | 'ConditionalExpression'
-      | 'MemberExpression'
-      | 'Identifier'
-      | 'CallExpression'
-      | 'ArrayExpression'
-      | 'ObjectExpression'
-      | 'Property'
-      | 'TemplateLiteral'
-      | 'TemplateElement';
 
     const allowedNodeTypes: Set<AllowedNodeType> = new Set([
       'Program', // Root node of the ast
@@ -287,10 +296,6 @@ export function validateTemplate(templateStr: string): { isValid: boolean; error
     ]);
 
     const expressions = getTemplateMatches(templateStr) ?? [];
-
-    if (expressions.length === 0) {
-      //throw new Error('No template expressions found');
-    }
 
     for (const expr of expressions) {
       // prevent multi-line expressions
@@ -374,14 +379,4 @@ export function validateTemplate(templateStr: string): { isValid: boolean; error
       error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
-}
-
-interface ValidationResult {
-  isValid: boolean;
-  error?: string;
-  warnings?: string[];
-  metadata?: {
-    executionTime: number;
-    expressionsFound: number;
-  };
 }
