@@ -4,6 +4,7 @@ import {
   ContractData,
   DeploymentState,
   fetchIPFSAvailability,
+  getArtifacts,
   PackageReference,
 } from '@usecannon/builder';
 import { bold, cyan, green, yellow } from 'chalk';
@@ -23,7 +24,7 @@ export async function inspect(
   packageRef: string,
   cliSettings: CliSettings,
   chainId: number,
-  json: boolean,
+  out: 'overview' | 'deploy-json' | 'misc-json' | 'artifact-json',
   writeDeployments: string,
   sources: boolean
 ) {
@@ -39,7 +40,7 @@ export async function inspect(
 
   // Mute all build outputs when printing the result to json, this is so it
   // doesn't break the result.
-  if (json) {
+  if (out && out !== 'overview') {
     // eslint-disable-next-line no-console
     console.log = debug;
     // eslint-disable-next-line no-console
@@ -65,15 +66,17 @@ export async function inspect(
     );
   }
 
-  if (json) {
-    // use process.stdout.write and write in chunks because bash piping seems to have some sort of
-    // a problem with outputting huge amounts of data all at once while using pipes
-    const toOutput = JSON.stringify(deployData, null, 2);
-
-    const chunkSize = 16;
-    for (let i = 0; i < toOutput.length; i += chunkSize) {
-      process.stdout.write(toOutput.slice(i, i + chunkSize));
+  if (out === 'deploy-json') {
+    _outputJson(deployData);
+  } else if (out === 'misc-json') {
+    if (!deployData.miscUrl) {
+      log('null');
+      return;
     }
+    const miscData = await loader[deployData.miscUrl.split(':')[0] as 'ipfs'].read(deployData.miscUrl);
+    _outputJson(miscData);
+  } else if (out === 'artifact-json') {
+    _outputJson(getArtifacts(chainDefinition, deployData.state));
   } else {
     const metaUrl = await resolver.getMetaUrl(fullPackageRef, chainId);
     const packageOwner = deployData.def.setting?.owner?.defaultValue;
@@ -165,4 +168,13 @@ function _getNestedStateFiles(artifacts: ChainArtifacts, pathname: string, resul
 // TODO: types
 function _listSourceCodeContracts(miscData: any) {
   return Object.keys(_.pickBy(miscData.artifacts, (v) => v.source));
+}
+
+function _outputJson(obj: object) {
+  const toOutput = JSON.stringify(obj, null, 2);
+
+  const chunkSize = 16;
+  for (let i = 0; i < toOutput.length; i += chunkSize) {
+    process.stdout.write(toOutput.slice(i, i + chunkSize));
+  }
 }

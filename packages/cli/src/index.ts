@@ -528,7 +528,14 @@ applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(a
   const cliSettings = resolveCliSettings(options);
   const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
-  await inspect(fullPackageRef, cliSettings, chainId, options.json, options.writeDeployments, options.sources);
+  await inspect(
+    fullPackageRef,
+    cliSettings,
+    chainId,
+    options.json ? 'json' : options.out,
+    options.writeDeployments,
+    options.sources
+  );
 });
 
 applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async function (options) {

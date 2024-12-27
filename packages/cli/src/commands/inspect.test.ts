@@ -139,7 +139,7 @@ describe('inspect', () => {
   });
 
   test('should inspect package deployment', async () => {
-    const result = await inspect(packageName, cliSettings, chainId, false, '', false);
+    const result = await inspect(packageName, cliSettings, chainId, 'overview', '', false);
 
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
@@ -152,7 +152,7 @@ describe('inspect', () => {
 
   test('should write deployment files', async () => {
     const writeDeployments = 'contracts';
-    const result = await inspect(packageName, cliSettings, chainId, false, writeDeployments, false);
+    const result = await inspect(packageName, cliSettings, chainId, 'overview', writeDeployments, false);
 
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
@@ -161,7 +161,7 @@ describe('inspect', () => {
   });
 
   test('should call inspect with sources flag ', async () => {
-    const result = await inspect(packageName, cliSettings, chainId, false, '', true);
+    const result = await inspect(packageName, cliSettings, chainId, 'overview', '', true);
 
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
@@ -173,7 +173,7 @@ describe('inspect', () => {
   });
 
   test('should call inspect with json flag ', async () => {
-    const result = await inspect(packageName, cliSettings, chainId, true, '', false);
+    const result = await inspect(packageName, cliSettings, chainId, 'deploy-json', '', false);
 
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);

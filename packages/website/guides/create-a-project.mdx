@@ -235,9 +235,9 @@ a basic Cannonfile to deploy the Counter contract.
 
    Each action in a Cannonfile is identified with a `type` and a `name``, specified like `[type.name]`. Let's break down these actions:
 
-   *   The `[deploy.counter]` action deploys the `Counter` contract. It reads from the Foundry artifact specified by the `artifact` key and stores the resulting contract address, ABI, transaction hash, and gas usage information in a artifact with the same name as the action. Constructor arguments, solidity libraries, and deployments via `create2` are also supported.
+   *   The `[deploy.Counter]` action deploys the `Counter` contract. It reads from the Foundry artifact specified by the `artifact` key and stores the resulting contract address, ABI, transaction hash, and gas usage information in a artifact with the same name as the action. Constructor arguments, solidity libraries, and deployments via `create2` are also supported.
    *   The `[var.ProtocolSettings]` action allows Cannon to add values to the `settings` object, which can be referenced via interpolation (`<% settings.number %>`) in other actions.  Settings can be derived from other settings, fields from deployed contracts, events emitted from previous transactions, or environment factors such as `chainId` or `timestamp`. Here, we define a variable `number` and set it to the string "420".
-   *   The `[invoke.set_number]` action calls the `setNumber` function on the previously deployed `Counter` contract with the argument `420` (from `settings.number`). Similar to `deploy`, `invoke` actions support a number of additional features and capabilities which can be read in the docs.
+   *   The `[invoke.SetNumber]` action calls the `setNumber` function on the previously deployed `Counter` contract with the argument `420` (from `settings.number`). Similar to `deploy`, `invoke` actions support a number of additional features and capabilities which can be read in the docs.
 
   Actions can be specified in any order (cannon automatically determines which actions are dependant on other actions). They can also be stored in separate TOML files and pulled in using the `include` header.
 
