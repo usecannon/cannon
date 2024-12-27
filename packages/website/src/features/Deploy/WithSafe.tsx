@@ -4,7 +4,7 @@ import { useAccount, useBytecode } from 'wagmi';
 import PrepareNetwork from './PrepareNetwork';
 import * as onchainStore from '../../helpers/onchain-store';
 import * as multicallForwarder from '../../helpers/trusted-multicall-forwarder';
-import { Loader2 } from 'lucide-react'; // for spinner
+import MainContentLoading from '@/components/MainContentLoading';
 
 export default function WithSafe({ children }: { children: ReactNode }) {
   const currentSafe = useStore((s) => s.currentSafe);
@@ -39,9 +39,7 @@ export default function WithSafe({ children }: { children: ReactNode }) {
     <div className="flex flex-col flex-1">
       {currentSafe ? (
         isLoadingNetworkPrepared ? (
-          <div className="m-auto">
-            <Loader2 className="h-8 w-8 animate-spin" />
-          </div>
+          <MainContentLoading />
         ) : isNetworkPrepared ? (
           children
         ) : (
@@ -57,6 +55,7 @@ export default function WithSafe({ children }: { children: ReactNode }) {
               rel="noopener noreferrer"
               className="inline-block mx-2 text-gray-200 no-underline hover:no-underline translate-y-[3px] opacity-80"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 className="h-[18px] object-cover"
                 src="/images/safe.svg"

@@ -52,7 +52,7 @@ ${generateSettingsText(contextDataCode.settings)}
   const displayCode = chainId == 13370 ? cloneCode : pullCode;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 flex flex-col">
       <div>
         <p className="mb-2 flex items-center">
           Add the following to your Cannonfile to{' '}

@@ -43,6 +43,11 @@ export const theme = extendTheme({
     },
   },
   components: {
+    MainHeader: {
+      baseStyle: {
+        minHeight: '60px',
+      },
+    },
     Link: {
       baseStyle: {
         textDecoration: 'underline',
@@ -99,6 +104,9 @@ export const theme = extendTheme({
         '--diff-gutter-delete-background-color': '#63171b !important',
         '--diff-code-insert-background-color': '#1c4532 !important',
         '--diff-code-delete-background-color': '#63171b !important',
+      },
+      'div[data-rk]': {
+        height: '100%',
       },
     }),
   },

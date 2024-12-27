@@ -6,7 +6,7 @@ import defaultSEO from '@/constants/defaultSeo';
 import PageLoading from '@/components/PageLoading';
 import { useRouter } from 'next/router';
 
-const DynamicDocsCannonfilesPage = dynamic(
+const DynamicCannonfilePage = dynamic(
   () => import('@/features/Docs/DocsCannonfilesPage'),
   {
     ssr: false,
@@ -27,7 +27,7 @@ export default function Docs() {
           description: 'Cannonfile Docs',
         }}
       />
-      {router.isReady ? <DynamicDocsCannonfilesPage /> : <PageLoading />}
+      {router.isReady ? <DynamicCannonfilePage /> : <PageLoading />}
     </>
   );
 }

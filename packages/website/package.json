@@ -121,7 +121,6 @@
     "styled-components": "^6.0.7",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
-    "usehooks-ts": "^3.1.0",
     "viem": "^2.21.15",
     "wagmi": "^2.5.13",
     "zod": "^3.23.8",

@@ -131,8 +131,8 @@ const Interact: FC = () => {
       {/* Header */}
       <Flex
         position={{ md: 'sticky' }}
-        top={subnavContext.hasSubnav ? 65 : 0}
-        zIndex={3}
+        top={subnavContext.hasSubnav ? 57 : 0}
+        zIndex={120}
         bg="gray.800"
         p={2}
         flexDirection={['column', 'column', 'row']}

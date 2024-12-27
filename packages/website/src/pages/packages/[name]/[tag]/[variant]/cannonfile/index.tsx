@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import Layout from '../_layout';
+import NameTagVariantLayout from '../NameTagVariantLayout';
 import { ReactElement } from 'react';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
@@ -36,7 +36,7 @@ function generateMetadata({
   return metadata;
 }
 
-const NoSSR = dynamic(
+const DynamicCannonfileTab = dynamic(
   async () => {
     return import('@/features/Packages/Tabs/CannonfileTab');
   },
@@ -62,7 +62,7 @@ export default function Cannonfile() {
           description: metadata.description,
         }}
       />
-      <NoSSR
+      <DynamicCannonfileTab
         name={decodeURIComponent(params.name as string)}
         tag={decodeURIComponent(params.tag as string)}
         variant={decodeURIComponent(params.variant as string)}
@@ -72,5 +72,5 @@ export default function Cannonfile() {
 }
 
 Cannonfile.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>;
+  return <NameTagVariantLayout>{page}</NameTagVariantLayout>;
 };

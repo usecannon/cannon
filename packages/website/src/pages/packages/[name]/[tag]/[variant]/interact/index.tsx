@@ -1,10 +1,10 @@
 import { ReactElement } from 'react';
-import TagVariantLayout from '../_layout';
-import InteractLayout from './_layout';
+import NameTagVariantLayout from '../NameTagVariantLayout';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
 import { usePackageNameTagVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import InteractTab from '@/features/Packages/Tabs/InteractTab';
 
 function generateMetadata({
   name,
@@ -67,8 +67,8 @@ export default function Interact() {
 
 Interact.getLayout = function getLayout(page: ReactElement) {
   return (
-    <TagVariantLayout>
-      <InteractLayout>{page}</InteractLayout>
-    </TagVariantLayout>
+    <NameTagVariantLayout>
+      <InteractTab>{page}</InteractTab> {/* Redirects to [moduleName] */}
+    </NameTagVariantLayout>
   );
 };

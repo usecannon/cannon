@@ -36,6 +36,24 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Header */
+    --header-height: 100px;
+    @media (min-width: 768px) {
+      --header-height: 124px;
+    }
+    @media (min-width: 1280px) {
+      --header-height: 56px;
+    }
+
+    /* Subheader */
+    --subheader-height: 56px;
+
+    /* Footer */
+    --footer-height: 80px;
+    @media (min-width: 768px) {
+      --footer-height: 45px;
+    }
   }
   .dark {
     --background: 240 10% 3.9%;
@@ -72,12 +90,20 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
+
 @layer base {
   * {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased min-h-screen w-screen;
+  }
+
+  body.fouc-prevention {
+    background-color: rgb(14, 17, 22);
+  }
+  body.fouc-prevention * {
+    display: none !important;
   }
 }
 

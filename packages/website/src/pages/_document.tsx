@@ -38,17 +38,9 @@ export default class CustomDocument extends Document {
     return (
       <Html lang="en" className="dark">
         <Head>
-          <style>{`
-            body.fouc-prevention {
-              background-color: rgb(14, 17, 22);
-            }
-            body.fouc-prevention * {
-              display: none !important;
-            }
-          `}</style>
           <link rel="icon" href="/favicon.ico" sizes="any" />
         </Head>
-        <body className="fouc-prevention min-h-screen bg-background font-sans antialiased">
+        <body>
           <Main />
           <NextScript />
           <Analytics />
