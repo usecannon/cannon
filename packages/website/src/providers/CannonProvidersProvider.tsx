@@ -39,6 +39,16 @@ const cannonNetwork = {
   name: 'Cannon',
 } as viem.Chain;
 
+// Some chains have default rpc urls that don't work properly with interact on the website.
+// We use custom rpc urls for these chains.
+const customDefaultRpcs: Record<number, viem.Chain['rpcUrls']> = {
+  [`${chains.sepolia.id}`]: {
+    default: {
+      http: ['https://gateway.tenderly.co/public/sepolia'],
+    },
+  },
+};
+
 // Service urls taken from https://docs.safe.global/learn/safe-core/safe-core-api/available-services
 // shortNames taken from https://github.com/ethereum-lists/chains/blob/master/_data/chains
 // export const chains = [
@@ -126,7 +136,16 @@ export const chainMetadata = {
   },
 } as const;
 
-export const supportedChains = [cannonNetwork, ...Object.values(chains)];
+export const supportedChains = [cannonNetwork, ...Object.values(chains)].map(
+  (c) => {
+    if (!customDefaultRpcs[`${c.id}`]) return c;
+
+    return {
+      ...c,
+      rpcUrls: customDefaultRpcs[`${c.id}`],
+    };
+  }
+);
 
 export const defaultTransports = supportedChains.reduce((transports, chain) => {
   transports[chain.id] = viem.http();
