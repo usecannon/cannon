@@ -34,6 +34,7 @@ import { PackageSpecification } from '../types';
 import { log, warn, error } from '../util/console';
 import { hideApiKey } from '../util/provider';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
+import { mergeErrors } from '../util/merge-errors';
 
 interface Params {
   provider: viem.PublicClient;
@@ -351,13 +352,13 @@ export async function build({
   let newState;
   try {
     newState = await cannonBuild(runtime, def, oldDeployData && !wipe ? oldDeployData.state : {}, initialCtx);
-  } catch (err: any) {
+  } catch (buildErr: any) {
     const dumpData = {
       def: def.toJson(),
       initialCtx,
       oldState: oldDeployData?.state || null,
       activeCtx: runtime.ctx,
-      error: _.pick(err, Object.getOwnPropertyNames(err)),
+      error: _.pick(buildErr, Object.getOwnPropertyNames(buildErr)),
     };
 
     const dumpFilePath = path.join(cliSettings.cannonDirectory, 'dumps', new Date().toISOString() + '.json');
@@ -367,9 +368,11 @@ export async function build({
       spaces: 2,
     });
 
-    throw new Error(
-      `${err.toString()}\n\nAn error occured during build. A file with comprehensive information pertaining to this error has been written to ${dumpFilePath}. Please include this file when reporting an issue.`
+    const cliError = new Error(
+      `An error occured during build. A file with comprehensive information pertaining to this error has been written to ${dumpFilePath}. Please include this file when reporting an issue.`
     );
+
+    throw mergeErrors(cliError, buildErr);
   }
 
   if (writeScript) {
