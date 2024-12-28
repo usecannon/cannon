@@ -175,7 +175,7 @@ export const Abi: FC<{
         </SidebarGroupContent>
 
         <SidebarGroupContent>
-          <SidebarMenu>
+          <SidebarMenu className="gap-0">
             {isLoading ? (
               <FunctionRowsSkeleton />
             ) : (
@@ -206,7 +206,7 @@ export const Abi: FC<{
         <SidebarGroupLabel>Write Functions</SidebarGroupLabel>
 
         <SidebarGroupContent>
-          <SidebarMenu>
+          <SidebarMenu className="gap-0">
             {isLoading ? (
               <FunctionRowsSkeleton />
             ) : (
