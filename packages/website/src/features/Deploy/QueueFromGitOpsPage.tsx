@@ -66,13 +66,11 @@ import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
 import 'react-diff-view/style/index.css';
 import { extractIpfsHash } from '@/helpers/ipfs';
+import { isCannonFileURL } from '@/helpers/isCannonFileURL';
+import { CannonFileInput } from '@/features/Deploy/CannonFileInput';
 
 const EMPTY_IPFS_MISC_URL =
   'ipfs://QmeSt2mnJKE8qmRhLyYbHQQxDKpsFbcWnw5e7JF4xVbN6k';
-
-const cannonfileUrlRegex =
-  // eslint-disable-next-line no-useless-escape
-  /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?\.toml$/i;
 
 // TODO: is there any way to make a better context? maybe this means we should get rid of name using context?
 const ctx: ChainBuilderContext = {
@@ -89,35 +87,34 @@ const ctx: ChainBuilderContext = {
 type DeployType = 'git' | 'partial';
 
 export default function QueueFromGitOps() {
-  const [selectedDeployType, setSelectedDeployType] =
-    useState<DeployType>('git');
   const router = useRouter();
   const currentSafe = useStore((s) => s.currentSafe)!;
+  const settings = useStore((s) => s.settings);
+
   const { chainId, isConnected } = useAccount();
   const { switchChainAsync } = useSwitchChain();
+  const { openConnectModal } = useConnectModal();
+  const deployer = useDeployerWallet(currentSafe?.chainId);
 
-  const [genericInput, setGenericInput] = useState('');
+  const [selectedDeployType, setSelectedDeployType] =
+    useState<DeployType>('git');
+  const [deploymentSourceInput, setDeploymentSourceInput] = useState('');
   const [cannonfileUrlInput, setCannonfileUrlInput] = useState('');
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
   const [prevPackageInputRef, setPrevPackageInputRef] =
     useState<PackageReference | null>(null);
-
   const [previousPackageInput, setPreviousPackageInput] = useState('');
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
-  const { openConnectModal } = useConnectModal();
   const [writeToIpfsMutationRes, setWriteToIpfsMutationRes] = useState<{
     isLoading: boolean;
     error: Error | null;
     data: CannonWriteDeployToIpfsMutationResult | null;
   } | null>(null);
   const [inputError, setInputError] = useState<string | null>(null);
-  const settings = useStore((s) => s.settings);
-
-  const deployer = useDeployerWallet(currentSafe?.chainId);
 
   const gitInfo = useMemo(() => {
     if (
-      !cannonfileUrlRegex.test(cannonfileUrlInput) ||
+      !isCannonFileURL(cannonfileUrlInput) ||
       !cannonfileUrlInput.includes('/blob/')
     ) {
       return { gitUrl: '', gitRef: '', gitFile: '' };
@@ -602,17 +599,16 @@ export default function QueueFromGitOps() {
     PreviewButton,
   ]);
 
-  const handleGenericInputChange = useCallback(
+  const handleDeploymentSourceInputChange = useCallback(
     (input: string) => {
       resetState();
       setCannonfileUrlInput('');
       setPartialDeployIpfs('');
       setInputError(null);
 
-      const isCannonfileUrl = cannonfileUrlRegex.test(input);
       const isIpfsHash = extractIpfsHash(input);
 
-      if (isCannonfileUrl) {
+      if (isCannonFileURL(input)) {
         setSelectedDeployType('git');
         setCannonfileUrlInput(input);
       } else if (isIpfsHash) {
@@ -687,50 +683,6 @@ export default function QueueFromGitOps() {
     return null;
   }, [settings.isIpfsGateway, cannonDefInfo?.def]);
 
-  const renderCannonFileInput = useCallback(() => {
-    return (
-      <FormControl mb="4">
-        <FormLabel>Cannonfile (Optional)</FormLabel>
-        <InputGroup>
-          <Input
-            type="text"
-            placeholder="https://github.com/../cannonfile.toml"
-            value={cannonfileUrlInput}
-            borderColor={!cannonDefInfoError ? 'whiteAlpha.400' : 'red.500'}
-            isDisabled={selectedDeployType == 'partial' && !partialDeployIpfs}
-            background="black"
-            onChange={(evt) => setCannonfileUrlInput(evt.target.value)}
-          />
-          <InputRightElement>
-            {cannonfileUrlInput.length > 0 && cannonDefInfo?.isFetching ? (
-              <Spinner />
-            ) : cannonfileUrlInput.length > 0 &&
-              !cannonDefInfo.error &&
-              cannonDefInfo?.def ? (
-              <CheckIcon color="green.500" />
-            ) : null}
-          </InputRightElement>
-        </InputGroup>
-        <FormHelperText color="gray.300">
-          The Cannonfile URL is used to generate the deployment data to display
-          a git diff in Cannon.
-        </FormHelperText>
-        {cannonDefInfoError ? (
-          <Alert mt="6" status="error" bg="gray.700">
-            <AlertIcon mr={3} />
-            <strong>{cannonDefInfoError.toString()}</strong>
-          </Alert>
-        ) : undefined}
-      </FormControl>
-    );
-  }, [
-    cannonfileUrlInput,
-    cannonDefInfo,
-    cannonDefInfoError,
-    selectedDeployType,
-    partialDeployIpfs,
-  ]);
-
   return (
     <>
       <Container maxWidth="container.md" py={8}>
@@ -754,37 +706,7 @@ export default function QueueFromGitOps() {
           borderColor="gray.600"
           borderRadius="4px"
         >
-          {/* <FormControl mb="4">
-            <FormLabel>Deployment Source</FormLabel>
-            <RadioGroup
-              value={selectedDeployType}
-              onChange={(value: DeployType) => {
-                resetState();
-                setCannonfileUrlInput('');
-                setPartialDeployIpfs('');
-                setSelectedDeployType(value);
-              }}
-            >
-              <Stack
-                direction={['column', 'column', 'row']}
-                spacing={['1', '1', '6']}
-                width="100%"
-              >
-                <Radio colorScheme="teal" value="git">
-                  Git URL
-                </Radio>
-                <Radio colorScheme="teal" value="partial">
-                  IPFS Hash
-                </Radio>
-              </Stack>
-            </RadioGroup>
-
-            <Text color="gray.300" mt="2">
-              {selectedDeployType == 'git'
-                ? 'Enter a Git URL repository with a cannonfile to build.'
-                : 'Use a partial deployment from a IPFS hash.'}
-            </Text>
-          </FormControl> */}
+          {/* Deployment Source */}
           <FormControl mb="4">
             <FormLabel>Cannonfile URL or Deployment Data IPFS Hash</FormLabel>
             <HStack>
@@ -792,7 +714,7 @@ export default function QueueFromGitOps() {
                 <Input
                   type="text"
                   placeholder="https://github.com/../cannonfile.toml or Qm.."
-                  value={genericInput}
+                  value={deploymentSourceInput}
                   borderColor={
                     !cannonDefInfoError ? 'whiteAlpha.400' : 'red.500'
                   }
@@ -800,8 +722,8 @@ export default function QueueFromGitOps() {
                   background="black"
                   onChange={(evt) => {
                     const value = evt.target.value;
-                    setGenericInput(value);
-                    handleGenericInputChange(value);
+                    setDeploymentSourceInput(value);
+                    handleDeploymentSourceInputChange(value);
                   }}
                 />
                 {selectedDeployType == 'git' && (
@@ -863,18 +785,6 @@ export default function QueueFromGitOps() {
                 ))}
             </Flex>
           )}
-          {/*  ipfs://Qma8R3UNPp2WQZdwZ7Ri95D4ddqT5auSpU8TUxwh4nLHij */}
-          {/* {(partialDeployIpfs || cannonfileUrlInput) && (
-            <FormControl display="flex" alignItems="center" my="2">
-              <Checkbox
-                mr="2"
-                onChange={(evt) =>
-                  setOverridePreviousState(evt.currentTarget.checked)
-                }
-              />{' '}
-              Override Previous State
-            </FormControl>
-          )} */}
           {(partialDeployInfoLoaded || tomlRequiresPrevPackage) && (
             <FormControl mb="6">
               <FormLabel>Previous Package</FormLabel>
@@ -920,11 +830,16 @@ export default function QueueFromGitOps() {
           )}
           {selectedDeployType == 'partial' &&
             partialDeployIpfs.length > 0 &&
-            partialDeployInfoLoaded &&
-            renderCannonFileInput()}
-
+            partialDeployInfoLoaded && (
+              <CannonFileInput
+                cannonfileUrlInput={cannonfileUrlInput}
+                setCannonfileUrlInput={setCannonfileUrlInput}
+                cannonDefInfo={cannonDefInfo}
+                cannonDefInfoError={cannonDefInfoError}
+                isDisabled={!partialDeployIpfs}
+              />
+            )}
           {renderAlert()}
-
           {!isConnected ? (
             <Button
               width="100%"
@@ -958,6 +873,7 @@ export default function QueueFromGitOps() {
               <strong>{buildState.error}</strong>
             </Alert>
           )}
+
           {buildState.skippedSteps.length > 0 && (
             <AlertCannon my={2} status="error">
               <Text mb="2" fontWeight="bold">
