@@ -101,8 +101,8 @@ export function getTemplateMatches(str: string, includeTags = true) {
  * Lodash template function wrapper.
  * It adds a fuzzy search for the keys in the data object in case the user made a typo.
  */
-export function renderTemplate(str?: string, options?: TemplateOptions) {
-  const render = _.template(str, options);
+export function renderTemplate(str?: string) {
+  const render = _.template(str);
 
   return (data?: object) => {
     try {
@@ -138,13 +138,14 @@ export function renderTemplate(str?: string, options?: TemplateOptions) {
  * @param context - The template context object, includes the variables to be used in the template
  * @returns The evaluated result
  */
-export function template(templateStr: string, context: Record<string, any> = {}) {
-  const code = `template("${templateStr}", { imports })()`;
+export function template(templateStr: string, templateContext: Record<string, any> = {}) {
+  const code = 'renderTemplate(templateStr)(templateContext)';
 
   const compartmentContext = {
-    imports: context,
+    templateStr,
+    templateContext,
     globals: {},
-    template: renderTemplate,
+    renderTemplate,
   };
 
   try {

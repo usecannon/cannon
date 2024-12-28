@@ -60,6 +60,17 @@ describe('access-recorder.ts', () => {
       });
     });
 
+    it('computes array dependency', () => {
+      expect(
+        computeTemplateAccesses(
+          '["<%= settings.camelotSwapPublisherAdmin1 %>","<%= settings.camelotSwapPublisherAdmin2 %>"]'
+        )
+      ).toEqual({
+        accesses: ['settings.camelotSwapPublisherAdmin1', 'settings.camelotSwapPublisherAdmin2'],
+        unableToCompute: false,
+      });
+    });
+
     it('computes dependency using simple CannonHelperContext', () => {
       expect(computeTemplateAccesses('<%= parseEther(settings.woot) %>')).toEqual({
         accesses: ['settings.woot'],
