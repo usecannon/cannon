@@ -355,30 +355,31 @@ export const Function: FC<{
           <div className="flex flex-1 w-full lg:w-1/2 justify-center flex-col">
             {f.inputs.map((input, index) => {
               return (
-                <div key={JSON.stringify(input)}>
-                  <div className="mb-4">
-                    <Label className="text-sm mb-1">
-                      {input.name && <span>{input.name}</span>}
-                      {input.type && (
-                        <span className="text-xs text-muted-foreground font-mono ml-1">
-                          {input.type}
-                        </span>
-                      )}
-                    </Label>
-                    <FunctionInput
-                      input={input}
-                      handleUpdate={(value) => {
-                        setParam(index, value);
-                      }}
-                    />
-                  </div>
+                <div
+                  key={JSON.stringify(input)}
+                  className="mb-4 gap-1 flex flex-col"
+                >
+                  <Label className="text-sm">
+                    {input.name && <span>{input.name}</span>}
+                    {input.type && (
+                      <span className="text-xs text-muted-foreground font-mono ml-1">
+                        {input.type}
+                      </span>
+                    )}
+                  </Label>
+                  <FunctionInput
+                    input={input}
+                    handleUpdate={(value) => {
+                      setParam(index, value);
+                    }}
+                  />
                 </div>
               );
             })}
 
             {isFunctionPayable && (
-              <div className="mb-4">
-                <Label className="text-sm mb-1">
+              <div className="mb-4 gap-1 flex flex-col">
+                <Label className="text-sm">
                   Value
                   <span className="text-xs text-muted-foreground ml-1">
                     (payable)
@@ -493,7 +494,7 @@ export const Function: FC<{
             </div>
 
             {methodCallOrQueuedResult?.error && (
-              <Alert variant="destructive" className="mt-2">
+              <Alert variant="destructive" className="mt-4">
                 <AlertDescription>
                   {`${
                     methodCallOrQueuedResult.error.includes(
@@ -517,7 +518,7 @@ export const Function: FC<{
             ) : (
               <div className="flex-1">
                 {f.outputs.length != 0 && methodCallOrQueuedResult == null && (
-                  <div className="absolute z-10 top-0 left-0 bg-black/70 w-full h-full flex items-center justify-center font-medium text-gray-300 text-shadow-sm tracking-wide">
+                  <div className="absolute z-10 top-0 left-0 bg-background/75 w-full h-full flex items-center justify-center text-muted-foreground">
                     {isFunctionReadOnly
                       ? 'Call the view function '
                       : 'Simulate the transaction '}

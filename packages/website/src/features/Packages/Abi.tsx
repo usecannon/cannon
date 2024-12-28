@@ -159,7 +159,7 @@ export const Abi: FC<{
 
   const sidebarContent = (
     <SidebarContent className="overflow-y-auto">
-      <SidebarGroup className="pb-0">
+      <SidebarGroup className="pb-1">
         <SidebarGroupContent>
           <SidebarMenu>
             <SidebarMenuItem className="mt-2">
@@ -169,9 +169,9 @@ export const Abi: FC<{
         </SidebarGroupContent>
       </SidebarGroup>
 
-      <SidebarGroup className="pb-0">
+      <SidebarGroup>
         <SidebarGroupContent>
-          <SidebarGroupLabel>Read Functions</SidebarGroupLabel>
+          <SidebarGroupLabel className="h-6">Read Functions</SidebarGroupLabel>
         </SidebarGroupContent>
 
         <SidebarGroupContent>
@@ -185,7 +185,7 @@ export const Abi: FC<{
                 )
                 .map((f, index) => (
                   <SidebarMenuButton
-                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full font-mono text-xs"
+                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full font-mono text-sm"
                     key={index}
                     isActive={selectedSelector == getSelectorSlug(f)}
                     onClick={() => handleMethodClick(f)}
@@ -203,7 +203,7 @@ export const Abi: FC<{
       </SidebarGroup>
 
       <SidebarGroup className="pt-0">
-        <SidebarGroupLabel>Write Functions</SidebarGroupLabel>
+        <SidebarGroupLabel className="h-6">Write Functions</SidebarGroupLabel>
 
         <SidebarGroupContent>
           <SidebarMenu className="gap-0">
@@ -216,7 +216,7 @@ export const Abi: FC<{
                 )
                 .map((f, index) => (
                   <SidebarMenuButton
-                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full font-mono text-xs"
+                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full font-mono text-sm"
                     key={index}
                     isActive={selectedSelector == getSelectorSlug(f)}
                     onClick={() => handleMethodClick(f)}
