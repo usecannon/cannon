@@ -12,6 +12,7 @@ import {
   PlayIcon,
   WalletIcon,
   EyeIcon,
+  XIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -98,6 +99,7 @@ export const Function: FC<{
     error: string | null;
   } | null>(null);
   const [hasExpandedSelected, setHasExpandedSelected] = useState(false);
+  const [showError, setShowError] = useState(true);
 
   const sadParams = useRef(new Array(f.inputs.length).fill(undefined));
   const [params, setParams] = useState<any[] | any>([...sadParams.current]);
@@ -493,18 +495,28 @@ export const Function: FC<{
               )}
             </div>
 
-            {methodCallOrQueuedResult?.error && (
+            {methodCallOrQueuedResult?.error && showError && (
               <Alert variant="destructive" className="mt-4">
-                <AlertDescription>
-                  {`${
-                    methodCallOrQueuedResult.error.includes(
-                      'Encoded error signature'
-                    ) &&
-                    methodCallOrQueuedResult.error.includes('not found on ABI')
-                      ? 'Error emitted during ERC-7412 orchestration: '
-                      : ''
-                  }${methodCallOrQueuedResult.error}`}
-                </AlertDescription>
+                <div className="flex justify-between items-start">
+                  <AlertDescription className="flex-1">
+                    {`${
+                      methodCallOrQueuedResult.error.includes(
+                        'Encoded error signature'
+                      ) &&
+                      methodCallOrQueuedResult.error.includes(
+                        'not found on ABI'
+                      )
+                        ? 'Error emitted during ERC-7412 orchestration: '
+                        : ''
+                    }${methodCallOrQueuedResult.error}`}
+                  </AlertDescription>
+                  <button
+                    onClick={() => setShowError(false)}
+                    className="ml-2 hover:opacity-70"
+                  >
+                    <XIcon className="h-4 w-4" />
+                  </button>
+                </div>
               </Alert>
             )}
           </div>
