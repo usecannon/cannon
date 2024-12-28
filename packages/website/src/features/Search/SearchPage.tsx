@@ -10,7 +10,6 @@ import { getChains, getPackages } from '@/helpers/api';
 import SearchInput from '@/components/SearchInput';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import {
-  Sidebar,
   SidebarHeader,
   SidebarContent,
   SidebarGroup,
@@ -19,16 +18,14 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarProvider,
-  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Menu, ChevronDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ChevronDown } from 'lucide-react';
+import { SidebarLayout } from '@/components/layouts/SidebarLayout';
 
 export const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -90,35 +87,44 @@ export const SearchPage = () => {
 
   const groupedPackages = groupBy(packagesQuery?.data?.data, 'name');
 
-  return (
-    <div className="flex min-h-screen flex-col md:flex-row w-full">
-      <SidebarProvider>
-        {/* Mobile Sidebar Trigger - Fixed to left side */}
-        <div className="fixed left-0 top-1/2 -translate-y-1/2 z-50 md:hidden bg-black border border-border border-l-0 rounded-r-lg">
-          <SidebarTrigger>
-            <Button
-              size="icon"
-              className="h-8 w-8 rounded-r-lg rounded-l-none border-l-0"
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
-          </SidebarTrigger>
-        </div>
+  const sidebarContent = (
+    <>
+      <SidebarHeader className="px-4 pt-4">
+        <SearchInput onSearchChange={setSearchTerm} />
+      </SidebarHeader>
 
-        {/* Sidebar - updated className */}
-        <Sidebar className="fixed md:sticky md:top-0 w-[280px] md:w-[320px] h-screen shrink-0 border-r border-border">
-          <SidebarHeader className="px-4">
-            <SearchInput onSearchChange={setSearchTerm} />
-          </SidebarHeader>
+      <SidebarContent className="overflow-y-auto">
+        <SidebarGroup>
+          <SidebarGroupLabel className="px-4 text-sm font-medium text-gray-200">
+            Filter by Chain
+          </SidebarGroupLabel>
+          <SidebarGroupContent className="space-y-1 px-2">
+            <SidebarMenu>
+              {filteredMainnetChainIds.map((id) => (
+                <SidebarMenuItem key={id}>
+                  <SidebarMenuButton
+                    onClick={() => toggleChainSelection(id)}
+                    isActive={selectedChains.includes(id)}
+                    className="border border-border"
+                  >
+                    <ChainFilter id={id} />
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
 
-          <SidebarContent className="overflow-y-auto">
-            <SidebarGroup>
-              <SidebarGroupLabel className="px-4 text-sm font-medium text-gray-200">
-                Filter by Chain
-              </SidebarGroupLabel>
-              <SidebarGroupContent className="space-y-1 px-2">
+            <Collapsible className="group/collapsible">
+              <SidebarMenuItem className="mb-1">
+                <CollapsibleTrigger asChild>
+                  <SidebarMenuButton>
+                    Testnets
+                    <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+              </SidebarMenuItem>
+              <CollapsibleContent>
                 <SidebarMenu>
-                  {filteredMainnetChainIds.map((id) => (
+                  {sortedTestnetChainIds.map((id) => (
                     <SidebarMenuItem key={id}>
                       <SidebarMenuButton
                         onClick={() => toggleChainSelection(id)}
@@ -130,63 +136,40 @@ export const SearchPage = () => {
                     </SidebarMenuItem>
                   ))}
                 </SidebarMenu>
+              </CollapsibleContent>
+            </Collapsible>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </>
+  );
 
-                <Collapsible className="group/collapsible">
-                  <SidebarMenuItem className="mb-1">
-                    <CollapsibleTrigger asChild>
-                      <SidebarMenuButton>
-                        Testnets
-                        <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
-                      </SidebarMenuButton>
-                    </CollapsibleTrigger>
-                  </SidebarMenuItem>
-                  <CollapsibleContent>
-                    <SidebarMenu>
-                      {sortedTestnetChainIds.map((id) => (
-                        <SidebarMenuItem key={id}>
-                          <SidebarMenuButton
-                            onClick={() => toggleChainSelection(id)}
-                            isActive={selectedChains.includes(id)}
-                            className="border border-border"
-                          >
-                            <ChainFilter id={id} />
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
-                  </CollapsibleContent>
-                </Collapsible>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-        </Sidebar>
+  if (packagesQuery.isPending) {
+    return (
+      <div className="flex w-full h-[calc(100vh-var(--header-height)-var(--footer-height))] items-center justify-center">
+        <CustomSpinner />
+      </div>
+    );
+  }
 
-        {/* Main Content - updated className */}
-        <main className="flex-1 overflow-y-auto w-full md:w-[calc(100%-320px)] md:ml-auto">
-          <div className="container max-w-100 mx-auto px-4 md:px-6 lg:px-8 h-screen">
-            {packagesQuery.isPending ? (
-              <div className="flex justify-center items-center flex-1 h-full">
-                <CustomSpinner />
-              </div>
-            ) : Object.values(groupedPackages).length == 0 ? (
-              <div className="flex w-full h-full">
-                <p className="m-auto text-gray-400">No results</p>
-              </div>
-            ) : (
-              <div className="space-y-6 py-6">
-                {Object.values(groupedPackages).map((pkgs: any) => (
-                  <div
-                    key={pkgs[0].name}
-                    className="overflow-x-auto md:overflow-x-visible"
-                  >
-                    <PackageCardExpandable pkgs={pkgs} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </main>
-      </SidebarProvider>
-    </div>
+  return (
+    <SidebarLayout sidebarContent={sidebarContent} fixedFooter>
+      {Object.values(groupedPackages).length == 0 ? (
+        <div className="flex w-full h-full">
+          <p className="m-auto text-gray-400">No results</p>
+        </div>
+      ) : (
+        <div className="space-y-6 pt-6 px-4 pb-2">
+          {Object.values(groupedPackages).map((pkgs: any) => (
+            <div
+              key={pkgs[0].name}
+              className="overflow-x-auto md:overflow-x-visible"
+            >
+              <PackageCardExpandable pkgs={pkgs} />
+            </div>
+          ))}
+        </div>
+      )}
+    </SidebarLayout>
   );
 };

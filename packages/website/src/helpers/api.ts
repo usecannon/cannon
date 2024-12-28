@@ -1,12 +1,13 @@
 import axios from 'axios';
 import { externalLinks } from '@/constants/externalLinks';
+import { SearchResponse } from '@usecannon/api/src/routes/search';
 
 // TODO: move all this to typed hooks
 
 export const getSearch = async ({ queryKey }: { queryKey: any[] }) => {
   const [, searchTerm] = queryKey;
   try {
-    const response = await axios.get('search', {
+    const response = await axios.get<SearchResponse>('search', {
       baseURL: externalLinks.API_CANNON,
       params: {
         query: searchTerm,

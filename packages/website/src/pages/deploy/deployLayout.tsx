@@ -10,6 +10,7 @@ import { SafeAddressInput } from '@/features/Deploy/SafeAddressInput';
 import ClientOnly from '@/components/ClientOnly';
 import { useParams } from 'next/navigation';
 import PageLoading from '@/components/PageLoading';
+import { SidebarLayout } from '@/components/layouts/SidebarLayout';
 
 const NoSSRWithSafe = dynamic(() => import('@/features/Deploy/WithSafe'), {
   ssr: false,
@@ -21,12 +22,19 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
 
   const isLarge = useBreakpointValue({ base: false, lg: true });
 
-  return params == null ? (
-    <PageLoading />
-  ) : (
+  if (params == null) {
+    return <PageLoading />;
+  }
+
+  return (
     <Flex flexDir="column" width="100%">
       {/* Header */}
-      <Box bg="black" borderBottom="1px solid" borderColor="gray.700">
+      <Box
+        bg="black"
+        borderBottom="1px solid"
+        borderColor="gray.700"
+        className="sticky top-[var(--header-height)]"
+      >
         <Flex
           alignItems="center"
           flexWrap="nowrap"
@@ -74,7 +82,9 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
       </Box>
 
       {/* Body */}
-      <NoSSRWithSafe>{children}</NoSSRWithSafe>
+      <SidebarLayout hasSubheader centered>
+        <NoSSRWithSafe>{children}</NoSSRWithSafe>
+      </SidebarLayout>
     </Flex>
   );
 }

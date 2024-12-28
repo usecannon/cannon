@@ -40,7 +40,7 @@ export default function Providers({ children }: { children: ReactNode }) {
   } as const;
 
   return (
-    <div className="flex flex-col min-h-screen relative bg-black">
+    <div>
       <CacheProvider>
         <ChakraProvider theme={theme} colorModeManager={csm as any}>
           <LogsProvider>

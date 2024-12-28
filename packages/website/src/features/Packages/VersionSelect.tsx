@@ -11,7 +11,6 @@ import {
 import { ArrowUpDownIcon } from '@chakra-ui/icons';
 import { PackageCard } from '@/features/Search/PackageCard/PackageCard';
 import Chain from '@/features/Search/PackageCard/Chain';
-import { CustomSpinner } from '@/components/CustomSpinner';
 import { usePackageByName } from '@/hooks/api/usePackage';
 
 export const VersionSelect: FC<{
@@ -22,7 +21,7 @@ export const VersionSelect: FC<{
   const packagesQuery = usePackageByName({ name: pkg.name });
 
   if (packagesQuery.isPending) {
-    return <CustomSpinner />;
+    return null;
   }
 
   if (packagesQuery.isError) {
