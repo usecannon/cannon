@@ -1,5 +1,5 @@
 import { FC, useEffect, useMemo, useState } from 'react';
-import { Input } from '@chakra-ui/react';
+import { Input } from '@/components/ui/input';
 import { stringToHex } from 'viem';
 import {
   Tooltip,
@@ -7,6 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 export const ByteInput: FC<{
   handleUpdate: (value: string) => void;
@@ -51,25 +52,25 @@ export const ByteInput: FC<{
   return (
     <TooltipProvider>
       <Tooltip open={!!isInvalid}>
-        <TooltipTrigger className="inline-flex w-full">
+        <TooltipTrigger asChild>
           <Input
             type="text"
-            bg="black"
-            borderColor={isInvalid ? 'red.500' : 'whiteAlpha.400'}
+            className={cn(
+              'bg-background border-input/40 focus:border-primary',
+              isInvalid && 'border-destructive focus:border-destructive'
+            )}
             placeholder="0x0000000000000000000000000000000000000000"
             value={updateValue}
-            size="sm"
             onChange={(e) => {
               setUpdateValue(e.target.value || '');
             }}
-            _focus={{
-              borderColor: isInvalid ? 'red.500' : 'blue.300',
-            }}
           />
         </TooltipTrigger>
-        <TooltipContent className="max-w-sm text-center">
-          {isInvalid}
-        </TooltipContent>
+        {isInvalid && (
+          <TooltipContent side="top" className="max-w-sm text-center">
+            <p>{isInvalid}</p>
+          </TooltipContent>
+        )}
       </Tooltip>
     </TooltipProvider>
   );

@@ -1,6 +1,7 @@
 import { isAddress } from 'viem';
-import { Input } from '@chakra-ui/react';
+import { Input } from '@/components/ui/input';
 import { FC, useEffect, useMemo, useState } from 'react';
+import { cn } from '@/lib/utils';
 
 // This function is used to check if the value is an address or an array of addresses
 const isValidArrayOrAddress = (value: any | any[]): boolean => {
@@ -23,16 +24,14 @@ export const AddressInput: FC<{
   return (
     <Input
       type="text"
-      bg="black"
-      borderColor={isInvalid ? 'red.500' : 'whiteAlpha.400'}
+      className={cn(
+        'bg-background border-input/40 focus:border-primary',
+        isInvalid && 'border-destructive focus:border-destructive'
+      )}
       placeholder="0x0000000000000000000000000000000000000000"
       value={updateValue}
-      size="sm"
       onChange={(e) => {
         setUpdateValue(e.target.value || '');
-      }}
-      _focus={{
-        borderColor: isInvalid ? 'red.500' : 'blue.300',
       }}
     />
   );

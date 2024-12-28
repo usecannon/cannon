@@ -342,7 +342,7 @@ export const Function: FC<{
             </h2>
           )}
         </div>
-        <div className="flex flex-col md:flex-row gap-8 h-full">
+        <div className="flex flex-col md:flex-row gap-8 h-full py-2">
           <div className="flex-1 w-full md:w-1/2">
             {f.inputs.map((input, index) => {
               return (

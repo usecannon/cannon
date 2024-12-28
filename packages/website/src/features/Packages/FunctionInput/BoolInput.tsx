@@ -1,5 +1,11 @@
-import { Select } from '@chakra-ui/react';
 import { FC, useEffect, useState } from 'react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export const BoolInput: FC<{
   handleUpdate: (value: boolean) => void;
@@ -10,13 +16,16 @@ export const BoolInput: FC<{
 
   return (
     <Select
-      borderColor="whiteAlpha.400"
-      bg="black"
-      size="sm"
-      onChange={(e) => setUpdateValue(e.target.value === 'true')}
+      defaultValue={updateValue ? 'true' : 'false'}
+      onValueChange={(value) => setUpdateValue(value === 'true')}
     >
-      <option value="false">False</option>
-      <option value="true">True</option>
+      <SelectTrigger className="bg-background border-input/40">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="false">False</SelectItem>
+        <SelectItem value="true">True</SelectItem>
+      </SelectContent>
     </Select>
   );
 };

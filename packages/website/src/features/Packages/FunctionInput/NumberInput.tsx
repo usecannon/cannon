@@ -1,5 +1,5 @@
-import { Input } from '@chakra-ui/react';
 import { FC, useEffect, useState } from 'react';
+import { Input } from '@/components/ui/input';
 import { parseEther } from 'viem';
 
 export const NumberInput: FC<{
@@ -23,15 +23,10 @@ export const NumberInput: FC<{
   return (
     <Input
       type="number"
-      bg="black"
+      className="bg-background border-input/40 focus:border-primary"
       step="1"
-      size="sm"
       placeholder="0"
       value={currentValue?.toString() || ''}
-      borderColor={'whiteAlpha.400'}
-      _focus={{
-        borderColor: 'blue.300',
-      }}
       onChange={(e) => {
         setUpdateValue(parseValue(e.target.value));
       }}
