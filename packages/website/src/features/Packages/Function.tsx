@@ -5,28 +5,18 @@ import { useQueueTxsStore, useStore } from '@/helpers/store';
 import { useContractCall, useContractTransaction } from '@/hooks/ethereum';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import {
-  CheckCircleIcon,
+  CheckIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  WarningIcon,
-} from '@chakra-ui/icons';
-import {
-  Alert,
-  Box,
-  Button,
-  Flex,
-  FormControl,
-  FormHelperText,
-  FormLabel,
-  Heading,
-  Input,
-  InputGroup,
-  InputRightAddon,
-  Link,
-  Text,
-  useDisclosure,
-  useToast,
-} from '@chakra-ui/react';
+  AlertTriangleIcon,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
 import { Abi, AbiFunction } from 'abitype';
@@ -59,13 +49,13 @@ const _isPayable = (abiFunction: AbiFunction) =>
   abiFunction.stateMutability === 'payable';
 
 const StatusIcon = ({ error }: { error: boolean }) => (
-  <Box display="inline-block" ml={2}>
+  <div className="inline-block ml-2">
     {error ? (
-      <WarningIcon color="red.700" />
+      <AlertTriangleIcon className="text-red-700" />
     ) : (
-      <CheckCircleIcon color="green.500" />
+      <CheckIcon className="text-green-500" />
     )}
-  </Box>
+  </div>
 );
 
 export const Function: FC<{
@@ -94,7 +84,7 @@ export const Function: FC<{
   showFunctionSelector,
   packageUrl,
 }) => {
-  const { isOpen, onToggle } = useDisclosure();
+  const [isOpen, setIsOpen] = useState(false);
   const currentSafe = useStore((s) => s.currentSafe);
   const { asPath: pathname } = useRouter();
   const [loading, setLoading] = useState(false);
@@ -105,8 +95,6 @@ export const Function: FC<{
   } | null>(null);
   const [hasExpandedSelected, setHasExpandedSelected] = useState(false);
 
-  // TODO: don't know why, had to use a ref instead of an array to be able to
-  // keep the correct reference.
   const sadParams = useRef(new Array(f.inputs.length).fill(undefined));
   const [params, setParams] = useState<any[] | any>([...sadParams.current]);
 
@@ -125,7 +113,7 @@ export const Function: FC<{
   // for payable functions only
   const [value, setValue] = useState<any>();
   const [valueIsValid, setValueIsValid] = useState<boolean>(true);
-  const toast = useToast();
+  const { toast } = useToast();
 
   const { safes, setQueuedIdentifiableTxns, setLastQueuedTxnsId } =
     useQueueTxsStore((s) => s);
@@ -245,9 +233,8 @@ export const Function: FC<{
     if (!currentSafe) {
       toast({
         title: 'Please select a Safe first',
-        status: 'error',
+        variant: 'destructive',
         duration: 5000,
-        isClosable: true,
       });
       onDrawerOpen?.();
       return;
@@ -256,9 +243,8 @@ export const Function: FC<{
     if (currentSafe?.chainId !== chainId) {
       toast({
         title: `Cannot queue transactions across different chains, current Safe is on chain ${currentSafe?.chainId} and function is on chain ${chainId}`,
-        status: 'error',
+        variant: 'destructive',
         duration: 10000,
-        isClosable: true,
       });
       onDrawerOpen?.();
       return;
@@ -321,143 +307,111 @@ export const Function: FC<{
 
     toast({
       title: `Total transactions queued: ${lastQueuedTxnsId + 1}`,
-      status: 'success',
       duration: 5000,
-      isClosable: true,
     });
   };
 
   const renderFunctionContent = () => (
-    <Box
-      p={6}
-      borderTop={collapsible ? 'none' : '1px solid'}
-      borderBottom={collapsible ? '1px solid' : 'none'}
-      borderBottomRadius={collapsible ? 'md' : 'none'}
-      borderRight={collapsible ? '1px solid' : 'none'}
-      borderLeft={collapsible ? '1px solid' : 'none'}
-      borderColor="gray.600"
-      bg="gray.900"
+    <div
+      className={cn(
+        'px-3 py-2 bg-background',
+        collapsible
+          ? 'border-t border-border'
+          : 'border border-border rounded-sm overflow-hidden'
+      )}
     >
-      <Box maxW="container.xl">
-        <Flex alignItems="center" mb="4">
+      <div className="max-w-container-xl">
+        <div className="flex items-center">
           {showFunctionSelector && (
-            <Heading
-              size="sm"
-              fontFamily="mono"
-              fontWeight="semibold"
-              mb={0}
-              display="flex"
-              alignItems="center"
-              gap={2}
-            >
+            <h2 className="text-sm font-mono flex items-center">
               {toFunctionSignature(f)}
               <Link
-                color="gray.300"
-                ml={1}
-                textDecoration="none"
-                _hover={{ textDecoration: 'underline' }}
-                href={anchor}
+                className="text-gray-300 ml-1 hover:underline"
+                href={anchor || '#'}
               >
                 #
               </Link>
               {!!contractSource && (
                 <Link
-                  color="gray.300"
-                  ml={1}
-                  textDecoration="none"
-                  _hover={{ textDecoration: 'underline' }}
-                  href={getCodeUrl(f.name)}
+                  className="text-gray-300 ml-1 hover:underline"
+                  href={getCodeUrl(f.name) || '#'}
                 >
-                  <FaCode color="gray.300" />
+                  <FaCode className="text-gray-300" />
                 </Link>
               )}
-            </Heading>
+            </h2>
           )}
-        </Flex>
-        <Flex flexDirection={['column', 'column', 'row']} gap={8} height="100%">
-          <Box flex="1" w={['100%', '100%', '50%']}>
+        </div>
+        <div className="flex flex-col md:flex-row gap-8 h-full">
+          <div className="flex-1 w-full md:w-1/2">
             {f.inputs.map((input, index) => {
               return (
-                <Box key={JSON.stringify(input)}>
-                  <FormControl mb="4">
-                    <FormLabel fontSize="sm" mb={1}>
-                      {input.name && <Text display="inline">{input.name}</Text>}
+                <div key={JSON.stringify(input)}>
+                  <div className="mb-4">
+                    <Label className="text-sm mb-1">
+                      {input.name && <span>{input.name}</span>}
                       {input.type && (
-                        <Text
-                          fontSize="xs"
-                          color="whiteAlpha.700"
-                          display="inline"
-                        >
-                          {' '}
+                        <span className="text-xs text-muted-foreground font-mono ml-1">
                           {input.type}
-                        </Text>
+                        </span>
                       )}
-                    </FormLabel>
+                    </Label>
                     <FunctionInput
                       input={input}
                       handleUpdate={(value) => {
                         setParam(index, value);
                       }}
                     />
-                  </FormControl>
-                </Box>
+                  </div>
+                </div>
               );
             })}
 
             {isFunctionPayable && (
-              <FormControl mb="4">
-                <FormLabel fontSize="sm" mb={1}>
+              <div className="mb-4">
+                <Label className="text-sm mb-1">
                   Value
-                  <Text fontSize="xs" color="whiteAlpha.700" display="inline">
-                    {' '}
+                  <span className="text-xs text-muted-foreground ml-1">
                     (payable)
-                  </Text>
-                </FormLabel>
-                <InputGroup size="sm">
+                  </span>
+                </Label>
+                <div className="flex">
                   <Input
                     type="number"
-                    size="sm"
-                    bg="black"
-                    isInvalid={!valueIsValid}
-                    borderColor="whiteAlpha.400"
-                    value={value?.toString()}
+                    className={cn(
+                      'bg-background border-border',
+                      !valueIsValid && 'border-red-500'
+                    )}
+                    value={value?.toString() ?? ''}
                     onChange={(e) => {
-                      setValue(e.target.value);
+                      const val = e.target.value;
+                      setValue(val === '' ? 0 : Number(val));
                       try {
-                        parseEther(e.target.value);
+                        parseEther(val === '' ? '0' : val);
                         setValueIsValid(true);
                       } catch (err) {
                         setValueIsValid(false);
                       }
                     }}
                   />
-                  <InputRightAddon
-                    bg="black"
-                    color="whiteAlpha.700"
-                    borderColor="whiteAlpha.400"
-                  >
+                  <div className="flex items-center px-3 py-1 bg-background text-gray-300 border border-l-0 border-border rounded-r-md">
                     ETH
-                  </InputRightAddon>
-                </InputGroup>
-                <FormHelperText hidden={!valueIsValid} color="gray.300">
-                  {value !== undefined && valueIsValid
-                    ? parseEther(value.toString()).toString()
-                    : 0}{' '}
-                  wei
-                </FormHelperText>
-              </FormControl>
+                  </div>
+                </div>
+                {valueIsValid && value !== undefined && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {parseEther(value.toString()).toString()} wei
+                  </p>
+                )}
+              </div>
             )}
 
             {isFunctionReadOnly && (
               <Button
-                isLoading={loading}
-                colorScheme="teal"
-                bg="teal.900"
-                _hover={{ bg: 'teal.800' }}
+                disabled={loading}
                 variant="outline"
-                size="xs"
-                mr={3}
-                mb={3}
+                size="sm"
+                className="mr-3"
                 onClick={() => {
                   void submit();
                 }}
@@ -469,15 +423,10 @@ export const Function: FC<{
             {!isFunctionReadOnly && (
               <>
                 <Button
-                  isLoading={loading}
-                  colorScheme="teal"
-                  bg="teal.900"
-                  _hover={{ bg: 'teal.800' }}
+                  disabled={loading}
                   variant="outline"
-                  size="xs"
-                  mr={3}
-                  mb={3}
-                  lineHeight="inherit"
+                  size="sm"
+                  className="mr-3"
                   onClick={async () => await submit({ simulate: true })}
                 >
                   Simulate transaction{' '}
@@ -488,15 +437,10 @@ export const Function: FC<{
                   )}
                 </Button>
                 <Button
-                  isLoading={loading}
-                  colorScheme="teal"
-                  bg="teal.900"
-                  _hover={{ bg: 'teal.800' }}
+                  disabled={loading}
                   variant="outline"
-                  size="xs"
-                  mr={3}
-                  mb={3}
-                  lineHeight="inherit"
+                  size="sm"
+                  className="mr-3 mb-3"
                   onClick={async () => await submit()}
                 >
                   Submit using wallet{' '}
@@ -508,14 +452,10 @@ export const Function: FC<{
                 </Button>
                 <Button
                   id={`${f.name}-stage-to-safe`}
-                  isLoading={loading}
-                  colorScheme="teal"
-                  bg="teal.900"
-                  _hover={{ bg: 'teal.800' }}
+                  disabled={loading}
                   variant="outline"
-                  size="xs"
-                  mr={3}
-                  mb={3}
+                  size="sm"
+                  className="mr-3"
                   onClick={handleQueueTransaction}
                 >
                   Stage to Safe
@@ -524,124 +464,70 @@ export const Function: FC<{
             )}
 
             {methodCallOrQueuedResult?.error && (
-              <Alert overflowX="scroll" mt="2" status="error" bg="red.700">
-                {`${
-                  methodCallOrQueuedResult.error.includes(
-                    'Encoded error signature'
-                  ) &&
-                  methodCallOrQueuedResult.error.includes('not found on ABI')
-                    ? 'Error emitted during ERC-7412 orchestration: '
-                    : ''
-                }${methodCallOrQueuedResult.error}`}
+              <Alert variant="destructive" className="mt-2">
+                <AlertDescription>
+                  {`${
+                    methodCallOrQueuedResult.error.includes(
+                      'Encoded error signature'
+                    ) &&
+                    methodCallOrQueuedResult.error.includes('not found on ABI')
+                      ? 'Error emitted during ERC-7412 orchestration: '
+                      : ''
+                  }${methodCallOrQueuedResult.error}`}
+                </AlertDescription>
               </Alert>
             )}
-          </Box>
-          <Box
-            flex="1"
-            w={['100%', '100%', '50%']}
-            background="gray.800"
-            borderRadius="md"
-            p={4}
-            display="flex"
-            flexDirection="column"
-            position="relative"
-            overflowX="scroll"
-          >
-            <Heading
-              size="xs"
-              textTransform={'uppercase'}
-              fontWeight={400}
-              letterSpacing={'1px'}
-              fontFamily={'var(--font-miriam)'}
-              color="gray.300"
-              mb={2}
-            >
+          </div>
+          <div className="flex-1 w-full md:w-1/2 bg-accent/50 rounded-md p-4 flex flex-col relative overflow-x-scroll">
+            <h3 className="text-sm uppercase mb-2 font-mono text-muted-foreground tracking-wider">
               Output
-            </Heading>
+            </h3>
 
             {loading ? (
               <CustomSpinner />
             ) : (
-              <Box flex="1">
+              <div className="flex-1">
                 {f.outputs.length != 0 && methodCallOrQueuedResult == null && (
-                  <Flex
-                    position="absolute"
-                    zIndex={2}
-                    top={0}
-                    left={0}
-                    background="blackAlpha.700"
-                    width="100%"
-                    height="100%"
-                    alignItems="center"
-                    justifyContent="center"
-                    fontWeight="medium"
-                    color="gray.300"
-                    textShadow="sm"
-                    letterSpacing="0.1px"
-                  >
+                  <div className="absolute z-10 top-0 left-0 bg-black/70 w-full h-full flex items-center justify-center font-medium text-gray-300 text-shadow-sm tracking-wide">
                     {isFunctionReadOnly
                       ? 'Call the view function '
                       : 'Simulate the transaction '}
                     for output
-                  </Flex>
+                  </div>
                 )}
                 <FunctionOutput
                   methodResult={methodCallOrQueuedResult?.value || null}
                   abiParameters={f.outputs}
                 />
-              </Box>
+              </div>
             )}
-          </Box>
-        </Flex>
-      </Box>
-    </Box>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 
   useEffect(() => {
     if (!hasExpandedSelected && selected && !isOpen) {
-      onToggle();
+      setIsOpen(true);
       setHasExpandedSelected(true);
     }
-  }, [selected, isOpen, onToggle, hasExpandedSelected]);
+  }, [selected, isOpen, hasExpandedSelected]);
 
   return (
     <>
       {collapsible ? (
-        <Flex flexDirection="column">
-          <Flex
-            flexDirection="row"
-            px="3"
-            py="2"
-            alignItems="center"
-            justifyContent="space-between"
-            border="1px solid"
-            borderColor="gray.600"
-            borderTopRadius={'sm'}
-            borderBottomRadius={isOpen ? 'none' : 'sm'}
+        <div className="flex flex-col border border-border rounded-sm overflow-hidden">
+          <div
+            className="flex flex-row px-3 py-2 items-center justify-between bg-background cursor-pointer hover:bg-accent/50 transition-colors"
             id={anchor}
-            onClick={onToggle}
-            cursor="pointer"
-            bg="gray.900"
+            onClick={() => setIsOpen(!isOpen)}
           >
             {f.name && (
-              <Heading
-                size="sm"
-                fontFamily="mono"
-                fontWeight="semibold"
-                mb={0}
-                display="flex"
-                alignItems="center"
-                gap={2}
-                maxWidth="100%"
-                whiteSpace="normal"
-                wordBreak="break-word"
-              >
+              <h2 className="text-sm font-mono flex items-center gap-2 max-w-full break-words">
                 {toFunctionSignature(f)}
                 <Link
-                  color="gray.300"
-                  ml={1}
-                  textDecoration="none"
-                  _hover={{ textDecoration: 'none' }}
+                  className="text-gray-300 ml-1 hover:no-underline"
                   href={anchor}
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -649,26 +535,23 @@ export const Function: FC<{
                 </Link>
                 {!!contractSource && (
                   <Link
-                    color="gray.300"
-                    ml={1}
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'none' }}
-                    href={getCodeUrl(f.name)}
+                    className="text-gray-300 ml-1 hover:no-underline"
+                    href={getCodeUrl(f.name) ?? '#'}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <FaCode color="gray.300" />
+                    <FaCode className="text-gray-300" />
                   </Link>
                 )}
-              </Heading>
+              </h2>
             )}
             {isOpen ? (
-              <ChevronUpIcon boxSize="5" />
+              <ChevronUpIcon className="w-5 h-5" />
             ) : (
-              <ChevronDownIcon boxSize="5" />
+              <ChevronDownIcon className="w-5 h-5" />
             )}
-          </Flex>
+          </div>
           {isOpen && renderFunctionContent()}
-        </Flex>
+        </div>
       ) : (
         renderFunctionContent()
       )}

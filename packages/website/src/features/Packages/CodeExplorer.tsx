@@ -26,6 +26,11 @@ import { FileIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 const handleDownload = (content: Record<string, unknown>, filename: string) => {
   const blob = new Blob([JSON.stringify(content, null, 2)], {
@@ -398,30 +403,38 @@ export const CodeExplorer: FC<{
               const fileTree = buildFileTree(Object.entries(sources));
 
               return (
-                <div key={artifactKey} className="mt-4">
+                <div key={artifactKey} className="mb-2">
                   <SidebarMenuItem>
-                    <div className="flex flex-row px-2 items-center mb-1">
+                    <div className="flex flex-row px-2 items-center mb-0.5">
                       <div className="max-w-[210px] overflow-hidden">
-                        <h3 className="font-medium text-sm text-gray-200 tracking-[0.1px] mr-1 truncate">
+                        <SidebarGroupLabel>
                           {artifactKey.split(':').length > 1
                             ? artifactKey.split(':')[1]
                             : artifactKey}
-                        </h3>
+                        </SidebarGroupLabel>
                       </div>
 
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="ml-auto h-7 w-7 text-gray-300 border-gray-500 hover:bg-gray-700"
-                        onClick={() => {
-                          handleDownload(
-                            (artifactValue as any)?.abi,
-                            'deployments.json'
-                          );
-                        }}
-                      >
-                        <Download className="h-3 w-3" />
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="xs"
+                            className="ml-auto"
+                            onClick={() => {
+                              handleDownload(
+                                (artifactValue as any)?.abi,
+                                'deployments.json'
+                              );
+                            }}
+                          >
+                            <Download />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Download ABI</p>
+                        </TooltipContent>
+                      </Tooltip>
+                      <Download className="h-1 w-1" />
                     </div>
                   </SidebarMenuItem>
                   {/* File tree */}

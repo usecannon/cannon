@@ -159,10 +159,10 @@ export const Abi: FC<{
 
   const sidebarContent = (
     <SidebarContent className="overflow-y-auto">
-      <SidebarGroup>
+      <SidebarGroup className="pb-0">
         <SidebarGroupContent>
           <SidebarMenu>
-            <SidebarMenuItem>
+            <SidebarMenuItem className="mt-2">
               <SearchInput onSearchChange={setSearchTerm} />
             </SidebarMenuItem>
           </SidebarMenu>
@@ -171,9 +171,7 @@ export const Abi: FC<{
 
       <SidebarGroup className="pb-0">
         <SidebarGroupContent>
-          <SidebarGroupLabel className="space-y-2 h-10">
-            Read Functions
-          </SidebarGroupLabel>
+          <SidebarGroupLabel>Read Functions</SidebarGroupLabel>
         </SidebarGroupContent>
 
         <SidebarGroupContent>
@@ -187,7 +185,7 @@ export const Abi: FC<{
                 )
                 .map((f, index) => (
                   <SidebarMenuButton
-                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full"
+                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full font-mono text-xs"
                     key={index}
                     isActive={selectedSelector == getSelectorSlug(f)}
                     onClick={() => handleMethodClick(f)}
@@ -205,9 +203,7 @@ export const Abi: FC<{
       </SidebarGroup>
 
       <SidebarGroup className="pt-0">
-        <SidebarGroupLabel className="space-y-2 h-10">
-          Write Functions
-        </SidebarGroupLabel>
+        <SidebarGroupLabel>Write Functions</SidebarGroupLabel>
 
         <SidebarGroupContent>
           <SidebarMenu>
@@ -220,7 +216,7 @@ export const Abi: FC<{
                 )
                 .map((f, index) => (
                   <SidebarMenuButton
-                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full"
+                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full font-mono text-xs"
                     key={index}
                     isActive={selectedSelector == getSelectorSlug(f)}
                     onClick={() => handleMethodClick(f)}
