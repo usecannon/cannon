@@ -25,7 +25,7 @@ const hasComponentsKey = (
 const ItemLabel: FC<{ name: string; type: string }> = ({ name, type }) => (
   <div className="flex items-center gap-1 text-sm mb-0">
     {name?.length ? <span className="pr-1 font-semibold">{name}</span> : null}
-    <span className="text-xs text-muted-foreground">{type}</span>
+    <span className="text-xs text-muted-foreground font-mono">{type}</span>
   </div>
 );
 
@@ -83,7 +83,7 @@ export const FunctionOutput: FC<{
       return isArray(value)
         ? value.map((tupleItem, tupleIndex) => (
             <div key={tupleIndex} className="pl-4">
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground font-mono">
                 tuple[{tupleIndex}]
                 <ClipboardButton
                   text={resultText(
@@ -157,25 +157,27 @@ export const FunctionOutput: FC<{
             {(abiParameter.type.includes('int128') ||
               abiParameter.type.includes('int256')) &&
             methodResult ? (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex gap-2 items-center">
-                      <span className="text-xs font-mono">
-                        {resultText(abiParameter.type, methodResult)}
-                        <ClipboardButton
-                          text={resultText(abiParameter.type, methodResult)}
-                        />
-                      </span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {`${formatEther(methodResult).toString()} wei`}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <div className="flex gap-2 items-center">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex gap-2 items-center">
+                        <span className="text-sm">
+                          {resultText(abiParameter.type, methodResult)}
+                        </span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {`${formatEther(methodResult).toString()} wei`}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <ClipboardButton
+                  text={resultText(abiParameter.type, methodResult)}
+                />
+              </div>
             ) : (
-              <span className="text-xs">
+              <span className="text-sm">
                 {resultText(abiParameter.type, methodResult)}
                 <ClipboardButton
                   text={resultText(abiParameter.type, methodResult)}

@@ -406,63 +406,63 @@ export const Function: FC<{
               </div>
             )}
 
-<div>
-            {isFunctionReadOnly && (
-              <Button
-                disabled={loading}
-                variant="outline"
-                size="sm"
-                className="mr-3"
-                onClick={() => {
-                  void submit();
-                }}
-              >
-                Call view function
-              </Button>
-            )}
+            <div>
+              {isFunctionReadOnly && (
+                <Button
+                  disabled={loading}
+                  variant="outline"
+                  size="sm"
+                  className="mr-3"
+                  onClick={() => {
+                    void submit();
+                  }}
+                >
+                  Call view function
+                </Button>
+              )}
 
-            {!isFunctionReadOnly && (
-              <>
-                <Button
-                  disabled={loading}
-                  variant="outline"
-                  size="sm"
-                  className="mr-3"
-                  onClick={async () => await submit({ simulate: true })}
-                >
-                  Simulate transaction{' '}
-                  {simulated && methodCallOrQueuedResult && (
-                    <StatusIcon
-                      error={Boolean(methodCallOrQueuedResult.error)}
-                    />
-                  )}
-                </Button>
-                <Button
-                  disabled={loading}
-                  variant="outline"
-                  size="sm"
-                  className="mr-3"
-                  onClick={async () => await submit()}
-                >
-                  Submit using wallet{' '}
-                  {!simulated && methodCallOrQueuedResult && (
-                    <StatusIcon
-                      error={Boolean(methodCallOrQueuedResult.error)}
-                    />
-                  )}
-                </Button>
-                <Button
-                  id={`${f.name}-stage-to-safe`}
-                  disabled={loading}
-                  variant="outline"
-                  size="sm"
-                  className="mr-3"
-                  onClick={handleQueueTransaction}
-                >
-                  Stage to Safe
-                </Button>
-              </>
-            )}
+              {!isFunctionReadOnly && (
+                <>
+                  <Button
+                    disabled={loading}
+                    variant="outline"
+                    size="sm"
+                    className="mr-3"
+                    onClick={async () => await submit({ simulate: true })}
+                  >
+                    Simulate transaction{' '}
+                    {simulated && methodCallOrQueuedResult && (
+                      <StatusIcon
+                        error={Boolean(methodCallOrQueuedResult.error)}
+                      />
+                    )}
+                  </Button>
+                  <Button
+                    disabled={loading}
+                    variant="outline"
+                    size="sm"
+                    className="mr-3"
+                    onClick={async () => await submit()}
+                  >
+                    Submit using wallet{' '}
+                    {!simulated && methodCallOrQueuedResult && (
+                      <StatusIcon
+                        error={Boolean(methodCallOrQueuedResult.error)}
+                      />
+                    )}
+                  </Button>
+                  <Button
+                    id={`${f.name}-stage-to-safe`}
+                    disabled={loading}
+                    variant="outline"
+                    size="sm"
+                    className="mr-3"
+                    onClick={handleQueueTransaction}
+                  >
+                    Stage to Safe
+                  </Button>
+                </>
+              )}
             </div>
 
             {methodCallOrQueuedResult?.error && (

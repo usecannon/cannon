@@ -157,15 +157,19 @@ const Interact: FC = () => {
                   {contractAddress.slice(-4)}
                 </a>
               ) : null}{' '}
-              from{' '}
-              <a
-                className="no-underline border-b border-dotted border-gray-300 font-mono cursor-pointer"
-                href={deployUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                [clone.{moduleName}]
-              </a>
+              {moduleName !== name ? (
+                <>
+                  from{' '}
+                  <a
+                    className="no-underline border-b border-dotted border-gray-300 font-mono cursor-pointer"
+                    href={deployUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {`[clone.${moduleName}]`}
+                  </a>
+                </>
+              ) : null}
             </p>
           </div>
         </div>
