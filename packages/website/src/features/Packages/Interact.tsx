@@ -133,8 +133,8 @@ const Interact: FC = () => {
           </h4>
 
           <a
-            className="text-xs text-muted-foreground no-underline border-b border-dotted border-gray-300 font-mono"
-            href={'#'}
+            className="text-xs text-muted-foreground no-underline border-b border-dotted border-gray-300 font-mono cursor-pointer"
+            href={`/packages/${name}/${tag}/${variant}/code/${moduleName}`}
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -148,7 +148,7 @@ const Interact: FC = () => {
             <p className="text-xs text-muted-foreground">
               {explorerUrl ? (
                 <a
-                  className="no-underline border-b border-dotted border-gray-300 font-mono"
+                  className="no-underline border-b border-dotted border-gray-300 font-mono cursor-pointer"
                   href={explorerUrl}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -159,7 +159,7 @@ const Interact: FC = () => {
               ) : null}{' '}
               from{' '}
               <a
-                className="no-underline border-b border-dotted border-gray-300 font-mono"
+                className="no-underline border-b border-dotted border-gray-300 font-mono cursor-pointer"
                 href={deployUrl}
                 target="_blank"
                 rel="noopener noreferrer"

@@ -161,7 +161,7 @@ export const FunctionOutput: FC<{
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="flex gap-2 items-center">
-                      <span className="text-xs">
+                      <span className="text-xs font-mono">
                         {resultText(abiParameter.type, methodResult)}
                         <ClipboardButton
                           text={resultText(abiParameter.type, methodResult)}
@@ -191,7 +191,7 @@ export const FunctionOutput: FC<{
   return (
     <>
       {(abiParameters as Array<any>).length == 0 && (
-        <div className="flex flex-1 items-center h-full">
+        <div className="flex flex-1 items-center h-full py-4">
           <span className="text-sm m-auto text-muted-foreground">
             <Info className="inline-block -mt-0.5 mr-0.5 h-4 w-4" /> This
             function does not return any values

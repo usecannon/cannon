@@ -343,7 +343,7 @@ export const Function: FC<{
           )}
         </div>
         <div className="flex flex-col md:flex-row gap-8 h-full py-2">
-          <div className="flex-1 w-full md:w-1/2">
+          <div className="flex flex-1 w-full md:w-1/2 justify-center flex-col">
             {f.inputs.map((input, index) => {
               return (
                 <div key={JSON.stringify(input)}>
@@ -406,6 +406,7 @@ export const Function: FC<{
               </div>
             )}
 
+<div>
             {isFunctionReadOnly && (
               <Button
                 disabled={loading}
@@ -440,7 +441,7 @@ export const Function: FC<{
                   disabled={loading}
                   variant="outline"
                   size="sm"
-                  className="mr-3 mb-3"
+                  className="mr-3"
                   onClick={async () => await submit()}
                 >
                   Submit using wallet{' '}
@@ -462,6 +463,7 @@ export const Function: FC<{
                 </Button>
               </>
             )}
+            </div>
 
             {methodCallOrQueuedResult?.error && (
               <Alert variant="destructive" className="mt-2">
