@@ -15,7 +15,7 @@ import {
   PackageState,
 } from '../types';
 import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
-import { executeTemplate } from '../utils/template';
+import { template } from '../utils/template';
 
 const debug = Debug('cannon:builder:diamond');
 
@@ -77,24 +77,24 @@ const diamondStep = {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     config = _.cloneDeep(config);
 
-    config.contracts = _.map(config.contracts, (n) => executeTemplate(n, ctx, 'ctx'));
+    config.contracts = _.map(config.contracts, (n) => template(n, ctx));
 
-    config.diamondArgs.owner = executeTemplate(config.diamondArgs.owner, ctx, 'ctx');
+    config.diamondArgs.owner = template(config.diamondArgs.owner, ctx);
     if (config.diamondArgs.init) {
-      config.diamondArgs.init = executeTemplate(config.diamondArgs.init, ctx, 'ctx');
+      config.diamondArgs.init = template(config.diamondArgs.init, ctx);
     } else {
       config.diamondArgs.init = viem.zeroAddress;
     }
     if (config.diamondArgs.initCalldata) {
-      config.diamondArgs.initCalldata = executeTemplate(config.diamondArgs.initCalldata, ctx, 'ctx');
+      config.diamondArgs.initCalldata = template(config.diamondArgs.initCalldata, ctx);
     } else {
       config.diamondArgs.initCalldata = '0x';
     }
 
-    config.salt = executeTemplate(config.salt, ctx, 'ctx');
+    config.salt = template(config.salt, ctx);
 
     if (config?.overrides?.gasLimit) {
-      config.overrides.gasLimit = executeTemplate(config.overrides.gasLimit, ctx, 'ctx');
+      config.overrides.gasLimit = template(config.overrides.gasLimit, ctx);
     }
 
     return config;

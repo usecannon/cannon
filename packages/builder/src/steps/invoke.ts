@@ -1,5 +1,5 @@
 import Debug from 'debug';
-import _, { template } from 'lodash';
+import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
@@ -21,7 +21,7 @@ import {
   getContractFromPath,
   getMergedAbiFromContractPaths,
 } from '../util';
-import { executeTemplate, getTemplateMatches, isTemplateString } from '../utils/template';
+import { template, getTemplateMatches, isTemplateString } from '../utils/template';
 import { isStepPath, isStepName } from '../utils/matchers';
 
 const debug = Debug('cannon:builder:invoke');
@@ -107,7 +107,7 @@ async function runTxn(
         .map((v) => v[1])
         .join(
           '\n'
-        )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it. If you’re calling an overloaded function, update func to include parentheses.`
+        )}\n\nIf this is a proxy contract, make sure you've specified abiOf for the contract action in the cannonfile that deploys it. If you’re calling an overloaded function, update func to include parentheses.`
     );
   }
 
@@ -369,29 +369,28 @@ const invokeSpec = {
 
     if (config.target) {
       // [string, ...string[]] refers to a nonempty array
-      config.target = config.target.map((v) => executeTemplate(v, ctx, 'ctx')) as [string, ...string[]];
+      config.target = config.target.map((v) => template(v, ctx)) as [string, ...string[]];
     }
 
     if (config.abi) {
-      config.abi = executeTemplate(config.abi, ctx, 'ctx');
+      config.abi = template(config.abi, ctx);
     }
 
-    config.func = executeTemplate(config.func, ctx, 'ctx');
+    config.func = template(config.func, ctx);
 
     if (config.args) {
       debug('rendering invoke args with settings: ', ctx.settings);
       config.args = _.map(config.args, (arg) => {
-        // TODO: fix this
         return JSON.parse(template(JSON.stringify(arg))(ctx));
       });
     }
 
     if (config.from) {
-      config.from = executeTemplate(config.from, ctx, 'ctx');
+      config.from = template(config.from, ctx);
     }
 
     if (config.fromCall) {
-      config.fromCall.func = executeTemplate(config.fromCall.func, ctx, 'ctx');
+      config.fromCall.func = template(config.fromCall.func, ctx);
       config.fromCall.args = _.map(config.fromCall.args, (arg) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
         // TODO: fix this
@@ -400,28 +399,28 @@ const invokeSpec = {
     }
 
     if (config.value) {
-      config.value = executeTemplate(config.value, ctx, 'ctx');
+      config.value = template(config.value, ctx);
     }
 
     if (config?.overrides?.gasLimit) {
-      config.overrides.gasLimit = executeTemplate(config.overrides.gasLimit, ctx, 'ctx');
+      config.overrides.gasLimit = template(config.overrides.gasLimit, ctx);
     }
 
     for (const name in config.factory) {
       const f = config.factory[name];
 
-      f.event = executeTemplate(f.event, ctx, 'ctx');
+      f.event = template(f.event, ctx);
 
       if (f.artifact) {
-        f.artifact = executeTemplate(f.artifact, ctx, 'ctx');
+        f.artifact = template(f.artifact, ctx);
       }
 
       if (f.abiOf) {
-        f.abiOf = _.map(f.abiOf, (v) => executeTemplate(v, ctx, 'ctx'));
+        f.abiOf = _.map(f.abiOf, (v) => template(v, ctx));
       }
 
       if (f.abi) {
-        f.abi = executeTemplate(f.abi || '', ctx, 'ctx');
+        f.abi = template(f.abi || '', ctx);
       }
     }
 
@@ -429,7 +428,7 @@ const invokeSpec = {
 
     for (const name in varsConfig) {
       const f = varsConfig[name];
-      f.event = executeTemplate(f.event, ctx, 'ctx');
+      f.event = template(f.event, ctx);
     }
 
     return config;

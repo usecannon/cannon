@@ -5,7 +5,7 @@ import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-record
 import { ChainBuilderRuntime } from '../runtime';
 import { varSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
-import { executeTemplate } from '../utils/template';
+import { template } from '../utils/template';
 
 const debug = Debug('cannon:builder:var');
 
@@ -37,7 +37,7 @@ const varSpec = {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     config = _.cloneDeep(config);
     for (const c in _.omit(config, 'depends')) {
-      config[c] = executeTemplate(config[c], ctx, 'ctx');
+      config[c] = template(config[c], ctx);
     }
 
     return config;

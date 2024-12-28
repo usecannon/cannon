@@ -6,7 +6,7 @@ import { ActionKinds, RawChainDefinition, checkConfig } from './actions';
 import { ChainBuilderRuntime } from './runtime';
 import { chainDefinitionSchema } from './schemas';
 import { CannonHelperContext, ChainBuilderContext } from './types';
-import { executeTemplate } from './utils/template';
+import { template } from './utils/template';
 
 import { PackageReference } from './package-reference';
 import { ZodIssue } from 'zod';
@@ -112,7 +112,7 @@ export class ChainDefinition {
   }
 
   getName(ctx: ChainBuilderContext) {
-    const n = executeTemplate(this.raw.name, ctx, 'ctx');
+    const n = template(this.raw.name, ctx);
 
     validatePackageName(n);
 
@@ -120,7 +120,7 @@ export class ChainDefinition {
   }
 
   getVersion(ctx: ChainBuilderContext) {
-    const v = executeTemplate(this.raw.version, ctx, 'ctx');
+    const v = template(this.raw.version, ctx);
 
     validatePackageVersion(v);
 
@@ -128,7 +128,7 @@ export class ChainDefinition {
   }
 
   getPreset(ctx: ChainBuilderContext) {
-    return this.raw.preset ? executeTemplate(this.raw.preset, ctx, 'ctx') : 'main';
+    return this.raw.preset ? template(this.raw.preset, ctx) : 'main';
   }
 
   getPackageRef(ctx: ChainBuilderContext) {
@@ -222,9 +222,9 @@ export class ChainDefinition {
     // can do about this right now
     return _.uniq(
       Object.values(this.raw.import).map((d) => ({
-        source: executeTemplate(d.source, ctx, 'ctx'),
+        source: template(d.source, ctx),
         chainId: d.chainId || ctx.chainId,
-        preset: d.preset ? executeTemplate(d.preset, ctx, 'ctx') : 'main',
+        preset: d.preset ? template(d.preset, ctx) : 'main',
       }))
     );
   }

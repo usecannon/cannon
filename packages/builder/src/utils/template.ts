@@ -101,7 +101,7 @@ export function getTemplateMatches(str: string, includeTags = true) {
  * Lodash template function wrapper.
  * It adds a fuzzy search for the keys in the data object in case the user made a typo.
  */
-export function template(str?: string, options?: TemplateOptions) {
+export function renderTemplate(str?: string, options?: TemplateOptions) {
   const render = _.template(str, options);
 
   return (data?: object) => {
@@ -135,26 +135,25 @@ export function template(str?: string, options?: TemplateOptions) {
 /**
  * Executes a template string in a SES secure compartment.
  * @param templateStr - The template string to evaluate
- * @param context - The context object containing endowments
- * @param importKey - The key to use for imports (defaults to 'ctx')
+ * @param context - The template context object, includes the variables to be used in the template
  * @returns The evaluated result
  */
-export function executeTemplate(templateStr: string, context: Record<string, any> = {}, importKey: 'ctx' | 'recorders') {
-  const code = `template(${JSON.stringify(templateStr)}, { imports: ${importKey} })()`;
+export function template(templateStr: string, context: Record<string, any> = {}) {
+  const code = `template("${templateStr}", { imports })()`;
 
-  const endowments = {
-    [importKey]: context,
-    globals: {}, // empty globals object
-    template, // lodash template function wrapper
+  const compartmentContext = {
+    imports: context,
+    globals: {},
+    template: renderTemplate,
   };
 
   try {
     // eslint-disable-next-line no-undef
-    const compartmentWithEndowments = new Compartment({ ...endowments });
-    return compartmentWithEndowments.evaluate(code);
-  } catch (error) {
-    debug('Execution failed:', error);
-    throw error;
+    const compartment = new Compartment(compartmentContext);
+    return compartment.evaluate(code);
+  } catch (err) {
+    debug(`Render template "${templateStr}" failed:`, err);
+    throw err;
   }
 }
 
@@ -190,23 +189,6 @@ function _fuzzySearch(data: string[], query: string) {
   return searcher.search(query).map(({ item }) => item);
 }
 
-// list of allowed node types
-type AllowedNodeType =
-  | 'Program'
-  | 'ExpressionStatement'
-  | 'Literal'
-  | 'BinaryExpression'
-  | 'LogicalExpression'
-  | 'ConditionalExpression'
-  | 'MemberExpression'
-  | 'Identifier'
-  | 'CallExpression'
-  | 'ArrayExpression'
-  | 'ObjectExpression'
-  | 'Property'
-  | 'TemplateLiteral'
-  | 'TemplateElement';
-
 export class TemplateValidationError extends Error {
   constructor(message: string) {
     super(message);
@@ -216,6 +198,23 @@ export class TemplateValidationError extends Error {
 
 const NEW_LINE_CHARS = ['\n', '\r', '\u2028'];
 
+const allowedNodeTypes = new Set<acorn.Node['type']>([
+  'Program', // Root node of the ast
+  'ExpressionStatement', // Represents a single expression
+  'Literal', // Represents literal values (numbers, strings, booleans, etc.)
+  'BinaryExpression', // Mathematical or comparison operations (e.g., +, -, *, /, >, <)
+  'LogicalExpression', // Logical operations (&&, ||)
+  'ConditionalExpression', // Ternary expressions (condition ? true : false)
+  'MemberExpression', // Object property access (e.g., obj.prop)
+  'Identifier', // Variable and function names
+  'CallExpression', // Function calls
+  'ArrayExpression', // Array literals []
+  'ObjectExpression', // Object literals {}
+  'Property', // Object property definitions
+  'TemplateLiteral', // Template strings using backticks
+  'TemplateElement', // Parts of template literals between expressions
+]);
+
 /**
  * Validate the given template string.
  * @param templateStr - The template string to validate
@@ -223,23 +222,6 @@ const NEW_LINE_CHARS = ['\n', '\r', '\u2028'];
  */
 export function validateTemplate(templateStr: string): undefined {
   const allowedIdentifiers = _getAllowedIdentifiers();
-
-  const allowedNodeTypes: Set<AllowedNodeType> = new Set([
-    'Program', // Root node of the ast
-    'ExpressionStatement', // Represents a single expression
-    'Literal', // Represents literal values (numbers, strings, booleans, etc.)
-    'BinaryExpression', // Mathematical or comparison operations (e.g., +, -, *, /, >, <)
-    'LogicalExpression', // Logical operations (&&, ||)
-    'ConditionalExpression', // Ternary expressions (condition ? true : false)
-    'MemberExpression', // Object property access (e.g., obj.prop)
-    'Identifier', // Variable and function names
-    'CallExpression', // Function calls
-    'ArrayExpression', // Array literals []
-    'ObjectExpression', // Object literals {}
-    'Property', // Object property definitions
-    'TemplateLiteral', // Template strings using backticks
-    'TemplateElement', // Parts of template literals between expressions
-  ]);
 
   const expressions = getTemplateMatches(templateStr, false) ?? [];
 

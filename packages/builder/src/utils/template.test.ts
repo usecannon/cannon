@@ -1,4 +1,4 @@
-import { TemplateValidationError, validateTemplate } from './template';
+import { TemplateValidationError, validateTemplate, renderTemplate, template } from './template';
 
 describe('template.ts', () => {
   describe('validateTemplate()', () => {
@@ -64,6 +64,18 @@ describe('template.ts', () => {
       '<%= defaultAbiCoder.encode(parseEther(settings.woot)) %> + <%= defaultAbiCoder.decode(contracts.compound) %>',
     ])('is valid: "%s"', (template) => {
       expect(validateTemplate(template)).toBeUndefined();
+    });
+  });
+
+  describe('template()', () => {
+    it.each<[string, any, string]>([
+      ['<%= settings.woot %>', { settings: { woot: 'woot' } }, 'woot'],
+      ['<%= a %>-<%= b %>', { a: 'one', b: 'two' }, 'one-two'],
+      ['[<%= JSON.stringify(a) %>]', { a: { one: 1, two: '2', three: [3] } }, '[{"one":1,"two":"2","three":[3]}]'],
+    ])('is valid: "%s"', (str, ctx, expected) => {
+      // Make sure the rendering has the same result inside the ses compartment
+      expect(renderTemplate(str)(ctx)).toEqual(expected);
+      expect(template(str, ctx)).toEqual(expected);
     });
   });
 });

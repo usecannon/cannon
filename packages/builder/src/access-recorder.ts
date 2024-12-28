@@ -1,7 +1,7 @@
 import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
-import { validateTemplate, executeTemplate, TemplateValidationError } from './utils/template';
+import { validateTemplate, template, TemplateValidationError } from './utils/template';
 import { CannonHelperContext } from './types';
 
 const debug = Debug('cannon:builder:access-recorder');
@@ -148,7 +148,7 @@ export function computeTemplateAccesses(str?: string, possibleNames: string[] = 
 
   try {
     // execute the template function in a secure compartment
-    executeTemplate(str, recorders, 'recorders');
+    template(str, recorders);
 
     const accesses = collectAccesses(recorders, possibleNames);
     return { accesses, unableToCompute: false };

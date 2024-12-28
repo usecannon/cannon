@@ -15,7 +15,7 @@ import {
   PackageState,
 } from '../types';
 import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
-import { executeTemplate } from '../utils/template';
+import { template } from '../utils/template';
 
 const debug = Debug('cannon:builder:deploy');
 
@@ -163,39 +163,39 @@ const deploySpec = {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     config = _.cloneDeep(config);
 
-    config.from = executeTemplate(config.from || '', ctx, 'ctx');
+    config.from = template(config.from || '', ctx);
 
-    config.nonce = executeTemplate(config.nonce || '', ctx, 'ctx');
+    config.nonce = template(config.nonce || '', ctx);
 
-    config.artifact = executeTemplate(config.artifact, ctx, 'ctx');
+    config.artifact = template(config.artifact, ctx);
 
-    config.value = executeTemplate(config.value || '', ctx, 'ctx');
+    config.value = template(config.value || '', ctx);
 
-    config.abi = executeTemplate(config.abi || '', ctx, 'ctx');
+    config.abi = template(config.abi || '', ctx);
 
     if (config.abiOf) {
-      config.abiOf = _.map(config.abiOf, (v) => executeTemplate(v, ctx, 'ctx'));
+      config.abiOf = _.map(config.abiOf, (v) => template(v, ctx));
     }
 
     if (config.args) {
       config.args = _.map(config.args, (a) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
-        return JSON.parse(executeTemplate(JSON.stringify(a), ctx, 'ctx'));
+        return JSON.parse(template(JSON.stringify(a), ctx));
       });
     }
 
     if (config.libraries) {
       config.libraries = _.mapValues(config.libraries, (a) => {
-        return executeTemplate(a, ctx, 'ctx');
+        return template(a, ctx);
       });
     }
 
     if (config.salt) {
-      config.salt = executeTemplate(config.salt, ctx, 'ctx');
+      config.salt = template(config.salt, ctx);
     }
 
     if (config?.overrides?.gasLimit) {
-      config.overrides.gasLimit = executeTemplate(config.overrides.gasLimit, ctx, 'ctx');
+      config.overrides.gasLimit = template(config.overrides.gasLimit, ctx);
     }
 
     return config;
