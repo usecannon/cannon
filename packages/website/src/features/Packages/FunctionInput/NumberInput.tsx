@@ -23,7 +23,7 @@ export const NumberInput: FC<{
   return (
     <Input
       type="number"
-      className="bg-background border-input/40 focus:border-primary"
+      className="bg-background border-input"
       step="1"
       placeholder="0"
       value={currentValue?.toString() || ''}

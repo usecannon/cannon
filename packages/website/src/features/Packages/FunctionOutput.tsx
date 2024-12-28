@@ -1,7 +1,6 @@
 import { FC } from 'react';
 import { AbiParameter } from 'abitype';
 import { isArray, isObject } from 'lodash';
-import { Info } from 'lucide-react';
 import { formatEther } from 'viem';
 import ClipboardButton from '@/components/ClipboardButton';
 import { cn } from '@/lib/utils';
@@ -195,8 +194,7 @@ export const FunctionOutput: FC<{
       {(abiParameters as Array<any>).length == 0 && (
         <div className="flex flex-1 items-center h-full py-4">
           <span className="text-sm m-auto text-muted-foreground">
-            <Info className="inline-block -mt-0.5 mr-0.5 h-4 w-4" /> This
-            function does not return any values
+            This function doesn’t return any values.
           </span>
         </div>
       )}

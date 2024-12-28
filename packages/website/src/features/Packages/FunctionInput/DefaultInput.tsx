@@ -12,7 +12,7 @@ export const DefaultInput: FC<{
   return (
     <Input
       type="text"
-      className="bg-background border-input/40 focus:border-primary"
+      className="bg-background border-input"
       value={updateValue}
       onChange={(e) => setUpdateValue(e.target.value)}
     />

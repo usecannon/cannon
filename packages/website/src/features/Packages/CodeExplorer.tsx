@@ -434,7 +434,6 @@ export const CodeExplorer: FC<{
                           <p>Download ABI</p>
                         </TooltipContent>
                       </Tooltip>
-                      <Download className="h-1 w-1" />
                     </div>
                   </SidebarMenuItem>
                   {/* File tree */}

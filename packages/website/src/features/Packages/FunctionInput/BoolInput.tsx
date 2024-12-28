@@ -19,7 +19,7 @@ export const BoolInput: FC<{
       defaultValue={updateValue ? 'true' : 'false'}
       onValueChange={(value) => setUpdateValue(value === 'true')}
     >
-      <SelectTrigger className="bg-background border-input/40">
+      <SelectTrigger className="bg-background border-input">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

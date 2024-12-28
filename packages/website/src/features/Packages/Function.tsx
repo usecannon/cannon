@@ -37,6 +37,7 @@ import {
   zeroAddress,
 } from 'viem';
 import { useAccount, useSwitchChain, useWalletClient } from 'wagmi';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const extractError = (e: any): string => {
   return typeof e === 'string'
@@ -320,10 +321,15 @@ export const Function: FC<{
         'px-3 py-2 bg-background',
         collapsible
           ? 'border-t border-border'
-          : 'border border-border rounded-sm overflow-hidden'
+          : 'border border-border rounded-sm'
       )}
     >
-      <div className="max-w-container-xl">
+      <motion.div
+        initial={{ y: -10 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.2 }}
+        className="max-w-container-xl"
+      >
         <div className="flex items-center">
           {showFunctionSelector && (
             <h2 className="text-sm font-mono flex items-center">
@@ -501,7 +507,7 @@ export const Function: FC<{
               </Alert>
             )}
           </div>
-          <div className="flex-1 w-full md:w-1/2 bg-accent/50 rounded-md p-4 flex flex-col relative overflow-x-scroll">
+          <div className="flex-1 w-full md:w-1/2 bg-accent/25 rounded-md p-4 flex flex-col relative overflow-x-scroll">
             <h3 className="text-sm uppercase mb-2 font-mono text-muted-foreground tracking-wider">
               Output
             </h3>
@@ -526,7 +532,7 @@ export const Function: FC<{
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 
@@ -573,7 +579,20 @@ export const Function: FC<{
               <ChevronDownIcon className="w-5 h-5" />
             )}
           </div>
-          {isOpen && renderFunctionContent()}
+          <AnimatePresence mode="wait">
+            {isOpen && (
+              <motion.div
+                key="content"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className="overflow-hidden"
+              >
+                {renderFunctionContent()}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       ) : (
         renderFunctionContent()
