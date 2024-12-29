@@ -1,5 +1,5 @@
 export function mergeErrors(err: Error, cause: Error) {
-  const merged = new Error(err.message + '\n\n' + cause.message);
+  const merged = new Error(cause.message + '\n' + err.message);
   merged.stack = merged.toString() + '\n' + _getErrorStack(cause) + '\n' + _getErrorStack(err);
   return merged;
 }

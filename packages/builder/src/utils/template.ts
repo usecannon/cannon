@@ -2,14 +2,15 @@ import 'ses';
 import _ from 'lodash';
 import Debug from 'debug';
 import Fuse from 'fuse.js';
+import rfdc from 'rfdc';
 import * as acorn from 'acorn';
+import deepFreeze from 'deep-freeze';
 import { Node, Identifier, MemberExpression } from 'acorn';
 import { CANNON_GLOBALS, CannonHelperContext, JS_GLOBALS } from '../types';
 import { getGlobalVars } from './get-global-vars';
 
-import type { TemplateOptions } from 'lodash';
-
 const debug = Debug('cannon:builder:template');
+const clone = rfdc();
 
 const DISALLOWED_IDENTIFIERS = new Set([
   '__proto__',
@@ -53,10 +54,10 @@ const DISALLOWED_IDENTIFIERS = new Set([
   'yield',
 ]);
 
+const DISALLOWED_VARS = Array.from(getGlobalVars()).filter((g) => !JS_GLOBALS.includes(g));
+
 // Cache the global properties to avoid recomputing them on every validation
-const DISALLOWED_KEYWORDS = new Set(
-  [...Array.from(DISALLOWED_IDENTIFIERS), ...Array.from(getGlobalVars())].filter((g) => !JS_GLOBALS.includes(g))
-);
+const DISALLOWED_KEYWORDS = new Set([...Array.from(DISALLOWED_IDENTIFIERS), ...DISALLOWED_VARS]);
 
 // Debug log the complete list if needed
 if (debug.enabled) {
@@ -97,39 +98,71 @@ export function getTemplateMatches(str: string, includeTags = true) {
   return results.map((r) => (includeTags ? r[0] : r[1].trim()));
 }
 
+export function safeRenderTemplate(str: string, ctx: any = {}) {
+  if (!_.isPlainObject(ctx)) {
+    throw new Error('Template context must be an object');
+  }
+
+  return str.replaceAll(/<%=([\s\S]+?)%>/g, (_, content) => {
+    const code = `const this; ${content}`;
+
+    // eslint-disable-next-line no-undef
+    const compartment = new Compartment({
+      globals: { ...ctx },
+      __options__: true,
+    });
+
+    return compartment.evaluate(code);
+  });
+}
+
 /**
  * Lodash template function wrapper.
  * It adds a fuzzy search for the keys in the data object in case the user made a typo.
  */
-export function renderTemplate(str?: string) {
-  const render = _.template(str);
+export function renderTemplate(str: string, data: any = {}) {
+  // Create an object with all the globals defined as undefined so they cannot be accessed
+  // Having called the validateTemplate function before this shouldn't be necessary,
+  // but we add it in case some other way of calling globals that we don't know about is used.
 
-  return (data?: object) => {
-    try {
-      return render(data);
-    } catch (err) {
-      if (err instanceof Error) {
-        err.message += ` at ${str}`;
+  if (!_.isPlainObject(data)) {
+    throw new Error('Template context must be an object');
+  }
 
-        // Do a fuzzy search in the given context, in the case the user did a typo
-        // we look for something close in the current data context object.
-        if (data && err.message.includes('Cannot read properties of undefined')) {
-          const match = err.message.match(/\(reading '([^']+)'\)/);
-          if (match && match[1]) {
-            const desiredKey = match[1];
-            const allKeys = Array.from(_getAllKeys(data));
-            const results = _fuzzySearch(allKeys, desiredKey);
-            if (results.length) {
-              err.message += "\n\n Here's a list of some fields available in this context, did you mean one of these?";
-              for (const res of results) err.message += `\n    ${res}`;
-            }
+  for (const key of DISALLOWED_VARS) {
+    data[key] = undefined;
+  }
+
+  try {
+    return _.template(str)(data);
+  } catch (err) {
+    if (err instanceof Error) {
+      err.message += ` at ${str}`;
+
+      // Do a fuzzy search in the given context, in the case the user did a typo
+      // we look for something close in the current data context object.
+      if (data) {
+        const match = err.message.includes('Cannot read properties of undefined')
+          ? err.message.match(/\(reading '([^']+)'\)/)
+          : err.message.includes(' is not defined ')
+          ? err.message.match(/([^']+) is not defined at /)
+          : null;
+
+        if (match?.[1]) {
+          const desiredKey = match[1];
+          const allKeys = Array.from(_getAllKeys(data));
+          const results = _fuzzySearch(allKeys, desiredKey);
+          if (results.length) {
+            err.message += "\n\n Here's a list of some fields available in this context, did you mean one of these?";
+            for (const res of results) err.message += `\n    ${res}`;
+            err.message += '\n';
           }
         }
       }
-
-      throw err;
     }
-  };
+
+    throw err;
+  }
 }
 
 /**
@@ -139,13 +172,25 @@ export function renderTemplate(str?: string) {
  * @returns The evaluated result
  */
 export function template(templateStr: string, templateContext: Record<string, any> = {}) {
-  const code = 'renderTemplate(templateStr)(templateContext)';
+  const code = 'renderTemplate(templateStr, templateContext)';
+
+  // Validate the template string to make sure it's safe to execute
+  // validateTemplate(templateStr);
+
+  // try {
+  //   const ctx = deepFreeze(clone(templateContext));
+  // } catch (err) {
+  //   console.log(templateContext);
+  //   console.error(err);
+  // }
 
   const compartmentContext = {
-    templateStr,
-    templateContext,
-    globals: {},
-    renderTemplate,
+    globals: {
+      templateStr,
+      templateContext,
+      renderTemplate,
+    },
+    __options__: true,
   };
 
   try {
@@ -184,7 +229,7 @@ function _getAllKeys(obj: { [key: string]: any }, parentKey = '', keys: Set<stri
 function _fuzzySearch(data: string[], query: string) {
   const searcher = new Fuse<string>(data, {
     ignoreLocation: true,
-    threshold: 0.3,
+    threshold: 0.4,
   });
 
   return searcher.search(query).map(({ item }) => item);
@@ -205,6 +250,7 @@ const allowedNodeTypes = new Set<acorn.Node['type']>([
   'Literal', // Represents literal values (numbers, strings, booleans, etc.)
   'BinaryExpression', // Mathematical or comparison operations (e.g., +, -, *, /, >, <)
   'LogicalExpression', // Logical operations (&&, ||)
+  'SequenceExpression', // Execution expressions with comma: a, b
   'ConditionalExpression', // Ternary expressions (condition ? true : false)
   'MemberExpression', // Object property access (e.g., obj.prop)
   'Identifier', // Variable and function names

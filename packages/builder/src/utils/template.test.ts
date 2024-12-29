@@ -1,4 +1,4 @@
-import { TemplateValidationError, validateTemplate, renderTemplate, template } from './template';
+import { TemplateValidationError, validateTemplate, renderTemplate, template, safeRenderTemplate } from './template';
 
 describe('template.ts', () => {
   describe('validateTemplate()', () => {
@@ -27,6 +27,8 @@ describe('template.ts', () => {
 
     it.each([
       '<%= process.exit(1) %>',
+      "<%= console.log(this), 'new greeting' %>",
+      "<%= console.log(process.env), 'some value' %>",
       '<%= global.process %>',
       '<%= require("fs") %>',
       '<%= eval("console.log(\'REKT\')") %>',
@@ -39,7 +41,7 @@ describe('template.ts', () => {
       '<%= globalThis["process"] %>',
       '<%= globalThis %>',
     ])('does not allow invalid globals: "%s"', (template) => {
-      expect(() => validateTemplate(template)).toThrow(TemplateValidationError);
+      expect(() => validateTemplate(template)).toThrow('sarasa');
     });
 
     it.each(['<%= settings.value) %>', '<%= settings.value === %>'])('throws a SyntaxError: "%s"', (template) => {
@@ -74,8 +76,19 @@ describe('template.ts', () => {
       ['[<%= JSON.stringify(a) %>]', { a: { one: 1, two: '2', three: [3] } }, '[{"one":1,"two":"2","three":[3]}]'],
     ])('is valid: "%s"', (str, ctx, expected) => {
       // Make sure the rendering has the same result inside the ses compartment
-      expect(renderTemplate(str)(ctx)).toEqual(expected);
+      expect(renderTemplate(str, ctx)).toEqual(expected);
       expect(template(str, ctx)).toEqual(expected);
+    });
+  });
+
+  describe('safeRenderTemplate()', () => {
+    it.each<[string, any, string]>([
+      ['<%= settings.woot %>', { settings: { woot: 'woot' } }, 'woot'],
+      ['<%= a %>-<%= b %>', { a: 'one', b: 'two' }, 'one-two'],
+      ['[<%= JSON.stringify(a) %>]', { a: { one: 1, two: '2', three: [3] } }, '[{"one":1,"two":"2","three":[3]}]'],
+    ])('is valid: "%s"', (str, ctx, expected) => {
+      // Make sure the rendering has the same result inside the ses compartment
+      expect(safeRenderTemplate(str, ctx)).toEqual(expected);
     });
   });
 });

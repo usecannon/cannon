@@ -133,21 +133,20 @@ export function computeTemplateAccesses(str?: string, possibleNames: string[] = 
     return { accesses: [], unableToCompute: false };
   }
 
-  try {
-    validateTemplate(str);
-  } catch (err: unknown) {
-    if (err instanceof TemplateValidationError || err instanceof SyntaxError) {
-      debug('Template validation failed:', err);
-      return { accesses: [], unableToCompute: true };
-    }
+  // try {
+  //   validateTemplate(str);
+  // } catch (err: unknown) {
+  //   if (err instanceof TemplateValidationError || err instanceof SyntaxError) {
+  //     debug('Template validation failed:', err);
+  //     return { accesses: [], unableToCompute: true };
+  //   }
 
-    throw err;
-  }
+  //   throw err;
+  // }
 
   const recorders = setupTemplateContext(possibleNames);
 
   try {
-    // execute the template function in a secure compartment
     template(str, recorders);
 
     const accesses = collectAccesses(recorders, possibleNames);

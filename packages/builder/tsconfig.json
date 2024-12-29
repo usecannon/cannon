@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "noEmit": true,
-    "target": "ES2020",
+    "target": "ES2021",
     "module": "CommonJS",
     "moduleResolution": "node",
     "declaration": true,
@@ -11,9 +11,18 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "rootDirs": ["./src"],
+    "rootDirs": [
+      "./src"
+    ],
     "skipLibCheck": true
   },
-  "include": ["./src", "../cli/run.ts", "../cli/import-from.ts"],
-  "exclude": ["dist", "node_modules"]
+  "include": [
+    "./src",
+    "../cli/run.ts",
+    "../cli/import-from.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
 }

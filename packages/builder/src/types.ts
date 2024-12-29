@@ -100,7 +100,6 @@ export const JS_GLOBALS = [
   'Date',
   'Map',
   'Number',
-  'Object',
   'RegExp',
   'Set',
   'String',
