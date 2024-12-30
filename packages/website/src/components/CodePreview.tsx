@@ -60,9 +60,12 @@ export const CodePreview: FC<ICodePreviewProps> = ({
 
   // Initialize theme
   useEffect(() => {
-    loader.init().then((monaco) => {
-      monaco.editor.defineTheme('github-dark-default', githubDarkDefault);
-    });
+    void loader
+      .init()
+      .then((monaco) => {
+        monaco.editor.defineTheme('github-dark-default', githubDarkDefault);
+      })
+      .catch();
   }, []);
 
   // Function to highlight lines
