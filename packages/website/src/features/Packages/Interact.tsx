@@ -291,86 +291,143 @@ const Interact: FC = () => {
 
   return (
     <>
-      <div className="sticky top-0 z-60 bg-background overflow-x-scroll overflow-y-hidden max-w-[100vw] border-b border-border">
-        <Tabs
-          defaultValue={
-            highlightedOptions[0]?.moduleName +
-            '.' +
-            highlightedOptions[0]?.contractName
-          }
-          value={
-            activeContractOption
-              ? `${activeContractOption.moduleName}.${activeContractOption.contractName}`
-              : undefined
-          }
-          onValueChange={(value) => {
-            const [moduleName, contractName] = value.split('.');
-            const option = [...highlightedOptions, ...otherOptions].find(
-              (opt) =>
-                opt.moduleName === moduleName &&
-                opt.contractName === contractName
-            );
-            if (option) {
-              void router.push(
-                `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
-              );
+      <div className="sticky top-[64px] z-50 bg-background">
+        <div className="overflow-x-scroll overflow-y-hidden max-w-[100vw] border-b border-border">
+          <Tabs
+            defaultValue={
+              highlightedOptions[0]?.moduleName +
+              '.' +
+              highlightedOptions[0]?.contractName
             }
-          }}
-        >
-          <TabsList className="rounded-none h-full">
-            {highlightedOptions.map((option, i) => (
-              <TabsTrigger
-                key={i}
-                value={`${option.moduleName}.${option.contractName}`}
-              >
-                {`${option.moduleName}.${option.contractName}`}
-              </TabsTrigger>
-            ))}
+            value={
+              activeContractOption
+                ? `${activeContractOption.moduleName}.${activeContractOption.contractName}`
+                : undefined
+            }
+            onValueChange={(value) => {
+              const [moduleName, contractName] = value.split('.');
+              const option = [...highlightedOptions, ...otherOptions].find(
+                (opt) =>
+                  opt.moduleName === moduleName &&
+                  opt.contractName === contractName
+              );
+              if (option) {
+                void router.push(
+                  `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
+                );
+              }
+            }}
+          >
+            <TabsList className="rounded-none h-full">
+              {highlightedOptions.map((option, i) => (
+                <TabsTrigger
+                  key={i}
+                  value={`${option.moduleName}.${option.contractName}`}
+                >
+                  {`${option.moduleName}.${option.contractName}`}
+                </TabsTrigger>
+              ))}
 
-            {otherOptions.length > 0 && (
-              <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <div className={'cursor-pointer px-4 py-2'}>
-                    <MoreHorizontal className="h-4 w-4" />
-                  </div>
-                </PopoverTrigger>
-                <PopoverContent className="max-h-[320px] max-w-[320px] overflow-y-auto overflow-x-hidden w-full bg-background border border-border p-0">
-                  {otherOptions.length > 5 && (
-                    <div className="p-3">
-                      <SearchInput size="sm" onSearchChange={setSearchTerm} />
+              {otherOptions.length > 0 && (
+                <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <div className={'cursor-pointer px-4 py-2'}>
+                      <MoreHorizontal className="h-4 w-4" />
                     </div>
-                  )}
-                  {otherOptions
-                    .filter((o) =>
-                      searchTerm
-                        ? o.contractName.toLowerCase().includes(searchTerm)
-                        : true
-                    )
-                    .map((option, i) => (
-                      <div
-                        key={i}
-                        className={`cursor-pointer p-3 border-t border-border ${
-                          isActiveContract(option)
-                            ? 'bg-background'
-                            : 'bg-transparent'
-                        } hover:bg-accent/50`}
-                        onClick={async () => {
-                          setIsPopoverOpen(false);
-                          await router.push(
-                            `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
-                          );
-                        }}
-                      >
-                        <span className="text-sm">
-                          {`${option.moduleName}.${option.contractName}`}
-                        </span>
+                  </PopoverTrigger>
+                  <PopoverContent className="max-h-[320px] max-w-[320px] overflow-y-auto overflow-x-hidden w-full bg-background border border-border p-0">
+                    {otherOptions.length > 5 && (
+                      <div className="p-3">
+                        <SearchInput size="sm" onSearchChange={setSearchTerm} />
                       </div>
-                    ))}
-                </PopoverContent>
-              </Popover>
-            )}
-          </TabsList>
-        </Tabs>
+                    )}
+                    {otherOptions
+                      .filter((o) =>
+                        searchTerm
+                          ? o.contractName.toLowerCase().includes(searchTerm)
+                          : true
+                      )
+                      .map((option, i) => (
+                        <div
+                          key={i}
+                          className={`cursor-pointer p-3 border-t border-border ${
+                            isActiveContract(option)
+                              ? 'bg-background'
+                              : 'bg-transparent'
+                          } hover:bg-accent/50`}
+                          onClick={async () => {
+                            setIsPopoverOpen(false);
+                            await router.push(
+                              `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
+                            );
+                          }}
+                        >
+                          <span className="text-sm">
+                            {`${option.moduleName}.${option.contractName}`}
+                          </span>
+                        </div>
+                      ))}
+                  </PopoverContent>
+                </Popover>
+              )}
+            </TabsList>
+          </Tabs>
+        </div>
+
+        {/* Header */}
+        <div className="flex flex-col md:flex-row bg-background p-2 border-b border-border items-start md:items-center">
+          {/* Token */}
+          <div className="p-1">
+            <h4 className="inline-block font-bold mr-2.5">
+              {isLoadingData ? (
+                <div className="h-4 w-[100px] mt-1 mb-1 animate-pulse bg-gray-700" />
+              ) : (
+                contract?.contractName
+              )}
+            </h4>
+
+            <a
+              className="text-xs text-muted-foreground no-underline border-b border-dotted border-gray-300 font-mono cursor-pointer"
+              href={`/packages/${name}/${tag}/${variant}/code/${moduleName}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {contract?.sourceName}
+            </a>
+          </div>
+
+          {/* IPFS Url */}
+          <div className="p-1 md:ml-auto">
+            <div className="flex flex-col items-start md:items-end">
+              <p className="text-xs text-muted-foreground">
+                {explorerUrl ? (
+                  <a
+                    className="no-underline border-b border-dotted border-gray-300 font-mono cursor-pointer"
+                    href={explorerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {contractAddress.substring(0, 6)}...
+                    {contractAddress.slice(-4)}
+                  </a>
+                ) : null}{' '}
+                {moduleName !== name ? (
+                  <>
+                    from{' '}
+                    <a
+                      className="no-underline border-b border-dotted border-gray-300 font-mono cursor-pointer"
+                      href={deployUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {`[clone.${moduleName}]`}
+                    </a>
+                  </>
+                ) : null}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {isLoadingData ? (
@@ -379,68 +436,6 @@ const Interact: FC = () => {
         </div>
       ) : (
         <>
-          {/* Header */}
-          <div
-            className={`
-              flex flex-col md:flex-row bg-background
-              p-2 border-b border-border
-              sticky top-[107px]
-              z-50 items-start md:items-center
-            `}
-          >
-            {/* Token */}
-            <div className="p-1">
-              <h4 className="inline-block font-bold mr-2.5">
-                {isLoadingData ? (
-                  <div className="h-4 w-[100px] mt-1 mb-1 animate-pulse bg-gray-700" />
-                ) : (
-                  contract?.contractName
-                )}
-              </h4>
-
-              <a
-                className="text-xs text-muted-foreground no-underline border-b border-dotted border-gray-300 font-mono cursor-pointer"
-                href={`/packages/${name}/${tag}/${variant}/code/${moduleName}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {contract?.sourceName}
-              </a>
-            </div>
-
-            {/* IPFS Url */}
-            <div className="p-1 md:ml-auto">
-              <div className="flex flex-col items-start md:items-end">
-                <p className="text-xs text-muted-foreground">
-                  {explorerUrl ? (
-                    <a
-                      className="no-underline border-b border-dotted border-gray-300 font-mono cursor-pointer"
-                      href={explorerUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {contractAddress.substring(0, 6)}...
-                      {contractAddress.slice(-4)}
-                    </a>
-                  ) : null}{' '}
-                  {moduleName !== name ? (
-                    <>
-                      from{' '}
-                      <a
-                        className="no-underline border-b border-dotted border-gray-300 font-mono cursor-pointer"
-                        href={deployUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {`[clone.${moduleName}]`}
-                      </a>
-                    </>
-                  ) : null}
-                </p>
-              </div>
-            </div>
-          </div>
-
           <Abi
             isLoading={isLoadingData}
             abi={contract?.abi}
