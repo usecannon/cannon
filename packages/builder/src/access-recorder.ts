@@ -136,8 +136,10 @@ export function computeTemplateAccesses(str?: string, possibleNames: string[] = 
   const recorders = setupTemplateContext(possibleNames);
 
   try {
-    template(str, recorders);
-
+    // we give it "true" for safeContext to avoid cloning and freezing of the object
+    // this is because we want to keep the access recorder, and is not a security risk
+    // if the user can modify that object
+    template(str, recorders, true);
     const accesses = collectAccesses(recorders, possibleNames);
     return { accesses, unableToCompute: false };
   } catch (err) {

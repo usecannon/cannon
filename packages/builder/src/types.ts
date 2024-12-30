@@ -1,10 +1,10 @@
 import _ from 'lodash';
 import * as viem from 'viem';
+import deepFreeze from 'deep-freeze';
 import { viemContext } from './utils/viem-context';
 import { PackageReference } from './package-reference';
 
 import type { RawChainDefinition } from './actions';
-import deepFreeze from 'deep-freeze';
 
 // loosely based on the hardhat `Artifact` type
 export type ContractArtifact = {
@@ -96,6 +96,7 @@ export type CannonContextGlobals = 'imports' | 'contracts' | 'txns' | 'settings'
 export const JS_GLOBALS = [
   // Fundamental objects
   'Array',
+  'Object',
   'BigInt',
   'Buffer',
   'Date',
@@ -205,6 +206,9 @@ export const CannonHelperContext = {
   ...ethersStyleConstants,
   ...jsContext,
 };
+
+// We don't want the user to modify the base template context ever.
+deepFreeze(CannonHelperContext);
 
 export type CannonHelperContext = deepFreeze.DeepReadonly<typeof CannonHelperContext>;
 

@@ -9,8 +9,8 @@ import { Node, Identifier, MemberExpression } from 'acorn';
 import { CannonHelperContext, JS_GLOBALS } from '../types';
 import { getGlobalVars } from './get-global-vars';
 
-const debug = Debug('cannon:builder:template');
 const clone = rfdc();
+const debug = Debug('cannon:builder:template');
 
 const DISALLOWED_IDENTIFIERS = new Set([
   '__proto__',
@@ -106,11 +106,7 @@ export function safeRenderTemplate(str: string, ctx: any = {}) {
  * Lodash template function wrapper.
  * It adds a fuzzy search for the keys in the data object in case the user made a typo.
  */
-export function renderTemplate(str: string, data: any = {}) {
-  // Create an object with all the globals defined as undefined so they cannot be accessed
-  // Having called the validateTemplate function before this shouldn't be necessary,
-  // but we add it in case some other way of calling globals that we don't know about is used.
-
+export function renderTemplate(str: string, data: any = {}, safeContext = false) {
   if (!_.isPlainObject(data)) {
     throw new Error('Missing template context');
   }
@@ -122,7 +118,12 @@ export function renderTemplate(str: string, data: any = {}) {
   }
 
   try {
-    return _.template(str, { imports: CannonHelperContext })(data);
+    // If it is rendering a real context, we clone it and freeze it to avoid any modifications
+    // by the user. This is to avoid any security risks that could be moved to the following steps.
+    // E.g.:
+    //   args = ["<%= Object.assign(contracts.Greeter, { address: '0xdeadbeef' }) %>"]
+    const ctx = safeContext ? data : deepFreeze(clone(data));
+    return _.template(str, { imports: CannonHelperContext })(ctx);
   } catch (err) {
     if (err instanceof Error) {
       err.message += ` at ${str}`;
@@ -159,24 +160,18 @@ export function renderTemplate(str: string, data: any = {}) {
  * @param context - The template context object, includes the variables to be used in the template
  * @returns The evaluated result
  */
-export function template(templateStr: string, templateContext: Record<string, any> = {}) {
-  const code = 'renderTemplate(templateStr, templateContext)';
+export function template(templateStr: string, templateContext: Record<string, any> = {}, safeContext = false) {
+  const code = 'renderTemplate(templateStr, templateContext, safeContext)';
 
   // Validate the template string to make sure it's safe to execute
   validateTemplate(templateStr);
-
-  // try {
-  //   const ctx = deepFreeze(clone(templateContext));
-  // } catch (err) {
-  //   console.log(templateContext);
-  //   console.error(err);
-  // }
 
   const compartmentContext = {
     globals: {
       templateStr,
       templateContext,
       renderTemplate,
+      safeContext,
     },
     __options__: true,
   };
@@ -232,7 +227,8 @@ export class TemplateValidationError extends Error {
 
 const NEW_LINE_CHARS = ['\n', '\r', '\u2028'];
 
-const allowedNodeTypes = new Set<acorn.Node['type']>([
+// Define the subset of JS operations that are allowed in templates
+const ALLOWED_NODE_TYPES = new Set<acorn.Node['type']>([
   'Program', // Root node of the ast
   'ExpressionStatement', // Represents a single expression
   'Literal', // Represents literal values (numbers, strings, booleans, etc.)
@@ -259,7 +255,6 @@ export function validateTemplate(templateStr: string): undefined {
   const expressions = getTemplateMatches(templateStr, false) ?? [];
 
   for (const expr of expressions) {
-    // prevent multi-line expressions
     if (NEW_LINE_CHARS.some((nl) => expr.includes(nl))) {
       throw new TemplateValidationError('Multi-line expressions are not allowed');
     }
@@ -276,13 +271,7 @@ export function validateTemplate(templateStr: string): undefined {
 
       // check if node type is allowed
       if (node.type) {
-        if (node.type === 'AssignmentExpression') {
-          throw new TemplateValidationError(
-            `Assignment operator "${(node as acorn.AssignmentExpression).operator}" is not allowed`
-          );
-        }
-
-        if (!allowedNodeTypes.has(node.type)) {
+        if (!ALLOWED_NODE_TYPES.has(node.type)) {
           throw new TemplateValidationError(`Unauthorized operation type: ${node.type}`);
         }
 
