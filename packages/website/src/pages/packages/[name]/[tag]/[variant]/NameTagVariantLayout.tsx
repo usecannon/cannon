@@ -11,7 +11,6 @@ import { ReactNode } from 'react';
 import { NavLink } from '@/components/NavLink';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { format } from 'date-fns';
-import { CheckCircledIcon, MinusCircledIcon } from '@radix-ui/react-icons';
 
 import { IpfsLinks } from '@/features/Packages/IpfsLinks';
 import { VersionSelect } from '@/features/Packages/VersionSelect';
