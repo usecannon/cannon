@@ -13,7 +13,12 @@ import diamondSpec from './steps/diamond';
 import varSpec from './steps/var';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from './types';
 
-export interface CannonAction<Config = any> {
+export interface RawConfig {
+  description?: string;
+  depends?: string[];
+}
+
+export interface CannonAction<Config extends RawConfig = any> {
   label: string;
 
   configInject: (ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) => Config;
