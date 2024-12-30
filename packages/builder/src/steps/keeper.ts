@@ -15,8 +15,14 @@ export const keeperSchema = z
   .merge(
     z
       .object({
+        description: z.string().describe('Description of the operation'),
         args: z.array(z.string()),
         env: z.array(z.string()),
+        depends: z
+          .array(z.string())
+          .describe(
+            'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+          ),
       })
       .deepPartial()
   );
