@@ -618,11 +618,11 @@ const QueueDrawer = ({
           borderColor: 'teal.500',
         }}
         width={'fit-content'}
-        transform="translateX(1px)"
+        transform="translate(1px,-50%)"
         borderTopRightRadius={0}
         borderBottomRightRadius={0}
         position="fixed"
-        top="160px"
+        top="50%"
         right="0"
         zIndex={51}
         icon={

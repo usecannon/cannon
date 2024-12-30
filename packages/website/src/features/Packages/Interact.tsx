@@ -331,13 +331,13 @@ const Interact: FC = () => {
               {otherOptions.length > 0 && (
                 <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
                   <PopoverTrigger asChild>
-                    <div className={'cursor-pointer px-4 py-2'}>
-                      <MoreHorizontal className="h-4 w-4" />
+                    <div className="cursor-pointer bg-black p-1 border border-border rounded-md mx-2">
+                      <MoreHorizontal className="h-4 w-4 text-white" />
                     </div>
                   </PopoverTrigger>
                   <PopoverContent className="max-h-[320px] max-w-[320px] overflow-y-auto overflow-x-hidden w-full bg-background border border-border p-0">
                     {otherOptions.length > 5 && (
-                      <div className="p-3">
+                      <div className="p-2">
                         <SearchInput size="sm" onSearchChange={setSearchTerm} />
                       </div>
                     )}
@@ -350,7 +350,7 @@ const Interact: FC = () => {
                       .map((option, i) => (
                         <div
                           key={i}
-                          className={`cursor-pointer p-3 border-t border-border ${
+                          className={`cursor-pointer p-2 border-t border-border ${
                             isActiveContract(option)
                               ? 'bg-background'
                               : 'bg-transparent'
@@ -383,7 +383,7 @@ const Interact: FC = () => {
           </div>
 
           <div className="p-1 md:ml-auto">
-            <div className="flex flex-col items-start md:flex-row md:items-end gap-6 text-gray-300 text-xs font-mono text-muted-foreground">
+            <div className="flex flex-col items-start md:flex-row md:items-end gap-3 md:gap-6 text-gray-300 text-xs font-mono text-muted-foreground">
               <a
                 className="no-underline hover:no-underline flex items-center"
                 href={`/packages/${name}/${tag}/${variant}/code/${moduleName}?source=${contract?.sourceName}`}
@@ -413,7 +413,7 @@ const Interact: FC = () => {
                 ) : null}{' '}
                 {moduleName !== name ? (
                   <>
-                    from{' '}
+                    <span className="mx-1">from</span>
                     <a
                       className="no-underline hover:no-underline"
                       href={deployUrl}

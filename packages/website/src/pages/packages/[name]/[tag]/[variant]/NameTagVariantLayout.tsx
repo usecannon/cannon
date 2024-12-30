@@ -75,7 +75,7 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
                               </div>
                               <div>
                                 <SidebarGroupLabel className="m-0 h-6 p-0">
-                                  Built with
+                                  Build Info
                                 </SidebarGroupLabel>
                                 {(deploymentInfo?.generator ||
                                   deploymentInfo?.timestamp) && (

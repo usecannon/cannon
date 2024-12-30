@@ -13,7 +13,7 @@ interface SearchInputProps {
 const SearchInput: React.FC<SearchInputProps> = ({
   onSearchChange,
   debounceDelay = 300,
-  placeholder = 'Search...',
+  placeholder = '',
   size = 'default',
 }) => {
   const debouncedHandleSearch = React.useMemo(

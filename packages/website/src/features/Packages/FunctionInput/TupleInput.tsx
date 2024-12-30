@@ -37,13 +37,13 @@ const TupleInput = ({
   };
 
   return (
-    <div className="flex flex-col w-full border-l border-border/60 pl-4">
+    <div className="flex flex-col w-full border-l border-border mt-1 pt-1 pl-4">
       {input.components.map((component: any, index: number) => (
         <div className="mb-4" key={index}>
           <Label className="mb-1">
             {component.name && <span>{component.name}</span>}
             {component.type && (
-              <span className="text-xs text-muted-foreground ml-1">
+              <span className="text-xs font-mono text-muted-foreground ml-1">
                 {component.type}
               </span>
             )}

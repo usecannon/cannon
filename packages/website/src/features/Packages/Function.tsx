@@ -7,7 +7,6 @@ import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import {
   CheckIcon,
   ChevronDownIcon,
-  ChevronUpIcon,
   AlertTriangleIcon,
   PlayIcon,
   WalletIcon,
@@ -337,17 +336,17 @@ export const Function: FC<{
             <h2 className="text-sm font-mono flex items-center">
               {toFunctionSignature(f)}
               <Link
-                className="text-gray-300 ml-1 hover:underline"
+                className="text-muted-foreground ml-3 hover:no-underline"
                 href={anchor || '#'}
               >
                 #
               </Link>
               {!!contractSource && (
                 <Link
-                  className="text-gray-300 ml-1 hover:underline"
+                  className="text-muted-foreground ml-3 hover:no-underline"
                   href={getCodeUrl(f.name) || '#'}
                 >
-                  <FaCode className="text-gray-300" />
+                  <FaCode className="text-muted-foreground" />
                 </Link>
               )}
             </h2>
@@ -418,7 +417,7 @@ export const Function: FC<{
               </div>
             )}
 
-            <div className="flex gap-4">
+            <div className="flex gap-4 mt-1">
               {isFunctionReadOnly && (
                 <Button
                   disabled={loading}
@@ -434,11 +433,10 @@ export const Function: FC<{
               )}
 
               {!isFunctionReadOnly && (
-                <>
+                <div className="flex w-full justify-between gap-4">
                   <Button
                     disabled={loading}
                     variant="outline"
-                    size="sm"
                     onClick={async () => await submit({ simulate: true })}
                   >
                     <PlayIcon className="w-4 h-4" />
@@ -452,11 +450,10 @@ export const Function: FC<{
                   <Button
                     disabled={loading}
                     variant="outline"
-                    size="sm"
                     onClick={async () => await submit()}
                   >
                     <WalletIcon className="w-4 h-4" />
-                    Submit using wallet{' '}
+                    Submit with wallet{' '}
                     {!simulated && methodCallOrQueuedResult && (
                       <StatusIcon
                         error={Boolean(methodCallOrQueuedResult.error)}
@@ -467,7 +464,6 @@ export const Function: FC<{
                     id={`${f.name}-stage-to-safe`}
                     disabled={loading}
                     variant="outline"
-                    size="sm"
                     onClick={handleQueueTransaction}
                   >
                     <svg
@@ -491,7 +487,7 @@ export const Function: FC<{
                     </svg>
                     Stage to Safe
                   </Button>
-                </>
+                </div>
               )}
             </div>
 
@@ -561,15 +557,15 @@ export const Function: FC<{
       {collapsible ? (
         <div className="flex flex-col border border-border rounded-sm overflow-hidden">
           <div
-            className="flex flex-row px-3 py-2 items-center justify-between bg-background cursor-pointer hover:bg-accent/50 transition-colors"
+            className="flex flex-row px-3 py-2 items-center justify-between hover:bg-accent/60 cursor-pointer bg-accent/50 transition-colors"
             id={anchor}
             onClick={() => setIsOpen(!isOpen)}
           >
             {f.name && (
-              <h2 className="text-sm font-mono flex items-center gap-2 max-w-full break-words">
+              <h2 className="text-sm font-mono flex items-center max-w-full break-words">
                 {toFunctionSignature(f)}
                 <Link
-                  className="text-gray-300 ml-1 hover:no-underline"
+                  className="text-muted-foreground ml-3 hover:no-underline"
                   href={anchor}
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -577,20 +573,21 @@ export const Function: FC<{
                 </Link>
                 {!!contractSource && (
                   <Link
-                    className="text-gray-300 ml-1 hover:no-underline"
+                    className="text-muted-foreground ml-3 hover:no-underline"
                     href={getCodeUrl(f.name) ?? '#'}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <FaCode className="text-gray-300" />
+                    <FaCode className="text-muted-foreground" />
                   </Link>
                 )}
               </h2>
             )}
-            {isOpen ? (
-              <ChevronUpIcon className="w-5 h-5" />
-            ) : (
-              <ChevronDownIcon className="w-5 h-5" />
-            )}
+            <ChevronDownIcon
+              className={cn(
+                'w-5 h-5 transition-transform duration-300',
+                isOpen && 'rotate-180'
+              )}
+            />
           </div>
           <AnimatePresence mode="wait">
             {isOpen && (

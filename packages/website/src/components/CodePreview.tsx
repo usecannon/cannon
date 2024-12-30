@@ -1,6 +1,5 @@
 import { FC, useRef, useEffect } from 'react';
 import Editor, { type EditorProps, loader } from '@monaco-editor/react';
-import { createGlobalStyle } from 'styled-components';
 
 // Define the GitHub Dark Default theme
 const githubDarkDefault = {
@@ -20,9 +19,9 @@ const githubDarkDefault = {
     { token: 'constant', foreground: '#79c0ff' },
   ],
   colors: {
-    'editor.background': '#000000',
+    'editor.background': '#27272A80',
     'editor.foreground': '#c9d1d9',
-    'editor.lineHighlightBackground': '#161b22',
+    'editor.lineHighlightBackground': '#27272A80',
     'editor.selectionBackground': '#264f78',
     'editorCursor.foreground': '#c9d1d9',
     'editorWhitespace.foreground': '#484f58',
@@ -30,16 +29,6 @@ const githubDarkDefault = {
     'editorIndentGuide.activeBackground': '#30363d',
   },
 };
-
-const EditorStyles = createGlobalStyle`
-  .myInlineDecoration {
-    cursor: pointer;
-    text-decoration: underline;
-    font-weight: bold;
-    font-style: oblique;
-    background-color: #338fff6c;
-  }
-`;
 
 interface ICodePreviewProps {
   code: string;
@@ -98,7 +87,6 @@ export const CodePreview: FC<ICodePreviewProps> = ({
 
   return (
     <>
-      <EditorStyles />
       <Editor
         height={height || '100%'}
         theme="github-dark-default"
