@@ -177,9 +177,11 @@ describe('builder.ts', () => {
 
   jest.mocked(invokeStep.getState).mockResolvedValue([{}] as any);
   jest.mocked(invokeStep.exec).mockResolvedValue({
+    contracts: {},
     txns: {
       smartFunc: { hash: '0x56785678', events: {}, deployedOn: 'invoke.smartFunc', gasCost: '0', gasUsed: 0, signer: '' },
     },
+    settings: {},
   });
   jest.mocked(invokeStep.getInputs).mockReturnValue({ accesses: [], unableToCompute: false });
   jest.mocked(invokeStep.getOutputs).mockReturnValue([]);

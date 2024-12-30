@@ -2,6 +2,7 @@ import _ from 'lodash';
 import { z } from 'zod';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderRuntimeInfo } from '../types';
 import { template } from '../utils/template';
+import { CannonAction } from '../actions';
 
 /**
  *  Available properties for keeper operation (Not yet implemented)
@@ -31,11 +32,11 @@ export default {
 
   validate: keeperSchema,
 
-  async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
-    return [this.configInject(ctx, config)];
+  async getState(_runtime, ctx, config, packageState) {
+    return [this.configInject(ctx, config, packageState)];
   },
 
-  configInject(ctx: ChainBuilderContext, config: Config) {
+  configInject(ctx, config) {
     config = _.cloneDeep(config);
 
     config.exec = template(config.exec)(ctx);
@@ -55,8 +56,7 @@ export default {
     return config;
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async exec(_runtime: ChainBuilderRuntimeInfo, _ctx: ChainBuilderContext, _config: Config): Promise<ChainArtifacts> {
+  async exec() {
     return {};
   },
-};
+} satisfies CannonAction<Config>;

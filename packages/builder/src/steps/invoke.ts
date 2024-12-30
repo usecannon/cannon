@@ -23,6 +23,7 @@ import {
 } from '../util';
 import { getTemplateMatches, isTemplateString, template } from '../utils/template';
 import { isStepPath, isStepName } from '../utils/matchers';
+import { CannonAction } from '../actions';
 
 const debug = Debug('cannon:builder:invoke');
 
@@ -319,8 +320,8 @@ const invokeSpec = {
 
   validate: invokeSchema,
 
-  async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
-    const cfg = this.configInject(ctx, config);
+  async getState(_runtime, ctx, config, packageState) {
+    const cfg = this.configInject(ctx, config, packageState);
 
     if (typeof cfg.target === 'string') {
       cfg.target = [cfg.target as string];
@@ -360,7 +361,7 @@ const invokeSpec = {
     ];
   },
 
-  configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
+  configInject(ctx, config) {
     config = _.cloneDeep(config);
 
     if (typeof config.target === 'string') {
@@ -434,7 +435,7 @@ const invokeSpec = {
     return config;
   },
 
-  getInputs(config: Config, possibleFields: string[]) {
+  getInputs(config, possibleFields) {
     let accesses = computeTemplateAccesses(config.abi, possibleFields);
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.func, possibleFields));
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.from, possibleFields));
@@ -497,7 +498,7 @@ const invokeSpec = {
     return accesses;
   },
 
-  getOutputs(config: Config, packageState: PackageState) {
+  getOutputs(config, packageState) {
     const outputs = [`txns.${packageState.currentLabel.split('.')[1]}`];
 
     // factories can output contracts, and var can output vars
@@ -535,12 +536,7 @@ const invokeSpec = {
     return outputs;
   },
 
-  async exec(
-    runtime: ChainBuilderRuntimeInfo,
-    ctx: ChainBuilderContext,
-    config: Config,
-    packageState: PackageState
-  ): Promise<ChainArtifacts> {
+  async exec(runtime, ctx, config, packageState) {
     debug('exec', config);
 
     const txns: TransactionMap = {};
@@ -605,13 +601,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
     return importTxnData(runtime, ctx, config, packageState, txns);
   },
 
-  async importExisting(
-    runtime: ChainBuilderRuntimeInfo,
-    ctx: ChainBuilderContext,
-    config: Config,
-    packageState: PackageState,
-    existingKeys: string[]
-  ): Promise<ChainArtifacts> {
+  async importExisting(runtime, ctx, config, packageState, existingKeys) {
     const txns: TransactionMap = {};
     for (let i = 0; i < existingKeys.length; i++) {
       const key = existingKeys[i] as viem.Hash;
@@ -667,6 +657,6 @@ ${getAllContractPaths(ctx).join('\n')}`);
 
     return importTxnData(runtime, ctx, config, packageState, txns);
   },
-};
+} satisfies CannonAction<Config>;
 
 export default invokeSpec;
