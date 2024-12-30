@@ -11,12 +11,14 @@ import * as viem from 'viem';
 // eslint-disable-next-line no-restricted-imports
 import * as chains from 'viem/chains';
 import sortBy from 'lodash/sortBy';
+import merge from 'lodash/merge';
 
 import { externalLinks } from '@/constants/externalLinks';
 import isEmpty from 'lodash/isEmpty';
 import cloneDeep from 'lodash/cloneDeep';
 import { useQuery } from '@tanstack/react-query';
 import PageLoading from '@/components/PageLoading';
+import { randomItem } from '@/helpers/random';
 
 type CustomProviders =
   | {
@@ -39,12 +41,30 @@ const cannonNetwork = {
   name: 'Cannon',
 } as viem.Chain;
 
-// Some chains have default rpc urls that don't work properly with interact on the website.
-// We use custom rpc urls for these chains.
+// Some chains have default rpc urls that don't work properly with interact on the website
+// because they are being rate limited. We use custom rpc urls for these chains.
 const customDefaultRpcs: Record<number, viem.Chain['rpcUrls']> = {
+  [`${chains.mainnet.id}`]: {
+    default: {
+      http: [
+        randomItem([
+          'https://eth.llamarpc.com',
+          'https://ethereum-rpc.publicnode.com',
+          'https://rpc.ankr.com/eth',
+          'https://eth.blockrazor.xyz',
+        ]),
+      ],
+    },
+  },
   [`${chains.sepolia.id}`]: {
     default: {
-      http: ['https://gateway.tenderly.co/public/sepolia'],
+      http: [
+        randomItem([
+          'https://gateway.tenderly.co/public/sepolia',
+          'https://ethereum-sepolia-rpc.publicnode.com',
+          'https://eth-sepolia.public.blastapi.io',
+        ]),
+      ],
     },
   },
 };
@@ -142,7 +162,7 @@ export const supportedChains = [cannonNetwork, ...Object.values(chains)].map(
 
     return {
       ...c,
-      rpcUrls: customDefaultRpcs[`${c.id}`],
+      rpcUrls: merge({}, c.rpcUrls, customDefaultRpcs[`${c.id}`]),
     };
   }
 );
