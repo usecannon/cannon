@@ -291,8 +291,8 @@ const Interact: FC = () => {
 
   return (
     <>
-      <div className="sticky top-[57px] z-50 bg-background">
-        <div className="overflow-x-scroll overflow-y-hidden max-w-[100vw] border-b border-border">
+      <div className="sticky top-[57px] z-50 bg-muted">
+        <div className="overflow-x-scroll overflow-y-hidden max-w-[100vw]">
           <Tabs
             defaultValue={
               highlightedOptions[0]?.moduleName +
@@ -318,7 +318,7 @@ const Interact: FC = () => {
               }
             }}
           >
-            <TabsList className="rounded-none h-full">
+            <TabsList className="h-full">
               {highlightedOptions.map((option, i) => (
                 <TabsTrigger
                   key={i}
@@ -375,7 +375,7 @@ const Interact: FC = () => {
         </div>
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row bg-background p-2 border-b border-border items-start md:items-center">
+        <div className="flex flex-col md:flex-row bg-background px-2 py-1 border-b border-border items-start md:items-center">
           {/* Token */}
           <div className="p-1">
             <h4 className="inline-block font-bold mr-2.5">

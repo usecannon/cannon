@@ -159,17 +159,17 @@ export const Abi: FC<{
 
   const sidebarContent = (
     <SidebarContent className="overflow-y-auto">
-      <SidebarGroup className="pb-1">
+      <SidebarGroup className="pb-1 px-3">
         <SidebarGroupContent>
           <SidebarMenu>
-            <SidebarMenuItem className="mt-2">
-              <SearchInput onSearchChange={setSearchTerm} />
+            <SidebarMenuItem className="mt-1">
+              <SearchInput size="sm" onSearchChange={setSearchTerm} />
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
 
-      <SidebarGroup>
+      <SidebarGroup className="pt-0">
         <SidebarGroupContent>
           <SidebarGroupLabel className="h-6">Read Functions</SidebarGroupLabel>
         </SidebarGroupContent>
@@ -185,7 +185,7 @@ export const Abi: FC<{
                 )
                 .map((f, index) => (
                   <SidebarMenuButton
-                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full font-mono text-sm"
+                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full font-mono text-sm py-0"
                     key={index}
                     isActive={selectedSelector == getSelectorSlug(f)}
                     onClick={() => handleMethodClick(f)}
@@ -216,7 +216,7 @@ export const Abi: FC<{
                 )
                 .map((f, index) => (
                   <SidebarMenuButton
-                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full font-mono text-sm"
+                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full font-mono text-sm py-0"
                     key={index}
                     isActive={selectedSelector == getSelectorSlug(f)}
                     onClick={() => handleMethodClick(f)}
@@ -241,11 +241,11 @@ export const Abi: FC<{
         <SidebarLayout
           sidebarContent={sidebarContent}
           centered={false}
-          sidebarTop="138px"
+          sidebarTop="134px"
           mainContentOverflowY="visible"
         >
           {/* Methods Interactions */}
-          <div className="flex flex-col px-4 py-4 border-b border-gray-700 gap-4 flex-1 overflow-x-auto">
+          <div className="flex flex-col p-3 gap-4 flex-1 overflow-x-auto">
             {isLoading ? (
               <div className="flex items-center justify-center flex-1">
                 <CustomSpinner />

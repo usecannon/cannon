@@ -574,7 +574,7 @@ export const CodeExplorer: FC<{
         </div>
       ) : artifacts?.length || provisionedPackagesKeys.length ? (
         <>
-          <div className="sticky top-0 z-[3] md:sticky overflow-x-scroll overflow-y-hidden max-w-full border-b border-gray-800">
+          <div className="sticky top-0 z-[3] md:sticky overflow-x-scroll overflow-y-hidden max-w-full border-b border-border bg-muted">
             <Tabs
               defaultValue={moduleName || name}
               value={selectedPackage.name}
@@ -603,7 +603,7 @@ export const CodeExplorer: FC<{
                 }
               }}
             >
-              <TabsList className="rounded-none h-full">
+              <TabsList className="h-full">
                 {!isEmpty(miscData?.artifacts) && (
                   <TabsTrigger value={name} disabled={isLoading}>
                     {name}
