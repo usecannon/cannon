@@ -621,6 +621,10 @@ const QueueDrawer = ({
         transform="translateX(1px)"
         borderTopRightRadius={0}
         borderBottomRightRadius={0}
+        position="fixed"
+        top="160px"
+        right="0"
+        zIndex={51}
         icon={
           <Icon width="4" height="4" viewBox="0 0 39 40" fill="none">
             <path
@@ -637,9 +641,6 @@ const QueueDrawer = ({
             />
           </Icon>
         }
-        position="fixed"
-        top="144px"
-        right="0"
       />
       <Drawer onClose={onClose} isOpen={isOpen} size={'lg'} placement="right">
         <DrawerOverlay />

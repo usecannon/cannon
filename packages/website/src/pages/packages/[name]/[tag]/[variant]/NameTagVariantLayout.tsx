@@ -44,8 +44,8 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
       mainContentOverflowY={asPath.includes('/interact') ? 'visible' : 'auto'}
     >
       {packagesQuery.isSuccess ? (
-        <>
-          <div className="bg-black pt-5 border-b border-gray-700">
+        <div className="position-relative">
+          <div className="bg-black pt-5 border-b border-border">
             <div className="container max-w-[1024px] mx-auto">
               {/* Package Header */}
               <div className="flex flex-col h-[136px] md:flex-row md:items-center px-6">
@@ -94,7 +94,7 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
               </div>
 
               {/* Package Nav */}
-              <div className="flex gap-8 items-center h-[calc(var(--subheader-height))] max-w-[100vw] overflow-x-auto overflow-y-hidden px-6">
+              <div className="flex gap-8 items-center max-w-[100vw] overflow-x-auto overflow-y-hidden px-6">
                 <NavLink
                   isActive={pathname == '/packages/[name]/[tag]/[variant]'}
                   href={`/packages/${packagesQuery.data.name}/${params.tag}/${params.variant}`}
@@ -153,7 +153,7 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
           {children}
-        </>
+        </div>
       ) : packagesQuery.isError ? (
         <p className="uppercase tracking-wider m-auto font-['var(--font-miriam)']">
           Package Not Found

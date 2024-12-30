@@ -1,22 +1,21 @@
 import { FC } from 'react';
-import {
-  Button,
-  Text,
-  Flex,
-  Modal,
-  ModalContent,
-  ModalOverlay,
-  useDisclosure,
-} from '@chakra-ui/react';
-import { ArrowUpDownIcon } from '@chakra-ui/icons';
+import { Button } from '@/components/ui/button';
+import { ChevronsUpDown } from 'lucide-react';
 import { PackageCard } from '@/features/Search/PackageCard/PackageCard';
 import Chain from '@/features/Search/PackageCard/Chain';
 import { usePackageByName } from '@/hooks/api/usePackage';
+import {
+  Dialog,
+  DialogContent,
+  DialogOverlay,
+  DialogPortal,
+} from '@/components/ui/dialog';
+import { useState } from 'react';
 
 export const VersionSelect: FC<{
   pkg: any;
 }> = ({ pkg }) => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isOpen, setIsOpen] = useState(false);
 
   const packagesQuery = usePackageByName({ name: pkg.name });
 
@@ -31,29 +30,29 @@ export const VersionSelect: FC<{
   return (
     <>
       <Button
-        onClick={onOpen}
-        rightIcon={<ArrowUpDownIcon h="3" opacity="0.8" />}
-        colorScheme="black"
+        onClick={() => setIsOpen(true)}
         variant="outline"
-        borderColor="gray.500"
-        _hover={{ bg: 'gray.900', borderColor: 'gray.500' }}
+        className="border-border hover:bg-accent/50"
       >
-        <Flex gap={1} alignItems="baseline">
+        <div className="flex items-baseline gap-1">
           {pkg.version}
           {pkg?.tag}
-          <Text fontSize="xs" color="gray.500" letterSpacing={'-0.3px'} mr={1}>
+          <span className="text-xs text-muted-foreground mr-1">
             {pkg?.preset}
-          </Text>
+          </span>
           <Chain id={pkg?.chainId} />
-        </Flex>
+        </div>
+        <ChevronsUpDown className="h-3 w-3 opacity-80" />
       </Button>
 
-      <Modal isCentered isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent maxW="container.lg">
-          <PackageCard pkgs={packagesQuery.data.data} maxHeight={'75vh'} />
-        </ModalContent>
-      </Modal>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogPortal>
+          <DialogOverlay className="bg-black/80" />
+          <DialogContent className="max-w-[80rem] border-none p-0">
+            <PackageCard pkgs={packagesQuery.data.data} maxHeight={'75vh'} />
+          </DialogContent>
+        </DialogPortal>
+      </Dialog>
     </>
   );
 };

@@ -1,8 +1,8 @@
-import { Flex, FormControl, FormLabel, Text } from '@chakra-ui/react';
 import { BigNumber } from '@ethersproject/bignumber';
 import { useState } from 'react';
 import { AbiParameter } from 'viem';
 import { FunctionInput } from '../FunctionInput';
+import { Label } from '@/components/ui/label';
 
 const TupleInput = ({
   input,
@@ -37,24 +37,17 @@ const TupleInput = ({
   };
 
   return (
-    <Flex
-      borderLeft="1px"
-      borderColor="gray.600"
-      pl="4"
-      direction="column"
-      w="100%"
-    >
+    <div className="flex flex-col w-full border-l border-border/60 pl-4">
       {input.components.map((component: any, index: number) => (
-        <FormControl mb="4" key={index}>
-          <FormLabel fontSize="sm" mb={1}>
-            {component.name && <Text display="inline">{component.name}</Text>}
+        <div className="mb-4" key={index}>
+          <Label className="mb-1">
+            {component.name && <span>{component.name}</span>}
             {component.type && (
-              <Text fontSize="xs" color="whiteAlpha.700" display="inline">
-                {' '}
+              <span className="text-xs text-muted-foreground ml-1">
                 {component.type}
-              </Text>
+              </span>
             )}
-          </FormLabel>
+          </Label>
           <FunctionInput
             input={component}
             handleUpdate={(value) => {
@@ -67,9 +60,9 @@ const TupleInput = ({
             }}
             initialValue={tupleState[component.name]}
           />
-        </FormControl>
+        </div>
       ))}
-    </Flex>
+    </div>
   );
 };
 

@@ -11,7 +11,7 @@ export const FileTreeItem: FC<{
   onSelectFile: (path: string, content: any) => void;
   selectedKey: string;
 }> = ({ node, level, onSelectFile, selectedKey }) => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const paddingLeft = `${level * 12}px`;
 
   if (node.type === 'file') {
