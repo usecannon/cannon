@@ -73,6 +73,9 @@ function setupTemplateContext(possibleNames: string[] = []): TemplateContext {
     imports: new AccessRecorder(),
     extras: new AccessRecorder(),
     txns: new AccessRecorder(),
+    // For settings, we give it a zeroAddress as a best case scenarion that is going
+    // to be working for most cases.
+    // e.g., when calculating a setting value for 'settings.owners.split(',')' or 'settings.someNumber' will work.
     settings: new AccessRecorder(viem.zeroAddress),
   };
 
