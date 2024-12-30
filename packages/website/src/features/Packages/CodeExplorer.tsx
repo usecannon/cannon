@@ -390,22 +390,37 @@ export const CodeExplorer: FC<{
   useEffect(() => {
     if (deploymentData.isLoading) return;
 
+    const hasMainPackageArtifacts = !isEmpty(miscData?.artifacts);
+    const isRootView = !moduleName && !source && !functionName;
+
+    // Only redirect if we're at the root view with no artifacts in main package
     if (
-      !artifacts?.length &&
-      provisionedPackagesKeys.length &&
+      !hasMainPackageArtifacts &&
+      provisionedPackagesKeys.length > 0 &&
       selectedPackage.key === -1 &&
-      !moduleName
+      isRootView
     ) {
       // Just update the selected package without triggering navigation
       setSelectedPackage(availablePackages[1]);
+
+      // Navigate to the first package without any additional parameters
+      const newPath = `/packages/${name}/${tag}/${chainId}-${preset}/code/${availablePackages[1].name}`;
+      router.replace(newPath);
     }
   }, [
-    artifacts?.length,
+    miscData?.artifacts,
     provisionedPackagesKeys.length,
     deploymentData.isLoading,
     selectedPackage.key,
     availablePackages,
     moduleName,
+    source,
+    functionName,
+    name,
+    tag,
+    chainId,
+    preset,
+    router,
   ]);
 
   const handleSelectFile = (sourceKey: string, sourceValue: any) => {
@@ -467,7 +482,7 @@ export const CodeExplorer: FC<{
                           <Button
                             variant="outline"
                             size="xs"
-                            className="ml-auto"
+                            className="ml-auto w-6 h-6 p-0"
                             onClick={() => {
                               handleDownload(
                                 (artifactValue as any)?.abi,
@@ -475,7 +490,7 @@ export const CodeExplorer: FC<{
                               );
                             }}
                           >
-                            <Download />
+                            <Download className="scale-75" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -513,12 +528,12 @@ export const CodeExplorer: FC<{
               <Button
                 variant="outline"
                 size="sm"
-                className="ml-auto text-gray-300 border-gray-500 hover:bg-gray-700"
+                className="ml-auto text-gray-300 border-gray-500 hover:bg-gray-700 w-6 h-6 p-0"
                 onClick={() => {
                   handleDownload(metadata, 'metadata.json');
                 }}
               >
-                <Download className="h-4 w-4" />
+                <Download className="scale-75" />
               </Button>
             </div>
           </SidebarGroupLabel>
