@@ -1,3 +1,8 @@
+// prevent dumb bugs
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
+
 export { createInitialContext, build, getArtifacts, addOutputsToContext, getOutputs } from './builder';
 export { computeTemplateAccesses, mergeTemplateAccesses } from './access-recorder';
 export { registerAction, ActionKinds } from './actions';
@@ -10,12 +15,6 @@ export { decodeTxError, renderTrace, findContract } from './trace';
 export type { TraceEntry } from './trace';
 export { traceActions, CannonError } from './error';
 export { prepareMulticall } from './multicall';
-
-// prevent dumb bugs
-(BigInt.prototype as any).toJSON = function () {
-  return this.toString();
-};
-
 export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from './registry';
 export * from './package';
 export {

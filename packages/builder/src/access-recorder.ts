@@ -32,6 +32,7 @@ class ExtendableProxy {
     });
   }
 }
+
 export class AccessRecorder extends ExtendableProxy {
   getAccesses(depth: number, cur = 1) {
     if (cur == depth) {
@@ -52,6 +53,7 @@ export class AccessRecorder extends ExtendableProxy {
     return acc;
   }
 }
+
 export type AccessComputationResult = { accesses: string[]; unableToCompute: boolean };
 
 type AccessRecorderMap = { [k: string]: AccessRecorder };

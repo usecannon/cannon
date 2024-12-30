@@ -4,13 +4,14 @@ import Debug from 'debug';
 import Fuse from 'fuse.js';
 import rfdc from 'rfdc';
 import * as acorn from 'acorn';
-import deepFreeze from 'deep-freeze';
 import { Node, Identifier, MemberExpression } from 'acorn';
-import { CannonHelperContext, JS_GLOBALS } from '../types';
+import { CannonHelperContext } from '../types';
 import { getGlobalVars } from './get-global-vars';
 
-const clone = rfdc();
+const deepClone = rfdc();
 const debug = Debug('cannon:builder:template');
+
+const ALLOWED_IDENTIFIERS = new Set(Object.keys(CannonHelperContext));
 
 const DISALLOWED_IDENTIFIERS = new Set([
   '__proto__',
@@ -55,7 +56,7 @@ const DISALLOWED_IDENTIFIERS = new Set([
   'yield',
 ]);
 
-const DISALLOWED_VARS = Array.from(getGlobalVars()).filter((g) => !JS_GLOBALS.includes(g));
+const DISALLOWED_VARS = Array.from(getGlobalVars()).filter((g) => !ALLOWED_IDENTIFIERS.has(g));
 
 // Cache the global properties to avoid recomputing them on every validation
 const DISALLOWED_KEYWORDS = new Set([...Array.from(DISALLOWED_IDENTIFIERS), ...DISALLOWED_VARS]);
@@ -122,7 +123,7 @@ export function renderTemplate(str: string, data: any = {}, safeContext = false)
     // by the user. This is to avoid any security risks that could be moved to the following steps.
     // E.g.:
     //   args = ["<%= Object.assign(contracts.Greeter, { address: '0xdeadbeef' }) %>"]
-    const ctx = safeContext ? data : deepFreeze(clone(data));
+    const ctx = safeContext ? data : deepClone(data);
     return _.template(str, { imports: CannonHelperContext })(ctx);
   } catch (err) {
     if (err instanceof Error) {

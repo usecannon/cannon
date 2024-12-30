@@ -1,10 +1,13 @@
 import _ from 'lodash';
 import * as viem from 'viem';
 import deepFreeze from 'deep-freeze';
+import rfdc from 'rfdc';
 import { viemContext } from './utils/viem-context';
 import { PackageReference } from './package-reference';
 
 import type { RawChainDefinition } from './actions';
+
+const deepClone = rfdc();
 
 // loosely based on the hardhat `Artifact` type
 export type ContractArtifact = {
@@ -93,44 +96,26 @@ export interface ChainBuilderContext extends PreChainBuilderContext {
 
 export type CannonContextGlobals = 'imports' | 'contracts' | 'txns' | 'settings' | 'extras';
 
-export const JS_GLOBALS = [
+const jsContext = {
   // Fundamental objects
-  'Array',
-  'Object',
-  'BigInt',
-  'Buffer',
-  'Date',
-  'Map',
-  'Number',
-  'RegExp',
-  'Set',
-  'String',
-  'Symbol',
-  'WeakMap',
-  'WeakSet',
+  Array,
+  BigInt,
+  Buffer,
+  Date,
+  Number,
+  RegExp,
+  String,
 
   // Functions
-  'JSON',
-  'Math',
-  'Intl',
-  'parseFloat',
-  'parseInt',
-  'isNaN',
-  'isFinite',
-  'console',
-  'atob',
-  'btoa',
-  'decodeURI',
-  'encodeURI',
-  'decodeURIComponent',
-  'encodeURIComponent',
-];
-
-// objects that are allowed to be accessed in templates
-const jsContext = Array.from(JS_GLOBALS).reduce((ctx, key) => {
-  if (key in globalThis) (ctx as any)[key] = (globalThis as any)[key];
-  return ctx;
-}, {} as Partial<typeof globalThis>);
+  JSON,
+  Math,
+  Intl,
+  parseFloat,
+  parseInt,
+  isNaN,
+  isFinite,
+  console,
+};
 
 const _etherUnitNames = ['wei', 'kwei', 'mwei', 'gwei', 'szabo', 'finney', 'ether'];
 
@@ -201,11 +186,12 @@ const ethersStyleConstants = {
   decodeFunctionResult: viem.decodeFunctionResult,
 };
 
-export const CannonHelperContext = {
+// We do a deepClone to make sure to not modify viem, or any of the children objects.
+export const CannonHelperContext = deepClone({
   ...viemContext,
   ...ethersStyleConstants,
   ...jsContext,
-};
+});
 
 // We don't want the user to modify the base template context ever.
 deepFreeze(CannonHelperContext);
