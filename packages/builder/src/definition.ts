@@ -5,7 +5,7 @@ import type { Address } from 'viem';
 import { ActionKinds, RawChainDefinition, checkConfig } from './actions';
 import { ChainBuilderRuntime } from './runtime';
 import { chainDefinitionSchema } from './schemas';
-import { CannonHelperContext, ChainBuilderContext } from './types';
+import { ChainBuilderContext } from './types';
 import { template } from './utils/template';
 
 import { PackageReference } from './package-reference';
@@ -157,7 +157,7 @@ export class ChainDefinition {
       );
     }
 
-    return action.configInject({ ...ctx, ...CannonHelperContext }, _.get(this.raw, n), {
+    return action.configInject({ ...ctx }, _.get(this.raw, n), {
       ref: this.getPackageRef(ctx),
       currentLabel: n,
     });
@@ -189,15 +189,10 @@ export class ChainDefinition {
       }
     }
 
-    const objs = await ActionKinds[kind].getState(
-      runtime,
-      { ...ctx, ...CannonHelperContext },
-      this.getConfig(n, ctx) as any,
-      {
-        ref: this.getPackageRef(ctx),
-        currentLabel: n,
-      }
-    );
+    const objs = await ActionKinds[kind].getState(runtime, { ...ctx }, this.getConfig(n, ctx) as any, {
+      ref: this.getPackageRef(ctx),
+      currentLabel: n,
+    });
 
     if (!objs) {
       return null;

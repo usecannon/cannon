@@ -6,7 +6,7 @@ import rfdc from 'rfdc';
 import * as acorn from 'acorn';
 import deepFreeze from 'deep-freeze';
 import { Node, Identifier, MemberExpression } from 'acorn';
-import { CANNON_GLOBALS, CannonHelperContext, JS_GLOBALS } from '../types';
+import { CannonHelperContext, JS_GLOBALS } from '../types';
 import { getGlobalVars } from './get-global-vars';
 
 const debug = Debug('cannon:builder:template');
@@ -26,8 +26,8 @@ const DISALLOWED_IDENTIFIERS = new Set([
   'const',
   'constructor',
   'continue',
-  'delete',
   'debugger',
+  'delete',
   'do',
   'else',
   'export',
@@ -41,6 +41,7 @@ const DISALLOWED_IDENTIFIERS = new Set([
   'let',
   'new',
   'prototype',
+  'require',
   'return',
   'static',
   'super',
@@ -62,21 +63,6 @@ const DISALLOWED_KEYWORDS = new Set([...Array.from(DISALLOWED_IDENTIFIERS), ...D
 // Debug log the complete list if needed
 if (debug.enabled) {
   debug('Complete list of blocked globals:', Array.from(DISALLOWED_KEYWORDS));
-}
-
-/**
- * Get the set of allowed identifiers for template execution.
- * @returns Set of allowed identifiers
- */
-function _getAllowedIdentifiers(): Set<string> {
-  // Only return the explicitly allowed identifiers
-  const allowed = new Set([
-    ...CANNON_GLOBALS,
-    // Add any other explicitly allowed identifiers from CannonHelperContext
-    ...Object.keys(CannonHelperContext),
-  ]);
-
-  return allowed;
 }
 
 /**
@@ -126,15 +112,17 @@ export function renderTemplate(str: string, data: any = {}) {
   // but we add it in case some other way of calling globals that we don't know about is used.
 
   if (!_.isPlainObject(data)) {
-    throw new Error('Template context must be an object');
+    throw new Error('Missing template context');
   }
 
   for (const key of DISALLOWED_VARS) {
-    data[key] = undefined;
+    if (Object.prototype.hasOwnProperty.call(data, key)) {
+      throw new Error(`Usage of ${key} is not allowed`);
+    }
   }
 
   try {
-    return _.template(str)(data);
+    return _.template(str, { imports: CannonHelperContext })(data);
   } catch (err) {
     if (err instanceof Error) {
       err.message += ` at ${str}`;
@@ -175,7 +163,7 @@ export function template(templateStr: string, templateContext: Record<string, an
   const code = 'renderTemplate(templateStr, templateContext)';
 
   // Validate the template string to make sure it's safe to execute
-  // validateTemplate(templateStr);
+  validateTemplate(templateStr);
 
   // try {
   //   const ctx = deepFreeze(clone(templateContext));
@@ -268,8 +256,6 @@ const allowedNodeTypes = new Set<acorn.Node['type']>([
  * @throws {TemplateValidationError} If given template string is invalid
  */
 export function validateTemplate(templateStr: string): undefined {
-  const allowedIdentifiers = _getAllowedIdentifiers();
-
   const expressions = getTemplateMatches(templateStr, false) ?? [];
 
   for (const expr of expressions) {
@@ -309,10 +295,6 @@ export function validateTemplate(templateStr: string): undefined {
           if (!isPropertyName) {
             if (DISALLOWED_KEYWORDS.has(identifierNode.name)) {
               throw new TemplateValidationError(`Access to identifier "${identifierNode.name}" is not allowed`);
-            }
-
-            if (!allowedIdentifiers.has(identifierNode.name)) {
-              throw new TemplateValidationError(`Unauthorized identifier found: ${identifierNode.name}`);
             }
           }
         }

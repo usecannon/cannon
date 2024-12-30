@@ -4,6 +4,7 @@ import { viemContext } from './utils/viem-context';
 import { PackageReference } from './package-reference';
 
 import type { RawChainDefinition } from './actions';
+import deepFreeze from 'deep-freeze';
 
 // loosely based on the hardhat `Artifact` type
 export type ContractArtifact = {
@@ -90,7 +91,7 @@ export interface ChainBuilderContext extends PreChainBuilderContext {
   [shortContract: string]: any;
 }
 
-export const CANNON_GLOBALS = ['contracts', 'imports', 'extras', 'txns', 'settings'];
+export type CannonContextGlobals = 'imports' | 'contracts' | 'txns' | 'settings' | 'extras';
 
 export const JS_GLOBALS = [
   // Fundamental objects
@@ -205,7 +206,7 @@ export const CannonHelperContext = {
   ...jsContext,
 };
 
-export type ChainBuilderContextWithHelpers = ChainBuilderContext & typeof CannonHelperContext;
+export type CannonHelperContext = deepFreeze.DeepReadonly<typeof CannonHelperContext>;
 
 export type BuildOptions = { [val: string]: string };
 
@@ -262,7 +263,7 @@ export interface BundledChainBuilderOutputs {
   [module: string]: BundledOutput;
 }
 
-export type ChainArtifacts = Partial<Pick<ChainBuilderContext, 'imports' | 'contracts' | 'txns' | 'settings' | 'extras'>>;
+export type ChainArtifacts = Partial<Pick<ChainBuilderContext, CannonContextGlobals>>;
 
 export interface ChainBuilderOptions {
   [key: string]: string;
