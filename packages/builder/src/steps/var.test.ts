@@ -40,7 +40,7 @@ describe('steps/var.ts', () => {
         depends: ['woot'],
       };
 
-      const result = await action.getState(runtime, ctx, config as any);
+      const result = await action.getState(runtime, ctx, config as any, { ref: null, currentLabel: 'var.Var' });
 
       expect(result[0]).toStrictEqual({
         smooth: 'sailing',
