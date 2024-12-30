@@ -291,153 +291,160 @@ const Interact: FC = () => {
 
   return (
     <>
-      <div className="sticky top-[57px] z-50 bg-muted">
-        <div className="overflow-x-scroll overflow-y-hidden max-w-[100vw]">
-          <Tabs
-            defaultValue={
-              highlightedOptions[0]?.moduleName +
-              '.' +
-              highlightedOptions[0]?.contractName
-            }
-            value={
-              activeContractOption
-                ? `${activeContractOption.moduleName}.${activeContractOption.contractName}`
-                : undefined
-            }
-            onValueChange={(value) => {
-              const [moduleName, contractName] = value.split('.');
-              const option = [...highlightedOptions, ...otherOptions].find(
-                (opt) =>
-                  opt.moduleName === moduleName &&
-                  opt.contractName === contractName
-              );
-              if (option) {
-                void router.push(
-                  `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
-                );
-              }
-            }}
-          >
-            <TabsList className="h-full">
-              {highlightedOptions.map((option, i) => (
-                <TabsTrigger
-                  key={i}
-                  value={`${option.moduleName}.${option.contractName}`}
-                >
-                  {`${option.moduleName}.${option.contractName}`}
-                </TabsTrigger>
-              ))}
-
-              {otherOptions.length > 0 && (
-                <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <div className="cursor-pointer bg-black p-1 border border-border rounded-md mx-2">
-                      <MoreHorizontal className="h-4 w-4 text-white" />
-                    </div>
-                  </PopoverTrigger>
-                  <PopoverContent className="max-h-[320px] max-w-[320px] overflow-y-auto overflow-x-hidden w-full bg-background border border-border p-0">
-                    {otherOptions.length > 5 && (
-                      <div className="p-2">
-                        <SearchInput size="sm" onSearchChange={setSearchTerm} />
-                      </div>
-                    )}
-                    {otherOptions
-                      .filter((o) =>
-                        searchTerm
-                          ? o.contractName.toLowerCase().includes(searchTerm)
-                          : true
-                      )
-                      .map((option, i) => (
-                        <div
-                          key={i}
-                          className={`cursor-pointer p-2 border-t border-border ${
-                            isActiveContract(option)
-                              ? 'bg-background'
-                              : 'bg-transparent'
-                          } hover:bg-accent/50`}
-                          onClick={async () => {
-                            setIsPopoverOpen(false);
-                            await router.push(
-                              `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
-                            );
-                          }}
-                        >
-                          <span className="text-sm">
-                            {`${option.moduleName}.${option.contractName}`}
-                          </span>
-                        </div>
-                      ))}
-                  </PopoverContent>
-                </Popover>
-              )}
-            </TabsList>
-          </Tabs>
-        </div>
-
-        {/* Header */}
-        <div className="flex flex-col md:flex-row bg-background px-2 py-1 border-b border-border items-start md:items-center">
-          <div className="p-1">
-            <h4 className="inline-block font-medium tracking-[0.1px]">
-              {contract?.contractName}
-            </h4>
-          </div>
-
-          <div className="p-1 md:ml-auto">
-            <div className="flex flex-col items-start md:flex-row md:items-end gap-3 md:gap-6 text-gray-300 text-xs font-mono text-muted-foreground">
-              <a
-                className="no-underline hover:no-underline flex items-center"
-                href={`/packages/${name}/${tag}/${variant}/code/${moduleName}?source=${contract?.sourceName}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Code className="h-[14px] w-[14px] mr-1.5" />
-                <span className="border-b border-dotted border-gray-300">
-                  {contract?.sourceName}
-                </span>
-              </a>
-
-              <p className="flex items-center">
-                {explorerUrl ? (
-                  <a
-                    className="no-underline hover:no-underline flex items-center"
-                    href={explorerUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <FileText className="h-[14px] w-[14px] mr-1.5" />
-                    <span className="border-b border-dotted border-gray-300">
-                      {contractAddress.substring(0, 6)}...
-                      {contractAddress.slice(-4)}
-                    </span>
-                  </a>
-                ) : null}{' '}
-                {moduleName !== name ? (
-                  <>
-                    <span className="mx-1">from</span>
-                    <a
-                      className="no-underline hover:no-underline"
-                      href={deployUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <span className="border-b border-dotted border-gray-300">
-                        {`[clone.${moduleName}]`}
-                      </span>
-                    </a>
-                  </>
-                ) : null}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {isLoadingData ? (
         <div className="py-20">
           <IpfsSpinner ipfsUrl={packagesQuery?.data?.deployUrl} />
         </div>
       ) : (
         <>
+          <div className="sticky top-[57px] z-50 bg-muted">
+            <div className="overflow-x-scroll overflow-y-hidden max-w-[100vw]">
+              <Tabs
+                defaultValue={
+                  highlightedOptions[0]?.moduleName +
+                  '.' +
+                  highlightedOptions[0]?.contractName
+                }
+                value={
+                  activeContractOption
+                    ? `${activeContractOption.moduleName}.${activeContractOption.contractName}`
+                    : undefined
+                }
+                onValueChange={(value) => {
+                  const [moduleName, contractName] = value.split('.');
+                  const option = [...highlightedOptions, ...otherOptions].find(
+                    (opt) =>
+                      opt.moduleName === moduleName &&
+                      opt.contractName === contractName
+                  );
+                  if (option) {
+                    void router.push(
+                      `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
+                    );
+                  }
+                }}
+              >
+                <TabsList className="h-full">
+                  {highlightedOptions.map((option, i) => (
+                    <TabsTrigger
+                      key={i}
+                      value={`${option.moduleName}.${option.contractName}`}
+                    >
+                      {`${option.moduleName}.${option.contractName}`}
+                    </TabsTrigger>
+                  ))}
+
+                  {otherOptions.length > 0 && (
+                    <Popover
+                      open={isPopoverOpen}
+                      onOpenChange={setIsPopoverOpen}
+                    >
+                      <PopoverTrigger asChild>
+                        <div className="cursor-pointer bg-black p-1 border border-border rounded-md mx-2">
+                          <MoreHorizontal className="h-4 w-4 text-white" />
+                        </div>
+                      </PopoverTrigger>
+                      <PopoverContent className="max-h-[320px] max-w-[320px] overflow-y-auto overflow-x-hidden w-full bg-background border border-border p-0">
+                        {otherOptions.length > 5 && (
+                          <div className="p-2">
+                            <SearchInput
+                              size="sm"
+                              onSearchChange={setSearchTerm}
+                            />
+                          </div>
+                        )}
+                        {otherOptions
+                          .filter((o) =>
+                            searchTerm
+                              ? o.contractName
+                                  .toLowerCase()
+                                  .includes(searchTerm)
+                              : true
+                          )
+                          .map((option, i) => (
+                            <div
+                              key={i}
+                              className={`cursor-pointer p-2 border-t border-border ${
+                                isActiveContract(option)
+                                  ? 'bg-background'
+                                  : 'bg-transparent'
+                              } hover:bg-accent/50`}
+                              onClick={async () => {
+                                setIsPopoverOpen(false);
+                                await router.push(
+                                  `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
+                                );
+                              }}
+                            >
+                              <span className="text-sm">
+                                {`${option.moduleName}.${option.contractName}`}
+                              </span>
+                            </div>
+                          ))}
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                </TabsList>
+              </Tabs>
+            </div>
+
+            {/* Header */}
+            <div className="flex flex-col md:flex-row bg-background px-2 py-1 border-b border-border items-start md:items-center">
+              <div className="p-1">
+                <h4 className="inline-block font-medium tracking-[0.1px]">
+                  {contract?.contractName}
+                </h4>
+              </div>
+
+              <div className="p-1 md:ml-auto">
+                <div className="flex flex-col items-start md:flex-row md:items-end gap-3 md:gap-6 text-gray-300 text-xs font-mono text-muted-foreground">
+                  <a
+                    className="no-underline hover:no-underline flex items-center"
+                    href={`/packages/${name}/${tag}/${variant}/code/${moduleName}?source=${contract?.sourceName}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Code className="h-[14px] w-[14px] mr-1.5" />
+                    <span className="border-b border-dotted border-gray-300">
+                      {contract?.sourceName}
+                    </span>
+                  </a>
+
+                  <p className="flex items-center">
+                    {explorerUrl ? (
+                      <a
+                        className="no-underline hover:no-underline flex items-center"
+                        href={explorerUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <FileText className="h-[14px] w-[14px] mr-1.5" />
+                        <span className="border-b border-dotted border-gray-300">
+                          {contractAddress.substring(0, 6)}...
+                          {contractAddress.slice(-4)}
+                        </span>
+                      </a>
+                    ) : null}{' '}
+                    {moduleName !== name ? (
+                      <>
+                        <span className="mx-1">from</span>
+                        <a
+                          className="no-underline hover:no-underline"
+                          href={deployUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <span className="border-b border-dotted border-gray-300">
+                            {`[clone.${moduleName}]`}
+                          </span>
+                        </a>
+                      </>
+                    ) : null}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
           <Abi
             isLoading={isLoadingData}
             abi={contract?.abi}

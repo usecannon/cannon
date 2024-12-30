@@ -23,9 +23,7 @@ import Link from 'next/link';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
 import { Abi, AbiFunction } from 'abitype';
-import { useRouter } from 'next/router';
 import React, { FC, useEffect, useRef, useState } from 'react';
-import { FaCode } from 'react-icons/fa6';
 import {
   Address,
   createPublicClient,
@@ -62,7 +60,7 @@ const StatusIcon = ({ error }: { error: boolean }) => (
   </div>
 );
 
-export const Function: FC<{
+interface FunctionProps {
   selected?: boolean;
   f: AbiFunction;
   abi: Abi;
@@ -70,19 +68,19 @@ export const Function: FC<{
   cannonOutputs: ChainArtifacts;
   chainId: number;
   contractName?: string;
-  contractSource?: string;
   onDrawerOpen?: () => void;
   collapsible?: boolean;
   showFunctionSelector: boolean;
   packageUrl?: string;
-}> = ({
+}
+
+export const Function: FC<FunctionProps> = ({
   selected,
   f,
-  abi /*, cannonOutputs */,
+  abi,
   address,
   chainId,
   contractName,
-  contractSource,
   onDrawerOpen,
   collapsible,
   showFunctionSelector,
@@ -90,7 +88,6 @@ export const Function: FC<{
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const currentSafe = useStore((s) => s.currentSafe);
-  const { asPath: pathname } = useRouter();
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
   const [methodCallOrQueuedResult, setMethodCallOrQueuedResult] = useState<{
@@ -222,18 +219,6 @@ export const Function: FC<{
 
   const anchor = `#selector-${toFunctionSelector(f)}`;
 
-  const getCodeUrl = (functionName: string) => {
-    const base = pathname.split('/interact')[0];
-    const activeContractPath = pathname.split('interact/')[1];
-    if (activeContractPath && contractSource) {
-      const [moduleName] = activeContractPath.split('/');
-
-      return `${base}/code/${moduleName}?source=${encodeURIComponent(
-        contractSource
-      )}&function=${functionName}`;
-    }
-  };
-
   const handleQueueTransaction = () => {
     if (!currentSafe) {
       toast({
@@ -341,14 +326,6 @@ export const Function: FC<{
               >
                 #
               </Link>
-              {!!contractSource && (
-                <Link
-                  className="text-muted-foreground ml-3 hover:no-underline"
-                  href={getCodeUrl(f.name) || '#'}
-                >
-                  <FaCode className="text-muted-foreground" />
-                </Link>
-              )}
             </h2>
           )}
         </div>
@@ -571,15 +548,6 @@ export const Function: FC<{
                 >
                   #
                 </Link>
-                {!!contractSource && (
-                  <Link
-                    className="text-muted-foreground ml-3 hover:no-underline"
-                    href={getCodeUrl(f.name) ?? '#'}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <FaCode className="text-muted-foreground" />
-                  </Link>
-                )}
               </h2>
             )}
             <ChevronDownIcon
