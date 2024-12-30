@@ -6,23 +6,31 @@ import defaultSEO from '@/constants/defaultSeo';
 import PageLoading from '@/components/PageLoading';
 import Interact from '@/features/Packages/Interact';
 import NameTagVariantLayout from '@/pages/packages/[name]/[tag]/[variant]/NameTagVariantLayout';
+import { PackageReference } from '@usecannon/builder';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 export default function InteractPage() {
   const params = useParams();
+  const { getChainById } = useCannonChains();
+
+  if (!params) return <PageLoading />;
+
+  const [chainId] = PackageReference.parseVariant(params.variant as string);
+  const chain = getChainById(chainId);
 
   return (
     <>
       <NextSeo
         {...defaultSEO}
-        title="Cannon | Code"
-        description="Package | Code"
+        title={`${params.name} on ${chain?.name} Interact | Cannon`}
+        description="Package | Interact"
         openGraph={{
           ...defaultSEO.openGraph,
-          title: 'Cannon | Package',
-          description: 'Package',
+          title: `${params.name} on ${chain?.name} Interact | Cannon`,
+          description: 'Package | Interact',
         }}
       />
-      {params == null ? <PageLoading /> : <Interact />}
+      <Interact />
     </>
   );
 }

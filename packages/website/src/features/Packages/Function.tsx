@@ -321,7 +321,7 @@ export const Function: FC<FunctionProps> = ({
             <h2 className="text-sm font-mono flex items-center">
               {toFunctionSignature(f)}
               <Link
-                className="text-muted-foreground ml-3 hover:no-underline"
+                className="text-muted-foreground ml-2 hover:no-underline"
                 href={anchor || '#'}
               >
                 #
@@ -542,7 +542,7 @@ export const Function: FC<FunctionProps> = ({
               <h2 className="text-sm font-mono flex items-center max-w-full break-words">
                 {toFunctionSignature(f)}
                 <Link
-                  className="text-muted-foreground ml-3 hover:no-underline"
+                  className="text-muted-foreground ml-2 hover:no-underline"
                   href={anchor}
                   onClick={(e) => e.stopPropagation()}
                 >
