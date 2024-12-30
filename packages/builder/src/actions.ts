@@ -13,39 +13,44 @@ import diamondSpec from './steps/diamond';
 import varSpec from './steps/var';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from './types';
 
-export interface CannonAction {
+export interface RawConfig {
+  description?: string;
+  depends?: string[];
+}
+
+export interface CannonAction<Config extends RawConfig = any> {
   label: string;
 
-  configInject: (ctx: ChainBuilderContextWithHelpers, config: any, packageState: PackageState) => any;
+  configInject: (ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) => Config;
 
   getState: (
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContextWithHelpers,
-    config: any,
+    config: Config,
     packageState: PackageState
   ) => Promise<any[] | null>;
 
   /**
    * Returns a list of state keys that this operation consumes (used for dependency inference)
    */
-  getInputs?: (config: any, possibleFields: string[], packageState: PackageState) => AccessComputationResult;
+  getInputs?: (config: Config, possibleFields: string[], packageState: PackageState) => AccessComputationResult;
 
   /**
    * Returns a list of state keys this operation produces (used for dependency inference)
    */
-  getOutputs?: (config: any, packageState: PackageState) => string[];
+  getOutputs?: (config: Config, packageState: PackageState) => string[];
 
   exec: (
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
-    config: any,
+    config: Config,
     packageState: PackageState
   ) => Promise<ChainArtifacts>;
 
   importExisting?: (
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
-    config: any,
+    config: Config,
     packageState: PackageState,
     existingKeys: string[]
   ) => Promise<ChainArtifacts>;

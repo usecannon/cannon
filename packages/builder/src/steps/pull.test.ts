@@ -49,7 +49,12 @@ describe('steps/pull.ts', () => {
     it('resolves correct properties with minimal config', async () => {
       await registry.publish(['hello:1.0.0@main'], 1234, 'https://something.com', '');
 
-      const result = await action.getState(fakeRuntime, fakeCtx, { source: 'hello:1.0.0' });
+      const result = await action.getState(
+        fakeRuntime,
+        fakeCtx,
+        { source: 'hello:1.0.0' },
+        { ref: null, currentLabel: 'pull.Pull' }
+      );
 
       expect(result).toContainEqual({
         url: 'https://something.com',

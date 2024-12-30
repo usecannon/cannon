@@ -2,10 +2,9 @@ import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
-import { ChainBuilderRuntime } from '../runtime';
 import { varSchema } from '../schemas';
-import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
 import { template } from '../utils/template';
+import { CannonAction } from '../actions';
 
 const debug = Debug('cannon:builder:var');
 
@@ -28,13 +27,13 @@ const varSpec = {
 
   validate: varSchema,
 
-  async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config) {
-    const cfg = this.configInject(ctx, config);
+  async getState(runtime, ctx, config, packageState) {
+    const cfg = this.configInject(ctx, config, packageState);
 
     return [_.omit(cfg, 'depends')];
   },
 
-  configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
+  configInject(ctx, config) {
     config = _.cloneDeep(config);
     for (const c in _.omit(config, 'depends')) {
       config[c] = template(config[c])(ctx);
@@ -43,7 +42,7 @@ const varSpec = {
     return config;
   },
 
-  getInputs(config: Config, possibleFields: string[]) {
+  getInputs(config, possibleFields) {
     let accesses = computeTemplateAccesses('', possibleFields);
 
     for (const c in _.omit(config, 'depends')) {
@@ -54,7 +53,7 @@ const varSpec = {
     return accesses;
   },
 
-  getOutputs(config: Config, packageState: PackageState) {
+  getOutputs(config, packageState) {
     if (packageState.currentLabel.startsWith('setting.')) {
       return [`settings.${packageState.currentLabel.split('.')[1]}`];
     }
@@ -64,12 +63,7 @@ const varSpec = {
       .map((k) => `settings.${k}`);
   },
 
-  async exec(
-    runtime: ChainBuilderRuntime,
-    ctx: ChainBuilderContext,
-    config: Config,
-    packageState: PackageState
-  ): Promise<ChainArtifacts> {
+  async exec(runtime, ctx, config, packageState) {
     const varLabel = packageState.currentLabel?.split('.')[1] || '';
     debug('exec', config, ctx);
 
@@ -97,6 +91,6 @@ const varSpec = {
       return { settings };
     }
   },
-};
+} satisfies CannonAction<Config>;
 
 export default varSpec;
