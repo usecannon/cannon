@@ -11,6 +11,7 @@ import { ReactNode } from 'react';
 import { NavLink } from '@/components/NavLink';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { format } from 'date-fns';
+import { CheckCircledIcon, MinusCircledIcon } from '@radix-ui/react-icons';
 
 import { IpfsLinks } from '@/features/Packages/IpfsLinks';
 import { VersionSelect } from '@/features/Packages/VersionSelect';
@@ -24,6 +25,7 @@ import { usePackageNameTagVariantUrlParams } from '@/hooks/routing/usePackageNam
 import { usePackageByRef } from '@/hooks/api/usePackage';
 import MainContentLoading from '@/components/MainContentLoading';
 import { SidebarLayout } from '@/components/layouts/SidebarLayout';
+import { SidebarGroupLabel } from '@/components/ui/sidebar';
 
 function _NameTagVariantLayout({ children }: { children: ReactNode }) {
   const { name, tag, chainId, preset } = usePackageNameTagVariantUrlParams();
@@ -54,32 +56,71 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
                     {packagesQuery.data.name}
                     <Popover>
                       <PopoverTrigger>
-                        <InfoIcon className="inline-block w-4 h-4 ml-2 text-gray-400" />
+                        <InfoIcon className="inline-block w-5 h-5 ml-2.5 text-gray-400" />
                       </PopoverTrigger>
-                      <PopoverContent className="bg-black max-w-[320px] border-border">
-                        <div className="flex flex-col gap-1">
+                      <PopoverContent className="bg-black max-w-[320px] border-border pt-2.5">
+                        <div className="flex flex-col gap-2">
                           {isDeploymentInfoLoading ? (
                             <CustomSpinner />
                           ) : (
                             <>
-                              {deploymentInfo?.def?.description && (
-                                <p>{deploymentInfo.def.description}</p>
-                              )}
-                              {(deploymentInfo?.generator ||
-                                deploymentInfo?.timestamp) && (
-                                <p className="text-gray-300 text-xs">
-                                  {deploymentInfo?.generator &&
-                                    `built with ${deploymentInfo.generator} `}
-                                  {deploymentInfo?.generator &&
-                                    deploymentInfo?.timestamp &&
-                                    `on ${format(
-                                      new Date(
-                                        deploymentInfo?.timestamp * 1000
-                                      ),
-                                      'PPPppp'
-                                    ).toLowerCase()}`}
-                                </p>
-                              )}
+                              <div>
+                                <SidebarGroupLabel className="m-0 h-6 p-0">
+                                  Description
+                                </SidebarGroupLabel>
+                                {deploymentInfo?.def?.description && (
+                                  <p className="text-xs">
+                                    {deploymentInfo.def.description}
+                                  </p>
+                                )}
+                              </div>
+                              <div>
+                                <SidebarGroupLabel className="m-0 h-6 p-0">
+                                  Built with
+                                </SidebarGroupLabel>
+                                {(deploymentInfo?.generator ||
+                                  deploymentInfo?.timestamp) && (
+                                  <p className="text-xs">
+                                    {deploymentInfo?.generator &&
+                                      `${deploymentInfo.generator} `}
+                                    {deploymentInfo?.generator &&
+                                      deploymentInfo?.timestamp &&
+                                      `on ${format(
+                                        new Date(
+                                          deploymentInfo?.timestamp * 1000
+                                        ),
+                                        'PPPppp'
+                                      ).toLowerCase()}`}
+                                  </p>
+                                )}
+                              </div>
+
+                              <div>
+                                {deploymentInfo?.status === 'complete' && (
+                                  <>
+                                    <SidebarGroupLabel className="m-0 h-6 p-0">
+                                      Complete Deployment
+                                    </SidebarGroupLabel>
+                                    <p className="text-xs">
+                                      The resulting chain state matches the
+                                      desired chain definition according to the
+                                      package data.
+                                    </p>
+                                  </>
+                                )}
+                                {deploymentInfo?.status === 'partial' && (
+                                  <>
+                                    <SidebarGroupLabel className="m-0 h-6 p-0">
+                                      Partial Deployment
+                                    </SidebarGroupLabel>
+                                    <p className="text-xs">
+                                      The resulting chain state did not
+                                      completely match the desired chain
+                                      definition.
+                                    </p>
+                                  </>
+                                )}
+                              </div>
                             </>
                           )}
                         </div>
