@@ -107,14 +107,26 @@ const jsContext = {
   String,
 
   // Functions
-  JSON,
-  Math,
-  Intl,
+  JSON: {
+    parse: JSON.parse.bind(JSON),
+    stringify: JSON.stringify.bind(JSON),
+  },
   parseFloat,
   parseInt,
   isNaN,
   isFinite,
-  console,
+  console: {
+    // eslint-disable-next-line no-console
+    log: console.log.bind(console),
+    // eslint-disable-next-line no-console
+    error: console.error.bind(console),
+    // eslint-disable-next-line no-console
+    warn: console.warn.bind(console),
+    // eslint-disable-next-line no-console
+    info: console.info.bind(console),
+    // eslint-disable-next-line no-console
+    debug: console.debug.bind(console),
+  },
 };
 
 const _etherUnitNames = ['wei', 'kwei', 'mwei', 'gwei', 'szabo', 'finney', 'ether'];

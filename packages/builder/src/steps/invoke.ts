@@ -393,7 +393,6 @@ const invokeSpec = {
       config.fromCall.func = template(config.fromCall.func, ctx);
       config.fromCall.args = _.map(config.fromCall.args, (arg) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
-        // TODO: fix this
         return JSON.parse(template(JSON.stringify(arg), ctx));
       });
     }

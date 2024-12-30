@@ -85,24 +85,6 @@ export function getTemplateMatches(str: string, includeTags = true) {
   return results.map((r) => (includeTags ? r[0] : r[1].trim()));
 }
 
-export function safeRenderTemplate(str: string, ctx: any = {}) {
-  if (!_.isPlainObject(ctx)) {
-    throw new Error('Template context must be an object');
-  }
-
-  return str.replaceAll(/<%=([\s\S]+?)%>/g, (_, content) => {
-    const code = `const this; ${content}`;
-
-    // eslint-disable-next-line no-undef
-    const compartment = new Compartment({
-      globals: { ...ctx },
-      __options__: true,
-    });
-
-    return compartment.evaluate(code);
-  });
-}
-
 /**
  * Lodash template function wrapper.
  * It adds a fuzzy search for the keys in the data object in case the user made a typo.
