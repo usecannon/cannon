@@ -6,14 +6,7 @@ import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnid
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { ChainBuilderRuntime } from '../runtime';
 import { diamondSchema } from '../schemas';
-import {
-  ChainArtifacts,
-  ChainBuilderContext,
-  ChainBuilderContextWithHelpers,
-  ContractArtifact,
-  ContractMap,
-  PackageState,
-} from '../types';
+import { ContractArtifact, ContractMap, PackageState } from '../types';
 import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 import { template } from '../utils/template';
 import { CannonAction } from '../actions';

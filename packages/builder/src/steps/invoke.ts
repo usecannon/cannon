@@ -8,7 +8,6 @@ import {
   CannonSigner,
   ChainArtifacts,
   ChainBuilderContext,
-  ChainBuilderContextWithHelpers,
   ChainBuilderRuntimeInfo,
   Contract,
   PackageState,
