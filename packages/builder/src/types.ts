@@ -3,6 +3,8 @@ import * as viem from 'viem';
 import deepFreeze from 'deep-freeze';
 import rfdc from 'rfdc';
 import { viemContext } from './utils/viem-context';
+import { jsContext } from './utils/js-context';
+import { ethersContext } from './utils/ethers-context';
 import { PackageReference } from './package-reference';
 
 import type { RawChainDefinition } from './actions';
@@ -96,119 +98,15 @@ export interface ChainBuilderContext extends PreChainBuilderContext {
 
 export type CannonContextGlobals = 'imports' | 'contracts' | 'txns' | 'settings' | 'extras';
 
-const jsContext = {
-  // Fundamental objects
-  Array,
-  BigInt,
-  Buffer,
-  Date,
-  Number,
-  RegExp,
-  String,
-
-  // Functions
-  JSON: {
-    parse: JSON.parse.bind(JSON),
-    stringify: JSON.stringify.bind(JSON),
-  },
-  parseFloat,
-  parseInt,
-  isNaN,
-  isFinite,
-  console: {
-    // eslint-disable-next-line no-console
-    log: console.log.bind(console),
-    // eslint-disable-next-line no-console
-    error: console.error.bind(console),
-    // eslint-disable-next-line no-console
-    warn: console.warn.bind(console),
-    // eslint-disable-next-line no-console
-    info: console.info.bind(console),
-    // eslint-disable-next-line no-console
-    debug: console.debug.bind(console),
-  },
-};
-
-const _etherUnitNames = ['wei', 'kwei', 'mwei', 'gwei', 'szabo', 'finney', 'ether'];
-
-// Ethers.js compatible context functions. Consider deprecating.
-const ethersStyleConstants = {
-  AddressZero: viem.zeroAddress,
-  HashZero: viem.zeroHash,
-  MaxUint256: viem.maxUint256,
-
-  defaultAbiCoder: {
-    encode: (a: string[], v: any[]) => {
-      return viem.encodeAbiParameters(
-        a.map((arg) => ({ type: arg })),
-        v
-      );
-    },
-    decode: (a: string[], v: viem.Hex | viem.ByteArray) => {
-      return viem.decodeAbiParameters(
-        a.map((arg) => ({ type: arg })),
-        v
-      );
-    },
-  },
-
-  zeroPad: (a: viem.Hex, s: number) => viem.padHex(a, { size: s }),
-  hexZeroPad: (a: viem.Hex, s: number) => viem.padHex(a, { size: s }),
-  hexlify: viem.toHex,
-  stripZeros: viem.trim,
-  formatBytes32String: (v: string) => viem.stringToHex(v, { size: 32 }),
-  parseBytes32String: (v: viem.Hex) => viem.hexToString(v, { size: 32 }),
-  id: (v: string) => (v.startsWith('function ') ? viem.toFunctionSelector(v) : viem.keccak256(viem.toHex(v))),
-  formatEther: viem.formatEther,
-  formatUnits: (s: bigint, units: number | string) => {
-    if (typeof units === 'string') {
-      const index = _etherUnitNames.indexOf(units);
-      if (index < 0) {
-        throw new Error(`formatUnits: unknown ethereum unit name: ${units}`);
-      }
-      units = 3 * index;
-    }
-
-    return viem.formatUnits(s, units as number);
-  },
-  parseEther: viem.parseEther,
-  parseUnits: (s: string, units: number | string) => {
-    if (typeof units === 'string') {
-      const index = _etherUnitNames.indexOf(units);
-      if (index < 0) {
-        throw new Error(`parseUnits: unknown ethereum unit name: ${units}`);
-      }
-      units = 3 * index;
-    }
-
-    return viem.parseUnits(s, units as number);
-  },
-  keccak256: viem.keccak256,
-  sha256: viem.sha256,
-  ripemd160: viem.ripemd160,
-  solidityPack: viem.encodePacked,
-  solidityKeccak256: (a: string[], v: any[]) => viem.keccak256(viem.encodePacked(a, v)),
-  soliditySha256: (a: string[], v: any[]) => viem.sha256(viem.encodePacked(a, v)),
-  serializeTransaction: viem.serializeTransaction,
-  parseTransaction: viem.parseTransaction,
-
-  encodeFunctionData: viem.encodeFunctionData,
-  decodeFunctionData: viem.decodeFunctionData,
-  encodeFunctionResult: viem.encodeFunctionResult,
-  decodeFunctionResult: viem.decodeFunctionResult,
-};
-
-// We do a deepClone to make sure to not modify viem, or any of the children objects.
-export const CannonHelperContext = deepClone({
-  ...viemContext,
-  ...ethersStyleConstants,
-  ...jsContext,
-});
-
-// We don't want the user to modify the base template context ever.
-deepFreeze(CannonHelperContext);
-
-export type CannonHelperContext = deepFreeze.DeepReadonly<typeof CannonHelperContext>;
+// We do a deepFreeze and deepClone to make sure to not any of the context objects,
+// and not let the user modify them also,
+export const CannonHelperContext = deepFreeze(
+  deepClone({
+    ...viemContext,
+    ...ethersContext,
+    ...jsContext,
+  })
+);
 
 export type BuildOptions = { [val: string]: string };
 

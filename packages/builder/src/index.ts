@@ -1,7 +1,9 @@
 // prevent dumb bugs
-(BigInt.prototype as any).toJSON = function () {
-  return this.toString();
-};
+if (!Object.prototype.hasOwnProperty.call(BigInt.prototype, 'toJSON')) {
+  (BigInt.prototype as any).toJSON = function () {
+    return this.toString();
+  };
+}
 
 export { createInitialContext, build, getArtifacts, addOutputsToContext, getOutputs } from './builder';
 export { computeTemplateAccesses, mergeTemplateAccesses } from './access-recorder';
