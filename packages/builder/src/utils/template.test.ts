@@ -51,6 +51,9 @@ describe('template.ts', () => {
     it.each([
       '<%=%>',
       '<%=   %>',
+      '<%= package.version %>',
+      '<%= chainId %>',
+      '<%= timestamp %>',
       '<%=settings.value%>',
       '<%= settings.value === 1 %>',
       '<%=settings.value1%>-<%=settings.value2%>',

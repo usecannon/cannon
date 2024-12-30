@@ -89,13 +89,14 @@ export function getTemplateMatches(str: string, includeTags = true) {
  * Lodash template function wrapper.
  * It adds a fuzzy search for the keys in the data object in case the user made a typo.
  */
-export function renderTemplate(str: string, data: any = {}, safeContext = false) {
-  if (!_.isPlainObject(data)) {
+export function renderTemplate(templateStr: string, templateContext: any = {}, safeContext = false) {
+  if (!_.isPlainObject(templateContext)) {
     throw new Error('Missing template context');
   }
 
+  // Check that the given context does not contain any disallowed variables
   for (const key of DISALLOWED_VARS) {
-    if (Object.prototype.hasOwnProperty.call(data, key)) {
+    if (Object.prototype.hasOwnProperty.call(templateContext, key)) {
       throw new Error(`Usage of ${key} is not allowed`);
     }
   }
@@ -105,15 +106,19 @@ export function renderTemplate(str: string, data: any = {}, safeContext = false)
     // by the user. This is to avoid any security risks that could be moved to the following steps.
     // E.g.:
     //   args = ["<%= Object.assign(contracts.Greeter, { address: '0xdeadbeef' }) %>"]
-    const ctx = safeContext ? data : deepClone(data);
-    return _.template(str, { imports: CannonHelperContext })(ctx);
+    const ctx = safeContext ? templateContext : deepClone(templateContext);
+
+    // Validate the template string to make sure it's safe to execute
+    validateTemplate(templateStr, Object.keys(ctx));
+
+    return _.template(templateStr, { imports: CannonHelperContext })(ctx);
   } catch (err) {
     if (err instanceof Error) {
-      err.message += ` at ${str}`;
+      err.message += ` at ${templateStr}`;
 
       // Do a fuzzy search in the given context, in the case the user did a typo
       // we look for something close in the current data context object.
-      if (data) {
+      if (templateContext) {
         const match = err.message.includes('Cannot read properties of undefined')
           ? err.message.match(/\(reading '([^']+)'\)/)
           : err.message.includes(' is not defined ')
@@ -122,7 +127,7 @@ export function renderTemplate(str: string, data: any = {}, safeContext = false)
 
         if (match?.[1]) {
           const desiredKey = match[1];
-          const allKeys = Array.from(_getAllKeys(data));
+          const allKeys = Array.from(_getAllKeys(templateContext));
           const results = _fuzzySearch(allKeys, desiredKey);
           if (results.length) {
             err.message += "\n\n Here's a list of some fields available in this context, did you mean one of these?";
@@ -145,9 +150,6 @@ export function renderTemplate(str: string, data: any = {}, safeContext = false)
  */
 export function template(templateStr: string, templateContext: Record<string, any> = {}, safeContext = false) {
   const code = 'renderTemplate(templateStr, templateContext, safeContext)';
-
-  // Validate the template string to make sure it's safe to execute
-  validateTemplate(templateStr);
 
   const compartmentContext = {
     globals: {
@@ -234,7 +236,7 @@ const ALLOWED_NODE_TYPES = new Set<acorn.Node['type']>([
  * @param templateStr - The template string to validate
  * @throws {TemplateValidationError} If given template string is invalid
  */
-export function validateTemplate(templateStr: string): undefined {
+export function validateTemplate(templateStr: string, allowedKeywords: string[] = []): undefined {
   const expressions = getTemplateMatches(templateStr, false) ?? [];
 
   for (const expr of expressions) {
@@ -243,8 +245,8 @@ export function validateTemplate(templateStr: string): undefined {
     }
 
     const ast = acorn.parse(expr, {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
+      ecmaVersion: 2021,
+      sourceType: 'script',
     });
 
     const parentMap = new WeakMap();
@@ -266,7 +268,15 @@ export function validateTemplate(templateStr: string): undefined {
           // check against both blocked globals and allowed identifiers
           if (!isPropertyName) {
             if (DISALLOWED_KEYWORDS.has(identifierNode.name)) {
-              throw new TemplateValidationError(`Access to identifier "${identifierNode.name}" is not allowed`);
+              throw new TemplateValidationError(`${identifierNode.name} is not defined`);
+            }
+
+            if (
+              !ALLOWED_IDENTIFIERS.has(identifierNode.name) &&
+              allowedKeywords.length &&
+              !allowedKeywords.includes(identifierNode.name)
+            ) {
+              throw new TemplateValidationError(`${identifierNode.name} is not defined`);
             }
           }
         }
