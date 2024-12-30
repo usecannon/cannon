@@ -31,6 +31,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { usePackageNameTagVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 
 const handleDownload = (content: Record<string, unknown>, filename: string) => {
   const blob = new Blob([JSON.stringify(content, null, 2)], {
@@ -109,16 +110,17 @@ export const CodeExplorer: FC<{
   functionName?: string;
 }> = ({ pkg, name, moduleName, source, functionName }) => {
   const router = useRouter();
+  const { tag, variant } = usePackageNameTagVersionUrlParams();
+  const [chainId, preset] = variant.split('-');
   const [selectedCode, setSelectedCode] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('');
   const [selectedKey, setSelectedKey] = useState('');
   const [selectedLine, setSelectedLine] = useState<undefined | number>();
-  // For the main package, the key is -1
   const [selectedPackage, setSelectedPackage] = useState<{
     name: string;
     key: number;
   }>({
-    name,
+    name: moduleName || name,
     key: -1,
   });
 
@@ -138,6 +140,30 @@ export const CodeExplorer: FC<{
             {}
         )
       : [];
+
+  // Update selected package key when provisioned packages are loaded
+  useEffect(() => {
+    if (provisionedPackagesKeys.length > 0) {
+      if (moduleName) {
+        const idx = provisionedPackagesKeys.indexOf(moduleName);
+        if (idx >= 0) {
+          setSelectedPackage({
+            name: moduleName,
+            key: idx,
+          });
+        }
+      } else if (selectedPackage.name !== name) {
+        const idx = provisionedPackagesKeys.indexOf(selectedPackage.name);
+        if (idx >= 0) {
+          setSelectedPackage((prev) => ({
+            ...prev,
+            key: idx,
+          }));
+        }
+      }
+    }
+  }, [name, moduleName, selectedPackage.name, provisionedPackagesKeys]);
+
   const provisionArtifacts = provisionedPackagesKeys.map((k: string) => {
     return {
       name: k,
@@ -313,7 +339,26 @@ export const CodeExplorer: FC<{
       : provisionedMiscData && Object.entries(provisionedMiscData?.artifacts);
 
   const handleSelectPackage = (p: { name: string; key: number }) => {
-    setSelectedPackage({ name: p.name, key: p.key });
+    setSelectedPackage(p);
+
+    // Only navigate if this was triggered by a user action (not initial load)
+    if (p.name !== selectedPackage.name) {
+      const urlParams = new URLSearchParams();
+      if (source) {
+        urlParams.append('source', source);
+      }
+      if (functionName) {
+        urlParams.append('function', functionName);
+      }
+
+      const newPath = `/packages/${name}/${tag}/${chainId}-${preset}/code${
+        p.key !== -1 ? `/${p.name}` : ''
+      }`;
+      const fullUrl = urlParams.toString()
+        ? `${newPath}?${urlParams.toString()}`
+        : newPath;
+      router.replace(fullUrl);
+    }
   };
 
   // Select the right selected module based on the given moduleName
@@ -341,15 +386,17 @@ export const CodeExplorer: FC<{
     selectedKey,
   ]);
 
-  // Select the first provisioned package if the main package has no code
+  // Select the first provisioned package if the main package has no code and no specific package is specified
   useEffect(() => {
     if (deploymentData.isLoading) return;
 
     if (
       !artifacts?.length &&
       provisionedPackagesKeys.length &&
-      selectedPackage.key === -1
+      selectedPackage.key === -1 &&
+      !moduleName
     ) {
+      // Just update the selected package without triggering navigation
       setSelectedPackage(availablePackages[1]);
     }
   }, [
@@ -358,6 +405,7 @@ export const CodeExplorer: FC<{
     deploymentData.isLoading,
     selectedPackage.key,
     availablePackages,
+    moduleName,
   ]);
 
   const handleSelectFile = (sourceKey: string, sourceValue: any) => {
@@ -513,21 +561,41 @@ export const CodeExplorer: FC<{
         <>
           <div className="sticky top-0 z-[3] md:sticky overflow-x-scroll overflow-y-hidden max-w-full border-b border-gray-800">
             <Tabs
-              defaultValue={name}
+              defaultValue={moduleName || name}
               value={selectedPackage.name}
               onValueChange={(value) => {
                 const pkg = availablePackages.find((p) => p.name === value);
-                if (pkg) {
+                if (pkg && pkg.name !== selectedPackage.name) {
                   handleSelectPackage(pkg);
+
+                  // Preserve current source and function parameters
+                  const urlParams = new URLSearchParams();
+                  if (source) {
+                    urlParams.append('source', source);
+                  }
+                  if (functionName) {
+                    urlParams.append('function', functionName);
+                  }
+
+                  // Navigate to the new package
+                  const newPath = `/packages/${name}/${tag}/${chainId}-${preset}/code/${value}`;
+                  const fullUrl = urlParams.toString()
+                    ? `${newPath}?${urlParams.toString()}`
+                    : newPath;
+
+                  // Use replace instead of push to avoid adding to history stack
+                  router.replace(fullUrl);
                 }
               }}
             >
               <TabsList className="rounded-none h-full">
                 {!isEmpty(miscData?.artifacts) && (
-                  <TabsTrigger value={name}>{name}</TabsTrigger>
+                  <TabsTrigger value={name} disabled={isLoading}>
+                    {name}
+                  </TabsTrigger>
                 )}
                 {provisionedPackagesKeys.map((k: string) => (
-                  <TabsTrigger key={k} value={k}>
+                  <TabsTrigger key={k} value={k} disabled={isLoading}>
                     {k}
                   </TabsTrigger>
                 ))}

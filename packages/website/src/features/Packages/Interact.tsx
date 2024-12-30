@@ -291,7 +291,7 @@ const Interact: FC = () => {
 
   return (
     <>
-      <div className="sticky top-[64px] z-50 bg-background">
+      <div className="sticky top-[57px] z-50 bg-background">
         <div className="overflow-x-scroll overflow-y-hidden max-w-[100vw] border-b border-border">
           <Tabs
             defaultValue={
@@ -388,7 +388,7 @@ const Interact: FC = () => {
 
             <a
               className="text-xs text-muted-foreground no-underline border-b border-dotted border-gray-300 font-mono cursor-pointer"
-              href={`/packages/${name}/${tag}/${variant}/code/${moduleName}`}
+              href={`/packages/${name}/${tag}/${variant}/code/${moduleName}?source=${contract?.sourceName}`}
               target="_blank"
               rel="noopener noreferrer"
             >
