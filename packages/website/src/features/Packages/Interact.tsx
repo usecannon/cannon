@@ -21,7 +21,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, Code, FileText } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SearchInput from '@/components/SearchInput';
 
@@ -376,51 +376,53 @@ const Interact: FC = () => {
 
         {/* Header */}
         <div className="flex flex-col md:flex-row bg-background px-2 py-1 border-b border-border items-start md:items-center">
-          {/* Token */}
           <div className="p-1">
-            <h4 className="inline-block font-bold mr-2.5">
-              {isLoadingData ? (
-                <div className="h-4 w-[100px] mt-1 mb-1 animate-pulse bg-gray-700" />
-              ) : (
-                contract?.contractName
-              )}
+            <h4 className="inline-block font-medium tracking-[0.1px]">
+              {contract?.contractName}
             </h4>
-
-            <a
-              className="text-xs text-muted-foreground no-underline border-b border-dotted border-gray-300 font-mono cursor-pointer"
-              href={`/packages/${name}/${tag}/${variant}/code/${moduleName}?source=${contract?.sourceName}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {contract?.sourceName}
-            </a>
           </div>
 
-          {/* IPFS Url */}
           <div className="p-1 md:ml-auto">
-            <div className="flex flex-col items-start md:items-end">
-              <p className="text-xs text-muted-foreground">
+            <div className="flex flex-col items-start md:flex-row md:items-end gap-6 text-gray-300 text-xs font-mono text-muted-foreground">
+              <a
+                className="no-underline hover:no-underline flex items-center"
+                href={`/packages/${name}/${tag}/${variant}/code/${moduleName}?source=${contract?.sourceName}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Code className="h-[14px] w-[14px] mr-1.5" />
+                <span className="border-b border-dotted border-gray-300">
+                  {contract?.sourceName}
+                </span>
+              </a>
+
+              <p className="flex items-center">
                 {explorerUrl ? (
                   <a
-                    className="no-underline border-b border-dotted border-gray-300 font-mono cursor-pointer"
+                    className="no-underline hover:no-underline flex items-center"
                     href={explorerUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {contractAddress.substring(0, 6)}...
-                    {contractAddress.slice(-4)}
+                    <FileText className="h-[14px] w-[14px] mr-1.5" />
+                    <span className="border-b border-dotted border-gray-300">
+                      {contractAddress.substring(0, 6)}...
+                      {contractAddress.slice(-4)}
+                    </span>
                   </a>
                 ) : null}{' '}
                 {moduleName !== name ? (
                   <>
                     from{' '}
                     <a
-                      className="no-underline border-b border-dotted border-gray-300 font-mono cursor-pointer"
+                      className="no-underline hover:no-underline"
                       href={deployUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      {`[clone.${moduleName}]`}
+                      <span className="border-b border-dotted border-gray-300">
+                        {`[clone.${moduleName}]`}
+                      </span>
                     </a>
                   </>
                 ) : null}
