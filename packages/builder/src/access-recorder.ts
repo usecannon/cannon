@@ -79,24 +79,6 @@ function setupTemplateContext(possibleNames: string[] = []): TemplateContext {
     settings: new AccessRecorder(viem.zeroAddress),
   };
 
-  // setup CannonHelperContext recorders
-  for (const [n, ctxVal] of Object.entries(CannonHelperContext)) {
-    if (typeof ctxVal === 'function') {
-      recorders[n] = _.noop as unknown as AccessRecorder;
-    } else if (typeof ctxVal === 'object') {
-      for (const [key, val] of Object.entries(ctxVal)) {
-        if (typeof val === 'function') {
-          if (!recorders[n]) recorders[n] = {} as AccessRecorderMap;
-          (recorders[n] as AccessRecorderMap)[key] = _.noop as unknown as AccessRecorder;
-        } else {
-          recorders[n] = ctxVal as unknown as AccessRecorder;
-        }
-      }
-    } else {
-      recorders[n] = ctxVal as unknown as AccessRecorder;
-    }
-  }
-
   // add possible names
   for (const n of possibleNames) {
     recorders[n] = new AccessRecorder();
@@ -114,7 +96,7 @@ function setupTemplateContext(possibleNames: string[] = []): TemplateContext {
 function collectAccesses(recorders: TemplateContext, possibleNames: string[]): string[] {
   const accesses: string[] = [];
 
-  for (const recorder of _.difference(Object.keys(recorders), Object.keys(CannonHelperContext))) {
+  for (const recorder of Object.keys(recorders)) {
     if (recorders[recorder] instanceof AccessRecorder) {
       if (possibleNames.includes(recorder) && recorders[recorder].accessed.size > 0) {
         accesses.push(recorder);

@@ -14,6 +14,10 @@ const debug = Debug('cannon:builder:template');
 const ALLOWED_IDENTIFIERS = new Set(Object.keys(CannonHelperContext));
 
 const DISALLOWED_IDENTIFIERS = new Set([
+  '__defineGetter__',
+  '__defineSetter__',
+  '__lookupGetter__',
+  '__lookupSetter__',
   '__proto__',
   'arguments',
   'async',
@@ -37,6 +41,8 @@ const DISALLOWED_IDENTIFIERS = new Set([
   'for',
   'function',
   'function*',
+  'global',
+  'globalThis',
   'if',
   'import',
   'let',
@@ -44,6 +50,7 @@ const DISALLOWED_IDENTIFIERS = new Set([
   'prototype',
   'require',
   'return',
+  'self',
   'static',
   'super',
   'switch',
@@ -52,14 +59,15 @@ const DISALLOWED_IDENTIFIERS = new Set([
   'try',
   'var',
   'while',
+  'window',
   'with',
   'yield',
 ]);
 
-const DISALLOWED_VARS = Array.from(getGlobalVars()).filter((g) => !ALLOWED_IDENTIFIERS.has(g));
+const GLOBAL_VARS = new Set(Array.from(getGlobalVars()).filter((g) => !DISALLOWED_IDENTIFIERS.has(g)));
 
 // Cache the global properties to avoid recomputing them on every validation
-const DISALLOWED_KEYWORDS = new Set([...Array.from(DISALLOWED_IDENTIFIERS), ...DISALLOWED_VARS]);
+const DISALLOWED_KEYWORDS = new Set([...Array.from(DISALLOWED_IDENTIFIERS), ...GLOBAL_VARS]);
 
 // Debug log the complete list if needed
 if (debug.enabled) {
@@ -95,9 +103,9 @@ export function renderTemplate(templateStr: string, templateContext: any = {}, s
   }
 
   // Check that the given context does not contain any disallowed variables
-  for (const key of DISALLOWED_VARS) {
+  for (const key of DISALLOWED_IDENTIFIERS) {
     if (Object.prototype.hasOwnProperty.call(templateContext, key)) {
-      throw new Error(`Usage of ${key} is not allowed`);
+      throw new Error(`Usage of identifier "${key}" is not allowed`);
     }
   }
 
@@ -107,6 +115,16 @@ export function renderTemplate(templateStr: string, templateContext: any = {}, s
     // E.g.:
     //   args = ["<%= Object.assign(contracts.Greeter, { address: '0xdeadbeef' }) %>"]
     const ctx = safeContext ? templateContext : deepClone(templateContext);
+
+    // Set null to all global vars so they cannot be accessed by the user
+    if (!safeContext) {
+      for (const key of GLOBAL_VARS.values()) {
+        if (ALLOWED_IDENTIFIERS.has(key)) continue;
+        if (!Object.prototype.hasOwnProperty.call(templateContext, key)) {
+          templateContext[key] = null;
+        }
+      }
+    }
 
     // Validate the template string to make sure it's safe to execute
     validateTemplate(templateStr, Object.keys(ctx));
@@ -267,7 +285,7 @@ export function validateTemplate(templateStr: string, allowedKeywords: string[] 
 
           // check against both blocked globals and allowed identifiers
           if (!isPropertyName) {
-            if (DISALLOWED_KEYWORDS.has(identifierNode.name)) {
+            if (DISALLOWED_IDENTIFIERS.has(identifierNode.name)) {
               throw new TemplateValidationError(`${identifierNode.name} is not defined`);
             }
 

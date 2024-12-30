@@ -3,7 +3,7 @@
  * @returns Set of all discoverable globals
  */
 export function getGlobalVars(): Set<string> {
-  const globals = new Set<string>(['this', 'super', 'globalThis', 'self', 'global', 'window']);
+  const globals = new Set<string>();
 
   // Helper to safely get all properties from an object and its prototype chain
   const getAllPropertiesFromObject = (obj: any) => {
