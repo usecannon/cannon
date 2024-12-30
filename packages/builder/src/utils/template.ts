@@ -66,14 +66,6 @@ const DISALLOWED_IDENTIFIERS = new Set([
 
 const GLOBAL_VARS = new Set(Array.from(getGlobalVars()).filter((g) => !DISALLOWED_IDENTIFIERS.has(g)));
 
-// Cache the global properties to avoid recomputing them on every validation
-const DISALLOWED_KEYWORDS = new Set([...Array.from(DISALLOWED_IDENTIFIERS), ...GLOBAL_VARS]);
-
-// Debug log the complete list if needed
-if (debug.enabled) {
-  debug('Complete list of blocked globals:', Array.from(DISALLOWED_KEYWORDS));
-}
-
 /**
  * Check if the given string is a template string.
  * @param str - The string to check
