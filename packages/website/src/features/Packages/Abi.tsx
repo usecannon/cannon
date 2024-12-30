@@ -1,11 +1,9 @@
-import { Flex, Skeleton } from '@chakra-ui/react';
 import sortBy from 'lodash/sortBy';
 import * as viem from 'viem';
 import { ChainArtifacts } from '@usecannon/builder';
-import { FC, useContext, useEffect, useMemo, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { AbiFunction, Abi as AbiType } from 'abitype';
 import { Function } from '@/features/Packages/Function';
-import { SubnavContext } from './Tabs/InteractTab';
 import SearchInput from '@/components/SearchInput';
 import { scroller, Element, scrollSpy } from 'react-scroll';
 
@@ -27,11 +25,11 @@ const getSelectorSlug = (f: AbiFunction) =>
   `selector-${viem.toFunctionSelector(f)}`;
 
 const FunctionRowsSkeleton = () => (
-  <Flex direction="column" gap={2}>
+  <div className="flex flex-col gap-2">
     {Array.from({ length: 7 }).map((_, i) => (
-      <Skeleton key={i} height={3} />
+      <div key={i} className="h-3 animate-pulse bg-muted rounded" />
     ))}
-  </Flex>
+  </div>
 );
 
 export const Abi: FC<{
@@ -57,7 +55,6 @@ export const Abi: FC<{
 }) => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const hasSubnav = useContext(SubnavContext);
   const [selectedSelector, setSelectedSelector] = useState<string | null>(null);
   const [scrollInitialized, setScrollInitialized] = useState(false);
 
@@ -95,9 +92,9 @@ export const Abi: FC<{
     () => ({
       duration: 1200,
       smooth: true,
-      offset: (102 + (hasSubnav ? 65 : 0)) * -1,
+      offset: -167,
     }),
-    [hasSubnav]
+    []
   );
 
   const onSelectedSelector = async (newSelector: string) => {
@@ -162,25 +159,23 @@ export const Abi: FC<{
 
   const sidebarContent = (
     <SidebarContent className="overflow-y-auto">
-      <SidebarGroup>
+      <SidebarGroup className="pb-1">
         <SidebarGroupContent>
           <SidebarMenu>
-            <SidebarMenuItem>
+            <SidebarMenuItem className="mt-2">
               <SearchInput onSearchChange={setSearchTerm} />
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
 
-      <SidebarGroup className="pb-0">
+      <SidebarGroup>
         <SidebarGroupContent>
-          <SidebarGroupLabel className="space-y-2 h-10">
-            Read Functions
-          </SidebarGroupLabel>
+          <SidebarGroupLabel className="h-6">Read Functions</SidebarGroupLabel>
         </SidebarGroupContent>
 
         <SidebarGroupContent>
-          <SidebarMenu>
+          <SidebarMenu className="gap-0">
             {isLoading ? (
               <FunctionRowsSkeleton />
             ) : (
@@ -190,7 +185,7 @@ export const Abi: FC<{
                 )
                 .map((f, index) => (
                   <SidebarMenuButton
-                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full"
+                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full font-mono text-sm"
                     key={index}
                     isActive={selectedSelector == getSelectorSlug(f)}
                     onClick={() => handleMethodClick(f)}
@@ -208,12 +203,10 @@ export const Abi: FC<{
       </SidebarGroup>
 
       <SidebarGroup className="pt-0">
-        <SidebarGroupLabel className="space-y-2 h-10">
-          Write Functions
-        </SidebarGroupLabel>
+        <SidebarGroupLabel className="h-6">Write Functions</SidebarGroupLabel>
 
         <SidebarGroupContent>
-          <SidebarMenu>
+          <SidebarMenu className="gap-0">
             {isLoading ? (
               <FunctionRowsSkeleton />
             ) : (
@@ -223,7 +216,7 @@ export const Abi: FC<{
                 )
                 .map((f, index) => (
                   <SidebarMenuButton
-                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full"
+                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full font-mono text-sm"
                     key={index}
                     isActive={selectedSelector == getSelectorSlug(f)}
                     onClick={() => handleMethodClick(f)}
@@ -243,8 +236,8 @@ export const Abi: FC<{
   );
 
   return (
-    <Flex flex="1" direction="column" maxWidth="100%">
-      <Flex flex="1" direction={['column', 'column', 'row']}>
+    <div className="flex flex-1 flex-col max-w-full">
+      <div className="flex flex-1 flex-col md:flex-row">
         <SidebarLayout
           sidebarContent={sidebarContent}
           centered={false}
@@ -252,20 +245,11 @@ export const Abi: FC<{
           mainContentOverflowY="visible"
         >
           {/* Methods Interactions */}
-          <Flex
-            direction="column"
-            px={4}
-            py={4}
-            borderBottom="1px solid"
-            borderColor="gray.700"
-            gap={4}
-            flex={1}
-            overflowX="auto"
-          >
+          <div className="flex flex-col px-4 py-4 border-b border-gray-700 gap-4 flex-1 overflow-x-auto">
             {isLoading ? (
-              <Flex align="center" justify="center" flex={1}>
+              <div className="flex items-center justify-center flex-1">
                 <CustomSpinner />
-              </Flex>
+              </div>
             ) : (
               allContractMethods?.map((f) => (
                 <Element
@@ -289,9 +273,9 @@ export const Abi: FC<{
                 </Element>
               ))
             )}
-          </Flex>
+          </div>
         </SidebarLayout>
-      </Flex>
-    </Flex>
+      </div>
+    </div>
   );
 };

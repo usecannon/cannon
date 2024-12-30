@@ -110,3 +110,15 @@
 [data-section] > pre {
   @apply p-4;
 }
+
+[data-rk] ._9pm4ki3 {
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 2147483646;
+}

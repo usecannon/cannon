@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from 'react';
-import { Input } from '@chakra-ui/react';
+import { Input } from '@/components/ui/input';
 
 export const DefaultInput: FC<{
   handleUpdate: (value: string) => void;
@@ -12,9 +12,7 @@ export const DefaultInput: FC<{
   return (
     <Input
       type="text"
-      size="sm"
-      bg="black"
-      borderColor="whiteAlpha.400"
+      className="bg-background border-input"
       value={updateValue}
       onChange={(e) => setUpdateValue(e.target.value)}
     />
