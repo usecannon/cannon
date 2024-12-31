@@ -59,7 +59,7 @@ export type AccessComputationResult = { accesses: string[]; unableToCompute: boo
 type AccessRecorderMap = { [k: string]: AccessRecorder };
 
 type TemplateContext = {
-  [k: string]: AccessRecorder | AccessRecorderMap;
+  [k: string]: AccessRecorder | AccessRecorderMap | unknown;
 };
 
 /**
@@ -68,7 +68,18 @@ type TemplateContext = {
  * @returns The template context
  */
 function setupTemplateContext(possibleNames: string[] = []): TemplateContext {
+  // Create a fake helper context, so the render works but no real functions are called
+  const fakeHelperContext = _createDeepNoopObject(CannonHelperContext);
+
   const recorders: TemplateContext = {
+    // Include base context variables, no access recording as they are always available
+    chainId: 0,
+    timestamp: 0,
+    package: { version: '0.0.0' },
+    ...fakeHelperContext,
+
+    // Add access recorders for the base context variables, these are the ones
+    // used to calculate dependencies beween steps
     contracts: new AccessRecorder(),
     imports: new AccessRecorder(),
     extras: new AccessRecorder(),
@@ -85,6 +96,22 @@ function setupTemplateContext(possibleNames: string[] = []): TemplateContext {
   }
 
   return recorders;
+}
+
+export function _createDeepNoopObject<T>(obj: T): T {
+  if (_.isFunction(obj)) {
+    return _.noop as T;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => _createDeepNoopObject(item)) as T;
+  }
+
+  if (_.isPlainObject(obj)) {
+    return _.mapValues(obj as Record<string, unknown>, (value) => _createDeepNoopObject(value)) as T;
+  }
+
+  return obj;
 }
 
 /**

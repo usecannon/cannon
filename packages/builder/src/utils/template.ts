@@ -37,9 +37,11 @@ const DISALLOWED_IDENTIFIERS = new Set([
   'else',
   'export',
   'extends',
+  'eval',
   'finally',
   'for',
   'function',
+  'Function',
   'function*',
   'global',
   'globalThis',
@@ -47,6 +49,7 @@ const DISALLOWED_IDENTIFIERS = new Set([
   'import',
   'let',
   'new',
+  'process',
   'prototype',
   'require',
   'return',
@@ -108,18 +111,18 @@ export function renderTemplate(templateStr: string, templateContext: any = {}, s
     //   args = ["<%= Object.assign(contracts.Greeter, { address: '0xdeadbeef' }) %>"]
     const ctx = safeContext ? templateContext : deepClone(templateContext);
 
+    // Validate the template string to make sure it's safe to execute
+    validateTemplate(templateStr, Object.keys(ctx));
+
     // Set null to all global vars so they cannot be accessed by the user
     if (!safeContext) {
       for (const key of GLOBAL_VARS.values()) {
         if (ALLOWED_IDENTIFIERS.has(key)) continue;
         if (!Object.prototype.hasOwnProperty.call(templateContext, key)) {
-          templateContext[key] = null;
+          ctx[key] = null;
         }
       }
     }
-
-    // Validate the template string to make sure it's safe to execute
-    validateTemplate(templateStr, Object.keys(ctx));
 
     return _.template(templateStr, { imports: CannonHelperContext })(ctx);
   } catch (err) {
@@ -267,7 +270,7 @@ export function validateTemplate(templateStr: string, allowedKeywords: string[] 
       // check if node type is allowed
       if (node.type) {
         if (!ALLOWED_NODE_TYPES.has(node.type)) {
-          throw new TemplateValidationError(`Unauthorized operation type: ${node.type}`);
+          throw new TemplateValidationError(`Invalid operation type: ${node.type}`);
         }
 
         if (node.type === 'Identifier') {
@@ -277,14 +280,11 @@ export function validateTemplate(templateStr: string, allowedKeywords: string[] 
 
           // check against both blocked globals and allowed identifiers
           if (!isPropertyName) {
-            if (DISALLOWED_IDENTIFIERS.has(identifierNode.name)) {
-              throw new TemplateValidationError(`${identifierNode.name} is not defined`);
-            }
-
             if (
-              !ALLOWED_IDENTIFIERS.has(identifierNode.name) &&
-              allowedKeywords.length &&
-              !allowedKeywords.includes(identifierNode.name)
+              DISALLOWED_IDENTIFIERS.has(identifierNode.name) ||
+              (!ALLOWED_IDENTIFIERS.has(identifierNode.name) &&
+                allowedKeywords.length &&
+                !allowedKeywords.includes(identifierNode.name))
             ) {
               throw new TemplateValidationError(`${identifierNode.name} is not defined`);
             }
