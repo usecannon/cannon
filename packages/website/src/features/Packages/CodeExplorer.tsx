@@ -474,6 +474,7 @@ export const CodeExplorer: FC<{
                           {artifactKey.split(':').length > 1
                             ? artifactKey.split(':')[1]
                             : artifactKey}
+                          .sol
                         </SidebarGroupLabel>
                       </div>
 
