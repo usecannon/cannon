@@ -33,6 +33,7 @@ import {
   InMemoryRegistry,
   OnChainRegistry,
   publishPackage,
+  CannonSigner,
 } from '@usecannon/builder';
 import * as viem from 'viem';
 import { mainnet, optimism } from 'viem/chains';
@@ -96,12 +97,12 @@ export default function PublishUtility(props: {
       );
 
       return new OnChainRegistry({
-        signer: { address: walletAddress, wallet: wc.data as any },
+        signer: { address: walletAddress, wallet: wc.data } as CannonSigner,
         address: config.address,
         provider: viem.createPublicClient({
           chain: getChainById(config.chainId),
           transport: customTransports[config.chainId] || viem.http(rpcUrl),
-        }),
+        }) as any,
       });
     });
 

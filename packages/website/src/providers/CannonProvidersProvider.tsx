@@ -30,7 +30,10 @@ type CustomProviders =
       transports: Record<number, viem.HttpTransport>;
       customTransports: Record<number, viem.HttpTransport>;
       getChainById: (chainId: number) => viem.Chain | undefined;
-      getExplorerUrl: (chainId: number, hash: viem.Hash) => string;
+      getExplorerUrl: (
+        chainId: number,
+        hash: viem.Hash | viem.Address | `0x${string}`
+      ) => string;
     }
   | undefined;
 const ProvidersContext = createContext<CustomProviders>(undefined);
@@ -316,8 +319,8 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
         chainMetadata,
         transports: _allTransports,
         customTransports: _customTransports,
-        getChainById: (chainId: number) => _getChainById(_allChains, chainId),
-        getExplorerUrl: (chainId: number, hash: viem.Hash) =>
+        getChainById: (chainId) => _getChainById(_allChains, chainId),
+        getExplorerUrl: (chainId, hash) =>
           _getExplorerUrl(_allChains, chainId, hash),
       }}
     >

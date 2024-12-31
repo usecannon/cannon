@@ -14,7 +14,7 @@ import {
 } from '@usecannon/builder';
 import { FC, useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import { Address } from 'viem';
+import * as viem from 'viem';
 import { IpfsSpinner } from '@/components/IpfsSpinner';
 import {
   Popover,
@@ -24,7 +24,6 @@ import {
 import { MoreHorizontal, Code, FileText } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SearchInput from '@/components/SearchInput';
-
 import { externalLinks } from '@/constants/externalLinks';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { usePackageByRef } from '@/hooks/api/usePackage';
@@ -38,7 +37,7 @@ type Option = {
 type AllContracts = {
   moduleName: string;
   contractName: string;
-  contractAddress: Address;
+  contractAddress: viem.Address;
   highlight: boolean;
 };
 
@@ -280,7 +279,10 @@ const Interact: FC = () => {
   }${packagesQuery.data?.deployUrl.replace('ipfs://', '')}`;
 
   const explorerUrl = packagesQuery.data?.chainId
-    ? getExplorerUrl(packagesQuery.data?.chainId, contractAddress)
+    ? getExplorerUrl(
+        packagesQuery.data?.chainId,
+        contractAddress as viem.Address
+      )
     : null;
 
   const isLoadingData = packagesQuery.isPending || deploymentData.isPending;
