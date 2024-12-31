@@ -23,7 +23,11 @@ const SearchInput: React.FC<SearchInputProps> = ({
 
   return (
     <div className="relative">
-      <MagnifyingGlassIcon className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-500" />
+      <MagnifyingGlassIcon
+        className={`absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 ${
+          size === 'sm' ? 'h-4 w-4' : size === 'lg' ? 'h-6 w-6' : 'h-5 w-5'
+        }`}
+      />
       <Input
         onChange={(e) => debouncedHandleSearch(e.target.value)}
         name="search"

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { groupBy } from 'lodash';
 import { PackageCardExpandable } from './PackageCard/PackageCardExpandable';
 import { CustomSpinner } from '@/components/CustomSpinner';
@@ -32,6 +32,15 @@ export const SearchPage = () => {
   const [selectedChains, setSelectedChains] = useState<number[]>([]);
   const { getChainById } = useCannonChains();
 
+  const sortWithCannonFirst = useMemo(
+    () => (a: number, b: number) => {
+      if (a === 13370) return -1;
+      if (b === 13370) return 1;
+      return a - b;
+    },
+    []
+  );
+
   const toggleChainSelection = (id: number) => {
     setSelectedChains((prevSelectedChains) =>
       prevSelectedChains.includes(id)
@@ -48,42 +57,50 @@ export const SearchPage = () => {
   // Chain filter stuff
   const chainsQuery = useQuery({ queryKey: ['chains'], queryFn: getChains });
 
-  const getAllChainIds = (
-    ids: number[]
-  ): { mainnet: number[]; testnet: number[] } => {
-    const mainnetChainIds = new Set<number>();
-    const testnetChainIds = new Set<number>();
+  const getAllChainIds = useMemo(
+    () =>
+      (ids: number[]): { mainnet: number[]; testnet: number[] } => {
+        const mainnetChainIds = new Set<number>();
+        const testnetChainIds = new Set<number>();
 
-    ids.forEach((id) => {
-      // Check if the chain_id exists in the chains object and if it's a testnet
-      const chain = getChainById(id);
+        ids.forEach((id) => {
+          // Check if the chain_id exists in the chains object and if it's a testnet
+          const chain = getChainById(id);
 
-      if ((chain as any)?.testnet) {
-        testnetChainIds.add(id);
-      } else {
-        mainnetChainIds.add(id);
-      }
-    });
+          if ((chain as any)?.testnet) {
+            testnetChainIds.add(id);
+          } else {
+            mainnetChainIds.add(id);
+          }
+        });
 
-    return {
-      mainnet: Array.from(mainnetChainIds).sort((a, b) => a - b),
-      testnet: Array.from(testnetChainIds).sort((a, b) => a - b),
-    };
-  };
+        const mainnetArray = Array.from(mainnetChainIds)
+          .filter((id) => !isNaN(id))
+          .map(Number);
 
-  // Get all chain IDs using the function
+        const sortedMainnet = [...mainnetArray].sort((a, b) => {
+          if (a === 13370) return -1;
+          if (b === 13370) return 1;
+          return a - b;
+        });
+
+        return {
+          mainnet: sortedMainnet,
+          testnet: Array.from(testnetChainIds).sort((a, b) => a - b),
+        };
+      },
+    [getChainById, sortWithCannonFirst]
+  );
+
+  // Get all chain IDs using the function and memoize the result
   const { mainnet: sortedMainnetChainIds, testnet: sortedTestnetChainIds } =
-    getAllChainIds(chainsQuery?.data?.data || []);
+    useMemo(
+      () => getAllChainIds(chainsQuery?.data?.data || []),
+      [getAllChainIds, chainsQuery?.data?.data]
+    );
 
   // Filter out NaN values and ensure 13370 is at the front of the mainnetChainIds array
-  const filteredMainnetChainIds = sortedMainnetChainIds.filter(
-    (id) => !isNaN(id)
-  );
-  const index13370 = filteredMainnetChainIds.indexOf(13370);
-  if (index13370 > -1) {
-    filteredMainnetChainIds.splice(index13370, 1);
-    filteredMainnetChainIds.unshift(13370);
-  }
+  const filteredMainnetChainIds = sortedMainnetChainIds;
 
   const groupedPackages = groupBy(packagesQuery?.data?.data, 'name');
 
@@ -94,8 +111,8 @@ export const SearchPage = () => {
       </SidebarHeader>
 
       <SidebarContent className="overflow-y-auto">
-        <SidebarGroup>
-          <SidebarGroupLabel className="px-4 text-sm font-medium text-gray-200">
+        <SidebarGroup className="pt-0">
+          <SidebarGroupLabel className="h-4 mb-2">
             Filter by Chain
           </SidebarGroupLabel>
           <SidebarGroupContent className="space-y-1 px-2">
@@ -159,7 +176,7 @@ export const SearchPage = () => {
           <p className="m-auto text-gray-400">No results</p>
         </div>
       ) : (
-        <div className="space-y-6 pt-6 px-4 pb-2">
+        <div className="space-y-4 pt-4 px-4 pb-2">
           {Object.values(groupedPackages).map((pkgs: any) => (
             <div
               key={pkgs[0].name}
