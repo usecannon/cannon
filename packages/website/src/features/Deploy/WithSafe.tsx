@@ -36,7 +36,7 @@ export default function WithSafe({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-col min-h-[calc(100dvh-var(--header-height)-var(--subheader-height)-var(--footer-height))]">
       {currentSafe ? (
         isLoadingNetworkPrepared ? (
           <MainContentLoading />
@@ -46,7 +46,7 @@ export default function WithSafe({ children }: { children: ReactNode }) {
           <PrepareNetwork onNetworkPrepared={handleNetworkPrepared} />
         )
       ) : (
-        <div className="flex flex-col items-center justify-center text-center p-3 flex-1 w-full bg-black/60 mb-2 lg:mb-0">
+        <div className="flex flex-col items-center justify-center text-center p-3 flex-1 bg-black/60">
           <p className="text-lg text-gray-200 mb-2">
             Queue, sign, and execute deployments using a
             <a
