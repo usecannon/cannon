@@ -12,6 +12,7 @@ import {
   WalletIcon,
   EyeIcon,
   XIcon,
+  Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -33,9 +34,17 @@ import {
   toFunctionSignature,
   TransactionRequestBase,
   zeroAddress,
+  isAddress,
 } from 'viem';
 import { useAccount, useSwitchChain, useWalletClient } from 'wagmi';
 import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { AddressInput } from '@/features/Packages/FunctionInput/AddressInput';
+import { links } from '@/constants/links';
 
 const extractError = (e: any): string => {
   return typeof e === 'string'
@@ -136,6 +145,14 @@ export const Function: FC<FunctionProps> = ({
       : 0;
 
   const { isConnected, address: from, chain: connectedChain } = useAccount();
+  const [simulatedSender, setSimulatedSender] = useState<Address>(zeroAddress);
+
+  useEffect(() => {
+    if (from) {
+      setSimulatedSender(from);
+    }
+  }, [from]);
+
   const { openConnectModal } = useConnectModal();
 
   const { switchChain } = useSwitchChain();
@@ -170,7 +187,7 @@ export const Function: FC<FunctionProps> = ({
     setSimulated(simulate);
 
     try {
-      if (isFunctionReadOnly) {
+      if (isFunctionReadOnly || simulate) {
         await handleReadFunction();
       } else {
         await handleWriteFunction(simulate);
@@ -181,7 +198,9 @@ export const Function: FC<FunctionProps> = ({
   };
 
   const handleReadFunction = async () => {
-    const result = await fetchReadContractResult(from ?? zeroAddress);
+    const result = await fetchReadContractResult(
+      simulated ? simulatedSender : from ?? zeroAddress
+    );
     if (result.error) {
       setMethodCallOrQueuedResult({
         value: null,
@@ -193,6 +212,11 @@ export const Function: FC<FunctionProps> = ({
   };
 
   const handleWriteFunction = async (simulate: boolean) => {
+    if (simulate) {
+      await handleReadFunction();
+      return;
+    }
+
     if (!isConnected) {
       if (openConnectModal) openConnectModal();
       return;
@@ -202,18 +226,14 @@ export const Function: FC<FunctionProps> = ({
       await switchChain({ chainId: chainId });
     }
 
-    if (simulate) {
-      await handleReadFunction();
+    const result = await fetchWriteContractResult();
+    if (result.error) {
+      setMethodCallOrQueuedResult({
+        value: null,
+        error: extractError(result.error),
+      });
     } else {
-      const result = await fetchWriteContractResult();
-      if (result.error) {
-        setMethodCallOrQueuedResult({
-          value: null,
-          error: extractError(result.error),
-        });
-      } else {
-        setMethodCallOrQueuedResult({ value: result.value, error: null });
-      }
+      setMethodCallOrQueuedResult({ value: result.value, error: null });
     }
   };
 
@@ -396,34 +416,111 @@ export const Function: FC<FunctionProps> = ({
 
             <div className="flex gap-4 mt-1">
               {isFunctionReadOnly && (
-                <Button
-                  disabled={loading}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    void submit();
-                  }}
-                >
-                  <EyeIcon className="w-4 h-4" />
-                  Call view function
-                </Button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button disabled={loading} variant="outline" size="sm">
+                      <EyeIcon className="w-4 h-4" />
+                      Call function
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80">
+                    <Label>
+                      Simulated Sender{' '}
+                      <span className="text-xs text-muted-foreground ml-0.5">
+                        optional
+                      </span>
+                    </Label>
+                    <div className="grid gap-4 mt-1">
+                      <AddressInput
+                        value={simulatedSender}
+                        handleUpdate={(value) => {
+                          setMethodCallOrQueuedResult(null);
+                          if (isAddress(value)) {
+                            setSimulatedSender(value as Address);
+                          }
+                        }}
+                      />
+                      <Button
+                        variant="default"
+                        className="w-full"
+                        onClick={async () => await submit()}
+                      >
+                        Submit
+                      </Button>
+                      <p className="text-sm text-muted-foreground">
+                        This will use{' '}
+                        {(() => {
+                          const rpcUrl =
+                            getChainById(chainId)?.rpcUrls?.default?.http[0];
+                          if (!rpcUrl) return 'default RPC URL';
+                          const match = rpcUrl.match(/https?:\/\/([^/]+)/);
+                          return match ? match[1] : rpcUrl;
+                        })()}{' '}
+                        {'   '}
+                        <Link
+                          href={links.SETTINGS}
+                          className="inline-block align-text-bottom hover:opacity-70"
+                        >
+                          <Settings className="h-4 w-4" />
+                        </Link>
+                      </p>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               )}
 
               {!isFunctionReadOnly && (
                 <div className="flex w-full justify-between gap-4">
-                  <Button
-                    disabled={loading}
-                    variant="outline"
-                    onClick={async () => await submit({ simulate: true })}
-                  >
-                    <PlayIcon className="w-4 h-4" />
-                    Simulate transaction{' '}
-                    {simulated && methodCallOrQueuedResult && (
-                      <StatusIcon
-                        error={Boolean(methodCallOrQueuedResult.error)}
-                      />
-                    )}
-                  </Button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button disabled={loading} variant="outline">
+                        <PlayIcon className="w-4 h-4" />
+                        Simulate transaction{' '}
+                        {simulated && methodCallOrQueuedResult && (
+                          <StatusIcon
+                            error={Boolean(methodCallOrQueuedResult.error)}
+                          />
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80">
+                      <Label>Simulated Sender</Label>
+                      <div className="grid gap-4 mt-1">
+                        <AddressInput
+                          value={simulatedSender}
+                          handleUpdate={(value) => {
+                            setMethodCallOrQueuedResult(null);
+                            if (isAddress(value)) {
+                              setSimulatedSender(value as Address);
+                            }
+                          }}
+                        />
+                        <Button
+                          variant="default"
+                          className="w-full"
+                          onClick={async () => await submit({ simulate: true })}
+                        >
+                          Submit
+                        </Button>
+                        <p className="text-sm text-muted-foreground">
+                          This will use{' '}
+                          {(() => {
+                            const rpcUrl =
+                              getChainById(chainId)?.rpcUrls?.default?.http[0];
+                            if (!rpcUrl) return 'default RPC URL';
+                            const match = rpcUrl.match(/https?:\/\/([^/]+)/);
+                            return match ? match[1] : rpcUrl;
+                          })()}{' '}
+                          <Link
+                            href={links.SETTINGS}
+                            className="inline-block align-text-bottom hover:opacity-70"
+                          >
+                            <Settings className="h-4 w-4" />
+                          </Link>
+                        </p>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                   <Button
                     disabled={loading}
                     variant="outline"

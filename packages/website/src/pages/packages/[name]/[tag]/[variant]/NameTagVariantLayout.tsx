@@ -2,10 +2,10 @@
 
 import { useRouter } from 'next/router';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { InfoIcon } from 'lucide-react';
 import { ReactNode } from 'react';
 import { NavLink } from '@/components/NavLink';
@@ -53,11 +53,11 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
                 <div>
                   <h1 className="text-3xl font-bold mb-2">
                     {packagesQuery.data.name}
-                    <Popover>
-                      <PopoverTrigger>
-                        <InfoIcon className="inline-block w-5 h-5 ml-2.5 text-gray-400" />
-                      </PopoverTrigger>
-                      <PopoverContent className="bg-black max-w-[320px] border-border pt-2.5">
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <InfoIcon className="inline-block w-5 h-5 ml-2.5 text-gray-400 hover:text-white transition-colors" />
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-black max-w-[240px] border border-border pt-2.5">
                         <div className="flex flex-col gap-2">
                           {isDeploymentInfoLoading ? (
                             <CustomSpinner />
@@ -93,9 +93,8 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
                                   </p>
                                 )}
                               </div>
-
                               <div>
-                                {deploymentInfo?.status === 'complete' && (
+                                {deploymentInfo?.status === 'complete' ?? (
                                   <>
                                     <SidebarGroupLabel className="m-0 h-6 p-0">
                                       Complete Deployment
@@ -107,7 +106,7 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
                                     </p>
                                   </>
                                 )}
-                                {deploymentInfo?.status === 'partial' && (
+                                {deploymentInfo?.status === 'partial' ?? (
                                   <>
                                     <SidebarGroupLabel className="m-0 h-6 p-0">
                                       Partial Deployment
@@ -123,8 +122,8 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
                             </>
                           )}
                         </div>
-                      </PopoverContent>
-                    </Popover>
+                      </TooltipContent>
+                    </Tooltip>
                   </h1>
                   <PublishInfo p={packagesQuery.data} />
                 </div>

@@ -25,8 +25,10 @@ export const AddressInput: FC<{
     <Input
       type="text"
       className={cn(
-        'bg-background border-input',
-        isInvalid && 'border-destructive focus:border-destructive'
+        'bg-background',
+        isInvalid
+          ? 'border-destructive focus:border-destructive'
+          : 'border-input'
       )}
       placeholder="0x0000000000000000000000000000000000000000"
       value={updateValue}

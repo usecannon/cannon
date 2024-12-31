@@ -39,13 +39,11 @@ export const Abi: FC<{
   cannonOutputs: ChainArtifacts;
   chainId: number;
   contractName?: string;
-  contractSource?: string;
   onDrawerOpen?: () => void;
   packageUrl?: string;
 }> = ({
   isLoading,
   abi,
-  contractSource,
   contractName,
   address,
   cannonOutputs,
@@ -263,7 +261,6 @@ export const Abi: FC<{
                     address={address}
                     cannonOutputs={cannonOutputs}
                     chainId={chainId}
-                    contractSource={contractSource}
                     contractName={contractName}
                     onDrawerOpen={onDrawerOpen}
                     collapsible

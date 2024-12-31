@@ -12,7 +12,7 @@ const defaultSEO = {
     type: 'website',
     images: [
       {
-        url: 'https://usecannon.com/images/og.png',
+        url: 'https://usecannon.com/images/og_image.png',
       },
     ],
   },
