@@ -324,7 +324,7 @@ const Interact: FC = () => {
                   }
                 }}
               >
-                <TabsList className="h-full">
+                <TabsList className="h-full font-mono">
                   {highlightedOptions.map((option, i) => (
                     <TabsTrigger
                       key={i}
@@ -364,7 +364,7 @@ const Interact: FC = () => {
                           .map((option, i) => (
                             <div
                               key={i}
-                              className={`cursor-pointer p-2 border-t border-border ${
+                              className={`cursor-pointer p-2 border-t border-border font-mono ${
                                 isActiveContract(option)
                                   ? 'bg-background'
                                   : 'bg-transparent'

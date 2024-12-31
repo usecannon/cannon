@@ -604,7 +604,7 @@ export const CodeExplorer: FC<{
                 }
               }}
             >
-              <TabsList className="h-full">
+              <TabsList className="h-full font-mono">
                 {!isEmpty(miscData?.artifacts) && (
                   <TabsTrigger value={name} disabled={isLoading}>
                     {name}
@@ -612,7 +612,7 @@ export const CodeExplorer: FC<{
                 )}
                 {provisionedPackagesKeys.map((k: string) => (
                   <TabsTrigger key={k} value={k} disabled={isLoading}>
-                    {k}
+                    [clone.{k}]
                   </TabsTrigger>
                 ))}
               </TabsList>
