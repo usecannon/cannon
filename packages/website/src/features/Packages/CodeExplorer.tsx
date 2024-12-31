@@ -468,7 +468,7 @@ export const CodeExplorer: FC<{
               return (
                 <div key={artifactKey} className="mb-2">
                   <SidebarMenuItem>
-                    <div className="flex flex-row px-2 items-center mb-0.5">
+                    <div className="flex flex-row pr-2 items-center h-7">
                       <div className="max-w-[210px] overflow-hidden">
                         <SidebarGroupLabel>
                           {artifactKey.split(':').length > 1

@@ -1,9 +1,8 @@
 import { SidebarMenuItem } from '@/components/ui/sidebar';
 import { FileTreeNode } from '@/features/Packages/code/type';
-import { Box, Flex, Text } from '@chakra-ui/react';
 import { FC, useState } from 'react';
-import { ChevronDownIcon, ChevronRightIcon } from '@chakra-ui/icons';
-import { FolderIcon, FileIcon } from 'lucide-react';
+import { ChevronDown, ChevronRight, FileIcon, FolderIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export const FileTreeItem: FC<{
   node: FileTreeNode;
@@ -17,23 +16,19 @@ export const FileTreeItem: FC<{
   if (node.type === 'file') {
     return (
       <SidebarMenuItem>
-        <Box
-          pl={paddingLeft}
-          py={0.5}
-          cursor="pointer"
-          fontSize="sm"
-          _hover={{ bg: 'gray.800' }}
+        <div
+          className={cn(
+            'flex items-center py-0.5 cursor-pointer text-sm hover:bg-accent/50',
+            selectedKey === node.path && 'font-medium bg-gray-800'
+          )}
+          style={{ paddingLeft }}
           onClick={() => onSelectFile(node.path, node.content)}
-          fontWeight={selectedKey === node.path ? 'medium' : undefined}
-          bg={selectedKey === node.path ? 'gray.800' : undefined}
         >
-          <Flex alignItems="center" pl="24px">
+          <div className="flex items-center pl-6">
             <FileIcon size={16} className="mr-2" />
-            <Text fontSize="sm" fontWeight="medium" maxW="180px" isTruncated>
-              {node.name}
-            </Text>
-          </Flex>
-        </Box>
+            <span className="text-sm truncate max-w-[180px]">{node.name}</span>
+          </div>
+        </div>
       </SidebarMenuItem>
     );
   }
@@ -41,24 +36,19 @@ export const FileTreeItem: FC<{
   return (
     <>
       <SidebarMenuItem>
-        <Flex
-          pl={paddingLeft}
-          py={0.5}
-          cursor="pointer"
-          alignItems="center"
+        <div
+          className="flex items-center py-0.5 cursor-pointer hover:bg-accent/50"
+          style={{ paddingLeft }}
           onClick={() => setIsOpen(!isOpen)}
-          _hover={{ bg: 'gray.800' }}
         >
           {isOpen ? (
-            <ChevronDownIcon mr={2} boxSize={4} />
+            <ChevronDown className="mr-2 size-4" />
           ) : (
-            <ChevronRightIcon mr={2} boxSize={4} />
+            <ChevronRight className="mr-2 size-4" />
           )}
           <FolderIcon size={16} className="mr-2" />
-          <Text fontSize="sm" fontWeight="medium">
-            {node.name}
-          </Text>
-        </Flex>
+          <span className="text-sm">{node.name}</span>
+        </div>
       </SidebarMenuItem>
       {isOpen && (
         <>

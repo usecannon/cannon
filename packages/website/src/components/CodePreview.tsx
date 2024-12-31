@@ -1,4 +1,4 @@
-import { FC, useRef, useEffect } from 'react';
+import { FC, useRef, useEffect, useState } from 'react';
 import Editor, { type EditorProps, loader } from '@monaco-editor/react';
 
 // Define the GitHub Dark Default theme
@@ -46,15 +46,21 @@ export const CodePreview: FC<ICodePreviewProps> = ({
   editorProps,
 }) => {
   const editorRef = useRef<any>(null);
+  const [isThemeReady, setIsThemeReady] = useState(false);
 
-  // Initialize theme
+  // Initialize theme before rendering editor
   useEffect(() => {
-    void loader
-      .init()
-      .then((monaco) => {
+    async function initializeTheme() {
+      try {
+        const monaco = await loader.init();
         monaco.editor.defineTheme('github-dark-default', githubDarkDefault);
-      })
-      .catch();
+        setIsThemeReady(true);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(error);
+      }
+    }
+    void initializeTheme();
   }, []);
 
   // Function to highlight lines
@@ -78,28 +84,31 @@ export const CodePreview: FC<ICodePreviewProps> = ({
 
   // Handle editor mount and save the instance
   const handleEditorDidMount = (editor: any, monaco: any) => {
-    monaco.editor.setTheme('github-dark-default');
     editorRef.current = editor;
+    monaco.editor.setTheme('github-dark-default');
+
     if (line) {
       highlightLines(editor, monaco, line + 1);
     }
   };
 
+  if (!isThemeReady) {
+    return null; // or a loading spinner
+  }
+
   return (
-    <>
-      <Editor
-        height={height || '100%'}
-        theme="github-dark-default"
-        defaultLanguage={language || 'javascript'}
-        value={code}
-        options={{
-          readOnly: true,
-          minimap: { enabled: false },
-        }}
-        onMount={handleEditorDidMount}
-        {...editorProps}
-      />
-    </>
+    <Editor
+      height={height || '100%'}
+      theme="github-dark-default"
+      defaultLanguage={language || 'javascript'}
+      value={code}
+      options={{
+        readOnly: true,
+        minimap: { enabled: false },
+      }}
+      onMount={handleEditorDidMount}
+      {...editorProps}
+    />
   );
 };
 

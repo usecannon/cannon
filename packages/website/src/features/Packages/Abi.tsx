@@ -90,7 +90,7 @@ export const Abi: FC<{
     () => ({
       duration: 1200,
       smooth: true,
-      offset: -167,
+      offset: -145,
     }),
     []
   );

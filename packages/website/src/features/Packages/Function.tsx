@@ -595,24 +595,34 @@ export const Function: FC<FunctionProps> = ({
               Output
             </h3>
 
-            {loading ? (
-              <CustomSpinner />
-            ) : (
-              <div className="flex-1">
-                {f.outputs.length != 0 && methodCallOrQueuedResult == null && (
-                  <div className="absolute z-10 top-0 left-0 bg-background/75 w-full h-full flex items-center justify-center text-muted-foreground">
-                    {isFunctionReadOnly
-                      ? 'Call the view function '
-                      : 'Simulate the transaction '}
-                    for output
-                  </div>
-                )}
-                <FunctionOutput
-                  methodResult={methodCallOrQueuedResult?.value || null}
-                  abiParameters={f.outputs}
-                />
-              </div>
-            )}
+            <div className="flex-1">
+              <AnimatePresence>
+                {f.outputs.length != 0 &&
+                  (methodCallOrQueuedResult == null || loading) && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute z-10 top-0 left-0 bg-background/75 w-full h-full flex items-center justify-center text-muted-foreground"
+                    >
+                      {loading ? (
+                        <CustomSpinner className="h-8 w-8" />
+                      ) : (
+                        <>
+                          {isFunctionReadOnly
+                            ? 'Call the view function'
+                            : 'Simulate the transaction'}
+                          for output
+                        </>
+                      )}
+                    </motion.div>
+                  )}
+              </AnimatePresence>
+              <FunctionOutput
+                methodResult={methodCallOrQueuedResult?.value || null}
+                abiParameters={f.outputs}
+              />
+            </div>
           </div>
         </div>
       </motion.div>
