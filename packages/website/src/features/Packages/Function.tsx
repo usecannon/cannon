@@ -646,15 +646,17 @@ export const Function: FC<FunctionProps> = ({
             onClick={() => setIsOpen(!isOpen)}
           >
             {f.name && (
-              <h2 className="text-sm font-mono flex items-center max-w-full break-words">
-                {toFunctionSignature(f)}
-                <Link
-                  className="text-muted-foreground ml-2 hover:no-underline"
-                  href={anchor}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  #
-                </Link>
+              <h2 className="text-sm font-mono flex items-center max-w-full">
+                <span className="break-all">
+                  {toFunctionSignature(f)}
+                  <Link
+                    className="text-muted-foreground ml-2 hover:no-underline"
+                    href={anchor}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    #
+                  </Link>
+                </span>
               </h2>
             )}
             <ChevronDownIcon
