@@ -302,16 +302,16 @@ const Interact: FC = () => {
               <Tabs
                 defaultValue={
                   highlightedOptions[0]?.moduleName +
-                  '.' +
+                  '::' +
                   highlightedOptions[0]?.contractName
                 }
                 value={
                   activeContractOption
-                    ? `${activeContractOption.moduleName}.${activeContractOption.contractName}`
+                    ? `${activeContractOption.moduleName}::${activeContractOption.contractName}`
                     : undefined
                 }
                 onValueChange={(value) => {
-                  const [moduleName, contractName] = value.split('.');
+                  const [moduleName, contractName] = value.split('::');
                   const option = [...highlightedOptions, ...otherOptions].find(
                     (opt) =>
                       opt.moduleName === moduleName &&
@@ -328,7 +328,7 @@ const Interact: FC = () => {
                   {highlightedOptions.map((option, i) => (
                     <TabsTrigger
                       key={i}
-                      value={`${option.moduleName}.${option.contractName}`}
+                      value={`${option.moduleName}::${option.contractName}`}
                     >
                       {`${option.moduleName}.${option.contractName}`}
                     </TabsTrigger>
