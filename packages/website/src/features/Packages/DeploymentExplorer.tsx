@@ -196,56 +196,51 @@ export const DeploymentExplorer: FC<{
               : 'The following operations were executed when building this package or a package it upgraded from.'}
           </h2>
 
-          <div className="pt-6 pb-2 px-4 flex flex-col md:flex-row justify-start items-center">
-            <div className="w-full md:w-auto flex justify-between items-center mb-2 md:mb-0 min-h-[32px]">
-              <h2 className="text-2xl font-bold tracking-tight">
-                Contract Deployments
-              </h2>
-            </div>
-            <div className="pl-0 md:pl-6 w-full md:w-auto md:ml-auto mt-2 md:mt-0">
-              <SearchInput size="sm" onSearchChange={setContractSearchTerm} />
-            </div>
-          </div>
-
-          {!isEmpty(filteredContractState) && !isEmpty(addressesAbis) ? (
-            <div className="max-w-full mx-4 mt-2">
-              <ContractsTable
-                contractState={filteredContractState}
-                chainId={pkg.chainId}
-              />
-            </div>
-          ) : (
-            <div className="mt-6">
-              <div className="px-4 mb-3 flex justify-center flex-col md:flex-row">
-                <h3 className="text-lg font-semibold">No Contracts Found</h3>
+          {!isEmpty(filteredContractState) && !isEmpty(addressesAbis) && (
+            <>
+              <div className="pt-6 pb-2 px-4 flex flex-col md:flex-row justify-start items-center">
+                <div className="w-full md:w-auto flex justify-between items-center mb-2 md:mb-0 min-h-[32px]">
+                  <h2 className="text-2xl font-bold tracking-tight">
+                    Contract Deployments
+                  </h2>
+                </div>
+                <div className="pl-0 md:pl-6 w-full md:w-auto md:ml-auto mt-2 md:mt-0">
+                  <SearchInput
+                    size="sm"
+                    onSearchChange={setContractSearchTerm}
+                  />
+                </div>
               </div>
-            </div>
+
+              <div className="max-w-full mx-4 mt-2">
+                <ContractsTable
+                  contractState={filteredContractState}
+                  chainId={pkg.chainId}
+                />
+              </div>
+            </>
           )}
 
-          <div className="pt-6 pb-2 px-4 flex flex-col md:flex-row justify-start items-center">
-            <div className="w-full md:w-auto flex justify-between items-center mb-2 md:mb-0 min-h-[32px]">
-              <h2 className="text-2xl font-bold tracking-tight">
-                Function Calls
-              </h2>
-            </div>
-            <div className="pl-0 md:pl-6 w-full md:w-auto md:ml-auto mt-2 md:mt-0">
-              <SearchInput size="sm" onSearchChange={setInvokeSearchTerm} />
-            </div>
-          </div>
-
-          {!isEmpty(invokeState) ? (
-            <div className="max-w-full mx-4 mt-2">
-              <InvokesTable
-                invokeState={filteredInvokeState}
-                chainId={pkg.chainId}
-              />
-            </div>
-          ) : (
-            <div className="mt-6">
-              <div className="px-4 mb-3 flex justify-center flex-col md:flex-row">
-                <h3 className="text-lg font-semibold">No Functions Found</h3>
+          {!isEmpty(invokeState) && (
+            <>
+              <div className="pt-6 pb-2 px-4 flex flex-col md:flex-row justify-start items-center">
+                <div className="w-full md:w-auto flex justify-between items-center mb-2 md:mb-0 min-h-[32px]">
+                  <h2 className="text-2xl font-bold tracking-tight">
+                    Function Calls
+                  </h2>
+                </div>
+                <div className="pl-0 md:pl-6 w-full md:w-auto md:ml-auto mt-2 md:mt-0">
+                  <SearchInput size="sm" onSearchChange={setInvokeSearchTerm} />
+                </div>
               </div>
-            </div>
+
+              <div className="max-w-full mx-4 mt-2">
+                <InvokesTable
+                  invokeState={filteredInvokeState}
+                  chainId={pkg.chainId}
+                />
+              </div>
+            </>
           )}
 
           {!isEmpty(mergedExtras) && (

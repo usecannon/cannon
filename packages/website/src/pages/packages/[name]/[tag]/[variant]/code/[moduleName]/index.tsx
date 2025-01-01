@@ -22,7 +22,7 @@ function generateMetadata({
       ? { id: 13370, name: 'Cannon' }
       : getChainById(chainId)!;
 
-  const title = `${params.name} on ${chain.name} | Cannon`;
+  const title = `${params.name} on ${chain.name} Code | Cannon`;
 
   const description = `Explore the Cannon package for ${params.name}${
     params.tag !== 'latest' ? `:${params.tag}` : ''

@@ -1,4 +1,4 @@
-import { Hash } from 'viem';
+import * as viem from 'viem';
 import { ExternalLinkIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import {
   Box,
@@ -89,7 +89,7 @@ export function TransactionStepper(props: {
 
   const safeTransactionStatus = useSafeTransactionStatus(
     props.chainId,
-    transactionHash as Hash
+    transactionHash as viem.Hash
   );
 
   const isExecutionFailure = useMemo(
@@ -302,7 +302,7 @@ export function TransactionStepper(props: {
                     styleConfig={{ 'text-decoration': 'none' }}
                     href={getExplorerUrl(
                       props.chainId,
-                      transactionHash as Hash
+                      transactionHash as viem.Hash
                     )}
                     ml={1}
                   >

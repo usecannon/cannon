@@ -179,12 +179,7 @@ export const CannonfileExplorer: FC<{ pkg: ApiPackage }> = ({ pkg }) => {
                                   </TableCell>
                                   <TableCell className="border-border">
                                     {value.option ? (
-                                      <>
-                                        {value.option}
-                                        <span className="text-gray-500 text-decoration-line-through">
-                                          {value.defaultValue}
-                                        </span>
-                                      </>
+                                      <>{value.option}</>
                                     ) : (
                                       <>{value.defaultValue}</>
                                     )}

@@ -1,8 +1,10 @@
 import { Link2Icon } from '@radix-ui/react-icons';
-import PackageTable from './PackageTable';
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { FC, useState } from 'react';
+import { cn } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Switch } from '@/components/ui/switch';
+import PackageTable from './PackageTable';
 
 interface IPackageCardProps {
   pkgs: any[];
@@ -14,37 +16,58 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
   maxHeight,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const onToggle = () => setIsOpen(!isOpen);
 
   return (
     <div
       key={pkgs[0].name}
-      className="block overflow-hidden border border-border rounded bg-black transition-all duration-120"
+      className="flex flex-col border border-border rounded-sm overflow-hidden"
     >
-      <div className="flex flex-row items-center p-2">
-        <div className="px-1 flex items-center">
-          <h4 className="font-semibold text-lg">{pkgs[0].name}</h4>
+      <div
+        className="flex flex-row px-3 py-2 items-center justify-between hover:bg-accent/60 cursor-pointer bg-accent/50 transition-colors"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className="flex items-center">
+          <h4 className="font-medium text-sm">{pkgs[0].name}</h4>
           <Link
             href={'/packages/' + pkgs[0].name}
-            className="ml-2 flex items-center"
+            className="ml-2 flex items-center text-muted-foreground hover:no-underline"
+            onClick={(e) => e.stopPropagation()}
           >
             <Link2Icon className="w-4 h-4" />
           </Link>
         </div>
-        <div className="ml-auto">
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={onToggle}
-            id={`${pkgs[0].name}-expandable-button`}
+        <div
+          className="flex items-center gap-1"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Switch
+            className="scale-75"
+            checked={!isOpen}
+            onCheckedChange={(checked) => setIsOpen(!checked)}
+          />
+          <p
+            onClick={(checked) => setIsOpen(!checked)}
+            className={cn(
+              'text-xs cursor-pointer',
+              isOpen && 'text-muted-foreground'
+            )}
           >
-            {isOpen ? 'Show Less' : 'Show More'}
-          </Button>
+            Only latest mainnet deployments
+          </p>
         </div>
       </div>
-      <div className="align-middle overflow-auto" style={{ maxHeight }}>
-        <PackageTable latestOnly={!isOpen} pkgs={pkgs} />
-      </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key="content"
+          initial={false}
+          animate={{ height: 'auto' }}
+          className="overflow-hidden bg-background"
+        >
+          <div className="align-middle overflow-auto" style={{ maxHeight }}>
+            <PackageTable latestOnly={!isOpen} pkgs={pkgs} />
+          </div>
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 };

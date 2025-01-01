@@ -19,7 +19,7 @@ function generateMetadata({
   const [chainId, preset] = PackageReference.parseVariant(params.variant);
   const chain = getChainById(chainId);
 
-  const title = `${params.name} on ${chain?.name} | Cannon`;
+  const title = `${params.name} on ${chain?.name} Deployment Overview | Cannon`;
 
   const description = `Explore the Cannon package for ${params.name}${
     params.tag !== 'latest' ? `:${params.tag}` : ''
@@ -37,7 +37,7 @@ function generateMetadata({
       type: 'website',
       images: [
         {
-          url: 'https://usecannon.com/images/og.png',
+          url: 'https://usecannon.com/images/og_image.png',
         },
       ],
     },

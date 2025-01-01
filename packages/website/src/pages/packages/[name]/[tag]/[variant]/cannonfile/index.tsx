@@ -17,7 +17,7 @@ function generateMetadata({
   const [chainId, preset] = PackageReference.parseVariant(params.variant);
   const chain = getChainById(chainId);
 
-  const title = `${params.name} on ${chain?.name} | Cannon`;
+  const title = `${params.name} on ${chain?.name} Cannonfile | Cannon`;
 
   const description = `Cannon file for package ${params.name}${
     params.tag !== 'latest' ? `:${params.tag}` : ''

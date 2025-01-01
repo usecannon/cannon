@@ -468,12 +468,13 @@ export const CodeExplorer: FC<{
               return (
                 <div key={artifactKey} className="mb-2">
                   <SidebarMenuItem>
-                    <div className="flex flex-row px-2 items-center mb-0.5">
+                    <div className="flex flex-row pr-2 items-center h-7">
                       <div className="max-w-[210px] overflow-hidden">
                         <SidebarGroupLabel>
                           {artifactKey.split(':').length > 1
                             ? artifactKey.split(':')[1]
                             : artifactKey}
+                          .sol
                         </SidebarGroupLabel>
                       </div>
 
@@ -574,7 +575,7 @@ export const CodeExplorer: FC<{
         </div>
       ) : artifacts?.length || provisionedPackagesKeys.length ? (
         <>
-          <div className="sticky top-0 z-[3] md:sticky overflow-x-scroll overflow-y-hidden max-w-full border-b border-gray-800">
+          <div className="sticky top-0 z-[3] md:sticky overflow-x-scroll overflow-y-hidden max-w-full border-b border-border bg-muted">
             <Tabs
               defaultValue={moduleName || name}
               value={selectedPackage.name}
@@ -603,7 +604,7 @@ export const CodeExplorer: FC<{
                 }
               }}
             >
-              <TabsList className="rounded-none h-full">
+              <TabsList className="h-full font-mono">
                 {!isEmpty(miscData?.artifacts) && (
                   <TabsTrigger value={name} disabled={isLoading}>
                     {name}
@@ -611,7 +612,7 @@ export const CodeExplorer: FC<{
                 )}
                 {provisionedPackagesKeys.map((k: string) => (
                   <TabsTrigger key={k} value={k} disabled={isLoading}>
-                    {k}
+                    [clone.{k}]
                   </TabsTrigger>
                 ))}
               </TabsList>

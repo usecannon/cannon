@@ -21,7 +21,7 @@ function generateMetadata({
 }) {
   const chain = getChainById(chainId);
 
-  const title = `${name} on ${chain?.name}`;
+  const title = `${name} on ${chain?.name} Interact | Cannon`;
 
   const description = `Explore the Cannon package for ${name}${
     tag !== 'latest' ? `:${tag}` : ''

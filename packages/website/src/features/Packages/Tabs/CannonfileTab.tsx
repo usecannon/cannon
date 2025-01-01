@@ -16,7 +16,11 @@ export const CannonfileTab: FC<{
   const packagesQuery = usePackageByRef({ name, tag, preset, chainId });
 
   if (packagesQuery.isPending) {
-    return <CustomSpinner />;
+    return (
+      <div className="py-20">
+        <CustomSpinner />
+      </div>
+    );
   }
 
   if (packagesQuery.isError) {

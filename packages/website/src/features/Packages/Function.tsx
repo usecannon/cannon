@@ -7,12 +7,12 @@ import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import {
   CheckIcon,
   ChevronDownIcon,
-  ChevronUpIcon,
   AlertTriangleIcon,
   PlayIcon,
   WalletIcon,
   EyeIcon,
   XIcon,
+  Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -24,9 +24,7 @@ import Link from 'next/link';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
 import { Abi, AbiFunction } from 'abitype';
-import { useRouter } from 'next/router';
 import React, { FC, useEffect, useRef, useState } from 'react';
-import { FaCode } from 'react-icons/fa6';
 import {
   Address,
   createPublicClient,
@@ -36,9 +34,17 @@ import {
   toFunctionSignature,
   TransactionRequestBase,
   zeroAddress,
+  isAddress,
 } from 'viem';
 import { useAccount, useSwitchChain, useWalletClient } from 'wagmi';
 import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { AddressInput } from '@/features/Packages/FunctionInput/AddressInput';
+import { links } from '@/constants/links';
 
 const extractError = (e: any): string => {
   return typeof e === 'string'
@@ -63,7 +69,7 @@ const StatusIcon = ({ error }: { error: boolean }) => (
   </div>
 );
 
-export const Function: FC<{
+interface FunctionProps {
   selected?: boolean;
   f: AbiFunction;
   abi: Abi;
@@ -71,19 +77,19 @@ export const Function: FC<{
   cannonOutputs: ChainArtifacts;
   chainId: number;
   contractName?: string;
-  contractSource?: string;
   onDrawerOpen?: () => void;
   collapsible?: boolean;
   showFunctionSelector: boolean;
   packageUrl?: string;
-}> = ({
+}
+
+export const Function: FC<FunctionProps> = ({
   selected,
   f,
-  abi /*, cannonOutputs */,
+  abi,
   address,
   chainId,
   contractName,
-  contractSource,
   onDrawerOpen,
   collapsible,
   showFunctionSelector,
@@ -91,7 +97,6 @@ export const Function: FC<{
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const currentSafe = useStore((s) => s.currentSafe);
-  const { asPath: pathname } = useRouter();
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
   const [methodCallOrQueuedResult, setMethodCallOrQueuedResult] = useState<{
@@ -140,6 +145,14 @@ export const Function: FC<{
       : 0;
 
   const { isConnected, address: from, chain: connectedChain } = useAccount();
+  const [simulatedSender, setSimulatedSender] = useState<Address>(zeroAddress);
+
+  useEffect(() => {
+    if (from) {
+      setSimulatedSender(from);
+    }
+  }, [from]);
+
   const { openConnectModal } = useConnectModal();
 
   const { switchChain } = useSwitchChain();
@@ -174,7 +187,7 @@ export const Function: FC<{
     setSimulated(simulate);
 
     try {
-      if (isFunctionReadOnly) {
+      if (isFunctionReadOnly || simulate) {
         await handleReadFunction();
       } else {
         await handleWriteFunction(simulate);
@@ -185,7 +198,9 @@ export const Function: FC<{
   };
 
   const handleReadFunction = async () => {
-    const result = await fetchReadContractResult(from ?? zeroAddress);
+    const result = await fetchReadContractResult(
+      simulated ? simulatedSender : from ?? zeroAddress
+    );
     if (result.error) {
       setMethodCallOrQueuedResult({
         value: null,
@@ -197,6 +212,11 @@ export const Function: FC<{
   };
 
   const handleWriteFunction = async (simulate: boolean) => {
+    if (simulate) {
+      await handleReadFunction();
+      return;
+    }
+
     if (!isConnected) {
       if (openConnectModal) openConnectModal();
       return;
@@ -206,34 +226,18 @@ export const Function: FC<{
       await switchChain({ chainId: chainId });
     }
 
-    if (simulate) {
-      await handleReadFunction();
+    const result = await fetchWriteContractResult();
+    if (result.error) {
+      setMethodCallOrQueuedResult({
+        value: null,
+        error: extractError(result.error),
+      });
     } else {
-      const result = await fetchWriteContractResult();
-      if (result.error) {
-        setMethodCallOrQueuedResult({
-          value: null,
-          error: extractError(result.error),
-        });
-      } else {
-        setMethodCallOrQueuedResult({ value: result.value, error: null });
-      }
+      setMethodCallOrQueuedResult({ value: result.value, error: null });
     }
   };
 
   const anchor = `#selector-${toFunctionSelector(f)}`;
-
-  const getCodeUrl = (functionName: string) => {
-    const base = pathname.split('/interact')[0];
-    const activeContractPath = pathname.split('interact/')[1];
-    if (activeContractPath && contractSource) {
-      const [moduleName] = activeContractPath.split('/');
-
-      return `${base}/code/${moduleName}?source=${encodeURIComponent(
-        contractSource
-      )}&function=${functionName}`;
-    }
-  };
 
   const handleQueueTransaction = () => {
     if (!currentSafe) {
@@ -337,19 +341,11 @@ export const Function: FC<{
             <h2 className="text-sm font-mono flex items-center">
               {toFunctionSignature(f)}
               <Link
-                className="text-gray-300 ml-1 hover:underline"
+                className="text-muted-foreground ml-2 hover:no-underline"
                 href={anchor || '#'}
               >
                 #
               </Link>
-              {!!contractSource && (
-                <Link
-                  className="text-gray-300 ml-1 hover:underline"
-                  href={getCodeUrl(f.name) || '#'}
-                >
-                  <FaCode className="text-gray-300" />
-                </Link>
-              )}
             </h2>
           )}
         </div>
@@ -418,45 +414,120 @@ export const Function: FC<{
               </div>
             )}
 
-            <div className="flex gap-4">
+            <div className="flex gap-4 mt-1">
               {isFunctionReadOnly && (
-                <Button
-                  disabled={loading}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    void submit();
-                  }}
-                >
-                  <EyeIcon className="w-4 h-4" />
-                  Call view function
-                </Button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button disabled={loading} variant="outline" size="sm">
+                      <EyeIcon className="w-4 h-4" />
+                      Call function
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80">
+                    <Label>
+                      Simulated Sender{' '}
+                      <span className="text-xs text-muted-foreground ml-0.5">
+                        optional
+                      </span>
+                    </Label>
+                    <div className="grid gap-4 mt-1">
+                      <AddressInput
+                        value={simulatedSender}
+                        handleUpdate={(value) => {
+                          setMethodCallOrQueuedResult(null);
+                          if (isAddress(value)) {
+                            setSimulatedSender(value as Address);
+                          }
+                        }}
+                      />
+                      <Button
+                        variant="default"
+                        className="w-full"
+                        onClick={async () => await submit()}
+                      >
+                        Submit
+                      </Button>
+                      <p className="text-sm text-muted-foreground">
+                        This will use{' '}
+                        {(() => {
+                          const rpcUrl =
+                            getChainById(chainId)?.rpcUrls?.default?.http[0];
+                          if (!rpcUrl) return 'default RPC URL';
+                          const match = rpcUrl.match(/https?:\/\/([^/]+)/);
+                          return match ? match[1] : rpcUrl;
+                        })()}{' '}
+                        {'   '}
+                        <Link
+                          href={links.SETTINGS}
+                          className="inline-block align-text-bottom hover:opacity-70"
+                        >
+                          <Settings className="h-4 w-4" />
+                        </Link>
+                      </p>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               )}
 
               {!isFunctionReadOnly && (
-                <>
+                <div className="flex w-full justify-between gap-4">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button disabled={loading} variant="outline">
+                        <PlayIcon className="w-4 h-4" />
+                        Simulate transaction{' '}
+                        {simulated && methodCallOrQueuedResult && (
+                          <StatusIcon
+                            error={Boolean(methodCallOrQueuedResult.error)}
+                          />
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80">
+                      <Label>Simulated Sender</Label>
+                      <div className="grid gap-4 mt-1">
+                        <AddressInput
+                          value={simulatedSender}
+                          handleUpdate={(value) => {
+                            setMethodCallOrQueuedResult(null);
+                            if (isAddress(value)) {
+                              setSimulatedSender(value as Address);
+                            }
+                          }}
+                        />
+                        <Button
+                          variant="default"
+                          className="w-full"
+                          onClick={async () => await submit({ simulate: true })}
+                        >
+                          Submit
+                        </Button>
+                        <p className="text-sm text-muted-foreground">
+                          This will use{' '}
+                          {(() => {
+                            const rpcUrl =
+                              getChainById(chainId)?.rpcUrls?.default?.http[0];
+                            if (!rpcUrl) return 'default RPC URL';
+                            const match = rpcUrl.match(/https?:\/\/([^/]+)/);
+                            return match ? match[1] : rpcUrl;
+                          })()}{' '}
+                          <Link
+                            href={links.SETTINGS}
+                            className="inline-block align-text-bottom hover:opacity-70"
+                          >
+                            <Settings className="h-4 w-4" />
+                          </Link>
+                        </p>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                   <Button
                     disabled={loading}
                     variant="outline"
-                    size="sm"
-                    onClick={async () => await submit({ simulate: true })}
-                  >
-                    <PlayIcon className="w-4 h-4" />
-                    Simulate transaction{' '}
-                    {simulated && methodCallOrQueuedResult && (
-                      <StatusIcon
-                        error={Boolean(methodCallOrQueuedResult.error)}
-                      />
-                    )}
-                  </Button>
-                  <Button
-                    disabled={loading}
-                    variant="outline"
-                    size="sm"
                     onClick={async () => await submit()}
                   >
                     <WalletIcon className="w-4 h-4" />
-                    Submit using wallet{' '}
+                    Submit with wallet{' '}
                     {!simulated && methodCallOrQueuedResult && (
                       <StatusIcon
                         error={Boolean(methodCallOrQueuedResult.error)}
@@ -467,7 +538,6 @@ export const Function: FC<{
                     id={`${f.name}-stage-to-safe`}
                     disabled={loading}
                     variant="outline"
-                    size="sm"
                     onClick={handleQueueTransaction}
                   >
                     <svg
@@ -491,7 +561,7 @@ export const Function: FC<{
                     </svg>
                     Stage to Safe
                   </Button>
-                </>
+                </div>
               )}
             </div>
 
@@ -525,24 +595,34 @@ export const Function: FC<{
               Output
             </h3>
 
-            {loading ? (
-              <CustomSpinner />
-            ) : (
-              <div className="flex-1">
-                {f.outputs.length != 0 && methodCallOrQueuedResult == null && (
-                  <div className="absolute z-10 top-0 left-0 bg-background/75 w-full h-full flex items-center justify-center text-muted-foreground">
-                    {isFunctionReadOnly
-                      ? 'Call the view function '
-                      : 'Simulate the transaction '}
-                    for output
-                  </div>
-                )}
-                <FunctionOutput
-                  methodResult={methodCallOrQueuedResult?.value || null}
-                  abiParameters={f.outputs}
-                />
-              </div>
-            )}
+            <div className="flex-1">
+              <AnimatePresence>
+                {f.outputs.length != 0 &&
+                  (methodCallOrQueuedResult == null || loading) && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute z-10 top-0 left-0 bg-background/75 w-full h-full flex items-center justify-center text-muted-foreground"
+                    >
+                      {loading ? (
+                        <CustomSpinner className="h-8 w-8" />
+                      ) : (
+                        <>
+                          {isFunctionReadOnly
+                            ? 'Call the view function'
+                            : 'Simulate the transaction'}
+                          for output
+                        </>
+                      )}
+                    </motion.div>
+                  )}
+              </AnimatePresence>
+              <FunctionOutput
+                methodResult={methodCallOrQueuedResult?.value || null}
+                abiParameters={f.outputs}
+              />
+            </div>
           </div>
         </div>
       </motion.div>
@@ -561,36 +641,30 @@ export const Function: FC<{
       {collapsible ? (
         <div className="flex flex-col border border-border rounded-sm overflow-hidden">
           <div
-            className="flex flex-row px-3 py-2 items-center justify-between bg-background cursor-pointer hover:bg-accent/50 transition-colors"
+            className="flex flex-row px-3 py-2 items-center justify-between hover:bg-accent/60 cursor-pointer bg-accent/50 transition-colors"
             id={anchor}
             onClick={() => setIsOpen(!isOpen)}
           >
             {f.name && (
-              <h2 className="text-sm font-mono flex items-center gap-2 max-w-full break-words">
-                {toFunctionSignature(f)}
-                <Link
-                  className="text-gray-300 ml-1 hover:no-underline"
-                  href={anchor}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  #
-                </Link>
-                {!!contractSource && (
+              <h2 className="text-sm font-mono flex items-center max-w-full">
+                <span className="break-all">
+                  {toFunctionSignature(f)}
                   <Link
-                    className="text-gray-300 ml-1 hover:no-underline"
-                    href={getCodeUrl(f.name) ?? '#'}
+                    className="text-muted-foreground ml-2 hover:no-underline"
+                    href={anchor}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <FaCode className="text-gray-300" />
+                    #
                   </Link>
-                )}
+                </span>
               </h2>
             )}
-            {isOpen ? (
-              <ChevronUpIcon className="w-5 h-5" />
-            ) : (
-              <ChevronDownIcon className="w-5 h-5" />
-            )}
+            <ChevronDownIcon
+              className={cn(
+                'w-5 h-5 transition-transform duration-300',
+                isOpen && 'rotate-180'
+              )}
+            />
           </div>
           <AnimatePresence mode="wait">
             {isOpen && (

@@ -50,7 +50,7 @@ import {
   useState,
 } from 'react';
 import { IoIosContract, IoIosExpand } from 'react-icons/io';
-import { Hash, Hex, hexToString, TransactionRequestBase } from 'viem';
+import * as viem from 'viem';
 import {
   useAccount,
   useChainId,
@@ -94,7 +94,9 @@ function TransactionDetailsPage() {
 
   const currentSafe = useStore((s) => s.currentSafe);
   const [expandDiff, setExpandDiff] = useState<boolean>(false);
-  const [executionTxnHash, setExecutionTxnHash] = useState<Hash | null>(null);
+  const [executionTxnHash, setExecutionTxnHash] = useState<viem.Hash | null>(
+    null
+  );
   const accountAlreadyConnected = useRef(account.isConnected);
   const chainDefinitionRef = useRef<ChainDefinition>();
 
@@ -151,7 +153,9 @@ function TransactionDetailsPage() {
   }
 
   const unorderedNonce = safeTxn && safeTxn._nonce > staged[0]?.txn._nonce;
-  const hintData = safeTxn ? parseHintedMulticall(safeTxn.data as Hex) : null;
+  const hintData = safeTxn
+    ? parseHintedMulticall(safeTxn.data as viem.Hex)
+    : null;
 
   const queuedWithGitOps = hintData?.type == 'deploy';
 
@@ -214,7 +218,7 @@ function TransactionDetailsPage() {
   }
 
   const prevDeployPackageUrl = prevDeployHashQuery.data
-    ? hexToString(prevDeployHashQuery.data[1].result || ('' as any))
+    ? viem.hexToString(prevDeployHashQuery.data[1].result || ('' as any))
     : '';
 
   const prevCannonDeployInfo = useCannonPackage(
@@ -266,7 +270,7 @@ function TransactionDetailsPage() {
 
   // compare proposed build info with expected transaction batch
   const expectedTxns = buildInfo.buildState?.result?.safeSteps?.map(
-    (s) => s.tx as unknown as Partial<TransactionRequestBase>
+    (s) => s.tx as unknown as Partial<viem.TransactionRequestBase>
   );
 
   const unequalTransaction =
@@ -280,7 +284,7 @@ function TransactionDetailsPage() {
         );
       }));
 
-  const signers: Array<Hash> = stager.existingSigners.length
+  const signers: viem.Address[] = stager.existingSigners.length
     ? stager.existingSigners
     : safeTxn?.confirmedSigners || [];
 
