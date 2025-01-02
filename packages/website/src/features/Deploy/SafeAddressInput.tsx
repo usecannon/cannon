@@ -234,7 +234,7 @@ export function SafeAddressInput() {
               <DialogTitle>Select Safe</DialogTitle>
             </DialogHeader>
             <div className="space-y-10 mt-2">
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="space-y-2">
                   {safeOptions.map((option) => (
                     <div
@@ -320,19 +320,43 @@ export function SafeAddressInput() {
                 )}
 
                 <div>
-                  <div className="relative flex items-center">
-                    <Input
-                      value={newSafeInput}
-                      onChange={(e) => setNewSafeInput(e.target.value)}
-                      placeholder="chainId:safeAddress"
-                      className="pr-[88px]"
-                    />
-                    <Button
-                      onClick={handleAddNewSafe}
-                      className="absolute right-0 h-[35px] rounded-l-none"
-                    >
-                      Add Safe
-                    </Button>
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <label className="text-sm mb-2 block text-muted-foreground">
+                        Chain ID
+                      </label>
+                      <Input
+                        value={newSafeInput.split(':')[0] || ''}
+                        onChange={(e) =>
+                          setNewSafeInput(
+                            `${e.target.value}:${
+                              newSafeInput.split(':')[1] || ''
+                            }`
+                          )
+                        }
+                        placeholder="1"
+                        type="number"
+                      />
+                    </div>
+                    <div className="flex-[3]">
+                      <label className="text-sm mb-2 block text-muted-foreground">
+                        Safe Address
+                      </label>
+                      <div className="flex gap-4">
+                        <Input
+                          value={newSafeInput.split(':')[1] || ''}
+                          onChange={(e) =>
+                            setNewSafeInput(
+                              `${newSafeInput.split(':')[0] || ''}:${
+                                e.target.value
+                              }`
+                            )
+                          }
+                          placeholder="0x..."
+                        />
+                        <Button onClick={handleAddNewSafe}>Add Safe</Button>
+                      </div>
+                    </div>
                   </div>
                   {inputErrorText && (
                     <p className="mt-2 text-sm text-red-400">
