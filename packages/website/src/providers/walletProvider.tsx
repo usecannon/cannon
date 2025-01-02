@@ -28,22 +28,14 @@ function WalletProvider({ children }: IWalletProvider) {
         });
   }, [chains, transports]);
 
-  // NOTE: have to hack the style below because otherwise it overflows the page.
-  // hopefully the class name doesn't change from compile to compile lol
-  // related issue: https://github.com/rainbow-me/rainbowkit/issues/1007
   return (
     <WagmiProvider config={wagmiConfig}>
-      <RainbowKitProvider theme={darkTheme()}>
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
-             div.ju367v1i {
-               max-height: 90vh;
-               overflow: auto;
-             }
-           `,
-          }}
-        />
+      <RainbowKitProvider
+        theme={darkTheme({
+          overlayBlur: 'none',
+        })}
+        modalSize="compact"
+      >
         {children}
       </RainbowKitProvider>
     </WagmiProvider>

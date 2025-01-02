@@ -15,12 +15,14 @@ interface Controls {
 export default function onKeypress(handleKeyPress: (evt: KeyboardEvent, controls: Controls) => void) {
   return new Promise((resolve) => {
     const rl = readline.createInterface({
-      input: process.stdin,
+      input: process.stdin as unknown as any,
       escapeCodeTimeout: 50,
     });
 
-    readline.emitKeypressEvents(process.stdin, rl);
-    process.stdin.setRawMode(true);
+    readline.emitKeypressEvents(process.stdin as unknown as any, rl);
+    if (process.stdin.isTTY) {
+      process.stdin.setRawMode(true);
+    }
     process.stdin.resume();
 
     const listener = (_: string, key: KeyboardEvent) => {

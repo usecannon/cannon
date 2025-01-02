@@ -13,6 +13,8 @@ after:
 
 ## Build with Cannon
 
+In the previous guide, we showed how to setup a basic Solidity project and add Cannon to the project. This guide explains how to build and run your project using the `cannon build` and `cannon run` commands.
+
 <Tabs defaultValue="foundry">
   <TabsList className="w-full">
     <TabsTrigger value="foundry" className="w-full">
@@ -24,195 +26,218 @@ after:
   </TabsList>
   <TabsContent value="foundry">
 
-First, let's build the Cannon package using the `cannon build` command, which will build our `cannonfile.toml` to use on a local node for development.
+### Step 1: Build your Cannon package
 
-`cannon build` uses  `cannonfile.toml` by default, but you can specify the path to any cannonfile. Learn more about the `build` command in the [docs](/learn/cli#build).
+To start, let's build the Cannon package using the `cannon build` command. This command uses your `cannonfile.toml` to prepare an local image for use on a local node for development, or as a blueprint for a deployment on live networks.
 
-In your terminal, run:
+1. Open your terminal.
+2. Run the following command:
 
-```bash
-cannon build
-```
+   ```bash
+   cannon build
+   ```
 
-The resulting CLI output will look like this:
+   This command uses your `cannonfile.toml` by default. You can also specify a different path to any Cannonfile. Learn more about the `build` command in the [docs](/learn/cli#build).
 
-```bash
-Building the foundry project...
-forge build succeeded
+   The resulting CLI output will look like this:
 
-Anvil instance running on: http://127.0.0.1:59576
+   ```bash
+   Building the foundry project...
+   forge build succeeded
 
-Checking for existing package...
-Starting fresh build...
+   Anvil instance running on: http://127.0.0.1:59576
 
-Initializing new package...
-Name: learn-cannon
-Version: 0.0.1
-Preset: main (default)
-Chain ID: 13370
+   Checking for existing package...
+   Starting fresh build...
 
-Building the chain (ID 13370) via http://127.0.0.1:59576/...
+   Initializing new package...
+   Name: learn-cannon
+   Version: 0.0.1
+   Preset: main (default)
+   Chain ID: 13370
 
-Executing [deploy.Counter]...
-  ✔ Successfully deployed Counter
-  Contract Address: 0xACEbBC3E0D8BC1bB13a35b40f3714A7c78C158f7
-  Transaction Hash: 0x0abfae8229490349f80230414259ca1fcc60eecead61212733154fb3c80feae1
-  Transaction Cost: 0.000213466 ETH (106,733 gas)
+   Building the chain (ID 13370) via http://127.0.0.1:59576/...
 
-Executing [var.ProtocolSettings]...
-  Setting: number = 420
+   Executing [deploy.Counter]...
+     ✔ Successfully deployed Counter
+     Contract Address: 0xACEbBC3E0D8BC1bB13a35b40f3714A7c78C158f7
+     Transaction Hash: 0x0abfae8229490349f80230414259ca1fcc60eecead61212733154fb3c80feae1
+     Transaction Cost: 0.000213466 ETH (106,733 gas)
 
-Executing [invoke.SetNumber]...
-  ✔ Successfully called setNumber(420)
-  Signer: 0xEB045D78d273107348b0300c01D29B7552D622ab
-  Contract Address: 0xACEbBC3E0D8BC1bB13a35b40f3714A7c78C158f7
-  Transaction Hash: 0x4ceea742fecb9ba8adce1d364beb01f17dc93125b740e532bbdd8ff1068b96eb
-  Transaction Cost: 0.00007268124780963 ETH (43,506 gas)
+   Executing [var.ProtocolSettings]...
+     Setting: number = 420
 
-Writing upgrade info...
-💥 learn-cannon:0.0.1@main built for Cannon (Chain ID: 13370)
-This package can be run locally and cloned in cannonfiles.
+   Executing [invoke.SetNumber]...
+     ✔ Successfully called setNumber(420)
+     Signer: 0xEB045D78d273107348b0300c01D29B7552D622ab
+     Contract Address: 0xACEbBC3E0D8BC1bB13a35b40f3714A7c78C158f7
+     Transaction Hash: 0x4ceea742fecb9ba8adce1d364beb01f17dc93125b740e532bbdd8ff1068b96eb
+     Transaction Cost: 0.00007268124780963 ETH (43,506 gas)
 
-Package data has been stored locally
-╔═════════════════╤═══════════════════════════════════════════════════════╗
-║ Deployment Data │ ipfs://QmVpLGJMKqAd5hD3LgM3oh37NfbmzTS9FUyjCZx1LcB8yW ║
-╟─────────────────┼───────────────────────────────────────────────────────╢
-║ Package Code    │ ipfs://QmVhGysWPz2toaL9FVWoyTTgp2Atf4UMESz4Dj5dKvRhWb ║
-╟─────────────────┼───────────────────────────────────────────────────────╢
-║ Metadata        │ ipfs://QmRsYpSHrvjVmktXJtLYZbmiHD8GNKp64qxoZ2hbGcqEDf ║
-╚═════════════════╧═══════════════════════════════════════════════════════╝
+   Writing upgrade info...
+   💥 learn-cannon:0.0.1@main built for Cannon (Chain ID: 13370)
+   This package can be run locally and cloned in cannonfiles.
 
-Publish learn-cannon:0.0.1 to the registry and pin the IPFS data to
-> cannon publish learn-cannon:0.0.1 --chain-id 13370
+   Package data has been stored locally
+   ╔═════════════════╤═══════════════════════════════════════════════════════╗
+   ║ Deployment Data │ ipfs://QmVpLGJMKqAd5hD3LgM3oh37NfbmzTS9FUyjCZx1LcB8yW ║
+   ╟─────────────────┼───────────────────────────────────────────────────────╢
+   ║ Package Code    │ ipfs://QmVhGysWPz2toaL9FVWoyTTgp2Atf4UMESz4Dj5dKvRhWb ║
+   ╟─────────────────┼───────────────────────────────────────────────────────╢
+   ║ Metadata        │ ipfs://QmRsYpSHrvjVmktXJtLYZbmiHD8GNKp64qxoZ2hbGcqEDf ║
+   ╚═════════════════╧═══════════════════════════════════════════════════════╝
 
-Run this package
-> cannon learn-cannon:0.0.1
-```
+   Publish learn-cannon:0.0.1 to the registry and pin the IPFS data to
+   > cannon publish learn-cannon:0.0.1 --chain-id 13370
 
-<Alert variant="info">
-  <AlertDescription>
-    If you'd like to keep the node running, add the `--keep-alive` flag to the build command.
-  </AlertDescription>
-</Alert>
+   Run this package
+   > cannon learn-cannon:0.0.1
+   ```
 
-#### Understanding The Build Output
+   <Alert variant="info">
+     <AlertDescription>
+       If you'd like to keep the node running after the build process, add the `--keep-alive` flag to the build command. For example: `cannon build --keep-alive`.
+     </AlertDescription>
+   </Alert>
 
-Cannon runs each of the operations defined in the `cannonfile`. The order is automatically determined by parsing which operations depend on others.
+### Step 2: Understand the build output
 
-First, the build command initializes a local node (using Anvil) with chain ID 13370 and uses forge to compile your smart contracts.
-```bash
-Building the chain (ID 13370) via http://127.0.0.1:59576/...
-forge build succeeded
-```
+Cannon runs each of the actions defined in your `cannonfile.toml`. The order of execution is automatically determined based on the dependencies between actions.
 
-Then, Cannon executes the operations defined in `cannonfile.toml`.
+Here's a breakdown of the build output:
 
-```bash
-Executing [deploy.Counter]...
-  ✔ Successfully deployed Counter
-  Contract Address: 0xACEbBC3E0D8BC1bB13a35b40f3714A7c78C158f7
-  Transaction Hash: 0x0abfae8229490349f80230414259ca1fcc60eecead61212733154fb3c80feae1
-  Transaction Cost: 0.000213466 ETH (106,733 gas)
+1.  **Building the project:**
+    
+    ```bash
+    Building the foundry project...
+    forge build succeeded
+    
+    Anvil instance running on: http://127.0.0.1:59576
+    ```
+    
+    Cannon first compiles your smart contracts using Foundry and starts a local blockchain node (Anvil) for development.
+    
+2.  **Initializing the package:**
+    
+    ```bash
+    Checking for existing package...
+    Starting fresh build...
+    
+    Initializing new package...
+    Name: learn-cannon
+    Version: 0.0.1
+    Preset: main (default)
+    Chain ID: 13370
+    
+    Building the chain (ID 13370) via http://127.0.0.1:59576/...
+    ```
+    
+    Cannon initializes a new package with the specified name, version, and chain ID.
+    
+3.  **Executing actions:**
+    
+    ```bash
+    Executing [deploy.Counter]...
+      ✔ Successfully deployed Counter
+      Contract Address: 0xACEbBC3E0D8BC1bB13a35b40f3714A7c78C158f7
+      Transaction Hash: 0x0abfae8229490349f80230414259ca1fcc60eecead61212733154fb3c80feae1
+      Transaction Cost: 0.000213466 ETH (106,733 gas)
+    
+    Executing [var.ProtocolSettings]...
+      Setting: number = 420
+    
+    Executing [invoke.SetNumber]...
+      ✔ Successfully called setNumber(420)
+      Signer: 0xEB045D78d273107348b0300c01D29B7552D622ab
+      Contract Address: 0xACEbBC3E0D8BC1bB13a35b40f3714A7c78C158f7
+      Transaction Hash: 0x4ceea742fecb9ba8adce1d364beb01f17dc93125b740e532bbdd8ff1068b96eb
+      Transaction Cost: 0.00007268124780963 ETH (43,506 gas)
+    ```
+    
+    Cannon executes the actions defined in your `cannonfile.toml`, providing details about each action's success, contract addresses, transaction hashes, and gas costs.
+    
+4.  **Generating the package data:**
+    
+    ```bash
+    Writing upgrade info...
+    💥 learn-cannon:0.0.1@main built for Cannon (Chain ID: 13370)
+    This package can be run locally and cloned in cannonfiles.
+    
+    Package data has been stored locally
+    ╔═════════════════╤═══════════════════════════════════════════════════════╗
+    ║ Deployment Data │ ipfs://QmVpLGJMKqAd5hD3LgM3oh37NfbmzTS9FUyjCZx1LcB8yW ║
+    ╟─────────────────┼───────────────────────────────────────────────────────╢
+    ║ Package Code    │ ipfs://QmVhGysWPz2toaL9FVWoyTTgp2Atf4UMESz4Dj5dKvRhWb ║
+    ╟─────────────────┼───────────────────────────────────────────────────────╢
+    ║ Metadata        │ ipfs://QmRsYpSHrvjVmktXJtLYZbmiHD8GNKp64qxoZ2hbGcqEDf ║
+    ╚═════════════════╧═══════════════════════════════════════════════════════╝
+    ```
+    
+    Cannon generates the package data, including deployment data, package code, and metadata, which are stored locally and can be published to the registry or run locally.
 
-Executing [var.ProtocolSettings]...
-  Setting: number = 420
+### Step 3: Run your package
 
-Executing [invoke.SetNumber]...
-  ✔ Successfully called setNumber(420)
-  Signer: 0xEB045D78d273107348b0300c01D29B7552D622ab
-  Contract Address: 0xACEbBC3E0D8BC1bB13a35b40f3714A7c78C158f7
-  Transaction Hash: 0x4ceea742fecb9ba8adce1d364beb01f17dc93125b740e532bbdd8ff1068b96eb
-  Transaction Cost: 0.00007268124780963 ETH (43,506 gas)
-```
+To run your package locally, you can use the `cannon run` command. This command takes the package name as an argument. It's also used by Cannon if no command is specified. Learn more about the `run` command in the [docs](/learn/cli#run).
 
-Once the build steps are completed, the CLI provides you with information about the resulting package that includes your deployment data.
+1. In your terminal, run:
+   
+   ```bash
+   cannon run learn-cannon:0.0.1
+   ```
+   
+   Cannon will create a local node with the data from the build, allowing you to interact with the contract you created. The terminal output will appear as follows:
+   
+   ```bash
+   Starting local node...
+   
+   Anvil instance running on: http://127.0.0.1:64228
+   
+   learn-cannon:0.0.1@main has been deployed to a local node.
+   
+   Press h to see help information for this command.
+   Press a to toggle displaying the logs from your local node.
+   Press i to interact with contracts via the command line.
+   Press v to toggle display verbosity of transaction traces as they run.
+   ```
+   
+2. Press `i` to interact with your contracts:
+   
+   ```bash
+   ================================================================================
+   > Gas price: provider default
+   > Block tag: latest
+   > Read/Write: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+   > Signer Balance: 10000
+   ================================================================================
+   
+   ? Pick a CONTRACT: ›
+   ❯  ↩ BACK
+      Counter
+   ```
+   
+3. Select the `Counter` contract and call its functions:
+   
+   ```bash
+   ? Pick a FUNCTION: ›
+   ❯  ↩ BACK
+      function increment()
+      function number()
+      function setNumber(uint256 newNumber)
+   ```
+   
+   For example, here's the output when calling the `number()` function:
+   
+   ```bash
+   ✔ Pick a FUNCTION: › function number()
+     > calldata: 0x8381f58a
+     > estimated gas required: 23347
+     ↪ (uint256):  420
+   counter => 0xACEbBC3E0D8BC1bB13a35b40f3714A7c78C158f7
+     * Signer: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+   ```
 
-```bash
-Writing upgrade info...
-💥 learn-cannon:0.0.1@main built for Cannon (Chain ID: 13370)
-This package can be run locally and cloned in cannonfiles.
-
-Package data has been stored locally
-╔═════════════════╤═══════════════════════════════════════════════════════╗
-║ Deployment Data │ ipfs://QmVpLGJMKqAd5hD3LgM3oh37NfbmzTS9FUyjCZx1LcB8yW ║
-╟─────────────────┼───────────────────────────────────────────────────────╢
-║ Package Code    │ ipfs://QmVhGysWPz2toaL9FVWoyTTgp2Atf4UMESz4Dj5dKvRhWb ║
-╟─────────────────┼───────────────────────────────────────────────────────╢
-║ Metadata        │ ipfs://QmRsYpSHrvjVmktXJtLYZbmiHD8GNKp64qxoZ2hbGcqEDf ║
-╚═════════════════╧═══════════════════════════════════════════════════════╝
-```
-
-* **Deployment Data** - This contains data pertaining to the deployment plan and the state of the chain generated by the build.
-* **Package Code** - This contains the source code of the built contracts (unless private source code has been enabled).
-* **Metadata** - This contains additional data pertaining to the build.
-
-#### Run Your Package
-
-To run your package locally, you can use the `cannon run` command. The `run` command takes the package name as an argument and is also used by Cannon if no command is specified. Learn more about the `run` command in the [docs](/learn/cli#run).
-
-In your terminal, run:
-
-```bash
-cannon learn-cannon:0.0.1
-```
-
-Cannon will create a local node with the data from the build, allowing you to interact with the contract we just created. The terminal output will appear as follows:
-
-```bash
-Starting local node...
-
-Anvil instance running on: http://127.0.0.1:64228
-
-learn-cannon:0.0.1@main has been deployed to a local node.
-
-Press h to see help information for this command.
-Press a to toggle displaying the logs from your local node.
-Press i to interact with contracts via the command line.
-Press v to toggle display verbosity of transaction traces as they run.**
-```
-
-Pressing `i` will display the following:
-
-```bash
-================================================================================
-> Gas price: provider default
-> Block tag: latest
-> Read/Write: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
-> Signer Balance: 10000
-================================================================================
-
-? Pick a CONTRACT: ›
-❯   ↩ BACK
-    Counter
-```
-
-You can select the `Counter` and call the functions defined in the contract:
-
-```bash
-? Pick a FUNCTION: ›
-❯   ↩ BACK
-    function increment()
-    function number()
-    function setNumber(uint256 newNumber)
-```
-
-Here's some example output when calling the `number()` function:
-
-```bash
-// function number() output
-
-✔ Pick a FUNCTION: › function number()
-  > calldata: 0x8381f58a
-  > estimated gas required: 23347
-  ↪ (uint256):  420
-counter => 0xACEbBC3E0D8BC1bB13a35b40f3714A7c78C158f7
-  * Signer: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
-```
-
-Nice.
-
-</TabsContent>
+  </TabsContent>
   <TabsContent value="hardhat">
-*Coming soon.*
+  *Coming soon.*
   </TabsContent>
 </Tabs>

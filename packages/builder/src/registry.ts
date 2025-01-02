@@ -9,6 +9,7 @@ import CannonRegistryAbi from './abis/CannonRegistry';
 import { prepareMulticall, TxData } from './multicall';
 import { PackageReference } from './package-reference';
 import { CannonSigner } from './types';
+import { getIpfsUrl } from './ipfs';
 
 const debug = Debug('cannon:builder:registry');
 
@@ -29,14 +30,7 @@ export abstract class CannonRegistry {
   // in general a "catchall" is that if the fullPackageRef is an ipfs url (ex. ipfs://Qm..) , then that is a direct service resolve.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getUrl(serviceRef: string, chainId: number): Promise<string | null> {
-    // Check if its an ipfs hash / url, if so we make sure to remove any incorrectly appended presets (like @main);
-    if (serviceRef.startsWith('@ipfs:') || serviceRef.startsWith('ipfs://') || serviceRef.startsWith('Qm')) {
-      const ref = serviceRef.replace('@ipfs:', 'ipfs://');
-      const result = ref.startsWith('Qm') ? 'ipfs://' + ref : ref;
-      return result.indexOf('@') !== -1 ? result.slice(0, result.indexOf('@')) : result;
-    }
-
-    return null;
+    return getIpfsUrl(serviceRef);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

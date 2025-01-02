@@ -2,60 +2,82 @@
 
 /* eslint-disable no-console */
 
+import 'dotenv/config';
 import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/builder';
 import CannonRegistryAbi from '@usecannon/builder/dist/src/abis/CannonRegistry';
 import * as viem from 'viem';
 import { mainnet, optimism } from 'viem/chains';
 
-const { PROVIDER_URL } = process.env;
+const { ETHEREUM_PROVIDER_URL, OPTIMISM_PROVIDER_URL } = process.env;
 
-// Used only for getting additional publishers
-const OPTIMISM_PROVIDER_URL = 'wss://optimism-rpc.publicnode.com';
+const ETH_START_BLOCK = 19543644;
+const OP_START_BLOCK = 119000000;
 
-// const REGISTRY_DEPLOY_BLOCK = 16493645; // Contract deployment block
-const REGISTRY_DEPLOY_BLOCK = 19543644; // First publish event emitted
-
-if (typeof PROVIDER_URL !== 'string' || !PROVIDER_URL) {
+if (typeof ETHEREUM_PROVIDER_URL !== 'string' || !ETHEREUM_PROVIDER_URL) {
   throw new Error('Missing RPC Provider url to use. Needs to have archival node, e.g. Alchemy.');
 }
 
+if (typeof OPTIMISM_PROVIDER_URL !== 'string' || !OPTIMISM_PROVIDER_URL) {
+  throw new Error('Missing RPC Provider url to use. Needs to have archival node, e.g. Alchemy.');
+}
+
+const ownerOrPublisher = process.argv[2] ? viem.getAddress(process.argv[2]) : undefined;
+
 async function main() {
-  const client = viem.createPublicClient({
+  const ethClient = viem.createPublicClient({
     chain: mainnet,
-    transport: PROVIDER_URL?.startsWith('wss://') ? viem.webSocket(PROVIDER_URL) : viem.http(PROVIDER_URL),
+    transport: ETHEREUM_PROVIDER_URL!.startsWith('wss://')
+      ? viem.webSocket(ETHEREUM_PROVIDER_URL)
+      : viem.http(ETHEREUM_PROVIDER_URL),
   });
 
-  const contract = viem.getContract({
+  const opClient = viem.createPublicClient({
+    chain: optimism,
+    transport: OPTIMISM_PROVIDER_URL!.startsWith('wss://')
+      ? viem.webSocket(OPTIMISM_PROVIDER_URL)
+      : viem.http(OPTIMISM_PROVIDER_URL),
+  });
+
+  const ethContract = viem.getContract({
     address: DEFAULT_REGISTRY_ADDRESS,
     abi: CannonRegistryAbi,
-    client,
+    client: ethClient,
   });
 
   const opContract = viem.getContract({
     address: DEFAULT_REGISTRY_ADDRESS,
     abi: CannonRegistryAbi,
-    client: viem.createPublicClient({
-      chain: optimism,
-      transport: OPTIMISM_PROVIDER_URL?.startsWith('wss://')
-        ? viem.webSocket(OPTIMISM_PROVIDER_URL)
-        : viem.http(OPTIMISM_PROVIDER_URL),
-    }),
+    client: opClient,
   });
 
-  const packageNames = await getPackageNames(client);
+  const [ethPackageNames, opPackageNames] = await Promise.all([
+    _getPackageNames(ethClient as viem.PublicClient, ETH_START_BLOCK),
+    _getPackageNames(opClient as viem.PublicClient, OP_START_BLOCK),
+  ]);
+
+  const packageNames = new Set([...Array.from(ethPackageNames), ...Array.from(opPackageNames)]);
 
   console.log('{');
-  for (const [i, [bytes32name, name]] of Object.entries(packageNames)) {
-    const owner = await contract.read.getPackageOwner([bytes32name]);
+  for (const [i, bytes32name] of packageNames.entries()) {
+    const name = viem.hexToString(bytes32name, { size: 32 });
+    const [owner, ethPublishers, opPublishers] = await Promise.all([
+      ethContract.read.getPackageOwner([bytes32name]).then((o: any) => viem.getAddress(o)),
+      ethContract.read.getAdditionalPublishers([bytes32name]).then((p: any) => p.map((p: any) => viem.getAddress(p))),
+      opContract.read.getAdditionalPublishers([bytes32name]).then((p: any) => p.map((p: any) => viem.getAddress(p))),
+    ]);
 
-    const ethPublishers = await contract.read.getAdditionalPublishers([bytes32name]);
-    const opPublishers = await opContract.read.getAdditionalPublishers([bytes32name]);
     const publishers = Array.from(new Set([...ethPublishers, ...opPublishers]));
 
-    const comma = Number.parseInt(i) === packageNames.length - 1 ? '' : ',';
+    if (ownerOrPublisher && !viem.isAddressEqual(owner, ownerOrPublisher) && !publishers.includes(ownerOrPublisher)) {
+      continue;
+    }
+
+    const comma = Number.parseInt(i) === packageNames.size - 1 ? '' : ',';
     console.log(`  "${name}": { "owner:": "${owner}", "publishers": ${JSON.stringify(publishers)} }${comma}`);
   }
   console.log('}');
+
+  process.exit(0);
 }
 
 const _packagePublishEvents = viem.parseAbi([
@@ -93,12 +115,12 @@ const _packagePublishEvents = viem.parseAbi([
   * OwnerNominated (address newOwner)
 */
 
-async function getPackageNames(client: viem.PublicClient) {
-  const names = new Set<[string, string]>();
+async function _getPackageNames(client: viem.PublicClient, startBlock: number) {
+  const names = new Set<viem.Hex>();
 
   const latestBlock = Number((await client.getBlockNumber()).toString());
 
-  for (const [fromBlock, toBlock] of batches(REGISTRY_DEPLOY_BLOCK, latestBlock, 50000)) {
+  for (const [fromBlock, toBlock] of _batches(startBlock, latestBlock, 50000)) {
     const filter = await client.createEventFilter({
       address: DEFAULT_REGISTRY_ADDRESS,
       events: _packagePublishEvents,
@@ -112,15 +134,14 @@ async function getPackageNames(client: viem.PublicClient) {
         console.error(log);
         throw new Error('Invalid event');
       }
-      const name = viem.hexToString(log.args.name, { size: 32 });
-      names.add([log.args.name, name]);
+      names.add(log.args.name);
     }
   }
 
-  return Array.from(names);
+  return names;
 }
 
-function* batches(start: number, end: number, batchSize: number) {
+function* _batches(start: number, end: number, batchSize: number) {
   const count = Math.ceil((end - start) / batchSize);
   for (let i = 0; i < count; i++) {
     const batchStart = start + batchSize * i;

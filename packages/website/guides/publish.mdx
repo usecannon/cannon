@@ -4,44 +4,54 @@ description: Publish your protocol to the Cannon explorer.
 before:
   url: "deploy-onchain"
   title: "Building to a network"
-  description: "Learn how to build to remote network."
+  description: "Learn how to build to a remote network."
 ---
 
 ## Publish Your Package
 
-After building your cannonfile, you can publish the resulting package to the Cannon. This streamlines version control, allows others to find information about your deployment, and makes it easy for other projects to integrate with your protocol. 
+Publishing your Cannon package to the Cannon registry makes it easier to manage versions, share your deployment with others, and integrate your protocol with other projects. This guide explains how to publish your package using the Cannon CLI.
 
-The [Cannon registry](https://usecannon.com/packages/registry/latest/10-main/code/registry?source=contracts%2FCannonRegistry.sol) is a smart contract that keeps a record of the association between the package name and the deployment data.
+### What is the Cannon registry?
+
+The [Cannon registry](https://usecannon.com/packages/registry/latest/10-main/code/registry?source=contracts%2FCannonRegistry.sol) is a smart contract that stores the association between package names and their deployment data. This allows other developers and tools to easily access and utilize your published packages.
 
 <Alert variant="warning">
   <AlertDescription>
-    By default, Cannon includes the project's source code in the published package. This can be avoided by adding `privateSourceCode = true` to your `cannonfile.toml`.
+    By default, Cannon includes your project's source code in the published package. To prevent this, add `privateSourceCode = true` to your `cannonfile.toml`.
   </AlertDescription>
 </Alert>
 
-To publish our `cannon-learn` package, we can use the command-line interface:
+### Step 1: Use the `cannon publish` command
+
+To publish your Cannon package, use the `cannon publish` command followed by the package name and version, and the chain ID where it's deployed:
 
 ```bash
 cannon publish learn-cannon:0.0.1 --chain-id 11155111
 ```
 
-Here, we specify the package name/version `learn-cannon:0.0.1` and the chain ID `11155111` for Sepolia.
+This command initializes the process of publishing the `learn-cannon` package, version `0.0.1`, deployed on the Sepolia network (chain ID `11155111`).
 
-The CLI will prompt you to select which deployment of the registry you want to use. We generally recommend Optimism Mainnet, as it is faster and less expensive than Ethereum Mainnet. You will need some ETH on whichever network you choose.
+### Step 2: Choose a registry
+
+The CLI will prompt you to select the network where you want to publish your package. We generally recommend Optimism Mainnet, as it is faster and less expensive than Ethereum Mainnet. You'll need some ETH on the chosen network to cover transaction fees for the publish. Additionally, if this is the first time that this namespace is being registered, you will need to have some funds on Ethereum Mainnet for the one-time registration fee.
 
 ```bash
 ? Which registry would you like to use? (Cannon will find the package on either):
-❯   OP Mainnet (Chain ID: 10)
-    Ethereum Mainnet (Chain ID: 1)
+❯  OP Mainnet (Chain ID: 10)
+   Ethereum Mainnet (Chain ID: 1)
 ```
 
-After you select a network, it will ask us to enter the private key we want to use.
+### Step 3: Provide a private key
+
+Next, you'll be asked to enter the private key of the wallet you want to use for publishing:
 
 ```bash
 ? Enter the private key of the address you want to use:
 ```
 
-If this is the first time you're publishing a version of a package with this name (`cannon-learn`), you will need to register it on mainnet (regardless of the chain you selected).
+### Step 4: Register your package (if needed)
+
+If this is the first time you're publishing a package with this name (`learn-cannon`), you'll need to register it on the Ethereum Mainnet (regardless of the chain you selected for publishing).
 
 ```bash
 Package "learn-cannon" not yet registered, please use "cannon register" to register your package first. You need enough gas on Ethereum Mainnet to register the package on Cannon Registry
@@ -49,35 +59,13 @@ Package "learn-cannon" not yet registered, please use "cannon register" to regis
 ? Would you like to register the package now? › (Y/n)
 ```
 
-Cannon will walk your through the process to register the package. **Note that it can take a few minutes for the package registration to propogate from mainnet to Optimism.**
+If you choose to register the package, Cannon will guide you through the process. Note that it can take a few minutes for the package registration to propagate from Mainnet to Optimism.
+
+### Step 5: Confirm publishing details
+
+Once your package is registered, Cannon will display the publishing details, including the estimated fees.
 
 ```bash
-You are about to register the following packages:
-
-- Package: learn-cannon
-
-The transaction will cost ~0.001844607656625584 ETH on Ethereum Mainnet.
-
-? Proceed? › (y/N)
-
-Submitting transaction, waiting for transaction to succeed...
-
-Estimated gas: 339870 wei
-Gas price: 0.000000005399875901 ETH
-Estimated transaction Fee: 0.00183525582247287 ETH
-
-Success! (Transaction Hash: 0x338ac143e7ac0385668cf781d71ded28e0064acca5eb4b3423dccbd7978e4642)
-
-Waiting for the transaction to propagate to OP Mainnet... It may take approximately 1-3 minutes.
-
-Success - Package "learn-cannon" has been registered.
-```
-
-Once the registration process is complete, you can continue publishing `learn-cannon`.
-
-```bash
-We will continue with the publishing process.
-
 Settings:
  - Max Fee Per Gas: default
  - Max Priority Fee Per Gas: default
@@ -97,11 +85,13 @@ Total Publishing Fees: 0.0025 ETH
 
 <Alert variant="info">
   <AlertDescription>
-    The publishing fee contributes to maintenance of the project's IPFS cluster and web hosting.
+    An ETH-denominated publishing fee is included in the publish transaction. This fee contributes to the maintenance of the project's IPFS cluster and web hosting.
   </AlertDescription>
 </Alert>
 
-The CLI provides additional data once the publishing process succeeds.
+### Step 6: Wait for indexing
+
+After you confirm, Cannon will publish your package to the registry. This may take a few minutes. Once published, the CLI will provide details about the published package.
 
 ```bash
 Publishing package...
@@ -118,9 +108,7 @@ Gas price: 0.000000006634068496 ETH
 Estimated transaction Fee: 0.001081200581272592 ETH
 
 Transactions:
-  - 0x5f3ac83ff8624f745b5e2b8669e1e0119efce5594893ff6a3d8d1e1a10ab6e00
+ - 0x5f3ac83ff8624f745b5e2b8669e1e0119efce5594893ff6a3d8d1e1a10ab6e00
 ```
 
-After a few minutes, your package will be indexed and available on the [explorer](/packages).
-
-Nice.
+After a few minutes, your package will be indexed and visible on the [Cannon explorer](/packages).

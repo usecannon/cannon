@@ -11,12 +11,14 @@ import * as viem from 'viem';
 // eslint-disable-next-line no-restricted-imports
 import * as chains from 'viem/chains';
 import sortBy from 'lodash/sortBy';
+import merge from 'lodash/merge';
 
 import { externalLinks } from '@/constants/externalLinks';
 import isEmpty from 'lodash/isEmpty';
 import cloneDeep from 'lodash/cloneDeep';
 import { useQuery } from '@tanstack/react-query';
 import PageLoading from '@/components/PageLoading';
+import { randomItem } from '@/helpers/random';
 
 type CustomProviders =
   | {
@@ -28,7 +30,10 @@ type CustomProviders =
       transports: Record<number, viem.HttpTransport>;
       customTransports: Record<number, viem.HttpTransport>;
       getChainById: (chainId: number) => viem.Chain | undefined;
-      getExplorerUrl: (chainId: number, hash: viem.Hash) => string;
+      getExplorerUrl: (
+        chainId: number,
+        hash: viem.Hash | viem.Address | `0x${string}`
+      ) => string;
     }
   | undefined;
 const ProvidersContext = createContext<CustomProviders>(undefined);
@@ -38,6 +43,34 @@ const cannonNetwork = {
   id: 13370,
   name: 'Cannon',
 } as viem.Chain;
+
+// Some chains have default rpc urls that don't work properly with interact on the website
+// because they are being rate limited. We use custom rpc urls for these chains.
+const customDefaultRpcs: Record<number, viem.Chain['rpcUrls']> = {
+  [`${chains.mainnet.id}`]: {
+    default: {
+      http: [
+        randomItem([
+          'https://eth.llamarpc.com',
+          'https://ethereum-rpc.publicnode.com',
+          'https://rpc.ankr.com/eth',
+          'https://eth.blockrazor.xyz',
+        ]),
+      ],
+    },
+  },
+  [`${chains.sepolia.id}`]: {
+    default: {
+      http: [
+        randomItem([
+          'https://gateway.tenderly.co/public/sepolia',
+          'https://ethereum-sepolia-rpc.publicnode.com',
+          'https://eth-sepolia.public.blastapi.io',
+        ]),
+      ],
+    },
+  },
+};
 
 // Service urls taken from https://docs.safe.global/learn/safe-core/safe-core-api/available-services
 // shortNames taken from https://github.com/ethereum-lists/chains/blob/master/_data/chains
@@ -126,7 +159,16 @@ export const chainMetadata = {
   },
 } as const;
 
-export const supportedChains = [cannonNetwork, ...Object.values(chains)];
+export const supportedChains = [cannonNetwork, ...Object.values(chains)].map(
+  (c) => {
+    if (!customDefaultRpcs[`${c.id}`]) return c;
+
+    return {
+      ...c,
+      rpcUrls: merge({}, c.rpcUrls, customDefaultRpcs[`${c.id}`]),
+    };
+  }
+);
 
 export const defaultTransports = supportedChains.reduce((transports, chain) => {
   transports[chain.id] = viem.http();
@@ -277,8 +319,8 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
         chainMetadata,
         transports: _allTransports,
         customTransports: _customTransports,
-        getChainById: (chainId: number) => _getChainById(_allChains, chainId),
-        getExplorerUrl: (chainId: number, hash: viem.Hash) =>
+        getChainById: (chainId) => _getChainById(_allChains, chainId),
+        getExplorerUrl: (chainId, hash) =>
           _getExplorerUrl(_allChains, chainId, hash),
       }}
     >

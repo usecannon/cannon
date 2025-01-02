@@ -4,9 +4,8 @@ import * as viem from 'viem';
 import { z } from 'zod';
 import { generateRouter } from '@usecannon/router';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
-import { ChainBuilderRuntime } from '../runtime';
 import { routerSchema } from '../schemas';
-import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, ContractMap, PackageState } from '../types';
+import { ContractMap } from '../types';
 import {
   encodeDeployData,
   getContractDefinitionFromPath,
@@ -15,6 +14,7 @@ import {
 } from '../util';
 import { template } from '../utils/template';
 import { compileContract } from '../utils/compile';
+import { CannonAction } from '../actions';
 
 const debug = Debug('cannon:builder:router');
 
@@ -34,8 +34,8 @@ const routerStep = {
 
   validate: routerSchema,
 
-  async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config) {
-    const newConfig = this.configInject(ctx, config);
+  async getState(runtime, ctx, config, packageState) {
+    const newConfig = this.configInject(ctx, config, packageState);
 
     const contractAbis: { [contractName: string]: viem.Abi } = {};
     const contractAddresses: { [contractName: string]: string } = {};
@@ -51,15 +51,36 @@ const routerStep = {
     }
 
     return [
+      [
+        contractAbis,
+        contractAddresses,
+        [
+          newConfig.salt,
+          newConfig.overrides,
+          newConfig.includeReceive,
+          newConfig.includeDiamondCompatibility,
+          newConfig.highlight,
+        ],
+      ],
       {
         contractAbis,
         contractAddresses,
         config: newConfig,
       },
+      {
+        contractAbis,
+        contractAddresses,
+        config: _.omit(newConfig, 'includeDiamondCompatibility'),
+      },
+      {
+        contractAbis,
+        contractAddresses,
+        config: _.omit(newConfig, 'includeReceive', 'includeDiamondCompatibility'),
+      },
     ];
   },
 
-  configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
+  configInject(ctx, config) {
     config = _.cloneDeep(config);
 
     config.contracts = _.map(config.contracts, (n) => template(n)(ctx));
@@ -83,7 +104,7 @@ const routerStep = {
     return config;
   },
 
-  getInputs(config: Config, possibleFields: string[]) {
+  getInputs(config, possibleFields) {
     let accesses = computeTemplateAccesses(config.from);
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt, possibleFields));
     accesses.accesses.push(
@@ -97,16 +118,12 @@ const routerStep = {
     return accesses;
   },
 
-  getOutputs(_: Config, packageState: PackageState) {
-    return [`contracts.${packageState.currentLabel.split('.')[1]}`, `${packageState.currentLabel.split('.')[1]}`];
+  getOutputs(_, packageState) {
+    const name = packageState.currentLabel.split('.')[1];
+    return [`contracts.${name}`, name];
   },
 
-  async exec(
-    runtime: ChainBuilderRuntime,
-    ctx: ChainBuilderContext,
-    config: Config,
-    packageState: PackageState
-  ): Promise<ChainArtifacts> {
+  async exec(runtime, ctx, config, packageState) {
     debug('exec', config);
 
     const contracts = config.contracts.map((n) => {
@@ -230,6 +247,6 @@ const routerStep = {
       } as ContractMap,
     };
   },
-};
+} satisfies CannonAction<Config>;
 
 export default routerStep;

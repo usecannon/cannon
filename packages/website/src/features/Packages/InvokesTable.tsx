@@ -1,5 +1,6 @@
 // @ts-nocheck
 import * as React from 'react';
+import * as viem from 'viem';
 import {
   Table,
   TableBody,
@@ -136,7 +137,7 @@ export const InvokesTable: React.FC<{
                         }
                         const explorerUrl = getExplorerUrl(
                           chainId,
-                          cell.row.original.value
+                          cell.row.original.value as viem.Hash
                         );
                         return explorerUrl ? (
                           <a

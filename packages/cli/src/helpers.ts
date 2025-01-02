@@ -7,8 +7,9 @@ import {
   ChainDefinition,
   ContractData,
   ContractMap,
-  DeploymentInfo,
   CannonStorage,
+  DeploymentInfo,
+  getIpfsUrl,
   PackageReference,
   RawChainDefinition,
 } from '@usecannon/builder';
@@ -55,18 +56,16 @@ export async function filterSettings(settings: any) {
   filteredSettings.rpcUrl = hideApiKey(filteredSettings.rpcUrl);
   filteredSettings.registryRpcUrl = hideApiKey(filteredSettings.registryRpcUrl);
 
-  const filterUrlPassword = (uri: string) => {
-    try {
-      return stripCredentialsFromURL(uri);
-    } catch (err) {
-      debug('Invalid URL', uri);
-      return '';
-    }
-  };
+  const settingsToFilter = ['publishIpfsUrl', 'ipfsUrl', 'writeIpfsUrl'];
 
-  filteredSettings.publishIpfsUrl = filterUrlPassword(filteredSettings.publishIpfsUrl!);
-  filteredSettings.ipfsUrl = filterUrlPassword(filteredSettings.ipfsUrl!);
-  filteredSettings.writeIpfsUrl = filterUrlPassword(filteredSettings.writeIpfsUrl!);
+  for (const setting of settingsToFilter) {
+    const value = filteredSettings[setting];
+    try {
+      filteredSettings[setting] = stripCredentialsFromURL(value);
+    } catch (err) {
+      debug(`Invalid URL for "${setting}": ${value}`);
+    }
+  }
 
   return filteredSettings;
 }
@@ -462,79 +461,69 @@ export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | unde
   return normalizedPrivateKeys.join(',') as viem.Hex;
 }
 
+export async function getPackageReference(packageRef: string, givenChainId: any, givenRpcUrl?: string) {
+  const { fullPackageRef } = new PackageReference(packageRef);
+  const parsedChainId = Number(givenChainId) || undefined;
+  const chainId =
+    parsedChainId || (isURL(givenRpcUrl) && (await getChainIdFromRpcUrl(givenRpcUrl!))) || (await _promptChainId());
+
+  // throw an error if the chainId is not consistent with the provider's chainId
+  if (isURL(givenRpcUrl)) {
+    await ensureChainIdConsistency(givenRpcUrl, chainId);
+  }
+
+  return { fullPackageRef, chainId };
+}
+
 /**
  *
  * @param packageRef The package reference, eg. name:version@preset or ipfs://<cid>
  * @returns Package Reference string
  */
-export async function getPackageInfo(packageRef: string) {
-  if (packageRef.startsWith('@')) {
-    log(yellowBright("'@ipfs:' package reference format is deprecated, use 'ipfs://' instead"));
-  }
+export async function getPackageInfo(
+  packageRef: string,
+  givenChainId: any,
+  givenRpcUrl: string
+): Promise<{ fullPackageRef: string; chainId: number }> {
+  const ipfsUrl = getIpfsUrl(packageRef);
+  const parsedChainId = Number(givenChainId) || undefined;
 
-  if (isIPFSUrl(packageRef)) {
-    packageRef = normalizeIPFSUrl(packageRef);
-  } else if (isIPFSCid(packageRef)) {
-    packageRef = `ipfs://${packageRef}`;
-  } else {
-    // cant determine chainId from non-ipfs package references
-    return { fullPackageRef: new PackageReference(packageRef).fullPackageRef, chainId: undefined };
+  // if its not an ipfs url, try to parse the package reference, or throw a parsing error
+  if (!ipfsUrl) {
+    return getPackageReference(packageRef, givenChainId, givenRpcUrl);
   }
 
   const cliSettings = resolveCliSettings();
-
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
-
   const storage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
+  const pkgInfo: DeploymentInfo = await storage.readBlob(ipfsUrl);
+  const version = pkgInfo.def.version.includes('<%=') ? pkgInfo.meta.version : pkgInfo.def.version;
+  const { fullPackageRef } = PackageReference.from(pkgInfo.def.name, version, pkgInfo.def.preset);
+  const chainId =
+    Number(pkgInfo.chainId) ||
+    parsedChainId ||
+    (givenRpcUrl && (await getChainIdFromRpcUrl(givenRpcUrl))) ||
+    (await _promptChainId());
 
-  try {
-    const pkgInfo: DeploymentInfo = await storage.readBlob(packageRef);
-
-    let version = pkgInfo.def.version;
-    if (pkgInfo.def.version.startsWith('<%=')) {
-      version = pkgInfo.meta.version;
-    }
-
-    const fullPackageRef = PackageReference.from(pkgInfo.def.name, version, pkgInfo.def.preset).fullPackageRef;
-
-    return {
-      fullPackageRef,
-      chainId: Number(pkgInfo.chainId),
-    };
-  } catch (error: any) {
-    throw new Error(error);
-  }
+  return {
+    fullPackageRef,
+    chainId,
+  };
 }
 
-export function isIPFSUrl(ref: string) {
-  return ref.startsWith('ipfs://') || ref.startsWith('@ipfs:');
-}
+async function _promptChainId(): Promise<number> {
+  const chainIdPrompt = await prompts({
+    type: 'number',
+    name: 'value',
+    message: 'Please provide a Chain ID for the given package',
+    initial: 13370,
+  });
 
-export function isIPFSCid(ref: string) {
-  return ref.startsWith('Qm');
-}
-
-export function isIPFSRef(ref: string) {
-  return isIPFSCid(ref) || isIPFSUrl(ref);
-}
-
-export function normalizeIPFSUrl(ref: string) {
-  if (ref.startsWith('@ipfs:')) {
-    return ref.replace('@ipfs:', 'ipfs://');
+  if (!chainIdPrompt.value) {
+    throw new Error('A valid Chain Id is required.');
   }
 
-  return ref;
-}
+  log();
 
-export function getCIDfromUrl(ref: string) {
-  if (!isIPFSRef(ref)) {
-    throw new Error(`${ref} is not a valid IPFS url`);
-  }
-
-  if (isIPFSUrl(ref)) {
-    ref = normalizeIPFSUrl(ref);
-    return ref.replace('ipfs://', '');
-  }
-
-  return ref;
+  return Number(chainIdPrompt.value);
 }

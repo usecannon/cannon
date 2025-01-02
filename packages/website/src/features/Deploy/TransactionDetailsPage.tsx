@@ -50,7 +50,7 @@ import {
   useState,
 } from 'react';
 import { IoIosContract, IoIosExpand } from 'react-icons/io';
-import { Hash, Hex, hexToString, TransactionRequestBase } from 'viem';
+import * as viem from 'viem';
 import {
   useAccount,
   useChainId,
@@ -94,7 +94,9 @@ function TransactionDetailsPage() {
 
   const currentSafe = useStore((s) => s.currentSafe);
   const [expandDiff, setExpandDiff] = useState<boolean>(false);
-  const [executionTxnHash, setExecutionTxnHash] = useState<Hash | null>(null);
+  const [executionTxnHash, setExecutionTxnHash] = useState<viem.Hash | null>(
+    null
+  );
   const accountAlreadyConnected = useRef(account.isConnected);
   const chainDefinitionRef = useRef<ChainDefinition>();
 
@@ -151,7 +153,9 @@ function TransactionDetailsPage() {
   }
 
   const unorderedNonce = safeTxn && safeTxn._nonce > staged[0]?.txn._nonce;
-  const hintData = safeTxn ? parseHintedMulticall(safeTxn.data as Hex) : null;
+  const hintData = safeTxn
+    ? parseHintedMulticall(safeTxn.data as viem.Hex)
+    : null;
 
   const queuedWithGitOps = hintData?.type == 'deploy';
 
@@ -214,7 +218,7 @@ function TransactionDetailsPage() {
   }
 
   const prevDeployPackageUrl = prevDeployHashQuery.data
-    ? hexToString(prevDeployHashQuery.data[1].result || ('' as any))
+    ? viem.hexToString(prevDeployHashQuery.data[1].result || ('' as any))
     : '';
 
   const prevCannonDeployInfo = useCannonPackage(
@@ -245,11 +249,7 @@ function TransactionDetailsPage() {
     void getChainDef();
   }, [cannonDefInfo.def]);
 
-  const buildInfo = useCannonBuild(
-    safe,
-    chainDefinitionRef.current,
-    prevCannonDeployInfo.ipfsQuery.data?.deployInfo
-  );
+  const buildInfo = useCannonBuild(safe);
 
   useEffect(() => {
     if (
@@ -258,7 +258,10 @@ function TransactionDetailsPage() {
       !prevCannonDeployInfo.ipfsQuery.data?.deployInfo
     )
       return;
-    buildInfo.doBuild();
+    buildInfo.doBuild(
+      chainDefinitionRef.current,
+      prevCannonDeployInfo.ipfsQuery.data?.deployInfo
+    );
   }, [
     !isTransactionExecuted &&
       (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
@@ -266,8 +269,8 @@ function TransactionDetailsPage() {
   ]);
 
   // compare proposed build info with expected transaction batch
-  const expectedTxns = buildInfo.buildResult?.safeSteps?.map(
-    (s) => s.tx as unknown as Partial<TransactionRequestBase>
+  const expectedTxns = buildInfo.buildState?.result?.safeSteps?.map(
+    (s) => s.tx as unknown as Partial<viem.TransactionRequestBase>
   );
 
   const unequalTransaction =
@@ -281,7 +284,7 @@ function TransactionDetailsPage() {
         );
       }));
 
-  const signers: Array<Hash> = stager.existingSigners.length
+  const signers: viem.Address[] = stager.existingSigners.length
     ? stager.existingSigners
     : safeTxn?.confirmedSigners || [];
 
@@ -452,7 +455,7 @@ function TransactionDetailsPage() {
         )}
 
         <Grid
-          templateColumns={{ base: 'repeat(1, 1fr)', lg: '2fr 1fr' }}
+          templateColumns={{ base: 'repeat(1, 1fr)', lg: 'auto 320px' }}
           gap={6}
         >
           {/* TX Info: left column */}
@@ -472,23 +475,23 @@ function TransactionDetailsPage() {
                 <Card title="Verify Transactions">
                   {queuedWithGitOps && (
                     <Box>
-                      {buildInfo.buildMessage && (
+                      {buildInfo.buildState?.message && (
                         <Text fontSize="sm" mb="2">
-                          {buildInfo.buildMessage}
+                          {buildInfo.buildState.message}
                         </Text>
                       )}
-                      {buildInfo.buildError && (
+                      {buildInfo.buildState?.error && (
                         <Text fontSize="sm" mb="2">
-                          {buildInfo.buildError}
+                          {buildInfo.buildState.error}
                         </Text>
                       )}
-                      {buildInfo.buildResult && !unequalTransaction && (
+                      {buildInfo.buildState?.result && !unequalTransaction && (
                         <Text fontSize="sm" mb="2">
                           The transactions queued to the Safe match the Git
                           Target
                         </Text>
                       )}
-                      {buildInfo.buildResult && unequalTransaction && (
+                      {buildInfo.buildState?.result && unequalTransaction && (
                         <Text fontSize="sm" mb="2">
                           <WarningIcon />
                           &nbsp;Proposed Transactions Do not Match Git Diff.

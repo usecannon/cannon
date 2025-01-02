@@ -103,10 +103,15 @@ describe('steps/invoke.ts', () => {
 
   describe('getState()', () => {
     it('resolves correct properties with minimal config', async () => {
-      const result = await action.getState(fakeRuntime, _.merge({}, fakeContractInfo, fakeCtx), {
-        target: ['Woot'],
-        func: 'something',
-      });
+      const result = await action.getState(
+        fakeRuntime,
+        _.merge({}, fakeContractInfo, fakeCtx),
+        {
+          target: ['Woot'],
+          func: 'something',
+        },
+        { ref: null, currentLabel: 'invoke.Invoke' }
+      );
 
       expect(result).toContainEqual({
         to: [fakeContractInfo.contracts.Woot.address],
@@ -117,12 +122,17 @@ describe('steps/invoke.ts', () => {
     });
 
     it('resolves correct properties with maximal config', async () => {
-      const result = await action.getState(fakeRuntime, _.merge({}, fakeContractInfo, fakeCtx), {
-        target: ['Woot'],
-        func: 'something',
-        args: ['split', { wave: 'form' }],
-        value: '1234',
-      });
+      const result = await action.getState(
+        fakeRuntime,
+        _.merge({}, fakeContractInfo, fakeCtx),
+        {
+          target: ['Woot'],
+          func: 'something',
+          args: ['split', { wave: 'form' }],
+          value: '1234',
+        },
+        { ref: null, currentLabel: 'invoke.Invoke' }
+      );
 
       expect(result).toContainEqual({
         to: [fakeContractInfo.contracts.Woot.address],

@@ -177,9 +177,11 @@ describe('builder.ts', () => {
 
   jest.mocked(invokeStep.getState).mockResolvedValue([{}] as any);
   jest.mocked(invokeStep.exec).mockResolvedValue({
+    contracts: {},
     txns: {
       smartFunc: { hash: '0x56785678', events: {}, deployedOn: 'invoke.smartFunc', gasCost: '0', gasUsed: 0, signer: '' },
     },
+    settings: {},
   });
   jest.mocked(invokeStep.getInputs).mockReturnValue({ accesses: [], unableToCompute: false });
   jest.mocked(invokeStep.getOutputs).mockReturnValue([]);
@@ -196,8 +198,8 @@ describe('builder.ts', () => {
       const fakeDefWithBadDep = _.assign({}, fakeDefinition, {
         invoke: { smartFunc: { target: ['something'], func: 'wohoo', depends: ['deploy.Fake'] } },
       });
-      expect(() => build(runtime, new ChainDefinition(fakeDefWithBadDep), {}, initialCtx)).toThrowError(
-        'invalid dependency'
+      await expect(build(runtime, new ChainDefinition(fakeDefWithBadDep), {}, initialCtx)).rejects.toThrowError(
+        'the dependency "deploy.Fake" is not defined elsewhere'
       );
     });
 

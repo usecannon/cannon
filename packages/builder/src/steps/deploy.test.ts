@@ -103,7 +103,12 @@ describe('steps/deploy.ts', () => {
 
   describe('getState()', () => {
     it('resolves correct properties with minimal config', async () => {
-      const result = await action.getState(fakeRuntime, fakeCtx, { artifact: 'hello' });
+      const result = await action.getState(
+        fakeRuntime,
+        fakeCtx,
+        { artifact: 'hello' },
+        { ref: null, currentLabel: 'deploy.Deploy' }
+      );
 
       expect(result).toContainEqual({
         bytecode: '0xabcd',
@@ -118,12 +123,17 @@ describe('steps/deploy.ts', () => {
     });
 
     it('resolves correct properties with maximal config', async () => {
-      const result = await action.getState(fakeRuntime, fakeCtx, {
-        artifact: 'hello',
-        args: ['one', 'two', { three: 'four' }],
-        salt: 'wohoo',
-        value: '1234',
-      });
+      const result = await action.getState(
+        fakeRuntime,
+        fakeCtx,
+        {
+          artifact: 'hello',
+          args: ['one', 'two', { three: 'four' }],
+          salt: 'wohoo',
+          value: '1234',
+        },
+        { ref: null, currentLabel: 'deploy.Deploy' }
+      );
 
       expect(result).toContainEqual({
         bytecode: '0xabcd',

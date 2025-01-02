@@ -54,13 +54,13 @@ describe('steps/router.ts', () => {
         contracts: Object.keys(contracts),
       };
 
-      const result = await action.getState(runtime, ctx, config);
+      const result = await action.getState(runtime, ctx, config, { ref: null, currentLabel: 'router.Router' });
 
-      expect(result[0].contractAbis.GreeterOne).toStrictEqual(contracts.GreeterOne.abi);
-      expect(result[0].contractAddresses.GreeterOne).toStrictEqual(contracts.GreeterOne.address);
+      expect((result[0] as any)[0].GreeterOne).toStrictEqual(contracts.GreeterOne.abi);
+      expect((result[0] as any)[1].GreeterOne).toStrictEqual(contracts.GreeterOne.address);
 
-      expect(result[0].contractAbis.GreeterTwo).toStrictEqual(contracts.GreeterTwo.abi);
-      expect(result[0].contractAddresses.GreeterTwo).toStrictEqual(contracts.GreeterTwo.address);
+      expect((result[0] as any)[0].GreeterTwo).toStrictEqual(contracts.GreeterTwo.abi);
+      expect((result[0] as any)[1].GreeterTwo).toStrictEqual(contracts.GreeterTwo.address);
     });
   });
 

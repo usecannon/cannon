@@ -5,22 +5,20 @@ import { ContractData, DeploymentInfo, PackageReference, decodeTxError } from '@
 
 import { log, error } from '../util/console';
 import { readDeployRecursive } from '../package';
-import { ensureChainIdConsistency, formatAbiFunction, getSighash, stripCredentialsFromURL } from '../helpers';
+import { formatAbiFunction, getSighash, stripCredentialsFromURL } from '../helpers';
 import { resolveCliSettings } from '../../src/settings';
 import { isTxHash } from '../util/is-tx-hash';
-import { getChainIdFromRpcUrl, isURL, ProviderAction, resolveProvider } from '../util/provider';
+import { ProviderAction, resolveProvider } from '../util/provider';
 
 export async function decode({
   packageRef,
   data,
   chainId,
-  rpcUrl,
   json = false,
 }: {
   packageRef: string;
   data: viem.Hash;
-  chainId?: number;
-  rpcUrl?: string;
+  chainId: number;
   json: boolean;
 }) {
   const cliSettings = resolveCliSettings();
@@ -35,14 +33,6 @@ export async function decode({
   let inputData = data;
 
   if (isTxHash(data)) {
-    if (!chainId && rpcUrl && isURL(rpcUrl)) {
-      chainId = await getChainIdFromRpcUrl(rpcUrl);
-    } else {
-      if (!chainId) throw new Error('--chain-id or --rpc-url is required to decode transaction data');
-    }
-
-    await ensureChainIdConsistency(rpcUrl, chainId);
-
     const { provider } = await resolveProvider({ action: ProviderAction.ReadProvider, quiet: true, cliSettings, chainId });
 
     const tx = await provider.getTransaction({

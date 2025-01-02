@@ -1,9 +1,10 @@
 import { AddressInput } from '@/features/Packages/FunctionInput/AddressInput';
 import { BoolInput } from '@/features/Packages/FunctionInput/BoolInput';
+import { ByteInput } from '@/features/Packages/FunctionInput/ByteInput';
 import { DefaultInput } from '@/features/Packages/FunctionInput/DefaultInput';
 import { NumberInput } from '@/features/Packages/FunctionInput/NumberInput';
-import { AddIcon, CloseIcon } from '@chakra-ui/icons';
-import { Box, Flex, IconButton } from '@chakra-ui/react';
+import { PlusIcon, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { AbiParameter } from 'abitype';
 import { FC, useEffect, useMemo, useState } from 'react';
 import TupleInput from './FunctionInput/TupleInput';
@@ -88,15 +89,64 @@ export const FunctionInput: FC<Props> = ({
           />
         );
       case input.type.startsWith('tuple'):
-        // TODO: implement value prop for TupleInput
-        return <TupleInput input={input} handleUpdate={_handleUpdate} />;
-      default:
         return (
-          <DefaultInput
+          <TupleInput
+            input={input}
             handleUpdate={_handleUpdate}
-            inputType={input.type}
             value={_initialValue}
           />
+        );
+      case input.type.startsWith('bytes1'):
+        return (
+          <ByteInput
+            handleUpdate={_handleUpdate}
+            value={_initialValue}
+            byte={1}
+          />
+        );
+      case input.type.startsWith('bytes2'):
+        return (
+          <ByteInput
+            handleUpdate={_handleUpdate}
+            value={_initialValue}
+            byte={2}
+          />
+        );
+      case input.type.startsWith('bytes4'):
+        return (
+          <ByteInput
+            handleUpdate={_handleUpdate}
+            value={_initialValue}
+            byte={4}
+          />
+        );
+      case input.type.startsWith('bytes8'):
+        return (
+          <ByteInput
+            handleUpdate={_handleUpdate}
+            value={_initialValue}
+            byte={8}
+          />
+        );
+      case input.type.startsWith('bytes16'):
+        return (
+          <ByteInput
+            handleUpdate={_handleUpdate}
+            value={_initialValue}
+            byte={16}
+          />
+        );
+      case input.type.startsWith('bytes32'):
+        return (
+          <ByteInput
+            handleUpdate={_handleUpdate}
+            value={_initialValue}
+            byte={32}
+          />
+        );
+      default:
+        return (
+          <DefaultInput handleUpdate={_handleUpdate} value={_initialValue} />
         );
     }
   };
@@ -105,22 +155,22 @@ export const FunctionInput: FC<Props> = ({
 
   if (!isArray) {
     c = (
-      <Flex direction="row" align="center">
-        <Flex flex="1">
+      <div className="flex flex-row items-center">
+        <div className="flex-1">
           {getInputComponent((value: any) => _handleUpdate(null, value))}
-        </Flex>
-      </Flex>
+        </div>
+      </div>
     );
   } else {
     c = (
-      <>
-        <Box>
+      <div>
+        <div>
           {dataArray.map((inp, index) => {
             return (
-              <Flex
-                flex="1"
-                alignItems="center"
-                mb={index === dataArray.length - 1 ? 0 : 4}
+              <div
+                className={`flex flex-1 items-center ${
+                  index === dataArray.length - 1 ? '' : 'mb-4'
+                }`}
                 key={index}
               >
                 {getInputComponent(
@@ -128,31 +178,32 @@ export const FunctionInput: FC<Props> = ({
                   index
                 )}
                 {dataArray.length > 1 && (
-                  <IconButton
-                    variant="link"
-                    colorScheme="red"
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => remove(index)}
-                    aria-label="add value"
-                    icon={<CloseIcon fontSize=".8rem" />}
-                  />
+                    className="text-destructive hover:text-destructive/90"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 )}
-              </Flex>
+              </div>
             );
           })}
-          <Box textAlign="right" alignItems="right">
-            <IconButton
-              py="4"
-              variant="link"
-              colorScheme="green"
+          <div className="text-right">
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={add}
-              aria-label="add value"
-              icon={<AddIcon />}
-            />
-          </Box>
-        </Box>
-      </>
+              className="py-4 text-primary hover:text-primary/90"
+            >
+              <PlusIcon className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
     );
   }
 
-  return <Box>{c}</Box>;
+  return <div>{c}</div>;
 };

@@ -10,8 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { NavLink } from '@/components/NavLink';
 import { cn } from '@/lib/utils';
 import { links } from '@/constants/links';
-import { useMediaQuery } from 'usehooks-ts';
 import { GearIcon } from '@radix-ui/react-icons';
+import { useMedia } from '@/hooks/useMedia';
 
 const NoSSRConnectWallet = dynamic(
   () => import('@/features/Header/ConnectWallet'),
@@ -53,23 +53,19 @@ const SettingsButton = () => {
 
 export const Header = () => {
   const router = useRouter();
-  const isHomePage = router.pathname === '/';
+  const { isDesktop, isTablet, isMobile } = useMedia();
 
-  const isDesktop = useMediaQuery('(min-width: 1280px)');
-  const isTablet = useMediaQuery('(min-width: 768px) and (max-width: 1279px)');
-  const isMobile = useMediaQuery('(max-width: 767px)');
+  const isHomePage = router.pathname === '/';
+  const mainClassName = cn(
+    'z-50 top-0 min-h-[var(--header-height)] transition-colors duration-200',
+    isHomePage
+      ? 'fixed left-0 right-0 bg-transparent'
+      : 'w-full sticky border-b border-border bg-black'
+  );
 
   return (
-    <div
-      className={cn(
-        'w-full z-50',
-        isHomePage ? 'fixed top-0 left-0 right-0' : 'relative',
-        isHomePage ? '' : 'border-b border-border',
-        isHomePage ? 'bg-transparent' : 'bg-black',
-        'transition-colors duration-200'
-      )}
-    >
-      <div className="flex items-center pt-4 xl:pt-0 px-3 flex-wrap">
+    <div className={mainClassName}>
+      <div className="flex items-center pt-4 xl:pt-0 px-3 flex-wrap min-h-[inherit]">
         <Link
           href={links.HOMEPAGE}
           className="text-white no-underline hover:no-underline block xl:inline"

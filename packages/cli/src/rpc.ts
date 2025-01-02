@@ -185,7 +185,7 @@ export function getProvider(expectedAnvilInstance: ChildProcess): typeof anvilPr
 
 export function createProviderProxy(provider: viem.Client): Promise<string> {
   return new Promise((resolve) => {
-    const server = http.createServer(async (req, res) => {
+    const server = http.createServer(async (req: any, res: any) => {
       res.setHeader('Content-Type', 'application/json');
       const reqJson = JSON.parse(await streamToString(req));
 

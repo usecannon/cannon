@@ -1,25 +1,37 @@
 'use client';
 
-import { FC, useEffect, useState } from 'react';
-import {
-  Box,
-  Button,
-  Flex,
-  Heading,
-  Tooltip,
-  IconButton,
-  Text,
-  useBreakpointValue,
-} from '@chakra-ui/react';
+import { FC, useEffect, useState, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 import { CodePreview } from '@/components/CodePreview';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
-import { DownloadIcon, InfoOutlineIcon } from '@chakra-ui/icons';
+import { Download, Info } from 'lucide-react';
 import { isEmpty } from 'lodash';
 import { DeploymentInfo } from '@usecannon/builder';
 import { ApiPackage } from '@usecannon/api/dist/src/types';
 import { IpfsSpinner } from '@/components/IpfsSpinner';
+import {
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuItem,
+} from '@/components/ui/sidebar';
+import { SidebarLayout } from '@/components/layouts/SidebarLayout';
+import { buildFileTree } from '@/features/Packages/code/utilts';
+import { FileTreeItem } from '@/features/Packages/code/FileTreeItem';
+import { FileIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { usePackageNameTagVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 
 const handleDownload = (content: Record<string, unknown>, filename: string) => {
   const blob = new Blob([JSON.stringify(content, null, 2)], {
@@ -35,50 +47,59 @@ const handleDownload = (content: Record<string, unknown>, filename: string) => {
   URL.revokeObjectURL(url);
 };
 
-const PackageButton: FC<{
-  name: string;
-  selected: boolean;
-  onClick: () => void;
-}> = ({ name, selected, onClick }) => {
-  return (
-    <Button
-      color="white"
-      borderWidth="2px"
-      borderRadius="md"
-      variant="outline"
-      aria-label="contract name"
-      boxShadow="lg"
-      flexShrink={0}
-      background={selected ? 'teal.900' : 'gray.700'}
-      borderColor={selected ? 'teal.600' : 'gray.600'}
-      _hover={
-        selected
-          ? {
-              background: 'teal.800',
-              borderColor: 'teal.500',
-            }
-          : {
-              background: 'gray.600',
-              borderColor: 'teal.500',
-            }
-      }
-      mr={3}
-      height="36px"
-      px={3}
-      onClick={onClick}
-    >
-      <Box textAlign="left">
-        <Heading
-          fontWeight="500"
-          size="sm"
-          color="gray.200"
-          letterSpacing="0.1px"
-        >
-          {name}
-        </Heading>
-      </Box>
-    </Button>
+// Utility function to handle URL updates
+const updateUrl = (
+  router: AppRouterInstance,
+  params: {
+    name: string;
+    version: string;
+    chainId: string | number;
+    preset: string;
+    packageName: string;
+    source: string;
+    functionName?: string;
+  }
+) => {
+  const urlParams = new URLSearchParams();
+  urlParams.append('source', params.source);
+  if (params.functionName) {
+    urlParams.append('function', params.functionName);
+  }
+
+  router.replace(
+    `/packages/${params.name}/${params.version}/${params.chainId}-${
+      params.preset
+    }/code/${params.packageName}?${urlParams.toString()}`
   );
+};
+
+// Utility function to find function line in code
+const findFunctionLine = (code: string, functionName: string): number => {
+  if (!functionName) return -1;
+
+  const escapedFunctionName = functionName.replace(
+    /[-/\\^$*+?.()|[\]{}]/g,
+    '\\$&'
+  );
+  const reg = new RegExp(`\\bfunction\\s+${escapedFunctionName}\\b`, 'i');
+
+  return code.split('\n').findIndex((l: string) => reg.test(l));
+};
+
+// Utility function to handle source selection
+const handleSourceSelection = (
+  sourceKey: string,
+  sourceContent: string,
+  functionName?: string
+) => {
+  const line = findFunctionLine(sourceContent, functionName || '');
+
+  return {
+    code: sourceContent,
+    language: 'sol',
+    key: sourceKey,
+    line: line > -1 ? line : undefined,
+  };
 };
 
 export const CodeExplorer: FC<{
@@ -88,24 +109,21 @@ export const CodeExplorer: FC<{
   source: string;
   functionName?: string;
 }> = ({ pkg, name, moduleName, source, functionName }) => {
-  const isSmall = useBreakpointValue({
-    base: true,
-    sm: true,
-    md: false,
-  });
-
+  const router = useRouter();
+  const { tag, variant } = usePackageNameTagVersionUrlParams();
+  const [chainId, preset] = variant.split('-');
   const [selectedCode, setSelectedCode] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('');
   const [selectedKey, setSelectedKey] = useState('');
   const [selectedLine, setSelectedLine] = useState<undefined | number>();
-  // For the main package, the key is -1
   const [selectedPackage, setSelectedPackage] = useState<{
     name: string;
     key: number;
   }>({
-    name,
+    name: moduleName || name,
     key: -1,
   });
+
   const { data: metadata } = useQueryIpfsDataParsed<{
     cannonfile: string;
   }>(pkg.metaUrl);
@@ -122,6 +140,30 @@ export const CodeExplorer: FC<{
             {}
         )
       : [];
+
+  // Update selected package key when provisioned packages are loaded
+  useEffect(() => {
+    if (provisionedPackagesKeys.length > 0) {
+      if (moduleName) {
+        const idx = provisionedPackagesKeys.indexOf(moduleName);
+        if (idx >= 0) {
+          setSelectedPackage({
+            name: moduleName,
+            key: idx,
+          });
+        }
+      } else if (selectedPackage.name !== name) {
+        const idx = provisionedPackagesKeys.indexOf(selectedPackage.name);
+        if (idx >= 0) {
+          setSelectedPackage((prev) => ({
+            ...prev,
+            key: idx,
+          }));
+        }
+      }
+    }
+  }, [name, moduleName, selectedPackage.name, provisionedPackagesKeys]);
+
   const provisionArtifacts = provisionedPackagesKeys.map((k: string) => {
     return {
       name: k,
@@ -157,12 +199,11 @@ export const CodeExplorer: FC<{
       selectedPackage.name
     ]?.url
   );
-  const provisionedMiscUrl = provisionedPackageData?.miscUrl;
 
   const { data: provisionedMiscData, isLoading: isLoadingProvisionedMiscData } =
     useQueryIpfsDataParsed<{ artifacts: Record<string, unknown> }>(
-      provisionedMiscUrl,
-      !!provisionedMiscUrl
+      provisionedPackageData?.miscUrl,
+      !!provisionedPackageData?.miscUrl
     );
 
   let miscUrl: string | undefined;
@@ -176,123 +217,102 @@ export const CodeExplorer: FC<{
       !!miscUrl
     );
 
-  const isSelectedPackage = ({ key, name }: { key: number; name: string }) =>
-    selectedPackage.key === key && selectedPackage.name === name;
+  const isSelectedPackage = useCallback(
+    ({ key, name }: { key: number; name: string }) =>
+      selectedPackage.key === key && selectedPackage.name === name,
+    [selectedPackage.key, selectedPackage.name]
+  );
 
+  // Main effect for handling source code selection
   useEffect(() => {
     if (isLoadingMiscData || isLoadingProvisionedMiscData) return;
-    // If the selected package is the main package, select the first source code
-    const selectedMiscData = isSelectedPackage({
-      name,
-      key: -1,
-    })
+
+    const selectedMiscData = isSelectedPackage({ name, key: -1 })
       ? miscData
       : provisionedMiscData;
 
-    if (selectedMiscData) {
-      const artifacts = Object.entries(selectedMiscData.artifacts).sort(
-        ([keyA], [keyB]) => {
-          const countA = (keyA.match(/:/g) || []).length;
-          const countB = (keyB.match(/:/g) || []).length;
-          return countA - countB;
-        }
-      );
+    if (!selectedMiscData) return;
 
-      const availableSources = artifacts.map(([key, value]: [string, any]) => {
-        return {
-          key,
-          value,
-          sources: value.source ? JSON.parse(value.source.input).sources : [],
-        };
-      });
-
-      // find the source code for the selected contract
-      for (const s of availableSources) {
-        if (s.sources[decodeURIComponent(source)]) {
-          const code = (s.sources[decodeURIComponent(source)] as any).content;
-          setSelectedCode(code);
-          setSelectedLanguage('sol');
-          setSelectedKey(decodeURIComponent(source));
-
-          const urlParams = new URLSearchParams({
-            source: decodeURIComponent(source),
-          });
-
-          // set the selected line if a function name is provided
-          const line = functionName
-            ? code
-                .split('\n')
-                // use regex to match the function name
-                .findIndex((l: string) => {
-                  const escapedFunctionName = functionName.replace(
-                    /[-/\\^$*+?.()|[\]{}]/g,
-                    '\\$&'
-                  );
-                  const reg = new RegExp(
-                    `\\bfunction\\s+${escapedFunctionName}\\b`,
-                    'i'
-                  );
-                  return reg.test(l);
-                })
-            : -1;
-
-          if (line > -1 && functionName) {
-            setSelectedLine(line);
-            urlParams.append('function', functionName);
-          }
-          window.history.pushState(
-            null,
-            '',
-            `/packages/${name}/${pkg.version}/${pkg.chainId}-${
-              pkg.preset
-            }/code/${selectedPackage.name}?${urlParams.toString()}`
-          );
-          return;
-        }
+    const artifacts = Object.entries(selectedMiscData.artifacts).sort(
+      ([keyA], [keyB]) => {
+        const countA = (keyA.match(/:/g) || []).length;
+        const countB = (keyB.match(/:/g) || []).length;
+        return countA - countB;
       }
+    );
 
-      // If the selected contract is not found, select the first source code
+    const availableSources = artifacts.map(([key, value]: [string, any]) => ({
+      key,
+      value,
+      sources: value.source ? JSON.parse(value.source.input).sources : [],
+    }));
+
+    // Try to find the specified source
+    const sourceFound = availableSources.some((s) => {
+      const decodedSource = decodeURIComponent(source);
+      const sourceContent = s.sources[decodedSource]?.content;
+      if (sourceContent) {
+        const selection = handleSourceSelection(
+          decodedSource,
+          sourceContent,
+          functionName
+        );
+
+        setSelectedCode(selection.code);
+        setSelectedLanguage(selection.language);
+        setSelectedKey(selection.key);
+        setSelectedLine(selection.line);
+
+        updateUrl(router, {
+          name,
+          version: pkg.version,
+          chainId: pkg.chainId,
+          preset: pkg.preset,
+          packageName: selectedPackage.name,
+          source: decodedSource,
+          functionName,
+        });
+
+        return true;
+      }
+      return false;
+    });
+
+    // If source not found, select first available source
+    if (!sourceFound) {
       const firstArtifact = artifacts[0];
-
       if (firstArtifact) {
         const [, firstArtifactValue] = firstArtifact;
-        const sortedSources = (firstArtifactValue as any)?.source?.input
-          ? Object.entries(
-              JSON.parse((firstArtifactValue as any)?.source?.input).sources
-            ).sort(([keyA], [keyB]) => {
-              const countA = (keyA.match(/\//g) || []).length;
-              const countB = (keyB.match(/\//g) || []).length;
-              return countA - countB;
-            })
-          : [];
+        const sortedSources = Object.entries(
+          JSON.parse((firstArtifactValue as any)?.source?.input).sources
+        ).sort(([keyA], [keyB]) => {
+          const countA = (keyA.match(/\//g) || []).length;
+          const countB = (keyB.match(/\//g) || []).length;
+          return countA - countB;
+        });
 
         if (sortedSources.length) {
           const [sourceKey, sourceValue] = sortedSources[0];
-          setSelectedCode((sourceValue as any)?.content);
-          setSelectedLanguage('sol');
-          setSelectedKey(sourceKey);
-
-          window.history.pushState(
-            null,
-            '',
-            `/packages/${name}/${pkg.version}/${pkg.chainId}-${
-              pkg.preset
-            }/code/${selectedPackage.name}?source=${encodeURIComponent(
-              sourceKey
-            )}`
+          const selection = handleSourceSelection(
+            sourceKey,
+            (sourceValue as any)?.content,
+            functionName
           );
-        } else {
-          setSelectedCode('');
-          setSelectedLanguage('');
-          setSelectedKey('');
 
-          /*
-          window.history.pushState(
-            null,
-            '',
-            `/packages/${name}/${pkg.version}/${pkg.chainId}-${pkg.preset}/code/${selectedPackage.name}`
-          );
-          */
+          setSelectedCode(selection.code);
+          setSelectedLanguage(selection.language);
+          setSelectedKey(selection.key);
+          setSelectedLine(selection.line);
+
+          updateUrl(router, {
+            name,
+            version: pkg.version,
+            chainId: pkg.chainId,
+            preset: pkg.preset,
+            packageName: selectedPackage.name,
+            source: sourceKey,
+            functionName,
+          });
         }
       }
     }
@@ -303,6 +323,13 @@ export const CodeExplorer: FC<{
     isLoadingMiscData,
     isLoadingProvisionedMiscData,
     functionName,
+    isSelectedPackage,
+    name,
+    router,
+    pkg.version,
+    pkg.chainId,
+    pkg.preset,
+    selectedPackage.name,
   ]);
 
   const artifacts =
@@ -312,50 +339,111 @@ export const CodeExplorer: FC<{
       : provisionedMiscData && Object.entries(provisionedMiscData?.artifacts);
 
   const handleSelectPackage = (p: { name: string; key: number }) => {
-    setSelectedPackage({ name: p.name, key: p.key });
+    setSelectedPackage(p);
+
+    // Only navigate if this was triggered by a user action (not initial load)
+    if (p.name !== selectedPackage.name) {
+      const urlParams = new URLSearchParams();
+      if (source) {
+        urlParams.append('source', source);
+      }
+      if (functionName) {
+        urlParams.append('function', functionName);
+      }
+
+      const newPath = `/packages/${name}/${tag}/${chainId}-${preset}/code${
+        p.key !== -1 ? `/${p.name}` : ''
+      }`;
+      const fullUrl = urlParams.toString()
+        ? `${newPath}?${urlParams.toString()}`
+        : newPath;
+      router.replace(fullUrl);
+    }
   };
 
   // Select the right selected module based on the given moduleName
   // If the selected package is the main package, select the first source code
   useEffect(() => {
     if (deploymentData.isLoading) return;
-    const foundPackage = availablePackages.find((p) => p.name === moduleName);
-    if (foundPackage) {
-      setSelectedPackage(foundPackage);
-      setSelectedKey(decodeURIComponent(source));
-    }
-  }, [moduleName, source, availablePackages.length, deploymentData?.isLoading]);
 
-  // Select the first provisioned package if the main package has no code
-  useEffect(() => {
-    if (deploymentData.isLoading) return;
+    const foundPackage = availablePackages.find((p) => p.name === moduleName);
+    const decodedSource = decodeURIComponent(source);
     if (
-      !artifacts?.length &&
-      provisionedPackagesKeys.length &&
-      selectedPackage.key === -1
+      foundPackage &&
+      (foundPackage.name !== selectedPackage.name ||
+        selectedKey !== decodedSource)
     ) {
-      setSelectedPackage(availablePackages[1]);
+      setSelectedPackage(foundPackage);
+      setSelectedKey(decodedSource);
     }
   }, [
-    artifacts?.length,
-    provisionedPackagesKeys?.length,
-    deploymentData?.isLoading,
+    moduleName,
+    source,
+    availablePackages.length,
+    deploymentData.isLoading,
+    availablePackages,
+    selectedPackage.name,
+    selectedKey,
+  ]);
+
+  // Select the first provisioned package if the main package has no code and no specific package is specified
+  useEffect(() => {
+    if (deploymentData.isLoading) return;
+
+    const hasMainPackageArtifacts = !isEmpty(miscData?.artifacts);
+    const isRootView = !moduleName && !source && !functionName;
+
+    // Only redirect if we're at the root view with no artifacts in main package
+    if (
+      !hasMainPackageArtifacts &&
+      provisionedPackagesKeys.length > 0 &&
+      selectedPackage.key === -1 &&
+      isRootView
+    ) {
+      // Just update the selected package without triggering navigation
+      setSelectedPackage(availablePackages[1]);
+
+      // Navigate to the first package without any additional parameters
+      const newPath = `/packages/${name}/${tag}/${chainId}-${preset}/code/${availablePackages[1].name}`;
+      router.replace(newPath);
+    }
+  }, [
+    miscData?.artifacts,
+    provisionedPackagesKeys.length,
+    deploymentData.isLoading,
     selectedPackage.key,
+    availablePackages,
+    moduleName,
+    source,
+    functionName,
+    name,
+    tag,
+    chainId,
+    preset,
+    router,
   ]);
 
   const handleSelectFile = (sourceKey: string, sourceValue: any) => {
-    // We can have these lines to keep SPA navigation
-    setSelectedCode(sourceValue.content);
-    setSelectedLanguage('sol');
-    setSelectedKey(sourceKey);
-
-    window.history.pushState(
-      null,
-      '',
-      `/packages/${name}/${pkg.version}/${pkg.chainId}-${pkg.preset}/code/${
-        selectedPackage.name
-      }?source=${encodeURIComponent(sourceKey)}`
+    const selection = handleSourceSelection(
+      sourceKey,
+      sourceValue.content,
+      functionName
     );
+
+    setSelectedCode(selection.code);
+    setSelectedLanguage(selection.language);
+    setSelectedKey(selection.key);
+    setSelectedLine(selection.line);
+
+    updateUrl(router, {
+      name,
+      version: pkg.version,
+      chainId: pkg.chainId,
+      preset: pkg.preset,
+      packageName: selectedPackage.name,
+      source: sourceKey,
+      functionName,
+    });
   };
 
   const isLoading =
@@ -364,256 +452,212 @@ export const CodeExplorer: FC<{
     isLoadingMiscData ||
     isLoadingProvisionedMiscData;
 
+  const sidebarContent = (
+    <SidebarContent className="overflow-y-auto">
+      {/* Artifacts */}
+      <SidebarGroup>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {artifacts?.map(([artifactKey, artifactValue]: [any, any]) => {
+              const sources = artifactValue?.source?.input
+                ? JSON.parse(artifactValue.source.input).sources
+                : {};
+
+              const fileTree = buildFileTree(Object.entries(sources));
+
+              return (
+                <div key={artifactKey} className="mb-2">
+                  <SidebarMenuItem>
+                    <div className="flex flex-row pr-2 items-center h-7">
+                      <div className="max-w-[210px] overflow-hidden">
+                        <SidebarGroupLabel>
+                          {artifactKey.split(':').length > 1
+                            ? artifactKey.split(':')[1]
+                            : artifactKey}
+                          .sol
+                        </SidebarGroupLabel>
+                      </div>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="xs"
+                            className="ml-auto w-6 h-6 p-0"
+                            onClick={() => {
+                              handleDownload(
+                                (artifactValue as any)?.abi,
+                                'deployments.json'
+                              );
+                            }}
+                          >
+                            <Download className="scale-75" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Download ABI</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </SidebarMenuItem>
+                  {/* File tree */}
+                  {Object.values(fileTree).map((node) => (
+                    <FileTreeItem
+                      key={node.path}
+                      node={node}
+                      level={0}
+                      onSelectFile={handleSelectFile}
+                      selectedKey={selectedKey}
+                    />
+                  ))}
+                </div>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+
+      {/* Metadata */}
+      {metadata?.cannonfile !== undefined && (
+        <SidebarGroup>
+          <SidebarGroupLabel>
+            <div className="flex px-2 items-center mb-1">
+              <h3 className="font-medium text-sm text-gray-200 tracking-[0.1px]">
+                Metadata
+              </h3>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-auto text-gray-300 border-gray-500 hover:bg-gray-700 w-6 h-6 p-0"
+                onClick={() => {
+                  handleDownload(metadata, 'metadata.json');
+                }}
+              >
+                <Download className="scale-75" />
+              </Button>
+            </div>
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <div
+                  className={`py-0.5 px-2 cursor-pointer text-sm hover:bg-gray-800 
+                    ${
+                      selectedKey === 'cannonfile'
+                        ? 'font-medium bg-gray-800'
+                        : ''
+                    }`}
+                  onClick={() => {
+                    setSelectedCode(metadata.cannonfile);
+                    setSelectedLanguage('toml');
+                    setSelectedKey('cannonfile');
+                  }}
+                >
+                  <div className="flex items-center">
+                    <FileIcon size={16} className="mr-2" />
+                    Cannonfile
+                  </div>
+                </div>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      )}
+    </SidebarContent>
+  );
+
   return (
-    <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
+    <div className="flex flex-1 flex-col max-h-full max-w-full">
       {isLoading ? (
-        <div className="py-20">
+        <div className="h-[671px] flex items-center justify-center">
           <IpfsSpinner ipfsUrl={pkg?.deployUrl} />
         </div>
       ) : artifacts?.length || provisionedPackagesKeys.length ? (
         <>
-          {!!provisionedPackagesKeys.length && (
-            <Flex
-              top="0"
-              zIndex={3}
-              bg="gray.900"
-              position={{ md: 'sticky' }}
-              overflowX="scroll"
-              overflowY="hidden"
-              maxW="100%"
-              p={2}
-              borderBottom="1px solid"
-              borderColor="gray.800"
-              flexWrap="nowrap"
+          <div className="sticky top-0 z-[3] md:sticky overflow-x-scroll overflow-y-hidden max-w-full border-b border-border bg-muted">
+            <Tabs
+              defaultValue={moduleName || name}
+              value={selectedPackage.name}
+              onValueChange={(value) => {
+                const pkg = availablePackages.find((p) => p.name === value);
+                if (pkg && pkg.name !== selectedPackage.name) {
+                  handleSelectPackage(pkg);
+
+                  // Preserve current source and function parameters
+                  const urlParams = new URLSearchParams();
+                  if (source) {
+                    urlParams.append('source', source);
+                  }
+                  if (functionName) {
+                    urlParams.append('function', functionName);
+                  }
+
+                  // Navigate to the new package
+                  const newPath = `/packages/${name}/${tag}/${chainId}-${preset}/code/${value}`;
+                  const fullUrl = urlParams.toString()
+                    ? `${newPath}?${urlParams.toString()}`
+                    : newPath;
+
+                  // Use replace instead of push to avoid adding to history stack
+                  router.replace(fullUrl);
+                }
+              }}
             >
-              {!isEmpty(miscData?.artifacts) && (
-                <PackageButton
-                  key={-1}
-                  name={name}
-                  selected={isSelectedPackage({ name, key: -1 })}
-                  onClick={() => handleSelectPackage({ name, key: -1 })}
-                />
-              )}
-              {provisionedPackagesKeys.map((k: string, i: number) => (
-                <PackageButton
-                  key={k}
-                  name={k}
-                  selected={isSelectedPackage({ name: k, key: i })}
-                  onClick={() => handleSelectPackage({ name: k, key: i })}
-                />
-              ))}
-            </Flex>
-          )}
-          <Flex flex="1" direction={['column', 'column', 'row']}>
-            <Flex
-              flexDirection="column"
-              overflowY="auto"
-              maxWidth={['100%', '100%', '320px']}
-              borderRight={isSmall ? 'none' : '1px solid'}
-              borderBottom={isSmall ? '1px solid' : 'none'}
-              borderColor={isSmall ? 'gray.600' : 'gray.700'}
-              width={['100%', '100%', '320px']}
-              maxHeight={['140px', '140px', 'calc(100vh - 236px)']}
-            >
-              <Box px={3} pb={2}>
-                {artifacts?.map(([artifactKey, artifactValue]: [any, any]) => {
-                  return (
-                    <Box key={artifactKey} mt={4}>
-                      <Flex
-                        flexDirection="row"
-                        px="2"
-                        alignItems="center"
-                        mb="1"
-                      >
-                        <Heading
-                          fontWeight="500"
-                          size="sm"
-                          color="gray.200"
-                          letterSpacing="0.1px"
-                          mr="1"
-                        >
-                          {artifactKey.split(':').length > 1
-                            ? artifactKey.split(':')[1]
-                            : artifactKey}
-                        </Heading>
-
-                        <Button
-                          variant="outline"
-                          colorScheme="white"
-                          size="xs"
-                          color="gray.300"
-                          borderColor="gray.500"
-                          _hover={{ bg: 'gray.700' }}
-                          leftIcon={<DownloadIcon />}
-                          onClick={() => {
-                            handleDownload(
-                              (artifactValue as any)?.abi,
-                              'deployments.json'
-                            );
-                          }}
-                          ml="auto"
-                        >
-                          ABI
-                        </Button>
-                      </Flex>
-                      {(artifactValue as any)?.source?.input &&
-                        Object.entries(
-                          JSON.parse((artifactValue as any).source.input)
-                            .sources
-                        )
-                          .sort(([keyA], [keyB]) => {
-                            const countA = (keyA.match(/\//g) || []).length;
-                            const countB = (keyB.match(/\//g) || []).length;
-                            return countA - countB; // Sorts in ascending order
-                          })
-                          .map(([sourceKey, sourceValue]) => {
-                            return (
-                              <Tooltip
-                                label={sourceKey}
-                                key={sourceKey}
-                                placement="right"
-                              >
-                                <Box
-                                  borderRadius="md"
-                                  mb={0.5}
-                                  py={0.5}
-                                  px="2"
-                                  cursor="pointer"
-                                  fontSize="sm"
-                                  _hover={{ background: 'gray.800' }}
-                                  onClick={() =>
-                                    handleSelectFile(sourceKey, sourceValue)
-                                  }
-                                  whiteSpace="nowrap"
-                                  overflow="hidden"
-                                  textOverflow="ellipsis"
-                                  style={{
-                                    direction: 'rtl', // Reverses the text display order
-                                    unicodeBidi: 'bidi-override', // Overrides the default bidi algorithm
-                                  }}
-                                  textAlign="left" // Left-aligns the text
-                                  fontWeight={
-                                    selectedKey == sourceKey
-                                      ? 'medium'
-                                      : undefined
-                                  }
-                                  background={
-                                    selectedKey == sourceKey
-                                      ? 'gray.800'
-                                      : undefined
-                                  }
-                                >
-                                  {sourceKey.split('').reverse().join('')}
-                                </Box>
-                              </Tooltip>
-                            );
-                          })}
-                    </Box>
-                  );
-                })}
-
-                {metadata?.cannonfile !== undefined && (
-                  <>
-                    <Box mt={4}>
-                      <Flex
-                        flexDirection="row"
-                        px="2"
-                        alignItems="center"
-                        mb="1"
-                      >
-                        <Heading
-                          fontWeight="500"
-                          size="sm"
-                          color="gray.200"
-                          letterSpacing="0.1px"
-                        >
-                          Metadata
-                        </Heading>
-
-                        <IconButton
-                          aria-label="Download Metadata"
-                          variant="outline"
-                          colorScheme="white"
-                          size="xs"
-                          color="gray.300"
-                          borderColor="gray.500"
-                          _hover={{ bg: 'gray.700' }}
-                          icon={<DownloadIcon />}
-                          onClick={() => {
-                            handleDownload(metadata, 'metadata.json');
-                          }}
-                          ml="auto"
-                        ></IconButton>
-                      </Flex>
-                    </Box>
-
-                    <Box
-                      borderRadius="md"
-                      mb={0.5}
-                      py={0.5}
-                      px="2"
-                      cursor="pointer"
-                      fontSize="sm"
-                      _hover={{ background: 'gray.800' }}
-                      onClick={() => {
-                        setSelectedCode(metadata.cannonfile);
-                        setSelectedLanguage('toml');
-                        setSelectedKey('cannonfile');
-                      }}
-                      fontWeight={
-                        selectedKey == 'cannonfile' ? 'medium' : undefined
-                      }
-                    >
-                      Cannonfile
-                    </Box>
-                  </>
+              <TabsList className="h-full font-mono">
+                {!isEmpty(miscData?.artifacts) && (
+                  <TabsTrigger value={name} disabled={isLoading}>
+                    {name}
+                  </TabsTrigger>
                 )}
-              </Box>
-            </Flex>
+                {provisionedPackagesKeys.map((k: string) => (
+                  <TabsTrigger key={k} value={k} disabled={isLoading}>
+                    [clone.{k}]
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
 
-            <Box
-              flex="1"
-              overflowY="auto"
-              maxHeight={['none', 'none', 'calc(100vh - 236px)']}
-              background="gray.800"
+          <div className="h-[671px]">
+            <SidebarLayout
+              sidebarContent={sidebarContent}
+              centered={false}
+              contentHeight="671px"
             >
-              {selectedCode.length ? (
-                <>
-                  {/* Make sure code preview is not rendered if function name exists but no selected line is set yet */}
-                  {!selectedLine && functionName ? null : (
-                    <CodePreview
-                      code={selectedCode}
-                      language={selectedLanguage}
-                      height="100%"
-                      line={selectedLine}
-                    />
-                  )}
-                </>
-              ) : (
-                <Flex
-                  flex="1"
-                  height="100%"
-                  alignItems="center"
-                  justifyContent="center"
-                  p={4}
-                >
-                  <Text color="gray.400">
-                    <InfoOutlineIcon transform="translateY(-1px)" /> Code
-                    unavailable
-                  </Text>
-                </Flex>
-              )}
-            </Box>
-          </Flex>
+              <div className="h-full flex">
+                {selectedCode.length ? (
+                  <>
+                    {/* Make sure code preview is not rendered if function name exists but no selected line is set yet */}
+                    {!selectedLine && functionName ? null : (
+                      <CodePreview
+                        code={selectedCode}
+                        language={selectedLanguage}
+                        height="100%"
+                        line={selectedLine}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center min-h-[671px]">
+                    <span className="text-gray-400">
+                      <Info className="inline mr-2 -translate-y-[1px]" />
+                      This package does not contain any code.
+                    </span>
+                  </div>
+                )}
+              </div>
+            </SidebarLayout>
+          </div>
         </>
       ) : (
-        <Flex flex="1" alignItems="center" justifyContent="center" p={4}>
-          <Text color="gray.400">
-            <InfoOutlineIcon transform="translateY(-1px)" /> This package does
-            not contain any code.
-          </Text>
-        </Flex>
+        <div className="flex-1 flex items-center justify-center min-h-[671px]">
+          <span className="text-gray-400">
+            <Info className="inline mr-2 -translate-y-[1px]" />
+            This package does not contain any code.
+          </span>
+        </div>
       )}
-    </Flex>
+    </div>
   );
 };

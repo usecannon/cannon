@@ -1,15 +1,17 @@
-import { Flex, FormControl, FormLabel, Text } from '@chakra-ui/react';
 import { BigNumber } from '@ethersproject/bignumber';
 import { useState } from 'react';
 import { AbiParameter } from 'viem';
 import { FunctionInput } from '../FunctionInput';
+import { Label } from '@/components/ui/label';
 
 const TupleInput = ({
   input,
   handleUpdate,
+  value,
 }: {
   input: any;
   handleUpdate: (value: any) => void;
+  value?: Record<string, any>;
 }) => {
   const getDefaultValueForType = (component: AbiParameter) => {
     if (component.type.startsWith('bool')) return false;
@@ -17,10 +19,13 @@ const TupleInput = ({
     if (component.type.startsWith('uint')) return '0';
     return '';
   };
+
   // Initialize the tuple state as an object, with keys corresponding to tuple property names
   const [tupleState, setTupleState] = useState(() =>
     input.components.reduce((acc: any, component: any) => {
-      acc[component.name] = getDefaultValueForType(component);
+      // Use value prop if available, otherwise use default value
+      acc[component.name] =
+        value?.[component.name] ?? getDefaultValueForType(component);
       return acc;
     }, {})
   );
@@ -32,24 +37,17 @@ const TupleInput = ({
   };
 
   return (
-    <Flex
-      borderLeft="1px"
-      borderColor="gray.600"
-      pl="4"
-      direction="column"
-      w="100%"
-    >
+    <div className="flex flex-col w-full border-l border-border mt-1 pt-1 pl-4">
       {input.components.map((component: any, index: number) => (
-        <FormControl mb="4" key={index}>
-          <FormLabel fontSize="sm" mb={1}>
-            {component.name && <Text display="inline">{component.name}</Text>}
+        <div className="mb-4" key={index}>
+          <Label className="mb-1">
+            {component.name && <span>{component.name}</span>}
             {component.type && (
-              <Text fontSize="xs" color="whiteAlpha.700" display="inline">
-                {' '}
+              <span className="text-xs font-mono text-muted-foreground ml-1">
                 {component.type}
-              </Text>
+              </span>
             )}
-          </FormLabel>
+          </Label>
           <FunctionInput
             input={component}
             handleUpdate={(value) => {
@@ -60,10 +58,11 @@ const TupleInput = ({
               }
               updateTupleValue(component.name, value);
             }}
+            initialValue={tupleState[component.name]}
           />
-        </FormControl>
+        </div>
       ))}
-    </Flex>
+    </div>
   );
 };
 

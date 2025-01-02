@@ -21,16 +21,8 @@ import {
 } from '@chakra-ui/react';
 import { FC, ReactNode } from 'react';
 import { a11yDark, CopyBlock } from 'react-code-blocks';
-import {
-  bytesToString,
-  decodeFunctionData,
-  DecodeFunctionDataReturnType,
-  formatEther,
-  Hex,
-  hexToBytes,
-  TransactionRequestBase,
-  trim,
-} from 'viem';
+import * as viem from 'viem';
+import { ClipboardButton } from '@/components/ClipboardButton';
 
 const TxWrapper: FC<{ children: ReactNode }> = ({ children }) => (
   <Box p={6} border="1px solid" borderColor="gray.600" bgColor="black">
@@ -51,7 +43,7 @@ const useCannonPreloadedContracts = (
 };
 
 export function DisplayedTransaction(props: {
-  txn?: Omit<TransactionRequestBase, 'from'>;
+  txn?: Omit<viem.TransactionRequestBase, 'from'>;
   chainId: number;
   pkgUrl: string;
   cannonInfo?: UseCannonPackageContractsReturnType;
@@ -101,11 +93,11 @@ export function DisplayedTransaction(props: {
       : [];
 
   let contractName = props.txn?.to ?? '';
-  let decodedFunctionData: DecodeFunctionDataReturnType | null = null;
+  let decodedFunctionData: viem.DecodeFunctionDataReturnType | null = null;
   if (contracts) {
     for (const n of parsedContractNames) {
       try {
-        decodedFunctionData = decodeFunctionData({
+        decodedFunctionData = viem.decodeFunctionData({
           abi: contracts[n]?.abi,
           data: props.txn?.data || '0x',
         });
@@ -250,18 +242,14 @@ function _encodeArg(type: string, val: string): string {
 
   if (type.startsWith('bytes') && val.startsWith('0x')) {
     try {
-      const b = hexToBytes(val as Hex);
+      const b = viem.hexToBytes(val as viem.Hex);
       const t = b.findIndex((v) => v < 0x20);
-      if (b[t] != 0 || b.slice(t).find((v) => v != 0)) {
+      if (b[t] != 0 || b.slice(t).find((v) => v != 0) || t === 0) {
         // this doesn't look like a terminated ascii hex string. leave it as hex
         return val;
       }
 
-      if (t === 0) {
-        return '';
-      }
-
-      return bytesToString(trim(b, { dir: 'right' }));
+      return viem.bytesToString(viem.trim(b, { dir: 'right' }));
     } catch (err) {
       return val.toString();
     }
@@ -299,7 +287,7 @@ function _encodeArgTooltip(type: string, val: string): string {
   } else if (type == 'bool') {
     return val ? 'true' : 'false';
   } else if (['int256', 'uint256', 'int128', 'uint128'].includes(type)) {
-    return val ? formatEther(BigInt(val)) : '0';
+    return val ? viem.formatEther(BigInt(val)) : '0';
   }
 
   // if we get here no tooltip is needed
@@ -325,29 +313,32 @@ function _renderInput(type: string, val: string) {
       label={_encodeArgTooltip(type, val as string)}
       placement="bottom-start"
     >
-      <Input
-        type="text"
-        size="sm"
-        bg="black"
-        borderColor="whiteAlpha.400"
-        isReadOnly
-        _focus={{
-          boxShadow: 'none !important',
-          outline: 'none !important',
-          borderColor: 'whiteAlpha.400 !important',
-        }}
-        _focusVisible={{
-          boxShadow: 'none !important',
-          outline: 'none !important',
-          borderColor: 'whiteAlpha.400 !important',
-        }}
-        _hover={{
-          boxShadow: 'none !important',
-          outline: 'none !important',
-          borderColor: 'whiteAlpha.400 !important',
-        }}
-        value={_encodeArg(type, (val as string) || '')}
-      />
+      <div>
+        <Input
+          type="text"
+          size="sm"
+          bg="black"
+          borderColor="whiteAlpha.400"
+          isReadOnly
+          _focus={{
+            boxShadow: 'none !important',
+            outline: 'none !important',
+            borderColor: 'whiteAlpha.400 !important',
+          }}
+          _focusVisible={{
+            boxShadow: 'none !important',
+            outline: 'none !important',
+            borderColor: 'whiteAlpha.400 !important',
+          }}
+          _hover={{
+            boxShadow: 'none !important',
+            outline: 'none !important',
+            borderColor: 'whiteAlpha.400 !important',
+          }}
+          value={_encodeArg(type, (val as string) || '')}
+        />
+        <ClipboardButton text={val} className="mt-0.5" />
+      </div>
     </Tooltip>
   );
 }
