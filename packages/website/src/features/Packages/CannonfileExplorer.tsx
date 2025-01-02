@@ -100,7 +100,7 @@ export const CannonfileExplorer: FC<{ pkg: ApiPackage }> = ({ pkg }) => {
   return pkg?.deployUrl ? (
     <div className="flex flex-1 flex-col h-full w-full">
       <div className="h-[710px]">
-        <SidebarLayout contentHeight="710px">
+        <SidebarLayout extraContentHeight="710px">
           {deploymentData.isLoading ? (
             <div className="py-20">
               <IpfsSpinner ipfsUrl={pkg?.deployUrl} />
