@@ -256,7 +256,10 @@ export function SafeAddressInput() {
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger>
-                              <span className="font-mono tracking-wider">
+                              <span className="font-mono tracking-wider md:hidden">
+                                {truncateAddress(option.value.split(':')[1], 4)}
+                              </span>
+                              <span className="font-mono tracking-wider hidden md:inline">
                                 {truncateAddress(option.value.split(':')[1], 8)}
                               </span>
                             </TooltipTrigger>
