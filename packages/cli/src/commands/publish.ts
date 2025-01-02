@@ -8,7 +8,7 @@ import {
   PackageReference,
   preparePublishPackage,
 } from '@usecannon/builder';
-import { blueBright, bold, gray } from 'chalk';
+import { bold, cyanBright, gray, green, yellow } from 'chalk';
 import prompts from 'prompts';
 import * as viem from 'viem';
 import { log } from '../util/console';
@@ -37,22 +37,17 @@ interface DeployList {
 export async function publish({
   fullPackageRef,
   cliSettings,
-  onChainRegistry,
   tags = ['latest'],
+  onChainRegistry,
   chainId,
   quiet = false,
   includeProvisioned = true,
   skipConfirm = false,
 }: Params) {
-  if (onChainRegistry instanceof OnChainRegistry) {
-    if (!onChainRegistry.signer) {
-      throw new Error('signer not provided in registry');
-    }
-    if (!quiet) {
-      log(blueBright(`Publishing with ${onChainRegistry.signer!.address}`));
-      log();
-    }
+  if (onChainRegistry instanceof OnChainRegistry && !onChainRegistry.signer) {
+    throw new Error('signer not provided in registry');
   }
+
   // Generate CannonStorage to publish ipfs remotely and write to the registry
   const toStorage = new CannonStorage(onChainRegistry, {
     ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || getCannonRepoRegistryUrl()),
@@ -62,7 +57,6 @@ export async function publish({
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
   const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
 
-  // if the package reference is an ipfs reference (url or hash) we pass it the full package ref since its referencing a specific deploy
   let deploys = await localRegistry.scanDeploys(fullPackageRef, chainId);
 
   if (!deploys || deploys.length === 0) {
@@ -127,7 +121,7 @@ export async function publish({
       chainId: deploys[0].chainId,
       fromStorage,
       toStorage,
-      tags: publishTags!,
+      tags: publishTags,
       includeProvisioned,
     });
 
@@ -138,54 +132,75 @@ export async function publish({
     throw new Error("There isn't anything new to publish.");
   }
 
-  for (const publishCall of publishCalls) {
-    const packageName = new PackageReference(publishCall.packagesNames[0]).name;
-    log(blueBright(`\nThis will publish ${bold(packageName)} to the registry:`));
-
-    for (const fullPackageRef of publishCall.packagesNames) {
-      const { version, preset } = new PackageReference(fullPackageRef);
-      log(` - ${version} (preset: ${preset})`);
+  if (!quiet) {
+    if (onChainRegistry instanceof OnChainRegistry) {
+      log('\n' + bold('Publishing Package'));
+      log(gray('================================================================================'));
+      log(`Package: ${cyanBright(fullPackageRef)}`);
+      log(`Signer: ${cyanBright(onChainRegistry.signer!.address)}`);
+      log(gray('================================================================================\n'));
     }
-  }
 
-  log();
+    log(bold('Package Details:'));
+    for (const publishCall of publishCalls) {
+      const packageName = new PackageReference(publishCall.packagesNames[0]).name;
+      log(gray('--------------------------------------------------------------------------------'));
+      log(`Package: ${cyanBright(packageName)}`);
+      
+      for (const fullPackageRef of publishCall.packagesNames) {
+        const { version, preset } = new PackageReference(fullPackageRef);
+        log(`  • ${cyanBright(version)}${preset !== 'main' ? ` (preset: ${preset})` : gray(' (default)')}`);
+      }
+      
+      if (publishCall.url) {
+        log(gray('\nIPFS Data:'));
+        log(gray(`  URL: ${publishCall.url}`));
+      }
+    }
 
-  if (onChainRegistry instanceof OnChainRegistry) {
-    const totalFees = await onChainRegistry.calculatePublishingFee(publishCalls.length);
-
-    log(`Total publishing fees: ${viem.formatEther(totalFees)} ETH`);
-    log();
-
-    if (
-      totalFees > 0n &&
-      totalFees >= (await onChainRegistry.provider!.getBalance({ address: onChainRegistry.signer!.address }))
-    ) {
-      throw new Error('You do not appear to have enough ETH in your wallet to publish');
+    if (onChainRegistry instanceof OnChainRegistry) {
+      const totalFees = await onChainRegistry.calculatePublishingFee(publishCalls.length);
+      
+      log(bold('\nTransaction Details:'));
+      log(gray(`  Publishing Fee: ${viem.formatEther(totalFees)} ETH`));
+      
+      if (totalFees > 0n) {
+        const balance = await onChainRegistry.provider!.getBalance({ 
+          address: onChainRegistry.signer!.address 
+        });
+        
+        if (totalFees >= balance) {
+          throw new Error('You do not appear to have enough ETH in your wallet to publish');
+        }
+      }
     }
   }
 
   if (!skipConfirm) {
-    const verification = await prompts({
+    const { proceed } = await prompts({
       type: 'confirm',
-      name: 'confirmation',
-      message: 'Proceed?',
-      initial: true,
+      name: 'proceed',
+      message: 'Proceed with publishing?',
     });
 
-    if (!verification.confirmation) {
-      log('Cancelled');
-      process.exit(1);
+    if (!proceed) {
+      throw new Error('User aborted');
     }
   }
 
-  log(bold('Publishing package...'));
-  log(gray('This may take a few minutes.'));
-  log();
-
-  const registrationReceipts = await toStorage.registry.publishMany(publishCalls);
-
   if (!quiet) {
-    log(blueBright('Transactions:'));
-    for (const tx of registrationReceipts) log(`  - ${tx}`);
+    log(gray('\nPublishing packages...'));
   }
+  
+  const txHashes = await onChainRegistry.publishMany(publishCalls);
+  
+  if (!quiet) {
+    log(`\n${green('✓')} Successfully published packages`);
+    for (const txHash of txHashes) {
+      log(gray(`Transaction Hash: ${txHash}`));
+    }
+    log('\n');
+  }
+
+  return txHashes;
 }
