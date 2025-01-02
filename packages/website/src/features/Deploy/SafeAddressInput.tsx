@@ -155,6 +155,7 @@ export function SafeAddressInput() {
   }, [
     chains,
     currentSafe,
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     handleNewOrSelectedSafe,
     isClearing,
     prependSafeAddress,
@@ -228,61 +229,56 @@ export function SafeAddressInput() {
         </TooltipProvider>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Select Safe</DialogTitle>
             </DialogHeader>
-
-            <div className="space-y-4">
+            <div className="space-y-10 mt-2">
               <div className="space-y-4">
-                <div>
-                  <h3 className="mb-2 text-sm font-medium">Connected Safes</h3>
-                  <div className="space-y-2">
-                    {safeOptions.map((option) => (
-                      <div
-                        key={option.value}
-                        className="flex items-center justify-between gap-2"
-                      >
-                        <Button
-                          variant={
-                            currentSafe &&
+                <div className="space-y-2">
+                  {safeOptions.map((option) => (
+                    <div
+                      key={option.value}
+                      className="flex items-center justify-between gap-1"
+                    >
+                      <Button
+                        variant="secondary"
+                        disabled={Boolean(
+                          currentSafe &&
                             option.value === safeToString(currentSafe)
-                              ? 'secondary'
-                              : 'ghost'
-                          }
-                          className="flex-1 flex items-center justify-between p-2 h-auto hover:bg-zinc-900 font-normal"
-                          onClick={() => handleNewOrSelectedSafe(option.value)}
-                        >
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <span className="font-mono tracking-wider">
-                                  {truncateAddress(
-                                    option.value.split(':')[1],
-                                    4
-                                  )}
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{option.value.split(':')[1]}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          <Chain id={parseInt(option.value.split(':')[0])} />
-                        </Button>
-                        {option.isDeletable && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 rounded-l-none hover:bg-zinc-900"
-                            onClick={() => handleSafeDelete(option.value)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
                         )}
-                      </div>
-                    ))}
-                  </div>
+                        className="flex-1 flex items-center justify-between"
+                        onClick={() => {
+                          void handleNewOrSelectedSafe(option.value);
+                          setIsDialogOpen(false);
+                        }}
+                      >
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <span className="font-mono tracking-wider">
+                                {truncateAddress(option.value.split(':')[1], 8)}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{option.value.split(':')[1]}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <Chain id={parseInt(option.value.split(':')[0])} />
+                      </Button>
+                      {option.isDeletable && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9"
+                          onClick={() => handleSafeDelete(option.value)}
+                        >
+                          <X className="h-4 w-4 text-red-500" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
                 </div>
 
                 {walletSafeOptions.length > 0 && (
@@ -293,7 +289,10 @@ export function SafeAddressInput() {
                         <div
                           key={option.value}
                           className="flex items-center justify-between p-2 rounded-md border border-zinc-800 hover:bg-zinc-900 cursor-pointer"
-                          onClick={() => handleNewOrSelectedSafe(option.value)}
+                          onClick={() => {
+                            void handleNewOrSelectedSafe(option.value);
+                            setIsDialogOpen(false);
+                          }}
                         >
                           <TooltipProvider>
                             <Tooltip>
@@ -301,7 +300,7 @@ export function SafeAddressInput() {
                                 <span className="font-mono tracking-wider">
                                   {truncateAddress(
                                     option.value.split(':')[1],
-                                    10
+                                    12
                                   )}
                                 </span>
                               </TooltipTrigger>
@@ -318,14 +317,19 @@ export function SafeAddressInput() {
                 )}
 
                 <div>
-                  <h3 className="mb-2 text-sm font-medium">Add New Safe</h3>
-                  <div className="flex gap-2">
+                  <div className="relative flex items-center">
                     <Input
                       value={newSafeInput}
                       onChange={(e) => setNewSafeInput(e.target.value)}
                       placeholder="chainId:safeAddress"
+                      className="pr-[88px]"
                     />
-                    <Button onClick={handleAddNewSafe}>Add</Button>
+                    <Button
+                      onClick={handleAddNewSafe}
+                      className="absolute right-0 h-[35px] rounded-l-none"
+                    >
+                      Add Safe
+                    </Button>
                   </div>
                   {inputErrorText && (
                     <p className="mt-2 text-sm text-red-400">
