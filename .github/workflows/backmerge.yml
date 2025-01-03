@@ -14,8 +14,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Important: fetch all history
+          fetch-depth: 1 # Only fetch last commit
           ref: dev # Checkout dev branch
+          fetch-tags: false # Don't fetch tags
+          sparse-checkout: | # Only fetch main and dev branches
+            refs/heads/main
+            refs/heads/dev
 
       - name: Configure Git
         run: |
@@ -25,15 +29,13 @@ jobs:
       - name: Merge main into dev
         id: merge
         continue-on-error: true
-        run: |
-          git fetch origin main
-          git merge origin/main --no-edit
+        run: git merge origin/main --no-edit
 
       - name: Push if merge successful
         if: steps.merge.outcome == 'success'
         run: git push origin dev
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Create PR on merge conflict
         if: steps.merge.outcome == 'failure'
