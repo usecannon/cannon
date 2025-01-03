@@ -28,7 +28,7 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex flex-col w-full">
       {/* Header */}
-      <div className="sticky top-[var(--header-height)] bg-black border-b border-border pl-4 z-10">
+      <div className="sticky top-[var(--header-height)] bg-black border-b border-border pl-2 z-10">
         <div className="flex flex-col lg:flex-row items-start lg:items-center flex-nowrap justify-between whitespace-nowrap">
           <div className="w-full lg:max-w-[640px] pt-4 lg:pt-0 truncate">
             <ClientOnly>

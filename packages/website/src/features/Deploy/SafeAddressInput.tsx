@@ -27,7 +27,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { X, AlertTriangle, ChevronsUpDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import Chain from '@/features/Search/PackageCard/Chain';
 import {
   Tooltip,
@@ -170,24 +169,20 @@ export function SafeAddressInput() {
     const isValid = isValidSafeFromSafeString(newSafeInput, chains);
     if (!isValid) {
       setInputErrorText(
-        'Invalid Safe Address. If you are using a custom chain, configure a custom PRC in the settings page.'
+        'Invalid Safe Address. If you are using a custom chain, add a custom provider in settings.'
       );
       return;
     }
     await handleNewOrSelectedSafe(newSafeInput);
+    setNewSafeInput('');
   };
 
   return (
     <div className="flex items-center gap-3">
       <div className="flex items-center gap-2">
-        <div
-          className={cn(
-            'flex items-center gap-2',
-            !currentSafe && 'text-muted-foreground'
-          )}
-        >
-          {currentSafe ? (
-            <>
+        {currentSafe ? (
+          <>
+            <div className="flex items-center gap-1 pl-2">
               <Chain isSmall id={currentSafe.chainId} />
               <TooltipProvider>
                 <Tooltip>
@@ -205,84 +200,92 @@ export function SafeAddressInput() {
               <span className="font-mono hidden md:inline">
                 {currentSafe.address}
               </span>
-            </>
-          ) : (
-            'Select a Safe'
-          )}
-        </div>
+            </div>
 
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="icon"
-                onClick={() => setIsDialogOpen(true)}
-                className="h-5 w-5 ml-0.5"
-              >
-                <ChevronsUpDown className="h-3 w-3" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Select Safe</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    onClick={() => setIsDialogOpen(true)}
+                    className="h-5 w-5 ml-0.5"
+                  >
+                    <ChevronsUpDown className="h-3 w-3" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Select Safe</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </>
+        ) : (
+          <Button
+            onClick={() => setIsDialogOpen(true)}
+            className="gap-2"
+            size="sm"
+          >
+            Select Safe
+          </Button>
+        )}
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Select Safe</DialogTitle>
             </DialogHeader>
-            <div className="space-y-10 mt-2">
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  {safeOptions.map((option) => (
-                    <div
-                      key={option.value}
-                      className="flex items-center justify-between gap-1"
+            <div className="space-y-4 mt-2">
+              <div className="space-y-4">
+                {safeOptions.map((option) => (
+                  <div
+                    key={option.value}
+                    className="flex items-center justify-between gap-1.5"
+                  >
+                    <Button
+                      variant="secondary"
+                      disabled={Boolean(
+                        currentSafe &&
+                          option.value === safeToString(currentSafe)
+                      )}
+                      className="flex-1 flex items-center justify-between"
+                      onClick={() => {
+                        void handleNewOrSelectedSafe(option.value);
+                        setIsDialogOpen(false);
+                      }}
                     >
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <span className="font-mono tracking-wider md:hidden">
+                              {truncateAddress(option.value.split(':')[1], 4)}
+                            </span>
+                            <span className="font-mono tracking-wider hidden md:inline">
+                              {truncateAddress(option.value.split(':')[1], 8)}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{option.value.split(':')[1]}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      <Chain id={parseInt(option.value.split(':')[0])} />
+                    </Button>
+                    {option.isDeletable && (
                       <Button
-                        variant="secondary"
-                        disabled={Boolean(
-                          currentSafe &&
-                            option.value === safeToString(currentSafe)
-                        )}
-                        className="flex-1 flex items-center justify-between"
-                        onClick={() => {
-                          void handleNewOrSelectedSafe(option.value);
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSafeDelete(option.value);
                           setIsDialogOpen(false);
                         }}
                       >
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <span className="font-mono tracking-wider md:hidden">
-                                {truncateAddress(option.value.split(':')[1], 4)}
-                              </span>
-                              <span className="font-mono tracking-wider hidden md:inline">
-                                {truncateAddress(option.value.split(':')[1], 8)}
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{option.value.split(':')[1]}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                        <Chain id={parseInt(option.value.split(':')[0])} />
+                        <X className="h-4 w-4 text-red-500" />
                       </Button>
-                      {option.isDeletable && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9"
-                          onClick={() => handleSafeDelete(option.value)}
-                        >
-                          <X className="h-4 w-4 text-red-500" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                    )}
+                  </div>
+                ))}
 
                 {walletSafeOptions.length > 0 && (
                   <div>
@@ -320,44 +323,52 @@ export function SafeAddressInput() {
                 )}
 
                 <div>
-                  <div className="flex gap-4">
-                    <div className="flex-1">
-                      <label className="text-sm mb-2 block text-muted-foreground">
-                        Chain ID
-                      </label>
-                      <Input
-                        value={newSafeInput.split(':')[0] || ''}
-                        onChange={(e) =>
-                          setNewSafeInput(
-                            `${e.target.value}:${
-                              newSafeInput.split(':')[1] || ''
-                            }`
-                          )
-                        }
-                        placeholder="1"
-                        type="number"
-                      />
-                    </div>
-                    <div className="flex-[3]">
-                      <label className="text-sm mb-2 block text-muted-foreground">
-                        Safe Address
-                      </label>
-                      <div className="flex gap-4">
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void handleAddNewSafe();
+                    }}
+                  >
+                    <div className="flex gap-4">
+                      <div className="flex-1">
+                        <label className="text-sm mb-2 block text-muted-foreground">
+                          Chain ID
+                        </label>
                         <Input
-                          value={newSafeInput.split(':')[1] || ''}
+                          value={newSafeInput.split(':')[0] || ''}
                           onChange={(e) =>
                             setNewSafeInput(
-                              `${newSafeInput.split(':')[0] || ''}:${
-                                e.target.value
+                              `${e.target.value}:${
+                                newSafeInput.split(':')[1] || ''
                               }`
                             )
                           }
-                          placeholder="0x..."
+                          placeholder="1"
+                          type="number"
                         />
-                        <Button onClick={handleAddNewSafe}>Add Safe</Button>
+                      </div>
+                      <div className="flex-[3]">
+                        <label className="text-sm mb-2 block text-muted-foreground">
+                          Safe Address
+                        </label>
+                        <div className="flex gap-4">
+                          <Input
+                            value={newSafeInput.split(':')[1] || ''}
+                            onChange={(e) =>
+                              setNewSafeInput(
+                                `${newSafeInput.split(':')[0] || ''}:${
+                                  e.target.value
+                                }`
+                              )
+                            }
+                            placeholder="0x..."
+                            className="flex-1"
+                          />
+                          <Button type="submit">Add Safe</Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </form>
                   {inputErrorText && (
                     <p className="mt-2 text-sm text-red-400">
                       {inputErrorText}
