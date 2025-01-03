@@ -220,11 +220,7 @@ export function SafeAddressInput() {
             </TooltipProvider>
           </>
         ) : (
-          <Button
-            onClick={() => setIsDialogOpen(true)}
-            className="gap-2"
-            size="sm"
-          >
+          <Button onClick={() => setIsDialogOpen(true)} size="sm">
             Select Safe
           </Button>
         )}
