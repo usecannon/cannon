@@ -1,13 +1,13 @@
 Feature: Stage Transactions
   Scenario: User navigates to the deploy page without connecting a wallet
     Given User opens the "/deploy" page
-    Then View renders a "p" displaying the text "Queue, sign, and execute deployments using a"
+    Then View renders a "p" displaying the text "Queue, sign, and execute deployments"
     * View renders a "p" displaying the text "Connect a wallet and select a Safe from the dropdown above."
 
   Scenario: User navigates to the deploy page with a connected wallet
     Given User opens the "/deploy" page
     * Wallet is connected
-    Then View renders a "p" displaying the text "Queue, sign, and execute deployments using a"
+    Then View renders a "p" displaying the text "Queue, sign, and execute deployments"
 
   @skip
   Scenario: User stages transactions from the interact page

@@ -52,7 +52,10 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
               isOpen && 'text-muted-foreground'
             )}
           >
-            Only latest mainnet deployments
+            <span className="hidden sm:inline">
+              Filter for latest on mainnet
+            </span>
+            <span className="sm:hidden">Filter for latest</span>
           </p>
         </div>
       </div>
