@@ -19,11 +19,6 @@ jobs:
           fetch-depth: 1 # Only fetch last commit
           ref: dev # Checkout dev branch
           fetch-tags: false # Don't fetch tags
-          sparse-checkout: | # Only fetch main and dev branches
-            refs/heads/main
-            refs/heads/dev
-            refs/remotes/origin/main
-            refs/remotes/origin/dev
 
       - name: Configure Git
         run: |
