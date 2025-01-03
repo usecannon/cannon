@@ -11,9 +11,6 @@ concurrency:
 jobs:
   backmerge:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
-      GITHUB_TOKEN_USER: ${{ secrets.WORKFLOW_TOKEN_USER }}
     steps:
       - uses: actions/checkout@v4
         with:
