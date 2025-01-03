@@ -201,7 +201,7 @@ export function SafeAddressInput() {
       <div className="flex items-center gap-2">
         {currentSafe ? (
           <>
-            <div 
+            <div
               className="flex items-center gap-1 pl-2"
               data-testid="selected-safe"
             >
