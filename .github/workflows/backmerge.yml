@@ -12,7 +12,7 @@ jobs:
   backmerge:
     runs-on: ubuntu-latest
     env:
-      GITHUB_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
