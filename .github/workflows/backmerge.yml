@@ -20,12 +20,12 @@ jobs:
           fetch-depth: 0
           ref: dev
           fetch-tags: false
+          token: ${{ secrets.WORKFLOW_TOKEN }}
 
       - name: Configure Git
         run: |
-          git config user.name 'Cannon'
+          git config user.name '0xusecannon'
           git config user.email 'noreply@usecannon.com'
-          git remote set-url origin https://${GITHUB_TOKEN_USER}:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
 
       - name: Merge main into dev
         id: merge
