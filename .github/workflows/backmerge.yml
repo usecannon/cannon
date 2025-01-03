@@ -22,6 +22,8 @@ jobs:
           sparse-checkout: | # Only fetch main and dev branches
             refs/heads/main
             refs/heads/dev
+            refs/remotes/origin/main
+            refs/remotes/origin/dev
 
       - name: Configure Git
         run: |
