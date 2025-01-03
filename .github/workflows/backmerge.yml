@@ -16,9 +16,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 1 # Only fetch last commit
-          ref: dev # Checkout dev branch
-          fetch-tags: false # Don't fetch tags
+          fetch-depth: 0
+          ref: dev
+          fetch-tags: false
 
       - name: Configure Git
         run: |
@@ -28,7 +28,9 @@ jobs:
       - name: Merge main into dev
         id: merge
         continue-on-error: true
-        run: git merge origin/main --no-edit
+        run: |
+          git fetch origin main
+          git merge origin/main --no-edit
 
       - name: Push if merge successful
         if: steps.merge.outcome == 'success'
