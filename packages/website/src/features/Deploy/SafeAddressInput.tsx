@@ -201,7 +201,10 @@ export function SafeAddressInput() {
       <div className="flex items-center gap-2">
         {currentSafe ? (
           <>
-            <div className="flex items-center gap-1 pl-2">
+            <div 
+              className="flex items-center gap-1 pl-2"
+              data-testid="selected-safe"
+            >
               <Chain isSmall id={currentSafe.chainId} />
               <TooltipProvider>
                 <Tooltip>
@@ -355,6 +358,7 @@ export function SafeAddressInput() {
                           Chain ID
                         </label>
                         <Input
+                          data-testid="safe-chain-input"
                           value={newSafeInput.split(':')[0] || ''}
                           onChange={(e) =>
                             setNewSafeInput(
@@ -373,6 +377,7 @@ export function SafeAddressInput() {
                         </label>
                         <div className="flex gap-4">
                           <Input
+                            data-testid="safe-address-input"
                             value={newSafeInput.split(':')[1] || ''}
                             onChange={(e) =>
                               setNewSafeInput(

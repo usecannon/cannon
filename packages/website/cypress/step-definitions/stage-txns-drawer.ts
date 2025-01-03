@@ -1,13 +1,17 @@
 import { When, Then } from '@badeball/cypress-cucumber-preprocessor';
 
 When('User types and select the safe {string}', (text: string) => {
-  cy.get('input[role="combobox"]').type(text);
-  cy.get('input[role="combobox"]').type('{enter}');
+  const [chainId, address] = text.split(':');
+  
+  // Type chain ID in the first input
+  cy.get('[data-testid="safe-chain-input"]').type(chainId);
+  
+  // Type address in the second input
+  cy.get('[data-testid="safe-address-input"]').type(address);
+  cy.get('[data-testid="safe-address-input"]').type('{enter}');
 
-  const chainId = text.split(':')[0];
-  const address = text.split(':')[1];
-
-  cy.get('[data-test-id="selected-safe-container"]').should(($container) => {
+  // Verify the selected safe is displayed correctly
+  cy.get('[data-testid="selected-safe"]').should(($container) => {
     expect($container).to.exist;
     expect($container).to.contain(address.slice(0, 6));
     expect($container).to.contain(address.slice(-4));
