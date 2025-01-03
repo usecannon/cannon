@@ -105,7 +105,26 @@ export function SafeAddressInput() {
     if (!isValidSafeString(safeString)) {
       return;
     }
-    deleteSafe(parseSafe(safeString));
+    const parsedSafe = parseSafe(safeString);
+    deleteSafe(parsedSafe);
+
+    // If we're deleting the currently selected safe, clear it and redirect
+    if (
+      currentSafe &&
+      currentSafe.chainId === parsedSafe.chainId &&
+      currentSafe.address === parsedSafe.address
+    ) {
+      setIsClearing(true);
+      void router
+        .push({
+          pathname: '/deploy',
+          query: {},
+        })
+        .then(() => {
+          setCurrentSafe(null);
+          setIsClearing(false);
+        });
+    }
   }
 
   // Load the safe address from url
@@ -274,7 +293,12 @@ export function SafeAddressInput() {
                         onClick={(e) => {
                           e.stopPropagation();
                           handleSafeDelete(option.value);
-                          setIsDialogOpen(false);
+                          if (
+                            currentSafe &&
+                            safeToString(currentSafe) === option.value
+                          ) {
+                            setIsDialogOpen(false);
+                          }
                         }}
                       >
                         <X className="h-4 w-4 text-red-500" />
