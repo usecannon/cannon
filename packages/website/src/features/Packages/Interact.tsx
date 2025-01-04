@@ -299,7 +299,7 @@ const Interact: FC = () => {
         </div>
       ) : (
         <>
-          <div className="sticky top-[57px] z-50 bg-muted">
+          <div className="sticky top-[--header-height] z-50 bg-muted">
             <div className="overflow-x-scroll overflow-y-hidden max-w-[100vw]">
               <Tabs
                 defaultValue={

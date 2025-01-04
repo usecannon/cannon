@@ -38,7 +38,7 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Header */
-    --header-height: 100px;
+    --header-height: 105px;
     @media (min-width: 768px) {
       --header-height: 124px;
     }
@@ -54,6 +54,15 @@
     @media (min-width: 768px) {
       --footer-height: 45px;
     }
+
+    /* Package Header /packages/[name]/[tag]/[variant]/* */
+    --package-header-height: 150px;
+    @media (min-width: 768px) {
+      --package-header-height: 165px;
+    }
+    --package-nav-height: 50px;
+
+    --package-code-contracts-nav-height: 36px;
   }
   .dark {
     --background: 240 10% 3.9%;
