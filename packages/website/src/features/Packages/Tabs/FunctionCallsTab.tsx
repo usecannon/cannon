@@ -21,11 +21,28 @@ export const FunctionCallsTab: FC<{
     )
   );
 
-  return !isEmpty(invokeState) ? (
+  if (isEmpty(invokeState)) {
+    return (
+      <>
+        <div className="pt-4 pb-2 px-4">
+          <div className="flex flex-col md:flex-row justify-start items-center">
+            <div className="w-full md:w-auto flex justify-between items-center mb-2 md:mb-0 min-h-[40px]">
+              <p className="text-muted-foreground text-lg">
+                No functions were invoked when building this package or a
+                package it upgraded from.
+              </p>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
     <>
       <div className="pt-4 pb-2 px-4">
         <div className="flex flex-col md:flex-row justify-start items-center">
-          <div className="w-full md:w-auto flex justify-between items-center mb-2 md:mb-0">
+          <div className="w-full md:w-auto flex justify-between items-center mb-2 md:mb-0 min-h-[40px]">
             <p className="text-muted-foreground text-lg">
               These functions were invoked when building this package or a
               package it upgraded from.
@@ -41,7 +58,7 @@ export const FunctionCallsTab: FC<{
         <InvokesTable invokeState={filteredInvokeState} chainId={chainId} />
       </div>
     </>
-  ) : null;
+  );
 };
 
 export default FunctionCallsTab;

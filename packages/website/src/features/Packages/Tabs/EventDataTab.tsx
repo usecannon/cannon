@@ -30,11 +30,27 @@ export const EventDataTab: FC<{
     )
   );
 
-  return !isEmpty(extrasState) ? (
+  if (isEmpty(extrasState)) {
+    return (
+      <div>
+        <div className="px-4 pt-4 pb-2">
+          <div className="flex flex-col md:flex-row justify-start items-center">
+            <div className="w-full md:w-auto flex justify-between items-center mb-2 md:mb-0 min-h-[40px]">
+              <p className="text-muted-foreground text-lg">
+                No event data was captured during the build.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
     <div>
       <div className="px-4 pt-4 pb-2">
         <div className="flex flex-col md:flex-row justify-start items-center">
-          <div className="w-full md:w-auto flex justify-between items-center mb-2 md:mb-0">
+          <div className="w-full md:w-auto flex justify-between items-center mb-2 md:mb-0 min-h-[40px]">
             <p className="text-muted-foreground text-lg">
               This includes event data captured during the build, referenced in
               dependent operations.
@@ -51,7 +67,7 @@ export const EventDataTab: FC<{
         </div>
       )}
     </div>
-  ) : null;
+  );
 };
 
 export default EventDataTab;
