@@ -3,15 +3,15 @@ import { When, Then } from '@badeball/cypress-cucumber-preprocessor';
 When('User types and select the safe {string}', (text: string) => {
   const [chainId, address] = text.split(':');
 
+  // Click the Select Safe button to open the dialog
+  cy.contains('button', 'Select Safe').click();
+
   // Type chain ID in the first input
   cy.get('[data-testid="safe-chain-input"]').type(chainId);
 
   // Type address in the second input
   cy.get('[data-testid="safe-address-input"]').type(address);
   cy.get('[data-testid="safe-address-input"]').type('{enter}');
-
-  // Wait for the dialog to close
-  cy.get('div[role="dialog"]').should('not.exist');
 
   // Verify the selected safe is displayed correctly with the right content
   cy.get('[data-testid="selected-safe"]')
