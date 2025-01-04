@@ -1,54 +1,29 @@
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 
-import React, { FC, useState } from 'react';
-import { Info } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import React, { FC } from 'react';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
-import { ContractsTable } from './ContractsTable';
-import { InvokesTable } from './InvokesTable';
-import { EventsTable } from './EventsTable';
 import { extractAddressesAbis } from '@/features/Packages/utils/extractAddressesAndABIs';
 import { ApiPackage } from '@usecannon/api/dist/src/types';
-import SearchInput from '@/components/SearchInput';
-import isEmpty from 'lodash/isEmpty';
 import { ChainBuilderContext } from '@usecannon/builder';
 import { IpfsSpinner } from '@/components/IpfsSpinner';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useRouter, usePathname } from 'next/navigation';
+import ContractsTab from './Tabs/ContractsTab';
+import FunctionCallsTab from './Tabs/FunctionCallsTab';
+import EventDataTab from './Tabs/EventDataTab';
 
 export const DeploymentExplorer: FC<{
   pkg: ApiPackage;
 }> = ({ pkg }) => {
-  const [contractSearchTerm, setContractSearchTerm] = useState<string>('');
-  const [invokeSearchTerm, setInvokeSearchTerm] = useState<string>('');
-
+  const router = useRouter();
+  const pathname = usePathname();
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     pkg?.deployUrl,
     !!pkg?.deployUrl
   );
   const deploymentInfo = deploymentData.data;
-
-  const settings: { [key: string]: any } = {};
-  if (deploymentInfo?.def?.setting) {
-    for (const key in deploymentInfo.def.setting) {
-      if (
-        deploymentInfo?.options &&
-        deploymentInfo.options[key] !== undefined
-      ) {
-        settings[key] = {
-          ...deploymentInfo.def.setting[key],
-          option: deploymentInfo.options[key],
-        };
-      } else {
-        settings[key] = { ...deploymentInfo.def.setting[key] };
-      }
-    }
-  }
 
   const stepDefinitions: string[] = [
     'deploy',
@@ -99,24 +74,6 @@ export const DeploymentExplorer: FC<{
     ? mergeArtifactsContracts(deploymentInfo.state)
     : {};
 
-  // Filter and sort based on search term and sort order of steps
-  const contractEntries = Object.entries(contractState);
-  const filteredContractState = Object.fromEntries(
-    contractEntries
-      .sort(
-        ([, { deployedOn: propA }], [, { deployedOn: propB }]) =>
-          stepDefinitions.findIndex((val) => propA.includes(val)) -
-          stepDefinitions.findIndex((val) => propB.includes(val))
-      )
-      .filter(([, val]) =>
-        Object.values(val).some(
-          (v) =>
-            typeof v === 'string' &&
-            v.toLowerCase().includes(contractSearchTerm.toLowerCase())
-        )
-      )
-  );
-
   function mergeInvoke(obj: any, mergedInvokes: any = {}): any {
     for (const key in obj) {
       if (obj[key] && typeof obj[key] === 'object') {
@@ -137,17 +94,6 @@ export const DeploymentExplorer: FC<{
   const invokeState: ChainBuilderContext['txns'] = deploymentInfo?.state
     ? mergeInvoke(deploymentInfo.state)
     : {};
-
-  const invokeEntries = Object.entries(invokeState);
-  const filteredInvokeState = Object.fromEntries(
-    invokeEntries.filter(([, func]) =>
-      Object.values(func).some(
-        (value) =>
-          typeof value === 'string' &&
-          value.toLowerCase().includes(invokeSearchTerm.toLowerCase())
-      )
-    )
-  );
 
   const addressesAbis = deploymentInfo?.state
     ? extractAddressesAbis(deploymentInfo.state)
@@ -182,91 +128,59 @@ export const DeploymentExplorer: FC<{
 
   const mergedExtras = mergeExtras(deploymentInfo?.state || {});
 
+  const getCurrentTab = () => {
+    if (pathname.endsWith('/calls')) return 'calls';
+    if (pathname.endsWith('/event-data')) return 'event-data';
+    return 'contracts';
+  };
+
+  const handleTabChange = (value: string) => {
+    const basePath = pathname.split('/deployment')[0];
+    router.push(`${basePath}/deployment/${value}`);
+  };
+
   return pkg?.deployUrl ? (
-    <div>
+    <div className="flex flex-1 flex-col max-h-full max-w-full">
       {deploymentData.isLoading ? (
         <div className="py-20">
           <IpfsSpinner ipfsUrl={pkg?.deployUrl} />
         </div>
       ) : deploymentInfo ? (
-        <div>
-          <h2 className="text-muted-foreground px-4 pt-8">
-            {pkg.chainId === 13370
-              ? 'The following operations will be executed by this package.'
-              : 'The following operations were executed when building this package or a package it upgraded from.'}
-          </h2>
+        <>
+          <div className="sticky top-0 z-[3] md:sticky overflow-x-scroll overflow-y-hidden max-w-full border-b border-border bg-muted">
+            <Tabs
+              defaultValue={getCurrentTab()}
+              onValueChange={handleTabChange}
+            >
+              <TabsList className="h-full">
+                <TabsTrigger value="contracts">
+                  Contract Deployments
+                </TabsTrigger>
+                <TabsTrigger value="calls">Function Calls</TabsTrigger>
+                <TabsTrigger value="event-data">Event Data</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
 
-          {!isEmpty(filteredContractState) && !isEmpty(addressesAbis) && (
-            <>
-              <div className="pt-6 pb-2 px-4 flex flex-col md:flex-row justify-start items-center">
-                <div className="w-full md:w-auto flex justify-between items-center mb-2 md:mb-0 min-h-[32px]">
-                  <h2 className="text-2xl font-bold tracking-tight">
-                    Contract Deployments
-                  </h2>
-                </div>
-                <div className="pl-0 md:pl-6 w-full md:w-auto md:ml-auto mt-2 md:mt-0">
-                  <SearchInput
-                    size="sm"
-                    onSearchChange={setContractSearchTerm}
-                  />
-                </div>
-              </div>
-
-              <div className="max-w-full mx-4 mt-2">
-                <ContractsTable
-                  contractState={filteredContractState}
-                  chainId={pkg.chainId}
-                />
-              </div>
-            </>
-          )}
-
-          {!isEmpty(invokeState) && (
-            <>
-              <div className="pt-6 pb-2 px-4 flex flex-col md:flex-row justify-start items-center">
-                <div className="w-full md:w-auto flex justify-between items-center mb-2 md:mb-0 min-h-[32px]">
-                  <h2 className="text-2xl font-bold tracking-tight">
-                    Function Calls
-                  </h2>
-                </div>
-                <div className="pl-0 md:pl-6 w-full md:w-auto md:ml-auto mt-2 md:mt-0">
-                  <SearchInput size="sm" onSearchChange={setInvokeSearchTerm} />
-                </div>
-              </div>
-
-              <div className="max-w-full mx-4 mt-2">
-                <InvokesTable
-                  invokeState={filteredInvokeState}
-                  chainId={pkg.chainId}
-                />
-              </div>
-            </>
-          )}
-
-          {!isEmpty(mergedExtras) && (
-            <div className="mt-6">
-              <div className="px-4 mb-3 flex items-center">
-                <h2 className="text-2xl font-bold tracking-tight">
-                  Event Data
-                </h2>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="h-5 w-5 text-gray-400 ml-2" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      This includes event data captured during the build, to be
-                      referenced in dependent operations.
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <div className="max-w-full mx-4 mt-2">
-                <EventsTable extrasState={mergedExtras} />
-              </div>
-            </div>
-          )}
-        </div>
+          <div>
+            {pathname.endsWith('/contracts') && (
+              <ContractsTab
+                contractState={contractState}
+                addressesAbis={addressesAbis}
+                chainId={pkg.chainId}
+              />
+            )}
+            {pathname.endsWith('/calls') && (
+              <FunctionCallsTab
+                invokeState={invokeState}
+                chainId={pkg.chainId}
+              />
+            )}
+            {pathname.endsWith('/event-data') && (
+              <EventDataTab extrasState={mergedExtras} />
+            )}
+          </div>
+        </>
       ) : (
         <div className="text-center py-20 opacity-50">
           Unable to retrieve deployment data

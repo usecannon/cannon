@@ -1,10 +1,11 @@
+import { ReactElement } from 'react';
 import { useRouter } from 'next/router';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
-import TagVariantLayout from '../NameTagVariantLayout';
-import { ReactElement, useEffect } from 'react';
+import NameTagVariantLayout from '../NameTagVariantLayout';
 import { PackageReference } from '@usecannon/builder';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import { DeploymentTab } from '@/features/Packages/Tabs/DeploymentTab';
 
 function generateMetadata({
   params,
@@ -16,9 +17,9 @@ function generateMetadata({
   const [chainId, preset] = PackageReference.parseVariant(params.variant);
   const chain = getChainById(chainId);
 
-  const title = `${params.name} on ${chain?.name} Deployment Data | Cannon`;
+  const title = `${params.name} on ${chain?.name} Contract Deployments | Cannon`;
 
-  const description = `Explore the Cannon package deployment data for ${
+  const description = `Explore the Cannon package contract deployments for ${
     params.name
   }${params.tag !== 'latest' ? `:${params.tag}` : ''}${
     preset !== 'main' ? `@${preset}` : ''
@@ -34,20 +35,10 @@ function generateMetadata({
   };
 }
 
-export default function Deployment() {
-  const router = useRouter();
-  const params = router.query;
+export default function Contracts() {
+  const params = useRouter().query;
   const { getChainById } = useCannonChains();
   const metadata = generateMetadata({ params: params as any, getChainById });
-
-  // Redirect to contracts tab
-  useEffect(() => {
-    if (router.isReady) {
-      void router.replace(
-        `/packages/${params.name}/${params.tag}/${params.variant}/deployment/contracts`
-      );
-    }
-  }, [router.isReady, params.name, params.tag, params.variant]);
 
   return (
     <>
@@ -61,10 +52,15 @@ export default function Deployment() {
           description: metadata.description,
         }}
       />
+      <DeploymentTab
+        name={decodeURIComponent(params.name as string)}
+        tag={decodeURIComponent(params.tag as string)}
+        variant={decodeURIComponent(params.variant as string)}
+      />
     </>
   );
 }
 
-Deployment.getLayout = function getLayout(page: ReactElement) {
-  return <TagVariantLayout>{page}</TagVariantLayout>;
+Contracts.getLayout = function getLayout(page: ReactElement) {
+  return <NameTagVariantLayout>{page}</NameTagVariantLayout>;
 };
