@@ -10,12 +10,18 @@ When('User types and select the safe {string}', (text: string) => {
   cy.get('[data-testid="safe-address-input"]').type(address);
   cy.get('[data-testid="safe-address-input"]').type('{enter}');
 
-  // Verify the selected safe is displayed correctly
-  cy.get('[data-testid="selected-safe"]').should(($container) => {
-    expect($container).to.exist;
-    expect($container).to.contain(address.slice(0, 6));
-    expect($container).to.contain(address.slice(-4));
-  });
+  // Wait for the dialog to close
+  cy.get('div[role="dialog"]').should('not.exist');
+
+  // Verify the selected safe is displayed correctly with the right content
+  cy.get('[data-testid="selected-safe"]')
+    .should('exist')
+    .and('be.visible')
+    .within(() => {
+      // Check for the first 6 and last 4 characters of the address
+      cy.contains(address.slice(0, 6)).should('exist');
+      cy.contains(address.slice(-4)).should('exist');
+    });
 });
 
 When('User closes the queue txns drawer', () => {
