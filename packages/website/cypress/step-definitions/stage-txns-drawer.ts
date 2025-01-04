@@ -2,10 +2,10 @@ import { When, Then } from '@badeball/cypress-cucumber-preprocessor';
 
 When('User types and select the safe {string}', (text: string) => {
   const [chainId, address] = text.split(':');
-  
+
   // Type chain ID in the first input
   cy.get('[data-testid="safe-chain-input"]').type(chainId);
-  
+
   // Type address in the second input
   cy.get('[data-testid="safe-address-input"]').type(address);
   cy.get('[data-testid="safe-address-input"]').type('{enter}');
