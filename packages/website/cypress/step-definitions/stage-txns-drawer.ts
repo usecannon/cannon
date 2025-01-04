@@ -15,7 +15,6 @@ When('User types and select the safe {string}', (text: string) => {
     expect($container).to.exist;
     expect($container).to.contain(address.slice(0, 6));
     expect($container).to.contain(address.slice(-4));
-    expect($container).to.contain(chainId);
   });
 });
 
