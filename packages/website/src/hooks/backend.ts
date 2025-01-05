@@ -251,22 +251,22 @@ export function useTxnStager(
 
   let signConditionFailed = '';
   if (!isSigner) {
-    signConditionFailed = `current wallet ${account.address} not signer of this safe`;
+    signConditionFailed = `Connected wallet ${account.address} not signer of this safe.`;
   } else if (!walletClient.data) {
-    signConditionFailed = 'wallet not connected';
+    signConditionFailed = 'Wallet not connected.';
   } else if (alreadyStagedSigners.indexOf(account.address!) !== -1) {
-    signConditionFailed = `current wallet ${account.address} has already signed the transaction`;
+    signConditionFailed = `Connected wallet ${account.address} has already signed the transaction.`;
   }
 
   let execConditionFailed = '';
   if (reads.isError) {
     execConditionFailed = `Prepare error: ${reads.failureReason}`;
   } else if (!reads.isSuccess || reads.isFetching || reads.isRefetching) {
-    execConditionFailed = 'loading transaction data, please wait...';
+    execConditionFailed = 'Loading transaction data, please wait...';
   } else if (!isSigner) {
-    execConditionFailed = `current wallet ${account.address} not signer of this safe`;
+    execConditionFailed = `Connected wallet ${account.address} not signer of this safe.`;
   } else if (existingSigsCount < requiredSigs && (signConditionFailed || existingSigsCount + 1 < requiredSigs)) {
-    execConditionFailed = `insufficient signers to execute (required: ${requiredSigs})`;
+    execConditionFailed = `Insufficient signers to execute (required: ${requiredSigs})`;
   } else if (stageTxnMutate.isError) {
     execConditionFailed = `Simulation error: ${stageTxnMutate.failureReason}`;
   }
