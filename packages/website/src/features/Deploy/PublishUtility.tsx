@@ -355,7 +355,12 @@ export default function PublishUtility(props: {
                   ? 'Publishing...'
                   : 'Publish to Mainnet'}
               </Link>{' '}
-              <Tooltip label="Cannon will detect packages published to Optimism or Mainnet.">
+              <Tooltip
+                label="Cannon will detect packages published to Optimism or Mainnet. When
+      publishing, the registry collects some ETH (indicated
+      as the value for the transaction in your wallet) to
+      support an IPFS cluster that pins package data."
+              >
                 <InfoOutlineIcon />
               </Tooltip>
             </Text>

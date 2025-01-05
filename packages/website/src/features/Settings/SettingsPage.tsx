@@ -151,7 +151,7 @@ export default function SettingsPage() {
         <CardHeader>
           <CardTitle>Safe Transaction Service</CardTitle>
           <CardDescription>
-            The Safe Transaction Services stores signatures for pending
+            The Safe Transaction Service stores signatures for pending
             transactions using the web deployer.
           </CardDescription>
         </CardHeader>
