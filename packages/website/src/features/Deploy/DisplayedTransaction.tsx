@@ -76,21 +76,11 @@ export function DisplayedTransaction(props: {
 
   if (cannonInfo.isError) {
     return (
-      <Card className="bg-black">
-        <CardHeader>
-          <CardTitle>Error</CardTitle>
-          <CardDescription>
-            An error occurred while fetching transaction data.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Alert variant="destructive">
-            <AlertDescription>
-              Unable to fetch cannon package contracts.
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
+      <Alert variant="destructive">
+        <AlertDescription>
+          Unable to parse this transaction data.
+        </AlertDescription>
+      </Alert>
     );
   }
 

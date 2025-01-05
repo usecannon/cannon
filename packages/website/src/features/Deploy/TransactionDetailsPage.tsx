@@ -25,7 +25,12 @@ import {
 } from '@/hooks/safe';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { SafeTransaction } from '@/types/SafeTransaction';
-import { Cross2Icon, InfoCircledIcon } from '@radix-ui/react-icons';
+import {
+  Cross2Icon,
+  InfoCircledIcon,
+  CheckIcon,
+  ExternalLinkIcon,
+} from '@radix-ui/react-icons';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -58,12 +63,6 @@ import 'react-diff-view/style/index.css';
 import { ChainDefinition } from '@usecannon/builder';
 import { getChainDefinitionFromWorker } from '@/helpers/chain-definition';
 import { useToast } from '@/hooks/use-toast';
-
-const AdditionalSignaturesText = ({ amount }: { amount: number }) => (
-  <p className="font-bold mt-3">
-    {amount} additional {amount === 1 ? 'signature' : 'signatures'} required
-  </p>
-);
 
 const UnorderedNonceWarning = ({ nextNonce }: { nextNonce: number }) => (
   <Alert variant="warning" className="mt-3">
@@ -371,7 +370,7 @@ function TransactionDetailsPage() {
 
   return (
     <div className="max-w-full mb-6">
-      <div className="py-[24px] lg:py-[48px] border-b border-border">
+      <div className="px-4 py-[24px] lg:py-[48px] border-b border-border">
         <div className="container max-w-[1024px]">
           <h1 className="text-2xl lg:text-3xl font-bold">
             Transaction #{nonce}
@@ -393,8 +392,8 @@ function TransactionDetailsPage() {
       </div>
 
       <div>
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-          <div className="p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 p-4">
+          <div>
             {/* TX Info: left column */}
             <TransactionDisplay
               safe={safe}
@@ -407,216 +406,220 @@ function TransactionDetailsPage() {
           </div>
 
           {/* Tx extra data: right column */}
-          <div className="relative">
-            <div className="sticky">
-              {/* Verify txs */}
-              {!isTransactionExecuted && !unorderedNonce && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Verify Transactions</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {queuedWithGitOps && (
-                      <div>
-                        {buildInfo.buildState?.message && (
-                          <p className="text-sm mb-2">
-                            {buildInfo.buildState.message}
-                          </p>
-                        )}
-                        {buildInfo.buildState?.error && (
-                          <p className="text-sm mb-2">
-                            {buildInfo.buildState.error}
-                          </p>
-                        )}
-                        {buildInfo.buildState?.result &&
-                          !unequalTransaction && (
+          <div>
+            <div className="h-full">
+              <div className="flex flex-col gap-4">
+                {/* Verify txs */}
+                {!isTransactionExecuted && !unorderedNonce && (
+                  <Card className="rounded-sm">
+                    <CardHeader>
+                      <CardTitle>Verify Transactions</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {queuedWithGitOps && (
+                        <div>
+                          {buildInfo.buildState?.message && (
                             <p className="text-sm mb-2">
-                              The transactions queued to the Safe match the Git
-                              Target
+                              {buildInfo.buildState.message}
                             </p>
                           )}
-                        {buildInfo.buildState?.result && unequalTransaction && (
-                          <p className="text-sm mb-2">
-                            <Cross2Icon className="inline-block mr-1" />
-                            Proposed transactions do not match git diff. Could
-                            be an attack.
-                          </p>
-                        )}
-                        {prevDeployPackageUrl &&
-                          hintData.cannonUpgradeFromPackage !==
-                            prevDeployPackageUrl && (
-                            <div className="flex items-start text-xs font-medium">
-                              <InfoCircledIcon className="mt-0.5 mr-1.5" />
-                              The previous deploy hash does not derive from an
-                              onchain record.
-                            </div>
+                          {buildInfo.buildState?.error && (
+                            <p className="text-sm mb-2">
+                              {buildInfo.buildState.error}
+                            </p>
                           )}
-                      </div>
-                    )}
-                    <SimulateTransactionButton
-                      signer={signers[0]}
-                      safe={safe}
-                      safeTxn={safeTxn}
-                      execTransactionData={stager.execTransactionData}
-                    />
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Signatures or Execute info  */}
-              <Card className="mt-6">
-                <CardHeader>
-                  <CardTitle>
-                    {executionTxnHash ? 'Execution' : 'Signatures'}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {executionTxnHash ? (
-                    /* Execution */
-                    <a
-                      href={getExplorerUrl(safeChain?.id, executionTxnHash)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm font-medium mt-3 hover:underline inline-flex items-center"
-                    >
-                      {truncateAddress((executionTxnHash || '') as string, 8)}
-                      <Cross2Icon className="ml-1 transform -translate-y-[1px]" />
-                    </a>
-                  ) : (
-                    /* Signatures */
-                    <>
-                      {/* Show signatures collected */}
-                      {signers?.map((s) => (
-                        <div className="mt-2.5" key={s}>
-                          <div className="inline-flex items-center justify-center w-5 h-5 mr-2.5 bg-teal-500 rounded-full">
-                            <Cross2Icon className="w-2.5 h-2.5 text-white" />
-                          </div>
-                          <span className="inline font-mono font-light text-gray-200">
-                            {`${s.substring(0, 8)}...${s.slice(-6)}`}
-                            <a
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="ml-1 hover:text-gray-300"
-                              href={getExplorerUrl(safeChain?.id, s)}
-                            >
-                              <Cross2Icon className="transform -translate-y-[1px]" />
-                            </a>
-                          </span>
+                          {buildInfo.buildState?.result &&
+                            !unequalTransaction && (
+                              <p className="text-sm mb-2">
+                                The transactions queued to the Safe match the
+                                Git Target
+                              </p>
+                            )}
+                          {buildInfo.buildState?.result &&
+                            unequalTransaction && (
+                              <p className="text-sm mb-2">
+                                <Cross2Icon className="inline-block mr-1" />
+                                Proposed transactions do not match git diff.
+                                Could be an attack.
+                              </p>
+                            )}
+                          {prevDeployPackageUrl &&
+                            hintData.cannonUpgradeFromPackage !==
+                              prevDeployPackageUrl && (
+                              <div className="flex items-start text-xs font-medium">
+                                <InfoCircledIcon className="mt-0.5 mr-1.5" />
+                                The previous deploy hash does not derive from an
+                                onchain record.
+                              </div>
+                            )}
                         </div>
-                      ))}
-
-                      {!isTransactionExecuted && (
-                        <>
-                          {/* Required signatures to reach threshold */}
-                          {remainingSignatures > 0 && (
-                            <AdditionalSignaturesText
-                              amount={remainingSignatures}
-                            />
-                          )}
-
-                          {/* Warning if trying to sign a nonce bigger than the next to be executed */}
-                          {unorderedNonce && (
-                            <UnorderedNonceWarning
-                              nextNonce={staged[0]?.txn._nonce}
-                            />
-                          )}
-                        </>
                       )}
-                    </>
-                  )}
+                      <SimulateTransactionButton
+                        signer={signers[0]}
+                        safe={safe}
+                        safeTxn={safeTxn}
+                        execTransactionData={stager.execTransactionData}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
 
-                  {!isTransactionExecuted && !executionTxnHash && (
-                    <div className="flex gap-4 mt-4">
-                      {account.isConnected && walletChainId === safe.chainId ? (
-                        <>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex-1">
-                                <CustomButton
-                                  disabled={
-                                    stager.signing ||
-                                    stager.alreadySigned ||
-                                    executionTxnHash ||
-                                    ((safeTxn &&
-                                      !!stager.signConditionFailed) as any)
-                                  }
-                                  onClick={async () => {
-                                    await stager.sign();
-                                  }}
-                                >
-                                  {stager.signing ? (
-                                    <>
-                                      Signing
-                                      <div className="ml-2 animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
-                                    </>
-                                  ) : (
-                                    'Sign'
-                                  )}
-                                </CustomButton>
-                              </div>
-                            </TooltipTrigger>
-                            {stager.signConditionFailed && (
-                              <TooltipContent>
-                                {stager.signConditionFailed}
-                              </TooltipContent>
-                            )}
-                          </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex-1">
-                                <CustomButton
-                                  disabled={
-                                    stager.signing ||
-                                    !stager.executeTxnConfig ||
-                                    executionTxnHash ||
-                                    ((safeTxn &&
-                                      !!stager.execConditionFailed) as any)
-                                  }
-                                  onClick={handleExecuteTx}
-                                >
-                                  Execute
-                                </CustomButton>
-                              </div>
-                            </TooltipTrigger>
-                            {stager.execConditionFailed && (
-                              <TooltipContent>
-                                {stager.execConditionFailed}
-                              </TooltipContent>
-                            )}
-                          </Tooltip>
-                        </>
-                      ) : (
-                        <CustomButton onClick={handleConnectWalletAndSign}>
-                          {account.isConnected
-                            ? `Switch to chain  ${safe.chainId}`
-                            : 'Connect wallet'}
-                        </CustomButton>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Cannon package IPFS Info */}
-              {queuedWithGitOps && isTransactionExecuted && (
-                <Card>
+                {/* Signatures or Execute info  */}
+                <Card className="rounded-sm">
                   <CardHeader>
-                    <CardTitle>Cannon Package</CardTitle>
-                    <CardDescription className="flex items-center">
-                      <span>
-                        Packages include smart contract addresses, ABIs, and
-                        source code (if provided).
-                      </span>
+                    <CardTitle>Signatures</CardTitle>
+                    <CardDescription>
+                      {isTransactionExecuted
+                        ? 'This transaction has been executed.'
+                        : remainingSignatures === 0
+                        ? 'This transaction is ready to be executed.'
+                        : `${remainingSignatures} additional ${
+                            remainingSignatures === 1
+                              ? 'signature'
+                              : 'signatures'
+                          } required.`}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <PublishUtility
-                      deployUrl={hintData.cannonPackage}
-                      targetChainId={safe.chainId}
-                    />
+                    {executionTxnHash ? (
+                      /* Execution */
+                      <a
+                        href={getExplorerUrl(safeChain?.id, executionTxnHash)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium mt-3 hover:underline inline-flex items-center"
+                      >
+                        {truncateAddress((executionTxnHash || '') as string, 8)}
+                        <Cross2Icon className="ml-1 transform -translate-y-[1px]" />
+                      </a>
+                    ) : (
+                      /* Signatures */
+                      <>
+                        {/* Show signatures collected */}
+                        <div className="flex flex-col gap-3">
+                          {signers?.map((s) => (
+                            <div key={s}>
+                              <div className="inline-flex items-center justify-center w-5 h-5 mr-2.5 bg-teal-500 rounded-full">
+                                <CheckIcon className="w-2.5 h-2.5 text-white" />
+                              </div>
+                              <span className="inline font-mono font-light text-gray-200">
+                                {`${s.substring(0, 8)}...${s.slice(-6)}`}
+                                <a
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="ml-1.5 hover:text-gray-300"
+                                  href={getExplorerUrl(safeChain?.id, s)}
+                                >
+                                  <ExternalLinkIcon className="inline" />
+                                </a>
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Warning if trying to sign a nonce bigger than the next to be executed */}
+                        {!isTransactionExecuted && unorderedNonce && (
+                          <UnorderedNonceWarning
+                            nextNonce={staged[0]?.txn._nonce}
+                          />
+                        )}
+                      </>
+                    )}
+
+                    {!isTransactionExecuted && !executionTxnHash && (
+                      <div className="flex gap-4 mt-4">
+                        {account.isConnected &&
+                        walletChainId === safe.chainId ? (
+                          <>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex-1">
+                                  <CustomButton
+                                    disabled={
+                                      stager.signing ||
+                                      stager.alreadySigned ||
+                                      executionTxnHash ||
+                                      ((safeTxn &&
+                                        !!stager.signConditionFailed) as any)
+                                    }
+                                    onClick={async () => {
+                                      await stager.sign();
+                                    }}
+                                  >
+                                    {stager.signing ? (
+                                      <>
+                                        Signing
+                                        <div className="ml-2 animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+                                      </>
+                                    ) : (
+                                      'Sign'
+                                    )}
+                                  </CustomButton>
+                                </div>
+                              </TooltipTrigger>
+                              {stager.signConditionFailed && (
+                                <TooltipContent>
+                                  {stager.signConditionFailed}
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex-1">
+                                  <CustomButton
+                                    disabled={
+                                      stager.signing ||
+                                      !stager.executeTxnConfig ||
+                                      executionTxnHash ||
+                                      ((safeTxn &&
+                                        !!stager.execConditionFailed) as any)
+                                    }
+                                    onClick={handleExecuteTx}
+                                  >
+                                    Execute
+                                  </CustomButton>
+                                </div>
+                              </TooltipTrigger>
+                              {stager.execConditionFailed && (
+                                <TooltipContent>
+                                  {stager.execConditionFailed}
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          </>
+                        ) : (
+                          <CustomButton onClick={handleConnectWalletAndSign}>
+                            {account.isConnected
+                              ? `Switch to chain  ${safe.chainId}`
+                              : 'Connect wallet'}
+                          </CustomButton>
+                        )}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
-              )}
+
+                {/* Cannon package IPFS Info */}
+                {queuedWithGitOps && isTransactionExecuted && (
+                  <Card className="rounded-sm">
+                    <CardHeader>
+                      <CardTitle>Cannon Package</CardTitle>
+                      <CardDescription className="flex items-center">
+                        <span>
+                          This includes smart contract addresses, ABIs, and
+                          source code if made public.
+                        </span>
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <PublishUtility
+                        deployUrl={hintData.cannonPackage}
+                        targetChainId={safe.chainId}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             </div>
           </div>
         </div>
