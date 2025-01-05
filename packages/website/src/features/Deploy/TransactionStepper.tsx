@@ -17,7 +17,6 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from '@/components/ui/tooltip';
-import { CustomSpinner } from '@/components/CustomSpinner';
 
 type Orientation = 'horizontal' | 'vertical';
 
@@ -221,7 +220,7 @@ export function TransactionStepper(props: {
                 )}
               </div>
             ) : (
-              <CustomSpinner className="h-3 w-3" />
+              <>Loading...</>
             ),
           },
         ]
