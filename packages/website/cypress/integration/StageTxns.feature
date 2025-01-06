@@ -41,6 +41,7 @@ Feature: Stage Transactions
     When User clicks on the button with "aria-label" "queue-txs"
     Then View renders a "header" displaying the text "Stage Transactions to a Safe"
     When User types and select the safe "11155111:0xfD050037C9039cE7b4A3213E3645BC1ba6eA0c97"
+    When View contains the "target-input" input
     When User types "owned-greeter" in the "target-input" input
     When User clicks on the button with "aria-label" "Add Transaction"
     * User selects and clicks on the contract with name "Greeter" of the element # 1
