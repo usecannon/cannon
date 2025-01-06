@@ -329,7 +329,7 @@ export function SafeAddressInput() {
                                 <span className="font-mono tracking-wider">
                                   {truncateAddress(
                                     option.value.split(':')[1],
-                                    12
+                                    8
                                   )}
                                 </span>
                               </TooltipTrigger>
