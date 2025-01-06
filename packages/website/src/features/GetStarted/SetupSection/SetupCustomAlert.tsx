@@ -1,11 +1,7 @@
 import { FC } from 'react';
-import {
-  Alert,
-  AlertDescription,
-  AlertIcon,
-  Box,
-  Link,
-} from '@chakra-ui/react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { InfoCircledIcon } from '@radix-ui/react-icons';
+import { cn } from '@/lib/utils';
 
 interface ISetupCustomAlertProps {
   label: string;
@@ -17,17 +13,20 @@ export const SetupCustomAlert: FC<ISetupCustomAlertProps> = ({
   href,
 }) => {
   return (
-    <Alert status="info" mt={3} mb={4} bg="gray.700">
-      <AlertIcon />
-      <Box>
-        <AlertDescription>
-          If you learn better by example, take a look at the&nbsp;
-          <Link isExternal href={href}>
-            {label}
-          </Link>
-          .
-        </AlertDescription>
-      </Box>
+    <Alert variant="info" className={cn('my-3')}>
+      <InfoCircledIcon className="h-4 w-4 mr-3" />
+      <AlertDescription>
+        If you learn better by example, take a look at the{' '}
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:underline"
+        >
+          {label}
+        </a>
+        .
+      </AlertDescription>
     </Alert>
   );
 };
