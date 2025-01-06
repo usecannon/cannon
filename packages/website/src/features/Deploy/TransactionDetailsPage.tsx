@@ -39,14 +39,7 @@ import {
 } from '@/components/ui/tooltip';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import _ from 'lodash';
-import React, {
-  FC,
-  PropsWithChildren,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as viem from 'viem';
 import {
   useAccount,
@@ -71,10 +64,6 @@ const UnorderedNonceWarning = ({ nextNonce }: { nextNonce: number }) => (
     </AlertDescription>
   </Alert>
 );
-
-const CustomButton: FC<
-  PropsWithChildren<React.ButtonHTMLAttributes<HTMLButtonElement>>
-> = (props) => <Button variant="default" className="w-full" {...props} />;
 
 function TransactionDetailsPage() {
   const { safeAddress, chainId, nonce, sigHash } =
@@ -534,7 +523,9 @@ function TransactionDetailsPage() {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div className="flex-1">
-                                  <CustomButton
+                                  <Button
+                                    size="sm"
+                                    className="w-full"
                                     disabled={
                                       stager.signing ||
                                       stager.alreadySigned ||
@@ -554,7 +545,7 @@ function TransactionDetailsPage() {
                                     ) : (
                                       'Sign'
                                     )}
-                                  </CustomButton>
+                                  </Button>
                                 </div>
                               </TooltipTrigger>
                               {stager.signConditionFailed && (
@@ -566,7 +557,9 @@ function TransactionDetailsPage() {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div className="flex-1">
-                                  <CustomButton
+                                  <Button
+                                    size="sm"
+                                    className="w-full"
                                     disabled={
                                       stager.signing ||
                                       !stager.executeTxnConfig ||
@@ -577,7 +570,7 @@ function TransactionDetailsPage() {
                                     onClick={handleExecuteTx}
                                   >
                                     Execute
-                                  </CustomButton>
+                                  </Button>
                                 </div>
                               </TooltipTrigger>
                               {stager.execConditionFailed && (
@@ -588,11 +581,15 @@ function TransactionDetailsPage() {
                             </Tooltip>
                           </>
                         ) : (
-                          <CustomButton onClick={handleConnectWalletAndSign}>
+                          <Button
+                            size="sm"
+                            className="w-full"
+                            onClick={handleConnectWalletAndSign}
+                          >
                             {account.isConnected
                               ? `Switch to chain  ${safe.chainId}`
                               : 'Connect wallet'}
-                          </CustomButton>
+                          </Button>
                         )}
                       </div>
                     )}
