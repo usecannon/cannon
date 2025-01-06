@@ -11,7 +11,14 @@ self.onmessage = (event) => {
       throw new Error('Failed to create chain definition');
     }
 
-    self.postMessage(def);
+    // Initialize dependencies
+    def.initializeComputedDependencies();
+
+    // Send back only the necessary data
+    self.postMessage({
+      allActionNames: def.allActionNames,
+      resolvedDependencies: Array.from(def.resolvedDependencies.entries()),
+    });
   } catch (error: any) {
     self.postMessage({ error: error.message });
   }
