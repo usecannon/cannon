@@ -43,7 +43,8 @@ interface SidebarLayoutProps {
   centered?: boolean;
   hasSubheader?: boolean;
   fixedFooter?: boolean;
-  contentHeight?: string;
+  extraContentHeight?: string;
+  mainContentHeightAuto?: boolean;
   sidebarTop?: string;
   mainContentOverflowY?: 'auto' | 'visible';
   borderlessSidebar?: boolean;
@@ -55,7 +56,8 @@ export function SidebarLayout({
   centered = true,
   hasSubheader = false,
   fixedFooter = true,
-  contentHeight,
+  extraContentHeight,
+  mainContentHeightAuto = false,
   sidebarTop,
   mainContentOverflowY = 'auto',
   borderlessSidebar = false,
@@ -63,12 +65,13 @@ export function SidebarLayout({
   const headerVar = 'var(--header-height)';
   const subheaderVar = hasSubheader ? 'var(--subheader-height)' : '0px';
   const footerVar = fixedFooter ? 'var(--footer-height)' : '0px';
+  const additionalHeightVar =
+    extraContentHeight === 'auto' ? '0px' : extraContentHeight || '0px';
+  const contentHeight = `calc(100vh - ${headerVar} - ${subheaderVar} - ${footerVar} - ${additionalHeightVar})`;
 
   const sidebarStyles = {
     top: sidebarTop ? sidebarTop : `calc(${headerVar} + ${subheaderVar})`,
-    height: contentHeight
-      ? contentHeight
-      : `calc(100vh - ${headerVar} - ${subheaderVar} - ${footerVar})`,
+    height: contentHeight,
   };
 
   return (
@@ -76,7 +79,7 @@ export function SidebarLayout({
       <CloseOnLeave />
       {/* Mobile Sidebar Trigger - Fixed to left side */}
       {sidebarContent && (
-        <main className="fixed left-0 top-1/2 -translate-y-1/2 z-[50] md:hidden bg-black border border-border border-l-0 rounded-r-lg [&:has([data-state=open])]:hidden">
+        <main className="fixed left-0 top-1/2 -translate-y-1/2 z-[49] md:hidden bg-black border border-border border-l-0 rounded-r-lg [&:has([data-state=open])]:hidden">
           <SidebarTrigger>
             <Button
               size="icon"
@@ -92,7 +95,7 @@ export function SidebarLayout({
       {sidebarContent && (
         <Sidebar
           style={sidebarStyles}
-          className={`z-[100] sticky w-[280px] md:w-[280px] shrink-0 overflow-y-auto ${
+          className={`z-[49] sticky w-[280px] md:w-[280px] shrink-0 overflow-y-auto ${
             borderlessSidebar ? 'border-none' : 'border-r border-border'
           }`}
         >
@@ -108,7 +111,7 @@ export function SidebarLayout({
       {/* Main content */}
       <main
         className={`cannon-page-main-content overflow-y-${mainContentOverflowY} flex-1 h-[${
-          contentHeight ? contentHeight : 'auto'
+          mainContentHeightAuto ? 'auto' : contentHeight
         }]`}
       >
         {/* container p-4 md:px-6 lg:px-8 ml-0 */}

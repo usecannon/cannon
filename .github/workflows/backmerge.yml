@@ -14,12 +14,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Important: fetch all history
-          ref: dev # Checkout dev branch
+          fetch-depth: 0
+          ref: dev
+          fetch-tags: false
+          token: ${{ secrets.WORKFLOW_TOKEN }}
 
       - name: Configure Git
         run: |
-          git config user.name 'Cannon Bot'
+          git config user.name '0xusecannon'
           git config user.email 'noreply@usecannon.com'
 
       - name: Merge main into dev
@@ -32,8 +34,6 @@ jobs:
       - name: Push if merge successful
         if: steps.merge.outcome == 'success'
         run: git push origin dev
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create PR on merge conflict
         if: steps.merge.outcome == 'failure'
@@ -41,7 +41,7 @@ jobs:
         with:
           script: |
             const branchName = `backmerge/main-to-dev-${{ github.sha }}`;
-            await exec.exec('git', ['checkout', '-b', branchName]);
+            await exec.exec('git', ['checkout', '-b', branchName, 'origin/main']);
             await exec.exec('git', ['push', 'origin', branchName]);
 
             const pr = await github.rest.pulls.create({

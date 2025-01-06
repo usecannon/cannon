@@ -36,7 +36,7 @@ const varSpec = {
   configInject(ctx, config) {
     config = _.cloneDeep(config);
     for (const c in _.omit(config, 'depends')) {
-      config[c] = template(config[c])(ctx);
+      config[c] = template(config[c], ctx);
     }
 
     return config;

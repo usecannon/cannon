@@ -1,5 +1,5 @@
 import { ActionKinds, registerAction, validateConfig, CannonAction } from './actions';
-import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, ChainBuilderRuntimeInfo } from './types';
+import { ChainArtifacts, ChainBuilderContext, ChainBuilderRuntimeInfo } from './types';
 import { z } from 'zod';
 import { PackageReference } from './package-reference';
 
@@ -11,7 +11,7 @@ const FakeAction: CannonAction = {
     version: z.string(),
   }),
 
-  async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Record<string, unknown>) {
+  async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Record<string, unknown>) {
     return this.configInject(ctx, config, { ref: new PackageReference('hello:1.0.0'), currentLabel: '' });
   },
 
