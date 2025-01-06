@@ -71,24 +71,24 @@ const diamondStep = {
   configInject(ctx, config) {
     config = _.cloneDeep(config);
 
-    config.contracts = _.map(config.contracts, (n) => template(n)(ctx));
+    config.contracts = _.map(config.contracts, (n) => template(n, ctx));
 
-    config.diamondArgs.owner = template(config.diamondArgs.owner)(ctx);
+    config.diamondArgs.owner = template(config.diamondArgs.owner, ctx);
     if (config.diamondArgs.init) {
-      config.diamondArgs.init = template(config.diamondArgs.init)(ctx);
+      config.diamondArgs.init = template(config.diamondArgs.init, ctx);
     } else {
       config.diamondArgs.init = viem.zeroAddress;
     }
     if (config.diamondArgs.initCalldata) {
-      config.diamondArgs.initCalldata = template(config.diamondArgs.initCalldata)(ctx);
+      config.diamondArgs.initCalldata = template(config.diamondArgs.initCalldata, ctx);
     } else {
       config.diamondArgs.initCalldata = '0x';
     }
 
-    config.salt = template(config.salt)(ctx);
+    config.salt = template(config.salt, ctx);
 
     if (config?.overrides?.gasLimit) {
-      config.overrides.gasLimit = template(config.overrides.gasLimit)(ctx);
+      config.overrides.gasLimit = template(config.overrides.gasLimit, ctx);
     }
 
     return config;

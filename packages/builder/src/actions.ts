@@ -11,7 +11,7 @@ import pullSpec from './steps/pull';
 import routerSpec from './steps/router';
 import diamondSpec from './steps/diamond';
 import varSpec from './steps/var';
-import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from './types';
+import { ChainArtifacts, ChainBuilderContext, PackageState } from './types';
 
 export interface RawConfig {
   description?: string;
@@ -21,11 +21,11 @@ export interface RawConfig {
 export interface CannonAction<Config extends RawConfig = any> {
   label: string;
 
-  configInject: (ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) => Config;
+  configInject: (ctx: ChainBuilderContext, config: Config, packageState: PackageState) => Config;
 
   getState: (
     runtime: ChainBuilderRuntime,
-    ctx: ChainBuilderContextWithHelpers,
+    ctx: ChainBuilderContext,
     config: Config,
     packageState: PackageState
   ) => Promise<any[] | null>;

@@ -157,39 +157,39 @@ const deploySpec = {
   configInject(ctx, config) {
     config = _.cloneDeep(config);
 
-    config.from = template(config.from || '')(ctx);
+    config.from = template(config.from || '', ctx);
 
-    config.nonce = template(config.nonce || '')(ctx);
+    config.nonce = template(config.nonce || '', ctx);
 
-    config.artifact = template(config.artifact)(ctx);
+    config.artifact = template(config.artifact, ctx);
 
-    config.value = template(config.value || '')(ctx);
+    config.value = template(config.value || '', ctx);
 
-    config.abi = template(config.abi || '')(ctx);
+    config.abi = template(config.abi || '', ctx);
 
     if (config.abiOf) {
-      config.abiOf = _.map(config.abiOf, (v) => template(v)(ctx));
+      config.abiOf = _.map(config.abiOf, (v) => template(v, ctx));
     }
 
     if (config.args) {
       config.args = _.map(config.args, (a) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
-        return JSON.parse(template(JSON.stringify(a))(ctx));
+        return JSON.parse(template(JSON.stringify(a), ctx));
       });
     }
 
     if (config.libraries) {
       config.libraries = _.mapValues(config.libraries, (a) => {
-        return template(a)(ctx);
+        return template(a, ctx);
       });
     }
 
     if (config.salt) {
-      config.salt = template(config.salt)(ctx);
+      config.salt = template(config.salt, ctx);
     }
 
     if (config?.overrides?.gasLimit) {
-      config.overrides.gasLimit = template(config.overrides.gasLimit)(ctx);
+      config.overrides.gasLimit = template(config.overrides.gasLimit, ctx);
     }
 
     return config;

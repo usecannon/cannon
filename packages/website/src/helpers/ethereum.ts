@@ -182,7 +182,7 @@ export async function contractTransaction(
  * truncateAddress('0x1234567890abcdef1234567890abcdef12345678') // '0x123456...12345678'
  */
 export const truncateAddress = (address: string, length = 6) => {
-  return `${address.slice(0, length)}...${address.slice(-length)}`;
+  return `${address.slice(0, length + 2)}...${address.slice(-length)}`;
 };
 
 /**

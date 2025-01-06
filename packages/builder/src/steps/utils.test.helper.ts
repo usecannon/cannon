@@ -1,6 +1,6 @@
 import { makeFakeProvider } from '../../test/fixtures';
 import { ChainBuilderRuntime } from '../runtime';
-import { ChainBuilderContextWithHelpers } from '../types';
+import { ChainBuilderContext } from '../types';
 
 import * as viem from 'viem';
 
@@ -21,7 +21,7 @@ export const fakeCtx = {
   chainId: 1234,
   package: {},
   timestamp: '1234123412',
-} as unknown as ChainBuilderContextWithHelpers;
+} as unknown as ChainBuilderContext;
 
 export const fakeRuntime = new ChainBuilderRuntime({} as any, null as any, {});
 
