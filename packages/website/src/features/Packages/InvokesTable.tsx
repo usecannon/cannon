@@ -85,35 +85,41 @@ export const InvokesTable: React.FC<{
   });
 
   return (
-    <div className="w-full rounded-md border border-border overflow-x-auto">
+    <div
+      className={`w-full ${
+        data.length > 0 ? 'border border-border' : ''
+      } rounded-md overflow-x-auto`}
+    >
       <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="border-border">
-              {headerGroup.headers.map((header) => {
-                const meta: any = header.column.columnDef.meta;
-                return (
-                  <TableHead
-                    key={header.id}
-                    className={meta?.isNumeric ? 'text-right' : ''}
-                  >
-                    <Button
-                      variant="ghost"
-                      onClick={header.column.getToggleSortingHandler()}
-                      className="h-8 px-2 -ml-2"
+        {data.length > 0 && (
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="border-border">
+                {headerGroup.headers.map((header) => {
+                  const meta: any = header.column.columnDef.meta;
+                  return (
+                    <TableHead
+                      key={header.id}
+                      className={meta?.isNumeric ? 'text-right' : ''}
                     >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                      <CaretSortIcon className="ml-2 h-4 w-4" />
-                    </Button>
-                  </TableHead>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
+                      <Button
+                        variant="ghost"
+                        onClick={header.column.getToggleSortingHandler()}
+                        className="h-8 px-2 -ml-2"
+                      >
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                        <CaretSortIcon className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+        )}
         <TableBody>
           {table.getRowModel().rows.map((row) => (
             <TableRow key={row.id} className="border-border hover:bg-muted/50">
