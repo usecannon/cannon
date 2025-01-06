@@ -83,18 +83,18 @@ const routerStep = {
   configInject(ctx, config) {
     config = _.cloneDeep(config);
 
-    config.contracts = _.map(config.contracts, (n) => template(n)(ctx));
+    config.contracts = _.map(config.contracts, (n) => template(n, ctx));
 
     if (config.from) {
-      config.from = template(config.from)(ctx);
+      config.from = template(config.from, ctx);
     }
 
     if (config.salt) {
-      config.salt = template(config.salt)(ctx);
+      config.salt = template(config.salt, ctx);
     }
 
     if (config?.overrides?.gasLimit) {
-      config.overrides.gasLimit = template(config.overrides.gasLimit)(ctx);
+      config.overrides.gasLimit = template(config.overrides.gasLimit, ctx);
     }
 
     if (_.isUndefined(config.includeDiamondCompatibility)) {

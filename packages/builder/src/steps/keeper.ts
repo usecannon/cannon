@@ -44,17 +44,17 @@ export default {
   configInject(ctx, config) {
     config = _.cloneDeep(config);
 
-    config.exec = template(config.exec)(ctx);
+    config.exec = template(config.exec, ctx);
 
     if (config.args) {
       config.args = _.map(config.args, (v) => {
-        return template(v)(ctx);
+        return template(v, ctx);
       });
     }
 
     if (config.env) {
       config.env = _.map(config.env, (v) => {
-        return template(v)(ctx);
+        return template(v, ctx);
       });
     }
 
