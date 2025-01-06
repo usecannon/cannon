@@ -4,6 +4,10 @@ on:
   pull_request:
     branches: [main, alpha, dev]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   test-snx-ci:
     runs-on: ubuntu-latest
