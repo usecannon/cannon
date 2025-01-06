@@ -1,4 +1,11 @@
-import { Alert } from '@/components/Alert';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { formatToken } from '@/helpers/formatters';
 import {
   ContractInfo,
@@ -6,29 +13,18 @@ import {
   UseCannonPackageContractsReturnType,
 } from '@/hooks/cannon';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
-import {
-  AlertDescription,
-  Box,
-  Flex,
-  FormControl,
-  FormLabel,
-  Heading,
-  Input,
-  Link,
-  Spinner,
-  Text,
-  Tooltip,
-} from '@chakra-ui/react';
-import { FC, ReactNode } from 'react';
-import { a11yDark, CopyBlock } from 'react-code-blocks';
 import * as viem from 'viem';
 import { ClipboardButton } from '@/components/ClipboardButton';
-
-const TxWrapper: FC<{ children: ReactNode }> = ({ children }) => (
-  <Box p={6} border="1px solid" borderColor="gray.600" bgColor="black">
-    {children}
-  </Box>
-);
+import { CustomSpinner } from '@/components/CustomSpinner';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Snippet } from '@/components/snippet';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 // TODO: refactor caching mechanism
 // A possible solution is to use useQuery from tanstack/react-query
@@ -62,23 +58,29 @@ export function DisplayedTransaction(props: {
 
   if (cannonInfo.isLoading) {
     return (
-      <TxWrapper>
-        <Flex alignItems="center" justifyContent="center" height="100%">
-          <Spinner />
-        </Flex>
-      </TxWrapper>
+      <Card className="bg-black">
+        <CardHeader>
+          <CardTitle>Loading Transaction Data</CardTitle>
+          <CardDescription>
+            Fetching cannon package contracts...
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-full">
+            <CustomSpinner />
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   if (cannonInfo.isError) {
     return (
-      <TxWrapper>
-        <Alert status="error">
-          <AlertDescription fontSize="sm" lineHeight="0">
-            Unable to fetch cannon package contracts.
-          </AlertDescription>
-        </Alert>
-      </TxWrapper>
+      <Alert variant="destructive">
+        <AlertDescription>
+          Unable to parse this transaction data.
+        </AlertDescription>
+      </Alert>
     );
   }
 
@@ -110,7 +112,9 @@ export function DisplayedTransaction(props: {
   }
 
   const functionName = decodedFunctionData?.functionName.split('(')[0];
-  const functionHash = props.txn?.data?.slice(0, 10);
+  const functionHash = (
+    <span className="font-mono">{props.txn?.data?.slice(0, 10)}</span>
+  );
   const rawFunctionArgs = props.txn?.data?.slice(10);
   const functionArgs = decodedFunctionData?.args?.map((v) => v) || [
     rawFunctionArgs,
@@ -132,9 +136,14 @@ export function DisplayedTransaction(props: {
     [];
 
   const address = props.txn?.to ? (
-    <Link isExternal href={getExplorerUrl(chain.id, props.txn?.to)}>
+    <a
+      className="font-mono border-b border-dotted border-gray-300"
+      href={getExplorerUrl(chain.id, props.txn?.to)}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
       {props.txn?.to}
-    </Link>
+    </a>
   ) : null;
 
   const value = formatToken(props.txn?.value || BigInt(0), {
@@ -143,89 +152,75 @@ export function DisplayedTransaction(props: {
 
   if (!contracts && !cannonInfo.isFetching) {
     return (
-      <TxWrapper>
-        <Box mb={5}>
-          <Alert status="warning">
-            <AlertDescription fontSize="sm" lineHeight="0">
-              Unable to parse transaction data. Try restaging or manually verify
-              this data.
-            </AlertDescription>
-          </Alert>
-        </Box>
-        <Box mb={2}>
-          <Text fontSize="xs" color="gray.300">
-            <Text as="span" mr={3}>
-              Target: {address}
-            </Text>
-            <Text as="span" mr={3}>
-              Selector: {functionHash}
-            </Text>
-            <Text as="span">Value: {value}</Text>
-          </Text>
-        </Box>
-        <Text fontSize="xs" color="gray.300" mb={0.5}>
-          Transaction Data:
-        </Text>
-        <CopyBlock
-          text={props.txn?.data || ''}
-          language="bash"
-          showLineNumbers={false}
-          codeBlock
-          theme={a11yDark}
-          customStyle={{ fontSize: '14px' }}
-        />
-      </TxWrapper>
+      <Card className="bg-black">
+        <CardHeader>
+          <CardTitle>Transaction Data</CardTitle>
+          <CardDescription>
+            <span className="mr-3">Target: {address}</span>
+            <span className="mr-3">Selector: {functionHash}</span>
+            <span>Value: {value}</span>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4">
+            <Alert variant="warning">
+              <AlertDescription>
+                Unable to parse transaction data. Try restaging or manually
+                verify this data.
+              </AlertDescription>
+            </Alert>
+          </div>
+          <p className="text-xs text-muted-foreground mb-0.5">
+            Transaction Data:
+          </p>
+          <Snippet>
+            <code>{props.txn?.data || ''}</code>
+          </Snippet>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <Box p={6} border="1px solid" borderColor="gray.600" bgColor="black">
-      <Box maxW="100%" overflowX="auto">
-        <Box whiteSpace="nowrap" mb={functionParameters.length > 0 ? 4 : 0}>
-          <Heading size="sm" fontFamily="mono" fontWeight="semibold" mb={1}>
-            {`${contractName}.${functionName || functionHash}`}
-          </Heading>
-          <Text fontSize="xs" color="gray.300">
-            <Text as="span" mr={3}>
-              Target: {address}
-            </Text>
-            <Text as="span" mr={3}>
-              Selector: {functionHash}
-            </Text>
-            <Text as="span">Value: {value}</Text>
-          </Text>
-        </Box>
-        <Flex flexDirection={['column', 'column', 'row']} gap={8} height="100%">
-          <Box flex="1" w={['100%', '100%', '50%']}>
-            {functionParameters.map((_arg, i) => [
-              <Box key={JSON.stringify(functionParameters[i])}>
-                <FormControl mb="4">
-                  <FormLabel fontSize="sm" mb={1}>
+    <Card className="rounded-sm">
+      <CardHeader>
+        <CardTitle className="font-mono">
+          {`${contractName}.${functionName || functionHash}`}
+        </CardTitle>
+        <CardDescription>
+          <span className="mr-3.5">Target Address: {address}</span>
+          <span className="mr-3.5">Function Selector: {functionHash}</span>
+          <span>Value: {value}</span>
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col lg:flex-row gap-8 h-full">
+          <div className="flex-1 w-full lg:w-1/2">
+            <div className="flex flex-col gap-4">
+              {functionParameters.map((_arg, i) => (
+                <div key={JSON.stringify(functionParameters[i])}>
+                  <Label>
                     {functionParameters[i].name && (
-                      <Text display="inline">{functionParameters[i].name}</Text>
+                      <span>{functionParameters[i].name}</span>
                     )}
                     {functionParameters[i].type && (
-                      <Text
-                        fontSize="xs"
-                        color="whiteAlpha.700"
-                        display="inline"
-                      >
+                      <span className="text-xs text-muted-foreground font-mono">
                         {' '}
                         {functionParameters[i].type}
-                      </Text>
+                      </span>
                     )}
-                  </FormLabel>
+                  </Label>
                   {_renderInput(
                     functionParameters[i].type,
                     functionArgs[i] as string
                   )}
-                </FormControl>
-              </Box>,
-            ])}
-          </Box>
-        </Flex>
-      </Box>
-    </Box>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -273,72 +268,77 @@ function _encodeArgTooltip(type: string, val: string): string {
       throw Error(`Invalid arg type "${type}" and val "${val}"`);
     }
 
-    return `["${val
+    const arrayTooltip = `["${val
       .map((v) => _encodeArgTooltip(type.slice(0, -2), v))
       .join('", "')}"]`;
+    return arrayTooltip === _encodeArg(type, val) ? '' : arrayTooltip;
   }
 
   if (type.startsWith('bytes') && val.startsWith('0x')) {
-    return val.toString();
+    const bytesTooltip = val.toString();
+    return bytesTooltip === _encodeArg(type, val) ? '' : bytesTooltip;
   } else if (type == 'tuple') {
-    return JSON.stringify(val, (_, v) =>
+    const tupleTooltip = JSON.stringify(val, (_, v) =>
       typeof v === 'bigint' ? v.toString() : v
     );
+    return tupleTooltip === _encodeArg(type, val) ? '' : tupleTooltip;
   } else if (type == 'bool') {
-    return val ? 'true' : 'false';
+    const boolTooltip = val ? 'true' : 'false';
+    return boolTooltip === _encodeArg(type, val) ? '' : boolTooltip;
   } else if (['int256', 'uint256', 'int128', 'uint128'].includes(type)) {
-    return val ? viem.formatEther(BigInt(val)) : '0';
+    if (!val) return '';
+    const etherValue = `${viem.formatEther(
+      BigInt(val)
+    )} assuming 18 decimal places`;
+    return etherValue === _encodeArg(type, val) ? '' : etherValue;
   }
 
-  // if we get here no tooltip is needed
   return '';
 }
 
 function _renderInput(type: string, val: string) {
   if (type === 'tuple') {
     return (
-      <CopyBlock
-        text={JSON.stringify(JSON.parse(_encodeArg(type, val || '')), null, 2)}
-        language="json"
-        showLineNumbers={false}
-        codeBlock
-        theme={a11yDark}
-        customStyle={{ fontSize: '14px' }}
-      />
+      <Snippet>
+        <code>
+          {JSON.stringify(JSON.parse(_encodeArg(type, val || '')), null, 2)}
+        </code>
+      </Snippet>
     );
   }
 
+  const tooltipText = _encodeArgTooltip(type, val);
+
   return (
-    <Tooltip
-      label={_encodeArgTooltip(type, val as string)}
-      placement="bottom-start"
-    >
-      <div>
+    <div className="group relative">
+      {tooltipText && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Input
+                type="text"
+                className="focus:border-muted-foreground/40 focus:ring-0 hover:border-muted-foreground/40"
+                readOnly
+                value={_encodeArg(type, (val as string) || '')}
+              />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs">{tooltipText}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+      {!tooltipText && (
         <Input
           type="text"
-          size="sm"
-          bg="black"
-          borderColor="whiteAlpha.400"
-          isReadOnly
-          _focus={{
-            boxShadow: 'none !important',
-            outline: 'none !important',
-            borderColor: 'whiteAlpha.400 !important',
-          }}
-          _focusVisible={{
-            boxShadow: 'none !important',
-            outline: 'none !important',
-            borderColor: 'whiteAlpha.400 !important',
-          }}
-          _hover={{
-            boxShadow: 'none !important',
-            outline: 'none !important',
-            borderColor: 'whiteAlpha.400 !important',
-          }}
+          className="focus:border-muted-foreground/40 focus:ring-0 hover:border-muted-foreground/40"
+          readOnly
           value={_encodeArg(type, (val as string) || '')}
         />
-        <ClipboardButton text={val} className="mt-0.5" />
+      )}
+      <div className="absolute right-0 top-1">
+        <ClipboardButton text={val} />
       </div>
-    </Tooltip>
+    </div>
   );
 }

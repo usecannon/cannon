@@ -5,7 +5,6 @@ import { Abi } from '@/features/Packages/Abi';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { usePackageNameTagVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import { getOutput } from '@/lib/builder';
-import { useDisclosure } from '@chakra-ui/react';
 import {
   ChainArtifacts,
   ContractData,
@@ -100,7 +99,7 @@ const Interact: FC = () => {
   const router = useRouter();
   const { variant, tag, name, moduleName, contractName, contractAddress } =
     usePackageNameTagVersionUrlParams();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { getExplorerUrl } = useCannonChains();
 
   const [chainId, preset] = PackageReference.parseVariant(variant);
@@ -454,10 +453,14 @@ const Interact: FC = () => {
             address={contractAddress!}
             cannonOutputs={cannonOutputs}
             chainId={packagesQuery.data!.chainId}
-            onDrawerOpen={onOpen}
+            onDrawerOpen={() => setIsDrawerOpen(true)}
             packageUrl={packagesQuery.data?.deployUrl}
           />
-          <QueueDrawer isOpen={isOpen} onClose={onClose} onOpen={onOpen} />
+          <QueueDrawer
+            isOpen={isDrawerOpen}
+            onClose={() => setIsDrawerOpen(false)}
+            onOpen={() => setIsDrawerOpen(true)}
+          />
         </>
       )}
     </>

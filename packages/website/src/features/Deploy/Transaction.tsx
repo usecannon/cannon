@@ -1,18 +1,5 @@
-import { useMemo } from 'react';
-import { ChevronRightIcon, ExternalLinkIcon } from '@chakra-ui/icons';
+import React, { useMemo } from 'react';
 import { useCannonPackage } from '@/hooks/cannon';
-import {
-  Box,
-  Flex,
-  Heading,
-  IconButton,
-  Link as ChakraLink,
-  LinkBox,
-  LinkOverlay,
-  Image,
-  Spinner,
-  Text,
-} from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { getSafeUrl } from '@/hooks/safe';
 import { SafeDefinition } from '@/helpers/store';
@@ -21,6 +8,9 @@ import { parseHintedMulticall } from '@/helpers/cannon';
 import { getSafeTransactionHash } from '@/helpers/safe';
 import { useTxnStager } from '@/hooks/backend';
 import { GitHub } from 'react-feather';
+import { ChevronRight, ExternalLink } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface Params {
   safe: SafeDefinition;
@@ -59,97 +49,106 @@ export function Transaction({ safe, tx, hideExternal, isStaged }: Params) {
 
   const isLink = sigHash != null;
 
-  return (
-    <LinkBox
-      as={Flex}
-      display={hideExternal && !isLink ? 'none' : 'flex'}
-      mb="4"
-      p="4"
-      border="1px solid"
-      bg="blackAlpha.500"
-      borderColor="gray.600"
-      borderRadius="md"
-      alignItems="center"
-      shadow="lg"
-      transition="all 0.2s"
-      _hover={{ shadow: 'xl', bg: 'blackAlpha.600' }}
-    >
-      <Flex alignItems={'center'} gap={5} w="100%">
-        {hintData?.type === 'deploy' ? (
-          <GitHub size="24" strokeWidth={1} />
-        ) : hintData?.type === 'invoke' ? (
-          <Image
-            alt="Cannon Logomark"
-            height="24px"
-            src="/images/cannon-logomark.svg"
-          />
-        ) : (
-          <Image
-            alt="Safe Logomark"
-            height="24px"
-            src="/images/safe-logomark.svg"
-          />
-        )}
-        <Heading size="md" display="inline-block" minWidth="40px">
-          #{tx._nonce}
-        </Heading>
-        {hintData?.cannonPackage ? (
-          <>
-            {hintData.isSinglePackage &&
-              (!resolvedName ? (
-                <Spinner size="xs" opacity={0.8} />
-              ) : (
-                <Text color="gray.300">
-                  {isStaged
-                    ? hintData.type == 'deploy'
-                      ? 'Building '
-                      : 'Staged with '
-                    : hintData.type == 'deploy'
-                    ? 'Built '
-                    : 'Executed with '}
-                  {`${resolvedName}:${resolvedVersion}@${resolvedPreset}`}
-                </Text>
-              ))}
-          </>
-        ) : (
-          <Text color="gray.300">Executed without Cannon</Text>
-        )}
+  const Wrapper = ({ children }: { children: React.ReactNode }) => {
+    if (isLink) {
+      return (
+        <NextLink
+          href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
+        >
+          {children}
+        </NextLink>
+      );
+    }
+    return (
+      <a
+        href={`${getSafeUrl(safe, '/transactions/tx')}&id=${tx.safeTxHash}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {children}
+      </a>
+    );
+  };
 
-        <Flex alignItems="center" ml="auto">
-          {isStaged && Object.keys(stager).length && (
-            <Text color="gray.300">
-              {stager.existingSigners.length} of{' '}
-              {stager.requiredSigners.toString()} signed
-            </Text>
+  return (
+    <Wrapper>
+      <div
+        className={cn(
+          'mb-4 p-4 border border-border bg-card rounded-md transition-all hover:bg-accent/50 cursor-pointer',
+          hideExternal && !isLink ? 'hidden' : 'flex'
+        )}
+      >
+        <div className="flex items-center gap-5 w-full">
+          {hintData?.type === 'deploy' ? (
+            <GitHub size="24" strokeWidth={1} />
+          ) : hintData?.type === 'invoke' ? (
+            <img
+              alt="Cannon Logomark"
+              height="24"
+              width="24"
+              src="/images/cannon-logomark.svg"
+            />
+          ) : (
+            <img
+              alt="Safe Logomark"
+              height="24"
+              width="24"
+              src="/images/safe-logomark.svg"
+            />
           )}
-          <Box pl="2">
-            {isLink ? (
-              <LinkOverlay
-                as={NextLink}
-                href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
-              >
-                <ChevronRightIcon boxSize={8} mr={1} />
-              </LinkOverlay>
-            ) : (
-              <LinkOverlay
-                as={ChakraLink}
-                href={`${getSafeUrl(safe, '/transactions/tx')}&id=${
-                  tx.safeTxHash
-                }`}
-                isExternal
-              >
-                <IconButton
-                  color="white"
-                  variant="link"
-                  transform="translateY(1px)"
-                  aria-label={`View Transaction #${tx._nonce}`}
-                  icon={<ExternalLinkIcon />}
-                />
-              </LinkOverlay>
+          <h3 className="text-lg font-semibold inline-block min-w-[40px]">
+            #{tx._nonce}
+          </h3>
+          {hintData?.cannonPackage ? (
+            <>
+              {hintData.isSinglePackage &&
+                (!resolvedName ? (
+                  <div className="animate-spin h-4 w-4 border-2 border-border border-t-foreground rounded-full opacity-80" />
+                ) : (
+                  <p className="text-muted-foreground">
+                    {isStaged
+                      ? hintData.type == 'deploy'
+                        ? 'Building '
+                        : 'Staged with '
+                      : hintData.type == 'deploy'
+                      ? 'Built '
+                      : 'Executed with '}
+                    {`${resolvedName}:${resolvedVersion}@${resolvedPreset}`}
+                  </p>
+                ))}
+            </>
+          ) : (
+            <p className="text-muted-foreground">Executed without Cannon</p>
+          )}
+
+          <div className="flex items-center ml-auto">
+            {isStaged && Object.keys(stager).length && (
+              <p className="text-muted-foreground">
+                {stager.existingSigners.length} of{' '}
+                {stager.requiredSigners.toString()} signed
+              </p>
             )}
-          </Box>
-        </Flex>
-      </Flex>
-    </LinkBox>
+            <div className="pl-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => e.preventDefault()}
+              >
+                {isLink ? (
+                  <ChevronRight className="h-8 w-8" />
+                ) : (
+                  <ExternalLink className="h-4 w-4" />
+                )}
+                <span className="sr-only">
+                  {isLink
+                    ? 'View Transaction Details'
+                    : `View Transaction #${tx._nonce}`}
+                </span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Wrapper>
   );
 }

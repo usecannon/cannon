@@ -4,19 +4,13 @@ import { useStore } from '@/helpers/store';
 import { useSafeTransactions } from '@/hooks/backend';
 import { useExecutedTransactions } from '@/hooks/safe';
 import { useInMemoryPagination } from '@/hooks/useInMemoryPagination';
-import {
-  Box,
-  Checkbox,
-  Container,
-  Flex,
-  Heading,
-  Link,
-  Skeleton,
-  Text,
-} from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { Transaction } from './Transaction';
 import InfiniteScroll from 'react-infinite-scroll-component';
+import { Switch } from '@/components/ui/switch';
+import { Skeleton } from '@/components/ui/skeleton';
+import Link from 'next/link';
+import { Pencil } from 'lucide-react';
 
 export default function SignTransactionsPage() {
   return <SignTransactions />;
@@ -24,6 +18,7 @@ export default function SignTransactionsPage() {
 
 function SignTransactions() {
   const currentSafe = useStore((s) => s.currentSafe);
+  const settings = useStore((s) => s.settings);
   const { staged, isLoading: isLoadingSafeTxs } = useSafeTransactions(
     currentSafe,
     10000
@@ -43,57 +38,42 @@ function SignTransactions() {
     fetchMoreData: fetchMoreExecutedTxs,
   } = useInMemoryPagination(history.results, 5);
 
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setIsChecked(e.target.checked);
-  };
-
   return (
-    <Container maxW="container.lg" py={8}>
-      {/* Header */}
-      <Box mb={6}>
-        <Heading size="lg" mb={2}>
-          Sign & Execute Transactions
-        </Heading>
-        <Text color="gray.300">
-          Make sure you&apos;re using the same{' '}
-          <Link href="/settings">Safe Signature Collection Service</Link> as
-          other signers.
-        </Text>
-      </Box>
-
+    <div className="container mx-auto py-8 max-w-4xl">
       {/* Staged txs */}
-      <Box
-        mb={8}
-        p={6}
-        bg="gray.800"
-        display="block"
-        borderWidth="1px"
-        borderStyle="solid"
-        borderColor="gray.600"
-        borderRadius="4px"
-      >
-        <Heading size="md" mb={3}>
-          Staged Transactions
-        </Heading>
+      <div className="mb-8 p-6 bg-card border border-border rounded-lg">
+        <div className="flex items-center mb-5">
+          <h2 className="text-xl font-semibold">Staged Transactions</h2>
+          <div className="flex items-center ml-auto space-x-2">
+            <code className="font-mono text-muted-foreground text-xs">
+              {settings.stagingUrl}
+            </code>
+            <Link
+              href="/settings"
+              className="text-muted-foreground hover:text-primary"
+            >
+              <Pencil className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
         {isLoadingSafeTxs ? (
-          <Skeleton height="20px" />
+          <Skeleton className="h-5 w-full" />
         ) : (
           currentSafe &&
           (staged.length === 0 ? (
-            <Text color="gray.300">
+            <p className="text-muted-foreground">
               There are no transactions queued on the selected safe.
-            </Text>
+            </p>
           ) : (
-            <Box
+            <div
               id="staged-transactions-container"
-              maxHeight="350px"
-              overflowY="auto"
+              className="max-h-[350px] overflow-y-auto"
             >
               <InfiniteScroll
                 dataLength={paginatedStagedTxs.length}
                 next={fetchMoreStagedTxs}
                 hasMore={hasMoreStagedTxs}
-                loader={<Skeleton height="60px" my={2} />}
+                loader={<Skeleton className="h-[60px] my-2" />}
                 scrollableTarget="staged-transactions-container"
               >
                 {paginatedStagedTxs.map((tx) => (
@@ -106,53 +86,44 @@ function SignTransactions() {
                   />
                 ))}
               </InfiniteScroll>
-            </Box>
+            </div>
           ))
         )}
-      </Box>
+      </div>
 
       {/* Executed txs */}
       {currentSafe && (history.count ?? 0) > 0 && (
-        <Box
-          mb={8}
-          p={6}
-          bg="gray.800"
-          display="block"
-          borderWidth="1px"
-          borderStyle="solid"
-          borderColor="gray.600"
-          borderRadius="4px"
-        >
-          <Flex mb="5">
-            <Heading size="md" mb={0}>
-              Executed Transactions
-            </Heading>
-            <Checkbox
-              size="sm"
-              borderColor="gray.200"
-              color="gray.200"
-              ml="auto"
-              isChecked={isChecked}
-              onChange={handleCheckboxChange}
-            >
-              Show Cannon transactions only
-            </Checkbox>
-          </Flex>
-          <Box
+        <div className="mb-8 p-6 bg-card border border-border rounded-lg">
+          <div className="flex items-center mb-5">
+            <h2 className="text-xl font-semibold">Executed Transactions</h2>
+            <div className="flex items-center ml-auto space-x-2">
+              <Switch
+                id="cannon-only"
+                checked={isChecked}
+                onCheckedChange={setIsChecked}
+              />
+              <label
+                htmlFor="cannon-only"
+                className="text-sm text-muted-foreground"
+              >
+                Show Cannon transactions only
+              </label>
+            </div>
+          </div>
+          <div
             id="executed-transactions-container"
-            maxHeight="300"
-            overflowY="scroll"
+            className="max-h-[300px] overflow-y-auto"
           >
             <InfiniteScroll
               dataLength={paginatedExecutedTxs.length}
               next={fetchMoreExecutedTxs}
               hasMore={hasMoreExecutedTxs}
-              loader={<div>aaaa...</div>}
+              loader={<div>Loading...</div>}
               scrollableTarget="executed-transactions-container"
               endMessage={
-                <Text color="gray.300" textAlign="center" mt={4}>
+                <p className="text-muted-foreground text-center mt-4">
                   No more transactions to load.
-                </Text>
+                </p>
               }
             >
               {paginatedExecutedTxs.map((tx) => (
@@ -164,9 +135,9 @@ function SignTransactions() {
                 />
               ))}
             </InfiniteScroll>
-          </Box>
-        </Box>
+          </div>
+        </div>
       )}
-    </Container>
+    </div>
   );
 }

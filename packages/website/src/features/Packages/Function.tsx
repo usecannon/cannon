@@ -610,8 +610,8 @@ export const Function: FC<FunctionProps> = ({
                       ) : (
                         <>
                           {isFunctionReadOnly
-                            ? 'Call the view function'
-                            : 'Simulate the transaction'}
+                            ? 'Call the view function '
+                            : 'Simulate the transaction '}
                           for output
                         </>
                       )}

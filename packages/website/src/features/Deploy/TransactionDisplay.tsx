@@ -1,5 +1,5 @@
-import { RefObject } from 'react';
-import { Alert } from '@/components/Alert';
+import { RefObject, useState } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { parseHintedMulticall } from '@/helpers/cannon';
 import { SafeDefinition } from '@/helpers/store';
@@ -10,34 +10,41 @@ import {
 import { useGitDiff } from '@/hooks/git';
 import { useGetPreviousGitInfoQuery } from '@/hooks/safe';
 import { SafeTransaction } from '@/types/SafeTransaction';
-import {
-  Alert as ChakraAlert,
-  AlertDescription,
-  AlertTitle,
-  Box,
-  Flex,
-  Link,
-  Spinner,
-  Text,
-  Image,
-  Portal,
-  Skeleton,
-  Stack,
-} from '@chakra-ui/react';
+import { cn } from '@/lib/utils';
 import { Diff, parseDiff, Hunk } from 'react-diff-view';
-import { GitHub } from 'react-feather';
 import { DisplayedTransaction } from './DisplayedTransaction';
+import Link from 'next/link';
+import { IoIosContract, IoIosExpand } from 'react-icons/io';
+import {
+  Card,
+  CardTitle,
+  CardHeader,
+  CardDescription,
+  CardContent,
+} from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const CommitLink = ({ gitUrl, hash }: { gitUrl?: string; hash?: string }) => {
   if (!gitUrl || !hash) return null;
 
   return (
-    <Flex alignItems="center">
-      <GitHub size="12" strokeWidth={1} />
-      <Link ml={2} fontSize="sm" isExternal href={`${gitUrl}/commit/${hash}`}>
+    <p className="text-xs text-muted-foreground">
+      Commit Hash:{' '}
+      <Link
+        className="font-mono border-b border-dotted border-gray-300 hover:no-underline"
+        href={`${gitUrl}/commit/${hash}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         {hash}
-      </Link>{' '}
-    </Flex>
+      </Link>
+    </p>
   );
 };
 
@@ -52,13 +59,13 @@ const parseDiffFileNames = (diffString: string): string[] => {
 };
 
 const NoDiffWarning = () => (
-  <Alert status="info" mb={2}>
-    <Text fontSize="sm">
-      <strong>No cannon-file diff available.</strong> This may occur when
-      signing an initial deployment, changing Safes used for deployments,
-      changing package names for the deployment, or re-executing the same
-      partial deployment more than once.
-    </Text>
+  <Alert variant="info" className="mb-2">
+    <AlertDescription>
+      <strong>No cannonfile diff available.</strong> This may occur when signing
+      an initial deployment, changing Safes used for deployments, changing
+      package names for the deployment, or re-executing the same partial
+      deployment more than once.
+    </AlertDescription>
   </Alert>
 );
 
@@ -70,6 +77,8 @@ export function TransactionDisplay(props: {
   isTransactionExecuted?: boolean;
   containerRef?: RefObject<HTMLDivElement>;
 }) {
+  const [expandDiff, setExpandDiff] = useState<boolean>(false);
+
   const hintData = parseHintedMulticall(props.safeTxn?.data);
 
   const cannonInfo = useCannonPackageContracts(hintData?.cannonPackage);
@@ -122,218 +131,181 @@ export function TransactionDisplay(props: {
     hintData.isSinglePackage
   ) {
     return (
-      <Box
-        py="20"
-        alignItems="center"
-        justifyContent="center"
-        textAlign="center"
-      >
+      <div className="flex flex-col items-center justify-center py-20 text-center">
         <CustomSpinner />
-        <Text fontSize="sm" color="gray.400">
+        <p className="text-sm text-muted-foreground mt-4">
           Parsing transaction data...
-        </Text>
-      </Box>
+        </p>
+      </div>
     );
   }
 
   if (!hintData) {
-    return <Alert status="info">Could not parse the transaction.</Alert>;
+    return <Alert variant="info">Could not parse the transaction.</Alert>;
   }
 
   return (
-    <Box maxW="100%" overflowX="auto">
+    <div className="max-w-full overflow-x-auto">
       {/* Code diff */}
-      <Portal containerRef={props.containerRef}>
-        {isGitDiffLoading ? (
-          <Stack>
-            <Skeleton height="20px" />
-            <Skeleton height="20px" />
-            <Skeleton height="20px" />
-            <Skeleton height="20px" />
-          </Stack>
-        ) : (
-          props.showQueueSource &&
-          props.queuedWithGitOps && (
-            <>
-              {prevDeployGitHash == '' && <NoDiffWarning />}
-              <Box>
-                {/* Commit hashes */}
-                <Flex>
-                  {areDiff && (
-                    <Box w="50%" py={1}>
-                      <CommitLink gitUrl={gitUrl!} hash={prevDeployGitHash} />
-                    </Box>
-                  )}
-                  <Box w="50%" py={1}>
-                    <CommitLink gitUrl={gitUrl!} hash={hintData.gitRepoHash} />
-                  </Box>
-                </Flex>
+      {props.showQueueSource && props.queuedWithGitOps && (
+        <Card
+          className={cn(
+            expandDiff ? 'fixed inset-0 z-[99] mb-0' : 'mb-4',
+            'bg-background rounded-sm'
+          )}
+        >
+          <div
+            className={cn(
+              'h-full overflow-y-auto',
+              expandDiff ? '' : 'max-h-[356px]'
+            )}
+          >
+            <CardHeader className="relative">
+              <CardTitle>Cannonfile Diff</CardTitle>
+              <CardDescription>
+                {isGitDiffLoading ? (
+                  'Loading diff...'
+                ) : (
+                  <>
+                    Queued from{' '}
+                    <Link
+                      href={gitUrl!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:no-underline"
+                    >
+                      {gitUrl}
+                    </Link>
+                  </>
+                )}
+              </CardDescription>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => setExpandDiff(!expandDiff)}
+                      className="absolute top-4 right-5 hover:text-gray-300"
+                    >
+                      {expandDiff ? <IoIosContract /> : <IoIosExpand />}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{expandDiff ? 'Collapse' : 'Expand'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </CardHeader>
 
-                {/* package code */}
-                {patches.map((p, i) => {
-                  const { oldRevision, newRevision, type, hunks } =
-                    parseDiff(p)[0];
-                  const [fromFileName, toFileName] = parseDiffFileNames(p);
+            <CardContent>
+              {isGitDiffLoading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              ) : (
+                <>
+                  {prevDeployGitHash == '' && <NoDiffWarning />}
+                  <div>
+                    {/* Commit hashes */}
+                    <div className="flex pb-1">
+                      {areDiff && (
+                        <div className="w-1/2 pb-1">
+                          <CommitLink
+                            gitUrl={gitUrl!}
+                            hash={prevDeployGitHash}
+                          />
+                        </div>
+                      )}
+                      <div className="w-1/2 pb-1">
+                        <CommitLink
+                          gitUrl={gitUrl!}
+                          hash={hintData.gitRepoHash}
+                        />
+                      </div>
+                    </div>
 
-                  return (
-                    hunks.length > 0 && (
-                      <Box
-                        bg="gray.900"
-                        borderRadius="sm"
-                        overflow="hidden"
-                        fontSize="xs"
-                        mb={2}
-                        key={i}
-                      >
-                        <Flex
-                          bg="blackAlpha.300"
-                          direction="row"
-                          py="1"
-                          fontWeight="semibold"
-                        >
-                          {areDiff && (
-                            <Box w="50%" px={2} py={1}>
-                              {fromFileName}
-                            </Box>
-                          )}
-                          <Box w={areDiff ? '50%' : '100%'} px={2} py={1}>
-                            {areDiff ? toFileName : fromFileName}
-                          </Box>
-                        </Flex>
-                        <Diff
-                          key={oldRevision + '-' + newRevision}
-                          viewType={areDiff ? 'split' : 'unified'}
-                          diffType={type}
-                          hunks={hunks}
-                        >
-                          {(hunks) =>
-                            hunks.map((hunk) => (
-                              <Hunk key={hunk.content} hunk={hunk} />
-                            ))
-                          }
-                        </Diff>
-                      </Box>
-                    )
-                  );
-                })}
-              </Box>
-            </>
-          )
-        )}
-      </Portal>
+                    {/* package code */}
+                    {patches.map((p, i) => {
+                      const { oldRevision, newRevision, type, hunks } =
+                        parseDiff(p)[0];
+                      const [fromFileName, toFileName] = parseDiffFileNames(p);
+
+                      return (
+                        hunks.length > 0 && (
+                          <div
+                            className="mb-2 overflow-hidden rounded-sm bg-accent/50 text-xs"
+                            key={i}
+                          >
+                            <div className="flex flex-row bg-black/30 py-1 font-mono">
+                              {areDiff && (
+                                <div className="w-1/2 px-2 py-1">
+                                  {fromFileName}
+                                </div>
+                              )}
+                              <div
+                                className={cn(
+                                  'px-2 py-1',
+                                  areDiff ? 'w-1/2' : 'w-full'
+                                )}
+                              >
+                                {areDiff ? toFileName : fromFileName}
+                              </div>
+                            </div>
+                            <Diff
+                              key={oldRevision + '-' + newRevision}
+                              viewType={areDiff ? 'split' : 'unified'}
+                              diffType={type}
+                              hunks={hunks}
+                            >
+                              {(hunks) =>
+                                hunks.map((hunk) => (
+                                  <Hunk key={hunk.content} hunk={hunk} />
+                                ))
+                              }
+                            </Diff>
+                          </div>
+                        )
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </div>
+        </Card>
+      )}
 
       {/* Queued from */}
-      {props.showQueueSource &&
-        (props.queuedWithGitOps ? (
-          <>
-            <ChakraAlert
-              bg="gray.800"
-              border="1px solid"
-              borderColor="gray.700"
-              mb={6}
-            >
-              <Box display={['none', 'block']}>
-                <GitHub size="28" strokeWidth={1} />
-              </Box>
-              <Box ml={[0, 3]}>
-                <AlertTitle lineHeight={1} fontSize="sm" mb={1.5}>
-                  GitOps Deployment
-                </AlertTitle>
-                <AlertDescription
-                  display="block"
-                  lineHeight={1.4}
-                  fontSize="sm"
-                >
-                  {cannonDefInfo.isFetching ? (
-                    <>
-                      <Spinner size="xs" mr={0.5} /> Loading...
-                    </>
-                  ) : (
-                    <>
-                      These transactions were generated by modifying cannonfiles
-                      in{' '}
-                      <Link isExternal href={gitUrl}>
-                        this repository
-                      </Link>
-                      .
-                    </>
-                  )}
-                </AlertDescription>
-              </Box>
-            </ChakraAlert>
-          </>
-        ) : (
-          <ChakraAlert
-            bg="gray.800"
-            border="1px solid"
-            borderColor="gray.700"
-            mb={6}
-          >
-            <Box display={['none', 'block']}>
-              <Image
-                opacity={0.66}
-                alt="Cannon Logomark"
-                height="28px"
-                src="/images/cannon-logomark.svg"
-              />
-            </Box>
-            {!hintData.cannonPackage ? (
-              <Box ml={[0, 3]}>
-                <AlertTitle lineHeight={1} fontSize="sm" mb={1.5}>
-                  Unknown source
-                </AlertTitle>
-                <AlertDescription
-                  display="block"
-                  lineHeight={1.4}
-                  fontSize="sm"
-                >
-                  These transactions were queued without a source package.
-                </AlertDescription>
-              </Box>
-            ) : hintData.isSinglePackage ? (
-              <Box ml={[0, 3]}>
-                <AlertTitle lineHeight={1} fontSize="sm" mb={1.5}>
-                  Queued from Package
-                </AlertTitle>
-                <AlertDescription
-                  display="block"
-                  lineHeight={1.4}
-                  fontSize="sm"
-                >
-                  These transactions were queued using the{' '}
-                  <Link
-                    isExternal
-                    href={`/packages/${cannonInfo.resolvedName}/${cannonInfo.resolvedVersion}/${props.safe.chainId}-${cannonInfo.resolvedPreset}`}
-                  >
-                    {cannonInfo.resolvedName}
-                  </Link>{' '}
-                  package.
-                </AlertDescription>
-              </Box>
-            ) : (
-              <Box ml={[0, 3]}>
-                <AlertTitle lineHeight={1} fontSize="sm" mb={1.5}>
-                  Queued from multiple packages
-                </AlertTitle>
-                <AlertDescription
-                  display="block"
-                  lineHeight={1.4}
-                  fontSize="sm"
-                >
-                  These transactions were queued using multiple packages.
-                </AlertDescription>
-              </Box>
-            )}
-          </ChakraAlert>
-        ))}
+      {props.showQueueSource && !props.queuedWithGitOps && (
+        <p className="mb-4 text-lg text-muted-foreground">
+          {!hintData.cannonPackage ? (
+            <>These transactions were queued without a source package.</>
+          ) : hintData.isSinglePackage ? (
+            <>
+              These transactions were queued using{' '}
+              <Link
+                href={`/packages/${cannonInfo.resolvedName}/${cannonInfo.resolvedVersion}/${props.safe.chainId}-${cannonInfo.resolvedPreset}`}
+                className="underline hover:no-underline"
+              >
+                {cannonInfo.resolvedName}
+              </Link>{' '}
+              package.
+            </>
+          ) : (
+            <>These transactions were queued using multiple packages.</>
+          )}
+        </p>
+      )}
 
       {/* Transactions */}
-      <Box maxW="100%" overflowX="scroll">
+      <div className="max-w-full overflow-x-scroll">
         {hintData.txns.map((txn, i) => {
           const pkgUrl = hintData.cannonPackage.split(',')[i];
 
           return (
-            <Box key={`tx-${i}`} mb={8}>
+            <div key={`tx-${i}`} className="mb-4">
               <DisplayedTransaction
                 txn={txn}
                 chainId={props.safe.chainId}
@@ -343,10 +315,10 @@ export function TransactionDisplay(props: {
                 cannonInfo={cannonInfo}
                 isPreloaded={hintData.isSinglePackage}
               />
-            </Box>
+            </div>
           );
         })}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

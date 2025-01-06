@@ -1,50 +1,88 @@
 import * as viem from 'viem';
-import { ExternalLinkIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import {
-  Box,
-  Link,
-  Text,
-  Popover,
-  PopoverBody,
-  PopoverContent,
-  PopoverTrigger,
-  Step,
-  StepDescription as BaseStepDescription,
-  StepIcon,
-  StepIndicator,
-  StepNumber,
-  StepSeparator as BaseStepSeparator,
-  StepStatus,
-  StepTitle as BaseStepTitle,
-  Stepper,
-  useBreakpointValue,
-  useSteps,
-  chakra,
-  Spinner,
-} from '@chakra-ui/react';
+  InfoCircledIcon,
+  ExternalLinkIcon,
+  CheckIcon,
+} from '@radix-ui/react-icons';
+import { cn } from '@/lib/utils';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { formatDistanceToNow } from 'date-fns';
-import { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { useSafeTransactionStatus, SafeTransactionStatus } from '@/hooks/safe';
+import { useIsMobile } from '@/hooks/useMedia';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from '@/components/ui/tooltip';
+
 type Orientation = 'horizontal' | 'vertical';
 
-const StepTitle = chakra(BaseStepTitle, {
-  baseStyle: {
-    textTransform: 'uppercase',
-    letterSpacing: '1px',
-    fontFamily: 'var(--font-miriam)',
-    textShadow: '0px 0px 4px rgba(255, 255, 255, 0.33)',
-  },
-});
+type StepProps = {
+  title: string;
+  description: string | React.ReactNode;
+  isActive: boolean;
+  isComplete: boolean;
+  isError?: boolean;
+  stepNumber: number;
+  orientation?: Orientation;
+  isLastStep?: boolean;
+};
 
-const StepDescription = chakra(BaseStepDescription, {
-  baseStyle: {
-    color: 'gray.300',
-  },
-});
-
-const StepSeparator = chakra(BaseStepSeparator);
+function Step({
+  title,
+  description,
+  isActive,
+  isComplete,
+  isError,
+  stepNumber,
+  orientation = 'horizontal',
+  isLastStep,
+}: StepProps) {
+  return (
+    <div
+      className={cn(
+        'flex items-center',
+        orientation === 'horizontal' ? 'flex-1' : 'w-full py-1'
+      )}
+    >
+      <div className="flex items-center gap-3 min-w-0">
+        <div
+          className={cn(
+            'relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs',
+            isError
+              ? 'border-destructive text-destructive'
+              : isComplete
+              ? 'border-teal-500 bg-teal-500 text-white'
+              : isActive
+              ? 'border-teal-500 text-teal-500'
+              : 'border-muted-foreground/30 text-muted-foreground/30'
+          )}
+        >
+          {isComplete ? <CheckIcon className="h-3.5 w-3.5" /> : stepNumber}
+        </div>
+        <div className="min-w-0 flex-1">
+          <span className="font-mono text-sm uppercase tracking-wider text-foreground block">
+            {title}
+          </span>
+          <span className="text-xs text-muted-foreground block truncate">
+            {description}
+          </span>
+        </div>
+      </div>
+      {!isLastStep && orientation === 'horizontal' && (
+        <div
+          className={cn(
+            'flex-1 h-[1px] bg-border/30 mx-2',
+            isComplete && 'bg-teal-500'
+          )}
+        />
+      )}
+    </div>
+  );
+}
 
 export function TransactionStepper(props: {
   chainId: number;
@@ -56,6 +94,8 @@ export function TransactionStepper(props: {
   threshold: number;
 }) {
   const { getExplorerUrl } = useCannonChains();
+  const isMobile = useIsMobile();
+  const orientation = isMobile ? 'vertical' : 'horizontal';
 
   const packagePublished = props.published;
   const transactionHash = props.safeTxn?.transactionHash;
@@ -69,23 +109,14 @@ export function TransactionStepper(props: {
       }`
     : undefined;
 
-  const { activeStep, setActiveStep } = useSteps({
-    index: 1,
-    count: props.publishable ? 4 : 3,
-  });
-
-  let step = 1;
-  if (packagePublished && transactionHash) {
-    step = 4;
+  let activeStep = 1;
+  if (packagePublished) {
+    activeStep = 5;
   } else if (transactionHash) {
-    step = 3;
+    activeStep = 3;
   } else if (props.signers.length >= props.threshold) {
-    step = 2;
+    activeStep = 2;
   }
-
-  useEffect(() => {
-    setActiveStep(step);
-  }, [step]);
 
   const safeTransactionStatus = useSafeTransactionStatus(
     props.chainId,
@@ -96,10 +127,6 @@ export function TransactionStepper(props: {
     () => safeTransactionStatus === SafeTransactionStatus.EXECUTION_FAILURE,
     [safeTransactionStatus]
   );
-  const orientation = useBreakpointValue({
-    base: 'vertical' as Orientation,
-    md: 'horizontal' as Orientation,
-  });
 
   const queuedTimeAgo = useMemo(
     () =>
@@ -114,260 +141,112 @@ export function TransactionStepper(props: {
     [props.safeTxn]
   );
 
-  // const etherscanUrl =
-  //   (Object.values(chains).find((chain) => chain.id === props.chainId) as any)
-  //     ?.blockExplorers?.default?.url ?? 'https://etherscan.io';
-
   const packageName = props.cannonPackage.resolvedName;
   const version = props.cannonPackage.resolvedVersion || 'latest';
   const preset = props.cannonPackage.resolvedPreset || 'main';
 
-  return (
-    <>
-      {/*
-      <Box display="none">
-        {hintData.gitRepoUrl && (
-          <Box>
-            {hintData.gitRepoUrl}@{hintData.gitRepoHash}
-          </Box>
-        )}
-        {hintData && (
-          <Box
-            bg="blackAlpha.600"
-            border="1px solid"
-            borderColor="gray.900"
-            borderRadius="md"
-            p={6}
-            mb={6}
+  const steps = [
+    {
+      title: 'Queue',
+      description: `added ${queuedTimeAgo}`,
+    },
+    {
+      title: 'Sign',
+      description: (
+        <div className="flex items-center">
+          {props.signers?.length || 0} of {props.threshold || 0} signed
+          {props.signers?.length > 0 && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="hover:opacity-100">
+                    <InfoCircledIcon className="ml-1 h-3 w-3 -translate-y-[0.5px] opacity-70" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  align="start"
+                  className="max-h-[200px] w-auto overflow-y-auto overflow-x-hidden"
+                >
+                  {props.signers.map((s) => (
+                    <div key={s} className="mb-1">
+                      {s}
+                    </div>
+                  ))}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: 'Execute',
+      description: transactionHash ? (
+        <div className="flex items-center">
+          {`${transactionHash.substring(0, 6)}...${transactionHash.slice(-4)}`}
+          <a
+            href={getExplorerUrl(props.chainId, transactionHash as viem.Hash)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-1 opacity-70 hover:opacity-100"
           >
-            <FormControl>
-              <FormLabel mb="1">Cannon&nbsp;Package</FormLabel>
-              {reverseLookupCannonPackage.pkgUrl ? (
-                <Box>
-                  <Link
-                    href={
-                      'https://usecannon.com/packages/' +
-                      cannonPackage.resolvedName
-                    }
-                    isExternal
+            <ExternalLinkIcon className="h-3 w-3 -translate-y-[0.5px]" />
+          </a>
+          {isExecutionFailure && (
+            <span className="text-destructive">The execution has failed</span>
+          )}
+        </div>
+      ) : (
+        'Pending'
+      ),
+    },
+    ...(props.publishable
+      ? [
+          {
+            title: 'Publish',
+            description: packageRef ? (
+              <div className="flex items-center">
+                {packageRef}
+                {packagePublished && (
+                  <a
+                    href={`/packages/${packageName}/${version}/${props.chainId}-${preset}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-1 opacity-70 hover:opacity-100"
                   >
-                    {reverseLookupCannonPackage.pkgUrl ===
-                    hintData.cannonPackage ? (
-                      <CheckIcon color={'green'} />
-                    ) : (
-                      <WarningIcon color="red" />
-                    )}
-                    &nbsp;{cannonPackage.resolvedName}:
-                    {cannonPackage.resolvedVersion}@
-                    {cannonPackage.resolvedPreset}
-                  </Link>
-                  &nbsp;(
-                  <Link
-                    href={createIPLDLink(hintData.cannonPackage)}
-                    isExternal
-                  >
-                    {formatHash(hintData.cannonPackage)}
-                    <ExternalLinkIcon transform="translate(4px,-2px)" />
-                  </Link>
-                  )
-                </Box>
-              ) : (
-                <Link href={createIPLDLink(hintData.cannonPackage)} isExternal>
-                  {formatHash(hintData.cannonPackage)}
-                  <ExternalLinkIcon transform="translate(4px,-2px)" />
-                </Link>
-              )}
-            </FormControl>
-          </Box>
-        )}
-      </Box>
-              */}
-
-      <Stepper
-        size="sm"
-        index={activeStep}
-        orientation={orientation}
-        colorScheme={isExecutionFailure ? 'red' : 'teal'}
-      >
-        <Step key={1}>
-          <StepIndicator
-            borderWidth="1px !important"
-            borderColor={
-              isExecutionFailure
-                ? 'red.500'
-                : activeStep >= 1
-                ? 'teal.500'
-                : 'gray.200'
-            }
-          >
-            <StepStatus
-              complete={<StepIcon />}
-              incomplete={<StepNumber />}
-              active={<StepNumber />}
-            />
-          </StepIndicator>
-
-          <Box flexShrink="0">
-            <StepTitle>Queue</StepTitle>
-            <StepDescription>added {queuedTimeAgo}</StepDescription>
-          </Box>
-
-          <StepSeparator
-            height={orientation == 'horizontal' ? '1px !important' : undefined}
-            width={orientation == 'vertical' ? '1px !important' : undefined}
-          />
-        </Step>
-        <Step key={2}>
-          <StepIndicator
-            borderWidth="1px !important"
-            borderColor={
-              isExecutionFailure
-                ? 'red.500'
-                : activeStep >= 2
-                ? 'teal.500'
-                : 'gray.200'
-            }
-          >
-            <StepStatus
-              complete={<StepIcon />}
-              incomplete={<StepNumber />}
-              active={<StepNumber />}
-            />
-          </StepIndicator>
-
-          <Box flexShrink="0">
-            <StepTitle>Sign</StepTitle>
-            <StepDescription>
-              {props.signers?.length || 0} of {props.threshold || 0} signed
-              {props.signers?.length > 0 && (
-                <Popover trigger="hover">
-                  <PopoverTrigger>
-                    <InfoOutlineIcon ml={1} transform="translateY(-0.5px)" />
-                  </PopoverTrigger>
-                  <PopoverContent
-                    overflowY={'auto'}
-                    overflowX={'hidden'}
-                    width="auto"
-                    bg="gray.900"
-                    borderColor="gray.700"
-                  >
-                    <PopoverBody pb={1}>
-                      {props.signers.map((s) => (
-                        <Box key={s} mb={1}>
-                          {s}
-                        </Box>
-                      ))}
-                    </PopoverBody>
-                  </PopoverContent>
-                </Popover>
-              )}
-            </StepDescription>
-          </Box>
-
-          <StepSeparator
-            opacity={activeStep >= 2 ? 1 : 0.2}
-            height={orientation == 'horizontal' ? '1px !important' : undefined}
-            width={orientation == 'vertical' ? '1px !important' : undefined}
-          />
-        </Step>
-        <Step key={3}>
-          <StepIndicator
-            borderWidth="1px !important"
-            borderColor={
-              isExecutionFailure
-                ? 'red.500'
-                : activeStep >= 3
-                ? 'teal.500'
-                : 'gray.200'
-            }
-          >
-            <StepStatus
-              complete={isExecutionFailure ? <StepNumber /> : <StepIcon />}
-              incomplete={<StepNumber />}
-              active={<StepNumber />}
-            />
-          </StepIndicator>
-
-          <Box flexShrink="0">
-            <StepTitle>Execute</StepTitle>
-            <StepDescription>
-              {transactionHash ? (
-                <>
-                  {`${transactionHash.substring(
-                    0,
-                    6
-                  )}...${transactionHash.slice(-4)}`}
-                  <Link
-                    isExternal
-                    styleConfig={{ 'text-decoration': 'none' }}
-                    href={getExplorerUrl(
-                      props.chainId,
-                      transactionHash as viem.Hash
-                    )}
-                    ml={1}
-                  >
-                    <ExternalLinkIcon transform="translateY(-0.5px)" />
-                  </Link>
-                  {isExecutionFailure && <Text>The execution has failed</Text>}
-                </>
-              ) : (
-                <>Pending</>
-              )}
-            </StepDescription>
-          </Box>
-
-          <StepSeparator
-            opacity={activeStep >= 3 ? 1 : 0.2}
-            height={orientation == 'horizontal' ? '1px !important' : undefined}
-            width={orientation == 'vertical' ? '1px !important' : undefined}
-          />
-        </Step>
-        {props.publishable && (
-          <Step key={4}>
-            <StepIndicator
-              borderWidth="1px !important"
-              borderColor={activeStep >= 4 ? 'teal.500' : 'gray.200'}
-            >
-              <StepStatus
-                complete={<StepIcon />}
-                incomplete={<StepNumber />}
-                active={<StepNumber />}
-              />
-            </StepIndicator>
-
-            <Box flexShrink="0">
-              <StepTitle>Publish</StepTitle>
-              <StepDescription>
-                {packageRef ? (
-                  <>
-                    {packageRef}
-                    {packagePublished && (
-                      <Link
-                        isExternal
-                        styleConfig={{ 'text-decoration': 'none' }}
-                        href={`/packages/${packageName}/${version}/${props.chainId}-${preset}`}
-                        ml={1}
-                      >
-                        <ExternalLinkIcon transform="translateY(-0.5px)" />
-                      </Link>
-                    )}
-                  </>
-                ) : (
-                  <Spinner size="xs" />
+                    <ExternalLinkIcon className="h-3 w-3 -translate-y-[0.5px]" />
+                  </a>
                 )}
-              </StepDescription>
-            </Box>
+              </div>
+            ) : (
+              <>Loading...</>
+            ),
+          },
+        ]
+      : []),
+  ];
 
-            <StepSeparator
-              opacity={activeStep >= 4 ? 1 : 0.2}
-              height={
-                orientation == 'horizontal' ? '1px !important' : undefined
-              }
-              width={orientation == 'vertical' ? '1px !important' : undefined}
-            />
-          </Step>
-        )}
-      </Stepper>
-    </>
+  return (
+    <div
+      className={cn(
+        'flex w-full',
+        orientation === 'vertical' ? 'flex-col' : 'flex-row items-center'
+      )}
+    >
+      {steps.map((step, index) => (
+        <Step
+          key={index}
+          title={step.title}
+          description={step.description}
+          isActive={activeStep === index + 1}
+          isComplete={activeStep > index + 1}
+          isError={isExecutionFailure && index === 2}
+          stepNumber={index + 1}
+          orientation={orientation}
+          isLastStep={index === steps.length - 1}
+        />
+      ))}
+    </div>
   );
 }

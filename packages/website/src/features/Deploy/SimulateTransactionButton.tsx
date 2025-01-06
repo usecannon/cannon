@@ -1,6 +1,7 @@
 import { SafeDefinition } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
-import { Button, Image } from '@chakra-ui/react';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 
 interface Props {
   safe: SafeDefinition;
@@ -47,32 +48,21 @@ export function SimulateTransactionButton({
   const searchParams = new URLSearchParams(queryParams).toString();
 
   return (
-    <Button
-      size="sm"
-      fontSize="sm"
-      as="a"
-      href={`https://dashboard.tenderly.co/simulator/new?${searchParams}`}
-      colorScheme="white"
-      background="whiteAlpha.100"
-      border="1px solid"
-      borderColor="whiteAlpha.300"
-      fontWeight={400}
-      leftIcon={
+    <Button size="sm" asChild>
+      <a
+        href={`https://dashboard.tenderly.co/simulator/new?${searchParams}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         <Image
-          height="14px"
+          width={12}
+          height={12}
           src="/images/tenderly.svg"
           alt="Safe"
-          objectFit="cover"
+          className="object-cover"
         />
-      }
-      target="_blank"
-      rel="noopener noreferrer"
-      _hover={{
-        bg: 'whiteAlpha.200',
-        borderColor: 'whiteAlpha.400',
-      }}
-    >
-      Simulate on Tenderly
+        Simulate on Tenderly
+      </a>
     </Button>
   );
 }

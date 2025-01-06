@@ -65,7 +65,7 @@ const DocsLandingPage = () => {
         Packages enable composability in Cannonfiles. If a package includes a
         &ldquo;Cannon&rdquo; deployment, it can be <em>cloned</em> to{' '}
         <Link
-          href="https://github.com/Synthetixio/synthetix-sandbox/blob/main/cannonfile.toml#L27"
+          href="https://github.com/usecannon/cannon/blob/dev/examples/sample-foundry-project/cannonfile.consumer.toml#L15"
           className="no-underline border-b border-gray-500 hover:border-gray-400"
           target="_blank"
           rel="noopener noreferrer"
@@ -75,7 +75,7 @@ const DocsLandingPage = () => {
         . Packages with live network deployments can be <em>pulled</em>,
         allowing protocols to connect with{' '}
         <Link
-          href="https://github.com/Synthetixio/synthetix-sandbox/blob/main/cannonfile.prod.toml#L5"
+          href="https://github.com/usecannon/cannon/blob/dev/examples/sample-foundry-project/cannonfile.consumer.toml#L12"
           className="no-underline border-b border-gray-500 hover:border-gray-400"
           target="_blank"
           rel="noopener noreferrer"
