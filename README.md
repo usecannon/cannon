@@ -88,7 +88,7 @@ We bump and publish manually using lerna's [version and publish](https://lerna.j
 
 - Note, DO NOT use the version name as the branch name as this can cause conflicts with tags. (eg `v2.12.1-alpha.0` as a branch name is incorrect)
 
-1. Run `pnpm version` to bump package versions and select one of the desired alpha versions.
+1. Run `pnpm run version` to bump package versions and select one of the desired alpha versions.
 2. Create PR for the branch and merge when required tests are passing
 3. From the `main` branch, run `pnpm publish-alpha` and follow the prompts.
 
