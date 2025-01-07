@@ -38,7 +38,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
+          username: ${{ secrets.PACKAGES_TOKEN_USERNAME }}
           password: ${{ secrets.PACKAGES_TOKEN }}
 
       - name: Set up QEMU
