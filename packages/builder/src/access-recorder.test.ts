@@ -9,6 +9,13 @@ describe('access-recorder.ts', () => {
       });
     });
 
+    it('computes dependency with addition operation using extras', () => {
+      expect(computeTemplateAccesses('<%= extras.value1 + extras.value2 %>')).toEqual({
+        accesses: ['extras.value1', 'extras.value2'],
+        unableToCompute: false,
+      });
+    });
+
     it('computes simple addition', () => {
       expect(computeTemplateAccesses('<%= 1 + 1 %>')).toEqual({
         accesses: [],

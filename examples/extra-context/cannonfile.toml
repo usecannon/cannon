@@ -1,0 +1,23 @@
+name = "examples-extra-context"
+description = "Cannon example usage with extra context"
+version = "0.0.1"
+
+[deploy.greeter]
+artifact = "Greeter"
+
+[deploy.greeterContext]
+artifact = "GreeterContext"
+
+[invoke.setGreeting]
+target = ["greeter"]
+func = "setGreeting"
+args = ["hello example!"]
+extra.greeting.event = "NewGreeting"
+extra.greeting.arg = 0
+extra.greetingIndex.event = "NewGreeting"
+extra.greetingIndex.arg = 1
+
+[invoke.saveGreeting]
+target = ["greeterContext"]
+func = "saveGreeting"
+args = ["<%= extras.greeting %>", "<%= extras.greetingIndex %>"]
