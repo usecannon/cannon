@@ -1,5 +1,6 @@
 export const jsContext = {
   // Fundamental objects
+  String: (value: string) => String(value),
   Number: (value: string) => Number(value),
   BigInt: (value: string) => BigInt(value),
   Array: {

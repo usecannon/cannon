@@ -16,6 +16,13 @@ describe('access-recorder.ts', () => {
       });
     });
 
+    it('computes dependency with usage of allowed global variables', () => {
+      expect(computeTemplateAccesses('<%= parseEther(String(0.3)) %>')).toEqual({
+        accesses: [],
+        unableToCompute: false,
+      });
+    });
+
     it('computes simple addition', () => {
       expect(computeTemplateAccesses('<%= 1 + 1 %>')).toEqual({
         accesses: [],
