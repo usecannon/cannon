@@ -26,6 +26,7 @@ import SearchInput from '@/components/SearchInput';
 import { externalLinks } from '@/constants/externalLinks';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { usePackageByRef } from '@/hooks/api/usePackage';
+import { ClipboardButton } from '@/components/ClipboardButton';
 
 type Option = {
   moduleName: string;
@@ -182,6 +183,9 @@ const Interact: FC = () => {
 
       setHighlightedOptions(
         highlightedData.sort((a, b) => {
+          if (a.moduleName === name && b.moduleName !== name) return -1;
+          if (a.moduleName !== name && b.moduleName === name) return 1;
+
           const valueA: string = a['contractName'];
           const valueB: string = b['contractName'];
           return valueA.localeCompare(valueB);
@@ -398,7 +402,7 @@ const Interact: FC = () => {
               </div>
 
               <div className="p-1 md:ml-auto">
-                <div className="flex flex-col items-start md:flex-row md:items-end gap-3 md:gap-6 text-gray-300 text-xs font-mono text-muted-foreground">
+                <div className="flex flex-col items-start md:flex-row md:items-center gap-3 md:gap-6 text-gray-300 text-xs font-mono text-muted-foreground">
                   <a
                     className="no-underline hover:no-underline flex items-center"
                     href={`/packages/${name}/${tag}/${variant}/code/${moduleName}?source=${contract?.sourceName}`}
@@ -411,20 +415,26 @@ const Interact: FC = () => {
                     </span>
                   </a>
 
-                  <p className="flex items-center">
+                  <div className="flex items-center">
                     {explorerUrl ? (
-                      <a
-                        className="no-underline hover:no-underline flex items-center"
-                        href={explorerUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <FileText className="h-[14px] w-[14px] mr-1.5" />
-                        <span className="border-b border-dotted border-gray-300">
-                          {contractAddress.substring(0, 6)}...
-                          {contractAddress.slice(-4)}
-                        </span>
-                      </a>
+                      <>
+                        <a
+                          className="no-underline hover:no-underline flex items-center"
+                          href={explorerUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <FileText className="h-[14px] w-[14px] mr-1.5" />
+                          <span className="border-b border-dotted border-gray-300">
+                            {contractAddress.substring(0, 6)}...
+                            {contractAddress.slice(-4)}
+                          </span>
+                        </a>
+                        <ClipboardButton
+                          text={contractAddress}
+                          className="static ml-1 scale-75"
+                        />
+                      </>
                     ) : null}{' '}
                     {moduleName !== name ? (
                       <>
@@ -441,7 +451,7 @@ const Interact: FC = () => {
                         </a>
                       </>
                     ) : null}
-                  </p>
+                  </div>
                 </div>
               </div>
             </div>
