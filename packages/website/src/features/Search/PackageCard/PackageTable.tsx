@@ -53,9 +53,7 @@ const PackageTable: FC<{
   ];
 
   if (latestOnly) {
-    data = data.filter(
-      (row: any) => row.version === 'latest' && row.chain !== 13370
-    );
+    data = data.filter((row: any) => row.version === 'latest');
 
     data = data.filter((row: any) => {
       const matchingChain = getChainById(row.chain);

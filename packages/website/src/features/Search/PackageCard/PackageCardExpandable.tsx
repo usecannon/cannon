@@ -1,4 +1,4 @@
-import { Link2Icon, RowSpacingIcon, PinTopIcon } from '@radix-ui/react-icons';
+import { Link2Icon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { FC, useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -40,34 +40,23 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
           className="flex items-center gap-1"
           onClick={(e) => e.stopPropagation()}
         >
-          <div
-            onClick={() => setIsOpen(!isOpen)}
-            className="sm:hidden cursor-pointer"
-          >
-            {isOpen ? (
-              <PinTopIcon className="w-4 h-4" />
-            ) : (
-              <RowSpacingIcon className="w-4 h-4" />
+          <Switch
+            className="scale-75"
+            checked={!isOpen}
+            onCheckedChange={(checked) => setIsOpen(!checked)}
+          />
+          <p
+            onClick={(checked) => setIsOpen(!checked)}
+            className={cn(
+              'text-xs cursor-pointer',
+              isOpen && 'text-muted-foreground'
             )}
-          </div>
-          <div className="hidden sm:flex items-center gap-1">
-            <Switch
-              className="scale-75"
-              checked={!isOpen}
-              onCheckedChange={(checked) => setIsOpen(!checked)}
-            />
-            <p
-              onClick={(checked) => setIsOpen(!checked)}
-              className={cn(
-                'text-xs cursor-pointer',
-                isOpen && 'text-muted-foreground'
-              )}
-            >
-              <span className="hidden sm:inline">
-                Filter for latest on mainnet
-              </span>
-            </p>
-          </div>
+          >
+            <span className="hidden sm:inline">
+              Filter for latest on mainnet
+            </span>
+            <span className="sm:hidden">Filter for latest</span>
+          </p>
         </div>
       </div>
       <AnimatePresence mode="wait">
