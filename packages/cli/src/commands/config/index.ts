@@ -551,7 +551,7 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '-j --json',
-        description: '(DEPRECATED). use `--out json`. Output as JSON',
+        description: '(DEPRECATED). Use `--out deploy-json`. Output package data as JSON',
       },
       {
         flags: '-o --out <mode>',
