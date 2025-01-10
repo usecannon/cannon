@@ -1,4 +1,4 @@
-import { CodePreview } from '@/components/CodePreview';
+import { Snippet } from '@/components/snippet';
 import Link from 'next/link';
 import { links } from '@/constants/links';
 
@@ -61,7 +61,9 @@ export const ImportProvisionPackages = () => {
         . The relevant code looks like this:
       </p>
       <div className="mb-4">
-        <CodePreview code={code1} language="ini" />
+        <Snippet>
+          <code>{code1}</code>
+        </Snippet>
       </div>
       <p className="mb-4">
         <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-md">
@@ -81,7 +83,9 @@ export const ImportProvisionPackages = () => {
         version of the relevant code:
       </p>
       <div className="mb-4">
-        <CodePreview code={code2} language="ini" />
+        <Snippet>
+          <code>{code2}</code>
+        </Snippet>
       </div>
     </>
   );
