@@ -1,5 +1,6 @@
 import { S3 } from '@aws-sdk/client-s3';
 import memoize from 'memoizee';
+import promiseRetry from 'promise-retry';
 
 export type S3Client = ReturnType<typeof getS3Client>;
 
@@ -36,27 +37,46 @@ export function getS3Client(config: Params, cache = 10_000) {
     objectExists: memoize(async function objectExists(key: string) {
       console.log('[s3][objectExists]', key);
 
-      try {
-        await client.headObject({ Bucket: config.S3_BUCKET, Key: `${config.S3_FOLDER}/${key}` });
-        return true;
-      } catch (err) {
-        if (err instanceof Error && err.name === 'NotFound') {
-          return false;
-        }
+      const exists = await promiseRetry(
+        async () => {
+          try {
+            await client.headObject({ Bucket: config.S3_BUCKET, Key: `${config.S3_FOLDER}/${key}` });
+            return true;
+          } catch (err) {
+            if (err instanceof Error && err.name === 'NotFound') {
+              return false;
+            }
 
-        throw err;
-      }
+            throw err;
+          }
+        },
+        {
+          retries: 3,
+          minTimeout: 500,
+          maxTimeout: 3000,
+        }
+      );
+
+      return exists;
     }, cacheOptions),
 
     putObject: memoize(async function putObject(key: string, data: Buffer) {
       console.log('[s3][putObject]', key);
 
-      const res = await client.putObject({
-        Bucket: config.S3_BUCKET,
-        Key: `${config.S3_FOLDER}/${key}`,
-        Body: data,
-        ContentType: 'application/json',
-      });
+      const res = await promiseRetry(
+        () =>
+          client.putObject({
+            Bucket: config.S3_BUCKET,
+            Key: `${config.S3_FOLDER}/${key}`,
+            Body: data,
+            ContentType: 'application/json',
+          }),
+        {
+          retries: 3,
+          minTimeout: 500,
+          maxTimeout: 3000,
+        }
+      );
 
       await s3.objectExists.delete(key);
       await s3.getObject.delete(key);
@@ -67,10 +87,18 @@ export function getS3Client(config: Params, cache = 10_000) {
     getObject: memoize(async function getObject(key: string) {
       console.log('[s3][getObject]', key);
 
-      const res = await client.getObject({
-        Bucket: config.S3_BUCKET,
-        Key: `${config.S3_FOLDER}/${key}`,
-      });
+      const res = await promiseRetry(
+        () =>
+          client.getObject({
+            Bucket: config.S3_BUCKET,
+            Key: `${config.S3_FOLDER}/${key}`,
+          }),
+        {
+          retries: 3,
+          minTimeout: 500,
+          maxTimeout: 3000,
+        }
+      );
 
       if (!res.Body) {
         throw new Error(`no response body for "${key}"`);

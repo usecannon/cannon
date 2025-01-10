@@ -39,7 +39,7 @@ export function Transaction({ safe, tx, hideExternal, isStaged }: Params) {
 
   // get the package referenced by this ipfs package
   const { resolvedName, resolvedVersion, resolvedPreset } = useCannonPackage(
-    '@' + hintData?.cannonPackage.replace('://', ':')
+    hintData?.cannonPackage
   );
 
   const sigHash = useMemo(

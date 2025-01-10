@@ -23,7 +23,7 @@ jobs:
   build:
     strategy:
       matrix:
-        image: ${{ fromJSON(github.event.inputs.job_to_run == 'all' && '["repo", "indexer"]' || format('["%s"]', github.event.inputs.job_to_run)) }}
+        image: ${{ fromJSON(github.event.inputs.job_to_run == 'all' && '["repo", "indexer"]' || format('["{0}"]', github.event.inputs.job_to_run)) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -39,7 +39,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.PACKAGES_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
