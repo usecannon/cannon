@@ -83,7 +83,11 @@ function SignTransactions() {
                   dataLength={paginatedStagedTxs.length}
                   next={fetchMoreStagedTxs}
                   hasMore={hasMoreStagedTxs}
-                  loader={<Skeleton className="h-[60px] my-2" />}
+                  loader={
+                    <div className="p-2 text-xs text-muted-foreground">
+                      Loading more...
+                    </div>
+                  }
                   scrollableTarget="staged-transactions-container"
                 >
                   <TransactionTable
@@ -143,21 +147,19 @@ function SignTransactions() {
                 next={fetchMoreExecutedTxs}
                 hasMore={hasMoreExecutedTxs}
                 loader={
-                  <div className="p-4 space-y-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
+                  <div className="p-2 text-xs text-muted-foreground">
+                    Loading more...
                   </div>
                 }
                 scrollableTarget="executed-transactions-container"
               >
-                <TransactionTable
-                  transactions={paginatedExecutedTxs}
-                  safe={currentSafe}
-                  hideExternal={isChecked}
-                />
+                <div className="overflow-x-auto">
+                  <TransactionTable
+                    transactions={paginatedExecutedTxs}
+                    safe={currentSafe}
+                    hideExternal={isChecked}
+                  />
+                </div>
               </InfiniteScroll>
             </div>
           )}

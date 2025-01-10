@@ -102,6 +102,7 @@ function TransactionRow({
     if (isLink) {
       return (
         <NextLink
+          className="w-full"
           href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
         >
           {children}
@@ -113,6 +114,7 @@ function TransactionRow({
         href={`${getSafeUrl(safe, '/transactions/tx')}&id=${tx.safeTxHash}`}
         target="_blank"
         rel="noopener noreferrer"
+        className="w-full"
       >
         {children}
       </a>
@@ -174,7 +176,7 @@ function TransactionRow({
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 opacity-0 group-hover:opacity-100"
+            className="h-6 w-6"
             onClick={(e) => e.preventDefault()}
           >
             {isLink ? (

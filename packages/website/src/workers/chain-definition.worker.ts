@@ -15,10 +15,7 @@ self.onmessage = (event) => {
     def.initializeComputedDependencies();
 
     // Send back only the necessary data
-    self.postMessage({
-      allActionNames: def.allActionNames,
-      resolvedDependencies: Array.from(def.resolvedDependencies.entries()),
-    });
+    self.postMessage(def);
   } catch (error: any) {
     self.postMessage({ error: error.message });
   }
