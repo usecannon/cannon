@@ -5,12 +5,12 @@ import { useSafeTransactions } from '@/hooks/backend';
 import { useExecutedTransactions } from '@/hooks/safe';
 import { useInMemoryPagination } from '@/hooks/useInMemoryPagination';
 import React, { useState } from 'react';
-import { Transaction } from './Transaction';
+import { TransactionTable } from './Transaction';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
-import { Pencil } from 'lucide-react';
+import { Settings } from 'lucide-react';
 
 export default function SignTransactionsPage() {
   return <SignTransactions />;
@@ -39,105 +39,130 @@ function SignTransactions() {
   } = useInMemoryPagination(history.results, 5);
 
   return (
-    <div className="container mx-auto py-8 max-w-4xl">
+    <div className="container mx-auto py-8 max-w-4xl space-y-8">
       {/* Staged txs */}
-      <div className="mb-8 p-6 bg-card border border-border rounded-lg">
-        <div className="flex items-center mb-5">
-          <h2 className="text-xl font-semibold">Staged Transactions</h2>
-          <div className="flex items-center ml-auto space-x-2">
-            <code className="font-mono text-muted-foreground text-xs">
-              {settings.stagingUrl}
-            </code>
+      <div className="flex flex-col border border-border rounded-sm overflow-hidden">
+        <div className="flex flex-row px-3 py-2 items-center justify-between bg-accent/50">
+          <div className="flex items-center">
+            <h2 className="font-medium">Staged Transactions</h2>
+          </div>
+          <div className="flex items-center text-xs text-muted-foreground gap-1.5">
+            <span>
+              Signatures shared at{' '}
+              <code className="font-mono">{settings.stagingUrl}</code>
+            </span>
             <Link
               href="/settings"
               className="text-muted-foreground hover:text-primary"
             >
-              <Pencil className="h-4 w-4" />
+              <Settings className="h-3.5 w-3.5" />
             </Link>
           </div>
         </div>
-        {isLoadingSafeTxs ? (
-          <Skeleton className="h-5 w-full" />
-        ) : (
-          currentSafe &&
-          (staged.length === 0 ? (
-            <p className="text-muted-foreground">
-              There are no transactions queued on the selected safe.
-            </p>
+        <div className="bg-background">
+          {isLoadingSafeTxs ? (
+            <div className="p-4 space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+            </div>
           ) : (
-            <div
-              id="staged-transactions-container"
-              className="max-h-[350px] overflow-y-auto"
-            >
-              <InfiniteScroll
-                dataLength={paginatedStagedTxs.length}
-                next={fetchMoreStagedTxs}
-                hasMore={hasMoreStagedTxs}
-                loader={<Skeleton className="h-[60px] my-2" />}
-                scrollableTarget="staged-transactions-container"
+            currentSafe &&
+            (staged.length === 0 ? (
+              <p className="p-4 text-muted-foreground text-center py-8">
+                There are no transactions queued on this Safe.
+              </p>
+            ) : (
+              <div
+                className="max-h-[40dvh] overflow-y-auto"
+                id="staged-transactions-container"
               >
-                {paginatedStagedTxs.map((tx) => (
-                  <Transaction
-                    key={JSON.stringify(tx.txn)}
+                <InfiniteScroll
+                  dataLength={paginatedStagedTxs.length}
+                  next={fetchMoreStagedTxs}
+                  hasMore={hasMoreStagedTxs}
+                  loader={<Skeleton className="h-[60px] my-2" />}
+                  scrollableTarget="staged-transactions-container"
+                >
+                  <TransactionTable
+                    transactions={paginatedStagedTxs.map((tx) => tx.txn)}
                     safe={currentSafe}
-                    tx={tx.txn}
                     hideExternal={false}
                     isStaged
                   />
-                ))}
-              </InfiniteScroll>
-            </div>
-          ))
-        )}
+                </InfiniteScroll>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* Executed txs */}
-      {currentSafe && (history.count ?? 0) > 0 && (
-        <div className="mb-8 p-6 bg-card border border-border rounded-lg">
-          <div className="flex items-center mb-5">
-            <h2 className="text-xl font-semibold">Executed Transactions</h2>
-            <div className="flex items-center ml-auto space-x-2">
-              <Switch
-                id="cannon-only"
-                checked={isChecked}
-                onCheckedChange={setIsChecked}
-              />
-              <label
-                htmlFor="cannon-only"
-                className="text-sm text-muted-foreground"
-              >
-                Show Cannon transactions only
-              </label>
-            </div>
+      <div className="flex flex-col border border-border rounded-sm overflow-hidden">
+        <div className="flex flex-row px-3 py-2 items-center justify-between bg-accent/50">
+          <div className="flex items-center">
+            <h2 className="font-medium">Executed Transactions</h2>
           </div>
-          <div
-            id="executed-transactions-container"
-            className="max-h-[300px] overflow-y-auto"
-          >
-            <InfiniteScroll
-              dataLength={paginatedExecutedTxs.length}
-              next={fetchMoreExecutedTxs}
-              hasMore={hasMoreExecutedTxs}
-              loader={<div>Loading...</div>}
-              scrollableTarget="executed-transactions-container"
-              endMessage={
-                <p className="text-muted-foreground text-center mt-4">
-                  No more transactions to load.
-                </p>
-              }
+          <div className="flex items-center gap-2">
+            <Switch
+              id="cannon-only"
+              className="scale-75"
+              checked={isChecked}
+              onCheckedChange={setIsChecked}
+            />
+            <label
+              htmlFor="cannon-only"
+              className="text-xs text-muted-foreground cursor-pointer"
             >
-              {paginatedExecutedTxs.map((tx) => (
-                <Transaction
-                  key={tx.safeTxHash}
-                  safe={currentSafe}
-                  tx={tx}
-                  hideExternal={isChecked}
-                />
-              ))}
-            </InfiniteScroll>
+              Show Cannon transactions only
+            </label>
           </div>
         </div>
-      )}
+        <div className="bg-background">
+          {!currentSafe || !history.results ? (
+            <div className="p-4 space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          ) : history.results.length === 0 ? (
+            <p className="p-4 text-muted-foreground text-center py-8">
+              No executed transactions were found for this Safe.
+            </p>
+          ) : (
+            <div
+              className="max-h-[40dvh] overflow-y-auto"
+              id="executed-transactions-container"
+            >
+              <InfiniteScroll
+                dataLength={paginatedExecutedTxs.length}
+                next={fetchMoreExecutedTxs}
+                hasMore={hasMoreExecutedTxs}
+                loader={
+                  <div className="p-4 space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                }
+                scrollableTarget="executed-transactions-container"
+              >
+                <TransactionTable
+                  transactions={paginatedExecutedTxs}
+                  safe={currentSafe}
+                  hideExternal={isChecked}
+                />
+              </InfiniteScroll>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

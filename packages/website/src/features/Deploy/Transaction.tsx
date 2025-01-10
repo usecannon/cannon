@@ -9,15 +9,15 @@ import { getSafeTransactionHash } from '@/helpers/safe';
 import { useTxnStager } from '@/hooks/backend';
 import { GitHub } from 'react-feather';
 import { ChevronRight, ExternalLink } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-
-interface Params {
-  safe: SafeDefinition;
-  tx: SafeTransaction;
-  hideExternal: boolean;
-  isStaged?: boolean;
-}
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 const useTxnAdditionalData = ({
   safe,
@@ -32,12 +32,61 @@ const useTxnAdditionalData = ({
   return useTxnData(tx, { safe: safe }) as any;
 };
 
-// Note: If signatures is provided, additional data will be fetched
-export function Transaction({ safe, tx, hideExternal, isStaged }: Params) {
+interface TransactionTableProps {
+  transactions: SafeTransaction[];
+  safe: SafeDefinition;
+  hideExternal: boolean;
+  isStaged?: boolean;
+}
+
+export function TransactionTable({
+  transactions,
+  safe,
+  hideExternal,
+  isStaged,
+}: TransactionTableProps) {
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Type</TableHead>
+          <TableHead>Nonce</TableHead>
+          <TableHead>Package</TableHead>
+          <TableHead>Signers</TableHead>
+          <TableHead></TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {transactions.map((tx) => (
+          <TransactionRow
+            key={isStaged ? JSON.stringify(tx) : tx.safeTxHash}
+            safe={safe}
+            tx={tx}
+            hideExternal={hideExternal}
+            isStaged={isStaged}
+          />
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+interface TransactionRowProps {
+  safe: SafeDefinition;
+  tx: SafeTransaction;
+  hideExternal: boolean;
+  isStaged?: boolean;
+}
+
+function TransactionRow({
+  safe,
+  tx,
+  hideExternal,
+  isStaged,
+}: TransactionRowProps) {
   const stager = useTxnAdditionalData({ safe, tx, isStaged });
   const hintData = parseHintedMulticall(tx.data);
 
-  // get the package referenced by this ipfs package
   const { resolvedName, resolvedVersion, resolvedPreset } = useCannonPackage(
     hintData?.cannonPackage
   );
@@ -70,85 +119,77 @@ export function Transaction({ safe, tx, hideExternal, isStaged }: Params) {
     );
   };
 
+  if (hideExternal && !isLink) {
+    return null;
+  }
+
   return (
     <Wrapper>
-      <div
-        className={cn(
-          'mb-4 p-4 border border-border bg-card rounded-md transition-all hover:bg-accent/50 cursor-pointer',
-          hideExternal && !isLink ? 'hidden' : 'flex'
-        )}
-      >
-        <div className="flex items-center gap-5 w-full">
+      <TableRow className="group cursor-pointer hover:bg-accent/50">
+        <TableCell>
           {hintData?.type === 'deploy' ? (
-            <GitHub size="24" strokeWidth={1} />
+            <GitHub size="20" strokeWidth={1} />
           ) : hintData?.type === 'invoke' ? (
             <img
-              alt="Cannon Logomark"
-              height="24"
-              width="24"
-              src="/images/cannon-logomark.svg"
+              alt="Cannon"
+              height="20"
+              width="20"
+              src="/images/logomark.svg"
             />
           ) : (
             <img
-              alt="Safe Logomark"
-              height="24"
-              width="24"
+              alt="Safe"
+              height="20"
+              width="20"
               src="/images/safe-logomark.svg"
             />
           )}
-          <h3 className="text-lg font-semibold inline-block min-w-[40px]">
-            #{tx._nonce}
-          </h3>
+        </TableCell>
+        <TableCell className="font-medium">#{tx._nonce}</TableCell>
+        <TableCell>
           {hintData?.cannonPackage ? (
             <>
               {hintData.isSinglePackage &&
                 (!resolvedName ? (
                   <div className="animate-spin h-4 w-4 border-2 border-border border-t-foreground rounded-full opacity-80" />
                 ) : (
-                  <p className="text-muted-foreground">
-                    {isStaged
-                      ? hintData.type == 'deploy'
-                        ? 'Building '
-                        : 'Staged with '
-                      : hintData.type == 'deploy'
-                      ? 'Built '
-                      : 'Executed with '}
+                  <span className="text-sm text-muted-foreground">
                     {`${resolvedName}:${resolvedVersion}@${resolvedPreset}`}
-                  </p>
+                  </span>
                 ))}
             </>
           ) : (
-            <p className="text-muted-foreground">Executed without Cannon</p>
+            <span className="text-sm text-muted-foreground">N/A</span>
           )}
-
-          <div className="flex items-center ml-auto">
-            {isStaged && Object.keys(stager).length && (
-              <p className="text-muted-foreground">
-                {stager.existingSigners.length} of{' '}
-                {stager.requiredSigners.toString()} signed
-              </p>
+        </TableCell>
+        <TableCell>
+          {isStaged && Object.keys(stager).length && (
+            <span className="text-sm text-muted-foreground">
+              {stager.existingSigners.length} of{' '}
+              {stager.requiredSigners.toString()} signed
+            </span>
+          )}
+        </TableCell>
+        <TableCell>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 opacity-0 group-hover:opacity-100"
+            onClick={(e) => e.preventDefault()}
+          >
+            {isLink ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ExternalLink className="h-4 w-4" />
             )}
-            <div className="pl-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => e.preventDefault()}
-              >
-                {isLink ? (
-                  <ChevronRight className="h-8 w-8" />
-                ) : (
-                  <ExternalLink className="h-4 w-4" />
-                )}
-                <span className="sr-only">
-                  {isLink
-                    ? 'View Transaction Details'
-                    : `View Transaction #${tx._nonce}`}
-                </span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+            <span className="sr-only">
+              {isLink
+                ? 'View Transaction Details'
+                : `View Transaction #${tx._nonce}`}
+            </span>
+          </Button>
+        </TableCell>
+      </TableRow>
     </Wrapper>
   );
 }
