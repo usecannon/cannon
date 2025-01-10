@@ -1,4 +1,4 @@
-import { CodePreview } from '@/components/CodePreview';
+import { Snippet } from '@/components/snippet';
 import { ExternalLink } from 'lucide-react';
 
 const code = `import { expect } from 'chai';
@@ -54,7 +54,9 @@ export const TestYourProtocol = () => {
         </a>
         :
       </p>
-      <CodePreview code={code} language="javascript" />
+      <Snippet>
+        <code>{code}</code>
+      </Snippet>
     </>
   );
 };
