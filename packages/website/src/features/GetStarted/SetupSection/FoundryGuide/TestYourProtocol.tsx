@@ -1,4 +1,4 @@
-import { CodePreview } from '@/components/CodePreview';
+import { Snippet } from '@/components/snippet';
 import { CommandPreview } from '@/components/CommandPreview';
 
 const code = `pragma solidity ^0.8.13;
@@ -48,7 +48,9 @@ export const TestYourProtocol = () => {
         Include the Cannon.sol library in your tests. Here&apos;s an example:
       </p>
       <div className="mb-4">
-        <CodePreview code={code} language="sol" />
+        <Snippet>
+          <code>{code}</code>
+        </Snippet>
       </div>
       <p className="mb-4">
         Use the test command to run them. (Note that the&nbsp;

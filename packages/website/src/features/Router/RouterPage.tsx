@@ -2,7 +2,7 @@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import NextLink from 'next/link';
 import React from 'react';
-import { CodePreview } from '@/components/CodePreview';
+import { Snippet } from '@/components/snippet';
 import { CommandPreview } from '@/components/CommandPreview';
 
 const code1 = `name = "sample-router-project"
@@ -138,7 +138,9 @@ export const RouterPage = () => {
       </p>
 
       <div className="mb-4">
-        <CodePreview code={code1} language="ini" />
+        <Snippet>
+          <code>{code1}</code>
+        </Snippet>
       </div>
 
       <p className="mb-4">Build the Cannonfile:</p>
@@ -209,7 +211,9 @@ export const RouterPage = () => {
       </p>
 
       <div className="mb-4">
-        <CodePreview code={code2} language="ini" />
+        <Snippet>
+          <code>{code2}</code>
+        </Snippet>
       </div>
 
       <p className="mb-4">

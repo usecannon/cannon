@@ -1,4 +1,3 @@
-import CodePreview from '@/components/CodePreview';
 import camelCase from 'lodash/camelCase';
 import { ChainDefinition, getArtifacts } from '@usecannon/builder';
 import { DeploymentState } from '@usecannon/builder';
@@ -93,18 +92,9 @@ ${generateSettingsText(contextDataCode.settings)}
           Then reference the following data in other Cannonfile operations using
           EJS syntax, like <code>{'<%= settings.example %>'}</code>
         </p>
-        <CodePreview
-          code={JSON.stringify(contextDataCode, null, 2)}
-          height="250px"
-          language="ini"
-          editorProps={{
-            options: {
-              readOnly: true,
-              minimap: { enabled: false },
-              scrollBeyondLastLine: false,
-            },
-          }}
-        />
+        <Snippet>
+          <code>{JSON.stringify(contextDataCode, null, 2)}</code>
+        </Snippet>
       </div>
     </div>
   );
