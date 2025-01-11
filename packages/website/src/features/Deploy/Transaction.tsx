@@ -28,7 +28,12 @@ const useTxnAdditionalData = ({
   tx: SafeTransaction;
   isStaged?: boolean;
 }) => {
-  const useTxnData = isStaged ? useTxnStager : () => ({});
+  const useTxnData = isStaged
+    ? useTxnStager
+    : () => ({
+        existingSigners: tx.confirmedSigners || [],
+        requiredSigners: tx.confirmationsRequired || 0,
+      });
   return useTxnData(tx, { safe: safe }) as any;
 };
 
@@ -106,7 +111,7 @@ function TransactionRow({
 
   return (
     <TableRow className="group cursor-pointer hover:bg-accent/50">
-      <TableCell className="relative">
+      <TableCell className="relative pl-4">
         {isLink ? (
           <NextLink
             className="absolute inset-0 z-10 block"

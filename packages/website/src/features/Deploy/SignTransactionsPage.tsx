@@ -23,7 +23,8 @@ function SignTransactions() {
     currentSafe,
     10000
   );
-  const { data: history } = useExecutedTransactions(currentSafe);
+  const { data: history, isLoading: isLoadingHistory } =
+    useExecutedTransactions(currentSafe);
   const [isChecked, setIsChecked] = useState(true);
 
   const {
@@ -125,7 +126,7 @@ function SignTransactions() {
           </div>
         </div>
         <div className="bg-background">
-          {!currentSafe || !history.results ? (
+          {!currentSafe || isLoadingHistory ? (
             <div className="p-4 space-y-2">
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-full" />
