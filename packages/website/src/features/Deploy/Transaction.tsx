@@ -49,9 +49,11 @@ export function TransactionTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Type</TableHead>
+          <TableHead></TableHead>
           <TableHead>Nonce</TableHead>
-          <TableHead>Package</TableHead>
+          <TableHead>Package Name</TableHead>
+          <TableHead>Version</TableHead>
+          <TableHead>Preset</TableHead>
           <TableHead>Signers</TableHead>
           <TableHead></TableHead>
         </TableRow>
@@ -98,37 +100,27 @@ function TransactionRow({
 
   const isLink = sigHash != null;
 
-  const Wrapper = ({ children }: { children: React.ReactNode }) => {
-    if (isLink) {
-      return (
-        <NextLink
-          className="w-full"
-          href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
-        >
-          {children}
-        </NextLink>
-      );
-    }
-    return (
-      <a
-        href={`${getSafeUrl(safe, '/transactions/tx')}&id=${tx.safeTxHash}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="w-full"
-      >
-        {children}
-      </a>
-    );
-  };
-
   if (hideExternal && !isLink) {
     return null;
   }
 
   return (
-    <Wrapper>
-      <TableRow className="group cursor-pointer hover:bg-accent/50">
-        <TableCell>
+    <TableRow className="group cursor-pointer hover:bg-accent/50">
+      <TableCell className="relative">
+        {isLink ? (
+          <NextLink
+            className="absolute inset-0 z-10 block"
+            href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
+          />
+        ) : (
+          <a
+            href={`${getSafeUrl(safe, '/transactions/tx')}&id=${tx.safeTxHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute inset-0 z-10 block"
+          />
+        )}
+        <div className="relative z-1">
           {hintData?.type === 'deploy' ? (
             <GitHub size="20" strokeWidth={1} />
           ) : hintData?.type === 'invoke' ? (
@@ -146,9 +138,39 @@ function TransactionRow({
               src="/images/safe-logomark.svg"
             />
           )}
-        </TableCell>
-        <TableCell className="font-medium">#{tx._nonce}</TableCell>
-        <TableCell>
+        </div>
+      </TableCell>
+      <TableCell className="relative font-medium">
+        {isLink ? (
+          <NextLink
+            className="absolute inset-0 z-10 block"
+            href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
+          />
+        ) : (
+          <a
+            href={`${getSafeUrl(safe, '/transactions/tx')}&id=${tx.safeTxHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute inset-0 z-10 block"
+          />
+        )}
+        <div className="relative z-1">#{tx._nonce}</div>
+      </TableCell>
+      <TableCell className="relative">
+        {isLink ? (
+          <NextLink
+            className="absolute inset-0 z-10 block"
+            href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
+          />
+        ) : (
+          <a
+            href={`${getSafeUrl(safe, '/transactions/tx')}&id=${tx.safeTxHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute inset-0 z-10 block"
+          />
+        )}
+        <div className="relative z-1">
           {hintData?.cannonPackage ? (
             <>
               {hintData.isSinglePackage &&
@@ -156,23 +178,115 @@ function TransactionRow({
                   <div className="animate-spin h-4 w-4 border-2 border-border border-t-foreground rounded-full opacity-80" />
                 ) : (
                   <span className="text-sm text-muted-foreground">
-                    {`${resolvedName}:${resolvedVersion}@${resolvedPreset}`}
+                    {resolvedName}
                   </span>
                 ))}
             </>
           ) : (
             <span className="text-sm text-muted-foreground">N/A</span>
           )}
-        </TableCell>
-        <TableCell>
+        </div>
+      </TableCell>
+      <TableCell className="relative">
+        {isLink ? (
+          <NextLink
+            className="absolute inset-0 z-10 block"
+            href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
+          />
+        ) : (
+          <a
+            href={`${getSafeUrl(safe, '/transactions/tx')}&id=${tx.safeTxHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute inset-0 z-10 block"
+          />
+        )}
+        <div className="relative z-1">
+          {hintData?.cannonPackage ? (
+            <>
+              {hintData.isSinglePackage &&
+                (!resolvedName ? (
+                  <div className="animate-spin h-4 w-4 border-2 border-border border-t-foreground rounded-full opacity-80" />
+                ) : (
+                  <span className="text-sm text-muted-foreground">
+                    {resolvedVersion}
+                  </span>
+                ))}
+            </>
+          ) : (
+            <span className="text-sm text-muted-foreground">N/A</span>
+          )}
+        </div>
+      </TableCell>
+      <TableCell className="relative">
+        {isLink ? (
+          <NextLink
+            className="absolute inset-0 z-10 block"
+            href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
+          />
+        ) : (
+          <a
+            href={`${getSafeUrl(safe, '/transactions/tx')}&id=${tx.safeTxHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute inset-0 z-10 block"
+          />
+        )}
+        <div className="relative z-1">
+          {hintData?.cannonPackage ? (
+            <>
+              {hintData.isSinglePackage &&
+                (!resolvedName ? (
+                  <div className="animate-spin h-4 w-4 border-2 border-border border-t-foreground rounded-full opacity-80" />
+                ) : (
+                  <span className="text-sm text-muted-foreground">
+                    {resolvedPreset}
+                  </span>
+                ))}
+            </>
+          ) : (
+            <span className="text-sm text-muted-foreground">N/A</span>
+          )}
+        </div>
+      </TableCell>
+      <TableCell className="relative">
+        {isLink ? (
+          <NextLink
+            className="absolute inset-0 z-10 block"
+            href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
+          />
+        ) : (
+          <a
+            href={`${getSafeUrl(safe, '/transactions/tx')}&id=${tx.safeTxHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute inset-0 z-10 block"
+          />
+        )}
+        <div className="relative z-1">
           {isStaged && Object.keys(stager).length && (
             <span className="text-sm text-muted-foreground">
               {stager.existingSigners.length} of{' '}
               {stager.requiredSigners.toString()} signed
             </span>
           )}
-        </TableCell>
-        <TableCell>
+        </div>
+      </TableCell>
+      <TableCell className="relative">
+        {isLink ? (
+          <NextLink
+            className="absolute inset-0 z-10 block"
+            href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
+          />
+        ) : (
+          <a
+            href={`${getSafeUrl(safe, '/transactions/tx')}&id=${tx.safeTxHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute inset-0 z-10 block"
+          />
+        )}
+        <div className="relative z-1">
           <Button
             variant="ghost"
             size="icon"
@@ -190,8 +304,8 @@ function TransactionRow({
                 : `View Transaction #${tx._nonce}`}
             </span>
           </Button>
-        </TableCell>
-      </TableRow>
-    </Wrapper>
+        </div>
+      </TableCell>
+    </TableRow>
   );
 }
