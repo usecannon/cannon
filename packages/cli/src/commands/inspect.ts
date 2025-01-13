@@ -20,15 +20,23 @@ import { log } from '../util/console';
 
 const debug = Debug('cannon:cli:inspect');
 
+const formatTypes = ['overview', 'deploy-json', 'misc-json', 'artifact-json'] as const;
+
+type FormatType = (typeof formatTypes)[number];
+
 export async function inspect(
   packageRef: string,
   cliSettings: CliSettings,
   chainId: number,
-  out: 'overview' | 'deploy-json' | 'misc-json' | 'artifact-json',
+  out: FormatType,
   writeDeployments: string,
   sources: boolean
 ) {
   const { fullPackageRef } = new PackageReference(packageRef);
+
+  if (out && !formatTypes.includes(out)) {
+    throw new Error(`invalid --out value: "${out}". Valid types are: '${formatTypes.join("' | '")}'`);
+  }
 
   const resolver = await createDefaultReadRegistry(cliSettings);
   const loader = getMainLoader(cliSettings);
@@ -47,7 +55,7 @@ export async function inspect(
     console.debug = debug;
   }
 
-  const deployData = await loader[deployUrl.split(':')[0] as 'ipfs'].read(deployUrl);
+  const deployData = await loader.ipfs.read(deployUrl);
 
   if (!deployData) {
     throw new Error(`deployment data could not be downloaded for ${deployUrl} from ${fullPackageRef}.`);

@@ -1,6 +1,6 @@
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CodePreview } from '@/components/CodePreview';
+import { Snippet } from '@/components/snippet';
 import { CommandPreview } from '@/components/CommandPreview';
 
 const code1 = `// SPDX-License-Identifier: UNLICENSED
@@ -42,7 +42,9 @@ export const CreateCannonFile = () => {
         . This will generate the following contract:
       </p>
       <div className="mb-4">
-        <CodePreview code={code1} language="sol" />
+        <Snippet>
+          <code>{code1}</code>
+        </Snippet>
       </div>
       <p className="mb-4">
         Create a cannonfile.toml in the root directory of the project with the
@@ -51,7 +53,9 @@ export const CreateCannonFile = () => {
         420:
       </p>
       <div className="mb-4">
-        <CodePreview code={code2} language="ini" />
+        <Snippet>
+          <code>{code2}</code>
+        </Snippet>
       </div>
       <Alert className="mb-4 bg-gray-700">
         <AlertCircle className="h-4 w-4" />

@@ -64,7 +64,7 @@ describe('inspect', () => {
 
                 contract MyContract {
                   string public name;
-                
+
                   constructor() public {
                     name = "MyContract";
                   }
@@ -82,9 +82,9 @@ describe('inspect', () => {
     };
 
     mockedFallBackRegistry = {
-      getDeployUrl: jest.fn().mockResolvedValue('file:/usecannon.com/url'),
-      getUrl: jest.fn().mockResolvedValue('file:/usecannon.com/url'),
-      getMetaUrl: jest.fn().mockResolvedValue('file:/usecannon.com/meta'),
+      getDeployUrl: jest.fn().mockResolvedValue('ipfs://QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn'),
+      getUrl: jest.fn().mockResolvedValue('ipfs://QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn'),
+      getMetaUrl: jest.fn().mockResolvedValue('ipfs://QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG'),
       registries: [],
     };
 
@@ -147,7 +147,7 @@ describe('inspect', () => {
     expect(getSourceFromRegistry).toHaveBeenCalledWith(mockedFallBackRegistry.registries);
     expect(getContractsAndDetails).toHaveBeenCalledWith(testPkgData.state);
 
-    expect(localLoader.read).toHaveBeenCalledWith('file:/usecannon.com/url');
+    expect(ipfsLoader.read).toHaveBeenCalledWith('ipfs://QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn');
   });
 
   test('should write deployment files', async () => {
@@ -169,7 +169,7 @@ describe('inspect', () => {
     expect(getSourceFromRegistry).toHaveBeenCalledWith(mockedFallBackRegistry.registries);
     expect(getContractsAndDetails).toHaveBeenCalledWith(testPkgData.state);
 
-    expect(localLoader.read).toHaveBeenCalledWith('file:/usecannon.com/url');
+    expect(ipfsLoader.read).toHaveBeenCalledWith('ipfs://QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn');
   });
 
   test('should call inspect with json flag ', async () => {
