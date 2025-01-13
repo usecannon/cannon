@@ -569,7 +569,9 @@ function TransactionDetailsPage() {
                                     }
                                     onClick={handleExecuteTx}
                                   >
-                                    Execute
+                                    {remainingSignatures === 1
+                                      ? 'Sign and Execute'
+                                      : 'Execute'}
                                   </Button>
                                 </div>
                               </TooltipTrigger>
