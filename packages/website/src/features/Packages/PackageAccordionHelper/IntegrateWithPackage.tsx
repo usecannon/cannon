@@ -4,6 +4,7 @@ import { DeploymentState } from '@usecannon/builder';
 import Link from 'next/link';
 import { badgeVariants } from '@/components/ui/badge';
 import { Snippet } from '@/components/snippet';
+import CodePreview from '@/components/CodePreview';
 
 function generateSettingsText(settings?: Record<string, unknown>) {
   let text = '';
@@ -92,9 +93,19 @@ ${generateSettingsText(contextDataCode.settings)}
           Then reference the following data in other Cannonfile operations using
           EJS syntax, like <code>{'<%= settings.example %>'}</code>
         </p>
-        <Snippet>
-          <code>{JSON.stringify(contextDataCode, null, 2)}</code>
-        </Snippet>
+
+        <CodePreview
+          code={JSON.stringify(contextDataCode, null, 2)}
+          height="250px"
+          language="ini"
+          editorProps={{
+            options: {
+              readOnly: true,
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+            },
+          }}
+        />
       </div>
     </div>
   );
