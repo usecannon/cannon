@@ -1,17 +1,16 @@
+import { useMemo } from 'react';
 import camelCase from 'lodash/camelCase';
-import { ChainDefinition, getArtifacts } from '@usecannon/builder';
+import {
+  CANNON_CHAIN_ID,
+  ChainDefinition,
+  getArtifacts,
+  PackageReference,
+} from '@usecannon/builder';
 import { DeploymentState } from '@usecannon/builder';
 import Link from 'next/link';
 import { badgeVariants } from '@/components/ui/badge';
 import { Snippet } from '@/components/snippet';
-
-function generateSettingsText(settings?: Record<string, unknown>) {
-  let text = '';
-  for (const key in settings) {
-    text += `options.${key} = "${settings[key]}"\n`;
-  }
-  return text.trim();
-}
+import CodePreview from '@/components/CodePreview';
 
 type Props = {
   name: string;
@@ -30,32 +29,33 @@ export default function IntegrateWithPackage({
   chainDefinition,
   deploymentState,
 }: Props) {
-  const contextDataCode = getArtifacts(chainDefinition, deploymentState);
+  const pkgRef = PackageReference.from(name, version, preset);
+  const stepName = camelCase(pkgRef.name);
 
-  const _preset = preset !== 'main' ? `@${preset}` : '';
-  const _version = version !== 'latest' ? `:${version}` : '';
-  const _source = `"${name.toLowerCase()}${_version}${_preset}"`;
+  const [contextDataCode, code] = useMemo(() => {
+    const contextDataCode = getArtifacts(chainDefinition, deploymentState);
+    const code = JSON.stringify(contextDataCode, null, 2);
+    return [contextDataCode, code];
+  }, [chainDefinition, deploymentState]);
 
-  const pullCode = `[pull.${camelCase(name)}]
-source = ${_source}
+  const pullCode = `[pull.${stepName}]
+source = "${pkgRef.fullPackageRef}"
 `;
 
-  const cloneCode = `[clone.${camelCase(name)}]
-source = ${_source}
-target = "PACKAGE_NAME@${camelCase(
-    name
-  )}${_preset}" # Replace with a name:version@preset for your cloned instance.
-${generateSettingsText(contextDataCode.settings)}
+  const cloneCode = `[clone.${stepName}]
+source = "${pkgRef.fullPackageRef}"
+target = "TARGET_PACKAGE_NAME:TARGET_VERSION@TARGET_PRESET" # Replace with a name:version@preset for your cloned instance.
+${_generateSettingsText(contextDataCode.settings)}
 `.trim();
 
-  const displayCode = chainId == 13370 ? cloneCode : pullCode;
+  const displayCode = chainId === CANNON_CHAIN_ID ? cloneCode : pullCode;
 
   return (
     <div className="space-y-6 flex flex-col">
       <div>
         <p className="mb-2 flex items-center">
           Add the following to your Cannonfile to{' '}
-          {chainId == 13370 ? (
+          {chainId === CANNON_CHAIN_ID ? (
             <>
               deploy your own instance of this package.{' '}
               <Link
@@ -92,10 +92,26 @@ ${generateSettingsText(contextDataCode.settings)}
           Then reference the following data in other Cannonfile operations using
           EJS syntax, like <code>{'<%= settings.example %>'}</code>
         </p>
-        <Snippet>
-          <code>{JSON.stringify(contextDataCode, null, 2)}</code>
-        </Snippet>
+
+        <CodePreview
+          code={code}
+          height="250px"
+          language="ini"
+          editorProps={{
+            options: {
+              readOnly: true,
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+            },
+          }}
+        />
       </div>
     </div>
   );
+}
+
+function _generateSettingsText(settings?: Record<string, unknown>) {
+  return Object.entries(settings || {})
+    .map(([key, value]) => `options.${key} = "${value}"`)
+    .join('\n');
 }
