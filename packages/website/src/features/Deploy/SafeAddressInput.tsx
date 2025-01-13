@@ -1,5 +1,6 @@
 'use client';
 
+import deepEqual from 'fast-deep-equal';
 import { includes } from '@/helpers/array';
 import { State, useStore } from '@/helpers/store';
 import {
@@ -102,9 +103,8 @@ export function SafeAddressInput() {
   };
 
   function handleSafeDelete(safeString: SafeString) {
-    if (!isValidSafeString(safeString)) {
-      return;
-    }
+    if (!isValidSafeString(safeString)) return;
+
     const parsedSafe = parseSafe(safeString);
     deleteSafe(parsedSafe);
 
@@ -144,11 +144,7 @@ export function SafeAddressInput() {
           );
         }
 
-        if (
-          !currentSafe ||
-          currentSafe.chainId !== safeFromUrl.chainId ||
-          currentSafe.address !== safeFromUrl.address
-        ) {
+        if (!deepEqual(currentSafe, safeFromUrl)) {
           setCurrentSafe(safeFromUrl);
         }
 
@@ -173,8 +169,6 @@ export function SafeAddressInput() {
   }, [
     chains,
     currentSafe,
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    handleNewOrSelectedSafe,
     isClearing,
     prependSafeAddress,
     router,

@@ -13,31 +13,25 @@ import Link from 'next/link';
 import { Settings } from 'lucide-react';
 
 export default function SignTransactionsPage() {
-  return <SignTransactions />;
-}
-
-function SignTransactions() {
   const currentSafe = useStore((s) => s.currentSafe);
   const settings = useStore((s) => s.settings);
-  const { staged, isLoading: isLoadingSafeTxs } = useSafeTransactions(
-    currentSafe,
-    10000
-  );
-  const { data: history, isLoading: isLoadingHistory } =
-    useExecutedTransactions(currentSafe);
+  const stagedTransactions = useSafeTransactions(currentSafe, 10000);
+  const executedTransactions = useExecutedTransactions(currentSafe);
   const [isChecked, setIsChecked] = useState(true);
 
   const {
     paginatedData: paginatedStagedTxs,
     hasMore: hasMoreStagedTxs,
     fetchMoreData: fetchMoreStagedTxs,
-  } = useInMemoryPagination(staged, 5);
+  } = useInMemoryPagination(stagedTransactions.staged, 5);
 
   const {
     paginatedData: paginatedExecutedTxs,
     hasMore: hasMoreExecutedTxs,
     fetchMoreData: fetchMoreExecutedTxs,
-  } = useInMemoryPagination(history.results, 5);
+  } = useInMemoryPagination(executedTransactions.data.results, 5);
+
+  if (!currentSafe) return null;
 
   return (
     <div className="container mx-auto py-8 max-w-4xl space-y-8">
@@ -61,7 +55,7 @@ function SignTransactions() {
           </div>
         </div>
         <div className="bg-background">
-          {isLoadingSafeTxs ? (
+          {stagedTransactions.isLoading ? (
             <div className="p-4 space-y-2">
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-full" />
@@ -69,37 +63,34 @@ function SignTransactions() {
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-full" />
             </div>
+          ) : !stagedTransactions.staged.length ? (
+            <p className="p-4 text-muted-foreground text-center py-8">
+              There are no transactions queued on this Safe.
+            </p>
           ) : (
-            currentSafe &&
-            (staged.length === 0 ? (
-              <p className="p-4 text-muted-foreground text-center py-8">
-                There are no transactions queued on this Safe.
-              </p>
-            ) : (
-              <div
-                className="max-h-[40dvh] overflow-y-auto"
-                id="staged-transactions-container"
+            <div
+              className="max-h-[40dvh] overflow-y-auto"
+              id="staged-transactions-container"
+            >
+              <InfiniteScroll
+                dataLength={paginatedStagedTxs.length}
+                next={fetchMoreStagedTxs}
+                hasMore={hasMoreStagedTxs}
+                loader={
+                  <div className="p-2 text-xs text-muted-foreground">
+                    Loading more...
+                  </div>
+                }
+                scrollableTarget="staged-transactions-container"
               >
-                <InfiniteScroll
-                  dataLength={paginatedStagedTxs.length}
-                  next={fetchMoreStagedTxs}
-                  hasMore={hasMoreStagedTxs}
-                  loader={
-                    <div className="p-2 text-xs text-muted-foreground">
-                      Loading more...
-                    </div>
-                  }
-                  scrollableTarget="staged-transactions-container"
-                >
-                  <TransactionTable
-                    transactions={paginatedStagedTxs.map((tx) => tx.txn)}
-                    safe={currentSafe}
-                    hideExternal={false}
-                    isStaged
-                  />
-                </InfiniteScroll>
-              </div>
-            ))
+                <TransactionTable
+                  transactions={paginatedStagedTxs.map((tx) => tx.txn)}
+                  safe={currentSafe}
+                  hideExternal={false}
+                  isStaged
+                />
+              </InfiniteScroll>
+            </div>
           )}
         </div>
       </div>
@@ -126,7 +117,7 @@ function SignTransactions() {
           </div>
         </div>
         <div className="bg-background">
-          {!currentSafe || isLoadingHistory ? (
+          {executedTransactions.isLoading ? (
             <div className="p-4 space-y-2">
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-full" />
@@ -134,7 +125,7 @@ function SignTransactions() {
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-full" />
             </div>
-          ) : history.results.length === 0 ? (
+          ) : executedTransactions.data.results.length === 0 ? (
             <p className="p-4 text-muted-foreground text-center py-8">
               No executed transactions were found for this Safe.
             </p>

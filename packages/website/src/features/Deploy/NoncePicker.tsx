@@ -25,7 +25,7 @@ export default function NoncePicker({ safe, handleChange }: Params) {
   const [isOverridingNonce, setNonceOverride] = useState(false);
   const [currentNonce, setCurrentNonce] = useState<number | null>(null);
 
-  const safeTxs = useSafeTransactions(safe, Number.POSITIVE_INFINITY);
+  const safeTxs = useSafeTransactions(safe);
 
   useEffect(() => {
     handleChange(currentNonce);
