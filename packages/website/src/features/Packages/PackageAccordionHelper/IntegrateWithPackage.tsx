@@ -12,14 +12,6 @@ import { badgeVariants } from '@/components/ui/badge';
 import { Snippet } from '@/components/snippet';
 import CodePreview from '@/components/CodePreview';
 
-function generateSettingsText(settings?: Record<string, unknown>) {
-  let text = '';
-  for (const key in settings) {
-    text += `options.${key} = "${settings[key]}"\n`;
-  }
-  return text.trim();
-}
-
 type Props = {
   name: string;
   chainId: number;
@@ -37,13 +29,14 @@ export default function IntegrateWithPackage({
   chainDefinition,
   deploymentState,
 }: Props) {
-  const contextDataCode = getArtifacts(chainDefinition, deploymentState);
   const pkgRef = PackageReference.from(name, version, preset);
   const stepName = camelCase(pkgRef.name);
-  const code = useMemo(
-    () => JSON.stringify(contextDataCode || '', null, 2),
-    [contextDataCode]
-  );
+
+  const [contextDataCode, code] = useMemo(() => {
+    const contextDataCode = getArtifacts(chainDefinition, deploymentState);
+    const code = JSON.stringify(contextDataCode, null, 2);
+    return [contextDataCode, code];
+  }, [chainDefinition, deploymentState]);
 
   const pullCode = `[pull.${stepName}]
 source = "${pkgRef.fullPackageRef}"
@@ -52,7 +45,7 @@ source = "${pkgRef.fullPackageRef}"
   const cloneCode = `[clone.${stepName}]
 source = "${pkgRef.fullPackageRef}"
 target = "TARGET_PACKAGE_NAME:TARGET_VERSION@TARGET_PRESET" # Replace with a name:version@preset for your cloned instance.
-${generateSettingsText(contextDataCode.settings)}
+${_generateSettingsText(contextDataCode.settings)}
 `.trim();
 
   const displayCode = chainId === CANNON_CHAIN_ID ? cloneCode : pullCode;
@@ -115,4 +108,10 @@ ${generateSettingsText(contextDataCode.settings)}
       </div>
     </div>
   );
+}
+
+function _generateSettingsText(settings?: Record<string, unknown>) {
+  return Object.entries(settings || {})
+    .map(([key, value]) => `options.${key} = "${value}"`)
+    .join('\n');
 }
