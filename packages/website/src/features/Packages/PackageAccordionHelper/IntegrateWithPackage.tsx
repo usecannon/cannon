@@ -1,5 +1,11 @@
+import { useMemo } from 'react';
 import camelCase from 'lodash/camelCase';
-import { ChainDefinition, getArtifacts } from '@usecannon/builder';
+import {
+  CANNON_CHAIN_ID,
+  ChainDefinition,
+  getArtifacts,
+  PackageReference,
+} from '@usecannon/builder';
 import { DeploymentState } from '@usecannon/builder';
 import Link from 'next/link';
 import { badgeVariants } from '@/components/ui/badge';
@@ -32,31 +38,31 @@ export default function IntegrateWithPackage({
   deploymentState,
 }: Props) {
   const contextDataCode = getArtifacts(chainDefinition, deploymentState);
+  const pkgRef = PackageReference.from(name, version, preset);
+  const stepName = camelCase(pkgRef.name);
+  const code = useMemo(
+    () => JSON.stringify(contextDataCode || '', null, 2),
+    [contextDataCode]
+  );
 
-  const _preset = preset !== 'main' ? `@${preset}` : '';
-  const _version = version !== 'latest' ? `:${version}` : '';
-  const _source = `"${name.toLowerCase()}${_version}${_preset}"`;
-
-  const pullCode = `[pull.${camelCase(name)}]
-source = ${_source}
+  const pullCode = `[pull.${stepName}]
+source = "${pkgRef.fullPackageRef}"
 `;
 
-  const cloneCode = `[clone.${camelCase(name)}]
-source = ${_source}
-target = "PACKAGE_NAME@${camelCase(
-    name
-  )}${_preset}" # Replace with a name:version@preset for your cloned instance.
+  const cloneCode = `[clone.${stepName}]
+source = "${pkgRef.fullPackageRef}"
+target = "TARGET_PACKAGE_NAME:TARGET_VERSION@TARGET_PRESET" # Replace with a name:version@preset for your cloned instance.
 ${generateSettingsText(contextDataCode.settings)}
 `.trim();
 
-  const displayCode = chainId == 13370 ? cloneCode : pullCode;
+  const displayCode = chainId === CANNON_CHAIN_ID ? cloneCode : pullCode;
 
   return (
     <div className="space-y-6 flex flex-col">
       <div>
         <p className="mb-2 flex items-center">
           Add the following to your Cannonfile to{' '}
-          {chainId == 13370 ? (
+          {chainId === CANNON_CHAIN_ID ? (
             <>
               deploy your own instance of this package.{' '}
               <Link
@@ -95,7 +101,7 @@ ${generateSettingsText(contextDataCode.settings)}
         </p>
 
         <CodePreview
-          code={JSON.stringify(contextDataCode, null, 2)}
+          code={code}
           height="250px"
           language="ini"
           editorProps={{
