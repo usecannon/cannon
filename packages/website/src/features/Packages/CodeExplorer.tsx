@@ -508,6 +508,11 @@ export const CodeExplorer: FC<{
                       level={0}
                       onSelectFile={handleSelectFile}
                       selectedKey={selectedKey}
+                      name={
+                        (artifactKey.split(':').length > 1
+                          ? artifactKey.split(':')[1]
+                          : artifactKey) + '.sol'
+                      }
                     />
                   ))}
                 </div>
