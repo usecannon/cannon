@@ -34,7 +34,7 @@ export default function SignTransactionsPage() {
   if (!currentSafe) return null;
 
   return (
-    <div className="container mx-auto py-8 max-w-4xl space-y-8 px-4">
+    <div className="container flex flex-col mx-auto py-8 max-w-4xl space-y-8 px-4">
       {/* Staged txs */}
       <div className="flex flex-col border border-border rounded-sm overflow-hidden">
         <div className="flex flex-row px-3 py-2 items-center justify-between bg-accent/50">
@@ -64,9 +64,11 @@ export default function SignTransactionsPage() {
               <Skeleton className="h-4 w-full" />
             </div>
           ) : !stagedTransactions.staged.length ? (
-            <p className="p-4 text-muted-foreground text-center py-8">
-              There are no transactions queued on this Safe.
-            </p>
+            <div className="flex flex-col items-center justify-center">
+              <p className="p-4 py-8 text-muted-foreground text-center">
+                There are no transactions queued on this Safe.
+              </p>
+            </div>
           ) : (
             <div
               className="max-h-[40dvh] overflow-y-auto"
@@ -131,7 +133,7 @@ export default function SignTransactionsPage() {
             </p>
           ) : (
             <div
-              className="max-h-[40dvh] overflow-y-auto"
+              className="overflow-y-auto"
               id="executed-transactions-container"
             >
               <InfiniteScroll

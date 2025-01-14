@@ -57,7 +57,6 @@ export function SidebarLayout({
   hasSubheader = false,
   fixedFooter = true,
   extraContentHeight,
-  mainContentHeightAuto = false,
   sidebarTop,
   mainContentOverflowY = 'auto',
   borderlessSidebar = false,
@@ -110,12 +109,10 @@ export function SidebarLayout({
 
       {/* Main content */}
       <main
-        className={`cannon-page-main-content overflow-y-${mainContentOverflowY} flex-1 h-[${
-          mainContentHeightAuto ? 'auto' : contentHeight
-        }]`}
+        className={`cannon-page-main-content overflow-y-${mainContentOverflowY} flex-1`}
       >
         {/* container p-4 md:px-6 lg:px-8 ml-0 */}
-        <div className="h-full w-full">{children}</div>
+        {children}
       </main>
     </SidebarProvider>
   );
