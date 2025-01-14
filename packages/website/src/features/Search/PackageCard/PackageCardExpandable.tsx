@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Switch } from '@/components/ui/switch';
 import PackageTable from './PackageTable';
-import { Pin } from 'lucide-react';
 
 interface IPackageCardProps {
   pkgs: any[];
