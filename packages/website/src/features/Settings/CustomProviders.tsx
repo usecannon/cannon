@@ -62,13 +62,13 @@ export default function CustomProviders() {
         {settings.customProviders.map((url, index) => (
           <div
             key={index}
-            className="flex items-center justify-between px-3 py-1 rounded-lg bg-secondary overflow-x-auto max-w-full group"
+            className="flex items-center justify-between pl-3 pr-1 py-1 rounded-lg bg-accent/50 overflow-x-auto max-w-full group"
           >
             <div className="flex items-center gap-3 min-w-0 overflow-x-auto">
               <span className="text-sm truncate whitespace-nowrap">{url}</span>
               {findChainIdByUrl(url) ? (
                 <Badge
-                  variant="outline"
+                  variant="secondary"
                   className="shrink-0 opacity-50 px-1.5 whitespace-nowrap"
                 >
                   Chain ID: {findChainIdByUrl(url)}
