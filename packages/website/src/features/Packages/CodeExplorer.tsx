@@ -464,7 +464,6 @@ export const CodeExplorer: FC<{
                 : {};
 
               const fileTree = buildFileTree(Object.entries(sources));
-
               return (
                 <div key={artifactKey} className="mb-2">
                   <SidebarMenuItem>
@@ -508,6 +507,11 @@ export const CodeExplorer: FC<{
                       level={0}
                       onSelectFile={handleSelectFile}
                       selectedKey={selectedKey}
+                      name={
+                        (artifactKey.split(':').length > 1
+                          ? artifactKey.split(':')[1]
+                          : artifactKey) + '.sol'
+                      }
                     />
                   ))}
                 </div>
