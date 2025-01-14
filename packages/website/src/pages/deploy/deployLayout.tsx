@@ -33,7 +33,7 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
         bg="black"
         borderBottom="1px solid"
         borderColor="gray.700"
-        className="sticky top-[var(--header-height)]"
+        className="sticky z-100 top-[var(--header-height)]"
       >
         <Flex
           alignItems="center"
