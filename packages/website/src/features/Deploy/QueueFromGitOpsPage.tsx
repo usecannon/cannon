@@ -144,22 +144,27 @@ export default function QueueFromGitOps() {
     partialDeployInfo
   );
 
+  const hasDeployers = useMemo(() => {
+    return Boolean(cannonDefInfo?.def?.getDeployers()?.length);
+  }, [cannonDefInfo?.def]);
+
   const cannonDefInfoError: string = gitInfo.gitUrl
     ? (cannonDefInfo?.error as any)?.toString()
     : cannonfileUrlInput &&
       'The format of your URL appears incorrect. Please double check and try again.';
 
-  const fullPackageRef = cannonDefInfo?.def?.getPackageRef(ctx) ?? null;
+  const pkgRef = useMemo(() => {
+    return cannonDefInfo?.def?.getPackageRef(ctx);
+  }, [cannonDefInfo?.def]);
 
   const onChainPrevPkgQuery = useCannonFindUpgradeFromUrl(
-    prevPackageInputRef || fullPackageRef || undefined,
+    pkgRef,
     currentSafe?.chainId,
-    cannonDefInfo?.def?.getDeployers()
+    hasDeployers ? cannonDefInfo?.def?.getDeployers() : undefined,
+    prevPackageInputRef || undefined
   );
 
-  const prevDeployLocation = partialDeployIpfs
-    ? `ipfs://${partialDeployIpfs}`
-    : onChainPrevPkgQuery.data || '';
+  const prevDeployLocation = onChainPrevPkgQuery.data || '';
 
   const prevCannonDeployInfo = useCannonPackage(
     prevDeployLocation,
@@ -167,23 +172,12 @@ export default function QueueFromGitOps() {
   );
 
   useEffect(() => {
-    if (previousPackageInput) {
+    if (PackageReference.isValid(previousPackageInput)) {
       setPrevPackageInputRef(new PackageReference(previousPackageInput));
     } else {
       setPrevPackageInputRef(null);
     }
   }, [previousPackageInput]);
-
-  useEffect(() => {
-    if (!prevCannonDeployInfo.ipfsQuery.data?.deployInfo)
-      return setPreviousPackageInput('');
-
-    const name = prevCannonDeployInfo.ipfsQuery.data?.deployInfo?.def?.name;
-    const version =
-      prevCannonDeployInfo.ipfsQuery.data?.deployInfo?.def?.version || 'latest';
-    const preset = prevCannonDeployInfo.ipfsQuery.data?.deployInfo?.def?.preset;
-    setPreviousPackageInput(`${name}:${version}@${preset}`);
-  }, [prevCannonDeployInfo]);
 
   // run the build and get the list of transactions we need to run
   const { buildState, doBuild, resetState } = useCannonBuild(currentSafe);
@@ -211,6 +205,17 @@ export default function QueueFromGitOps() {
     partialDeployInfo?.ipfsQuery.data?.deployInfo?.miscUrl,
     partialDeployInfo?.ipfsQuery.data?.deployInfo?.options,
   ]);
+
+  // After loading the deployment info, set a default value for the upgradeFrom field
+  useEffect(() => {
+    if (hasDeployers || !nextCannonDeployInfo?.def) {
+      return setPreviousPackageInput('');
+    }
+
+    const { name, preset } = nextCannonDeployInfo.def;
+    const { fullPackageRef } = PackageReference.from(name, 'latest', preset);
+    setPreviousPackageInput(fullPackageRef);
+  }, [nextCannonDeployInfo, hasDeployers]);
 
   const writeToIpfsMutation = useCannonWriteDeployToIpfs();
 
@@ -456,10 +461,6 @@ export default function QueueFromGitOps() {
     partialDeployInfo?.ipfsQuery.data?.deployInfo,
     prevCannonDeployInfo?.ipfsQuery.data?.deployInfo,
   ]);
-
-  const hasDeployers = useMemo(() => {
-    return Boolean(cannonDefInfo?.def?.getDeployers()?.length);
-  }, [cannonDefInfo?.def]);
 
   const tomlRequiresPrevPackage = useMemo(
     () =>
