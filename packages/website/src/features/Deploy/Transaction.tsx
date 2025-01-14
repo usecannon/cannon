@@ -54,13 +54,13 @@ export function TransactionTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead></TableHead>
+          <TableHead className="w-[1px]"></TableHead>
           <TableHead>Nonce</TableHead>
           <TableHead>Package Name</TableHead>
           <TableHead>Version</TableHead>
           <TableHead>Preset</TableHead>
-          <TableHead>Signers</TableHead>
-          <TableHead></TableHead>
+          {isStaged && <TableHead>Signers</TableHead>}
+          <TableHead className="w-[1px]"></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -111,7 +111,7 @@ function TransactionRow({
 
   return (
     <TableRow className="group cursor-pointer hover:bg-accent/50">
-      <TableCell className="relative pl-4">
+      <TableCell className="relative px-6 w-[1px]">
         {isLink ? (
           <NextLink
             className="absolute inset-0 z-10 block"
@@ -254,30 +254,34 @@ function TransactionRow({
           )}
         </div>
       </TableCell>
-      <TableCell className="relative">
-        {isLink ? (
-          <NextLink
-            className="absolute inset-0 z-10 block"
-            href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
-          />
-        ) : (
-          <a
-            href={`${getSafeUrl(safe, '/transactions/tx')}&id=${tx.safeTxHash}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="absolute inset-0 z-10 block"
-          />
-        )}
-        <div className="relative z-1">
-          {isStaged && Object.keys(stager).length && (
-            <span className="text-sm text-muted-foreground">
-              {stager.existingSigners.length} of{' '}
-              {stager.requiredSigners.toString()} signed
-            </span>
+      {isStaged && (
+        <TableCell className="relative">
+          {isLink ? (
+            <NextLink
+              className="absolute inset-0 z-10 block"
+              href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
+            />
+          ) : (
+            <a
+              href={`${getSafeUrl(safe, '/transactions/tx')}&id=${
+                tx.safeTxHash
+              }`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="absolute inset-0 z-10 block"
+            />
           )}
-        </div>
-      </TableCell>
-      <TableCell className="relative">
+          <div className="relative z-1">
+            {isStaged && Object.keys(stager).length && (
+              <span className="text-sm text-muted-foreground">
+                {stager.existingSigners.length} of{' '}
+                {stager.requiredSigners.toString()} signed
+              </span>
+            )}
+          </div>
+        </TableCell>
+      )}
+      <TableCell className="relative w-[1px]">
         {isLink ? (
           <NextLink
             className="absolute inset-0 z-10 block"
