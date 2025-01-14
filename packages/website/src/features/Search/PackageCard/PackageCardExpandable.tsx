@@ -67,7 +67,6 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
               <span className="hidden sm:inline">
                 Filter for latest on mainnet
               </span>
-              <span className="sm:hidden">Filter for latest</span>
             </p>
           </div>
         </div>
