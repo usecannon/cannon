@@ -23,18 +23,18 @@ export default function SignTransactionsPage() {
     paginatedData: paginatedStagedTxs,
     hasMore: hasMoreStagedTxs,
     fetchMoreData: fetchMoreStagedTxs,
-  } = useInMemoryPagination(stagedTransactions.staged, 5);
+  } = useInMemoryPagination(stagedTransactions.staged, 20);
 
   const {
     paginatedData: paginatedExecutedTxs,
     hasMore: hasMoreExecutedTxs,
     fetchMoreData: fetchMoreExecutedTxs,
-  } = useInMemoryPagination(executedTransactions.data.results, 5);
+  } = useInMemoryPagination(executedTransactions.data.results, 20);
 
   if (!currentSafe) return null;
 
   return (
-    <div className="container mx-auto py-8 max-w-4xl space-y-8">
+    <div className="container mx-auto py-8 max-w-4xl space-y-8 px-4">
       {/* Staged txs */}
       <div className="flex flex-col border border-border rounded-sm overflow-hidden">
         <div className="flex flex-row px-3 py-2 items-center justify-between bg-accent/50">
@@ -78,7 +78,7 @@ export default function SignTransactionsPage() {
                 hasMore={hasMoreStagedTxs}
                 loader={
                   <div className="p-2 text-xs text-muted-foreground">
-                    Loading more...
+                    Loading more transactions...
                   </div>
                 }
                 scrollableTarget="staged-transactions-container"
@@ -140,7 +140,7 @@ export default function SignTransactionsPage() {
                 hasMore={hasMoreExecutedTxs}
                 loader={
                   <div className="p-2 text-xs text-muted-foreground">
-                    Loading more...
+                    Loading more transactions...
                   </div>
                 }
                 scrollableTarget="executed-transactions-container"

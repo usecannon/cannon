@@ -188,7 +188,7 @@ function TransactionRow({
                 ))}
             </>
           ) : (
-            <span className="text-sm text-muted-foreground">N/A</span>
+            <span className="text-sm text-muted-foreground/50">N/A</span>
           )}
         </div>
       </TableCell>
@@ -219,7 +219,7 @@ function TransactionRow({
                 ))}
             </>
           ) : (
-            <span className="text-sm text-muted-foreground">N/A</span>
+            <span className="text-sm text-muted-foreground/50">N/A</span>
           )}
         </div>
       </TableCell>
@@ -250,7 +250,7 @@ function TransactionRow({
                 ))}
             </>
           ) : (
-            <span className="text-sm text-muted-foreground">N/A</span>
+            <span className="text-sm text-muted-foreground/50">N/A</span>
           )}
         </div>
       </TableCell>
