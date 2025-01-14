@@ -464,6 +464,7 @@ export const CodeExplorer: FC<{
                 : {};
 
               const fileTree = buildFileTree(Object.entries(sources));
+
               return (
                 <div key={artifactKey} className="mb-2">
                   <SidebarMenuItem>
