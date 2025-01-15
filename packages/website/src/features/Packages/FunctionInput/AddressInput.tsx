@@ -27,7 +27,7 @@ export const AddressInput: FC<{
       className={cn(
         'bg-background',
         isInvalid
-          ? 'border-destructive focus:border-destructive'
+          ? 'border-destructive focus:border-destructive focus-visible:ring-destructive'
           : 'border-input'
       )}
       placeholder="0x0000000000000000000000000000000000000000"
