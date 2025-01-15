@@ -12,10 +12,6 @@ import { SafeAddressInput } from './SafeAddressInput';
 
 export default function WithSafe({ children }: { children: ReactNode }) {
   const currentSafe = useStore((s) => s.currentSafe);
-  // Uncomment the following line to use test with local network
-  // const currentSafe = { chainId: 31337 };
-  const { isConnected } = useAccount();
-  const { openConnectModal } = useConnectModal();
 
   const onchainStoreBytecode = useBytecode({
     chainId: currentSafe?.chainId,
@@ -60,6 +56,11 @@ export default function WithSafe({ children }: { children: ReactNode }) {
 }
 
 function SelectSafeMessage() {
+  // Uncomment the following line to use test with local network
+  // const currentSafe = { chainId: 31337 };
+  const { isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
+
   return (
     <div className="flex flex-col items-center justify-center text-center p-3 flex-1 bg-black/60">
       <motion.svg
