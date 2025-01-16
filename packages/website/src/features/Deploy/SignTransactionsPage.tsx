@@ -112,7 +112,7 @@ export default function SignTransactionsPage() {
             </p>
           ) : (
             <div
-              className="overflow-y-auto"
+              className="overflow-y-auto max-h-[418px]"
               id="executed-transactions-container"
             >
               <InfiniteScroll
