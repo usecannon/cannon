@@ -29,6 +29,7 @@ import {
   findUpgradeFromPackage,
   ChainBuilderContext,
   RawChainDefinition,
+  CannonRegistry,
   getIpfsUrl,
 } from '@usecannon/builder';
 import _ from 'lodash';
@@ -396,55 +397,89 @@ export function useCannonWriteDeployToIpfs() {
   });
 }
 
-export function useCannonFindUpgradeFromUrl(packageRef?: PackageReference, chainId?: number, deployers?: Address[]) {
+export function useCannonFindUpgradeFromUrl(
+  packageRef?: PackageReference,
+  chainId?: number,
+  deployers?: Address[],
+  upgradeFrom?: PackageReference // Optional, if not deployers given
+) {
   const registry = useCannonRegistry();
   const publicClient = usePublicClient();
 
   return useQuery({
-    enabled: !!packageRef && !!chainId && !!deployers?.length,
-    queryKey: ['cannon', 'find-upgrade-from', packageRef?.name, packageRef?.preset, packageRef?.version, chainId, deployers],
+    enabled: !!packageRef && !!chainId,
+    queryKey: [
+      'cannon',
+      'find-upgrade-from',
+      packageRef?.fullPackageRef,
+      chainId,
+      deployers?.join(','),
+      upgradeFrom?.fullPackageRef,
+    ],
+    refetchOnWindowFocus: false,
     queryFn: async () => {
-      return await findUpgradeFromPackage(
-        registry,
-        publicClient as Parameters<typeof findUpgradeFromPackage>[1],
-        packageRef!,
-        chainId!,
-        deployers || []
-      );
+      if (deployers?.length) {
+        const url = await findUpgradeFromPackage(
+          registry,
+          publicClient as Parameters<typeof findUpgradeFromPackage>[1],
+          packageRef!,
+          chainId!,
+          deployers!
+        );
+        return url;
+      } else if (upgradeFrom) {
+        const url = await _getCannonPackageRegistryUrl(registry, upgradeFrom.fullPackageRef, chainId!);
+        return url;
+      }
+
+      throw new Error(`Missing required parameters for ${packageRef?.fullPackageRef}`);
     },
     staleTime: 1000 * 60, // 1 minute
     retry: false,
   });
 }
 
-export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?: number) {
+async function _getCannonPackageRegistryUrl(registry: CannonRegistry, packageRefOrUrl: string, chainId: number) {
+  if (PackageReference.isValid(packageRefOrUrl)) {
+    const url = await registry.getUrl(packageRefOrUrl, chainId);
+    if (!url) throw new Error(`package not found: ${packageRefOrUrl} (${chainId})`);
+    return url;
+  } else if (getIpfsUrl(packageRefOrUrl)) {
+    return getIpfsUrl(packageRefOrUrl);
+  }
+
+  throw new Error(`package not found: ${packageRefOrUrl} (${chainId})`);
+}
+
+export function useCannonPackageRegistryUrl(urlOrRef?: string | PackageReference | null, chainId?: number) {
   const normalizedUrlOrRef = useMemo(() => {
     if (!urlOrRef) return undefined;
-    if (typeof urlOrRef !== 'string') return urlOrRef.fullPackageRef;
-    return urlOrRef;
+    if (typeof urlOrRef === 'string') return urlOrRef;
+    return urlOrRef.fullPackageRef!;
   }, [urlOrRef]);
 
+  const registry = useCannonRegistry();
   const connectedChainId = useChainId();
+  const packageChainId = chainId || connectedChainId;
+
+  return useQuery({
+    queryKey: ['cannon', 'registry-url', normalizedUrlOrRef, packageChainId],
+    queryFn: async () => {
+      const url = await _getCannonPackageRegistryUrl(registry, normalizedUrlOrRef!, packageChainId);
+      return { chainId: packageChainId, url };
+    },
+    enabled: typeof normalizedUrlOrRef === 'string' && !!normalizedUrlOrRef && !!packageChainId,
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?: number) {
   const registry = useCannonRegistry();
   const settings = useStore((s) => s.settings);
   const { addLog } = useLogs();
 
-  const packageChainId = chainId ?? connectedChainId;
-
   // Registry query with proper typing
-  const registryQuery = useQuery({
-    queryKey: ['cannon', 'registry-url', normalizedUrlOrRef, packageChainId],
-    queryFn: async () => {
-      const ipfsUrl = getIpfsUrl(normalizedUrlOrRef);
-      if (ipfsUrl) return { url: ipfsUrl };
-      const url = await registry.getUrl(normalizedUrlOrRef!, packageChainId);
-      if (!url) throw new Error(`package not found: ${normalizedUrlOrRef} (${packageChainId})`);
-      return { url };
-    },
-    enabled: typeof normalizedUrlOrRef === 'string' && normalizedUrlOrRef.length > 3,
-    refetchOnWindowFocus: false,
-    staleTime: 1000 * 60, // 1 minute
-  });
+  const registryQuery = useCannonPackageRegistryUrl(urlOrRef, chainId);
 
   const ipfsQuery = useQuery<{
     deployInfo: DeploymentInfo;
@@ -477,6 +512,7 @@ export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?:
         fullPackageRef,
       };
     },
+    refetchOnWindowFocus: false,
     enabled: !!registryQuery.data?.url,
     staleTime: 1000 * 60, // 1 minute
     retry: false,
@@ -484,13 +520,13 @@ export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?:
 
   // Meta query with proper typing
   const registryQueryMeta = useQuery<{ metaUrl: string } | null>({
-    queryKey: ['cannon', 'registry-meta', ipfsQuery.data?.fullPackageRef, packageChainId],
+    queryKey: ['cannon', 'registry-meta', ipfsQuery.data?.fullPackageRef, registryQuery.data?.chainId],
     queryFn: async () => {
-      if (!ipfsQuery.data?.fullPackageRef) return null;
-      const metaUrl = await registry.getMetaUrl(ipfsQuery.data.fullPackageRef, packageChainId);
+      if (!ipfsQuery.data?.fullPackageRef || !registryQuery.data?.chainId) return null;
+      const metaUrl = await registry.getMetaUrl(ipfsQuery.data.fullPackageRef, registryQuery.data.chainId);
       return metaUrl ? { metaUrl } : null;
     },
-    enabled: !!ipfsQuery.data?.fullPackageRef,
+    enabled: !!ipfsQuery.data?.fullPackageRef && !!registryQuery.data?.chainId,
     staleTime: 1000 * 60, // 1 minute
     refetchOnWindowFocus: false,
   });

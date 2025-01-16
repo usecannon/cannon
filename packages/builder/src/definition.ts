@@ -128,11 +128,11 @@ export class ChainDefinition {
   }
 
   getPreset(ctx: ChainBuilderContext) {
-    return this.raw.preset ? template(this.raw.preset, ctx) : 'main';
+    return template(this.raw.preset || PackageReference.DEFAULT_PRESET, ctx);
   }
 
   getPackageRef(ctx: ChainBuilderContext) {
-    return new PackageReference(`${this.getName(ctx)}:${this.getVersion(ctx) || 'latest'}@${this.getPreset(ctx) || 'main'}`);
+    return PackageReference.from(this.getName(ctx), this.getVersion(ctx), this.getPreset(ctx));
   }
 
   getDeployers() {
