@@ -554,6 +554,7 @@ export default function QueueFromGitOps() {
     }
 
     if (
+      cannonDefInfo.isFetching ||
       prevCannonDeployInfo.isFetching ||
       onChainPrevPkgQuery.isFetching ||
       partialDeployInfo?.isFetching

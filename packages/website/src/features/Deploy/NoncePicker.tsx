@@ -39,7 +39,7 @@ export default function NoncePicker({ safe, handleChange }: Params) {
   if (safeTxs.staged.length === 0) return null;
 
   return (
-    <div className="flex justify-between items-center flex-wrap gap-4">
+    <div className="flex justify-between items-center flex-wrap gap-4 mb-4">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>

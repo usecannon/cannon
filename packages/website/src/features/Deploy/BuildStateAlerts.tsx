@@ -1,6 +1,5 @@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { CustomSpinner } from '@/components/CustomSpinner';
 import { cn } from '@/lib/utils';
 
 interface BuildStateAlertsProps {
@@ -20,7 +19,6 @@ export function BuildStateAlerts({
     <>
       {buildStateMessage && (
         <Alert variant="info" className="mt-6">
-          <CustomSpinner className="mr-3 h-4 w-4" />
           <AlertDescription className="font-bold">
             {buildStateMessage}
           </AlertDescription>
