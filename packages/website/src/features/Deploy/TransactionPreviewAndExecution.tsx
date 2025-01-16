@@ -1,6 +1,5 @@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { CustomSpinner } from '@/components/CustomSpinner';
 import {
   Tooltip,
   TooltipContent,
@@ -100,7 +99,6 @@ export function TransactionPreviewAndExecution({
         )}
       {writeToIpfsMutationRes?.isLoading && (
         <Alert className="mt-6" variant="info">
-          <CustomSpinner className="mr-3 h-4 w-4" />
           <strong>Uploading build result to IPFS...</strong>
         </Alert>
       )}
@@ -127,14 +125,7 @@ export function TransactionPreviewAndExecution({
                       await stager.sign();
                     }}
                   >
-                    {stager.signing ? (
-                      <>
-                        Currently Signing
-                        <CustomSpinner className="h-4 w-4 ml-2" />
-                      </>
-                    ) : (
-                      'Queue & Sign'
-                    )}
+                    {stager.signing ? <>Currently Signing</> : 'Queue & Sign'}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>{stager.signConditionFailed}</TooltipContent>
