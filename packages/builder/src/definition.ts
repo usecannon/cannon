@@ -128,7 +128,7 @@ export class ChainDefinition {
   }
 
   getPreset(ctx: ChainBuilderContext) {
-    return template(this.raw.preset)(ctx) || PackageReference.DEFAULT_PRESET;
+    return template(this.raw.preset || PackageReference.DEFAULT_PRESET, ctx);
   }
 
   getPackageRef(ctx: ChainBuilderContext) {
