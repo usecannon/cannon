@@ -41,6 +41,7 @@ jobs:
         with:
           script: |
             const branchName = `backmerge/main-to-dev-${{ github.sha }}`;
+            await exec.exec('git', ['reset', '--hard']);
             await exec.exec('git', ['checkout', '-b', branchName, 'origin/main']);
             await exec.exec('git', ['push', 'origin', branchName]);
 
