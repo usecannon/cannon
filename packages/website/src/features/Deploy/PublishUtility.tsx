@@ -224,10 +224,9 @@ export default function PublishUtility(props: {
 
         {!!existingRegistryUrl && (
           <Alert variant="warning" className="mb-4">
-            <InfoCircledIcon className="h-4 w-4" />
             <AlertDescription>
-              A different package has already been published to {packageDisplay}
-              . Publishing again will overwrite it.
+              A package has already been published to {packageDisplay}.
+              Publishing again will overwrite it.
             </AlertDescription>
           </Alert>
         )}

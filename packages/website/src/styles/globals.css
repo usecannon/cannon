@@ -131,3 +131,57 @@
   justify-content: center !important;
   z-index: 2147483646;
 }
+
+/* react-diff-view styles */
+.diff {
+  font-family: var(--diff-font-family);
+  color: var(--diff-text-color);
+  background-color: var(--diff-background-color);
+}
+
+.diff-gutter {
+  padding: 0 1em;
+  cursor: pointer;
+  text-align: right;
+  background-color: var(--diff-background-color);
+}
+
+.diff-code {
+  padding: 0 1em;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Light mode */
+.diff-line.diff-line-add {
+  background-color: rgba(0, 200, 0, 0.1);
+}
+
+.diff-line.diff-line-add .diff-gutter {
+  background-color: rgba(0, 200, 0, 0.15);
+}
+
+.diff-line.diff-line-delete {
+  background-color: rgba(255, 0, 0, 0.1);
+}
+
+.diff-line.diff-line-delete .diff-gutter {
+  background-color: rgba(255, 0, 0, 0.15);
+}
+
+/* Dark mode */
+.dark .diff-line.diff-line-add {
+  background-color: rgba(0, 200, 0, 0.15);
+}
+
+.dark .diff-line.diff-line-add .diff-gutter {
+  background-color: rgba(0, 200, 0, 0.2);
+}
+
+.dark .diff-line.diff-line-delete {
+  background-color: rgba(255, 0, 0, 0.15);
+}
+
+.dark .diff-line.diff-line-delete .diff-gutter {
+  background-color: rgba(255, 0, 0, 0.2);
+}

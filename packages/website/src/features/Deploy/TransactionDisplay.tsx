@@ -30,6 +30,12 @@ import {
 } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
 
+// Add diff styles
+const diffStyles = `
+.diff-gutter-delete, .diff-code-delete { background: #63171b; }
+.diff-gutter-insert, .diff-code-insert { background: #1c4532; }
+`;
+
 const CommitLink = ({ gitUrl, hash }: { gitUrl?: string; hash?: string }) => {
   if (!gitUrl || !hash) return null;
 
@@ -146,6 +152,7 @@ export function TransactionDisplay(props: {
 
   return (
     <div className="max-w-full overflow-x-auto">
+      <style>{diffStyles}</style>
       {/* Code diff */}
       {props.showQueueSource && props.queuedWithGitOps && (
         <Card
@@ -207,7 +214,7 @@ export function TransactionDisplay(props: {
               ) : (
                 <>
                   {prevDeployGitHash == '' && <NoDiffWarning />}
-                  <div>
+                  <div className="dark">
                     {/* Commit hashes */}
                     <div className="flex pb-1">
                       {areDiff && (
