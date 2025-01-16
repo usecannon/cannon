@@ -1,5 +1,6 @@
 'use client';
 
+import deepEqual from 'fast-deep-equal';
 import { includes } from '@/helpers/array';
 import { State, useStore } from '@/helpers/store';
 import {
@@ -12,34 +13,29 @@ import {
   usePendingTransactions,
   useWalletPublicSafes,
 } from '@/hooks/safe';
-import { CloseIcon, WarningIcon } from '@chakra-ui/icons';
-import {
-  FormControl,
-  IconButton,
-  Text,
-  Flex,
-  Tooltip,
-  FormErrorMessage,
-} from '@chakra-ui/react';
-import {
-  chakraComponents,
-  ChakraStylesConfig,
-  CreatableSelect,
-  GroupBase,
-  OptionProps,
-  SingleValue,
-  SingleValueProps,
-  MenuListProps,
-} from 'chakra-react-select';
-import deepEqual from 'fast-deep-equal';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import { useSwitchChain } from 'wagmi';
 import omit from 'lodash/omit';
-
-import Chain from '@/features/Search/PackageCard/Chain';
 import { truncateAddress } from '@/helpers/ethereum';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { X, AlertTriangle, ChevronsUpDown } from 'lucide-react';
+import Chain from '@/features/Search/PackageCard/Chain';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { toast } from 'sonner';
 
 type SafeOption = {
   value: SafeString;
@@ -47,20 +43,14 @@ type SafeOption = {
   isDeletable?: boolean;
 };
 
-import { useCallback } from 'react';
-
 export function SafeAddressInput() {
   const currentSafe = useStore((s) => s.currentSafe);
   const safeAddresses = useStore((s) => s.safeAddresses);
   const setCurrentSafe = useStore((s) => s.setCurrentSafe);
   const [inputErrorText, setInputErrorText] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newSafeInput, setNewSafeInput] = useState('');
 
-  // This state prevents the initialization useEffect (which sets the selected safe from the url or the currentSafe)
-  // from running when clearing the input
-  // It's set to true when clearing, which allows us to:
-  // 1. Set currentSafe to null
-  // 2. Wait for the router to clear chainId and address query params
-  // 3. Reset isClearing to false, allowing normal behavior to resume
   const [isClearing, setIsClearing] = useState(false);
 
   const deleteSafe = useStore((s) => s.deleteSafe);
@@ -80,93 +70,62 @@ export function SafeAddressInput() {
     walletSafes.filter((s: any) => !includes(safeAddresses, s))
   );
 
-  // If the user puts a correct address in the input, update the url
-  const handleNewOrSelectedSafe = useCallback(
-    async (safeString: string) => {
-      if (safeString == '') {
-        setIsClearing(true);
-        setCurrentSafe(null);
-        await router.push({
-          pathname: router.pathname,
-          query: omit(router.query, ['chainId', 'address']),
-        });
-        setIsClearing(false);
-        return;
-      }
-
-      if (!isValidSafeString(safeString)) {
-        return;
-      }
-      const parsedSafeInput = parseSafe(safeString);
-
-      if (!isValidSafe(parsedSafeInput, chains)) {
-        return;
-      }
-
+  const handleNewOrSelectedSafe = async (safeString: string) => {
+    if (safeString == '') {
+      setIsClearing(true);
+      setCurrentSafe(null);
       await router.push({
         pathname: router.pathname,
-        query: {
-          ...router.query,
-          chainId: parsedSafeInput.chainId.toString(),
-          address: parsedSafeInput.address,
-        },
+        query: omit(router.query, ['chainId', 'address']),
       });
-    },
-    [chains, router, setCurrentSafe]
-  );
+      setIsClearing(false);
+      return;
+    }
 
-  function handleSafeDelete(safeString: SafeString) {
     if (!isValidSafeString(safeString)) {
       return;
     }
-    deleteSafe(parseSafe(safeString));
-  }
+    const parsedSafeInput = parseSafe(safeString);
 
-  const chakraStyles: ChakraStylesConfig<
-    SafeOption,
-    boolean,
-    GroupBase<SafeOption>
-  > = {
-    container: (provided) => ({
-      ...provided,
-      borderColor: !currentSafe ? 'teal.700' : 'gray.700',
-      background: 'black',
-      cursor: 'pointer',
-    }),
-    menuList: (provided) => ({
-      ...provided,
-      borderColor: 'whiteAlpha.400',
-      background: 'black',
-      py: 0,
-    }),
-    groupHeading: (provided) => ({
-      ...provided,
-      background: 'black',
-    }),
-    option: (provided) => ({
-      ...provided,
-      background: 'black',
-      _selected: {
-        bg: 'gray.800',
+    if (!isValidSafe(parsedSafeInput, chains)) {
+      return;
+    }
+
+    await router.push({
+      pathname: router.pathname,
+      query: {
+        ...router.query,
+        chainId: parsedSafeInput.chainId.toString(),
+        address: parsedSafeInput.address,
       },
-      _hover: {
-        bg: 'gray.900',
-      },
-    }),
-    noOptionsMessage: () => ({
-      height: 2,
-    }),
-    dropdownIndicator: (provided) => ({
-      ...provided,
-      background: 'black',
-    }),
-    control: (provided) => ({
-      ...provided,
-      '& hr.chakra-divider': {
-        display: 'none',
-      },
-    }),
+    });
+    setIsDialogOpen(false);
   };
+
+  function handleSafeDelete(safeString: SafeString) {
+    if (!isValidSafeString(safeString)) return;
+
+    const parsedSafe = parseSafe(safeString);
+    deleteSafe(parsedSafe);
+
+    // If we're deleting the currently selected safe, clear it and redirect
+    if (
+      currentSafe &&
+      currentSafe.chainId === parsedSafe.chainId &&
+      currentSafe.address === parsedSafe.address
+    ) {
+      setIsClearing(true);
+      void router
+        .push({
+          pathname: '/deploy',
+          query: {},
+        })
+        .then(() => {
+          setCurrentSafe(null);
+          setIsClearing(false);
+        });
+    }
+  }
 
   // Load the safe address from url
   useEffect(() => {
@@ -201,11 +160,15 @@ export function SafeAddressInput() {
       }
     };
 
-    void loadSafeFromUrl();
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    loadSafeFromUrl().catch((error: any) => {
+      toast.error('Error loading safe from URL', {
+        description: error.message || 'An unknown error occurred',
+      });
+    });
   }, [
     chains,
     currentSafe,
-    handleNewOrSelectedSafe,
     isClearing,
     prependSafeAddress,
     router,
@@ -214,158 +177,249 @@ export function SafeAddressInput() {
     switchChain,
   ]);
 
+  const handleAddNewSafe = async () => {
+    setInputErrorText('');
+    const isValid = isValidSafeFromSafeString(newSafeInput, chains);
+    if (!isValid) {
+      setInputErrorText(
+        'Invalid Safe Address. If you are using a custom chain, add a custom provider in settings.'
+      );
+      return;
+    }
+    await handleNewOrSelectedSafe(newSafeInput);
+    setNewSafeInput('');
+  };
+
   return (
-    <Flex alignItems="center" gap={3}>
-      <FormControl>
-        <CreatableSelect
-          instanceId={'safe-address-select'}
-          chakraStyles={chakraStyles}
-          value={currentSafe ? _safeToOption(currentSafe) : null}
-          placeholder="Select a Safe"
-          noOptionsMessage={() => ''}
-          isClearable
-          options={[
-            {
-              label: 'Connected Safes',
-              options: safeOptions,
-            },
-            {
-              label: 'Owned Safes',
-              options: walletSafeOptions,
-            },
-          ]}
-          onChange={(selected) =>
-            handleNewOrSelectedSafe(
-              (selected as SingleValue<SafeOption>)?.value || ''
-            )
-          }
-          onCreateOption={handleNewOrSelectedSafe}
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore-next-line
-          //@ts-ignore-next-line
-          onDeleteOption={(selected: SafeOption) =>
-            handleSafeDelete(selected.value)
-          }
-          isValidNewOption={(safeString) => {
-            setInputErrorText('');
-            const res = isValidSafeFromSafeString(safeString, chains);
-            if (!res && safeString !== '') {
-              setInputErrorText(
-                'Invalid Safe Address. If you are using a custom chain, configure a custom PRC in the settings page.'
-              );
-            }
-            return res;
-          }}
-          components={{
-            Option: DeletableOption,
-            SingleValue: SelectedOption,
-            MenuList: (props) => (
-              <CustomMenuList {...props} inputErrorText={inputErrorText} />
-            ),
-          }}
-        />
-        <FormErrorMessage>{inputErrorText}</FormErrorMessage>
-      </FormControl>
+    <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
+        {currentSafe ? (
+          <>
+            <div
+              className="flex items-center gap-1 pl-2"
+              data-testid="selected-safe"
+            >
+              <Chain isSmall id={currentSafe.chainId} />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <span className="font-mono md:hidden">
+                      {truncateAddress(currentSafe.address, 4)}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{currentSafe.address}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <span className="font-mono hidden md:inline">
+                {currentSafe.address}
+              </span>
+            </div>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    onClick={() => setIsDialogOpen(true)}
+                    className="h-5 w-5 ml-0.5"
+                  >
+                    <ChevronsUpDown className="h-3 w-3" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Select Safe</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </>
+        ) : (
+          <Button onClick={() => setIsDialogOpen(true)} size="sm">
+            Select Safe
+          </Button>
+        )}
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Select Safe</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-2">
+              <div className="space-y-4">
+                {safeOptions.map((option) => (
+                  <div
+                    key={option.value}
+                    className="flex items-center justify-between gap-1.5"
+                  >
+                    <Button
+                      variant="secondary"
+                      disabled={Boolean(
+                        currentSafe &&
+                          option.value === safeToString(currentSafe)
+                      )}
+                      className="flex-1 flex items-center justify-between"
+                      onClick={() => {
+                        void handleNewOrSelectedSafe(option.value);
+                        setIsDialogOpen(false);
+                      }}
+                    >
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <span className="font-mono tracking-wider md:hidden">
+                              {truncateAddress(option.value.split(':')[1], 4)}
+                            </span>
+                            <span className="font-mono tracking-wider hidden md:inline">
+                              {truncateAddress(option.value.split(':')[1], 8)}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{option.value.split(':')[1]}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      <Chain id={parseInt(option.value.split(':')[0])} />
+                    </Button>
+                    {option.isDeletable && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSafeDelete(option.value);
+                          if (
+                            currentSafe &&
+                            safeToString(currentSafe) === option.value
+                          ) {
+                            setIsDialogOpen(false);
+                          }
+                        }}
+                      >
+                        <X className="h-4 w-4 text-red-500" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+
+                {walletSafeOptions.length > 0 && (
+                  <div>
+                    <h3 className="mb-2 text-sm font-medium">Owned Safes</h3>
+                    <div className="space-y-2">
+                      {walletSafeOptions.map((option) => (
+                        <div
+                          key={option.value}
+                          className="flex items-center justify-between p-2 rounded-md border border-zinc-800 hover:bg-zinc-900 cursor-pointer"
+                          onClick={() => {
+                            void handleNewOrSelectedSafe(option.value);
+                            setIsDialogOpen(false);
+                          }}
+                        >
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <span className="font-mono tracking-wider">
+                                  {truncateAddress(
+                                    option.value.split(':')[1],
+                                    8
+                                  )}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{option.value.split(':')[1]}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <Chain id={parseInt(option.value.split(':')[0])} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void handleAddNewSafe();
+                    }}
+                  >
+                    <div className="flex gap-4">
+                      <div className="flex-1">
+                        <label className="text-sm mb-2 block text-muted-foreground">
+                          Chain ID
+                        </label>
+                        <Input
+                          data-testid="safe-chain-input"
+                          value={newSafeInput.split(':')[0] || ''}
+                          onChange={(e) =>
+                            setNewSafeInput(
+                              `${e.target.value}:${
+                                newSafeInput.split(':')[1] || ''
+                              }`
+                            )
+                          }
+                          placeholder="1"
+                          type="number"
+                        />
+                      </div>
+                      <div className="flex-[3]">
+                        <label className="text-sm mb-2 block text-muted-foreground">
+                          Safe Address
+                        </label>
+                        <div className="flex gap-4">
+                          <Input
+                            data-testid="safe-address-input"
+                            value={newSafeInput.split(':')[1] || ''}
+                            onChange={(e) =>
+                              setNewSafeInput(
+                                `${newSafeInput.split(':')[0] || ''}:${
+                                  e.target.value
+                                }`
+                              )
+                            }
+                            placeholder="0x..."
+                            className="flex-1"
+                          />
+                          <Button type="submit">Add Safe</Button>
+                        </div>
+                      </div>
+                    </div>
+                  </form>
+                  {inputErrorText && (
+                    <p className="mt-2 text-sm text-red-400">
+                      {inputErrorText}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
 
       {currentSafe && pendingServiceTransactions.count > 0 && (
-        <Tooltip
-          label={`There ${
-            pendingServiceTransactions.count === 1
-              ? ' is 1 pending transaction'
-              : ` are ${pendingServiceTransactions.count} pending transactions`
-          } on the Safe{Wallet} app. Any transactions executed using Cannon will override transactions there.`}
-        >
-          <WarningIcon color="orange.400" boxSize="5" />
-        </Tooltip>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <AlertTriangle className="h-5 w-5 text-orange-400" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                There{' '}
+                {pendingServiceTransactions.count === 1
+                  ? 'is 1 pending transaction'
+                  : `are ${pendingServiceTransactions.count} pending transactions`}{' '}
+                on the Safe app. Any transactions executed using Cannon will
+                override transactions there.
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       )}
-    </Flex>
-  );
-}
-
-function SelectedOption({
-  ...props
-}: SingleValueProps<SafeOption> & { selectProps?: { onDeleteOption?: any } }) {
-  return (
-    <chakraComponents.SingleValue {...props}>
-      <Flex
-        justifyContent="space-between"
-        data-test-id="selected-safe-container"
-      >
-        {/* @notice: Tooltip is not working for this component */}
-        <Tooltip
-          label={props.data.value}
-          aria-label="Safe Address"
-          maxW="fit-content"
-        >
-          <Text letterSpacing="1px" fontFamily="monospace">
-            {truncateAddress(props.data.value.split(':')[1], 10)}
-          </Text>
-        </Tooltip>
-        <Chain id={parseInt(props.data.value.split(':')[0])} />
-      </Flex>
-    </chakraComponents.SingleValue>
-  );
-}
-
-function DeletableOption({
-  ...props
-}: OptionProps<SafeOption> & {
-  selectProps?: { onDeleteOption?: (value: SafeOption) => void };
-}) {
-  const onDelete = props.selectProps?.onDeleteOption;
-  const chainId = parseInt(props.data.value.split(':')[0]);
-  const address = props.data.value.split(':')[1];
-  return (
-    <chakraComponents.Option {...props}>
-      <Flex alignItems="center" width="100%">
-        <Tooltip label={address} aria-label="Safe Address" maxW="fit-content">
-          <Text letterSpacing="1px" fontFamily="monospace">
-            {truncateAddress(address, 10)}
-          </Text>
-        </Tooltip>
-        <Flex grow={1} justifyContent="flex-end">
-          <Chain id={chainId} hideId />
-          {onDelete && props.data.isDeletable && (
-            <IconButton
-              _hover={{ bg: 'gray.300' }}
-              ml={2}
-              size="xs"
-              variant="ghost"
-              aria-label="Delete Option"
-              icon={<CloseIcon color={'white'} />}
-              onClick={(evt) => {
-                evt.preventDefault();
-                evt.stopPropagation();
-                onDelete(props.data);
-              }}
-            />
-          )}
-        </Flex>
-      </Flex>
-    </chakraComponents.Option>
-  );
-}
-
-function CustomMenuList({
-  children,
-  inputErrorText,
-  ...props
-}: MenuListProps<SafeOption> & {
-  inputErrorText: string;
-}) {
-  return (
-    <chakraComponents.MenuList {...props}>
-      <Text
-        color={inputErrorText ? 'red.400' : 'gray.400'}
-        fontSize="xs"
-        my={2}
-        ml={4}
-      >
-        {inputErrorText ||
-          'To add a Safe, enter it in the format chainId:safeAddress'}
-      </Text>
-      {children}
-    </chakraComponents.MenuList>
+    </div>
   );
 }
 

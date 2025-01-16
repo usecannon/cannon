@@ -124,6 +124,7 @@ export function useExecutedTransactions(safe?: SafeDefinition | null) {
   return {
     data: txsQuery?.data || { count: 0, next: null, previous: null, results: [] },
     refetch: txsQuery.refetch,
+    isLoading: txsQuery.isLoading,
   };
 }
 

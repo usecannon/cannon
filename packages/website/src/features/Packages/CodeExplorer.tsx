@@ -508,6 +508,11 @@ export const CodeExplorer: FC<{
                       level={0}
                       onSelectFile={handleSelectFile}
                       selectedKey={selectedKey}
+                      name={
+                        (artifactKey.split(':').length > 1
+                          ? artifactKey.split(':')[1]
+                          : artifactKey) + '.sol'
+                      }
                     />
                   ))}
                 </div>
@@ -567,15 +572,22 @@ export const CodeExplorer: FC<{
     </SidebarContent>
   );
 
+  const contentHeight =
+    'calc(100vh -  var(--header-height) - var(--package-header-height) - var(--package-nav-height) - var(--package-code-contracts-nav-height) - var(--footer-height) )';
+
   return (
     <div className="flex flex-1 flex-col max-h-full max-w-full">
       {isLoading ? (
-        <div className="h-[671px] flex items-center justify-center">
+        <div
+          className="flex items-center justify-center"
+          style={{ height: contentHeight }}
+        >
           <IpfsSpinner ipfsUrl={pkg?.deployUrl} />
         </div>
       ) : artifacts?.length || provisionedPackagesKeys.length ? (
         <>
-          <div className="sticky top-0 z-[3] md:sticky overflow-x-scroll overflow-y-hidden max-w-full border-b border-border bg-muted">
+          {/* List of SC tabs */}
+          <div className="sticky top-0 z-[3] md:sticky h-[--package-code-contracts-nav-height] overflow-x-scroll overflow-y-hidden max-w-full border-b border-border bg-muted">
             <Tabs
               defaultValue={moduleName || name}
               value={selectedPackage.name}
@@ -619,39 +631,40 @@ export const CodeExplorer: FC<{
             </Tabs>
           </div>
 
-          <div className="h-[671px]">
-            <SidebarLayout
-              sidebarContent={sidebarContent}
-              centered={false}
-              contentHeight="671px"
-            >
-              <div className="h-full flex">
-                {selectedCode.length ? (
-                  <>
-                    {/* Make sure code preview is not rendered if function name exists but no selected line is set yet */}
-                    {!selectedLine && functionName ? null : (
-                      <CodePreview
-                        code={selectedCode}
-                        language={selectedLanguage}
-                        height="100%"
-                        line={selectedLine}
-                      />
-                    )}
-                  </>
-                ) : (
-                  <div className="flex-1 flex items-center justify-center min-h-[671px]">
-                    <span className="text-gray-400">
-                      <Info className="inline mr-2 -translate-y-[1px]" />
-                      This package does not contain any code.
-                    </span>
-                  </div>
-                )}
-              </div>
-            </SidebarLayout>
-          </div>
+          <SidebarLayout
+            sidebarContent={sidebarContent}
+            centered={false}
+            extraContentHeight="var(--package-header-height) - var(--package-nav-height) - var(--package-code-contracts-nav-height)"
+          >
+            <div className="h-full flex">
+              {selectedCode.length ? (
+                <>
+                  {/* Make sure code preview is not rendered if function name exists but no selected line is set yet */}
+                  {!selectedLine && functionName ? null : (
+                    <CodePreview
+                      code={selectedCode}
+                      language={selectedLanguage}
+                      height="100%"
+                      line={selectedLine}
+                    />
+                  )}
+                </>
+              ) : (
+                <div className="flex-1 flex items-center justify-center h-full">
+                  <span className="text-gray-400">
+                    <Info className="inline mr-2 -translate-y-[1px]" />
+                    This package does not contain any code.
+                  </span>
+                </div>
+              )}
+            </div>
+          </SidebarLayout>
         </>
       ) : (
-        <div className="flex-1 flex items-center justify-center min-h-[671px]">
+        <div
+          className="flex items-center justify-center"
+          style={{ height: contentHeight }}
+        >
           <span className="text-gray-400">
             <Info className="inline mr-2 -translate-y-[1px]" />
             This package does not contain any code.

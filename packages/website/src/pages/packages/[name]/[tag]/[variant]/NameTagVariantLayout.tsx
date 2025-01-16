@@ -41,15 +41,14 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
   return (
     <SidebarLayout
       centered
-      hasSubheader
       mainContentOverflowY={asPath.includes('/interact') ? 'visible' : 'auto'}
     >
       {packagesQuery.isSuccess ? (
         <div className="position-relative">
-          <div className="bg-black pt-5 border-b border-border">
+          <div className="bg-black  border-b border-border border-box">
             <div className="container max-w-[1024px] mx-auto">
               {/* Package Header */}
-              <div className="flex flex-col h-[136px] md:flex-row md:items-center px-6">
+              <div className="flex flex-col h-[--package-header-height] md:flex-row md:items-center px-6">
                 <div>
                   <h1 className="text-3xl font-bold mb-2">
                     {packagesQuery.data.name}
@@ -133,7 +132,7 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
               </div>
 
               {/* Package Nav */}
-              <div className="flex gap-8 items-center max-w-[100vw] overflow-x-auto overflow-y-hidden px-6">
+              <div className="flex gap-8 h-[--package-nav-height] items-center max-w-[100vw] overflow-x-auto overflow-y-hidden p-5">
                 <NavLink
                   isActive={pathname == '/packages/[name]/[tag]/[variant]'}
                   href={`/packages/${packagesQuery.data.name}/${params.tag}/${params.variant}`}

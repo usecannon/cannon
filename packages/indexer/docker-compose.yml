@@ -3,5 +3,6 @@ name: indexer
 services:
   indexer:
     image: ghcr.io/usecannon/indexer:ea61c99efdc6a20dc9718e7f95a77a8e5de19ff2
+    restart: always
     env_file:
       - .env

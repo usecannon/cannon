@@ -82,10 +82,15 @@ export async function prepareRawFormData(data: Buffer) {
   return { cid, formData };
 }
 
+let _currentRetries = 0;
 export function setAxiosRetries(totalRetries = 3) {
+  if (_currentRetries === totalRetries) return;
+  _currentRetries = totalRetries;
+
   axiosRetry(axios, {
     retries: totalRetries,
     shouldResetTimeout: true,
+    retryCondition: () => true,
     onRetry: (currentRetry, error) => {
       debug('Failed with error:', error);
       debug('Retrying...');
@@ -189,12 +194,16 @@ export async function writeRawIpfs({
   data,
   customHeaders = {},
   timeout = 1000 * 60 * 10,
+  retries = 3,
 }: {
   ipfsUrl: string;
   data: Buffer;
   customHeaders?: Headers;
   timeout?: number;
+  retries?: number;
 }): Promise<string> {
+  setAxiosRetries(retries);
+
   const { cid, formData } = await prepareRawFormData(data);
   const url = new URL(`/api/v0/add?local=true&to-files=%2F${cid}`, ipfsUrl);
 

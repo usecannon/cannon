@@ -48,7 +48,7 @@ const cloneSpec = {
       throw new Error(`only one of \`target\` and \`targetPreset\` can specified for ${packageState.currentLabel}`);
     }
 
-    const ref = new PackageReference(template(config.source)(ctx));
+    const ref = new PackageReference(template(config.source, ctx));
 
     config.source = ref.fullPackageRef;
 
@@ -56,22 +56,22 @@ const cloneSpec = {
       config.source = PackageReference.from(ref.name, ref.version, config.sourcePreset).fullPackageRef;
     }
 
-    config.sourcePreset = template(config.sourcePreset)(ctx);
-    config.targetPreset = template(config.targetPreset)(ctx);
-    config.target = template(config.target)(ctx);
+    config.sourcePreset = template(config.sourcePreset || '', ctx);
+    config.targetPreset = template(config.targetPreset || '', ctx);
+    config.target = template(config.target || '', ctx);
 
     if (config.var) {
       config.var = _.mapValues(config.var, (v) => {
-        return template(v)(ctx);
+        return template(v, ctx);
       });
     } else if (config.options) {
       config.options = _.mapValues(config.options, (v) => {
-        return template(v)(ctx);
+        return template(v, ctx);
       });
     }
 
     if (config.tags) {
-      config.tags = config.tags.map((t: string) => template(t)(ctx));
+      config.tags = config.tags.map((t: string) => template(t, ctx));
     }
 
     return config;

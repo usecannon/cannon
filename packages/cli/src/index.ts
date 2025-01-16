@@ -532,7 +532,7 @@ applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(a
     fullPackageRef,
     cliSettings,
     chainId,
-    options.json ? 'json' : options.out,
+    options.json ? 'deploy-json' : options.out,
     options.writeDeployments,
     options.sources
   );

@@ -1,13 +1,13 @@
+import { InfoCircledIcon } from '@radix-ui/react-icons';
+import { Button } from '@/components/ui/button';
 import {
-  Flex,
-  Container,
-  Heading,
-  Text,
-  Box,
-  Tooltip,
-  useToast,
-} from '@chakra-ui/react';
-import CustomButton from './CustomButton';
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
 import {
   useGasPrice,
   usePrepareTransactionRequest,
@@ -20,9 +20,14 @@ import {
 import { useStore } from '@/helpers/store';
 import * as onchainStore from '../../helpers/onchain-store';
 import * as multicallForwarder from '../../helpers/trusted-multicall-forwarder';
-import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { useCallback, useEffect } from 'react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 const ARACHNID_CREATOR = '0x3fab184622dc19b6109349b94811493bf2a45362';
 const DETERMINISTIC_DEPLOYER = '0x4e59b44847b379578588920ca78fbf26c0b4956c';
@@ -38,7 +43,7 @@ export default function PrepareNetwork({
   const currentSafe = useStore((s) => s.currentSafe);
   // Uncomment the following line to use test with local network
   // const currentSafe = { chainId: 31337 };
-  const toast = useToast();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!isConnected && openConnectModal) {
@@ -74,9 +79,7 @@ export default function PrepareNetwork({
         toast({
           title: 'Deterministic Deployer Deployed',
           description: 'The deterministic deployer has been deployed.',
-          status: 'success',
-          duration: 5000,
-          isClosable: true,
+          variant: 'default',
         });
       },
     },
@@ -117,9 +120,7 @@ export default function PrepareNetwork({
         toast({
           title: 'Onchain Store Deployed',
           description: 'The onchain store has been deployed.',
-          status: 'success',
-          duration: 5000,
-          isClosable: true,
+          variant: 'default',
         });
       },
     },
@@ -151,9 +152,7 @@ export default function PrepareNetwork({
         toast({
           title: 'Multicall Forwarder Deployed',
           description: 'The multicall forwarder has been deployed.',
-          status: 'success',
-          duration: 5000,
-          isClosable: true,
+          variant: 'default',
         });
       },
     },
@@ -177,106 +176,105 @@ export default function PrepareNetwork({
   }, [arachnidDeployed, onchainStoreDeployed, multicallForwarderDeployed]);
 
   return (
-    <Flex height="100%" bg="black">
-      <Container maxW="container.xl" my="auto" py={8}>
-        <Heading
-          size="md"
-          mb={6}
-          textShadow="0px 0px 4px rgba(63, 211, 203, 0.8);"
-        >
+    <div className="flex h-full bg-background">
+      <div className="container max-w-screen-xl mx-auto my-auto py-8">
+        <h2 className="text-lg font-semibold mb-6 text-foreground drop-shadow-[0px_0px_4px_rgba(63,211,203,0.8)]">
           The web deployer needs some contracts on this chain. Anyone can deploy
           them.
-        </Heading>
-        <Flex
-          direction={{ base: 'column', md: 'row' }}
-          gap={8}
-          align="stretch"
-          wrap="wrap"
-        >
-          <Box
-            bg="gray.800"
-            border="1px solid"
-            borderColor="gray.600"
-            borderRadius="sm"
-            p={5}
-            w={{ base: '100%', md: '320px' }}
-          >
-            <Heading size="sm" mb={2}>
-              Deterministic Deployment Proxy
-            </Heading>
-            <Text fontSize="sm" color="gray.300" mb={3}>
-              This allows contracts to be deployed at consistent addresses,
-              determined based on their source code.
-            </Text>
-            <Flex gap={3} alignItems="center">
-              <CustomButton
-                href="#"
-                disabled={arachnidDeployed || execTxnArachnid.isPending}
-                onClick={handleDeployArachnid}
+        </h2>
+        <div className="flex flex-col md:flex-row gap-8 flex-wrap">
+          <Card className="flex-1 min-w-[320px] bg-muted border-border">
+            <CardHeader>
+              <CardTitle className="text-sm">
+                Deterministic Deployment Proxy
+              </CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">
+                This allows contracts to be deployed at consistent addresses,
+                determined based on their source code.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-3 items-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={arachnidDeployed || execTxnArachnid.isPending}
+                  onClick={handleDeployArachnid}
+                  className="uppercase tracking-wider font-medium text-xs"
+                >
+                  {arachnidDeployed ? 'Deployed' : 'Deploy Contract'}
+                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <InfoCircledIcon className="text-muted-foreground h-4 w-4" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      This contract is deployed by sending a small amount of ETH
+                      to an EOA with a known private key. Then the contract is
+                      deployed from that address.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="flex-1 min-w-[320px] bg-muted border-border">
+            <CardHeader>
+              <CardTitle className="text-sm">
+                Upgrade Verification Contract
+              </CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">
+                This allows the deployer to record IPFS and git hashes onchain
+                to verify the integrity of upgrades.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={
+                  !arachnidDeployed ||
+                  onchainStoreDeployed ||
+                  deployOnchainStore.isPending
+                }
+                onClick={handleDeployOnchainStore}
+                className="uppercase tracking-wider font-medium text-xs"
               >
-                {arachnidDeployed ? 'Deployed' : 'Deploy Contract'}
-              </CustomButton>
-              <Tooltip label="This contract is deployed by sending a small amount of ETH to an EOA with a known private key. Then the contract is deployed from that address.">
-                <InfoOutlineIcon color="gray.400" />
-              </Tooltip>
-            </Flex>
-          </Box>
-          <Box
-            bg="gray.800"
-            border="1px solid"
-            borderColor="gray.600"
-            borderRadius="sm"
-            p={5}
-            w={{ base: '100%', md: '320px' }}
-          >
-            <Heading size="sm" mb={2}>
-              Upgrade Verification Contract
-            </Heading>
-            <Text fontSize="sm" color="gray.300" mb={3}>
-              This allows the deployer to record IPFS and git hashes onchain to
-              verify the integrity of upgrades.
-            </Text>
-            <CustomButton
-              href="#"
-              disabled={
-                !arachnidDeployed ||
-                onchainStoreDeployed ||
-                deployOnchainStore.isPending
-              }
-              onClick={handleDeployOnchainStore}
-            >
-              {onchainStoreDeployed ? 'Deployed' : 'Deploy Contract'}
-            </CustomButton>
-          </Box>
-          <Box
-            bg="gray.800"
-            border="1px solid"
-            borderColor="gray.600"
-            borderRadius="sm"
-            p={5}
-            w={{ base: '100%', md: '320px' }}
-          >
-            <Heading size="sm" mb={2}>
-              Trusted Multicall Forwarder
-            </Heading>
-            <Text fontSize="sm" color="gray.300" mb={3}>
-              This allows users to create atomic batch transactions across
-              integrated protocols, like the Cannon Registry.
-            </Text>
-            <CustomButton
-              href="#"
-              disabled={
-                !arachnidDeployed ||
-                multicallForwarderDeployed ||
-                deployMulticallForwarder.isPending
-              }
-              onClick={handleDeployMulticallForwarder}
-            >
-              {multicallForwarderDeployed ? 'Deployed' : 'Deploy Contract'}
-            </CustomButton>
-          </Box>
-        </Flex>
-      </Container>
-    </Flex>
+                {onchainStoreDeployed ? 'Deployed' : 'Deploy Contract'}
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="flex-1 min-w-[320px] bg-muted border-border">
+            <CardHeader>
+              <CardTitle className="text-sm">
+                Trusted Multicall Forwarder
+              </CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">
+                This allows users to create atomic batch transactions across
+                integrated protocols, like the Cannon Registry.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={
+                  !arachnidDeployed ||
+                  multicallForwarderDeployed ||
+                  deployMulticallForwarder.isPending
+                }
+                onClick={handleDeployMulticallForwarder}
+                className="uppercase tracking-wider font-medium text-xs"
+              >
+                {multicallForwarderDeployed ? 'Deployed' : 'Deploy Contract'}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }
