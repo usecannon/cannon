@@ -1,9 +1,15 @@
 import _ from 'lodash';
 import * as viem from 'viem';
+import deepFreeze from 'deep-freeze';
+import rfdc from 'rfdc';
 import { viemContext } from './utils/viem-context';
+import { jsContext } from './utils/js-context';
+import { ethersContext } from './utils/ethers-context';
 import { PackageReference } from './package-reference';
 
 import type { RawChainDefinition } from './actions';
+
+const deepClone = rfdc();
 
 // loosely based on the hardhat `Artifact` type
 export type ContractArtifact = {
@@ -90,81 +96,17 @@ export interface ChainBuilderContext extends PreChainBuilderContext {
   [shortContract: string]: any;
 }
 
-const etherUnitNames = ['wei', 'kwei', 'mwei', 'gwei', 'szabo', 'finney', 'ether'];
+export type CannonContextGlobals = 'imports' | 'contracts' | 'txns' | 'settings' | 'extras';
 
-// Ethers.js compatible context functions. Consider deprecating.
-const ethersStyleConstants = {
-  AddressZero: viem.zeroAddress,
-  HashZero: viem.zeroHash,
-  MaxUint256: viem.maxUint256,
-
-  defaultAbiCoder: {
-    encode: (a: string[], v: any[]) => {
-      return viem.encodeAbiParameters(
-        a.map((arg) => ({ type: arg })),
-        v
-      );
-    },
-    decode: (a: string[], v: viem.Hex | viem.ByteArray) => {
-      return viem.decodeAbiParameters(
-        a.map((arg) => ({ type: arg })),
-        v
-      );
-    },
-  },
-
-  zeroPad: (a: viem.Hex, s: number) => viem.padHex(a, { size: s }),
-  hexZeroPad: (a: viem.Hex, s: number) => viem.padHex(a, { size: s }),
-  hexlify: viem.toHex,
-  stripZeros: viem.trim,
-  formatBytes32String: (v: string) => viem.stringToHex(v, { size: 32 }),
-  parseBytes32String: (v: viem.Hex) => viem.hexToString(v, { size: 32 }),
-  id: (v: string) => (v.startsWith('function ') ? viem.toFunctionSelector(v) : viem.keccak256(viem.toHex(v))),
-  formatEther: viem.formatEther,
-  formatUnits: (s: bigint, units: number | string) => {
-    if (typeof units === 'string') {
-      const index = etherUnitNames.indexOf(units);
-      if (index < 0) {
-        throw new Error(`formatUnits: unknown ethereum unit name: ${units}`);
-      }
-      units = 3 * index;
-    }
-
-    return viem.formatUnits(s, units as number);
-  },
-  parseEther: viem.parseEther,
-  parseUnits: (s: string, units: number | string) => {
-    if (typeof units === 'string') {
-      const index = etherUnitNames.indexOf(units);
-      if (index < 0) {
-        throw new Error(`parseUnits: unknown ethereum unit name: ${units}`);
-      }
-      units = 3 * index;
-    }
-
-    return viem.parseUnits(s, units as number);
-  },
-  keccak256: viem.keccak256,
-  sha256: viem.sha256,
-  ripemd160: viem.ripemd160,
-  solidityPack: viem.encodePacked,
-  solidityKeccak256: (a: string[], v: any[]) => viem.keccak256(viem.encodePacked(a, v)),
-  soliditySha256: (a: string[], v: any[]) => viem.sha256(viem.encodePacked(a, v)),
-  serializeTransaction: viem.serializeTransaction,
-  parseTransaction: viem.parseTransaction,
-
-  encodeFunctionData: viem.encodeFunctionData,
-  decodeFunctionData: viem.decodeFunctionData,
-  encodeFunctionResult: viem.encodeFunctionResult,
-  decodeFunctionResult: viem.decodeFunctionResult,
-};
-
-export const CannonHelperContext = {
-  ...viemContext,
-  ...ethersStyleConstants,
-};
-
-export type ChainBuilderContextWithHelpers = ChainBuilderContext & typeof CannonHelperContext;
+// We do a deepFreeze and deepClone to make sure to not any of the context objects,
+// and not let the user modify them also,
+export const CannonHelperContext = deepFreeze(
+  deepClone({
+    ...viemContext,
+    ...ethersContext,
+    ...jsContext,
+  })
+);
 
 export type BuildOptions = { [val: string]: string };
 
@@ -221,7 +163,7 @@ export interface BundledChainBuilderOutputs {
   [module: string]: BundledOutput;
 }
 
-export type ChainArtifacts = Partial<Pick<ChainBuilderContext, 'imports' | 'contracts' | 'txns' | 'settings' | 'extras'>>;
+export type ChainArtifacts = Partial<Pick<ChainBuilderContext, CannonContextGlobals>>;
 
 export interface ChainBuilderOptions {
   [key: string]: string;

@@ -475,12 +475,7 @@ export const Function: FC<FunctionProps> = ({
                     <PopoverTrigger asChild>
                       <Button disabled={loading} variant="outline">
                         <PlayIcon className="w-4 h-4" />
-                        Simulate transaction{' '}
-                        {simulated && methodCallOrQueuedResult && (
-                          <StatusIcon
-                            error={Boolean(methodCallOrQueuedResult.error)}
-                          />
-                        )}
+                        Simulate transaction
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-80">
@@ -568,21 +563,23 @@ export const Function: FC<FunctionProps> = ({
             {methodCallOrQueuedResult?.error && showError && (
               <Alert variant="destructive" className="mt-4">
                 <div className="flex justify-between items-start">
-                  <AlertDescription className="flex-1">
-                    {`${
-                      methodCallOrQueuedResult.error.includes(
-                        'Encoded error signature'
-                      ) &&
-                      methodCallOrQueuedResult.error.includes(
-                        'not found on ABI'
-                      )
-                        ? 'Error emitted during ERC-7412 orchestration: '
-                        : ''
-                    }${methodCallOrQueuedResult.error}`}
+                  <AlertDescription className="flex-1 overflow-x-auto">
+                    <div className="whitespace-nowrap">
+                      {`${
+                        methodCallOrQueuedResult.error.includes(
+                          'Encoded error signature'
+                        ) &&
+                        methodCallOrQueuedResult.error.includes(
+                          'not found on ABI'
+                        )
+                          ? 'Error emitted during ERC-7412 orchestration: '
+                          : ''
+                      }${methodCallOrQueuedResult.error}`}
+                    </div>
                   </AlertDescription>
                   <button
                     onClick={() => setShowError(false)}
-                    className="ml-2 hover:opacity-70"
+                    className="ml-2 hover:opacity-70 flex-shrink-0"
                   >
                     <XIcon className="h-4 w-4" />
                   </button>
@@ -610,8 +607,8 @@ export const Function: FC<FunctionProps> = ({
                       ) : (
                         <>
                           {isFunctionReadOnly
-                            ? 'Call the view function'
-                            : 'Simulate the transaction'}
+                            ? 'Call the view function '
+                            : 'Simulate the transaction '}
                           for output
                         </>
                       )}

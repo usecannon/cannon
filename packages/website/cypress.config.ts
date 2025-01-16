@@ -5,10 +5,10 @@ import { defineConfig } from 'cypress';
 
 export default defineConfig({
   e2e: {
-    defaultCommandTimeout: 1000_000,
-    pageLoadTimeout: 1000_000,
-    requestTimeout: 1000_000,
-    responseTimeout: 1000_000,
+    defaultCommandTimeout: 100_000,
+    pageLoadTimeout: 100_000,
+    requestTimeout: 100_000,
+    responseTimeout: 300_000,
     specPattern: '**/*.feature',
     baseUrl: 'http://localhost:3000',
     video: false, // GH provides 2 CPUs, and cypress video eats one up, ref https://github.com/cypress-io/cypress/issues/20468#issuecomment-1307608025

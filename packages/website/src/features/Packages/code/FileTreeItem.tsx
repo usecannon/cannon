@@ -1,7 +1,7 @@
 import { SidebarMenuItem } from '@/components/ui/sidebar';
 import { FileTreeNode } from '@/features/Packages/code/type';
-import { FC, useState } from 'react';
-import { ChevronDown, ChevronRight, FileIcon, FolderIcon } from 'lucide-react';
+import { FC, useEffect, useState } from 'react';
+import { ChevronDown, ChevronRight, FileInput, FolderIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const FileTreeItem: FC<{
@@ -9,9 +9,28 @@ export const FileTreeItem: FC<{
   level: number;
   onSelectFile: (path: string, content: any) => void;
   selectedKey: string;
-}> = ({ node, level, onSelectFile, selectedKey }) => {
+  name: string;
+}> = ({ node, level, onSelectFile, selectedKey, name }) => {
   const [isOpen, setIsOpen] = useState(false);
   const paddingLeft = `${level * 12}px`;
+
+  const hasName = (node: FileTreeNode, name: string): boolean => {
+    if (node.name == name) {
+      return true;
+    }
+
+    for (const child of Object.values(node.children)) {
+      if (hasName(child, name)) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  useEffect(() => {
+    setIsOpen(hasName(node, name));
+  }, []);
 
   if (node.type === 'file') {
     return (
@@ -25,7 +44,7 @@ export const FileTreeItem: FC<{
           onClick={() => onSelectFile(node.path, node.content)}
         >
           <div className="flex items-center pl-6">
-            <FileIcon size={16} className="mr-2" />
+            <FileInput size={16} className="mr-2" />
             <span className="text-sm truncate max-w-[180px]">{node.name}</span>
           </div>
         </div>
@@ -59,6 +78,7 @@ export const FileTreeItem: FC<{
               level={level + 1}
               onSelectFile={onSelectFile}
               selectedKey={selectedKey}
+              name={name}
             />
           ))}
         </>

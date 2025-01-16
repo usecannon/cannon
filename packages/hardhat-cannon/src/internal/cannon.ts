@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { ContractMap } from '@usecannon/builder';
+import { ContractMap, ChainArtifacts } from '@usecannon/builder';
 import { build, getProvider, loadCannonfile, PackageSettings } from '@usecannon/cli';
 import { SUBTASK_GET_ARTIFACT } from '../task-names';
 import { getHardhatSigners } from './get-hardhat-signers';
@@ -9,7 +9,6 @@ import * as viem from 'viem';
 
 import type { CannonRpcNode } from '@usecannon/cli/src/rpc';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
-import type { BuildOutputs } from '../types';
 
 interface BuildOptions {
   hre: HardhatRuntimeEnvironment;
@@ -64,7 +63,7 @@ export async function cannonBuild(options: BuildOptions) {
   return { outputs };
 }
 
-export function getContractDataFromOutputs(outputs: BuildOutputs, contractName: string) {
+export function getContractDataFromOutputs(outputs: ChainArtifacts, contractName: string) {
   const contracts = getAllContractDatasFromOutputs(outputs);
   const contract = contracts[contractName];
 
@@ -76,13 +75,13 @@ export function getContractDataFromOutputs(outputs: BuildOutputs, contractName: 
   return contract;
 }
 
-export function getAllContractDatasFromOutputs(outputs: BuildOutputs) {
+export function getAllContractDatasFromOutputs(outputs: ChainArtifacts) {
   const result: ContractMap = {};
   _setContractsDatasFromOutputs(outputs, result);
   return result;
 }
 
-function _setContractsDatasFromOutputs(outputs: BuildOutputs, result: ContractMap, scope?: string) {
+function _setContractsDatasFromOutputs(outputs: ChainArtifacts, result: ContractMap, scope?: string) {
   // this logic handles deeply nested imports such as synthetix.oracle_manager
   // which is really outputs.imports.synthetix.imports.oracle_manager
   const from = scope

@@ -58,24 +58,21 @@ export const CannonfileGraph: FC<{
   useEffect(() => {
     async function initializeGraph() {
       try {
-        const chainDefinition = await getChainDefinitionFromWorker(
-          deploymentDefinition
-        );
+        const { allActionNames, resolvedDependencies } =
+          await getChainDefinitionFromWorker(deploymentDefinition);
 
         // Clear existing nodes and links
         nodes.length = 0;
         links.length = 0;
 
         // Add nodes and links using worker result
-        for (const node of chainDefinition.allActionNames) {
+        for (const node of allActionNames) {
           nodes.push({ id: node });
         }
-        for (const node of chainDefinition.allActionNames) {
-          chainDefinition.resolvedDependencies
-            .get(node)
-            ?.forEach((dependency) => {
-              links.push({ source: dependency, target: node });
-            });
+        for (const node of allActionNames) {
+          resolvedDependencies.get(node)?.forEach((dependency) => {
+            links.push({ source: dependency, target: node });
+          });
         }
 
         // Continue with existing D3 setup code...
@@ -299,7 +296,7 @@ export const CannonfileGraph: FC<{
   return (
     <>
       <GlobalStyles />
-      <svg ref={svgRef} width={'100%'} height={'100%'} />
+      <svg ref={svgRef} width={'100%'} height={'calc(100dvh)'} />
     </>
   );
 };

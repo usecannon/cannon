@@ -1,13 +1,6 @@
 import { CodePreview } from '@/components/CodePreview';
-import {
-  Button,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalCloseButton,
-  useDisclosure,
-  Box,
-} from '@chakra-ui/react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import React, { useEffect, useState } from 'react';
 import { stringify } from '@iarna/toml';
 import { useStepModalContext } from '@/providers/stepModalProvider';
@@ -18,7 +11,7 @@ interface Props {
 }
 
 const ChainDefinitionSteps: React.FC<Props> = ({ name, modules }) => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [open, setOpen] = useState(false);
   const { activeModule, setActiveModule } = useStepModalContext();
   const [activeModuleData, setActiveModuleData] = useState<Record<
     string,
@@ -30,48 +23,41 @@ const ChainDefinitionSteps: React.FC<Props> = ({ name, modules }) => {
       const moduleName = activeModule.split('.')[1];
       if (modules[moduleName]) {
         setActiveModuleData({ [activeModule]: modules[moduleName] });
-        onOpen();
+        setOpen(true);
       }
     }
-  }, [activeModule, modules, name, onOpen]);
+  }, [activeModule, modules, name]);
 
   return (
-    <Box>
+    <div>
       {Object.keys(modules).map((key) => (
         <Button
+          size="xs"
           variant="outline"
-          color="gray.300"
-          borderColor="gray.600"
-          fontFamily={'mono'}
-          _hover={{ bg: 'gray.800' }}
+          className="font-mono mr-2 mb-2 text-xs hover:bg-accent"
           key={key}
           onClick={() => {
             setActiveModule(`${name}.${key}`);
           }}
-          size="xs"
-          mr={2}
-          mb={2}
         >
           [{name}.{key}]
         </Button>
       ))}
 
       {activeModuleData && (
-        <Modal size="4xl" isOpen={isOpen} onClose={onClose} isCentered>
-          <ModalOverlay />
-          <ModalContent background="none">
-            <Box my={12}>
-              <ModalCloseButton />
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent className="sm:max-w-4xl bg-transparent border-none p-0">
+            <div className="relative my-12">
               <CodePreview
                 height="66vh"
                 code={stringify({ ...activeModuleData } as any)}
                 language="ini"
               />
-            </Box>
-          </ModalContent>
-        </Modal>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
-    </Box>
+    </div>
   );
 };
 

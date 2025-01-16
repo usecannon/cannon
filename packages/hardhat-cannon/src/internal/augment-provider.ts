@@ -1,7 +1,7 @@
-import { traceActions } from '@usecannon/builder';
-import { BuildOutputs, CannonProvider } from '../types';
+import { ChainArtifacts, traceActions } from '@usecannon/builder';
+import { CannonProvider } from '../types';
 
-export function augmentProvider(originalProvider: CannonProvider, outputs: BuildOutputs) {
+export function augmentProvider(originalProvider: CannonProvider, outputs: ChainArtifacts) {
   const provider = originalProvider.extend(traceActions(outputs) as any) as unknown as CannonProvider;
 
   // Monkey patch to call original cannon extended estimateGas fn

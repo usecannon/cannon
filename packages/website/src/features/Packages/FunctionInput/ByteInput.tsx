@@ -56,8 +56,10 @@ export const ByteInput: FC<{
           <Input
             type="text"
             className={cn(
-              'bg-background border-input',
-              isInvalid && 'border-destructive focus:border-destructive'
+              'bg-background',
+              isInvalid
+                ? 'border-destructive focus:border-destructive focus-visible:ring-destructive'
+                : 'border-input'
             )}
             placeholder="0x0000000000000000000000000000000000000000"
             value={updateValue}

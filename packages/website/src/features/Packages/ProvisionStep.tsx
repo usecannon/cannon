@@ -4,7 +4,6 @@ import {
   ChainArtifacts,
   BundledChainBuilderOutputs,
 } from '@usecannon/builder';
-import { Box, Flex, Heading, Code } from '@chakra-ui/react';
 import { Copy } from 'react-feather';
 import { useCopy } from '@/lib/copy';
 import { ContractStep } from '@/features/Packages/ContractStep';
@@ -35,33 +34,32 @@ export const ProvisionStep: FC<{
   const copy = useCopy();
 
   return (
-    <Box mb="8">
+    <div className="mb-8">
       {output.map((o) => {
         return (
-          <Box key={JSON.stringify(o)}>
-            <Flex mb="2">
+          <div key={JSON.stringify(o)}>
+            <div className="mb-2 flex">
               {o.title && (
-                <Heading mb="1" size="md" display="inline-block">
+                <h3 className="mb-1 inline-block text-xl font-semibold tracking-tight">
                   {o.title}
-                </Heading>
+                </h3>
               )}
               {o.url && (
-                <Flex ml="auto" alignItems="center">
-                  <Code bg="transparent" color="gray.200" cursor="pointer">
+                <div className="ml-auto flex items-center">
+                  <code className="bg-transparent text-gray-200 cursor-pointer">
                     {o.url}
-                  </Code>
-                  <Box
-                    ml={1}
+                  </code>
+                  <div
+                    className="ml-1 cursor-pointer"
                     onClick={async () => {
                       await copy(o.url);
                     }}
-                    className="copy-button"
                   >
-                    <Copy size={16} />
-                  </Box>
-                </Flex>
+                    <Copy className="h-4 w-4" />
+                  </div>
+                </div>
               )}
-            </Flex>
+            </div>
             <ContractStep
               contracts={o.contracts}
               cannonOutputs={cannonOutputs}
@@ -75,9 +73,9 @@ export const ProvisionStep: FC<{
                 chainId={chainId}
               />
             )}
-          </Box>
+          </div>
         );
       })}
-    </Box>
+    </div>
   );
 };

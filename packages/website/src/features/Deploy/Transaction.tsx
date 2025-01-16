@@ -1,18 +1,5 @@
-import { useMemo } from 'react';
-import { ChevronRightIcon, ExternalLinkIcon } from '@chakra-ui/icons';
+import React, { useMemo } from 'react';
 import { useCannonPackage } from '@/hooks/cannon';
-import {
-  Box,
-  Flex,
-  Heading,
-  IconButton,
-  Link as ChakraLink,
-  LinkBox,
-  LinkOverlay,
-  Image,
-  Spinner,
-  Text,
-} from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { getSafeUrl } from '@/hooks/safe';
 import { SafeDefinition } from '@/helpers/store';
@@ -21,13 +8,16 @@ import { parseHintedMulticall } from '@/helpers/cannon';
 import { getSafeTransactionHash } from '@/helpers/safe';
 import { useTxnStager } from '@/hooks/backend';
 import { GitHub } from 'react-feather';
-
-interface Params {
-  safe: SafeDefinition;
-  tx: SafeTransaction;
-  hideExternal: boolean;
-  isStaged?: boolean;
-}
+import { ChevronRight, ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 const useTxnAdditionalData = ({
   safe,
@@ -38,16 +28,72 @@ const useTxnAdditionalData = ({
   tx: SafeTransaction;
   isStaged?: boolean;
 }) => {
-  const useTxnData = isStaged ? useTxnStager : () => ({});
+  const useTxnData = isStaged
+    ? useTxnStager
+    : () => ({
+        existingSigners: tx.confirmedSigners || [],
+        requiredSigners: tx.confirmationsRequired || 0,
+      });
   return useTxnData(tx, { safe: safe }) as any;
 };
 
-// Note: If signatures is provided, additional data will be fetched
-export function Transaction({ safe, tx, hideExternal, isStaged }: Params) {
+interface TransactionTableProps {
+  transactions: SafeTransaction[];
+  safe: SafeDefinition;
+  hideExternal: boolean;
+  isStaged?: boolean;
+}
+
+export function TransactionTable({
+  transactions,
+  safe,
+  hideExternal,
+  isStaged,
+}: TransactionTableProps) {
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-[1px]"></TableHead>
+          <TableHead>Nonce</TableHead>
+          <TableHead>Package Name</TableHead>
+          <TableHead>Version</TableHead>
+          <TableHead>Preset</TableHead>
+          {isStaged && <TableHead>Signers</TableHead>}
+          <TableHead className="w-[1px]"></TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {transactions.map((tx) => (
+          <TransactionRow
+            key={isStaged ? JSON.stringify(tx) : tx.safeTxHash}
+            safe={safe}
+            tx={tx}
+            hideExternal={hideExternal}
+            isStaged={isStaged}
+          />
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+interface TransactionRowProps {
+  safe: SafeDefinition;
+  tx: SafeTransaction;
+  hideExternal: boolean;
+  isStaged?: boolean;
+}
+
+function TransactionRow({
+  safe,
+  tx,
+  hideExternal,
+  isStaged,
+}: TransactionRowProps) {
   const stager = useTxnAdditionalData({ safe, tx, isStaged });
   const hintData = parseHintedMulticall(tx.data);
 
-  // get the package referenced by this ipfs package
   const { resolvedName, resolvedVersion, resolvedPreset } = useCannonPackage(
     hintData?.cannonPackage
   );
@@ -59,97 +105,216 @@ export function Transaction({ safe, tx, hideExternal, isStaged }: Params) {
 
   const isLink = sigHash != null;
 
-  return (
-    <LinkBox
-      as={Flex}
-      display={hideExternal && !isLink ? 'none' : 'flex'}
-      mb="4"
-      p="4"
-      border="1px solid"
-      bg="blackAlpha.500"
-      borderColor="gray.600"
-      borderRadius="md"
-      alignItems="center"
-      shadow="lg"
-      transition="all 0.2s"
-      _hover={{ shadow: 'xl', bg: 'blackAlpha.600' }}
-    >
-      <Flex alignItems={'center'} gap={5} w="100%">
-        {hintData?.type === 'deploy' ? (
-          <GitHub size="24" strokeWidth={1} />
-        ) : hintData?.type === 'invoke' ? (
-          <Image
-            alt="Cannon Logomark"
-            height="24px"
-            src="/images/cannon-logomark.svg"
-          />
-        ) : (
-          <Image
-            alt="Safe Logomark"
-            height="24px"
-            src="/images/safe-logomark.svg"
-          />
-        )}
-        <Heading size="md" display="inline-block" minWidth="40px">
-          #{tx._nonce}
-        </Heading>
-        {hintData?.cannonPackage ? (
-          <>
-            {hintData.isSinglePackage &&
-              (!resolvedName ? (
-                <Spinner size="xs" opacity={0.8} />
-              ) : (
-                <Text color="gray.300">
-                  {isStaged
-                    ? hintData.type == 'deploy'
-                      ? 'Building '
-                      : 'Staged with '
-                    : hintData.type == 'deploy'
-                    ? 'Built '
-                    : 'Executed with '}
-                  {`${resolvedName}:${resolvedVersion}@${resolvedPreset}`}
-                </Text>
-              ))}
-          </>
-        ) : (
-          <Text color="gray.300">Executed without Cannon</Text>
-        )}
+  if (hideExternal && !isLink) {
+    return null;
+  }
 
-        <Flex alignItems="center" ml="auto">
-          {isStaged && Object.keys(stager).length && (
-            <Text color="gray.300">
-              {stager.existingSigners.length} of{' '}
-              {stager.requiredSigners.toString()} signed
-            </Text>
+  return (
+    <TableRow className="group cursor-pointer hover:bg-accent/50">
+      <TableCell className="relative px-6 w-[1px]">
+        {isLink ? (
+          <NextLink
+            className="absolute inset-0 z-10 block"
+            href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
+          />
+        ) : (
+          <a
+            href={`${getSafeUrl(safe, '/transactions/tx')}&id=${tx.safeTxHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute inset-0 z-10 block"
+          />
+        )}
+        <div className="relative z-1">
+          {hintData?.type === 'deploy' ? (
+            <GitHub size="20" strokeWidth={1} />
+          ) : hintData?.type === 'invoke' ? (
+            <img
+              alt="Cannon"
+              height="20"
+              width="20"
+              src="/images/logomark.svg"
+            />
+          ) : (
+            <img
+              alt="Safe"
+              height="20"
+              width="20"
+              src="/images/safe-logomark.svg"
+            />
           )}
-          <Box pl="2">
-            {isLink ? (
-              <LinkOverlay
-                as={NextLink}
-                href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
-              >
-                <ChevronRightIcon boxSize={8} mr={1} />
-              </LinkOverlay>
-            ) : (
-              <LinkOverlay
-                as={ChakraLink}
-                href={`${getSafeUrl(safe, '/transactions/tx')}&id=${
-                  tx.safeTxHash
-                }`}
-                isExternal
-              >
-                <IconButton
-                  color="white"
-                  variant="link"
-                  transform="translateY(1px)"
-                  aria-label={`View Transaction #${tx._nonce}`}
-                  icon={<ExternalLinkIcon />}
-                />
-              </LinkOverlay>
+        </div>
+      </TableCell>
+      <TableCell className="relative font-medium">
+        {isLink ? (
+          <NextLink
+            className="absolute inset-0 z-10 block"
+            href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
+          />
+        ) : (
+          <a
+            href={`${getSafeUrl(safe, '/transactions/tx')}&id=${tx.safeTxHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute inset-0 z-10 block"
+          />
+        )}
+        <div className="relative z-1">#{tx._nonce}</div>
+      </TableCell>
+      <TableCell className="relative">
+        {isLink ? (
+          <NextLink
+            className="absolute inset-0 z-10 block"
+            href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
+          />
+        ) : (
+          <a
+            href={`${getSafeUrl(safe, '/transactions/tx')}&id=${tx.safeTxHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute inset-0 z-10 block"
+          />
+        )}
+        <div className="relative z-1">
+          {hintData?.cannonPackage ? (
+            <>
+              {hintData.isSinglePackage &&
+                (!resolvedName ? (
+                  <div className="animate-spin h-4 w-4 border-2 border-border border-t-foreground rounded-full opacity-80" />
+                ) : (
+                  <span className="text-sm text-muted-foreground">
+                    {resolvedName}
+                  </span>
+                ))}
+            </>
+          ) : (
+            <span className="text-sm text-muted-foreground/50">N/A</span>
+          )}
+        </div>
+      </TableCell>
+      <TableCell className="relative">
+        {isLink ? (
+          <NextLink
+            className="absolute inset-0 z-10 block"
+            href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
+          />
+        ) : (
+          <a
+            href={`${getSafeUrl(safe, '/transactions/tx')}&id=${tx.safeTxHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute inset-0 z-10 block"
+          />
+        )}
+        <div className="relative z-1">
+          {hintData?.cannonPackage ? (
+            <>
+              {hintData.isSinglePackage &&
+                (!resolvedName ? (
+                  <div className="animate-spin h-4 w-4 border-2 border-border border-t-foreground rounded-full opacity-80" />
+                ) : (
+                  <span className="text-sm text-muted-foreground">
+                    {resolvedVersion}
+                  </span>
+                ))}
+            </>
+          ) : (
+            <span className="text-sm text-muted-foreground/50">N/A</span>
+          )}
+        </div>
+      </TableCell>
+      <TableCell className="relative">
+        {isLink ? (
+          <NextLink
+            className="absolute inset-0 z-10 block"
+            href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
+          />
+        ) : (
+          <a
+            href={`${getSafeUrl(safe, '/transactions/tx')}&id=${tx.safeTxHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute inset-0 z-10 block"
+          />
+        )}
+        <div className="relative z-1">
+          {hintData?.cannonPackage ? (
+            <>
+              {hintData.isSinglePackage &&
+                (!resolvedName ? (
+                  <div className="animate-spin h-4 w-4 border-2 border-border border-t-foreground rounded-full opacity-80" />
+                ) : (
+                  <span className="text-sm text-muted-foreground">
+                    {resolvedPreset}
+                  </span>
+                ))}
+            </>
+          ) : (
+            <span className="text-sm text-muted-foreground/50">N/A</span>
+          )}
+        </div>
+      </TableCell>
+      {isStaged && (
+        <TableCell className="relative">
+          {isLink ? (
+            <NextLink
+              className="absolute inset-0 z-10 block"
+              href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
+            />
+          ) : (
+            <a
+              href={`${getSafeUrl(safe, '/transactions/tx')}&id=${
+                tx.safeTxHash
+              }`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="absolute inset-0 z-10 block"
+            />
+          )}
+          <div className="relative z-1">
+            {isStaged && Object.keys(stager).length && (
+              <span className="text-sm text-muted-foreground">
+                {stager.existingSigners.length} of{' '}
+                {stager.requiredSigners.toString()} signed
+              </span>
             )}
-          </Box>
-        </Flex>
-      </Flex>
-    </LinkBox>
+          </div>
+        </TableCell>
+      )}
+      <TableCell className="relative w-[1px]">
+        {isLink ? (
+          <NextLink
+            className="absolute inset-0 z-10 block"
+            href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
+          />
+        ) : (
+          <a
+            href={`${getSafeUrl(safe, '/transactions/tx')}&id=${tx.safeTxHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute inset-0 z-10 block"
+          />
+        )}
+        <div className="relative z-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={(e) => e.preventDefault()}
+          >
+            {isLink ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ExternalLink className="h-4 w-4" />
+            )}
+            <span className="sr-only">
+              {isLink
+                ? 'View Transaction Details'
+                : `View Transaction #${tx._nonce}`}
+            </span>
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
   );
 }

@@ -1,9 +1,8 @@
-import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
 import TagVariantLayout from '../NameTagVariantLayout';
-import { ReactElement } from 'react';
+import { ReactElement, useEffect } from 'react';
 import { PackageReference } from '@usecannon/builder';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
@@ -35,19 +34,20 @@ function generateMetadata({
   };
 }
 
-const DeploymentTab = dynamic(
-  async () => {
-    return import('@/features/Packages/Tabs/DeploymentTab');
-  },
-  {
-    ssr: false,
-  }
-);
-
 export default function Deployment() {
-  const params = useRouter().query;
+  const router = useRouter();
+  const params = router.query;
   const { getChainById } = useCannonChains();
   const metadata = generateMetadata({ params: params as any, getChainById });
+
+  // Redirect to contracts tab
+  useEffect(() => {
+    if (router.isReady) {
+      void router.replace(
+        `/packages/${params.name}/${params.tag}/${params.variant}/deployment/contracts`
+      );
+    }
+  }, [router.isReady, params.name, params.tag, params.variant]);
 
   return (
     <>
@@ -60,11 +60,6 @@ export default function Deployment() {
           title: metadata.title,
           description: metadata.description,
         }}
-      />
-      <DeploymentTab
-        name={decodeURIComponent(params.name as string)}
-        tag={decodeURIComponent(params.tag as string)}
-        variant={decodeURIComponent(params.variant as string)}
       />
     </>
   );

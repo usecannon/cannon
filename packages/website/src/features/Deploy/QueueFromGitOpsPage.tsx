@@ -17,30 +17,10 @@ import {
 import { useGitRefsList } from '@/hooks/git';
 import { useGetPreviousGitInfoQuery } from '@/hooks/safe';
 import { SafeTransaction } from '@/types/SafeTransaction';
-import { CheckIcon, CloseIcon } from '@chakra-ui/icons';
-import {
-  Alert,
-  AlertIcon,
-  Box,
-  Button,
-  Code,
-  Container,
-  Flex,
-  FormControl,
-  FormHelperText,
-  FormLabel,
-  Heading,
-  HStack,
-  Input,
-  InputGroup,
-  InputRightElement,
-  Link,
-  Spinner,
-  Text,
-  Tooltip,
-  useToast,
-  VStack,
-} from '@chakra-ui/react';
+import { Cross2Icon } from '@radix-ui/react-icons';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import {
   ChainBuilderContext,
@@ -49,7 +29,6 @@ import {
 } from '@usecannon/builder';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Alert as AlertCannon } from '@/components/Alert';
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   encodeAbiParameters,
@@ -60,14 +39,22 @@ import {
   TransactionRequestBase,
   zeroAddress,
 } from 'viem';
-import { useAccount, useSwitchChain, useWriteContract } from 'wagmi';
+import { useAccount, useSwitchChain } from 'wagmi';
 import pkg from '../../../package.json';
-import NoncePicker from './NoncePicker';
-import { TransactionDisplay } from './TransactionDisplay';
 import 'react-diff-view/style/index.css';
 import { extractIpfsHash } from '@/helpers/ipfs';
 import { isCannonFileURL } from '@/helpers/isCannonFileURL';
 import { CannonFileInput } from '@/features/Deploy/CannonFileInput';
+import {
+  DeploymentSourceInput,
+  DeployType,
+} from '@/features/Deploy/DeploymentSourceInput';
+import { PreviousPackageInput } from '@/features/Deploy/PreviousPackageInput';
+import { TransactionPreviewAndExecution } from '@/features/Deploy/TransactionPreviewAndExecution';
+import { BuildStateAlerts } from '@/features/Deploy/BuildStateAlerts';
+import { WalletConnectionButtons } from '@/features/Deploy/WalletConnectionButtons';
+import { useToast } from '@/hooks/use-toast';
+import { useForm, FormProvider } from 'react-hook-form';
 
 const EMPTY_IPFS_MISC_URL =
   'ipfs://QmeSt2mnJKE8qmRhLyYbHQQxDKpsFbcWnw5e7JF4xVbN6k';
@@ -84,12 +71,12 @@ const ctx: ChainBuilderContext = {
   overrideSettings: {},
 };
 
-type DeployType = 'git' | 'partial';
-
 export default function QueueFromGitOps() {
+  const form = useForm();
   const router = useRouter();
   const currentSafe = useStore((s) => s.currentSafe)!;
   const settings = useStore((s) => s.settings);
+  const { toast } = useToast();
 
   const { chainId, isConnected } = useAccount();
   const { switchChainAsync } = useSwitchChain();
@@ -379,8 +366,6 @@ export default function QueueFromGitOps() {
     totalGas += BigInt(step.gas.toString());
   }
 
-  const toast = useToast();
-
   const stager = useTxnStager(
     multicallTxn?.data
       ? ({
@@ -398,15 +383,12 @@ export default function QueueFromGitOps() {
         router.push(links.DEPLOY);
         toast({
           title: 'You successfully signed the transaction.',
-          status: 'success',
+          variant: 'default',
           duration: 5000,
-          isClosable: true,
         });
       },
     }
   );
-
-  const execTxn = useWriteContract();
 
   const isOutsideSafeTxnsRequired =
     (buildState.result?.deployerSteps.length || 0) > 0 && !deployer.isComplete;
@@ -426,9 +408,8 @@ export default function QueueFromGitOps() {
       toast({
         title:
           'In order to queue transactions, you must connect your wallet first.',
-        status: 'warning',
+        variant: 'destructive',
         duration: 5000,
-        isClosable: true,
       });
       return;
     }
@@ -440,9 +421,8 @@ export default function QueueFromGitOps() {
         toast({
           title:
             'Failed to switch chain, Your wallet must be connected to the same network as the selected Safe.',
-          status: 'error',
+          variant: 'destructive',
           duration: 5000,
-          isClosable: true,
         });
         return;
       }
@@ -535,19 +515,24 @@ export default function QueueFromGitOps() {
         : 'Preview Transactions to Queue';
 
       return (
-        <Tooltip label={message}>
+        <>
           <Button
-            width="100%"
-            colorScheme="teal"
-            isDisabled={disablePreviewButton}
+            className="w-full"
+            variant="default"
+            disabled={disablePreviewButton}
             onClick={handlePreviewTxnsClick}
           >
             {buttonText}
           </Button>
-        </Tooltip>
+          {disablePreviewButton && message && deploymentSourceInput && (
+            <Alert className="mt-4" variant="destructive">
+              <AlertDescription>{message}</AlertDescription>
+            </Alert>
+          )}
+        </>
       );
     },
-    [loadingDataForDeploy, disablePreviewButton]
+    [loadingDataForDeploy, disablePreviewButton, deploymentSourceInput]
   );
 
   const RenderPreviewButtonTooltip = useCallback(() => {
@@ -569,6 +554,7 @@ export default function QueueFromGitOps() {
     }
 
     if (
+      cannonDefInfo.isFetching ||
       prevCannonDeployInfo.isFetching ||
       onChainPrevPkgQuery.isFetching ||
       partialDeployInfo?.isFetching
@@ -626,57 +612,66 @@ export default function QueueFromGitOps() {
 
   const cannonInfoDefinitionLoaded = useMemo(
     () =>
-      cannonfileUrlInput.length > 0 &&
-      !cannonDefInfo.error &&
-      cannonDefInfo?.def,
+      Boolean(
+        cannonfileUrlInput.length > 0 &&
+          !cannonDefInfo.error &&
+          cannonDefInfo?.def
+      ),
     [cannonfileUrlInput, cannonDefInfo]
   );
 
   const partialDeployInfoLoaded = useMemo(
     () =>
-      !partialDeployInfo?.isFetching &&
-      !partialDeployInfo?.isError &&
-      partialDeployInfo?.ipfsQuery.data?.deployInfo,
+      Boolean(
+        !partialDeployInfo?.isFetching &&
+          !partialDeployInfo?.isError &&
+          partialDeployInfo?.ipfsQuery.data?.deployInfo
+      ),
     [partialDeployInfo]
   );
+
+  const buildStateMessage = buildState.message || null;
+  const buildStateError = buildState.error || null;
 
   const renderAlert = useCallback(() => {
     if (settings.isIpfsGateway) {
       return (
-        <Alert status="error" bg="gray.700">
-          <AlertIcon mr={3} />
-          Your current IPFS URL is set to a gateway. Update your IPFS URL to an
-          API endpoint where you can pin files in{' '}
-          <Link as={NextLink} href="/settings">
-            settings
-          </Link>
-          .
+        <Alert variant="destructive">
+          <Cross2Icon className="h-4 w-4 mr-3" />
+          <AlertDescription>
+            Your current IPFS URL is set to a gateway. Update your IPFS URL to
+            an API endpoint where you can pin files in{' '}
+            <NextLink href="/settings" className="text-primary hover:underline">
+              settings
+            </NextLink>
+            .
+          </AlertDescription>
         </Alert>
       );
     }
 
     if (cannonDefInfo?.def && cannonDefInfo.def.danglingDependencies.size > 0) {
       return (
-        <Alert status="error" bg="gray.700">
-          <AlertIcon mr={3} />
-          <Flex direction="column">
-            <Text>
-              The cannonfile contains invalid dependencies. Please ensure the
-              following references are defined:
-            </Text>
-            <div>
-              {Array.from(cannonDefInfo.def.danglingDependencies).map(
-                (dependency) => (
-                  <React.Fragment key={dependency}>
-                    <Text as="span" fontFamily="monospace">
-                      {dependency}
-                    </Text>
-                    <br />
-                  </React.Fragment>
-                )
-              )}
+        <Alert variant="destructive">
+          <Cross2Icon className="h-4 w-4 mr-3" />
+          <AlertDescription>
+            <div className="flex flex-col">
+              <p>
+                The cannonfile contains invalid dependencies. Please ensure the
+                following references are defined:
+              </p>
+              <div>
+                {Array.from(cannonDefInfo.def.danglingDependencies).map(
+                  (dependency) => (
+                    <React.Fragment key={dependency}>
+                      <span className="font-mono">{dependency}</span>
+                      <br />
+                    </React.Fragment>
+                  )
+                )}
+              </div>
             </div>
-          </Flex>
+          </AlertDescription>
         </Alert>
       );
     }
@@ -685,388 +680,111 @@ export default function QueueFromGitOps() {
   }, [settings.isIpfsGateway, cannonDefInfo?.def]);
 
   return (
-    <>
-      <Container maxWidth="container.md" py={8}>
-        <Box mb={6}>
-          <Heading size="lg" mb={2}>
-            Queue Deployment
-          </Heading>
-          <Text color="gray.300">
-            Queue deployments using Safe. After the transactions are executed,
-            the resulting package can be published to the registry.
-          </Text>
-        </Box>
-
-        <Box
-          mb={8}
-          p={6}
-          bg="gray.800"
-          display="block"
-          borderWidth="1px"
-          borderStyle="solid"
-          borderColor="gray.600"
-          borderRadius="4px"
-        >
-          {/* Deployment Source */}
-          <FormControl mb="4">
-            <FormLabel>Cannonfile URL or Deployment Data IPFS Hash</FormLabel>
-            <HStack>
-              <InputGroup>
-                <Input
-                  type="text"
-                  placeholder="https://github.com/../cannonfile.toml or Qm.."
-                  value={deploymentSourceInput}
-                  borderColor={
-                    !cannonDefInfoError ? 'whiteAlpha.400' : 'red.500'
-                  }
-                  disabled={chainId !== currentSafe?.chainId}
-                  background="black"
-                  onChange={(evt) => {
-                    const value = evt.target.value;
-                    setDeploymentSourceInput(value);
-                    handleDeploymentSourceInputChange(value);
-                  }}
-                />
-                {selectedDeployType == 'git' && (
-                  <InputRightElement>
-                    {cannonfileUrlInput.length > 0 &&
-                    cannonDefInfo?.isFetching ? (
-                      <Spinner />
-                    ) : cannonInfoDefinitionLoaded ? (
-                      <CheckIcon color="green.500" />
-                    ) : null}
-                  </InputRightElement>
-                )}
-                {selectedDeployType == 'partial' && (
-                  <InputRightElement>
-                    {partialDeployInfo?.isError && (
-                      <CloseIcon color="red.500" />
-                    )}
-                    {partialDeployInfo?.isFetching &&
-                      !partialDeployInfo?.isError && <Spinner />}
-                    {partialDeployInfo?.ipfsQuery.data?.deployInfo && (
-                      <CheckIcon color="green.500" />
-                    )}
-                  </InputRightElement>
-                )}
-              </InputGroup>
-            </HStack>
-            {cannonDefInfoError ? (
-              <Alert mt="6" status="error" bg="gray.700">
-                <AlertIcon mr={3} />
-                <strong>{cannonDefInfoError.toString()}</strong>
-              </Alert>
-            ) : undefined}
-            {inputError && (
-              <FormHelperText color="red.500">{inputError}</FormHelperText>
-            )}
-          </FormControl>
-          {selectedDeployType == 'git' && (
-            <Flex flexDir="column" my="4">
-              {onChainPrevPkgQuery.isFetched &&
-                (prevDeployLocation ? (
-                  <AlertCannon borderless status="info">
-                    Previous Deployment:{' '}
-                    <Link
-                      href={`/ipfs?cid=${prevDeployLocation.replace(
-                        'ipfs://',
-                        ''
-                      )}&compressed=true`}
-                      target="_blank"
-                    >
-                      {prevDeployLocation.replace('ipfs://', '')}
-                    </Link>
-                  </AlertCannon>
-                ) : (
-                  <AlertCannon borderless status="info">
-                    {tomlRequiresPrevPackage
-                      ? 'We couldn\'t find a previous deployment for your cannonfile. Please, enter a value in the "Previous Package" input or modify your cannonfile to include a "deployers" key.'
-                      : 'Deployment from scratch'}
-                  </AlertCannon>
-                ))}
-            </Flex>
-          )}
-          {(partialDeployInfoLoaded || tomlRequiresPrevPackage) && (
-            <FormControl mb="6">
-              <FormLabel>Previous Package</FormLabel>
-              <InputGroup>
-                <Input
-                  placeholder="name:version@preset"
-                  type="text"
-                  value={previousPackageInput}
-                  borderColor={
-                    !previousPackageInput.length || !prevCannonDeployInfo.error
-                      ? 'whiteAlpha.400'
-                      : 'red.500'
-                  }
-                  background="black"
-                  onChange={(evt: any) =>
-                    setPreviousPackageInput(evt.target.value)
-                  }
-                />
-                <InputRightElement>
-                  {prevCannonDeployInfo.isError ? (
-                    <CloseIcon color="red.500" />
-                  ) : null}
-                  {prevCannonDeployInfo.isFetching ? (
-                    <Spinner />
-                  ) : prevCannonDeployInfo.ipfsQuery.data?.deployInfo ? (
-                    <CheckIcon color="green.500" />
-                  ) : null}
-                </InputRightElement>
-              </InputGroup>
-              <FormHelperText color="gray.300">
-                Specify the package this cannonfile is extending. See{' '}
-                <Link as={NextLink} href="/learn/cli#build">
-                  <Code>--upgrade-from</Code>
-                </Link>
-              </FormHelperText>
-              {onChainPrevPkgQuery.error ? (
-                <Alert mt="6" status="error" bg="red.700">
-                  <AlertIcon mr={3} />
-                  <strong>{onChainPrevPkgQuery.error.toString()}</strong>
-                </Alert>
-              ) : undefined}
-            </FormControl>
-          )}
-          {selectedDeployType == 'partial' &&
-            partialDeployIpfs.length > 0 &&
-            partialDeployInfoLoaded && (
-              <CannonFileInput
+    <FormProvider {...form}>
+      <div className="container py-8 max-w-3xl">
+        <Card>
+          <CardContent className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Queue Deployment</h2>
+            <div className="mb-4">
+              <DeploymentSourceInput
+                deploymentSourceInput={deploymentSourceInput}
+                setDeploymentSourceInput={setDeploymentSourceInput}
+                selectedDeployType={selectedDeployType}
                 cannonfileUrlInput={cannonfileUrlInput}
-                setCannonfileUrlInput={setCannonfileUrlInput}
                 cannonDefInfo={cannonDefInfo}
+                cannonInfoDefinitionLoaded={cannonInfoDefinitionLoaded}
+                partialDeployInfo={partialDeployInfo}
+                partialDeployInfoLoaded={partialDeployInfoLoaded}
+                chainId={chainId}
+                currentSafe={currentSafe}
                 cannonDefInfoError={cannonDefInfoError}
-                isDisabled={!partialDeployIpfs}
+                inputError={inputError}
+                handleDeploymentSourceInputChange={
+                  handleDeploymentSourceInputChange
+                }
               />
-            )}
-          {renderAlert()}
-          {!isConnected ? (
-            <Button
-              width="100%"
-              colorScheme="teal"
-              onClick={() => openConnectModal && openConnectModal()}
-            >
-              Connect wallet
-            </Button>
-          ) : chainId !== currentSafe?.chainId ? (
-            <Button
-              width="100%"
-              colorScheme="teal"
-              onClick={() =>
-                switchChainAsync({ chainId: currentSafe?.chainId || 10 })
-              }
-            >
-              Switch Network
-            </Button>
-          ) : (
-            <RenderPreviewButtonTooltip />
-          )}
-          {buildState.message && (
-            <Alert mt="6" status="info" bg="gray.800">
-              <Spinner mr={3} boxSize={4} />
-              <strong>{buildState.message}</strong>
-            </Alert>
-          )}
-          {buildState.error && (
-            <Alert mt="6" status="error" bg="red.700">
-              <AlertIcon mr={3} />
-              <strong>{buildState.error}</strong>
-            </Alert>
-          )}
-
-          {buildState.skippedSteps.length > 0 && (
-            <AlertCannon my={2} status="error">
-              <Text mb="2" fontWeight="bold">
-                This safe will not be able to complete the following operations:
-              </Text>
-              <Box maxHeight="300px" overflow="auto">
-                {buildState.skippedSteps.map((s, i) => (
-                  <Text fontFamily="monospace" key={i} mb="2">
-                    <strong>{`[${s.name}]: `}</strong>
-                    {s.name.startsWith('deploy.') ||
-                    s.name.startsWith('contract.')
-                      ? 'Is not possible to build and deploy a contract from source code from the website. You should first build your cannonfile using the CLI and continue the deployment from a partial build.'
-                      : s.err.toString()}
-                  </Text>
-                ))}
-              </Box>
-            </AlertCannon>
-          )}
-          {!!buildState.result?.deployerSteps?.length &&
-            (buildState.result?.safeSteps.length || 0) > 0 && (
-              <Box
-                mt="6"
-                mb="5"
-                border="1px solid"
-                borderColor="gray.600"
-                p="4"
-                borderRadius="md"
-              >
-                {deployer.queuedTransactions.length === 0 ? (
-                  <VStack>
-                    <Text color="gray.300">
-                      The following steps should be executed outside the safe
-                      before staging.
-                      {buildState.result?.deployerSteps.map((s) => (
-                        <Text color="gray.300" ml="2" key={s.name}>
-                          - {s.name}
-                        </Text>
-                      ))}
-                      <Text color="gray.300" mb="4">
-                        You can execute these now in your browser. By clicking
-                        the button below.
-                      </Text>
-                    </Text>
-                    <Button
-                      onClick={() =>
-                        deployer.queueTransactions(
-                          buildState.result!.deployerSteps.map(
-                            (s) => s.tx as any
-                          )
-                        )
-                      }
-                    >
-                      Execute Outside Safe Txns
-                    </Button>
-                  </VStack>
-                ) : deployer.executionProgress.length <
-                  deployer.queuedTransactions.length ? (
-                  <Text>
-                    Deploying txns {deployer.executionProgress.length + 1} /{' '}
-                    {deployer.queuedTransactions.length}
-                  </Text>
+            </div>
+            {selectedDeployType == 'git' && onChainPrevPkgQuery.isFetched && (
+              <div className="flex flex-col mb-4">
+                {prevDeployLocation ? (
+                  <Alert variant="info">
+                    <AlertDescription>
+                      Previous Deployment:{' '}
+                      <NextLink
+                        href={`/ipfs?cid=${prevDeployLocation.replace(
+                          'ipfs://',
+                          ''
+                        )}&compressed=true`}
+                        className="text-primary hover:underline"
+                        target="_blank"
+                      >
+                        {prevDeployLocation.replace('ipfs://', '')}
+                      </NextLink>
+                    </AlertDescription>
+                  </Alert>
                 ) : (
-                  <Text>
-                    All Transactions Queued Successfully. You may now continue
-                    the safe deployment.
-                  </Text>
+                  <Alert variant="info">
+                    <AlertDescription>
+                      {tomlRequiresPrevPackage
+                        ? 'We couldn\'t find a previous deployment for your cannonfile. Please, enter a value in the "Previous Package" input or modify your cannonfile to include a "deployers" key.'
+                        : 'Deployment from scratch'}
+                    </AlertDescription>
+                  </Alert>
                 )}
-              </Box>
+              </div>
             )}
-          {cannonDefInfo?.def && multicallTxn?.data && (
-            <Box mt="4">
-              <Heading size="md" mt={5}>
-                Package: {cannonDefInfo.def.getName(ctx)}:
-                {cannonDefInfo.def.getVersion(ctx) || 'latest'}@
-                {cannonDefInfo.def.getPreset(ctx)}
-              </Heading>
-            </Box>
-          )}
-          {buildState.status == 'success' &&
-            writeToIpfsMutationRes?.data?.mainUrl &&
-            !multicallTxn?.data && (
-              <Alert mt="6" status="info" bg="gray.800">
-                No simulated transactions have succeeded. Please ensure you have
-                selected the correct Safe wallet and that you have sufficient
-                permissions to execute transactions.
-              </Alert>
+            {(partialDeployInfoLoaded || tomlRequiresPrevPackage) && (
+              <div className="mb-4">
+                <PreviousPackageInput
+                  previousPackageInput={previousPackageInput}
+                  setPreviousPackageInput={setPreviousPackageInput}
+                  prevCannonDeployInfo={prevCannonDeployInfo}
+                  onChainPrevPkgQuery={onChainPrevPkgQuery}
+                />
+              </div>
             )}
-          {writeToIpfsMutationRes?.data?.mainUrl &&
-            multicallTxn?.data &&
-            stager.safeTxn && (
-              <Box mt="4" mb="4">
-                <Heading size="sm" mb={2}>
-                  Safe Transactions:
-                </Heading>
-                {buildState.result?.safeSteps.length === 0 ? (
-                  <AlertCannon borderless status="info">
-                    There are no transactions that would be executed by the
-                    Safe.
-                  </AlertCannon>
-                ) : (
-                  <TransactionDisplay
-                    safe={currentSafe as any}
-                    safeTxn={stager.safeTxn}
+            {selectedDeployType == 'partial' &&
+              partialDeployIpfs.length > 0 &&
+              partialDeployInfoLoaded && (
+                <div className="mb-4">
+                  <CannonFileInput
+                    cannonfileUrlInput={cannonfileUrlInput}
+                    setCannonfileUrlInput={setCannonfileUrlInput}
+                    cannonDefInfo={cannonDefInfo}
+                    cannonDefInfoError={cannonDefInfoError}
+                    isDisabled={!partialDeployIpfs}
                   />
-                )}
-              </Box>
-            )}
-          {writeToIpfsMutationRes?.data?.mainUrl &&
-            multicallTxn?.data &&
-            stager.safeTxn &&
-            (buildState.result?.safeSteps.length || 0) > 0 &&
-            buildState.skippedSteps.length > 0 && (
-              <AlertCannon borderless status="warning" mt="0">
-                We have detected transactions in your Cannonfile that cannot be
-                executed, which may lead to undesired effects on your
-                deployment. We advise you not to proceed unless you are
-                absolutely certain of what you are doing, as this will result in
-                a partial deployment package.
-              </AlertCannon>
-            )}
-          {writeToIpfsMutationRes?.isLoading && (
-            <Alert mt="6" status="info" bg="gray.800">
-              <Spinner mr={3} boxSize={4} />
-              <strong>Uploading build result to IPFS...</strong>
-            </Alert>
-          )}
-          {writeToIpfsMutationRes?.error && (
-            <Text>
-              Failed to upload staged transaction to IPFS:{' '}
-              {writeToIpfsMutationRes.error.toString()}
-            </Text>
-          )}
-          {writeToIpfsMutationRes?.data?.mainUrl && multicallTxn?.data && (
-            <Box>
-              <NoncePicker safe={currentSafe} handleChange={setPickedNonce} />
-              <HStack gap="6">
-                {stager.execConditionFailed &&
-                (buildState.result?.safeSteps.length || 0) > 0 ? (
-                  <Tooltip label={stager.signConditionFailed}>
-                    <Button
-                      isDisabled={
-                        !!stager.signConditionFailed || stager.signing
-                      }
-                      colorScheme="teal"
-                      size="lg"
-                      w="100%"
-                      onClick={async () => {
-                        await stager.sign();
-                      }}
-                    >
-                      {stager.signing ? (
-                        <>
-                          Currently Signing
-                          <Spinner size="sm" ml={2} />
-                        </>
-                      ) : (
-                        'Queue & Sign'
-                      )}
-                    </Button>
-                  </Tooltip>
-                ) : null}
-                <Tooltip label={stager.execConditionFailed}>
-                  <Button
-                    isDisabled={
-                      !!stager.execConditionFailed || isOutsideSafeTxnsRequired
-                    }
-                    size="lg"
-                    colorScheme="teal"
-                    w="100%"
-                    onClick={() => {
-                      execTxn.writeContract(stager.executeTxnConfig!, {
-                        onSuccess: () => {
-                          router.push(links.DEPLOY);
-
-                          toast({
-                            title: 'You successfully executed the transaction.',
-                            status: 'success',
-                            duration: 5000,
-                            isClosable: true,
-                          });
-                        },
-                      });
-                    }}
-                  >
-                    Execute
-                  </Button>
-                </Tooltip>
-              </HStack>
-            </Box>
-          )}
-        </Box>
-      </Container>
-    </>
+                </div>
+              )}
+            {renderAlert()}
+            <WalletConnectionButtons
+              isConnected={isConnected}
+              chainId={chainId}
+              currentSafe={currentSafe}
+              openConnectModal={openConnectModal}
+              RenderPreviewButtonTooltip={RenderPreviewButtonTooltip}
+            />
+            <BuildStateAlerts
+              buildState={buildState}
+              buildStateMessage={buildStateMessage}
+              buildStateError={buildStateError}
+              deployer={deployer}
+            />
+            <TransactionPreviewAndExecution
+              buildState={buildState}
+              writeToIpfsMutationRes={writeToIpfsMutationRes}
+              multicallTxn={multicallTxn}
+              cannonDefInfo={cannonDefInfo}
+              stager={stager}
+              currentSafe={currentSafe}
+              isOutsideSafeTxnsRequired={isOutsideSafeTxnsRequired}
+              ctx={ctx}
+              pickedNonce={pickedNonce}
+              setPickedNonce={setPickedNonce}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    </FormProvider>
   );
 }

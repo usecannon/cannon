@@ -7,11 +7,12 @@ export const getChainDefinitionFromWorker = (deployInfo: RawChainDefinition) => 
     worker.onmessage = (event) => {
       if ('error' in event.data) {
         worker.terminate();
-        // in case of error, fallback to non-worker execution and return the chain definition
-        resolve(new ChainDefinition(deployInfo));
+        // in case of error, fallback to non-worker execution
+        const def = new ChainDefinition(deployInfo);
+        def.initializeComputedDependencies();
+        resolve(def);
       } else {
         worker.terminate();
-        // in case of success, return the chain definition
         resolve(event.data);
       }
     };
