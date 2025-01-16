@@ -38,7 +38,7 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Header */
-    --header-height: 105px;
+    --header-height: 106px;
     @media (min-width: 768px) {
       --header-height: 124px;
     }

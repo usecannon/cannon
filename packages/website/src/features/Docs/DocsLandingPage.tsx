@@ -1,21 +1,20 @@
 import { links } from '@/constants/links';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 
 const DocsLandingPage = () => {
   return (
-    <div className="container max-w-[42rem] pt-10 px-4 md:pt-14 md:px-0">
-      <h1 className="scroll-m-20 text-3xl font-bold tracking-tight">
-        Introducing Cannon
+    <div className="container max-w-3xl pt-10 px-4 md:pt-14 md:px-0">
+      <h1 className="scroll-m-20 text-4xl font-bold tracking-tight pb-1">
+        Cannon Overview
       </h1>
 
-      <p className="leading-7 [&:not(:first-child)]:mt-4">
+      <p className="leading-7 text-lg [&:not(:first-child)]:mt-4">
         <strong>Cannon</strong> is a DevOps tool for protocols on Ethereum. It
         manages protocol and smart contract deployments for local development
         and live networks.
       </p>
 
-      <p className="leading-7 [&:not(:first-child)]:mt-6">
+      <p className="leading-7 text-lg [&:not(:first-child)]:mt-6">
         Drawing inspiration from <em>Infrastructure as Code</em> tools like
         Terraform and CloudFormation, Cannon replaces deploy scripts with{' '}
         <Link
@@ -27,7 +26,7 @@ const DocsLandingPage = () => {
         .
       </p>
 
-      <p className="leading-7 [&:not(:first-child)]:mt-6">
+      <p className="leading-7 text-lg [&:not(:first-child)]:mt-6">
         Cannonfiles consist of operations that acheive a desired state of a
         blockchain (rather than a list of transactions to execute). For example,
         you may want a chain to have particular smart contracts and protocols
@@ -35,7 +34,7 @@ const DocsLandingPage = () => {
         already been executed, it won’t be repeated.
       </p>
 
-      <p className="leading-7 [&:not(:first-child)]:mt-6">
+      <p className="leading-7 text-lg [&:not(:first-child)]:mt-6">
         Then you can <strong>build</strong> the chain into this state using the{' '}
         <Link
           href={links.CLI}
@@ -61,11 +60,11 @@ const DocsLandingPage = () => {
         .
       </p>
 
-      <p className="leading-7 [&:not(:first-child)]:mt-6">
+      <p className="leading-7 text-lg [&:not(:first-child)]:mt-6">
         Packages enable composability in Cannonfiles. If a package includes a
         &ldquo;Cannon&rdquo; deployment, it can be <em>cloned</em> to{' '}
         <Link
-          href="https://github.com/Synthetixio/synthetix-sandbox/blob/main/cannonfile.toml#L27"
+          href="https://github.com/usecannon/cannon/blob/dev/examples/sample-foundry-project/cannonfile.consumer.toml#L15"
           className="no-underline border-b border-gray-500 hover:border-gray-400"
           target="_blank"
           rel="noopener noreferrer"
@@ -75,7 +74,7 @@ const DocsLandingPage = () => {
         . Packages with live network deployments can be <em>pulled</em>,
         allowing protocols to connect with{' '}
         <Link
-          href="https://github.com/Synthetixio/synthetix-sandbox/blob/main/cannonfile.prod.toml#L5"
+          href="https://github.com/usecannon/cannon/blob/dev/examples/sample-foundry-project/cannonfile.consumer.toml#L12"
           className="no-underline border-b border-gray-500 hover:border-gray-400"
           target="_blank"
           rel="noopener noreferrer"
@@ -85,13 +84,13 @@ const DocsLandingPage = () => {
         .
       </p>
 
-      <h4 className="text-xl mt-6 lg:mt-24 mb-5">
+      <h4 className="text-lg mt-6 mb-3">
         Cannon is useful across the entire protocol development lifecycle...
       </h4>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 pb-12">
         <div className="rounded-lg border border-border p-5">
-          <h2 className="scroll-m-20 text-xl lg:text-2xl font-semibold tracking-tight flex items-center mb-2">
+          <h2 className="scroll-m-20 text-lg font-semibold tracking-tight flex items-center mb-1.5">
             <svg
               className="w-5 h-5 mr-2"
               viewBox="0 0 24 24"
@@ -120,7 +119,7 @@ const DocsLandingPage = () => {
         </div>
 
         <div className="rounded-lg border border-border p-5">
-          <h2 className="scroll-m-20 text-xl lg:text-2xl font-semibold tracking-tight flex items-center mb-2">
+          <h2 className="scroll-m-20 text-lg font-semibold tracking-tight flex items-center mb-1.5">
             <svg
               className="w-5 h-5 mr-2"
               viewBox="0 0 24 24"
@@ -147,7 +146,7 @@ const DocsLandingPage = () => {
         </div>
 
         <div className="rounded-lg border border-border p-5">
-          <h2 className="scroll-m-20 text-xl lg:text-2xl font-semibold tracking-tight flex items-center mb-2">
+          <h2 className="scroll-m-20 text-lg font-semibold tracking-tight flex items-center mb-1.5">
             <svg
               className="w-5 h-5 mr-2"
               viewBox="0 0 24 24"
@@ -167,7 +166,7 @@ const DocsLandingPage = () => {
         </div>
 
         <div className="rounded-lg border border-border p-5">
-          <h2 className="scroll-m-20 text-xl lg:text-2xl font-semibold tracking-tight flex items-center mb-2">
+          <h2 className="scroll-m-20 text-lg font-semibold tracking-tight flex items-center mb-1.5">
             <svg
               className="w-5 h-5 mr-2"
               viewBox="0 0 24 24"
@@ -195,18 +194,6 @@ const DocsLandingPage = () => {
             for managing configurable/upgradable protocols.
           </p>
         </div>
-      </div>
-
-      <div className="flex justify-center py-24 lg:py-32">
-        <Link href={`${links.GETSTARTED}/setup`}>
-          <Button
-            className="font-miriam uppercase tracking-[0.5px] font-bold"
-            variant="default"
-            size="lg"
-          >
-            Get Started
-          </Button>
-        </Link>
       </div>
     </div>
   );

@@ -39,3 +39,7 @@ Then('URL includes {string}', (path: string) => {
 Then('View renders a {string} displaying the text {string}', (element: string, text: string) => {
   cy.get(element).contains(text);
 });
+
+Then('View contains the {string} input', (input: string) => {
+  cy.get(`input[name="${input}"]`).should('be.visible');
+});

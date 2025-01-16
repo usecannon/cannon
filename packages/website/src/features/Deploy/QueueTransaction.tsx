@@ -2,79 +2,29 @@ import { isValidHex } from '@/helpers/ethereum';
 import { useStore } from '@/helpers/store';
 import { useCannonPackage, useCannonPackageContracts } from '@/hooks/cannon';
 import { useSimulatedTxns } from '@/hooks/fork';
-import { DeleteIcon } from '@chakra-ui/icons';
+import { X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
-  Alert,
-  AlertDescription,
-  AlertIcon,
-  AlertTitle,
-  Box,
-  Flex,
-  FormControl,
-  FormHelperText,
-  FormLabel,
-  IconButton,
-  Input,
-  InputGroup,
-  InputRightAddon,
-  Text,
-  Tooltip,
-} from '@chakra-ui/react';
-import { AbiFunction } from 'abitype';
-import {
-  chakraComponents,
-  ChakraStylesConfig,
-  GroupBase,
-  OptionProps,
   Select,
-} from 'chakra-react-select';
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { AbiFunction } from 'abitype';
 import { useEffect, useState } from 'react';
 import * as viem from 'viem';
 import { FunctionInput } from '../Packages/FunctionInput';
 import 'react-diff-view/style/index.css';
-
-type OptionData = {
-  value: any;
-  label: string;
-  secondary: string;
-};
-
-const chakraStyles: ChakraStylesConfig<
-  OptionData,
-  boolean,
-  GroupBase<OptionData>
-> = {
-  container: (provided) => ({
-    ...provided,
-    borderColor: 'gray.700',
-    background: 'black',
-    cursor: 'pointer',
-  }),
-  menuList: (provided) => ({
-    ...provided,
-    borderColor: 'whiteAlpha.400',
-    background: 'black',
-  }),
-  groupHeading: (provided) => ({
-    ...provided,
-    background: 'black',
-  }),
-  option: (provided) => ({
-    ...provided,
-    color: 'white',
-    background: 'black',
-  }),
-  dropdownIndicator: (provided) => ({
-    ...provided,
-    background: 'black',
-  }),
-  control: (provided) => ({
-    ...provided,
-    '& hr.chakra-divider': {
-      display: 'none',
-    },
-  }),
-};
 
 function decodeError(err: viem.Hex, abi: viem.Abi) {
   try {
@@ -228,54 +178,38 @@ export function QueueTransaction({
   if (isCustom) {
     const isValid = isValidHex(tx?.data || '');
     return (
-      <Flex direction="column">
-        <Flex
-          flexDirection="row"
-          alignItems="center"
-          justifyContent="space-between"
-          backgroundColor="gray.700"
-          p={3}
-          pl={6}
-          pr={6}
-        >
-          <Text fontWeight={600} fontSize="sm" color="gray.300">
+      <div className="flex flex-col">
+        <div className="flex flex-row items-center justify-between bg-muted p-3 px-6">
+          <span className="text-sm font-semibold text-muted-foreground">
             Contract Address: {tx?.to}
-          </Text>
+          </span>
           {isDeletable && (
-            <Tooltip label="Remove transaction">
-              <IconButton
-                variant="outline"
-                border="none"
-                _hover={{ bg: 'gray.700' }}
-                size="xs"
-                colorScheme="red"
-                color="gray.300"
-                onClick={onDelete}
-                aria-label="Remove transaction"
-                icon={<DeleteIcon />}
-              />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={onDelete}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Remove transaction</TooltipContent>
             </Tooltip>
           )}
-        </Flex>
-        <Flex alignItems="center">
-          <Flex
-            flexDirection="column"
-            flex="1"
-            w={['100%', '100%', '50%']}
-            gap="10px"
-            p={6}
-            pt={4}
-            pb={4}
-          >
-            <FormControl mb={2}>
-              <FormLabel>Data</FormLabel>
+        </div>
+        <div className="flex items-center">
+          <div className="flex flex-1 w-full md:w-1/2 flex-col gap-2.5 p-6 pt-4 pb-4">
+            <div className="space-y-2">
+              <Label>Data</Label>
               <Input
                 value={tx?.data}
                 onChange={(e) =>
                   onChange(
                     {
                       ...tx,
-                      data: e.target.value as any, // TODO: fix type
+                      data: e.target.value as any,
                     },
                     selectedFunction as any,
                     selectedParams,
@@ -284,166 +218,148 @@ export function QueueTransaction({
                 }
               />
               {!isValid && (
-                <FormHelperText color="red.300">
+                <p className="text-sm text-destructive">
                   Invalid transaction data
-                </FormHelperText>
+                </p>
               )}
-              <FormHelperText color="gray.300">
+              <p className="text-sm text-muted-foreground">
                 Data field for custom transaction
-              </FormHelperText>
-            </FormControl>
-          </Flex>
-        </Flex>
-      </Flex>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Flex direction="column">
-      <Flex
-        flexDirection="row"
-        alignItems="center"
-        justifyContent="space-between"
-        backgroundColor="gray.700"
-        p={3}
-        pl={6}
-        pr={6}
-      >
-        <Text fontWeight={600} fontSize="sm" color="gray.300">
-          {pkg.fullPackageRef}
-        </Text>
+    <div className="flex flex-col">
+      <div className="flex flex-row items-center justify-between bg-muted p-3 px-6">
+        {pkg?.fullPackageRef ? (
+          <span className="text-sm font-semibold text-muted-foreground">
+            {pkg?.fullPackageRef}
+          </span>
+        ) : (
+          <i className="text-sm text-muted-foreground">
+            Loading package data...
+          </i>
+        )}
         {isDeletable && (
-          <Tooltip label="Remove transaction">
-            <IconButton
-              variant="outline"
-              border="none"
-              _hover={{ bg: 'gray.700' }}
-              size="xs"
-              colorScheme="red"
-              color="gray.300"
-              onClick={onDelete}
-              aria-label="Remove transaction"
-              icon={<DeleteIcon />}
-            />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={onDelete}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Remove transaction</TooltipContent>
           </Tooltip>
         )}
-      </Flex>
-      <Flex alignItems="center">
-        <Flex
-          flexDirection="column"
-          flex="1"
-          w={['100%', '100%', '50%']}
-          gap="10px"
-          p={6}
-          pt={4}
-          pb={4}
-        >
-          <FormControl mb={2}>
-            <FormLabel>Contract</FormLabel>
+      </div>
+      <div className="flex items-center">
+        <div className="flex flex-1 w-full md:w-1/2 flex-col gap-2.5 p-6 pt-4 pb-4">
+          <div className="space-y-2 mb-2">
+            <Label>Contract</Label>
             <Select
-              instanceId={'contract-name'}
-              chakraStyles={chakraStyles}
-              isClearable
-              value={
-                selectedContractName
-                  ? {
-                      value: selectedContractName,
-                      label: selectedContractName,
-                      secondary: `${chainId}:${
-                        contracts
-                          ? contracts[selectedContractName].address
-                          : (txn?.to as viem.Address)
-                      }`,
-                    }
-                  : null
-              }
-              placeholder="Choose a contract..."
-              options={
-                contracts
-                  ? Object.entries(contracts).map(([name, contract]) => ({
-                      value: name,
-                      label: name,
-                      secondary: `${chainId}:${contract.address}`,
-                    }))
-                  : selectedContractName && txn?.to
-                  ? [
-                      {
-                        value: selectedContractName,
-                        label: selectedContractName,
-                        secondary: `${chainId}:${txn.to}`,
-                      },
-                    ]
-                  : []
-              }
-              onChange={(selected: any) =>
-                setSelectedContractName(selected?.value || null)
-              }
-              components={{ Option: Option }}
-            ></Select>
-          </FormControl>
-          <FormControl mb={2}>
-            <FormLabel>Function</FormLabel>
+              value={selectedContractName || undefined}
+              onValueChange={(value) => setSelectedContractName(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a contract..." />
+              </SelectTrigger>
+              <SelectContent>
+                {contracts
+                  ? Object.entries(contracts).map(([name, contract]) => (
+                      <SelectItem key={name} value={name}>
+                        <div className="flex gap-2 items-baseline text-left">
+                          <span>{name}</span>
+                          <span className="text-xs text-muted-foreground font-mono">
+                            {chainId}:{contract.address}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  : selectedContractName &&
+                    txn?.to && (
+                      <SelectItem value={selectedContractName}>
+                        <div className="flex gap-2 items-baseline text-left">
+                          <span>{selectedContractName}</span>
+                          <span className="text-xs text-muted-foreground font-mono">
+                            {chainId}:{txn.to}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    )}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2 mb-2">
+            <Label>Function</Label>
             <Select
-              instanceId={'function-name'}
-              chakraStyles={chakraStyles}
-              isClearable
-              value={
-                selectedFunction
-                  ? {
-                      value: selectedFunction,
-                      label: selectedFunction.name,
-                      secondary: viem.toFunctionSelector(selectedFunction),
-                    }
-                  : null
-              }
-              placeholder="Choose a function..."
-              options={
-                contracts && selectedContractName
+              value={selectedFunction?.name || undefined}
+              onValueChange={(value) => {
+                const fn =
+                  contracts && selectedContractName
+                    ? (
+                        contracts[selectedContractName].abi as AbiFunction[]
+                      ).find((abi) => abi.name === value)
+                    : undefined;
+                setSelectedFunction(fn || null);
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a function..." />
+              </SelectTrigger>
+              <SelectContent>
+                {contracts && selectedContractName
                   ? (contracts[selectedContractName].abi as AbiFunction[])
                       .filter(
                         (abi) =>
                           abi.type === 'function' &&
                           abi.stateMutability !== 'view'
                       )
-                      .map((abi: AbiFunction) => ({
-                        value: abi,
-                        label: abi.name,
-                        secondary: viem.toFunctionSelector(abi),
-                      }))
-                  : selectedFunction
-                  ? [
-                      {
-                        value: selectedFunction,
-                        label: selectedFunction.name,
-                        secondary: viem.toFunctionSelector(selectedFunction),
-                      },
-                    ]
-                  : []
-              }
-              onChange={(selected: any) =>
-                setSelectedFunction(selected?.value || null)
-              }
-              components={{ Option: Option }}
-            ></Select>
-          </FormControl>
-          {!!selectedFunction?.inputs?.length && (
-            <FormControl mb={2}>
-              <FormLabel>Parameters</FormLabel>
-              {selectedFunction.inputs.map((input, index) => (
-                <Box key={JSON.stringify(input)} mb={2}>
-                  <FormLabel fontSize="sm" mb={1}>
-                    {input.name && <Text display="inline">{input.name}</Text>}
-                    {input.type && (
-                      <Text
-                        fontSize="xs"
-                        color="whiteAlpha.700"
-                        display="inline"
-                      >
-                        {' '}
-                        {input.type}
-                      </Text>
+                      .map((abi) => (
+                        <SelectItem key={abi.name} value={abi.name}>
+                          <div className="flex gap-2 items-baseline text-left">
+                            <span>{abi.name}</span>
+                            <span className="text-xs text-muted-foreground font-mono">
+                              {viem.toFunctionSelector(abi)}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))
+                  : selectedFunction && (
+                      <SelectItem value={selectedFunction.name}>
+                        <div className="flex gap-2 items-baseline text-left">
+                          <span>{selectedFunction.name}</span>
+                          <span className="text-xs text-muted-foreground font-mono">
+                            {viem.toFunctionSelector(selectedFunction)}
+                          </span>
+                        </div>
+                      </SelectItem>
                     )}
-                  </FormLabel>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {!!selectedFunction?.inputs?.length && (
+            <div className="space-y-2 mb-2">
+              <Label>Parameters</Label>
+              {selectedFunction.inputs.map((input, index) => (
+                <div key={JSON.stringify(input)} className="mb-2">
+                  <Label className="text-sm mb-1">
+                    {input.name && <span>{input.name}</span>}
+                    {input.type && (
+                      <span className="text-xs font-mono text-muted-foreground ml-1">
+                        {input.type}
+                      </span>
+                    )}
+                  </Label>
                   <FunctionInput
                     key={JSON.stringify(input)}
                     input={input}
@@ -454,26 +370,26 @@ export function QueueTransaction({
                     }}
                     initialValue={params[index]}
                   />
-                </Box>
+                </div>
               ))}
-            </FormControl>
+            </div>
           )}
+
           {selectedFunction?.stateMutability === 'payable' && (
-            <FormControl mb="4">
-              <FormLabel fontSize="sm" mb={1}>
+            <div className="space-y-2 mb-4">
+              <Label className="text-sm">
                 Value
-                <Text fontSize="xs" color="whiteAlpha.700" display="inline">
-                  {' '}
+                <span className="text-xs text-muted-foreground ml-1">
                   (payable)
-                </Text>
-              </FormLabel>
-              <InputGroup size="sm">
+                </span>
+              </Label>
+              <div className="flex">
                 <Input
                   type="number"
-                  size="sm"
-                  bg="black"
-                  borderColor="whiteAlpha.400"
-                  isInvalid={!valueIsValid}
+                  className={cn(
+                    'rounded-r-none',
+                    !valueIsValid && 'border-destructive'
+                  )}
                   value={value?.toString()}
                   onChange={(e) => {
                     setValue(e.target.value);
@@ -485,67 +401,48 @@ export function QueueTransaction({
                     }
                   }}
                 />
-                <InputRightAddon
-                  bg="black"
-                  color="whiteAlpha.700"
-                  borderColor="whiteAlpha.400"
-                >
+                <div className="inline-flex items-center rounded-r-md border border-l-0 border-input bg-transparent px-3 text-sm text-muted-foreground">
                   ETH
-                </InputRightAddon>
-              </InputGroup>
-              <FormHelperText hidden={!valueIsValid} color="gray.300">
-                {value !== undefined && valueIsValid
-                  ? viem.parseEther(value.toString()).toString()
-                  : 0}{' '}
-                wei
-              </FormHelperText>
-            </FormControl>
+                </div>
+              </div>
+              {valueIsValid && (
+                <p className="text-sm text-muted-foreground">
+                  {value !== undefined && valueIsValid
+                    ? viem.parseEther(value.toString()).toString()
+                    : 0}{' '}
+                  wei
+                </p>
+              )}
+            </div>
           )}
+
           {paramsEncodeError && (
-            <Alert bg="gray.900" status="error">
-              <AlertIcon />
-              <Box>
-                <AlertTitle>Params Encode Error</AlertTitle>
-                <AlertDescription fontSize="sm">
-                  {paramsEncodeError}
-                </AlertDescription>
-              </Box>
+            <Alert variant="destructive">
+              <AlertTitle>Params Encode Error</AlertTitle>
+              <AlertDescription className="text-sm">
+                {paramsEncodeError}
+              </AlertDescription>
             </Alert>
           )}
+
           {txnInfo.txnResults &&
             txnInfo.txnResults[0] &&
             txnInfo.txnResults[0]?.error &&
             contracts && (
-              <Alert bg="gray.900" status="error">
-                <AlertIcon />
-                <Box>
-                  <AlertTitle>Transaction Simulation Error</AlertTitle>
-                  <AlertDescription fontSize="sm">
-                    {txnInfo.txnResults[0]?.callResult
-                      ? decodeError(
-                          txnInfo.txnResults[0]?.callResult as any,
-                          contracts[selectedContractName!].abi
-                        )
-                      : txnInfo.txnResults[0]?.error}
-                  </AlertDescription>
-                </Box>
+              <Alert variant="destructive">
+                <AlertTitle>Transaction Simulation Error</AlertTitle>
+                <AlertDescription className="text-sm">
+                  {txnInfo.txnResults[0]?.callResult
+                    ? decodeError(
+                        txnInfo.txnResults[0]?.callResult as any,
+                        contracts[selectedContractName!].abi
+                      )
+                    : txnInfo.txnResults[0]?.error}
+                </AlertDescription>
               </Alert>
             )}
-        </Flex>
-      </Flex>
-    </Flex>
-  );
-}
-
-function Option({ children, ...props }: OptionProps<OptionData>) {
-  return (
-    <chakraComponents.Option {...props}>
-      <Flex direction="column">
-        {children}
-        <Text color="gray.400" fontSize="2xs">
-          {props.data.secondary}
-        </Text>
-      </Flex>
-    </chakraComponents.Option>
+        </div>
+      </div>
+    </div>
   );
 }

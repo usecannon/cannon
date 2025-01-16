@@ -1,6 +1,5 @@
 import { ChainArtifacts, ContractData, ContractMap } from '@usecannon/builder';
 import { FC, useMemo } from 'react';
-import { Box } from '@chakra-ui/react';
 import { Contract } from '@/features/Packages/Contract';
 import { Abi } from 'viem';
 
@@ -27,7 +26,7 @@ export const ContractStep: FC<{
       );
   }, [contracts]);
   return (
-    <Box mb="8">
+    <div className="mb-8">
       {output.map((o) => (
         <Contract
           key={JSON.stringify(o)}
@@ -38,6 +37,6 @@ export const ContractStep: FC<{
           chainId={chainId}
         />
       ))}
-    </Box>
+    </div>
   );
 };
