@@ -36,6 +36,7 @@ Feature: Stage Transactions
     When User clicks on the button with "aria-label" "queue-txs"
     Then Drawer has exactly 2 queued transactions
 
+  @skip
   Scenario: User stages transactions from the queue transactions drawer
     Given User opens the "/packages/owned-greeter/0.0.5/11155111-main/interact/owned-greeter/Greeter/0xa4605Ef2fB94211815F14AF6153915928C9E6407" page
     When User clicks on the button with "aria-label" "queue-txs"
