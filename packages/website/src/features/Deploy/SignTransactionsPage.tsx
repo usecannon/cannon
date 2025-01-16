@@ -20,12 +20,6 @@ export default function SignTransactionsPage() {
   const [isChecked, setIsChecked] = useState(true);
 
   const {
-    paginatedData: paginatedStagedTxs,
-    hasMore: hasMoreStagedTxs,
-    fetchMoreData: fetchMoreStagedTxs,
-  } = useInMemoryPagination(stagedTransactions.staged, 20);
-
-  const {
     paginatedData: paginatedExecutedTxs,
     hasMore: hasMoreExecutedTxs,
     fetchMoreData: fetchMoreExecutedTxs,
@@ -70,28 +64,13 @@ export default function SignTransactionsPage() {
               </p>
             </div>
           ) : (
-            <div
-              className="max-h-[40dvh] overflow-y-auto"
-              id="staged-transactions-container"
-            >
-              <InfiniteScroll
-                dataLength={paginatedStagedTxs.length}
-                next={fetchMoreStagedTxs}
-                hasMore={hasMoreStagedTxs}
-                loader={
-                  <div className="p-2 text-xs text-muted-foreground">
-                    Loading more transactions...
-                  </div>
-                }
-                scrollableTarget="staged-transactions-container"
-              >
-                <TransactionTable
-                  transactions={paginatedStagedTxs.map((tx) => tx.txn)}
-                  safe={currentSafe}
-                  hideExternal={false}
-                  isStaged
-                />
-              </InfiniteScroll>
+            <div className="max-h-[40dvh] overflow-y-auto">
+              <TransactionTable
+                transactions={stagedTransactions.staged.map((tx) => tx.txn)}
+                safe={currentSafe}
+                hideExternal={false}
+                isStaged
+              />
             </div>
           )}
         </div>
