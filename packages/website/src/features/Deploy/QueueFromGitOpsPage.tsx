@@ -56,6 +56,7 @@ import { BuildStateAlerts } from '@/features/Deploy/BuildStateAlerts';
 import { WalletConnectionButtons } from '@/features/Deploy/WalletConnectionButtons';
 import { useToast } from '@/hooks/use-toast';
 import { useForm, FormProvider } from 'react-hook-form';
+import { useGitInfoFromCannonFileUrl } from '@/hooks/useGitInfoFromCannonFileUrl';
 
 const EMPTY_IPFS_MISC_URL =
   'ipfs://QmeSt2mnJKE8qmRhLyYbHQQxDKpsFbcWnw5e7JF4xVbN6k';
@@ -101,37 +102,13 @@ export default function QueueFromGitOps() {
   } | null>(null);
   const [inputError, setInputError] = useState<string | null>(null);
 
-  const gitInfo = useMemo(() => {
-    if (
-      !isCannonFileURL(cannonfileUrlInput) ||
-      !cannonfileUrlInput.includes('/blob/')
-    ) {
-      return { gitUrl: '', gitRef: '', gitFile: '' };
-    }
-
-    const [url, blobPath] = cannonfileUrlInput.split('/blob/');
-    const urlComponents = blobPath.split('/');
-    const branchName = urlComponents[0];
-    const filePath = urlComponents.slice(1).join('/');
-
-    return {
-      gitUrl: url,
-      gitRef: branchName,
-      gitFile: filePath,
-    };
-  }, [cannonfileUrlInput]);
-
+  const writeToIpfsMutation = useCannonWriteDeployToIpfs();
+  const gitInfo = useGitInfoFromCannonFileUrl(cannonfileUrlInput);
   const partialDeployInfo = useCannonPackage(
     partialDeployIpfs ? `ipfs://${partialDeployIpfs}` : '',
     currentSafe?.chainId
   );
-
-  const cannonDefInfo = useMergedCannonDefInfo(
-    gitInfo.gitUrl,
-    gitInfo.gitRef,
-    gitInfo.gitFile,
-    partialDeployInfo
-  );
+  const cannonDefInfo = useMergedCannonDefInfo(gitInfo, partialDeployInfo);
 
   const hasDeployers = useMemo(() => {
     return Boolean(cannonDefInfo?.def?.getDeployers()?.length);
@@ -209,8 +186,6 @@ export default function QueueFromGitOps() {
     const { fullPackageRef } = PackageReference.from(name, 'latest', preset);
     setPreviousPackageInput(fullPackageRef);
   }, [nextCannonDeployInfo, hasDeployers]);
-
-  const writeToIpfsMutation = useCannonWriteDeployToIpfs();
 
   useEffect(() => {
     const callMutation = async () => {
