@@ -220,6 +220,16 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated, CannonSubsc
     }
   }
 
+  function publishWithSubscription(
+    bytes32 _packageName,
+    bytes32 _variant,
+    bytes32[] memory _packageTags,
+    string memory _packageDeployUrl,
+    string memory _packageMetaUrl
+  ) external payable {
+    // TODO: implement same publish logic, but taking into account membership logic
+  }
+
   /**
    * @notice Removes a package from the registry. This can be useful if a package on ethereum or optimism is taking undesired precedence, or
    * if the owner simply wants to clean up the display of their protocol on the website
