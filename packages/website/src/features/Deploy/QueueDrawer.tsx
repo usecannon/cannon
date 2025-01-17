@@ -330,7 +330,7 @@ export const QueuedTxns = ({
           </>
         ) : null}
         <div className="mb-8 mt-8 p-6 bg-black border border-border rounded-lg">
-          <div className="space-y-4">
+          <div className="space-y-2">
             <Label>
               Add a transaction using a Cannon package or contract address
             </Label>
@@ -346,7 +346,7 @@ export const QueuedTxns = ({
                 target.length >= 3 &&
                 cannonInfo.registryQuery.status === 'pending' && (
                   <div className="absolute right-3 top-2.5">
-                    <CustomSpinner className="w-4 h-4" />
+                    <div className="animate-spin h-4 w-4 border-2 border-border border-t-foreground rounded-full opacity-80" />
                   </div>
                 )}
               {!isAddress(target) && cannonInfo.contracts && (

@@ -210,11 +210,11 @@ export default function PublishUtility(props: {
             <Image
               src="/images/ipfs.svg"
               alt="IPFS"
-              height={14}
-              width={14}
-              className="mr-1.5"
+              height={18}
+              width={18}
+              className="mr-2"
             />
-            <span className="text-xs border-b border-dotted border-gray-300">
+            <span className="border-b border-dotted border-gray-300">
               {`${props.deployUrl.substring(0, 13)}...${props.deployUrl.slice(
                 -6
               )}`}
@@ -249,9 +249,9 @@ export default function PublishUtility(props: {
                       href={getExplorerUrl(chainId, publisher)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="ml-1 inline-block"
+                      className="ml-1 inline-block align-middle"
                     >
-                      <ExternalLinkIcon className="translate-y-[-1px]" />
+                      <ExternalLinkIcon />
                     </Link>
                   </span>
                 </li>
