@@ -45,6 +45,7 @@ import { useConnectModal } from '@rainbow-me/rainbowkit';
 import {
   ChainBuilderContext,
   DeploymentInfo,
+  getIpfsUrl,
   PackageReference,
 } from '@usecannon/builder';
 import NextLink from 'next/link';
@@ -101,8 +102,9 @@ export default function QueueFromGitOps() {
   const [deploymentSourceInput, setDeploymentSourceInput] = useState('');
   const [cannonfileUrlInput, setCannonfileUrlInput] = useState('');
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
-  const [prevPackageInputRef, setPrevPackageInputRef] =
-    useState<PackageReference | null>(null);
+  const [prevPackageInputRef, setPrevPackageInputRef] = useState<string | null>(
+    null
+  );
   const [previousPackageInput, setPreviousPackageInput] = useState('');
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
   const [writeToIpfsMutationRes, setWriteToIpfsMutationRes] = useState<{
@@ -173,7 +175,11 @@ export default function QueueFromGitOps() {
 
   useEffect(() => {
     if (PackageReference.isValid(previousPackageInput)) {
-      setPrevPackageInputRef(new PackageReference(previousPackageInput));
+      setPrevPackageInputRef(
+        new PackageReference(previousPackageInput).fullPackageRef
+      );
+    } else if (getIpfsUrl(previousPackageInput)) {
+      setPrevPackageInputRef(getIpfsUrl(previousPackageInput));
     } else {
       setPrevPackageInputRef(null);
     }
@@ -506,7 +512,7 @@ export default function QueueFromGitOps() {
     }
 
     if (
-      onChainPrevPkgQuery.isFetched &&
+      onChainPrevPkgQuery.isFetching &&
       !prevDeployLocation &&
       tomlRequiresPrevPackage &&
       !previousPackageInput
@@ -521,7 +527,7 @@ export default function QueueFromGitOps() {
     currentSafe?.chainId,
     cannonDefInfo?.def,
     buildState.status,
-    onChainPrevPkgQuery.isFetched,
+    onChainPrevPkgQuery.isFetching,
     prevDeployLocation,
     tomlRequiresPrevPackage,
     previousPackageInput,
