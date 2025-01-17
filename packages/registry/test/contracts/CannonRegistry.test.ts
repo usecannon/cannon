@@ -1,4 +1,4 @@
-import { deepEqual, equal, ok } from 'assert/strict';
+import { deepEqual, equal, ok } from 'node:assert/strict';
 import { BigNumber, ContractTransaction, Signer } from 'ethers';
 import { ethers } from 'hardhat';
 import { stringToHex } from 'viem';
