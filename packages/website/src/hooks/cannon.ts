@@ -38,6 +38,7 @@ import { Abi, Address, createPublicClient, createTestClient, createWalletClient,
 import { useChainId, usePublicClient } from 'wagmi';
 // Needed to prepare mock run step with registerAction
 import '@/lib/builder';
+import { CannonfileGitInfo } from '@/hooks/useGitInfoFromCannonFileUrl';
 
 type CannonTxRecord = { name: string; gas: bigint; tx: BaseTransaction };
 
@@ -563,12 +564,8 @@ function getContractsRecursive(outputs: ChainArtifacts, prefix?: string): Contra
   return contracts;
 }
 
-export function useMergedCannonDefInfo(
-  gitUrl: string,
-  gitRef: string,
-  gitFile: string,
-  partialDeployInfo: ReturnType<typeof useCannonPackage>
-) {
+export function useMergedCannonDefInfo(gitInfo: CannonfileGitInfo, partialDeployInfo: ReturnType<typeof useCannonPackage>) {
+  const { gitUrl, gitRef, gitFile } = gitInfo;
   const originalCannonDefInfo = useLoadCannonDefinition(gitUrl, gitRef, gitFile);
 
   const {
