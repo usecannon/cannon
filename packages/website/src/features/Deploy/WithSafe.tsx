@@ -37,7 +37,11 @@ export default function WithSafe({ children }: { children: ReactNode }) {
   };
 
   if (!currentSafe) {
-    return <SelectSafeMessage />;
+    return (
+      <div className="h-screen max-h-[calc(100vh-var(--header-height)-var(--subheader-height)-var(--footer-height))]">
+        <SelectSafeMessage />
+      </div>
+    );
   }
 
   return isLoadingNetworkPrepared ? (
@@ -62,7 +66,7 @@ function SelectSafeMessage() {
   const { openConnectModal } = useConnectModal();
 
   return (
-    <div className="flex flex-col items-center justify-center text-center p-3 flex-1 bg-black/60">
+    <div className="h-full flex flex-col items-center justify-center text-center p-3 flex-1 bg-black/60">
       <motion.svg
         width="128px"
         height="128px"
