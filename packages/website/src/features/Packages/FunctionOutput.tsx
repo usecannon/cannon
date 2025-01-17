@@ -10,6 +10,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { renderTemplate } from '@usecannon/builder';
 
 const isArrayOutput = (
   value: AbiParameter | readonly AbiParameter[]
@@ -28,9 +29,30 @@ const ItemLabel: FC<{ name: string; type: string }> = ({ name, type }) => (
   </div>
 );
 
-const resultText = (type: string, result: any): string => {
-  if (result !== null && result !== undefined) {
-    return String(result);
+const resultText = (
+  name: string | undefined,
+  type: string,
+  value: any
+): string => {
+  // if (name === 'pool' || name === 'startTime' || name === 'epochId') {
+  //   console.log(`startTime or epochId or pool  --> ${name}`);
+  //   console.log(value);
+  // }
+  if (value !== null && value !== undefined) {
+    let ret = '';
+    for (const key in value) {
+      for (const idx in value[key]) {
+        if (name === idx) {
+          console.log();
+          ret = String(value[key][idx]);
+          break;
+        }
+      }
+    }
+    if (type === 'uint256[]' && ret === '') {
+      return '[]';
+    }
+    return ret;
   } else if (type === 'string') {
     return '(empty string)';
   } else if (type === 'boolean' || type === 'bool') {
@@ -63,7 +85,16 @@ export const FunctionOutput: FC<{
     ) {
       return (
         <div className="pl-4">
-          {Object.values(value).map((component: any, resIdx: number) => {
+          {Object.values(abiParameter).map((component: any, resIdx: number) => {
+            return (
+              <FunctionOutput
+                abiParameters={component}
+                methodResult={value}
+                key={resIdx}
+              />
+            );
+          })}
+          {/* {Object.values(value).map((component: any, resIdx: number) => {
             return (
               <FunctionOutput
                 abiParameters={abiParameter.components[resIdx]}
@@ -71,7 +102,7 @@ export const FunctionOutput: FC<{
                 key={resIdx}
               />
             );
-          })}
+          })} */}
         </div>
       );
     } else if (
@@ -86,6 +117,7 @@ export const FunctionOutput: FC<{
                 tuple[{tupleIndex}]
                 <ClipboardButton
                   text={resultText(
+                    abiParameter.name,
                     abiParameter.type,
                     'tuple[' + tupleIndex + ']'
                   )}
@@ -105,87 +137,145 @@ export const FunctionOutput: FC<{
             </div>
           ))
         : null;
-    } else {
-      if (isObject(value) && abiParameter.name && abiParameter.name in value) {
-        const outputValue = value[abiParameter.name];
+    } else if (abiParameter.type === 'address[]' && value) {
+      return (
+        <div>
+          {(value as string[]).map((val, idx) => (
+            <span className="text-xs block mt-2" key={idx}>
+              {val}
+              <ClipboardButton text={val} />
+            </span>
+          ))}
+        </div>
+      );
+    } else if (abiParameter.type === 'address' && value) {
+      if (isObject(value)) {
         return (
-          <span className="block pt-1 pb-2 text-xs">
-            {resultText(abiParameter.type, outputValue)}
-            <ClipboardButton
-              text={resultText(abiParameter.type, outputValue)}
-            />
-          </span>
+          <div>
+            <span className="text-xs block mt-2">
+              {resultText(abiParameter.name, abiParameter.type, value)}
+              <ClipboardButton
+                text={resultText(abiParameter.name, abiParameter.type, value)}
+              />
+            </span>
+          </div>
         );
       } else if (isArray(value)) {
-        if (abiParameter.type === 'address[]') {
-          return (
-            <div>
-              {value.map((val, idx) => (
-                <span className="text-xs block" key={idx}>
-                  {resultText(abiParameter.type, val)}
-                  <ClipboardButton text={resultText(abiParameter.type, val)} />
-                </span>
-              ))}
-            </div>
-          );
-        } else if (index !== undefined) {
-          return (
-            <span className="text-xs block">
-              {String(value[index]) === undefined
-                ? resultText(abiParameter.type, value[index])
-                : '[]'}
-            </span>
-          );
-        } else {
-          return value.map((val, idx) => (
-            <span className="text-xs block" key={idx}>
-              {resultText(abiParameter.type, val)}
-              <ClipboardButton text={resultText(abiParameter.type, val)} />
-            </span>
-          ));
-        }
+        return (
+          <div>
+            {(value as string[]).map((val, idx) => (
+              <span className="text-xs block mt-2" key={idx}>
+                {typeof val === 'object'
+                  ? resultText(abiParameter.name, abiParameter.type, val)
+                  : String(val)}
+                <ClipboardButton text={String(val)} />
+              </span>
+            ))}
+          </div>
+        );
       } else {
         return (
-          <div
-            className={cn(
-              'flex items-center gap-2 justify-items-center py-2',
-              'data-[tooltip-id]:float'
-            )}
-            data-tooltip-id={`${abiParameter.name}${abiParameter.type}`}
-          >
-            {(abiParameter.type.includes('int128') ||
-              abiParameter.type.includes('int256')) &&
-            methodResult ? (
-              <div className="flex gap-2 items-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex gap-2 items-center">
-                        <span className="text-sm">
-                          {resultText(abiParameter.type, methodResult)}
-                        </span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {`${formatEther(methodResult).toString()} wei`}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <ClipboardButton
-                  text={resultText(abiParameter.type, methodResult)}
-                />
-              </div>
-            ) : (
-              <span className="text-sm">
-                {resultText(abiParameter.type, methodResult)}
-                <ClipboardButton
-                  text={resultText(abiParameter.type, methodResult)}
-                />
-              </span>
-            )}
+          <div>
+            <span className="text-sm">
+              {String(value)}
+              <ClipboardButton text={String(value)} />
+            </span>
           </div>
         );
       }
+    } else {
+      // if (isObject(value) && abiParameter.name && abiParameter.name in value) {
+      //   const outputValue = value[abiParameter.name];
+      //   return (
+      //     <span className="block pt-1 pb-2 text-xs">
+      //       {resultText(abiParameter.type, outputValue)}
+      //       <ClipboardButton
+      //         text={resultText(abiParameter.type, outputValue)}
+      //       />
+      //     </span>
+      //   );
+      // } else if (isArray(value)) {
+      // if (abiParameter.type === 'address[]') {
+      //   return (
+      //     <div>
+      //       {value.map((val, idx) => (
+      //         <span className="text-xs block" key={idx}>
+      //           {resultText(abiParameter.type, val)}
+      //           <ClipboardButton text={resultText(abiParameter.type, val)} />
+      //         </span>
+      //       ))}
+      //     </div>
+      //   );
+      // } else if (index !== undefined) {
+      //   return (
+      //     <span className="text-xs block">
+      //       {String(value[index]) === undefined
+      //         ? resultText(abiParameter.type, value[index])
+      //         : '[]'}
+      //     </span>
+      //   );
+      // } else {
+      //   return value.map((val, idx) => (
+      //     <span className="text-xs block" key={idx}>
+      //       {resultText(abiParameter.type, val)}
+      //       <ClipboardButton text={resultText(abiParameter.type, val)} />
+      //     </span>
+      //   ));
+      // }
+      // } else {
+      return (
+        <div
+          className={cn(
+            'flex items-center gap-2 justify-items-center py-2',
+            'data-[tooltip-id]:float'
+          )}
+          data-tooltip-id={`${abiParameter.name}${abiParameter.type}`}
+        >
+          {((abiParameter.type && abiParameter.type.includes('int128')) ||
+            (abiParameter.type && abiParameter.type.includes('int256'))) &&
+          methodResult ? (
+            <div className="flex gap-2 items-center">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex gap-2 items-center">
+                      <span className="text-sm">
+                        {resultText(
+                          abiParameter.name,
+                          abiParameter.type,
+                          methodResult
+                        )}
+                      </span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {`${formatEther(methodResult).toString()} wei`}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <ClipboardButton
+                text={resultText(
+                  abiParameter.name,
+                  abiParameter.type,
+                  methodResult
+                )}
+              />
+            </div>
+          ) : (
+            <span className="text-sm">
+              {resultText(abiParameter.name, abiParameter.type, methodResult)}
+              <ClipboardButton
+                text={resultText(
+                  abiParameter.name,
+                  abiParameter.type,
+                  methodResult
+                )}
+              />
+            </span>
+          )}
+        </div>
+      );
+      // }
     }
   };
 
@@ -198,25 +288,30 @@ export const FunctionOutput: FC<{
           </span>
         </div>
       )}
-      {isArrayOutput(abiParameters) ? (
-        abiParameters.map((abiParameter, index) => (
-          <div className="overflow-x-scroll py-2" key={index}>
-            <ItemLabel
-              name={abiParameter.name || ''}
-              type={abiParameter.internalType || ''}
-            />
-            {renderOutput(abiParameter, methodResult, index)}
-          </div>
-        ))
-      ) : (
-        <div className="overflow-x-scroll py-2">
-          <ItemLabel
-            name={abiParameters.name || ''}
-            type={abiParameters.internalType || ''}
-          />
-          {renderOutput(abiParameters, methodResult)}
-        </div>
-      )}
+      {isArrayOutput(abiParameters)
+        ? abiParameters.map(
+            (abiParameter, index) =>
+              abiParameter.name !== undefined &&
+              abiParameter.type !== undefined && (
+                <div className="overflow-x-scroll py-2" key={index}>
+                  <ItemLabel
+                    name={abiParameter.name || ''}
+                    type={abiParameter.internalType || ''}
+                  />
+                  {renderOutput(abiParameter, methodResult, index)}
+                </div>
+              )
+          )
+        : abiParameters.name !== undefined &&
+          abiParameters.type !== undefined && (
+            <div className="overflow-x-scroll py-2">
+              <ItemLabel
+                name={abiParameters.name || ''}
+                type={abiParameters.internalType || ''}
+              />
+              {renderOutput(abiParameters, methodResult)}
+            </div>
+          )}
     </>
   );
 };
