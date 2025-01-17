@@ -401,21 +401,14 @@ export function useCannonFindUpgradeFromUrl(
   packageRef?: PackageReference,
   chainId?: number,
   deployers?: Address[],
-  upgradeFrom?: PackageReference // Optional, if not deployers given
+  upgradeFrom?: string // Optional, if not deployers given
 ) {
   const registry = useCannonRegistry();
   const publicClient = usePublicClient();
 
   return useQuery({
     enabled: !!packageRef && !!chainId,
-    queryKey: [
-      'cannon',
-      'find-upgrade-from',
-      packageRef?.fullPackageRef,
-      chainId,
-      deployers?.join(','),
-      upgradeFrom?.fullPackageRef,
-    ],
+    queryKey: ['cannon', 'find-upgrade-from', packageRef?.fullPackageRef, chainId, deployers?.join(','), upgradeFrom],
     refetchOnWindowFocus: false,
     queryFn: async () => {
       if (deployers?.length) {
@@ -428,7 +421,7 @@ export function useCannonFindUpgradeFromUrl(
         );
         return url;
       } else if (upgradeFrom) {
-        const url = await _getCannonPackageRegistryUrl(registry, upgradeFrom.fullPackageRef, chainId!);
+        const url = await _getCannonPackageRegistryUrl(registry, upgradeFrom, chainId!);
         return url;
       }
 
