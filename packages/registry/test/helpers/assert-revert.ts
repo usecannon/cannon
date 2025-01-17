@@ -1,4 +1,4 @@
-import { deepEqual, equal } from 'assert/strict';
+import { deepEqual, equal } from 'node:assert/strict';
 
 export async function assertRevert(fn: () => Promise<unknown>, errorMessage: string) {
   const match = /([a-zA-Z0-9]+)\(([^)]*)\)/.exec(errorMessage);

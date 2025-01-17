@@ -39,11 +39,7 @@ export async function deployCannonRegistry(
   const subscriptionLibrary = await subscriptionLibraryFactory.deploy();
   await subscriptionLibrary.deployed();
 
-  const factory = await ethers.getContractFactory('CannonRegistry', {
-    libraries: {
-      ['contracts/storage/Subscription.sol:Subscription']: subscriptionLibrary.address,
-    },
-  });
+  const factory = await ethers.getContractFactory('CannonRegistry');
   const contract = await factory.deploy(optimismMessengerAddress, optimismReceiverAddress, chainId);
   await contract.deployed();
   return contract;
