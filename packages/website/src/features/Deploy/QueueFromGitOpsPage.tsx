@@ -57,6 +57,7 @@ import { WalletConnectionButtons } from '@/features/Deploy/WalletConnectionButto
 import { useToast } from '@/hooks/use-toast';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useGitInfoFromCannonFileUrl } from '@/hooks/useGitInfoFromCannonFileUrl';
+import { PrevDeploymentStatus } from '@/features/Deploy/PrevDeploymentStatus';
 
 const EMPTY_IPFS_MISC_URL =
   'ipfs://QmeSt2mnJKE8qmRhLyYbHQQxDKpsFbcWnw5e7JF4xVbN6k';
@@ -72,46 +73,6 @@ const ctx: ChainBuilderContext = {
   imports: {},
   overrideSettings: {},
 };
-
-interface PrevDeploymentStatusProps {
-  prevDeployLocation: string;
-  tomlRequiresPrevPackage?: boolean;
-}
-
-function PrevDeploymentStatus({
-  prevDeployLocation,
-  tomlRequiresPrevPackage,
-}: PrevDeploymentStatusProps) {
-  return (
-    <div className="flex flex-col mb-4">
-      {prevDeployLocation ? (
-        <Alert variant="info">
-          <AlertDescription>
-            Previous Deployment:{' '}
-            <NextLink
-              href={`/ipfs?cid=${prevDeployLocation.replace(
-                'ipfs://',
-                ''
-              )}&compressed=true`}
-              className="text-primary hover:underline"
-              target="_blank"
-            >
-              {prevDeployLocation.replace('ipfs://', '')}
-            </NextLink>
-          </AlertDescription>
-        </Alert>
-      ) : (
-        <Alert variant="info">
-          <AlertDescription>
-            {tomlRequiresPrevPackage
-              ? 'We couldn\'t find a previous deployment for your cannonfile. Please, enter a value in the "Previous Package" input or modify your cannonfile to include a "deployers" key.'
-              : 'Deployment from scratch'}
-          </AlertDescription>
-        </Alert>
-      )}
-    </div>
-  );
-}
 
 export default function QueueFromGitOps() {
   const form = useForm();
