@@ -12,7 +12,7 @@ const EMPTY_GIT_INFO: CannonfileGitInfo = {
   gitFile: '',
 };
 
-export function useGitInfoFromCannonFileUrl(cannonfileUrlInput: string): CannonfileGitInfo {
+export function useGitDetailsFromCannonfile(cannonfileUrlInput: string): CannonfileGitInfo {
   if (!isCannonFileURL(cannonfileUrlInput) || !cannonfileUrlInput.includes('/blob/')) {
     return EMPTY_GIT_INFO;
   }
