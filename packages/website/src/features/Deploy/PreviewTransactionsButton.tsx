@@ -85,13 +85,7 @@ export function PreviewTransactionsButton({
         message: `Error fetching partial deploy info, error: ${partialDeployInfo.error?.message}`,
       };
     }
-    if (!canTomlBeDeployedUsingWebsite) {
-      return {
-        shouldDisable: true,
-        message:
-          'This cannonfile can no be deployed using the UI. Please use the CLI to deploy.',
-      };
-    }
+
     const isFetching =
       cannonDefInfo.isFetching ||
       prevCannonDeployInfo.isFetching ||
@@ -103,6 +97,14 @@ export function PreviewTransactionsButton({
       return {
         shouldDisable: true,
         message: 'Fetching package info, please wait...',
+      };
+    }
+
+    if (!canTomlBeDeployedUsingWebsite) {
+      return {
+        shouldDisable: true,
+        message:
+          'This cannonfile can no be deployed using the UI. Please use the CLI to deploy.',
       };
     }
 
