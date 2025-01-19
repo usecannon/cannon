@@ -96,7 +96,6 @@ export function PreviewTransactionsButton({
     if (isFetching) {
       return {
         shouldDisable: true,
-        message: 'Fetching package info, please wait...',
       };
     }
 
