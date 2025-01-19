@@ -50,8 +50,9 @@ import { PreviewTransactionsButton } from '@/features/Deploy/PreviewTransactions
 import { useToast } from '@/hooks/use-toast';
 import { useForm, FormProvider } from 'react-hook-form';
 import { PrevDeploymentStatus } from '@/features/Deploy/PrevDeploymentStatus';
-import { useCannonDefinitions } from '@/hooks/useCannonDefinitions';
+import { useCannonDefinitions } from '@/features/Deploy/hooks/useCannonDefinitions';
 import { IpfsGatewayAlert } from '@/features/Deploy/IpfsGatewayAlert';
+import { useCannonDefinitionDerivedState } from './hooks/useCannonDefinitionDerivedState';
 
 const EMPTY_IPFS_MISC_URL =
   'ipfs://QmeSt2mnJKE8qmRhLyYbHQQxDKpsFbcWnw5e7JF4xVbN6k';
@@ -74,10 +75,10 @@ export default function QueueFromGitOps() {
   const currentSafe = useStore((s) => s.currentSafe)!;
   const settings = useStore((s) => s.settings);
   const { toast } = useToast();
-
   const { chainId, isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
   const deployer = useDeployerWallet(currentSafe?.chainId);
+  const writeToIpfsMutation = useCannonWriteDeployToIpfs();
 
   const [selectedDeployType, setSelectedDeployType] =
     useState<DeployType>('git');
@@ -97,17 +98,16 @@ export default function QueueFromGitOps() {
   } | null>(null);
   const [inputError, setInputError] = useState<string | null>(null);
 
-  const writeToIpfsMutation = useCannonWriteDeployToIpfs();
-
   const {
     gitInfo,
     partialDeployInfo,
     cannonDefInfo,
-    hasDeployers,
     cannonDefInfoError,
     onChainPrevPkgQuery,
     prevDeployLocation,
     prevCannonDeployInfo,
+    isLoading: isCannonDefinitionLoading,
+    isLoaded: isCannonDefinitionLoaded,
   } = useCannonDefinitions({
     cannonfileUrlInput,
     partialDeployIpfs,
@@ -116,6 +116,36 @@ export default function QueueFromGitOps() {
     ctx,
   });
 
+  // TODO: useCannonDefinitionDerivedState should be a hook that takes in the result of useCannonDefinitions
+  // and forwards the result to the component.
+  const {
+    requiresPrevPackage,
+    cannonInfoDefinitionLoaded,
+    hasDeployers,
+    error: cannonDefinitionError,
+  } = useCannonDefinitionDerivedState({
+    cannonDefInfo,
+    cannonfileUrlInput,
+    partialDeployInfo,
+    isLoading: isCannonDefinitionLoading,
+  });
+
+  const {
+    buildState,
+    doBuild, // run the build and get the list of transactions we need to run
+    resetState: buildResetState,
+  } = useCannonBuild(currentSafe);
+
+  const refsInfo = useGitRefsList(gitInfo.gitUrl);
+
+  const prevInfoQuery = useGetPreviousGitInfoQuery(
+    currentSafe as any,
+    gitInfo.gitUrl + ':' + gitInfo.gitFile
+  );
+
+  // ---------------------------
+  // Effects and Memos
+  // ---------------------------
   useEffect(() => {
     if (PackageReference.isValid(previousPackageInput)) {
       setPrevPackageInputRef(
@@ -124,12 +154,9 @@ export default function QueueFromGitOps() {
     } else if (getIpfsUrl(previousPackageInput)) {
       setPrevPackageInputRef(getIpfsUrl(previousPackageInput));
     } else {
-      setPrevPackageInputRef(null);
+      setPrevPackageInputRef(null); // TODO: SHOW an error???
     }
   }, [previousPackageInput]);
-
-  // run the build and get the list of transactions we need to run
-  const { buildState, doBuild, resetState } = useCannonBuild(currentSafe);
 
   const nextCannonDeployInfo = useMemo(() => {
     return cannonDefInfo?.def
@@ -155,8 +182,8 @@ export default function QueueFromGitOps() {
     partialDeployInfo?.ipfsQuery.data?.deployInfo?.options,
   ]);
 
-  // After loading the deployment info, set a default value for the upgradeFrom field
   useEffect(() => {
+    // After loading the deployment info, set a default value for the upgradeFrom field
     if (hasDeployers || !nextCannonDeployInfo?.def) {
       return setPreviousPackageInput('');
     }
@@ -165,6 +192,19 @@ export default function QueueFromGitOps() {
     const { fullPackageRef } = PackageReference.from(name, 'latest', preset);
     setPreviousPackageInput(fullPackageRef);
   }, [nextCannonDeployInfo, hasDeployers]);
+
+  const foundRef = refsInfo.refs?.find(
+    (r) =>
+      (r.ref.startsWith('refs/heads/') || r.ref.startsWith('refs/tags/')) &&
+      r.ref.endsWith(gitInfo.gitRef)
+  )?.oid;
+  const gitHash = gitInfo.gitRef.match(/^[0-9a-f]+$/)
+    ? foundRef || gitInfo.gitRef
+    : foundRef;
+
+  // ---------------------------
+  // Build stuff
+  // ---------------------------
 
   useEffect(() => {
     const callMutation = async () => {
@@ -199,21 +239,6 @@ export default function QueueFromGitOps() {
 
     void callMutation();
   }, [buildState.status]);
-
-  const refsInfo = useGitRefsList(gitInfo.gitUrl);
-  const foundRef = refsInfo.refs?.find(
-    (r) =>
-      (r.ref.startsWith('refs/heads/') || r.ref.startsWith('refs/tags/')) &&
-      r.ref.endsWith(gitInfo.gitRef)
-  )?.oid;
-  const gitHash = gitInfo.gitRef.match(/^[0-9a-f]+$/)
-    ? foundRef || gitInfo.gitRef
-    : foundRef;
-
-  const prevInfoQuery = useGetPreviousGitInfoQuery(
-    currentSafe as any,
-    gitInfo.gitUrl + ':' + gitInfo.gitFile
-  );
 
   const multisendTxsParam = useMemo(() => {
     return [
@@ -353,97 +378,16 @@ export default function QueueFromGitOps() {
   const isOutsideSafeTxnsRequired =
     (buildState.result?.deployerSteps.length || 0) > 0 && !deployer.isComplete;
 
-  const loadingDataForDeploy =
-    prevCannonDeployInfo.isFetching ||
-    partialDeployInfo?.isFetching ||
-    onChainPrevPkgQuery.isFetching ||
-    buildState.status === 'building' ||
-    writeToIpfsMutationRes?.isLoading;
+  const buildStateMessage = buildState.message || null;
+  const buildStateError = buildState.error || null;
 
-  const handlePreviewTxnsClick = useCallback(async () => {
-    doBuild(
-      cannonDefInfo?.def,
-      partialDeployInfo?.ipfsQuery.data?.deployInfo ??
-        prevCannonDeployInfo.ipfsQuery.data?.deployInfo
-    );
-  }, [
-    doBuild,
-    cannonDefInfo?.def,
-    partialDeployInfo?.ipfsQuery.data?.deployInfo,
-    prevCannonDeployInfo.ipfsQuery.data?.deployInfo,
-  ]);
-
-  const tomlRequiresPrevPackage = useMemo(
-    () =>
-      Boolean(
-        cannonfileUrlInput &&
-          cannonDefInfo?.def &&
-          !hasDeployers &&
-          cannonDefInfo.def.allActionNames.some(
-            (item) => item.startsWith('deploy.') || item.startsWith('contract.')
-          )
-      ),
-    [cannonfileUrlInput, cannonDefInfo?.def, hasDeployers]
-  );
-
-  const canTomlBeDeployedUsingWebsite = useMemo(() => {
-    if (!cannonDefInfo?.def) return false;
-
-    // If there are no deployers defined and there are deploy/contract actions,
-    // we can't deploy from website
-    if (
-      !hasDeployers &&
-      cannonDefInfo.def.allActionNames.some(
-        (item) => item.startsWith('deploy.') || item.startsWith('contract.')
-      )
-    ) {
-      return false;
-    }
-
-    return true;
-  }, [cannonDefInfo?.def, hasDeployers]);
-
-  /*
-   *
-   * This condition was already migrated, leaving it here for reference
-   *
-    
-  const disablePreviewButton = useMemo(() => {
-     if (loadingDataForDeploy || !cannonDefInfo?.def) {
-      return true;
-    } 
-
-         if (buildState.status === 'building' || buildState.status === 'success') {
-      return true;
-    }
- 
-    if (
-      onChainPrevPkgQuery.isFetching &&
-      !prevDeployLocation &&
-      tomlRequiresPrevPackage &&
-      !previousPackageInput
-    ) {
-      return true;
-    }
-
-    // return !canTomlBeDeployedUsingWebsite;
-  }, [
-    loadingDataForDeploy,
-    chainId,
-    currentSafe?.chainId,
-    cannonDefInfo?.def,
-    buildState.status,
-    onChainPrevPkgQuery.isFetching,
-    prevDeployLocation,
-    tomlRequiresPrevPackage,
-    previousPackageInput,
-    canTomlBeDeployedUsingWebsite,
-  ]);
-*/
+  // ---------------------------
+  // Build stuff end
+  // ---------------------------
 
   const handleDeploymentSourceInputChange = useCallback(
     (input: string) => {
-      resetState();
+      buildResetState();
       setCannonfileUrlInput('');
       setPartialDeployIpfs('');
       setInputError(null);
@@ -462,31 +406,8 @@ export default function QueueFromGitOps() {
         );
       }
     },
-    [resetState]
+    [buildResetState]
   );
-
-  const cannonInfoDefinitionLoaded = useMemo(
-    () =>
-      Boolean(
-        cannonfileUrlInput.length > 0 &&
-          !cannonDefInfo.error &&
-          cannonDefInfo?.def
-      ),
-    [cannonfileUrlInput, cannonDefInfo]
-  );
-
-  const partialDeployInfoLoaded = useMemo(
-    () =>
-      Boolean(
-        !partialDeployInfo?.isFetching &&
-          !partialDeployInfo?.isError &&
-          partialDeployInfo?.ipfsQuery.data?.deployInfo
-      ),
-    [partialDeployInfo]
-  );
-
-  const buildStateMessage = buildState.message || null;
-  const buildStateError = buildState.error || null;
 
   return (
     <FormProvider {...form}>
@@ -504,7 +425,7 @@ export default function QueueFromGitOps() {
                 cannonDefInfo={cannonDefInfo}
                 cannonInfoDefinitionLoaded={cannonInfoDefinitionLoaded}
                 partialDeployInfo={partialDeployInfo}
-                partialDeployInfoLoaded={partialDeployInfoLoaded}
+                partialDeployInfoLoaded={isCannonDefinitionLoaded}
                 chainId={chainId}
                 currentSafe={currentSafe}
                 cannonDefInfoError={cannonDefInfoError}
@@ -518,11 +439,11 @@ export default function QueueFromGitOps() {
             {selectedDeployType == 'git' && onChainPrevPkgQuery.isFetched && (
               <PrevDeploymentStatus
                 prevDeployLocation={prevDeployLocation}
-                tomlRequiresPrevPackage={tomlRequiresPrevPackage}
+                tomlRequiresPrevPackage={requiresPrevPackage}
               />
             )}
             {/* Hash: Prev deployment Input */}
-            {(partialDeployInfoLoaded || tomlRequiresPrevPackage) && (
+            {(isCannonDefinitionLoaded || requiresPrevPackage) && (
               <div className="mb-4">
                 <PreviousPackageInput
                   previousPackageInput={previousPackageInput}
@@ -535,7 +456,7 @@ export default function QueueFromGitOps() {
             {/* Hash: CannonFile to compare with prev deployment */}
             {selectedDeployType == 'partial' &&
               partialDeployIpfs.length > 0 &&
-              partialDeployInfoLoaded && (
+              isCannonDefinitionLoaded && (
                 <div className="mb-4">
                   <CannonFileInput
                     cannonfileUrlInput={cannonfileUrlInput}
@@ -552,20 +473,31 @@ export default function QueueFromGitOps() {
               cannonDef={cannonDefInfo?.def}
             />
             {/* PreviewTransactionsButton */}
-            <PreviewTransactionsButton
-              isConnected={isConnected}
-              chainId={chainId}
-              currentSafe={currentSafe}
-              openConnectModal={openConnectModal}
-              loadingDataForDeploy={Boolean(loadingDataForDeploy)}
-              deploymentSourceInput={deploymentSourceInput}
-              partialDeployInfo={partialDeployInfo}
-              cannonDefInfo={cannonDefInfo}
-              prevCannonDeployInfo={prevCannonDeployInfo}
-              onChainPrevPkgQuery={onChainPrevPkgQuery}
-              canTomlBeDeployedUsingWebsite={canTomlBeDeployedUsingWebsite}
-              handlePreviewTxnsClick={handlePreviewTxnsClick}
-            />
+            {onChainPrevPkgQuery.isFetched && (
+              <PreviewTransactionsButton
+                isConnected={isConnected}
+                chainId={chainId}
+                currentSafe={currentSafe}
+                openConnectModal={openConnectModal}
+                deploymentSourceInput={deploymentSourceInput}
+                partialDeployInfo={partialDeployInfo}
+                cannonDefInfo={cannonDefInfo}
+                error={cannonDefinitionError}
+                isDeploying={Boolean(
+                  buildState.status === 'building' ||
+                    writeToIpfsMutationRes?.isLoading
+                )}
+                handlePreviewTxnsClick={async () => {
+                  doBuild(
+                    cannonDefInfo?.def,
+                    partialDeployInfo?.ipfsQuery.data?.deployInfo ??
+                      prevCannonDeployInfo.ipfsQuery.data?.deployInfo
+                  );
+                }}
+                isLoading={isCannonDefinitionLoading}
+                buildStatus={buildState.status}
+              />
+            )}
 
             {/* Build status */}
             <BuildStateAlerts

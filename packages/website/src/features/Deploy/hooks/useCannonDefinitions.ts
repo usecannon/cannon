@@ -1,6 +1,6 @@
 import { ChainBuilderContext } from '@usecannon/builder';
 import { useCannonPackage, useMergedCannonDefInfo, useCannonFindUpgradeFromUrl } from '@/hooks/cannon';
-import { useGitDetailsFromCannonfile } from '@/hooks/useGitDetailsFromCannonfile';
+import { useGitDetailsFromCannonfile } from '@/features/Deploy/hooks/useGitDetailsFromCannonfile';
 
 interface UseCannonDefinitionsProps {
   cannonfileUrlInput: string;
@@ -23,7 +23,6 @@ export function useCannonDefinitions({
   const partialDeployInfo = useCannonPackage(_partialDeployIpfs, chainId);
   const cannonDefInfo = useMergedCannonDefInfo(gitInfo, partialDeployInfo);
 
-  const hasDeployers = Boolean(cannonDefInfo?.def?.getDeployers()?.length);
   const currentPackageReference = cannonDefInfo?.def?.getPackageRef(ctx);
 
   // Get on-chain previous package query
@@ -39,14 +38,16 @@ export function useCannonDefinitions({
 
   return {
     isLoading:
-      partialDeployInfo.isFetching ||
       cannonDefInfo.isFetching ||
+      prevCannonDeployInfo.isFetching ||
       onChainPrevPkgQuery.isFetching ||
-      prevCannonDeployInfo.isFetching,
+      partialDeployInfo.isFetching,
+    isLoaded: Boolean(
+      !partialDeployInfo?.isFetching && !partialDeployInfo?.isError && partialDeployInfo?.ipfsQuery.data?.deployInfo
+    ),
     gitInfo,
     partialDeployInfo,
     cannonDefInfo,
-    hasDeployers,
     cannonDefInfoError: gitInfo.gitUrl
       ? (cannonDefInfo?.error as any)?.toString()
       : cannonfileUrlInput && 'The format of your URL appears incorrect. Please double check and try again.',
