@@ -33,18 +33,15 @@ const resultText = (
   type: string,
   value: any
 ): string => {
-  if (typeof value === 'string') {
-    return value;
+  if (typeof value !== 'object') {
+    return String(value);
   } else if (value !== null && value !== undefined) {
     const resultItem = value.find(
-      (item: any) => name !== undefined && item.hasOwnProperty(name)
+      (item: any) => name !== undefined && name in item
     );
     const result: string =
       resultItem && name !== undefined ? String(resultItem[name]) : '';
 
-    if (type.includes('[]') && result === '') {
-      return '[]';
-    }
     return result;
   }
 
