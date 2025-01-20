@@ -33,7 +33,9 @@ const resultText = (
   type: string,
   value: any
 ): string => {
-  if (value !== null && value !== undefined) {
+  if (typeof value === 'string') {
+    return value;
+  } else if (value !== null && value !== undefined) {
     const resultItem = value.find(
       (item: any) => name !== undefined && item.hasOwnProperty(name)
     );
@@ -44,19 +46,21 @@ const resultText = (
       return '[]';
     }
     return result;
-  } else if (type === 'string') {
-    return '(empty string)';
-  } else if (type === 'boolean' || type === 'bool') {
-    return '(false)';
-  } else if (
-    type === 'uint256' ||
-    type === 'int256' ||
-    type === 'uint128' ||
-    type === 'int128'
-  ) {
-    return '0';
-  } else {
-    return '(no result)';
+  }
+
+  switch (type) {
+    case 'string':
+      return '(empty string)';
+    case 'boolean':
+    case 'bool':
+      return '(false)';
+    case 'uint256':
+    case 'int256':
+    case 'uint128':
+    case 'int128':
+      return '0';
+    default:
+      return '(no result)';
   }
 };
 
@@ -64,6 +68,59 @@ export const FunctionOutput: FC<{
   abiParameters: AbiParameter | readonly AbiParameter[];
   methodResult: any;
 }> = ({ abiParameters, methodResult }) => {
+  const renderValue = (abiParameter: AbiParameter, value: any) => {
+    return (
+      <>
+        <div
+          className={cn(
+            'flex items-center gap-2 justify-items-center py-2',
+            'data-[tooltip-id]:float'
+          )}
+          data-tooltip-id={`${abiParameter.name}${abiParameter.type}`}
+        >
+          {(abiParameter.type.includes('int128') ||
+            abiParameter.type.includes('int256')) &&
+          value ? (
+            <div className="flex gap-2 items-center">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex gap-2 items-center">
+                      <span className="text-sm">
+                        {resultText(
+                          abiParameter.name,
+                          abiParameter.type,
+                          value
+                        )}
+                      </span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {`${formatEther(
+                      BigInt(
+                        resultText(abiParameter.name, abiParameter.type, value)
+                      )
+                    ).toString()} wei`}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <ClipboardButton
+                text={resultText(abiParameter.name, abiParameter.type, value)}
+              />
+            </div>
+          ) : (
+            <span className="text-sm">
+              {resultText(abiParameter.name, abiParameter.type, value)}
+              <ClipboardButton
+                text={resultText(abiParameter.name, abiParameter.type, value)}
+              />
+            </span>
+          )}
+        </div>
+      </>
+    );
+  };
+
   const renderOutput = (
     abiParameter: AbiParameter,
     value: { [key: string]: any },
@@ -85,15 +142,6 @@ export const FunctionOutput: FC<{
               />
             );
           })}
-          {/* {Object.values(value).map((component: any, resIdx: number) => {
-            return (
-              <FunctionOutput
-                abiParameters={abiParameter.components[resIdx]}
-                methodResult={component}
-                key={resIdx}
-              />
-            );
-          })} */}
         </div>
       );
     } else if (
@@ -123,7 +171,6 @@ export const FunctionOutput: FC<{
         : null;
     } else {
       if (isObject(value) && abiParameter.name && abiParameter.name in value) {
-        //facets -->
         const outputValue = value[abiParameter.name];
         return (
           <span className="block pt-1 pb-2 text-xs">
@@ -133,7 +180,6 @@ export const FunctionOutput: FC<{
         );
       } else if (isArray(value)) {
         if (abiParameter.type === 'address[]') {
-          //facetAddresses
           return (
             <div>
               {value.map((val, idx) => (
@@ -145,55 +191,10 @@ export const FunctionOutput: FC<{
             </div>
           );
         } else if (index !== undefined) {
-          return (abiParameter.type && abiParameter.type.includes('int128')) ||
-            (abiParameter.type && abiParameter.type.includes('int256')) ? (
-            <div className="flex gap-2 items-center">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex gap-2 items-center">
-                      <span className="text-sm">
-                        {resultText(
-                          abiParameter.name,
-                          abiParameter.type,
-                          methodResult
-                        )}
-                      </span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {`${formatEther(
-                      BigInt(
-                        resultText(
-                          abiParameter.name,
-                          abiParameter.type,
-                          methodResult
-                        )
-                      )
-                    ).toString()} wei`}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <ClipboardButton
-                text={resultText(
-                  abiParameter.name,
-                  abiParameter.type,
-                  methodResult
-                )}
-              />
-            </div>
-          ) : (
-            <span className="text-xs block">
-              {resultText(abiParameter.name, abiParameter.type, value)}
-              <ClipboardButton
-                text={resultText(abiParameter.name, abiParameter.type, value)}
-              />
-            </span>
-          );
+          return renderValue(abiParameter, value);
         } else {
-          //getEpoc
           return value.map((val, idx) => (
-            <span className="text-xs block" key={idx}>
+            <span className="text-sm block" key={idx}>
               {resultText(abiParameter.name, abiParameter.type, val)}
               <ClipboardButton
                 text={resultText(abiParameter.name, abiParameter.type, val)}
@@ -202,56 +203,14 @@ export const FunctionOutput: FC<{
           ));
         }
       } else {
-        return (
-          <div
-            className={cn(
-              'flex items-center gap-2 justify-items-center py-2',
-              'data-[tooltip-id]:float'
-            )}
-            data-tooltip-id={`${abiParameter.name}${abiParameter.type}`}
-          >
-            {((abiParameter.type && abiParameter.type.includes('int128')) ||
-              (abiParameter.type && abiParameter.type.includes('int256'))) &&
-            methodResult ? (
-              <div className="flex gap-2 items-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex gap-2 items-center">
-                        <span className="text-sm">{methodResult}</span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {`${formatEther(methodResult).toString()} wei`}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <ClipboardButton
-                  text={resultText(
-                    abiParameter.name,
-                    abiParameter.type,
-                    methodResult
-                  )}
-                />
-              </div>
-            ) : (
-              <span className="text-sm">
-                {methodResult}
-                <ClipboardButton text={methodResult} />
-              </span>
-            )}
-          </div>
-        );
+        return renderValue(abiParameter, value);
       }
     }
   };
 
-  console.log(`length == ${(abiParameters as Array<any>).length}`);
-  console.log(abiParameters);
-
   return (
     <>
-      {(abiParameters as Array<any>).length == 0 && methodResult !== null && (
+      {(abiParameters as Array<any>).length == 0 && methodResult === null && (
         <div className="flex flex-1 items-center h-full py-4">
           <span className="text-sm m-auto text-muted-foreground">
             This function doesn’t return any values.
