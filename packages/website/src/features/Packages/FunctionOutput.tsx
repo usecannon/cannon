@@ -10,7 +10,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { renderTemplate } from '@usecannon/builder';
 
 const isArrayOutput = (
   value: AbiParameter | readonly AbiParameter[]
@@ -35,15 +34,12 @@ const resultText = (
   value: any
 ): string => {
   if (value !== null && value !== undefined) {
-    let result = '';
-    for (const key in value) {
-      for (const idx in value[key]) {
-        if (name === idx) {
-          result = String(value[key][idx]);
-          break;
-        }
-      }
-    }
+    const resultItem = value.find(
+      (item: any) => name !== undefined && item.hasOwnProperty(name)
+    );
+    const result: string =
+      resultItem && name !== undefined ? String(resultItem[name]) : '';
+
     if (type.includes('[]') && result === '') {
       return '[]';
     }
@@ -110,13 +106,6 @@ export const FunctionOutput: FC<{
             <div key={tupleIndex} className="pl-4">
               <span className="text-xs text-muted-foreground font-mono">
                 tuple[{tupleIndex}]
-                <ClipboardButton
-                  text={resultText(
-                    abiParameter.name,
-                    abiParameter.type,
-                    'tuple[' + tupleIndex + ']'
-                  )}
-                />
               </span>
               {abiParameter.components.map(
                 (component: AbiParameter, compIdx: number) => (
@@ -134,8 +123,6 @@ export const FunctionOutput: FC<{
         : null;
     } else {
       if (isObject(value) && abiParameter.name && abiParameter.name in value) {
-        // console.log(`Object : ${abiParameter.name}`);
-        // console.log(value);
         //facets -->
         const outputValue = value[abiParameter.name];
         return (
@@ -145,10 +132,6 @@ export const FunctionOutput: FC<{
           </span>
         );
       } else if (isArray(value)) {
-        // console.log(
-        //   `Array : ${abiParameter.name}, Type : ${abiParameter.type}, Index : ${index}`
-        // );
-        // console.log(value);
         if (abiParameter.type === 'address[]') {
           //facetAddresses
           return (
@@ -162,9 +145,49 @@ export const FunctionOutput: FC<{
             </div>
           );
         } else if (index !== undefined) {
-          return (
+          return (abiParameter.type && abiParameter.type.includes('int128')) ||
+            (abiParameter.type && abiParameter.type.includes('int256')) ? (
+            <div className="flex gap-2 items-center">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex gap-2 items-center">
+                      <span className="text-sm">
+                        {resultText(
+                          abiParameter.name,
+                          abiParameter.type,
+                          methodResult
+                        )}
+                      </span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {`${formatEther(
+                      BigInt(
+                        resultText(
+                          abiParameter.name,
+                          abiParameter.type,
+                          methodResult
+                        )
+                      )
+                    ).toString()} wei`}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <ClipboardButton
+                text={resultText(
+                  abiParameter.name,
+                  abiParameter.type,
+                  methodResult
+                )}
+              />
+            </div>
+          ) : (
             <span className="text-xs block">
               {resultText(abiParameter.name, abiParameter.type, value)}
+              <ClipboardButton
+                text={resultText(abiParameter.name, abiParameter.type, value)}
+              />
             </span>
           );
         } else {
@@ -195,13 +218,7 @@ export const FunctionOutput: FC<{
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="flex gap-2 items-center">
-                        <span className="text-sm">
-                          {resultText(
-                            abiParameter.name,
-                            abiParameter.type,
-                            methodResult
-                          )}
-                        </span>
+                        <span className="text-sm">{methodResult}</span>
                       </div>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -219,14 +236,8 @@ export const FunctionOutput: FC<{
               </div>
             ) : (
               <span className="text-sm">
-                {resultText(abiParameter.name, abiParameter.type, methodResult)}
-                <ClipboardButton
-                  text={resultText(
-                    abiParameter.name,
-                    abiParameter.type,
-                    methodResult
-                  )}
-                />
+                {methodResult}
+                <ClipboardButton text={methodResult} />
               </span>
             )}
           </div>
@@ -235,10 +246,12 @@ export const FunctionOutput: FC<{
     }
   };
 
+  console.log(`length == ${(abiParameters as Array<any>).length}`);
+  console.log(abiParameters);
+
   return (
     <>
-      {/* {(abiParameters as Array<any>).length == 0 && ( */}
-      {methodResult.length == 0 && (
+      {(abiParameters as Array<any>).length == 0 && methodResult !== null && (
         <div className="flex flex-1 items-center h-full py-4">
           <span className="text-sm m-auto text-muted-foreground">
             This function doesn’t return any values.
