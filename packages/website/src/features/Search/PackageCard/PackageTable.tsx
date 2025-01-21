@@ -54,7 +54,8 @@ const PackageTable: FC<{
 
   if (latestOnly) {
     data = data.filter(
-      (row: any) => row.version === 'latest' && row.chain !== 13370
+      (row: any) =>
+        row.version === 'latest' && row.chain !== 13370 && row.preset == 'main'
     );
 
     data = data.filter((row: any) => {
