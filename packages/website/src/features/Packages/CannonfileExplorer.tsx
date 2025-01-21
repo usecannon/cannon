@@ -231,7 +231,9 @@ export const CannonfileExplorer: FC<{ pkg: ApiPackage }> = ({ pkg }) => {
                 )}
               </div>
 
-              <div className={`${displayMode === 3 ? 'h-full' : 'hidden'} `}>
+              <div
+                className={`${displayMode === 3 ? 'h-screen mr-4' : 'hidden'} `}
+              >
                 <CodePreview
                   code={stringify(processedDeploymentInfo as any)}
                   language="ini"
