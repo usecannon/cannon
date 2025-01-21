@@ -309,11 +309,21 @@ export function useCannonBuild(safe: SafeDefinition | null) {
     };
   };
 
-  function doBuild(def?: ChainDefinition, prevDeploy?: DeploymentInfo) {
+  function doBuild<onSuccessType>(
+    def?: ChainDefinition,
+    prevDeploy?: DeploymentInfo,
+    onSuccess?: (res: LocalBuildState['result']) => Promise<onSuccessType>
+  ) {
     resetState();
     dispatch({ status: 'building' });
 
     buildFn(def, prevDeploy)
+      .then(async (res) => {
+        if (onSuccess) {
+          await onSuccess(res);
+        }
+        return res;
+      })
       .then((res) => {
         dispatch({ result: res, status: 'success' });
       })
@@ -340,61 +350,64 @@ export type CannonWriteDeployToIpfsMutationResult = Awaited<ReturnType<CannonWri
 export function useCannonWriteDeployToIpfs() {
   const settings = useStore((s) => s.settings);
 
+  const writeToIpfs = async ({
+    runtime,
+    deployInfo,
+    metaUrl,
+  }: {
+    runtime?: ChainBuilderRuntime;
+    deployInfo?: DeploymentInfo | undefined;
+    metaUrl?: string;
+  }) => {
+    if (settings.isIpfsGateway) {
+      throw new Error('You cannot write on an IPFS gateway, only read operations can be done');
+    }
+
+    if (!deployInfo || !runtime) {
+      throw new Error('Missing required parameters');
+    }
+
+    const packageRef = PackageReference.from(
+      deployInfo.def.name,
+      deployInfo.def.version,
+      deployInfo.def.preset
+    ).fullPackageRef;
+
+    await runtime.registry.publish(
+      [packageRef],
+      runtime.chainId,
+      (await runtime.loaders.mem.put(deployInfo)) ?? '',
+      metaUrl || ''
+    );
+
+    const memoryRegistry = new InMemoryRegistry();
+
+    const publishTxns = await publishPackage({
+      fromStorage: runtime,
+      toStorage: new CannonStorage(
+        memoryRegistry,
+        { ipfs: new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON) },
+        'ipfs'
+      ),
+      packageRef,
+      chainId: runtime.chainId,
+      tags: ['latest'],
+      includeProvisioned: true,
+    });
+
+    // load the new ipfs url
+    const mainUrl = await memoryRegistry.getUrl(packageRef, runtime.chainId);
+
+    return {
+      packageRef,
+      mainUrl,
+      publishTxns,
+    };
+  };
+
   return useMutation({
-    mutationFn: async ({
-      runtime,
-      deployInfo,
-      metaUrl,
-    }: {
-      runtime?: ChainBuilderRuntime;
-      deployInfo?: DeploymentInfo | undefined;
-      metaUrl?: string;
-    }) => {
-      if (settings.isIpfsGateway) {
-        throw new Error('You cannot write on an IPFS gateway, only read operations can be done');
-      }
-
-      if (!deployInfo || !runtime) {
-        throw new Error('Missing required parameters');
-      }
-
-      const packageRef = PackageReference.from(
-        deployInfo.def.name,
-        deployInfo.def.version,
-        deployInfo.def.preset
-      ).fullPackageRef;
-
-      await runtime.registry.publish(
-        [packageRef],
-        runtime.chainId,
-        (await runtime.loaders.mem.put(deployInfo)) ?? '',
-        metaUrl || ''
-      );
-
-      const memoryRegistry = new InMemoryRegistry();
-
-      const publishTxns = await publishPackage({
-        fromStorage: runtime,
-        toStorage: new CannonStorage(
-          memoryRegistry,
-          { ipfs: new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON) },
-          'ipfs'
-        ),
-        packageRef,
-        chainId: runtime.chainId,
-        tags: ['latest'],
-        includeProvisioned: true,
-      });
-
-      // load the new ipfs url
-      const mainUrl = await memoryRegistry.getUrl(packageRef, runtime.chainId);
-
-      return {
-        packageRef,
-        mainUrl,
-        publishTxns,
-      };
-    },
+    mutationFn: writeToIpfs,
+    retry: false,
   });
 }
 
@@ -596,7 +609,7 @@ export function useMergedCannonDefInfo(gitInfo: CannonfileGitInfo, partialDeploy
       isFetching,
       isError,
       error,
-      def: workerDef!,
+      def: workerDef,
     };
   }, [originalCannonDefInfo, workerDef, workerError, isLoading]);
 }
