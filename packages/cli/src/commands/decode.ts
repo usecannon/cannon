@@ -22,7 +22,6 @@ export async function decode({
   json: boolean;
 }) {
   const cliSettings = resolveCliSettings();
-
   // Add 0x prefix to data or transaction hash if missing
   if (!data.startsWith('0x')) {
     data = ('0x' + data) as viem.Hash;
@@ -193,6 +192,24 @@ function _parseData(abis: ContractData['abi'][], data: viem.Hash) {
   if (!data) return null;
 
   for (const abi of abis) {
+    for (const abiItem of abi) {
+      if (abiItem.type === 'function') {
+        const selector = viem.toFunctionSelector(abiItem);
+        if (selector === data.slice(0, 10)) {
+          return { abi, result: viem.decodeFunctionData({ abi, data }) };
+        }
+      }else if(abiItem.type === 'event'){
+        const selector = viem.toEventSelector(abiItem);
+        if (selector === data.slice(0, 10)) {
+          return { abi, result: viem.decodeFunctionData({ abi, data }) };
+        }
+      }else if(abiItem.type === 'error'){
+        const selector = viem.toFunctionSelector(abiItem as any);
+        if (selector === data.slice(0, 10)) {
+          return { abi, result: viem.decodeFunctionData({ abi, data }) };
+        }
+      }
+    }
     const result =
       _try(() => viem.decodeErrorResult({ abi, data: data })) ||
       _try(() => viem.decodeFunctionData({ abi, data: data })) ||
@@ -206,7 +223,6 @@ function _parseData(abis: ContractData['abi'][], data: viem.Hash) {
 
     if (result) return { abi, result };
   }
-
   return null;
 }
 
