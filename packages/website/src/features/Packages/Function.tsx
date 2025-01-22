@@ -147,6 +147,28 @@ export const Function: FC<FunctionProps> = ({
   const { isConnected, address: from, chain: connectedChain } = useAccount();
   const [simulatedSender, setSimulatedSender] = useState<Address>(zeroAddress);
 
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const inPopoverRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: Event) => {
+      if (
+        inPopoverRef.current &&
+        !inPopoverRef.current.contains(event.target as Node)
+      ) {
+        setIsPopoverOpen(false);
+      }
+    };
+
+    if (isPopoverOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isPopoverOpen]);
+
   useEffect(() => {
     if (from) {
       setSimulatedSender(from);
@@ -185,6 +207,7 @@ export const Function: FC<FunctionProps> = ({
     setLoading(true);
     setMethodCallOrQueuedResult(null);
     setSimulated(simulate);
+    setIsPopoverOpen(false);
 
     try {
       if (isFunctionReadOnly || simulate) {
@@ -195,6 +218,10 @@ export const Function: FC<FunctionProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const hadnlePopoverFunction = () => {
+    setIsPopoverOpen(!isPopoverOpen);
   };
 
   const handleReadFunction = async () => {
@@ -416,14 +443,19 @@ export const Function: FC<FunctionProps> = ({
 
             <div className="flex gap-4 mt-1">
               {isFunctionReadOnly && (
-                <Popover>
+                <Popover open={isPopoverOpen}>
                   <PopoverTrigger asChild>
-                    <Button disabled={loading} variant="outline" size="sm">
+                    <Button
+                      disabled={loading}
+                      variant="outline"
+                      size="sm"
+                      onClick={hadnlePopoverFunction}
+                    >
                       <EyeIcon className="w-4 h-4" />
                       Call function
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-80">
+                  <PopoverContent className="w-80" ref={inPopoverRef}>
                     <Label>
                       Simulated Sender{' '}
                       <span className="text-xs text-muted-foreground ml-0.5">
@@ -471,14 +503,18 @@ export const Function: FC<FunctionProps> = ({
 
               {!isFunctionReadOnly && (
                 <div className="flex w-full justify-between gap-4">
-                  <Popover>
+                  <Popover open={isPopoverOpen}>
                     <PopoverTrigger asChild>
-                      <Button disabled={loading} variant="outline">
+                      <Button
+                        disabled={loading}
+                        variant="outline"
+                        onClick={hadnlePopoverFunction}
+                      >
                         <PlayIcon className="w-4 h-4" />
                         Simulate transaction
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-80">
+                    <PopoverContent className="w-80" ref={inPopoverRef}>
                       <Label>Simulated Sender</Label>
                       <div className="grid gap-4 mt-1">
                         <AddressInput
