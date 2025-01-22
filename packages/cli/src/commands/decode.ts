@@ -198,7 +198,7 @@ function _parseData(abis: ContractData['abi'][], data: viem.Hash) {
 
   for (const abi of abis) {
     for (const abiItem of abi) {
-      if(abiItem.type === 'error'){
+      if (abiItem.type === 'error') {
         const selector = viem.toFunctionSelector(formatAbiItem(abiItem).substring(6));
         if (selector === data.slice(0, 10)) {
           return { abi, result: data.length > 10 ? viem.decodeErrorResult({ abi, data }) : formatAbiItem(abiItem) };
