@@ -148,13 +148,13 @@ export const Function: FC<FunctionProps> = ({
   const [simulatedSender, setSimulatedSender] = useState<Address>(zeroAddress);
 
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const inPopoverRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: Event) => {
       if (
-        inPopoverRef.current &&
-        !inPopoverRef.current.contains(event.target as Node)
+        popoverRef.current &&
+        !popoverRef.current.contains(event.target as Node)
       ) {
         setIsPopoverOpen(false);
       }
@@ -455,7 +455,7 @@ export const Function: FC<FunctionProps> = ({
                       Call function
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-80" ref={inPopoverRef}>
+                  <PopoverContent className="w-80" ref={popoverRef}>
                     <Label>
                       Simulated Sender{' '}
                       <span className="text-xs text-muted-foreground ml-0.5">
@@ -514,7 +514,7 @@ export const Function: FC<FunctionProps> = ({
                         Simulate transaction
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-80" ref={inPopoverRef}>
+                    <PopoverContent className="w-80" ref={popoverRef}>
                       <Label>Simulated Sender</Label>
                       <div className="grid gap-4 mt-1">
                         <AddressInput
