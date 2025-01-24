@@ -1,4 +1,8 @@
-import { Link2Icon, PinBottomIcon, PinTopIcon } from '@radix-ui/react-icons';
+import {
+  Link2Icon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+} from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { FC, useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -45,9 +49,9 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
             className="sm:hidden cursor-pointer"
           >
             {isOpen ? (
-              <PinTopIcon className="w-4 h-4" />
+              <ChevronUpIcon className="w-4 h-4" />
             ) : (
-              <PinBottomIcon className="w-4 h-4" />
+              <ChevronDownIcon className="w-4 h-4" />
             )}
           </div>
           <div className="hidden sm:flex items-center gap-1">
