@@ -52,6 +52,7 @@ export function BuildStateAlerts({
           </div>
         </Alert>
       )}
+
       {!!buildState.result?.deployerSteps?.length &&
         (buildState.result?.safeSteps.length || 0) > 0 && (
           <div className={cn('mt-6 mb-5 border border-border rounded-md p-4')}>

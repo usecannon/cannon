@@ -40,7 +40,7 @@ import { useChainId, usePublicClient } from 'wagmi';
 import '@/lib/builder';
 import { CannonfileGitInfo } from '@/features/Deploy/hooks/useGitDetailsFromCannonfile';
 
-type CannonTxRecord = { name: string; gas: bigint; tx: BaseTransaction };
+export type CannonTxRecord = { name: string; gas: bigint; tx: BaseTransaction };
 
 export type BuildState =
   | {
@@ -318,14 +318,19 @@ export function useCannonBuild(safe: SafeDefinition | null) {
     dispatch({ status: 'building' });
 
     buildFn(def, prevDeploy)
+      .then((res) => {
+        dispatch({ result: res, status: 'success' });
+        return res;
+      })
+      .then((res) => {
+        dispatch({ message: '' });
+        return res;
+      })
       .then(async (res) => {
         if (onSuccess) {
           await onSuccess(res);
         }
         return res;
-      })
-      .then((res) => {
-        dispatch({ result: res, status: 'success' });
       })
       .catch((err) => {
         // eslint-disable-next-line no-console
@@ -415,7 +420,7 @@ export function useCannonFindUpgradeFromUrl(
   packageRef?: PackageReference,
   chainId?: number,
   deployers?: Address[],
-  upgradeFrom?: string // Optional, if not deployers given
+  upgradeFrom?: string | null // Optional, if not deployers given
 ) {
   const registry = useCannonRegistry();
   const publicClient = usePublicClient();
