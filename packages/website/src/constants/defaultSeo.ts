@@ -1,5 +1,6 @@
 const defaultSEO = {
   title: 'Cannon',
+  manifest: '/manifest.json',
   description:
     'The DevOps tool for building and deployment of smart contracts on Ethereum, Optimism, Arbitrum, or any other EVM chain.',
   openGraph: {
