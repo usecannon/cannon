@@ -439,12 +439,7 @@ export const Function: FC<FunctionProps> = ({
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-80">
-                      <Label>
-                        Simulated Sender{' '}
-                        <span className="text-xs text-muted-foreground ml-0.5">
-                          optional
-                        </span>
-                      </Label>
+                      <Label>Simulated Sender</Label>
                       <div className="grid gap-4 mt-1">
                         <AddressInput
                           value={simulatedSender}
