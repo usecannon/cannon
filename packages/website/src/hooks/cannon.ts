@@ -38,7 +38,7 @@ import { Abi, Address, createPublicClient, createTestClient, createWalletClient,
 import { useChainId, usePublicClient } from 'wagmi';
 // Needed to prepare mock run step with registerAction
 import '@/lib/builder';
-import { CannonfileGitInfo } from '@/hooks/useGitDetailsFromCannonfile';
+import { CannonfileGitInfo } from '@/features/Deploy/hooks/useGitDetailsFromCannonfile';
 
 type CannonTxRecord = { name: string; gas: bigint; tx: BaseTransaction };
 
@@ -81,7 +81,7 @@ export function useLoadCannonDefinition(repo: string, ref: string, filepath: str
   };
 }
 
-type LocalBuildState = {
+export type LocalBuildState = {
   message: string;
   status: 'idle' | 'building' | 'success' | 'error';
   result: {
