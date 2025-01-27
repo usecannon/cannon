@@ -14,9 +14,7 @@ import {
 import { useGitRefsList } from '@/hooks/git';
 import { useGetPreviousGitInfoQuery } from '@/hooks/safe';
 import { SafeTransaction } from '@/types/SafeTransaction';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import {
   ChainBuilderContext,
@@ -35,7 +33,7 @@ import {
   TransactionRequestBase,
   zeroAddress,
 } from 'viem';
-import { useAccount, useSwitchChain } from 'wagmi';
+import { useAccount } from 'wagmi';
 import pkg from '../../../package.json';
 import 'react-diff-view/style/index.css';
 import { extractIpfsHash } from '@/helpers/ipfs';
@@ -78,7 +76,6 @@ export default function QueueFromGitOps() {
   const { toast } = useToast();
 
   const { chainId, isConnected } = useAccount();
-  const { switchChainAsync } = useSwitchChain();
   const { openConnectModal } = useConnectModal();
   const deployer = useDeployerWallet(currentSafe?.chainId);
 
@@ -364,45 +361,16 @@ export default function QueueFromGitOps() {
     writeToIpfsMutationRes?.isLoading;
 
   const handlePreviewTxnsClick = useCallback(async () => {
-    if (!isConnected) {
-      if (openConnectModal) {
-        openConnectModal();
-      }
-      toast({
-        title:
-          'In order to queue transactions, you must connect your wallet first.',
-        variant: 'destructive',
-        duration: 5000,
-      });
-      return;
-    }
-
-    if (chainId !== currentSafe?.chainId) {
-      try {
-        await switchChainAsync({ chainId: currentSafe?.chainId || 10 });
-      } catch (e) {
-        toast({
-          title:
-            'Failed to switch chain, Your wallet must be connected to the same network as the selected Safe.',
-          variant: 'destructive',
-          duration: 5000,
-        });
-        return;
-      }
-    }
-
     doBuild(
       cannonDefInfo?.def,
       partialDeployInfo?.ipfsQuery.data?.deployInfo ??
         prevCannonDeployInfo.ipfsQuery.data?.deployInfo
     );
   }, [
-    isConnected,
-    chainId,
-    currentSafe?.chainId,
+    doBuild,
     cannonDefInfo?.def,
     partialDeployInfo?.ipfsQuery.data?.deployInfo,
-    prevCannonDeployInfo?.ipfsQuery.data?.deployInfo,
+    prevCannonDeployInfo.ipfsQuery.data?.deployInfo,
   ]);
 
   const tomlRequiresPrevPackage = useMemo(
@@ -435,19 +403,20 @@ export default function QueueFromGitOps() {
     return true;
   }, [cannonDefInfo?.def, hasDeployers]);
 
+  /*
+   *
+   * This condition was already migrated, leaving it here for reference
+   *
+    
   const disablePreviewButton = useMemo(() => {
-    if (
-      loadingDataForDeploy ||
-      chainId !== currentSafe?.chainId ||
-      !cannonDefInfo?.def
-    ) {
+     if (loadingDataForDeploy || !cannonDefInfo?.def) {
+      return true;
+    } 
+
+         if (buildState.status === 'building' || buildState.status === 'success') {
       return true;
     }
-
-    if (buildState.status === 'building' || buildState.status === 'success') {
-      return true;
-    }
-
+ 
     if (
       onChainPrevPkgQuery.isFetching &&
       !prevDeployLocation &&
@@ -457,7 +426,7 @@ export default function QueueFromGitOps() {
       return true;
     }
 
-    return !canTomlBeDeployedUsingWebsite;
+    // return !canTomlBeDeployedUsingWebsite;
   }, [
     loadingDataForDeploy,
     chainId,
@@ -470,84 +439,7 @@ export default function QueueFromGitOps() {
     previousPackageInput,
     canTomlBeDeployedUsingWebsite,
   ]);
-
-  const PreviewButton = useCallback(
-    ({ message }: { message?: string }) => {
-      const buttonText = loadingDataForDeploy
-        ? 'Loading required data...'
-        : 'Preview Transactions to Queue';
-
-      return (
-        <>
-          <Button
-            className="w-full"
-            variant="default"
-            disabled={disablePreviewButton}
-            onClick={handlePreviewTxnsClick}
-          >
-            {buttonText}
-          </Button>
-          {disablePreviewButton && message && deploymentSourceInput && (
-            <Alert className="mt-4" variant="destructive">
-              <AlertDescription>{message}</AlertDescription>
-            </Alert>
-          )}
-        </>
-      );
-    },
-    [loadingDataForDeploy, disablePreviewButton, deploymentSourceInput]
-  );
-
-  const RenderPreviewButtonTooltip = useCallback(() => {
-    if (!chainId) {
-      return (
-        <PreviewButton message="You must connect your wallet to the same chain as the selected safe to continue" />
-      );
-    }
-
-    if (chainId !== currentSafe?.chainId) {
-      return (
-        <PreviewButton message="Deployment Chain ID does not match Safe Chain ID" />
-      );
-    }
-
-    if (partialDeployInfo?.isError) {
-      const message = `Error fetching partial deploy info, error: ${partialDeployInfo.error?.message}`;
-      return <PreviewButton message={message} />;
-    }
-
-    if (
-      cannonDefInfo.isFetching ||
-      prevCannonDeployInfo.isFetching ||
-      onChainPrevPkgQuery.isFetching ||
-      partialDeployInfo?.isFetching
-    ) {
-      return <PreviewButton message="Fetching package info, please wait..." />;
-    }
-
-    if (buildState.status === 'building') {
-      return <PreviewButton message="Generating build info, please wait..." />;
-    }
-
-    if (!cannonDefInfo?.def) {
-      return (
-        <PreviewButton message="No cannonfile definition found, please input the link to the cannonfile to build" />
-      );
-    }
-
-    return <PreviewButton />;
-  }, [
-    chainId,
-    currentSafe?.chainId,
-    partialDeployInfo?.isError,
-    partialDeployInfo?.isFetching,
-    partialDeployInfo.error?.message,
-    prevCannonDeployInfo.isFetching,
-    onChainPrevPkgQuery.isFetching,
-    buildState.status,
-    cannonDefInfo?.def,
-    PreviewButton,
-  ]);
+*/
 
   const handleDeploymentSourceInputChange = useCallback(
     (input: string) => {
@@ -654,19 +546,25 @@ export default function QueueFromGitOps() {
                   />
                 </div>
               )}
-
             {/* IPFS Gateway alert */}
             <IpfsGatewayAlert
               isIpfsGateway={settings.isIpfsGateway}
               cannonDef={cannonDefInfo?.def}
             />
-
+            {/* PreviewTransactionsButton */}
             <PreviewTransactionsButton
               isConnected={isConnected}
               chainId={chainId}
               currentSafe={currentSafe}
               openConnectModal={openConnectModal}
-              RenderPreviewButtonTooltip={RenderPreviewButtonTooltip}
+              loadingDataForDeploy={Boolean(loadingDataForDeploy)}
+              deploymentSourceInput={deploymentSourceInput}
+              partialDeployInfo={partialDeployInfo}
+              cannonDefInfo={cannonDefInfo}
+              prevCannonDeployInfo={prevCannonDeployInfo}
+              onChainPrevPkgQuery={onChainPrevPkgQuery}
+              canTomlBeDeployedUsingWebsite={canTomlBeDeployedUsingWebsite}
+              handlePreviewTxnsClick={handlePreviewTxnsClick}
             />
 
             {/* Build status */}
