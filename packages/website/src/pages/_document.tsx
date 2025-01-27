@@ -39,6 +39,7 @@ export default class CustomDocument extends Document {
       <Html lang="en" className="dark">
         <Head>
           <link rel="icon" href="/favicon.ico" sizes="any" />
+          <link rel="manifest" href="/manifest.json" />
         </Head>
         <body>
           <Main />

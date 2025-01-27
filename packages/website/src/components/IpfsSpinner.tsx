@@ -8,7 +8,7 @@ interface IpfsSpinnerProps {
 
 export function IpfsSpinner({ ipfsUrl }: IpfsSpinnerProps) {
   return (
-    <div className="flex flex-col items-center justify-center text-center h-screen w-full">
+    <div className="flex flex-col items-center justify-center text-center w-full">
       <div className="flex items-center justify-center flex-shrink-0">
         <CustomSpinner />
       </div>
