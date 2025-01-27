@@ -12,6 +12,7 @@ import '@/styles/globals.css';
 import defaultSEO from '@/constants/defaultSeo';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
+import InstallDialog from '@/components/InstallDialog';
 
 const NoSsrE2EWalletConnector = dynamic(
   () => import('../../cypress/utils/E2EWalletConnector'),
@@ -105,6 +106,7 @@ export default function RootLayout({
         <Footer isFixed={isFooterFixed} />
       </Providers>
       <Analytics />
+      <InstallDialog />
     </div>
   );
 }
