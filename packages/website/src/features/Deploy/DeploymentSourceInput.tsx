@@ -40,7 +40,7 @@ export function DeploymentSourceInput({
   return (
     <div>
       <FormItem>
-        <FormLabel>Cannonfile URL or Deployment Data IPFS Hash</FormLabel>
+        <FormLabel>Enter cannonfile URL or deployment data IPFS hash</FormLabel>
         <div className="relative">
           <Input
             type="text"
