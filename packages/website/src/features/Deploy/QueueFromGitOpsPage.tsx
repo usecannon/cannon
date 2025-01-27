@@ -176,7 +176,6 @@ export default function QueueFromGitOps() {
         <Card>
           <CardContent className="p-6">
             <h2 className="text-xl font-semibold mb-4">Queue Deployment</h2>
-
             {/* Git or Hash Input */}
             <div className="mb-4">
               <DeploymentSourceInput
@@ -196,7 +195,6 @@ export default function QueueFromGitOps() {
                 }
               />
             </div>
-
             {/* Deployment alert status  */}
             {selectedDeployType == 'git' && onChainPrevPkgQuery.isFetched && (
               <PrevDeploymentStatus
