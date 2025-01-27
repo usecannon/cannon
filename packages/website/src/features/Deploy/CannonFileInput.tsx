@@ -6,6 +6,8 @@ import { FormControl, FormDescription, FormItem } from '@/components/ui/form';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { cn } from '@/lib/utils';
 
+// TODO: Fix error. Check when it is the main input or when is is the secondary input.
+
 // Define interface for component props
 interface CannonFileInputProps {
   cannonfileUrlInput: string;
@@ -15,7 +17,6 @@ interface CannonFileInputProps {
     error: any;
     def: any;
   };
-  cannonDefInfoError: string;
   isDisabled: boolean;
 }
 
@@ -23,7 +24,6 @@ export const CannonFileInput = ({
   cannonfileUrlInput,
   setCannonfileUrlInput,
   cannonDefInfo,
-  cannonDefInfoError,
   isDisabled,
 }: CannonFileInputProps) => {
   const isLoading = cannonfileUrlInput.length > 0 && cannonDefInfo?.isFetching;
@@ -42,7 +42,7 @@ export const CannonFileInput = ({
               value={cannonfileUrlInput}
               className={cn(
                 'bg-black',
-                cannonDefInfoError && 'border-destructive',
+                cannonDefInfo.error && 'border-destructive',
                 'pr-10'
               )}
               disabled={isDisabled}
@@ -66,11 +66,11 @@ export const CannonFileInput = ({
         </div>
       </FormControl>
 
-      {cannonDefInfoError && (
+      {cannonDefInfo.error && (
         <Alert variant="destructive" className="mt-6 bg-gray-700">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="ml-3 font-bold">
-            {cannonDefInfoError.toString()}
+            {cannonDefInfo.error.toString()}
           </AlertDescription>
         </Alert>
       )}
