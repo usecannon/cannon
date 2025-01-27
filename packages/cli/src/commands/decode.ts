@@ -75,9 +75,7 @@ export async function decode({
   const fragment = viem.getAbiItem({
     abi: parsed.abi,
     args: (parsed.result as any).args,
-    name:
-      (parsed.result as viem.DecodeErrorResultReturnType).errorName ||
-      '',
+    name: (parsed.result as viem.DecodeErrorResultReturnType).errorName || '',
   });
 
   if (json || !fragment) {
