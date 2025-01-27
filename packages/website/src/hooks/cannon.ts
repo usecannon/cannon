@@ -38,7 +38,7 @@ import { Abi, Address, createPublicClient, createTestClient, createWalletClient,
 import { useChainId, usePublicClient } from 'wagmi';
 // Needed to prepare mock run step with registerAction
 import '@/lib/builder';
-import { CannonfileGitInfo } from '@/hooks/useGitInfoFromCannonFileUrl';
+import { CannonfileGitInfo } from '@/hooks/useGitDetailsFromCannonfile';
 
 type CannonTxRecord = { name: string; gas: bigint; tx: BaseTransaction };
 

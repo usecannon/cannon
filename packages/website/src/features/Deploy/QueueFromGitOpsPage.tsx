@@ -7,10 +7,7 @@ import { useStore } from '@/helpers/store';
 import { useTxnStager } from '@/hooks/backend';
 import { useDeployerWallet } from '@/hooks/deployer';
 import {
-  useCannonPackage,
   useCannonWriteDeployToIpfs,
-  useMergedCannonDefInfo,
-  useCannonFindUpgradeFromUrl,
   CannonWriteDeployToIpfsMutationResult,
   useCannonBuild,
 } from '@/hooks/cannon';
@@ -56,8 +53,8 @@ import { BuildStateAlerts } from '@/features/Deploy/BuildStateAlerts';
 import { WalletConnectionButtons } from '@/features/Deploy/WalletConnectionButtons';
 import { useToast } from '@/hooks/use-toast';
 import { useForm, FormProvider } from 'react-hook-form';
-import { useGitInfoFromCannonFileUrl } from '@/hooks/useGitInfoFromCannonFileUrl';
 import { PrevDeploymentStatus } from '@/features/Deploy/PrevDeploymentStatus';
+import { useCannonDefinitions } from '@/hooks/useCannonDefinitions';
 
 const EMPTY_IPFS_MISC_URL =
   'ipfs://QmeSt2mnJKE8qmRhLyYbHQQxDKpsFbcWnw5e7JF4xVbN6k';
@@ -94,6 +91,7 @@ export default function QueueFromGitOps() {
   const [prevPackageInputRef, setPrevPackageInputRef] = useState<string | null>(
     null
   );
+
   const [previousPackageInput, setPreviousPackageInput] = useState('');
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
   const [writeToIpfsMutationRes, setWriteToIpfsMutationRes] = useState<{
@@ -104,39 +102,23 @@ export default function QueueFromGitOps() {
   const [inputError, setInputError] = useState<string | null>(null);
 
   const writeToIpfsMutation = useCannonWriteDeployToIpfs();
-  const gitInfo = useGitInfoFromCannonFileUrl(cannonfileUrlInput);
-  const partialDeployInfo = useCannonPackage(
-    partialDeployIpfs ? `ipfs://${partialDeployIpfs}` : '',
-    currentSafe?.chainId
-  );
-  const cannonDefInfo = useMergedCannonDefInfo(gitInfo, partialDeployInfo);
 
-  const hasDeployers = useMemo(() => {
-    return Boolean(cannonDefInfo?.def?.getDeployers()?.length);
-  }, [cannonDefInfo?.def]);
-
-  const cannonDefInfoError: string = gitInfo.gitUrl
-    ? (cannonDefInfo?.error as any)?.toString()
-    : cannonfileUrlInput &&
-      'The format of your URL appears incorrect. Please double check and try again.';
-
-  const pkgRef = useMemo(() => {
-    return cannonDefInfo?.def?.getPackageRef(ctx);
-  }, [cannonDefInfo?.def]);
-
-  const onChainPrevPkgQuery = useCannonFindUpgradeFromUrl(
-    pkgRef,
-    currentSafe?.chainId,
-    hasDeployers ? cannonDefInfo?.def?.getDeployers() : undefined,
-    prevPackageInputRef || undefined
-  );
-
-  const prevDeployLocation = onChainPrevPkgQuery.data || '';
-
-  const prevCannonDeployInfo = useCannonPackage(
+  const {
+    gitInfo,
+    partialDeployInfo,
+    cannonDefInfo,
+    hasDeployers,
+    cannonDefInfoError,
+    onChainPrevPkgQuery,
     prevDeployLocation,
-    currentSafe?.chainId
-  );
+    prevCannonDeployInfo,
+  } = useCannonDefinitions({
+    cannonfileUrlInput,
+    partialDeployIpfs,
+    chainId,
+    prevPackageReference: prevPackageInputRef,
+    ctx,
+  });
 
   useEffect(() => {
     if (PackageReference.isValid(previousPackageInput)) {
