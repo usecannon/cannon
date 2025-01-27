@@ -96,6 +96,10 @@ function getLoadedState({
   prevDeployLocation: string;
   prevCannonDeployInfo: ReturnType<typeof useFetchCannonPackage>;
 }): boolean {
+  if (!cannonfileUrlInput && !partialDeployInputIpfs) {
+    return false;
+  }
+
   const partialDeployLoaded =
     !partialDeployInputIpfs ||
     (!partialDeployInfo.isFetching && !partialDeployInfo.isError && !!partialDeployInfo.ipfsQuery.data?.deployInfo);
