@@ -75,7 +75,11 @@ export async function decode({
   const fragment = viem.getAbiItem({
     abi: parsed.abi,
     args: (parsed.result as any).args,
-    name: (parsed.result as viem.DecodeErrorResultReturnType).errorName || '',
+    name:
+      (parsed.result as viem.EncodeFunctionDataParameters).functionName ||
+      (parsed.result as viem.DecodeErrorResultReturnType).errorName ||
+      (parsed.result as viem.EncodeEventTopicsParameters).eventName ||
+      '',
   });
 
   if (json || !fragment) {
@@ -201,6 +205,26 @@ function _parseData(abis: ContractData['abi'][], data: viem.Hash) {
         }
       }
     }
+    const result =
+      _try(() => viem.decodeErrorResult({ abi, data: data })) ||
+      _try(() => viem.decodeFunctionData({ abi, data: data })) ||
+      _try(() =>
+        viem.decodeEventLog({
+          abi,
+          topics: [data] as [viem.Hex],
+          data,
+        })
+      );
+
+    if (result) return { abi, result };
   }
   return null;
+}
+
+function _try<T extends (...args: any) => any>(fn: T): ReturnType<T> | null {
+  try {
+    return fn();
+  } catch (err) {
+    return null;
+  }
 }
