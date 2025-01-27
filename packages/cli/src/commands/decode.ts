@@ -76,9 +76,7 @@ export async function decode({
     abi: parsed.abi,
     args: (parsed.result as any).args,
     name:
-      (parsed.result as viem.EncodeFunctionDataParameters).functionName ||
       (parsed.result as viem.DecodeErrorResultReturnType).errorName ||
-      (parsed.result as viem.EncodeEventTopicsParameters).eventName ||
       '',
   });
 
@@ -198,33 +196,13 @@ function _parseData(abis: ContractData['abi'][], data: viem.Hash) {
 
   for (const abi of abis) {
     for (const abiItem of abi) {
-      if (abiItem.type === 'error') {
-        const selector = viem.toFunctionSelector(formatAbiItem(abiItem).substring(6));
+      if (abiItem.type === 'error' || abiItem.type === 'function') {
+        const selector = viem.toFunctionSelector(formatAbiItem(abiItem).substring(abiItem.type === 'error' ? 6 : 9));
         if (selector === data.slice(0, 10)) {
           return { abi, result: data.length > 10 ? viem.decodeErrorResult({ abi, data }) : formatAbiItem(abiItem) };
         }
       }
     }
-    const result =
-      _try(() => viem.decodeErrorResult({ abi, data: data })) ||
-      _try(() => viem.decodeFunctionData({ abi, data: data })) ||
-      _try(() =>
-        viem.decodeEventLog({
-          abi,
-          topics: [data] as [viem.Hex],
-          data,
-        })
-      );
-
-    if (result) return { abi, result };
   }
   return null;
-}
-
-function _try<T extends (...args: any) => any>(fn: T): ReturnType<T> | null {
-  try {
-    return fn();
-  } catch (err) {
-    return null;
-  }
 }
