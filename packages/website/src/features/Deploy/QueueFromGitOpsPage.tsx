@@ -14,7 +14,6 @@ import {
 import { useGitRefsList } from '@/hooks/git';
 import { useGetPreviousGitInfoQuery } from '@/hooks/safe';
 import { SafeTransaction } from '@/types/SafeTransaction';
-import { Cross2Icon } from '@radix-ui/react-icons';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +24,6 @@ import {
   getIpfsUrl,
   PackageReference,
 } from '@usecannon/builder';
-import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
@@ -50,11 +48,12 @@ import {
 import { PreviousPackageInput } from '@/features/Deploy/PreviousPackageInput';
 import { TransactionPreviewAndExecution } from '@/features/Deploy/TransactionPreviewAndExecution';
 import { BuildStateAlerts } from '@/features/Deploy/BuildStateAlerts';
-import { WalletConnectionButtons } from '@/features/Deploy/WalletConnectionButtons';
+import { PreviewTransactionsButton } from '@/features/Deploy/PreviewTransactionsButton';
 import { useToast } from '@/hooks/use-toast';
 import { useForm, FormProvider } from 'react-hook-form';
 import { PrevDeploymentStatus } from '@/features/Deploy/PrevDeploymentStatus';
 import { useCannonDefinitions } from '@/hooks/useCannonDefinitions';
+import { IpfsGatewayAlert } from '@/features/Deploy/IpfsGatewayAlert';
 
 const EMPTY_IPFS_MISC_URL =
   'ipfs://QmeSt2mnJKE8qmRhLyYbHQQxDKpsFbcWnw5e7JF4xVbN6k';
@@ -597,58 +596,13 @@ export default function QueueFromGitOps() {
   const buildStateMessage = buildState.message || null;
   const buildStateError = buildState.error || null;
 
-  const renderAlert = useCallback(() => {
-    if (settings.isIpfsGateway) {
-      return (
-        <Alert variant="destructive">
-          <Cross2Icon className="h-4 w-4 mr-3" />
-          <AlertDescription>
-            Your current IPFS URL is set to a gateway. Update your IPFS URL to
-            an API endpoint where you can pin files in{' '}
-            <NextLink href="/settings" className="text-primary hover:underline">
-              settings
-            </NextLink>
-            .
-          </AlertDescription>
-        </Alert>
-      );
-    }
-
-    if (cannonDefInfo?.def && cannonDefInfo.def.danglingDependencies.size > 0) {
-      return (
-        <Alert variant="destructive">
-          <Cross2Icon className="h-4 w-4 mr-3" />
-          <AlertDescription>
-            <div className="flex flex-col">
-              <p>
-                The cannonfile contains invalid dependencies. Please ensure the
-                following references are defined:
-              </p>
-              <div>
-                {Array.from(cannonDefInfo.def.danglingDependencies).map(
-                  (dependency) => (
-                    <React.Fragment key={dependency}>
-                      <span className="font-mono">{dependency}</span>
-                      <br />
-                    </React.Fragment>
-                  )
-                )}
-              </div>
-            </div>
-          </AlertDescription>
-        </Alert>
-      );
-    }
-
-    return null;
-  }, [settings.isIpfsGateway, cannonDefInfo?.def]);
-
   return (
     <FormProvider {...form}>
       <div className="container py-8 max-w-3xl">
         <Card>
           <CardContent className="p-6">
             <h2 className="text-xl font-semibold mb-4">Queue Deployment</h2>
+            {/* Git or Hash Input */}
             <div className="mb-4">
               <DeploymentSourceInput
                 deploymentSourceInput={deploymentSourceInput}
@@ -668,12 +622,14 @@ export default function QueueFromGitOps() {
                 }
               />
             </div>
+            {/* Deployment alert status  */}
             {selectedDeployType == 'git' && onChainPrevPkgQuery.isFetched && (
               <PrevDeploymentStatus
                 prevDeployLocation={prevDeployLocation}
                 tomlRequiresPrevPackage={tomlRequiresPrevPackage}
               />
             )}
+            {/* Hash: Prev deployment Input */}
             {(partialDeployInfoLoaded || tomlRequiresPrevPackage) && (
               <div className="mb-4">
                 <PreviousPackageInput
@@ -684,6 +640,7 @@ export default function QueueFromGitOps() {
                 />
               </div>
             )}
+            {/* Hash: CannonFile to compare with prev deployment */}
             {selectedDeployType == 'partial' &&
               partialDeployIpfs.length > 0 &&
               partialDeployInfoLoaded && (
@@ -697,20 +654,30 @@ export default function QueueFromGitOps() {
                   />
                 </div>
               )}
-            {renderAlert()}
-            <WalletConnectionButtons
+
+            {/* IPFS Gateway alert */}
+            <IpfsGatewayAlert
+              isIpfsGateway={settings.isIpfsGateway}
+              cannonDef={cannonDefInfo?.def}
+            />
+
+            <PreviewTransactionsButton
               isConnected={isConnected}
               chainId={chainId}
               currentSafe={currentSafe}
               openConnectModal={openConnectModal}
               RenderPreviewButtonTooltip={RenderPreviewButtonTooltip}
             />
+
+            {/* Build status */}
             <BuildStateAlerts
               buildState={buildState}
               buildStateMessage={buildStateMessage}
               buildStateError={buildStateError}
               deployer={deployer}
             />
+
+            {/* Build result */}
             <TransactionPreviewAndExecution
               buildState={buildState}
               writeToIpfsMutationRes={writeToIpfsMutationRes}

@@ -11,7 +11,7 @@ interface WalletConnectionButtonsProps {
   RenderPreviewButtonTooltip: () => React.ReactElement;
 }
 
-export function WalletConnectionButtons({
+export function PreviewTransactionsButton({
   isConnected,
   chainId,
   currentSafe,
