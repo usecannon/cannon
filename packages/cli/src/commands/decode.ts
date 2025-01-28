@@ -197,9 +197,14 @@ function _parseData(abis: ContractData['abi'][], data: viem.Hash) {
       if (abiItem.type === 'error' || abiItem.type === 'function') {
         const selector = viem.toFunctionSelector(formatAbiItem(abiItem).substring(abiItem.type === 'error' ? 6 : 9));
         if (selector === data.slice(0, 10)) {
-          return { abi, result: data.length > 10 ? viem.decodeErrorResult({ abi, data }) : formatAbiItem(abiItem) };
+          try{
+            return { abi, result: data.length > 10 ? viem.decodeErrorResult({ abi, data }) : formatAbiItem(abiItem) };
+          }catch(err){
+            return {abi, result: formatAbiItem(abiItem)};
+          }
         }
       }
     }
   }
+  return null;
 }
