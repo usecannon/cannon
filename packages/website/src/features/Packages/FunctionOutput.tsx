@@ -123,11 +123,17 @@ export const FunctionOutput: FC<{
     value: { [key: string]: any },
     index?: number
   ) => {
-    if (
-      abiParameter.type === 'tuple' &&
-      hasComponentsKey(abiParameter) &&
-      value
-    ) {
+    const isTuple = abiParameter.type === 'tuple';
+    const isTupleArray = abiParameter.type === 'tuple[]';
+    const isAddressArray = abiParameter.type === 'address[]';
+
+    const hasComponents = hasComponentsKey(abiParameter);
+    const isValidValue = Boolean(value);
+
+    const isNamedParameter =
+      isObject(value) && abiParameter.name && abiParameter.name in value;
+
+    if (isTuple && hasComponents && isValidValue) {
       return (
         <div className="pl-4">
           {Object.values(abiParameter).map((component: any, resIdx: number) => {
@@ -141,11 +147,7 @@ export const FunctionOutput: FC<{
           })}
         </div>
       );
-    } else if (
-      abiParameter.type === 'tuple[]' &&
-      hasComponentsKey(abiParameter) &&
-      value
-    ) {
+    } else if (isTupleArray && hasComponents && isValidValue) {
       return isArray(value)
         ? value.map((tupleItem, tupleIndex) => (
             <div key={tupleIndex} className="pl-4">
@@ -167,7 +169,7 @@ export const FunctionOutput: FC<{
           ))
         : null;
     } else {
-      if (isObject(value) && abiParameter.name && abiParameter.name in value) {
+      if (isNamedParameter && abiParameter.name) {
         const outputValue = value[abiParameter.name];
         return (
           <span className="block pt-1 pb-2 text-xs">
@@ -176,7 +178,7 @@ export const FunctionOutput: FC<{
           </span>
         );
       } else if (isArray(value)) {
-        if (abiParameter.type === 'address[]') {
+        if (isAddressArray) {
           return (
             <div>
               {value.map((val, idx) => (
@@ -188,7 +190,7 @@ export const FunctionOutput: FC<{
             </div>
           );
         } else if (index !== undefined) {
-          return renderValue(abiParameter, value);
+          return renderValue(abiParameter, value[index]);
         } else {
           return value.map((val, idx) => (
             <span className="text-sm block" key={idx}>
@@ -210,7 +212,7 @@ export const FunctionOutput: FC<{
       {(abiParameters as Array<any>).length == 0 && methodResult === null && (
         <div className="flex flex-1 items-center h-full py-4">
           <span className="text-sm m-auto text-muted-foreground">
-            This function doesn’t return any values.
+            {"This function doesn't return any values."}
           </span>
         </div>
       )}
