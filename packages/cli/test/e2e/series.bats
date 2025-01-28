@@ -101,7 +101,7 @@ teardown() {
   set_custom_config
   run build-foundry-partial.sh
   echo $output
-  assert_success
+  assert_failure 10
   assert_output --partial "Your deployment was not fully completed. Please inspect the issues listed above and resolve as necessary."
   assert_file_exists "$CANNON_DIRECTORY/tags/oracle-manager_latest_1-with-owned-greeter.txt"
   assert_file_exists "$CANNON_DIRECTORY/tags/owned-greeter_1.0.0_1-main.txt"

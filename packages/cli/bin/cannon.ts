@@ -6,7 +6,7 @@ import cli from '../src';
 cli
   .parseAsync()
   .then(() => {
-    process.exit(0);
+    process.exit();
   })
   .catch((err) => {
     if (err.message) {
@@ -16,5 +16,5 @@ cli
     //eslint-disable-next-line no-console
     console.error(err);
 
-    process.exit(1);
+    process.exit(process.exitCode || 1);
   });

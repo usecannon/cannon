@@ -83,7 +83,12 @@ export async function build({
   priorityGasFee,
   writeScript,
   writeScriptFormat = 'ethers',
-}: Params): Promise<{ outputs: ChainArtifacts; provider: viem.PublicClient; runtime: ChainBuilderRuntime }> {
+}: Params): Promise<{
+  outputs: ChainArtifacts;
+  provider: viem.PublicClient;
+  runtime: ChainBuilderRuntime;
+  deployInfo: DeploymentInfo;
+}> {
   if (wipe && upgradeFrom) {
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
   }
@@ -388,20 +393,22 @@ export async function build({
 
   chainDef.version = pkgVersion;
 
+  const deployInfo = {
+    generator: `cannon cli ${pkg.version}`,
+    timestamp: Math.floor(Date.now() / 1000),
+    def: chainDef,
+    state: newState,
+    seq: oldDeployData?.seq ? oldDeployData.seq + 1 : 1,
+    track: oldDeployData?.track || Math.random().toString(36).substring(2, 15),
+    options: resolvedSettings,
+    status: partialDeploy ? 'partial' : 'complete',
+    meta: pkgInfo,
+    miscUrl: miscUrl || '',
+    chainId: runtime.chainId,
+  } satisfies DeploymentInfo;
+
   if (miscUrl) {
-    const deployUrl = (await runtime.putDeploy({
-      generator: `cannon cli ${pkg.version}`,
-      timestamp: Math.floor(Date.now() / 1000),
-      def: chainDef,
-      state: newState,
-      seq: oldDeployData?.seq ? oldDeployData.seq + 1 : 1,
-      track: oldDeployData?.track || Math.random().toString(36).substring(2, 15),
-      options: resolvedSettings,
-      status: partialDeploy ? 'partial' : 'complete',
-      meta: pkgInfo,
-      miscUrl: miscUrl,
-      chainId: runtime.chainId,
-    })) as string;
+    const deployUrl = (await runtime.putDeploy(deployInfo)) as string;
 
     const metadataCache: { [key: string]: string } = {};
 
@@ -561,5 +568,5 @@ export async function build({
 
   provider = provider.extend(traceActions(outputs) as any);
 
-  return { outputs, provider, runtime };
+  return { outputs, provider, runtime, deployInfo };
 }
