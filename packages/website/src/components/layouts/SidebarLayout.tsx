@@ -94,7 +94,7 @@ export function SidebarLayout({
       {sidebarContent && (
         <Sidebar
           style={sidebarStyles}
-          className={`z-[49] sticky w-[280px] md:w-[280px] shrink-0 overflow-y-auto ${
+          className={`z-[49] sticky w-[280px] shrink-0 overflow-y-auto ${
             borderlessSidebar ? 'border-none' : 'border-r border-border'
           }`}
         >
@@ -109,7 +109,7 @@ export function SidebarLayout({
 
       {/* Main content */}
       <main
-        className={`cannon-page-main-content overflow-y-${mainContentOverflowY} flex-1`}
+        className={`cannon-page-main-content w-[calc(100vw-280px)] overflow-y-${mainContentOverflowY} flex-1`}
       >
         {/* container p-4 md:px-6 lg:px-8 ml-0 */}
         {children}

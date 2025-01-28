@@ -321,6 +321,9 @@ export const Function: FC<FunctionProps> = ({
     });
   };
 
+  console.log('value', methodCallOrQueuedResult?.value);
+  console.log('f.outputs', f.outputs);
+
   const renderFunctionContent = () => (
     <div
       className={cn(
@@ -612,16 +615,15 @@ export const Function: FC<FunctionProps> = ({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="absolute z-10 top-0 left-0 bg-background/75 w-full h-full flex items-center justify-center text-muted-foreground"
+                      className="absolute z-10 top-0 left-0 bg-background/100 w-full h-full flex items-center justify-center text-muted-foreground"
                     >
                       {loading ? (
                         <CustomSpinner className="h-8 w-8" />
                       ) : (
                         <>
                           {isFunctionReadOnly
-                            ? 'Call the view function '
-                            : 'Simulate the transaction '}
-                          for output
+                            ? 'Call the view function for output'
+                            : 'Simulate the transaction for output'}
                         </>
                       )}
                     </motion.div>
@@ -655,7 +657,7 @@ export const Function: FC<FunctionProps> = ({
             onClick={() => setIsOpen(!isOpen)}
           >
             {f.name && (
-              <h2 className="text-sm font-mono flex items-center max-w-full">
+              <h2 className="text-sm font-mono flex items-center">
                 <span className="break-all">
                   {toFunctionSignature(f)}
                   <Link
