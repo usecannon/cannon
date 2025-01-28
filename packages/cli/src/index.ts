@@ -226,7 +226,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     const [node, pkgSpec, outputs, runtime, deployInfo] = await doBuild(cannonfile, settings, mergedOptions);
 
     if (deployInfo.status !== 'complete') {
-      process.exitCode = deployInfo.status === 'partial' ? 10 : 11;
+      process.exitCode = deployInfo.status === 'partial' ? 90 : 91;
     }
 
     if (options.writeDeployments) {
@@ -248,8 +248,6 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     }
 
     node?.kill();
-
-    console.log('exit code', process.exitCode);
   });
 
 applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(async function (packageRef, options) {
