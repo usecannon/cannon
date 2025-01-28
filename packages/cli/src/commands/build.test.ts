@@ -83,7 +83,9 @@ describe('build', () => {
         def: { danglingDependencies: {}, getDeployers: () => [], isPublicSourceCode: () => false },
       } as any);
       provider = makeFakeProvider();
-      jest.spyOn(buildCommand, 'build').mockResolvedValue({ outputs: {}, provider, runtime: {} as any });
+      jest
+        .spyOn(buildCommand, 'build')
+        .mockResolvedValue({ outputs: {}, provider, runtime: {} as any, deployInfo: {} as any });
       jest.spyOn(utilProvider, 'resolveProvider').mockResolvedValue({ provider: provider as any, signers: [] });
     });
 
