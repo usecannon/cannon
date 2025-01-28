@@ -68,7 +68,7 @@ export async function decode({
   }
 
   if (typeof parsed.result === 'string') {
-    log(green(`${parsed.result}`));
+    log(green(`${parsed.result}`), `${italic(gray(inputData.slice(0, 10)))}`);
     return;
   }
 
