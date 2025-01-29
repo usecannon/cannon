@@ -321,9 +321,6 @@ export const Function: FC<FunctionProps> = ({
     });
   };
 
-  console.log('value', methodCallOrQueuedResult?.value);
-  console.log('f.outputs', f.outputs);
-
   const renderFunctionContent = () => (
     <div
       className={cn(
@@ -630,7 +627,7 @@ export const Function: FC<FunctionProps> = ({
                   )}
               </AnimatePresence>
               <FunctionOutput
-                methodResult={methodCallOrQueuedResult?.value || null}
+                methodResult={methodCallOrQueuedResult?.value as string}
                 abiParameters={f.outputs}
               />
             </div>
