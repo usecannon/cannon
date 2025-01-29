@@ -8,7 +8,6 @@ import {
   LocalBuildState,
 } from '@/hooks/cannon';
 import { Card, CardContent } from '@/components/ui/card';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { getIpfsUrl, PackageReference } from '@usecannon/builder';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAccount } from 'wagmi';
@@ -31,6 +30,7 @@ import { useCannonPackage } from '@/features/Deploy/hooks/useCannonPackage';
 import { IpfsGatewayAlert } from '@/features/Deploy/IpfsGatewayAlert';
 import WriteToIpfsStatus from '@/features/Deploy/WriteToIpfsStatus';
 import { PackageErrors } from '@/features/Deploy/PackageErrors';
+import { ConnectWalletButton } from '@/features/Deploy/ConnectWalletButton';
 
 const EMPTY_IPFS_MISC_URL =
   'ipfs://QmeSt2mnJKE8qmRhLyYbHQQxDKpsFbcWnw5e7JF4xVbN6k';
@@ -39,8 +39,7 @@ export default function QueueFromGitOps() {
   const form = useForm();
   const currentSafe = useStore((s) => s.currentSafe)!;
   const settings = useStore((s) => s.settings);
-  const { chainId, isConnected } = useAccount();
-  const { openConnectModal } = useConnectModal();
+  const { chainId } = useAccount();
   const deployer = useDeployerWallet(currentSafe?.chainId);
   const writeToIpfsMutation = useCannonWriteDeployToIpfs();
 
@@ -236,14 +235,13 @@ export default function QueueFromGitOps() {
             {/* Package errors */}
             <PackageErrors error={cannonPackageError?.message} />
 
+            <ConnectWalletButton currentSafeChainId={currentSafe.chainId} />
+
             {/* On Package Loaded */}
             {isCannonPackageLoaded && (
               <>
                 <PreviewTransactionsButton
-                  isConnected={isConnected}
-                  chainId={chainId}
                   currentSafe={currentSafe}
-                  openConnectModal={openConnectModal}
                   partialDeployInfo={partialDeployInfo}
                   cannonDefInfo={cannonDefInfo}
                   isDeploying={Boolean(

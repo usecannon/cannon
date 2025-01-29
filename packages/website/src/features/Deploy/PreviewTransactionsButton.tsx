@@ -1,8 +1,7 @@
-import React from 'react';
 import { Button } from '@/components/ui/button';
-import { useSwitchChain } from 'wagmi';
 import { useCannonPackage, useMergedCannonDefInfo } from '@/hooks/cannon';
 import { SafeDefinition } from '@/helpers/store';
+import { useAccount } from 'wagmi';
 
 function PreviewButton({
   isDeploying,
@@ -38,21 +37,15 @@ function PreviewButton({
 }
 
 export function PreviewTransactionsButton({
-  isConnected,
-  chainId,
-  currentSafe,
-  openConnectModal,
   isDeploying,
   isLoading,
   partialDeployInfo,
   cannonDefInfo,
+  currentSafe,
   handlePreviewTxnsClick,
   buildStatus,
 }: {
-  isConnected: boolean;
-  chainId?: number;
   currentSafe: SafeDefinition;
-  openConnectModal?: () => void;
   isDeploying: boolean;
   isLoading: boolean;
   partialDeployInfo?: ReturnType<typeof useCannonPackage>;
@@ -60,30 +53,10 @@ export function PreviewTransactionsButton({
   handlePreviewTxnsClick: () => Promise<void>;
   buildStatus: string;
 }) {
-  const { switchChainAsync } = useSwitchChain();
+  const { chainId, isConnected } = useAccount();
 
-  if (!isConnected) {
-    return (
-      <Button
-        className="w-full"
-        onClick={() => openConnectModal && openConnectModal()}
-      >
-        Connect wallet
-      </Button>
-    );
-  }
-
-  if (chainId !== currentSafe?.chainId) {
-    return (
-      <Button
-        className="w-full"
-        onClick={() =>
-          switchChainAsync({ chainId: currentSafe?.chainId || 10 })
-        }
-      >
-        Switch Network
-      </Button>
-    );
+  if (!isConnected || chainId !== currentSafe.chainId) {
+    return null;
   }
 
   return (
