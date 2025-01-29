@@ -1,10 +1,10 @@
-import { ChainBuilderContext, PackageReference } from '@usecannon/builder';
 import {
   useCannonPackage as useFetchCannonPackage,
   useMergedCannonDefInfo,
   useCannonFindUpgradeFromUrl,
 } from '@/hooks/cannon';
 import { useGitDetailsFromCannonfile } from '@/features/Deploy/hooks/useGitDetailsFromCannonfile';
+import { ChainBuilderContext, PackageReference } from '@usecannon/builder';
 
 // TODO: is there any way to make a better context? maybe this means we should get rid of name using context?
 const ctx: ChainBuilderContext = {
@@ -86,6 +86,7 @@ function getLoadedState({
   onChainPrevPkgQuery,
   prevDeployLocation,
   prevCannonDeployInfo,
+  requiresPrevPackage,
 }: {
   partialDeployInputIpfs: string;
   partialDeployInfo: ReturnType<typeof useFetchCannonPackage>;
@@ -95,6 +96,7 @@ function getLoadedState({
   onChainPrevPkgQuery: ReturnType<typeof useCannonFindUpgradeFromUrl>;
   prevDeployLocation: string;
   prevCannonDeployInfo: ReturnType<typeof useFetchCannonPackage>;
+  requiresPrevPackage: boolean;
 }): boolean {
   if (!cannonfileUrlInput && !partialDeployInputIpfs) {
     return false;
@@ -109,6 +111,7 @@ function getLoadedState({
 
   const onChainPrevPkgQueryLoaded =
     !currentPackageReference ||
+    !requiresPrevPackage ||
     (!onChainPrevPkgQuery.isFetching && !onChainPrevPkgQuery.isError && onChainPrevPkgQuery.data !== undefined);
 
   const prevDeployLoaded =
@@ -184,6 +187,7 @@ export function useCannonPackage({
     onChainPrevPkgQuery,
     prevDeployLocation,
     prevCannonDeployInfo,
+    requiresPrevPackage,
   });
 
   return {
