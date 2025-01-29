@@ -21,7 +21,7 @@ function _isNumberString(value: string): boolean {
   try {
     BigInt(value);
     return true;
-  } catch (e) {
+  } catch (_) {
     return false;
   }
 }
@@ -42,6 +42,10 @@ const ItemLabel: FC<{ name: string; type: string }> = ({ name, type }) => (
 );
 
 function _isNumberType(type: string): boolean {
+  if (typeof type !== 'string') {
+    debugger;
+    throw new Error(`Invalid type given to assert "${type}"`);
+  }
   return (
     type.startsWith('uint') ||
     type.startsWith('int') ||
@@ -71,7 +75,6 @@ function _renderResultText(
   type: AbiParameter['type'],
   value: any
 ): string {
-  console.log({ name, type, value });
   if (isNil(value)) {
     return _renderEmptyValue(type);
   } else if (Array.isArray(value)) {
@@ -148,7 +151,7 @@ function _renderValue(abiParameter: AbiParameter, value: any) {
 function _renderOutput(
   abiParameter: AbiParameter,
   value: { [key: string]: any },
-  index?: number
+  indent = 0
 ) {
   const isTuple = abiParameter.type === 'tuple';
   const isTupleArray = abiParameter.type === 'tuple[]';
@@ -161,13 +164,15 @@ function _renderOutput(
     isObject(value) && abiParameter.name && abiParameter.name in value;
 
   if (isTuple && hasComponents && isValidValue) {
+    debugger;
     return (
-      <div className="pl-4">
+      <div className={`pl-${4 * (indent + 1)}`}>
         {Object.values(abiParameter).map((component: any, resIdx: number) => {
           return (
             <FunctionOutput
               abiParameters={component}
               methodResult={value}
+              indent={indent + 1}
               key={resIdx}
             />
           );
@@ -189,6 +194,7 @@ function _renderOutput(
                   methodResult={
                     Array.isArray(tupleItem) ? tupleItem[compIdx] : tupleItem
                   }
+                  indent={indent + 1}
                 />
               )
             )}
@@ -216,8 +222,6 @@ function _renderOutput(
             ))}
           </div>
         );
-      } else if (index !== undefined) {
-        return _renderValue(abiParameter, value[index]);
       } else {
         return value.map((val, idx) => (
           <span className="text-sm block" key={idx}>
@@ -241,23 +245,9 @@ function _renderOutput(
 export const FunctionOutput: FC<{
   abiParameters: AbiParameter | readonly AbiParameter[];
   methodResult: any;
-}> = ({ abiParameters, methodResult }) => {
+  indent?: number;
+}> = ({ abiParameters, methodResult, indent = 0 }) => {
   if (isNil(abiParameters)) return null;
-
-  if (
-    Array.isArray(abiParameters) &&
-    (!Array.isArray(methodResult) ||
-      abiParameters.length !== methodResult.length)
-  ) {
-    console.log('!!!', { abiParameters, methodResult });
-    return (
-      <div className="flex flex-1 items-center h-full py-4">
-        <span className="text-sm m-auto text-muted-foreground">
-          There was an error rendering the output.
-        </span>
-      </div>
-    );
-  }
 
   if (_isArrayAbiParameter(abiParameters)) {
     if (abiParameters.length === 0) {
@@ -270,13 +260,12 @@ export const FunctionOutput: FC<{
       );
     } else {
       return abiParameters.map((abiParameter, index) => (
-        <div className="overflow-x-scroll py-2" key={index}>
-          <ItemLabel
-            name={abiParameter.name || ''}
-            type={abiParameter.internalType || ''}
-          />
-          {_renderOutput(abiParameter, methodResult, index)}
-        </div>
+        <FunctionOutput
+          abiParameters={abiParameter}
+          methodResult={methodResult?.[index]}
+          indent={indent + 1}
+          key={index}
+        />
       ));
     }
   }
@@ -287,7 +276,7 @@ export const FunctionOutput: FC<{
         name={abiParameters.name || ''}
         type={abiParameters.internalType || ''}
       />
-      {_renderOutput(abiParameters, methodResult)}
+      {_renderOutput(abiParameters, methodResult, indent)}
     </div>
   );
 };
