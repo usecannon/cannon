@@ -1,38 +1,15 @@
 'use client';
 
-import { links } from '@/constants/links';
-import { useMultisendQuery } from '@/helpers/multisend';
-import * as onchainStore from '@/helpers/onchain-store';
 import { useStore } from '@/helpers/store';
-import { useTxnStager } from '@/hooks/backend';
 import { useDeployerWallet } from '@/hooks/deployer';
 import {
   useCannonWriteDeployToIpfs,
-  CannonWriteDeployToIpfsMutationResult,
   useCannonBuild,
+  LocalBuildState,
 } from '@/hooks/cannon';
-import { useGitRefsList } from '@/hooks/git';
-import { useGetPreviousGitInfoQuery } from '@/hooks/safe';
-import { SafeTransaction } from '@/types/SafeTransaction';
 import { Card, CardContent } from '@/components/ui/card';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
-import {
-  ChainBuilderContext,
-  DeploymentInfo,
-  getIpfsUrl,
-  PackageReference,
-} from '@usecannon/builder';
-import { useRouter } from 'next/navigation';
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import {
-  encodeAbiParameters,
-  encodeFunctionData,
-  keccak256,
-  stringToHex,
-  toBytes,
-  TransactionRequestBase,
-  zeroAddress,
-} from 'viem';
+import { getIpfsUrl, PackageReference } from '@usecannon/builder';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAccount } from 'wagmi';
 import pkg from '../../../package.json';
 import 'react-diff-view/style/index.css';
@@ -44,39 +21,25 @@ import {
   DeployType,
 } from '@/features/Deploy/DeploymentSourceInput';
 import { PreviousPackageInput } from '@/features/Deploy/PreviousPackageInput';
-import { TransactionPreviewAndExecution } from '@/features/Deploy/TransactionPreviewAndExecution';
+import { SafeTransactionsAndExecution } from '@/features/Deploy/SafeTransactionsAndExecution';
 import { BuildStateAlerts } from '@/features/Deploy/BuildStateAlerts';
 import { PreviewTransactionsButton } from '@/features/Deploy/PreviewTransactionsButton';
-import { useToast } from '@/hooks/use-toast';
 import { useForm, FormProvider } from 'react-hook-form';
 import { PrevDeploymentStatus } from '@/features/Deploy/PrevDeploymentStatus';
-import { useCannonDefinitions } from '@/features/Deploy/hooks/useCannonDefinitions';
+import { useCannonPackage } from '@/features/Deploy/hooks/useCannonPackage';
 import { IpfsGatewayAlert } from '@/features/Deploy/IpfsGatewayAlert';
-import { useCannonDefinitionDerivedState } from './hooks/useCannonDefinitionDerivedState';
+import WriteToIpfsStatus from '@/features/Deploy/WriteToIpfsStatus';
+import { PackageErrors } from '@/features/Deploy/PackageErrors';
+import { ConnectWalletButton } from '@/features/Deploy/ConnectWalletButton';
 
 const EMPTY_IPFS_MISC_URL =
   'ipfs://QmeSt2mnJKE8qmRhLyYbHQQxDKpsFbcWnw5e7JF4xVbN6k';
 
-// TODO: is there any way to make a better context? maybe this means we should get rid of name using context?
-const ctx: ChainBuilderContext = {
-  chainId: 0,
-  package: {},
-  timestamp: 0 as any, // TODO: fix this
-  settings: {},
-  contracts: {},
-  txns: {},
-  imports: {},
-  overrideSettings: {},
-};
-
 export default function QueueFromGitOps() {
   const form = useForm();
-  const router = useRouter();
   const currentSafe = useStore((s) => s.currentSafe)!;
   const settings = useStore((s) => s.settings);
-  const { toast } = useToast();
-  const { chainId, isConnected } = useAccount();
-  const { openConnectModal } = useConnectModal();
+  const { chainId } = useAccount();
   const deployer = useDeployerWallet(currentSafe?.chainId);
   const writeToIpfsMutation = useCannonWriteDeployToIpfs();
 
@@ -85,49 +48,31 @@ export default function QueueFromGitOps() {
   const [deploymentSourceInput, setDeploymentSourceInput] = useState('');
   const [cannonfileUrlInput, setCannonfileUrlInput] = useState('');
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
-  const [prevPackageInputRef, setPrevPackageInputRef] = useState<string | null>(
-    null
-  );
 
-  const [previousPackageInput, setPreviousPackageInput] = useState('');
-  const [pickedNonce, setPickedNonce] = useState<number | null>(null);
-  const [writeToIpfsMutationRes, setWriteToIpfsMutationRes] = useState<{
-    isLoading: boolean;
-    error: Error | null;
-    data: CannonWriteDeployToIpfsMutationResult | null;
-  } | null>(null);
-  const [inputError, setInputError] = useState<string | null>(null);
+  const [prevPackageReference, setPrevPackageReference] = useState<string>('');
+  const [previousPackageInput, setPreviousPackageInput] = useState(''); // packageRef or ipfsUrl
+
+  const [inputError, setInputError] = useState<string>('');
 
   const {
+    isLoading: isCannonPackageLoading,
+    loaded: isCannonPackageLoaded,
+    error: cannonPackageError,
+
     gitInfo,
     partialDeployInfo,
     cannonDefInfo,
-    cannonDefInfoError,
     onChainPrevPkgQuery,
     prevDeployLocation,
     prevCannonDeployInfo,
-    isLoading: isCannonDefinitionLoading,
-    isLoaded: isCannonDefinitionLoaded,
-  } = useCannonDefinitions({
+    ctx,
+    hasDeployers,
+    requiresPrevPackage,
+  } = useCannonPackage({
     cannonfileUrlInput,
     partialDeployIpfs,
     chainId,
-    prevPackageReference: prevPackageInputRef,
-    ctx,
-  });
-
-  // TODO: useCannonDefinitionDerivedState should be a hook that takes in the result of useCannonDefinitions
-  // and forwards the result to the component.
-  const {
-    requiresPrevPackage,
-    cannonInfoDefinitionLoaded,
-    hasDeployers,
-    error: cannonDefinitionError,
-  } = useCannonDefinitionDerivedState({
-    cannonDefInfo,
-    cannonfileUrlInput,
-    partialDeployInfo,
-    isLoading: isCannonDefinitionLoading,
+    prevPackageReference: prevPackageReference,
   });
 
   const {
@@ -136,261 +81,76 @@ export default function QueueFromGitOps() {
     resetState: buildResetState,
   } = useCannonBuild(currentSafe);
 
-  const refsInfo = useGitRefsList(gitInfo.gitUrl);
-
-  const prevInfoQuery = useGetPreviousGitInfoQuery(
-    currentSafe as any,
-    gitInfo.gitUrl + ':' + gitInfo.gitFile
-  );
-
   // ---------------------------
   // Effects and Memos
   // ---------------------------
+
+  // Set the previous package input if it is a valid package reference or ipfs url
+  // TODO: SHOW an error is input is not valid?
   useEffect(() => {
     if (PackageReference.isValid(previousPackageInput)) {
-      setPrevPackageInputRef(
-        new PackageReference(previousPackageInput).fullPackageRef
-      );
-    } else if (getIpfsUrl(previousPackageInput)) {
-      setPrevPackageInputRef(getIpfsUrl(previousPackageInput));
-    } else {
-      setPrevPackageInputRef(null); // TODO: SHOW an error???
+      const fullPackageRef = new PackageReference(previousPackageInput)
+        .fullPackageRef;
+      setPrevPackageReference(fullPackageRef);
+      return;
     }
+
+    const ipfsUrl = getIpfsUrl(previousPackageInput);
+    if (ipfsUrl) {
+      setPrevPackageReference(ipfsUrl);
+      return;
+    }
+
+    return setPrevPackageReference('');
   }, [previousPackageInput]);
 
-  const nextCannonDeployInfo = useMemo(() => {
-    return cannonDefInfo?.def
-      ? ({
-          generator: `cannon website ${pkg.version}`,
-          timestamp: Math.floor(Date.now() / 1000),
-          def: cannonDefInfo.def.toJson(),
-          state: buildState.result?.state || {},
-          options: partialDeployInfo?.ipfsQuery.data?.deployInfo?.options || {},
-          meta: partialDeployInfo?.ipfsQuery.data?.deployInfo?.meta,
-          miscUrl:
-            partialDeployInfo?.ipfsQuery.data?.deployInfo?.miscUrl ||
-            EMPTY_IPFS_MISC_URL,
-          chainId: currentSafe.chainId,
-        } satisfies DeploymentInfo)
-      : undefined;
-  }, [
-    buildState.result?.state,
-    cannonDefInfo?.def,
-    currentSafe.chainId,
-    partialDeployInfo?.ipfsQuery.data?.deployInfo?.meta,
-    partialDeployInfo?.ipfsQuery.data?.deployInfo?.miscUrl,
-    partialDeployInfo?.ipfsQuery.data?.deployInfo?.options,
-  ]);
-
+  // Set the previous package input if cannonDefInfo.def.fullPackageRef is valid
   useEffect(() => {
-    // After loading the deployment info, set a default value for the upgradeFrom field
-    if (hasDeployers || !nextCannonDeployInfo?.def) {
-      return setPreviousPackageInput('');
+    if (!cannonDefInfo.def) return;
+
+    const def = cannonDefInfo.def.toJson();
+
+    if (hasDeployers && !def) {
+      const { name, preset } = def;
+      const { fullPackageRef } = PackageReference.from(name, 'latest', preset);
+      setPreviousPackageInput(fullPackageRef);
+    } else {
+      setPreviousPackageInput('');
     }
+  }, [hasDeployers, cannonDefInfo.def]);
 
-    const { name, preset } = nextCannonDeployInfo.def;
-    const { fullPackageRef } = PackageReference.from(name, 'latest', preset);
-    setPreviousPackageInput(fullPackageRef);
-  }, [nextCannonDeployInfo, hasDeployers]);
+  // Upload artifacts to IPFS when the build is successful
+  const onBuildSuccess = async (res: LocalBuildState['result']) => {
+    if (!cannonDefInfo?.def) throw new Error('No cannonfile definition found');
+    if (!res) throw new Error('No build result found');
 
-  const foundRef = refsInfo.refs?.find(
-    (r) =>
-      (r.ref.startsWith('refs/heads/') || r.ref.startsWith('refs/tags/')) &&
-      r.ref.endsWith(gitInfo.gitRef)
-  )?.oid;
-  const gitHash = gitInfo.gitRef.match(/^[0-9a-f]+$/)
-    ? foundRef || gitInfo.gitRef
-    : foundRef;
-
-  // ---------------------------
-  // Build stuff
-  // ---------------------------
-
-  useEffect(() => {
-    const callMutation = async () => {
-      if (['success'].includes(buildState.status)) {
-        try {
-          setWriteToIpfsMutationRes({
-            isLoading: true,
-            error: null,
-            data: null,
-          });
-
-          const res = await writeToIpfsMutation.mutateAsync({
-            runtime: buildState.result?.runtime,
-            deployInfo: nextCannonDeployInfo,
-            metaUrl: prevCannonDeployInfo.metaUrl,
-          });
-
-          setWriteToIpfsMutationRes({
-            isLoading: false,
-            error: null,
-            data: res,
-          });
-        } catch (error) {
-          setWriteToIpfsMutationRes({
-            isLoading: false,
-            error: error as Error,
-            data: null,
-          });
-        }
-      }
+    const nextCannonDeployInfo = {
+      generator: `cannon website ${pkg.version}` as `cannon ${string}`,
+      timestamp: Math.floor(Date.now() / 1000),
+      def: cannonDefInfo.def.toJson(),
+      state: res.state,
+      options: partialDeployInfo?.ipfsQuery.data?.deployInfo?.options || {},
+      meta: partialDeployInfo?.ipfsQuery.data?.deployInfo?.meta,
+      miscUrl:
+        partialDeployInfo?.ipfsQuery.data?.deployInfo?.miscUrl ||
+        EMPTY_IPFS_MISC_URL,
+      chainId: currentSafe.chainId,
     };
 
-    void callMutation();
-  }, [buildState.status]);
+    return writeToIpfsMutation.mutateAsync({
+      runtime: res.runtime,
+      deployInfo: nextCannonDeployInfo,
+      metaUrl: prevCannonDeployInfo.metaUrl,
+    });
+  };
 
-  const multisendTxsParam = useMemo(() => {
-    return [
-      // supply the hint data
-      {
-        to: zeroAddress,
-        data: encodeAbiParameters(
-          [{ type: 'string[]' }],
-          [
-            [
-              'deploy',
-              writeToIpfsMutationRes?.data?.mainUrl,
-              prevDeployLocation || '',
-              gitInfo.gitUrl && gitInfo.gitFile
-                ? `${gitInfo.gitUrl}:${gitInfo.gitFile}`
-                : '',
-              gitHash || '',
-              prevInfoQuery.data &&
-              typeof prevInfoQuery.data?.[0].result == 'string' &&
-              (prevInfoQuery.data[0].result as any).length > 2
-                ? ((prevInfoQuery.data[0].result as any).slice(2) as any)
-                : '',
-            ],
-          ]
-        ),
-      } as Partial<TransactionRequestBase>,
-      // write data needed for the subsequent deployment to chain
-      gitInfo.gitUrl && gitInfo.gitFile
-        ? ({
-            to: onchainStore.deployAddress,
-            data: encodeFunctionData({
-              abi: onchainStore.ABI,
-              functionName: 'set',
-              args: [
-                keccak256(
-                  toBytes(`${gitInfo.gitUrl}:${gitInfo.gitFile}gitHash`)
-                ),
-                '0x' + gitHash,
-              ],
-            }),
-          } as Partial<TransactionRequestBase>)
-        : {},
-      gitInfo.gitUrl && gitInfo.gitFile
-        ? ({
-            to: onchainStore.deployAddress,
-            data: encodeFunctionData({
-              abi: onchainStore.ABI,
-              functionName: 'set',
-              args: [
-                keccak256(
-                  toBytes(`${gitInfo.gitUrl}:${gitInfo.gitFile}cannonPackage`)
-                ),
-                stringToHex(writeToIpfsMutationRes?.data?.mainUrl ?? ''),
-              ],
-            }),
-          } as Partial<TransactionRequestBase>)
-        : {},
-      {
-        to: onchainStore.deployAddress,
-        data: encodeFunctionData({
-          abi: onchainStore.ABI,
-          functionName: 'set',
-          args: [
-            keccak256(
-              toBytes(
-                cannonDefInfo?.def
-                  ? `${cannonDefInfo.def.getName(
-                      ctx
-                    )}@${cannonDefInfo.def.getPreset(ctx)}`
-                  : ''
-              )
-            ),
-            // TODO: we would really rather have the timestamp be when the txn was executed. something to fix when we have a new state contract
-            stringToHex(
-              `${Math.floor(Date.now() / 1000)}_${
-                writeToIpfsMutationRes?.data?.mainUrl ?? ''
-              }`
-            ),
-          ],
-        }),
-      } as Partial<TransactionRequestBase>,
-    ].concat(
-      buildState.result?.safeSteps.map(
-        (s) => s.tx as unknown as Partial<TransactionRequestBase>
-      ) || []
-    );
-  }, [
-    buildState.result?.safeSteps,
-    cannonDefInfo?.def,
-    gitInfo.gitFile,
-    gitHash,
-    gitInfo.gitUrl,
-    prevDeployLocation,
-    prevInfoQuery.data,
-    writeToIpfsMutationRes?.data?.mainUrl,
-  ]);
-
-  const { data: multicallTxn } = useMultisendQuery(
-    Boolean(
-      !prevInfoQuery.isLoading &&
-        buildState.result &&
-        buildState.status == 'success'
-    ),
-    multisendTxsParam
-  );
-
-  let totalGas = BigInt(0);
-
-  for (const step of buildState.result?.safeSteps || []) {
-    totalGas += BigInt(step.gas.toString());
-  }
-
-  const stager = useTxnStager(
-    multicallTxn?.data
-      ? ({
-          to: multicallTxn.to,
-          value: multicallTxn.value.toString(),
-          data: multicallTxn.data,
-          safeTxGas: totalGas.toString(),
-          operation: '1', // delegate call multicall
-          _nonce: pickedNonce,
-        } as SafeTransaction)
-      : {},
-    {
-      safe: currentSafe,
-      async onSignComplete() {
-        router.push(links.DEPLOY);
-        toast({
-          title: 'You successfully signed the transaction.',
-          variant: 'default',
-          duration: 5000,
-        });
-      },
-    }
-  );
-
-  const isOutsideSafeTxnsRequired =
-    (buildState.result?.deployerSteps.length || 0) > 0 && !deployer.isComplete;
-
-  const buildStateMessage = buildState.message || null;
-  const buildStateError = buildState.error || null;
-
-  // ---------------------------
-  // Build stuff end
-  // ---------------------------
-
+  // handle deployment source input change (Git or Hash)
   const handleDeploymentSourceInputChange = useCallback(
     (input: string) => {
       buildResetState();
       setCannonfileUrlInput('');
       setPartialDeployIpfs('');
-      setInputError(null);
+      setInputError('');
 
       const isIpfsHash = extractIpfsHash(input);
 
@@ -418,17 +178,16 @@ export default function QueueFromGitOps() {
             {/* Git or Hash Input */}
             <div className="mb-4">
               <DeploymentSourceInput
+                isLoading={isCannonPackageLoading}
+                error={cannonPackageError?.message}
+                loaded={isCannonPackageLoaded}
                 deploymentSourceInput={deploymentSourceInput}
                 setDeploymentSourceInput={setDeploymentSourceInput}
                 selectedDeployType={selectedDeployType}
                 cannonfileUrlInput={cannonfileUrlInput}
-                cannonDefInfo={cannonDefInfo}
-                cannonInfoDefinitionLoaded={cannonInfoDefinitionLoaded}
                 partialDeployInfo={partialDeployInfo}
-                partialDeployInfoLoaded={isCannonDefinitionLoaded}
                 chainId={chainId}
                 currentSafe={currentSafe}
-                cannonDefInfoError={cannonDefInfoError}
                 inputError={inputError}
                 handleDeploymentSourceInputChange={
                   handleDeploymentSourceInputChange
@@ -443,7 +202,7 @@ export default function QueueFromGitOps() {
               />
             )}
             {/* Hash: Prev deployment Input */}
-            {(isCannonDefinitionLoaded || requiresPrevPackage) && (
+            {cannonDefInfo?.def && requiresPrevPackage && (
               <div className="mb-4">
                 <PreviousPackageInput
                   previousPackageInput={previousPackageInput}
@@ -456,70 +215,75 @@ export default function QueueFromGitOps() {
             {/* Hash: CannonFile to compare with prev deployment */}
             {selectedDeployType == 'partial' &&
               partialDeployIpfs.length > 0 &&
-              isCannonDefinitionLoaded && (
+              cannonDefInfo?.def && (
                 <div className="mb-4">
                   <CannonFileInput
                     cannonfileUrlInput={cannonfileUrlInput}
                     setCannonfileUrlInput={setCannonfileUrlInput}
                     cannonDefInfo={cannonDefInfo}
-                    cannonDefInfoError={cannonDefInfoError}
                     isDisabled={!partialDeployIpfs}
                   />
                 </div>
               )}
             {/* IPFS Gateway alert */}
-            <IpfsGatewayAlert
-              isIpfsGateway={settings.isIpfsGateway}
-              cannonDef={cannonDefInfo?.def}
-            />
-            {/* PreviewTransactionsButton */}
-            {onChainPrevPkgQuery.isFetched && (
-              <PreviewTransactionsButton
-                isConnected={isConnected}
-                chainId={chainId}
-                currentSafe={currentSafe}
-                openConnectModal={openConnectModal}
-                deploymentSourceInput={deploymentSourceInput}
-                partialDeployInfo={partialDeployInfo}
-                cannonDefInfo={cannonDefInfo}
-                error={cannonDefinitionError}
-                isDeploying={Boolean(
-                  buildState.status === 'building' ||
-                    writeToIpfsMutationRes?.isLoading
-                )}
-                handlePreviewTxnsClick={async () => {
-                  doBuild(
-                    cannonDefInfo?.def,
-                    partialDeployInfo?.ipfsQuery.data?.deployInfo ??
-                      prevCannonDeployInfo.ipfsQuery.data?.deployInfo
-                  );
-                }}
-                isLoading={isCannonDefinitionLoading}
-                buildStatus={buildState.status}
+            {cannonDefInfo?.def && (
+              <IpfsGatewayAlert
+                isIpfsGateway={settings.isIpfsGateway}
+                cannonDef={cannonDefInfo.def}
               />
             )}
+            {/* Package errors */}
+            <PackageErrors error={cannonPackageError?.message} />
 
-            {/* Build status */}
-            <BuildStateAlerts
-              buildState={buildState}
-              buildStateMessage={buildStateMessage}
-              buildStateError={buildStateError}
-              deployer={deployer}
-            />
+            <ConnectWalletButton currentSafeChainId={currentSafe.chainId} />
 
-            {/* Build result */}
-            <TransactionPreviewAndExecution
-              buildState={buildState}
-              writeToIpfsMutationRes={writeToIpfsMutationRes}
-              multicallTxn={multicallTxn}
-              cannonDefInfo={cannonDefInfo}
-              stager={stager}
-              currentSafe={currentSafe}
-              isOutsideSafeTxnsRequired={isOutsideSafeTxnsRequired}
-              ctx={ctx}
-              pickedNonce={pickedNonce}
-              setPickedNonce={setPickedNonce}
-            />
+            {/* On Package Loaded */}
+            {isCannonPackageLoaded && (
+              <>
+                <PreviewTransactionsButton
+                  currentSafe={currentSafe}
+                  partialDeployInfo={partialDeployInfo}
+                  cannonDefInfo={cannonDefInfo}
+                  isDeploying={Boolean(
+                    buildState.status === 'building' ||
+                      writeToIpfsMutation.isPending
+                  )}
+                  handlePreviewTxnsClick={async () => {
+                    if (!cannonDefInfo?.def) return;
+                    doBuild(
+                      cannonDefInfo.def,
+                      partialDeployInfo?.ipfsQuery.data?.deployInfo ??
+                        prevCannonDeployInfo.ipfsQuery.data?.deployInfo,
+                      onBuildSuccess
+                    );
+                  }}
+                  isLoading={isCannonPackageLoading}
+                  buildStatus={buildState.status}
+                />
+
+                {/* Build status */}
+                <BuildStateAlerts
+                  buildState={buildState}
+                  buildStateMessage={buildState.message}
+                  buildStateError={buildState.error}
+                  deployer={deployer}
+                />
+
+                {/* Write to IPFS status*/}
+                <WriteToIpfsStatus writeToIpfsMutation={writeToIpfsMutation} />
+
+                {/* Txs list and Execution */}
+                <SafeTransactionsAndExecution
+                  buildState={buildState}
+                  writeToIpfsMutation={writeToIpfsMutation}
+                  cannonDefInfo={cannonDefInfo}
+                  prevDeployLocation={prevDeployLocation}
+                  gitInfo={gitInfo}
+                  currentSafe={currentSafe}
+                  ctx={ctx}
+                />
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
