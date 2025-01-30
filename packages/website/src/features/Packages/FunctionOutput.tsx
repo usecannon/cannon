@@ -1,13 +1,6 @@
 import * as viem from 'viem';
 import { AbiParameterPreview } from '@/components/AbiParameterPreview';
-
-type AbiParameter = viem.AbiParameter;
-
-function _isArrayAbiParameter(
-  value: AbiParameter | readonly AbiParameter[]
-): value is readonly AbiParameter[] {
-  return Array.isArray(value);
-}
+import { isAbiParameterArray } from '@/components/AbiParameterPreview/utils';
 
 interface Props {
   abiParameters: viem.AbiParameter | readonly viem.AbiParameter[];
@@ -15,7 +8,7 @@ interface Props {
 }
 
 export function FunctionOutput({ abiParameters, methodResult }: Props) {
-  if (_isArrayAbiParameter(abiParameters)) {
+  if (isAbiParameterArray(abiParameters)) {
     return abiParameters.map((abiParameter, index) => (
       <AbiParameterPreview
         key={`${abiParameter.name}-${index}`}
