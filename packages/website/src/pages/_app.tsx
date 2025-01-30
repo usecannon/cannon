@@ -96,8 +96,11 @@ export default function RootLayout({
       <Providers>
         <Header />
 
-        <div className={'cannon-main'} style={cannonMainStyles}>
-          <div className={'cannon-layout flex relative'} style={layoutStyles}>
+        <div className="cannon-main" style={cannonMainStyles}>
+          <div
+            className="cannon-layout flex relative max-w-dvw"
+            style={layoutStyles}
+          >
             {getLayout(<Component {...pageProps} />)}
             <NoSsrE2EWalletConnector />
           </div>

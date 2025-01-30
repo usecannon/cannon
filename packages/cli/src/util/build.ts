@@ -1,5 +1,12 @@
 import path from 'node:path';
-import { CANNON_CHAIN_ID, CannonError, CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
+import {
+  CANNON_CHAIN_ID,
+  CannonError,
+  CannonSigner,
+  ChainArtifacts,
+  ChainBuilderRuntime,
+  DeploymentInfo,
+} from '@usecannon/builder';
 import Debug from 'debug';
 import * as viem from 'viem';
 import { PackageSpecification } from '../types';
@@ -35,7 +42,7 @@ export async function doBuild(
   cannonfile: string,
   settings: string[],
   options: Record<string, any>
-): Promise<[CannonRpcNode | null, PackageSpecification, ChainArtifacts, ChainBuilderRuntime]> {
+): Promise<[CannonRpcNode | null, PackageSpecification, ChainArtifacts, ChainBuilderRuntime, DeploymentInfo]> {
   // Set debug level
   setDebugLevel(options);
   debug('do build called with', cannonfile, settings, filterSettings(options));
@@ -81,9 +88,9 @@ export async function doBuild(
 
   const { build } = await import('../commands/build');
 
-  const { outputs, runtime } = await build(buildConfig);
+  const { outputs, runtime, deployInfo } = await build(buildConfig);
 
-  return [node, buildConfig.packageDefinition, outputs, runtime];
+  return [node, buildConfig.packageDefinition, outputs, runtime, deployInfo];
 }
 
 /**

@@ -89,9 +89,11 @@ export default function NoncePicker({ safe, handleChange }: Params) {
               <SelectValue placeholder="Select nonce" />
             </SelectTrigger>
             <SelectContent>
-              {safeTxs.staged.map(({ txn }) => (
-                <SelectItem key={txn._nonce} value={txn._nonce.toString()}>
-                  {txn._nonce}
+              {Array.from(
+                new Set(safeTxs.staged.map(({ txn }) => txn._nonce.toString()))
+              ).map((nonce) => (
+                <SelectItem key={nonce} value={nonce}>
+                  {nonce}
                 </SelectItem>
               ))}
             </SelectContent>

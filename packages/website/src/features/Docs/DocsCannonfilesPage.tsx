@@ -47,7 +47,7 @@ const artifactDataExample = {
   },
 };
 
-const deploymentDataExample = {
+export const deploymentDataExample = {
   generator: 'cannon cli 2.15.0',
   timestamp: 1718767889,
   def: {

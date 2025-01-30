@@ -14,17 +14,9 @@ import {
 } from '@/hooks/cannon';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import * as viem from 'viem';
-import { ClipboardButton } from '@/components/ClipboardButton';
 import { CustomSpinner } from '@/components/CustomSpinner';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Snippet } from '@/components/snippet';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { AbiParameterPreview } from '@/components/AbiParameterPreview';
 
 // TODO: refactor caching mechanism
 // A possible solution is to use useQuery from tanstack/react-query
@@ -198,147 +190,16 @@ export function DisplayedTransaction(props: {
           <div className="flex-1 w-full lg:w-1/2">
             <div className="flex flex-col gap-4">
               {functionParameters.map((_arg, i) => (
-                <div key={JSON.stringify(functionParameters[i])}>
-                  <Label>
-                    {functionParameters[i].name && (
-                      <span>{functionParameters[i].name}</span>
-                    )}
-                    {functionParameters[i].type && (
-                      <span className="text-xs text-muted-foreground font-mono">
-                        {' '}
-                        {functionParameters[i].type}
-                      </span>
-                    )}
-                  </Label>
-                  {_renderInput(
-                    functionParameters[i].type,
-                    functionArgs[i] as string
-                  )}
-                </div>
+                <AbiParameterPreview
+                  key={JSON.stringify(functionParameters[i])}
+                  abiParameter={functionParameters[i]}
+                  value={functionArgs[i] as string}
+                />
               ))}
             </div>
           </div>
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function _encodeArg(type: string, val: string): string {
-  if (Array.isArray(val)) {
-    if (!type.endsWith('[]')) {
-      throw Error(`Invalid arg type "${type}" and val "${val}"`);
-    }
-
-    return `["${val
-      .map((v) => _encodeArg(type.slice(0, -2), v))
-      .join('", "')}"]`;
-  }
-
-  if (type.startsWith('bytes') && val.startsWith('0x')) {
-    try {
-      const b = viem.hexToBytes(val as viem.Hex);
-      const t = b.findIndex((v) => v < 0x20);
-      if (b[t] != 0 || b.slice(t).find((v) => v != 0) || t === 0) {
-        // this doesn't look like a terminated ascii hex string. leave it as hex
-        return val;
-      }
-
-      return viem.bytesToString(viem.trim(b, { dir: 'right' }));
-    } catch (err) {
-      return val.toString();
-    }
-  } else if (type == 'tuple') {
-    // TODO: use a lib?
-    return JSON.stringify(val, (_, v) =>
-      typeof v === 'bigint' ? v.toString() : v
-    );
-  } else if (type == 'bool') {
-    return val ? 'true' : 'false';
-  } else if (type.startsWith('uint') || type.startsWith('int')) {
-    return val ? BigInt(val).toString() : '0';
-  }
-
-  return val.toString();
-}
-
-function _encodeArgTooltip(type: string, val: string): string {
-  if (Array.isArray(val)) {
-    if (!type.endsWith('[]')) {
-      throw Error(`Invalid arg type "${type}" and val "${val}"`);
-    }
-
-    const arrayTooltip = `["${val
-      .map((v) => _encodeArgTooltip(type.slice(0, -2), v))
-      .join('", "')}"]`;
-    return arrayTooltip === _encodeArg(type, val) ? '' : arrayTooltip;
-  }
-
-  if (type.startsWith('bytes') && val.startsWith('0x')) {
-    const bytesTooltip = val.toString();
-    return bytesTooltip === _encodeArg(type, val) ? '' : bytesTooltip;
-  } else if (type == 'tuple') {
-    const tupleTooltip = JSON.stringify(val, (_, v) =>
-      typeof v === 'bigint' ? v.toString() : v
-    );
-    return tupleTooltip === _encodeArg(type, val) ? '' : tupleTooltip;
-  } else if (type == 'bool') {
-    const boolTooltip = val ? 'true' : 'false';
-    return boolTooltip === _encodeArg(type, val) ? '' : boolTooltip;
-  } else if (['int256', 'uint256', 'int128', 'uint128'].includes(type)) {
-    if (!val) return '';
-    const etherValue = `${viem.formatEther(
-      BigInt(val)
-    )} assuming 18 decimal places`;
-    return etherValue === _encodeArg(type, val) ? '' : etherValue;
-  }
-
-  return '';
-}
-
-function _renderInput(type: string, val: string) {
-  if (type === 'tuple') {
-    return (
-      <Snippet>
-        <code>
-          {JSON.stringify(JSON.parse(_encodeArg(type, val || '')), null, 2)}
-        </code>
-      </Snippet>
-    );
-  }
-
-  const tooltipText = _encodeArgTooltip(type, val);
-
-  return (
-    <div className="group relative">
-      {tooltipText && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Input
-                type="text"
-                className="focus:border-muted-foreground/40 focus:ring-0 hover:border-muted-foreground/40"
-                readOnly
-                value={_encodeArg(type, (val as string) || '')}
-              />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="text-xs">{tooltipText}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
-      {!tooltipText && (
-        <Input
-          type="text"
-          className="focus:border-muted-foreground/40 focus:ring-0 hover:border-muted-foreground/40"
-          readOnly
-          value={_encodeArg(type, (val as string) || '')}
-        />
-      )}
-      <div className="absolute right-0 top-1">
-        <ClipboardButton text={val} />
-      </div>
-    </div>
   );
 }

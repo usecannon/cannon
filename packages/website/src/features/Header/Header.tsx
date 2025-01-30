@@ -57,7 +57,7 @@ export const Header = () => {
 
   const isHomePage = router.pathname === '/';
   const mainClassName = cn(
-    'z-50 top-0 h-[var(--header-height)] transition-colors duration-200',
+    'z-50 top-0 h-[var(--header-height)] transition-colors duration-200 position-relative',
     isHomePage
       ? 'fixed left-0 right-0 bg-transparent'
       : 'w-full sticky border-b border-border bg-black'

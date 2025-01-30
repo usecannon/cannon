@@ -243,7 +243,7 @@ export const Abi: FC<{
           mainContentOverflowY="visible"
         >
           {/* Methods Interactions */}
-          <div className="flex flex-col p-3 gap-4 flex-1 overflow-x-auto">
+          <div className="flex flex-col p-3 gap-4 flex-1">
             {isLoading ? (
               <div className="flex items-center justify-center flex-1">
                 <CustomSpinner />

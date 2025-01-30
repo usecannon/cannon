@@ -223,7 +223,11 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     const pickedCliSettings = _.pick(cliSettings, Object.keys(options));
     const mergedOptions = _.assign({}, options, pickedCliSettings);
 
-    const [node, pkgSpec, outputs, runtime] = await doBuild(cannonfile, settings, mergedOptions);
+    const [node, pkgSpec, outputs, runtime, deployInfo] = await doBuild(cannonfile, settings, mergedOptions);
+
+    if (deployInfo.status !== 'complete') {
+      process.exitCode = deployInfo.status === 'partial' ? 90 : 91;
+    }
 
     if (options.writeDeployments) {
       await writeModuleDeployments(path.join(process.cwd(), options.writeDeployments), '', outputs);

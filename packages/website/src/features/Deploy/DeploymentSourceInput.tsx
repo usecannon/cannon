@@ -1,55 +1,51 @@
 import { CheckIcon, XIcon } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
 import { CustomSpinner } from '@/components/CustomSpinner';
+import { SafeDefinition } from '@/helpers/store';
 
 export type DeployType = 'git' | 'partial';
 
 interface DeploymentSourceInputProps {
+  isLoading: boolean;
+  error?: string;
+  loaded: boolean;
   deploymentSourceInput: string;
   setDeploymentSourceInput: (value: string) => void;
   selectedDeployType: DeployType;
   cannonfileUrlInput: string;
-  cannonDefInfo: any;
-  cannonInfoDefinitionLoaded: boolean;
   partialDeployInfo: any;
-  partialDeployInfoLoaded: boolean;
   chainId: number | undefined;
-  currentSafe: any;
-  cannonDefInfoError: string | null;
+  currentSafe: SafeDefinition;
   inputError: string | null;
   handleDeploymentSourceInputChange: (value: string) => void;
 }
 
 export function DeploymentSourceInput({
+  isLoading,
+  error,
+  loaded,
   deploymentSourceInput,
   setDeploymentSourceInput,
   selectedDeployType,
   cannonfileUrlInput,
-  cannonDefInfo,
-  cannonInfoDefinitionLoaded,
   partialDeployInfo,
   chainId,
   currentSafe,
-  cannonDefInfoError,
   inputError,
   handleDeploymentSourceInputChange,
 }: DeploymentSourceInputProps) {
   return (
     <div>
       <FormItem>
-        <FormLabel>Cannonfile URL or Deployment Data IPFS Hash</FormLabel>
+        <FormLabel>Enter cannonfile URL or deployment data IPFS hash</FormLabel>
         <div className="relative">
           <Input
             type="text"
             placeholder="https://github.com/../cannonfile.toml or Qm.."
             value={deploymentSourceInput}
-            className={cn(
-              cannonDefInfoError ? 'border-destructive' : '',
-              'pr-10'
-            )}
+            className={cn(inputError ? 'border-destructive' : '', 'pr-10')}
             disabled={chainId !== currentSafe?.chainId}
             onChange={(evt) => {
               const value = evt.target.value;
@@ -59,9 +55,11 @@ export function DeploymentSourceInput({
           />
           {selectedDeployType === 'git' && cannonfileUrlInput.length > 0 && (
             <div className="absolute inset-y-0 right-3 flex items-center">
-              {cannonDefInfo?.isFetching ? (
+              {isLoading ? (
                 <CustomSpinner className="h-4 w-4" />
-              ) : cannonInfoDefinitionLoaded ? (
+              ) : error ? (
+                <XIcon className="h-4 w-4 text-destructive" />
+              ) : loaded ? (
                 <CheckIcon className="h-4 w-4 text-green-500" />
               ) : null}
             </div>
@@ -80,13 +78,6 @@ export function DeploymentSourceInput({
             </div>
           )}
         </div>
-        {cannonDefInfoError && (
-          <Alert variant="destructive" className="mt-4">
-            <AlertDescription>
-              <strong>{cannonDefInfoError.toString()}</strong>
-            </AlertDescription>
-          </Alert>
-        )}
         {inputError && (
           <FormMessage className="text-destructive">{inputError}</FormMessage>
         )}

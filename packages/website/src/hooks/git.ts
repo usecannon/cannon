@@ -121,3 +121,11 @@ export function useGitDiff(url: string, fromRef: string, toRef: string, files: s
     toQuery,
   };
 }
+
+export function getGitHash(refs: ServerRef[] | undefined, gitRef: string): string | undefined {
+  const foundRef = refs?.find(
+    (r) => (r.ref.startsWith('refs/heads/') || r.ref.startsWith('refs/tags/')) && r.ref.endsWith(gitRef)
+  )?.oid;
+
+  return gitRef.match(/^[0-9a-f]+$/) ? foundRef || gitRef : foundRef;
+}
