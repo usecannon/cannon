@@ -293,7 +293,7 @@ export const commandsConfig: CommandsConfig = {
     ],
   },
   pin: {
-    description: 'Upload cannon pacakge data to a remote registry by IPFS hash',
+    description: 'Upload cannon package data to a remote registry by IPFS hash',
     arguments: [
       {
         flags: '<ipfsHash>',
