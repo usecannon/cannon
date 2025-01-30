@@ -604,7 +604,7 @@ export const Function: FC<FunctionProps> = ({
               Output
             </h3>
 
-            <div className="flex-1">
+            <div className="flex-1 flex-col gap-4">
               <AnimatePresence>
                 {f.outputs.length != 0 &&
                   (methodCallOrQueuedResult == null || loading) && (
