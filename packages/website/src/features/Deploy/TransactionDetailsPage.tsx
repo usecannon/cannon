@@ -584,13 +584,12 @@ function TransactionDetailsPage() {
                           </>
                         ) : (
                           <Button
-                            size="sm"
                             className="w-full"
                             onClick={handleConnectWalletAndSign}
                           >
                             {account.isConnected
-                              ? `Switch to chain  ${safe.chainId}`
-                              : 'Connect wallet'}
+                              ? `Switch to ${safeChain.name}`
+                              : 'Connect Wallet'}
                           </Button>
                         )}
                       </div>

@@ -65,7 +65,7 @@ const parseDiffFileNames = (diffString: string): string[] => {
 };
 
 const NoDiffWarning = () => (
-  <Alert variant="info" className="mb-2">
+  <Alert variant="info" className="mb-4">
     <AlertDescription>
       <strong>No cannonfile diff available.</strong> This may occur when signing
       an initial deployment, changing Safes used for deployments, changing

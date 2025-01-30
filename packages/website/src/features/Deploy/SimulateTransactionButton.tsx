@@ -48,7 +48,7 @@ export function SimulateTransactionButton({
   const searchParams = new URLSearchParams(queryParams).toString();
 
   return (
-    <Button size="sm" asChild>
+    <Button variant="secondary" asChild>
       <a
         href={`https://dashboard.tenderly.co/simulator/new?${searchParams}`}
         target="_blank"
