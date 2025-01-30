@@ -1,15 +1,15 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { codeToHtml } from 'shiki';
 import { Check, Copy } from 'react-feather';
 import { Button } from '@/components/ui/button';
 
 export const Snippet = ({ ...props }: React.HTMLAttributes<HTMLPreElement>) => {
-  const [hasCopied, setHasCopied] = React.useState(false);
-  const [html, setHtml] = React.useState('');
+  const [hasCopied, setHasCopied] = useState(false);
+  const [html, setHtml] = useState('');
   const command = (props.children as any).props.children as string;
 
   // Handle the async code highlighting
-  React.useEffect(() => {
+  useEffect(() => {
     const highlightCode = async () => {
       if (!command) return;
 
