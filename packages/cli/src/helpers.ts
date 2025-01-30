@@ -229,8 +229,9 @@ export async function loadCannonfile(filepath: string) {
     [rawDef, buf] = (await loadChainDefinitionToml(filepath, [])) as [RawChainDefinition, Buffer];
   }
 
-  if(isSettingEmpty(rawDef)){
-    throw new Error(`Cannonfile settings are missing`);
+  const emptyKeys = getEmptyKeys(rawDef);
+  if(emptyKeys.length !== 0){
+    throw new Error(`missing "${emptyKeys}" on cannon package`);
   }
 
   // second argument ensures "sensitive" dependency verification--which ensures users are always specifying dependencies when they cant be reliably determined
@@ -357,26 +358,27 @@ function getMetadataPath(packageName: string): string {
   return path.join(cliSettings.cannonDirectory, 'metadata_cache', `${packageName.replace(':', '_')}.json`);
 }
 
-function isSettingEmpty(rawDef: Record<string, any>): boolean {
+function getEmptyKeys(rawDef: Record<string, any>): string[] {
+  const emptyKeys: string[] = [];
   for (const key of Object.keys(rawDef) as Array<keyof typeof rawDef>){
     const value = rawDef[key];
-    if (value === undefined || value === null) return true;
+    if (value === undefined || value === null) emptyKeys.push(key);
 
     if (typeof value === "string" && value.trim() === "") {
       // console.log(`string, key : ${key}`);
-      return true;
+      emptyKeys.push(key);
     }
 
     if (Array.isArray(value) && value.length === 0) {
       // console.log(`array, key : ${key}`);
-      return true;
+      emptyKeys.push(key);
     }
 
     if (typeof value === "object" && !Array.isArray(value)) {
-      if (isSettingEmpty(value)) return true;
+      emptyKeys.push(...getEmptyKeys(value));
     }
   }
-  return false;
+  return emptyKeys;
 }
 
 export async function saveToMetadataCache(packageName: string, updatedMetadata: { [key: string]: string }) {

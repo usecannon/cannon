@@ -141,6 +141,41 @@ export async function build({
 
   let oldDeployData: DeploymentInfo | null = null;
 
+  const includeKey = (obj: any, key: string): boolean => {
+    if (typeof obj !== "object" || obj === null) return false;
+  
+    if (key in obj) return true;
+  
+    return Object.values(obj).some(value => includeKey(value, key));
+  };
+
+  const getCandidateKey = (obj: any, key: string): string => {
+    if (typeof obj !== "object" || obj === null) return '';
+  
+    for (const idx of Object.keys(obj)) {
+      const value = obj[idx];
+
+      if ((typeof value === 'string') && (key.includes(idx) || idx.includes(key))){
+        return idx;
+      }
+
+      if(typeof value === 'object'){
+        const nestedKey = getCandidateKey(value, key);
+        if(nestedKey) return nestedKey;
+      }
+
+    }
+    return '';
+  };
+
+  const settingValues = def?.toJson();
+  for (const key in packageDefinition.settings) {
+    if(!includeKey(settingValues, key)){
+      const settingKey = getCandidateKey(settingValues, key);
+      throw new Error(`Setting "${key}" is not found. ${settingKey ? `Did you mean "${settingKey}"?` : "Please make sure your input."}`);        
+    }
+  }
+
   if (!wipe) {
     log(bold('Checking for existing package...'));
 
