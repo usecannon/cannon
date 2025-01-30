@@ -27,7 +27,7 @@ function PreviewButton({
       <Button
         className="w-full"
         variant="default"
-        disabled={isDisabled}
+        disabled={isDisabled || isDeploying}
         onClick={handlePreviewTxnsClick}
       >
         {buttonText}
