@@ -24,7 +24,7 @@ export const ClipboardButton: FC<ClibpboardButtonProps> = ({
     <Button
       size="icon"
       variant="ghost"
-      className={`flex-shrink-0 h-7 w-7 bg-background border border-border absolute right-1 ${className}`}
+      className={`flex-shrink-0 h-7 w-7 bg-background border border-border ${className}`}
       onClick={copyToClipboard}
     >
       <AnimatePresence mode="wait" initial={false}>
