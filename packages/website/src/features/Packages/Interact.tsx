@@ -415,7 +415,7 @@ const Interact: FC = () => {
                     </span>
                   </a>
 
-                  <div className="flex items-center">
+                  <div className="flex items-center relative">
                     {explorerUrl ? (
                       <>
                         <a
@@ -430,10 +430,12 @@ const Interact: FC = () => {
                             {contractAddress.slice(-4)}
                           </span>
                         </a>
-                        <ClipboardButton
-                          text={contractAddress}
-                          className="static ml-1 scale-75"
-                        />
+                        <div className="absolute right-0 top-0 p-1">
+                          <ClipboardButton
+                            text={contractAddress}
+                            className="static ml-1 scale-75"
+                          />
+                        </div>
                       </>
                     ) : null}{' '}
                     {moduleName !== name ? (

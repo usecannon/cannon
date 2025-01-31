@@ -11,6 +11,8 @@ import {
 } from '@/components/ui/tooltip';
 import { parseAbiParameter } from '@/components/AbiParameterPreview/utils';
 import { ReactNode } from 'react';
+import { ExternalLinkButton } from '@/components/ExternalLinkButton';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 function EncodedValueInput({ value }: { value: string }) {
   return (
@@ -43,9 +45,11 @@ function TooltipWrapper({
 }
 
 export function AbiParameterPreview({
+  chainId,
   abiParameter,
   value,
 }: {
+  chainId: number;
   abiParameter: viem.AbiParameter;
   value?: unknown;
 }) {
@@ -54,6 +58,11 @@ export function AbiParameterPreview({
     abiParameter,
     value
   );
+  const { getExplorerUrl } = useCannonChains();
+  const explorerUrl =
+    type === 'address'
+      ? getExplorerUrl(chainId, rawValue as viem.Address)
+      : undefined;
 
   return (
     <div>
@@ -82,6 +91,7 @@ export function AbiParameterPreview({
           )}
 
           <div className="absolute right-0 top-1">
+            {explorerUrl && <ExternalLinkButton href={explorerUrl} />}
             <ClipboardButton text={rawValue} />
           </div>
         </div>
