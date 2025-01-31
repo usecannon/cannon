@@ -10,16 +10,22 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import { ExternalLinkButton } from './ExternalLinkButton';
 
 interface Props {
+  chainId: number;
   abiParameter: viem.AbiParameter;
   value?: unknown;
 }
 
-export function AbiParameterPreview({ abiParameter, value }: Props) {
+export function AbiParameterPreview({ chainId, abiParameter, value }: Props) {
   const { type, name } = abiParameter;
   const val = isNil(value) ? _renderEmptyValue(abiParameter) : value;
   const tooltipText = _encodeArgTooltip(type, val);
+  const { getExplorerUrl } = useCannonChains();
+  const explorerUrl =
+    type === 'address' ? getExplorerUrl(chainId, val) : undefined;
 
   return (
     <div>
@@ -63,7 +69,8 @@ export function AbiParameterPreview({ abiParameter, value }: Props) {
               value={_encodeArg(type, val)}
             />
           )}
-          <div className="absolute right-0 top-1">
+          <div className="absolute flex gap-1 right-0 top-0 p-1">
+            {explorerUrl && <ExternalLinkButton href={explorerUrl} />}
             <ClipboardButton text={val} />
           </div>
         </div>

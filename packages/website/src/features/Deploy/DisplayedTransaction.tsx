@@ -191,6 +191,7 @@ export function DisplayedTransaction(props: {
             <div className="flex flex-col gap-4">
               {functionParameters.map((_arg, i) => (
                 <AbiParameterPreview
+                  chainId={chain.id}
                   key={JSON.stringify(functionParameters[i])}
                   abiParameter={functionParameters[i]}
                   value={functionArgs[i] as string}
