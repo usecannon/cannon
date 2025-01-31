@@ -16,7 +16,7 @@ vi.mock('@/components/AbiParameterPreview', () => ({
 describe('FunctionOutput', () => {
   // always call _isArrayAbiParameter
   it('should always call _isArrayAbiParameter', () => {
-    const spy = vi.spyOn(utils, '_isArrayAbiParameter');
+    const spy = vi.spyOn(utils, 'isAbiParameterArray');
     const params = {
       name: 'testParam',
       type: 'uint256',
