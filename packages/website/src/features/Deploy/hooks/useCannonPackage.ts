@@ -4,7 +4,7 @@ import {
   useCannonFindUpgradeFromUrl,
 } from '@/hooks/cannon';
 import { useGitDetailsFromCannonfile } from '@/features/Deploy/hooks/useGitDetailsFromCannonfile';
-import { ChainBuilderContext, PackageReference } from '@usecannon/builder';
+import { ChainBuilderContext, getIpfsUrl, PackageReference } from '@usecannon/builder';
 
 // TODO: is there any way to make a better context? maybe this means we should get rid of name using context?
 const ctx: ChainBuilderContext = {
@@ -134,7 +134,7 @@ export function useCannonPackage({
 }) {
   // If the user enters a partial deploy IPFS hash
   // TODO: check if ipfs:// is needed or if it's duplicated
-  const _partialDeployInputIpfs = partialDeployInputIpfs ? `ipfs://${partialDeployInputIpfs}` : '';
+  const _partialDeployInputIpfs = getIpfsUrl(partialDeployInputIpfs) || undefined;
   const partialDeployInfo = useFetchCannonPackage(_partialDeployInputIpfs, chainId);
 
   // Get a cannon definition combining the git and partial deploy info
@@ -158,13 +158,12 @@ export function useCannonPackage({
   // Derived states
   // ----------------------------
 
-  const hasDeployers = Boolean(cannonDefInfo?.def?.getDeployers()?.length);
+  const hasDeployers = !!cannonDefInfo?.def?.getDeployers()?.length;
 
   // Check if the cannonfile requires a previous package
   const requiresPrevPackage = Boolean(
-    cannonDefInfo?.def &&
-      !hasDeployers &&
-      cannonDefInfo.def.allActionNames.some((item) => item.startsWith('deploy.') || item.startsWith('contract.'))
+    !hasDeployers &&
+      cannonDefInfo.def?.allActionNames.some((item) => item.startsWith('deploy.') || item.startsWith('contract.'))
   );
 
   const isLoading =
@@ -179,7 +178,7 @@ export function useCannonPackage({
       : null;
 
   const loaded = getLoadedState({
-    partialDeployInputIpfs: _partialDeployInputIpfs,
+    partialDeployInputIpfs: _partialDeployInputIpfs || '',
     partialDeployInfo,
     cannonfileUrlInput,
     cannonDefInfo,
