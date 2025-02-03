@@ -43,7 +43,7 @@
     ".next/types/**/*.ts",
     ".contentlayer/generated",
     "../../../../../Desktop/new.ts"
-  ],
+, "vitest.config.mjs"  ],
   "exclude": [
     "node_modules"
   ]
