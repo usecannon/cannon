@@ -72,7 +72,7 @@ export default function QueueFromGitOps() {
     cannonfileUrlInput,
     partialDeployIpfs,
     chainId,
-    prevPackageReference: prevPackageReference,
+    prevPackageReference,
   });
 
   const {
@@ -108,15 +108,15 @@ export default function QueueFromGitOps() {
   useEffect(() => {
     if (!cannonDefInfo.def) return;
 
-    const def = cannonDefInfo.def.toJson();
-
-    if (hasDeployers && !def) {
-      const { name, preset } = def;
-      const { fullPackageRef } = PackageReference.from(name, 'latest', preset);
-      setPreviousPackageInput(fullPackageRef);
-    } else {
-      setPreviousPackageInput('');
+    // After loading the deployment info, set a default value for the upgradeFrom field
+    if (hasDeployers || !cannonDefInfo?.def) {
+      return setPreviousPackageInput('');
     }
+
+    const def = cannonDefInfo.def.toJson();
+    const { name, preset } = def;
+    const { fullPackageRef } = PackageReference.from(name, 'latest', preset);
+    setPreviousPackageInput(fullPackageRef);
   }, [hasDeployers, cannonDefInfo.def]);
 
   // Upload artifacts to IPFS when the build is successful
@@ -194,15 +194,8 @@ export default function QueueFromGitOps() {
                 }
               />
             </div>
-            {/* Deployment alert status  */}
-            {selectedDeployType == 'git' && onChainPrevPkgQuery.isFetched && (
-              <PrevDeploymentStatus
-                prevDeployLocation={prevDeployLocation}
-                tomlRequiresPrevPackage={requiresPrevPackage}
-              />
-            )}
             {/* Hash: Prev deployment Input */}
-            {cannonDefInfo?.def && requiresPrevPackage && (
+            {cannonDefInfo?.def && !hasDeployers && (
               <div className="mb-4">
                 <PreviousPackageInput
                   previousPackageInput={previousPackageInput}
@@ -211,6 +204,13 @@ export default function QueueFromGitOps() {
                   onChainPrevPkgQuery={onChainPrevPkgQuery}
                 />
               </div>
+            )}
+            {/* Deployment alert status  */}
+            {selectedDeployType == 'git' && onChainPrevPkgQuery.isFetched && (
+              <PrevDeploymentStatus
+                prevDeployLocation={prevDeployLocation}
+                tomlRequiresPrevPackage={requiresPrevPackage}
+              />
             )}
             {/* Hash: CannonFile to compare with prev deployment */}
             {selectedDeployType == 'partial' &&

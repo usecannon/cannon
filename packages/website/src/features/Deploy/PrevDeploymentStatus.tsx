@@ -1,4 +1,5 @@
 import NextLink from 'next/link';
+import { getIpfsCid, getIpfsUrl } from '@usecannon/builder';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export function PrevDeploymentStatus({
@@ -15,14 +16,13 @@ export function PrevDeploymentStatus({
           <AlertDescription>
             Previous Deployment:{' '}
             <NextLink
-              href={`/ipfs?cid=${prevDeployLocation.replace(
-                'ipfs://',
-                ''
+              href={`/ipfs?cid=${getIpfsCid(
+                prevDeployLocation
               )}&compressed=true`}
               className="text-primary hover:underline"
               target="_blank"
             >
-              {prevDeployLocation.replace('ipfs://', '')}
+              {getIpfsUrl(prevDeployLocation)}
             </NextLink>
           </AlertDescription>
         </Alert>

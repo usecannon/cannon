@@ -6,8 +6,6 @@ import { FormControl, FormDescription, FormItem } from '@/components/ui/form';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { cn } from '@/lib/utils';
 
-// TODO: Fix error. Check when it is the main input or when is is the secondary input.
-
 // Define interface for component props
 interface CannonFileInputProps {
   cannonfileUrlInput: string;
