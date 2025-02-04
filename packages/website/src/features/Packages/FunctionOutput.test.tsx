@@ -1,81 +1,83 @@
-import React from 'react';
-import { vi, describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { FunctionOutput } from './FunctionOutput';
-import * as utils from '@/components/AbiParameterPreview/utils';
+import { vi } from 'vitest';
 
-// Mock AbiParameterPreview component
-vi.mock('@/components/AbiParameterPreview', () => ({
-  AbiParameterPreview: ({ abiParameter, value }: any) => (
-    <div data-testid="abi-preview">
-      {abiParameter.name}: {value}
-    </div>
-  ),
+// Add mock before other imports
+vi.mock('@/providers/CannonProvidersProvider', () => ({
+  useCannonChains: () => ({
+    getChainName: () => '',
+  }),
 }));
 
+import React from 'react';
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { FunctionOutput } from './FunctionOutput';
+
 describe('FunctionOutput', () => {
-  // always call _isArrayAbiParameter
-  it('should always call _isArrayAbiParameter', () => {
-    const spy = vi.spyOn(utils, 'isAbiParameterArray');
-    const params = {
-      name: 'testParam',
-      type: 'uint256',
-    };
-
-    render(<FunctionOutput abiParameters={params} methodResult={'123'} />);
-
-    expect(spy).toHaveBeenCalledWith(params);
-    expect(screen.getByTestId('abi-preview')).toBeInTheDocument();
-  });
-
-  // non array value
   it('renders single parameter correctly', () => {
-    const singleParameter = {
-      name: 'testParam',
-      type: 'uint256',
-    };
+    const singleParameter = [
+      {
+        name: 'testParam',
+        type: 'uint256',
+      },
+    ];
 
     render(
-      <FunctionOutput abiParameters={singleParameter} methodResult="123" />
+      <FunctionOutput
+        chainId={1}
+        abiParameters={singleParameter}
+        methodResult="123 "
+      />
     );
 
-    expect(screen.getByTestId('abi-preview')).toBeInTheDocument();
+    expect(screen.getByText('testParam')).toBeInTheDocument();
+    expect(screen.getByText('uint256')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('123')).toBeInTheDocument();
   });
 
-  // value is array of parameters
-  it('renders array of parameters correctly', () => {
+  it('renders multiple parameters correctly', () => {
     const arrayParameters = [
       { name: 'param1', type: 'uint256' },
       { name: 'param2', type: 'string' },
     ];
 
-    const methodResults = "['123', 'test']";
+    const methodResults = JSON.stringify(['123', 'test']);
 
     render(
       <FunctionOutput
+        chainId={1}
         abiParameters={arrayParameters}
         methodResult={methodResults}
       />
     );
 
-    const previews = screen.getAllByTestId('abi-preview');
-    expect(previews).toHaveLength(arrayParameters.length);
+    expect(screen.getByText('param1')).toBeInTheDocument();
+    expect(screen.getByText('uint256')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('123')).toBeInTheDocument();
+
+    expect(screen.getByText('param2')).toBeInTheDocument();
+    expect(screen.getByText('string')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('test')).toBeInTheDocument();
   });
 
-  // value is undefined
   it('renders with undefined methodResult', () => {
-    const singleParameter = {
-      name: 'testParam',
-      type: 'uint256',
-    };
+    const singleParameter = [
+      {
+        // Wrap in array
+        name: 'testParam',
+        type: 'uint256',
+      },
+    ];
 
     render(
       <FunctionOutput
+        chainId={1}
         abiParameters={singleParameter}
         methodResult={undefined}
       />
     );
 
-    expect(screen.getByTestId('abi-preview')).toBeInTheDocument();
+    expect(screen.getByText('testParam')).toBeInTheDocument();
+    expect(screen.getByText('uint256')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('0')).toBeInTheDocument();
   });
 });

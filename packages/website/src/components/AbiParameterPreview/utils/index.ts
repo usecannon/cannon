@@ -93,7 +93,11 @@ function _parseArgumentValue(type: string, val: string): string {
   }
 
   if (type.startsWith('uint') || type.startsWith('int')) {
-    return val ? BigInt(val).toString() : '0';
+    try {
+      return val ? BigInt(val).toString() : '0';
+    } catch (error) {
+      return `Cannot convert ${val} to BigInt`;
+    }
   }
 
   return val.toString();
@@ -126,8 +130,12 @@ function _parseArgumentValueTooltip(type: string, val: string): string {
 
   if (['int256', 'uint256', 'int128', 'uint128'].includes(type)) {
     if (!val) return '';
-    const etherValue = `${viem.formatEther(BigInt(val))} assuming 18 decimal places`;
-    return etherValue === _parseArgumentValue(type, val) ? '' : etherValue;
+    try {
+      const etherValue = `${viem.formatEther(BigInt(val))} assuming 18 decimal places`;
+      return etherValue === _parseArgumentValue(type, val) ? '' : etherValue;
+    } catch (error) {
+      return `Can not convert ${val} to BigInt`;
+    }
   }
 
   return '';
