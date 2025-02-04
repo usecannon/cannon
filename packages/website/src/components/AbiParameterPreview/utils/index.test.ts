@@ -6,6 +6,26 @@ import { isEqual } from 'lodash';
 import { parseAbiParameter } from './index';
 
 describe('parseAbiParameter', () => {
+  describe('array types', () => {
+    it('should parse uint256[] type', () => {
+      const values = ['1000000000000000000', '2000000000000000000'];
+      const result = parseAbiParameter({ type: 'uint256[]' }, values);
+
+      expect(result.rawValue).toEqual(values);
+      expect(result.isTuple).toBe(true);
+      expect(JSON.parse(result.parsedValue)).toEqual(values);
+    });
+
+    it('should parse string[] type', () => {
+      const values = ['Hello', 'World'];
+      const result = parseAbiParameter({ type: 'string[]' }, values);
+
+      expect(result.rawValue).toEqual(values);
+      expect(result.isTuple).toBe(true);
+      expect(JSON.parse(result.parsedValue)).toEqual(values);
+    });
+  });
+
   describe('tuple[]', () => {
     const tupleArrayParameter: viem.AbiParameter = {
       type: 'tuple[]',
@@ -54,7 +74,7 @@ describe('parseAbiParameter', () => {
       expect(result.parsedValue).toBe(address);
     });
 
-    it('should parse uint256 type', () => {
+    it('should parse uint256 type with valid number', () => {
       const value = '1000000000000000000';
       const result = parseAbiParameter({ type: 'uint256' }, value);
 
@@ -105,6 +125,15 @@ describe('parseAbiParameter', () => {
       expect(result.rawValue).toBe(value);
       expect(result.isTuple).toBe(false);
       expect(result.parsedValue).toBe(value);
+    });
+
+    it('should handle invalid BigInt conversion', () => {
+      const value = 'invalid';
+      const result = parseAbiParameter({ type: 'uint256' }, value);
+
+      expect(result.rawValue).toBe(value);
+      expect(result.isTuple).toBe(false);
+      expect(result.parsedValue).toBe('Cannot convert invalid to BigInt');
     });
   });
 
