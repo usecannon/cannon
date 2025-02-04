@@ -627,6 +627,7 @@ export const Function: FC<FunctionProps> = ({
                   )}
               </AnimatePresence>
               <FunctionOutput
+                chainId={chainId}
                 methodResult={methodCallOrQueuedResult?.value as string}
                 abiParameters={f.outputs}
               />

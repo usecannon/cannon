@@ -1,34 +1,35 @@
 import * as viem from 'viem';
 import { AbiParameterPreview } from '@/components/AbiParameterPreview';
 
-type AbiParameter = viem.AbiParameter;
-
-function _isArrayAbiParameter(
-  value: AbiParameter | readonly AbiParameter[]
-): value is readonly AbiParameter[] {
-  return Array.isArray(value);
-}
-
 interface Props {
-  abiParameters: viem.AbiParameter | readonly viem.AbiParameter[];
+  chainId: number;
+  abiParameters: readonly viem.AbiParameter[];
   methodResult?: string;
 }
 
-export function FunctionOutput({ abiParameters, methodResult }: Props) {
-  if (_isArrayAbiParameter(abiParameters)) {
+export function FunctionOutput({
+  chainId,
+  abiParameters,
+  methodResult,
+}: Props) {
+  if (abiParameters.length > 1) {
     return abiParameters.map((abiParameter, index) => (
       <AbiParameterPreview
+        chainId={chainId}
         key={`${abiParameter.name}-${index}`}
         abiParameter={abiParameter}
-        value={methodResult?.[index]}
+        value={methodResult ? JSON.parse(methodResult)[index] : undefined}
       />
     ));
   }
 
+  const abiParameter = abiParameters[0];
+
   return (
     <AbiParameterPreview
-      key={`${abiParameters.name}-${methodResult}`}
-      abiParameter={abiParameters}
+      chainId={chainId}
+      key={`${abiParameter?.name}-${methodResult}`}
+      abiParameter={abiParameter}
       value={methodResult}
     />
   );
