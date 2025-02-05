@@ -20,12 +20,9 @@ const nextConfig = {
       config.module.rules.push({
         test: /\.(js|ts|tsx)$/,
         include: [
-          require('path').resolve(__dirname, 'src/abi'),
-          require('path').resolve(__dirname, 'src/components'),
-          require('path').resolve(__dirname, 'src/constants'),
-          require('path').resolve(__dirname, 'src/features')
+          require('path').resolve(__dirname, 'src'),
         ],
-        exclude: /node_modules/,
+        exclude: require('path').resolve(__dirname, 'src/pages'),
         use: {
           loader: 'babel-loader',
           options: {
