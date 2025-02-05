@@ -7,12 +7,13 @@ import {EfficientStorage} from "./EfficientStorage.sol";
 import {ERC2771Context} from "./ERC2771Context.sol";
 import {IOptimismL1Sender} from "./IOptimismL1Sender.sol";
 import {IOptimismL2Receiver} from "./IOptimismL2Receiver.sol";
+import {CannonSubscription} from "./CannonSubscription.sol";
 
 /**
  * @title An on-chain record of contract deployments with Cannon
  * See https://usecannon.com
  */
-contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
+contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated, CannonSubscription {
   using SetUtil for SetUtil.Bytes32Set;
 
   /**
@@ -217,6 +218,16 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
         emit TagPublish(_packageName, _variant, _tag, _firstTag);
       }
     }
+  }
+
+  function publishWithSubscription(
+    bytes32 _packageName,
+    bytes32 _variant,
+    bytes32[] memory _packageTags,
+    string memory _packageDeployUrl,
+    string memory _packageMetaUrl
+  ) external payable {
+    // TODO: implement same publish logic, but taking into account membership logic
   }
 
   /**

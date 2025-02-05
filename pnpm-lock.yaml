@@ -563,6 +563,10 @@ importers:
         version: 3.23.2(zod@3.23.8)
 
   packages/registry:
+    dependencies:
+      '@openzeppelin/contracts':
+        specifier: ^5.1.0
+        version: 5.1.0
     devDependencies:
       '@nomiclabs/hardhat-ethers':
         specifier: 2.0.6
@@ -4502,6 +4506,9 @@ packages:
     engines: {node: '>=14'}
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
+
+  '@openzeppelin/contracts@5.1.0':
+    resolution: {integrity: sha512-p1ULhl7BXzjjbha5aqst+QMLY+4/LCWADXOCsmLHRM77AqiPjnd9vvUN9sosUfhL9JGKpZ0TjEGxgvnizmWGSA==}
 
   '@parcel/watcher-android-arm64@2.4.1':
     resolution: {integrity: sha512-LOi/WTbbh3aTn2RYddrO8pnapixAziFl6SMxHM69r3tvdSm94JtCenaKgk1GRg5FJ5wpMCpHeW+7yqPlvZv7kg==}
@@ -22462,6 +22469,8 @@ snapshots:
     dependencies:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/core': 1.25.1(@opentelemetry/api@1.9.0)
+
+  '@openzeppelin/contracts@5.1.0': {}
 
   '@parcel/watcher-android-arm64@2.4.1':
     optional: true
