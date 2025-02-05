@@ -1,3 +1,18 @@
+import { ActualRedisClientType } from '../redis';
+
+export async function redisIndexExists(redis: ActualRedisClientType, indexName: string) {
+  try {
+    await redis.ft.info(indexName);
+    return true;
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message.includes('Unknown index name')) {
+      return false;
+    }
+
+    throw err;
+  }
+}
+
 export function parseRedisUrl(url: string) {
   try {
     const parsed = new URL(url);
