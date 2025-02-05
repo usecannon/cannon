@@ -23,9 +23,9 @@ export const VersionSelect: FC<{
     return null;
   }
 
-  if (packagesQuery.isError) {
-    throw new Error('Failed to fetch package');
-  }
+  // if (packagesQuery.isError) {
+  //   throw new Error('Failed to fetch package');
+  // }
 
   return (
     <>
@@ -49,7 +49,9 @@ export const VersionSelect: FC<{
         <DialogPortal>
           <DialogOverlay className="bg-black/80" />
           <DialogContent className="max-w-[80rem] border-none p-0">
-            <PackageCard pkgs={packagesQuery.data.data} maxHeight={'75vh'} />
+            {!packagesQuery.isError && (
+              <PackageCard pkgs={packagesQuery.data.data} maxHeight={'75vh'} />
+            )}
           </DialogContent>
         </DialogPortal>
       </Dialog>
