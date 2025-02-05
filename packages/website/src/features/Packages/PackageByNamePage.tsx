@@ -11,9 +11,9 @@ export const PackageByNamePage: FC<{
 }> = ({ name }) => {
   const packagesQuery = usePackageByName({ name });
 
-  if (packagesQuery.isError) {
-    throw new Error('Failed to fetch package');
-  }
+  // if (packagesQuery.isError) {
+  //   throw new Error('Failed to fetch package');
+  // }
 
   return (
     <div className="flex flex-col w-full px-4">
