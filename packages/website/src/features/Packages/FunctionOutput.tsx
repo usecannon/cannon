@@ -13,18 +13,23 @@ export function FunctionOutput({
   methodResult,
 }: Props) {
   if (abiParameters.length > 1) {
-    return abiParameters.map((abiParameter, index) => (
-      <AbiParameterPreview
-        chainId={chainId}
-        key={`${abiParameter.name}-${index}`}
-        abiParameter={abiParameter}
-        value={methodResult ? JSON.parse(methodResult)[index] : undefined}
-      />
-    ));
+    return abiParameters.map((abiParameter, index) => {
+      return (
+        <AbiParameterPreview
+          chainId={chainId}
+          key={`${abiParameter.name}-${index}`}
+          abiParameter={abiParameter}
+          value={methodResult ? JSON.parse(methodResult)[index] : undefined}
+        />
+      );
+    });
+  }
+
+  if (!abiParameters.length) {
+    return null;
   }
 
   const abiParameter = abiParameters[0];
-
   return (
     <AbiParameterPreview
       chainId={chainId}
