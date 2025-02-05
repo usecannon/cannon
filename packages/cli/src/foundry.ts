@@ -134,7 +134,7 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
     };
 
     return {
-      contractName: name,
+      contractName: inputContractName,
       sourceName: artifact.ast.absolutePath,
       abi: artifact.abi,
       bytecode: artifact.bytecode.object,
@@ -145,7 +145,7 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
   }
 
   return {
-    contractName: inputContractName!,
+    contractName: inputContractName,
     sourceName: artifact.ast.absolutePath,
     abi: artifact.abi,
     bytecode: artifact.bytecode.object,
