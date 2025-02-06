@@ -157,18 +157,21 @@ export const chainMetadata = {
   [chains.celo.id]: {
     color: '#fdff52',
   },
+  [chains.berachain.id]: {
+    color: '#814625',
+  },
 } as const;
 
-export const supportedChains = [cannonNetwork, ...Object.values(chains)].map(
-  (c) => {
-    if (!customDefaultRpcs[`${c.id}`]) return c;
+export const supportedChains = (
+  [cannonNetwork, ...Object.values(chains)] as viem.Chain[]
+).map((c) => {
+  if (!customDefaultRpcs[`${c.id}`]) return c;
 
-    return {
-      ...c,
-      rpcUrls: merge({}, c.rpcUrls, customDefaultRpcs[`${c.id}`]),
-    };
-  }
-);
+  return {
+    ...c,
+    rpcUrls: merge({}, c.rpcUrls, customDefaultRpcs[`${c.id}`]),
+  };
+});
 
 export const defaultTransports = supportedChains.reduce((transports, chain) => {
   transports[chain.id] = viem.http();
