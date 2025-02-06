@@ -157,6 +157,9 @@ export const chainMetadata = {
   [chains.celo.id]: {
     color: '#fdff52',
   },
+  [chains.berachain.id]: {
+    color: '#814625',
+  },
 } as const;
 
 export const supportedChains = [cannonNetwork, ...Object.values(chains)].map(
