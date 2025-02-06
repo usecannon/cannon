@@ -11,6 +11,7 @@ on:
           - all
           - repo
           - indexer
+          - api
       version:
         description: 'Version tag (optional)'
         required: false
@@ -23,7 +24,7 @@ jobs:
   build:
     strategy:
       matrix:
-        image: ${{ fromJSON(github.event.inputs.job_to_run == 'all' && '["repo", "indexer"]' || format('["{0}"]', github.event.inputs.job_to_run)) }}
+        image: ${{ fromJSON(github.event.inputs.job_to_run == 'all' && '["repo", "indexer", "api"]' || format('["{0}"]', github.event.inputs.job_to_run)) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

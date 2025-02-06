@@ -156,11 +156,12 @@ export async function publish({
     log(`Total publishing fees: ${viem.formatEther(totalFees)} ETH`);
     log();
 
-    if (
-      totalFees > 0n &&
-      totalFees >= (await onChainRegistry.provider!.getBalance({ address: onChainRegistry.signer!.address }))
-    ) {
-      throw new Error('You do not appear to have enough ETH in your wallet to publish');
+    const balance = await onChainRegistry.provider!.getBalance({ address: onChainRegistry.signer!.address });
+
+    if (totalFees > 0n && totalFees >= balance) {
+      throw new Error(
+        `You do not appear to have enough ETH in your wallet to publish (balance: ${viem.formatEther(balance)} ETH)`
+      );
     }
   }
 

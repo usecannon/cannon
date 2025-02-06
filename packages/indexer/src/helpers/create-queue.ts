@@ -1,5 +1,5 @@
 import { Job as BullJob, Queue as BullQueue, Worker as BullWorker } from 'bullmq';
-import { parseRedisUrl } from './parse-redis-url';
+import { parseRedisUrl } from './redis';
 
 export interface QueueOptions {
   redisUrl: string;
