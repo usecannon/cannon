@@ -12,6 +12,14 @@ When('User clicks on the {string} button', (button: string) => {
   cy.get(`button:contains("${button}")`).click();
 });
 
+When('User clicks first link on the {string} table', (number: string) => {
+  cy.get(`table`).eq(parseInt(number)).get('tbody tr').find('a').first().click();
+});
+
+When('User clicks on the {string} tab', (link: string) => {
+  cy.contains('a',`${link}`).click();
+});
+
 When('User clicks on the button with id {string}', (id: string) => {
   cy.get(`#${id}`).click();
 });
@@ -32,6 +40,10 @@ When('User types {string} in the input with placeholder {string}', (text: string
   cy.get(`input[placeholder="${placeholder}"]`).type(text);
 });
 
+When('User types {string} for {string}',(text:string, element: string) => {
+  cy.get(`${element}`).closest('div.overflow-hidden').find('input').type(`${text}`);
+});
+
 Then('URL includes {string}', (path: string) => {
   cy.url().should('include', path);
 });
@@ -42,4 +54,12 @@ Then('View renders a {string} displaying the text {string}', (element: string, t
 
 Then('View contains the {string} input', (input: string) => {
   cy.get(`input[name="${input}"]`).should('be.visible');
+});
+
+Then('The {string} element should be visible', (element: string) => {
+  cy.get(`${element}`).should('be.visible');
+});
+
+Then('The Value Of Input has {string}', (input: string) => {
+  cy.contains('h3','Output').closest('div').find('input[readonly]').should('have.value',`${input}`)
 });
