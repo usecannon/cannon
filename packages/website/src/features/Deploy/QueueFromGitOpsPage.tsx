@@ -71,7 +71,7 @@ export default function QueueFromGitOps() {
   } = useCannonPackage({
     cannonfileUrlInput,
     partialDeployIpfs,
-    chainId,
+    chainId: currentSafe.chainId,
     prevPackageReference,
   });
 
