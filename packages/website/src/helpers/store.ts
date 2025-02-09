@@ -98,7 +98,7 @@ export const initialState = {
   settings: {
     ipfsApiUrl: externalLinks.IPFS_CANNON,
     isIpfsGateway: false,
-    stagingUrl: 'https://cannon-safe-app.external.dbeal.dev',
+    stagingUrl: 'https://safe.usecannon.com',
     customProviders: [],
     pythUrl: 'https://hermes.pyth.network',
   },
