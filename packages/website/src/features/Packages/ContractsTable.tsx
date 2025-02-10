@@ -51,9 +51,9 @@ export const ContractsTable: React.FC<{
 
   const data = React.useMemo(() => {
     return Object.entries(contractState).map(
-      ([key, value]): ContractRow => ({
+      ([, value]): ContractRow => ({
         highlight: !!value.highlight,
-        name: key?.toString(),
+        name: value.contractName || '',
         step: value.deployedOn.toString(),
         address: value.address,
         deployTxnHash: value.deployTxnHash,
