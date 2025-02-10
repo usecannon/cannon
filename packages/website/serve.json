@@ -25,8 +25,16 @@
       "destination": "/packages/[name]/[tag]/[variant]/deployment.html"
     },
     {
-      "source": "/packages/:name/:tag/:variant/deployment/:section",
-      "destination": "/packages/[name]/[tag]/[variant]/deployment.html"
+      "source": "/packages/:name/:tag/:variant/deployment/contracts",
+      "destination": "/packages/[name]/[tag]/[variant]/deployment/contracts.html"
+    },
+    {
+      "source": "/packages/:name/:tag/:variant/deployment/calls",
+      "destination": "/packages/[name]/[tag]/[variant]/deployment/calls.html"
+    },
+    {
+      "source": "/packages/:name/:tag/:variant/deployment/event-data",
+      "destination": "/packages/[name]/[tag]/[variant]/deployment/event-data.html"
     },
     {
       "source": "/packages/:name/:tag/:variant/interact/:moduleName",
