@@ -13,11 +13,11 @@ When('User clicks on the {string} button', (button: string) => {
 });
 
 When('User clicks first link on the {string} table', (number: string) => {
-  cy.get(`table`).eq(parseInt(number)).get('tbody tr').find('a').first().click();
+  cy.get('table').eq(parseInt(number)).get('tbody tr').find('a').first().click();
 });
 
 When('User clicks on the {string} tab', (link: string) => {
-  cy.contains('a',`${link}`).click();
+  cy.contains('a', `${link}`).click();
 });
 
 When('User clicks on the button with id {string}', (id: string) => {
@@ -40,8 +40,8 @@ When('User types {string} in the input with placeholder {string}', (text: string
   cy.get(`input[placeholder="${placeholder}"]`).type(text);
 });
 
-When('User types {string} for {string}',(text:string, element: string) => {
-  cy.get(`${element}`).closest('div.overflow-hidden').find('input').type(`${text}`);
+When('User types {string} for {string}', (text: string, element: string) => {
+  cy.contains('span', `${element}`).closest('div').find('input').first().type(`${text}`);
 });
 
 Then('URL includes {string}', (path: string) => {
@@ -60,6 +60,23 @@ Then('The {string} element should be visible', (element: string) => {
   cy.get(`${element}`).should('be.visible');
 });
 
-Then('The Value Of Input has {string}', (input: string) => {
-  cy.contains('h3','Output').closest('div').find('input[readonly]').should('have.value',`${input}`)
+Then('The Value Of Input On {string} tag has {string}', (label: string, input: string) => {
+  cy.contains('span', `${label}`)
+    .closest('div')
+    .parent()
+    .find('div.overflow-hidden')
+    .contains('h3', 'Output')
+    .closest('div')
+    .as('baseElements');
+
+  cy.get('@baseElements')
+    .find('label span')
+    .invoke('text')
+    .then((text) => {
+      if (text.trim() === 'tuple') {
+        cy.get('@baseElements').find('code span').contains(`${input}`).should('contain', `${input}`);
+      } else {
+        cy.get('@baseElements').find('input[readonly]').should('have.value', `${input}`);
+      }
+    });
 });

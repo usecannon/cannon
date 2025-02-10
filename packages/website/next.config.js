@@ -11,7 +11,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  webpack: (config, {isServer}) => {
+  webpack: (config, { isServer }) => {
     config.resolve.fallback = { fs: false, net: false, tls: false };
     config.externals.push('pino-pretty', 'lokijs', 'encoding', 'solc');
     config.optimization.minimize = false;
@@ -19,9 +19,7 @@ const nextConfig = {
     if (!isServer && config.NODE_ENV !== 'production') {
       config.module.rules.push({
         test: /\.(js|ts|tsx)$/,
-        include: [
-          require('path').resolve(__dirname, 'src'),
-        ],
+        include: [require('path').resolve(__dirname, 'src')],
         exclude: require('path').resolve(__dirname, 'src/pages'),
         use: {
           loader: 'babel-loader',
@@ -32,7 +30,7 @@ const nextConfig = {
           },
         },
       });
-    }    
+    }
     return config;
   },
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
