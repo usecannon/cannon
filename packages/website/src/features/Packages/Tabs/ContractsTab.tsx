@@ -3,10 +3,12 @@ import { ContractsTable } from '../ContractsTable';
 import SearchInput from '@/components/SearchInput';
 import { useState } from 'react';
 import isEmpty from 'lodash/isEmpty';
+import { ChainBuilderContext } from '@usecannon/builder';
+import { extractAddressesAbis } from '@/features/Packages/utils/extractAddressesAndABIs';
 
 export const ContractsTab: FC<{
-  contractState: any;
-  addressesAbis: any;
+  contractState: ChainBuilderContext['contracts'];
+  addressesAbis: ReturnType<typeof extractAddressesAbis>;
   chainId: number;
 }> = ({ contractState, addressesAbis, chainId }) => {
   const [contractSearchTerm, setContractSearchTerm] = useState<string>('');
@@ -56,7 +58,7 @@ export const ContractsTab: FC<{
       {!isEmpty(filteredContractState) && (
         <div className="max-w-full m-4">
           <ContractsTable
-            contractState={filteredContractState as any}
+            contractState={filteredContractState}
             chainId={chainId}
           />
         </div>
