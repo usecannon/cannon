@@ -24,6 +24,7 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
   const node = await runRpc({
     port: 30000 + Math.floor(Math.random() * 30000),
   });
+
   const provider = getProvider(node)!;
 
   const resolver = await createDefaultReadRegistry(cliSettings);
@@ -110,7 +111,7 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
           // need to parse to get the inner structure, then stringify again
           sourceCode: JSON.stringify(inputData),
           codeformat: 'solidity-standard-json-input',
-          contractname: `${contractInfo.sourceName}:${contractInfo.contractName}`,
+          contractname: `${contractArtifact.sourceName}:${contractArtifact.contractName}`,
           compilerversion: 'v' + contractArtifact.source.solcVersion,
 
           // NOTE: below: yes, the etherscan api is misspelling
