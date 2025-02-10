@@ -21,7 +21,7 @@
       "destination": "/packages/[name]/[tag]/[variant]/interact.html"
     },
     {
-      "source": "/packages/:name/:tag/:variant/deployment",
+      "source": "/packages/:name/:tag/:variant/deployment(/:section)*",
       "destination": "/packages/[name]/[tag]/[variant]/deployment.html"
     },
     {
