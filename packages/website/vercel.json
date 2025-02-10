@@ -26,15 +26,15 @@
     },
     {
       "source": "/packages/:name/:tag/:variant/deployment/contracts",
-      "destination": "/packages/[name]/[tag]/[variant]/deployment/contracts.html"
+      "destination": "/packages/[name]/[tag]/[variant]/deployment/contracts"
     },
     {
       "source": "/packages/:name/:tag/:variant/deployment/calls",
-      "destination": "/packages/[name]/[tag]/[variant]/deployment/calls.html"
+      "destination": "/packages/[name]/[tag]/[variant]/deployment/calls"
     },
     {
       "source": "/packages/:name/:tag/:variant/deployment/event-data",
-      "destination": "/packages/[name]/[tag]/[variant]/deployment/event-data.html"
+      "destination": "/packages/[name]/[tag]/[variant]/deployment/event-data"
     },
     {
       "source": "/packages/:name/:tag/:variant/interact/:moduleName",
