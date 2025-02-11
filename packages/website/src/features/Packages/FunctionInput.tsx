@@ -21,8 +21,6 @@ export const FunctionInput: FC<Props> = ({
   handleUpdate,
   initialValue,
 }) => {
-  console.log('input', input);
-
   const isTuple = useMemo(() => !!input?.type?.endsWith('[][]'), [input]);
   const isArray = useMemo(
     () => !isTuple && !!input?.type?.endsWith('[]'),
