@@ -28,7 +28,6 @@ import {
   publishPackage,
   findUpgradeFromPackage,
   ChainBuilderContext,
-  RawChainDefinition,
   CannonRegistry,
   getIpfsUrl,
 } from '@usecannon/builder';
@@ -597,9 +596,9 @@ export function useMergedCannonDefInfo(gitInfo: CannonfileGitInfo, partialDeploy
         return null;
       }
 
-      const deployInfo = partialDeployInfo?.ipfsQuery.data?.deployInfo?.def || originalCannonDefInfo.def;
+      const deployInfo = partialDeployInfo?.ipfsQuery.data?.deployInfo || originalCannonDefInfo;
 
-      return await getChainDefinitionFromWorker(deployInfo as RawChainDefinition);
+      return await getChainDefinitionFromWorker(deployInfo as DeploymentInfo);
     },
     enabled: Boolean(partialDeployInfo?.ipfsQuery.data?.deployInfo || originalCannonDefInfo.def),
   });
@@ -644,7 +643,7 @@ export function useCannonPackageContracts(packageRef?: string, chainId?: number)
           { ipfs: loader }
         );
 
-        const chainDefinition = await getChainDefinitionFromWorker(info.def);
+        const chainDefinition = await getChainDefinitionFromWorker(info);
 
         const outputs = await getOutputs(readRuntime, chainDefinition, info.state);
 

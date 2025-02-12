@@ -4,11 +4,11 @@ import {
   ChainArtifacts,
   ChainBuilderContext,
   ChainBuilderRuntimeInfo,
-  computeTemplateAccesses,
   mergeTemplateAccesses,
   PackageState,
   registerAction,
   template,
+  TemplateContext,
 } from '@usecannon/builder';
 import crypto from 'crypto';
 import Debug from 'debug';
@@ -137,12 +137,12 @@ const runAction = {
     return config;
   },
 
-  getInputs(config: Config) {
-    let accesses = computeTemplateAccesses(config.exec);
+  getInputs(config: Config, templateContext: TemplateContext) {
+    let accesses = templateContext.computeAccesses(config.exec);
 
-    _.forEach(config.modified, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
-    _.forEach(config.args, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
-    _.forEach(config.env, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
+    _.forEach(config.modified, (a) => (accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(a))));
+    _.forEach(config.args, (a) => (accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(a))));
+    _.forEach(config.env, (a) => (accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(a))));
 
     return accesses;
   },

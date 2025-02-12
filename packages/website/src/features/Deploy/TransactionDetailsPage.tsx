@@ -222,9 +222,11 @@ function TransactionDetailsPage() {
     const getChainDef = async () => {
       if (!cannonDefInfo.def) return;
 
-      chainDefinitionRef.current = await getChainDefinitionFromWorker(
-        cannonDefInfo.def
-      );
+      chainDefinitionRef.current = await getChainDefinitionFromWorker({
+        def: cannonDefInfo.def,
+        chainId,
+        timestamp: Date.now(),
+      });
     };
 
     void getChainDef();

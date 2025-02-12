@@ -7,12 +7,12 @@ import { CannonHelperContext } from './types';
 const debug = Debug('cannon:builder:access-recorder');
 
 class ExtendableProxy {
-  readonly accessed = new Map<string, AccessRecorder>();
+  accessed = new Map<string, AccessRecorder>();
 
   constructor(defaultValue?: any) {
     return new Proxy(this, {
       get: (obj: any, prop: string) => {
-        if (prop === 'accessed' || prop === 'getAccesses') {
+        if (prop === 'accessed' || prop === 'getAccesses' || prop === 'clearAccesses') {
           return obj[prop];
         }
         if (!this.accessed.has(prop)) {
@@ -46,11 +46,23 @@ export class AccessRecorder extends ExtendableProxy {
         ...this.accessed
           .get(k)!
           .getAccesses(depth, (cur || 1) + 1)
-          .map((a) => `${k}.${a}`)
+          .map((a) => `${k}.${a}`),
       );
     }
 
     return acc;
+  }
+
+  clearAccesses(depth: number, cur = 1) {
+    if (cur == depth) {
+      return Array.from(this.accessed.keys());
+    }
+
+    for (const k in this.accessed.keys()) {
+      this.accessed.get(k)!.clearAccesses(depth, (cur || 1) + 1);
+    }
+
+    this.accessed.clear();
   }
 }
 
@@ -58,44 +70,87 @@ export type AccessComputationResult = { accesses: string[]; unableToCompute: boo
 
 type AccessRecorderMap = { [k: string]: AccessRecorder };
 
-type TemplateContext = {
+type TemplateContextData = {
   [k: string]: AccessRecorder | AccessRecorderMap | unknown;
 };
 
-/**
- * Setup the template context.
- * @param possibleNames - The possible names to setup the context for
- * @returns The template context
- */
-function setupTemplateContext(possibleNames: string[] = []): TemplateContext {
-  // Create a fake helper context, so the render works but no real functions are called
-  const fakeHelperContext = _createDeepNoopObject(CannonHelperContext);
+export class TemplateContext {
+  readonly possibleNames: string[];
+  readonly recorders: TemplateContextData;
 
-  const recorders: TemplateContext = {
-    // Include base context variables, no access recording as they are always available
-    chainId: 0,
-    timestamp: 0,
-    package: { version: '0.0.0' },
-    ...fakeHelperContext,
+  constructor(
+    overrides: { chainId: number; timestamp: number; package: { version: string } },
+    possibleNames: string[] = [],
+  ) {
+    // Create a fake helper context, so the render works but no real functions are called
+    const fakeHelperContext = _createDeepNoopObject(CannonHelperContext);
 
-    // Add access recorders for the base context variables, these are the ones
-    // used to calculate dependencies beween steps
-    contracts: new AccessRecorder(),
-    imports: new AccessRecorder(),
-    extras: new AccessRecorder(),
-    txns: new AccessRecorder(),
-    // For settings, we give it a zeroAddress as a best case scenarion that is going
-    // to be working for most cases.
-    // e.g., when calculating a setting value for 'settings.owners.split(',')' or 'settings.someNumber' will work.
-    settings: new AccessRecorder(viem.zeroAddress),
-  };
+    this.possibleNames = possibleNames;
+    this.recorders = {
+      // Include base context variables, no access recording as they are always available
+      chainId: overrides.chainId,
+      timestamp: overrides.timestamp,
+      package: overrides.package,
+      ...fakeHelperContext,
 
-  // add possible names
-  for (const n of possibleNames) {
-    recorders[n] = new AccessRecorder();
+      // Add access recorders for the base context variables, these are the ones
+      // used to calculate dependencies beween steps
+      contracts: new AccessRecorder(),
+      imports: new AccessRecorder(),
+      extras: new AccessRecorder(),
+      txns: new AccessRecorder(),
+      // For settings, we give it a zeroAddress as a best case scenarion that is going
+      // to be working for most cases.
+      // e.g., when calculating a setting value for 'settings.owners.split(',')' or 'settings.someNumber' will work.
+      settings: new AccessRecorder(viem.zeroAddress),
+    };
+
+    // add possible names
+    for (const n of possibleNames) {
+      this.recorders[n] = new AccessRecorder();
+    }
   }
 
-  return recorders;
+  computeAccesses(str?: string) {
+    if (!str) {
+      return { accesses: [], unableToCompute: false };
+    }
+
+    try {
+      // we give it "true" for safeContext to avoid cloning and freezing of the object
+      // this is because we want to keep the access recorder, and is not a security risk
+      // if the user can modify that object
+      template(str, this.recorders, true);
+      const accesses = this.collectAccesses();
+      return { accesses, unableToCompute: false };
+    } catch (err) {
+      debug('Template execution failed:', err);
+      return { accesses: [], unableToCompute: true };
+    }
+  }
+
+  /**
+   * Collect the accesses from the recorders.
+   * @param recorders - The recorders to collect accesses from
+   * @param possibleNames - The possible names to collect accesses from
+   * @returns The accesses
+   */
+  collectAccesses(): string[] {
+    const accesses: string[] = [];
+
+    for (const recorder of Object.keys(this.recorders)) {
+      if (this.recorders[recorder] instanceof AccessRecorder) {
+        if (this.possibleNames.includes(recorder) && this.recorders[recorder].accessed.size > 0) {
+          accesses.push(recorder);
+        } else {
+          accesses.push(...Array.from(this.recorders[recorder].accessed.keys()).map((a: string) => `${recorder}.${a}`));
+        }
+        this.recorders[recorder].clearAccesses(2);
+      }
+    }
+
+    return accesses;
+  }
 }
 
 export function _createDeepNoopObject<T>(obj: T): T {
@@ -112,54 +167,6 @@ export function _createDeepNoopObject<T>(obj: T): T {
   }
 
   return obj;
-}
-
-/**
- * Collect the accesses from the recorders.
- * @param recorders - The recorders to collect accesses from
- * @param possibleNames - The possible names to collect accesses from
- * @returns The accesses
- */
-function collectAccesses(recorders: TemplateContext, possibleNames: string[]): string[] {
-  const accesses: string[] = [];
-
-  for (const recorder of Object.keys(recorders)) {
-    if (recorders[recorder] instanceof AccessRecorder) {
-      if (possibleNames.includes(recorder) && recorders[recorder].accessed.size > 0) {
-        accesses.push(recorder);
-      } else {
-        accesses.push(...Array.from(recorders[recorder].accessed.keys()).map((a: string) => `${recorder}.${a}`));
-      }
-    }
-  }
-
-  return accesses;
-}
-
-/**
- * Compute the accesses from the template.
- * @param str - The template to compute accesses from
- * @param possibleNames - The possible names to compute accesses from
- * @returns The accesses
- */
-export function computeTemplateAccesses(str?: string, possibleNames: string[] = []): AccessComputationResult {
-  if (!str) {
-    return { accesses: [], unableToCompute: false };
-  }
-
-  const recorders = setupTemplateContext(possibleNames);
-
-  try {
-    // we give it "true" for safeContext to avoid cloning and freezing of the object
-    // this is because we want to keep the access recorder, and is not a security risk
-    // if the user can modify that object
-    template(str, recorders, true);
-    const accesses = collectAccesses(recorders, possibleNames);
-    return { accesses, unableToCompute: false };
-  } catch (err) {
-    debug('Template execution failed:', err);
-    return { accesses: [], unableToCompute: true };
-  }
 }
 
 /**

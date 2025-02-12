@@ -63,9 +63,11 @@ export default function PackageAccordionHelper({
         const { ['run']: _, ...filteredDefinition } = deploymentData.data
           .def as any;
 
-        const chainDefinition = await getChainDefinitionFromWorker(
-          filteredDefinition
-        );
+        const chainDefinition = await getChainDefinitionFromWorker({
+          def: filteredDefinition,
+          chainId,
+          timestamp: Date.now(),
+        });
 
         setChainDefinition(chainDefinition);
       }

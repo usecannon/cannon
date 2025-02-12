@@ -5,6 +5,7 @@ import action from './clone';
 import deployAction from './deploy';
 import { fakeCtx, fakeRuntime } from './utils.test.helper';
 import { PackageReference } from '../package-reference';
+import { TemplateContext } from '..';
 
 jest.mock('../loader');
 jest.mock('./deploy');
@@ -60,7 +61,7 @@ describe('steps/clone.ts', () => {
             var: { woot: '<%= settings.b %>', wah: '<%= settings.c %>' },
             options: { woot: '<%= settings.d %>', wah: '<%= settings.e %>', tags: '<%= settings.f %>' },
           },
-          []
+          new TemplateContext({ chainId: 0, timestamp: 0, package: { version: '0.0.0.0' } })
         )
       ).toEqual({
         accesses: ['settings.a', 'settings.b', 'settings.c', 'settings.d', 'settings.e', 'settings.f'],

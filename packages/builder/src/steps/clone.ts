@@ -3,7 +3,7 @@ import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
 import pkg from '../../package.json';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
+import { mergeTemplateAccesses } from '../access-recorder';
 import { build, createInitialContext, getOutputs } from '../builder';
 import { CANNON_CHAIN_ID } from '../constants';
 import { ChainDefinition } from '../definition';
@@ -77,28 +77,22 @@ const cloneSpec = {
     return config;
   },
 
-  getInputs(config, possibleFields) {
-    let accesses = computeTemplateAccesses(config.source);
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.target, possibleFields));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.sourcePreset, possibleFields));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.targetPreset, possibleFields));
+  getInputs(config, templateContext) {
+    let accesses = templateContext.computeAccesses(config.source);
+    accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.target));
+    accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.sourcePreset));
+    accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.targetPreset));
 
     if (config.var) {
-      _.forEach(config.var, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))));
+      _.forEach(config.var, (a) => (accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(a))));
     }
 
     if (config.options) {
-      _.forEach(
-        config.options,
-        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields)))
-      );
+      _.forEach(config.options, (a) => (accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(a))));
     }
 
     if (config.tags) {
-      _.forEach(
-        config.tags,
-        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields)))
-      );
+      _.forEach(config.tags, (a) => (accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(a))));
     }
 
     return accesses;
@@ -124,7 +118,7 @@ const cloneSpec = {
       runtime.emit(
         Events.Notice,
         packageState.currentLabel,
-        'To prevent unexpected upgrades, it is strongly recommended to lock the version of the source package by specifying a version in the `source` field.'
+        'To prevent unexpected upgrades, it is strongly recommended to lock the version of the source package by specifying a version in the `source` field.',
       );
     }
 
@@ -132,7 +126,7 @@ const cloneSpec = {
       runtime.emit(
         Events.Notice,
         packageState.currentLabel,
-        `Deploying cloned package to default preset ${targetRef.preset}`
+        `Deploying cloned package to default preset ${targetRef.preset}`,
       );
     }
 
@@ -142,7 +136,7 @@ const cloneSpec = {
       throw new Error(
         `deployment not found: ${source}. please make sure it exists for preset ${
           sourcePreset || sourceRef.preset
-        } and network ${chainId}.`
+        } and network ${chainId}.`,
       );
     }
 
@@ -155,7 +149,11 @@ const cloneSpec = {
     deployInfo.def.version = targetRef.version;
     deployInfo.def.preset = targetRef.preset;
 
-    const def = new ChainDefinition(deployInfo.def);
+    const def = new ChainDefinition(deployInfo.def, false, {
+      chainId,
+      timestamp: Date.now(),
+      package: { version: '0.0.0' },
+    });
 
     // always treat upstream state as what is used if its available. otherwise, we might have a state from a previous upgrade.
     // if all else fails, we can load from scratch (aka this is first deployment)
@@ -176,8 +174,8 @@ const cloneSpec = {
         debug(
           `[clone.${importLabel}]`,
           yellow(
-            'There is a pre-existing deployment for this preset and chain id. This build will overwrite. Did you mean `import`?'
-          )
+            'There is a pre-existing deployment for this preset and chain id. This build will overwrite. Did you mean `import`?',
+          ),
         );
       }
 
@@ -222,7 +220,7 @@ const cloneSpec = {
       debug(
         `[clone.${importLabel}]`,
         'built state is exactly equal to previous state. skip generation of new deploy url',
-        importLabel
+        importLabel,
       );
       return {
         imports: {
@@ -262,7 +260,7 @@ const cloneSpec = {
         [target, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
         runtime.chainId,
         newSubDeployUrl,
-        (await runtime.registry.getMetaUrl(source, chainId)) || ''
+        (await runtime.registry.getMetaUrl(source, chainId)) || '',
       );
     }
 

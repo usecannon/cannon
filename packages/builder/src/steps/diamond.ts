@@ -3,7 +3,7 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
+import { mergeTemplateAccesses } from '../access-recorder';
 import { ChainBuilderRuntime } from '../runtime';
 import { diamondSchema } from '../schemas';
 import { ContractArtifact, ContractMap, PackageState } from '../types';
@@ -94,23 +94,23 @@ const diamondStep = {
     return config;
   },
 
-  getInputs(config, possibleFields) {
-    let accesses = computeTemplateAccesses(config.diamondArgs.owner, possibleFields);
+  getInputs(config, templateContext) {
+    let accesses = templateContext.computeAccesses(config.diamondArgs.owner);
     if (config.diamondArgs.init) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.diamondArgs.init, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.diamondArgs.init));
     }
 
     if (config.diamondArgs.initCalldata) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.diamondArgs.initCalldata, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.diamondArgs.initCalldata));
     }
 
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt, possibleFields));
+    accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.salt));
     accesses.accesses.push(
-      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`))
+      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`)),
     );
 
     if (config?.overrides) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.overrides.gasLimit));
     }
 
     return accesses;
@@ -225,7 +225,7 @@ const diamondStep = {
       };
     } catch (err) {
       throw new Error(
-        `failed to cut (upgrade) the diamond which is already deployed. This could happen for a few reasons:\n* the diamond owner has been changed and is now incorrect.\n* the diamond was previously made immutable and can no longer can be upgraded.\noriginal error: ${err}`
+        `failed to cut (upgrade) the diamond which is already deployed. This could happen for a few reasons:\n* the diamond owner has been changed and is now incorrect.\n* the diamond was previously made immutable and can no longer can be upgraded.\noriginal error: ${err}`,
       );
     }
   },
@@ -234,13 +234,13 @@ const diamondStep = {
 async function firstTimeDeploy(
   runtime: ChainBuilderRuntime,
   config: Config,
-  packageState: PackageState
+  packageState: PackageState,
 ): Promise<ContractMap> {
   const stepName = packageState.currentLabel.split('.')[1];
 
   const signer = await runtime.getDefaultSigner(
     { data: viem.keccak256(viem.encodePacked(['string'], [config.salt])) as viem.Hex },
-    config.salt
+    config.salt,
   );
 
   debug('using deploy signer with address', signer.address);
@@ -253,7 +253,7 @@ async function firstTimeDeploy(
     contract: ContractArtifact,
     deployedContractLabel: string,
     constructorArgs: any[],
-    salt = ''
+    salt = '',
   ) {
     debug('deploy contract', contract.contractName, deployedContractLabel, constructorArgs, salt);
     runtime.reportContractArtifact(`${contract.sourceName}:${contract.contractName}`, {
@@ -299,7 +299,7 @@ async function firstTimeDeploy(
 
     if (!bytecode) {
       const hash = await signer.wallet.sendTransaction(
-        _.assign({ account: signer.wallet.account || signer.address }, create2Txn as any)
+        _.assign({ account: signer.wallet.account || signer.address }, create2Txn as any),
       );
       const receipt = await runtime.provider.waitForTransactionReceipt({ hash });
       const block = await runtime.provider.getBlock({ blockHash: receipt.blockHash });
@@ -358,7 +358,7 @@ async function firstTimeDeploy(
     (await import('../abis/diamond/Diamond.json')) as any,
     stepName,
     [addFacets, config.diamondArgs],
-    config.salt || ''
+    config.salt || '',
   );
 
   return outputContracts;
