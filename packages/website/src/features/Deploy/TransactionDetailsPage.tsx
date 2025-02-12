@@ -385,6 +385,7 @@ function TransactionDetailsPage() {
           <div>
             {/* TX Info: left column */}
             <TransactionDisplay
+              safeSteps={buildInfo.buildState?.result?.safeSteps}
               safe={safe}
               safeTxn={safeTxn as any}
               queuedWithGitOps={queuedWithGitOps}
