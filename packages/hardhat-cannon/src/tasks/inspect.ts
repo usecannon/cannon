@@ -1,4 +1,4 @@
-import { inspect, PackageSpecification, resolveCliSettings } from '@usecannon/cli';
+import { inspect, PackageSpecification, resolveCliSettings, getPackageInfo } from '@usecannon/cli';
 import { task } from 'hardhat/config';
 import { SUBTASK_LOAD_PACKAGE_DEFINITION, TASK_INSPECT } from '../task-names';
 
@@ -23,5 +23,16 @@ task(TASK_INSPECT, 'Inspect the details of a Cannon package')
       ? `${packageSpec.name}:${packageSpec.version}@${packageSpec.preset}`
       : `${packageSpec.name}:${packageSpec.version}`;
 
-    await inspect(packageRef, cliSettings, chainId, json, writeDeployments, sources);
+    const packageInfo = await getPackageInfo(packageRef, chainId, cliSettings.rpcUrl);
+
+    await inspect(
+      packageInfo.fullPackageRef,
+      packageInfo.ipfsUrl,
+      chainId,
+      packageInfo.deployInfo,
+      cliSettings,
+      json ? 'deploy-json' : 'overview',
+      writeDeployments,
+      sources
+    );
   });
