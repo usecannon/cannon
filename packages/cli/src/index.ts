@@ -80,7 +80,7 @@ export { createDefaultReadRegistry, createDryRunRegistry } from './registry';
 export { resolveProviderAndSigners } from './util/provider';
 export { resolveCliSettings } from './settings';
 export { getFoundryArtifact } from './foundry';
-export { loadCannonfile } from './helpers';
+export { loadCannonfile, getPackageInfo } from './helpers';
 
 const program = new Command();
 
@@ -530,12 +530,18 @@ applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(a
   const { inspect } = await import('./commands/inspect');
 
   const cliSettings = resolveCliSettings(options);
-  const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
+  const { fullPackageRef, chainId, ipfsUrl, deployInfo } = await getPackageInfo(
+    packageRef,
+    options.chainId,
+    cliSettings.rpcUrl
+  );
 
   await inspect(
     fullPackageRef,
-    cliSettings,
+    ipfsUrl,
     chainId,
+    deployInfo,
+    cliSettings,
     options.json ? 'deploy-json' : options.out,
     options.writeDeployments,
     options.sources

@@ -31,7 +31,7 @@ import { resolveCliSettings } from './settings';
 import { log, warn } from './util/console';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 import { getChainIdFromRpcUrl, isURL, hideApiKey } from './util/provider';
-import { LocalRegistry } from './registry';
+import { createDefaultReadRegistry } from './registry';
 
 const debug = Debug('cannon:cli:helpers');
 
@@ -461,7 +461,21 @@ export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | unde
   return normalizedPrivateKeys.join(',') as viem.Hex;
 }
 
-export async function getPackageReference(packageRef: string, givenChainId: any, givenRpcUrl?: string) {
+interface PackageReferenceResult {
+  fullPackageRef: string;
+  chainId: number;
+  ipfsUrl: string;
+  deployInfo: DeploymentInfo;
+}
+
+export async function getPackageReference(
+  packageRef: string,
+  givenChainId: any,
+  givenRpcUrl?: string
+): Promise<{
+  fullPackageRef: string;
+  chainId: number;
+}> {
   const { fullPackageRef } = new PackageReference(packageRef);
   const parsedChainId = Number(givenChainId) || undefined;
   const chainId =
@@ -484,30 +498,47 @@ export async function getPackageInfo(
   packageRef: string,
   givenChainId: any,
   givenRpcUrl: string
-): Promise<{ fullPackageRef: string; chainId: number }> {
-  const ipfsUrl = getIpfsUrl(packageRef);
-  const parsedChainId = Number(givenChainId) || undefined;
-
-  // if its not an ipfs url, try to parse the package reference, or throw a parsing error
-  if (!ipfsUrl) {
-    return getPackageReference(packageRef, givenChainId, givenRpcUrl);
-  }
+): Promise<{
+  fullPackageRef: string;
+  chainId: number;
+  ipfsUrl: string;
+  deployInfo: DeploymentInfo;
+}> {
+  let ipfsUrl = getIpfsUrl(packageRef);
+  let chainId: number | undefined = undefined;
 
   const cliSettings = resolveCliSettings();
-  const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
-  const storage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
-  const pkgInfo: DeploymentInfo = await storage.readBlob(ipfsUrl);
-  const version = pkgInfo.def.version.includes('<%=') ? pkgInfo.meta.version : pkgInfo.def.version;
-  const { fullPackageRef } = PackageReference.from(pkgInfo.def.name, version, pkgInfo.def.preset);
-  const chainId =
-    Number(pkgInfo.chainId) ||
-    parsedChainId ||
-    (givenRpcUrl && (await getChainIdFromRpcUrl(givenRpcUrl))) ||
-    (await _promptChainId());
+  const registry = await createDefaultReadRegistry(cliSettings);
+
+  // if its not an ipfs url, try to parse the package reference and get the ipfsUrl, or throw a parsing error
+  if (!ipfsUrl) {
+    const { fullPackageRef, chainId: _chainId } = await getPackageReference(packageRef, givenChainId, givenRpcUrl);
+    ipfsUrl = await registry.getUrl(fullPackageRef, _chainId);
+    chainId = _chainId;
+
+    if (!ipfsUrl) {
+      throw new Error(`deployment not found: ${fullPackageRef}. please make sure it exists for chain ID "${chainId}".`);
+    }
+  }
+
+  const storage = new CannonStorage(registry, getMainLoader(cliSettings));
+  const deployInfo: DeploymentInfo = await storage.readBlob(ipfsUrl);
+  const version = deployInfo.def.version.includes('<%=') ? deployInfo.meta.version : deployInfo.def.version;
+  const { fullPackageRef } = PackageReference.from(deployInfo.def.name, version, deployInfo.def.preset);
+
+  if (!chainId) {
+    chainId =
+      Number(deployInfo.chainId) ||
+      Number(givenChainId) ||
+      (givenRpcUrl && (await getChainIdFromRpcUrl(givenRpcUrl))) ||
+      (await _promptChainId());
+  }
 
   return {
     fullPackageRef,
     chainId,
+    ipfsUrl,
+    deployInfo,
   };
 }
 
