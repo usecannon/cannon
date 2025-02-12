@@ -36,7 +36,7 @@ export function DisplayedTransaction(props: {
   pkgUrl: string;
   cannonInfo?: UseCannonPackageContractsReturnType;
   isPreloaded?: boolean;
-  cannonFileInstruction?: string;
+  cannonOperation?: string;
 }) {
   const { getChainById, getExplorerUrl } = useCannonChains();
   const chain = getChainById(props.chainId);
@@ -178,13 +178,12 @@ export function DisplayedTransaction(props: {
     <Card className="rounded-sm">
       <CardHeader>
         <CardTitle className="font-mono">
-          {props.cannonFileInstruction
-            ? `[${props.cannonFileInstruction}]: ${contractName}.${
-                functionName || functionHash
-              }`
-            : `${contractName}.${functionName || functionHash}`}
+          {`${contractName}.${functionName || functionHash} `}
         </CardTitle>
         <CardDescription>
+          {props.cannonOperation && (
+            <span className="mr-3.5">Via: {props.cannonOperation}</span>
+          )}
           <span className="mr-3.5">Target Address: {address}</span>
           <span className="mr-3.5">Function Selector: {functionHash}</span>
           <span>Value: {value}</span>

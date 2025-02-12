@@ -316,7 +316,7 @@ export function TransactionDisplay(props: {
           return (
             <div key={`tx-${i}`} className="mb-4">
               <DisplayedTransaction
-                cannonFileInstruction={props.safeSteps?.[i]?.name}
+                cannonOperation={props.safeSteps?.[i]?.name}
                 txn={txn}
                 chainId={props.safe.chainId}
                 pkgUrl={
