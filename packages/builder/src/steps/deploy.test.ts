@@ -5,6 +5,7 @@ import { ContractArtifact } from '../types';
 import action from './deploy';
 import { fakeCtx, fakeRuntime, makeFakeSigner } from './utils.test.helper';
 import { PackageReference } from '../package-reference';
+import { TemplateContext } from '..';
 
 const DEFAULT_ARACHNID_ADDRESS = '0x4e59b44847b379578588920cA78FbF26c0B4956C';
 
@@ -159,7 +160,7 @@ describe('steps/deploy.ts', () => {
               args: ['<%= contracts.h %>', '<%= contracts.i %>'],
               salt: '<%= contracts.j %>',
             },
-            []
+            new TemplateContext({ chainId: 0, timestamp: 0, package: { version: '0.0.0' }})
           )
           .accesses.sort()
       ).toEqual([

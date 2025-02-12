@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AccessComputationResult } from './access-recorder';
+import { AccessComputationResult, TemplateContext } from './access-recorder';
 import { handleZodErrors } from './error/zod';
 import { ChainBuilderRuntime } from './runtime';
 import { chainDefinitionSchema } from './schemas';
@@ -27,13 +27,13 @@ export interface CannonAction<Config extends RawConfig = any> {
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
     config: Config,
-    packageState: PackageState
+    packageState: PackageState,
   ) => Promise<any[] | null>;
 
   /**
    * Returns a list of state keys that this operation consumes (used for dependency inference)
    */
-  getInputs?: (config: Config, possibleFields: string[], packageState: PackageState) => AccessComputationResult;
+  getInputs?: (config: Config, templateContext: TemplateContext, packageState: PackageState) => AccessComputationResult;
 
   /**
    * Returns a list of state keys this operation produces (used for dependency inference)
@@ -44,7 +44,7 @@ export interface CannonAction<Config extends RawConfig = any> {
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
     config: Config,
-    packageState: PackageState
+    packageState: PackageState,
   ) => Promise<ChainArtifacts>;
 
   importExisting?: (
@@ -52,7 +52,7 @@ export interface CannonAction<Config extends RawConfig = any> {
     ctx: ChainBuilderContext,
     config: Config,
     packageState: PackageState,
-    existingKeys: string[]
+    existingKeys: string[],
   ) => Promise<ChainArtifacts>;
 
   // Takes in any schema as long as the base type is ZodSchema

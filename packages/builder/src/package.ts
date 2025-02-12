@@ -43,7 +43,7 @@ export async function forPackageTree<T extends { url?: string; artifacts?: Chain
   deployInfo: DeploymentInfo,
   action: (deployInfo: DeploymentInfo, context: BundledOutput | null) => Promise<T>,
   context?: BundledOutput | null,
-  onlyResultProvisioned = true
+  onlyResultProvisioned = true,
 ): Promise<T[]> {
   const results: T[] = [];
 
@@ -58,8 +58,12 @@ export async function forPackageTree<T extends { url?: string; artifacts?: Chain
       // the nested artifacts (stored in this import artifact) might have changed because of the new url. if so, lets pull those changes in
       // TODO: maybe also necessary to update others besides imports? for now just keeping this as is becuase of
       importArtifact.imports = getArtifacts(
-        new ChainDefinition(updatedNestedDeployInfo.def),
-        updatedNestedDeployInfo.state
+        new ChainDefinition(updatedNestedDeployInfo.def, false, {
+          chainId: deployInfo.chainId || 0,
+          timestamp: deployInfo.timestamp || 0,
+          package: { version: '0.0.0' },
+        }),
+        updatedNestedDeployInfo.state,
       ).imports;
     }
 
@@ -86,7 +90,7 @@ export async function pinIpfs(
   toStorage: CannonStorage,
   alreadyCopiedIpfs: Map<string, any>,
   tags: Array<string>,
-  chainId?: number
+  chainId?: number,
 ) {
   const checkKeyPreset = deployInfo.def.preset || context?.preset || 'main';
 
@@ -96,7 +100,11 @@ export async function pinIpfs(
     return alreadyCopiedIpfs.get(checkKey);
   }
 
-  const def = new ChainDefinition(deployInfo.def);
+  const def = new ChainDefinition(deployInfo.def, false, {
+    chainId: deployInfo.chainId || 0,
+    timestamp: deployInfo.timestamp || 0,
+    package: { version: '0.0.0' },
+  });
 
   const pkgChainId = chainId || deployInfo.chainId || 0;
 
@@ -156,7 +164,7 @@ export async function pinIpfs(
 
   const returnVal = {
     packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
-      (t: string) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : packageReference.preset}`
+      (t: string) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : packageReference.preset}`,
     ),
     chainId: pkgChainId,
     url,
@@ -191,13 +199,13 @@ export async function preparePublishPackage({
 
   if (!deployData) {
     throw new Error(
-      `could not find deployment artifact for ${packageReference.fullPackageRef} with chain id "${chainId}". Please double check your settings, and rebuild your package.`
+      `could not find deployment artifact for ${packageReference.fullPackageRef} with chain id "${chainId}". Please double check your settings, and rebuild your package.`,
     );
   }
 
   // We call this regardless of includeProvisioned because we want to ALWAYS upload the subpackages ipfs data.
   const calls: PackagePublishCall[] = (await forPackageTree(fromStorage, deployData, pinPackagesToIpfs)).filter(
-    (v: any) => !!v
+    (v: any) => !!v,
   );
 
   return includeProvisioned ? calls : [_.last(calls)!];
@@ -231,7 +239,7 @@ export async function findUpgradeFromPackage(
   provider: viem.PublicClient,
   packageReference: PackageReference,
   chainId: number,
-  deployers: viem.Address[]
+  deployers: viem.Address[],
 ) {
   debug('find upgrade from onchain store');
   let oldDeployHash: string | null = null;
@@ -244,7 +252,7 @@ export async function findUpgradeFromPackage(
           await storeRead(
             provider,
             addr,
-            viem.keccak256(viem.stringToBytes(`${packageReference.name}@${packageReference.preset}`))
+            viem.keccak256(viem.stringToBytes(`${packageReference.name}@${packageReference.preset}`)),
           )
         ).split('_');
 
@@ -255,7 +263,7 @@ export async function findUpgradeFromPackage(
       } catch (err) {
         debug('failure while trying to read from onchain store', err);
       }
-    })
+    }),
   );
 
   if (!oldDeployHash) {
@@ -272,6 +280,6 @@ export async function writeUpgradeFromInfo(runtime: ChainBuilderRuntime, package
     runtime.provider,
     await runtime.getDefaultSigner({}),
     viem.keccak256(viem.stringToBytes(`${packageRef.name}@${packageRef.preset}`)),
-    `${Math.floor(Date.now() / 1000)}_${deployUrl}`
+    `${Math.floor(Date.now() / 1000)}_${deployUrl}`,
   );
 }

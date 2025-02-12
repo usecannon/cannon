@@ -4,7 +4,7 @@ import * as d3 from 'd3';
 import { createGlobalStyle } from 'styled-components';
 import { useStepModalContext } from '@/providers/stepModalProvider';
 import { getChainDefinitionFromWorker } from '@/helpers/chain-definition';
-import { RawChainDefinition } from '@usecannon/builder';
+import { DeploymentInfo } from '@usecannon/builder';
 
 // Define global styles
 const GlobalStyles = createGlobalStyle`
@@ -47,8 +47,9 @@ interface ExtendedSimulationNodeDatum extends d3.SimulationNodeDatum {
 }
 
 export const CannonfileGraph: FC<{
-  deploymentDefinition: RawChainDefinition;
-}> = ({ deploymentDefinition }) => {
+  deployInfo: DeploymentInfo;
+}> = ({ deployInfo }) => {
+  const deploymentDefinition = deployInfo.def;
   const nodes: ExtendedSimulationNodeDatum[] = [];
   const links: d3.SimulationLinkDatum<ExtendedSimulationNodeDatum>[] = [];
 
@@ -59,7 +60,7 @@ export const CannonfileGraph: FC<{
     async function initializeGraph() {
       try {
         const { allActionNames, resolvedDependencies } =
-          await getChainDefinitionFromWorker(deploymentDefinition);
+          await getChainDefinitionFromWorker(deployInfo);
 
         // Clear existing nodes and links
         nodes.length = 0;

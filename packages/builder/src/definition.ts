@@ -10,6 +10,7 @@ import { template } from './utils/template';
 
 import { PackageReference } from './package-reference';
 import { ZodIssue } from 'zod';
+import { TemplateContext } from '.';
 
 const debug = Debug('cannon:builder:definition');
 const debugVerbose = Debug('cannon:verbose:builder:definition');
@@ -61,7 +62,9 @@ export function validatePackageVersion(v: string) {
 export class ChainDefinition {
   private raw: RawChainDefinition;
   private sensitiveDependencies: boolean;
+  private accessRecordTemplateContext: TemplateContext;
 
+  readonly clashes: OutputClashCheckResult[];
   readonly allActionNames: string[];
 
   private _roots: Set<string> = new Set();
@@ -75,7 +78,15 @@ export class ChainDefinition {
 
   readonly danglingDependencies = new Set<`${string}:${string}`>();
 
-  constructor(def: RawChainDefinition, sensitiveDependencies = false) {
+  constructor(
+    def: RawChainDefinition,
+    sensitiveDependencies = false,
+    overrides: { chainId: number; timestamp: number; package: { version: string } } = {
+      chainId: 0,
+      timestamp: Date.now(),
+      package: { version: '0.0.0' },
+    },
+  ) {
     debug('begin chain def init');
     this.raw = def;
     this.sensitiveDependencies = sensitiveDependencies;
@@ -107,6 +118,25 @@ export class ChainDefinition {
 
     // do some preindexing
     this.allActionNames = _.sortBy(actions, _.identity);
+
+    // checking for output clashes will also fill out the dependency map
+    this.clashes = this.checkOutputClash();
+
+    const possibleFields: string[] = [];
+    for (const k of this.dependencyFor.keys()) {
+      const baseName = k.split('.')[0];
+      if (
+        baseName !== 'contracts' &&
+        baseName !== 'imports' &&
+        baseName !== 'settings' &&
+        baseName !== 'extras' &&
+        baseName !== 'txns'
+      ) {
+        possibleFields.push(baseName);
+      }
+    }
+
+    this.accessRecordTemplateContext = new TemplateContext(overrides);
 
     debug('finished chain def init');
   }
@@ -153,7 +183,7 @@ export class ChainDefinition {
 
     if (!action) {
       throw new Error(
-        `action kind plugin not installed: "${kind}" (for action: "${n}"). please install the plugin necessary to build this package.`
+        `action kind plugin not installed: "${kind}" (for action: "${n}"). please install the plugin necessary to build this package.`,
       );
     }
 
@@ -173,7 +203,7 @@ export class ChainDefinition {
     n: string,
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
-    tainted: boolean
+    tainted: boolean,
   ): Promise<string[] | null> {
     const kind = n.split('.')[0] as keyof typeof ActionKinds;
 
@@ -220,7 +250,7 @@ export class ChainDefinition {
         source: template(d.source, ctx),
         chainId: d.chainId || ctx.chainId,
         preset: d.preset ? template(d.preset, ctx) : 'main',
-      }))
+      })),
     );
   }
 
@@ -254,20 +284,7 @@ export class ChainDefinition {
     }
 
     if (ActionKinds[n].getInputs) {
-      const possibleFields: string[] = [];
-      for (const k of this.dependencyFor.keys()) {
-        const baseName = k.split('.')[0];
-        if (
-          baseName !== 'contracts' &&
-          baseName !== 'imports' &&
-          baseName !== 'settings' &&
-          baseName !== 'extras' &&
-          baseName !== 'txns'
-        ) {
-          possibleFields.push(baseName);
-        }
-      }
-      const accessComputationResults = ActionKinds[n].getInputs!(_.get(this.raw, node), possibleFields, {
+      const accessComputationResults = ActionKinds[n].getInputs!(_.get(this.raw, node), this.accessRecordTemplateContext, {
         ref: null,
         currentLabel: node,
       });
@@ -276,8 +293,8 @@ export class ChainDefinition {
       if (this.sensitiveDependencies && accessComputationResults.unableToCompute && !_.get(this.raw, node).depends) {
         throw new Error(
           `Unable to compute dependencies for [${node}] because of advanced logic in template strings. Specify dependencies manually, like "depends = ['${_.uniq(
-            _.uniq(accessComputationResults.accesses).map((a) => `${this.dependencyFor.get(a)}`)
-          ).join("', '")}']"`
+            _.uniq(accessComputationResults.accesses).map((a) => `${this.dependencyFor.get(a)}`),
+          ).join("', '")}']"`,
         );
       }
 
@@ -325,13 +342,9 @@ export class ChainDefinition {
   initializeComputedDependencies = _.memoize(() => {
     const computeDepsDebug = Debug('cannon:builder:dependencies');
     computeDepsDebug('start compute dependencies');
-    // checking for output clashes will also fill out the dependency map
-    const clashes = this.checkOutputClash();
 
-    computeDepsDebug('finished checking clashes');
-
-    if (clashes.length) {
-      throw new Error(`cannot generate dependency tree: output clashes exist: ${JSON.stringify(clashes)}`);
+    if (this.clashes.length) {
+      throw new Error(`cannot generate dependency tree: output clashes exist: ${JSON.stringify(this.clashes)}`);
     }
 
     // get all dependencies, and filter out the extraneous
@@ -356,8 +369,8 @@ export class ChainDefinition {
           .map((n) => this.getDependencies(n))
           .flatten()
           .uniq()
-          .value()
-      )
+          .value(),
+      ),
     );
 
     if (computeDepsDebug.enabled) {
@@ -403,7 +416,7 @@ export class ChainDefinition {
     const cycle = missing.length ? [] : this.checkCycles();
     // TODO: this check seems to be a bit too sensitive atm
     const extraneousDeps: { node: string; extraneous: string; inDep: string }[] = []; // this.checkExtraneousDependencies();
-    const outputClashes = this.checkOutputClash();
+    const outputClashes = this.clashes;
 
     for (const extDep of extraneousDeps) {
       const deps = this.resolvedDependencies.get(extDep.node)!;
@@ -479,7 +492,7 @@ export class ChainDefinition {
   checkCycles(
     actions = this.allActionNames,
     seenNodes = new Set<string>(),
-    currentPath = new Set<string>()
+    currentPath = new Set<string>(),
   ): string[] | null {
     // resolved dependencies gets set during dependency computation
     this.initializeComputedDependencies();
@@ -689,7 +702,7 @@ export class ChainDefinition {
     }
     return Math.max(
       layers[n].actions.length + 2,
-      _.sumBy(layers[n].depends, (d) => this.getPrintLinesUsed(d, layers))
+      _.sumBy(layers[n].depends, (d) => this.getPrintLinesUsed(d, layers)),
     );
   }
 

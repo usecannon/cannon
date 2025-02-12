@@ -6,7 +6,7 @@ if (!Object.prototype.hasOwnProperty.call(BigInt.prototype, 'toJSON')) {
 }
 
 export { createInitialContext, build, getArtifacts, addOutputsToContext, getOutputs } from './builder';
-export { computeTemplateAccesses, mergeTemplateAccesses } from './access-recorder';
+export { TemplateContext, mergeTemplateAccesses } from './access-recorder';
 export { registerAction, ActionKinds } from './actions';
 export type { CannonAction, RawChainDefinition } from './actions';
 export { ChainDefinition } from './definition';

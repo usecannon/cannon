@@ -123,7 +123,7 @@ export const CannonfileExplorer: FC<{ pkg: ApiPackage }> = ({ pkg }) => {
                 className={`${displayMode === 1 ? 'block h-full' : 'hidden'} `}
               >
                 <div className="h-full">
-                  <CannonfileGraph deploymentDefinition={deploymentInfo.def} />
+                  <CannonfileGraph deployInfo={deploymentInfo} />
                 </div>
               </div>
 
