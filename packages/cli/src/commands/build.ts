@@ -496,14 +496,14 @@ export async function build({
           ['Metadata', metaUrl],
         ])
       );
-      log(gray(`These are json files stored in your local cache: ${cliSettings.cannonDirectory}`));
+      log(gray(`These JSON files have been added to ${cliSettings.cannonDirectory}`));
       log();
 
       if (dryRun) {
-        log(bold('You can inspect the contents of your simulation with:'));
+        log(bold('Inspect the deployment data'));
         log(`> cannon inspect ${deployUrl}`);
         log();
-        log(bold('To share the deployment data, use `cannon pin` to upload it to IPFS: '));
+        log(bold('Upload deployment data to IPFS'));
         log(`> cannon pin ${deployUrl}`);
       }
 
