@@ -478,7 +478,7 @@ export async function build({
     } else {
       if (dryRun) {
         log(gray(`Estimated Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
-        log(bold(`💥 ${fullPackageRef} would be successfully built on ${chainName} (Chain ID: ${chainId})`));
+        log(bold(`💥 ${fullPackageRef} would have been successfully built on ${chainName} (Chain ID: ${chainId})`));
       } else {
         if (chainId == 13370) {
           log(bold(`💥 ${fullPackageRef} built for Cannon (Chain ID: ${chainId})`));
