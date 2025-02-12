@@ -489,6 +489,7 @@ export async function build({
         }
       }
       log();
+      log(bold(`These JSON files have been added to ${cliSettings.cannonDirectory}`));
       log(
         table([
           ['Deployment Data', deployUrl],
@@ -496,8 +497,6 @@ export async function build({
           ['Metadata', metaUrl],
         ])
       );
-      log(gray(`These JSON files have been added to ${cliSettings.cannonDirectory}`));
-      log();
 
       if (dryRun) {
         log(bold('Inspect the deployment data'));
