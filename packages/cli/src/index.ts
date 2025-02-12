@@ -80,7 +80,7 @@ export { createDefaultReadRegistry, createDryRunRegistry } from './registry';
 export { resolveProviderAndSigners } from './util/provider';
 export { resolveCliSettings } from './settings';
 export { getFoundryArtifact } from './foundry';
-export { loadCannonfile } from './helpers';
+export { loadCannonfile, getPackageInfo } from './helpers';
 
 const program = new Command();
 
