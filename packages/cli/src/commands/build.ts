@@ -510,11 +510,7 @@ export async function build({
 
       if (!dryRun) {
         if (isMainPreset) {
-          log(
-            bold(
-              `Publish ${bold(`${packageRef}`)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`
-            )
-          );
+          log(bold(`Publish ${bold(`${packageRef}`)} to the registry`));
           log(`> cannon publish ${packageRef} --chain-id ${chainId}`);
         } else {
           log(
