@@ -182,7 +182,9 @@ export function DisplayedTransaction(props: {
         </CardTitle>
         <CardDescription>
           {props.cannonOperation && (
-            <span className="mr-3.5">Via: {props.cannonOperation}</span>
+            <span className="mr-3.5">
+              via <span className="font-mono">[{props.cannonOperation}]</span>
+            </span>
           )}
           <span className="mr-3.5">Target Address: {address}</span>
           <span className="mr-3.5">Function Selector: {functionHash}</span>
