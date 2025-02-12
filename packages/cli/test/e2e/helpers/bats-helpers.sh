@@ -90,3 +90,15 @@ require_env_var() {
     exit 1
   fi
 }
+
+set_publisher() {
+  local _package="$1"
+  local _publisher="$2"
+
+  local _package_name="$(cast from-utf8 $_package | cast to-bytes32)"
+  local _owner="cast call 0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba 'getPackageOwner(bytes32 _packageName)' '$_package_name' --rpc-url $CANNON_E2E_RPC_URL_OPTIMISM"
+  # local _owner_address="$(cast call $_owner --rpc-url $CANNON_E2E_RPC_URL_OPTIMISM)"
+
+  echo "Setting publisher for $_package_name to $_publisher"
+  echo "Owner: $_owner"
+}
