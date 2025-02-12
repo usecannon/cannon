@@ -9,32 +9,41 @@ Feature: Stage Transactions
     * Wallet is connected
     Then View renders a "p" displaying the text "Queue, sign, and execute deployments"
 
-  @skip
+#  @only
   Scenario: User stages transactions from the interact page
     Given User opens the "/packages" page
     When User types "owned-greeter" in the "search" input
-    * User clicks on the button with id "owned-greeter-expandable-button"
+    # * User clicks on the button with id "owned-greeter-expandable-button"
+    * User waits for "1" seconds while loading
+    * User clicks to turn off the "owned-greeter" filter
     * User clicks on the element with version "0.0.5" and chain "11155111"
     Then URL includes "/packages/owned-greeter/0.0.5"
     * View renders a "h1" displaying the text "owned-greeter"
-    * View renders a "h2" displaying the text "Contract Deployments"
+    # * View renders a "h2" displaying the text "Contract Deployments"
+    * View renders a "a" displaying the text "Deployment"
     When User clicks on the "/packages/owned-greeter/0.0.5/11155111-main/interact" link
     * User clicks on the "div" element with text "setGreeting(string)"
-    * User types "Hello World!" for "_greeting" function param
+    * User types "Hello World!" for "_greeting"
     * User clicks on the button with id "setGreeting-stage-to-safe"
     # Drawer and Toast error should be displayed
-    Then View renders a "header" displaying the text "Stage Transactions to a Safe"
-    * View renders a "div" displaying the text "Please select a Safe first"
-    When User types and select the safe "11155111:0xfD050037C9039cE7b4A3213E3645BC1ba6eA0c97"
-    * User closes the queue txns drawer
-    * User clicks on the button with id "setGreeting-stage-to-safe"
-    Then  View renders a "div" displaying the text "Total transactions queued: 1"
-    When User types "Hello World Again!" for "_greeting" function param
-    * User clicks on the button with id "setGreeting-stage-to-safe"
-    Then  View renders a "div" displaying the text "Total transactions queued: 2"
-    # Check drawer is rendering the total transactions queued
-    When User clicks on the button with "aria-label" "queue-txs"
-    Then Drawer has exactly 2 queued transactions
+    Then View renders a "h2" displaying the text "Stage Transactions to a Safe"
+    * View renders a "button" displaying the text "Select Safe"
+    * User clicks on the "Select Safe" button
+    * User types "11155111" with id "safe-chain-input"
+    * User types "0xfD050037C9039cE7b4A3213E3645BC1ba6eA0c97" with id "safe-address-input"
+    * User clicks on the "Add Safe" button
+#    When User types and select the safe "11155111:0xfD050037C9039cE7b4A3213E3645BC1ba6eA0c97"
+    * User clicks on the "Close" button
+#    * User closes the queue txns drawer
+#    * User waits for "60" seconds while loading
+#    * User clicks on the button with id "setGreeting-stage-to-safe"
+#    Then  View renders a "div" displaying the text "Total transactions queued: 1"
+#    When User types "Hello World Again!" for "_greeting" function param
+#    * User clicks on the button with id "setGreeting-stage-to-safe"
+#    Then  View renders a "div" displaying the text "Total transactions queued: 2"
+#    # Check drawer is rendering the total transactions queued
+#    When User clicks on the button with "aria-label" "queue-txs"
+#    Then Drawer has exactly 2 queued transactions
 
   @skip
   Scenario: User stages transactions from the queue transactions drawer

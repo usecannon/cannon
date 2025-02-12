@@ -9,7 +9,7 @@ When('User clicks on the {string} link', (link: string) => {
 });
 
 When('User clicks on the {string} button', (button: string) => {
-  cy.get(`button:contains("${button}")`).click();
+  cy.contains('button',`${button}`).click();
 });
 
 When('User clicks first link on the {string} table', (number: string) => {
@@ -32,6 +32,10 @@ When('User clicks on the {string} element with text {string}', (element: string,
   cy.get(element).contains(text).click();
 });
 
+When('User clicks to turn off the {string} filter', (label: string) => {
+  cy.contains('h4',`${label}`).closest('div').parent().find('button[role="switch"]').click();
+});
+
 When('User types {string} in the {string} input', (text: string, input: string) => {
   cy.get(`input[name="${input}"]`).type(text);
 });
@@ -42,6 +46,14 @@ When('User types {string} in the input with placeholder {string}', (text: string
 
 When('User types {string} for {string}', (text: string, element: string) => {
   cy.contains('span', `${element}`).closest('div').find('input').first().type(`${text}`);
+});
+
+When('User types {string} with id {string}', (text: string, id: string) =>{
+  cy.get(`[data-testid="${id}"]`).type(`${text}`);
+});
+
+When('User waits for {string} seconds while loading',(second: string) => {
+  cy.wait(parseInt(second) * 1000);
 });
 
 Then('URL includes {string}', (path: string) => {
