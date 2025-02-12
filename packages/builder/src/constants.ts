@@ -14,13 +14,23 @@ export const DEFAULT_REGISTRY_CONFIG = [
   {
     name: 'OP Mainnet',
     chainId: 10,
-    rpcUrl: ['frame', 'direct', 'https://opt-mainnet.g.alchemy.com/v2/2c6Mq72inJF0FBlKPMK8pe6TolJMar6G'],
+    rpcUrl: [
+      'frame',
+      'direct',
+      'https://optimism-mainnet.infura.io/v3/9f7e95d07f4e42e7a54d4dc90f57fd5d',
+      'https://opt-mainnet.g.alchemy.com/v2/2c6Mq72inJF0FBlKPMK8pe6TolJMar6G',
+    ],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
   {
     name: 'Ethereum Mainnet',
     chainId: 1,
-    rpcUrl: ['frame', 'direct', 'https://eth-mainnet.g.alchemy.com/v2/2c6Mq72inJF0FBlKPMK8pe6TolJMar6G'],
+    rpcUrl: [
+      'frame',
+      'direct',
+      'https://mainnet.infura.io/v3/9f7e95d07f4e42e7a54d4dc90f57fd5d',
+      'https://eth-mainnet.g.alchemy.com/v2/2c6Mq72inJF0FBlKPMK8pe6TolJMar6G',
+    ],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
 ];
