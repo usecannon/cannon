@@ -60,7 +60,7 @@ Then('The {string} element should be visible', (element: string) => {
   cy.get(`${element}`).should('be.visible');
 });
 
-Then('The Value Of Input On {string} tag has {string}', (label: string, input: string) => {
+Then('Output on {string} tag contains {string}', (label: string, input: string) => {
   cy.contains('span', `${label}`)
     .closest('div')
     .parent()
