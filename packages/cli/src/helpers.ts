@@ -31,7 +31,7 @@ import { resolveCliSettings } from './settings';
 import { log, warn } from './util/console';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 import { getChainIdFromRpcUrl, isURL, hideApiKey } from './util/provider';
-import { createDefaultReadRegistry, LocalRegistry } from './registry';
+import { createDefaultReadRegistry } from './registry';
 
 const debug = Debug('cannon:cli:helpers');
 
