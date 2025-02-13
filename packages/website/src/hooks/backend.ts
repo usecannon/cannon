@@ -18,7 +18,7 @@ import {
   useWalletClient,
 } from 'wagmi';
 
-interface CannonSafeTransaction {
+export interface CannonSafeTransaction {
   txn: SafeTransaction;
   sigs: string[];
 }
