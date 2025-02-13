@@ -245,7 +245,11 @@ export function SafeAddressInput() {
             </TooltipProvider>
           </>
         ) : (
-          <Button onClick={() => setIsDialogOpen(true)} size="sm">
+          <Button
+            onClick={() => setIsDialogOpen(true)}
+            size="sm"
+            data-testid="safe-select-button"
+          >
             Select Safe
           </Button>
         )}
@@ -396,7 +400,9 @@ export function SafeAddressInput() {
                             placeholder="0x..."
                             className="flex-1"
                           />
-                          <Button type="submit">Add Safe</Button>
+                          <Button type="submit" data-testid="safe-add-button">
+                            Add Safe
+                          </Button>
                         </div>
                       </div>
                     </div>

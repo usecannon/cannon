@@ -584,6 +584,7 @@ const QueueDrawer = ({
           size="icon"
           variant="outline"
           className="fixed top-1/2 right-0 -translate-y-1/2 translate-x-[1px] rounded-r-none z-[51] bg-black hover:bg-teal-900 hover:border-teal-500 border-border"
+          data-testid="queue-button"
         >
           <svg width="16" height="16" viewBox="0 0 39 40" fill="none">
             <path

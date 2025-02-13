@@ -30,6 +30,7 @@ export const NumberInput: FC<{
       onChange={(e) => {
         setUpdateValue(parseValue(e.target.value));
       }}
+      data-testid="number-input"
     />
   );
 };
