@@ -160,6 +160,9 @@ export const chainMetadata = {
   [chains.berachain.id]: {
     color: '#814625',
   },
+  [chains.unichain.id]: {
+    color: '#FF007A',
+  },
 } as const;
 
 export const supportedChains = (
