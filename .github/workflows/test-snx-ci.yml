@@ -4,6 +4,10 @@ on:
   pull_request:
     branches: [main, alpha, dev]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   test-snx-ci:
     runs-on: ubuntu-latest
@@ -22,16 +26,6 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly-ef62fdbab638a275fc19a2ff8fe8951c3bd1d9aa
-
-      - name: Cache used IPFS files
-        uses: actions/cache@v4
-        with:
-          key: cannon-ipfs-cache_${{ runner.os }}-${{ github.job }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: cannon-ipfs-cache_
-          path: ${{ env.CANNON_DIRECTORY }}/ipfs_cache
-          save-always: true
 
       - run: pnpm i --frozen-lockfile
       - run: pnpm build
