@@ -187,15 +187,13 @@ export function useGetPreviousGitInfoQuery(safe: SafeDefinition, gitRepoUrl: str
   return useReadContracts({
     contracts: [
       {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        abi: onchainStore.ABI as any,
+        abi: onchainStore.ABI,
         address: onchainStore.deployAddress,
         functionName: 'getWithAddress',
         args: [safe.address, keccak256(stringToBytes((gitRepoUrl || '') + 'gitHash'))],
       },
       {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        abi: onchainStore.ABI as any,
+        abi: onchainStore.ABI,
         address: onchainStore.deployAddress,
         functionName: 'getWithAddress',
         args: [safe.address, keccak256(stringToBytes((gitRepoUrl || '') + 'cannonPackage'))],

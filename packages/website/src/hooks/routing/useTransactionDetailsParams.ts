@@ -1,3 +1,4 @@
+import { SafeDefinition } from '@/helpers/store';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 import { Address, isAddress, isHash } from 'viem';
@@ -37,6 +38,10 @@ export function useTransactionDetailsParams() {
       chainId: parseInt(chainId),
       nonce: parseInt(nonce),
       sigHash,
+      safeDefinition: {
+        address: safeAddress as Address,
+        chainId: parseInt(chainId),
+      } as SafeDefinition,
     }),
     [safeAddress, chainId, nonce, sigHash]
   );
