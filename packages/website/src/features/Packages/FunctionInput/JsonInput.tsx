@@ -54,6 +54,7 @@ export const JsonInput: FC<{
             onChange={(e) => {
               setUpdateValue(e.target.value || '');
             }}
+            data-testid="json-input"
           />
         </TooltipTrigger>
         {isInvalid && (

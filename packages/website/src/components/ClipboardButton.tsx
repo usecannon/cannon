@@ -26,6 +26,7 @@ export const ClipboardButton: FC<ClibpboardButtonProps> = ({
       variant="ghost"
       className={`flex-shrink-0 h-7 w-7 bg-background border border-border ${className}`}
       onClick={copyToClipboard}
+      data-testid="clipboard-copy-button"
     >
       <AnimatePresence mode="wait" initial={false}>
         {hasCopied ? (

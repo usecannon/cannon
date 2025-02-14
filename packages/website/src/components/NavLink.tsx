@@ -6,6 +6,7 @@ interface INavLinkProps {
   children: ReactNode;
   isSmall?: boolean;
   isActive?: boolean;
+  testId?: string;
 }
 
 export const NavLink: FC<INavLinkProps> = ({
@@ -13,6 +14,7 @@ export const NavLink: FC<INavLinkProps> = ({
   children,
   isSmall,
   isActive,
+  testId,
 }) => {
   return (
     <Link
@@ -38,6 +40,7 @@ export const NavLink: FC<INavLinkProps> = ({
       {...(href.startsWith('https://')
         ? { target: '_blank', rel: 'noopener noreferrer' }
         : {})}
+      data-testid={testId}
     >
       {children}
     </Link>

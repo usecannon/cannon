@@ -14,7 +14,10 @@ export const ExternalLinkButton = ({ href, className }: Props) => {
       className={`flex-shrink-0 h-7 w-7 bg-background border border-border ${className}`}
     >
       <a href={href} target="_blank" rel="noopener noreferrer">
-        <ExternalLinkIcon className="h-3.5 w-3.5 text-muted-foreground" />
+        <ExternalLinkIcon
+          className="h-3.5 w-3.5 text-muted-foreground"
+          data-testid="external-link"
+        />
       </a>
     </Button>
   );

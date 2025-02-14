@@ -187,6 +187,7 @@ export const Abi: FC<{
                     key={index}
                     isActive={selectedSelector == getSelectorSlug(f)}
                     onClick={() => handleMethodClick(f)}
+                    data-testid={`${f.name}-button`}
                   >
                     {f.name}(
                     {f.inputs
@@ -218,6 +219,7 @@ export const Abi: FC<{
                     key={index}
                     isActive={selectedSelector == getSelectorSlug(f)}
                     onClick={() => handleMethodClick(f)}
+                    data-testid={`${f.name}-button`}
                   >
                     {f.name}(
                     {f.inputs

@@ -334,6 +334,7 @@ const Interact: FC = () => {
                     <TabsTrigger
                       key={i}
                       value={`${option.moduleName}::${option.contractName}`}
+                      data-testid={`${option.contractName}-button`}
                     >
                       {`${option.moduleName}.${option.contractName}`}
                     </TabsTrigger>

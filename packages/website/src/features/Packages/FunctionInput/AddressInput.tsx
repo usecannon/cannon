@@ -35,6 +35,7 @@ export const AddressInput: FC<{
       onChange={(e) => {
         setUpdateValue(e.target.value || '');
       }}
+      data-testid="address-input"
     />
   );
 };

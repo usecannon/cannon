@@ -159,11 +159,18 @@ export const DeploymentExplorer: FC<{
               onValueChange={handleTabChange}
             >
               <TabsList className="h-full">
-                <TabsTrigger value="contracts">
+                <TabsTrigger
+                  value="contracts"
+                  data-testid="contract-deployment-button"
+                >
                   Contract Deployments
                 </TabsTrigger>
-                <TabsTrigger value="calls">Function Calls</TabsTrigger>
-                <TabsTrigger value="event-data">Event Data</TabsTrigger>
+                <TabsTrigger value="calls" data-testid="function-call-button">
+                  Function Calls
+                </TabsTrigger>
+                <TabsTrigger value="event-data" data-testid="event-data-button">
+                  Event Data
+                </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>

@@ -66,6 +66,7 @@ export const ByteInput: FC<{
             onChange={(e) => {
               setUpdateValue(e.target.value || '');
             }}
+            data-testid={`byte${String(byte)}-input`}
           />
         </TooltipTrigger>
         {isInvalid && (

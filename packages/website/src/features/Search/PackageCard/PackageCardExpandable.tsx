@@ -59,6 +59,7 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
               className="scale-75"
               checked={!isOpen}
               onCheckedChange={(checked) => setIsOpen(!checked)}
+              data-testid={`${pkgs[0].name}-filter-button`}
             />
             <p
               onClick={(checked) => setIsOpen(!checked)}

@@ -137,6 +137,7 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
                   isActive={pathname == '/packages/[name]/[tag]/[variant]'}
                   href={`/packages/${packagesQuery.data.name}/${params.tag}/${params.variant}`}
                   isSmall
+                  testId="overview-link"
                 >
                   Overview
                 </NavLink>
@@ -146,6 +147,7 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
                   )}
                   href={`/packages/${packagesQuery.data.name}/${params.tag}/${params.variant}/deployment`}
                   isSmall
+                  testId="deployment-link"
                 >
                   Deployment
                 </NavLink>
@@ -155,6 +157,7 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
                   )}
                   href={`/packages/${packagesQuery.data.name}/${params.tag}/${params.variant}/code`}
                   isSmall
+                  testId="code-link"
                 >
                   Code
                 </NavLink>
@@ -171,6 +174,7 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
                         : `/packages/${packagesQuery.data.name}/${params.tag}/${params.variant}/interact`
                     }
                     isSmall
+                    testId="interact-link"
                   >
                     Interact
                   </NavLink>
@@ -181,6 +185,7 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
                   }
                   href={`/packages/${packagesQuery.data.name}/${params.tag}/${params.variant}/cannonfile`}
                   isSmall
+                  testId="cannonfile-link"
                 >
                   Cannonfile
                 </NavLink>

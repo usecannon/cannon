@@ -111,9 +111,18 @@ export const CannonfileExplorer: FC<{ pkg: ApiPackage }> = ({ pkg }) => {
                 onValueChange={(value) => setDisplayMode(parseInt(value))}
               >
                 <TabsList className="h-full">
-                  <TabsTrigger value="1">Dependency Graph</TabsTrigger>
-                  <TabsTrigger value="2">Processed Cannonfile</TabsTrigger>
-                  <TabsTrigger value="3">Raw Cannonfile</TabsTrigger>
+                  <TabsTrigger value="1" data-testid="dependency-graph-button">
+                    Dependency Graph
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="2"
+                    data-testid="processed-cannonfile-button"
+                  >
+                    Processed Cannonfile
+                  </TabsTrigger>
+                  <TabsTrigger value="3" data-testid="raw-cannonfile-button">
+                    Raw Cannonfile
+                  </TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
