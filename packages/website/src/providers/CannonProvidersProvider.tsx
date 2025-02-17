@@ -20,6 +20,28 @@ import { useQuery } from '@tanstack/react-query';
 import PageLoading from '@/components/PageLoading';
 import { randomItem } from '@/helpers/random';
 
+export const polynomial = viem.defineChain({
+  id: 8008,
+  name: 'Polynomial Chain',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Ether',
+    symbol: 'ETH',
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://rpc.polynomial.fi'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Polynomial Explorer',
+      url: 'https://polynomialscan.io',
+    },
+  },
+  testnet: false,
+});
+
 type CustomProviders =
   | {
       chains: viem.Chain[];
@@ -77,6 +99,9 @@ const customDefaultRpcs: Record<number, viem.Chain['rpcUrls']> = {
 // export const chains = [
 
 export const chainMetadata = {
+  [polynomial.id]: {
+    color: '#cdfe40',
+  },
   [chains.arbitrum.id]: {
     color: '#96bedc',
     shortName: 'arb1',
@@ -114,12 +139,12 @@ export const chainMetadata = {
     serviceUrl: 'https://safe-transaction-optimism.safe.global',
   },
   [chains.polygon.id]: {
-    color: '#9f71ec',
+    color: '#6600ff',
     shortName: 'matic',
     serviceUrl: 'https://safe-transaction-polygon.safe.global',
   },
   [chains.polygonZkEvm.id]: {
-    color: '#9f71ec',
+    color: '#5100b9',
   },
   [chains.zora.id]: {
     color: '#000000',
@@ -169,7 +194,7 @@ export const chainMetadata = {
 } as const;
 
 export const supportedChains = (
-  [cannonNetwork, ...Object.values(chains)] as viem.Chain[]
+  [cannonNetwork, polynomial, ...Object.values(chains)] as viem.Chain[]
 ).map((c) => {
   if (!customDefaultRpcs[`${c.id}`]) return c;
 
