@@ -21,14 +21,22 @@ const InstallDialog = () => {
     const isStandalone = window.matchMedia(
       '(display-mode: standalone)'
     ).matches;
+    const hasSeenInstallPrompt = localStorage.getItem('hasSeenInstallPrompt');
 
-    if (isMobile && !isStandalone) {
+    if (isMobile && !isStandalone && !hasSeenInstallPrompt) {
       setIsOpen(true);
     }
   }, []);
 
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+      localStorage.setItem('hasSeenInstallPrompt', 'true');
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent
         className="max-w-[90%] sm:max-w-[425px] mx-auto"
         autoFocus={false}

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { AbiParameter } from 'abitype';
 import { FC, useEffect, useMemo, useState } from 'react';
 import TupleInput from './FunctionInput/TupleInput';
+import { JsonInput } from '@/features/Packages/FunctionInput/JsonInput';
 
 interface Props {
   input: AbiParameter;
@@ -20,7 +21,11 @@ export const FunctionInput: FC<Props> = ({
   handleUpdate,
   initialValue,
 }) => {
-  const isArray = useMemo(() => !!input?.type?.endsWith('[]'), [input]);
+  const isTuple = useMemo(() => !!input?.type?.endsWith('[][]'), [input]);
+  const isArray = useMemo(
+    () => !isTuple && !!input?.type?.endsWith('[]'),
+    [input, isTuple]
+  );
   const [dataArray, setDataArray] = useState<{ val: any | null }[]>([]);
 
   const updateValue = (value: any) => {
@@ -75,6 +80,8 @@ export const FunctionInput: FC<Props> = ({
         : initialValue;
 
     switch (true) {
+      case input.type.endsWith('[][]'):
+        return <JsonInput handleUpdate={_handleUpdate} value={_initialValue} />;
       case input.type.startsWith('bool'):
         return <BoolInput handleUpdate={_handleUpdate} value={_initialValue} />;
       case input.type.startsWith('address'):
@@ -151,59 +158,63 @@ export const FunctionInput: FC<Props> = ({
     }
   };
 
-  let c;
+  if (isTuple) {
+    <div className="flex flex-row items-center">
+      <div className="flex-1">
+        {getInputComponent((value: any) => _handleUpdate(null, value))}
+      </div>
+    </div>;
+  }
 
   if (!isArray) {
-    c = (
+    return (
       <div className="flex flex-row items-center">
         <div className="flex-1">
           {getInputComponent((value: any) => _handleUpdate(null, value))}
         </div>
       </div>
     );
-  } else {
-    c = (
-      <div>
-        <div>
-          {dataArray.map((inp, index) => {
-            return (
-              <div
-                className={`flex flex-1 items-center ${
-                  index === dataArray.length - 1 ? '' : 'mb-4'
-                }`}
-                key={index}
-              >
-                {getInputComponent(
-                  (value: any) => _handleUpdate(index, value),
-                  index
-                )}
-                {dataArray.length > 1 && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => remove(index)}
-                    className="text-destructive hover:text-destructive/90"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            );
-          })}
-          <div className="text-right">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={add}
-              className="py-4 text-primary hover:text-primary/90"
-            >
-              <PlusIcon className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
   }
 
-  return <div>{c}</div>;
+  return (
+    <div>
+      <div>
+        {dataArray.map((inp, index) => {
+          return (
+            <div
+              className={`flex flex-1 items-center ${
+                index === dataArray.length - 1 ? '' : 'mb-4'
+              }`}
+              key={index}
+            >
+              {getInputComponent(
+                (value: any) => _handleUpdate(index, value),
+                index
+              )}
+              {dataArray.length > 1 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => remove(index)}
+                  className="text-destructive hover:text-destructive/90"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          );
+        })}
+        <div className="text-right">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={add}
+            className="py-4 text-primary hover:text-primary/90"
+          >
+            <PlusIcon className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 };

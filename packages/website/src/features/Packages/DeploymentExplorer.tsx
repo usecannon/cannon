@@ -37,40 +37,46 @@ export const DeploymentExplorer: FC<{
     'run',
   ];
 
-  function mergeArtifactsContracts(obj: any, mergedContracts: any = {}): any {
+  function mergeArtifactsContracts(obj: any, mergedContracts: any = {}) {
     for (const key in obj) {
-      if (obj[key] && typeof obj[key] === 'object') {
-        // If the current object has both address and abi keys
-        if (obj[key].address && obj[key].abi) {
-          if (
-            stepDefinitions.some((step) => obj[key].deployedOn.includes(step))
-          ) {
-            mergedContracts[obj[key].contractName || ''] = obj[key];
-          }
+      const currentArtifact = obj[key];
+      const address = currentArtifact.address;
+      const abi = currentArtifact.abi;
+      const artifacts = currentArtifact.artifacts;
+      const artifactsImports = artifacts?.imports;
+
+      const hasStepDefinition = stepDefinitions.some((step) =>
+        currentArtifact.deployedOn?.includes(step)
+      );
+
+      if (typeof obj[key] === 'object') {
+        if (address && abi && hasStepDefinition) {
+          mergedContracts[address] = currentArtifact;
         }
 
         //Adding contracts imported from subpackages
-        if (obj[key].artifacts && obj[key].artifacts.imports) {
+        if (artifactsImports) {
           const step = key.split('.')[1];
-          for (const contract in obj[key].artifacts.imports[step].contracts) {
-            obj[key].artifacts.imports[step].contracts[contract].deployedOn =
-              key;
+          for (const contract in artifactsImports[step].contracts) {
+            currentArtifact.artifacts.imports[step].contracts[
+              contract
+            ].deployedOn = key;
 
             // Change deployedOn title to parent package
             mergedContracts[obj[key].contractName || ''] =
-              obj[key].artifacts.imports[step].contracts[contract];
+              currentArtifact.artifacts.imports[step].contracts[contract];
           }
         }
 
         // Recursively search through nested objects
-        mergeArtifactsContracts(obj[key], mergedContracts);
+        mergeArtifactsContracts(currentArtifact, mergedContracts);
       }
     }
 
     return mergedContracts;
   }
 
-  const contractState: ChainBuilderContext['contracts'] = deploymentInfo?.state
+  const contractState = deploymentInfo?.state
     ? mergeArtifactsContracts(deploymentInfo.state)
     : {};
 

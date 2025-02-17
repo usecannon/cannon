@@ -336,6 +336,7 @@ export const Function: FC<FunctionProps> = ({
         transition={{ duration: 0.2 }}
         className="max-w-container-xl"
       >
+        {/* Header */}
         <div className="flex items-center">
           {showFunctionSelector && (
             <h2 className="text-sm font-mono flex items-center">
@@ -349,6 +350,7 @@ export const Function: FC<FunctionProps> = ({
             </h2>
           )}
         </div>
+
         <div className="flex flex-col md:flex-row gap-8 h-full py-2">
           <div className="flex flex-1 w-full lg:w-1/2 flex-col">
             {f.inputs.map((input, index) => {
@@ -647,6 +649,7 @@ export const Function: FC<FunctionProps> = ({
 
   return (
     <>
+      {/* renderFunctionContent */}
       {collapsible ? (
         <div className="flex flex-col border border-border rounded-sm overflow-hidden">
           <div

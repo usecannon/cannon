@@ -56,6 +56,9 @@ function _renderEmptyValue(abiParameter: viem.AbiParameter) {
 }
 
 function _parseArgumentValue(type: string, val: string): string {
+  if (type.endsWith('[][]')) {
+    return JSON.stringify(val, (_, v) => (typeof v === 'bigint' ? v.toString() : v), 2);
+  }
   if (type.endsWith('[]')) {
     const values = Array.isArray(val) ? val : [val];
     const results = values.map((v) => _parseArgumentValue(type.slice(0, -2), v));
@@ -104,6 +107,10 @@ function _parseArgumentValue(type: string, val: string): string {
 }
 
 function _parseArgumentValueTooltip(type: string, val: string): string {
+  if (type.endsWith('[][]')) {
+    return '';
+  }
+
   if (Array.isArray(val)) {
     if (!type.endsWith('[]')) {
       throw Error(`Invalid arg type "${type}" and val "${val}"`);
@@ -147,21 +154,16 @@ export function isAbiParameterArray(
   return Array.isArray(value);
 }
 
-export function parseAbiParameter(
-  abiParameter: viem.AbiParameter,
-  value?: unknown
-): {
-  rawValue: string;
-  tooltipText: string;
-  isTuple: boolean;
-  parsedValue: string;
-} {
+export function parseAbiParameter(abiParameter: viem.AbiParameter, value?: unknown) {
   const { type } = abiParameter;
   const rawValue = (isNil(value) ? _renderEmptyValue(abiParameter) : value) as string;
+  const isTupleArray = type.endsWith('[][]');
+  const isTuple = !isTupleArray && (type.endsWith('[]') || type === 'tuple');
 
   return {
     rawValue,
-    isTuple: type.endsWith('[]') || type === 'tuple',
+    isTupleArray,
+    isTuple,
     tooltipText: _parseArgumentValueTooltip(type, rawValue),
     parsedValue: _parseArgumentValue(type, rawValue),
   };
