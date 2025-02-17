@@ -29,7 +29,7 @@ When('User clicks on the button with {string} {string}', (property: string, labe
 });
 
 When('User clicks on the {string} element with text {string}', (element: string, text: string) => {
-  cy.get(element).contains(text).click();
+  cy.get(element).contains(text).first().click();
 });
 
 When('User clicks to turn off the {string} filter', (label: string) => {
@@ -91,4 +91,12 @@ Then('Output on {string} tag contains {string}', (label: string, input: string) 
         cy.get('@baseElements').find('input[readonly]').should('have.value', `${input}`);
       }
     });
+});
+
+When('User clicks on copy button on {string} tab', (label: string) => {
+  cy.contains('span',`${label}`).closest('div').parent().contains('span','Copy command').closest('button').click();  
+})
+
+When('User clicks on test button with id {string}', (id: string) =>{
+  cy.get(`[data-testid="${id}"]`).first().click();
 });
