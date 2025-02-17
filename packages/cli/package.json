@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/cli",
-  "version": "2.21.3",
+  "version": "2.21.4",
   "description": "Utility for instantly loading cannon packages in standalone contexts",
   "main": "dist/src/index.js",
   "scripts": {
@@ -80,7 +80,7 @@
     "table": "^6.8.2",
     "tildify": "3.0.0",
     "untildify": "^4.0.0",
-    "viem": "^2.22.22",
+    "viem": "^2.23.1",
     "znv": "^0.4.0",
     "zod": "^3.23.8"
   },

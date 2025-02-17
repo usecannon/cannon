@@ -477,20 +477,8 @@ export async function build({
       );
     } else {
       if (dryRun) {
-        log(bold(`💥 ${fullPackageRef} would be successfully built on ${chainName} (Chain ID: ${chainId})`));
         log(gray(`Estimated Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
-        log();
-
-        log(
-          bold(
-            `Package data would be stored locally${
-              filteredSettings.writeIpfsUrl && ' and pinned to ' + filteredSettings.writeIpfsUrl
-            }`
-          )
-        );
-        log();
-
-        log('(Note: These files will not be saved)');
+        log(bold(`💥 ${fullPackageRef} would have been successfully built on ${chainName} (Chain ID: ${chainId})`));
       } else {
         if (chainId == 13370) {
           log(bold(`💥 ${fullPackageRef} built for Cannon (Chain ID: ${chainId})`));
@@ -499,16 +487,9 @@ export async function build({
           log(bold(`💥 ${fullPackageRef} built on ${chainName} (Chain ID: ${chainId})`));
           log(gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
         }
-        log();
-
-        log(
-          bold(
-            `Package data has been stored locally${
-              filteredSettings.writeIpfsUrl && ' and pinned to ' + filteredSettings.writeIpfsUrl
-            }`
-          )
-        );
       }
+      log();
+      log(bold(`These JSON files have been added to ${cliSettings.cannonDirectory}`));
       log(
         table([
           ['Deployment Data', deployUrl],
@@ -517,15 +498,19 @@ export async function build({
         ])
       );
 
+      if (dryRun) {
+        log(bold('Inspect the deployment data'));
+        log(`> cannon inspect ${deployUrl}`);
+        log();
+        log(bold('Upload deployment data to IPFS'));
+        log(`> cannon pin ${deployUrl}`);
+      }
+
       const isMainPreset = preset === PackageReference.DEFAULT_PRESET;
 
       if (!dryRun) {
         if (isMainPreset) {
-          log(
-            bold(
-              `Publish ${bold(`${packageRef}`)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`
-            )
-          );
+          log(bold(`Publish ${bold(`${packageRef}`)} to the registry`));
           log(`> cannon publish ${packageRef} --chain-id ${chainId}`);
         } else {
           log(

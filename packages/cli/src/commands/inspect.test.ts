@@ -23,6 +23,7 @@ describe('inspect', () => {
   const basePkgName = 'package:1.2.3';
   const packageName = `${basePkgName}@${preset}`;
   const cliSettings = resolveCliSettings();
+  const ipfsUrl = 'ipfs://QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn';
 
   let testPkgData: any;
   let mockedFallBackRegistry: any;
@@ -139,44 +140,49 @@ describe('inspect', () => {
   });
 
   test('should inspect package deployment', async () => {
-    const result = await inspect(packageName, cliSettings, chainId, 'overview', '', false);
+    const result = await inspect(packageName, ipfsUrl, chainId, testPkgData, cliSettings, 'overview', '', false);
 
     expect(result).toEqual(testPkgData);
-    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(getSourceFromRegistry).toHaveBeenCalledWith(mockedFallBackRegistry.registries);
     expect(getContractsAndDetails).toHaveBeenCalledWith(testPkgData.state);
 
-    expect(ipfsLoader.read).toHaveBeenCalledWith('ipfs://QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn');
+    expect(ipfsLoader.read).toHaveBeenCalledWith(testPkgData.miscUrl);
   });
 
   test('should write deployment files', async () => {
     const writeDeployments = 'contracts';
-    const result = await inspect(packageName, cliSettings, chainId, 'overview', writeDeployments, false);
+    const result = await inspect(
+      packageName,
+      ipfsUrl,
+      chainId,
+      testPkgData,
+      cliSettings,
+      'overview',
+      writeDeployments,
+      false
+    );
 
     expect(result).toEqual(testPkgData);
-    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(fs.outputFile).toHaveBeenCalled();
   });
 
   test('should call inspect with sources flag ', async () => {
-    const result = await inspect(packageName, cliSettings, chainId, 'overview', '', true);
+    const result = await inspect(packageName, ipfsUrl, chainId, testPkgData, cliSettings, 'overview', '', true);
 
     expect(result).toEqual(testPkgData);
-    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(getSourceFromRegistry).toHaveBeenCalledWith(mockedFallBackRegistry.registries);
     expect(getContractsAndDetails).toHaveBeenCalledWith(testPkgData.state);
 
-    expect(ipfsLoader.read).toHaveBeenCalledWith('ipfs://QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn');
+    expect(ipfsLoader.read).toHaveBeenCalledWith(testPkgData.miscUrl);
   });
 
   test('should call inspect with json flag ', async () => {
-    const result = await inspect(packageName, cliSettings, chainId, 'deploy-json', '', false);
+    const result = await inspect(packageName, ipfsUrl, chainId, testPkgData, cliSettings, 'deploy-json', '', false);
 
     expect(result).toEqual(testPkgData);
-    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(mockedFallBackRegistry.getMetaUrl).not.toHaveBeenCalled();
     expect(stdoutOutput.join('')).toEqual(JSON.stringify(testPkgData, null, 2));
   });

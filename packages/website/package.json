@@ -124,7 +124,7 @@
     "tailwindcss-animate": "^1.0.7",
     "usehooks-ts": "^3.1.0",
     "vaul": "^1.1.2",
-    "viem": "^2.22.22",
+    "viem": "^2.23.1",
     "vitest": "^2.1.8",
     "wagmi": "^2.5.13",
     "zod": "^3.23.8",
