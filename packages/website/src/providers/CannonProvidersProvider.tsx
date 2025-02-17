@@ -163,6 +163,9 @@ export const chainMetadata = {
   [chains.unichain.id]: {
     color: '#FF007A',
   },
+  [chains.harmonyOne.id]: {
+    color: '#00b5e7',
+  },
 } as const;
 
 export const supportedChains = (
