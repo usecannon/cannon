@@ -12,6 +12,10 @@ export function FunctionOutput({
   abiParameters,
   methodResult,
 }: Props) {
+  if (!abiParameters.length) {
+    return null;
+  }
+
   if (abiParameters.length > 1) {
     return abiParameters.map((abiParameter, index) => {
       return (
@@ -19,17 +23,14 @@ export function FunctionOutput({
           chainId={chainId}
           key={`${abiParameter.name}-${index}`}
           abiParameter={abiParameter}
-          value={methodResult ? JSON.parse(methodResult)[index] : undefined}
+          value={methodResult?.[index]}
         />
       );
     });
   }
 
-  if (!abiParameters.length) {
-    return null;
-  }
-
   const abiParameter = abiParameters[0];
+
   return (
     <AbiParameterPreview
       chainId={chainId}

@@ -45,6 +45,7 @@ import {
 } from '@/components/ui/popover';
 import { AddressInput } from '@/features/Packages/FunctionInput/AddressInput';
 import { links } from '@/constants/links';
+import isEqual from 'lodash/isEqual';
 
 const extractError = (e: any): string => {
   return typeof e === 'string'
@@ -117,6 +118,9 @@ export const Function: FC<FunctionProps> = ({
   });
 
   const setParam = (index: number, value: any) => {
+    if (isEqual(sadParams.current[index], value)) {
+      return;
+    }
     sadParams.current[index] = value;
     setParams([...sadParams.current]);
   };
