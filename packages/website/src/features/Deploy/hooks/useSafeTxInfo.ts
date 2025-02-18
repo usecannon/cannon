@@ -45,11 +45,15 @@ export function useSafeTxInfo(safeDefinition: SafeDefinition, txSignature: strin
     nonce: safeNonce,
     staged: safeStagedTxs,
     refetch: refetchSafeTxs,
-    isFetched: isSafeTxsFetched,
+    isFetched: areStagedTxsFetched,
   } = useSafeTransactions(safeDefinition);
 
   // Get executed transactions
-  const { data: safeTxsHistory, refetch: refetchHistory } = useExecutedTransactions(safeDefinition);
+  const {
+    data: safeTxsHistory,
+    refetch: refetchHistory,
+    isLoading: areTxsHistoryLoading,
+  } = useExecutedTransactions(safeDefinition);
 
   // Get specific transaction info
   const safeTxn = getSafeTransaction(
@@ -76,49 +80,42 @@ export function useSafeTxInfo(safeDefinition: SafeDefinition, txSignature: strin
   const stager = useTxnStager(safeTxn || {}, { safe: safeDefinition });
 
   // Derive additional state
-  const isTransactionExecuted = txNonce < safeNonce;
+  const isExecuted = txNonce < safeNonce;
   const unorderedNonce = safeTxn && safeTxn._nonce > safeStagedTxs[0]?.txn._nonce;
-  const published = existingRegistryUrl === parsedMulticallData?.cannonPackage;
+  const isPublished = existingRegistryUrl === parsedMulticallData?.cannonPackage;
 
   return {
-    // Transaction Status
-    status: {
-      isTransactionExecuted,
-      unorderedNonce,
-      isFetched: isSafeTxsFetched,
-      published,
-    },
-
     // Transaction Data
     transaction: {
+      safeNonce,
       safeTxn,
       parsedMulticallData,
       queuedWithGitOps,
+      isExecuted,
+      unorderedNonce,
     },
 
     // Safe Data
     safeData: {
-      safeNonce,
-      safeStagedTxs,
-      safeTxsHistory,
+      stager,
+      stagedTxs: {
+        isFetched: areStagedTxsFetched,
+        txs: safeStagedTxs,
+        refetch: refetchSafeTxs,
+      },
+      historyTxs: {
+        isLoading: areTxsHistoryLoading,
+        txs: safeTxsHistory,
+        refetch: refetchHistory,
+      },
     },
 
     // Package Info
     packageInfo: {
+      isPublished,
       cannonPackage,
       existingRegistryUrl,
-    },
-
-    // Git Info
-    gitInfo: {
       prevDeployHashQuery,
-    },
-
-    // Transaction Management
-    management: {
-      stager,
-      refetchSafeTxs,
-      refetchHistory,
     },
   };
 }

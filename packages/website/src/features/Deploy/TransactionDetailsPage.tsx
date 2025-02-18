@@ -7,73 +7,30 @@ import {
   CardDescription,
   CardContent,
 } from '@/components/ui/card';
-import {
-  useCannonBuild,
-  useCannonPackage,
-  useLoadCannonDefinition,
-} from '@/hooks/cannon';
 import { useTransactionDetailsParams } from '@/hooks/routing/useTransactionDetailsParams';
 
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 import _ from 'lodash';
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { useAccount, useChainId } from 'wagmi';
 import PublishUtility from './PublishUtility';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 import SimulateSafeTx from '@/features/Deploy/SimulateSafeTx';
 import { SafeSignExecuteButtons } from './SafeSignExecuteButtons';
-import { Address, Hash, Hex, hexToString, TransactionRequestBase } from 'viem';
+import { Address, hexToString, TransactionRequestBase } from 'viem';
 import { useSafeTxInfo } from './hooks/useSafeTxInfo';
-
-import { getSafeTransactionHash } from '@/helpers/safe';
-import { SafeDefinition } from '@/helpers/store';
-import { CannonSafeTransaction } from '@/hooks/backend';
-import { SafeTransaction } from '@/types/SafeTransaction';
-import { ChainDefinition } from '@usecannon/builder';
-import { getChainDefinitionFromWorker } from '@/helpers/chain-definition';
+import { useSafeBuildTx } from '@/features/Deploy/hooks/useSafeBuildTx';
 
 import 'react-diff-view/style/index.css';
-
-function getPrevDeployGitHash({
-  queuedWithGitOps,
-  prevGitRepoHash,
-  gitRepoHash,
-  prevDeployHashQuery,
-}: {
-  queuedWithGitOps: boolean;
-  prevGitRepoHash?: string;
-  gitRepoHash?: string;
-  prevDeployHashQuery?: Hash;
-}): string {
-  if (!prevGitRepoHash || !gitRepoHash) return '';
-
-  if (queuedWithGitOps) {
-    return (prevGitRepoHash || gitRepoHash) ?? '';
-  }
-
-  return prevDeployHashQuery && prevDeployHashQuery.data?.[0].result
-    ? prevDeployHashQuery.data[0].result.slice(2)
-    : gitRepoHash ?? '';
-}
-
-function getIpfsUrl(packageUrl?: string) {
-  if (!packageUrl) return '';
-
-  // Get the last segment of the URL and construct IPFS URL
-  const lastSegment = _.last(packageUrl.split('/'));
-  return lastSegment ? `ipfs://${lastSegment}` : '';
-}
 
 function TransactionDetailsPage() {
   const walletChainId = useChainId();
   const account = useAccount();
   const gitDiffContainerRef = useRef<HTMLDivElement>(null);
 
-  // ---------------------
-  // Get safe info
-  // ---------------------
+  // get transaction details from url params
   const {
     chainId: txParamChainId,
     nonce: txParamNonce,
@@ -81,53 +38,54 @@ function TransactionDetailsPage() {
     safeDefinition: txParamSafeDefinition,
   } = useTransactionDetailsParams();
 
+  // check if safe chain is supported
   const { getChainById } = useCannonChains();
   if (!getChainById(txParamSafeDefinition.chainId)) {
     throw new Error('Safe Chain not supported');
   }
 
-  const { status, transaction, safeData, packageInfo, gitInfo, management } =
-    useSafeTxInfo(
-      txParamSafeDefinition,
-      txParamSignatureHash,
-      txParamNonce,
-      txParamChainId
-    );
+  const { transaction, safeData, packageInfo } = useSafeTxInfo(
+    txParamSafeDefinition,
+    txParamSignatureHash,
+    txParamNonce,
+    txParamChainId
+  );
 
-  const safeTxn = transaction.safeTxn;
-  const parsedMulticallData = transaction.parsedMulticallData;
-  const queuedWithGitOps = transaction.queuedWithGitOps;
-
-  const cannonPackage = packageInfo.cannonPackage;
-
-  const prevDeployHashQuery = gitInfo.prevDeployHashQuery;
+  const { buildInfo } = useSafeBuildTx({
+    safeDefinition: txParamSafeDefinition,
+    isTransactionExecuted: transaction.isExecuted,
+    parsedMulticallData: transaction.parsedMulticallData,
+    prevDeployHashQuery: packageInfo.prevDeployHashQuery,
+    queuedWithGitOps: transaction.queuedWithGitOps,
+  });
 
   // Derived state
+  const signers: Address[] = safeData.stager.existingSigners.length
+    ? safeData.stager.existingSigners
+    : transaction.safeTxn?.confirmedSigners || [];
 
-  const isTransactionExecuted = status.isTransactionExecuted;
-  const stager = management.stager;
-  const signers: Address[] = stager.existingSigners.length
-    ? stager.existingSigners
-    : safeTxn?.confirmedSigners || [];
   const unorderedNonce =
-    safeTxn && safeTxn._nonce > safeData.safeStagedTxs[0]?.txn._nonce;
+    transaction.safeTxn &&
+    transaction.safeTxn._nonce > safeData.stagedTxs.txs[0]?.txn._nonce;
+
   const threshold =
-    Number(stager.requiredSigners) || safeTxn?.confirmationsRequired || 0;
+    Number(safeData.stager.requiredSigners) ||
+    transaction.safeTxn?.confirmationsRequired ||
+    0;
 
-  const prevDeployPackageUrl = prevDeployHashQuery.data
-    ? hexToString(prevDeployHashQuery.data[1].result || '0x')
+  const prevDeployPackageUrl = packageInfo.prevDeployHashQuery.data
+    ? hexToString(packageInfo.prevDeployHashQuery.data[1].result || '0x')
     : '';
-
-  const buildInfo = useCannonBuild(txParamSafeDefinition);
 
   // compare proposed build info with expected transaction batch
   const expectedTxns = buildInfo.buildState?.result?.safeSteps?.map(
     (s) => s.tx as unknown as Partial<TransactionRequestBase>
   );
+
   const unequalTransaction = Boolean(
     expectedTxns &&
-      (parsedMulticallData?.txns.length !== expectedTxns.length ||
-        parsedMulticallData?.txns.find((t, i) => {
+      (transaction.parsedMulticallData?.txns.length !== expectedTxns.length ||
+        transaction.parsedMulticallData?.txns.find((t, i) => {
           return (
             t.to.toLowerCase() !== expectedTxns[i].to?.toLowerCase() ||
             t.data !== expectedTxns[i].data ||
@@ -136,69 +94,7 @@ function TransactionDetailsPage() {
         }))
   );
 
-  //----------------
-  // BUILD STUFF
-  //----------------
-
-  // // git stuff
-  // const denom = parsedMulticallData?.gitRepoUrl?.lastIndexOf(':');
-
-  // const gitUrl = parsedMulticallData?.gitRepoUrl?.slice(0, denom);
-  // const gitFile = parsedMulticallData?.gitRepoUrl?.slice((denom ?? 0) + 1);
-
-  // const chainDefinitionRef = useRef<ChainDefinition>();
-
-  // const prevDeployGitHash = getPrevDeployGitHash({
-  //   queuedWithGitOps,
-  //   prevGitRepoHash: parsedMulticallData?.gitRepoHash,
-  //   gitRepoHash: parsedMulticallData?.gitRepoHash,
-  //   prevDeployHashQuery: prevDeployHashQuery.data?.[0].result,
-  // });
-
-  // const cannonPackageUrl = getIpfsUrl(
-  //   parsedMulticallData?.cannonUpgradeFromPackage || prevDeployPackageUrl
-  // );
-
-  // const prevCannonDeployInfo = useCannonPackage(cannonPackageUrl);
-
-  // const cannonDefInfo = useLoadCannonDefinition(
-  //   gitUrl ?? '',
-  //   parsedMulticallData?.gitRepoHash ?? '',
-  //   gitFile ?? ''
-  // );
-
-  // useEffect(() => {
-  //   const getChainDef = async () => {
-  //     if (!cannonDefInfo.def) return;
-
-  //     chainDefinitionRef.current = await getChainDefinitionFromWorker(
-  //       cannonDefInfo.def
-  //     );
-  //   };
-
-  //   void getChainDef();
-  // }, [cannonDefInfo.def]);
-
-  // useEffect(() => {
-  //   if (
-  //     !txParamSafeDefinition ||
-  //     !chainDefinitionRef.current ||
-  //     !prevCannonDeployInfo.ipfsQuery.data?.deployInfo
-  //   ) {
-  //     return;
-  //   }
-
-  //   buildInfo.doBuild(
-  //     chainDefinitionRef.current,
-  //     prevCannonDeployInfo.ipfsQuery.data?.deployInfo
-  //   );
-  // }, [
-  //   !isTransactionExecuted &&
-  //     (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
-  //   chainDefinitionRef.current,
-  // ]);
-
-  if (!parsedMulticallData) {
+  if (!transaction.parsedMulticallData) {
     return (
       <div className="container p-24 text-center">
         <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto" />
@@ -206,15 +102,15 @@ function TransactionDetailsPage() {
     );
   }
 
-  if (!safeTxn && status.isFetched) {
+  if (!transaction.safeTxn && safeData.stagedTxs.isFetched) {
     return (
       <div className="container">
         <p>
           Transaction not found! Current safe nonce:{' '}
-          {safeData.safeNonce ? safeData.safeNonce.toString() : 'none'}, Highest
-          Staged Nonce:{' '}
+          {transaction.safeNonce ? transaction.safeNonce.toString() : 'none'},
+          Highest Staged Nonce:{' '}
           {(
-            _.last(safeData.safeStagedTxs)?.txn._nonce || safeData.safeNonce
+            _.last(safeData.stagedTxs.txs)?.txn._nonce || transaction.safeNonce
           ).toString()}
         </p>
       </div>
@@ -228,15 +124,15 @@ function TransactionDetailsPage() {
           <h1 className="text-2xl lg:text-3xl font-bold">
             Transaction #{txParamNonce}
           </h1>
-          {(parsedMulticallData.type == 'deploy' ||
-            parsedMulticallData.type == 'invoke') && (
+          {(transaction.parsedMulticallData.type == 'deploy' ||
+            transaction.parsedMulticallData.type == 'invoke') && (
             <div className="mt-4">
               <TransactionStepper
                 chainId={txParamChainId}
-                cannonPackage={cannonPackage}
-                safeTxn={safeTxn}
-                published={status.published}
-                publishable={queuedWithGitOps}
+                cannonPackage={packageInfo.cannonPackage}
+                safeTxn={transaction.safeTxn}
+                published={packageInfo.isPublished}
+                publishable={transaction.queuedWithGitOps}
                 signers={signers}
                 threshold={threshold}
               />
@@ -252,10 +148,10 @@ function TransactionDetailsPage() {
             <TransactionDisplay
               safeSteps={buildInfo.buildState?.result?.safeSteps}
               safe={txParamSafeDefinition}
-              safeTxn={safeTxn as any}
-              queuedWithGitOps={queuedWithGitOps}
+              safeTxn={transaction.safeTxn as any}
+              queuedWithGitOps={transaction.queuedWithGitOps}
               showQueueSource={true}
-              isTransactionExecuted={isTransactionExecuted}
+              isTransactionExecuted={transaction.isExecuted}
               containerRef={gitDiffContainerRef}
             />
           </div>
@@ -265,43 +161,43 @@ function TransactionDetailsPage() {
             <div className="h-full">
               <div className="flex flex-col gap-4">
                 {/* Verify txs */}
-                {!isTransactionExecuted && !unorderedNonce && (
+                {!transaction.isExecuted && !unorderedNonce && (
                   <SimulateSafeTx
-                    queuedWithGitOps={queuedWithGitOps}
+                    queuedWithGitOps={transaction.queuedWithGitOps}
                     buildMessage={buildInfo.buildState?.message}
                     buildError={buildInfo.buildState?.error}
                     buildCompleted={Boolean(buildInfo.buildState?.result)}
                     unequalTransaction={unequalTransaction}
                     showPrevDeployWarning={Boolean(
                       prevDeployPackageUrl &&
-                        parsedMulticallData.cannonUpgradeFromPackage !==
-                          prevDeployPackageUrl
+                        transaction.parsedMulticallData
+                          .cannonUpgradeFromPackage !== prevDeployPackageUrl
                     )}
                     safeSigner={signers[0]}
                     safe={txParamSafeDefinition}
-                    safeTxn={safeTxn}
-                    execTransactionData={stager.execTransactionData}
+                    safeTxn={transaction.safeTxn}
+                    execTransactionData={safeData.stager.execTransactionData}
                   />
                 )}
 
                 {/* Signatures or Execute info  */}
                 <SafeSignExecuteButtons
                   safe={txParamSafeDefinition}
-                  safeTxn={safeTxn}
-                  stager={stager}
-                  staged={safeData.safeStagedTxs}
+                  safeTxn={transaction.safeTxn}
+                  stager={safeData.stager}
+                  staged={safeData.stagedTxs.txs}
                   signers={signers}
                   threshold={threshold}
-                  isTransactionExecuted={isTransactionExecuted}
+                  isTransactionExecuted={transaction.isExecuted}
                   unorderedNonce={unorderedNonce}
                   walletChainId={walletChainId}
                   accountConnected={account.isConnected}
-                  refetchSafeTxs={management.refetchSafeTxs}
-                  refetchHistory={management.refetchHistory}
+                  refetchSafeTxs={safeData.stagedTxs.refetch}
+                  refetchHistory={safeData.historyTxs.refetch}
                 />
 
                 {/* Cannon package IPFS Info */}
-                {queuedWithGitOps && isTransactionExecuted && (
+                {transaction.queuedWithGitOps && transaction.isExecuted && (
                   <Card className="rounded-sm">
                     <CardHeader>
                       <CardTitle>Cannon Package</CardTitle>
@@ -314,7 +210,9 @@ function TransactionDetailsPage() {
                     </CardHeader>
                     <CardContent>
                       <PublishUtility
-                        deployUrl={parsedMulticallData.cannonPackage}
+                        deployUrl={
+                          transaction.parsedMulticallData.cannonPackage
+                        }
                         targetChainId={txParamSafeDefinition.chainId}
                       />
                     </CardContent>

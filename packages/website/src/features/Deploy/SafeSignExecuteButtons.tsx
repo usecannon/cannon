@@ -232,6 +232,7 @@ export function SafeSignExecuteButtons({
                       </Button>
                     </div>
                   </TooltipTrigger>
+
                   {stager.signConditionFailed && (
                     <TooltipContent>
                       {stager.signConditionFailed}
