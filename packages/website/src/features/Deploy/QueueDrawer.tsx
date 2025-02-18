@@ -274,7 +274,7 @@ export const QueuedTxns = ({
         ) : (
           (txnsWithErrorIndexes.length === 0 &&
             queuedIdentifiableTxns.length > 1 && (
-              <Alert variant="info">
+              <Alert variant="info" data-testid="txs-alert">
                 <AlertTitle>All Transactions Simulated Successfully</AlertTitle>
                 <AlertDescription>
                   {queuedIdentifiableTxns.length} simulated transaction
@@ -341,6 +341,7 @@ export const QueuedTxns = ({
                 className="bg-black"
                 onChange={(event: any) => setTarget(event.target.value)}
                 value={target}
+                data-testid="target-input"
               />
               {!isAddress(target) &&
                 target.length >= 3 &&
@@ -355,6 +356,7 @@ export const QueuedTxns = ({
                   variant="outline"
                   onClick={() => addQueuedTxn()}
                   className="absolute right-2 top-1/2 -translate-y-1/2"
+                  data-testid="add-txs-button"
                 >
                   +
                 </Button>

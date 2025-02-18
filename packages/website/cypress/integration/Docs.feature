@@ -1,5 +1,5 @@
 Feature: Cannon Docs
-
+  @only
   Scenario: Navigating to the docs page
     Given User opens the "/learn" page
     * User clicks on the "Guides" tab

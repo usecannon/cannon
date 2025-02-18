@@ -20,8 +20,8 @@ When('User clicks on the {string} tab', (link: string) => {
   cy.contains('a', `${link}`).click();
 });
 
-When('User clicks on the button with id {string}', (id: string) => {
-  cy.get(`#${id}`).click();
+When('User clicks on the {int}st/nd/rd/th button or link with id {string}', (idx: number, id: string) => {
+  cy.get(`[data-testid="${id}"]`).eq(idx - 1).click();
 });
 
 When('User clicks on the button with {string} {string}', (property: string, label: string) => {
@@ -30,10 +30,6 @@ When('User clicks on the button with {string} {string}', (property: string, labe
 
 When('User clicks on the {string} element with text {string}', (element: string, text: string) => {
   cy.get(element).contains(text).first().click();
-});
-
-When('User clicks to turn off the {string} filter', (label: string) => {
-  cy.contains('h4',`${label}`).closest('div').parent().find('button[role="switch"]').click();
 });
 
 When('User types {string} in the {string} input', (text: string, input: string) => {
@@ -48,8 +44,8 @@ When('User types {string} for {string}', (text: string, element: string) => {
   cy.contains('span', `${element}`).closest('div').find('input').first().type(`${text}`);
 });
 
-When('User types {string} with id {string}', (text: string, id: string) =>{
-  cy.get(`[data-testid="${id}"]`).type(`${text}`);
+When('User types {string} into the {int}st/nd/rd/th input with id {string}', (text: string, idx:number, id: string) =>{
+  cy.get(`[data-testid="${id}"]`).eq(idx - 1).clear().type(`${text}`);
 });
 
 When('User waits for {string} seconds while loading',(second: string) => {
@@ -97,6 +93,6 @@ When('User clicks on copy button on {string} tab', (label: string) => {
   cy.contains('span',`${label}`).closest('div').parent().contains('span','Copy command').closest('button').click();  
 })
 
-When('User clicks on test button with id {string}', (id: string) =>{
-  cy.get(`[data-testid="${id}"]`).first().click();
+Then('Drawer has {int} queued transactions', (idx: number) => {
+  cy.get('div[role="alert"]').should('contain',`${String(idx)}`)
 });

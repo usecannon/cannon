@@ -9,33 +9,37 @@ Feature: Stage Transactions
     * Wallet is connected
     Then View renders a "p" displaying the text "Queue, sign, and execute deployments"
 
-#  @only
   Scenario: User stages transactions from the interact page
     Given User opens the "/packages" page
-    When User types "owned-greeter" in the "search" input
-    # * User clicks on the button with id "owned-greeter-expandable-button"
+    When User types "owned-greeter" into the 1st input with id "search-input"
     * User waits for "1" seconds while loading
-    * User clicks to turn off the "owned-greeter" filter
+    * User clicks on the 1st button or link with id "owned-greeter-filter-button"
     * User clicks on the element with version "0.0.5" and chain "11155111"
     Then URL includes "/packages/owned-greeter/0.0.5"
     * View renders a "h1" displaying the text "owned-greeter"
-    # * View renders a "h2" displaying the text "Contract Deployments"
     * View renders a "a" displaying the text "Deployment"
-    When User clicks on the "/packages/owned-greeter/0.0.5/11155111-main/interact" link
-    * User clicks on the "div" element with text "setGreeting(string)"
-    * User types "Hello World!" for "_greeting"
-    * User clicks on the button with id "setGreeting-stage-to-safe"
+    # When User clicks on the "/packages/owned-greeter/0.0.5/11155111-main/interact" link
+    When User clicks on the 1st button or link with id "interact-link"
+    * User clicks on the 1st button or link with id "setGreeting-button"
+    # * User types "Hello World!" for "_greeting"
+    When User types "Hello World!" into the 1st input with id "default-input"
+    * User clicks on the 1st button or link with id "stage-safe-button"
     # Drawer and Toast error should be displayed
     Then View renders a "h2" displaying the text "Stage Transactions to a Safe"
     * View renders a "button" displaying the text "Select Safe"
-    * User clicks on the "Select Safe" button
-    * User types "11155111" with id "safe-chain-input"
-    * User types "0xfD050037C9039cE7b4A3213E3645BC1ba6eA0c97" with id "safe-address-input"
-    * User clicks on the "Add Safe" button
-#    When User types and select the safe "11155111:0xfD050037C9039cE7b4A3213E3645BC1ba6eA0c97"
+    * User clicks on the 1st button or link with id "safe-select-button"
+    * User types "11155111" into the 1st input with id "safe-chain-input"
+    * User types "0xfD050037C9039cE7b4A3213E3645BC1ba6eA0c97" into the 1st input with id "safe-address-input"
+    * User clicks on the 1st button or link with id "safe-add-button"
     * User clicks on the "Close" button
-#    * User closes the queue txns drawer
-#    * User waits for "60" seconds while loading
+    When User types "Hello World!" into the 1st input with id "default-input"
+    * User clicks on the 1st button or link with id "stage-safe-button"
+    When User types "Hello World Again!" into the 1st input with id "default-input"
+    * User clicks on the 1st button or link with id "stage-safe-button"
+    * User clicks on the 1st button or link with id "queue-button"
+    Then Drawer has 2 queued transactions
+
+#    * User clicks on the "Close" button
 #    * User clicks on the button with id "setGreeting-stage-to-safe"
 #    Then  View renders a "div" displaying the text "Total transactions queued: 1"
 #    When User types "Hello World Again!" for "_greeting" function param
@@ -45,38 +49,70 @@ Feature: Stage Transactions
 #    When User clicks on the button with "aria-label" "queue-txs"
 #    Then Drawer has exactly 2 queued transactions
 
-  @skip
   Scenario: User stages transactions from the queue transactions drawer
     Given User opens the "/packages/owned-greeter/0.0.5/11155111-main/interact/owned-greeter/Greeter/0xa4605Ef2fB94211815F14AF6153915928C9E6407" page
-    When User clicks on the button with "aria-label" "queue-txs"
-    Then View renders a "header" displaying the text "Stage Transactions to a Safe"
-    When User types and select the safe "11155111:0xfD050037C9039cE7b4A3213E3645BC1ba6eA0c97"
+    When User clicks on the 1st button or link with id "queue-button"
+    Then View renders a "h2" displaying the text "Stage Transactions to a Safe"
+    * User clicks on the 1st button or link with id "safe-select-button"
+    * User types "11155111" into the 1st input with id "safe-chain-input"
+    * User types "0xfD050037C9039cE7b4A3213E3645BC1ba6eA0c97" into the 1st input with id "safe-address-input"
+    * User clicks on the 1st button or link with id "safe-add-button"
     When View contains the "target-input" input
-    When User types "owned-greeter" in the "target-input" input
-    When User clicks on the button with "aria-label" "Add Transaction"
-    * User selects and clicks on the contract with name "Greeter" of the element # 1
-    * User selects and clicks on the function with name "setGreeting" of the element # 1
-    * User sets the value of parameter "_greeting" to "Hello World!" in the element # 1
-    When User clicks on the button with "aria-label" "Add Transaction"
-    * User selects and clicks on the contract with name "Greeter" of the element # 2
-    * User selects and clicks on the function with name "setGreeting" of the element # 2
-    * User sets the value of parameter "_greeting" to "Hello World Again!" in the element # 2
-    Then Drawer has exactly 2 queued transactions
+    When User types "owned-greeter" into the 1st input with id "target-input"
+    * User clicks on the 1st button or link with id "add-txs-button"
+    # Element 1
+    * User clicks on the 1st button or link with id "select-contract-button"
+    * User clicks on the 1st button or link with id "Greeter-select"
+    # Element 2
+    * User clicks on the 1st button or link with id "select-function-button"
+    * User clicks on the 1st button or link with id "setGreeting-select"
+    # Element 3
+    * User types "Hello World!" into the 1st input with id "default-input"
+    When User types "owned-greeter" into the 1st input with id "target-input"
+    * User clicks on the 1st button or link with id "add-txs-button"
+    # Element 1
+    * User clicks on the 2nd button or link with id "select-contract-button"
+    * User clicks on the 1st button or link with id "Greeter-select"
+    # Element 2
+    * User clicks on the 2nd button or link with id "select-function-button"
+    * User clicks on the 1st button or link with id "setGreeting-select"
+    # Element 3
+    * User types "Hello World Again!" into the 2nd input with id "default-input"
+    Then View renders a "div" displaying the text "All Transactions Simulated Successfully"
+    * Drawer has 2 queued transactions
 
-  @skip
   Scenario: User stages transactions from the deploy page
     Given User opens the "/deploy" page
-    * Wallet is connected
-    * User types and select the safe "11155111:0xfD050037C9039cE7b4A3213E3645BC1ba6eA0c97"
+    ########
+#    * Wallet is connected
+    ########
+    * View renders a "button" displaying the text "Select Safe"
+    * User waits for "5" seconds while loading
+    * User clicks on the 1st button or link with id "safe-select-button"
+    * User types "11155111" into the 1st input with id "safe-chain-input"
+    * User types "0xfD050037C9039cE7b4A3213E3645BC1ba6eA0c97" into the 1st input with id "safe-address-input"
+    * User clicks on the 1st button or link with id "safe-add-button"
     When User clicks on the "/deploy/queue" link
-    Then View renders a "h2" displaying the text "Stage Transactions"
-    When User types "owned-greeter" in the "target-input" input
-    When User clicks on the button with "aria-label" "Add Transaction"
-    * User selects and clicks on the contract with name "Greeter" of the element # 1
-    * User selects and clicks on the function with name "setGreeting" of the element # 1
-    * User sets the value of parameter "_greeting" to "Hello World!" in the element # 1
-    When User clicks on the button with "aria-label" "Add Transaction"
-    * User selects and clicks on the contract with name "Greeter" of the element # 2
-    * User selects and clicks on the function with name "setGreeting" of the element # 2
-    * User sets the value of parameter "_greeting" to "Hello World Again!" in the element # 2
-    Then Drawer has exactly 2 queued transactions
+#    Then View renders a "a" displaying the text "Stage Transactions"
+    When User types "owned-greeter" into the 1st input with id "target-input"
+    * User clicks on the 1st button or link with id "add-txs-button"
+    # Element 1
+    * User clicks on the 1st button or link with id "select-contract-button"
+    * User clicks on the 1st button or link with id "Greeter-select"
+    # Element 2
+    * User clicks on the 1st button or link with id "select-function-button"
+    * User clicks on the 1st button or link with id "setGreeting-select"
+    # Element 3
+    * User types "Hello World!" into the 1st input with id "default-input"
+    When User types "owned-greeter" into the 1st input with id "target-input"
+    * User clicks on the 1st button or link with id "add-txs-button"
+    # Element 1
+    * User clicks on the 2nd button or link with id "select-contract-button"
+    * User clicks on the 1st button or link with id "Greeter-select"
+    # Element 2
+    * User clicks on the 2nd button or link with id "select-function-button"
+    * User clicks on the 1st button or link with id "setGreeting-select"
+    # Element 3
+    * User types "Hello World Again!" into the 2nd input with id "default-input"
+    Then View renders a "div" displaying the text "All Transactions Simulated Successfully"
+    * Drawer has 2 queued transactions

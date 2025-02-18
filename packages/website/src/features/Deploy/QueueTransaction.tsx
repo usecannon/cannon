@@ -268,13 +268,17 @@ export function QueueTransaction({
               value={selectedContractName || undefined}
               onValueChange={(value) => setSelectedContractName(value)}
             >
-              <SelectTrigger>
+              <SelectTrigger data-testid="select-contract-button">
                 <SelectValue placeholder="Choose a contract..." />
               </SelectTrigger>
               <SelectContent>
                 {contracts
                   ? Object.entries(contracts).map(([name, contract]) => (
-                      <SelectItem key={name} value={name}>
+                      <SelectItem
+                        key={name}
+                        value={name}
+                        data-testid={`${name}-select`}
+                      >
                         <div className="flex gap-2 items-baseline text-left">
                           <span>{name}</span>
                           <span className="text-xs text-muted-foreground font-mono">
@@ -312,7 +316,7 @@ export function QueueTransaction({
                 setSelectedFunction(fn || null);
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger data-testid="select-function-button">
                 <SelectValue placeholder="Choose a function..." />
               </SelectTrigger>
               <SelectContent>
@@ -324,7 +328,11 @@ export function QueueTransaction({
                           abi.stateMutability !== 'view'
                       )
                       .map((abi) => (
-                        <SelectItem key={abi.name} value={abi.name}>
+                        <SelectItem
+                          key={abi.name}
+                          value={abi.name}
+                          data-testid={`${abi.name}-select`}
+                        >
                           <div className="flex gap-2 items-baseline text-left">
                             <span>{abi.name}</span>
                             <span className="text-xs text-muted-foreground font-mono">
