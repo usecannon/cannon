@@ -7,7 +7,5 @@ includeSourceCode = false
 artifact = "Greeter"
 
 [contract.AccessManager]
-artifact = "AccessManager.sol:AccessManager"
-
-# [contract.AccessManager]
-# artifact = "@openzeppelin/contracts/access/manager/AccessManager.sol:AccessManager"
+artifact = "AccessManager"
+args = ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"]
