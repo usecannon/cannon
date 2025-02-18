@@ -1,0 +1,13 @@
+name = "examples-foundry-artifacts"
+description = "Example importing external artifacts from a foundry project"
+version = "0.0.1"
+includeSourceCode = false
+
+[contract.Greeter]
+artifact = "Greeter"
+
+[contract.AccessManager]
+artifact = "AccessManager.sol:AccessManager"
+
+# [contract.AccessManager]
+# artifact = "@openzeppelin/contracts/access/manager/AccessManager.sol:AccessManager"
