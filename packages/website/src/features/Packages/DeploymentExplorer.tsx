@@ -13,6 +13,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import ContractsTab from './Tabs/ContractsTab';
 import FunctionCallsTab from './Tabs/FunctionCallsTab';
 import EventDataTab from './Tabs/EventDataTab';
+import isPlainObject from 'lodash/isPlainObject';
 
 export const DeploymentExplorer: FC<{
   pkg: ApiPackage;
@@ -40,16 +41,16 @@ export const DeploymentExplorer: FC<{
   function mergeArtifactsContracts(obj: any, mergedContracts: any = {}) {
     for (const key in obj) {
       const currentArtifact = obj[key];
-      const address = currentArtifact.address;
-      const abi = currentArtifact.abi;
-      const artifacts = currentArtifact.artifacts;
-      const artifactsImports = artifacts?.imports;
 
-      const hasStepDefinition = stepDefinitions.some((step) =>
-        currentArtifact.deployedOn?.includes(step)
-      );
+      if (isPlainObject(currentArtifact)) {
+        const address = currentArtifact.address;
+        const abi = currentArtifact.abi;
+        const artifacts = currentArtifact.artifacts;
+        const artifactsImports = artifacts?.imports;
+        const hasStepDefinition = stepDefinitions.some((step) =>
+          currentArtifact.deployedOn?.includes(step)
+        );
 
-      if (typeof obj[key] === 'object') {
         if (address && abi && hasStepDefinition) {
           mergedContracts[address] = currentArtifact;
         }
