@@ -109,7 +109,7 @@ export function SafeTransactionsAndExecution({
     buildState.status == 'success' &&
     writeToIpfsMutation?.data?.mainUrl &&
     !multicallTxn?.data;
-  const noSafeTxns =
+  const safeTxns =
     writeToIpfsMutation?.data?.mainUrl && multicallTxn?.data && stager.safeTxn;
   const skippedSteps =
     writeToIpfsMutation?.data?.mainUrl &&
@@ -139,7 +139,7 @@ export function SafeTransactionsAndExecution({
           </AlertDescription>
         </Alert>
       )}
-      {noSafeTxns && (
+      {safeTxns && (
         <div className="mt-4 mb-4">
           <h3 className="text-sm font-semibold mb-2">Safe Transactions:</h3>
           {buildState.result?.safeSteps.length === 0 ? (
@@ -150,6 +150,7 @@ export function SafeTransactionsAndExecution({
             </Alert>
           ) : (
             <TransactionDisplay
+              safeSteps={buildState.result?.safeSteps}
               safe={currentSafe as any}
               safeTxn={stager.safeTxn}
             />

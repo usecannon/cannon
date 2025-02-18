@@ -4,6 +4,7 @@ import { CustomSpinner } from '@/components/CustomSpinner';
 import { parseHintedMulticall } from '@/helpers/cannon';
 import { SafeDefinition } from '@/helpers/store';
 import {
+  CannonTxRecord,
   useCannonPackageContracts,
   useLoadCannonDefinition,
 } from '@/hooks/cannon';
@@ -78,6 +79,7 @@ const NoDiffWarning = () => (
 export function TransactionDisplay(props: {
   safeTxn: SafeTransaction;
   safe: SafeDefinition;
+  safeSteps: CannonTxRecord[] | undefined;
   queuedWithGitOps?: boolean;
   showQueueSource?: boolean;
   isTransactionExecuted?: boolean;
@@ -314,6 +316,7 @@ export function TransactionDisplay(props: {
           return (
             <div key={`tx-${i}`} className="mb-4">
               <DisplayedTransaction
+                cannonOperation={props.safeSteps?.[i]?.name}
                 txn={txn}
                 chainId={props.safe.chainId}
                 pkgUrl={

@@ -18,7 +18,10 @@ import React, { useEffect, useState } from 'react';
 import { useSwitchChain } from 'wagmi';
 import omit from 'lodash/omit';
 import { truncateAddress } from '@/helpers/ethereum';
-import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import {
+  useCannonChains,
+  chainMetadata,
+} from '@/providers/CannonProvidersProvider';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -204,6 +207,9 @@ export function SafeAddressInput() {
                 <Tooltip>
                   <TooltipTrigger>
                     <span className="font-mono md:hidden">
+                      {chainMetadata[currentSafe.chainId]?.shortName
+                        ? `${chainMetadata[currentSafe.chainId].shortName}:`
+                        : ''}
                       {truncateAddress(currentSafe.address, 4)}
                     </span>
                   </TooltipTrigger>
@@ -214,6 +220,9 @@ export function SafeAddressInput() {
               </TooltipProvider>
 
               <span className="font-mono hidden md:inline">
+                {chainMetadata[currentSafe.chainId]?.shortName
+                  ? `${chainMetadata[currentSafe.chainId].shortName}:`
+                  : ''}
                 {currentSafe.address}
               </span>
             </div>
@@ -241,7 +250,11 @@ export function SafeAddressInput() {
           </Button>
         )}
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          modal={false}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Select Safe</DialogTitle>
