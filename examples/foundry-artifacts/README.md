@@ -1,6 +1,6 @@
-# Cannon | Router Architecture Example
+# Cannon | Foundry Artifacts Example
 
-Minimal example for having a Cannon project with a [Router](https://github.com/Synthetixio/synthetix-router/blob/master/README.md) contract.
+Example showing how to import external artifacts from a foundry project.
 
 ### Getting Started
 
