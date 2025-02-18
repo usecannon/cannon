@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ChainDefinition, RawChainDefinition } from '@usecannon/builder';
+import { getChainDefinitionFromWorker } from '@/helpers/chain-definition';
 
 export function useChainDefinitionWorker(deployInfo: RawChainDefinition | null) {
   const [chainDef, setChainDef] = useState<ChainDefinition | null>(null);

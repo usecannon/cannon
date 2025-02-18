@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import {
+  Hash,
   TransactionRequestBase,
   encodeAbiParameters,
   encodeFunctionData,
@@ -79,7 +80,7 @@ export function useMultisendTxsParams({
               data: encodeFunctionData({
                 abi: onchainStore.ABI,
                 functionName: 'set',
-                args: [keccak256(toBytes(`${gitInfo.gitUrl}:${gitInfo.gitFile}gitHash`)), '0x' + gitHash],
+                args: [keccak256(toBytes(`${gitInfo.gitUrl}:${gitInfo.gitFile}gitHash`)), ('0x' + gitHash) as Hash],
               }),
             } as Partial<TransactionRequestBase>)
           : {},
