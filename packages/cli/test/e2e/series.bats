@@ -190,6 +190,14 @@ teardown() {
   assert_success
 }
 
+@test "debugging" {
+  set_custom_config
+  # start_optimism_emitter
+  run debugging.sh
+  echo $output
+  assert_success
+}
+
 @test "Register & Publish - Registering and publishing the greeter package" {
   set_custom_config
   start_optimism_emitter

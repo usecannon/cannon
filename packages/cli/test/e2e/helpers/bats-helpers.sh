@@ -3,6 +3,7 @@
 # DEFAULT BATS FUNCTION OVERRIDES
 
 _setup_file() {
+  export FOUNDRY_DISABLE_NIGHTLY_WARNING=true
   export CANNON_REPO_DIR="$(git rev-parse --show-toplevel)"
 
   load_env "$CANNON_REPO_DIR/packages/cli/.env.test"
@@ -91,14 +92,33 @@ require_env_var() {
   fi
 }
 
+_get_package_owner() {
+  local _package="$1"
+
+  local _package_name="$(cast from-utf8 $_package | cast to-bytes32)"
+
+  local _owner="$(cast call 0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba 'getPackageOwner(bytes32 _packageName)' '$_package_name' --rpc-url $CANNON_E2E_RPC_URL_OPTIMISM 2>/dev/null | sed -n '/^0x/p')"
+
+  echo "$_owner"
+}
+
 set_publisher() {
   local _package="$1"
   local _publisher="$2"
 
-  local _package_name="$(cast from-utf8 $_package | cast to-bytes32)"
-  local _owner="cast call 0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba 'getPackageOwner(bytes32 _packageName)' '$_package_name' --rpc-url $CANNON_E2E_RPC_URL_OPTIMISM"
-  # local _owner_address="$(cast call $_owner --rpc-url $CANNON_E2E_RPC_URL_OPTIMISM)"
+  echo "Setting publisher for '$_package' to '$_publisher'" >&3
 
-  echo "Setting publisher for $_package_name to $_publisher"
-  echo "Owner: $_owner"
+  local _package_name="$(cast from-utf8 $_package | cast to-bytes32)"
+
+  echo "Package name: $_package_name" >&3
+
+  local _owner="$(cast call 0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba 'getPackageOwner(bytes32 _packageName)' '$_package_name' --rpc-url $CANNON_E2E_RPC_URL_OPTIMISM 2>/dev/null | sed -n '/^0x/p' | tr -d '[:space:]')"
+
+  echo "-->" $_owner >&3
+  echo "Owner: $_owner" >&3
+
+  # # local _owner_address="$(cast call $_owner --rpc-url $CANNON_E2E_RPC_URL_OPTIMISM)"
+
+  # echo "Setting publisher for $_package_name to $_publisher"
+  # echo "Owner: $_owner"
 }
