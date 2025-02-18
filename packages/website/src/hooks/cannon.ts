@@ -120,11 +120,9 @@ export function useCannonBuild(safe: SafeDefinition | null) {
     dispatch(initialState);
   }
 
-  useEffect(() => {
-    resetState();
-  }, [deployerWalletAddress]);
-
   const buildFn = async (def?: ChainDefinition, prevDeploy?: DeploymentInfo) => {
+    dispatch({ status: 'building' });
+
     // Wait until finished loading
     if (!safe || !def || !deployerWalletAddress) {
       throw new Error(
@@ -315,18 +313,10 @@ export function useCannonBuild(safe: SafeDefinition | null) {
     onSuccess?: (res: LocalBuildState['result']) => Promise<onSuccessType>
   ) {
     resetState();
-    dispatch({ status: 'building' });
 
     buildFn(def, prevDeploy)
-      .then((res) => {
-        dispatch({ result: res, status: 'success' });
-        return res;
-      })
-      .then((res) => {
-        dispatch({ message: '' });
-        return res;
-      })
       .then(async (res) => {
+        dispatch({ result: res, status: 'success', message: '' });
         if (onSuccess) {
           await onSuccess(res);
         }
@@ -336,12 +326,13 @@ export function useCannonBuild(safe: SafeDefinition | null) {
         // eslint-disable-next-line no-console
         console.error(err);
         addLog('error', `cannon.ts: full build error ${err.toString()}`);
-        dispatch({ error: err.toString(), status: 'error' });
-      })
-      .finally(() => {
-        dispatch({ message: '' });
+        dispatch({ error: err.toString(), status: 'error', message: '' });
       });
   }
+
+  useEffect(() => {
+    resetState();
+  }, [deployerWalletAddress]);
 
   return {
     buildState,
