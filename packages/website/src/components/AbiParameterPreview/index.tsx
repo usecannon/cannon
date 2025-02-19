@@ -56,6 +56,7 @@ export function AbiParameterPreview({
   const { type, name } = abiParameter;
   const { rawValue, tooltipText, isTupleArray, isTuple, parsedValue } =
     parseAbiParameter(abiParameter, value);
+
   const { getExplorerUrl } = useCannonChains();
   const explorerUrl =
     type === 'address'
