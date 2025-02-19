@@ -25,7 +25,7 @@ describe('FunctionOutput', () => {
       <FunctionOutput
         chainId={1}
         abiParameters={singleParameter}
-        methodResult="123 "
+        methodResult="123"
       />
     );
 
@@ -40,7 +40,7 @@ describe('FunctionOutput', () => {
       { name: 'param2', type: 'string' },
     ];
 
-    const methodResults = JSON.stringify(['123', 'test']);
+    const methodResults = ['123', 'test'];
 
     render(
       <FunctionOutput

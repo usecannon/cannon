@@ -56,6 +56,7 @@ export function AbiParameterPreview({
   const { type, name } = abiParameter;
   const { rawValue, tooltipText, isTupleArray, isTuple, parsedValue } =
     parseAbiParameter(abiParameter, value);
+
   const { getExplorerUrl } = useCannonChains();
   const explorerUrl =
     type === 'address'
@@ -90,7 +91,7 @@ export function AbiParameterPreview({
 
           <div className="absolute right-0 top-1">
             {explorerUrl && <ExternalLinkButton href={explorerUrl} />}
-            <ClipboardButton text={rawValue} />
+            <ClipboardButton text={rawValue as string} />
           </div>
         </div>
       )}

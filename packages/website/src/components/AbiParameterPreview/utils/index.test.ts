@@ -133,7 +133,7 @@ describe('parseAbiParameter', () => {
 
       expect(result.rawValue).toBe(value);
       expect(result.isTuple).toBe(false);
-      expect(result.parsedValue).toBe('Cannot convert invalid to BigInt');
+      expect(result.parsedValue).toBe('Cannot parse rpc response for uint256 with value invalid');
     });
   });
 
