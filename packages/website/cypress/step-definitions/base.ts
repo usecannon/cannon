@@ -4,8 +4,13 @@ Given('User opens the {string} page', (path: string) => {
   cy.visit(path);
 });
 
+Given('User opens the {string} page with {string} viewport', (path: string, viewport: string) => {
+  const [width, height] = viewport.split('x').map(Number);
+  cy.viewport(width, height).visit(path);
+});
+
 When('User clicks on the {string} link', (link: string) => {
-  cy.get(`a[href*="${link}"]`).click();
+  cy.get(`a[href*="${link}"]`).first().click();
 });
 
 When('User clicks on the {string} button', (button: string) => {
@@ -26,10 +31,6 @@ When('User clicks on the {int}st/nd/rd/th button or link with id {string}', (idx
 
 When('User clicks on the button with {string} {string}', (property: string, label: string) => {
   cy.get(`button[${property}="${label}"]`).click();
-});
-
-When('User clicks on the {string} element with text {string}', (element: string, text: string) => {
-  cy.get(element).contains(text).first().click();
 });
 
 When('User types {string} in the {string} input', (text: string, input: string) => {
@@ -68,31 +69,21 @@ Then('The {string} element should be visible', (element: string) => {
   cy.get(`${element}`).should('be.visible');
 });
 
-Then('Output on {string} tag contains {string}', (label: string, input: string) => {
-  cy.contains('span', `${label}`)
-    .closest('div')
-    .parent()
-    .find('div.overflow-hidden')
-    .contains('h3', 'Output')
-    .closest('div')
-    .as('baseElements');
-
-  cy.get('@baseElements')
-    .find('label span')
-    .invoke('text')
-    .then((text) => {
-      if (text.trim() === 'tuple') {
-        cy.get('@baseElements').find('code span').contains(`${input}`).should('contain', `${input}`);
-      } else {
-        cy.get('@baseElements').find('input[readonly]').should('have.value', `${input}`);
-      }
-    });
+Then('Output contains {string}', (input: string) => {
+  cy.get('[data-testid="type-label"]').invoke('text')
+  .then((text) => {
+    if (text.trim() === 'tuple') {
+      cy.get('[data-testid="code-section"').should('contain', `${input}`);
+    } else {
+      cy.get('[data-testid="encode-value-input"').should('have.value', `${input}`);
+    }
+  });
 });
-
-When('User clicks on copy button on {string} tab', (label: string) => {
-  cy.contains('span',`${label}`).closest('div').parent().contains('span','Copy command').closest('button').click();  
-})
 
 Then('Drawer has {int} queued transactions', (idx: number) => {
   cy.get('div[role="alert"]').should('contain',`${String(idx)}`)
+});
+
+Then('{string} value on {string} attribute should exists', (value: string, attribute: string) => {
+  cy.get(`[${attribute}="${value}"]`).should('exist');
 });

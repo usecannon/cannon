@@ -258,6 +258,7 @@ const Folder = forwardRef<
           )}
           disabled={!isSelectable}
           onClick={() => handleExpand(value)}
+          data-testid={`tree-${value}-button`}
         >
           {expandedItems?.includes(value)
             ? openIcon ?? <FolderOpenIcon className="size-4" />

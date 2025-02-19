@@ -2,9 +2,8 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Check, Copy } from 'react-feather';
 import { codeToHtml } from 'shiki';
+import { ClipboardButton } from '@/components/ClipboardButton';
 
 interface CodeBlockProps extends React.HTMLAttributes<HTMLDivElement> {
   command?: string;
@@ -13,7 +12,6 @@ interface CodeBlockProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export const CommandPreview = React.forwardRef<HTMLDivElement, CodeBlockProps>(
   ({ command = '', className, ...props }, ref) => {
-    const [hasCopied, setHasCopied] = React.useState(false);
     const [html, setHtml] = React.useState('');
 
     // Handle the async code highlighting
@@ -39,13 +37,6 @@ export const CommandPreview = React.forwardRef<HTMLDivElement, CodeBlockProps>(
       void highlightCode();
     }, [command]);
 
-    async function copyToClipboard() {
-      if (!command) return;
-      await navigator.clipboard.writeText(command);
-      setHasCopied(true);
-      setTimeout(() => setHasCopied(false), 2000);
-    }
-
     return (
       <div
         ref={ref}
@@ -60,19 +51,7 @@ export const CommandPreview = React.forwardRef<HTMLDivElement, CodeBlockProps>(
           dangerouslySetInnerHTML={{ __html: html }}
         />
         {command && (
-          <Button
-            size="icon"
-            variant="ghost"
-            className="flex-shrink-0 h-7 w-7 bg-background border border-border absolute right-3"
-            onClick={copyToClipboard}
-          >
-            {hasCopied ? (
-              <Check className="h-3.5 w-3.5 text-green-500" />
-            ) : (
-              <Copy className="h-3.5 w-3.5 text-muted-foreground" />
-            )}
-            <span className="sr-only">Copy command</span>
-          </Button>
+          <ClipboardButton text={command} className={'absolute right-3'} />
         )}
       </div>
     );

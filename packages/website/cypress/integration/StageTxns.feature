@@ -39,16 +39,6 @@ Feature: Stage Transactions
     * User clicks on the 1st button or link with id "queue-button"
     Then Drawer has 2 queued transactions
 
-#    * User clicks on the "Close" button
-#    * User clicks on the button with id "setGreeting-stage-to-safe"
-#    Then  View renders a "div" displaying the text "Total transactions queued: 1"
-#    When User types "Hello World Again!" for "_greeting" function param
-#    * User clicks on the button with id "setGreeting-stage-to-safe"
-#    Then  View renders a "div" displaying the text "Total transactions queued: 2"
-#    # Check drawer is rendering the total transactions queued
-#    When User clicks on the button with "aria-label" "queue-txs"
-#    Then Drawer has exactly 2 queued transactions
-
   Scenario: User stages transactions from the queue transactions drawer
     Given User opens the "/packages/owned-greeter/0.0.5/11155111-main/interact/owned-greeter/Greeter/0xa4605Ef2fB94211815F14AF6153915928C9E6407" page
     When User clicks on the 1st button or link with id "queue-button"
@@ -83,17 +73,13 @@ Feature: Stage Transactions
 
   Scenario: User stages transactions from the deploy page
     Given User opens the "/deploy" page
-    ########
 #    * Wallet is connected
-    ########
     * View renders a "button" displaying the text "Select Safe"
-    * User waits for "5" seconds while loading
     * User clicks on the 1st button or link with id "safe-select-button"
     * User types "11155111" into the 1st input with id "safe-chain-input"
     * User types "0xfD050037C9039cE7b4A3213E3645BC1ba6eA0c97" into the 1st input with id "safe-address-input"
     * User clicks on the 1st button or link with id "safe-add-button"
     When User clicks on the "/deploy/queue" link
-#    Then View renders a "a" displaying the text "Stage Transactions"
     When User types "owned-greeter" into the 1st input with id "target-input"
     * User clicks on the 1st button or link with id "add-txs-button"
     # Element 1

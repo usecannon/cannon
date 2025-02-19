@@ -1,22 +1,30 @@
 Feature: Cannon Docs
-  @only
-  Scenario: Navigating to the docs page
+
+  Scenario: Copying the command
     Given User opens the "/learn" page
     * User clicks on the "Guides" tab
-    # * User clicks on the "Copy command" button
-    # * User clicks on the "button" element with text "Copy command"
-    # * User waits for "5" seconds while loading
-
-  Scenario: Press Copy Command Button
-    Given User opens the "/learn/cannonfile#utilities" page
-    * User clicks on test button with id "clipbpard-preview-button"
-    * User clicks on test button with id "clipbpard-snipet-button"
-    Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
-    * User clicks on the "button" element with text "InitialCoreProxy"
-    * User clicks on the "button" element with text "owner()"
-    * User clicks on the "button" element with text "Call function"
-    * User clicks on copy button on "owner()" tab
+    * User clicks on the 1st button or link with id "clipboard-copy-button"
+    Then "copied-icon" value on "data-testid" attribute should exists
+    * User waits for "3" seconds while loading
 
   Scenario: Navigating to Code Preview
     Given User opens the "/packages/synthetix/3.3.4/1-main/cannonfile" page
-    * User clicks on the "button" element with text "Raw Cannonfile"
+    * User clicks on the 1st button or link with id "raw-cannonfile-button"
+    * User waits for "3" seconds while loading
+
+  Scenario: Navigating to File Tree
+    Given User opens the "/packages/synthetix/3.3.4/1-main" page
+    * User clicks on the "Code" tab
+    Then "sidebar" value on "data-sidebar" attribute should exists
+
+  Scenario: Showing the file tree for the doc
+    Given User opens the "/learn" page
+    * User clicks on the "Guides" tab
+    Then View renders a "li" displaying the text "Create a Project"
+    * User clicks on the "/learn/guides/get-started/create-a-project" link
+    Then View renders a "h3" displaying the text "Initialize a Foundry project"
+    When User clicks on the 1st button or link with id "tree-5-button"
+    When User clicks on the 1st button or link with id "tree-5-button"
+    When User clicks on the 1st button or link with id "tree-1-button"
+
+    
