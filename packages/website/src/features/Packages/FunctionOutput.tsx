@@ -16,7 +16,6 @@ export function FunctionOutput({
     return null;
   }
 
-  console.log('!!!!', { abiParameters, methodResult });
   if (abiParameters.length > 1) {
     return abiParameters.map((abiParameter, index) => {
       return (

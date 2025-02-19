@@ -108,11 +108,11 @@ function _parseArgumentValue(type: string, val: unknown): string {
     return _getNumberString(val);
   }
 
-  if (!val?.toString()) {
+  try {
+    return (val as any).toString();
+  } catch (e) {
     throw new Error(`Invalid arg value for "${type}": ${val}`);
   }
-
-  return val?.toString();
 }
 
 function _parseArgumentValueTooltip(type: string, val: unknown): string {
@@ -173,11 +173,21 @@ export function parseAbiParameter(abiParameter: viem.AbiParameter, value?: unkno
   const isTupleArray = type.endsWith('[][]');
   const isTuple = !isTupleArray && (type.endsWith('[]') || type === 'tuple');
 
-  return {
-    rawValue,
-    isTupleArray,
-    isTuple,
-    tooltipText: _parseArgumentValueTooltip(type, rawValue),
-    parsedValue: _parseArgumentValue(type, rawValue),
-  };
+  try {
+    return {
+      rawValue,
+      isTupleArray,
+      isTuple,
+      tooltipText: _parseArgumentValueTooltip(type, rawValue),
+      parsedValue: _parseArgumentValue(type, rawValue),
+    };
+  } catch (e) {
+    return {
+      rawValue,
+      isTupleArray,
+      isTuple,
+      tooltipText: '',
+      parsedValue: `Cannot parse rpc response for ${type} with value ${value}`,
+    };
+  }
 }
