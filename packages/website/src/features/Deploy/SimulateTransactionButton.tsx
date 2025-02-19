@@ -2,6 +2,7 @@ import { SafeDefinition } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import { ExternalLinkIcon } from '@radix-ui/react-icons';
 
 interface Props {
   safe: SafeDefinition;
@@ -62,6 +63,7 @@ export function SimulateTransactionButton({
           className="object-cover"
         />
         Simulate on Tenderly
+        <ExternalLinkIcon className="h-3.5 w-3.5" />
       </a>
     </Button>
   );

@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import _ from 'lodash';
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import * as viem from 'viem';
 import {
   useAccount,
@@ -18,72 +18,53 @@ import {
   useWalletClient,
 } from 'wagmi';
 
-interface CannonSafeTransaction {
+export interface CannonSafeTransaction {
   txn: SafeTransaction;
   sigs: string[];
 }
 
 export function useSafeTransactions(safe: SafeDefinition | null, refetchInterval: number | false = false) {
+  const { chainId: safeChainId, address: safeAddress } = safe || {};
   const stagingUrl = useStore((s) => s.settings.stagingUrl);
 
   const stagedQuery = useQuery({
-    queryKey: ['staged', safe?.chainId, safe?.address],
+    queryKey: ['staged', safeChainId, safeAddress],
     enabled: !!safe,
     queryFn: async () => {
       if (!safe) return [];
-      const response = await axios.get<CannonSafeTransaction[]>(`${stagingUrl}/${safe.chainId}/${safe.address}`);
+      const response = await axios.get<CannonSafeTransaction[]>(`${stagingUrl}/${safeChainId}/${safeAddress}`);
       return response.data;
     },
     refetchInterval,
   });
 
   const nonceQuery = useReadContract({
-    address: safe?.address,
-    chainId: safe?.chainId,
+    address: safeAddress,
+    chainId: safeChainId,
     abi: SafeABI,
     functionName: 'nonce',
   });
 
-  const memoizedStaged = useMemo(() => {
-    if (!stagedQuery.isSuccess || !nonceQuery.isSuccess || !Array.isArray(stagedQuery.data)) {
-      return [];
-    }
-    const nonce = Number(nonceQuery.data || 0);
-    return _.sortBy(
-      stagedQuery.data.filter((t) => t.txn._nonce >= nonce),
-      'txn._nonce'
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stagedQuery.isSuccess, nonceQuery.isSuccess, stagedQuery.isSuccess, nonceQuery.isSuccess]);
+  const memoizedStaged = _.sortBy(
+    stagedQuery.data?.filter((t) => t.txn._nonce >= Number(nonceQuery.data || 0)) || [],
+    'txn._nonce'
+  );
 
-  const memoizedNextNonce = useMemo(() => {
-    if (memoizedStaged.length === 0 && !nonceQuery.isSuccess) return null;
-    const lastNonce = memoizedStaged.length ? _.last(memoizedStaged)?.txn._nonce : Number(nonceQuery.data || 0);
-    return lastNonce ? lastNonce + 1 : null;
-  }, [memoizedStaged, nonceQuery.data, nonceQuery.isSuccess]);
+  const memoizedNextNonce = !memoizedStaged ? 0 : (_.last(memoizedStaged)?.txn._nonce || 0) + 1;
 
   const isFetched = stagedQuery.isFetched && nonceQuery.isFetched;
   const isSuccess = stagedQuery.isSuccess && nonceQuery.isSuccess;
   const isLoading = stagedQuery.isLoading || nonceQuery.isLoading;
-  const stagedQueryRefetch = stagedQuery.refetch;
-  const nonceQueryRefetch = nonceQuery.refetch;
-  const refetch = useCallback(
-    () => Promise.all([stagedQueryRefetch(), nonceQueryRefetch()]),
-    [stagedQueryRefetch, nonceQueryRefetch]
-  );
 
-  return useMemo(
-    () => ({
-      isLoading,
-      isSuccess,
-      isFetched,
-      refetch,
-      nonce: BigInt(Number(nonceQuery.data || 0)),
-      staged: memoizedStaged,
-      nextNonce: memoizedNextNonce,
-    }),
-    [isLoading, isSuccess, isFetched, refetch, nonceQuery, memoizedStaged, memoizedNextNonce]
-  );
+  return {
+    isLoading,
+    isSuccess,
+    isFetched,
+    refetch: () => Promise.all([stagedQuery.refetch(), nonceQuery.refetch()]),
+    nonce: BigInt(Number(nonceQuery.data || 0)),
+    staged: memoizedStaged,
+    nextNonce: memoizedNextNonce,
+  };
 }
 
 export function useTxnStager(
@@ -206,6 +187,7 @@ export function useTxnStager(
     },
     onSuccess: async () => {
       void refetchSafeTxs();
+      void reads.refetch();
     },
   });
 
