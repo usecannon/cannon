@@ -1,0 +1,14 @@
+{
+  "name": "foundry-artifacts",
+  "version": "0.0.1",
+  "description": "Minimal example for having a Cannon project with a [Router](https://github.com/Synthetixio/synthetix-router/blob/master/README.md) contract.",
+  "main": "cannonfile.toml",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "mjlescano",
+  "license": "MIT",
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.2.0"
+  }
+}
