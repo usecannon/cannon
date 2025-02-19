@@ -91,7 +91,7 @@ export function AbiParameterPreview({
 
           <div className="absolute right-0 top-1">
             {explorerUrl && <ExternalLinkButton href={explorerUrl} />}
-            <ClipboardButton text={rawValue} />
+            <ClipboardButton text={rawValue as string} />
           </div>
         </div>
       )}
