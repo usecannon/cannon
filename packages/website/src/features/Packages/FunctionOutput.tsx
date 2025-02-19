@@ -4,7 +4,7 @@ import { AbiParameterPreview } from '@/components/AbiParameterPreview';
 interface Props {
   chainId: number;
   abiParameters: readonly viem.AbiParameter[];
-  methodResult?: string;
+  methodResult?: unknown;
 }
 
 export function FunctionOutput({
@@ -12,6 +12,10 @@ export function FunctionOutput({
   abiParameters,
   methodResult,
 }: Props) {
+  if (!abiParameters.length) {
+    return null;
+  }
+
   if (abiParameters.length > 1) {
     return abiParameters.map((abiParameter, index) => {
       return (
@@ -19,17 +23,16 @@ export function FunctionOutput({
           chainId={chainId}
           key={`${abiParameter.name}-${index}`}
           abiParameter={abiParameter}
-          value={methodResult ? JSON.parse(methodResult)[index] : undefined}
+          value={
+            Array.isArray(methodResult) ? methodResult[index] : methodResult
+          }
         />
       );
     });
   }
 
-  if (!abiParameters.length) {
-    return null;
-  }
-
   const abiParameter = abiParameters[0];
+
   return (
     <AbiParameterPreview
       chainId={chainId}

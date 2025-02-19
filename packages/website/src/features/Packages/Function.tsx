@@ -45,6 +45,7 @@ import {
 } from '@/components/ui/popover';
 import { AddressInput } from '@/features/Packages/FunctionInput/AddressInput';
 import { links } from '@/constants/links';
+import isEqual from 'lodash/isEqual';
 
 const extractError = (e: any): string => {
   return typeof e === 'string'
@@ -117,6 +118,9 @@ export const Function: FC<FunctionProps> = ({
   });
 
   const setParam = (index: number, value: any) => {
+    if (isEqual(sadParams.current[index], value)) {
+      return;
+    }
     sadParams.current[index] = value;
     setParams([...sadParams.current]);
   };
@@ -609,10 +613,9 @@ export const Function: FC<FunctionProps> = ({
             <h3 className="text-sm uppercase mb-2 font-mono text-muted-foreground tracking-wider">
               Output
             </h3>
-
             <div className="flex-1 flex flex-col gap-4">
               <AnimatePresence>
-                {f.outputs.length != 0 &&
+                {f.outputs.length !== 0 &&
                   (methodCallOrQueuedResult == null || loading) && (
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -632,11 +635,13 @@ export const Function: FC<FunctionProps> = ({
                     </motion.div>
                   )}
               </AnimatePresence>
-              <FunctionOutput
-                chainId={chainId}
-                methodResult={methodCallOrQueuedResult?.value as string}
-                abiParameters={f.outputs}
-              />
+              {f.outputs.length !== 0 && !!methodCallOrQueuedResult?.value && (
+                <FunctionOutput
+                  chainId={chainId}
+                  methodResult={methodCallOrQueuedResult?.value}
+                  abiParameters={f.outputs}
+                />
+              )}
             </div>
           </div>
         </div>
