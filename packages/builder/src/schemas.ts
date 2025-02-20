@@ -871,9 +871,9 @@ export const chainDefinitionSchema = z
       })
       .refine(
         (val) => {
-          return new Blob([val]).size <= 22;
+          return new Blob([val]).size <= 24;
         },
-        (val) => ({ message: `Package preset "${val}" is too long. Package preset exceeds 22 bytes` })
+        (val) => ({ message: `Package preset "${val}" is too long. Package preset exceeds 24 bytes` })
       )
       .describe(
         'Preset of the package (Presets are useful for distinguishing multiple deployments of the same protocol on the same chain.) Defaults to "main".'
