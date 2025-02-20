@@ -6,37 +6,16 @@ import 'dotenv/config';
 import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/builder';
 import CannonRegistryAbi from '@usecannon/builder/dist/src/abis/CannonRegistry';
 import * as viem from 'viem';
-import { mainnet, optimism } from 'viem/chains';
-
-const { ETHEREUM_PROVIDER_URL, OPTIMISM_PROVIDER_URL } = process.env;
+import { batches } from './helpers/batches';
+import { getClients } from './helpers/clients';
 
 const ETH_START_BLOCK = 19543644;
 const OP_START_BLOCK = 119000000;
 
-if (typeof ETHEREUM_PROVIDER_URL !== 'string' || !ETHEREUM_PROVIDER_URL) {
-  throw new Error('Missing RPC Provider url to use. Needs to have archival node, e.g. Alchemy.');
-}
-
-if (typeof OPTIMISM_PROVIDER_URL !== 'string' || !OPTIMISM_PROVIDER_URL) {
-  throw new Error('Missing RPC Provider url to use. Needs to have archival node, e.g. Alchemy.');
-}
-
 const ownerOrPublisher = process.argv[2] ? viem.getAddress(process.argv[2]) : undefined;
 
 async function main() {
-  const ethClient = viem.createPublicClient({
-    chain: mainnet,
-    transport: ETHEREUM_PROVIDER_URL!.startsWith('wss://')
-      ? viem.webSocket(ETHEREUM_PROVIDER_URL)
-      : viem.http(ETHEREUM_PROVIDER_URL),
-  });
-
-  const opClient = viem.createPublicClient({
-    chain: optimism,
-    transport: OPTIMISM_PROVIDER_URL!.startsWith('wss://')
-      ? viem.webSocket(OPTIMISM_PROVIDER_URL)
-      : viem.http(OPTIMISM_PROVIDER_URL),
-  });
+  const { ethClient, opClient } = getClients();
 
   const ethContract = viem.getContract({
     address: DEFAULT_REGISTRY_ADDRESS,
@@ -120,7 +99,7 @@ async function _getPackageNames(client: viem.PublicClient, startBlock: number) {
 
   const latestBlock = Number((await client.getBlockNumber()).toString());
 
-  for (const [fromBlock, toBlock] of _batches(startBlock, latestBlock, 50000)) {
+  for (const [fromBlock, toBlock] of batches(startBlock, latestBlock, 50000)) {
     const filter = await client.createEventFilter({
       address: DEFAULT_REGISTRY_ADDRESS,
       events: _packagePublishEvents,
@@ -139,15 +118,6 @@ async function _getPackageNames(client: viem.PublicClient, startBlock: number) {
   }
 
   return names;
-}
-
-function* _batches(start: number, end: number, batchSize: number) {
-  const count = Math.ceil((end - start) / batchSize);
-  for (let i = 0; i < count; i++) {
-    const batchStart = start + batchSize * i;
-    const batchEnd = batchStart + batchSize - 1 > end ? end : batchStart + batchSize - 1;
-    yield [batchStart, batchEnd];
-  }
 }
 
 main().catch((err) => {
