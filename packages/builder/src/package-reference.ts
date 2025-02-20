@@ -10,8 +10,8 @@ interface PartialRefValues {
 export class PackageReference {
   static DEFAULT_TAG = 'latest';
   static DEFAULT_PRESET = 'main';
-  static PACKAGE_REGEX = /^(?<name>[a-z0-9][A-Za-z0-9-]{1,}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
-
+  static PACKAGE_REGEX = /^(?<name>[a-z0-9][A-Za-z0-9-]{1,}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]{1,24}))?$/;
+  static VARIANT_REGEX = /^(?<chainId>\d+)-(?<preset>[^\s]{1,24})$/;
   /**
    * Anything before the colon or an @ (if no version is present) is the package name.
    */
@@ -67,7 +67,13 @@ export class PackageReference {
       throw new Error(`Package reference "${ref}" is too long. Package version exceeds 32 bytes`);
     }
 
-    if (match.groups.preset) res.preset = match.groups.preset;
+    if (match.groups.preset) {
+      res.preset = match.groups.preset;
+
+      if (res.preset.length > 22) {
+        throw new Error(`Package reference "${ref}" is too long. Package preset exceeds 22 bytes`);
+      }
+    }
 
     return res;
   }
@@ -93,8 +99,13 @@ export class PackageReference {
    * @returns chainId and preset
    */
   static parseVariant(variant: string): [number, string] {
-    const [chainId, preset] = variant.split(/-(.*)/s);
-    return [Number(chainId), preset];
+    const match = variant.match(PackageReference.VARIANT_REGEX);
+
+    if (!match || !match.groups?.chainId || !match.groups?.preset) {
+      throw new Error(`Invalid variant "${variant}". Should be of the format <chainId>-<preset>`);
+    }
+
+    return [Number(match.groups.chainId), match.groups.preset];
   }
 
   constructor(ref: string) {
