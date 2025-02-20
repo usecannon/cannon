@@ -158,15 +158,7 @@ export const FunctionInput: FC<Props> = ({
     }
   };
 
-  if (isTuple) {
-    <div className="flex flex-row items-center">
-      <div className="flex-1">
-        {getInputComponent((value: any) => _handleUpdate(null, value))}
-      </div>
-    </div>;
-  }
-
-  if (!isArray) {
+  if (isTuple || !isArray) {
     return (
       <div className="flex flex-row items-center">
         <div className="flex-1">
