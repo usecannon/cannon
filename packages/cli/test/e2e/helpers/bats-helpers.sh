@@ -92,33 +92,63 @@ require_env_var() {
   fi
 }
 
-_get_package_owner() {
-  local _package="$1"
+wait_for_rpc() {
+    local rpc_url=$1
+    local max_attempts=${2:-30}  # default 30 attempts
+    local delay=${3:-1}         # default 1 second delay between attempts
+    local attempt=1
 
-  local _package_name="$(cast from-utf8 $_package | cast to-bytes32)"
+    echo "Waiting for RPC endpoint to be ready..."
 
-  local _owner="$(cast call 0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba 'getPackageOwner(bytes32 _packageName)' '$_package_name' --rpc-url $CANNON_E2E_RPC_URL_OPTIMISM 2>/dev/null | sed -n '/^0x/p')"
+    while [ $attempt -le $max_attempts ]; do
+        if cast block-number --rpc-url "$rpc_url" &>/dev/null; then
+            echo "RPC endpoint is ready!"
+            return 0
+        fi
 
-  echo "$_owner"
+        echo "Attempt $attempt/$max_attempts: RPC not ready yet, retrying in ${delay}s..."
+        sleep $delay
+        attempt=$((attempt + 1))
+    done
+
+    echo "Error: RPC endpoint failed to respond after $max_attempts attempts"
+    return 1
 }
 
-set_publisher() {
-  local _package="$1"
-  local _publisher="$2"
+to_bytes32() {
+  cast from-utf8 "$1" | cast to-bytes32 | sed -n '/^0x/p'
+}
 
-  echo "Setting publisher for '$_package' to '$_publisher'" >&3
+get_package_owner() {
+  local _package_name="$1"
+  local _package_hex=$(to_bytes32 "$_package_name")
+  local _owner_bytes32=$(
+    cast call \
+      '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba' \
+      'getPackageOwner(bytes32 _packageName)' \
+      "$_package_hex" \
+      --rpc-url "$ANVIL_URL_ETHEREUM" \
+      | sed -n '/^0x/p'
+  )
+  local _owner_address=$(cast parse-bytes32-address "$_owner_bytes32" | sed -n '/^0x/p')
+  echo "$_owner_address"
+}
 
-  local _package_name="$(cast from-utf8 $_package | cast to-bytes32)"
+set_package_publisher() {
+  local _package_name="$1"
+  local _publisher_address="$2"
+  local _package_hex=$(to_bytes32 "$_package_name")
+  local _owner_address=$(get_package_owner "$_package_name")
 
-  echo "Package name: $_package_name" >&3
-
-  local _owner="$(cast call 0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba 'getPackageOwner(bytes32 _packageName)' '$_package_name' --rpc-url $CANNON_E2E_RPC_URL_OPTIMISM 2>/dev/null | sed -n '/^0x/p' | tr -d '[:space:]')"
-
-  echo "-->" $_owner >&3
-  echo "Owner: $_owner" >&3
-
-  # # local _owner_address="$(cast call $_owner --rpc-url $CANNON_E2E_RPC_URL_OPTIMISM)"
-
-  # echo "Setting publisher for $_package_name to $_publisher"
-  # echo "Owner: $_owner"
+  cast rpc anvil_impersonateAccount "$_owner_address" --rpc-url "$ANVIL_URL_ETHEREUM"
+  cast send \
+    '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba' \
+    'setAdditionalPublishers(bytes32 _packageName, address[] memory _additionalPublishersEthereum, address[] memory _additionalPublishersOptimism)' \
+    "$_package_hex" \
+    "[$_publisher_address]" \
+    "[$_publisher_address]" \
+    --from "$_owner_address" \
+    --unlocked \
+    --rpc-url "$ANVIL_URL_ETHEREUM"
+  cast rpc anvil_stopImpersonatingAccount "$_owner_address" --rpc-url "$ANVIL_URL_ETHEREUM"
 }

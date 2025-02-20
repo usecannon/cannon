@@ -15,12 +15,26 @@ setup_file() {
   # Fork OP to run tests against forked node
   anvil --fork-url "$CANNON_E2E_RPC_URL_OPTIMISM" --port 9546 --silent --accounts 1 --optimism &
   export ANVIL_PID_OP="$!"
-  sleep 1
 
   # Fork Mainnet to run tests against forked node
   anvil --fork-url "$CANNON_E2E_RPC_URL_ETHEREUM" --port 9545 --silent --accounts 1 &
   export ANVIL_PID="$!"
-  sleep 1
+
+  export ANVIL_URL_ETHEREUM="http://127.0.0.1:9545"
+  export ANVIL_URL_OPTIMISM="http://127.0.0.1:9546"
+
+  if ! wait_for_rpc "$ANVIL_URL_ETHEREUM"; then
+    echo "Failed to connect to RPC $ANVIL_URL_ETHEREUM"
+    exit 1
+  fi
+
+  if ! wait_for_rpc "$ANVIL_URL_OPTIMISM"; then
+    echo "Failed to connect to RPC $ANVIL_URL_OPTIMISM"
+    exit 1
+  fi
+
+  # Mock set the publisher for the greeter-foundry package, it is used by several tests
+  set_package_publisher "greeter-foundry" "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 }
 
 # File post-run hook
@@ -187,14 +201,6 @@ teardown() {
   run publishers.sh 4
   echo $output
   assert_output --partial 'Success - The publishers list has been updated!'
-  assert_success
-}
-
-@test "debugging" {
-  set_custom_config
-  # start_optimism_emitter
-  run debugging.sh
-  echo $output
   assert_success
 }
 
