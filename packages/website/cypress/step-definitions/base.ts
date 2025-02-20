@@ -78,3 +78,7 @@ Then('The value with id {string} should be empty', (id: string) => {
 Then('The {int}st/nd/rd/th tag should have {string} with id {string}', (idx: number, text: string, id: string) => {
   cy.get(`[data-testid="${id}"]`).eq(idx - 1).should('contain', text);
 });
+
+Then('{string} element has {string} value on {string} attribute', (element: string, value: string, attribute: string) => {
+  cy.get(`${element}`).should(`have.${attribute}`, `${value}`);
+});
