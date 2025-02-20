@@ -5,7 +5,7 @@ Feature: Cannon Docs page
     * User clicks on the "Guides" tab
     * User clicks on the 1st button or link with id "clipboard-copy-button"
     Then "copied-icon" value on "data-testid" attribute should exist
-    * User waits for "3" seconds while loading
+    * User waits for 3 seconds while loading
 
   Scenario: Navigating to Code Preview
     Given User opens the "/packages/synthetix/3.3.4/1-main/cannonfile" page

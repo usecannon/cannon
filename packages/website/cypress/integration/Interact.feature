@@ -10,6 +10,7 @@ Feature: Interact page
     Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
     * Wallet is connected
     * View renders a "button" displaying the text "InitialCoreProxy"
+    When User clicks on the 1st button or link with id "AccountProxy-button"
     Then URL includes "/synthetix/3.3.4/1-main/interact/synthetix/AccountProxy/0x0E429603D3Cb1DFae4E6F52Add5fE82d96d77Dac"
 
   Scenario: Executing read functions

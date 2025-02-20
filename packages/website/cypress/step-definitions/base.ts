@@ -20,10 +20,6 @@ When('User clicks on the {int}st/nd/rd/th button or link with id {string}', (idx
   cy.get(`[data-testid="${id}"]`).eq(idx - 1).click();
 });
 
-When('User clicks on the button with {string} {string}', (property: string, label: string) => {
-  cy.get(`button[${property}="${label}"]`).click();
-});
-
 When('User types {string} in the {string} input', (text: string, input: string) => {
   cy.get(`input[name="${input}"]`).type(text);
 });
@@ -36,8 +32,8 @@ When('User types {string} into the {int}st/nd/rd/th input with id {string}', (te
   cy.get(`[data-testid="${id}"]`).eq(idx - 1).clear().type(`${text}`);
 });
 
-When('User waits for {string} seconds while loading',(second: string) => {
-  cy.wait(parseInt(second) * 1000);
+When('User waits for {int} seconds while loading',(seconds: number) => {
+  cy.wait(seconds * 1000);
 });
 
 Then('URL includes {string}', (path: string) => {
