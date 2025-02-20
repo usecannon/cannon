@@ -123,7 +123,9 @@ describe('steps/pull.ts', () => {
           { source: 'package-name-longer-than-32bytes1337:1.0.0' },
           { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.whatever' }
         )
-      ).rejects.toThrowError('Package name exceeds 32 bytes');
+      ).rejects.toThrow(
+        'Package name for "package-name-longer-than-32bytes1337:1.0.0" is too long. Package name exceeds 32 characters'
+      );
     });
 
     it('throws if target version is longer than 32 bytes', async () => {
@@ -175,7 +177,9 @@ describe('steps/pull.ts', () => {
           { source: 'package:package-version-longer-than-32bytes1337' },
           { ref: new PackageReference('package:1.0.0'), currentLabel: 'pull.whatever' }
         )
-      ).rejects.toThrowError('Package version exceeds 32 bytes');
+      ).rejects.toThrow(
+        'Package version for "package:package-version-longer-than-32bytes1337" is too long. Package version exceeds 32 characters'
+      );
     });
 
     it('works properly', async () => {
