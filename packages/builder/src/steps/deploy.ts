@@ -3,13 +3,13 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
-import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
+import { CannonAction } from '../actions';
+import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureProxyCreate2Exists, makeProxyCreate2Txn } from '../create2';
 import { CannonError, handleTxnError } from '../error';
 import { deploySchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ContractArtifact } from '../types';
 import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 import { template } from '../utils/template';
-import { CannonAction } from '../actions';
 
 const debug = Debug('cannon:builder:deploy');
 
@@ -290,14 +290,14 @@ const deploySpec = {
 
     try {
       if (config.create2) {
-        const arachnidDeployerAddress = await ensureArachnidCreate2Exists(
+        const proxyDeployerAddress = await ensureProxyCreate2Exists(
           runtime,
           typeof config.create2 === 'string' ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR
         );
 
-        debug('performing arachnid create2');
-        const [create2Txn, addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!, arachnidDeployerAddress);
-        debug(`create2: deploy ${addr} by ${arachnidDeployerAddress}`);
+        debug('performing create2');
+        const [create2Txn, addr] = makeProxyCreate2Txn(config.salt || '', txn.data!, proxyDeployerAddress);
+        debug(`create2: deploy ${addr} by ${proxyDeployerAddress}`);
 
         const bytecode = await runtime.provider.getCode({ address: addr });
 
@@ -323,7 +323,7 @@ const deploySpec = {
           const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
           const hash = await signer.wallet.sendTransaction(preparedTxn as any);
           receipt = await runtime.provider.waitForTransactionReceipt({ hash });
-          debug('arachnid create2 complete', receipt);
+          debug('create2 complete', receipt);
         }
         deployAddress = addr;
       } else {
@@ -383,7 +383,7 @@ const deploySpec = {
     } catch (error: any) {
       // catch an error when it comes from create2 deployer
       if (!(error instanceof CannonError && error.code === 'CREATE2_COLLISION') && config.create2) {
-        // arachnid create2 does not return the underlying revert message.
+        // create2 does not return the underlying revert message.
         // ref: https://github.com/Arachnid/deterministic-deployment-proxy/blob/master/source/deterministic-deployment-proxy.yul#L13
 
         // simulate a non-create2 deployment to get the underlying revert message

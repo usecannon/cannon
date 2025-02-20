@@ -1,16 +1,16 @@
 import * as viem from 'viem';
-import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from './create2';
+import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureProxyCreate2Exists, makeProxyCreate2Txn } from './create2';
 import { fakeRuntime, makeFakeSigner } from './steps/utils.test.helper';
 
 const DEFAULT_ARACHNID_ADDRESS = '0x4e59b44847b379578588920cA78FbF26c0B4956C';
 
 describe('util.ts', () => {
-  describe('ensureArachnidCreate2Exists()', () => {
+  describe('ensureProxyCreate2Exists()', () => {
     it('does nothing if create2 exists', async () => {
       jest.mocked(fakeRuntime.provider.getCode).mockResolvedValue('0x1234');
 
       // if it tries to do get a signer that function isnt defined so it will fail
-      expect(await ensureArachnidCreate2Exists(fakeRuntime, ARACHNID_DEFAULT_DEPLOY_ADDR)).toEqual(DEFAULT_ARACHNID_ADDRESS);
+      expect(await ensureProxyCreate2Exists(fakeRuntime, ARACHNID_DEFAULT_DEPLOY_ADDR)).toEqual(DEFAULT_ARACHNID_ADDRESS);
     });
 
     it('fails if deploy signer is not defined', async () => {
@@ -19,8 +19,8 @@ describe('util.ts', () => {
         throw new Error('no signer');
       };
 
-      await expect(() => ensureArachnidCreate2Exists(fakeRuntime, ARACHNID_DEFAULT_DEPLOY_ADDR)).rejects.toThrowError(
-        'could not populate arachnid signer address'
+      await expect(() => ensureProxyCreate2Exists(fakeRuntime, ARACHNID_DEFAULT_DEPLOY_ADDR)).rejects.toThrowError(
+        'could not populate proxy signer address'
       );
     });
 
@@ -33,15 +33,15 @@ describe('util.ts', () => {
 
       //jest.mocked((fakeRuntime.provider as unknown as viem.WalletClient).sendRawTransaction).mockResolvedValue({ wait: jest.fn() } as any);
 
-      await ensureArachnidCreate2Exists(fakeRuntime, ARACHNID_DEFAULT_DEPLOY_ADDR);
+      await ensureProxyCreate2Exists(fakeRuntime, ARACHNID_DEFAULT_DEPLOY_ADDR);
 
       expect((fakeSigner.wallet as unknown as viem.WalletClient).sendTransaction).toHaveBeenCalled();
     });
   });
 
-  describe('makeArachnidCreate2Txn()', () => {
+  describe('makeProxyCreate2Txn()', () => {
     it('returns the correct address', async () => {
-      const [, addr] = makeArachnidCreate2Txn(
+      const [, addr] = makeProxyCreate2Txn(
         '0x0000000000000000000000000000000000000000000000000000000000000000',
         '0x00',
         '0x0000000000000000000000000000000000000000'
@@ -51,7 +51,7 @@ describe('util.ts', () => {
     });
 
     it('returns the correct txn', async () => {
-      const [txn] = makeArachnidCreate2Txn(
+      const [txn] = makeProxyCreate2Txn(
         '0x0987654321000000000000000000000000000000000000000000000000000000',
         '0x1234567890',
         DEFAULT_ARACHNID_ADDRESS
@@ -62,7 +62,7 @@ describe('util.ts', () => {
     });
 
     it('works with arbitrary string salt', async () => {
-      const [, addr] = makeArachnidCreate2Txn(
+      const [, addr] = makeProxyCreate2Txn(
         'hello world', // arbitrary string salt
         '0x00',
         '0x0000000000000000000000000000000000000000'

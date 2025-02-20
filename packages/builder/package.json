@@ -47,6 +47,7 @@
     "typedoc-plugin-zod": "^1.2.0"
   },
   "dependencies": {
+    "@safe-global/safe-singleton-factory": "^1.0.40",
     "@usecannon/router": "^4.1.2",
     "@usecannon/web-solc": "0.5.1",
     "acorn": "^8.14.0",

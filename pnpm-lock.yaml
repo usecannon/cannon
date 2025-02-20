@@ -232,6 +232,9 @@ importers:
 
   packages/builder:
     dependencies:
+      '@safe-global/safe-singleton-factory':
+        specifier: ^1.0.40
+        version: 1.0.40
       '@usecannon/router':
         specifier: ^4.1.2
         version: 4.1.2
@@ -328,7 +331,7 @@ importers:
         version: 4.21.0
       ts-jest:
         specifier: ^29.1.2
-        version: 29.2.5(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.7))(jest@29.7.0(@types/node@22.7.5)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@types/node@22.7.5)(typescript@5.5.4)))(typescript@5.5.4)
+        version: 29.2.5(@babel/core@7.25.2)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.25.2))(jest@29.7.0(@types/node@22.7.5)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@types/node@22.7.5)(typescript@5.5.4)))(typescript@5.5.4)
       typedoc:
         specifier: ^0.26.5
         version: 0.26.6(typescript@5.5.4)
@@ -443,7 +446,7 @@ importers:
         version: 3.0.3
       ts-jest:
         specifier: ^29.1.2
-        version: 29.2.5(@babel/core@7.25.2)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.25.2))(jest@29.7.0(@types/node@22.7.5)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@types/node@22.7.5)(typescript@5.5.4)))(typescript@5.5.4)
+        version: 29.2.5(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.7))(jest@29.7.0(@types/node@22.7.5)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@types/node@22.7.5)(typescript@5.5.4)))(typescript@5.5.4)
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@22.7.5)(typescript@5.5.4)
@@ -5782,6 +5785,9 @@ packages:
   '@safe-global/safe-gateway-typescript-sdk@3.22.2':
     resolution: {integrity: sha512-Y0yAxRaB98LFp2Dm+ACZqBSdAmI3FlpH/LjxOZ94g/ouuDJecSq0iR26XZ5QDuEL8Rf+L4jBJaoDC08CD0KkJw==}
     engines: {node: '>=16'}
+
+  '@safe-global/safe-singleton-factory@1.0.40':
+    resolution: {integrity: sha512-iPoc8Sr8jgilgo7+JQ+dT7vUTcDbM+I4nCRq655XefknnUKgrLoYtk7ldOi80FI3H3365Yqkf1GjNEKZpO6OtQ==}
 
   '@scure/base@1.1.7':
     resolution: {integrity: sha512-PPNYBslrLNNUQ/Yad37MHYsNQtK67EhWb6WtSvNLLPo7SdVZgkUjD6Dg+5On7zNwmskf8OX7I7Nx5oN+MIWE0g==}
@@ -16541,9 +16547,6 @@ packages:
   web-namespaces@2.0.1:
     resolution: {integrity: sha512-bKr1DkiNa2krS7qxNtdrtHAmzuYGFQLiQ13TsorsdT6ULTkPLKuu5+GsFpDlg6JFjUTwX2DyhMPG2be8uPrqsQ==}
 
-  web-solc@0.5.1:
-    resolution: {integrity: sha512-Z/hBplZq1+4i4bYeIeD9N3vP1BLUBXpSDa4h0Ipm2Z2cHv7x7DtZ2zFb0E1L1VZo4BF+OJGVtGlT+nTUXGgncQ==}
-
   web-streams-polyfill@3.3.3:
     resolution: {integrity: sha512-d2JWLCivmZYTSIoge9MsgFCZrt571BikcWGYkjC1khllbTeDlGqZ2D8vD8E/lJa8WGWbb7Plm8/XJYV7IJHZZw==}
     engines: {node: '>= 8'}
@@ -20240,7 +20243,7 @@ snapshots:
       '@cucumber/ci-environment': 10.0.1
       '@cucumber/cucumber-expressions': 17.1.0
       '@cucumber/gherkin': 28.0.0
-      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@25.0.1))(@cucumber/messages@24.1.0)
+      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)
       '@cucumber/gherkin-utils': 9.0.0
       '@cucumber/html-formatter': 21.6.0(@cucumber/messages@24.1.0)
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -20280,7 +20283,7 @@ snapshots:
       yaml: 2.5.0
       yup: 1.2.0
 
-  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@25.0.1))(@cucumber/messages@24.1.0)':
+  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)':
     dependencies:
       '@cucumber/gherkin': 28.0.0
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -24215,6 +24218,8 @@ snapshots:
 
   '@safe-global/safe-gateway-typescript-sdk@3.22.2': {}
 
+  '@safe-global/safe-singleton-factory@1.0.40': {}
+
   '@scure/base@1.1.7': {}
 
   '@scure/base@1.1.9': {}
@@ -25947,9 +25952,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@usecannon/web-solc@0.5.1':
-    dependencies:
-      web-solc: 0.5.1
+  '@usecannon/web-solc@0.5.1': {}
 
   '@vanilla-extract/css@1.15.5(babel-plugin-macros@3.1.0)':
     dependencies:
@@ -39093,10 +39096,6 @@ snapshots:
       defaults: 1.0.4
 
   web-namespaces@2.0.1: {}
-
-  web-solc@0.5.1:
-    dependencies:
-      semver: 7.7.1
 
   web-streams-polyfill@3.3.3: {}
 

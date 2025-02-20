@@ -89,7 +89,7 @@ export const deploySchema = z
         create2: z
           .union([z.boolean(), z.string().refine((val) => isAddress(val))])
           .describe(
-            'Determines whether to deploy the contract using create2. If an address is specified, the arachnid create2 contract will be deployed/used from this address.'
+            'Determines whether to deploy the contract using create2. If an address is specified, the create2 contract will be deployed/used from this address.'
           ),
         /**
          * Determines whether to deploy the contract using create2

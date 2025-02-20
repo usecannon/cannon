@@ -2,14 +2,14 @@ import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
-import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
+import { CannonAction } from '../actions';
+import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureProxyCreate2Exists, makeProxyCreate2Txn } from '../create2';
 import { ChainBuilderRuntime } from '../runtime';
 import { diamondSchema } from '../schemas';
 import { ContractArtifact, ContractMap, PackageState } from '../types';
 import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 import { template } from '../utils/template';
-import { CannonAction } from '../actions';
 
 const debug = Debug('cannon:builder:diamond');
 
@@ -247,7 +247,7 @@ async function firstTimeDeploy(
 
   const outputContracts: ContractMap = {};
   // first, deploy the basic facets
-  const arachnidDeployerAddress = await ensureArachnidCreate2Exists(runtime, ARACHNID_DEFAULT_DEPLOY_ADDR);
+  const proxyDeployerAddress = await ensureProxyCreate2Exists(runtime, ARACHNID_DEFAULT_DEPLOY_ADDR);
 
   const deployContract = async function (
     contract: ContractArtifact,
@@ -292,8 +292,8 @@ async function firstTimeDeploy(
       preparedTxn.maxPriorityFeePerGas = runtime.priorityGasFee;
     }
 
-    const [create2Txn, addr] = makeArachnidCreate2Txn(salt, preparedTxn.data!, arachnidDeployerAddress);
-    debug(`create2: deploy ${addr} by ${arachnidDeployerAddress}`);
+    const [create2Txn, addr] = makeProxyCreate2Txn(salt, preparedTxn.data!, proxyDeployerAddress);
+    debug(`create2: deploy ${addr} by ${proxyDeployerAddress}`);
 
     const bytecode = await runtime.provider.getCode({ address: addr });
 
