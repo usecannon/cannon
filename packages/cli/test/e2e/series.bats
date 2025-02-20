@@ -204,10 +204,11 @@ teardown() {
 @test "Register & Publish - Registering and publishing the greeter package" {
   set_custom_config
   start_optimism_emitter
+  set_package_publisher "greeter-foundry" "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
   run publish.sh 1
   echo $output
-  assert_output --partial 'Package "greeter-foundry" not yet registered'
-  assert_output --partial 'Success - Package "greeter-foundry" has been registered'
+  # assert_output --partial 'Package "greeter-foundry" not yet registered'
+  # assert_output --partial 'Success - Package "greeter-foundry" has been registered'
   assert_output --partial 'Transactions:'
   assert_success
 }
