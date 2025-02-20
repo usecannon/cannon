@@ -205,6 +205,7 @@ teardown() {
   set_custom_config
   start_optimism_emitter
   set_package_publisher "greeter-foundry" "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+  sleep 20
   run publish.sh 1
   echo $output
   # assert_output --partial 'Package "greeter-foundry" not yet registered'
