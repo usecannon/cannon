@@ -754,15 +754,7 @@ importers:
         version: 2.0.0(@types/node@22.7.5)(typescript@5.5.4)
       vitest:
         specifier: ^2.1.8
-<<<<<<< HEAD
-<<<<<<< HEAD
-        version: 2.1.8(@types/node@22.7.5)(jsdom@26.0.0(bufferutil@4.0.8)(utf-8-validate@5.0.10))(sass@1.77.8)(terser@5.38.1)
-=======
-        version: 2.1.8(@types/node@22.7.5)(jsdom@26.0.0)(sass@1.77.8)(terser@5.38.2)
->>>>>>> origin/main
-=======
         version: 2.1.8(@types/node@22.7.5)(jsdom@26.0.0(bufferutil@4.0.8)(utf-8-validate@5.0.10))(sass@1.77.8)(terser@5.38.2)
->>>>>>> origin/dev
 
   packages/website:
     dependencies:
@@ -39283,15 +39275,7 @@ snapshots:
       - supports-color
       - terser
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  vitest@2.1.8(@types/node@22.7.5)(jsdom@26.0.0(bufferutil@4.0.8)(utf-8-validate@5.0.10))(sass@1.77.8)(terser@5.38.1):
-=======
-  vitest@2.1.8(@types/node@22.7.5)(jsdom@26.0.0)(sass@1.77.8)(terser@5.38.2):
->>>>>>> origin/main
-=======
   vitest@2.1.8(@types/node@22.7.5)(jsdom@26.0.0(bufferutil@4.0.8)(utf-8-validate@5.0.10))(sass@1.77.8)(terser@5.38.2):
->>>>>>> origin/dev
     dependencies:
       '@vitest/expect': 2.1.8
       '@vitest/mocker': 2.1.8(vite@5.4.11(@types/node@22.7.5)(sass@1.77.8)(terser@5.38.2))
