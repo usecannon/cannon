@@ -4,21 +4,12 @@ Given('User opens the {string} page', (path: string) => {
   cy.visit(path);
 });
 
-Given('User opens the {string} page with {string} viewport', (path: string, viewport: string) => {
-  const [width, height] = viewport.split('x').map(Number);
-  cy.viewport(width, height).visit(path);
-});
-
 When('User clicks on the {string} link', (link: string) => {
   cy.get(`a[href*="${link}"]`).first().click();
 });
 
 When('User clicks on the {string} button', (button: string) => {
   cy.contains('button',`${button}`).click();
-});
-
-When('User clicks first link on the {string} table', (number: string) => {
-  cy.get('table').eq(parseInt(number)).get('tbody tr').find('a').first().click();
 });
 
 When('User clicks on the {string} tab', (link: string) => {
@@ -39,10 +30,6 @@ When('User types {string} in the {string} input', (text: string, input: string) 
 
 When('User types {string} in the input with placeholder {string}', (text: string, placeholder: string) => {
   cy.get(`input[placeholder="${placeholder}"]`).type(text);
-});
-
-When('User types {string} for {string}', (text: string, element: string) => {
-  cy.contains('span', `${element}`).closest('div').find('input').first().type(`${text}`);
 });
 
 When('User types {string} into the {int}st/nd/rd/th input with id {string}', (text: string, idx:number, id: string) =>{
@@ -84,6 +71,14 @@ Then('Drawer has {int} queued transactions', (idx: number) => {
   cy.get('div[role="alert"]').should('contain',`${String(idx)}`)
 });
 
-Then('{string} value on {string} attribute should exists', (value: string, attribute: string) => {
+Then('{string} value on {string} attribute should exist', (value: string, attribute: string) => {
   cy.get(`[${attribute}="${value}"]`).should('exist');
+});
+
+Then('The value with id {string} should be empty', (id: string) => {
+  cy.get(`[data-testid="${id}"]`).should('have.value', '');
+});
+
+Then('The {int}st/nd/rd/th tag should have {string} with id {string}', (idx: number, text: string, id: string) => {
+  cy.get(`[data-testid="${id}"]`).eq(idx - 1).should('contain', text);
 });
