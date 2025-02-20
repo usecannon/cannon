@@ -10,6 +10,7 @@ _setup_file() {
 
   require_env_var 'CANNON_E2E_RPC_URL_OPTIMISM'
   require_env_var 'CANNON_E2E_RPC_URL_ETHEREUM'
+  require_env_var 'CANNON_E2E_RPC_URL_SEPOLIA'
   require_env_var 'CANNON_E2E_RPC_URL_BASE'
   require_env_var 'CANNON_ETHERSCAN_API_KEY'
 
