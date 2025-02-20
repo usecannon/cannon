@@ -32,9 +32,6 @@ setup_file() {
     echo "Failed to connect to RPC $ANVIL_URL_OPTIMISM"
     exit 1
   fi
-
-  # Mock set the publisher for the greeter-foundry package, it is used by several tests
-  set_package_publisher "greeter-foundry" "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 }
 
 # File post-run hook
@@ -218,6 +215,7 @@ teardown() {
 @test "Register & Publish - Publishing a package from an IPFS Reference" {
   set_custom_config
   start_optimism_emitter
+  set_package_publisher "greeter-foundry" "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
   run publish.sh 3
   echo $output
   assert_success
