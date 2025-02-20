@@ -17,7 +17,7 @@ export type WriteScriptFormat = (typeof WRITE_SCRIPT_FORMATS)[number];
 export async function createWriteScript(
   runtime: ChainBuilderRuntime,
   targetFile: string,
-  format: WriteScriptFormat = 'json'
+  format: WriteScriptFormat = 'json',
 ) {
   if (!WRITE_SCRIPT_FORMATS.includes(format)) {
     throw new Error(`Invalid build dump format "${format}"`);
@@ -29,9 +29,11 @@ export async function createWriteScript(
 
   const events = createStepsStream(runtime);
 
+  const blockNumber = await runtime.provider.getBlockNumber();
+
   const stream = events.stream // Listen for step execution events
     .pipe(events.fetchTransactions) // asynchronically add the executed transactions
-    .pipe(createRenderer()) // render step lines into the desired format
+    .pipe(createRenderer(Number(blockNumber))) // render step lines into the desired format
     .pipe(createWriteStream(targetFile)); // save to file
 
   return {
