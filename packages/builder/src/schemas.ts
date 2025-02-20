@@ -869,6 +869,12 @@ export const chainDefinitionSchema = z
       .refine((val) => !!val.match(RegExp(/[\w.]+/, 'gm')), {
         message: 'Preset cannot contain any special characters',
       })
+      .refine(
+        (val) => {
+          return new Blob([val]).size <= 22;
+        },
+        (val) => ({ message: `Package preset "${val}" is too long. Package preset exceeds 22 bytes` })
+      )
       .describe(
         'Preset of the package (Presets are useful for distinguishing multiple deployments of the same protocol on the same chain.) Defaults to "main".'
       )
