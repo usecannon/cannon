@@ -486,12 +486,12 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   });
 
   log(
-    `\nSettings:\n - Max Fee Per Gas: ${
+    `\nPublish Transaction Settings\n - Max Fee Per Gas: ${
       overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
     }\n - Max Priority Fee Per Gas: ${
       overrides.maxPriorityFeePerGas ? overrides.maxPriorityFeePerGas.toString() : 'default'
     }\n - Gas Limit: ${overrides.gasLimit ? overrides.gasLimit : 'default'}\n` +
-      " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
+      "To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
   );
 
   await publish({
