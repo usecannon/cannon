@@ -18,7 +18,7 @@ services:
   # supersim spins up the necessary chains for the registry, and makes
   # sure all cross chain messaging works.
   registry:
-    image: ghcr.io/usecannon/supersim:0.1.0-alpha.41
+    build: https://github.com/ethereum-optimism/supersim.git#0.1.0-alpha.41
     restart: always
     environment:
       ANVIL_IP_ADDR: 0.0.0.0
