@@ -1,4 +1,4 @@
-name: Build and Push ethereum-optimism/supersim Docker Image
+name: Build ethereum-optimism/supersim
 
 on:
   workflow_dispatch:
