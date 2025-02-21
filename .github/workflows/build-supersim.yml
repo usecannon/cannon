@@ -3,8 +3,8 @@ name: Build ethereum-optimism/supersim
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Custom version tag or branch (optional)'
+      ref:
+        description: 'Custom ref tag or branch (optional)'
         required: false
         type: string
 
@@ -24,6 +24,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ethereum-optimism/supersim
+          ref: ${{ github.event.inputs.ref || 'main' }}
 
       - name: Get supersim SHA
         id: supersim-sha
@@ -52,4 +53,4 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.supersim-sha.outputs.sha }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version || steps.supersim-sha.outputs.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.ref || steps.supersim-sha.outputs.sha }}
