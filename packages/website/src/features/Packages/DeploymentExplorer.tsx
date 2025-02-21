@@ -13,7 +13,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import ContractsTab from './Tabs/ContractsTab';
 import FunctionCallsTab from './Tabs/FunctionCallsTab';
 import EventDataTab from './Tabs/EventDataTab';
-import isPlainObject from 'lodash/isPlainObject';
+import { extractContractsImports as extractContracts } from './utils/extractContractsImports';
 
 export const DeploymentExplorer: FC<{
   pkg: ApiPackage;
@@ -25,60 +25,10 @@ export const DeploymentExplorer: FC<{
     !!pkg?.deployUrl
   );
   const deploymentInfo = deploymentData.data;
-
-  const stepDefinitions: string[] = [
-    'deploy',
-    'contract',
-    'provision',
-    'clone',
-    'import',
-    'pull',
-    'router',
-    'invoke',
-    'run',
-  ];
-
-  function mergeArtifactsContracts(obj: any, mergedContracts: any = {}) {
-    for (const key in obj) {
-      const currentArtifact = obj[key];
-
-      if (isPlainObject(currentArtifact)) {
-        const address = currentArtifact.address;
-        const abi = currentArtifact.abi;
-        const artifacts = currentArtifact.artifacts;
-        const artifactsImports = artifacts?.imports;
-        const hasStepDefinition = stepDefinitions.some((step) =>
-          currentArtifact.deployedOn?.includes(step)
-        );
-
-        if (address && abi && hasStepDefinition) {
-          mergedContracts[address] = currentArtifact;
-        }
-
-        //Adding contracts imported from subpackages
-        if (artifactsImports) {
-          const step = key.split('.')[1];
-          for (const contract in artifactsImports[step].contracts) {
-            currentArtifact.artifacts.imports[step].contracts[
-              contract
-            ].deployedOn = key;
-
-            // Change deployedOn title to parent package
-            mergedContracts[obj[key].contractName || ''] =
-              currentArtifact.artifacts.imports[step].contracts[contract];
-          }
-        }
-
-        // Recursively search through nested objects
-        mergeArtifactsContracts(currentArtifact, mergedContracts);
-      }
-    }
-
-    return mergedContracts;
-  }
+  //  console.log({ deploymentInfo });
 
   const contractState = deploymentInfo?.state
-    ? mergeArtifactsContracts(deploymentInfo.state)
+    ? extractContracts(deploymentInfo.state)
     : {};
 
   function mergeInvoke(obj: any, mergedInvokes: any = {}): any {

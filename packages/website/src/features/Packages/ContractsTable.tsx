@@ -22,6 +22,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { ChainBuilderContext } from '@usecannon/builder';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import UnavailableTransaction from '@/features/Packages/UnavailableTransaction';
+import { formatTransactionHash } from '@/helpers/formatters';
 
 type ContractRow = {
   highlight: boolean;
@@ -74,10 +75,6 @@ export const ContractsTable: React.FC<{
           }),
         ]
       : []),
-    columnHelper.accessor('step', {
-      cell: (info: any) => info.getValue(),
-      header: 'Operation',
-    }),
     columnHelper.accessor('name', {
       cell: (info: any) => info.getValue(),
       header: 'Contract Name',
@@ -89,6 +86,10 @@ export const ContractsTable: React.FC<{
     columnHelper.accessor('deployTxnHash', {
       cell: (info: any) => info.getValue(),
       header: 'Transaction Hash',
+    }),
+    columnHelper.accessor('step', {
+      cell: (info: any) => info.getValue(),
+      header: 'Operation',
     }),
   ];
 
@@ -198,7 +199,7 @@ export const ContractsTable: React.FC<{
                               rel="noopener noreferrer"
                               className="font-mono border-b border-dotted border-muted-foreground hover:border-solid"
                             >
-                              {value}
+                              {formatTransactionHash(value)}
                             </a>
                           ) : (
                             <code className="text-xs">{value}</code>
