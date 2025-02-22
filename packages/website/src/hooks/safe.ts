@@ -71,9 +71,11 @@ export function getSafeUrl(safe: SafeDefinition, pathname = '/home') {
 
 function _createSafeApiKit(chainId: number) {
   if (!chainId) return null;
-
   const chain = chainMetadata[chainId];
   if (!chain?.serviceUrl) return null;
+  // if (chain?.serviceUrl) {
+  //   debugger;
+  // }
 
   return new SafeApiKit({
     chainId: BigInt(chainId),
@@ -82,14 +84,15 @@ function _createSafeApiKit(chainId: number) {
 }
 
 export function useExecutedTransactions(safe?: SafeDefinition | null) {
-  const txsQuery = useQuery({
+  return useQuery({
     queryKey: ['executed-transactions', safe?.chainId, safe?.address],
     queryFn: async () => {
       if (!safe) return null;
+
       const safeService = _createSafeApiKit(safe.chainId);
 
       if (!safeService) {
-        throw new Error(`Safe Chain ID "${safe.chainId}" is not supported by Gnosis"`);
+        throw new Error('SAFE_CHAIN_NOT_SUPPORTED');
       }
 
       const res = await safeService.getMultisigTransactions(safe.address);
@@ -119,13 +122,8 @@ export function useExecutedTransactions(safe?: SafeDefinition | null) {
           })) as unknown as SafeTransaction[],
       };
     },
+    enabled: !!safe,
   });
-
-  return {
-    data: txsQuery?.data || { count: 0, next: null, previous: null, results: [] },
-    refetch: txsQuery.refetch,
-    isLoading: txsQuery.isLoading,
-  };
 }
 
 export function usePendingTransactions(safe?: SafeDefinition) {
