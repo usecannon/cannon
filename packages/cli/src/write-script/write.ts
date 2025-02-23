@@ -17,7 +17,7 @@ export type WriteScriptFormat = (typeof WRITE_SCRIPT_FORMATS)[number];
 export async function createWriteScript(
   runtime: ChainBuilderRuntime,
   targetFile: string,
-  format: WriteScriptFormat = 'json',
+  format: WriteScriptFormat = 'json'
 ) {
   if (!WRITE_SCRIPT_FORMATS.includes(format)) {
     throw new Error(`Invalid build dump format "${format}"`);

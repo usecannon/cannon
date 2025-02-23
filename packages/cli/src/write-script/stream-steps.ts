@@ -18,7 +18,7 @@ export function createStepsStream(runtime: ChainBuilderRuntime) {
       {
         timeout: 15000,
         errorInstance: new Error(`TimeoutError: Could not get transaction "${hash}"`),
-      },
+      }
     );
   };
 
@@ -65,7 +65,7 @@ class StepEventsStream extends Readable {
       step: DumpLine['step'],
       ctx: ChainBuilderContext,
       result: ChainArtifacts,
-      depth: number,
+      depth: number
     ) => {
       if (type === 'clone' || type === 'provision') {
         cloneNames.pop();
