@@ -9,7 +9,7 @@ When('User clicks on the {string} link', (link: string) => {
 });
 
 When('User clicks on the {string} button', (button: string) => {
-  cy.contains('button',`${button}`).click();
+  cy.contains('button', `${button}`).click();
 });
 
 When('User clicks on the {string} tab', (link: string) => {
@@ -17,7 +17,9 @@ When('User clicks on the {string} tab', (link: string) => {
 });
 
 When('User clicks on the {int}st/nd/rd/th element with id {string}', (idx: number, id: string) => {
-  cy.get(`[data-testid="${id}"]`).eq(idx - 1).click();
+  cy.get(`[data-testid="${id}"]`)
+    .eq(idx - 1)
+    .click();
 });
 
 When('User types {string} in the {string} input', (text: string, input: string) => {
@@ -28,11 +30,15 @@ When('User types {string} in the input with placeholder {string}', (text: string
   cy.get(`input[placeholder="${placeholder}"]`).type(text);
 });
 
-When('User types {string} into the {int}st/nd/rd/th input with id {string}', (text: string, idx:number, id: string) =>{
-  cy.get(`input[data-testid="${id}"]`).eq(idx - 1).clear().type(`${text}`);
+When('User types {string} into the {int}st/nd/rd/th input with id {string}', (text: string, idx: number, id: string) => {
+  cy.get(`input[data-testid="${id}"]`)
+    .eq(idx - 1)
+    .should('be.enabled')
+    .clear()
+    .type(`${text}`);
 });
 
-When('User waits for {int} seconds while loading',(seconds: number) => {
+When('User waits for {int} seconds while loading', (seconds: number) => {
   cy.wait(seconds * 1000);
 });
 
@@ -53,18 +59,19 @@ Then('The {string} element should be visible', (element: string) => {
 });
 
 Then('Output contains {string}', (input: string) => {
-  cy.get('[data-testid="type-label"]').invoke('text')
-  .then((text) => {
-    if (text.trim() === 'tuple') {
-      cy.get('[data-testid="code-section"').should('contain', `${input}`);
-    } else {
-      cy.get('[data-testid="encode-value-input"').should('have.value', `${input}`);
-    }
-  });
+  cy.get('[data-testid="type-label"]')
+    .invoke('text')
+    .then((text) => {
+      if (text.trim() === 'tuple') {
+        cy.get('[data-testid="code-section"').should('contain', `${input}`);
+      } else {
+        cy.get('[data-testid="encode-value-input"').should('have.value', `${input}`);
+      }
+    });
 });
 
 Then('Drawer has {int} queued transactions', (idx: number) => {
-  cy.get('div[role="alert"]').should('contain',`${String(idx)}`)
+  cy.get('div[role="alert"]').should('contain', `${String(idx)}`);
 });
 
 Then('{string} value on {string} attribute should exist', (value: string, attribute: string) => {
@@ -76,7 +83,9 @@ Then('The value with id {string} should be empty', (id: string) => {
 });
 
 Then('The {int}st/nd/rd/th tag should have {string} with id {string}', (idx: number, text: string, id: string) => {
-  cy.get(`[data-testid="${id}"]`).eq(idx - 1).should('contain', text);
+  cy.get(`[data-testid="${id}"]`)
+    .eq(idx - 1)
+    .should('contain', text);
 });
 
 Then('{string} element has {string} value on {string} attribute', (element: string, value: string, attribute: string) => {
