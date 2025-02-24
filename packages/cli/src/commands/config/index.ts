@@ -56,7 +56,7 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '--impersonate <address>',
-        description: 'Impersonate all calls from the given signer instead of a real wallet. Only works with --fork',
+        description: 'Impersonate all calls from the given signer instead of a real wallet.',
         defaultValue: ANVIL_FIRST_ADDRESS,
       },
       {
@@ -113,7 +113,12 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '--impersonate [addresses]',
-        description: 'Specify a comma separated list of signers to impersonate. Only works with --dry-run',
+        description:
+          'Specify a comma separated list of signers to impersonate. Useful to ensure only specified signers are required to complete a deployment. Only works with --dry-run Only works with --dry-run',
+      },
+      {
+        flags: '--impersonate-all',
+        description: 'Impersonate all calls from all required wallets. Only works with --dry-run',
       },
       {
         flags: '--keep-alive',
