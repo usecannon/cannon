@@ -3,7 +3,7 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
+import { mergeTemplateAccesses } from '../access-recorder';
 import { ChainBuilderRuntime } from '../runtime';
 import { diamondSchema } from '../schemas';
 import { ContractArtifact, ContractMap, PackageState } from '../types';
@@ -94,23 +94,23 @@ const diamondStep = {
     return config;
   },
 
-  getInputs(config, possibleFields) {
-    let accesses = computeTemplateAccesses(config.diamondArgs.owner, possibleFields);
+  getInputs(config, templateContext) {
+    let accesses = templateContext.computeAccesses(config.diamondArgs.owner);
     if (config.diamondArgs.init) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.diamondArgs.init, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.diamondArgs.init));
     }
 
     if (config.diamondArgs.initCalldata) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.diamondArgs.initCalldata, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.diamondArgs.initCalldata));
     }
 
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt, possibleFields));
+    accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.salt));
     accesses.accesses.push(
       ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`))
     );
 
     if (config?.overrides) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.overrides.gasLimit));
     }
 
     return accesses;

@@ -1,51 +1,52 @@
-import { computeTemplateAccesses } from './access-recorder';
+import { TemplateContext } from './access-recorder';
 
 describe('access-recorder.ts', () => {
-  describe('computeTemplateAccesses()', () => {
+  const templateContext = new TemplateContext({ chainId: 45, timestamp: 0, package: { version: '0.0.0' } });
+  describe('TemplateContext.computeAccesses()', () => {
     it('computes dependency with addition operation', () => {
-      expect(computeTemplateAccesses('<%= settings.value1 + settings.value2 %>')).toEqual({
+      expect(templateContext.computeAccesses('<%= settings.value1 + settings.value2 %>')).toEqual({
         accesses: ['settings.value1', 'settings.value2'],
         unableToCompute: false,
       });
     });
 
     it('computes dependency with addition operation using extras', () => {
-      expect(computeTemplateAccesses('<%= extras.value1 + extras.value2 %>')).toEqual({
+      expect(templateContext.computeAccesses('<%= extras.value1 + extras.value2 %>')).toEqual({
         accesses: ['extras.value1', 'extras.value2'],
         unableToCompute: false,
       });
     });
 
     it('computes dependency with usage of allowed global variables', () => {
-      expect(computeTemplateAccesses('<%= parseEther(String(0.3)) %>')).toEqual({
+      expect(templateContext.computeAccesses('<%= parseEther(String(0.3)) %>')).toEqual({
         accesses: [],
         unableToCompute: false,
       });
     });
 
     it('computes simple addition', () => {
-      expect(computeTemplateAccesses('<%= 1 + 1 %>')).toEqual({
+      expect(templateContext.computeAccesses('<%= 1 + 1 %>')).toEqual({
         accesses: [],
         unableToCompute: false,
       });
     });
 
     it('computes dependency with subtraction operation', () => {
-      expect(computeTemplateAccesses('<%= settings.value1 - settings.value2 %>')).toEqual({
+      expect(templateContext.computeAccesses('<%= settings.value1 - settings.value2 %>')).toEqual({
         accesses: ['settings.value1', 'settings.value2'],
         unableToCompute: false,
       });
     });
 
     it('computes dependency with multiplication operation', () => {
-      expect(computeTemplateAccesses('<%= settings.value1 * settings.value2 %>')).toEqual({
+      expect(templateContext.computeAccesses('<%= settings.value1 * settings.value2 %>')).toEqual({
         accesses: ['settings.value1', 'settings.value2'],
         unableToCompute: false,
       });
     });
 
     it('computes dependency with division operation', () => {
-      expect(computeTemplateAccesses('<%= settings.value1 / settings.value2 %>')).toEqual({
+      expect(templateContext.computeAccesses('<%= settings.value1 / settings.value2 %>')).toEqual({
         accesses: ['settings.value1', 'settings.value2'],
         unableToCompute: false,
       });
@@ -53,7 +54,7 @@ describe('access-recorder.ts', () => {
 
     it('computes dependency with complex math operation', () => {
       expect(
-        computeTemplateAccesses('<%= (settings.value1 + settings.value2) * settings.value3 / settings.value4 %>')
+        templateContext.computeAccesses('<%= (settings.value1 + settings.value2) * settings.value3 / settings.value4 %>')
       ).toEqual({
         accesses: ['settings.value1', 'settings.value2', 'settings.value3', 'settings.value4'],
         unableToCompute: false,
@@ -61,14 +62,14 @@ describe('access-recorder.ts', () => {
     });
 
     it('computes multiple dependencies on different template tags', () => {
-      expect(computeTemplateAccesses('<%= settings.woot %>-<%= settings.woot2 %>')).toEqual({
+      expect(templateContext.computeAccesses('<%= settings.woot %>-<%= settings.woot2 %>')).toEqual({
         accesses: ['settings.woot', 'settings.woot2'],
         unableToCompute: false,
       });
     });
 
     it('computes simple dependency', () => {
-      expect(computeTemplateAccesses('<%= settings.woot %>')).toEqual({
+      expect(templateContext.computeAccesses('<%= settings.woot %>')).toEqual({
         accesses: ['settings.woot'],
         unableToCompute: false,
       });
@@ -76,7 +77,7 @@ describe('access-recorder.ts', () => {
 
     it('computes array dependency', () => {
       expect(
-        computeTemplateAccesses(
+        templateContext.computeAccesses(
           '["<%= settings.camelotSwapPublisherAdmin1 %>","<%= settings.camelotSwapPublisherAdmin2 %>"]'
         )
       ).toEqual({
@@ -86,7 +87,7 @@ describe('access-recorder.ts', () => {
     });
 
     it('computes dependency using simple CannonHelperContext', () => {
-      expect(computeTemplateAccesses('<%= parseEther(settings.woot) %>')).toEqual({
+      expect(templateContext.computeAccesses('<%= parseEther(settings.woot) %>')).toEqual({
         accesses: ['settings.woot'],
         unableToCompute: false,
       });
@@ -94,7 +95,7 @@ describe('access-recorder.ts', () => {
 
     it('computes dependency using complex CannonHelperContext', () => {
       expect(
-        computeTemplateAccesses(
+        templateContext.computeAccesses(
           '<%= defaultAbiCoder.encode(parseEther(settings.woot)) %> + <%= defaultAbiCoder.decode(contracts.compound) %>'
         )
       ).toEqual({
@@ -102,32 +103,39 @@ describe('access-recorder.ts', () => {
         unableToCompute: false,
       });
     });
+
+    it('computes dependency with chainId as a dynamic value search', () => {
+      expect(templateContext.computeAccesses('<%= settings[`my_${chainId}`] %>')).toEqual({
+        accesses: ['settings.my_45'],
+        unableToCompute: false,
+      });
+    });
   });
 
   describe('computeTemplateAccesses() syntax validation', () => {
     it('handles invalid template syntax - unmatched brackets', () => {
-      expect(computeTemplateAccesses('<%= settings.value) %>')).toEqual({
+      expect(templateContext.computeAccesses('<%= settings.value) %>')).toEqual({
         accesses: [],
         unableToCompute: true,
       });
     });
 
     it('handles empty template tags', () => {
-      expect(computeTemplateAccesses('<%=%>')).toEqual({
+      expect(templateContext.computeAccesses('<%=%>')).toEqual({
         accesses: [],
         unableToCompute: true,
       });
     });
 
     it('handles multiple template tags with mixed validity', () => {
-      expect(computeTemplateAccesses('<%= settings.valid %> and <% invalid.syntax')).toEqual({
+      expect(templateContext.computeAccesses('<%= settings.valid %> and <% invalid.syntax')).toEqual({
         accesses: ['settings.valid'],
         unableToCompute: false,
       });
     });
 
     it('handles template with only whitespace', () => {
-      expect(computeTemplateAccesses('<%=   %>')).toEqual({
+      expect(templateContext.computeAccesses('<%=   %>')).toEqual({
         accesses: [],
         unableToCompute: true,
       });
@@ -136,42 +144,42 @@ describe('access-recorder.ts', () => {
 
   describe('computeTemplateAccesses() security', () => {
     it('prevents direct code execution', () => {
-      expect(computeTemplateAccesses('<%= process.exit(1) %>')).toEqual({
+      expect(templateContext.computeAccesses('<%= process.exit(1) %>')).toEqual({
         accesses: [],
         unableToCompute: true,
       });
     });
 
     it('prevents access to global objects', () => {
-      expect(computeTemplateAccesses('<%= global.process %>')).toEqual({
+      expect(templateContext.computeAccesses('<%= global.process %>')).toEqual({
         accesses: [],
         unableToCompute: true,
       });
     });
 
     it('prevents require/import statements', () => {
-      expect(computeTemplateAccesses('<%= require("fs") %>')).toEqual({
+      expect(templateContext.computeAccesses('<%= require("fs") %>')).toEqual({
         accesses: [],
         unableToCompute: true,
       });
     });
 
     it('prevents eval usage', () => {
-      expect(computeTemplateAccesses('<%= eval("console.log(\'REKT\')") %>')).toEqual({
+      expect(templateContext.computeAccesses('<%= eval("console.log(\'REKT\')") %>')).toEqual({
         accesses: [],
         unableToCompute: true,
       });
     });
 
     it('prevents Function constructor usage', () => {
-      expect(computeTemplateAccesses('<%= new Function("return process")() %>')).toEqual({
+      expect(templateContext.computeAccesses('<%= new Function("return process")() %>')).toEqual({
         accesses: [],
         unableToCompute: true,
       });
     });
 
     it('prevents setTimeout/setInterval usage', () => {
-      expect(computeTemplateAccesses('<%= setTimeout(() => {}, 1000) %>')).toEqual({
+      expect(templateContext.computeAccesses('<%= setTimeout(() => {}, 1000) %>')).toEqual({
         accesses: [],
         unableToCompute: true,
       });
@@ -179,7 +187,7 @@ describe('access-recorder.ts', () => {
 
     it('prevents overriding console.log', () => {
       expect(
-        computeTemplateAccesses('<%= console.log=function(n){require("fs").writeFileSync("./exploit.log",n)} %>')
+        templateContext.computeAccesses('<%= console.log=function(n){require("fs").writeFileSync("./exploit.log",n)} %>')
       ).toEqual({
         accesses: [],
         unableToCompute: true,
@@ -187,7 +195,7 @@ describe('access-recorder.ts', () => {
     });
 
     it('prevents assignment of values', () => {
-      expect(computeTemplateAccesses('<%= const value = 1 + 2 %>')).toEqual({
+      expect(templateContext.computeAccesses('<%= const value = 1 + 2 %>')).toEqual({
         accesses: [],
         unableToCompute: true,
       });

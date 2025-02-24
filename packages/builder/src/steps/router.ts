@@ -3,7 +3,7 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { generateRouter } from '@usecannon/router';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
+import { mergeTemplateAccesses } from '../access-recorder';
 import { routerSchema } from '../schemas';
 import { ContractMap } from '../types';
 import {
@@ -104,15 +104,15 @@ const routerStep = {
     return config;
   },
 
-  getInputs(config, possibleFields) {
-    let accesses = computeTemplateAccesses(config.from);
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt, possibleFields));
+  getInputs(config, templateContext) {
+    let accesses = templateContext.computeAccesses(config.from);
+    accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.salt));
     accesses.accesses.push(
       ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`))
     );
 
     if (config?.overrides) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.overrides.gasLimit));
     }
 
     return accesses;

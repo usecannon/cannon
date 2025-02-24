@@ -2,7 +2,7 @@ import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
 import { Events } from '../runtime';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
+import { mergeTemplateAccesses } from '../access-recorder';
 import { getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { PackageReference } from '../package-reference';
@@ -59,9 +59,9 @@ const pullSpec = {
     return config;
   },
 
-  getInputs(config, possibleFields) {
-    let accesses = computeTemplateAccesses(config.source, possibleFields);
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.preset, possibleFields));
+  getInputs(config, templateContext) {
+    let accesses = templateContext.computeAccesses(config.source);
+    accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.preset));
 
     return accesses;
   },
@@ -106,7 +106,15 @@ const pullSpec = {
       imports: {
         [importLabel]: {
           url: (await runtime.registry.getUrl(source, chainId))!, // todo: duplication
-          ...(await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state))!,
+          ...(await getOutputs(
+            runtime,
+            new ChainDefinition(deployInfo.def, false, {
+              chainId,
+              timestamp: deployInfo.timestamp || 0,
+              package: { version: '0.0.0' },
+            }),
+            deployInfo.state
+          ))!,
         },
       },
     };

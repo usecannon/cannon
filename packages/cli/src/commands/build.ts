@@ -182,7 +182,11 @@ export async function build({
 
   const resolvedSettings = _.pickBy(_.assign((!wipe && oldDeployData?.options) || {}, packageDefinition.settings));
 
-  def = def || (oldDeployData ? new ChainDefinition(oldDeployData!.def) : undefined);
+  def =
+    def ||
+    (oldDeployData
+      ? new ChainDefinition(oldDeployData!.def, false, { chainId, timestamp: Date.now(), package: { version: '0.0.0' } })
+      : undefined);
 
   if (!def) {
     throw new Error('no deployment definition to build');

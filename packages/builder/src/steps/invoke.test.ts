@@ -3,6 +3,7 @@ import { validateConfig } from '../actions';
 import action from './invoke';
 import { fakeCtx, fakeRuntime } from './utils.test.helper';
 import { PackageReference } from '../package-reference';
+import { TemplateContext } from '..';
 
 describe('steps/invoke.ts', () => {
   const fakeContractInfo = {
@@ -158,7 +159,7 @@ describe('steps/invoke.ts', () => {
               args: ['<%= contracts.h %>', '<%= contracts.i %>'],
               overrides: { gasLimit: '<%= contracts.j %>' },
             },
-            []
+            new TemplateContext({ chainId: 0, timestamp: 0, package: { version: '0.0.0' } })
           )
           .accesses.sort()
       ).toEqual([

@@ -2,7 +2,7 @@ import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
+import { mergeTemplateAccesses } from '../access-recorder';
 import { invokeSchema } from '../schemas';
 import {
   CannonSigner,
@@ -433,11 +433,11 @@ const invokeSpec = {
     return config;
   },
 
-  getInputs(config, possibleFields) {
-    let accesses = computeTemplateAccesses(config.abi, possibleFields);
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.func, possibleFields));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.from, possibleFields));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.value, possibleFields));
+  getInputs(config, templateContext) {
+    let accesses = templateContext.computeAccesses(config.abi);
+    accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.func));
+    accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.from));
+    accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.value));
 
     if (typeof config.target === 'string') {
       config.target = [config.target as string];
@@ -452,7 +452,7 @@ const invokeSpec = {
         accesses.accesses.push(`imports.${target.split('.')[0]}`);
       } else if (isTemplateString(target)) {
         for (const match of getTemplateMatches(target)) {
-          accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(match, possibleFields));
+          accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(match));
         }
       }
     }
@@ -460,37 +460,37 @@ const invokeSpec = {
     if (config.args) {
       _.forEach(
         config.args,
-        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(a), possibleFields)))
+        (a) => (accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(JSON.stringify(a))))
       );
     }
 
     if (config.fromCall) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.fromCall.func, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.fromCall.func));
 
       _.forEach(
         config.fromCall.args,
-        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(a), possibleFields)))
+        (a) => (accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(JSON.stringify(a))))
       );
     }
 
     if (config?.overrides) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.overrides.gasLimit));
     }
 
     for (const name in config.factory) {
       const f = config.factory[name];
 
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.event, possibleFields));
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.artifact, possibleFields));
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.abi, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(f.event));
+      accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(f.artifact));
+      accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(f.abi));
 
-      _.forEach(f.abiOf, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))));
+      _.forEach(f.abiOf, (a) => (accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(a))));
     }
 
     const varsConfig = config.var || config.extra;
     for (const name in varsConfig) {
       const f = varsConfig[name];
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.event, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(f.event));
     }
 
     return accesses;

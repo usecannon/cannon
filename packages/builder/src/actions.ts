@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AccessComputationResult } from './access-recorder';
+import { AccessComputationResult, TemplateContext } from './access-recorder';
 import { handleZodErrors } from './error/zod';
 import { ChainBuilderRuntime } from './runtime';
 import { chainDefinitionSchema } from './schemas';
@@ -33,7 +33,7 @@ export interface CannonAction<Config extends RawConfig = any> {
   /**
    * Returns a list of state keys that this operation consumes (used for dependency inference)
    */
-  getInputs?: (config: Config, possibleFields: string[], packageState: PackageState) => AccessComputationResult;
+  getInputs?: (config: Config, templateContext: TemplateContext, packageState: PackageState) => AccessComputationResult;
 
   /**
    * Returns a list of state keys this operation produces (used for dependency inference)

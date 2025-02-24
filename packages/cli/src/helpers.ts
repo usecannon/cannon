@@ -230,8 +230,12 @@ export async function loadCannonfile(filepath: string) {
   }
 
   // second argument ensures "sensitive" dependency verification--which ensures users are always specifying dependencies when they cant be reliably determined
-  const def = new ChainDefinition(rawDef, true);
   const pkg = loadPackageJson(path.join(path.dirname(path.resolve(filepath)), 'package.json'));
+  const def = new ChainDefinition(rawDef, true, {
+    chainId: CANNON_CHAIN_ID,
+    timestamp: Date.now(),
+    package: { version: pkg.version || '0.0.0' },
+  });
 
   // TODO: there should be a helper in the builder to create the initial ctx
   const ctx: ChainBuilderContext = {

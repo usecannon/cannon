@@ -2,7 +2,7 @@ import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
+import { mergeTemplateAccesses } from '../access-recorder';
 import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
 import { CannonError, handleTxnError } from '../error';
 import { deploySchema } from '../schemas';
@@ -195,37 +195,31 @@ const deploySpec = {
     return config;
   },
 
-  getInputs(config, possibleFields) {
-    let accesses = computeTemplateAccesses(config.from);
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.nonce, possibleFields));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.artifact, possibleFields));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.value, possibleFields));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.abi, possibleFields));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt, possibleFields));
+  getInputs(config, templateContext) {
+    let accesses = templateContext.computeAccesses(config.from);
+    accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.nonce));
+    accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.artifact));
+    accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.value));
+    accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.abi));
+    accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.salt));
 
     if (config.abiOf) {
-      _.forEach(
-        config.abiOf,
-        (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(v, possibleFields)))
-      );
+      _.forEach(config.abiOf, (v) => (accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(v))));
     }
 
     if (config.args) {
       _.forEach(
         config.args,
-        (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(v), possibleFields)))
+        (v) => (accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(JSON.stringify(v))))
       );
     }
 
     if (config.libraries) {
-      _.forEach(
-        config.libraries,
-        (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(v, possibleFields)))
-      );
+      _.forEach(config.libraries, (v) => (accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(v))));
     }
 
     if (config?.overrides?.gasLimit) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.overrides.gasLimit));
     }
 
     return accesses;

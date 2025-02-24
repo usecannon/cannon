@@ -58,7 +58,11 @@ export async function forPackageTree<T extends { url?: string; artifacts?: Chain
       // the nested artifacts (stored in this import artifact) might have changed because of the new url. if so, lets pull those changes in
       // TODO: maybe also necessary to update others besides imports? for now just keeping this as is becuase of
       importArtifact.imports = getArtifacts(
-        new ChainDefinition(updatedNestedDeployInfo.def),
+        new ChainDefinition(updatedNestedDeployInfo.def, false, {
+          chainId: deployInfo.chainId || 0,
+          timestamp: deployInfo.timestamp || 0,
+          package: { version: '0.0.0' },
+        }),
         updatedNestedDeployInfo.state
       ).imports;
     }
@@ -96,7 +100,11 @@ export async function pinIpfs(
     return alreadyCopiedIpfs.get(checkKey);
   }
 
-  const def = new ChainDefinition(deployInfo.def);
+  const def = new ChainDefinition(deployInfo.def, false, {
+    chainId: deployInfo.chainId || 0,
+    timestamp: deployInfo.timestamp || 0,
+    package: { version: '0.0.0' },
+  });
 
   const pkgChainId = chainId || deployInfo.chainId || 0;
 
