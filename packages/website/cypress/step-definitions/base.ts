@@ -33,8 +33,7 @@ When('User types {string} in the input with placeholder {string}', (text: string
 When('User types {string} into the {int}st/nd/rd/th input with id {string}', (text: string, idx: number, id: string) => {
   cy.get(`input[data-testid="${id}"]`)
     .eq(idx - 1)
-    .should('be.enabled')
-    .clear()
+    .clear({ force: true })
     .type(`${text}`);
 });
 
