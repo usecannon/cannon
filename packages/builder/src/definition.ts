@@ -85,7 +85,7 @@ export class ChainDefinition {
       chainId: 0,
       timestamp: Date.now(),
       package: { version: '0.0.0' },
-    },
+    }
   ) {
     debug('begin chain def init');
     this.raw = def;
@@ -183,7 +183,7 @@ export class ChainDefinition {
 
     if (!action) {
       throw new Error(
-        `action kind plugin not installed: "${kind}" (for action: "${n}"). please install the plugin necessary to build this package.`,
+        `action kind plugin not installed: "${kind}" (for action: "${n}"). please install the plugin necessary to build this package.`
       );
     }
 
@@ -203,7 +203,7 @@ export class ChainDefinition {
     n: string,
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
-    tainted: boolean,
+    tainted: boolean
   ): Promise<string[] | null> {
     const kind = n.split('.')[0] as keyof typeof ActionKinds;
 
@@ -250,7 +250,7 @@ export class ChainDefinition {
         source: template(d.source, ctx),
         chainId: d.chainId || ctx.chainId,
         preset: d.preset ? template(d.preset, ctx) : 'main',
-      })),
+      }))
     );
   }
 
@@ -293,8 +293,8 @@ export class ChainDefinition {
       if (this.sensitiveDependencies && accessComputationResults.unableToCompute && !_.get(this.raw, node).depends) {
         throw new Error(
           `Unable to compute dependencies for [${node}] because of advanced logic in template strings. Specify dependencies manually, like "depends = ['${_.uniq(
-            _.uniq(accessComputationResults.accesses).map((a) => `${this.dependencyFor.get(a)}`),
-          ).join("', '")}']"`,
+            _.uniq(accessComputationResults.accesses).map((a) => `${this.dependencyFor.get(a)}`)
+          ).join("', '")}']"`
         );
       }
 
@@ -369,8 +369,8 @@ export class ChainDefinition {
           .map((n) => this.getDependencies(n))
           .flatten()
           .uniq()
-          .value(),
-      ),
+          .value()
+      )
     );
 
     if (computeDepsDebug.enabled) {
@@ -492,7 +492,7 @@ export class ChainDefinition {
   checkCycles(
     actions = this.allActionNames,
     seenNodes = new Set<string>(),
-    currentPath = new Set<string>(),
+    currentPath = new Set<string>()
   ): string[] | null {
     // resolved dependencies gets set during dependency computation
     this.initializeComputedDependencies();
@@ -702,7 +702,7 @@ export class ChainDefinition {
     }
     return Math.max(
       layers[n].actions.length + 2,
-      _.sumBy(layers[n].depends, (d) => this.getPrintLinesUsed(d, layers)),
+      _.sumBy(layers[n].depends, (d) => this.getPrintLinesUsed(d, layers))
     );
   }
 

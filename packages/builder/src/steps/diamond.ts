@@ -106,7 +106,7 @@ const diamondStep = {
 
     accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.salt));
     accesses.accesses.push(
-      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`)),
+      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`))
     );
 
     if (config?.overrides) {
@@ -225,7 +225,7 @@ const diamondStep = {
       };
     } catch (err) {
       throw new Error(
-        `failed to cut (upgrade) the diamond which is already deployed. This could happen for a few reasons:\n* the diamond owner has been changed and is now incorrect.\n* the diamond was previously made immutable and can no longer can be upgraded.\noriginal error: ${err}`,
+        `failed to cut (upgrade) the diamond which is already deployed. This could happen for a few reasons:\n* the diamond owner has been changed and is now incorrect.\n* the diamond was previously made immutable and can no longer can be upgraded.\noriginal error: ${err}`
       );
     }
   },
@@ -234,13 +234,13 @@ const diamondStep = {
 async function firstTimeDeploy(
   runtime: ChainBuilderRuntime,
   config: Config,
-  packageState: PackageState,
+  packageState: PackageState
 ): Promise<ContractMap> {
   const stepName = packageState.currentLabel.split('.')[1];
 
   const signer = await runtime.getDefaultSigner(
     { data: viem.keccak256(viem.encodePacked(['string'], [config.salt])) as viem.Hex },
-    config.salt,
+    config.salt
   );
 
   debug('using deploy signer with address', signer.address);
@@ -253,7 +253,7 @@ async function firstTimeDeploy(
     contract: ContractArtifact,
     deployedContractLabel: string,
     constructorArgs: any[],
-    salt = '',
+    salt = ''
   ) {
     debug('deploy contract', contract.contractName, deployedContractLabel, constructorArgs, salt);
     runtime.reportContractArtifact(`${contract.sourceName}:${contract.contractName}`, {
@@ -299,7 +299,7 @@ async function firstTimeDeploy(
 
     if (!bytecode) {
       const hash = await signer.wallet.sendTransaction(
-        _.assign({ account: signer.wallet.account || signer.address }, create2Txn as any),
+        _.assign({ account: signer.wallet.account || signer.address }, create2Txn as any)
       );
       const receipt = await runtime.provider.waitForTransactionReceipt({ hash });
       const block = await runtime.provider.getBlock({ blockHash: receipt.blockHash });
@@ -358,7 +358,7 @@ async function firstTimeDeploy(
     (await import('../abis/diamond/Diamond.json')) as any,
     stepName,
     [addFacets, config.diamondArgs],
-    config.salt || '',
+    config.salt || ''
   );
 
   return outputContracts;

@@ -109,7 +109,7 @@ describe('access-recorder.ts', () => {
         accesses: ['settings.my_45'],
         unableToCompute: false,
       });
-    })
+    });
   });
 
   describe('computeTemplateAccesses() syntax validation', () => {

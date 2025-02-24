@@ -160,7 +160,7 @@ describe('steps/deploy.ts', () => {
               args: ['<%= contracts.h %>', '<%= contracts.i %>'],
               salt: '<%= contracts.j %>',
             },
-            new TemplateContext({ chainId: 0, timestamp: 0, package: { version: '0.0.0' }})
+            new TemplateContext({ chainId: 0, timestamp: 0, package: { version: '0.0.0' } })
           )
           .accesses.sort()
       ).toEqual([

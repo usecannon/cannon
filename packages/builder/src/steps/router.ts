@@ -108,7 +108,7 @@ const routerStep = {
     let accesses = templateContext.computeAccesses(config.from);
     accesses = mergeTemplateAccesses(accesses, templateContext.computeAccesses(config.salt));
     accesses.accesses.push(
-      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`)),
+      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`))
     );
 
     if (config?.overrides) {

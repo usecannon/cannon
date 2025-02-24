@@ -27,7 +27,7 @@ export interface CannonAction<Config extends RawConfig = any> {
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
     config: Config,
-    packageState: PackageState,
+    packageState: PackageState
   ) => Promise<any[] | null>;
 
   /**
@@ -44,7 +44,7 @@ export interface CannonAction<Config extends RawConfig = any> {
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
     config: Config,
-    packageState: PackageState,
+    packageState: PackageState
   ) => Promise<ChainArtifacts>;
 
   importExisting?: (
@@ -52,7 +52,7 @@ export interface CannonAction<Config extends RawConfig = any> {
     ctx: ChainBuilderContext,
     config: Config,
     packageState: PackageState,
-    existingKeys: string[],
+    existingKeys: string[]
   ) => Promise<ChainArtifacts>;
 
   // Takes in any schema as long as the base type is ZodSchema

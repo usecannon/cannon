@@ -46,7 +46,7 @@ export class AccessRecorder extends ExtendableProxy {
         ...this.accessed
           .get(k)!
           .getAccesses(depth, (cur || 1) + 1)
-          .map((a) => `${k}.${a}`),
+          .map((a) => `${k}.${a}`)
       );
     }
 
@@ -80,7 +80,7 @@ export class TemplateContext {
 
   constructor(
     overrides: { chainId: number; timestamp: number; package: { version: string } },
-    possibleNames: string[] = [],
+    possibleNames: string[] = []
   ) {
     // Create a fake helper context, so the render works but no real functions are called
     const fakeHelperContext = _createDeepNoopObject(CannonHelperContext);
