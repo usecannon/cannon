@@ -72,6 +72,8 @@ Then('Output contains {string}', (input: string) => {
 Then('The element with id {string} has {int} queued transactions', (element: string, idx: number) => {
   cy.get(`[data-testid="${element}"]`)
     .should('exist')
+    .scrollIntoView()
+    .should('be.visible')
     .should('contain', `${String(idx)}`);
 });
 

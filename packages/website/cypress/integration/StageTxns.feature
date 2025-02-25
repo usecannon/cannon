@@ -38,7 +38,6 @@ Feature: Stage Transactions
     * User clicks on the 1st element with id "stage-safe-button"
     * User clicks on the 1st element with id "queue-button"
     Then View renders a "h2" displaying the text "Stage Transactions to a Safe"
-    * View renders a "div" displaying the text "All Transactions Simulated Successfully"
     * The element with id "txs-alert" has 2 queued transactions
 
   Scenario: User stages transactions from the queue transactions drawer
@@ -70,7 +69,7 @@ Feature: Stage Transactions
     * User clicks on the 1st element with id "setGreeting-select"
     # Element 3
     * User types "Hello World Again!" into the 2nd input with id "default-input"
-    Then View renders a "div" displaying the text "All Transactions Simulated Successfully"
+    Then View renders a "h5" displaying the text "All Transactions Simulated Successfully"
     * The element with id "txs-alert" has 2 queued transactions
 
   Scenario: User stages transactions from the deploy page
@@ -101,5 +100,5 @@ Feature: Stage Transactions
     * User clicks on the 1st element with id "setGreeting-select"
     # Element 3
     * User types "Hello World Again!" into the 2nd input with id "default-input"
-    Then View renders a "div" displaying the text "All Transactions Simulated Successfully"
+    Then View renders a "h5" displaying the text "All Transactions Simulated Successfully"
     * The element with id "txs-alert" has 2 queued transactions
