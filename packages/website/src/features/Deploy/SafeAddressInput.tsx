@@ -18,10 +18,7 @@ import React, { useEffect, useState } from 'react';
 import { useSwitchChain } from 'wagmi';
 import omit from 'lodash/omit';
 import { truncateAddress } from '@/helpers/ethereum';
-import {
-  useCannonChains,
-  chainMetadata,
-} from '@/providers/CannonProvidersProvider';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -63,7 +60,7 @@ export function SafeAddressInput() {
   const pendingServiceTransactions = usePendingTransactions(
     currentSafe || undefined
   );
-  const { chains } = useCannonChains();
+  const { chains, chainMetadata } = useCannonChains();
   const { switchChain } = useSwitchChain();
 
   const router = useRouter();

@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { useCannonPackage } from '@/hooks/cannon';
 import NextLink from 'next/link';
-import { getSafeUrl } from '@/hooks/safe';
 import { SafeDefinition } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { parseHintedMulticall } from '@/helpers/cannon';
@@ -18,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useSafeUrl } from '@/hooks/safe';
 
 const useTxnAdditionalData = ({
   safe,
@@ -93,6 +93,7 @@ function TransactionRow({
 }: TransactionRowProps) {
   const stager = useTxnAdditionalData({ safe, tx, isStaged });
   const hintData = parseHintedMulticall(tx.data);
+  const getSafeUrl = useSafeUrl();
 
   const { resolvedName, resolvedVersion, resolvedPreset } = useCannonPackage(
     hintData?.cannonPackage

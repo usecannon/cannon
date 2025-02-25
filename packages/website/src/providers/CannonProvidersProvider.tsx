@@ -1,6 +1,6 @@
 'use client';
 
-import { useStore } from '@/helpers/store';
+import { SafeTxService, useStore } from '@/helpers/store';
 import React, {
   createContext,
   PropsWithChildren,
@@ -52,13 +52,19 @@ export const polynomial = defineChain({
   testnet: false,
 });
 
-type CustomProviders =
+export type CustomChainMetadata = Record<
+  number,
+  {
+    color?: string;
+    shortName?: string;
+    serviceUrl?: string;
+  }
+>;
+
+export type CustomProviders =
   | {
       chains: Chain[];
-      chainMetadata: Record<
-        number,
-        { color?: string; shortName?: string; serviceUrl?: string }
-      >;
+      chainMetadata: CustomChainMetadata;
       transports: Record<number, HttpTransport>;
       customTransports: Record<number, HttpTransport>;
       getChainById: (chainId: number) => Chain | undefined;
@@ -108,7 +114,7 @@ const customDefaultRpcs: Record<number, Chain['rpcUrls']> = {
 // shortNames taken from https://github.com/ethereum-lists/chains/blob/master/_data/chains
 // export const chains = [
 
-export const chainMetadata = {
+const chainMetadata = {
   [polynomial.id]: {
     color: '#cdfe40',
   },
@@ -127,11 +133,11 @@ export const chainMetadata = {
     shortName: 'base',
     serviceUrl: 'https://safe-transaction-base.safe.global',
   },
-  [chains.baseSepolia.id]: {
-    color: '#0052ff',
-    shortName: 'base',
-    serviceUrl: 'https://safe-transaction-base-sepolia.safe.global',
-  },
+  // [chains.baseSepolia.id]: {
+  //   color: '#0052ff',
+  //   shortName: 'base',
+  //   serviceUrl: 'https://safe-transaction-base-sepolia.safe.global',
+  // },
   [chains.bsc.id]: {
     color: '#ebac0e',
     shortName: 'bnb',
@@ -334,10 +340,26 @@ const _getExplorerUrl = (allChains: Chain[], chainId: number, hash: Hash) => {
   return `${url}/${type}/${hash}`;
 };
 
+function _getMergedChainMetadata(safeTxServices: SafeTxService[]) {
+  const customServiceUrls = safeTxServices.reduce(
+    (acc, service) => ({
+      ...acc,
+      [service.chainId]: {
+        ...chainMetadata[service.chainId],
+        serviceUrl: service.url,
+      },
+    }),
+    {}
+  );
+
+  return merge({}, chainMetadata, customServiceUrls);
+}
+
 export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
   const customProviders = useStore((state) => state.settings.customProviders);
+  const safeTxServices = useStore((state) => state.safeTxServices);
 
   const { isLoading, data: verifiedProviders } = useQuery({
     queryKey: ['fetchCustomProviders', ...customProviders],
@@ -348,6 +370,12 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
     (v) => v.rpcUrl
   );
   const chainsUrlsString = JSON.stringify(sortBy(chainsUrls));
+
+  const mergedChainMetadata = useMemo(
+    () => _getMergedChainMetadata(safeTxServices),
+    [safeTxServices]
+  );
+
   const [_allChains, _allTransports, _customTransports] = useMemo(
     () => [
       _getAllChains(verifiedProviders),
@@ -362,7 +390,7 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
     <ProvidersContext.Provider
       value={{
         chains: _allChains,
-        chainMetadata,
+        chainMetadata: mergedChainMetadata,
         transports: _allTransports,
         customTransports: _customTransports,
         getChainById: (chainId) => _getChainById(_allChains, chainId),
