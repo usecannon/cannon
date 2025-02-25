@@ -69,8 +69,10 @@ Then('Output contains {string}', (input: string) => {
     });
 });
 
-Then('Drawer has {int} queued transactions', (idx: number) => {
-  cy.get('div[role="alert"]').should('contain', `${String(idx)}`);
+Then('The element with id {string} has {int} queued transactions', (element: string, idx: number) => {
+  cy.get(`[data-testid="${element}"]`)
+    .should('exist')
+    .should('contain', `${String(idx)}`);
 });
 
 Then('{string} value on {string} attribute should exist', (value: string, attribute: string) => {

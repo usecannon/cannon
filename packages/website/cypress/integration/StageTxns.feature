@@ -37,7 +37,7 @@ Feature: Stage Transactions
     When User types "Hello World Again!" into the 1st input with id "default-input"
     * User clicks on the 1st element with id "stage-safe-button"
     * User clicks on the 1st element with id "queue-button"
-    Then Drawer has 2 queued transactions
+    * The element with id "txs-alert" has 2 queued transactions
 
   Scenario: User stages transactions from the queue transactions drawer
     Given User opens the "/packages/owned-greeter/0.0.5/11155111-main/interact/owned-greeter/Greeter/0xa4605Ef2fB94211815F14AF6153915928C9E6407" page
@@ -69,7 +69,7 @@ Feature: Stage Transactions
     # Element 3
     * User types "Hello World Again!" into the 2nd input with id "default-input"
     Then View renders a "div" displaying the text "All Transactions Simulated Successfully"
-    * Drawer has 2 queued transactions
+    * The element with id "txs-alert" has 2 queued transactions
 
   Scenario: User stages transactions from the deploy page
     Given User opens the "/deploy" page
@@ -100,4 +100,4 @@ Feature: Stage Transactions
     # Element 3
     * User types "Hello World Again!" into the 2nd input with id "default-input"
     Then View renders a "div" displaying the text "All Transactions Simulated Successfully"
-    * Drawer has 2 queued transactions
+    * The element with id "txs-alert" has 2 queued transactions
