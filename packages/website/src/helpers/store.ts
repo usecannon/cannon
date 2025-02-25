@@ -24,9 +24,15 @@ export type SafeDefinition = {
   address: Address;
 };
 
+export type SafeTxService = {
+  chainId: number;
+  url: string;
+};
+
 export interface State {
   currentSafe: SafeDefinition | null;
   safeAddresses: SafeDefinition[];
+  safeTxServices: SafeTxService[];
   build: {
     cid: string;
     buildState: BuildState;
@@ -59,6 +65,7 @@ export interface Actions {
   setCurrentSafe: (safe: State['currentSafe']) => void;
   deleteSafe: (safeToDelete: State['currentSafe']) => void;
   prependSafeAddress: (safeToPrepend: State['currentSafe']) => void;
+  setSafeTxServices: (services: SafeTxService[]) => void;
 }
 
 export interface QueueTxsActions {
@@ -88,6 +95,7 @@ export type QueueTxsStore = QueueTxsState & QueueTxsActions;
 export const initialState = {
   currentSafe: null,
   safeAddresses: [],
+  safeTxServices: [],
   build: {
     cid: '',
     buildState: {
@@ -187,6 +195,12 @@ const useStore = create<Store>()(
           ) as SafeDefinition[],
         }));
       },
+      setSafeTxServices: (services) => {
+        set((state) => ({
+          ...state,
+          safeTxServices: services,
+        }));
+      },
     }),
     // Persist only settings, current safe and safe addresses on local storage
     {
@@ -195,6 +209,7 @@ const useStore = create<Store>()(
         settings: state.settings,
         currentSafe: state.currentSafe,
         safeAddresses: state.safeAddresses,
+        safeTxServices: state.safeTxServices,
       }),
       merge: (persisted, initial) => merge(initial, persisted as Store) as Store,
     }

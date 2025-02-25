@@ -20,6 +20,7 @@ import * as onchainStore from '@/helpers/onchain-store';
 import { SafeDefinition, useStore } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { chainMetadata, useCannonChains } from '@/providers/CannonProvidersProvider';
+import ms from 'ms';
 
 export type SafeString = `${number}:${Address}`;
 
@@ -122,6 +123,7 @@ export function useExecutedTransactions(safe?: SafeDefinition | null) {
           })) as unknown as SafeTransaction[],
       };
     },
+    refetchInterval: ms('30s'),
     enabled: !!safe,
   });
 }
