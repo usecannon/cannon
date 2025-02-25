@@ -37,6 +37,7 @@ Feature: Stage Transactions
     When User types "Hello World Again!" into the 1st input with id "default-input"
     * User clicks on the 1st element with id "stage-safe-button"
     * User clicks on the 1st element with id "queue-button"
+    Then View renders a "div" displaying the text "All Transactions Simulated Successfully"
     * The element with id "txs-alert" has 2 queued transactions
 
   Scenario: User stages transactions from the queue transactions drawer
