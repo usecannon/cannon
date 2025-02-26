@@ -118,7 +118,7 @@ function TransactionDetailsPage() {
     // we find the nonce we want. no way to just get the txn we want unfortunately
     // also todo: code dup
     safeTxn =
-      history.results.find(
+      history?.results.find(
         (txn: any) =>
           txn._nonce.toString() === nonce.toString() &&
           (!sigHash ||

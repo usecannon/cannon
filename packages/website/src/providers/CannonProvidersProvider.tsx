@@ -133,11 +133,11 @@ const chainMetadata = {
     shortName: 'base',
     serviceUrl: 'https://safe-transaction-base.safe.global',
   },
-  // [chains.baseSepolia.id]: {
-  //   color: '#0052ff',
-  //   shortName: 'base',
-  //   serviceUrl: 'https://safe-transaction-base-sepolia.safe.global',
-  // },
+  [chains.baseSepolia.id]: {
+    color: '#0052ff',
+    shortName: 'base',
+    serviceUrl: 'https://safe-transaction-base-sepolia.safe.global',
+  },
   [chains.bsc.id]: {
     color: '#ebac0e',
     shortName: 'bnb',
