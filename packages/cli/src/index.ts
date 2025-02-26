@@ -185,6 +185,11 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
       throw new Error('Cannot build on Cannon Network with --dry-run flag.');
     }
 
+    // throw an error if `--dry-run`, and `--impersonate` or `--impersonate-all` is not declared
+    if (options.dryRun && !options.impersonate && !options.impersonateAll) {
+      throw new Error('Must specify one of `--impersonate` or `--impersonate-all`');
+    }
+
     // throw an error if the chainId is not consistent with the provider's chainId
     await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
 
