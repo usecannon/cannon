@@ -22,8 +22,8 @@ export async function getFoundryOpts(): Promise<FoundryOpts> {
   return JSON.parse(
     await _.memoize(
       () => execPromise('forge config --json'),
-      () => ''
-    )()
+      () => '',
+    )(),
   );
 }
 
@@ -80,20 +80,20 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
   }
 
   let artifact = possibleArtifacts[0];
-  if (possibleArtifactPaths.length > 1) {
-    const sourceNames = possibleArtifacts.map((v) => v.ast.absolutePath);
+  const sourceNames = possibleArtifacts.map((v) => v.ast?.absolutePath ?? '').filter((v) => v);
+  if (sourceNames.length > 1) {
     if (!inputSourceName) {
       throw new Error(
         `more than one contract was found with the name ${inputContractName}. Please tell us which file for the contract to use:\n${sourceNames
           .map((v) => `${v}:${inputContractName}`)
-          .join('\n')}`
+          .join('\n')}`,
       );
     }
 
     const matchingArtifact = possibleArtifacts.find((v) => v.ast.absolutePath == inputSourceName);
     if (!matchingArtifact) {
       throw new Error(
-        `no artifact was found at the given source name "${inputSourceName}". Should be one of:\n${sourceNames.join('\n')}`
+        `no artifact was found at the given source name "${inputSourceName}". Should be one of:\n${sourceNames.join('\n')}`,
       );
     }
 
