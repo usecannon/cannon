@@ -53,6 +53,11 @@ jobs:
           CANNON_E2E_RPC_URL_SEPOLIA: ${{ secrets.CANNON_E2E_RPC_URL_SEPOLIA }}
           CANNON_E2E_RPC_URL_ETHEREUM: ${{ secrets.CANNON_E2E_RPC_URL_ETHEREUM }}
 
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
       # upload screenshots as an artifact in case of a problem with the cypress build and we dont know what is happening
       - name: Upload Screenshots
         uses: actions/upload-artifact@v4
