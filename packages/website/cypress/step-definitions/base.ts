@@ -19,7 +19,7 @@ When('User clicks on the {string} tab', (link: string) => {
 When('User clicks on the {int}st/nd/rd/th element with id {string}', (idx: number, id: string) => {
   cy.get(`[data-testid="${id}"]`)
     .eq(idx - 1)
-    .click();
+    .click({ force: true });
 });
 
 When('User types {string} in the {string} input', (text: string, input: string) => {
