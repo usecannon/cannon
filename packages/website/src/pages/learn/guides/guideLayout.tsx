@@ -51,6 +51,7 @@ const useCannon = [
   },
   { text: 'Deploy a Router', href: links.ROUTER },
   { text: 'Debugging Tips', href: links.DEBUG },
+  { text: 'Manually Modifying the State', href: links.ALTER },
 ];
 
 export default function GuideLayout({ children }: { children: ReactNode }) {
@@ -70,7 +71,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
                     'w-full',
                     pathname === item.href &&
                       !item.nav &&
-                      'bg-muted font-medium'
+                      'bg-muted font-medium',
                   )}
                 >
                   <Link href={item.href}>{item.text}</Link>
@@ -84,7 +85,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
                           isActive={pathname === navItem.href}
                           className={cn(
                             'w-full',
-                            pathname === navItem.href && 'bg-muted font-medium'
+                            pathname === navItem.href && 'bg-muted font-medium',
                           )}
                         >
                           <Link href={navItem.href}>{navItem.text}</Link>

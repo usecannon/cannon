@@ -11,6 +11,7 @@ export const links = {
   BUILD: '/learn/guides/build',
   ROUTER: '/learn/guides/router',
   DEBUG: '/learn/guides/debug',
+  ALTER: '/learn/guides/alter',
   CLI: '/learn/cli',
   CANNONFILE: '/learn/cannonfile',
   IPFS_DOWNLOAD: '/ipfs',
