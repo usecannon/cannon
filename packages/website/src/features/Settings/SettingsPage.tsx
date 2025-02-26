@@ -26,6 +26,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import Link from 'next/link';
+import CustomSafeTxServices from '@/features/Settings/CustomSafeTxServices';
 
 export default function SettingsPage() {
   const settings = useStore((s) => s.settings);
@@ -51,6 +52,18 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent>
           <CustomProviders />
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6 border-border">
+        <CardHeader>
+          <CardTitle>Custom Safe Transaction Services</CardTitle>
+          <CardDescription>
+            You can define custom Safe Transaction Services to use with Cannon.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CustomSafeTxServices />
         </CardContent>
       </Card>
 
