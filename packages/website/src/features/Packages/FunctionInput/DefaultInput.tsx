@@ -15,6 +15,7 @@ export const DefaultInput: FC<{
       className="bg-background border-input"
       value={updateValue}
       onChange={(e) => setUpdateValue(e.target.value)}
+      data-testid="default-input"
     />
   );
 };

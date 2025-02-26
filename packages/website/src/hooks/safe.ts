@@ -19,7 +19,8 @@ import SafeABI_v1_4_1 from '@/abi/Safe-v1.4.1.json';
 import * as onchainStore from '@/helpers/onchain-store';
 import { SafeDefinition, useStore } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
-import { chainMetadata, useCannonChains } from '@/providers/CannonProvidersProvider';
+import { CustomChainMetadata, useCannonChains } from '@/providers/CannonProvidersProvider';
+import ms from 'ms';
 
 export type SafeString = `${number}:${Address}`;
 
@@ -59,19 +60,18 @@ export function isValidSafe(safe: SafeDefinition, supportedChains: Chain[]): boo
   );
 }
 
-function _getSafeShortNameAddress(safe: SafeDefinition) {
-  const metadata = chainMetadata[safe.chainId];
-  return `${metadata.shortName || safe.chainId}:${getAddress(safe.address)}`;
+export function useSafeUrl() {
+  const { chainMetadata } = useCannonChains();
+
+  return (safe: SafeDefinition, pathname = '/home') => {
+    const shortName = chainMetadata[safe.chainId]?.shortName;
+    const address = shortName ? `${shortName}:${safe.address}` : safe.address;
+    return `https://app.safe.global${pathname}?safe=${address}`;
+  };
 }
 
-export function getSafeUrl(safe: SafeDefinition, pathname = '/home') {
-  const address = _getSafeShortNameAddress(safe);
-  return `https://app.safe.global${pathname}?safe=${address}`;
-}
-
-function _createSafeApiKit(chainId: number) {
+function _createSafeApiKit(chainId: number, chainMetadata: CustomChainMetadata) {
   if (!chainId) return null;
-
   const chain = chainMetadata[chainId];
   if (!chain?.serviceUrl) return null;
 
@@ -82,14 +82,17 @@ function _createSafeApiKit(chainId: number) {
 }
 
 export function useExecutedTransactions(safe?: SafeDefinition | null) {
-  const txsQuery = useQuery({
+  const { chainMetadata } = useCannonChains();
+
+  return useQuery({
     queryKey: ['executed-transactions', safe?.chainId, safe?.address],
     queryFn: async () => {
       if (!safe) return null;
-      const safeService = _createSafeApiKit(safe.chainId);
+
+      const safeService = _createSafeApiKit(safe.chainId, chainMetadata);
 
       if (!safeService) {
-        throw new Error(`Safe Chain ID "${safe.chainId}" is not supported by Gnosis"`);
+        throw new Error('SAFE_CHAIN_NOT_SUPPORTED');
       }
 
       const res = await safeService.getMultisigTransactions(safe.address);
@@ -119,21 +122,18 @@ export function useExecutedTransactions(safe?: SafeDefinition | null) {
           })) as unknown as SafeTransaction[],
       };
     },
+    refetchInterval: ms('30s'),
+    enabled: !!safe,
   });
-
-  return {
-    data: txsQuery?.data || { count: 0, next: null, previous: null, results: [] },
-    refetch: txsQuery.refetch,
-    isLoading: txsQuery.isLoading,
-  };
 }
 
 export function usePendingTransactions(safe?: SafeDefinition) {
+  const { chainMetadata } = useCannonChains();
   const txsQuery = useQuery({
     queryKey: ['safe-service', 'pending-txns', safe?.chainId, safe?.address],
     queryFn: async () => {
       if (!safe) return null;
-      const safeService = _createSafeApiKit(safe.chainId);
+      const safeService = _createSafeApiKit(safe.chainId, chainMetadata);
       return await safeService?.getPendingTransactions(safe.address);
     },
   });
@@ -143,7 +143,7 @@ export function usePendingTransactions(safe?: SafeDefinition) {
 
 export function useWalletPublicSafes() {
   const { address } = useAccount();
-  const { chains } = useCannonChains();
+  const { chains, chainMetadata } = useCannonChains();
 
   const txsQuery = useQuery({
     queryKey: ['safe-service', 'wallet-safes', address],
@@ -152,7 +152,7 @@ export function useWalletPublicSafes() {
       if (!address) return results;
       await Promise.all(
         chains.map(async (chain) => {
-          const safeService = _createSafeApiKit(chain.id);
+          const safeService = _createSafeApiKit(chain.id, chainMetadata);
           if (!safeService) return;
           // This in order to avoid breaking the whole query if any chain fails
           try {
@@ -187,15 +187,13 @@ export function useGetPreviousGitInfoQuery(safe: SafeDefinition, gitRepoUrl: str
   return useReadContracts({
     contracts: [
       {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        abi: onchainStore.ABI as any,
+        abi: onchainStore.ABI,
         address: onchainStore.deployAddress,
         functionName: 'getWithAddress',
         args: [safe.address, keccak256(stringToBytes((gitRepoUrl || '') + 'gitHash'))],
       },
       {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        abi: onchainStore.ABI as any,
+        abi: onchainStore.ABI,
         address: onchainStore.deployAddress,
         functionName: 'getWithAddress',
         args: [safe.address, keccak256(stringToBytes((gitRepoUrl || '') + 'cannonPackage'))],

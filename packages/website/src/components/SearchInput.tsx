@@ -39,6 +39,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
             ? 'h-12 text-lg'
             : 'h-10'
         }`}
+        data-testid="search-input"
       />
     </div>
   );

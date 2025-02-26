@@ -18,10 +18,7 @@ import React, { useEffect, useState } from 'react';
 import { useSwitchChain } from 'wagmi';
 import omit from 'lodash/omit';
 import { truncateAddress } from '@/helpers/ethereum';
-import {
-  useCannonChains,
-  chainMetadata,
-} from '@/providers/CannonProvidersProvider';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -63,7 +60,7 @@ export function SafeAddressInput() {
   const pendingServiceTransactions = usePendingTransactions(
     currentSafe || undefined
   );
-  const { chains } = useCannonChains();
+  const { chains, chainMetadata } = useCannonChains();
   const { switchChain } = useSwitchChain();
 
   const router = useRouter();
@@ -245,7 +242,11 @@ export function SafeAddressInput() {
             </TooltipProvider>
           </>
         ) : (
-          <Button onClick={() => setIsDialogOpen(true)} size="sm">
+          <Button
+            onClick={() => setIsDialogOpen(true)}
+            size="sm"
+            data-testid="safe-select-button"
+          >
             Select Safe
           </Button>
         )}
@@ -396,7 +397,9 @@ export function SafeAddressInput() {
                             placeholder="0x..."
                             className="flex-1"
                           />
-                          <Button type="submit">Add Safe</Button>
+                          <Button type="submit" data-testid="safe-add-button">
+                            Add Safe
+                          </Button>
                         </div>
                       </div>
                     </div>

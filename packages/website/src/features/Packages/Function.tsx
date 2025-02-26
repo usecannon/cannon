@@ -429,6 +429,7 @@ export const Function: FC<FunctionProps> = ({
                     size="sm"
                     onClick={async () => await submit()}
                     className="rounded-r-none border-r-0"
+                    data-testid="call-function-button"
                   >
                     <EyeIcon className="w-4 h-4" />
                     Call function
@@ -487,6 +488,7 @@ export const Function: FC<FunctionProps> = ({
                       variant="outline"
                       onClick={async () => await submit({ simulate: true })}
                       className="rounded-r-none border-r-0"
+                      data-testid="simulate-txs-button"
                     >
                       <PlayIcon className="w-4 h-4" />
                       Simulate transaction
@@ -538,6 +540,7 @@ export const Function: FC<FunctionProps> = ({
                     disabled={loading}
                     variant="outline"
                     onClick={async () => await submit()}
+                    data-testid="submit-wallet-button"
                   >
                     <WalletIcon className="w-4 h-4" />
                     Submit with wallet{' '}
@@ -552,6 +555,7 @@ export const Function: FC<FunctionProps> = ({
                     disabled={loading}
                     variant="outline"
                     onClick={handleQueueTransaction}
+                    data-testid="stage-safe-button"
                   >
                     <svg
                       width="2px"

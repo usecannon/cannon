@@ -51,9 +51,11 @@ class StepEventsStream extends Readable {
   }
 
   _construct(cb: (err?: Error | null | undefined) => void): void {
+    const cloneNames: string[] = [];
     const handlePreStepExecute = (type: DumpLine['type'], label: string, step: DumpLine['step'], depth: number) => {
-      if (type === 'clone') {
-        this.push({ type, label, depth, step, txns: [] });
+      if (type === 'clone' || type === 'provision') {
+        this.push({ phase: 'pre', type, label, depth, step, txns: [], cloneNames });
+        cloneNames.push(label);
       }
     };
 
@@ -65,7 +67,11 @@ class StepEventsStream extends Readable {
       result: ChainArtifacts,
       depth: number
     ) => {
-      this.push({ type, label, depth, step, result, txns: [] });
+      if (type === 'clone' || type === 'provision') {
+        cloneNames.pop();
+      }
+
+      this.push({ phase: 'post', type, label, depth, step, result, txns: [], cloneNames });
     };
 
     this.runtime.on(Events.PreStepExecute, handlePreStepExecute);
