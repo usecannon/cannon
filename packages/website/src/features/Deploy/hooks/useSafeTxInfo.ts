@@ -57,7 +57,7 @@ export function useSafeTxInfo(safeDefinition: SafeDefinition, txSignature: strin
 
   // Get specific transaction info
   const safeTxn = getSafeTransaction(
-    safeTxsHistory.results,
+    safeTxsHistory?.results ?? [],
     safeStagedTxs,
     txSignature,
     txNonce,
