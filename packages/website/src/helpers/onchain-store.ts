@@ -82,7 +82,7 @@ export const ABI = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
-];
+] as const;
 
 export const deployTxn = {
   to: '0x4e59b44847b379578588920ca78fbf26c0b4956c' as viem.Hex,
