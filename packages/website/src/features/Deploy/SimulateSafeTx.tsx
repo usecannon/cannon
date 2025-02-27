@@ -61,12 +61,25 @@ export default function SimulateSafeTx({
             )}
           </div>
         )}
-        <SimulateTransactionButton
-          signer={safeSigner}
-          safe={safe}
-          safeTxn={safeTxn}
-          execTransactionData={execTransactionData}
-        />
+
+        <p>
+          Confirm you’re accessing the page via the <code>usecannon.com</code>{' '}
+          domain,{' '}
+          <SimulateTransactionButton
+            signer={safeSigner}
+            safe={safe}
+            safeTxn={safeTxn}
+            execTransactionData={execTransactionData}
+          />
+          , and always verify the transaction data displayed in your wallet with{' '}
+          <a
+            href="https://github.com/usecannon/safe-tx-hashes-util"
+            target="_blank"
+          >
+            this tool
+          </a>
+          .
+        </p>
       </CardContent>
     </Card>
   );
