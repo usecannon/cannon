@@ -21,6 +21,7 @@ function EncodedValueInput({ value }: { value: string }) {
       className="focus:border-muted-foreground/40 focus:ring-0 hover:border-muted-foreground/40 font-mono"
       readOnly
       value={value}
+      data-testid="encode-value-input"
     />
   );
 }
@@ -68,7 +69,10 @@ export function AbiParameterPreview({
       <Label>
         {name && <span>{name}</span>}
         {type && (
-          <span className="text-xs text-muted-foreground font-mono">
+          <span
+            className="text-xs text-muted-foreground font-mono"
+            data-testid="type-label"
+          >
             {' '}
             {type}
           </span>
