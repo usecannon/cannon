@@ -24,6 +24,7 @@ import { useSafeTxInfo } from './hooks/useSafeTxInfo';
 import { useSafeBuildTx } from '@/features/Deploy/hooks/useSafeBuildTx';
 
 import 'react-diff-view/style/index.css';
+import { useExecutedTransactionsFromRpc } from '@/hooks/safe';
 
 function TransactionDetailsPage() {
   const walletChainId = useChainId();
@@ -37,6 +38,8 @@ function TransactionDetailsPage() {
     sigHash: txParamSignatureHash,
     safeDefinition: txParamSafeDefinition,
   } = useTransactionDetailsParams();
+
+  useExecutedTransactionsFromRpc(txParamSafeDefinition);
 
   // check if safe chain is supported
   const { getChainById } = useCannonChains();
