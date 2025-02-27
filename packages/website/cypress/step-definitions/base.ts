@@ -81,6 +81,10 @@ Then('{string} value on {string} attribute should exist', (value: string, attrib
   cy.get(`[${attribute}="${value}"]`).should('exist');
 });
 
+Then('{string} value on {string} attribute should not exist', (value: string, attribute: string) => {
+  cy.get(`[${attribute}="${value}"]`).should('not.exist');
+});
+
 Then('The value with id {string} should be empty', (id: string) => {
   cy.get(`[data-testid="${id}"]`).should('have.value', '');
 });

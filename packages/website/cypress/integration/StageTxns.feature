@@ -31,12 +31,13 @@ Feature: Stage Transactions
     * User types "11155111" into the 1st input with id "safe-chain-input"
     * User types "0xfD050037C9039cE7b4A3213E3645BC1ba6eA0c97" into the 1st input with id "safe-address-input"
     * User clicks on the 1st element with id "safe-add-button"
-    * User clicks on the "Close" button
+    * "safe-add-button" value on "data-testid" attribute should not exist
+    * User clicks on the 1st element with id "sheet-close-button"
     When User types "Hello World!" into the 1st input with id "default-input"
     * User clicks on the 1st element with id "stage-safe-button"
     * User clicks on the 1st element with id "queue-button"
     Then The 2nd input with id "default-input" should have "Hello World!"
-    * User clicks on the "Close" button
+    * User clicks on the 1st element with id "sheet-close-button"
     When User types "Hello World Again!" into the 1st input with id "default-input"
     * User clicks on the 1st element with id "stage-safe-button"
     * User clicks on the 1st element with id "queue-button"
