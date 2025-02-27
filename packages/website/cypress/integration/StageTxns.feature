@@ -14,7 +14,7 @@ Feature: Stage Transactions
     Given User opens the "/packages" page
     When User types "owned-greeter" into the 1st input with id "search-input"
     Then The value with id "search-input" should be empty
-    * The 1st tag should have "owned-greeter" with id "owned-greeter-section"
+    * The 1st element with id "owned-greeter-section" should have "owned-greeter"
     * User clicks on the 1st element with id "owned-greeter-filter-button"
     * User clicks on the element with version "0.0.5" and chain "11155111"
     Then URL includes "/packages/owned-greeter/0.0.5"
@@ -34,6 +34,9 @@ Feature: Stage Transactions
     * User clicks on the "Close" button
     When User types "Hello World!" into the 1st input with id "default-input"
     * User clicks on the 1st element with id "stage-safe-button"
+    * User clicks on the 1st element with id "queue-button"
+    Then The 2nd input with id "default-input" should have "Hello World!"
+    * User clicks on the "Close" button
     When User types "Hello World Again!" into the 1st input with id "default-input"
     * User clicks on the 1st element with id "stage-safe-button"
     * User clicks on the 1st element with id "queue-button"

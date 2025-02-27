@@ -85,10 +85,16 @@ Then('The value with id {string} should be empty', (id: string) => {
   cy.get(`[data-testid="${id}"]`).should('have.value', '');
 });
 
-Then('The {int}st/nd/rd/th tag should have {string} with id {string}', (idx: number, text: string, id: string) => {
+Then('The {int}st/nd/rd/th element with id {string} should have {string}', (idx: number, id: string, text: string) => {
   cy.get(`[data-testid="${id}"]`)
     .eq(idx - 1)
     .should('contain', text);
+});
+
+Then('The {int}st/nd/rd/th input with id {string} should have {string}', (idx: number, id: string, text: string) => {
+  cy.get(`input[data-testid="${id}"]`)
+    .eq(idx - 1)
+    .should('have.value', text);
 });
 
 Then('{string} element has {string} value on {string} attribute', (element: string, value: string, attribute: string) => {
