@@ -444,12 +444,25 @@ function TransactionDetailsPage() {
                             )}
                         </div>
                       )}
-                      <SimulateTransactionButton
-                        signer={signers[0]}
-                        safe={safe}
-                        safeTxn={safeTxn}
-                        execTransactionData={stager.execTransactionData}
-                      />
+                      <p>
+                        Confirm you’re accessing the page via the{' '}
+                        <code>usecannon.com</code> domain,{' '}
+                        <SimulateTransactionButton
+                          signer={signers[0]}
+                          safe={safe}
+                          safeTxn={safeTxn}
+                          execTransactionData={stager.execTransactionData}
+                        />
+                        , and always verify the transaction data displayed in
+                        your wallet with{' '}
+                        <a
+                          href="https://github.com/usecannon/safe-tx-hashes-util"
+                          target="_blank"
+                        >
+                          this tool
+                        </a>
+                        .
+                      </p>
                     </CardContent>
                   </Card>
                 )}
