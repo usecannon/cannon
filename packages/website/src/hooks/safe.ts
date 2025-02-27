@@ -12,6 +12,13 @@ import {
   createPublicClient,
   http,
   parseEventLogs,
+  PublicClient,
+  zeroAddress,
+  decodeFunctionData,
+  recoverAddress,
+  recoverMessageAddress,
+  toHex,
+  concat,
 } from 'viem';
 import { useAccount, useReadContracts } from 'wagmi';
 import SafeABI from '@/abi/Safe.json';
@@ -21,6 +28,7 @@ import { SafeDefinition, useStore } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { CustomChainMetadata, useCannonChains } from '@/providers/CannonProvidersProvider';
 import ms from 'ms';
+import { batches } from '@/helpers/batches';
 
 export type SafeString = `${number}:${Address}`;
 
@@ -81,11 +89,165 @@ function _createSafeApiKit(chainId: number, chainMetadata: CustomChainMetadata) 
   });
 }
 
+async function _getAverageBlockTime(client: PublicClient, latestBlockNumber: number, numBlocks = 10) {
+  const [latestBlock, oldBlock] = await Promise.all([
+    client.getBlock({ blockNumber: BigInt(latestBlockNumber) }),
+    client.getBlock({ blockNumber: BigInt(latestBlockNumber - numBlocks) }),
+  ]);
+
+  // Calculate average time per block in seconds
+  const timeDiff = Number(latestBlock.timestamp) - Number(oldBlock.timestamp);
+  const averageBlockTime = timeDiff / numBlocks;
+
+  return averageBlockTime; // in seconds
+}
+
+async function _getSafeSigners(signatures: string, safeTxHash: string) {
+  // Remove '0x' prefix if present
+  const sigs = signatures.startsWith('0x') ? signatures.slice(2) : signatures;
+
+  const signers: Address[] = [];
+  // Each signature is 65 bytes (130 chars) + 1 byte (2 chars) for v
+  const signatureLength = 132;
+
+  for (let i = 0; i < sigs.length; i += signatureLength) {
+    const signature = sigs.slice(i, i + signatureLength);
+
+    // Extract components
+    const r = ('0x' + signature.slice(0, 64)) as Hash;
+    const s = ('0x' + signature.slice(64, 128)) as Hash;
+    const v = Number.parseInt(signature.slice(128, 130), 16);
+
+    // Combine into signature format
+    const sig = concat([r, s, toHex(v)]);
+
+    // Recover signer address
+    const signer = await recoverMessageAddress({
+      message: safeTxHash,
+      signature: sig,
+    });
+
+    signers.push(signer);
+  }
+
+  return signers;
+}
+
+const _safeEventNames = ['ExecutionSuccess', 'ExecutionFailure', 'SignMsg'];
+const _safeEvents = SafeABI.filter((abi) => abi.type === 'event' && _safeEventNames.includes(abi.name || ''));
+
+export function useExecutedTransactionsFromRpc(safe?: SafeDefinition | null) {
+  const { getChainById } = useCannonChains();
+
+  return useQuery({
+    queryKey: ['executed-transactions-rpc', safe?.chainId, safe?.address],
+    staleTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    queryFn: async () => {
+      if (!safe) return null;
+
+      const chain = getChainById(safe.chainId);
+      const client = createPublicClient({
+        chain,
+        transport: http(chain?.rpcUrls.default.http[0]),
+      });
+
+      const latestBlock = Number(await client.getBlockNumber().then((bn) => bn.toString()));
+      const averageBlockTime = await _getAverageBlockTime(client, latestBlock);
+      const blocksInDay = Math.floor(ms('24h') / 1000 / averageBlockTime);
+      const blocksInTenDays = Math.floor(ms('10d') / 1000 / averageBlockTime);
+
+      const txs: SafeTransaction[] = [];
+
+      for (const [fromBlock, toBlock] of batches(latestBlock, latestBlock - blocksInTenDays, blocksInDay)) {
+        const filter = await client.createEventFilter({
+          address: safe.address,
+          events: _safeEvents,
+          fromBlock: BigInt(toBlock),
+          toBlock: BigInt(fromBlock),
+        });
+
+        const logs = await client.getFilterLogs({ filter });
+
+        for (const log of logs) {
+          const _nonce = (await client.readContract({
+            address: safe.address,
+            abi: SafeABI,
+            functionName: 'nonce',
+            args: [],
+            blockNumber: log.blockNumber - BigInt(1), // the nonce is the one from the previous block
+          })) as bigint;
+
+          const confirmationsRequired = (await client.readContract({
+            address: safe.address,
+            abi: SafeABI,
+            functionName: 'getThreshold',
+            args: [],
+            blockNumber: log.blockNumber - BigInt(1), // the nonce is the one from the previous block
+          })) as bigint;
+
+          const block = await client.getBlock({
+            blockNumber: log.blockNumber,
+          });
+
+          const transaction = await client.getTransaction({
+            hash: log.transactionHash,
+          });
+          console.log('log transaction', transaction);
+
+          // Decode the data separately
+          const decodedData = decodeFunctionData({
+            abi: SafeABI.filter((abi) => abi.name === 'execTransaction'),
+            data: transaction.input,
+          }) as any;
+
+          console.log('log decodedData', decodedData);
+
+          const signatures = decodedData?.args?.[9];
+          const txHash = (log as any).args.txHash;
+
+          const confirmedSigners = await _getSafeSigners(signatures, txHash);
+
+          console.log('log confirmedSigners', confirmedSigners);
+
+          txs.push({
+            to: log.address,
+            value: decodedData?.args?.[1].toString() || '0',
+            data: decodedData?.args?.[2].toString() || '0x',
+            operation: decodedData?.args?.[3].toString() || '0',
+            safeTxGas: decodedData?.args?.[4].toString() || '0',
+            baseGas: decodedData?.args?.[5].toString() || '0',
+            gasPrice: decodedData?.args?.[6].toString() || '0',
+            gasToken: decodedData?.args?.[7].toString() || zeroAddress,
+            refundReceiver: decodedData?.args?.[8].toString() || zeroAddress,
+            _nonce: Number(_nonce.toString()),
+            transactionHash: log.transactionHash,
+            safeTxHash: txHash,
+            submissionDate: block.timestamp.toString(),
+            confirmationsRequired: Number(confirmationsRequired.toString()),
+            confirmedSigners,
+          });
+        }
+      }
+
+      console.log('log txs', txs);
+
+      return txs;
+    },
+    enabled: !!safe,
+  });
+}
+
 export function useExecutedTransactions(safe?: SafeDefinition | null) {
   const { chainMetadata } = useCannonChains();
 
   return useQuery({
     queryKey: ['executed-transactions', safe?.chainId, safe?.address],
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     queryFn: async () => {
       if (!safe) return null;
 
