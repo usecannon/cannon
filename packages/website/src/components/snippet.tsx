@@ -30,10 +30,10 @@ export const Snippet = ({ ...props }: React.HTMLAttributes<HTMLPreElement>) => {
   }, [command]);
 
   return (
-    <div className="relative rounded-md font-mono text-sm flex items-start border border-border overflow-hidden bg-[#0d1117]">
+    <div className="relative rounded-md font-mono text-sm border border-border overflow-hidden bg-[#0d1117] w-full">
       <div
         data-section="code"
-        className="w-full overflow-x-auto"
+        className="w-full overflow-x-auto break-words"
         dangerouslySetInnerHTML={{ __html: html }}
         data-testid="code-section"
       />
