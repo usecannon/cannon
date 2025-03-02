@@ -9,7 +9,7 @@
     "src"
   ],
   "scripts": {
-    "test": "jest",
+    "test": "jest --coverage",
     "build:node": "tsc -p tsconfig.build.json",
     "build:browser": "rollup -c",
     "build": "npm run build:node && npm run build:browser",

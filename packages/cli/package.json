@@ -8,7 +8,7 @@
     "watch": "tsc -p tsconfig.build.json -w",
     "clean": "rm -rf ./dist",
     "prepublishOnly": "pnpm run build",
-    "test": "jest",
+    "test": "jest --coverage",
     "test-e2e-prepare": "git submodule update --init --recursive",
     "test-e2e": "pnpm run test-e2e-parallel && pnpm run test-e2e-series",
     "test-e2e-parallel": "./test/e2e/helpers/bats/bin/bats test/e2e/parallel.bats --jobs 2 --timing",
