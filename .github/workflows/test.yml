@@ -26,6 +26,9 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
+      # for some reason some of the tests require jemalloc
+      - run: apt install -y libjemalloc-dev
+
       - run: |
           pnpm i --frozen-lockfile
           pnpm build
