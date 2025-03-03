@@ -50,6 +50,7 @@ export function SimulateTransactionButton({
       href={`https://dashboard.tenderly.co/simulator/new?${searchParams}`}
       target="_blank"
       rel="noopener noreferrer"
+      className="underline"
     >
       simulate the transaction using Tenderly
     </a>
