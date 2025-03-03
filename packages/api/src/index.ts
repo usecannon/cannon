@@ -17,7 +17,12 @@ if (config.TRUST_PROXY) {
   app.enable('trust proxy');
 }
 
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://safe.usecannon.com'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 app.use(helmet());
 
 app.get('/favicon.ico', (req, res) => res.status(204));
