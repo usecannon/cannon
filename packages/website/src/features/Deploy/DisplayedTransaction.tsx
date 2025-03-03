@@ -167,8 +167,11 @@ export function DisplayedTransaction(props: {
           <p className="text-xs text-muted-foreground mb-0.5">
             Transaction Data:
           </p>
+
           <Snippet>
-            <code>{props.txn?.data || ''}</code>
+            <code className="break-all whitespace-pre-wrap">
+              {props.txn?.data}
+            </code>
           </Snippet>
         </CardContent>
       </Card>
