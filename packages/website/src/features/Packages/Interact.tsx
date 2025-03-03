@@ -346,7 +346,10 @@ const Interact: FC = () => {
                       onOpenChange={setIsPopoverOpen}
                     >
                       <PopoverTrigger asChild>
-                        <div className="cursor-pointer bg-black p-1 border border-border rounded-md mx-2">
+                        <div
+                          className="cursor-pointer bg-black p-1 border border-border rounded-md mx-2"
+                          data-testid="other-option-section"
+                        >
                           <MoreHorizontal className="h-4 w-4 text-white" />
                         </div>
                       </PopoverTrigger>
@@ -381,6 +384,7 @@ const Interact: FC = () => {
                                   `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
                                 );
                               }}
+                              data-testid={`${option.contractName}-button`}
                             >
                               <span className="text-sm">
                                 {`${option.moduleName}.${option.contractName}`}

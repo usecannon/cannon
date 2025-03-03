@@ -104,3 +104,15 @@ Then('The {int}st/nd/rd/th input with id {string} should have {string}', (idx: n
 Then('{string} element has {string} value on {string} attribute', (element: string, value: string, attribute: string) => {
   cy.get(`${element}`).should(`have.${attribute}`, `${value}`);
 });
+
+Then('Test Output contains {string}', (input: string) => {
+  cy.get('[data-testid="encode-value-input"],[data-testid="code-section"]')
+    .invoke('attr', 'data-testid')
+    .then((id) => {
+      if (id === 'encode-value-input') {
+        cy.get('[data-testid="encode-value-input"').should('have.value', `${input}`);
+      } else {
+        cy.get('[data-testid="code-section"').should('contain', `${input}`);
+      }
+    });
+});
