@@ -95,21 +95,20 @@ export default function CustomSafeTxServices() {
       </div>
 
       <div className="flex gap-2">
-        <div className="flex-1 space-y-2">
+        <div className="flex-1 flex gap-2">
           <Input
             placeholder="Chain ID"
             value={inputChainId}
             onChange={(e) => setInputChainId(e.target.value)}
             type="number"
+            className="w-32"
           />
           <Input
             placeholder="e.g. https://safe-transaction.mainnet.gnosis.io"
             value={inputUrl}
             onChange={(e) => setInputUrl(e.target.value)}
+            className="flex-1"
           />
-          {inputError && (
-            <p className="text-sm text-destructive mt-1">{inputError}</p>
-          )}
         </div>
         <Button
           size="icon"
@@ -121,6 +120,7 @@ export default function CustomSafeTxServices() {
           <Plus className="h-4 w-4" />
         </Button>
       </div>
+      {inputError && <p className="text-sm text-destructive">{inputError}</p>}
     </div>
   );
 }

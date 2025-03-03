@@ -10,8 +10,12 @@ export function StagedTransactions({
 }: {
   currentSafe: SafeDefinition;
 }) {
-  const settings = useStore((s) => s.settings);
+  const safeTxServices = useStore((s) => s.safeTxServices);
   const stagedTransactions = useSafeTransactions(currentSafe, 10000);
+
+  const serviceUrl = safeTxServices.find(
+    (s) => s.chainId === currentSafe.chainId
+  )?.url;
 
   return (
     <div className="flex flex-col border border-border rounded-sm overflow-hidden">
@@ -22,7 +26,9 @@ export function StagedTransactions({
         <div className="flex items-center text-xs text-muted-foreground gap-1.5">
           <span>
             Signatures shared at{' '}
-            <code className="font-mono">{settings.stagingUrl}</code>
+            <code className="font-mono">
+              {serviceUrl || 'Chain not supported'}
+            </code>
           </span>
           <Link
             href="/settings"
