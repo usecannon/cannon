@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import {
   useGasPrice,
   usePrepareTransactionRequest,
@@ -43,7 +43,6 @@ export default function PrepareNetwork({
   const currentSafe = useStore((s) => s.currentSafe);
   // Uncomment the following line to use test with local network
   // const currentSafe = { chainId: 31337 };
-  const { toast } = useToast();
 
   useEffect(() => {
     if (!isConnected && openConnectModal) {
@@ -76,10 +75,8 @@ export default function PrepareNetwork({
 
         await deterministicDeployerBytecode.refetch();
 
-        toast({
-          title: 'Deterministic Deployer Deployed',
+        toast('Deterministic Deployer Deployed', {
           description: 'The deterministic deployer has been deployed.',
-          variant: 'default',
         });
       },
     },
@@ -117,10 +114,8 @@ export default function PrepareNetwork({
       onSuccess: async () => {
         await onchainStoreBytecode.refetch();
 
-        toast({
-          title: 'Onchain Store Deployed',
+        toast('Onchain Store Deployed', {
           description: 'The onchain store has been deployed.',
-          variant: 'default',
         });
       },
     },
@@ -149,10 +144,8 @@ export default function PrepareNetwork({
       onSuccess: async () => {
         await multicallForwarderBytecode.refetch();
 
-        toast({
-          title: 'Multicall Forwarder Deployed',
+        toast('Multicall Forwarder Deployed', {
           description: 'The multicall forwarder has been deployed.',
-          variant: 'default',
         });
       },
     },

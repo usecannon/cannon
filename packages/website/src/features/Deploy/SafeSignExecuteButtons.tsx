@@ -25,7 +25,7 @@ import {
   useSwitchChain,
   useWriteContract,
 } from 'wagmi';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useState } from 'react';
 import { Address, Hash } from 'viem';
 
@@ -69,7 +69,6 @@ export function SafeSignExecuteButtons({
   const { getChainById, getExplorerUrl } = useCannonChains();
   const { openConnectModal } = useConnectModal();
   const account = useAccount();
-  const { toast } = useToast();
   const { switchChainAsync } = useSwitchChain();
   const publicClient = usePublicClient();
   const writeContract = useWriteContract();
@@ -89,9 +88,7 @@ export function SafeSignExecuteButtons({
         openConnectModal();
       }
 
-      toast({
-        title: 'In order to sign you must connect your wallet first.',
-        variant: 'destructive',
+      toast.error('In order to sign you must connect your wallet first.', {
         duration: 5000,
       });
 
@@ -102,12 +99,12 @@ export function SafeSignExecuteButtons({
       try {
         await switchChainAsync({ chainId: currentSafe?.chainId || 1 });
       } catch (e) {
-        toast({
-          title:
-            'Failed to switch chain, Your wallet must be connected to the same network as the selected Safe.',
-          variant: 'destructive',
-          duration: 5000,
-        });
+        toast.error(
+          'Failed to switch chain, Your wallet must be connected to the same network as the selected Safe.',
+          {
+            duration: 5000,
+          }
+        );
         return;
       }
     }
@@ -121,9 +118,7 @@ export function SafeSignExecuteButtons({
     writeContract.writeContract(stager.executeTxnConfig, {
       onSuccess: async (hash) => {
         setExecutionTxnHash(hash);
-        toast({
-          title: 'Transaction sent to network',
-          variant: 'default',
+        toast.success('Transaction sent to network', {
           duration: 5000,
         });
 
@@ -133,9 +128,7 @@ export function SafeSignExecuteButtons({
         await refetchSafeTxs();
         await refetchHistory();
 
-        toast({
-          title: 'You successfully executed the transaction.',
-          variant: 'default',
+        toast.success('You successfully executed the transaction.', {
           duration: 5000,
         });
 

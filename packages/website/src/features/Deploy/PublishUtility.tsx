@@ -24,7 +24,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import {
   Tooltip,
   TooltipContent,
@@ -41,7 +41,6 @@ export default function PublishUtility(props: {
 
   const wc = useWalletClient();
   const { switchChainAsync } = useSwitchChain();
-  const { toast } = useToast();
 
   // get the package referenced by this ipfs package
   const {
@@ -151,15 +150,9 @@ export default function PublishUtility(props: {
       // eslint-disable-next-line no-console
       console.error(err);
       if (err.message.includes('exceeds the balance of the account')) {
-        toast({
-          title: 'Error Publishing Package: Insufficient Funds',
-          variant: 'destructive',
-        });
+        toast.error('Error Publishing Package: Insufficient Funds');
       } else {
-        toast({
-          title: 'Error Publishing Package',
-          variant: 'destructive',
-        });
+        toast.error('Error Publishing Package');
       }
     },
   });
@@ -176,15 +169,9 @@ export default function PublishUtility(props: {
       console.error(err);
 
       if (err.message.includes('exceeds the balance of the account')) {
-        toast({
-          title: 'Error Publishing Package: Insufficient Funds',
-          variant: 'destructive',
-        });
+        toast.error('Error Publishing Package: Insufficient Funds');
       } else {
-        toast({
-          title: 'Error Publishing Package',
-          variant: 'destructive',
-        });
+        toast.error('Error Publishing Package');
       }
     },
   });

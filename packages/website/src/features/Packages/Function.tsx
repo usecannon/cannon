@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import Link from 'next/link';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
@@ -128,7 +128,6 @@ export const Function: FC<FunctionProps> = ({
   // for payable functions only
   const [value, setValue] = useState<any>();
   const [valueIsValid, setValueIsValid] = useState<boolean>(true);
-  const { toast } = useToast();
 
   const { safes, setQueuedIdentifiableTxns, setLastQueuedTxnsId } =
     useQueueTxsStore((s) => s);
@@ -245,9 +244,7 @@ export const Function: FC<FunctionProps> = ({
 
   const handleQueueTransaction = () => {
     if (!currentSafe) {
-      toast({
-        title: 'Please select a Safe first',
-        variant: 'destructive',
+      toast.error('Please select a Safe first', {
         duration: 5000,
       });
       onDrawerOpen?.();
@@ -255,11 +252,12 @@ export const Function: FC<FunctionProps> = ({
     }
     // Prevent queuing transactions across different chains
     if (currentSafe?.chainId !== chainId) {
-      toast({
-        title: `Cannot queue transactions across different chains, current Safe is on chain ${currentSafe?.chainId} and function is on chain ${chainId}`,
-        variant: 'destructive',
-        duration: 10000,
-      });
+      toast.error(
+        `Cannot queue transactions across different chains, current Safe is on chain ${currentSafe?.chainId} and function is on chain ${chainId}`,
+        {
+          duration: 10000,
+        }
+      );
       onDrawerOpen?.();
       return;
     }
@@ -319,8 +317,7 @@ export const Function: FC<FunctionProps> = ({
       safeId: `${currentSafe.chainId}:${currentSafe.address}`,
     });
 
-    toast({
-      title: `Total transactions queued: ${lastQueuedTxnsId + 1}`,
+    toast.success(`Total transactions queued: ${lastQueuedTxnsId + 1}`, {
       duration: 5000,
     });
   };
