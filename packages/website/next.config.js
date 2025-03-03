@@ -11,10 +11,26 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     config.resolve.fallback = { fs: false, net: false, tls: false };
     config.externals.push('pino-pretty', 'lokijs', 'encoding', 'solc');
     config.optimization.minimize = false;
+    // For Code Coverage
+    if (!isServer && config.NODE_ENV !== 'production') {
+      config.module.rules.push({
+        test: /\.(js|ts|tsx)$/,
+        include: [require('path').resolve(__dirname, 'src')],
+        exclude: require('path').resolve(__dirname, 'src/pages'),
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['next/babel'],
+            plugins: ['istanbul'],
+            // compact: false,
+          },
+        },
+      });
+    }
     return config;
   },
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],

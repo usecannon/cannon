@@ -37,7 +37,10 @@ export const ClipboardButton: FC<ClibpboardButtonProps> = ({
             exit={{ scale: 0.5, opacity: 0 }}
             transition={{ duration: 0.15 }}
           >
-            <Check className="h-3.5 w-3.5 text-green-500" />
+            <Check
+              className="h-3.5 w-3.5 text-green-500"
+              data-testid="copied-icon"
+            />
           </motion.div>
         ) : (
           <motion.div
@@ -47,7 +50,10 @@ export const ClipboardButton: FC<ClibpboardButtonProps> = ({
             exit={{ scale: 0.5, opacity: 0 }}
             transition={{ duration: 0.15 }}
           >
-            <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+            <Copy
+              className="h-3.5 w-3.5 text-muted-foreground"
+              data-testid="copy-icon"
+            />
           </motion.div>
         )}
       </AnimatePresence>

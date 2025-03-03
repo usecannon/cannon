@@ -25,6 +25,7 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
     <div
       key={pkgs[0].name}
       className="flex flex-col border border-border rounded-sm overflow-hidden"
+      data-testid={`${pkgs[0].name}-section`}
     >
       <div
         className="flex flex-row px-3 py-2 items-center justify-between hover:bg-accent/60 cursor-pointer bg-accent/50 transition-colors"

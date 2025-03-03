@@ -2,6 +2,7 @@ import { addCucumberPreprocessorPlugin } from '@badeball/cypress-cucumber-prepro
 import { createEsbuildPlugin } from '@badeball/cypress-cucumber-preprocessor/esbuild';
 import createBundler from '@bahmutov/cypress-esbuild-preprocessor';
 import { defineConfig } from 'cypress';
+import task from '@cypress/code-coverage/task';
 
 export default defineConfig({
   e2e: {
@@ -21,6 +22,9 @@ export default defineConfig({
     ): Promise<Cypress.PluginConfigOptions> {
       // This is required for the preprocessor to be able to generate JSON reports after each run, and more,
       await addCucumberPreprocessorPlugin(on, config);
+
+      // For Code Coverage
+      task(on, config);
 
       // create a custom task to log messages
       on('task', {
