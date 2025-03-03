@@ -34,7 +34,7 @@ export default function SimulateSafeTx({
 }: Props) {
   return (
     <Card className="rounded-sm">
-      <CardHeader>
+      <CardHeader className="pb-3">
         <CardTitle>Verify Transactions</CardTitle>
       </CardHeader>
       <CardContent>
@@ -61,12 +61,26 @@ export default function SimulateSafeTx({
             )}
           </div>
         )}
-        <SimulateTransactionButton
-          signer={safeSigner}
-          safe={safe}
-          safeTxn={safeTxn}
-          execTransactionData={execTransactionData}
-        />
+
+        <p className="text-sm">
+          Confirm you’re accessing the page via the <code>usecannon.com</code>{' '}
+          domain,{' '}
+          <SimulateTransactionButton
+            signer={safeSigner}
+            safe={safe}
+            safeTxn={safeTxn}
+            execTransactionData={execTransactionData}
+          />
+          , and always verify the transaction data displayed in your wallet with{' '}
+          <a
+            href="https://github.com/usecannon/safe-tx-hashes-util"
+            className="underline"
+            target="_blank"
+          >
+            this tool
+          </a>
+          .
+        </p>
       </CardContent>
     </Card>
   );
