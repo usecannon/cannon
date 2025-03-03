@@ -83,7 +83,10 @@ export function DisplayedTransaction(props: {
   const parsedContractNames =
     props.txn && contracts
       ? Object.entries(contracts)
-          .filter(([, { address }]) => address === props.txn?.to)
+          .filter(
+            ([, { address }]) =>
+              address.toLowerCase() === props.txn?.to?.toLowerCase()
+          )
           .map(([contractName]) => contractName)
       : [];
 
@@ -105,9 +108,7 @@ export function DisplayedTransaction(props: {
   }
 
   const functionName = decodedFunctionData?.functionName.split('(')[0];
-  const functionHash = (
-    <span className="font-mono">{props.txn?.data?.slice(0, 10)}</span>
-  );
+  const functionHash = props.txn?.data?.slice(0, 10);
   const rawFunctionArgs = props.txn?.data?.slice(10);
   const functionArgs = decodedFunctionData?.args?.map((v) => v) || [
     rawFunctionArgs,
@@ -182,13 +183,17 @@ export function DisplayedTransaction(props: {
         </CardTitle>
         <CardDescription>
           {props.cannonOperation && (
-            <span className="mr-3.5">
+            <span className="mr-4">
               via <span className="font-mono">[{props.cannonOperation}]</span>
             </span>
           )}
-          <span className="mr-3.5">Target Address: {address}</span>
-          <span className="mr-3.5">Function Selector: {functionHash}</span>
-          <span>Value: {value}</span>
+          <span className="mr-4">Target Address: {address}</span>
+          <span className="mr-4">
+            Function Selector: <span className="font-mono">{functionHash}</span>
+          </span>
+          <span>
+            Value: <span className="font-mono">{value}</span>
+          </span>
         </CardDescription>
       </CardHeader>
       <CardContent>
