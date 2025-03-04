@@ -57,6 +57,19 @@ export default function SettingsPage() {
 
       <Card className="mb-6 border-border">
         <CardHeader>
+          <CardTitle>Safe Transaction Service</CardTitle>
+          <CardDescription>
+            The Safe Transaction Service stores signatures for pending
+            transactions using the web deployer.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <SafeTransactionService />
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6 border-border">
+        <CardHeader>
           <CardTitle>Custom Safe Transaction Services</CardTitle>
           <CardDescription>
             You can define custom Safe Transaction Services to use with Cannon.
@@ -157,19 +170,6 @@ export default function SettingsPage() {
               Test IPFS Endpoint
             </Link>
           ) : null}
-        </CardContent>
-      </Card>
-
-      <Card className="mb-6 border-border">
-        <CardHeader>
-          <CardTitle>Safe Transaction Service</CardTitle>
-          <CardDescription>
-            The Safe Transaction Service stores signatures for pending
-            transactions using the web deployer.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <SafeTransactionService />
         </CardContent>
       </Card>
 
