@@ -9,7 +9,6 @@ import Document, {
   Main,
   NextScript,
 } from 'next/document';
-import { Toaster } from '@/components/ui/sonner';
 
 import emotionCache from '@/lib/emotion-cache';
 
@@ -45,7 +44,6 @@ export default class CustomDocument extends Document {
           <Main />
           <NextScript />
           <Analytics />
-          <Toaster />
         </body>
         <GoogleAnalytics gaId="G-C96791F6NC" />
       </Html>
