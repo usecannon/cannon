@@ -82,6 +82,7 @@ interface FunctionProps {
   collapsible?: boolean;
   showFunctionSelector: boolean;
   packageUrl?: string;
+  isDrawerOpen?: boolean;
 }
 
 export const Function: FC<FunctionProps> = ({
@@ -95,6 +96,7 @@ export const Function: FC<FunctionProps> = ({
   collapsible,
   showFunctionSelector,
   packageUrl,
+  isDrawerOpen,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const currentSafe = useStore((s) => s.currentSafe);
@@ -317,9 +319,18 @@ export const Function: FC<FunctionProps> = ({
       safeId: `${currentSafe.chainId}:${currentSafe.address}`,
     });
 
-    toast.success(`Total transactions queued: ${lastQueuedTxnsId + 1}`, {
-      duration: 5000,
-    });
+    const safeSidebarContext = isDrawerOpen
+      ? ''
+      : 'Click the safe icon on the right side of the screen to see the staged transactions.';
+
+    toast.success(
+      `Total transactions queued: ${
+        lastQueuedTxnsId + 1
+      }. ${safeSidebarContext}`,
+      {
+        duration: 5000,
+      }
+    );
   };
 
   const renderFunctionContent = () => (
