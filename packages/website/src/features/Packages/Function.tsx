@@ -320,17 +320,12 @@ export const Function: FC<FunctionProps> = ({
     });
 
     const safeSidebarContext = isDrawerOpen
-      ? ''
-      : 'Click the safe icon on the right side of the screen to see the staged transactions.';
+      ? 'Transaction added to the queue.'
+      : 'Click the Safe icon on the right side of the screen to see the staged transactions.';
 
-    toast.success(
-      `Total transactions queued: ${
-        lastQueuedTxnsId + 1
-      }. ${safeSidebarContext}`,
-      {
-        duration: 5000,
-      }
-    );
+    toast.success(safeSidebarContext, {
+      duration: 5000,
+    });
   };
 
   const renderFunctionContent = () => (
