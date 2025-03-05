@@ -102,7 +102,7 @@ async function _getAverageBlockTime(client: PublicClient, latestBlockNumber: num
   return averageBlockTime; // in seconds
 }
 
-async function _getSafeSigners(signatures: string, safeTxHash: string) {
+async function _getSafeSigners(signatures: string, safeTxHash: Hash) {
   // Remove '0x' prefix if present
   const sigs = signatures.startsWith('0x') ? signatures.slice(2) : signatures;
 
@@ -122,10 +122,12 @@ async function _getSafeSigners(signatures: string, safeTxHash: string) {
     const sig = concat([r, s, toHex(v)]);
 
     // Recover signer address
-    const signer = await recoverMessageAddress({
-      message: safeTxHash,
+    console.log('log recoverAddress', sig);
+    const signer = await recoverAddress({
+      hash: safeTxHash,
       signature: sig,
     });
+    console.log('log recoverAddress', signer);
 
     signers.push(signer);
   }
@@ -206,7 +208,7 @@ export function useExecutedTransactionsFromRpc(safe?: SafeDefinition | null) {
           console.log('log decodedData', decodedData);
 
           const signatures = decodedData?.args?.[9];
-          const txHash = (log as any).args.txHash;
+          const txHash = (log as any).args.txHash as Hash;
 
           const confirmedSigners = await _getSafeSigners(signatures, txHash);
 
