@@ -18,14 +18,16 @@ function useFetchIpfsData<T>({
   const settings = useStore((s) => s.settings);
   const { addLog } = useLogs();
 
+  const cid = url?.replace('ipfs://', '').trim() || '';
+
   return useQuery<T>({
-    queryKey: [url],
-    enabled,
+    queryKey: [url, cid],
+    enabled: enabled !== false && !!url && !!cid,
     queryFn: async ({ signal }) => {
       if (typeof url !== 'string') {
         throw new Error(`Invalid IPFS url: ${url}`);
       }
-      const cid = url.replace('ipfs://', '');
+
       // Add trailing slash if missing
       const ipfsQueryUrl = settings.ipfsApiUrl.replace(/\/?$/, '/');
 
