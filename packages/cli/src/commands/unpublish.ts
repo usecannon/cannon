@@ -172,12 +172,12 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
 
   log();
   log(
-    `\nSettings:\n - Max Fee Per Gas: ${
+    `\nUnpublish Transaction Settings\n - Max Fee Per Gas: ${
       overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
     }\n - Max Priority Fee Per Gas: ${
       overrides.maxPriorityFeePerGas ? overrides.maxPriorityFeePerGas.toString() : 'default'
     }\n - Gas Limit: ${overrides.gasLimit ? overrides.gasLimit : 'default'}\n` +
-      " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
+      "To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
   );
 
   log();
