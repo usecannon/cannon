@@ -249,7 +249,6 @@ export const CodeExplorer: FC<{
 
     // Try to find the specified source
     const sourceFound = availableSources.some((s) => {
-      console.log('sourceFound test');
       const decodedSource = decodeURIComponent(source);
       const sourceContent = s.sources[decodedSource]?.content;
       if (sourceContent) {
@@ -259,12 +258,10 @@ export const CodeExplorer: FC<{
           functionName
         );
 
-        console.log('sourceFound test2');
         setSelectedCode(selection.code);
         setSelectedLanguage(selection.language);
         setSelectedKey(selection.key);
         setSelectedLine(selection.line);
-        console.log('sourceFound test3');
 
         updateUrl(router, {
           name,
