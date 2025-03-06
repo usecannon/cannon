@@ -289,14 +289,18 @@ export const CannonfileGraph: FC<{
         console.error('Error initializing graph:', error);
       }
     }
-
     void initializeGraph();
   }, [deploymentDefinition]);
 
   return (
     <>
       <GlobalStyles />
-      <svg ref={svgRef} width={'100%'} height={'calc(100dvh)'} />
+      <svg
+        ref={svgRef}
+        width={'100%'}
+        height={'calc(100dvh)'}
+        data-testid="cannon-graph-svg"
+      />
     </>
   );
 };

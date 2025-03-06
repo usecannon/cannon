@@ -58,13 +58,13 @@ Then('The {string} element should be visible', (element: string) => {
 });
 
 Then('Output contains {string}', (input: string) => {
-  cy.get('[data-testid="type-label"]')
-    .invoke('text')
-    .then((text) => {
-      if (text.trim() === 'tuple') {
-        cy.get('[data-testid="code-section"').should('contain', `${input}`);
-      } else {
+  cy.get('[data-testid="encode-value-input"],[data-testid="code-section"]')
+    .invoke('attr', 'data-testid')
+    .then((id) => {
+      if (id === 'encode-value-input') {
         cy.get('[data-testid="encode-value-input"').should('have.value', `${input}`);
+      } else {
+        cy.get('[data-testid="code-section"').should('contain', `${input}`);
       }
     });
 });
@@ -105,14 +105,6 @@ Then('{string} element has {string} value on {string} attribute', (element: stri
   cy.get(`${element}`).should(`have.${attribute}`, `${value}`);
 });
 
-Then('Test Output contains {string}', (input: string) => {
-  cy.get('[data-testid="encode-value-input"],[data-testid="code-section"]')
-    .invoke('attr', 'data-testid')
-    .then((id) => {
-      if (id === 'encode-value-input') {
-        cy.get('[data-testid="encode-value-input"').should('have.value', `${input}`);
-      } else {
-        cy.get('[data-testid="code-section"').should('contain', `${input}`);
-      }
-    });
+Then('The file {string} was downloaded', (filename: string) => {
+  cy.readFile(`cypress/downloads/${filename}`).should('exist');
 });

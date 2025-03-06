@@ -249,6 +249,7 @@ export const CodeExplorer: FC<{
 
     // Try to find the specified source
     const sourceFound = availableSources.some((s) => {
+      console.log('sourceFound test');
       const decodedSource = decodeURIComponent(source);
       const sourceContent = s.sources[decodedSource]?.content;
       if (sourceContent) {
@@ -258,10 +259,12 @@ export const CodeExplorer: FC<{
           functionName
         );
 
+        console.log('sourceFound test2');
         setSelectedCode(selection.code);
         setSelectedLanguage(selection.language);
         setSelectedKey(selection.key);
         setSelectedLine(selection.line);
+        console.log('sourceFound test3');
 
         updateUrl(router, {
           name,
@@ -490,6 +493,7 @@ export const CodeExplorer: FC<{
                                 'deployments.json'
                               );
                             }}
+                            data-testid="download-abi-button"
                           >
                             <Download className="scale-75" />
                           </Button>
@@ -618,12 +622,21 @@ export const CodeExplorer: FC<{
             >
               <TabsList className="h-full font-mono">
                 {!isEmpty(miscData?.artifacts) && (
-                  <TabsTrigger value={name} disabled={isLoading}>
+                  <TabsTrigger
+                    value={name}
+                    disabled={isLoading}
+                    data-testid={`${name}-button`}
+                  >
                     {name}
                   </TabsTrigger>
                 )}
                 {provisionedPackagesKeys.map((k: string) => (
-                  <TabsTrigger key={k} value={k} disabled={isLoading}>
+                  <TabsTrigger
+                    key={k}
+                    value={k}
+                    disabled={isLoading}
+                    data-testid={`${k}-button`}
+                  >
                     [clone.{k}]
                   </TabsTrigger>
                 ))}

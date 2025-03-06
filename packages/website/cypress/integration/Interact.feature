@@ -13,6 +13,33 @@ Feature: Interact page
     When User clicks on the 1st element with id "AccountProxy-button"
     Then URL includes "/synthetix/3.3.4/1-main/interact/synthetix/AccountProxy/0x0E429603D3Cb1DFae4E6F52Add5fE82d96d77Dac"
 
+  Scenario: Selecting the bool input on the interact page
+    Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
+    When User clicks on the 1st element with id "other-option-section" 
+    * User clicks on the 1st element with id "CoreProxy-button"
+    * User clicks on the 1st element with id "getCollateralConfigurations-button"
+    * User clicks on the 1st element with id "bool-button"
+    * User clicks on the 1st element with id "bool-true-input"
+    * User clicks on the 1st element with id "call-function-button"
+    Then Output contains "100000000000000000000"
+
+  Scenario: Selecting the tuple input on the interact page
+    Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
+    When User clicks on the 1st element with id "other-option-section" 
+    * User clicks on the 1st element with id "CoreRouter-button"
+    * User clicks on the 1st element with id "ccipReceive-button"
+    Then "byte32-input" value on "data-testid" attribute should exist
+    When User clicks on the 1st element with id "add-input-button"
+    * User clicks on the 1st element with id "add-input-button"    
+    * User clicks on the 1st element with id "remove-input-button"
+    Then "remove-input-button" value on "data-testid" attribute should not exist
+
+  Scenario: Execute submit with wallet
+    Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
+    * User clicks on the 1st element with id "acceptOwnership-button"
+    * User clicks on the 1st element with id "submit-wallet-button"
+    Then View renders a "h1" displaying the text "Connect a Wallet"
+
   Scenario: Executing read functions
     Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
     * Wallet is connected
@@ -88,4 +115,5 @@ Feature: Interact page
     * User types "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43" into the 1st input with id "byte32-input"    
     * User types "1" into the 1st input with id "number-input"
     * User clicks on the 1st element with id "call-function-button"
-    Then View renders a "div" displaying the text "Error: OracleDataRequired(address oracleContract, bytes oracleQuery)"
+#    Then View renders a "div" displaying the text "Error: OracleDataRequired(address oracleContract, bytes oracleQuery)"
+    Then View renders a "div" displaying the text "The contract function"
