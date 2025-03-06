@@ -88,4 +88,4 @@ Feature: Interact page
     * User types "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43" into the 1st input with id "byte32-input"    
     * User types "1" into the 1st input with id "number-input"
     * User clicks on the 1st element with id "call-function-button"
-    Then View renders a "div" displaying the text "Error: OracleDataRequired(address oracleContract, bytes oracleQuery)"
+    Then View renders a "div" displaying the text "The contract function \"getLatestPrice\" reverted."
