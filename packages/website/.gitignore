@@ -8,6 +8,8 @@ tsconfig.tsbuildinfo
 # next.js build output
 .next/
 out/
+.vercel/
+.fleek/
 
 # Sentry Config File
 .env.sentry-build-plugin

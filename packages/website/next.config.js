@@ -7,10 +7,11 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 const nextConfig = {
   output: 'export',
   reactStrictMode: true,
-  productionBrowserSourceMaps: true,
+  trailingSlash: true,
   images: {
     unoptimized: true,
   },
+  productionBrowserSourceMaps: true,
   webpack: (config, { isServer }) => {
     config.resolve.fallback = { fs: false, net: false, tls: false };
     config.externals.push('pino-pretty', 'lokijs', 'encoding', 'solc');
