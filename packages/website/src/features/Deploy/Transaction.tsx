@@ -117,6 +117,7 @@ function TransactionRow({
           <NextLink
             className="absolute inset-0 z-10 block"
             href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
+            data-testid={`txn-${tx._nonce}-link`}
           />
         ) : (
           <a
