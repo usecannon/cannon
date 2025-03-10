@@ -1,4 +1,5 @@
 Feature: Cannonfile page
+
   Scenario: Navigating to the cannon graph
     Given User opens the "/packages/synthetix/3.3.4/1-main/cannonfile" page
     Then "cannon-graph-svg" value on "data-testid" attribute should exist
