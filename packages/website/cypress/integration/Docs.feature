@@ -7,7 +7,7 @@ Feature: Cannon Docs page
     Then "copied-icon" value on "data-testid" attribute should exist
     * User waits for 3 seconds while loading
 
-  Scenario: Showing the file tree for the doc
+  Scenario: Navigating to the file tree for the doc
     Given User opens the "/learn" page
     * User clicks on the "Guides" tab
     Then View renders a "li" displaying the text "Create a Project"

@@ -34,7 +34,15 @@ Feature: Interact page
     * User clicks on the 1st element with id "remove-input-button"
     Then "remove-input-button" value on "data-testid" attribute should not exist
 
-  Scenario: Execute submit with wallet
+  Scenario: Selecting the JSON input on the interact page
+    Given User opens the "/packages/reya-omnibus/1.0.45/1729-main/interact" page
+    When User clicks on the 1st element with id "CoreProxy-button"
+    * User clicks on the 1st element with id "createRiskMatrix-button"
+    Then "json-input" value on "data-testid" attribute should exist
+    * User types "[[v1, v2], [v3, v4]]" into the 1st input with id "json-input"
+    Then View renders a "p" displaying the text "Invalid JSON:"
+
+  Scenario: Executing submit with wallet
     Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
     * User clicks on the 1st element with id "acceptOwnership-button"
     * User clicks on the 1st element with id "submit-wallet-button"
