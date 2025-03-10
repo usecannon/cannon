@@ -470,6 +470,7 @@ const Interact: FC = () => {
             address={contractAddress!}
             cannonOutputs={cannonOutputs}
             chainId={packagesQuery.data!.chainId}
+            isDrawerOpen={isDrawerOpen}
             onDrawerOpen={() => setIsDrawerOpen(true)}
             packageUrl={packagesQuery.data?.deployUrl}
           />

@@ -37,7 +37,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 // Because of a weird type cohercion, after using viem.isAddress during website build,
 // the string type of the given value gets invalid to "never", and breaks the build.
@@ -103,8 +103,6 @@ export const QueuedTxns = ({
 
   const txnInfo = useSimulatedTxns(currentSafe as any, queuedTxns);
 
-  const { toast } = useToast();
-
   const stager = useTxnStager(
     targetTxn
       ? {
@@ -129,10 +127,7 @@ export const QueuedTxns = ({
       async onSignComplete() {
         if (onDrawerClose) onDrawerClose();
         await router.push(links.DEPLOY);
-        toast({
-          title: 'You successfully signed the transaction.',
-          variant: 'default',
-        });
+        toast.success('You successfully signed the transaction.');
 
         setQueuedIdentifiableTxns({
           queuedIdentifiableTxns: [],
@@ -542,11 +537,9 @@ export const QueuedTxns = ({
                               onSuccess: async () => {
                                 await router.push(links.DEPLOY);
 
-                                toast({
-                                  title:
-                                    'You successfully executed the transaction.',
-                                  variant: 'default',
-                                });
+                                toast.success(
+                                  'You successfully executed the transaction.'
+                                );
                               },
                             });
                           }}

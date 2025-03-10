@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import Link from 'next/link';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
@@ -82,6 +82,7 @@ interface FunctionProps {
   collapsible?: boolean;
   showFunctionSelector: boolean;
   packageUrl?: string;
+  isDrawerOpen?: boolean;
 }
 
 export const Function: FC<FunctionProps> = ({
@@ -95,6 +96,7 @@ export const Function: FC<FunctionProps> = ({
   collapsible,
   showFunctionSelector,
   packageUrl,
+  isDrawerOpen,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const currentSafe = useStore((s) => s.currentSafe);
@@ -128,7 +130,6 @@ export const Function: FC<FunctionProps> = ({
   // for payable functions only
   const [value, setValue] = useState<any>();
   const [valueIsValid, setValueIsValid] = useState<boolean>(true);
-  const { toast } = useToast();
 
   const { safes, setQueuedIdentifiableTxns, setLastQueuedTxnsId } =
     useQueueTxsStore((s) => s);
@@ -245,9 +246,7 @@ export const Function: FC<FunctionProps> = ({
 
   const handleQueueTransaction = () => {
     if (!currentSafe) {
-      toast({
-        title: 'Please select a Safe first',
-        variant: 'destructive',
+      toast.error('Please select a Safe first', {
         duration: 5000,
       });
       onDrawerOpen?.();
@@ -255,11 +254,12 @@ export const Function: FC<FunctionProps> = ({
     }
     // Prevent queuing transactions across different chains
     if (currentSafe?.chainId !== chainId) {
-      toast({
-        title: `Cannot queue transactions across different chains, current Safe is on chain ${currentSafe?.chainId} and function is on chain ${chainId}`,
-        variant: 'destructive',
-        duration: 10000,
-      });
+      toast.error(
+        `Cannot queue transactions across different chains, current Safe is on chain ${currentSafe?.chainId} and function is on chain ${chainId}`,
+        {
+          duration: 10000,
+        }
+      );
       onDrawerOpen?.();
       return;
     }
@@ -319,8 +319,11 @@ export const Function: FC<FunctionProps> = ({
       safeId: `${currentSafe.chainId}:${currentSafe.address}`,
     });
 
-    toast({
-      title: `Total transactions queued: ${lastQueuedTxnsId + 1}`,
+    const safeSidebarContext = isDrawerOpen
+      ? 'Transaction added to the queue.'
+      : 'Click the Safe icon on the right side of the screen to see the staged transactions.';
+
+    toast.success(safeSidebarContext, {
       duration: 5000,
     });
   };

@@ -93,7 +93,7 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
                                 )}
                               </div>
                               <div>
-                                {deploymentInfo?.status === 'complete' ?? (
+                                {deploymentInfo?.status === 'complete' ? (
                                   <>
                                     <SidebarGroupLabel className="m-0 h-6 p-0">
                                       Complete Deployment
@@ -104,8 +104,8 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
                                       package data.
                                     </p>
                                   </>
-                                )}
-                                {deploymentInfo?.status === 'partial' ?? (
+                                ) : null}
+                                {deploymentInfo?.status === 'partial' ? (
                                   <>
                                     <SidebarGroupLabel className="m-0 h-6 p-0">
                                       Partial Deployment
@@ -116,7 +116,7 @@ function _NameTagVariantLayout({ children }: { children: ReactNode }) {
                                       definition.
                                     </p>
                                   </>
-                                )}
+                                ) : null}
                               </div>
                             </>
                           )}
