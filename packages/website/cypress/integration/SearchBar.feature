@@ -1,4 +1,4 @@
-Feature: SearchBar function
+Feature: SearchBar page
 
   Scenario: Checking the searchbar dialog
     Given User opens the "/learn" page
