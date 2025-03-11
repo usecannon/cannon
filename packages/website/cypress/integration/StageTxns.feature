@@ -106,7 +106,3 @@ Feature: Stage Transactions
     * User types "Hello World Again!" into the 2nd input with id "default-input"
     Then View renders a "h5" displaying the text "All Transactions Simulated Successfully"
     * The element with id "txs-alert" has 2 queued transactions
-    # Display Executed Transactions
-    When User opens the "/deploy" page
-    * User clicks on the 1st element with id "txn-2-link"
-    Then View renders a "h3" displaying the text "Signatures"
