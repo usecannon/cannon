@@ -19,6 +19,8 @@ const configSpecs = {
   S3_REGION: str({ devDefault: 'us-east-1' }),
   S3_KEY: str({ devDefault: '' }),
   S3_SECRET: str({ devDefault: '' }),
+  BUILD_PINATA_URL: str({ devDefault: 'https://api.pinata.cloud' }),
+  BUILD_PINATA_API_JWT: str({ devDefault: '' }),
 };
 
 export type Config = Omit<CleanedEnv<typeof configSpecs>, keyof CleanedEnvAccessors>;
