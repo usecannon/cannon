@@ -490,6 +490,7 @@ export const CodeExplorer: FC<{
                                 'deployments.json'
                               );
                             }}
+                            data-testid="download-abi-button"
                           >
                             <Download className="scale-75" />
                           </Button>
@@ -618,12 +619,21 @@ export const CodeExplorer: FC<{
             >
               <TabsList className="h-full font-mono">
                 {!isEmpty(miscData?.artifacts) && (
-                  <TabsTrigger value={name} disabled={isLoading}>
+                  <TabsTrigger
+                    value={name}
+                    disabled={isLoading}
+                    data-testid={`${name}-button`}
+                  >
                     {name}
                   </TabsTrigger>
                 )}
                 {provisionedPackagesKeys.map((k: string) => (
-                  <TabsTrigger key={k} value={k} disabled={isLoading}>
+                  <TabsTrigger
+                    key={k}
+                    value={k}
+                    disabled={isLoading}
+                    data-testid={`${k}-button`}
+                  >
                     [clone.{k}]
                   </TabsTrigger>
                 ))}

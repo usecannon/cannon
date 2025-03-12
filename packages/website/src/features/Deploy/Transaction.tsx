@@ -111,7 +111,10 @@ function TransactionRow({
   }
 
   return (
-    <TableRow className="group cursor-pointer hover:bg-accent/50">
+    <TableRow
+      className="group cursor-pointer hover:bg-accent/50"
+      data-testid={`txn-list-row-${tx._nonce}`}
+    >
       <TableCell className="relative px-6 w-[1px]">
         {isLink ? (
           <NextLink

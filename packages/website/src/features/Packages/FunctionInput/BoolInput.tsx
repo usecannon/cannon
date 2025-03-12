@@ -26,8 +26,12 @@ export const BoolInput: FC<{
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="false">False</SelectItem>
-        <SelectItem value="true">True</SelectItem>
+        <SelectItem value="false" data-testid="bool-false-input">
+          False
+        </SelectItem>
+        <SelectItem value="true" data-testid="bool-true-input">
+          True
+        </SelectItem>
       </SelectContent>
     </Select>
   );
