@@ -40,7 +40,6 @@ export function createApp(ctx: RepoContext): { app: Express; start: () => Promis
 
   app.use(routes.add(ctx));
   app.use(routes.cat(ctx));
-  app.use(routes.addFolder(ctx));
   app.use(routes.health(ctx));
 
   return {
