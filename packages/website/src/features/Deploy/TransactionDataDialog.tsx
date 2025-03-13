@@ -50,6 +50,15 @@ export function TransactionDataDialog({
             </div>
           </div>
 
+          {safeTxn && (
+            <div>
+              <h3 className="text-sm font-medium mb-1">To Address:</h3>
+              <div className="bg-secondary p-2 rounded-md overflow-x-auto">
+                <code className="text-xs break-all">{safeTxn.to}</code>
+              </div>
+            </div>
+          )}
+
           <div>
             <h3 className="text-sm font-medium mb-1">Chain ID:</h3>
             <div className="bg-secondary p-2 rounded-md">
@@ -73,6 +82,15 @@ export function TransactionDataDialog({
               >
                 Copy Transaction Data
               </Button>
+            </div>
+          )}
+
+          {safeTxn && (
+            <div>
+              <h3 className="text-sm font-medium mb-1">Transaction Value:</h3>
+              <div className="bg-secondary p-2 rounded-md overflow-x-auto">
+                <code className="text-xs break-all">{safeTxn.value}</code>
+              </div>
             </div>
           )}
 
