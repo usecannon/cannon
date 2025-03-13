@@ -27,7 +27,6 @@
   "homepage": "https://github.com/usecannon/cannon#readme",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.701.0",
-    "@types/jsonwebtoken": "^9.0.9",
     "@usecannon/builder": "workspace:*",
     "connect-busboy": "^1.0.0",
     "cors": "^2.8.5",
@@ -50,6 +49,7 @@
     "@types/cors": "^2.8.17",
     "@types/expect": "^24.3.0",
     "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.9",
     "@types/lodash": "^4.17.7",
     "@types/memoizee": "^0.4.11",
     "@types/morgan": "^1.9.9",
