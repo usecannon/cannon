@@ -121,6 +121,7 @@ const SearchBar = () => {
           'w-8 px-2 lg:w-full lg:pr-12'
         )}
         onClick={onOpen}
+        data-testid="searchbar-button"
       >
         <Search className="h-6 w-6 lg:hidden" />
         <span className="hidden lg:inline-flex">
@@ -137,6 +138,7 @@ const SearchBar = () => {
             placeholder={PLACEHOLDER}
             value={inputValue}
             onValueChange={setInputValue}
+            data-testid="sidebar-search-input"
           />
           <CommandList>
             {searchQuery.isLoading ? (
@@ -167,7 +169,10 @@ const SearchBar = () => {
                             return (
                               <>
                                 <GoPackage className="h-6 w-6 shrink-0 opacity-50 mr-1" />
-                                <div className="flex flex-col gap-0.5">
+                                <div
+                                  className="flex flex-col gap-0.5"
+                                  data-testid="search-package-section"
+                                >
                                   <span>{result.name}</span>
                                   <span className="text-xs text-muted-foreground">
                                     {result.name}
@@ -187,7 +192,10 @@ const SearchBar = () => {
                             return (
                               <>
                                 <BsBoxes className="h-6 w-6 shrink-0 opacity-50 mr-1" />
-                                <div className="flex flex-col gap-0.5">
+                                <div
+                                  className="flex flex-col gap-0.5"
+                                  data-testid="search-namespace-section"
+                                >
                                   <span>{result.name}</span>
                                   <span className="text-xs text-muted-foreground">
                                     {result.count} package
@@ -200,7 +208,10 @@ const SearchBar = () => {
                             return (
                               <>
                                 <PiFileCode className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
-                                <div className="flex flex-col gap-0.5">
+                                <div
+                                  className="flex flex-col gap-0.5"
+                                  data-testid="search-contract-section"
+                                >
                                   <span>{result.name}</span>
                                   <span className="text-xs text-muted-foreground">
                                     {result.packageName}
@@ -220,7 +231,10 @@ const SearchBar = () => {
                             return (
                               <>
                                 <FaCode className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
-                                <div className="flex flex-col gap-0.5">
+                                <div
+                                  className="flex flex-col gap-0.5"
+                                  data-testid="search-function-section"
+                                >
                                   <span>
                                     {result.contractName}.{result.name}
                                   </span>

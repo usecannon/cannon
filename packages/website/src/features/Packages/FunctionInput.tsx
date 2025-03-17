@@ -189,6 +189,7 @@ export const FunctionInput: FC<Props> = ({
                   size="icon"
                   onClick={() => remove(index)}
                   className="text-destructive hover:text-destructive/90"
+                  data-testid="remove-input-button"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -202,6 +203,7 @@ export const FunctionInput: FC<Props> = ({
             size="icon"
             onClick={add}
             className="py-4 text-primary hover:text-primary/90"
+            data-testid="add-input-button"
           >
             <PlusIcon className="h-4 w-4" />
           </Button>
