@@ -4,7 +4,7 @@ import Debug from 'debug';
 import Fuse from 'fuse.js';
 import rfdc from 'rfdc';
 import * as acorn from 'acorn';
-import { Node, Identifier, MemberExpression } from 'acorn';
+import { Node, Identifier, Property, MemberExpression } from 'acorn';
 import { CannonHelperContext } from '../types';
 import { getGlobalVars } from './get-global-vars';
 
@@ -135,8 +135,8 @@ export function renderTemplate(templateStr: string, templateContext: any = {}, s
         const match = err.message.includes('Cannot read properties of undefined')
           ? err.message.match(/\(reading '([^']+)'\)/)
           : err.message.includes(' is not defined ')
-          ? err.message.match(/([^']+) is not defined at /)
-          : null;
+            ? err.message.match(/([^']+) is not defined at /)
+            : null;
 
         if (match?.[1]) {
           const desiredKey = match[1];
@@ -242,6 +242,7 @@ const ALLOWED_NODE_TYPES = new Set<acorn.Node['type']>([
   'Property', // Object property definitions
   'TemplateLiteral', // Template strings using backticks
   'TemplateElement', // Parts of template literals between expressions
+  'SpreadElement', // ... syntax
 ]);
 
 /**
@@ -275,8 +276,10 @@ export function validateTemplate(templateStr: string, allowedKeywords: string[] 
 
         if (node.type === 'Identifier') {
           const identifierNode = node as Identifier;
-          const parent = parentMap.get(node) as MemberExpression | undefined;
-          const isPropertyName = parent?.type === 'MemberExpression' && parent.property === node;
+          const parent = parentMap.get(node) as MemberExpression | Property | undefined;
+          const isPropertyName =
+            (parent?.type === 'MemberExpression' && parent.property === node) ||
+            (parent?.type === 'Property' && parent.key === node);
 
           // check against both blocked globals and allowed identifiers
           if (!isPropertyName) {
