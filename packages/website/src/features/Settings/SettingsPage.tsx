@@ -124,6 +124,7 @@ export default function SettingsPage() {
                       onChange={(evt) =>
                         setSettings({ pythUrl: evt.target.value })
                       }
+                      data-testid="pyth-url-input"
                     />
                   </div>
                 </TableCell>
@@ -160,6 +161,7 @@ export default function SettingsPage() {
               onChange={async (evt) => {
                 setSettings({ ipfsApiUrl: evt.target.value });
               }}
+              data-testid="ipfs-url-input"
             />
           </div>
           {settings.ipfsApiUrl.length ? (
@@ -196,6 +198,7 @@ export default function SettingsPage() {
               alert('Done!');
             }
           }}
+          data-testid="reset-settings-button"
         >
           Reset to defaults
         </Button>

@@ -68,6 +68,7 @@ const SafeTransactionService: React.FC = () => {
               name="stagingUrl"
               onChange={handleUrlChange}
               placeholder="https://safe-transaction.example.com"
+              data-testid="safe-txs-url-input"
             />
             {validationError && <FormMessage>{validationError}</FormMessage>}
             <FormDescription className="text-gray-300">

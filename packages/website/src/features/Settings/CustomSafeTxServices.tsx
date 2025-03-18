@@ -70,6 +70,7 @@ export default function CustomSafeTxServices() {
           <div
             key={service.chainId}
             className="flex items-center justify-between pl-3 pr-1 py-1 rounded-lg bg-accent/50 overflow-x-auto max-w-full group"
+            data-testid="custom-safe-section"
           >
             <div className="flex items-center gap-3 min-w-0 overflow-x-auto">
               <span className="text-sm truncate whitespace-nowrap">
@@ -87,6 +88,7 @@ export default function CustomSafeTxServices() {
               size="icon"
               onClick={() => removeService(service.chainId)}
               className="h-8 w-8 shrink-0 ml-2"
+              data-testid="delete-custom-safe-button"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -101,11 +103,13 @@ export default function CustomSafeTxServices() {
             value={inputChainId}
             onChange={(e) => setInputChainId(e.target.value)}
             type="number"
+            data-testid="custom-safe-chain-input"
           />
           <Input
             placeholder="e.g. https://safe-transaction.mainnet.gnosis.io"
             value={inputUrl}
             onChange={(e) => setInputUrl(e.target.value)}
+            data-testid="custom-safe-url-input"
           />
           {inputError && (
             <p className="text-sm text-destructive mt-1">{inputError}</p>
@@ -117,6 +121,7 @@ export default function CustomSafeTxServices() {
             !inputUrl.trim() || !inputChainId.trim() || inputError !== undefined
           }
           onClick={addService}
+          data-testid="add-custom-safe-button"
         >
           <Plus className="h-4 w-4" />
         </Button>
