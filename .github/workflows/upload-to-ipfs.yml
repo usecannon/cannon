@@ -12,6 +12,16 @@ jobs:
   validate-and-upload:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate release exists
+        run: |
+          RELEASE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.event.inputs.release_number }}")
+          if [[ $(echo $RELEASE | jq -r '.message') == "Not Found" ]]; then
+            echo "Error: Release ${{ github.event.inputs.release_number }} not found"
+            exit 1
+          fi
+          echo "Release exists, proceeding with checkout"
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.release_number }}
