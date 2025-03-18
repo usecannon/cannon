@@ -25,7 +25,7 @@ jobs:
       - run: pnpm i --frozen-lockfile
 
       - run: echo "${{ vars.NEXT_ENV }}" > packages/website/.env.local
-      - run: pnpm build:website
+      - run: pnpm run clean && pnpm -r --filter @usecannon/builder --filter @usecannon/cli --filter @usecannon/api --filter @usecannon/website run build
 
       - name: Create ZIP file
         run: zip -r "build-${{ github.event.inputs.release_number }}.zip" packages/website/out
