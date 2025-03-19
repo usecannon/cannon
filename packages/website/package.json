@@ -26,10 +26,6 @@
     "directory": "packages/website"
   },
   "dependencies": {
-    "@emotion/cache": "^11.11.0",
-    "@emotion/react": "^11.11.1",
-    "@emotion/server": "^11.11.0",
-    "@emotion/styled": "^11.11.0",
     "@ethersproject/bignumber": "^5.7.0",
     "@hookform/resolvers": "^3.9.1",
     "@iarna/toml": "^3.0.0",
