@@ -3,8 +3,8 @@ name: Upload Website to IPFS
 on:
   workflow_dispatch:
     inputs:
-      release_number:
-        description: 'Release Tag (e.g., v1.2.3)'
+      commit_hash:
+        description: 'Hash commit'
         required: true
         type: string
 
@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.release_number }}
+          ref: ${{ github.event.inputs.commit_hash }}
           
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
@@ -28,7 +28,7 @@ jobs:
       - run: pnpm run clean && pnpm -r --filter @usecannon/builder --filter @usecannon/cli --filter @usecannon/api --filter @usecannon/website run build
 
       - name: Create ZIP file
-        run: zip -r "build-${{ github.event.inputs.release_number }}.zip" packages/website/out
+        run: zip -r "build-${{ github.event.inputs.commit_hash }}.zip" packages/website/out
 
       - name: Upload to Cannon Repo
         run: |
@@ -36,7 +36,7 @@ jobs:
             "https://repo.usecannon.com/api/v0/add?wrap-with-directory=true" \
             -H "Authorization: Bearer ${{ secrets.REPO_CANNON_JWT }}" \
             -H "Content-Type: multipart/form-data" \
-            -F "file=@build-${{ github.event.inputs.release_number }}.zip"
+            -F "file=@build-${{ github.event.inputs.commit_hash }}.zip"
 
   
 
