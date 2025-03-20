@@ -1,5 +1,9 @@
 import { Button } from '@/components/ui/button';
-import { FaDiscord, FaGithub, FaTwitter } from 'react-icons/fa';
+import {
+  Discord as DiscordIcon,
+  Github as GithubIcon,
+  Twitter as TwitterIcon,
+} from '@/components/specialIcons';
 import { useRouter } from 'next/router';
 
 interface FooterProps {
@@ -29,7 +33,7 @@ export const Footer = ({ isFixed }: FooterProps) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <FaGithub className="h-5 w-5" />
+            <GithubIcon className="h-5 w-5" />
           </a>
         </Button>
         <Button variant="ghost" size="icon" asChild>
@@ -38,7 +42,7 @@ export const Footer = ({ isFixed }: FooterProps) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <FaTwitter className="h-5 w-5" />
+            <TwitterIcon className="h-5 w-5" />
           </a>
         </Button>
         <Button variant="ghost" size="icon" asChild>
@@ -47,7 +51,7 @@ export const Footer = ({ isFixed }: FooterProps) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <FaDiscord className="h-5 w-5" />
+            <DiscordIcon className="h-5 w-5" />
           </a>
         </Button>
       </div>
