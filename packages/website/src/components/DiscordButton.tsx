@@ -1,4 +1,4 @@
-import { DiscordLogoIcon } from '@radix-ui/react-icons';
+import { FaDiscord } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 
 export const DiscordButton = () => {
@@ -13,7 +13,7 @@ export const DiscordButton = () => {
         target="_blank"
         rel="noopener noreferrer"
       >
-        <DiscordLogoIcon className="h-3.5 w-3.5" />
+        <FaDiscord className="h-3.5 w-3.5" />
       </a>
     </Button>
   );

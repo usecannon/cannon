@@ -1,6 +1,6 @@
 import { CommandPreview } from '@/components/CommandPreview';
 import { links } from '@/constants/links';
-import { ExternalLinkIcon } from '@radix-ui/react-icons';
+import { ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
 export const RunPackage = () => {
@@ -20,7 +20,7 @@ export const RunPackage = () => {
           rel="noopener noreferrer"
         >
           Install Foundry
-          <ExternalLinkIcon className="h-4 w-4" />
+          <ExternalLink className="h-4 w-4" />
         </a>{' '}
         if you haven&apos;t already.
       </p>
@@ -50,7 +50,7 @@ export const RunPackage = () => {
           rel="noopener noreferrer"
         >
           Anvil node
-          <ExternalLinkIcon className="h-4 w-4" />
+          <ExternalLink className="h-4 w-4" />
         </a>{' '}
         with{' '}
         <a
@@ -60,7 +60,7 @@ export const RunPackage = () => {
           rel="noopener noreferrer"
         >
           a deployment of the greeter package
-          <ExternalLinkIcon className="h-4 w-4" />
+          <ExternalLink className="h-4 w-4" />
         </a>{' '}
         for local testing and development:
       </p>

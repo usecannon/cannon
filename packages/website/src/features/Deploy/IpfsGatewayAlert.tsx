@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cross2Icon } from '@radix-ui/react-icons';
+import { X } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import NextLink from 'next/link';
 import { ChainDefinition } from '@usecannon/builder';
@@ -16,7 +16,7 @@ export function IpfsGatewayAlert({
   if (isIpfsGateway) {
     return (
       <Alert variant="destructive">
-        <Cross2Icon className="h-4 w-4 mr-3" />
+        <X className="h-4 w-4 mr-3" />
         <AlertDescription>
           Your current IPFS URL is set to a gateway. Update your IPFS URL to an
           API endpoint where you can pin files in{' '}
@@ -35,7 +35,7 @@ export function IpfsGatewayAlert({
   ) {
     return (
       <Alert variant="destructive">
-        <Cross2Icon className="h-4 w-4 mr-3" />
+        <X className="h-4 w-4 mr-3" />
         <AlertDescription>
           <div className="flex flex-col">
             <p>

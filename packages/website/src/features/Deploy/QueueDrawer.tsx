@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CustomSpinner } from '@/components/CustomSpinner';
-import { InfoCircledIcon } from '@radix-ui/react-icons';
+import { Info } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -440,7 +440,7 @@ export const QueuedTxns = ({
               <NoncePicker safe={currentSafe} handleChange={setPickedNonce} />
 
               <p className="text-sm text-muted-foreground flex items-center gap-2">
-                <InfoCircledIcon className="h-4 w-4 flex-shrink-0" />
+                <Info className="h-4 w-4 flex-shrink-0" />
                 <span>
                   Transactions queued here will not generate a Cannon package
                   after execution.
@@ -449,7 +449,7 @@ export const QueuedTxns = ({
 
               {txnHasError && (
                 <p className="text-sm text-muted-foreground flex items-center gap-2">
-                  <InfoCircledIcon className="h-4 w-4 flex-shrink-0" />
+                  <Info className="h-4 w-4 flex-shrink-0" />
                   <span>
                     Some transactions failed to simulate. You can still execute
                     / stage the transactions.

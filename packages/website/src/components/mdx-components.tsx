@@ -18,7 +18,7 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Snippet } from '@/components/snippet';
 import { FilesBlock } from '@/components/files-block';
-import { InfoCircledIcon } from '@radix-ui/react-icons';
+import { Info } from 'lucide-react';
 
 const components = {
   Accordion,
@@ -35,7 +35,7 @@ const components = {
   ),
   AlertTitle,
   AlertDescription,
-  InfoCircledIcon,
+  Info,
   h1: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h1
       className={cn(

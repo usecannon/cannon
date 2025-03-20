@@ -19,10 +19,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  SiNpm as NpmIcon,
-  SiYarn as YarnIcon,
-  SiPnpm as PnpmIcon,
-} from 'react-icons/si';
+  FaNpm as NpmIcon,
+  FaYarn as YarnIcon,
+  FaNpm as PnpmIcon,
+} from 'react-icons/fa';
 import React, { FC, useEffect, useMemo, useState } from 'react';
 import {
   SidebarContent,
