@@ -8,7 +8,7 @@ async function loadGanache() {
   // More info: https://stackoverflow.com/questions/49475492/npm-install-error-code-ebadplatform
 
   // @ts-ignore-next-line Import module
-  await import('./ganache.min.js');
+  await import('./ganache/ganache.min.js');
   return new Promise((resolve) => {
     const checkGanache = setInterval(() => {
       if (window.Ganache) {
