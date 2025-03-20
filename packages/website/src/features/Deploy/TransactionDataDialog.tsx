@@ -59,6 +59,28 @@ export function TransactionDataDialog({
             </div>
           )}
 
+          {safeTxn && (
+            <div>
+              <h3 className="text-sm font-medium mb-1">
+                Safe Transaction Gas:
+              </h3>
+              <div className="bg-secondary p-2 rounded-md overflow-x-auto">
+                <code className="text-xs break-all">{safeTxn.safeTxGas}</code>
+              </div>
+            </div>
+          )}
+
+          {safeTxn && (
+            <div>
+              <h3 className="text-sm font-medium mb-1">Refund Receiver:</h3>
+              <div className="bg-secondary p-2 rounded-md overflow-x-auto">
+                <code className="text-xs break-all">
+                  {safeTxn.refundReceiver}
+                </code>
+              </div>
+            </div>
+          )}
+
           <div>
             <h3 className="text-sm font-medium mb-1">Chain ID:</h3>
             <div className="bg-secondary p-2 rounded-md">
