@@ -76,6 +76,14 @@ Feature: Stage Transactions
     Then View renders a "h5" displaying the text "All Transactions Simulated Successfully"
     * The element with id "txs-alert" has 2 queued transactions
 
+    # Error Handling
+    When User types "11155111" into the 1st input with id "target-input"
+    Then View renders a "p" displaying the text "Failed to find this package "
+    When User types "0xfD050037C9039cE7b4A3213E3645BC1ba6eA0c97" into the 1st input with id "target-input"
+    Then View renders a "label" displaying the text "Transaction Data"
+    When User types "1234" into the 1st input with id "txn-data-input"
+    Then View renders a "p" displaying the text "Invalid transaction data"
+
   Scenario: User stages transactions from the deploy page
     Given User opens the "/deploy" page
     * View renders a "button" displaying the text "Select Safe"

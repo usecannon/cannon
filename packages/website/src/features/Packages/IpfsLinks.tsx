@@ -23,6 +23,7 @@ export const IpfsLinks: FC<{
           <a
             href={convertUrl(pkg.deployUrl)}
             className="flex items-center no-underline hover:no-underline"
+            data-testid="ipfs-deployment-link"
           >
             <img
               src="/images/ipfs.svg"
@@ -43,6 +44,7 @@ export const IpfsLinks: FC<{
               src="/images/ipfs.svg"
               alt="IPFS"
               className="inline-block h-[14px] mr-1.5"
+              data-testid="ipfs-code-link"
             />
             <span className="inline border-b border-dotted border-gray-300">
               Code

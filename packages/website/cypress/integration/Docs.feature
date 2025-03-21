@@ -21,6 +21,11 @@ Feature: Cannon Docs page
     Given User opens the "/learn" page
     When User clicks on the "CLI" tab
     Then View renders a "h1" displaying the text "Command-Line Interface Documentation"
+    When User clicks on the "Installation" button
+    * User clicks on the "run" button
+    Then View renders a "code" displaying the text "run"
+    * User clicks on the "diff" button
+    Then View renders a "code" displaying the text "diff"
 
   Scenario: Navigating to the debug page
     Given User opens the "/learn/guides/debug" page

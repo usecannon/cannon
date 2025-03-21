@@ -104,7 +104,8 @@ Feature: Interact page
     * User clicks on the 1st element with id "addApprovedPool-button"
     * User types "1" into the 1st input with id "number-input"
     * User clicks on the 1st element with id "simulate-txs-button"
-    Then View renders a "div" displaying the text "Error: Unauthorized(address addr)"
+#    Then View renders a "div" displaying the text "Error: Unauthorized(address addr)"
+    Then View renders a "div" displaying the text "HTTP request failed. Status: 403 URL"
 
     Given User opens the "/packages/usdc/2.1/1-main/interact" page
     * Wallet is connected

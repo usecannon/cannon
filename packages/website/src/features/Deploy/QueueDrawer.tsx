@@ -411,6 +411,7 @@ export const QueuedTxns = ({
                   onChange={(e) =>
                     setCustomTxnData(e.target.value as viem.Address)
                   }
+                  data-testid="txn-data-input"
                 />
                 {customTxnData && !customTxnDataIsValid && (
                   <p className="text-sm text-red-500">

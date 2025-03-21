@@ -156,6 +156,7 @@ export default function Download() {
                     id="cid"
                     value={cid}
                     onChange={handleInputChange}
+                    data-testid="cid-input"
                   />
                 </div>
               </div>
@@ -206,6 +207,7 @@ export default function Download() {
                     <button
                       onClick={handleDownload}
                       className="inline-flex items-center px-3 py-1 text-xs border border-gray-500 text-gray-300 rounded hover:bg-gray-700"
+                      data-testid="download-button"
                     >
                       <DownloadIcon className="mr-2 h-4 w-4" />
                       Download
