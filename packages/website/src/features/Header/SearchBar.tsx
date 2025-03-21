@@ -2,10 +2,7 @@
 
 import { getSearch } from '@/helpers/api';
 import { Search } from 'lucide-react';
-import { GoPackage } from 'react-icons/go';
-import { BsBoxes } from 'react-icons/bs';
-import { PiFileCode } from 'react-icons/pi';
-import { FaCode } from 'react-icons/fa6';
+import { Boxes, FileCode, Box, CodeXml } from 'lucide-react';
 import { useEventListener } from 'usehooks-ts';
 import { useMediaQuery } from 'usehooks-ts';
 import { useQuery } from '@tanstack/react-query';
@@ -168,7 +165,7 @@ const SearchBar = () => {
                           case 'package':
                             return (
                               <>
-                                <GoPackage className="h-6 w-6 shrink-0 opacity-50 mr-1" />
+                                <Box className="h-6 w-6 shrink-0 opacity-50 mr-1" />
                                 <div
                                   className="flex flex-col gap-0.5"
                                   data-testid="search-package-section"
@@ -191,7 +188,7 @@ const SearchBar = () => {
                           case 'namespace':
                             return (
                               <>
-                                <BsBoxes className="h-6 w-6 shrink-0 opacity-50 mr-1" />
+                                <Boxes className="h-6 w-6 shrink-0 opacity-50 mr-1" />
                                 <div
                                   className="flex flex-col gap-0.5"
                                   data-testid="search-namespace-section"
@@ -207,7 +204,7 @@ const SearchBar = () => {
                           case 'contract':
                             return (
                               <>
-                                <PiFileCode className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
+                                <FileCode className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
                                 <div
                                   className="flex flex-col gap-0.5"
                                   data-testid="search-contract-section"
@@ -230,7 +227,7 @@ const SearchBar = () => {
                           case 'function':
                             return (
                               <>
-                                <FaCode className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
+                                <CodeXml className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
                                 <div
                                   className="flex flex-col gap-0.5"
                                   data-testid="search-function-section"

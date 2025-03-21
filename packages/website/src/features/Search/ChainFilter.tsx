@@ -1,5 +1,5 @@
 import { links } from '@/constants/links';
-import { InfoCircledIcon } from '@radix-ui/react-icons';
+import { Info } from 'lucide-react';
 import Link from 'next/link';
 import { FC } from 'react';
 import {
@@ -23,7 +23,7 @@ export const ChainFilter: FC<ChainFilterProps> = ({ id }) => {
           <TooltipProvider>
             <Tooltip delayDuration={0}>
               <TooltipTrigger className="flex items-center">
-                <InfoCircledIcon className="text-gray-300" />
+                <Info className="text-gray-300" />
               </TooltipTrigger>
               <TooltipContent
                 className="max-w-[250px]"

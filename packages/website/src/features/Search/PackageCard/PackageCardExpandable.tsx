@@ -1,8 +1,4 @@
-import {
-  Link2Icon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-} from '@radix-ui/react-icons';
+import { Link as LinkIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import Link from 'next/link';
 import { FC, useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -38,7 +34,7 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
             className="ml-2 flex items-center text-muted-foreground hover:no-underline"
             onClick={(e) => e.stopPropagation()}
           >
-            <Link2Icon className="w-4 h-4" />
+            <LinkIcon className="w-4 h-4" />
           </Link>
         </div>
         <div
@@ -50,9 +46,9 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
             className="sm:hidden cursor-pointer"
           >
             {isOpen ? (
-              <ChevronUpIcon className="w-4 h-4" />
+              <ChevronUp className="w-4 h-4" />
             ) : (
-              <ChevronDownIcon className="w-4 h-4" />
+              <ChevronDown className="w-4 h-4" />
             )}
           </div>
           <div className="hidden sm:flex items-center gap-1">

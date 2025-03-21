@@ -2,7 +2,7 @@ import { CommandPreview } from '@/components/CommandPreview';
 import { externalLinks } from '@/constants/externalLinks';
 import { links } from '@/constants/links';
 import Link from 'next/link';
-import { ExternalLinkIcon } from '@radix-ui/react-icons';
+import { ExternalLink } from 'lucide-react';
 
 export const DeployYourProtocol = () => {
   return (
@@ -21,7 +21,7 @@ export const DeployYourProtocol = () => {
           rel="noopener noreferrer"
         >
           Etherscan
-          <ExternalLinkIcon className="ml-1 h-4 w-4" />
+          <ExternalLink className="ml-1 h-4 w-4" />
         </a>
         :
       </p>

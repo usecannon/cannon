@@ -1,6 +1,6 @@
 import { CommandPreview } from '@/components/CommandPreview';
 import NextLink from 'next/link';
-import { ExternalLinkIcon } from '@radix-ui/react-icons';
+import { ExternalLink } from 'lucide-react';
 import { links } from '@/constants/links';
 
 export const DeployYourProtocol = () => {
@@ -17,7 +17,7 @@ export const DeployYourProtocol = () => {
           rel="noopener noreferrer"
         >
           specified in your Hardhat Configuration file
-          <ExternalLinkIcon className="h-4 w-4" />
+          <ExternalLink className="h-4 w-4" />
         </a>
         .
       </p>
@@ -33,7 +33,7 @@ export const DeployYourProtocol = () => {
           rel="noopener noreferrer"
         >
           and verify your project&apos;s contracts
-          <ExternalLinkIcon className="h-4 w-4" />
+          <ExternalLink className="h-4 w-4" />
         </a>
         :
       </p>

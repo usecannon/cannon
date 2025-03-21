@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import { Diff, parseDiff, Hunk } from 'react-diff-view';
 import { DisplayedTransaction } from './DisplayedTransaction';
 import Link from 'next/link';
-import { IoIosContract, IoIosExpand } from 'react-icons/io';
+import { Shrink, Expand } from 'lucide-react';
 import {
   Card,
   CardTitle,
@@ -195,7 +195,7 @@ export function TransactionDisplay(props: {
                       onClick={() => setExpandDiff(!expandDiff)}
                       className="absolute top-4 right-5 hover:text-gray-300"
                     >
-                      {expandDiff ? <IoIosContract /> : <IoIosExpand />}
+                      {expandDiff ? <Shrink /> : <Expand />}
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>

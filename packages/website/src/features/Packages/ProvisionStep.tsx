@@ -4,7 +4,7 @@ import {
   ChainArtifacts,
   BundledChainBuilderOutputs,
 } from '@usecannon/builder';
-import { Copy } from 'react-feather';
+import { Copy } from 'lucide-react';
 import { useCopy } from '@/lib/copy';
 import { ContractStep } from '@/features/Packages/ContractStep';
 

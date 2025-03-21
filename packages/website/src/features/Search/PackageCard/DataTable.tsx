@@ -8,11 +8,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  ArrowRightIcon,
-  CaretSortIcon,
-  QuestionMarkCircledIcon,
-} from '@radix-ui/react-icons';
+import { ArrowRight, ArrowDownUp, CircleHelp } from 'lucide-react';
+
 import {
   useReactTable,
   flexRender,
@@ -87,7 +84,7 @@ const getCellContent = ({ cell }: { cell: any }) => {
       );
     }
     case 'arrow': {
-      return <ArrowRightIcon className="h-3 w-3" />;
+      return <ArrowRight className="h-3 w-3" />;
     }
     default: {
       return <>{flexRender(cell.column.columnDef.cell, cell.getContext())}</>;
@@ -145,12 +142,12 @@ export function DataTable<Data extends object>({
                             header.column.columnDef.header,
                             header.getContext()
                           )}
-                          <CaretSortIcon className="ml-2 h-4 w-4" />
+                          <ArrowDownUp className="ml-2 h-4 w-4" />
                           {header.column.columnDef.accessorKey == 'preset' && (
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger>
-                                  <QuestionMarkCircledIcon className="inline-block whitespace-nowrap align-sub" />
+                                  <CircleHelp className="inline-block whitespace-nowrap align-sub" />
                                 </TooltipTrigger>
                                 <TooltipContent className="max-w-sm text-center">
                                   Presets are useful for distinguishing multiple

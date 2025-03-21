@@ -1,4 +1,4 @@
-import { Link2Icon } from '@radix-ui/react-icons';
+import { Link as LinkIcon } from 'lucide-react';
 import PackageTable from './PackageTable';
 import Link from 'next/link';
 import { FC } from 'react';
@@ -22,7 +22,7 @@ export const PackageCard: FC<IPackageCardProps> = ({ pkgs, maxHeight }) => {
             href={'/packages/' + pkgs[0].name}
             className="ml-2 flex items-center"
           >
-            <Link2Icon className="w-4 h-4" />
+            <LinkIcon className="w-4 h-4" />
           </Link>
         </div>
       </div>

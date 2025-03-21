@@ -6,7 +6,7 @@ import { SafeTransaction } from '@/types/SafeTransaction';
 import { parseHintedMulticall } from '@/helpers/cannon';
 import { getSafeTransactionHash } from '@/helpers/safe';
 import { useTxnStager } from '@/hooks/backend';
-import { GitHub } from 'react-feather';
+import { Github } from '@/components/specialIcons';
 import { ChevronRight, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -131,7 +131,7 @@ function TransactionRow({
         )}
         <div className="relative z-1">
           {hintData?.type === 'deploy' ? (
-            <GitHub size="20" strokeWidth={1} />
+            <Github size="20" strokeWidth={1} />
           ) : hintData?.type === 'invoke' ? (
             <img
               alt="Cannon"

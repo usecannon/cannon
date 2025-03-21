@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { NavLink } from '@/components/NavLink';
 import { cn } from '@/lib/utils';
 import { links } from '@/constants/links';
-import { GearIcon } from '@radix-ui/react-icons';
+import { Settings } from 'lucide-react';
 import { useMedia } from '@/hooks/useMedia';
 
 const NoSSRConnectWallet = dynamic(
@@ -45,7 +45,7 @@ const SettingsButton = () => {
   return (
     <Button asChild size="icon" variant="outline" className="bg-muted/50">
       <Link href={links.SETTINGS}>
-        <GearIcon />
+        <Settings />
       </Link>
     </Button>
   );

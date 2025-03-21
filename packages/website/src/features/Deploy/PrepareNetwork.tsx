@@ -1,4 +1,4 @@
-import { InfoCircledIcon } from '@radix-ui/react-icons';
+import { Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -200,7 +200,7 @@ export default function PrepareNetwork({
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <InfoCircledIcon className="text-muted-foreground h-4 w-4" />
+                      <Info className="text-muted-foreground h-4 w-4" />
                     </TooltipTrigger>
                     <TooltipContent>
                       This contract is deployed by sending a small amount of ETH
