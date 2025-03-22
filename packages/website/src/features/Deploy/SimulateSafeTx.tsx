@@ -6,6 +6,7 @@ import React from 'react';
 import { SimulateTransactionButton } from './SimulateTransactionButton';
 import { SafeDefinition } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
+import TransactionDataDialog from './TransactionDataDialog';
 
 type Props = {
   queuedWithGitOps: boolean;
@@ -63,15 +64,23 @@ export default function SimulateSafeTx({
         )}
 
         <p className="text-sm">
-          Confirm you’re accessing the page via the <code>usecannon.com</code>{' '}
-          domain,{' '}
+          Confirm you&apos;re accessing the page via the{' '}
+          <code>usecannon.com</code> domain,{' '}
           <SimulateTransactionButton
             signer={safeSigner}
             safe={safe}
             safeTxn={safeTxn}
             execTransactionData={execTransactionData}
           />
-          , and always verify the transaction data displayed in your wallet with{' '}
+          , and always verify{' '}
+          <TransactionDataDialog
+            safe={safe}
+            safeTxn={safeTxn}
+            execTransactionData={execTransactionData}
+          >
+            the transaction data
+          </TransactionDataDialog>{' '}
+          displayed in your wallet with{' '}
           <a
             href="https://github.com/usecannon/safe-tx-hashes-util"
             className="underline"
