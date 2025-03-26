@@ -3,12 +3,11 @@ import { useCallback } from 'react';
 import { parseEther, toHex } from 'viem';
 
 async function loadGanache() {
-  // This is a hack because we needed to remove ganache as a dependency because
-  // the installation wasn't working on CI.
-  // More info: https://stackoverflow.com/questions/49475492/npm-install-error-code-ebadplatform
+  // We only want to load Ganache when necessary
 
   // @ts-ignore-next-line Import module
-  await import('https://unpkg.com/@usecannon/ganache@7.9.2');
+  await import('@usecannon/ganache');
+
   return new Promise((resolve) => {
     const checkGanache = setInterval(() => {
       if (window.Ganache) {

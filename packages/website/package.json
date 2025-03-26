@@ -59,6 +59,7 @@
     "@usecannon/api": "workspace:*",
     "@usecannon/builder": "workspace:*",
     "@usecannon/cli": "workspace:*",
+    "@usecannon/ganache": "^7.9.2",
     "@vercel/analytics": "^1.1.1",
     "@wagmi/core": "^2.5.13",
     "abitype": "^1.0.5",
