@@ -135,8 +135,8 @@ export function renderTemplate(templateStr: string, templateContext: any = {}, s
         const match = err.message.includes('Cannot read properties of undefined')
           ? err.message.match(/\(reading '([^']+)'\)/)
           : err.message.includes(' is not defined ')
-            ? err.message.match(/([^']+) is not defined at /)
-            : null;
+          ? err.message.match(/([^']+) is not defined at /)
+          : null;
 
         if (match?.[1]) {
           const desiredKey = match[1];
