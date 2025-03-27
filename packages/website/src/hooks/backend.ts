@@ -17,7 +17,6 @@ import {
   useSwitchChain,
   useWalletClient,
 } from 'wagmi';
-import { gnosis } from 'viem/chains';
 
 export interface CannonSafeTransaction {
   txn: SafeTransaction;
@@ -48,7 +47,7 @@ export function useSafeTransactions(safe: SafeDefinition | null, refetchInterval
 
   const memoizedStaged = _.sortBy(
     stagedQuery.data?.filter((t) => t.txn._nonce >= Number(nonceQuery.data || 0)) || [],
-    'txn._nonce',
+    'txn._nonce'
   );
 
   const memoizedNextNonce = !memoizedStaged ? 0 : (_.last(memoizedStaged)?.txn._nonce || 0) + 1;
@@ -73,7 +72,7 @@ export function useTxnStager(
   options: {
     safe: SafeDefinition | null;
     onSignComplete?: () => void;
-  } = { safe: null },
+  } = { safe: null }
 ) {
   const chainId = useChainId();
   const account = useAccount();
@@ -170,7 +169,7 @@ export function useTxnStager(
 
   const sigInsertIdx = _.sortedIndex(
     alreadyStagedSigners.map((s) => s.toLowerCase()),
-    account.address?.toLowerCase(),
+    account.address?.toLowerCase()
   );
 
   const mutation = useMutation({
@@ -333,9 +332,6 @@ export function useTxnStager(
             nonce: BigInt(safeTxn._nonce),
           },
         });
-
-        const gnosisSignature = viem.toBytes(signature);
-        console.log('the signature', signature);
 
         // sometimes the signature comes back with a `v` of 0 or 1 when when it should 27 or 28, called a "recid" apparently
         // Allow a recid to be used as the v
