@@ -42,5 +42,8 @@
     "typechain": "8.1.0",
     "typescript": "^5.3.3",
     "viem": "^2.23.1"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.2.0"
   }
 }
