@@ -1,10 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
 import {OwnableStorage} from "@synthetixio/core-contracts/contracts/ownership/OwnableStorage.sol";
 import {ERC2771Context} from "./ERC2771Context.sol";
 import {Subscription} from "./storage/Subscription.sol";
@@ -21,7 +19,14 @@ contract CannonSubscription is ReentrancyGuard {
   error PriceOverflow();
   error MembershipNotActive(address user);
 
-  event PlanRegistered(uint16 indexed planId, uint32 termDuration, uint32 quota, uint16 minTerms, uint16 maxTerms, uint256 price);
+  event PlanRegistered(
+    uint16 indexed planId,
+    uint32 termDuration,
+    uint32 quota,
+    uint16 minTerms,
+    uint16 maxTerms,
+    uint256 price
+  );
   event PlanSetAsDefault(uint16 indexed planId);
   event CreditsUsed(address indexed user, uint32 creditsUsed, uint32 remainingCredits);
   event MembershipPurchased(address indexed user, uint32 amountOfTerms, uint256 totalPrice);
@@ -55,14 +60,7 @@ contract CannonSubscription is ReentrancyGuard {
   ) external returns (uint16) {
     OwnableStorage.onlyOwner();
 
-    uint16 planId = Subscription.load().registerPlan(
-      _termDuration,
-      _quota,
-      _minTerms,
-      _maxTerms,
-      _price
-    );
-
+    uint16 planId = Subscription.load().registerPlan(_termDuration, _quota, _minTerms, _maxTerms, _price);
     emit PlanRegistered(planId, _termDuration, _quota, _minTerms, _maxTerms, _price);
 
     return planId;

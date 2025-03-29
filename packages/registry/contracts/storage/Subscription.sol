@@ -14,8 +14,7 @@ library Subscription {
   error MembershipNotActive();
   error InsufficientCredits(uint32 availableCredits);
 
-  bytes32 private constant _SLOT =
-        keccak256(abi.encode("usecannon.cannon.registry.subscription"));
+  bytes32 private constant _SLOT = keccak256(abi.encode("usecannon.cannon.registry.subscription"));
 
   /**
    * @notice The plan of a subscription. These are the ones purchased by users
@@ -98,10 +97,10 @@ library Subscription {
   }
 
   function load() internal pure returns (Data storage store) {
-      bytes32 s = _SLOT;
-      assembly {
-          store.slot := s
-      }
+    bytes32 s = _SLOT;
+    assembly {
+      store.slot := s
+    }
   }
 
   function getPlan(Data storage _self, uint16 _planId) internal view returns (Plan storage) {
@@ -167,19 +166,12 @@ library Subscription {
     return _membership.activeUntil > block.timestamp;
   }
 
-  function getPendingTermsCount(
-    Plan storage _plan,
-    Membership storage _membership
-  ) internal view returns (uint32) {
+  function getPendingTermsCount(Plan storage _plan, Membership storage _membership) internal view returns (uint32) {
     if (block.timestamp >= _membership.activeUntil) return 0;
     return uint32((_membership.activeUntil - block.timestamp) / _plan.duration);
   }
 
-  function resetMembership(
-    Plan storage _plan,
-    Membership storage _membership,
-    uint32 _amountOfTerms
-  ) internal {
+  function resetMembership(Plan storage _plan, Membership storage _membership, uint32 _amountOfTerms) internal {
     if (_amountOfTerms > _plan.maxTerms || _amountOfTerms < _plan.minTerms) {
       revert InvalidAmountOfTerms(_amountOfTerms);
     }
@@ -199,12 +191,8 @@ library Subscription {
     _membership.availableCredits = 0;
   }
 
-  function addTermsToMembership(
-    Plan storage _plan,
-    Membership storage _membership,
-    uint32 _amountOfTerms
-  ) internal {
-    if(_membership.planId != _plan.id) {
+  function addTermsToMembership(Plan storage _plan, Membership storage _membership, uint32 _amountOfTerms) internal {
+    if (_membership.planId != _plan.id) {
       revert InvalidPlanId(_membership.planId);
     }
 

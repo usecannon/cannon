@@ -127,12 +127,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
    * @param _optimismReceiver the address of the bridge contract which receives message on L2
    * @param _l1ChainId the L1 deployment of the registry. For example, sepolia would have argument `11155111` here.
    */
-  constructor(
-    address _optimismMessenger,
-    address _optimismReceiver,
-    uint256 _l1ChainId,
-    address _cannonSubscription
-  ) {
+  constructor(address _optimismMessenger, address _optimismReceiver, uint256 _l1ChainId, address _cannonSubscription) {
     _OPTIMISM_MESSENGER = IOptimismL1Sender(_optimismMessenger); // IOptimismL1Sender(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1)
     _OPTIMISM_RECEIVER = IOptimismL2Receiver(_optimismReceiver); // IOptimismL2Receiver(0x4200000000000000000000000000000000000007)
     _L1_CHAIN_ID = _l1ChainId; // 1
