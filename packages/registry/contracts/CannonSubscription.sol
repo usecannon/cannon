@@ -14,6 +14,7 @@ import {Subscription} from "./storage/Subscription.sol";
 contract CannonSubscription {
   using Subscription for Subscription.Data;
 
+  error ZeroAddressNotAllowed(string variableName);
   error InsufficientAllowance(address user, uint256 allowance, uint256 required);
   error TransferFailed();
   error MembershipNotActive(address user);
@@ -26,6 +27,9 @@ contract CannonSubscription {
   address public immutable VAULT;
 
   constructor(address _usdcAddress, address _vaultAddress) {
+    if (_usdcAddress == address(0)) revert ZeroAddressNotAllowed("usdcAddress");
+    if (_vaultAddress == address(0)) revert ZeroAddressNotAllowed("vaultAddress");
+
     USDC = IERC20(_usdcAddress);
     VAULT = _vaultAddress;
   }
