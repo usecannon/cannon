@@ -71,9 +71,9 @@ contract CannonSubscription {
     emit PlanSetAsDefault(_planId);
   }
 
-  function setPlanActive(uint16 _planId, bool _active) external {
+  function updatePlanStatus(uint16 _planId, bool _isActive) external {
     OwnableStorage.onlyOwner();
-    Subscription.load().updatePlanStatus(_planId, _active);
+    Subscription.load().updatePlanStatus(_planId, _isActive);
   }
 
   function getMembership(address _user) external view returns (Subscription.Membership memory) {
