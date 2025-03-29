@@ -3,6 +3,7 @@ pragma solidity 0.8.24;
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
 import {OwnableStorage} from "@synthetixio/core-contracts/contracts/ownership/OwnableStorage.sol";
 import {ERC2771Context} from "./ERC2771Context.sol";
@@ -11,7 +12,7 @@ import {Subscription} from "./storage/Subscription.sol";
 /**
  * @title Management of Subscriptions to Cannon Registry
  */
-contract CannonSubscription {
+contract CannonSubscription is ReentrancyGuard {
   using Subscription for Subscription.Data;
 
   error ZeroAddressNotAllowed(string variableName);
@@ -80,7 +81,7 @@ contract CannonSubscription {
     return Subscription.load().getMembership(_user);
   }
 
-  function purchaseMembership(uint32 _amountOfTerms) external {
+  function purchaseMembership(uint32 _amountOfTerms) external nonReentrant {
     address _sender = ERC2771Context.msgSender();
     Subscription.Data storage _subscription = Subscription.load();
 
@@ -97,13 +98,12 @@ contract CannonSubscription {
       revert InsufficientAllowance(_sender, _allowance, _totalPrice);
     }
 
-    bool _success = USDC.transferFrom(_sender, VAULT, _totalPrice);
+    _subscription.acquireMembership(plan, membership, _amountOfTerms);
 
+    bool _success = USDC.transferFrom(_sender, VAULT, _totalPrice);
     if (!_success) {
       revert TransferFailed();
     }
-
-    _subscription.acquireMembership(plan, membership, _amountOfTerms);
   }
 
   function hasActiveMembership(address _user) external view returns (bool) {
@@ -121,7 +121,7 @@ contract CannonSubscription {
     emit CreditsUsed(_sender, _amountOfCredits, _membership.availableCredits);
   }
 
-  function cancelMembership() external {
+  function cancelMembership() external nonReentrant {
     address _sender = ERC2771Context.msgSender();
     Subscription.Data storage _subscription = Subscription.load();
     Subscription.Membership storage _membership = _subscription.getMembership(_sender);
@@ -138,15 +138,14 @@ contract CannonSubscription {
       revert MembershipNotActive(_sender);
     }
 
+    Subscription.clearMembership(_membership);
+
     uint256 _reimbursement = _plan.price * _pendingTerms;
 
     bool _success = USDC.transferFrom(VAULT, _sender, _reimbursement);
-
     if (!_success) {
       revert TransferFailed();
     }
-
-    Subscription.clearMembership(_membership);
 
     emit MembershipCancelled(_sender, _pendingTerms, _reimbursement);
   }
