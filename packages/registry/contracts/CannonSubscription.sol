@@ -18,6 +18,7 @@ contract CannonSubscription is ReentrancyGuard {
   error ZeroAddressNotAllowed(string variableName);
   error InsufficientAllowance(address user, uint256 allowance, uint256 required);
   error TransferFailed();
+  error PriceOverflow();
   error MembershipNotActive(address user);
 
   event PlanRegistered(uint16 indexed planId, uint32 termDuration, uint32 quota, uint16 minTerms, uint16 maxTerms, uint256 price);
@@ -92,6 +93,10 @@ contract CannonSubscription is ReentrancyGuard {
       : _subscription.getPlan(_membership.planId);
 
     uint256 _totalPrice = _plan.price * _amountOfTerms;
+
+    if (_totalPrice / _amountOfTerms != _plan.price) {
+      revert PriceOverflow();
+    }
 
     uint256 _allowance = USDC.allowance(_sender, VAULT);
     if (_allowance < _totalPrice) {
