@@ -23,6 +23,7 @@ contract CannonSubscription is ReentrancyGuard {
   event PlanRegistered(uint16 indexed planId, uint32 termDuration, uint32 quota, uint16 minTerms, uint16 maxTerms, uint256 price);
   event PlanSetAsDefault(uint16 indexed planId);
   event CreditsUsed(address indexed user, uint32 creditsUsed, uint32 remainingCredits);
+  event MembershipPurchased(address indexed user, uint32 amountOfTerms, uint256 totalPrice);
   event MembershipCancelled(address indexed user, uint32 pendingTerms, uint256 reimbursement);
 
   IERC20 public immutable USDC;
@@ -104,6 +105,8 @@ contract CannonSubscription is ReentrancyGuard {
     if (!_success) {
       revert TransferFailed();
     }
+
+    emit MembershipPurchased(_sender, _amountOfTerms, _totalPrice);
   }
 
   function hasActiveMembership(address _user) external view returns (bool) {
