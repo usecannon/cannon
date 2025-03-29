@@ -86,20 +86,19 @@ contract CannonSubscription is ReentrancyGuard {
     address _sender = ERC2771Context.msgSender();
     Subscription.Data storage _subscription = Subscription.load();
 
-    Subscription.Membership storage membership = _subscription.getMembership(_sender);
-
-    Subscription.Plan storage plan = membership.planId == 0
+    Subscription.Membership storage _membership = _subscription.getMembership(_sender);
+    Subscription.Plan storage _plan = _membership.planId == 0
       ? _subscription.getDefaultPlan()
-      : _subscription.getPlan(membership.planId);
+      : _subscription.getPlan(_membership.planId);
 
-    uint256 _totalPrice = plan.price * _amountOfTerms;
+    uint256 _totalPrice = _plan.price * _amountOfTerms;
 
     uint256 _allowance = USDC.allowance(_sender, VAULT);
     if (_allowance < _totalPrice) {
       revert InsufficientAllowance(_sender, _allowance, _totalPrice);
     }
 
-    _subscription.acquireMembership(plan, membership, _amountOfTerms);
+    _subscription.acquireMembership(_plan, _membership, _amountOfTerms);
 
     bool _success = USDC.transferFrom(_sender, VAULT, _totalPrice);
     if (!_success) {
