@@ -214,11 +214,6 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
   ) internal {
     Store storage store = _store();
 
-    // has the required fee been supplied, or the user has an active membership
-    if (msg.value < store.publishFee) {
-      revert FeeRequired(store.publishFee);
-    }
-
     // do we have tags for the package, and not an excessive number
     if (_packageTags.length == 0 || _packageTags.length > MAX_PACKAGE_PUBLISH_TAGS) {
       revert InvalidTags();
