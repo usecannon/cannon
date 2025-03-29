@@ -21,6 +21,7 @@ contract CannonSubscription {
 
   event PlanRegistered(uint16 indexed planId, uint32 termDuration, uint32 quota, uint16 minTerms, uint16 maxTerms, uint256 price);
   event PlanSetAsDefault(uint16 indexed planId);
+  event CreditsUsed(address indexed user, uint32 creditsUsed, uint32 remainingCredits);
   event MembershipCancelled(address indexed user, uint32 pendingTerms, uint256 reimbursement);
 
   IERC20 public immutable USDC;
@@ -117,6 +118,7 @@ contract CannonSubscription {
     Subscription.Membership storage _membership = _subscription.getMembership(_sender);
     Subscription.Plan storage _plan = _subscription.getPlan(_membership.planId);
     _subscription.useMembershipCredits(_plan, _membership, _amountOfCredits);
+    emit CreditsUsed(_sender, _amountOfCredits, _membership.availableCredits);
   }
 
   function cancelMembership() external {
