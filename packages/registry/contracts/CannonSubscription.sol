@@ -1,6 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
 import {OwnableStorage} from "@synthetixio/core-contracts/contracts/ownership/OwnableStorage.sol";
 import {ERC2771Context} from "./ERC2771Context.sol";
@@ -12,6 +14,22 @@ import {Subscription} from "./storage/Subscription.sol";
 contract CannonSubscription {
   using Subscription for Subscription.Data;
 
+  error InsufficientAllowance(address user, uint256 allowance, uint256 required);
+  error TransferFailed();
+  error MembershipNotActive(address user);
+
+  event PlanRegistered(uint16 indexed planId, uint32 termDuration, uint32 quota, uint16 minTerms, uint16 maxTerms, uint256 price);
+  event PlanSetAsDefault(uint16 indexed planId);
+  event MembershipCancelled(address indexed user, uint32 pendingTerms, uint256 reimbursement);
+
+  IERC20 public immutable USDC;
+  address public immutable VAULT;
+
+  constructor(address _usdcAddress, address _vaultAddress) {
+    USDC = IERC20(_usdcAddress);
+    VAULT = _vaultAddress;
+  }
+
   function getPlan(uint16 _planId) external view returns (Subscription.Plan memory) {
     return Subscription.load().getPlan(_planId);
   }
@@ -20,29 +38,110 @@ contract CannonSubscription {
     return Subscription.load().getDefaultPlan();
   }
 
-  function registerDefaultPlan(uint32 _termDuration, uint32 _price, uint32 _publishQuota) external returns (uint16) {
+  function registerPlan(
+    uint32 _termDuration,
+    uint32 _quota,
+    uint16 _minTerms,
+    uint16 _maxTerms,
+    uint256 _price
+  ) external returns (uint16) {
     OwnableStorage.onlyOwner();
-    return Subscription.load().registerDefaultPlan(_termDuration, _price, _publishQuota);
+
+    uint16 planId = Subscription.load().registerPlan(
+      _termDuration,
+      _quota,
+      _minTerms,
+      _maxTerms,
+      _price
+    );
+
+    emit PlanRegistered(planId, _termDuration, _quota, _minTerms, _maxTerms, _price);
+
+    return planId;
+  }
+
+  function setDefaultPlan(uint16 _planId) external {
+    OwnableStorage.onlyOwner();
+    Subscription.load().setDefaultPlan(_planId);
+    emit PlanSetAsDefault(_planId);
+  }
+
+  function setPlanActive(uint16 _planId, bool _active) external {
+    OwnableStorage.onlyOwner();
+    Subscription.load().updatePlanStatus(_planId, _active);
   }
 
   function getMembership(address _user) external view returns (Subscription.Membership memory) {
     return Subscription.load().getMembership(_user);
   }
 
-  function purchaseMembership(address _user, uint32 _numberOfTerms) external {
-    address sender = ERC2771Context.msgSender();
+  function purchaseMembership(uint32 _amountOfTerms) external {
+    address _sender = ERC2771Context.msgSender();
+    Subscription.Data storage _subscription = Subscription.load();
 
-    // TODO: check that the user has enough USDC to purchase the membership
+    Subscription.Membership storage membership = _subscription.getMembership(_sender);
 
-    Subscription.load().purchaseMembership(_user, _numberOfTerms);
+    Subscription.Plan storage plan = membership.planId == 0
+      ? _subscription.getDefaultPlan()
+      : _subscription.getPlan(membership.planId);
 
-    // TODO: give back the USDC to the user that was not used
+    uint256 _totalPrice = plan.price * _amountOfTerms;
+
+    uint256 _allowance = USDC.allowance(_sender, VAULT);
+    if (_allowance < _totalPrice) {
+      revert InsufficientAllowance(_sender, _allowance, _totalPrice);
+    }
+
+    bool _success = USDC.transferFrom(_sender, VAULT, _totalPrice);
+
+    if (!_success) {
+      revert TransferFailed();
+    }
+
+    _subscription.acquireMembership(plan, membership, _amountOfTerms);
   }
 
-  function cancelMembership(uint32 _numberOfTerms) external {
-    address sender = ERC2771Context.msgSender();
+  function hasActiveMembership(address _user) external view returns (bool) {
+    Subscription.Data storage _subscription = Subscription.load();
+    Subscription.Membership storage _membership = _subscription.getMembership(_user);
+    return Subscription.isMembershipActive(_membership);
+  }
 
-    // TODO: check that the user has enough terms left to cancel
-    // TODO: give back the USDC from the not started terms
+  function useMembershipCredits(uint32 _amountOfCredits) external {
+    address _sender = ERC2771Context.msgSender();
+    Subscription.Data storage _subscription = Subscription.load();
+    Subscription.Membership storage _membership = _subscription.getMembership(_sender);
+    Subscription.Plan storage _plan = _subscription.getPlan(_membership.planId);
+    _subscription.useMembershipCredits(_plan, _membership, _amountOfCredits);
+  }
+
+  function cancelMembership() external {
+    address _sender = ERC2771Context.msgSender();
+    Subscription.Data storage _subscription = Subscription.load();
+    Subscription.Membership storage _membership = _subscription.getMembership(_sender);
+
+    if (!Subscription.isMembershipActive(_membership)) {
+      revert MembershipNotActive(_sender);
+    }
+
+    Subscription.Plan storage _plan = _subscription.getPlan(_membership.planId);
+
+    uint32 _pendingTerms = Subscription.getPendingTermsCount(_plan, _membership);
+
+    if (_pendingTerms == 0) {
+      revert MembershipNotActive(_sender);
+    }
+
+    uint256 _reimbursement = _plan.price * _pendingTerms;
+
+    bool _success = USDC.transferFrom(VAULT, _sender, _reimbursement);
+
+    if (!_success) {
+      revert TransferFailed();
+    }
+
+    Subscription.clearMembership(_membership);
+
+    emit MembershipCancelled(_sender, _pendingTerms, _reimbursement);
   }
 }

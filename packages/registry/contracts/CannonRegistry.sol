@@ -13,7 +13,7 @@ import {CannonSubscription} from "./CannonSubscription.sol";
  * @title An on-chain record of contract deployments with Cannon
  * See https://usecannon.com
  */
-contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated, CannonSubscription {
+contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
   using SetUtil for SetUtil.Bytes32Set;
 
   /**
@@ -119,6 +119,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated, CannonSubsc
   IOptimismL1Sender private immutable _OPTIMISM_MESSENGER;
   IOptimismL2Receiver private immutable _OPTIMISM_RECEIVER;
   uint256 private immutable _L1_CHAIN_ID;
+  CannonSubscription private immutable _CANNON_SUBSCRIPTION;
 
   /**
    * @notice Initializes the immutable fields for this contract implementation
@@ -126,10 +127,20 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated, CannonSubsc
    * @param _optimismReceiver the address of the bridge contract which receives message on L2
    * @param _l1ChainId the L1 deployment of the registry. For example, sepolia would have argument `11155111` here.
    */
-  constructor(address _optimismMessenger, address _optimismReceiver, uint256 _l1ChainId) {
+  constructor(
+    address _optimismMessenger,
+    address _optimismReceiver,
+    uint256 _l1ChainId,
+    address _cannonSubscription
+  ) {
     _OPTIMISM_MESSENGER = IOptimismL1Sender(_optimismMessenger); // IOptimismL1Sender(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1)
     _OPTIMISM_RECEIVER = IOptimismL2Receiver(_optimismReceiver); // IOptimismL2Receiver(0x4200000000000000000000000000000000000007)
     _L1_CHAIN_ID = _l1ChainId; // 1
+    _CANNON_SUBSCRIPTION = CannonSubscription(_cannonSubscription);
+  }
+
+  function getCannonSubscription() external view returns (address) {
+    return address(_CANNON_SUBSCRIPTION);
   }
 
   /**
@@ -180,6 +191,34 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated, CannonSubsc
       revert FeeRequired(store.publishFee);
     }
 
+    _publish(_packageName, _variant, _packageTags, _packageDeployUrl, _packageMetaUrl);
+  }
+
+  function publishWithSubscription(
+    bytes32 _packageName,
+    bytes32 _variant,
+    bytes32[] memory _packageTags,
+    string memory _packageDeployUrl,
+    string memory _packageMetaUrl
+  ) external {
+    _CANNON_SUBSCRIPTION.useMembershipCredits(1);
+    _publish(_packageName, _variant, _packageTags, _packageDeployUrl, _packageMetaUrl);
+  }
+
+  function _publish(
+    bytes32 _packageName,
+    bytes32 _variant,
+    bytes32[] memory _packageTags,
+    string memory _packageDeployUrl,
+    string memory _packageMetaUrl
+  ) internal {
+    Store storage store = _store();
+
+    // has the required fee been supplied, or the user has an active membership
+    if (msg.value < store.publishFee) {
+      revert FeeRequired(store.publishFee);
+    }
+
     // do we have tags for the package, and not an excessive number
     if (_packageTags.length == 0 || _packageTags.length > MAX_PACKAGE_PUBLISH_TAGS) {
       revert InvalidTags();
@@ -218,16 +257,6 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated, CannonSubsc
         emit TagPublish(_packageName, _variant, _tag, _firstTag);
       }
     }
-  }
-
-  function publishWithSubscription(
-    bytes32 _packageName,
-    bytes32 _variant,
-    bytes32[] memory _packageTags,
-    string memory _packageDeployUrl,
-    string memory _packageMetaUrl
-  ) external payable {
-    // TODO: implement same publish logic, but taking into account membership logic
   }
 
   /**
