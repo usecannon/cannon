@@ -18,3 +18,7 @@ artifact = "Greeter"
 args = ["<%= settings.msg %>"]
 libraries.Library = "<%= contracts.library.address %>"
 salt = "<%= settings.salt %>"
+
+[var.outs]
+out = "<%= encodeFunctionData({...contracts.greeter, functionName: 'setGreeting', args: ['wohoo']}) %>"
+depends = ['deploy.greeter']

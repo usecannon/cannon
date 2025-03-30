@@ -15,8 +15,8 @@ export const getE2eWagmiConfig = () => {
         }),
       ],
       transports: {
-        [mainnet.id]: http(process.env.CANNON_E2E_RPC_URL_ETHEREUM),
-        [sepolia.id]: http(process.env.CANNON_E2E_RPC_URL_SEPOLIA),
+        [mainnet.id]: http(process.env.NEXT_PUBLIC_CANNON_E2E_RPC_URL_ETHEREUM),
+        [sepolia.id]: http(process.env.NEXT_PUBLIC_CANNON_E2E_RPC_URL_SEPOLIA),
       },
     });
   }
