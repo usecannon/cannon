@@ -71,6 +71,7 @@ export function SafeAddressInput() {
   );
 
   const handleNewOrSelectedSafe = async (safeString: string) => {
+    console.log('handle new or selected safe', safeString);
     if (safeString == '') {
       setIsClearing(true);
       setCurrentSafe(null);
@@ -231,6 +232,7 @@ export function SafeAddressInput() {
                     size="icon"
                     onClick={() => setIsDialogOpen(true)}
                     className="h-5 w-5 ml-0.5"
+                    data-testid="safe-select-button"
                   >
                     <ChevronsUpDown className="h-3 w-3" />
                   </Button>
@@ -311,6 +313,7 @@ export function SafeAddressInput() {
                             setIsDialogOpen(false);
                           }
                         }}
+                        data-testid="safe-delete-button"
                       >
                         <X className="h-4 w-4 text-red-500" />
                       </Button>

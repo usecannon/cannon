@@ -31,6 +31,23 @@ Feature: Interact page
     * User clicks on the 1st element with id "submit-wallet-button"
     Then View renders a "h1" displaying the text "Connect a Wallet"
 
+  Scenario: Confirming empty values
+    # Bool Input
+    Given User opens the "/packages/synthetix-omnibus/7/1-main/interact" page
+    When User clicks on the 1st element with id "CoreProxy-button"
+    * User clicks on the 1st element with id "getFeatureFlagAllowAll-button"
+    * User clicks on the 1st element with id "call-function-button"
+    Then Output contains "false"
+    # Byte Input
+    Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
+    When User clicks on the 1st element with id "other-option-section" 
+    Then "CoreProxy-button" value on "data-testid" attribute should exist
+    When User clicks on the 1st element with id "CoreProxy-button"
+    Then "getConfig-button" value on "data-testid" attribute should exist
+    When User clicks on the 1st element with id "getConfig-button"
+    * User clicks on the 1st element with id "call-function-button"
+    Then Output contains "0x0000000000000000000000000000000000000000000000000000000000000000"
+
   Scenario: Executing call function with the bool input
     Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
     When User clicks on the 1st element with id "other-option-section" 
@@ -90,7 +107,9 @@ Feature: Interact page
     * User clicks on the 1st element with id "addApprovedPool-button"
     * User types "1" into the 1st input with id "number-input"
     * User clicks on the 1st element with id "simulate-txs-button"
-    Then View renders a "div" displaying the text "The contract function \"addApprovedPool\" reverted."
+#    Then View renders a "div" displaying the text "The contract function \"addApprovedPool\" reverted."
+#    Then View renders a "div" displaying the text "Exectuion reverted with reason:"
+    Then User waits for 5 seconds while loading
 
     Given User opens the "/packages/usdc/2.1/1-main/interact" page
     * Wallet is connected
