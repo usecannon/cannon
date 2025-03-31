@@ -90,7 +90,7 @@ Feature: Interact page
     * User clicks on the 1st element with id "addApprovedPool-button"
     * User types "1" into the 1st input with id "number-input"
     * User clicks on the 1st element with id "simulate-txs-button"
-    Then View renders a "div" displaying the text "Execution reverted with reason: Execution reverted."
+    Then View renders a "div" displaying the text "The contract function \"addApprovedPool\" reverted."
 
     Given User opens the "/packages/usdc/2.1/1-main/interact" page
     * Wallet is connected
