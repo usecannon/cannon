@@ -7,12 +7,16 @@ keywords = ["sample", "greeter", "consumer"]
 change_greeting2 = "new greeting!"
 
 [pull.greeters]
-source = "greeter"
+source = "greeter:<%= package.version %>"
+
+depends = []
 
 [clone.more_greeters]
-source = "greeter"
+source = "greeter:<%= package.version %>"
 options.salt = "second"
 options.msg = "a message from second greeter set"
+
+depends = []
 
 [invoke.do_change_greeting2]
 target = ["greeters.Greeter"]
@@ -40,11 +44,9 @@ args = ["<%= contracts.cloned.address %>", "<%= formatBytes32String('New Greetin
 
 var.NewCloneGreeting.event = "NewGreetingAdded"
 var.NewCloneGreeting.arg = 0
-var.NewCloneGreeting.artifact = "Greeter"
 
 var.OldCloneGreeting.event = "OldGreetingRemoved"
 var.OldCloneGreeting.arg = 0
-var.OldCloneGreeting.artifact = "Greeter"
 
 # test to parse through previous emitted event values
 [invoke.set_new_greeting_for_next_clones]
