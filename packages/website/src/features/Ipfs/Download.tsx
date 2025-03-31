@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import { useQueryIpfsDataRaw } from '@/hooks/ipfs';
 import { CodePreview } from '@/components/CodePreview';
 import { useStore } from '@/helpers/store';
-import { DownloadIcon } from '@radix-ui/react-icons';
+import { Download as DownloadIcon } from 'lucide-react';
 import {
   arrayBufferToUtf8,
   decodeData,

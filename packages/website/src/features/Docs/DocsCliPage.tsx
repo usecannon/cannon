@@ -18,11 +18,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+
 import {
-  SiNpm as NpmIcon,
-  SiYarn as YarnIcon,
-  SiPnpm as PnpmIcon,
-} from 'react-icons/si';
+  Npm as NpmIcon,
+  Yarn as YarnIcon,
+  Pnpm as PnpmIcon,
+} from '@/components/specialIcons';
 import React, { FC, useEffect, useMemo, useState } from 'react';
 import {
   SidebarContent,
@@ -387,13 +388,13 @@ const DocsCliPage: FC = () => {
             <Tabs defaultValue="npm" className="mb-6">
               <TabsList className="mb-4">
                 <TabsTrigger value="npm" className="gap-2">
-                  <NpmIcon className="text-red-500" /> npm
+                  <NpmIcon className="text-red-500" size={18} /> npm
                 </TabsTrigger>
                 <TabsTrigger value="yarn" className="gap-2">
-                  <YarnIcon className="text-blue-500" /> yarn
+                  <YarnIcon className="text-blue-500" size={18} /> yarn
                 </TabsTrigger>
                 <TabsTrigger value="pnpm" className="gap-2">
-                  <PnpmIcon className="text-orange-500" /> pnpm
+                  <PnpmIcon className="text-orange-500" size={15} /> pnpm
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="npm" className="p-0">

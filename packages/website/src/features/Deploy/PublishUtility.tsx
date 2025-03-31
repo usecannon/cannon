@@ -6,7 +6,7 @@ import { useStore } from '@/helpers/store';
 import { useCannonPackage } from '@/hooks/cannon';
 import { useCannonPackagePublishers } from '@/hooks/registry';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
-import { ExternalLinkIcon, InfoCircledIcon } from '@radix-ui/react-icons';
+import { ExternalLink, Info } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import {
   CannonStorage,
@@ -238,7 +238,7 @@ export default function PublishUtility(props: {
                       rel="noopener noreferrer"
                       className="ml-1 inline-block align-middle"
                     >
-                      <ExternalLinkIcon />
+                      <ExternalLink />
                     </Link>
                   </span>
                 </li>
@@ -296,7 +296,7 @@ export default function PublishUtility(props: {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
-                    <InfoCircledIcon className="inline-block" />
+                    <Info className="inline-block" />
                   </TooltipTrigger>
                   <TooltipContent>
                     Cannon will detect packages published to Optimism or
@@ -329,7 +329,7 @@ export default function PublishUtility(props: {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
-                    <InfoCircledIcon className="opacity-80" />
+                    <Info className="opacity-80" />
                   </TooltipTrigger>
                   <TooltipContent>
                     Presets are useful for distinguishing multiple deployments

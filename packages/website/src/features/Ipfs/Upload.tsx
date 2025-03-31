@@ -7,7 +7,7 @@ import { useIpfsStore, useStore } from '@/helpers/store';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { UploadIcon } from '@radix-ui/react-icons';
+import { UploadIcon } from 'lucide-react';
 import { useItemsList, ItemBase } from '@/helpers/db';
 import { History } from './History';
 import { writeIpfs } from '@/hooks/ipfs';

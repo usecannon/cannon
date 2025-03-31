@@ -1,6 +1,6 @@
 import { FC, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Check, Copy } from 'react-feather';
+import { Check, Copy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ClibpboardButtonProps {

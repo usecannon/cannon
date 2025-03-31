@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { CaretSortIcon } from '@radix-ui/react-icons';
+import { ArrowDownUp } from 'lucide-react';
 import { ChainBuilderContext } from '@usecannon/builder';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import {
@@ -111,7 +111,7 @@ export const InvokesTable: React.FC<{
                           header.column.columnDef.header,
                           header.getContext()
                         )}
-                        <CaretSortIcon className="ml-2 h-4 w-4" />
+                        <ArrowDownUp className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
                   );

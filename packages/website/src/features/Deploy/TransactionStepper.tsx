@@ -1,9 +1,5 @@
 import * as viem from 'viem';
-import {
-  InfoCircledIcon,
-  ExternalLinkIcon,
-  CheckIcon,
-} from '@radix-ui/react-icons';
+import { Check, Info, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { formatDistanceToNow } from 'date-fns';
@@ -61,7 +57,7 @@ function Step({
               : 'border-muted-foreground/30 text-muted-foreground/30'
           )}
         >
-          {isComplete ? <CheckIcon className="h-3.5 w-3.5" /> : stepNumber}
+          {isComplete ? <Check className="h-3.5 w-3.5" /> : stepNumber}
         </div>
         <div className="min-w-0 flex-1">
           <span className="font-mono text-sm uppercase tracking-wider text-foreground block">
@@ -160,7 +156,7 @@ export function TransactionStepper(props: {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button className="hover:opacity-100">
-                    <InfoCircledIcon className="ml-1 h-3 w-3 -translate-y-[0.5px] opacity-70" />
+                    <Info className="ml-1 h-3 w-3 -translate-y-[0.5px] opacity-70" />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent
@@ -191,7 +187,7 @@ export function TransactionStepper(props: {
             rel="noopener noreferrer"
             className="ml-1 opacity-70 hover:opacity-100"
           >
-            <ExternalLinkIcon className="h-3 w-3 -translate-y-[0.5px]" />
+            <ExternalLink className="h-3 w-3 -translate-y-[0.5px]" />
           </a>
           {isExecutionFailure && (
             <span className="text-destructive">The execution has failed</span>
@@ -215,7 +211,7 @@ export function TransactionStepper(props: {
                     rel="noopener noreferrer"
                     className="ml-1 opacity-70 hover:opacity-100"
                   >
-                    <ExternalLinkIcon className="h-3 w-3 -translate-y-[0.5px]" />
+                    <ExternalLink className="h-3 w-3 -translate-y-[0.5px]" />
                   </a>
                 )}
               </div>

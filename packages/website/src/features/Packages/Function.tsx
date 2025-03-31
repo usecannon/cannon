@@ -638,7 +638,7 @@ export const Function: FC<FunctionProps> = ({
                     </motion.div>
                   )}
               </AnimatePresence>
-              {f.outputs.length !== 0 && !!methodCallOrQueuedResult?.value && (
+              {f.outputs.length !== 0 && (
                 <FunctionOutput
                   chainId={chainId}
                   methodResult={methodCallOrQueuedResult?.value}
