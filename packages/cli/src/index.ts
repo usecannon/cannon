@@ -53,6 +53,7 @@ import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
 import { ANVIL_PORT_DEFAULT_VALUE } from './constants';
 import { deprecatedWarn } from './util/deprecated-warn';
+import { forgeBuild } from './foundry';
 
 export * from './types';
 export * from './constants';
@@ -175,9 +176,6 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
       options.port = options['anvil.port'];
     }
 
-    const cannonfilePath = path.resolve(cannonfile);
-    const projectDirectory = path.dirname(cannonfilePath);
-
     const cliSettings = resolveCliSettings(options);
 
     // throw an error if chain id and rpc url is undefined and dry run is true
@@ -193,34 +191,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     // throw an error if the chainId is not consistent with the provider's chainId
     await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
 
-    log(bold('Building the foundry project...'));
-    if (!options.skipCompile) {
-      // use --build-info to output build info
-      // ref: https://github.com/foundry-rs/foundry/pull/7197
-      const forgeBuildArgs = [
-        'build',
-        '--build-info',
-        ...fromFoundryOptionsToArgs(pickForgeBuildOptions(options), forgeBuildOptions),
-      ];
-
-      const forgeBuildProcess = spawn('forge', forgeBuildArgs, { cwd: projectDirectory, shell: true });
-
-      await new Promise((resolve, reject) => {
-        forgeBuildProcess.on('exit', (code) => {
-          if (code === 0) {
-            log(gray('forge build succeeded'));
-          } else {
-            log(red('forge build failed'));
-            log(red('Make sure "forge build" runs successfully or use the --skip-compile flag.'));
-            return reject(new Error(`forge build failed with exit code "${code}"`));
-          }
-
-          resolve(null);
-        });
-      });
-    } else {
-      log(yellow('Skipping forge build...'));
-    }
+    await forgeBuild(options, cannonfile);
 
     log(''); // Linebreak in CLI to signify end of compilation.
 
@@ -666,6 +637,8 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
 
   // throw an error if the chainId is not consistent with the provider's chainId
   await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
+
+  await forgeBuild(options, cannonfile);
 
   const [node, , outputs] = await doBuild(cannonfile, [], options);
 
