@@ -62,7 +62,7 @@ export const waitForEvent = ({ eventName, abi, rpcUrl, expectedArgs }: WaitForEv
 
     // Set the timeout and store its id for cancellation
     // Docs say that the timeout should be max 3 minutes, but we add 2 extra minutes to be safe
-    // Ref: https://docs.optimism.io/builders/app-developers/bridging/messaging#for-l1-to-l2-transactions
+    // Ref: https://docs.optimism.io/app-developers/bridging/messaging#for-l1-to-l2-transactions
     const waitTime = 180000 + 120000; // 3 + 2 = 5 minutes
     timeoutId = setTimeout(onTimeout, waitTime);
   });
