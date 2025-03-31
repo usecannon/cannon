@@ -12,4 +12,4 @@ Feature: Deploy page
     # Display Executed Transactions
     When User opens the "/deploy/txn/11155111/0x7f28058F0b989430C7397782F797e300CDc10042/10/0xe1eb8a722592601d45e04a1a3cf43188ff2cb6f552a43dd6c987f3851fc77234" page
     Then View renders a "h3" displaying the text "Cannonfile Diff"
-    * View renders a "div" displaying the text "cannonfile.router.toml"
+    * View renders a "h3" displaying the text "Cannon Package"
