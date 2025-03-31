@@ -35,3 +35,227 @@ jobs:
         run: pnpm lerna publish from-package --no-push --no-private --yes
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+      - name: Get Latest Release
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        id: latest_release
+        uses: octokit/request-action@v2.x
+        with:
+          route: GET /repos/{owner}/{repo}/releases/latest
+          owner: usecannon
+          repo: cannon
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Generate Changelog Image
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        id: changelog_image
+        uses: Schneegans/dynamic-badges-action@v1.6.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: ${{ secrets.CHANGELOG_GIST_ID }}
+          filename: changelog.json
+          style: for-the-badge
+          label: Changelog
+          message: ${{ fromJson(steps.latest_release.outputs.data).tag_name }}
+          color: blue
+          
+      - name: Generate Changelog Image with Puppeteer
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        run: |
+          npm install -g puppeteer-cli
+          mkdir -p ./changelog-images
+          cat > generate-image.js << 'EOF'
+          const puppeteer = require('puppeteer');
+          
+          (async () => {
+            const browser = await puppeteer.launch();
+            const page = await browser.newPage();
+            
+            // Get release data from environment variable
+            const releaseData = JSON.parse(process.env.RELEASE_DATA);
+            const version = releaseData.tag_name;
+            const body = releaseData.body;
+            
+            // Create HTML content
+            const htmlContent = `
+              <html>
+                <head>
+                  <style>
+                    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+                    
+                    body {
+                      font-family: 'JetBrains Mono', monospace;
+                      background: #0d1117;
+                      color: #e6e6e6;
+                      margin: 0;
+                      padding: 0;
+                      line-height: 1.5;
+                      font-size: 14px;
+                      font-weight: 400;
+                      letter-spacing: 0.3px;
+                    }
+                    
+                    .container {
+                      padding: 32px 36px;
+                      max-width: 860px;
+                      margin: 0 auto;
+                      border: 1px solid #30363d;
+                      border-radius: 8px;
+                      background: #161b22;
+                      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+                    }
+                    
+                    .header {
+                      margin-bottom: 24px;
+                      border-bottom: 1px solid #30363d;
+                      padding-bottom: 16px;
+                    }
+                    
+                    h1 {
+                      font-size: 24px;
+                      font-weight: 700;
+                      margin: 0 0 8px 0;
+                      color: #58a6ff;
+                      letter-spacing: -0.5px;
+                    }
+                    
+                    .version-tag {
+                      display: inline-block;
+                      background: #1f6feb;
+                      color: #ffffff;
+                      font-size: 12px;
+                      font-weight: 500;
+                      padding: 3px 8px;
+                      border-radius: 4px;
+                      margin-left: 8px;
+                      vertical-align: middle;
+                    }
+                    
+                    .content {
+                      padding-left: 8px;
+                    }
+                    
+                    h2 {
+                      font-size: 18px;
+                      font-weight: 600;
+                      margin: 24px 0 12px 0;
+                      color: #d2a8ff;
+                    }
+                    
+                    h3 {
+                      font-size: 16px;
+                      font-weight: 500;
+                      margin: 20px 0 10px 0;
+                      color: #7ee787;
+                    }
+                    
+                    ul {
+                      margin: 12px 0;
+                      padding-left: 24px;
+                    }
+                    
+                    li {
+                      margin: 6px 0;
+                      padding-left: 4px;
+                    }
+                    
+                    code {
+                      background: #1f2937;
+                      padding: 2px 5px;
+                      border-radius: 3px;
+                      font-size: 13px;
+                      color: #ff7b72;
+                    }
+                    
+                    a {
+                      color: #58a6ff;
+                      text-decoration: none;
+                    }
+                    
+                    .footer {
+                      margin-top: 32px;
+                      padding-top: 16px;
+                      border-top: 1px solid #30363d;
+                      font-size: 12px;
+                      color: #8b949e;
+                      text-align: right;
+                    }
+                    
+                    /* Syntax highlighting for markdown-like elements */
+                    .highlight-add {
+                      color: #7ee787;
+                    }
+                    
+                    .highlight-remove {
+                      color: #ff7b72;
+                    }
+                    
+                    .highlight-change {
+                      color: #ffa657;
+                    }
+                  </style>
+                </head>
+                <body>
+                  <div class="container">
+                    <div class="header">
+                      <h1>Cannon Changelog <span class="version-tag">${version}</span></h1>
+                    </div>
+                    <div class="content">
+                      ${formatChangelog(body)}
+                    </div>
+                    <div class="footer">
+                      Generated on ${new Date().toISOString().split('T')[0]} • github.com/usecannon/cannon
+                    </div>
+                  </div>
+                </body>
+              </html>
+            `;
+            
+            // Function to format changelog with some basic markdown-like processing
+            function formatChangelog(text) {
+              // Process the text to enhance formatting
+              let formatted = text
+                // Convert GitHub PR links to styled links
+                .replace(/(\\(#\\d+\\))/g, '<a href="https://github.com/usecannon/cannon/pull/$2">$1</a>')
+                // Style additions, removals, changes
+                .replace(/\\b(add|added|adds|new)\\b/gi, '<span class="highlight-add">$&</span>')
+                .replace(/\\b(remove|removed|removes|deleted)\\b/gi, '<span class="highlight-remove">$&</span>')
+                .replace(/\\b(change|changed|changes|update|updated|updates)\\b/gi, '<span class="highlight-change">$&</span>')
+                // Convert markdown-style code blocks
+                .replace(/\`([^\`]+)\`/g, '<code>$1</code>')
+                // Handle line breaks properly
+                .replace(/\\n/g, '<br>');
+              
+              return formatted;
+            }
+            
+            await page.setContent(htmlContent);
+            await page.setViewport({ width: 900, height: 600 });
+            
+            // Adjust height to content
+            const bodyHeight = await page.evaluate(() => document.body.scrollHeight);
+            await page.setViewport({ width: 900, height: bodyHeight });
+            
+            await page.screenshot({ 
+              path: './changelog-images/changelog.png',
+              quality: 100,
+              omitBackground: true
+            });
+            
+            await browser.close();
+          })();
+          EOF
+          
+          RELEASE_DATA='${{ steps.latest_release.outputs.data }}' node generate-image.js
+          
+      - name: Tweet Changelog with Image
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        uses: ethomson/send-tweet-action@v1
+        with:
+          status: "💥 Cannon ${{ fromJson(steps.latest_release.outputs.data).tag_name }}"
+          media_paths: ./changelog-images/changelog.png
+          consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
+          consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
+          access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
