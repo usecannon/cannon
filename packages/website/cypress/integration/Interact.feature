@@ -6,29 +6,7 @@ Feature: Interact page
     * View renders a "h1" displaying the text "synthetix"
     * User clicks on the 1st element with id "interact-link"
 
-  Scenario: Selecting Modules on the interact page
-    Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
-    * Wallet is connected
-    * View renders a "button" displaying the text "InitialCoreProxy"
-    When User clicks on the 1st element with id "AccountProxy-button"
-    Then URL includes "/synthetix/3.3.4/1-main/interact/synthetix/AccountProxy/0x0E429603D3Cb1DFae4E6F52Add5fE82d96d77Dac"
-
-  @skip
-  Scenario: Selecting the bool input on the interact page
-    Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
-#    * Wallet is connected
-    When User clicks on the 1st element with id "other-option-section" 
-    Then "CoreProxy-button" value on "data-testid" attribute should exist
-    When User clicks on the 1st element with id "CoreProxy-button"
-    Then "getCollateralConfigurations-button" value on "data-testid" attribute should exist
-    When User clicks on the 1st element with id "getCollateralConfigurations-button"
-    Then "bool-button" value on "data-testid" attribute should exist
-    When User clicks on the 1st element with id "bool-button"
-    * User clicks on the 1st element with id "bool-true-input"
-    * User clicks on the 1st element with id "call-function-button"
-    Then Output contains "100000000000000000000"
-
-  Scenario: Selecting the tuple input on the interact page
+  Scenario: Selecting the tuple input
     Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
     When User clicks on the 1st element with id "other-option-section" 
     * User clicks on the 1st element with id "CoreRouter-button"
@@ -39,7 +17,7 @@ Feature: Interact page
     * User clicks on the 1st element with id "remove-input-button"
     Then "remove-input-button" value on "data-testid" attribute should not exist
 
-  Scenario: Selecting the JSON input on the interact page
+  Scenario: Selecting the JSON input
     Given User opens the "/packages/reya-omnibus/1.0.45/1729-main/interact" page
     When User clicks on the 1st element with id "CoreProxy-button"
     * User clicks on the 1st element with id "createRiskMatrix-button"
@@ -53,14 +31,20 @@ Feature: Interact page
     * User clicks on the 1st element with id "submit-wallet-button"
     Then View renders a "h1" displaying the text "Connect a Wallet"
 
-  Scenario: Executing read functions
+  Scenario: Executing call function with the bool input
     Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
-    * Wallet is connected
-    * User clicks on the 1st element with id "owner-button"
+    When User clicks on the 1st element with id "other-option-section" 
+    Then "CoreProxy-button" value on "data-testid" attribute should exist
+    When User clicks on the 1st element with id "CoreProxy-button"
+    Then "getCollateralConfigurations-button" value on "data-testid" attribute should exist
+    When User clicks on the 1st element with id "getCollateralConfigurations-button"
+    Then "bool-button" value on "data-testid" attribute should exist
+    When User clicks on the 1st element with id "bool-button"
+    * User clicks on the 1st element with id "bool-true-input"
     * User clicks on the 1st element with id "call-function-button"
-    Then Output contains "0xffffffaEff0B96Ea8e4f94b2253f31abdD875847"
+    Then Output contains "100000000000000000000"
 
-  Scenario: Executing read functions with string output
+  Scenario: Executing call function with address output
     Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
     * Wallet is connected
     Then URL includes "/synthetix/AccountProxy/0x0E429603D3Cb1DFae4E6F52Add5fE82d96d77Dac"
@@ -68,17 +52,15 @@ Feature: Interact page
     * User clicks on the 1st element with id "call-function-button"
     Then Output contains "0xffffffaEff0B96Ea8e4f94b2253f31abdD875847"
 
-  Scenario: Executing read functions with int output
+  Scenario: Executing call function with int output
     Given User opens the "/packages/multicall/latest/11155111-main/interact" page
     Then URL includes "/multicall/Multicall/0xcA11bde05977b3631167028862bE2a173976CA11"
     * User clicks on the 1st element with id "getChainId-button"
     * User clicks on the 1st element with id "call-function-button"
     Then Output contains "11155111"
 
-  @skip
-  Scenario: Executing read functions with byte32 output
+  Scenario: Executing call function with byte32 input
     Given User opens the "/packages/registry/2.15.1/1-main/interact" page
-#    * Wallet is connected
     Then URL includes "/registry/Proxy/0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba"
     * User clicks on the 1st element with id "getPackageOwner-button"
     * User types "registry" into the 1st input with id "byte32-input"
@@ -108,7 +90,7 @@ Feature: Interact page
     * User clicks on the 1st element with id "addApprovedPool-button"
     * User types "1" into the 1st input with id "number-input"
     * User clicks on the 1st element with id "simulate-txs-button"
-    Then "alert" value on "role" attribute should exist
+    Then View renders a "div" displaying the text "Execution reverted with reason: Execution reverted."
 
     Given User opens the "/packages/usdc/2.1/1-main/interact" page
     * Wallet is connected
@@ -117,7 +99,7 @@ Feature: Interact page
     * User types "0x0000000000000000000000000000000000000000" into the 1st input with id "address-input"
     * User types "1" into the 1st input with id "number-input"
     * User clicks on the 1st element with id "simulate-txs-button"
-    Then "alert" value on "role" attribute should exist
+    Then View renders a "div" displaying the text "FiatToken: caller is not a minter"
 
     # Simulating a failed EIP7412 contract call
     Given User opens the "/packages/pyth-erc7412-wrapper/latest/11155111-main/interact" page
@@ -127,4 +109,4 @@ Feature: Interact page
     * User types "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43" into the 1st input with id "byte32-input"    
     * User types "1" into the 1st input with id "number-input"
     * User clicks on the 1st element with id "call-function-button"
-    Then "alert" value on "role" attribute should exist
+    Then View renders a "div" displaying the text "The contract function \"getLatestPrice\" reverted."
