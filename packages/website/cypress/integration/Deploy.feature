@@ -16,6 +16,9 @@ Feature: Deploy page
     When User clicks on the 1st element with id "safe-select-button"
     * User clicks on the 1st element with id "safe-delete-button"
     Then "safe-delete-button" value on "data-testid" attribute should not exist
-    # Display Invalid Error
-    When User clicks on the 1st element with id "safe-add-button"
+
+  Scenario: Displaying Invalid Error
+    Given User opens the "/deploy" page
+    When User clicks on the 1st element with id "safe-select-button"
+    * User clicks on the 1st element with id "safe-add-button"
     Then View renders a "div" displaying the text "Invalid Safe Address."
