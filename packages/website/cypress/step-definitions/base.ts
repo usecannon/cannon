@@ -4,6 +4,14 @@ Given('User opens the {string} page', (path: string) => {
   cy.visit(path);
 });
 
+Given('User opens the {string} page on a {string} device', (path: string, device: string) => {
+  cy.visit(path, {
+    onBeforeLoad(win) {
+      cy.stub(win.navigator, 'userAgent').value(device);
+    },
+  });
+});
+
 When('User clicks on the {string} link', (link: string) => {
   cy.get(`a[href*="${link}"]`).first().click();
 });

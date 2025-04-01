@@ -9,3 +9,10 @@ Feature: Home page
     Given User opens the "/" page
     * User clicks on the 1st element with id "custom-button"
     Then View renders a "h1" displaying the text "Connect a Wallet"
+
+  Scenario: Navigating to the home page on mobile
+    Given User opens the "/" page on a "iPhone" device
+    Then View renders a "h2" displaying the text "Install Cannon"
+    # Close Dialog
+    When User clicks on the 1st element with id "searchbar-button"
+    Then "sidebar-search-input" value on "data-testid" attribute should exist
