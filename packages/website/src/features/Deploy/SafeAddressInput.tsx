@@ -71,7 +71,6 @@ export function SafeAddressInput() {
   );
 
   const handleNewOrSelectedSafe = async (safeString: string) => {
-    console.log('handle new or selected safe', safeString);
     if (safeString == '') {
       setIsClearing(true);
       setCurrentSafe(null);
