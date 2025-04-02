@@ -1,4 +1,4 @@
-Feature: Stage Transactions
+Feature: Ipfs page
 
   Scenario: navigating to the ipfs page
     # Download the file

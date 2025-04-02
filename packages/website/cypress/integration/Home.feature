@@ -15,4 +15,4 @@ Feature: Home page
     Then View renders a "h2" displaying the text "Install Cannon"
     # Close Dialog
     When User clicks on the 1st element with id "searchbar-button"
-    Then "sidebar-search-input" value on "data-testid" attribute should exist
+    Then "install-dialog-section" value on "data-testid" attribute should not exist

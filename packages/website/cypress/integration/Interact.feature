@@ -31,7 +31,7 @@ Feature: Interact page
     * User clicks on the 1st element with id "submit-wallet-button"
     Then View renders a "h1" displaying the text "Connect a Wallet"
 
-  Scenario: Confirming empty values
+  Scenario: Displaying alert message with empty input
     # Bool Input
     Given User opens the "/packages/synthetix-omnibus/7/1-main/interact" page
     When User clicks on the 1st element with id "CoreProxy-button"

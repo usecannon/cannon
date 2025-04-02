@@ -22,7 +22,7 @@ Feature: Setting page
 
   Scenario: Confirming other functions
     Given User opens the "/settings" page
-    When User types "https://cannon-safe-app.external.dbeal" into the 1st input with id "safe-txs-url-input"
+    When User types "https://safe.usecannon.com" into the 1st input with id "safe-txs-url-input"
     * User types "https://hermes.pyth.network" into the 1st input with id "pyth-url-input"
     * User types "https://repo.usecannon.com/" into the 1st input with id "ipfs-url-input"
     * User clicks on the 1st element with id "reset-settings-button"

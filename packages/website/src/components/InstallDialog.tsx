@@ -36,7 +36,11 @@ const InstallDialog = () => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={handleOpenChange}
+      data-etstid="install-dialog-section"
+    >
       <DialogContent
         className="max-w-[90%] sm:max-w-[425px] mx-auto"
         autoFocus={false}
