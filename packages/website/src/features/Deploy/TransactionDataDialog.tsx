@@ -7,9 +7,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { SafeDefinition } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
+import { Input } from '@/components/ui/input';
+import { ClipboardButton } from '@/components/ClipboardButton';
 
 interface TransactionDataDialogProps {
   safeTxn: SafeTransaction | null;
@@ -29,94 +30,136 @@ export function TransactionDataDialog({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="link" className="p-0 h-auto font-normal underline">
+        <span className="underline cursor-pointer text-primary">
           {children}
-        </Button>
+        </span>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>Transaction Data Verification</DialogTitle>
           <DialogDescription>
-            Verify your transaction data before signing to ensure security. Copy
-            this data to verify with external tools.
+            Verify your transaction data before signing. Copy this data to
+            verify with external tools.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 mt-4">
+        <div className="space-y-4">
           <div>
-            <h3 className="text-sm font-medium mb-1">Safe Address:</h3>
-            <div className="bg-secondary p-2 rounded-md overflow-x-auto">
-              <code className="text-xs break-all">{safe.address}</code>
+            <h3 className="text-sm font-medium mb-1">Safe Address</h3>
+            <div className="relative">
+              <Input
+                readOnly
+                value={safe.address}
+                className="text-xs break-all font-mono pr-10"
+              />
+              <ClipboardButton
+                text={safe.address}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2"
+              />
             </div>
           </div>
 
           {safeTxn && (
             <div>
-              <h3 className="text-sm font-medium mb-1">To Address:</h3>
-              <div className="bg-secondary p-2 rounded-md overflow-x-auto">
-                <code className="text-xs break-all">{safeTxn.to}</code>
+              <h3 className="text-sm font-medium mb-1">To Address</h3>
+              <div className="relative">
+                <Input
+                  readOnly
+                  value={safeTxn.to}
+                  className="text-xs break-all font-mono pr-10"
+                />
+                <ClipboardButton
+                  text={safeTxn.to}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                />
               </div>
             </div>
           )}
 
           {safeTxn && (
             <div>
-              <h3 className="text-sm font-medium mb-1">
-                Safe Transaction Gas:
-              </h3>
-              <div className="bg-secondary p-2 rounded-md overflow-x-auto">
-                <code className="text-xs break-all">{safeTxn.safeTxGas}</code>
+              <h3 className="text-sm font-medium mb-1">Safe Transaction Gas</h3>
+              <div className="relative">
+                <Input
+                  readOnly
+                  value={String(safeTxn.safeTxGas)}
+                  className="text-xs break-all font-mono pr-10"
+                />
+                <ClipboardButton
+                  text={String(safeTxn.safeTxGas)}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                />
               </div>
             </div>
           )}
 
           {safeTxn && (
             <div>
-              <h3 className="text-sm font-medium mb-1">Refund Receiver:</h3>
-              <div className="bg-secondary p-2 rounded-md overflow-x-auto">
-                <code className="text-xs break-all">
-                  {safeTxn.refundReceiver}
-                </code>
+              <h3 className="text-sm font-medium mb-1">Refund Receiver</h3>
+              <div className="relative">
+                <Input
+                  readOnly
+                  value={safeTxn.refundReceiver}
+                  className="text-xs break-all font-mono pr-10"
+                />
+                <ClipboardButton
+                  text={safeTxn.refundReceiver}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                />
               </div>
             </div>
           )}
 
           <div>
-            <h3 className="text-sm font-medium mb-1">Chain ID:</h3>
-            <div className="bg-secondary p-2 rounded-md">
-              <code className="text-xs">{safe.chainId}</code>
+            <h3 className="text-sm font-medium mb-1">Chain ID</h3>
+            <div className="relative">
+              <Input
+                readOnly
+                value={String(safe.chainId)}
+                className="text-xs font-mono pr-10"
+              />
+              <ClipboardButton
+                text={String(safe.chainId)}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2"
+              />
             </div>
           </div>
 
           {execTransactionData && (
             <div>
-              <h3 className="text-sm font-medium mb-1">Transaction Data:</h3>
-              <div className="bg-secondary p-2 rounded-md overflow-x-auto">
-                <code className="text-xs break-all">{execTransactionData}</code>
+              <h3 className="text-sm font-medium mb-1">Transaction Data</h3>
+              <div className="relative">
+                <Input
+                  readOnly
+                  value={execTransactionData}
+                  className="text-xs break-all font-mono pr-10"
+                />
+                <ClipboardButton
+                  text={execTransactionData}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                />
               </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="mt-2"
-                onClick={() =>
-                  navigator.clipboard.writeText(execTransactionData)
-                }
-              >
-                Copy Transaction Data
-              </Button>
             </div>
           )}
 
           {safeTxn && (
             <div>
-              <h3 className="text-sm font-medium mb-1">Transaction Value:</h3>
-              <div className="bg-secondary p-2 rounded-md overflow-x-auto">
-                <code className="text-xs break-all">{safeTxn.value}</code>
+              <h3 className="text-sm font-medium mb-1">Transaction Value</h3>
+              <div className="relative">
+                <Input
+                  readOnly
+                  value={safeTxn.value}
+                  className="text-xs break-all font-mono pr-10"
+                />
+                <ClipboardButton
+                  text={safeTxn.value}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                />
               </div>
             </div>
           )}
 
-          <div className="pt-2 text-sm">
+          <div className="pt-2">
             <p>
               Use the{' '}
               <a
