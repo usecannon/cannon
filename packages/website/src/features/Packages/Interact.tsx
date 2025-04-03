@@ -294,6 +294,8 @@ const Interact: FC = () => {
     throw new Error('Failed to fetch package');
   }
 
+  // console.log(`highlightedOptions start`);
+  // console.log(highlightedOptions);
   return (
     <>
       {isLoadingData ? (

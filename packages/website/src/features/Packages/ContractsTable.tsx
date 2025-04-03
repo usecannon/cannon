@@ -52,6 +52,29 @@ export const ContractsTable: React.FC<{
   const { getExplorerUrl } = useCannonChains();
   // console.log(processedDeploymentInfo);
 
+  const getInteractUrl = (object: any, deployedOn: string): string => {
+    const result = Object.entries(object)
+      .filter(([key, value]) => value.deployedOn.toString() === deployedOn)
+      .map(([key, value]) => ({
+        key: key,
+        address: value.address,
+        deployedOn: value.deployedOn,
+        contractName: value.contractName,
+      }));
+
+    const currentPath = window.location.pathname;
+
+    if (result) {
+      const newPath = currentPath.replace(
+        /\/deployment\/[^/]+/,
+        `/interact/foil/${result[0].contractName}/${result[0].address}`
+      );
+      return newPath;
+    } else {
+      return null;
+    }
+  };
+
   const isCreate2StatusTrue = (object: any, key: string): string => {
     if (object && key in object) {
       if ('create2' in object[key] && object[key].create2) {
@@ -208,10 +231,23 @@ export const ContractsTable: React.FC<{
                           );
                         }
                         case 'name': {
+                          const interactUrl = getInteractUrl(
+                            contractState,
+                            cell.row.original.step
+                          );
                           return !cell.row.original.name.length ? (
                             <span className="text-muted-foreground italic">
                               Unavailable
                             </span>
+                          ) : interactUrl ? (
+                            <a
+                              href={interactUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-mono border-b border-dotted border-muted-foreground hover:border-solid"
+                            >
+                              {cell.row.original.name}
+                            </a>
                           ) : (
                             <span className="font-bold">
                               {cell.row.original.name}
