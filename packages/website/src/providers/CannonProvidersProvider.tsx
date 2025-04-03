@@ -220,6 +220,9 @@ const chainMetadata = {
   [chains.harmonyOne.id]: {
     color: '#00b5e7',
   },
+  [chains.sonic.id]: {
+    color: '#fe9a4d',
+  },
 } as const;
 
 export const supportedChains = (
