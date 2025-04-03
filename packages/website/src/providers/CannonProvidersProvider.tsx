@@ -18,6 +18,7 @@ import isEmpty from 'lodash/isEmpty';
 import cloneDeep from 'lodash/cloneDeep';
 import { useQuery } from '@tanstack/react-query';
 import PageLoading from '@/components/PageLoading';
+import { isE2ETest } from '@/constants/misc';
 import { randomItem } from '@/helpers/random';
 import {
   Address,
@@ -84,27 +85,34 @@ const cannonNetwork = {
 
 // Some chains have default rpc urls that don't work properly with interact on the website
 // because they are being rate limited. We use custom rpc urls for these chains.
+// we walso use the e2e provider urls if they are available
 const customDefaultRpcs: Record<number, Chain['rpcUrls']> = {
   [`${chains.mainnet.id}`]: {
     default: {
       http: [
-        randomItem([
-          'https://eth.llamarpc.com',
-          'https://ethereum-rpc.publicnode.com',
-          'https://rpc.ankr.com/eth',
-          'https://eth.blockrazor.xyz',
-        ]),
+        isE2ETest
+          ? process.env.NEXT_PUBLIC_CANNON_E2E_RPC_URL_ETHEREUM ||
+            'https://please-configure'
+          : randomItem([
+              'https://eth.llamarpc.com',
+              'https://ethereum-rpc.publicnode.com',
+              'https://rpc.ankr.com/eth',
+              'https://eth.blockrazor.xyz',
+            ]),
       ],
     },
   },
   [`${chains.sepolia.id}`]: {
     default: {
       http: [
-        randomItem([
-          'https://gateway.tenderly.co/public/sepolia',
-          'https://ethereum-sepolia-rpc.publicnode.com',
-          'https://eth-sepolia.public.blastapi.io',
-        ]),
+        isE2ETest
+          ? process.env.NEXT_PUBLIC_CANNON_E2E_RPC_URL_SEPOLIA ||
+            'https://please-configure'
+          : randomItem([
+              'https://gateway.tenderly.co/public/sepolia',
+              'https://ethereum-sepolia-rpc.publicnode.com',
+              'https://eth-sepolia.public.blastapi.io',
+            ]),
       ],
     },
   },
@@ -211,6 +219,9 @@ const chainMetadata = {
   },
   [chains.harmonyOne.id]: {
     color: '#00b5e7',
+  },
+  [chains.sonic.id]: {
+    color: '#fe9a4d',
   },
 } as const;
 
