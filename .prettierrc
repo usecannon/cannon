@@ -9,8 +9,7 @@
         "tabWidth": 2,
         "useTabs": false,
         "singleQuote": false,
-        "bracketSpacing": false,
-        "explicitTypes": "preserve"
+        "bracketSpacing": false
       }
     },
     {
