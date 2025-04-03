@@ -10,7 +10,8 @@ export const ContractsTab: FC<{
   contractState: ChainBuilderContext['contracts'];
   addressesAbis: ReturnType<typeof extractAddressesAbis>;
   chainId: number;
-}> = ({ contractState, addressesAbis, chainId }) => {
+  processedDeploymentInfo: any;
+}> = ({ contractState, addressesAbis, chainId, processedDeploymentInfo }) => {
   const [contractSearchTerm, setContractSearchTerm] = useState<string>('');
 
   const filteredContractState = Object.fromEntries(
@@ -60,6 +61,7 @@ export const ContractsTab: FC<{
           <ContractsTable
             contractState={filteredContractState}
             chainId={chainId}
+            processedDeploymentInfo={processedDeploymentInfo}
           />
         </div>
       )}

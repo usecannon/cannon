@@ -15,6 +15,24 @@ import FunctionCallsTab from './Tabs/FunctionCallsTab';
 import EventDataTab from './Tabs/EventDataTab';
 import { extractContractsImports as extractContracts } from './utils/extractContractsImports';
 
+function omitEmptyObjects(config: { [x: string]: any }) {
+  for (const key in config) {
+    if (Object.prototype.hasOwnProperty.call(config, key)) {
+      const value = config[key];
+      if (
+        value &&
+        typeof value === 'object' &&
+        Object.keys(value).length === 0
+      ) {
+        delete config[key];
+      } else if (typeof value === 'object') {
+        omitEmptyObjects(value);
+      }
+    }
+  }
+  return config;
+}
+
 export const DeploymentExplorer: FC<{
   pkg: ApiPackage;
 }> = ({ pkg }) => {
@@ -25,7 +43,17 @@ export const DeploymentExplorer: FC<{
     !!pkg?.deployUrl
   );
   const deploymentInfo = deploymentData.data;
-  //  console.log({ deploymentInfo });
+  // console.log({ deploymentInfo });
+
+  // Deep clone the deploymentInfo.def object
+  const clonedDeploymentInfoDef = deploymentInfo?.def
+    ? JSON.parse(JSON.stringify(deploymentInfo.def))
+    : null;
+
+  // Apply the omitEmptyObjects function to the cloned object
+  const processedDeploymentInfo = clonedDeploymentInfoDef
+    ? omitEmptyObjects(clonedDeploymentInfoDef)
+    : null;
 
   const contractState = deploymentInfo?.state
     ? extractContracts(deploymentInfo.state)
@@ -132,6 +160,7 @@ export const DeploymentExplorer: FC<{
                 contractState={contractState}
                 addressesAbis={addressesAbis}
                 chainId={pkg.chainId}
+                processedDeploymentInfo={processedDeploymentInfo}
               />
             )}
             {pathname.endsWith('/calls') && (

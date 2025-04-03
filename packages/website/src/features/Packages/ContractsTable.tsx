@@ -47,8 +47,36 @@ type ContractRow = {
 export const ContractsTable: React.FC<{
   contractState: ChainBuilderContext['contracts'];
   chainId: number;
-}> = ({ contractState, chainId }) => {
+  processedDeploymentInfo: any;
+}> = ({ contractState, chainId, processedDeploymentInfo }) => {
   const { getExplorerUrl } = useCannonChains();
+  // console.log(processedDeploymentInfo);
+
+  const isCreate2StatusTrue = (object: any, key: string): string => {
+    if (object && key in object) {
+      if ('create2' in object[key] && object[key].create2) {
+        return 'Create2';
+      }
+
+      for (const k of Object.keys(object[key])) {
+        if (typeof object[k] === 'object' && object[k] !== null) {
+          const result = isCreate2StatusTrue(object[k]);
+          if (result) return result;
+        }
+      }
+    }
+    return 'Create1';
+  };
+
+  const getDeployType = (object: any, operation: string): string => {
+    const step = operation.split('.')[0];
+    const subKey = operation.split('.')[1];
+    if (step == 'invoke') {
+      return 'Factory Deployment';
+    } else {
+      return isCreate2StatusTrue(object[step], subKey);
+    }
+  };
 
   const data = React.useMemo(() => {
     return Object.entries(contractState).map(
@@ -58,6 +86,10 @@ export const ContractsTable: React.FC<{
         step: value.deployedOn.toString(),
         address: value.address,
         deployTxnHash: value.deployTxnHash,
+        deployType: getDeployType(
+          processedDeploymentInfo,
+          value.deployedOn.toString()
+        ),
       })
     );
   }, [contractState]);
@@ -90,6 +122,10 @@ export const ContractsTable: React.FC<{
     columnHelper.accessor('step', {
       cell: (info: any) => info.getValue(),
       header: 'Operation',
+    }),
+    columnHelper.accessor('deployType', {
+      cell: (info: any) => info.getValue(),
+      header: 'Deployment Type',
     }),
   ];
 
@@ -205,6 +241,7 @@ export const ContractsTable: React.FC<{
                             <code className="text-xs">{value}</code>
                           );
                         }
+                        case 'deployType':
                         default: {
                           return flexRender(
                             cell.column.columnDef.cell,
