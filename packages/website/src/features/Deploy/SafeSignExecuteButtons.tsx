@@ -197,7 +197,7 @@ export function SafeSignExecuteButtons({
         )}
 
         {!isTransactionExecuted && !executionTxnHash && (
-          <div className="flex gap-4 mt-4">
+          <div className="flex gap-4">
             {accountConnected && walletChainId === safe.chainId ? (
               <>
                 <Tooltip>
