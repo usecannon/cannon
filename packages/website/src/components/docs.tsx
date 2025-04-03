@@ -6,7 +6,7 @@ import {
   CardDescription,
   CardHeader,
 } from '@/components/ui/card';
-import { ArrowRightIcon, ArrowLeftIcon } from '@radix-ui/react-icons';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const NavDocsCard = ({
@@ -23,8 +23,8 @@ export const NavDocsCard = ({
   className: string;
 }) => {
   const icon = {
-    next: <ArrowRightIcon className="text-teal-500 size-4 mb-8" />,
-    prev: <ArrowLeftIcon className="text-teal-500 size-4 mb-8" />,
+    next: <ArrowRight className="text-teal-500 size-4 mb-8" />,
+    prev: <ArrowLeft className="text-teal-500 size-4 mb-8" />,
   };
   return (
     <Link className={className} href={href}>

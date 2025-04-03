@@ -1,9 +1,9 @@
 import { Button } from '@/components/ui/button';
 import {
-  DiscordLogoIcon,
-  GitHubLogoIcon,
-  TwitterLogoIcon,
-} from '@radix-ui/react-icons';
+  Discord as DiscordIcon,
+  Github as GithubIcon,
+  Twitter as TwitterIcon,
+} from '@/components/specialIcons';
 import { useRouter } from 'next/router';
 
 interface FooterProps {
@@ -33,7 +33,7 @@ export const Footer = ({ isFixed }: FooterProps) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <GitHubLogoIcon className="h-5 w-5" />
+            <GithubIcon className="h-5 w-5" />
           </a>
         </Button>
         <Button variant="ghost" size="icon" asChild>
@@ -42,7 +42,7 @@ export const Footer = ({ isFixed }: FooterProps) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <TwitterLogoIcon className="h-5 w-5" />
+            <TwitterIcon className="h-5 w-5" />
           </a>
         </Button>
         <Button variant="ghost" size="icon" asChild>
@@ -51,7 +51,7 @@ export const Footer = ({ isFixed }: FooterProps) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <DiscordLogoIcon className="h-5 w-5" />
+            <DiscordIcon className="h-5 w-5" />
           </a>
         </Button>
       </div>

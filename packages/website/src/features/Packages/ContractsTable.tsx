@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { CaretSortIcon } from '@radix-ui/react-icons';
+import { ArrowDownUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { StarIcon } from 'lucide-react';
 import {
@@ -130,7 +130,7 @@ export const ContractsTable: React.FC<{
                         header.column.columnDef.header,
                         header.getContext()
                       )}
-                      <CaretSortIcon
+                      <ArrowDownUp
                         className={`${
                           header.column.columnDef.accessorKey === 'highlight'
                             ? 'h-4 w-4'

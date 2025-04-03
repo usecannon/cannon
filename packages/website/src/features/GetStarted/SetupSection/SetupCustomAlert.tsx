@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoCircledIcon } from '@radix-ui/react-icons';
+import { Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ISetupCustomAlertProps {
@@ -14,7 +14,7 @@ export const SetupCustomAlert: FC<ISetupCustomAlertProps> = ({
 }) => {
   return (
     <Alert variant="info" className={cn('my-3')}>
-      <InfoCircledIcon className="h-4 w-4 mr-3" />
+      <Info className="h-4 w-4 mr-3" />
       <AlertDescription>
         If you learn better by example, take a look at the{' '}
         <a

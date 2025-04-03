@@ -2,7 +2,7 @@
 import NextLink from 'next/link';
 import { links } from '@/constants/links';
 import { Alert, AlertTitle } from '@/components/ui/alert';
-import { InfoCircledIcon } from '@radix-ui/react-icons';
+import { Info } from 'lucide-react';
 import CustomProviders from '@/features/Settings/CustomProviders';
 import SafeTransactionService from '@/features/Settings/SafeTransactionService';
 import { initialState, useStore } from '@/helpers/store';
@@ -52,6 +52,19 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent>
           <CustomProviders />
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6 border-border">
+        <CardHeader>
+          <CardTitle>Safe Transaction Service</CardTitle>
+          <CardDescription>
+            The Safe Transaction Service stores signatures for pending
+            transactions using the web deployer.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <SafeTransactionService />
         </CardContent>
       </Card>
 
@@ -160,23 +173,10 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card className="mb-6 border-border">
-        <CardHeader>
-          <CardTitle>Safe Transaction Service</CardTitle>
-          <CardDescription>
-            The Safe Transaction Service stores signatures for pending
-            transactions using the web deployer.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <SafeTransactionService />
-        </CardContent>
-      </Card>
-
       <div className="my-10 flex flex-col sm:flex-row gap-4">
         <Alert className="flex-1 flex items-center min-h-[44px]">
           <div className="flex items-center gap-2">
-            <InfoCircledIcon className="h-4 w-4" />
+            <Info className="h-4 w-4" />
             <AlertTitle className="mb-0">
               Changes to settings automatically persist in your web browser.
             </AlertTitle>

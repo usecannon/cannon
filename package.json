@@ -11,6 +11,7 @@
     "lint:fix": "pnpm run '/^lint:fix:(js|sol)/'",
     "clean": "pnpm -r --if-present run clean",
     "build": "pnpm run clean && pnpm -r --filter @usecannon/builder --filter @usecannon/cli --filter hardhat-cannon --filter @usecannon/api run build",
+    "build:website": "pnpm run clean && pnpm -r --filter @usecannon/builder --filter @usecannon/cli --filter @usecannon/api --filter @usecannon/website run build",
     "watch": "pnpm -r --parallel --filter @usecannon/builder --filter @usecannon/cli run watch",
     "version": "lerna version --no-private",
     "publish": "lerna publish from-package --no-private",

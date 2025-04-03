@@ -41,6 +41,7 @@ export const Abi: FC<{
   contractName?: string;
   onDrawerOpen?: () => void;
   packageUrl?: string;
+  isDrawerOpen?: boolean;
 }> = ({
   isLoading,
   abi,
@@ -50,6 +51,7 @@ export const Abi: FC<{
   chainId,
   onDrawerOpen,
   packageUrl,
+  isDrawerOpen,
 }) => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -268,6 +270,7 @@ export const Abi: FC<{
                     collapsible
                     showFunctionSelector={false}
                     packageUrl={packageUrl}
+                    isDrawerOpen={isDrawerOpen}
                   />
                 </Element>
               ))

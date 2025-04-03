@@ -6,7 +6,7 @@ import { useStore } from '@/helpers/store';
 import { useCannonPackage } from '@/hooks/cannon';
 import { useCannonPackagePublishers } from '@/hooks/registry';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
-import { ExternalLinkIcon, InfoCircledIcon } from '@radix-ui/react-icons';
+import { ExternalLink, Info } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import {
   CannonStorage,
@@ -24,7 +24,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import {
   Tooltip,
   TooltipContent,
@@ -41,7 +41,6 @@ export default function PublishUtility(props: {
 
   const wc = useWalletClient();
   const { switchChainAsync } = useSwitchChain();
-  const { toast } = useToast();
 
   // get the package referenced by this ipfs package
   const {
@@ -151,15 +150,9 @@ export default function PublishUtility(props: {
       // eslint-disable-next-line no-console
       console.error(err);
       if (err.message.includes('exceeds the balance of the account')) {
-        toast({
-          title: 'Error Publishing Package: Insufficient Funds',
-          variant: 'destructive',
-        });
+        toast.error('Error Publishing Package: Insufficient Funds');
       } else {
-        toast({
-          title: 'Error Publishing Package',
-          variant: 'destructive',
-        });
+        toast.error('Error Publishing Package');
       }
     },
   });
@@ -176,15 +169,9 @@ export default function PublishUtility(props: {
       console.error(err);
 
       if (err.message.includes('exceeds the balance of the account')) {
-        toast({
-          title: 'Error Publishing Package: Insufficient Funds',
-          variant: 'destructive',
-        });
+        toast.error('Error Publishing Package: Insufficient Funds');
       } else {
-        toast({
-          title: 'Error Publishing Package',
-          variant: 'destructive',
-        });
+        toast.error('Error Publishing Package');
       }
     },
   });
@@ -251,7 +238,7 @@ export default function PublishUtility(props: {
                       rel="noopener noreferrer"
                       className="ml-1 inline-block align-middle"
                     >
-                      <ExternalLinkIcon />
+                      <ExternalLink />
                     </Link>
                   </span>
                 </li>
@@ -309,7 +296,7 @@ export default function PublishUtility(props: {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
-                    <InfoCircledIcon className="inline-block" />
+                    <Info className="inline-block" />
                   </TooltipTrigger>
                   <TooltipContent>
                     Cannon will detect packages published to Optimism or
@@ -342,7 +329,7 @@ export default function PublishUtility(props: {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
-                    <InfoCircledIcon className="opacity-80" />
+                    <Info className="opacity-80" />
                   </TooltipTrigger>
                   <TooltipContent>
                     Presets are useful for distinguishing multiple deployments

@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CustomSpinner } from '@/components/CustomSpinner';
-import { InfoCircledIcon } from '@radix-ui/react-icons';
+import { Info } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -37,7 +37,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 // Because of a weird type cohercion, after using viem.isAddress during website build,
 // the string type of the given value gets invalid to "never", and breaks the build.
@@ -103,8 +103,6 @@ export const QueuedTxns = ({
 
   const txnInfo = useSimulatedTxns(currentSafe as any, queuedTxns);
 
-  const { toast } = useToast();
-
   const stager = useTxnStager(
     targetTxn
       ? {
@@ -129,10 +127,7 @@ export const QueuedTxns = ({
       async onSignComplete() {
         if (onDrawerClose) onDrawerClose();
         await router.push(links.DEPLOY);
-        toast({
-          title: 'You successfully signed the transaction.',
-          variant: 'default',
-        });
+        toast.success('You successfully signed the transaction.');
 
         setQueuedIdentifiableTxns({
           queuedIdentifiableTxns: [],
@@ -274,7 +269,7 @@ export const QueuedTxns = ({
         ) : (
           (txnsWithErrorIndexes.length === 0 &&
             queuedIdentifiableTxns.length > 1 && (
-              <Alert variant="info">
+              <Alert variant="info" data-testid="txs-alert">
                 <AlertTitle>All Transactions Simulated Successfully</AlertTitle>
                 <AlertDescription>
                   {queuedIdentifiableTxns.length} simulated transaction
@@ -341,6 +336,7 @@ export const QueuedTxns = ({
                 className="bg-black"
                 onChange={(event: any) => setTarget(event.target.value)}
                 value={target}
+                data-testid="target-input"
               />
               {!isAddress(target) &&
                 target.length >= 3 &&
@@ -355,6 +351,7 @@ export const QueuedTxns = ({
                   variant="outline"
                   onClick={() => addQueuedTxn()}
                   className="absolute right-2 top-1/2 -translate-y-1/2"
+                  data-testid="add-txs-button"
                 >
                   +
                 </Button>
@@ -443,7 +440,7 @@ export const QueuedTxns = ({
               <NoncePicker safe={currentSafe} handleChange={setPickedNonce} />
 
               <p className="text-sm text-muted-foreground flex items-center gap-2">
-                <InfoCircledIcon className="h-4 w-4 flex-shrink-0" />
+                <Info className="h-4 w-4 flex-shrink-0" />
                 <span>
                   Transactions queued here will not generate a Cannon package
                   after execution.
@@ -452,7 +449,7 @@ export const QueuedTxns = ({
 
               {txnHasError && (
                 <p className="text-sm text-muted-foreground flex items-center gap-2">
-                  <InfoCircledIcon className="h-4 w-4 flex-shrink-0" />
+                  <Info className="h-4 w-4 flex-shrink-0" />
                   <span>
                     Some transactions failed to simulate. You can still execute
                     / stage the transactions.
@@ -540,11 +537,9 @@ export const QueuedTxns = ({
                               onSuccess: async () => {
                                 await router.push(links.DEPLOY);
 
-                                toast({
-                                  title:
-                                    'You successfully executed the transaction.',
-                                  variant: 'default',
-                                });
+                                toast.success(
+                                  'You successfully executed the transaction.'
+                                );
                               },
                             });
                           }}

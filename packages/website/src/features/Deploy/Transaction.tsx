@@ -6,7 +6,7 @@ import { SafeTransaction } from '@/types/SafeTransaction';
 import { parseHintedMulticall } from '@/helpers/cannon';
 import { getSafeTransactionHash } from '@/helpers/safe';
 import { useTxnStager } from '@/hooks/backend';
-import { GitHub } from 'react-feather';
+import { Github } from '@/components/specialIcons';
 import { ChevronRight, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -111,7 +111,10 @@ function TransactionRow({
   }
 
   return (
-    <TableRow className="group cursor-pointer hover:bg-accent/50">
+    <TableRow
+      className="group cursor-pointer hover:bg-accent/50"
+      data-testid={`txn-list-row-${tx._nonce}`}
+    >
       <TableCell className="relative px-6 w-[1px]">
         {isLink ? (
           <NextLink
@@ -128,7 +131,7 @@ function TransactionRow({
         )}
         <div className="relative z-1">
           {hintData?.type === 'deploy' ? (
-            <GitHub size="20" strokeWidth={1} />
+            <Github size="20" strokeWidth={1} />
           ) : hintData?.type === 'invoke' ? (
             <img
               alt="Cannon"

@@ -2,10 +2,7 @@
 
 import { getSearch } from '@/helpers/api';
 import { Search } from 'lucide-react';
-import { GoPackage } from 'react-icons/go';
-import { BsBoxes } from 'react-icons/bs';
-import { PiFileCode } from 'react-icons/pi';
-import { FaCode } from 'react-icons/fa6';
+import { Boxes, FileCode, Box, CodeXml } from 'lucide-react';
 import { useEventListener } from 'usehooks-ts';
 import { useMediaQuery } from 'usehooks-ts';
 import { useQuery } from '@tanstack/react-query';
@@ -121,6 +118,7 @@ const SearchBar = () => {
           'w-8 px-2 lg:w-full lg:pr-12'
         )}
         onClick={onOpen}
+        data-testid="searchbar-button"
       >
         <Search className="h-6 w-6 lg:hidden" />
         <span className="hidden lg:inline-flex">
@@ -137,6 +135,7 @@ const SearchBar = () => {
             placeholder={PLACEHOLDER}
             value={inputValue}
             onValueChange={setInputValue}
+            data-testid="sidebar-search-input"
           />
           <CommandList>
             {searchQuery.isLoading ? (
@@ -166,8 +165,11 @@ const SearchBar = () => {
                           case 'package':
                             return (
                               <>
-                                <GoPackage className="h-6 w-6 shrink-0 opacity-50 mr-1" />
-                                <div className="flex flex-col gap-0.5">
+                                <Box className="h-6 w-6 shrink-0 opacity-50 mr-1" />
+                                <div
+                                  className="flex flex-col gap-0.5"
+                                  data-testid="search-package-section"
+                                >
                                   <span>{result.name}</span>
                                   <span className="text-xs text-muted-foreground">
                                     {result.name}
@@ -186,8 +188,11 @@ const SearchBar = () => {
                           case 'namespace':
                             return (
                               <>
-                                <BsBoxes className="h-6 w-6 shrink-0 opacity-50 mr-1" />
-                                <div className="flex flex-col gap-0.5">
+                                <Boxes className="h-6 w-6 shrink-0 opacity-50 mr-1" />
+                                <div
+                                  className="flex flex-col gap-0.5"
+                                  data-testid="search-namespace-section"
+                                >
                                   <span>{result.name}</span>
                                   <span className="text-xs text-muted-foreground">
                                     {result.count} package
@@ -199,8 +204,11 @@ const SearchBar = () => {
                           case 'contract':
                             return (
                               <>
-                                <PiFileCode className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
-                                <div className="flex flex-col gap-0.5">
+                                <FileCode className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
+                                <div
+                                  className="flex flex-col gap-0.5"
+                                  data-testid="search-contract-section"
+                                >
                                   <span>{result.name}</span>
                                   <span className="text-xs text-muted-foreground">
                                     {result.packageName}
@@ -219,8 +227,11 @@ const SearchBar = () => {
                           case 'function':
                             return (
                               <>
-                                <FaCode className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
-                                <div className="flex flex-col gap-0.5">
+                                <CodeXml className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
+                                <div
+                                  className="flex flex-col gap-0.5"
+                                  data-testid="search-function-section"
+                                >
                                   <span>
                                     {result.contractName}.{result.name}
                                   </span>

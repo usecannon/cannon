@@ -12,7 +12,7 @@ import { TransactionDisplay } from './TransactionDisplay';
 import NoncePicker from './NoncePicker';
 import { useWriteContract } from 'wagmi';
 import { ChainBuilderContext } from '@usecannon/builder';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useDeployerWallet } from '@/hooks/deployer';
 import { CannonfileGitInfo } from '@/features/Deploy/hooks/useGitDetailsFromCannonfile';
 import { getGitHash, useGitRefsList } from '@/hooks/git';
@@ -56,7 +56,6 @@ export function SafeTransactionsAndExecution({
   ctx,
 }: Props) {
   const router = useRouter();
-  const { toast } = useToast();
   const execTxn = useWriteContract();
   const deployer = useDeployerWallet(currentSafe?.chainId);
   const refsInfo = useGitRefsList(gitInfo.gitUrl);
@@ -95,9 +94,7 @@ export function SafeTransactionsAndExecution({
       safe: currentSafe,
       async onSignComplete() {
         router.push(links.DEPLOY);
-        toast({
-          title: 'You successfully signed the transaction.',
-          variant: 'default',
+        toast.success('You successfully signed the transaction.', {
           duration: 5000,
         });
       },
@@ -204,11 +201,12 @@ export function SafeTransactionsAndExecution({
                       onSuccess: () => {
                         router.push(links.DEPLOY);
 
-                        toast({
-                          title: 'You successfully executed the transaction.',
-                          variant: 'default',
-                          duration: 5000,
-                        });
+                        toast.success(
+                          'You successfully executed the transaction.',
+                          {
+                            duration: 5000,
+                          }
+                        );
                       },
                     });
                   }}

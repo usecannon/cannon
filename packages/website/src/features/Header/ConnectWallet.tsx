@@ -31,6 +31,7 @@ const CustomButton = ({
       'shadow-[0px_0px_4px_rgba(255,255,255,0.33)]',
       styleMap[variant]
     )}
+    data-testid="custom-button"
   >
     {children}
   </Button>
