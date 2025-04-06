@@ -148,8 +148,8 @@ const useIpfsStore = create<IpfsStore>()(
     }),
     {
       name: 'ipfs-state',
-    },
-  ),
+    }
+  )
 );
 
 const useStore = create<Store>()(
@@ -191,7 +191,7 @@ const useStore = create<Store>()(
         set((state) => ({
           ...state,
           safeAddresses: uniqWith([newAddress, ...state.safeAddresses], deepEqual).filter(
-            (item) => item !== null,
+            (item) => item !== null
           ) as SafeDefinition[],
         }));
       },
@@ -212,8 +212,8 @@ const useStore = create<Store>()(
         safeTxServices: state.safeTxServices,
       }),
       merge: (persisted, initial) => merge(initial, persisted as Store) as Store,
-    },
-  ),
+    }
+  )
 );
 
 const useQueueTxsStore = create<QueueTxsStore>()(
@@ -253,8 +253,8 @@ const useQueueTxsStore = create<QueueTxsStore>()(
     }),
     {
       name: 'queue-txs-state',
-    },
-  ),
+    }
+  )
 );
 
 export { useStore, useIpfsStore, useQueueTxsStore };
