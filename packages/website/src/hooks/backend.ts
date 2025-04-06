@@ -47,7 +47,7 @@ export function useSafeTransactions(safe: SafeDefinition | null, refetchInterval
 
   const memoizedStaged = _.sortBy(
     stagedQuery.data?.filter((t) => t.txn._nonce >= Number(nonceQuery.data || 0)) || [],
-    'txn._nonce'
+    'txn._nonce',
   );
 
   const memoizedNextNonce = !memoizedStaged ? 0 : (_.last(memoizedStaged)?.txn._nonce || 0) + 1;
@@ -72,7 +72,7 @@ export function useTxnStager(
   options: {
     safe: SafeDefinition | null;
     onSignComplete?: () => void;
-  } = { safe: null }
+  } = { safe: null },
 ) {
   const chainId = useChainId();
   const account = useAccount();
@@ -133,6 +133,12 @@ export function useTxnStager(
         abi: SafeABI,
         address: querySafeAddress as any,
         chainId: options.safe?.chainId,
+        functionName: 'domainSeparator',
+      },
+      {
+        abi: SafeABI,
+        address: querySafeAddress as any,
+        chainId: options.safe?.chainId,
         functionName: 'getThreshold',
       },
       {
@@ -145,19 +151,22 @@ export function useTxnStager(
     ],
   });
 
-  const hashToSign = reads.isSuccess ? (reads.data![0].result as viem.Address) : null;
+  const hashToSign = reads.isSuccess ? (reads.data![0].result as viem.Hash) : null;
+  const domainSeparator = reads.isSuccess ? (reads.data![1].result as viem.Hash) : null;
+
+  const requiredSigs = reads.isSuccess ? (reads.data![2].result as unknown as bigint) : 0;
+  const isSigner =
+    reads.isSuccess && !reads.isFetching && !reads.isRefetching ? (reads.data![3].result as unknown as boolean) : false;
 
   useEffect(() => {
-    if (!hashToSign || !alreadyStaged) return setAlreadyStagedSigners([]);
+    if (!hashToSign || !domainSeparator || !alreadyStaged) return setAlreadyStagedSigners([]);
 
     void (async function () {
       const signers: viem.Address[] = [];
       for (const sig of alreadyStaged.sigs) {
         const signature = viem.toBytes(sig);
         const signerAddress = await viem.recoverAddress({
-          hash: viem.hashMessage({
-            raw: hashToSign as any, // TODO: fix type
-          }),
+          hash: hashToSign,
           signature,
         });
         signers.push(signerAddress);
@@ -169,7 +178,7 @@ export function useTxnStager(
 
   const sigInsertIdx = _.sortedIndex(
     alreadyStagedSigners.map((s) => s.toLowerCase()),
-    account.address?.toLowerCase()
+    account.address?.toLowerCase(),
   );
 
   const mutation = useMutation({
@@ -189,8 +198,6 @@ export function useTxnStager(
       void reads.refetch();
     },
   });
-
-  const requiredSigs = reads.isSuccess ? (reads.data![1].result as unknown as bigint) : 0;
 
   const execSig: string[] = _.clone(alreadyStaged?.sigs || []);
   if (alreadyStagedSigners.length < requiredSigs) {
@@ -224,8 +231,6 @@ export function useTxnStager(
 
   // must not have already signed in order to sign
   const existingSigsCount = alreadyStaged ? alreadyStaged.sigs.length : 0;
-  const isSigner =
-    reads.isSuccess && !reads.isFetching && !reads.isRefetching ? (reads.data![2].result as unknown as boolean) : false;
   const alreadySigned = existingSigsCount >= requiredSigs;
 
   let signConditionFailed = '';
