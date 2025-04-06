@@ -1,8 +1,8 @@
 import _ from 'lodash';
+import * as viem from 'viem';
 import express from 'express';
 import Redis from 'ioredis';
 import morgan from 'morgan';
-import { ethers } from 'ethers';
 import * as viemChains from 'viem/chains';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
@@ -40,7 +40,7 @@ const MAX_TXDATA_SIZE = 1000000;
 
 async function start() {
   const txdb = new Map<string, Map<string, StagedTransaction>>();
-  const providers = new Map<number, ethers.Provider>();
+  const providers = new Map<number, viem.PublicClient>();
 
   const rdb: Redis | null = process.env.REDIS_URL ? new Redis(process.env.REDIS_URL) : null;
 
@@ -62,8 +62,8 @@ async function start() {
   }
 
   for (const rpcUrl of process.env.RPC_URLS?.split(',') || []) {
-    const provider = new ethers.JsonRpcProvider(rpcUrl);
-    const { chainId } = await provider.getNetwork();
+    const provider = viem.createPublicClient({ transport: viem.http(rpcUrl) });
+    const chainId = await provider.getChainId();
     providers.set(Number(`${chainId}`), provider);
   }
 
@@ -78,7 +78,7 @@ async function start() {
     const rpcUrl = chain.rpcUrls.default.http[0];
     if (!rpcUrl) return null;
 
-    const newProvider = new ethers.JsonRpcProvider(rpcUrl);
+    const newProvider = viem.createPublicClient({ transport: viem.http(rpcUrl) });
 
     providers.set(id, newProvider);
 
@@ -121,8 +121,8 @@ async function start() {
   function parseSafeParams(params: { chainId: string; safeAddress: string }) {
     const chainId = Number.parseInt(params.chainId);
     if (!Number.isSafeInteger(chainId) || chainId < 1) return {};
-    if (!ethers.isAddress(params.safeAddress)) return {};
-    const safeAddress = ethers.getAddress(params.safeAddress.toLowerCase());
+    if (!viem.isAddress(params.safeAddress)) return {};
+    const safeAddress = viem.getAddress(params.safeAddress.toLowerCase());
     return { chainId, safeAddress };
   }
 
@@ -171,29 +171,38 @@ async function start() {
         return res.status(400).send('chain id not supported');
       }
 
-      const safe = new ethers.Contract(safeAddress, SafeABI, provider);
+      //const safe = new ethers.Contract(safeAddress, SafeABI, provider);
 
       const txs = (await loadWithPersistenceFallback(chainId, safeAddress)) || new Map();
 
       // verify all sigs are valid
-      const hashData = await safe.encodeTransactionData(
-        signedTransactionInfo.txn.to,
-        signedTransactionInfo.txn.value,
-        signedTransactionInfo.txn.data,
-        signedTransactionInfo.txn.operation,
-        signedTransactionInfo.txn.safeTxGas,
-        signedTransactionInfo.txn.baseGas,
-        signedTransactionInfo.txn.gasPrice,
-        signedTransactionInfo.txn.gasToken,
-        signedTransactionInfo.txn.refundReceiver,
-        signedTransactionInfo.txn._nonce,
-      );
+      const digest = (await provider.readContract({
+        abi: SafeABI,
+        address: safeAddress,
+        functionName: 'getTransactionHash',
+        args: [
+          signedTransactionInfo.txn.to,
+          signedTransactionInfo.txn.value,
+          signedTransactionInfo.txn.data,
+          signedTransactionInfo.txn.operation,
+          signedTransactionInfo.txn.safeTxGas,
+          signedTransactionInfo.txn.baseGas,
+          signedTransactionInfo.txn.gasPrice,
+          signedTransactionInfo.txn.gasToken,
+          signedTransactionInfo.txn.refundReceiver,
+          signedTransactionInfo.txn._nonce,
+        ],
+      })) as viem.Hash;
 
-      const digest = ethers.keccak256(hashData);
+      //const digest = viem.keccak256(hashData);
 
       const existingTx = txs.get(digest);
 
-      const currentNonce: bigint = await safe.nonce();
+      const currentNonce = (await provider.readContract({
+        abi: SafeABI,
+        address: safeAddress,
+        functionName: 'nonce',
+      })) as bigint;
 
       if (!existingTx) {
         signedTransactionInfo.createdAt = Date.now();
@@ -218,18 +227,27 @@ async function start() {
         signedTransactionInfo.createdAt = existingTx.createdAt || Date.now();
         signedTransactionInfo.updatedAt = Date.now();
 
-        // its possible if two or more people sign transactions at the same time, they will have separate lists, and so they need to be merged together.
-        // we also sort the signatures for the user here so that isnt a requirement when submitting signatures to this service
-        signedTransactionInfo.sigs = _.sortBy(_.union(signedTransactionInfo.sigs, existingTx.sigs), (signature) => {
-          const signatureBytes = ethers.getBytes(signature);
+        let recoveredSigAddresses = [];
+        for (const sig of _.union(signedTransactionInfo.sigs, existingTx.sigs)) {
+          const signatureBytes = viem.toBytes(sig);
 
           // for some reason its often necessary to adjust the version field -4 if its above 30
-          if (_.last(signatureBytes)! > 30) {
+          /*if (_.last(signatureBytes)! > 30) {
             signatureBytes[signatureBytes.length - 1] -= 4;
-          }
+          }*/
 
-          return ethers.recoverAddress(ethers.getBytes(digest), ethers.hexlify(signatureBytes)).toLowerCase();
-        });
+          const address = (
+            await viem.recoverAddress({ hash: viem.toBytes(digest), signature: viem.toHex(signatureBytes) })
+          ).toLowerCase();
+          recoveredSigAddresses.push({
+            sig,
+            address,
+          });
+        }
+
+        // its possible if two or more people sign transactions at the same time, they will have separate lists, and so they need to be merged together.
+        // we also sort the signatures for the user here so that isnt a requirement when submitting signatures to this service
+        signedTransactionInfo.sigs = _.sortBy(recoveredSigAddresses, ({ address }) => address).map((v) => v.sig);
 
         if (signedTransactionInfo.sigs.length > MAX_SIGS) {
           return res.status(400).send('maximum signatures reached for transaction');
@@ -237,12 +255,12 @@ async function start() {
       }
 
       try {
-        await safe.checkNSignatures(
-          digest,
-          hashData,
-          ethers.concat(signedTransactionInfo.sigs),
-          signedTransactionInfo.sigs.length,
-        );
+        await provider.readContract({
+          abi: SafeABI,
+          address: safeAddress,
+          functionName: 'checkNSignatures',
+          args: [digest, '0x', viem.concat(signedTransactionInfo.sigs as viem.Hex[]), signedTransactionInfo.sigs.length],
+        });
       } catch (err) {
         console.log('failed checking n signatures', err);
         return res.status(400).send('invalid signature');
