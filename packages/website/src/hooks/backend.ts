@@ -25,7 +25,7 @@ export interface CannonSafeTransaction {
 
 export function useSafeTransactions(safe: SafeDefinition | null, refetchInterval: number | false = false) {
   const { chainId: safeChainId, address: safeAddress } = safe || {};
-  const stagingUrl = useStore((s) => s.settings.stagingUrl);
+  const stagingUrl = useStore((s) => s.settings.cannonSafeBackendUrl);
 
   const stagedQuery = useQuery({
     queryKey: ['staged', safeChainId, safeAddress],
@@ -82,7 +82,7 @@ export function useTxnStager(
   const [alreadyStagedSigners, setAlreadyStagedSigners] = useState<viem.Address[]>([]);
   const queryChainId = options.safe?.chainId || chainId.toString();
   const querySafeAddress = options.safe?.address || safeAddress;
-  const stagingUrl = useStore((s) => s.settings.stagingUrl);
+  const stagingUrl = useStore((s) => s.settings.cannonSafeBackendUrl);
   const currentSafe = useStore((s) => s.currentSafe);
   const {
     nonce,

@@ -40,7 +40,7 @@ export interface State {
   settings: {
     ipfsApiUrl: string;
     isIpfsGateway: boolean;
-    stagingUrl: string;
+    cannonSafeBackendUrl: string;
     customProviders: string[];
     pythUrl: string;
   };
@@ -106,7 +106,7 @@ export const initialState = {
   settings: {
     ipfsApiUrl: externalLinks.IPFS_CANNON,
     isIpfsGateway: false,
-    stagingUrl: 'https://safe.usecannon.com',
+    cannonSafeBackendUrl: 'https://safe-staging.usecannon.com',
     customProviders: [],
     pythUrl: 'https://hermes.pyth.network',
   },
@@ -148,8 +148,8 @@ const useIpfsStore = create<IpfsStore>()(
     }),
     {
       name: 'ipfs-state',
-    }
-  )
+    },
+  ),
 );
 
 const useStore = create<Store>()(
@@ -191,7 +191,7 @@ const useStore = create<Store>()(
         set((state) => ({
           ...state,
           safeAddresses: uniqWith([newAddress, ...state.safeAddresses], deepEqual).filter(
-            (item) => item !== null
+            (item) => item !== null,
           ) as SafeDefinition[],
         }));
       },
@@ -212,8 +212,8 @@ const useStore = create<Store>()(
         safeTxServices: state.safeTxServices,
       }),
       merge: (persisted, initial) => merge(initial, persisted as Store) as Store,
-    }
-  )
+    },
+  ),
 );
 
 const useQueueTxsStore = create<QueueTxsStore>()(
@@ -253,8 +253,8 @@ const useQueueTxsStore = create<QueueTxsStore>()(
     }),
     {
       name: 'queue-txs-state',
-    }
-  )
+    },
+  ),
 );
 
 export { useStore, useIpfsStore, useQueueTxsStore };

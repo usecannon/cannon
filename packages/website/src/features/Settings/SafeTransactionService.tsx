@@ -14,7 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
 
 const formSchema = z.object({
-  stagingUrl: z.string().url('Change not saved! Invalid URL format'),
+  cannonSafeBackendUrl: z.string().url('Change not saved! Invalid URL format'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -26,18 +26,18 @@ const SafeTransactionService: React.FC = () => {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      stagingUrl: settings.stagingUrl,
+      cannonSafeBackendUrl: settings.cannonSafeBackendUrl,
     },
   });
 
-  const [inputUrl, setInputUrl] = useState(settings.stagingUrl);
+  const [inputUrl, setInputUrl] = useState(settings.cannonSafeBackendUrl);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const urlSchema = z.string().url('Change not saved! Invalid URL format.');
 
   useEffect(() => {
-    setInputUrl(settings.stagingUrl);
-  }, [settings.stagingUrl]);
+    setInputUrl(settings.cannonSafeBackendUrl);
+  }, [settings.cannonSafeBackendUrl]);
 
   const handleUrlChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
     // Remove trailing slash if present
@@ -47,7 +47,7 @@ const SafeTransactionService: React.FC = () => {
     try {
       urlSchema.parse(newUrl);
       setValidationError(null);
-      setSettings({ stagingUrl: newUrl });
+      setSettings({ cannonSafeBackendUrl: newUrl });
     } catch (error) {
       if (error instanceof z.ZodError) {
         setValidationError(error.errors[0].message);
@@ -65,7 +65,7 @@ const SafeTransactionService: React.FC = () => {
               className="bg-black border-white/40"
               value={inputUrl}
               type="text"
-              name="stagingUrl"
+              name="cannonSafeBackendUrl"
               onChange={handleUrlChange}
               placeholder="https://safe-transaction.example.com"
             />
