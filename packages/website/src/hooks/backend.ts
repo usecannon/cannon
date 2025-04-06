@@ -335,7 +335,8 @@ export function useTxnStager(
 
         // sometimes the signature comes back with a `v` of 0 or 1 when when it should 27 or 28, called a "recid" apparently
         // Allow a recid to be used as the v
-        /*if (gnosisSignature[gnosisSignature.length - 1] < 27) {
+        const gnosisSignature = viem.toBytes(signature);
+        if (gnosisSignature[gnosisSignature.length - 1] < 27) {
           if (gnosisSignature[gnosisSignature.length - 1] === 0 || gnosisSignature[gnosisSignature.length - 1] === 1) {
             gnosisSignature[gnosisSignature.length - 1] += 27;
           } else {
@@ -344,11 +345,11 @@ export function useTxnStager(
         }
 
         // gnosis for some reason requires adding 4 to the signature version code
-        gnosisSignature[gnosisSignature.length - 1] += 4;*/
+        //gnosisSignature[gnosisSignature.length - 1] += 4;
 
         await mutation.mutateAsync({
           txn: safeTxn,
-          sig: signature,
+          sig: viem.toHex(gnosisSignature),
         });
 
         if (options.onSignComplete) {
