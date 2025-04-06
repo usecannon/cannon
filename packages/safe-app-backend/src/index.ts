@@ -108,7 +108,7 @@ async function start() {
       standardHeaders: 'draft-7',
       legacyHeaders: false,
       validate: { trustProxy: !!process.env.TRUST_PROXY },
-    }),
+    })
   );
 
   app.use((_req, res, next) => {
