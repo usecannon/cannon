@@ -190,7 +190,7 @@ async function pickContract({
   contractNames: string[];
   contractArtifacts?: ContractMap;
 }) {
-  const isHighlighted = (n: string) => !!contractArtifacts?.[n]?.highlight ?? false;
+  const isHighlighted = (n: string) => !!contractArtifacts?.[n].highlight;
 
   const choices: Choice[] = _.sortBy(contractNames, [
     (contractName) => !isHighlighted(contractName),
@@ -313,7 +313,7 @@ async function query({
 
     log(
       cyan(`  ↪ ${output.name || ''}(${output.type}):`),
-      renderArgs(output, functionAbi.outputs.length > 1 ? result[i] : result)
+      renderArgs(output, functionAbi.outputs.length > 1 ? result[i] : result),
     );
   }
 
@@ -354,7 +354,7 @@ async function execTxn({
       _.assign(txn, {
         account: signer.wallet.account || signer.address,
         chain,
-      })
+      }),
     )) as any;
 
     log(gray(`  > calldata: ${txn!.data}`));
@@ -362,9 +362,9 @@ async function execTxn({
     log(
       gray(
         `  > gas: ${JSON.stringify(
-          _.mapValues(_.pick(txn, 'gasPrice', 'maxFeePerGas', 'maxPriorityFeePerGas'), viem.formatGwei)
-        )}`
-      )
+          _.mapValues(_.pick(txn, 'gasPrice', 'maxFeePerGas', 'maxPriorityFeePerGas'), viem.formatGwei),
+        )}`,
+      ),
     );
     log(green(bold('  ✅ txn will succeed')));
   } catch (err) {
@@ -507,7 +507,7 @@ function parseWeiValue(v: string): bigint {
  * @returns {boolean} - True if the parameter is a tuple with components, false otherwise.
  */
 function _isTupleParameter(
-  parameter: viem.AbiParameter
+  parameter: viem.AbiParameter,
 ): parameter is viem.AbiParameter & { components: readonly viem.AbiParameter[] } {
   return 'components' in parameter && parameter.type.startsWith('tuple');
 }
@@ -577,7 +577,7 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: viem.TransactionRece
   if (receipt.logs && receipt.logs.length > 0) {
     const contractsByAddress = _.mapKeys(
       _.groupBy(_.flatten(ctx.contracts.map((contract) => _.toPairs(contract))), '1.address'),
-      (v, k) => k.toLowerCase()
+      (v, k) => k.toLowerCase(),
     );
 
     for (let i = 0; i < receipt.logs.length; i++) {
@@ -652,5 +652,5 @@ const suggestBySubtring = (input: string, choices: [{ title: string }]) =>
         }
       }
       return true;
-    })
+    }),
   );
