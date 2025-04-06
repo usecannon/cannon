@@ -3,8 +3,8 @@ FROM node:22.11.0-alpine AS build
 WORKDIR /usr/app
 
 RUN npm i -g pnpm @vercel/ncc
-COPY ./package.json ./pnpm-lock.yaml ./tsconfig.json ./
-RUN pnpm i --frozen-lockfile --no-optional
+COPY ./package.json ./tsconfig.json ./
+RUN pnpm i
 COPY ./src ./src
 RUN pnpm run build
 RUN ncc build ./src/index.ts -o ./dist
