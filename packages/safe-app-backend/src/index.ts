@@ -227,7 +227,7 @@ async function start() {
         signedTransactionInfo.createdAt = existingTx.createdAt || Date.now();
         signedTransactionInfo.updatedAt = Date.now();
 
-        let recoveredSigAddresses = [];
+        const recoveredSigAddresses = [];
         for (const sig of _.union(signedTransactionInfo.sigs, existingTx.sigs)) {
           const signatureBytes = viem.toBytes(sig);
 
@@ -330,4 +330,6 @@ async function start() {
   });
 }
 
-start();
+start()
+  .then(() => console.log('finished'))
+  .catch((e) => console.error(`failed with error ${e}`));

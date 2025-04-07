@@ -10,7 +10,7 @@ describe('trace.ts', () => {
   describe('renderResult()', () => {
     it('renders objects as expected', () => {
       expect(renderResult(['wohoo', 1234, { wani: 'kani', swamp: ['world', { of: 'good' }] }])).toEqual(
-        '("wohoo", "1234", {"wani":"kani","swamp":["world",{"of":"good"}]})',
+        '("wohoo", "1234", {"wani":"kani","swamp":["world",{"of":"good"}]})'
       );
     });
   });
@@ -18,7 +18,7 @@ describe('trace.ts', () => {
   describe('parseContractErrorReason()', () => {
     it('decodes solidity tx errors', () => {
       expect(
-        parseContractErrorReason(null, (viem.toFunctionSelector('Panic(uint256)') + viem.zeroHash.slice(2)) as viem.Hex),
+        parseContractErrorReason(null, (viem.toFunctionSelector('Panic(uint256)') + viem.zeroHash.slice(2)) as viem.Hex)
       ).toEqual('Panic("generic/unknown error")');
     });
 
@@ -35,8 +35,8 @@ describe('trace.ts', () => {
               },
             ],
           },
-          (viem.toFunctionSelector('Hello(uint256)') + viem.zeroHash.slice(2)) as viem.Hex,
-        ),
+          (viem.toFunctionSelector('Hello(uint256)') + viem.zeroHash.slice(2)) as viem.Hex
+        )
       ).toEqual('Hello("0")');
     });
   });
@@ -49,7 +49,7 @@ describe('trace.ts', () => {
         ('0x' +
           (3054400204).toString(16) +
           viem.encodeAbiParameters([{ type: 'string' }, { type: 'uint256' }], ['woot', 1234n]).slice(2)) as viem.Hex,
-        '0x',
+        '0x'
       );
 
       expect(functionData.contractName).toEqual('console');
@@ -91,7 +91,7 @@ describe('trace.ts', () => {
         },
         viem.zeroAddress,
         viem.encodeFunctionData({ abi: testFunc, functionName: 'testFunc', args: ['woot', 1234] }),
-        viem.encodeFunctionResult({ abi: testFunc, functionName: 'testFunc', result: viem.zeroHash }),
+        viem.encodeFunctionResult({ abi: testFunc, functionName: 'testFunc', result: viem.zeroHash })
       );
 
       expect(functionData.contractName).toEqual('FunTest');
@@ -117,7 +117,7 @@ describe('trace.ts', () => {
         },
         viem.zeroAddress,
         viem.encodeFunctionData({ abi: testFunc, functionName: 'testFunc', args: ['woot', 1234] }),
-        viem.encodeErrorResult({ abi: testFunc, errorName: 'FailureToDoAnything' }),
+        viem.encodeErrorResult({ abi: testFunc, errorName: 'FailureToDoAnything' })
       );
 
       expect(errFunctionData.contractName).toEqual('FunTest');
@@ -180,11 +180,11 @@ describe('trace.ts', () => {
           traceAddress: [5, 2],
           transactionHash: viem.zeroHash,
           transactionPosition: 0,
-        },
+        }
       );
 
       expect(traceEntryString).toContain(
-        `      CALL FunTest.testFunc("woot", "1234") => ("${viem.zeroHash}") (123,402 gas)`,
+        `      CALL FunTest.testFunc("woot", "1234") => ("${viem.zeroHash}") (123,402 gas)`
       );
     });
   });
