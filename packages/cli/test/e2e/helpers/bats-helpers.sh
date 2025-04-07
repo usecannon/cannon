@@ -154,5 +154,5 @@ set_package_publisher() {
     --rpc-url "$ANVIL_URL_ETHEREUM"
   cast rpc anvil_stopImpersonatingAccount "$_owner_address" --rpc-url "$ANVIL_URL_ETHEREUM"
   # this is necessary to ensure the RPC is updated on CI, as it takes a little longer
-  sleep 15
+  sleep 30
 }
