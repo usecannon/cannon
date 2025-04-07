@@ -153,9 +153,9 @@ set_package_publisher() {
     --from "$_owner_address" \
     --unlocked \
     --rpc-url "$ANVIL_URL_ETHEREUM"
-  cast rpc evm_mine
-  cast rpc evm_mine
-  cast rpc evm_mine
+  cast rpc evm_mine --rpc-url "$ANVIL_URL_ETHEREUM"
+  cast rpc evm_mine --rpc-url "$ANVIL_URL_ETHEREUM"
+  cast rpc evm_mine --rpc-url "$ANVIL_URL_ETHEREUM"
   cast rpc anvil_stopImpersonatingAccount "$_owner_address" --rpc-url "$ANVIL_URL_ETHEREUM"
   set +x
 }
