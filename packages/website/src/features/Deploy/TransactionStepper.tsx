@@ -105,8 +105,11 @@ export function TransactionStepper(props: {
       }`
     : undefined;
 
+  // if (transactionHash || packagePublished) {
+  //   debugger;
+  // }
   let activeStep = 1;
-  if (packagePublished) {
+  if (packagePublished && transactionHash) {
     activeStep = 5;
   } else if (transactionHash) {
     activeStep = 3;
