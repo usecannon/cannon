@@ -63,7 +63,7 @@ function useActiveContract() {
 const processContracts = (
   allContractsRef: AllContracts[],
   contracts: ChainArtifacts['contracts'],
-  moduleName: string
+  moduleName: string,
 ) => {
   if (!contracts) return allContractsRef;
 
@@ -73,7 +73,7 @@ const processContracts = (
       contractName,
       contractAddress: contractInfo.address,
       highlight: Boolean(contractInfo.highlight),
-    })
+    }),
   );
 
   allContractsRef.push(...processedContracts);
@@ -82,7 +82,7 @@ const processContracts = (
 const processImports = (
   allContractsRef: AllContracts[],
   imports: ChainArtifacts['imports'],
-  parentModuleName = ''
+  parentModuleName = '',
 ) => {
   if (imports) {
     Object.entries(imports).forEach(([_moduleName, bundle]) => {
@@ -118,7 +118,7 @@ const Interact: FC = () => {
 
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     packagesQuery?.data?.deployUrl,
-    !!packagesQuery?.data?.deployUrl
+    !!packagesQuery?.data?.deployUrl,
   );
 
   const isActiveContract = (contract: Option) => {
@@ -142,10 +142,10 @@ const Interact: FC = () => {
       processImports(allContracts, cannonOutputs.imports);
 
       const highlightedContracts = allContracts.filter(
-        (contract) => contract.highlight
+        (contract) => contract.highlight,
       );
       const proxyContracts = allContracts.filter((contract) =>
-        contract.contractName.toLowerCase().includes('proxy')
+        contract.contractName.toLowerCase().includes('proxy'),
       );
 
       let highlightedData: any[] = [];
@@ -164,7 +164,7 @@ const Interact: FC = () => {
 
       for (const uniqueAddress of uniqueAddresses) {
         const excessContracts = highlightedData.filter(
-          (contract) => contract.contractAddress === uniqueAddress
+          (contract) => contract.contractAddress === uniqueAddress,
         );
         excessContracts.sort((a, b) => {
           const accumulateDeepLevel = (acc: number, cur: string) =>
@@ -177,7 +177,7 @@ const Interact: FC = () => {
         });
         excessContracts.shift();
         highlightedData = highlightedData.filter(
-          (contract) => !excessContracts.includes(contract)
+          (contract) => !excessContracts.includes(contract),
         );
       }
 
@@ -189,25 +189,25 @@ const Interact: FC = () => {
           const valueA: string = a['contractName'];
           const valueB: string = b['contractName'];
           return valueA.localeCompare(valueB);
-        })
+        }),
       );
 
       const otherData = allContracts.filter(
-        (contract) => !highlightedData.includes(contract)
+        (contract) => !highlightedData.includes(contract),
       );
       setOtherOptions(
         otherData.sort((a, b) => {
           const valueA: string = a['contractName'];
           const valueB: string = b['contractName'];
           return valueA.localeCompare(valueB);
-        })
+        }),
       );
 
       if (!activeContractOption) {
         const _contract = highlightedData[0] || otherData[0];
         if (_contract) {
           void router.push(
-            `/packages/${name}/${tag}/${variant}/interact/${_contract.moduleName}/${_contract.contractName}/${_contract.contractAddress}`
+            `/packages/${name}/${tag}/${variant}/interact/${_contract.moduleName}/${_contract.contractName}/${_contract.contractAddress}`,
           );
         }
       }
@@ -229,14 +229,14 @@ const Interact: FC = () => {
       const findContract = (
         contracts: any,
         parentModuleName: string,
-        imports: any
+        imports: any,
       ): boolean => {
         if (contracts) {
           const contract = Object.entries(contracts).find(
             ([k, v]) =>
               parentModuleName === moduleName &&
               k === contractName &&
-              (v as ContractData).address === contractAddress
+              (v as ContractData).address === contractAddress,
           );
 
           if (contract) {
@@ -256,8 +256,8 @@ const Interact: FC = () => {
               parentModuleName && parentModuleName !== name
                 ? `${parentModuleName}.${k}`
                 : k,
-              (v as any).imports
-            )
+              (v as any).imports,
+            ),
           );
         }
 
@@ -284,7 +284,7 @@ const Interact: FC = () => {
   const explorerUrl = packagesQuery.data?.chainId
     ? getExplorerUrl(
         packagesQuery.data?.chainId,
-        contractAddress as viem.Address
+        contractAddress as viem.Address,
       )
     : null;
 
@@ -320,11 +320,11 @@ const Interact: FC = () => {
                   const option = [...highlightedOptions, ...otherOptions].find(
                     (opt) =>
                       opt.moduleName === moduleName &&
-                      opt.contractName === contractName
+                      opt.contractName === contractName,
                   );
                   if (option) {
                     void router.push(
-                      `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
+                      `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`,
                     );
                   }
                 }}
@@ -368,7 +368,7 @@ const Interact: FC = () => {
                               ? o.contractName
                                   .toLowerCase()
                                   .includes(searchTerm)
-                              : true
+                              : true,
                           )
                           .map((option, i) => (
                             <div
@@ -381,7 +381,7 @@ const Interact: FC = () => {
                               onClick={async () => {
                                 setIsPopoverOpen(false);
                                 await router.push(
-                                  `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
+                                  `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`,
                                 );
                               }}
                               data-testid={`${option.contractName}-button`}
@@ -431,15 +431,18 @@ const Interact: FC = () => {
                         >
                           <FileText className="h-[14px] w-[14px] mr-1.5" />
                           <span className="border-b border-dotted border-gray-300">
-                            {contractAddress.substring(0, 6)}...
-                            {contractAddress.slice(-4)}
+                            {contractAddress
+                              ? `${contractAddress.substring(0, 6)}...${contractAddress.slice(-4)}`
+                              : 'Loading...'}
                           </span>
                         </a>
                         <div className="absolute right-0 top-0 p-1">
-                          <ClipboardButton
-                            text={contractAddress}
-                            className="static ml-1 scale-75"
-                          />
+                          {contractAddress && (
+                            <ClipboardButton
+                              text={contractAddress}
+                              className="static ml-1 scale-75"
+                            />
+                          )}
                         </div>
                       </>
                     ) : null}{' '}
