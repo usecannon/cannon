@@ -3,19 +3,16 @@ import { ContractsTable } from '../ContractsTable';
 import SearchInput from '@/components/SearchInput';
 import { useState } from 'react';
 import isEmpty from 'lodash/isEmpty';
-import { ChainBuilderContext } from '@usecannon/builder';
-import { extractAddressesAbis } from '@/features/Packages/utils/extractAddressesAndABIs';
+import { ContractTableOption } from '@/lib/interact';
 
 export const ContractsTab: FC<{
-  contractState: ChainBuilderContext['contracts'];
-  addressesAbis: ReturnType<typeof extractAddressesAbis>;
   chainId: number;
-  processedDeploymentInfo: any;
-}> = ({ contractState, addressesAbis, chainId, processedDeploymentInfo }) => {
+  contractStateData: ContractTableOption[];
+}> = ({ chainId, contractStateData }) => {
   const [contractSearchTerm, setContractSearchTerm] = useState<string>('');
 
-  const filteredContractState = Object.fromEntries(
-    Object.entries(contractState).filter(([, val]) =>
+  const filteredContractStateData = Object.fromEntries(
+    Object.entries(contractStateData).filter(([, val]) =>
       Object.values(val as Record<string, unknown>).some(
         (v) =>
           typeof v === 'string' &&
@@ -24,7 +21,7 @@ export const ContractsTab: FC<{
     )
   );
 
-  if (isEmpty(contractState) || isEmpty(addressesAbis)) {
+  if (isEmpty(filteredContractStateData)) {
     return (
       <>
         <div className="pt-4 px-4">
@@ -34,6 +31,9 @@ export const ContractsTab: FC<{
                 No contracts were deployed when building this package or a
                 package it upgraded from.
               </p>
+            </div>
+            <div className="pl-0 md:pl-6 w-full md:w-auto md:ml-auto mt-2 md:mt-0">
+              <SearchInput onSearchChange={setContractSearchTerm} />
             </div>
           </div>
         </div>
@@ -56,12 +56,11 @@ export const ContractsTab: FC<{
           </div>
         </div>
       </div>
-      {!isEmpty(filteredContractState) && (
+      {!isEmpty(filteredContractStateData) && (
         <div className="max-w-full m-4">
           <ContractsTable
-            contractState={filteredContractState}
             chainId={chainId}
-            processedDeploymentInfo={processedDeploymentInfo}
+            contractStateData={filteredContractStateData}
           />
         </div>
       )}

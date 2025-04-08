@@ -19,17 +19,11 @@ import {
   getSortedRowModel,
 } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/react-table';
-import { ChainBuilderContext } from '@usecannon/builder';
+// import { ChainBuilderContext } from '@usecannon/builder';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import UnavailableTransaction from '@/features/Packages/UnavailableTransaction';
 import { formatTransactionHash } from '@/helpers/formatters';
-
-type ContractRow = {
-  highlight: boolean;
-  name: string;
-  address: string;
-  deployTxnHash: string;
-};
+import { ContractRow } from '@/lib/interact';
 
 /*
   * Smart Contract Deployments
@@ -45,35 +39,10 @@ type ContractRow = {
   * Show whether its highlighted
 */
 export const ContractsTable: React.FC<{
-  contractState: ChainBuilderContext['contracts'];
   chainId: number;
-  processedDeploymentInfo: any;
-}> = ({ contractState, chainId, processedDeploymentInfo }) => {
+  contractStateData: any;
+}> = ({ chainId, contractStateData }) => {
   const { getExplorerUrl } = useCannonChains();
-  // console.log(processedDeploymentInfo);
-
-  const getInteractUrl = (object: any, deployedOn: string): string => {
-    const result = Object.entries(object)
-      .filter(([key, value]) => value.deployedOn.toString() === deployedOn)
-      .map(([key, value]) => ({
-        key: key,
-        address: value.address,
-        deployedOn: value.deployedOn,
-        contractName: value.contractName,
-      }));
-
-    const currentPath = window.location.pathname;
-
-    if (result) {
-      const newPath = currentPath.replace(
-        /\/deployment\/[^/]+/,
-        `/interact/foil/${result[0].contractName}/${result[0].address}`
-      );
-      return newPath;
-    } else {
-      return null;
-    }
-  };
 
   const isCreate2StatusTrue = (object: any, key: string): string => {
     if (object && key in object) {
@@ -83,7 +52,7 @@ export const ContractsTable: React.FC<{
 
       for (const k of Object.keys(object[key])) {
         if (typeof object[k] === 'object' && object[k] !== null) {
-          const result = isCreate2StatusTrue(object[k]);
+          const result = isCreate2StatusTrue(object[k], key);
           if (result) return result;
         }
       }
@@ -102,20 +71,19 @@ export const ContractsTable: React.FC<{
   };
 
   const data = React.useMemo(() => {
-    return Object.entries(contractState).map(
+    return Object.entries(contractStateData).map(
       ([, value]): ContractRow => ({
         highlight: !!value.highlight,
         name: value.contractName || '',
-        step: value.deployedOn.toString(),
-        address: value.address,
+        step: value.step,
+        address: value.contractAddress,
         deployTxnHash: value.deployTxnHash,
-        deployType: getDeployType(
-          processedDeploymentInfo,
-          value.deployedOn.toString()
-        ),
+        deployType: getDeployType(contractStateData, value.step),
+        path: value.path,
+        moduleName: value.moduleName || '',
       })
     );
-  }, [contractState]);
+  }, [contractStateData]);
 
   const hasHighedlighted = data.some((row) => row.highlight);
 
@@ -231,27 +199,13 @@ export const ContractsTable: React.FC<{
                           );
                         }
                         case 'name': {
-                          const interactUrl = getInteractUrl(
-                            contractState,
-                            cell.row.original.step
-                          );
-                          return !cell.row.original.name.length ? (
-                            <span className="text-muted-foreground italic">
-                              Unavailable
-                            </span>
-                          ) : interactUrl ? (
+                          return (
                             <a
-                              href={interactUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                              href={cell.row.original.path}
                               className="font-mono border-b border-dotted border-muted-foreground hover:border-solid"
                             >
-                              {cell.row.original.name}
+                              {`${cell.row.original.moduleName}.${cell.row.original.name}`}
                             </a>
-                          ) : (
-                            <span className="font-bold">
-                              {cell.row.original.name}
-                            </span>
                           );
                         }
                         case 'address':

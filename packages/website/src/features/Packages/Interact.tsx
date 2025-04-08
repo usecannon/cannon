@@ -27,19 +27,7 @@ import { externalLinks } from '@/constants/externalLinks';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { usePackageByRef } from '@/hooks/api/usePackage';
 import { ClipboardButton } from '@/components/ClipboardButton';
-
-type Option = {
-  moduleName: string;
-  contractName: string;
-  contractAddress: string;
-};
-
-type AllContracts = {
-  moduleName: string;
-  contractName: string;
-  contractAddress: viem.Address;
-  highlight: boolean;
-};
+import { Option, processDeploymentData } from '@/lib/interact';
 
 function useActiveContract() {
   const pathName = useRouter().asPath;
@@ -59,42 +47,6 @@ function useActiveContract() {
     }
   }, [pathName]);
 }
-
-const processContracts = (
-  allContractsRef: AllContracts[],
-  contracts: ChainArtifacts['contracts'],
-  moduleName: string
-) => {
-  if (!contracts) return allContractsRef;
-
-  const processedContracts = Object.entries(contracts).map(
-    ([contractName, contractInfo]) => ({
-      moduleName: moduleName,
-      contractName,
-      contractAddress: contractInfo.address,
-      highlight: Boolean(contractInfo.highlight),
-    })
-  );
-
-  allContractsRef.push(...processedContracts);
-};
-
-const processImports = (
-  allContractsRef: AllContracts[],
-  imports: ChainArtifacts['imports'],
-  parentModuleName = ''
-) => {
-  if (imports) {
-    Object.entries(imports).forEach(([_moduleName, bundle]) => {
-      const moduleName =
-        parentModuleName.length === 0
-          ? _moduleName
-          : `${parentModuleName}.${_moduleName}`;
-      processContracts(allContractsRef, bundle.contracts, moduleName);
-      processImports(allContractsRef, bundle.imports, moduleName);
-    });
-  }
-};
 
 const Interact: FC = () => {
   const router = useRouter();
@@ -135,85 +87,38 @@ const Interact: FC = () => {
       return;
     }
 
-    const processDeploymentData = (deploymentInfo: DeploymentInfo) => {
-      const allContracts: AllContracts[] = [];
-      const cannonOutputs = getOutput(deploymentInfo);
-      processContracts(allContracts, cannonOutputs.contracts, name);
-      processImports(allContracts, cannonOutputs.imports);
+    const [highlightedData, otherData] = processDeploymentData(
+      deploymentData.data,
+      name
+    );
 
-      const highlightedContracts = allContracts.filter(
-        (contract) => contract.highlight
-      );
-      const proxyContracts = allContracts.filter((contract) =>
-        contract.contractName.toLowerCase().includes('proxy')
-      );
+    setHighlightedOptions(
+      highlightedData.sort((a, b) => {
+        if (a.moduleName === name && b.moduleName !== name) return -1;
+        if (a.moduleName !== name && b.moduleName === name) return 1;
 
-      let highlightedData: any[] = [];
-      if (highlightedContracts.length > 0) {
-        highlightedData = highlightedContracts;
-      } else if (proxyContracts.length > 0) {
-        highlightedData = proxyContracts;
-      } else {
-        highlightedData = allContracts;
-      }
+        const valueA: string = a['contractName'];
+        const valueB: string = b['contractName'];
+        return valueA.localeCompare(valueB);
+      })
+    );
 
-      const uniqueAddresses = new Set();
-      for (const contractData of highlightedData) {
-        uniqueAddresses.add(contractData.contractAddress);
-      }
+    setOtherOptions(
+      otherData.sort((a, b) => {
+        const valueA: string = a['contractName'];
+        const valueB: string = b['contractName'];
+        return valueA.localeCompare(valueB);
+      })
+    );
 
-      for (const uniqueAddress of uniqueAddresses) {
-        const excessContracts = highlightedData.filter(
-          (contract) => contract.contractAddress === uniqueAddress
-        );
-        excessContracts.sort((a, b) => {
-          const accumulateDeepLevel = (acc: number, cur: string) =>
-            cur === '.' ? acc + 1 : acc;
-          const getModuleNameDeepLevel = (moduleName: string) =>
-            moduleName.split('').reduce(accumulateDeepLevel, 0);
-          const aDeepLevel = getModuleNameDeepLevel(a.moduleName);
-          const bDeepLevel = getModuleNameDeepLevel(b.moduleName);
-          return aDeepLevel - bDeepLevel;
-        });
-        excessContracts.shift();
-        highlightedData = highlightedData.filter(
-          (contract) => !excessContracts.includes(contract)
+    if (!activeContractOption) {
+      const _contract = highlightedData[0] || otherData[0];
+      if (_contract) {
+        void router.push(
+          `/packages/${name}/${tag}/${variant}/interact/${_contract.moduleName}/${_contract.contractName}/${_contract.contractAddress}`
         );
       }
-
-      setHighlightedOptions(
-        highlightedData.sort((a, b) => {
-          if (a.moduleName === name && b.moduleName !== name) return -1;
-          if (a.moduleName !== name && b.moduleName === name) return 1;
-
-          const valueA: string = a['contractName'];
-          const valueB: string = b['contractName'];
-          return valueA.localeCompare(valueB);
-        })
-      );
-
-      const otherData = allContracts.filter(
-        (contract) => !highlightedData.includes(contract)
-      );
-      setOtherOptions(
-        otherData.sort((a, b) => {
-          const valueA: string = a['contractName'];
-          const valueB: string = b['contractName'];
-          return valueA.localeCompare(valueB);
-        })
-      );
-
-      if (!activeContractOption) {
-        const _contract = highlightedData[0] || otherData[0];
-        if (_contract) {
-          void router.push(
-            `/packages/${name}/${tag}/${variant}/interact/${_contract.moduleName}/${_contract.contractName}/${_contract.contractAddress}`
-          );
-        }
-      }
-    };
-
-    void processDeploymentData(deploymentData.data);
+    }
   }, [activeContractOption, deploymentData.data, name, router, tag, variant]);
 
   useEffect(() => {
@@ -294,8 +199,6 @@ const Interact: FC = () => {
     throw new Error('Failed to fetch package');
   }
 
-  // console.log(`highlightedOptions start`);
-  // console.log(highlightedOptions);
   return (
     <>
       {isLoadingData ? (
