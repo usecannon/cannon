@@ -26,7 +26,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const branchName = `backmerge/bump-viem-${{ github.sha }}`;
+            const branchName = `bump/viem-${{ github.sha }}`;
             await exec.exec('git', ['checkout', '-b', branchName, 'origin/main']);
             await exec.exec('pnpm', ['upgrade', '-L', 'viem']);
             await exec.exec('git', ['push', 'origin', branchName]);
