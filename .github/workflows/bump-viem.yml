@@ -7,7 +7,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  backmerge:
+  bump-viem:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
