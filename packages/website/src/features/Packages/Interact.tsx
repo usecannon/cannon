@@ -60,37 +60,64 @@ function useActiveContract() {
   }, [pathName]);
 }
 
+/**
+ * Processes a collection of contracts and adds them to the provided array.
+ * Each contract is transformed into a standardized format with module name, contract name,
+ * address, and highlight status.
+ *
+ * @param allContractsRef - Array to store the processed contracts
+ * @param contracts - Collection of contracts to process
+ * @param moduleName - Name of the module these contracts belong to
+ * @returns The updated array of contracts
+ */
 const processContracts = (
   allContractsRef: AllContracts[],
   contracts: ChainArtifacts['contracts'],
   moduleName: string,
 ) => {
+  // If no contracts to process, return the array as is
   if (!contracts) return allContractsRef;
 
+  // Transform each contract into a standardized format
   const processedContracts = Object.entries(contracts).map(
     ([contractName, contractInfo]) => ({
-      moduleName: moduleName,
+      moduleName,
       contractName,
       contractAddress: contractInfo.address,
       highlight: Boolean(contractInfo.highlight),
     }),
   );
 
+  // Add the processed contracts to the reference array
   allContractsRef.push(...processedContracts);
 };
 
+/**
+ * Recursively processes imported contracts and their nested imports.
+ * This function iterates through the import tree and processes all contracts found in each module.
+ *
+ * @param allContractsRef - Array to store all processed contracts
+ * @param imports - Collection of imported modules and their contracts
+ * @param parentModuleName - Name of the parent module (used for nested imports)
+ */
 const processImports = (
   allContractsRef: AllContracts[],
   imports: ChainArtifacts['imports'],
   parentModuleName = '',
 ) => {
   if (imports) {
+    // Process each imported module
     Object.entries(imports).forEach(([_moduleName, bundle]) => {
+      // Construct the full module name (handles nested imports)
       const moduleName =
         parentModuleName.length === 0
           ? _moduleName
           : `${parentModuleName}.${_moduleName}`;
+
+      // Process contracts in the current module
       processContracts(allContractsRef, bundle.contracts, moduleName);
+
+      // Recursively process any nested imports
       processImports(allContractsRef, bundle.imports, moduleName);
     });
   }
@@ -98,15 +125,12 @@ const processImports = (
 
 const Interact: FC = () => {
   const router = useRouter();
+  const { getExplorerUrl } = useCannonChains();
   const { variant, tag, name, moduleName, contractName, contractAddress } =
     usePackageNameTagVersionUrlParams();
+  const activeContractOption = useActiveContract();
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const { getExplorerUrl } = useCannonChains();
-
-  const [chainId, preset] = PackageReference.parseVariant(variant);
-
-  const packagesQuery = usePackageByRef({ name, tag, preset, chainId });
-
   const [cannonOutputs, setCannonOutputs] = useState<ChainArtifacts>({});
   const [contract, setContract] = useState<ContractData | undefined>();
   const [highlightedOptions, setHighlightedOptions] = useState<Option[]>([]);
@@ -114,8 +138,8 @@ const Interact: FC = () => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const activeContractOption = useActiveContract();
-
+  const [chainId, preset] = PackageReference.parseVariant(variant);
+  const packagesQuery = usePackageByRef({ name, tag, preset, chainId });
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     packagesQuery?.data?.deployUrl,
     !!packagesQuery?.data?.deployUrl,
@@ -181,16 +205,16 @@ const Interact: FC = () => {
         );
       }
 
-      setHighlightedOptions(
-        highlightedData.sort((a, b) => {
-          if (a.moduleName === name && b.moduleName !== name) return -1;
-          if (a.moduleName !== name && b.moduleName === name) return 1;
+      const sortedHighlightedData = highlightedData.sort((a, b) => {
+        if (a.moduleName === name && b.moduleName !== name) return -1;
+        if (a.moduleName !== name && b.moduleName === name) return 1;
 
-          const valueA: string = a['contractName'];
-          const valueB: string = b['contractName'];
-          return valueA.localeCompare(valueB);
-        }),
-      );
+        const valueA: string = a['contractName'];
+        const valueB: string = b['contractName'];
+        return valueA.localeCompare(valueB);
+      });
+
+      setHighlightedOptions(sortedHighlightedData);
 
       const otherData = allContracts.filter(
         (contract) => !highlightedData.includes(contract),
