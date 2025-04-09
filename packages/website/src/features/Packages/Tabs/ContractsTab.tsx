@@ -3,16 +3,16 @@ import { ContractsTable } from '../ContractsTable';
 import SearchInput from '@/components/SearchInput';
 import { useState } from 'react';
 import isEmpty from 'lodash/isEmpty';
-import { ContractTableOption } from '@/lib/interact';
+import { ContractOption } from '@/lib/interact';
 
 export const ContractsTab: FC<{
+  contractState: ContractOption[];
   chainId: number;
-  contractStateData: ContractTableOption[];
-}> = ({ chainId, contractStateData }) => {
+}> = ({ contractState, chainId }) => {
   const [contractSearchTerm, setContractSearchTerm] = useState<string>('');
 
   const filteredContractStateData = Object.fromEntries(
-    Object.entries(contractStateData).filter(([, val]) =>
+    Object.entries(contractState).filter(([, val]) =>
       Object.values(val as Record<string, unknown>).some(
         (v) =>
           typeof v === 'string' &&
@@ -59,8 +59,8 @@ export const ContractsTab: FC<{
       {!isEmpty(filteredContractStateData) && (
         <div className="max-w-full m-4">
           <ContractsTable
+            contractState={filteredContractStateData}
             chainId={chainId}
-            contractStateData={filteredContractStateData}
           />
         </div>
       )}

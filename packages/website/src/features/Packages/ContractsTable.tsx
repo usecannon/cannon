@@ -19,11 +19,10 @@ import {
   getSortedRowModel,
 } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/react-table';
-// import { ChainBuilderContext } from '@usecannon/builder';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import UnavailableTransaction from '@/features/Packages/UnavailableTransaction';
 import { formatTransactionHash } from '@/helpers/formatters';
-import { ContractRow } from '@/lib/interact';
+import { ContractRow, ContractOptionMap } from '@/lib/interact';
 
 /*
   * Smart Contract Deployments
@@ -39,51 +38,25 @@ import { ContractRow } from '@/lib/interact';
   * Show whether its highlighted
 */
 export const ContractsTable: React.FC<{
+  contractState: ContractOptionMap;
   chainId: number;
-  contractStateData: any;
-}> = ({ chainId, contractStateData }) => {
+}> = ({ contractState, chainId }) => {
   const { getExplorerUrl } = useCannonChains();
 
-  const isCreate2StatusTrue = (object: any, key: string): string => {
-    if (object && key in object) {
-      if ('create2' in object[key] && object[key].create2) {
-        return 'Create2';
-      }
-
-      for (const k of Object.keys(object[key])) {
-        if (typeof object[k] === 'object' && object[k] !== null) {
-          const result = isCreate2StatusTrue(object[k], key);
-          if (result) return result;
-        }
-      }
-    }
-    return 'Create1';
-  };
-
-  const getDeployType = (object: any, operation: string): string => {
-    const step = operation.split('.')[0];
-    const subKey = operation.split('.')[1];
-    if (step == 'invoke') {
-      return 'Factory Deployment';
-    } else {
-      return isCreate2StatusTrue(object[step], subKey);
-    }
-  };
-
   const data = React.useMemo(() => {
-    return Object.entries(contractStateData).map(
+    return Object.entries(contractState).map(
       ([, value]): ContractRow => ({
         highlight: !!value.highlight,
         name: value.contractName || '',
         step: value.step,
         address: value.contractAddress,
         deployTxnHash: value.deployTxnHash,
-        deployType: getDeployType(contractStateData, value.step),
+        deployType: value.deployType,
         path: value.path,
         moduleName: value.moduleName || '',
       })
     );
-  }, [contractStateData]);
+  }, [contractState]);
 
   const hasHighedlighted = data.some((row) => row.highlight);
 

@@ -15,7 +15,7 @@ export type AllContracts = {
   highlight: boolean;
 };
 
-export type ContractTableOption = {
+export type ContractOption = {
   moduleName: string;
   contractName: string;
   contractAddress: string;
@@ -23,6 +23,11 @@ export type ContractTableOption = {
   step: string;
   deployTxnHash: string;
   path: string;
+  deployType: string;
+};
+
+export type ContractOptionMap = {
+  [label: string]: ContractOption;
 };
 
 export type ContractRow = {
@@ -55,7 +60,7 @@ const processImports = (allContractsRef: AllContracts[], imports: ChainArtifacts
   }
 };
 
-export const processDeploymentData = (deploymentInfo: DeploymentInfo, name: string): [any[], any[]] => {
+export const processDeploymentData = (deploymentInfo: DeploymentInfo, name: string): [AllContracts[], AllContracts[]] => {
   const allContracts: AllContracts[] = [];
   const cannonOutputs = getOutput(deploymentInfo);
   processContracts(allContracts, cannonOutputs.contracts, name);
@@ -94,4 +99,8 @@ export const processDeploymentData = (deploymentInfo: DeploymentInfo, name: stri
   const otherData = allContracts.filter((contract) => !highlightedData.includes(contract));
 
   return [highlightedData, otherData];
+};
+
+export const markHighlight = (data: AllContracts[], highlight: boolean): AllContracts[] => {
+  return data.map((item) => ({ ...item, highlight }));
 };
