@@ -243,6 +243,7 @@ const routerStep = {
           highlight: config.highlight,
           gasUsed: Number(receipt.gasUsed),
           gasCost: receipt.effectiveGasPrice.toString(),
+          labels: config.labels,
         },
       } as ContractMap,
     };

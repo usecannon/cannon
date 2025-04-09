@@ -219,6 +219,7 @@ const diamondStep = {
             deployedOn: packageState.currentLabel,
             gasUsed: Number(receipt.gasUsed),
             gasCost: receipt.effectiveGasPrice.toString(),
+            labels: config.labels,
             signer: viem.getAddress(receipt.from),
           },
         },
@@ -315,6 +316,7 @@ async function firstTimeDeploy(
         highlight: deployedContractLabel === stepName ? config.highlight : false,
         gasUsed: Number(receipt.gasUsed),
         gasCost: receipt.effectiveGasPrice.toString(),
+        labels: config.labels,
       };
     } else {
       outputContracts[deployedContractLabel] = {

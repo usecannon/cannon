@@ -106,6 +106,7 @@ const pullSpec = {
       imports: {
         [importLabel]: {
           url: (await runtime.registry.getUrl(source, chainId))!, // todo: duplication
+          labels: config.labels,
           ...(await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state))!,
         },
       },

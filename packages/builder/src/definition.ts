@@ -5,7 +5,7 @@ import type { Address } from 'viem';
 import { ActionKinds, RawChainDefinition, checkConfig } from './actions';
 import { ChainBuilderRuntime } from './runtime';
 import { chainDefinitionSchema } from './schemas';
-import { ChainBuilderContext } from './types';
+import { CannonHelperContext, ChainBuilderContext } from './types';
 import { template } from './utils/template';
 
 import { PackageReference } from './package-reference';
@@ -157,10 +157,18 @@ export class ChainDefinition {
       );
     }
 
-    return action.configInject({ ...ctx }, _.get(this.raw, n), {
+    const ctxWithHelpers = { ...ctx, ...CannonHelperContext };
+
+    const injectedConfig = action.configInject(ctxWithHelpers, _.get(this.raw, n), {
       ref: this.getPackageRef(ctx),
       currentLabel: n,
     });
+
+    if (injectedConfig.labels) {
+      for (const k in injectedConfig.labels) {
+        injectedConfig.labels[k] = template(injectedConfig.labels[k])(ctxWithHelpers);
+      }
+    }
   }
 
   /**

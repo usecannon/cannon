@@ -271,6 +271,7 @@ const cloneSpec = {
         [importLabel]: {
           url: newSubDeployUrl || '',
           tags: config.tags || ['latest'],
+          labels: config.labels,
           target: targetRef.fullPackageRef,
           preset: targetRef.preset,
           ...(await getOutputs(importRuntime, def, builtState))!,

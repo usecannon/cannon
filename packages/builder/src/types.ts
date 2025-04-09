@@ -44,6 +44,7 @@ export type ContractData = {
   sourceName: string;
   deployedOn: string;
   highlight?: boolean;
+  labels?: Record<string, string>;
   gasUsed: number;
   gasCost: string;
 };
@@ -59,6 +60,7 @@ export type TransactionMap = {
     timestamp?: string;
     events: EventMap;
     deployedOn: string;
+    labels?: Record<string, string>;
     gasUsed: number;
     gasCost: string;
     signer: string;
@@ -105,7 +107,7 @@ export const CannonHelperContext = deepFreeze(
     ...viemContext,
     ...ethersContext,
     ...jsContext,
-  })
+  }),
 );
 
 export type BuildOptions = { [val: string]: string };
@@ -129,7 +131,7 @@ export interface ChainBuilderRuntimeInfo {
   // returns a signer which should be used for sending the specified transaction.
   getDefaultSigner?: (
     txn: Omit<viem.SendTransactionParameters, 'account' | 'chain'>,
-    salt?: string
+    salt?: string,
   ) => Promise<CannonSigner>;
 
   // returns contract information from the specified artifact name.
@@ -157,7 +159,13 @@ export interface PackageState {
   currentLabel: string;
 }
 
-export type BundledOutput = { url: string; tags?: string[]; target?: string; preset?: string } & ChainArtifacts;
+export type BundledOutput = {
+  url: string;
+  tags?: string[];
+  labels?: Record<string, string>;
+  target?: string;
+  preset?: string;
+} & ChainArtifacts;
 
 export interface BundledChainBuilderOutputs {
   [module: string]: BundledOutput;

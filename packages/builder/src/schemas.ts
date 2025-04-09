@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 // Different types that can be passed into the args schema property
 const argtype: z.ZodLazy<any> = z.lazy(() =>
-  z.union([z.string(), z.number(), z.boolean(), z.record(z.string(), argtype), z.array(argtype)])
+  z.union([z.string(), z.number(), z.boolean(), z.record(z.string(), argtype), z.array(argtype)]),
 );
 
 // Different regular expressions used to validate formats like
@@ -18,6 +18,10 @@ const jsonAbiPathRegex = RegExp(/^(?!.*\.d?$).*\.json?$/, 'i');
 // This regex matches artifact names which are just capitalized words like solidity contract names
 const artifactNameRegex = RegExp(/^[A-Z]{1}[\w]+$/, 'i');
 const artifactPathRegex = RegExp(/^.*\.sol:\w+/, 'i');
+
+const labelsSchema = z
+  .record(z.string().regex(stepRegex, 'Must have no special characters'), z.string())
+  .describe('Map of keys and values to help identify the outputs of this action');
 
 // Because of a weird type cohercion, after using viem.isAddress during website build,
 // the string type of the given value gets invalid to "never", and breaks the build.
@@ -33,7 +37,7 @@ const targetString = z.string().refine(
     !!val.match(artifactPathRegex),
   (val) => ({
     message: `"${val}" must be a valid ethereum address, existing contract operation name, contract artifact name or filepath`,
-  })
+  }),
 );
 
 // stolen from https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string
@@ -68,7 +72,7 @@ export const deploySchema = z
       .string()
       .refine(
         (val) => !!val.match(artifactNameRegex) || !!val.match(artifactPathRegex),
-        (val) => ({ message: `Artifact name "${val}" is invalid` })
+        (val) => ({ message: `Artifact name "${val}" is invalid` }),
       )
       .describe('Artifact name of the target contract'),
   })
@@ -79,6 +83,7 @@ export const deploySchema = z
          * Description of the operation
          */
         description: z.string().describe('Description of the operation'),
+        labels: labelsSchema,
         /**
          * Determines whether contract should get priority in displays
          */
@@ -89,7 +94,7 @@ export const deploySchema = z
         create2: z
           .union([z.boolean(), z.string().refine((val) => isAddress(val))])
           .describe(
-            'Determines whether to deploy the contract using create2. If an address is specified, the arachnid create2 contract will be deployed/used from this address.'
+            'Determines whether to deploy the contract using create2. If an address is specified, the arachnid create2 contract will be deployed/used from this address.',
           ),
         /**
          * Determines whether to deploy the contract using create2
@@ -98,7 +103,7 @@ export const deploySchema = z
           .enum(['continue'])
           .optional()
           .describe(
-            'When deploying a contract with CREATE2, determines the behavior when the target contract is already deployed (ex. due to same bytecode and salt). Set to continue to allow the build to continue if the contract is found to have already been deployed. By default, an error is thrown and the action is halted.'
+            'When deploying a contract with CREATE2, determines the behavior when the target contract is already deployed (ex. due to same bytecode and salt). Set to continue to allow the build to continue if the contract is found to have already been deployed. By default, an error is thrown and the action is halted.',
           ),
         /**
          * Contract deployer address.
@@ -108,7 +113,7 @@ export const deploySchema = z
           .string()
           .refine(
             (val) => isAddress(val) || !!val.match(interpolatedRegex),
-            (val) => ({ message: `"${val}" is not a valid ethereum address` })
+            (val) => ({ message: `"${val}" is not a valid ethereum address` }),
           )
           .describe('Contract deployer address. Must match the ethereum address format'),
         nonce: z
@@ -117,7 +122,7 @@ export const deploySchema = z
             (val) => viem.isHex(val) || Number.isFinite(parseInt(val.toString())),
             (val) => ({
               message: `Nonce ${val} must be a string, number or hexadecimal value`,
-            })
+            }),
           )
           .transform((val) => {
             return val.toString();
@@ -137,7 +142,7 @@ export const deploySchema = z
             {
               message:
                 'ABI must be a valid JSON ABI string or artifact name or artifact name, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
-            }
+            },
           )
           .describe('Abi of the contract being deployed'),
         /**
@@ -148,11 +153,11 @@ export const deploySchema = z
           .array(
             z.string().refine(
               (val) => !!val.match(artifactNameRegex) || !!val.match(stepRegex),
-              (val) => ({ message: `Artifact name ${val} is invalid` })
-            )
+              (val) => ({ message: `Artifact name ${val} is invalid` }),
+            ),
           )
           .describe(
-            'An array of contract artifacts that have already been deployed with Cannon. This is useful when deploying proxy contracts.'
+            'An array of contract artifacts that have already been deployed with Cannon. This is useful when deploying proxy contracts.',
           ),
         /**
          *  Constructor or initializer args
@@ -198,14 +203,14 @@ export const deploySchema = z
               (val) => !!val.match(stepRegex),
               (val) => ({
                 message: `Bad format for "${val}". Must reference a previous operation, example: 'contract.Storage'`,
-              })
-            )
+              }),
+            ),
           )
           .describe(
-            'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+            'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.',
           ),
       })
-      .deepPartial()
+      .deepPartial(),
   )
   .strict();
 
@@ -221,7 +226,7 @@ export const pullSchema = z
         (val) => !!val.match(packageRegex) || !!val.match(stepRegex) || !!val.match(interpolatedRegex),
         (val) => ({
           message: `Source value: ${val} must match package formats: "package:version" or "package:version@preset" or operation name "import.Contract" or be an interpolated value`,
-        })
+        }),
       )
       .refine(
         (val) => {
@@ -235,7 +240,7 @@ export const pullSchema = z
             return true;
           }
         },
-        (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
+        (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` }),
       )
       .refine(
         (val) => {
@@ -249,7 +254,7 @@ export const pullSchema = z
             return true;
           }
         },
-        (val) => ({ message: `Package reference "${val}" is too long. Package version exceeds 32 bytes` })
+        (val) => ({ message: `Package reference "${val}" is too long. Package version exceeds 32 bytes` }),
       )
       .describe('Source of the cannonfile package to import from. Can be a cannonfile operation name or package name'),
   })
@@ -260,6 +265,7 @@ export const pullSchema = z
          * Description of the operation
          */
         description: z.string().describe('Description of the operation'),
+        labels: labelsSchema,
         /**
          *  ID of the chain to import the package from
          */
@@ -280,14 +286,14 @@ export const pullSchema = z
               (val) => !!val.match(stepRegex),
               (val) => ({
                 message: `"${val}" is invalid. Must reference a previous operation, example: 'contract.Storage'`,
-              })
-            )
+              }),
+            ),
           )
           .describe(
-            'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+            'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.',
           ),
       })
-      .deepPartial()
+      .deepPartial(),
   )
   .strict();
 
@@ -311,7 +317,7 @@ const invokeVarRecord = z
           .int()
           .optional()
           .describe(
-            'Number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)'
+            'Number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)',
           ),
 
         /**
@@ -321,13 +327,13 @@ const invokeVarRecord = z
           .boolean()
           .optional()
           .describe(
-            'Bypass error messages if an event is expected in the invoke operation but none are emitted in the transaction.'
+            'Bypass error messages if an event is expected in the invoke operation but none are emitted in the transaction.',
           ),
       })
-      .strict()
+      .strict(),
   )
   .describe(
-    'Object defined to hold transaction result data in a setting. For now its limited to getting event data so it can be reused in other operations'
+    'Object defined to hold transaction result data in a setting. For now its limited to getting event data so it can be reused in other operations',
   );
 
 export const invokeSchema = z
@@ -348,6 +354,7 @@ export const invokeSchema = z
          * Description of the operation
          */
         description: z.string().describe('Description of the operation'),
+        labels: labelsSchema,
         /**
          *  JSON file of the contract ABI.
          *  Required if the target contains an address rather than a contract operation name.
@@ -363,10 +370,10 @@ export const invokeSchema = z
             {
               message:
                 'ABI must be a valid JSON ABI string or artifact name, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
-            }
+            },
           )
           .describe(
-            'JSON file of the contract ABI. Required if the target contains an address rather than a contract operation name.'
+            'JSON file of the contract ABI. Required if the target contains an address rather than a contract operation name.',
           ),
 
         /**
@@ -380,7 +387,7 @@ export const invokeSchema = z
           .string()
           .refine(
             (val) => isAddress(val) || !!val.match(interpolatedRegex),
-            (val) => ({ message: `"${val}" must be a valid ethereum address` })
+            (val) => ({ message: `"${val}" must be a valid ethereum address` }),
           )
           .describe('The calling address to use when invoking this call.'),
 
@@ -427,7 +434,7 @@ export const invokeSchema = z
          */
         var: invokeVarRecord,
         extra: invokeVarRecord.describe(
-          '⚠ Deprecated in favor of var. Object defined to hold transaction result data in a setting. For now its limited to getting event data so it can be reused in other operations. Use `var` instead.'
+          '⚠ Deprecated in favor of var. Object defined to hold transaction result data in a setting. For now its limited to getting event data so it can be reused in other operations. Use `var` instead.',
         ),
         /**
          *   Object defined to hold deployment transaction result data.
@@ -453,7 +460,7 @@ export const invokeSchema = z
                 .int()
                 .optional()
                 .describe(
-                  'Number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)'
+                  'Number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)',
                 ),
 
               /**
@@ -463,7 +470,7 @@ export const invokeSchema = z
                 .string()
                 .refine(
                   (val) => !!val.match(artifactNameRegex) || !!val.match(artifactPathRegex),
-                  (val) => ({ message: `"${val}" must match a contract artifact name or path` })
+                  (val) => ({ message: `"${val}" must match a contract artifact name or path` }),
                 )
                 .optional()
                 .describe('Name of the contract artifact'),
@@ -478,12 +485,12 @@ export const invokeSchema = z
                     (val) => !!val.match(artifactNameRegex) || !!val.match(stepRegex),
                     (val) => ({
                       message: `"${val}" must match a previously defined contract operation name or contract artifact name or path`,
-                    })
-                  )
+                    }),
+                  ),
                 )
                 .optional()
                 .describe(
-                  'An array of contract artifacts that have already been deployed with Cannon. Used if the code for the deployed contract is not available in the artifacts.'
+                  'An array of contract artifacts that have already been deployed with Cannon. Used if the code for the deployed contract is not available in the artifacts.',
                 ),
 
               abi: z
@@ -497,7 +504,7 @@ export const invokeSchema = z
                   {
                     message:
                       'ABI must be a valid JSON ABI string or artifact name, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
-                  }
+                  },
                 )
                 .optional()
                 .describe('Abi of the contract being deployed'),
@@ -514,18 +521,18 @@ export const invokeSchema = z
                 .boolean()
                 .optional()
                 .describe(
-                  'Bypass error messages if an event is expected in the invoke operation but none are emitted in the transaction.'
+                  'Bypass error messages if an event is expected in the invoke operation but none are emitted in the transaction.',
                 ),
 
               /**
                *    Determines whether contract should get priority in displays
                */
               highlight: z.boolean().optional().describe('Determines whether contract should get priority in displays'),
-            })
+            }),
           )
           .optional()
           .describe(
-            'Object defined to hold deployment transaction result data. For now its limited to getting deployment event data so it can be reused in other operations'
+            'Object defined to hold deployment transaction result data. For now its limited to getting deployment event data so it can be reused in other operations',
           ),
         /**
          *  Previous operations this operation is dependent on
@@ -536,14 +543,14 @@ export const invokeSchema = z
               (val) => !!val.match(stepRegex),
               (val) => ({
                 message: `"${val}" is invalid. Must reference a previous operation, example: 'contract.Storage'`,
-              })
-            )
+              }),
+            ),
           )
           .describe(
-            'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+            'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.',
           ),
       })
-      .partial()
+      .partial(),
   )
   .strict();
 
@@ -558,7 +565,7 @@ export const cloneSchema = z
         (val) => !!val.match(packageRegex) || !!val.match(interpolatedRegex),
         (val) => ({
           message: `Source value: ${val} must match package formats: "package:version" or "package:version@preset" or be an interpolated value`,
-        })
+        }),
       )
       .refine(
         (val) => {
@@ -571,7 +578,7 @@ export const cloneSchema = z
             return true;
           }
         },
-        (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
+        (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` }),
       )
       .refine(
         (val) => {
@@ -585,7 +592,7 @@ export const cloneSchema = z
             return true;
           }
         },
-        (val) => ({ message: `Package reference "${val}" is too long. Package version exceeds 32 bytes` })
+        (val) => ({ message: `Package reference "${val}" is too long. Package version exceeds 32 bytes` }),
       )
       .describe('Name of the package to provision'),
   })
@@ -596,6 +603,7 @@ export const cloneSchema = z
          * Description of the operation
          */
         description: z.string().describe('Description of the operation'),
+        labels: labelsSchema,
         /**
          *  ID of the chain to import the package from.
          * Default - 13370
@@ -608,7 +616,7 @@ export const cloneSchema = z
         sourcePreset: z
           .string()
           .describe(
-            '⚠ Deprecated in favor of appending @PRESET_NAME to source. Override the preset to use when provisioning this package. Default - "main"'
+            '⚠ Deprecated in favor of appending @PRESET_NAME to source. Override the preset to use when provisioning this package. Default - "main"',
           ),
         /**
          *  Name of the package to write the provisioned package to
@@ -619,7 +627,7 @@ export const cloneSchema = z
             (val) => !!val.match(packageRegex) || !!val.match(interpolatedRegex),
             (val) => ({
               message: `Target value: ${val} must match package formats: "package:version" or "package:version@preset" or be an interpolated value`,
-            })
+            }),
           )
           .refine(
             (val) => {
@@ -632,7 +640,7 @@ export const cloneSchema = z
                 return true;
               }
             },
-            (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` })
+            (val) => ({ message: `Package reference "${val}" is too long. Package name exceeds 32 bytes` }),
           )
           .refine(
             (val) => {
@@ -646,7 +654,7 @@ export const cloneSchema = z
                 return true;
               }
             },
-            (val) => ({ message: `Package reference "${val}" is too long. Package version exceeds 32 bytes` })
+            (val) => ({ message: `Package reference "${val}" is too long. Package version exceeds 32 bytes` }),
           )
           .describe('Name of the package to clone'),
         /**
@@ -656,7 +664,7 @@ export const cloneSchema = z
         targetPreset: z
           .string()
           .describe(
-            '⚠ Deprecated in favor using target only with format packageName:version@targetPreset. Set the new preset to use for this package. Default - "main"'
+            '⚠ Deprecated in favor using target only with format packageName:version@targetPreset. Set the new preset to use for this package. Default - "main"',
           ),
         /**
          *  The settings to be used when initializing this Cannonfile.
@@ -665,7 +673,7 @@ export const cloneSchema = z
         var: z
           .record(z.string())
           .describe(
-            'The settings to be used when initializing this Cannonfile. Overrides any defaults preset in the source package.'
+            'The settings to be used when initializing this Cannonfile. Overrides any defaults preset in the source package.',
           ),
         /**
          *  (DEPRECATED) use `var`. The settings to be used when initializing this Cannonfile.
@@ -674,7 +682,7 @@ export const cloneSchema = z
         options: z
           .record(z.string())
           .describe(
-            '⚠ Deprecated in favor of var. The settings to be used when initializing this Cannonfile. Overrides any defaults preset in the source package.'
+            '⚠ Deprecated in favor of var. The settings to be used when initializing this Cannonfile. Overrides any defaults preset in the source package.',
           ),
         /**
          * Additional tags to set on the registry for when this provisioned package is published.
@@ -691,14 +699,14 @@ export const cloneSchema = z
               (val) => !!val.match(stepRegex),
               (val) => ({
                 message: `"${val}" is invalid. Must reference a previous operation, example: 'contract.Storage'`,
-              })
-            )
+              }),
+            ),
           )
           .describe(
-            'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+            'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.',
           ),
       })
-      .deepPartial()
+      .deepPartial(),
   )
   .strict();
 
@@ -712,6 +720,7 @@ export const routerSchema = z
      * Description of the operation
      */
     description: z.string().optional().describe('Description of the operation'),
+    labels: labelsSchema,
     /**
      * Include a `receive` function on the router so that it can receive ETH (or, whatever the gas token is on your network).
      * NOTE: you can always define `payable` functions on your end-functions to receive ETH as well. This is only for receiving ETH like a regular EOA would.
@@ -745,7 +754,7 @@ export const routerSchema = z
       .array(z.string())
       .optional()
       .describe(
-        'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+        'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.',
       ),
     highlight: z.boolean().optional().describe('Determines whether contract should get priority in displays'),
   })
@@ -761,6 +770,7 @@ export const diamondSchema = z
      * Description of the operation
      */
     description: z.string().optional().describe('Description of the action'),
+    labels: labelsSchema,
     /**
      *   Used to force new copy of a new diamond proxy
      */
@@ -780,7 +790,7 @@ export const diamondSchema = z
       .boolean()
       .optional()
       .describe(
-        'Prevents the diamond proxy from being modified in the future. Setting this value to `true` is irreversable once deployed.'
+        'Prevents the diamond proxy from being modified in the future. Setting this value to `true` is irreversable once deployed.',
       ),
     overrides: z
       .object({
@@ -795,7 +805,7 @@ export const diamondSchema = z
       .array(z.string())
       .optional()
       .describe(
-        'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+        'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.',
       ),
     highlight: z.boolean().optional().describe('Determines whether contract should get priority in displays'),
   })
@@ -811,6 +821,7 @@ export const varSchema = z
      * Description of the operation
      */
     description: z.string().optional().describe('Description of the operation'),
+    labels: labelsSchema,
     /**
      *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
      */
@@ -818,7 +829,7 @@ export const varSchema = z
       .array(z.string())
       .optional()
       .describe(
-        'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+        'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.',
       ),
   })
   .catchall(z.string());
@@ -838,7 +849,7 @@ export const chainDefinitionSchema = z
     version: z
       .string()
       .describe(
-        'Version of the package. Publishes as the "latest" version by default in addition to the version specified here.'
+        'Version of the package. Publishes as the "latest" version by default in addition to the version specified here.',
       ),
     /**
      *  Preset of the package
@@ -852,10 +863,10 @@ export const chainDefinitionSchema = z
         (val) => {
           return new Blob([val]).size <= 24;
         },
-        (val) => ({ message: `Package preset "${val}" is too long. Package preset exceeds 24 bytes` })
+        (val) => ({ message: `Package preset "${val}" is too long. Package preset exceeds 24 bytes` }),
       )
       .describe(
-        'Preset of the package (Presets are useful for distinguishing multiple deployments of the same protocol on the same chain.) Defaults to "main".'
+        'Preset of the package (Presets are useful for distinguishing multiple deployments of the same protocol on the same chain.) Defaults to "main".',
       )
       .optional(),
     /**
@@ -866,13 +877,14 @@ export const chainDefinitionSchema = z
     privateSourceCode: z
       .boolean()
       .describe(
-        'Turns off inclusion of source code in packages. When set to true, Cannon cannot verify contracts on Etherscan. Defaults to false.'
+        'Turns off inclusion of source code in packages. When set to true, Cannon cannot verify contracts on Etherscan. Defaults to false.',
       )
       .optional(),
     /**
      * Description for the package
      */
     description: z.string().describe('Description for the package').optional(),
+    labels: labelsSchema,
     /**
      * Keywords for search indexing
      */
@@ -884,7 +896,7 @@ export const chainDefinitionSchema = z
       .array(
         z.string().refine((val) => !!val.match(RegExp(/^0x[a-fA-F0-9]{40}$/, 'gm')), {
           message: 'Invalid Ethereum address',
-        })
+        }),
       )
       .describe('Any deployers that could publish this package. Will be used for automatic version management.')
       .optional(),
@@ -907,6 +919,7 @@ export const chainDefinitionSchema = z
                  * Description of the operation
                  */
                 description: z.string().describe('Description of the operation'),
+                labels: labelsSchema,
                 /**
                  * Data type of the value being stored
                  */
@@ -916,10 +929,10 @@ export const chainDefinitionSchema = z
                  */
                 defaultValue: z.string().describe('Stored value of the setting'),
               })
-              .partial()
+              .partial(),
           )
           .describe(
-            '⚠ Deprecated in favor of var. A setting is a variable that can be set (or overriden using the CLI) when building a Cannonfile. It is accessible elsewhere in the file a property of the settings object. For example, [setting.sampleSetting] can be referenced with <%= settings.sampleSetting %>'
+            '⚠ Deprecated in favor of var. A setting is a variable that can be set (or overriden using the CLI) when building a Cannonfile. It is accessible elsewhere in the file a property of the settings object. For example, [setting.sampleSetting] can be referenced with <%= settings.sampleSetting %>',
           ),
         /**
          * @internal
@@ -927,7 +940,7 @@ export const chainDefinitionSchema = z
         pull: z
           .record(pullSchema)
           .describe(
-            'Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other operations in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.'
+            'Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other operations in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.',
           ),
         /**
          * @internal
@@ -935,7 +948,7 @@ export const chainDefinitionSchema = z
         import: z
           .record(pullSchema)
           .describe(
-            '⚠ Deprecated in favor of pull. Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other operations in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.'
+            '⚠ Deprecated in favor of pull. Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other operations in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.',
           ),
         /**
          * @internal
@@ -943,7 +956,7 @@ export const chainDefinitionSchema = z
         clone: z
           .record(cloneSchema)
           .describe(
-            'Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).'
+            'Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).',
           ),
         /**
          * @internal
@@ -951,7 +964,7 @@ export const chainDefinitionSchema = z
         provision: z
           .record(cloneSchema)
           .describe(
-            '⚠ Deprecated in favor of clone. Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).'
+            '⚠ Deprecated in favor of clone. Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).',
           ),
         /**
          * @internal
@@ -977,7 +990,7 @@ export const chainDefinitionSchema = z
         diamond: z
           .record(diamondSchema)
           .describe(
-            'Generate a upgradable contract that proxies calls to multiple contracts using a ERC2535 Diamond standard.'
+            'Generate a upgradable contract that proxies calls to multiple contracts using a ERC2535 Diamond standard.',
           ),
         /**
          * @internal
@@ -985,5 +998,5 @@ export const chainDefinitionSchema = z
         var: z.record(varSchema).describe('Apply a setting or intermediate value.'),
         // ... there may be others that come from plugins
       })
-      .deepPartial()
+      .deepPartial(),
   );
