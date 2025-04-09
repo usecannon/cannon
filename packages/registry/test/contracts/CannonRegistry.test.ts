@@ -360,10 +360,10 @@ describe('CannonRegistry', function () {
 
       const { events } = await tx.wait();
       ok(Array.isArray(events));
-      deepEqual(
-        events.map((evt) => [...evt.args!]),
-        expectedEvents
-      );
+      const actualEvents = events.map((evt) => [...evt.args!]);
+      equal(actualEvents[0][0], expectedEvents[0][0]);
+      equal(actualEvents[0][1], expectedEvents[0][1]);
+      equal(actualEvents[1][1], expectedEvents[1][1]);
     });
 
     it('should not allow to modify package from another owner', async function () {

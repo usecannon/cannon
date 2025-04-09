@@ -21,8 +21,8 @@ export function StagedTransactions({
         </div>
         <div className="flex items-center text-xs text-muted-foreground gap-1.5">
           <span>
-            Signatures shared at{' '}
-            <code className="font-mono">{settings.stagingUrl}</code>
+            Using signature server{' '}
+            <code className="font-mono">{settings.cannonSafeBackendUrl}</code>
           </span>
           <Link
             href="/settings"
