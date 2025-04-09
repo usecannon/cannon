@@ -65,7 +65,6 @@ const Interact: FC = () => {
   const [otherOptions, setOtherOptions] = useState<Option[]>([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchHighlightTerm, setSeachHighlightTerm] = useState('');
 
   const activeContractOption = useActiveContract();
 
