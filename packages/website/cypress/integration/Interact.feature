@@ -42,7 +42,7 @@ Feature: Interact page
     When User clicks on the 1st element with id "bool-button"
     * User clicks on the 1st element with id "bool-true-input"
     * User clicks on the 1st element with id "call-function-button"
-    Then Output contains "100000000000000000000"
+    Then Output contains "issuanceRatioD18"
 
   Scenario: Executing call function with address output
     Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page

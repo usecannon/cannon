@@ -31,7 +31,7 @@ export const CannonRegistryProvider: React.FC<Props> = ({ children }) => {
       provider: createPublicClient({
         chain: getChainById(config.chainId),
         transport: customTransports[config.chainId] || http(rpcUrl),
-      }),
+      }) as any,
     });
   });
 

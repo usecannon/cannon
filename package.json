@@ -7,7 +7,7 @@
     "lint:sol": "solhint '{packages,examples}/*/{contracts,src}/**/*.sol'",
     "lint": "pnpm run '/^lint:(js|sol)/'",
     "lint:fix:js": "prettier --write '{packages,examples}/**/*.{js,ts}' && eslint --fix '{packages,examples}/**/*.{js,ts}'",
-    "lint:fix:sol": "prettier --write '{packages,examples}/*/{contracts,src}/**/*.sol'",
+    "lint:fix:sol": "prettier --write '{packages,examples}/*/{contracts,src}/**/*.sol' --plugin=prettier-plugin-solidity",
     "lint:fix": "pnpm run '/^lint:fix:(js|sol)/'",
     "clean": "pnpm -r --if-present run clean",
     "build": "pnpm run clean && pnpm -r --filter @usecannon/builder --filter @usecannon/cli --filter hardhat-cannon --filter @usecannon/api run build",
@@ -38,7 +38,7 @@
     "eslint-plugin-prettier": "^4.0.0",
     "lerna": "^8.0.2",
     "prettier": "^2.5.1",
-    "prettier-plugin-solidity": "^1.0.0-beta.19",
+    "prettier-plugin-solidity": "^1.4.1",
     "react": "^18.2.0",
     "release-please": "^15.12.0",
     "solhint": "^3.4.1",
@@ -58,5 +58,5 @@
     "node": ">=18",
     "pnpm": ">=9"
   },
-  "packageManager": "pnpm@9.10.0"
+  "packageManager": "pnpm@10.7.1"
 }
