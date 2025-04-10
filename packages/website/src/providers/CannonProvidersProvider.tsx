@@ -71,7 +71,7 @@ export type CustomProviders =
       getChainById: (chainId: number) => Chain | undefined;
       getExplorerUrl: (
         chainId: number,
-        hash: Hash | Address | `0x${string}`,
+        hash: Hash | Address | `0x${string}`
       ) => string;
     }
   | undefined;
@@ -236,13 +236,10 @@ export const supportedChains = (
   };
 });
 
-export const defaultTransports = supportedChains.reduce(
-  (transports, chain) => {
-    transports[chain.id] = http();
-    return transports;
-  },
-  {} as Record<number, HttpTransport>,
-);
+export const defaultTransports = supportedChains.reduce((transports, chain) => {
+  transports[chain.id] = http();
+  return transports;
+}, {} as Record<number, HttpTransport>);
 
 type RpcUrlAndTransport = { rpcUrl: string; transport: HttpTransport };
 
@@ -265,19 +262,16 @@ async function _getProvidersChainId({ queryKey }: { queryKey: string[] }) {
   });
 
   const responses = await Promise.allSettled(allPromises);
-  return responses.reduce(
-    (transports, r) => {
-      if (r.status === 'fulfilled') {
-        transports[+r.value.chainId] = {
-          rpcUrl: r.value.rpcUrl,
-          transport: http(r.value.rpcUrl),
-        };
-      }
+  return responses.reduce((transports, r) => {
+    if (r.status === 'fulfilled') {
+      transports[+r.value.chainId] = {
+        rpcUrl: r.value.rpcUrl,
+        transport: http(r.value.rpcUrl),
+      };
+    }
 
-      return transports;
-    },
-    {} as Record<number, RpcUrlAndTransport>,
-  );
+    return transports;
+  }, {} as Record<number, RpcUrlAndTransport>);
 }
 
 function _getAllChains(verifiedProviders?: Record<number, RpcUrlAndTransport>) {
@@ -312,7 +306,7 @@ function _getAllChains(verifiedProviders?: Record<number, RpcUrlAndTransport>) {
 }
 
 function _getAllTransports(
-  verifiedProviders?: Record<number, RpcUrlAndTransport>,
+  verifiedProviders?: Record<number, RpcUrlAndTransport>
 ) {
   const customTransports = cloneDeep(defaultTransports);
 
@@ -328,7 +322,7 @@ function _getAllTransports(
 }
 
 function _getCustomTransports(
-  verifiedProviders?: Record<number, RpcUrlAndTransport>,
+  verifiedProviders?: Record<number, RpcUrlAndTransport>
 ) {
   const customTransports: { [chainId: number]: HttpTransport } = {};
 
@@ -366,7 +360,7 @@ function _getMergedChainMetadata(safeTxServices: SafeTxService[]) {
         serviceUrl: service.url,
       },
     }),
-    {},
+    {}
   );
 
   return merge({}, chainMetadata, customServiceUrls);
@@ -384,13 +378,13 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
   });
 
   const chainsUrls = Object.values(verifiedProviders || {}).map(
-    (v) => v.rpcUrl,
+    (v) => v.rpcUrl
   );
   const chainsUrlsString = JSON.stringify(sortBy(chainsUrls));
 
   const mergedChainMetadata = useMemo(
     () => _getMergedChainMetadata(safeTxServices),
-    [safeTxServices],
+    [safeTxServices]
   );
 
   const [_allChains, _allTransports, _customTransports] = useMemo(
@@ -400,7 +394,7 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
       _getCustomTransports(verifiedProviders),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [chainsUrlsString],
+    [chainsUrlsString]
   );
 
   return (
@@ -424,7 +418,7 @@ export const useCannonChains = () => {
   const context = useContext(ProvidersContext);
   if (context === undefined) {
     throw new Error(
-      'useCannonChains must be used within a CustomProvidersProvider',
+      'useCannonChains must be used within a CustomProvidersProvider'
     );
   }
   return context;
