@@ -37,24 +37,59 @@ export type ContractRow = {
   deployTxnHash: string;
 };
 
-const processContracts = (allContractsRef: AllContracts[], contracts: ChainArtifacts['contracts'], moduleName: string) => {
+/**
+ * Processes a collection of contracts and adds them to the provided array.
+ * Each contract is transformed into a standardized format with module name, contract name,
+ * address, and highlight status.
+ *
+ * @param allContractsRef - Array to store the processed contracts
+ * @param contracts - Collection of contracts to process
+ * @param moduleName - Name of the module these contracts belong to
+ * @returns The updated array of contracts
+ */
+export const processContracts = (
+  allContractsRef: AllContracts[],
+  contracts: ChainArtifacts['contracts'],
+  moduleName: string
+) => {
+  // If no contracts to process, return the array as is
   if (!contracts) return allContractsRef;
 
+  // Transform each contract into a standardized format
   const processedContracts = Object.entries(contracts).map(([contractName, contractInfo]) => ({
-    moduleName: moduleName,
+    moduleName,
     contractName,
     contractAddress: contractInfo.address,
     highlight: Boolean(contractInfo.highlight),
   }));
 
+  // Add the processed contracts to the reference array
   allContractsRef.push(...processedContracts);
 };
 
-const processImports = (allContractsRef: AllContracts[], imports: ChainArtifacts['imports'], parentModuleName = '') => {
+/**
+ * Recursively processes imported contracts and their nested imports.
+ * This function iterates through the import tree and processes all contracts found in each module.
+ *
+ * @param allContractsRef - Array to store all processed contracts
+ * @param imports - Collection of imported modules and their contracts
+ * @param parentModuleName - Name of the parent module (used for nested imports)
+ */
+export const processImports = (
+  allContractsRef: AllContracts[],
+  imports: ChainArtifacts['imports'],
+  parentModuleName = ''
+) => {
   if (imports) {
+    // Process each imported module
     Object.entries(imports).forEach(([_moduleName, bundle]) => {
+      // Construct the full module name (handles nested imports)
       const moduleName = parentModuleName.length === 0 ? _moduleName : `${parentModuleName}.${_moduleName}`;
+
+      // Process contracts in the current module
       processContracts(allContractsRef, bundle.contracts, moduleName);
+
+      // Recursively process any nested imports
       processImports(allContractsRef, bundle.imports, moduleName);
     });
   }
@@ -97,7 +132,6 @@ export const processDeploymentData = (deploymentInfo: DeploymentInfo, name: stri
   }
 
   const otherData = allContracts.filter((contract) => !highlightedData.includes(contract));
-
   return [highlightedData, otherData];
 };
 
