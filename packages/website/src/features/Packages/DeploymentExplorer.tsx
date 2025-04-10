@@ -21,7 +21,10 @@ import {
 
 const getCreateType = (object: any, key: string): string => {
   if (object && key in object) {
-    if ('create2' in object[key] && object[key].create2) {
+    if (
+      'create2' in object[key] &&
+      object[key].create2?.toString() === 'true'
+    ) {
       return 'Create2';
     }
 
