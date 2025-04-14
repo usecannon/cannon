@@ -156,7 +156,7 @@ set_package_publisher() {
   additional_publishers=""
   while [ "${additional_publishers,,}" != "[${_publisher_address,,}]" ]; do
     additional_publishers=$(cast call '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba' \
-      'getAdditionalPublishers(bytes32 _packageName) returns (address[])' $_package_hex --rpc-url "$ANVIL_URL_ETHEREUM")
+      'getAdditionalPublishers(bytes32 _packageName) returns (address[])' $_package_hex --rpc-url "$ANVIL_URL_OPTIMISM")
     echo "current addtnl publishers $additional_publishers"
   done
   cast rpc anvil_stopImpersonatingAccount "$_owner_address" --rpc-url "$ANVIL_URL_ETHEREUM"
