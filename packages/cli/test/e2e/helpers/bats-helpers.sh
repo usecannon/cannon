@@ -154,16 +154,4 @@ set_package_publisher() {
     --rpc-url "$ANVIL_URL_ETHEREUM"
   cast rpc evm_mine --rpc-url "$ANVIL_URL_ETHEREUM"
   cast rpc anvil_stopImpersonatingAccount "$_owner_address" --rpc-url "$ANVIL_URL_ETHEREUM"
-  cast rpc anvil_impersonateAccount "$_owner_address" --rpc-url "$ANVIL_URL_OPTIMISM"
-  cast send \
-    '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba' \
-    'setAdditionalPublishers(bytes32 _packageName, address[] memory _additionalPublishersEthereum, address[] memory _additionalPublishersOptimism)' \
-    "$_package_hex" \
-    "[$_publisher_address]" \
-    "[$_publisher_address]" \
-    --from "$_owner_address" \
-    --unlocked \
-    --rpc-url "$ANVIL_URL_OPTIMISM"
-  cast rpc evm_mine --rpc-url "$ANVIL_URL_OPTIMISM"
-  cast rpc anvil_stopImpersonatingAccount "$_owner_address" --rpc-url "$ANVIL_URL_OPTIMISM"
 }
