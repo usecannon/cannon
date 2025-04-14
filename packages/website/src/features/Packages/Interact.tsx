@@ -27,19 +27,12 @@ import { externalLinks } from '@/constants/externalLinks';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { usePackageByRef } from '@/hooks/api/usePackage';
 import { ClipboardButton } from '@/components/ClipboardButton';
-
-type Option = {
-  moduleName: string;
-  contractName: string;
-  contractAddress: string;
-};
-
-type AllContracts = {
-  moduleName: string;
-  contractName: string;
-  contractAddress: viem.Address;
-  highlight: boolean;
-};
+import {
+  buildInteractPath,
+  Option,
+  processDeploymentData,
+  sortByModulePriority,
+} from '@/lib/interact';
 
 function useActiveContract() {
   const pathName = useRouter().asPath;
@@ -60,53 +53,14 @@ function useActiveContract() {
   }, [pathName]);
 }
 
-const processContracts = (
-  allContractsRef: AllContracts[],
-  contracts: ChainArtifacts['contracts'],
-  moduleName: string
-) => {
-  if (!contracts) return allContractsRef;
-
-  const processedContracts = Object.entries(contracts).map(
-    ([contractName, contractInfo]) => ({
-      moduleName: moduleName,
-      contractName,
-      contractAddress: contractInfo.address,
-      highlight: Boolean(contractInfo.highlight),
-    })
-  );
-
-  allContractsRef.push(...processedContracts);
-};
-
-const processImports = (
-  allContractsRef: AllContracts[],
-  imports: ChainArtifacts['imports'],
-  parentModuleName = ''
-) => {
-  if (imports) {
-    Object.entries(imports).forEach(([_moduleName, bundle]) => {
-      const moduleName =
-        parentModuleName.length === 0
-          ? _moduleName
-          : `${parentModuleName}.${_moduleName}`;
-      processContracts(allContractsRef, bundle.contracts, moduleName);
-      processImports(allContractsRef, bundle.imports, moduleName);
-    });
-  }
-};
-
 const Interact: FC = () => {
   const router = useRouter();
+  const { getExplorerUrl } = useCannonChains();
   const { variant, tag, name, moduleName, contractName, contractAddress } =
     usePackageNameTagVersionUrlParams();
+  const activeContractOption = useActiveContract();
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const { getExplorerUrl } = useCannonChains();
-
-  const [chainId, preset] = PackageReference.parseVariant(variant);
-
-  const packagesQuery = usePackageByRef({ name, tag, preset, chainId });
-
   const [cannonOutputs, setCannonOutputs] = useState<ChainArtifacts>({});
   const [contract, setContract] = useState<ContractData | undefined>();
   const [highlightedOptions, setHighlightedOptions] = useState<Option[]>([]);
@@ -114,8 +68,8 @@ const Interact: FC = () => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const activeContractOption = useActiveContract();
-
+  const [chainId, preset] = PackageReference.parseVariant(variant);
+  const packagesQuery = usePackageByRef({ name, tag, preset, chainId });
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     packagesQuery?.data?.deployUrl,
     !!packagesQuery?.data?.deployUrl
@@ -135,85 +89,23 @@ const Interact: FC = () => {
       return;
     }
 
-    const processDeploymentData = (deploymentInfo: DeploymentInfo) => {
-      const allContracts: AllContracts[] = [];
-      const cannonOutputs = getOutput(deploymentInfo);
-      processContracts(allContracts, cannonOutputs.contracts, name);
-      processImports(allContracts, cannonOutputs.imports);
+    const [highlightedData, otherData] = processDeploymentData(
+      deploymentData.data,
+      name
+    );
 
-      const highlightedContracts = allContracts.filter(
-        (contract) => contract.highlight
-      );
-      const proxyContracts = allContracts.filter((contract) =>
-        contract.contractName.toLowerCase().includes('proxy')
-      );
+    setHighlightedOptions(sortByModulePriority(highlightedData, name));
 
-      let highlightedData: any[] = [];
-      if (highlightedContracts.length > 0) {
-        highlightedData = highlightedContracts;
-      } else if (proxyContracts.length > 0) {
-        highlightedData = proxyContracts;
-      } else {
-        highlightedData = allContracts;
-      }
+    setOtherOptions(sortByModulePriority(otherData, name));
 
-      const uniqueAddresses = new Set();
-      for (const contractData of highlightedData) {
-        uniqueAddresses.add(contractData.contractAddress);
-      }
-
-      for (const uniqueAddress of uniqueAddresses) {
-        const excessContracts = highlightedData.filter(
-          (contract) => contract.contractAddress === uniqueAddress
-        );
-        excessContracts.sort((a, b) => {
-          const accumulateDeepLevel = (acc: number, cur: string) =>
-            cur === '.' ? acc + 1 : acc;
-          const getModuleNameDeepLevel = (moduleName: string) =>
-            moduleName.split('').reduce(accumulateDeepLevel, 0);
-          const aDeepLevel = getModuleNameDeepLevel(a.moduleName);
-          const bDeepLevel = getModuleNameDeepLevel(b.moduleName);
-          return aDeepLevel - bDeepLevel;
-        });
-        excessContracts.shift();
-        highlightedData = highlightedData.filter(
-          (contract) => !excessContracts.includes(contract)
+    if (!activeContractOption) {
+      const _contract = highlightedData[0] || otherData[0];
+      if (_contract) {
+        void router.push(
+          `/packages/${name}/${tag}/${variant}/interact/${_contract.moduleName}/${_contract.contractName}/${_contract.contractAddress}`
         );
       }
-
-      setHighlightedOptions(
-        highlightedData.sort((a, b) => {
-          if (a.moduleName === name && b.moduleName !== name) return -1;
-          if (a.moduleName !== name && b.moduleName === name) return 1;
-
-          const valueA: string = a['contractName'];
-          const valueB: string = b['contractName'];
-          return valueA.localeCompare(valueB);
-        })
-      );
-
-      const otherData = allContracts.filter(
-        (contract) => !highlightedData.includes(contract)
-      );
-      setOtherOptions(
-        otherData.sort((a, b) => {
-          const valueA: string = a['contractName'];
-          const valueB: string = b['contractName'];
-          return valueA.localeCompare(valueB);
-        })
-      );
-
-      if (!activeContractOption) {
-        const _contract = highlightedData[0] || otherData[0];
-        if (_contract) {
-          void router.push(
-            `/packages/${name}/${tag}/${variant}/interact/${_contract.moduleName}/${_contract.contractName}/${_contract.contractAddress}`
-          );
-        }
-      }
-    };
-
-    void processDeploymentData(deploymentData.data);
+    }
   }, [activeContractOption, deploymentData.data, name, router, tag, variant]);
 
   useEffect(() => {
@@ -324,7 +216,14 @@ const Interact: FC = () => {
                   );
                   if (option) {
                     void router.push(
-                      `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
+                      buildInteractPath(
+                        name,
+                        tag,
+                        variant,
+                        option.moduleName,
+                        option.contractName,
+                        option.contractAddress
+                      )
                     );
                   }
                 }}
@@ -431,15 +330,21 @@ const Interact: FC = () => {
                         >
                           <FileText className="h-[14px] w-[14px] mr-1.5" />
                           <span className="border-b border-dotted border-gray-300">
-                            {contractAddress.substring(0, 6)}...
-                            {contractAddress.slice(-4)}
+                            {contractAddress
+                              ? `${contractAddress.substring(
+                                  0,
+                                  6
+                                )}...${contractAddress.slice(-4)}`
+                              : 'Loading...'}
                           </span>
                         </a>
                         <div className="absolute right-0 top-0 p-1">
-                          <ClipboardButton
-                            text={contractAddress}
-                            className="static ml-1 scale-75"
-                          />
+                          {contractAddress && (
+                            <ClipboardButton
+                              text={contractAddress}
+                              className="static ml-1 scale-75"
+                            />
+                          )}
                         </div>
                       </>
                     ) : null}{' '}

@@ -406,7 +406,7 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
         customTransports: _customTransports,
         getChainById: (chainId) => _getChainById(_allChains, chainId),
         getExplorerUrl: (chainId, hash) =>
-          _getExplorerUrl(_allChains, chainId, hash),
+          _getExplorerUrl(_allChains, chainId, hash as Hash),
       }}
     >
       {isLoading ? <PageLoading /> : children}

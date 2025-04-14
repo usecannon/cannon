@@ -25,7 +25,7 @@ export interface CannonSafeTransaction {
 
 export function useSafeTransactions(safe: SafeDefinition | null, refetchInterval: number | false = false) {
   const { chainId: safeChainId, address: safeAddress } = safe || {};
-  const stagingUrl = useStore((s) => s.settings.stagingUrl);
+  const stagingUrl = useStore((s) => s.settings.cannonSafeBackendUrl);
 
   const stagedQuery = useQuery({
     queryKey: ['staged', safeChainId, safeAddress],
@@ -82,7 +82,7 @@ export function useTxnStager(
   const [alreadyStagedSigners, setAlreadyStagedSigners] = useState<viem.Address[]>([]);
   const queryChainId = options.safe?.chainId || chainId.toString();
   const querySafeAddress = options.safe?.address || safeAddress;
-  const stagingUrl = useStore((s) => s.settings.stagingUrl);
+  const stagingUrl = useStore((s) => s.settings.cannonSafeBackendUrl);
   const currentSafe = useStore((s) => s.currentSafe);
   const {
     nonce,
@@ -133,6 +133,12 @@ export function useTxnStager(
         abi: SafeABI,
         address: querySafeAddress as any,
         chainId: options.safe?.chainId,
+        functionName: 'domainSeparator',
+      },
+      {
+        abi: SafeABI,
+        address: querySafeAddress as any,
+        chainId: options.safe?.chainId,
         functionName: 'getThreshold',
       },
       {
@@ -145,19 +151,22 @@ export function useTxnStager(
     ],
   });
 
-  const hashToSign = reads.isSuccess ? (reads.data![0].result as viem.Address) : null;
+  const hashToSign = reads.isSuccess ? (reads.data![0].result as viem.Hash) : null;
+  const domainSeparator = reads.isSuccess ? (reads.data![1].result as viem.Hash) : null;
+
+  const requiredSigs = reads.isSuccess ? (reads.data![2].result as unknown as bigint) : 0;
+  const isSigner =
+    reads.isSuccess && !reads.isFetching && !reads.isRefetching ? (reads.data![3].result as unknown as boolean) : false;
 
   useEffect(() => {
-    if (!hashToSign || !alreadyStaged) return setAlreadyStagedSigners([]);
+    if (!hashToSign || !domainSeparator || !alreadyStaged) return setAlreadyStagedSigners([]);
 
     void (async function () {
       const signers: viem.Address[] = [];
       for (const sig of alreadyStaged.sigs) {
         const signature = viem.toBytes(sig);
         const signerAddress = await viem.recoverAddress({
-          hash: viem.hashMessage({
-            raw: hashToSign as any, // TODO: fix type
-          }),
+          hash: hashToSign,
           signature,
         });
         signers.push(signerAddress);
@@ -189,8 +198,6 @@ export function useTxnStager(
       void reads.refetch();
     },
   });
-
-  const requiredSigs = reads.isSuccess ? (reads.data![1].result as unknown as bigint) : 0;
 
   const execSig: string[] = _.clone(alreadyStaged?.sigs || []);
   if (alreadyStagedSigners.length < requiredSigs) {
@@ -224,8 +231,6 @@ export function useTxnStager(
 
   // must not have already signed in order to sign
   const existingSigsCount = alreadyStaged ? alreadyStaged.sigs.length : 0;
-  const isSigner =
-    reads.isSuccess && !reads.isFetching && !reads.isRefetching ? (reads.data![2].result as unknown as boolean) : false;
   const alreadySigned = existingSigsCount >= requiredSigs;
 
   let signConditionFailed = '';
@@ -335,7 +340,8 @@ export function useTxnStager(
 
         // sometimes the signature comes back with a `v` of 0 or 1 when when it should 27 or 28, called a "recid" apparently
         // Allow a recid to be used as the v
-        /*if (gnosisSignature[gnosisSignature.length - 1] < 27) {
+        const gnosisSignature = viem.toBytes(signature);
+        if (gnosisSignature[gnosisSignature.length - 1] < 27) {
           if (gnosisSignature[gnosisSignature.length - 1] === 0 || gnosisSignature[gnosisSignature.length - 1] === 1) {
             gnosisSignature[gnosisSignature.length - 1] += 27;
           } else {
@@ -344,11 +350,11 @@ export function useTxnStager(
         }
 
         // gnosis for some reason requires adding 4 to the signature version code
-        gnosisSignature[gnosisSignature.length - 1] += 4;*/
+        //gnosisSignature[gnosisSignature.length - 1] += 4;
 
         await mutation.mutateAsync({
           txn: safeTxn,
-          sig: signature,
+          sig: viem.toHex(gnosisSignature),
         });
 
         if (options.onSignComplete) {
