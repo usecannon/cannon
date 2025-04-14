@@ -19,17 +19,10 @@ import {
   getSortedRowModel,
 } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/react-table';
-import { ChainBuilderContext } from '@usecannon/builder';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import UnavailableTransaction from '@/features/Packages/UnavailableTransaction';
 import { formatTransactionHash } from '@/helpers/formatters';
-
-type ContractRow = {
-  highlight: boolean;
-  name: string;
-  address: string;
-  deployTxnHash: string;
-};
+import { ContractRow, ContractOptionMap } from '@/lib/interact';
 
 /*
   * Smart Contract Deployments
@@ -45,7 +38,7 @@ type ContractRow = {
   * Show whether its highlighted
 */
 export const ContractsTable: React.FC<{
-  contractState: ChainBuilderContext['contracts'];
+  contractState: ContractOptionMap;
   chainId: number;
 }> = ({ contractState, chainId }) => {
   const { getExplorerUrl } = useCannonChains();
@@ -55,9 +48,12 @@ export const ContractsTable: React.FC<{
       ([, value]): ContractRow => ({
         highlight: !!value.highlight,
         name: value.contractName || '',
-        step: value.deployedOn.toString(),
-        address: value.address,
+        step: value.step,
+        address: value.contractAddress,
         deployTxnHash: value.deployTxnHash,
+        deployType: value.deployType,
+        path: value.path,
+        moduleName: value.moduleName || '',
       })
     );
   }, [contractState]);
@@ -90,6 +86,10 @@ export const ContractsTable: React.FC<{
     columnHelper.accessor('step', {
       cell: (info: any) => info.getValue(),
       header: 'Operation',
+    }),
+    columnHelper.accessor('deployType', {
+      cell: (info: any) => info.getValue(),
+      header: 'Deployment Type',
     }),
   ];
 
@@ -172,14 +172,13 @@ export const ContractsTable: React.FC<{
                           );
                         }
                         case 'name': {
-                          return !cell.row.original.name.length ? (
-                            <span className="text-muted-foreground italic">
-                              Unavailable
-                            </span>
-                          ) : (
-                            <span className="font-bold">
-                              {cell.row.original.name}
-                            </span>
+                          return (
+                            <a
+                              href={cell.row.original.path}
+                              className="font-mono border-b border-dotted border-muted-foreground hover:border-solid"
+                            >
+                              {`${cell.row.original.moduleName}.${cell.row.original.name}`}
+                            </a>
                           );
                         }
                         case 'address':
@@ -205,6 +204,7 @@ export const ContractsTable: React.FC<{
                             <code className="text-xs">{value}</code>
                           );
                         }
+                        case 'deployType':
                         default: {
                           return flexRender(
                             cell.column.columnDef.cell,

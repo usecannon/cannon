@@ -142,7 +142,6 @@ set_package_publisher() {
   local _package_hex=$(to_bytes32 "$_package_name")
   local _owner_address=$(get_package_owner "$_package_name")
 
-  set -x
   cast rpc anvil_impersonateAccount "$_owner_address" --rpc-url "$ANVIL_URL_ETHEREUM"
   cast send \
     '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba' \
@@ -154,8 +153,11 @@ set_package_publisher() {
     --unlocked \
     --rpc-url "$ANVIL_URL_ETHEREUM"
   cast rpc evm_mine --rpc-url "$ANVIL_URL_ETHEREUM"
-  cast rpc evm_mine --rpc-url "$ANVIL_URL_ETHEREUM"
-  cast rpc evm_mine --rpc-url "$ANVIL_URL_ETHEREUM"
+  additional_publishers=""
+  while [ "${additional_publishers,,}" != "[${_publisher_address,,}]" ]; do
+    additional_publishers=$(cast call '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba' \
+      'getAdditionalPublishers(bytes32 _packageName) returns (address[])' $_package_hex --rpc-url "$ANVIL_URL_OPTIMISM")
+    echo "current addtnl publishers $additional_publishers"
+  done
   cast rpc anvil_stopImpersonatingAccount "$_owner_address" --rpc-url "$ANVIL_URL_ETHEREUM"
-  set +x
 }

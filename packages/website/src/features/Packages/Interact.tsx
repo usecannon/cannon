@@ -27,19 +27,12 @@ import { externalLinks } from '@/constants/externalLinks';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { usePackageByRef } from '@/hooks/api/usePackage';
 import { ClipboardButton } from '@/components/ClipboardButton';
-
-type Option = {
-  moduleName: string;
-  contractName: string;
-  contractAddress: string;
-};
-
-type AllContracts = {
-  moduleName: string;
-  contractName: string;
-  contractAddress: viem.Address;
-  highlight: boolean;
-};
+import {
+  buildInteractPath,
+  Option,
+  processDeploymentData,
+  sortByModulePriority,
+} from '@/lib/interact';
 
 function useActiveContract() {
   const pathName = useRouter().asPath;
@@ -60,69 +53,6 @@ function useActiveContract() {
   }, [pathName]);
 }
 
-/**
- * Processes a collection of contracts and adds them to the provided array.
- * Each contract is transformed into a standardized format with module name, contract name,
- * address, and highlight status.
- *
- * @param allContractsRef - Array to store the processed contracts
- * @param contracts - Collection of contracts to process
- * @param moduleName - Name of the module these contracts belong to
- * @returns The updated array of contracts
- */
-const processContracts = (
-  allContractsRef: AllContracts[],
-  contracts: ChainArtifacts['contracts'],
-  moduleName: string,
-) => {
-  // If no contracts to process, return the array as is
-  if (!contracts) return allContractsRef;
-
-  // Transform each contract into a standardized format
-  const processedContracts = Object.entries(contracts).map(
-    ([contractName, contractInfo]) => ({
-      moduleName,
-      contractName,
-      contractAddress: contractInfo.address,
-      highlight: Boolean(contractInfo.highlight),
-    }),
-  );
-
-  // Add the processed contracts to the reference array
-  allContractsRef.push(...processedContracts);
-};
-
-/**
- * Recursively processes imported contracts and their nested imports.
- * This function iterates through the import tree and processes all contracts found in each module.
- *
- * @param allContractsRef - Array to store all processed contracts
- * @param imports - Collection of imported modules and their contracts
- * @param parentModuleName - Name of the parent module (used for nested imports)
- */
-const processImports = (
-  allContractsRef: AllContracts[],
-  imports: ChainArtifacts['imports'],
-  parentModuleName = '',
-) => {
-  if (imports) {
-    // Process each imported module
-    Object.entries(imports).forEach(([_moduleName, bundle]) => {
-      // Construct the full module name (handles nested imports)
-      const moduleName =
-        parentModuleName.length === 0
-          ? _moduleName
-          : `${parentModuleName}.${_moduleName}`;
-
-      // Process contracts in the current module
-      processContracts(allContractsRef, bundle.contracts, moduleName);
-
-      // Recursively process any nested imports
-      processImports(allContractsRef, bundle.imports, moduleName);
-    });
-  }
-};
-
 const Interact: FC = () => {
   const router = useRouter();
   const { getExplorerUrl } = useCannonChains();
@@ -142,7 +72,7 @@ const Interact: FC = () => {
   const packagesQuery = usePackageByRef({ name, tag, preset, chainId });
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     packagesQuery?.data?.deployUrl,
-    !!packagesQuery?.data?.deployUrl,
+    !!packagesQuery?.data?.deployUrl
   );
 
   const isActiveContract = (contract: Option) => {
@@ -159,85 +89,23 @@ const Interact: FC = () => {
       return;
     }
 
-    const processDeploymentData = (deploymentInfo: DeploymentInfo) => {
-      const allContracts: AllContracts[] = [];
-      const cannonOutputs = getOutput(deploymentInfo);
-      processContracts(allContracts, cannonOutputs.contracts, name);
-      processImports(allContracts, cannonOutputs.imports);
+    const [highlightedData, otherData] = processDeploymentData(
+      deploymentData.data,
+      name
+    );
 
-      const highlightedContracts = allContracts.filter(
-        (contract) => contract.highlight,
-      );
-      const proxyContracts = allContracts.filter((contract) =>
-        contract.contractName.toLowerCase().includes('proxy'),
-      );
+    setHighlightedOptions(sortByModulePriority(highlightedData, name));
 
-      let highlightedData: any[] = [];
-      if (highlightedContracts.length > 0) {
-        highlightedData = highlightedContracts;
-      } else if (proxyContracts.length > 0) {
-        highlightedData = proxyContracts;
-      } else {
-        highlightedData = allContracts;
-      }
+    setOtherOptions(sortByModulePriority(otherData, name));
 
-      const uniqueAddresses = new Set();
-      for (const contractData of highlightedData) {
-        uniqueAddresses.add(contractData.contractAddress);
-      }
-
-      for (const uniqueAddress of uniqueAddresses) {
-        const excessContracts = highlightedData.filter(
-          (contract) => contract.contractAddress === uniqueAddress,
-        );
-        excessContracts.sort((a, b) => {
-          const accumulateDeepLevel = (acc: number, cur: string) =>
-            cur === '.' ? acc + 1 : acc;
-          const getModuleNameDeepLevel = (moduleName: string) =>
-            moduleName.split('').reduce(accumulateDeepLevel, 0);
-          const aDeepLevel = getModuleNameDeepLevel(a.moduleName);
-          const bDeepLevel = getModuleNameDeepLevel(b.moduleName);
-          return aDeepLevel - bDeepLevel;
-        });
-        excessContracts.shift();
-        highlightedData = highlightedData.filter(
-          (contract) => !excessContracts.includes(contract),
+    if (!activeContractOption) {
+      const _contract = highlightedData[0] || otherData[0];
+      if (_contract) {
+        void router.push(
+          `/packages/${name}/${tag}/${variant}/interact/${_contract.moduleName}/${_contract.contractName}/${_contract.contractAddress}`
         );
       }
-
-      const sortedHighlightedData = highlightedData.sort((a, b) => {
-        if (a.moduleName === name && b.moduleName !== name) return -1;
-        if (a.moduleName !== name && b.moduleName === name) return 1;
-
-        const valueA: string = a['contractName'];
-        const valueB: string = b['contractName'];
-        return valueA.localeCompare(valueB);
-      });
-
-      setHighlightedOptions(sortedHighlightedData);
-
-      const otherData = allContracts.filter(
-        (contract) => !highlightedData.includes(contract),
-      );
-      setOtherOptions(
-        otherData.sort((a, b) => {
-          const valueA: string = a['contractName'];
-          const valueB: string = b['contractName'];
-          return valueA.localeCompare(valueB);
-        }),
-      );
-
-      if (!activeContractOption) {
-        const _contract = highlightedData[0] || otherData[0];
-        if (_contract) {
-          void router.push(
-            `/packages/${name}/${tag}/${variant}/interact/${_contract.moduleName}/${_contract.contractName}/${_contract.contractAddress}`,
-          );
-        }
-      }
-    };
-
-    void processDeploymentData(deploymentData.data);
+    }
   }, [activeContractOption, deploymentData.data, name, router, tag, variant]);
 
   useEffect(() => {
@@ -253,14 +121,14 @@ const Interact: FC = () => {
       const findContract = (
         contracts: any,
         parentModuleName: string,
-        imports: any,
+        imports: any
       ): boolean => {
         if (contracts) {
           const contract = Object.entries(contracts).find(
             ([k, v]) =>
               parentModuleName === moduleName &&
               k === contractName &&
-              (v as ContractData).address === contractAddress,
+              (v as ContractData).address === contractAddress
           );
 
           if (contract) {
@@ -280,8 +148,8 @@ const Interact: FC = () => {
               parentModuleName && parentModuleName !== name
                 ? `${parentModuleName}.${k}`
                 : k,
-              (v as any).imports,
-            ),
+              (v as any).imports
+            )
           );
         }
 
@@ -308,7 +176,7 @@ const Interact: FC = () => {
   const explorerUrl = packagesQuery.data?.chainId
     ? getExplorerUrl(
         packagesQuery.data?.chainId,
-        contractAddress as viem.Address,
+        contractAddress as viem.Address
       )
     : null;
 
@@ -344,11 +212,18 @@ const Interact: FC = () => {
                   const option = [...highlightedOptions, ...otherOptions].find(
                     (opt) =>
                       opt.moduleName === moduleName &&
-                      opt.contractName === contractName,
+                      opt.contractName === contractName
                   );
                   if (option) {
                     void router.push(
-                      `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`,
+                      buildInteractPath(
+                        name,
+                        tag,
+                        variant,
+                        option.moduleName,
+                        option.contractName,
+                        option.contractAddress
+                      )
                     );
                   }
                 }}
@@ -392,7 +267,7 @@ const Interact: FC = () => {
                               ? o.contractName
                                   .toLowerCase()
                                   .includes(searchTerm)
-                              : true,
+                              : true
                           )
                           .map((option, i) => (
                             <div
@@ -405,7 +280,7 @@ const Interact: FC = () => {
                               onClick={async () => {
                                 setIsPopoverOpen(false);
                                 await router.push(
-                                  `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`,
+                                  `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
                                 );
                               }}
                               data-testid={`${option.contractName}-button`}
@@ -456,7 +331,10 @@ const Interact: FC = () => {
                           <FileText className="h-[14px] w-[14px] mr-1.5" />
                           <span className="border-b border-dotted border-gray-300">
                             {contractAddress
-                              ? `${contractAddress.substring(0, 6)}...${contractAddress.slice(-4)}`
+                              ? `${contractAddress.substring(
+                                  0,
+                                  6
+                                )}...${contractAddress.slice(-4)}`
                               : 'Loading...'}
                           </span>
                         </a>
