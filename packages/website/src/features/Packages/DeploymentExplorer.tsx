@@ -1,7 +1,7 @@
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useState, useMemo } from 'react';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { ApiPackage } from '@usecannon/api/dist/src/types';
@@ -14,10 +14,13 @@ import FunctionCallsTab from './Tabs/FunctionCallsTab';
 import EventDataTab from './Tabs/EventDataTab';
 import { extractContractsImports as extractContracts } from './utils/extractContractsImports';
 import {
+  buildInteractPath,
   ContractOption,
   processDeploymentData,
   markHighlight,
+  sortByModulePriority,
 } from '@/lib/interact';
+import { usePackageNameTagVariantUrlParams } from '@/hooks/routing/usePackageNameTagVariantUrlParams';
 
 const getCreateType = (object: any, key: string): string => {
   if (object && key in object) {
@@ -68,12 +71,10 @@ function omitEmptyObjects(config: { [x: string]: any }) {
 
 export const DeploymentExplorer: FC<{
   pkg: ApiPackage;
-  name: string;
-  tag: string;
-  variant: string;
-}> = ({ pkg, name, tag, variant }) => {
+}> = ({ pkg }) => {
   const router = useRouter();
   const pathname = usePathname();
+  const { name, tag, variant } = usePackageNameTagVariantUrlParams();
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     pkg?.deployUrl,
     !!pkg?.deployUrl
@@ -82,48 +83,6 @@ export const DeploymentExplorer: FC<{
   const [contractStateData, setContractStateData] = useState<ContractOption[]>(
     []
   );
-
-  useEffect(() => {
-    if (!deploymentData.data) {
-      return;
-    }
-
-    const [rawHighlightedData, rawOtherData] = processDeploymentData(
-      deploymentData.data,
-      name
-    );
-
-    const highlightedData = markHighlight(rawHighlightedData, true);
-    const otherData = markHighlight(rawOtherData, false);
-
-    const contractAllData: ContractOption[] = [...highlightedData, ...otherData]
-      .map((item) => {
-        const address = item.contractAddress || '';
-        return {
-          ...item,
-          step:
-            contractState[address]?.deployedOn.toString() || item.moduleName,
-          deployTxnHash: contractState[address]?.deployTxnHash || '',
-          path: `/packages/${name}/${tag}/${variant}/interact/${item.moduleName}/${item.contractName}/${item.contractAddress}`,
-          deployType: getDeployType(
-            processedDeploymentInfo,
-            contractState[address]?.deployedOn.toString() || item.moduleName
-          ),
-        };
-      })
-      .filter((item) => item !== undefined);
-
-    setContractStateData(
-      contractAllData.sort((a, b) => {
-        if (a.moduleName === name && b.moduleName !== name) return -1;
-        if (a.moduleName !== name && b.moduleName === name) return 1;
-
-        const valueA: string = a['contractName'];
-        const valueB: string = b['contractName'];
-        return valueA.localeCompare(valueB);
-      })
-    );
-  }, [deploymentData.data, name, router, tag, variant]);
 
   const clonedDeploymentInfoDef = deploymentInfo?.def
     ? JSON.parse(JSON.stringify(deploymentInfo.def))
@@ -136,6 +95,57 @@ export const DeploymentExplorer: FC<{
   const contractState = deploymentInfo?.state
     ? extractContracts(deploymentInfo.state)
     : {};
+
+  const contractAllData = useMemo(() => {
+    if (!deploymentData.data || !contractState || !processedDeploymentInfo) {
+      return [];
+    }
+
+    const [rawHighlightedData, rawOtherData] = processDeploymentData(
+      deploymentData.data,
+      name
+    );
+
+    const highlightedData = sortByModulePriority(
+      markHighlight(rawHighlightedData, true),
+      name
+    );
+
+    const otherData = sortByModulePriority(
+      markHighlight(rawOtherData, false),
+      name
+    );
+
+    const combinedAllData: ContractOption[] = [...highlightedData, ...otherData]
+      .map((item) => {
+        const address = item.contractAddress || '';
+        return {
+          ...item,
+          step:
+            contractState[address]?.deployedOn.toString() || item.moduleName,
+          deployTxnHash: contractState[address]?.deployTxnHash || '',
+          path: buildInteractPath(
+            name,
+            tag,
+            variant,
+            item.moduleName,
+            item.contractName,
+            item.contractAddress
+          ),
+          deployType: getDeployType(
+            processedDeploymentInfo,
+            contractState[address]?.deployedOn.toString() || item.moduleName
+          ),
+        };
+      })
+      .filter((item) => item !== undefined);
+
+    return combinedAllData;
+  }, [deploymentData.data, name, tag, variant]);
+
+  useEffect(() => {
+    setContractStateData(contractAllData);
+  }, [contractAllData]);
 
   function mergeInvoke(obj: any, mergedInvokes: any = {}): any {
     for (const key in obj) {

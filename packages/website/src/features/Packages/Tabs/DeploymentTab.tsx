@@ -36,12 +36,7 @@ export const DeploymentTab: FC<{
 
   return (
     <div className="flex flex-col w-full">
-      <DeploymentExplorer
-        pkg={packagesQuery.data}
-        name={name}
-        tag={tag}
-        variant={variant}
-      />
+      <DeploymentExplorer pkg={packagesQuery.data} />
     </div>
   );
 };

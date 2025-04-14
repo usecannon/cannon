@@ -27,7 +27,12 @@ import { externalLinks } from '@/constants/externalLinks';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { usePackageByRef } from '@/hooks/api/usePackage';
 import { ClipboardButton } from '@/components/ClipboardButton';
-import { Option, processDeploymentData } from '@/lib/interact';
+import {
+  buildInteractPath,
+  Option,
+  processDeploymentData,
+  sortByModulePriority,
+} from '@/lib/interact';
 
 function useActiveContract() {
   const pathName = useRouter().asPath;
@@ -89,24 +94,9 @@ const Interact: FC = () => {
       name
     );
 
-    setHighlightedOptions(
-      highlightedData.sort((a, b) => {
-        if (a.moduleName === name && b.moduleName !== name) return -1;
-        if (a.moduleName !== name && b.moduleName === name) return 1;
+    setHighlightedOptions(sortByModulePriority(highlightedData, name));
 
-        const valueA: string = a['contractName'];
-        const valueB: string = b['contractName'];
-        return valueA.localeCompare(valueB);
-      })
-    );
-
-    setOtherOptions(
-      otherData.sort((a, b) => {
-        const valueA: string = a['contractName'];
-        const valueB: string = b['contractName'];
-        return valueA.localeCompare(valueB);
-      })
-    );
+    setOtherOptions(sortByModulePriority(otherData, name));
 
     if (!activeContractOption) {
       const _contract = highlightedData[0] || otherData[0];
@@ -226,7 +216,14 @@ const Interact: FC = () => {
                   );
                   if (option) {
                     void router.push(
-                      `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
+                      buildInteractPath(
+                        name,
+                        tag,
+                        variant,
+                        option.moduleName,
+                        option.contractName,
+                        option.contractAddress
+                      )
                     );
                   }
                 }}

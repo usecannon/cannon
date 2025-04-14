@@ -138,3 +138,25 @@ export const processDeploymentData = (deploymentInfo: DeploymentInfo, name: stri
 export const markHighlight = (data: AllContracts[], highlight: boolean): AllContracts[] => {
   return data.map((item) => ({ ...item, highlight }));
 };
+
+export const buildInteractPath = (
+  name: string,
+  tag: string,
+  variant: string,
+  moduleName: string,
+  contractName: string,
+  contractAddress: string
+): string => {
+  return `/packages/${name}/${tag}/${variant}/interact/${moduleName}/${contractName}/${contractAddress}`;
+};
+
+export const sortByModulePriority = (data: AllContracts[], name: string): AllContracts[] => {
+  return data.sort((a, b) => {
+    if (a.moduleName === name && b.moduleName !== name) return -1;
+    if (a.moduleName !== name && b.moduleName === name) return 1;
+
+    const valueA: string = a['contractName'];
+    const valueB: string = b['contractName'];
+    return valueA.localeCompare(valueB);
+  });
+};
