@@ -3,6 +3,9 @@ version = "<%= package.version %>"
 description = "Simple project to verify the functionality of cannon"
 keywords = ["sample", "greeter"]
 
+labels.app = "greeter"
+labels.author = "Cannon"
+
 privateSourceCode = false
 
 [var.main]
@@ -12,9 +15,11 @@ msg = "my library was deployed in txn <%= contracts.library.deployTxnHash %>"
 [deploy.library]
 artifact = "Library"
 value = "2929372"
+labels.type = "internal"
 
 [deploy.greeter]
 artifact = "Greeter"
 args = ["<%= settings.msg %>"]
 libraries.Library = "<%= contracts.library.address %>"
 salt = "<%= settings.salt %>"
+labels.type = "user-facing"

@@ -20,8 +20,8 @@ const artifactNameRegex = RegExp(/^[A-Z]{1}[\w]+$/, 'i');
 const artifactPathRegex = RegExp(/^.*\.sol:\w+/, 'i');
 
 const labelsSchema = z
-  .record(z.string().regex(stepRegex, 'Must have no special characters'), z.string())
-  .describe('Map of keys and values to help identify the outputs of this action');
+  .record(z.string().regex(/[a-zA-Z0-9].*/, 'Must have no special characters'), z.string())
+  .describe('Map of keys and values to help identify the outputs of this action').optional();
 
 // Because of a weird type cohercion, after using viem.isAddress during website build,
 // the string type of the given value gets invalid to "never", and breaks the build.

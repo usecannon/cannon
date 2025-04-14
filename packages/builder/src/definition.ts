@@ -82,7 +82,7 @@ export class ChainDefinition {
 
     // best way to get a list of actions is just to iterate over the entire def, and filter out anything
     // that are not an actions (because those are known)
-    const actionsDef = _.omit(def, 'name', 'version', 'preset', 'description', 'keywords', 'deployers');
+    const actionsDef = _.omit(def, 'name', 'version', 'preset', 'description', 'keywords', 'deployers', 'labels');
 
     // Used to validate that there are not 2 steps with the same name
     const actionNames: string[] = [];
@@ -166,9 +166,11 @@ export class ChainDefinition {
 
     if (injectedConfig.labels) {
       for (const k in injectedConfig.labels) {
-        injectedConfig.labels[k] = template(injectedConfig.labels[k])(ctxWithHelpers);
+        injectedConfig.labels[k] = template(injectedConfig.labels[k], ctxWithHelpers);
       }
     }
+
+    return injectedConfig;
   }
 
   /**
