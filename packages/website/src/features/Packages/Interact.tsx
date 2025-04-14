@@ -27,7 +27,12 @@ import { externalLinks } from '@/constants/externalLinks';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { usePackageByRef } from '@/hooks/api/usePackage';
 import { ClipboardButton } from '@/components/ClipboardButton';
-import { Option, processDeploymentData } from '@/lib/interact';
+import {
+  buildInteractPath,
+  Option,
+  processDeploymentData,
+  sortByModulePriority,
+} from '@/lib/interact';
 
 function useActiveContract() {
   const pathName = useRouter().asPath;
@@ -50,15 +55,12 @@ function useActiveContract() {
 
 const Interact: FC = () => {
   const router = useRouter();
+  const { getExplorerUrl } = useCannonChains();
   const { variant, tag, name, moduleName, contractName, contractAddress } =
     usePackageNameTagVersionUrlParams();
+  const activeContractOption = useActiveContract();
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const { getExplorerUrl } = useCannonChains();
-
-  const [chainId, preset] = PackageReference.parseVariant(variant);
-
-  const packagesQuery = usePackageByRef({ name, tag, preset, chainId });
-
   const [cannonOutputs, setCannonOutputs] = useState<ChainArtifacts>({});
   const [contract, setContract] = useState<ContractData | undefined>();
   const [highlightedOptions, setHighlightedOptions] = useState<Option[]>([]);
@@ -66,8 +68,8 @@ const Interact: FC = () => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const activeContractOption = useActiveContract();
-
+  const [chainId, preset] = PackageReference.parseVariant(variant);
+  const packagesQuery = usePackageByRef({ name, tag, preset, chainId });
   const deploymentData = useQueryIpfsDataParsed<DeploymentInfo>(
     packagesQuery?.data?.deployUrl,
     !!packagesQuery?.data?.deployUrl
@@ -92,27 +94,9 @@ const Interact: FC = () => {
       name
     );
 
-    setHighlightedOptions(
-      highlightedData.sort((a, b) => {
-        if (a.moduleName === name && b.moduleName !== name) return -1;
-        if (a.moduleName !== name && b.moduleName === name) return 1;
+    setHighlightedOptions(sortByModulePriority(highlightedData, name));
 
-        const valueA: string = a['contractName'];
-        const valueB: string = b['contractName'];
-        return valueA.localeCompare(valueB);
-      })
-    );
-
-    setOtherOptions(
-      otherData.sort((a, b) => {
-        if (a.moduleName === name && b.moduleName !== name) return -1;
-        if (a.moduleName !== name && b.moduleName === name) return 1;
-
-        const valueA: string = a['contractName'];
-        const valueB: string = b['contractName'];
-        return valueA.localeCompare(valueB);
-      })
-    );
+    setOtherOptions(sortByModulePriority(otherData, name));
 
     if (!activeContractOption) {
       const _contract = highlightedData[0] || otherData[0];
@@ -232,7 +216,14 @@ const Interact: FC = () => {
                   );
                   if (option) {
                     void router.push(
-                      `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
+                      buildInteractPath(
+                        name,
+                        tag,
+                        variant,
+                        option.moduleName,
+                        option.contractName,
+                        option.contractAddress
+                      )
                     );
                   }
                 }}
