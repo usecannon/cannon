@@ -4,7 +4,7 @@ import { ClipboardButton } from '@/components/ClipboardButton';
 import { ContractData } from '@usecannon/builder';
 interface ContractHeaderInfoProps {
   contract: ContractData | undefined;
-  contractAddress: string;
+  contractAddress: string | undefined;
   name: string;
   tag: string;
   variant: string;
