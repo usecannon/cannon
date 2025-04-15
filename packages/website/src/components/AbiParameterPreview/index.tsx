@@ -93,7 +93,7 @@ export function AbiParameterPreview({
             <EncodedValueInput value={parsedValue} />
           )}
 
-          <div className="absolute right-0 top-1">
+          <div className="absolute right-2 top-1">
             {explorerUrl && <ExternalLinkButton href={explorerUrl} />}
             <ClipboardButton text={rawValue as string} />
           </div>
