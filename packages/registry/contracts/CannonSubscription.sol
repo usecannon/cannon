@@ -15,7 +15,7 @@ contract CannonSubscription is ReentrancyGuard {
 
   error ZeroAddressNotAllowed(string variableName);
   error InsufficientAllowance(address user, uint256 allowance, uint256 required);
-  error TransferFailed();
+  error TransferFailed(address from, address to, uint256 amount);
   error PriceOverflow();
   error MembershipNotActive(address user);
 
@@ -105,7 +105,7 @@ contract CannonSubscription is ReentrancyGuard {
 
     bool _success = USDC.transferFrom(_sender, VAULT, _totalPrice);
     if (!_success) {
-      revert TransferFailed();
+      revert TransferFailed(_sender, VAULT, _totalPrice);
     }
 
     emit MembershipPurchased(_sender, _amountOfTerms, _totalPrice);
@@ -149,7 +149,7 @@ contract CannonSubscription is ReentrancyGuard {
 
     bool _success = USDC.transferFrom(VAULT, _sender, _reimbursement);
     if (!_success) {
-      revert TransferFailed();
+      revert TransferFailed(_sender, VAULT, _reimbursement);
     }
 
     emit MembershipCancelled(_sender, _pendingTerms, _reimbursement);
