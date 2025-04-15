@@ -1,10 +1,7 @@
 import { FC } from 'react';
 import { Code, FileText } from 'lucide-react';
-import { externalLinks } from '@/constants/externalLinks';
 import { ClipboardButton } from '@/components/ClipboardButton';
 import { ContractData } from '@usecannon/builder';
-import * as viem from 'viem';
-
 interface ContractHeaderInfoProps {
   contract: ContractData | undefined;
   contractAddress: string;
