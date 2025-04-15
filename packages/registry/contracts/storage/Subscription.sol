@@ -93,7 +93,11 @@ library Subscription {
     /**
      * @notice All the user memberships. A user can have only one membership
      */
-    mapping(address => Membership) memberships;
+    mapping(address user => Membership membership) memberships;
+    /**
+     * @notice Custom plans assigned to users that they are allowed to purchase
+     */
+    mapping(address user => uint16 planId) allowedCustomPlans;
   }
 
   function load() internal pure returns (Data storage store) {
@@ -104,6 +108,7 @@ library Subscription {
   }
 
   function getPlan(Data storage _self, uint16 _planId) internal view returns (Plan storage) {
+    if (_planId == 0) revert PlanNotFound(_planId);
     Plan storage plan = _self.plans[_planId];
     if (plan.id == 0) revert PlanNotFound(_planId);
     return plan;
@@ -115,6 +120,14 @@ library Subscription {
 
   function setDefaultPlan(Data storage _self, uint16 _planId) internal {
     _self.defaultPlanId = _planId;
+  }
+
+  function setCustomPlan(Data storage _self, address _user, uint16 _planId) internal {
+    _self.allowedCustomPlans[_user] = _planId;
+  }
+
+  function getCustomPlan(Data storage _self, address _user) internal view returns (uint16) {
+    return _self.allowedCustomPlans[_user];
   }
 
   function registerPlan(
