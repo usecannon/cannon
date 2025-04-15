@@ -31,7 +31,7 @@ library Subscription {
     uint16 id;
     /**
      * @notice The duration of a subscription term in seconds
-     *         e.g. A single term would be 30 days
+     *         e.g. A single term could be 30 days
      */
     uint32 duration;
     /**
@@ -50,6 +50,10 @@ library Subscription {
      * @notice Whether the plan can be purchased or not
      */
     bool active;
+    /**
+     * @notice Whether the plan can be refunded on cancellation
+     */
+    bool refundable;
   }
 
   /**
@@ -136,7 +140,8 @@ library Subscription {
     uint32 _quota,
     uint16 _minTerms,
     uint16 _maxTerms,
-    uint256 _price
+    uint256 _price,
+    bool _refundable
   ) internal returns (uint16) {
     if (_minTerms == 0 || _maxTerms == 0 || _minTerms > _maxTerms) {
       revert InvalidTermsAmount(_minTerms, _maxTerms);
@@ -151,7 +156,8 @@ library Subscription {
       minTerms: _minTerms,
       maxTerms: _maxTerms,
       price: _price,
-      active: true
+      active: true,
+      refundable: _refundable
     });
 
     _self.latestPlanId = planId;

@@ -71,11 +71,20 @@ contract CannonSubscription is ReentrancyGuard {
     uint32 _quota,
     uint16 _minTerms,
     uint16 _maxTerms,
-    uint256 _price
+    uint256 _price,
+    bool _refundable
   ) external returns (uint16) {
     OwnableStorage.onlyOwner();
 
-    uint16 planId = Subscription.load().registerPlan(_termDuration, _quota, _minTerms, _maxTerms, _price);
+    uint16 planId = Subscription.load().registerPlan(
+      _termDuration,
+      _quota,
+      _minTerms,
+      _maxTerms,
+      _price,
+      _refundable
+    );
+
     emit PlanRegistered(planId, _termDuration, _quota, _minTerms, _maxTerms, _price);
 
     return planId;
@@ -191,11 +200,14 @@ contract CannonSubscription is ReentrancyGuard {
 
     Subscription.clearMembership(_membership);
 
-    uint256 _reimbursement = _plan.price * _pendingTerms;
+    uint256 _reimbursement = _plan.refundable ? _plan.price * _pendingTerms : 0;
 
-    bool _success = TOKEN.transferFrom(VAULT, _sender, _reimbursement);
-    if (!_success) {
-      revert TransferFailed(_sender, VAULT, _reimbursement);
+    if (_reimbursement > 0) {
+      bool _success = TOKEN.transferFrom(VAULT, _sender, _reimbursement);
+
+      if (!_success) {
+        revert TransferFailed(_sender, VAULT, _reimbursement);
+      }
     }
 
     emit MembershipCancelled(_sender, _pendingTerms, _reimbursement);
