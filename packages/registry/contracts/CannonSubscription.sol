@@ -19,6 +19,7 @@ contract CannonSubscription is ReentrancyGuard {
   error PriceOverflow();
   error MembershipNotActive(address user);
 
+  /// @notice Emitted when a new plan is registered by the owner
   event PlanRegistered(
     uint16 indexed planId,
     uint32 termDuration,
@@ -27,19 +28,30 @@ contract CannonSubscription is ReentrancyGuard {
     uint16 maxTerms,
     uint256 price
   );
+
+  /// @notice Emitted when a plan is set as the default
   event PlanSetAsDefault(uint16 indexed planId);
+
+  /// @notice Emitted when a user uses their membership credits
   event CreditsUsed(address indexed user, uint32 creditsUsed, uint32 remainingCredits);
+
+  /// @notice Emitted when a user purchases a membership
   event MembershipPurchased(address indexed user, uint32 amountOfTerms, uint256 totalPrice);
+
+  /// @notice Emitted when a user cancels their membership
   event MembershipCancelled(address indexed user, uint32 pendingTerms, uint256 reimbursement);
 
-  IERC20 public immutable USDC;
+  /// @notice The token that is used to pay for the subscription
+  IERC20 public immutable TOKEN;
+
+  /// @notice The address of the vault that receives users payments
   address public immutable VAULT;
 
-  constructor(address _usdcAddress, address _vaultAddress) {
-    if (_usdcAddress == address(0)) revert ZeroAddressNotAllowed("usdcAddress");
-    if (_vaultAddress == address(0)) revert ZeroAddressNotAllowed("vaultAddress");
+  constructor(address _paymentTokenAddress, address _vaultAddress) {
+    if (_paymentTokenAddress == address(0)) revert ZeroAddressNotAllowed("_paymentTokenAddress");
+    if (_vaultAddress == address(0)) revert ZeroAddressNotAllowed("_vaultAddress");
 
-    USDC = IERC20(_usdcAddress);
+    TOKEN = IERC20(_paymentTokenAddress);
     VAULT = _vaultAddress;
   }
 
@@ -96,14 +108,14 @@ contract CannonSubscription is ReentrancyGuard {
       revert PriceOverflow();
     }
 
-    uint256 _allowance = USDC.allowance(_sender, VAULT);
+    uint256 _allowance = TOKEN.allowance(_sender, VAULT);
     if (_allowance < _totalPrice) {
       revert InsufficientAllowance(_sender, _allowance, _totalPrice);
     }
 
     _subscription.acquireMembership(_plan, _membership, _amountOfTerms);
 
-    bool _success = USDC.transferFrom(_sender, VAULT, _totalPrice);
+    bool _success = TOKEN.transferFrom(_sender, VAULT, _totalPrice);
     if (!_success) {
       revert TransferFailed(_sender, VAULT, _totalPrice);
     }
@@ -147,7 +159,7 @@ contract CannonSubscription is ReentrancyGuard {
 
     uint256 _reimbursement = _plan.price * _pendingTerms;
 
-    bool _success = USDC.transferFrom(VAULT, _sender, _reimbursement);
+    bool _success = TOKEN.transferFrom(VAULT, _sender, _reimbursement);
     if (!_success) {
       revert TransferFailed(_sender, VAULT, _reimbursement);
     }
