@@ -5,19 +5,20 @@ import { FC, ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { AbiFunction } from 'abitype';
 import { toFunctionSignature } from 'viem';
+import { useRouter } from 'next/router';
 
 interface AbiMethodRenderCollapsibleProps {
   f: AbiFunction;
   content: ReactNode;
   anchor: string;
   selected?: boolean;
-  defaultOpen?: boolean;
 }
 
 export const AbiMethodRenderCollapsible: FC<
   AbiMethodRenderCollapsibleProps
-> = ({ f, content, anchor, selected, defaultOpen = false }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+> = ({ f, content, anchor, selected }) => {
+  const [isOpen, setIsOpen] = useState(selected || false);
+  const router = useRouter();
 
   // Auto-expand when selected
   useEffect(() => {
@@ -39,8 +40,13 @@ export const AbiMethodRenderCollapsible: FC<
               {toFunctionSignature(f)}
               <Link
                 className="text-muted-foreground ml-2 hover:no-underline"
-                href={anchor}
-                onClick={(e) => e.stopPropagation()}
+                href={`${router.asPath.split('#')[0]}#${anchor}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!isOpen) {
+                    setIsOpen(true);
+                  }
+                }}
               >
                 #
               </Link>
