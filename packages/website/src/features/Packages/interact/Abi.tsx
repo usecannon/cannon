@@ -2,7 +2,7 @@ import * as viem from 'viem';
 import { ChainArtifacts } from '@usecannon/builder';
 import { FC, useEffect, useState } from 'react';
 import { AbiFunction, Abi as AbiType } from 'abitype';
-import { Function } from '@/features/Packages/Function';
+import { AbiMethodRender } from '@/features/Packages/interact/AbiMethodRender';
 import { scroller, Element, scrollSpy } from 'react-scroll';
 import { useRouter } from 'next/router';
 import { SidebarLayout } from '@/components/layouts/SidebarLayout';
@@ -120,7 +120,7 @@ export const Abi: FC<{
                 name={getSelectorSlug(f)}
                 key={`${address}-${getSelectorSlug(f)}`}
               >
-                <Function
+                <AbiMethodRender
                   selected={selectedSelector == getSelectorSlug(f)}
                   f={f}
                   abi={abi as AbiType}
@@ -129,7 +129,6 @@ export const Abi: FC<{
                   chainId={chainId}
                   contractName={contractName}
                   onDrawerOpen={onDrawerOpen}
-                  collapsible
                   showFunctionSelector={false}
                   packageUrl={packageUrl}
                   isDrawerOpen={isDrawerOpen}

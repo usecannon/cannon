@@ -46,6 +46,7 @@ import {
 import { AddressInput } from '@/features/Packages/FunctionInput/AddressInput';
 import { links } from '@/constants/links';
 import isEqual from 'lodash/isEqual';
+import { AbiMethodRenderCollapsible } from '@/features/Packages/interact/AbiMethodRenderCollapsible';
 
 const extractError = (e: any): string => {
   return typeof e === 'string'
@@ -70,7 +71,7 @@ const StatusIcon = ({ error }: { error: boolean }) => (
   </div>
 );
 
-interface FunctionProps {
+export const AbiMethodRender: FC<{
   selected?: boolean;
   f: AbiFunction;
   abi: Abi;
@@ -83,9 +84,7 @@ interface FunctionProps {
   showFunctionSelector: boolean;
   packageUrl?: string;
   isDrawerOpen?: boolean;
-}
-
-export const Function: FC<FunctionProps> = ({
+}> = ({
   selected,
   f,
   abi,
@@ -93,12 +92,10 @@ export const Function: FC<FunctionProps> = ({
   chainId,
   contractName,
   onDrawerOpen,
-  collapsible,
   showFunctionSelector,
   packageUrl,
   isDrawerOpen,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
   const currentSafe = useStore((s) => s.currentSafe);
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
@@ -106,7 +103,6 @@ export const Function: FC<FunctionProps> = ({
     value: unknown;
     error: string | null;
   } | null>(null);
-  const [hasExpandedSelected, setHasExpandedSelected] = useState(false);
   const [showError, setShowError] = useState(true);
 
   const sadParams = useRef(new Array(f.inputs.length).fill(undefined));
@@ -151,12 +147,6 @@ export const Function: FC<FunctionProps> = ({
 
   const { isConnected, address: from, chain: connectedChain } = useAccount();
   const [simulatedSender, setSimulatedSender] = useState<Address>(zeroAddress);
-
-  useEffect(() => {
-    if (from) {
-      setSimulatedSender(from);
-    }
-  }, [from]);
 
   const { openConnectModal } = useConnectModal();
 
@@ -329,14 +319,7 @@ export const Function: FC<FunctionProps> = ({
   };
 
   const renderFunctionContent = () => (
-    <div
-      className={cn(
-        'px-3 py-2 bg-background',
-        collapsible
-          ? 'border-t border-border'
-          : 'border border-border rounded-sm'
-      )}
-    >
+    <div className={cn('px-3 py-2 bg-background', 'border-t border-border')}>
       <motion.div
         initial={{ y: -10 }}
         animate={{ y: 0 }}
@@ -653,61 +636,18 @@ export const Function: FC<FunctionProps> = ({
   );
 
   useEffect(() => {
-    if (!hasExpandedSelected && selected && !isOpen) {
-      setIsOpen(true);
-      setHasExpandedSelected(true);
+    if (from) {
+      setSimulatedSender(from);
     }
-  }, [selected, isOpen, hasExpandedSelected]);
+  }, [from]);
 
   return (
-    <>
-      {/* renderFunctionContent */}
-      {collapsible ? (
-        <div className="flex flex-col border border-border rounded-sm overflow-hidden">
-          <div
-            className="flex flex-row px-3 py-2 items-center justify-between hover:bg-accent/60 cursor-pointer bg-accent/50 transition-colors"
-            id={anchor}
-            onClick={() => setIsOpen(!isOpen)}
-          >
-            {f.name && (
-              <h2 className="text-sm font-mono flex items-center">
-                <span className="break-all">
-                  {toFunctionSignature(f)}
-                  <Link
-                    className="text-muted-foreground ml-2 hover:no-underline"
-                    href={anchor}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    #
-                  </Link>
-                </span>
-              </h2>
-            )}
-            <ChevronDownIcon
-              className={cn(
-                'w-5 h-5 transition-transform duration-300',
-                isOpen && 'rotate-180'
-              )}
-            />
-          </div>
-          <AnimatePresence mode="wait">
-            {isOpen && (
-              <motion.div
-                key="content"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className="overflow-hidden"
-              >
-                {renderFunctionContent()}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      ) : (
-        renderFunctionContent()
-      )}
-    </>
+    <AbiMethodRenderCollapsible
+      f={f}
+      content={renderFunctionContent()}
+      anchor={anchor}
+      selected={selected}
+      defaultOpen={selected}
+    />
   );
 };
