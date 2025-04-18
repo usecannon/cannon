@@ -2,7 +2,6 @@
 
 import { FC, useEffect, useState } from 'react';
 import QueueDrawer from '@/features/Deploy/QueueDrawer';
-import { Abi } from '@/features/Packages/Abi';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { usePackageNameTagVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import { DeploymentInfo, PackageReference } from '@usecannon/builder';
@@ -17,6 +16,7 @@ import { useDeploymentContracts } from './useDeploymentContracts';
 import { useProcessedOptions } from './useProcessedOptions';
 import { ContractsList } from './ContractsList';
 import { ContractHeaderInfo } from './ContractHeaderInfo';
+import { Abi } from '@/features/Packages/interact/Abi';
 
 const Interact: FC = () => {
   const router = useRouter();
@@ -85,7 +85,7 @@ const Interact: FC = () => {
     otherOptions,
   ]);
 
-  if (isLoadingData) {
+  if (isLoadingData || !contract) {
     return (
       <div className="py-20">
         <IpfsSpinner ipfsUrl={packagesQuery?.data?.deployUrl} />
@@ -114,8 +114,7 @@ const Interact: FC = () => {
 
       {/* Interact with Contract methods */}
       <Abi
-        isLoading={isLoadingData}
-        abi={contract?.abi}
+        abi={contract.abi}
         contractName={contract?.contractName ?? 'Unknown'}
         address={contractAddress!}
         cannonOutputs={cannonOutputs}

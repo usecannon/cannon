@@ -1,4 +1,4 @@
-import { Abi } from '@/features/Packages/Abi';
+import { Abi } from '@/features/Packages/interact/Abi';
 import { ChainArtifacts } from '@usecannon/builder';
 import { Abi as AbiType } from 'abitype';
 import React, { FC } from 'react';
