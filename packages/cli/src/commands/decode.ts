@@ -1,5 +1,5 @@
 import * as viem from 'viem';
-import { AbiFunction, AbiEvent } from 'abitype';
+import { AbiFunction, AbiEvent, formatAbiItem } from 'abitype';
 import { bold, gray, green, italic } from 'chalk';
 import { ContractData, DeploymentInfo, PackageReference, decodeTxError } from '@usecannon/builder';
 
@@ -22,7 +22,6 @@ export async function decode({
   json: boolean;
 }) {
   const cliSettings = resolveCliSettings();
-
   // Add 0x prefix to data or transaction hash if missing
   if (!data.startsWith('0x')) {
     data = ('0x' + data) as viem.Hash;
@@ -66,6 +65,11 @@ export async function decode({
     throw new Error(
       'Could not decode transaction data with the given Cannon package. Please confirm that the given data exists in the ABIs of the package.'
     );
+  }
+
+  if (typeof parsed.result === 'string') {
+    log(green(`${parsed.result}`), `${italic(gray(inputData.slice(0, 10)))}`);
+    return;
   }
 
   const fragment = viem.getAbiItem({
@@ -142,7 +146,7 @@ export async function decode({
     }
   };
 
-  if (parsed.result.args) {
+  if (parsed.result?.args) {
     for (let index = 0; index < parsed.result.args.length; index++) {
       renderArgs((fragment as viem.AbiFunction).inputs[index], parsed.result.args[index]);
     }
@@ -193,20 +197,33 @@ function _parseData(abis: ContractData['abi'][], data: viem.Hash) {
   if (!data) return null;
 
   for (const abi of abis) {
-    const result =
-      _try(() => viem.decodeErrorResult({ abi, data: data })) ||
-      _try(() => viem.decodeFunctionData({ abi, data: data })) ||
-      _try(() =>
-        viem.decodeEventLog({
-          abi,
-          topics: [data] as [viem.Hex],
-          data,
-        })
-      );
-
-    if (result) return { abi, result };
+    for (const abiItem of abi) {
+      if (abiItem.type === 'error' || abiItem.type === 'function') {
+        const selector = viem.toFunctionSelector(formatAbiItem(abiItem).substring(abiItem.type === 'error' ? 6 : 9));
+        if (selector === data.slice(0, 10)) {
+          try {
+            return {
+              abi,
+              result:
+                data.length > 10
+                  ? _try(() => viem.decodeErrorResult({ abi, data: data })) ||
+                    _try(() => viem.decodeFunctionData({ abi, data: data })) ||
+                    _try(() =>
+                      viem.decodeEventLog({
+                        abi,
+                        topics: [data] as [viem.Hex],
+                        data,
+                      })
+                    )
+                  : formatAbiItem(abiItem),
+            };
+          } catch (err) {
+            return { abi, result: formatAbiItem(abiItem) };
+          }
+        }
+      }
+    }
   }
-
   return null;
 }
 

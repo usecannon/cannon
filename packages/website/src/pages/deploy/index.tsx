@@ -25,6 +25,7 @@ export default function SignTransactions() {
     </>
   );
 }
+
 SignTransactions.getLayout = function getLayout(page: ReactElement) {
   return <DeployLayout>{page}</DeployLayout>;
 };

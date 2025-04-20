@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { CaretSortIcon } from '@radix-ui/react-icons';
+import { ArrowDownUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { StarIcon } from 'lucide-react';
 import {
@@ -22,6 +22,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { ChainBuilderContext } from '@usecannon/builder';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import UnavailableTransaction from '@/features/Packages/UnavailableTransaction';
+import { formatTransactionHash } from '@/helpers/formatters';
 
 type ContractRow = {
   highlight: boolean;
@@ -51,9 +52,9 @@ export const ContractsTable: React.FC<{
 
   const data = React.useMemo(() => {
     return Object.entries(contractState).map(
-      ([key, value]): ContractRow => ({
+      ([, value]): ContractRow => ({
         highlight: !!value.highlight,
-        name: key?.toString(),
+        name: value.contractName || '',
         step: value.deployedOn.toString(),
         address: value.address,
         deployTxnHash: value.deployTxnHash,
@@ -74,10 +75,6 @@ export const ContractsTable: React.FC<{
           }),
         ]
       : []),
-    columnHelper.accessor('step', {
-      cell: (info: any) => info.getValue(),
-      header: 'Operation',
-    }),
     columnHelper.accessor('name', {
       cell: (info: any) => info.getValue(),
       header: 'Contract Name',
@@ -89,6 +86,10 @@ export const ContractsTable: React.FC<{
     columnHelper.accessor('deployTxnHash', {
       cell: (info: any) => info.getValue(),
       header: 'Transaction Hash',
+    }),
+    columnHelper.accessor('step', {
+      cell: (info: any) => info.getValue(),
+      header: 'Operation',
     }),
   ];
 
@@ -129,7 +130,7 @@ export const ContractsTable: React.FC<{
                         header.column.columnDef.header,
                         header.getContext()
                       )}
-                      <CaretSortIcon
+                      <ArrowDownUp
                         className={`${
                           header.column.columnDef.accessorKey === 'highlight'
                             ? 'h-4 w-4'
@@ -198,7 +199,7 @@ export const ContractsTable: React.FC<{
                               rel="noopener noreferrer"
                               className="font-mono border-b border-dotted border-muted-foreground hover:border-solid"
                             >
-                              {value}
+                              {formatTransactionHash(value)}
                             </a>
                           ) : (
                             <code className="text-xs">{value}</code>

@@ -37,6 +37,14 @@ export type DumpLine =
   | (BaseDumpLine & {
       type: 'clone';
       step: StepClone;
+    })
+  | (BaseDumpLine & {
+      type: 'import';
+      step: StepPull;
+    })
+  | (BaseDumpLine & {
+      type: 'provision';
+      step: StepClone;
     });
 
-export type DumpRenderer = () => any;
+export type DumpRenderer = (forkBlockNumber: number) => any;

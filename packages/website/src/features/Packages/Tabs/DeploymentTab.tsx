@@ -23,7 +23,11 @@ export const DeploymentTab: FC<{
   });
 
   if (packagesQuery.isPending) {
-    return <CustomSpinner />;
+    return (
+      <div className="py-20">
+        <CustomSpinner />
+      </div>
+    );
   }
 
   if (packagesQuery.isError) {

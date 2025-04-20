@@ -6,16 +6,10 @@ import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnid
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { ChainBuilderRuntime } from '../runtime';
 import { diamondSchema } from '../schemas';
-import {
-  ChainArtifacts,
-  ChainBuilderContext,
-  ChainBuilderContextWithHelpers,
-  ContractArtifact,
-  ContractMap,
-  PackageState,
-} from '../types';
+import { ContractArtifact, ContractMap, PackageState } from '../types';
 import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 import { template } from '../utils/template';
+import { CannonAction } from '../actions';
 
 const debug = Debug('cannon:builder:diamond');
 
@@ -49,8 +43,8 @@ const diamondStep = {
 
   validate: diamondSchema,
 
-  async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config) {
-    const newConfig = this.configInject(ctx, config);
+  async getState(runtime, ctx, config, packageState) {
+    const newConfig = this.configInject(ctx, config, packageState);
 
     const contractAbis: { [contractName: string]: viem.Abi } = {};
     const contractAddresses: { [contractName: string]: string } = {};
@@ -74,33 +68,33 @@ const diamondStep = {
     ];
   },
 
-  configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
+  configInject(ctx, config) {
     config = _.cloneDeep(config);
 
-    config.contracts = _.map(config.contracts, (n) => template(n)(ctx));
+    config.contracts = _.map(config.contracts, (n) => template(n, ctx));
 
-    config.diamondArgs.owner = template(config.diamondArgs.owner)(ctx);
+    config.diamondArgs.owner = template(config.diamondArgs.owner, ctx);
     if (config.diamondArgs.init) {
-      config.diamondArgs.init = template(config.diamondArgs.init)(ctx);
+      config.diamondArgs.init = template(config.diamondArgs.init, ctx);
     } else {
       config.diamondArgs.init = viem.zeroAddress;
     }
     if (config.diamondArgs.initCalldata) {
-      config.diamondArgs.initCalldata = template(config.diamondArgs.initCalldata)(ctx);
+      config.diamondArgs.initCalldata = template(config.diamondArgs.initCalldata, ctx);
     } else {
       config.diamondArgs.initCalldata = '0x';
     }
 
-    config.salt = template(config.salt)(ctx);
+    config.salt = template(config.salt, ctx);
 
     if (config?.overrides?.gasLimit) {
-      config.overrides.gasLimit = template(config.overrides.gasLimit)(ctx);
+      config.overrides.gasLimit = template(config.overrides.gasLimit, ctx);
     }
 
     return config;
   },
 
-  getInputs(config: Config, possibleFields: string[]) {
+  getInputs(config, possibleFields) {
     let accesses = computeTemplateAccesses(config.diamondArgs.owner, possibleFields);
     if (config.diamondArgs.init) {
       accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.diamondArgs.init, possibleFields));
@@ -122,16 +116,12 @@ const diamondStep = {
     return accesses;
   },
 
-  getOutputs(_: Config, packageState: PackageState) {
-    return [`contracts.${packageState.currentLabel.split('.')[1]}`, `${packageState.currentLabel.split('.')[1]}`];
+  getOutputs(_, packageState) {
+    const name = packageState.currentLabel.split('.')[1];
+    return [`contracts.${name}`, name];
   },
 
-  async exec(
-    runtime: ChainBuilderRuntime,
-    ctx: ChainBuilderContext,
-    config: Config,
-    packageState: PackageState
-  ): Promise<ChainArtifacts> {
+  async exec(runtime, ctx, config, packageState) {
     debug('exec', config);
 
     const stepName = packageState.currentLabel.split('.')[1];
@@ -239,7 +229,7 @@ const diamondStep = {
       );
     }
   },
-};
+} satisfies CannonAction<Config>;
 
 async function firstTimeDeploy(
   runtime: ChainBuilderRuntime,

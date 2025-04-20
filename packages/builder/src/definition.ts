@@ -5,7 +5,7 @@ import type { Address } from 'viem';
 import { ActionKinds, RawChainDefinition, checkConfig } from './actions';
 import { ChainBuilderRuntime } from './runtime';
 import { chainDefinitionSchema } from './schemas';
-import { CannonHelperContext, ChainBuilderContext } from './types';
+import { ChainBuilderContext } from './types';
 import { template } from './utils/template';
 
 import { PackageReference } from './package-reference';
@@ -112,7 +112,7 @@ export class ChainDefinition {
   }
 
   getName(ctx: ChainBuilderContext) {
-    const n = template(this.raw.name)(ctx);
+    const n = template(this.raw.name, ctx);
 
     validatePackageName(n);
 
@@ -120,7 +120,7 @@ export class ChainDefinition {
   }
 
   getVersion(ctx: ChainBuilderContext) {
-    const v = template(this.raw.version)(ctx);
+    const v = template(this.raw.version, ctx);
 
     validatePackageVersion(v);
 
@@ -128,11 +128,11 @@ export class ChainDefinition {
   }
 
   getPreset(ctx: ChainBuilderContext) {
-    return template(this.raw.preset)(ctx) || 'main';
+    return template(this.raw.preset || PackageReference.DEFAULT_PRESET, ctx);
   }
 
   getPackageRef(ctx: ChainBuilderContext) {
-    return new PackageReference(`${this.getName(ctx)}:${this.getVersion(ctx) || 'latest'}@${this.getPreset(ctx) || 'main'}`);
+    return PackageReference.from(this.getName(ctx), this.getVersion(ctx), this.getPreset(ctx));
   }
 
   getDeployers() {
@@ -157,7 +157,7 @@ export class ChainDefinition {
       );
     }
 
-    return action.configInject({ ...ctx, ...CannonHelperContext }, _.get(this.raw, n), {
+    return action.configInject({ ...ctx }, _.get(this.raw, n), {
       ref: this.getPackageRef(ctx),
       currentLabel: n,
     });
@@ -189,15 +189,10 @@ export class ChainDefinition {
       }
     }
 
-    const objs = await ActionKinds[kind].getState(
-      runtime,
-      { ...ctx, ...CannonHelperContext },
-      this.getConfig(n, ctx) as any,
-      {
-        ref: this.getPackageRef(ctx),
-        currentLabel: n,
-      }
-    );
+    const objs = await ActionKinds[kind].getState(runtime, { ...ctx }, this.getConfig(n, ctx) as any, {
+      ref: this.getPackageRef(ctx),
+      currentLabel: n,
+    });
 
     if (!objs) {
       return null;
@@ -222,9 +217,9 @@ export class ChainDefinition {
     // can do about this right now
     return _.uniq(
       Object.values(this.raw.import).map((d) => ({
-        source: template(d.source)(ctx),
+        source: template(d.source, ctx),
         chainId: d.chainId || ctx.chainId,
-        preset: template(d.preset)(ctx) || 'main',
+        preset: d.preset ? template(d.preset, ctx) : 'main',
       }))
     );
   }

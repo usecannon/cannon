@@ -41,9 +41,9 @@ To install it, run:
 forge install usecannon/cannon-std
 ```
 
-```solidity
-// ./test/Counter.t.sol
+Then create `./test/Counter.t.sol` with the following code:
 
+```solidity
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
@@ -53,7 +53,7 @@ import { Test } from "forge-std/Test.sol";
 import { Counter } from "../src/Counter.sol";
 
 contract CounterTest is Test {
-		using Cannon for Vm;
+    using Cannon for Vm;
     Counter public counter;
 
     Counter counter

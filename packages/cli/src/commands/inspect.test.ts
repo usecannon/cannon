@@ -23,6 +23,7 @@ describe('inspect', () => {
   const basePkgName = 'package:1.2.3';
   const packageName = `${basePkgName}@${preset}`;
   const cliSettings = resolveCliSettings();
+  const ipfsUrl = 'ipfs://QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn';
 
   let testPkgData: any;
   let mockedFallBackRegistry: any;
@@ -64,7 +65,7 @@ describe('inspect', () => {
 
                 contract MyContract {
                   string public name;
-                
+
                   constructor() public {
                     name = "MyContract";
                   }
@@ -82,9 +83,9 @@ describe('inspect', () => {
     };
 
     mockedFallBackRegistry = {
-      getDeployUrl: jest.fn().mockResolvedValue('file:/usecannon.com/url'),
-      getUrl: jest.fn().mockResolvedValue('file:/usecannon.com/url'),
-      getMetaUrl: jest.fn().mockResolvedValue('file:/usecannon.com/meta'),
+      getDeployUrl: jest.fn().mockResolvedValue('ipfs://QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn'),
+      getUrl: jest.fn().mockResolvedValue('ipfs://QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn'),
+      getMetaUrl: jest.fn().mockResolvedValue('ipfs://QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG'),
       registries: [],
     };
 
@@ -139,44 +140,65 @@ describe('inspect', () => {
   });
 
   test('should inspect package deployment', async () => {
+<<<<<<< HEAD
     const result = await inspect(packageName, cliSettings, chainId, 'overview', '', false);
+=======
+    const result = await inspect(packageName, ipfsUrl, chainId, testPkgData, cliSettings, 'overview', '', false);
+>>>>>>> origin/dev
 
     expect(result).toEqual(testPkgData);
-    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(getSourceFromRegistry).toHaveBeenCalledWith(mockedFallBackRegistry.registries);
     expect(getContractsAndDetails).toHaveBeenCalledWith(testPkgData.state);
 
-    expect(localLoader.read).toHaveBeenCalledWith('file:/usecannon.com/url');
+    expect(ipfsLoader.read).toHaveBeenCalledWith(testPkgData.miscUrl);
   });
 
   test('should write deployment files', async () => {
     const writeDeployments = 'contracts';
+<<<<<<< HEAD
     const result = await inspect(packageName, cliSettings, chainId, 'overview', writeDeployments, false);
+=======
+    const result = await inspect(
+      packageName,
+      ipfsUrl,
+      chainId,
+      testPkgData,
+      cliSettings,
+      'overview',
+      writeDeployments,
+      false
+    );
+>>>>>>> origin/dev
 
     expect(result).toEqual(testPkgData);
-    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(fs.outputFile).toHaveBeenCalled();
   });
 
   test('should call inspect with sources flag ', async () => {
+<<<<<<< HEAD
     const result = await inspect(packageName, cliSettings, chainId, 'overview', '', true);
+=======
+    const result = await inspect(packageName, ipfsUrl, chainId, testPkgData, cliSettings, 'overview', '', true);
+>>>>>>> origin/dev
 
     expect(result).toEqual(testPkgData);
-    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(getSourceFromRegistry).toHaveBeenCalledWith(mockedFallBackRegistry.registries);
     expect(getContractsAndDetails).toHaveBeenCalledWith(testPkgData.state);
 
-    expect(localLoader.read).toHaveBeenCalledWith('file:/usecannon.com/url');
+    expect(ipfsLoader.read).toHaveBeenCalledWith(testPkgData.miscUrl);
   });
 
   test('should call inspect with json flag ', async () => {
+<<<<<<< HEAD
     const result = await inspect(packageName, cliSettings, chainId, 'deploy-json', '', false);
+=======
+    const result = await inspect(packageName, ipfsUrl, chainId, testPkgData, cliSettings, 'deploy-json', '', false);
+>>>>>>> origin/dev
 
     expect(result).toEqual(testPkgData);
-    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(mockedFallBackRegistry.getMetaUrl).not.toHaveBeenCalled();
     expect(stdoutOutput.join('')).toEqual(JSON.stringify(testPkgData, null, 2));
   });

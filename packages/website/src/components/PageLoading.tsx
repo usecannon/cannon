@@ -2,7 +2,7 @@ import { CustomSpinner } from '@/components/CustomSpinner';
 
 export default function PageLoading() {
   return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-center">
+    <div className="h-screen w-screen flex items-center justify-center">
       <CustomSpinner />
     </div>
   );

@@ -2,9 +2,9 @@ import fs from 'node:fs';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import { CannonHelperContext, CannonSigner, InMemoryRegistry } from '../src';
+import { CannonSigner, ChainBuilderContext, InMemoryRegistry } from '../src';
 import { ChainBuilderRuntime } from '../src/runtime';
-import { ChainBuilderContextWithHelpers, ChainBuilderRuntimeInfo } from '../src/types';
+import { ChainBuilderRuntimeInfo } from '../src/types';
 
 const Greeter = JSON.parse(fs.readFileSync(`${__dirname}/data/Greeter.json`).toString());
 
@@ -31,7 +31,7 @@ export function fixtureTransactionReceipt(attrs: Partial<viem.TransactionReceipt
   } satisfies viem.TransactionReceipt;
 }
 
-export const fixtureCtx = (overrides: Partial<ChainBuilderContextWithHelpers> = {}) =>
+export const fixtureCtx = (overrides: Partial<ChainBuilderContext> = {}) =>
   _.merge(
     {
       settings: {},
@@ -41,11 +41,10 @@ export const fixtureCtx = (overrides: Partial<ChainBuilderContextWithHelpers> = 
       imports: {},
       chainId: 1234,
       package: {},
-      timestamp: '1234123412',
+      timestamp: 1234123412,
     },
-    CannonHelperContext,
     overrides
-  ) as ChainBuilderContextWithHelpers;
+  ) as ChainBuilderContext;
 
 export const fixtureContractArtifact = (contractName = 'Greeter') => ({
   contractName,

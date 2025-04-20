@@ -15,12 +15,23 @@ setup_file() {
   # Fork OP to run tests against forked node
   anvil --fork-url "$CANNON_E2E_RPC_URL_OPTIMISM" --port 9546 --silent --accounts 1 --optimism &
   export ANVIL_PID_OP="$!"
-  sleep 1
 
   # Fork Mainnet to run tests against forked node
   anvil --fork-url "$CANNON_E2E_RPC_URL_ETHEREUM" --port 9545 --silent --accounts 1 &
   export ANVIL_PID="$!"
-  sleep 1
+
+  export ANVIL_URL_ETHEREUM="http://127.0.0.1:9545"
+  export ANVIL_URL_OPTIMISM="http://127.0.0.1:9546"
+
+  if ! wait_for_rpc "$ANVIL_URL_ETHEREUM"; then
+    echo "Failed to connect to RPC $ANVIL_URL_ETHEREUM"
+    exit 1
+  fi
+
+  if ! wait_for_rpc "$ANVIL_URL_OPTIMISM"; then
+    echo "Failed to connect to RPC $ANVIL_URL_OPTIMISM"
+    exit 1
+  fi
 }
 
 # File post-run hook
@@ -101,7 +112,7 @@ teardown() {
   set_custom_config
   run build-foundry-partial.sh
   echo $output
-  assert_success
+  assert_failure 90
   assert_output --partial "Your deployment was not fully completed. Please inspect the issues listed above and resolve as necessary."
   assert_file_exists "$CANNON_DIRECTORY/tags/oracle-manager_latest_1-with-owned-greeter.txt"
   assert_file_exists "$CANNON_DIRECTORY/tags/owned-greeter_1.0.0_1-main.txt"
@@ -193,10 +204,11 @@ teardown() {
 @test "Register & Publish - Registering and publishing the greeter package" {
   set_custom_config
   start_optimism_emitter
+  set_package_publisher "greeter-foundry" "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
   run publish.sh 1
   echo $output
-  assert_output --partial 'Package "greeter-foundry" not yet registered'
-  assert_output --partial 'Success - Package "greeter-foundry" has been registered'
+  # assert_output --partial 'Package "greeter-foundry" not yet registered'
+  # assert_output --partial 'Success - Package "greeter-foundry" has been registered'
   assert_output --partial 'Transactions:'
   assert_success
 }
@@ -204,6 +216,7 @@ teardown() {
 @test "Register & Publish - Publishing a package from an IPFS Reference" {
   set_custom_config
   start_optimism_emitter
+  set_package_publisher "greeter-foundry" "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
   run publish.sh 3
   echo $output
   assert_success

@@ -2,10 +2,14 @@ import {
   ChainArtifacts,
   ChainDefinition,
   ContractData,
+  DeploymentInfo,
   DeploymentState,
   fetchIPFSAvailability,
   getArtifacts,
+<<<<<<< HEAD
   PackageReference,
+=======
+>>>>>>> origin/dev
 } from '@usecannon/builder';
 import { bold, cyan, green, yellow } from 'chalk';
 import Debug from 'debug';
@@ -20,23 +24,30 @@ import { log } from '../util/console';
 
 const debug = Debug('cannon:cli:inspect');
 
+const formatTypes = ['overview', 'deploy-json', 'misc-json', 'artifact-json'] as const;
+
+type FormatType = (typeof formatTypes)[number];
+
 export async function inspect(
-  packageRef: string,
-  cliSettings: CliSettings,
+  fullPackageRef: string,
+  ipfsUrl: string,
   chainId: number,
+<<<<<<< HEAD
   out: 'overview' | 'deploy-json' | 'misc-json' | 'artifact-json',
+=======
+  deployInfo: DeploymentInfo,
+  cliSettings: CliSettings,
+  out: FormatType,
+>>>>>>> origin/dev
   writeDeployments: string,
   sources: boolean
 ) {
-  const { fullPackageRef } = new PackageReference(packageRef);
+  if (out && !formatTypes.includes(out)) {
+    throw new Error(`invalid --out value: "${out}". Valid types are: '${formatTypes.join("' | '")}'`);
+  }
 
   const resolver = await createDefaultReadRegistry(cliSettings);
   const loader = getMainLoader(cliSettings);
-  const deployUrl = await resolver.getUrl(fullPackageRef, chainId);
-
-  if (!deployUrl) {
-    throw new Error(`deployment not found: ${fullPackageRef}. please make sure it exists for chain ID "${chainId}".`);
-  }
 
   // Mute all build outputs when printing the result to json, this is so it
   // doesn't break the result.
@@ -47,16 +58,10 @@ export async function inspect(
     console.debug = debug;
   }
 
-  const deployData = await loader[deployUrl.split(':')[0] as 'ipfs'].read(deployUrl);
-
-  if (!deployData) {
-    throw new Error(`deployment data could not be downloaded for ${deployUrl} from ${fullPackageRef}.`);
-  }
-
-  const chainDefinition = new ChainDefinition(deployData.def);
+  const chainDefinition = new ChainDefinition(deployInfo.def);
 
   if (writeDeployments) {
-    const stateContracts = _getNestedStateContracts(deployData.state, writeDeployments);
+    const stateContracts = _getNestedStateContracts(deployInfo.state, writeDeployments);
     const files = Array.from(stateContracts.entries());
 
     await Promise.all(
@@ -67,6 +72,7 @@ export async function inspect(
   }
 
   if (out === 'deploy-json') {
+<<<<<<< HEAD
     _outputJson(deployData);
   } else if (out === 'misc-json') {
     if (!deployData.miscUrl) {
@@ -77,34 +83,45 @@ export async function inspect(
     _outputJson(miscData);
   } else if (out === 'artifact-json') {
     _outputJson(getArtifacts(chainDefinition, deployData.state));
+=======
+    _outputJson(deployInfo);
+  } else if (out === 'misc-json') {
+    if (!deployInfo.miscUrl) {
+      log('null');
+      return;
+    }
+    const miscData = await loader[deployInfo.miscUrl.split(':')[0] as 'ipfs'].read(deployInfo.miscUrl);
+    _outputJson(miscData);
+  } else if (out === 'artifact-json') {
+    _outputJson(getArtifacts(chainDefinition, deployInfo.state));
+>>>>>>> origin/dev
   } else {
     const metaUrl = await resolver.getMetaUrl(fullPackageRef, chainId);
-    const packageOwner = deployData.def.setting?.owner?.defaultValue;
+    const packageOwner = deployInfo.def.setting?.owner?.defaultValue;
     const localSource = getSourceFromRegistry(resolver.registries);
-    const ipfsUrl = cliSettings.ipfsUrl;
-    const ipfsAvailabilityScore = await fetchIPFSAvailability(ipfsUrl, deployUrl.replace('ipfs://', ''));
-    const contractsAndDetails = getContractsAndDetails(deployData.state);
-    const miscData = await loader.ipfs.read(deployData.miscUrl);
+    const ipfsAvailabilityScore = await fetchIPFSAvailability(cliSettings.ipfsUrl, ipfsUrl.replace('ipfs://', ''));
+    const contractsAndDetails = getContractsAndDetails(deployInfo.state);
+    const miscData = await loader.ipfs.read(deployInfo.miscUrl);
     const contractSources = _listSourceCodeContracts(miscData);
 
     log(green(bold(`\n=============== ${fullPackageRef} (chainId: ${chainId}) ===============`)));
     log();
     log(
       '   Deploy Status:',
-      deployData.status === 'partial' ? yellow(bold(deployData.status)) : green(deployData.status || 'complete')
+      deployInfo.status === 'partial' ? yellow(bold(deployInfo.status)) : green(deployInfo.status || 'complete')
     );
     log(
       '         Options:',
-      Object.entries(deployData.options)
+      Object.entries(deployInfo.options)
         .map((o) => `${o[0]}=${o[1]}`)
         .join(' ') || '(none)'
     );
     packageOwner ? log('           Owner:', packageOwner) : log('          Source:', localSource || '(none)');
-    log('     Package URL:', deployUrl);
-    log('        Misc URL:', deployData.miscUrl);
+    log('     Package URL:', ipfsUrl);
+    log('        Misc URL:', deployInfo.miscUrl);
     log('Package Info URL:', metaUrl || '(none)');
-    log('Cannon Generator:', deployData.generator);
-    log('       Timestamp:', new Date(deployData.timestamp * 1000).toLocaleString());
+    log('Cannon Generator:', deployInfo.generator);
+    log('       Timestamp:', new Date(deployInfo.timestamp * 1000).toLocaleString());
     log('Contract Sources:', bold((contractSources.length ? yellow : green)(contractSources.length + ' sources included')));
     log();
     log('IPFS Availability Score(# of nodes): ', ipfsAvailabilityScore || 'Run IPFS Locally to get this score');
@@ -137,7 +154,7 @@ export async function inspect(
     log(cyan(chainDefinition.printTopology().join('\n')));
   }
 
-  return deployData;
+  return deployInfo;
 }
 
 function _getNestedStateContracts(state: DeploymentState, pathname = '', result = new Map<string, ContractData>()) {

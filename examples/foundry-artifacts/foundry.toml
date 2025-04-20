@@ -1,0 +1,6 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+force = true
+remappings = ["@openzeppelin/=node_modules/@openzeppelin/"]

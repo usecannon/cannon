@@ -1,14 +1,21 @@
 name: Upload Website to IPFS
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      commit_hash:
+        description: 'Hash commit'
+        required: true
+        type: string
 
 jobs:
-  upload-ipfs:
+  validate-and-upload:
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.commit_hash }}
+          
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -16,17 +23,21 @@ jobs:
           node-version: '20.5.1'
 
       - run: pnpm i --frozen-lockfile
-      - run: pnpm build
 
       - run: echo "${{ vars.NEXT_ENV }}" > packages/website/.env.local
-      - run: cd packages/website && pnpm build
+      - run: pnpm run clean && pnpm -r --filter @usecannon/builder --filter @usecannon/cli --filter @usecannon/api --filter @usecannon/website run build
 
-      - uses: dbeal-eth/ipfs-github-action@master
-        id: ipfs
-        with:
-          path_to_add: packages/website/out
-          cluster_host: ${{ secrets.IPFS_CLUSTER_ADDR }}
-          cluster_user: ${{ secrets.IPFS_CLUSTER_USER }}
-          cluster_password: ${{ secrets.IPFS_CLUSTER_PASSWORD }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create ZIP file
+        run: zip -r "build-${{ github.event.inputs.commit_hash }}.zip" packages/website/out
+
+      - name: Upload to Cannon Repo
+        run: |
+          curl -X POST \
+            "https://repo.usecannon.com/api/v0/add?wrap-with-directory=true" \
+            -H "Authorization: Bearer ${{ secrets.REPO_CANNON_JWT }}" \
+            -H "Content-Type: multipart/form-data" \
+            -F "file=@build-${{ github.event.inputs.commit_hash }}.zip"
+
+  
+
+      

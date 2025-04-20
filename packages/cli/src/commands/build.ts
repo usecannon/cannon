@@ -34,6 +34,7 @@ import { PackageSpecification } from '../types';
 import { log, warn, error } from '../util/console';
 import { hideApiKey } from '../util/provider';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
+import { mergeErrors } from '../util/merge-errors';
 
 interface Params {
   provider: viem.PublicClient;
@@ -82,7 +83,12 @@ export async function build({
   priorityGasFee,
   writeScript,
   writeScriptFormat = 'ethers',
-}: Params): Promise<{ outputs: ChainArtifacts; provider: viem.PublicClient; runtime: ChainBuilderRuntime }> {
+}: Params): Promise<{
+  outputs: ChainArtifacts;
+  provider: viem.PublicClient;
+  runtime: ChainBuilderRuntime;
+  deployInfo: DeploymentInfo;
+}> {
   if (wipe && upgradeFrom) {
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
   }
@@ -116,6 +122,7 @@ export async function build({
   const chainName = chainInfo?.name || 'unknown chain';
   const nativeCurrencySymbol = chainInfo?.nativeCurrency.symbol || 'ETH';
   let totalCost = BigInt(0);
+  let totalGasUsed = BigInt(0);
 
   const runtimeOptions = {
     provider,
@@ -277,6 +284,7 @@ export async function build({
       log(gray(`${'  '.repeat(d)}  Transaction Hash: ${txn.hash}`));
       const cost = BigInt(txn.gasCost) * BigInt(txn.gasUsed);
       totalCost = totalCost + cost;
+      totalGasUsed = totalGasUsed + BigInt(txn.gasUsed);
       log(
         gray(
           `${'  '.repeat(d)}  Transaction Cost: ${viem.formatEther(
@@ -297,6 +305,7 @@ export async function build({
         log(gray(`${'  '.repeat(d)}  Transaction Hash: ${contract.deployTxnHash}`));
         const cost = BigInt(contract.gasCost) * BigInt(contract.gasUsed);
         totalCost = totalCost + cost;
+        totalGasUsed = totalGasUsed + BigInt(contract.gasUsed);
         log(
           gray(
             `${'  '.repeat(d)}  Transaction Cost: ${viem.formatEther(
@@ -351,13 +360,13 @@ export async function build({
   let newState;
   try {
     newState = await cannonBuild(runtime, def, oldDeployData && !wipe ? oldDeployData.state : {}, initialCtx);
-  } catch (err: any) {
+  } catch (buildErr: any) {
     const dumpData = {
       def: def.toJson(),
       initialCtx,
       oldState: oldDeployData?.state || null,
       activeCtx: runtime.ctx,
-      error: _.pick(err, Object.getOwnPropertyNames(err)),
+      error: _.pick(buildErr, Object.getOwnPropertyNames(buildErr)),
     };
 
     const dumpFilePath = path.join(cliSettings.cannonDirectory, 'dumps', new Date().toISOString() + '.json');
@@ -367,9 +376,11 @@ export async function build({
       spaces: 2,
     });
 
-    throw new Error(
-      `${err.toString()}\n\nAn error occured during build. A file with comprehensive information pertaining to this error has been written to ${dumpFilePath}. Please include this file when reporting an issue.`
+    const cliError = new Error(
+      `An error occured during build. A file with comprehensive information pertaining to this error has been written to ${dumpFilePath}. Please include this file when reporting an issue.`
     );
+
+    throw mergeErrors(cliError, buildErr);
   }
 
   if (writeScript) {
@@ -385,20 +396,22 @@ export async function build({
 
   chainDef.version = pkgVersion;
 
+  const deployInfo = {
+    generator: `cannon cli ${pkg.version}`,
+    timestamp: Math.floor(Date.now() / 1000),
+    def: chainDef,
+    state: newState,
+    seq: oldDeployData?.seq ? oldDeployData.seq + 1 : 1,
+    track: oldDeployData?.track || Math.random().toString(36).substring(2, 15),
+    options: resolvedSettings,
+    status: partialDeploy ? 'partial' : 'complete',
+    meta: pkgInfo,
+    miscUrl: miscUrl || '',
+    chainId: runtime.chainId,
+  } satisfies DeploymentInfo;
+
   if (miscUrl) {
-    const deployUrl = (await runtime.putDeploy({
-      generator: `cannon cli ${pkg.version}`,
-      timestamp: Math.floor(Date.now() / 1000),
-      def: chainDef,
-      state: newState,
-      seq: oldDeployData?.seq ? oldDeployData.seq + 1 : 1,
-      track: oldDeployData?.track || Math.random().toString(36).substring(2, 15),
-      options: resolvedSettings,
-      status: partialDeploy ? 'partial' : 'complete',
-      meta: pkgInfo,
-      miscUrl: miscUrl,
-      chainId: runtime.chainId,
-    })) as string;
+    const deployUrl = (await runtime.putDeploy(deployInfo)) as string;
 
     const metadataCache: { [key: string]: string } = {};
 
@@ -417,7 +430,7 @@ export async function build({
     if (stepsExecuted && !dryRun && !skipUpgradeRecord) {
       for (let i = 0; i < 3; i++) {
         try {
-          log(gray('Writing upgrade info...'));
+          log(gray(`Attesting that ${(await runtime.getDefaultSigner({})).address} deployed ${deployUrl} onchain...`));
           await writeUpgradeFromInfo(runtime, packageReference, deployUrl);
           break;
         } catch (err) {
@@ -451,7 +464,7 @@ export async function build({
           )
         )
       );
-      log(gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
+      log(gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`));
       log('');
       log(
         '- Rerunning the build command will attempt to execute skipped operations. It will not rerun executed operations. (To rerun executed operations, delete the partial build package generated by this run by adding the --wipe flag to the build command on the next run.)'
@@ -467,38 +480,27 @@ export async function build({
       );
     } else {
       if (dryRun) {
-        log(bold(`💥 ${fullPackageRef} would be successfully built on ${chainName} (Chain ID: ${chainId})`));
-        log(gray(`Estimated Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
-        log();
-
         log(
-          bold(
-            `Package data would be stored locally${
-              filteredSettings.writeIpfsUrl && ' and pinned to ' + filteredSettings.writeIpfsUrl
-            }`
+          gray(
+            `Estimated Total Cost: ${viem.formatEther(
+              totalCost
+            )} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`
           )
         );
-        log();
-
-        log('(Note: These files will not be saved)');
+        log(bold(`💥 ${fullPackageRef} would have been successfully built on ${chainName} (Chain ID: ${chainId})`));
       } else {
         if (chainId == 13370) {
           log(bold(`💥 ${fullPackageRef} built for Cannon (Chain ID: ${chainId})`));
           log(gray('This package can be run locally and cloned in cannonfiles.'));
         } else {
           log(bold(`💥 ${fullPackageRef} built on ${chainName} (Chain ID: ${chainId})`));
-          log(gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
+          log(
+            gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`)
+          );
         }
-        log();
-
-        log(
-          bold(
-            `Package data has been stored locally${
-              filteredSettings.writeIpfsUrl && ' and pinned to ' + filteredSettings.writeIpfsUrl
-            }`
-          )
-        );
       }
+      log();
+      log(bold(`These JSON files have been added to ${cliSettings.cannonDirectory}`));
       log(
         table([
           ['Deployment Data', deployUrl],
@@ -507,15 +509,19 @@ export async function build({
         ])
       );
 
+      if (dryRun) {
+        log(bold('Inspect the deployment data'));
+        log(`> cannon inspect ${deployUrl}`);
+        log();
+        log(bold('Upload deployment data to IPFS'));
+        log(`> cannon pin ${deployUrl}`);
+      }
+
       const isMainPreset = preset === PackageReference.DEFAULT_PRESET;
 
       if (!dryRun) {
         if (isMainPreset) {
-          log(
-            bold(
-              `Publish ${bold(`${packageRef}`)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`
-            )
-          );
+          log(bold(`Publish ${bold(`${packageRef}`)} to the registry`));
           log(`> cannon publish ${packageRef} --chain-id ${chainId}`);
         } else {
           log(
@@ -558,5 +564,5 @@ export async function build({
 
   provider = provider.extend(traceActions(outputs) as any);
 
-  return { outputs, provider, runtime };
+  return { outputs, provider, runtime, deployInfo };
 }

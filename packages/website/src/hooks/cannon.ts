@@ -29,6 +29,7 @@ import {
   findUpgradeFromPackage,
   ChainBuilderContext,
   RawChainDefinition,
+  CannonRegistry,
   getIpfsUrl,
 } from '@usecannon/builder';
 import _ from 'lodash';
@@ -37,8 +38,9 @@ import { Abi, Address, createPublicClient, createTestClient, createWalletClient,
 import { useChainId, usePublicClient } from 'wagmi';
 // Needed to prepare mock run step with registerAction
 import '@/lib/builder';
+import { CannonfileGitInfo } from '@/features/Deploy/hooks/useGitDetailsFromCannonfile';
 
-type CannonTxRecord = { name: string; gas: bigint; tx: BaseTransaction };
+export type CannonTxRecord = { name: string; gas: bigint; tx: BaseTransaction };
 
 export type BuildState =
   | {
@@ -79,7 +81,7 @@ export function useLoadCannonDefinition(repo: string, ref: string, filepath: str
   };
 }
 
-type LocalBuildState = {
+export type LocalBuildState = {
   message: string;
   status: 'idle' | 'building' | 'success' | 'error';
   result: {
@@ -118,11 +120,9 @@ export function useCannonBuild(safe: SafeDefinition | null) {
     dispatch(initialState);
   }
 
-  useEffect(() => {
-    resetState();
-  }, [deployerWalletAddress]);
-
   const buildFn = async (def?: ChainDefinition, prevDeploy?: DeploymentInfo) => {
+    dispatch({ status: 'building' });
+
     // Wait until finished loading
     if (!safe || !def || !deployerWalletAddress) {
       throw new Error(
@@ -307,24 +307,32 @@ export function useCannonBuild(safe: SafeDefinition | null) {
     };
   };
 
-  function doBuild(def?: ChainDefinition, prevDeploy?: DeploymentInfo) {
+  function doBuild<onSuccessType>(
+    def?: ChainDefinition,
+    prevDeploy?: DeploymentInfo,
+    onSuccess?: (res: LocalBuildState['result']) => Promise<onSuccessType>
+  ) {
     resetState();
-    dispatch({ status: 'building' });
 
     buildFn(def, prevDeploy)
-      .then((res) => {
-        dispatch({ result: res, status: 'success' });
+      .then(async (res) => {
+        dispatch({ result: res, status: 'success', message: '' });
+        if (onSuccess) {
+          await onSuccess(res);
+        }
+        return res;
       })
       .catch((err) => {
         // eslint-disable-next-line no-console
         console.error(err);
         addLog('error', `cannon.ts: full build error ${err.toString()}`);
-        dispatch({ error: err.toString(), status: 'error' });
-      })
-      .finally(() => {
-        dispatch({ message: '' });
+        dispatch({ error: err.toString(), status: 'error', message: '' });
       });
   }
+
+  useEffect(() => {
+    resetState();
+  }, [deployerWalletAddress]);
 
   return {
     buildState,
@@ -338,113 +346,143 @@ export type CannonWriteDeployToIpfsMutationResult = Awaited<ReturnType<CannonWri
 export function useCannonWriteDeployToIpfs() {
   const settings = useStore((s) => s.settings);
 
+  const writeToIpfs = async ({
+    runtime,
+    deployInfo,
+    metaUrl,
+  }: {
+    runtime?: ChainBuilderRuntime;
+    deployInfo?: DeploymentInfo | undefined;
+    metaUrl?: string;
+  }) => {
+    if (settings.isIpfsGateway) {
+      throw new Error('You cannot write on an IPFS gateway, only read operations can be done');
+    }
+
+    if (!deployInfo || !runtime) {
+      throw new Error('Missing required parameters');
+    }
+
+    const packageRef = PackageReference.from(
+      deployInfo.def.name,
+      deployInfo.def.version,
+      deployInfo.def.preset
+    ).fullPackageRef;
+
+    await runtime.registry.publish(
+      [packageRef],
+      runtime.chainId,
+      (await runtime.loaders.mem.put(deployInfo)) ?? '',
+      metaUrl || ''
+    );
+
+    const memoryRegistry = new InMemoryRegistry();
+
+    const publishTxns = await publishPackage({
+      fromStorage: runtime,
+      toStorage: new CannonStorage(
+        memoryRegistry,
+        { ipfs: new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON) },
+        'ipfs'
+      ),
+      packageRef,
+      chainId: runtime.chainId,
+      tags: ['latest'],
+      includeProvisioned: true,
+    });
+
+    // load the new ipfs url
+    const mainUrl = await memoryRegistry.getUrl(packageRef, runtime.chainId);
+
+    return {
+      packageRef,
+      mainUrl,
+      publishTxns,
+    };
+  };
+
   return useMutation({
-    mutationFn: async ({
-      runtime,
-      deployInfo,
-      metaUrl,
-    }: {
-      runtime?: ChainBuilderRuntime;
-      deployInfo?: DeploymentInfo | undefined;
-      metaUrl?: string;
-    }) => {
-      if (settings.isIpfsGateway) {
-        throw new Error('You cannot write on an IPFS gateway, only read operations can be done');
-      }
-
-      if (!deployInfo || !runtime) {
-        throw new Error('Missing required parameters');
-      }
-
-      const packageRef = PackageReference.from(
-        deployInfo.def.name,
-        deployInfo.def.version,
-        deployInfo.def.preset
-      ).fullPackageRef;
-
-      await runtime.registry.publish(
-        [packageRef],
-        runtime.chainId,
-        (await runtime.loaders.mem.put(deployInfo)) ?? '',
-        metaUrl || ''
-      );
-
-      const memoryRegistry = new InMemoryRegistry();
-
-      const publishTxns = await publishPackage({
-        fromStorage: runtime,
-        toStorage: new CannonStorage(
-          memoryRegistry,
-          { ipfs: new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON) },
-          'ipfs'
-        ),
-        packageRef,
-        chainId: runtime.chainId,
-        tags: ['latest'],
-        includeProvisioned: true,
-      });
-
-      // load the new ipfs url
-      const mainUrl = await memoryRegistry.getUrl(packageRef, runtime.chainId);
-
-      return {
-        packageRef,
-        mainUrl,
-        publishTxns,
-      };
-    },
+    mutationFn: writeToIpfs,
+    retry: false,
   });
 }
 
-export function useCannonFindUpgradeFromUrl(packageRef?: PackageReference, chainId?: number, deployers?: Address[]) {
+export function useCannonFindUpgradeFromUrl(
+  packageRef?: PackageReference,
+  chainId?: number,
+  deployers?: Address[],
+  upgradeFrom?: string | null // Optional, if not deployers given
+) {
   const registry = useCannonRegistry();
   const publicClient = usePublicClient();
 
   return useQuery({
-    enabled: !!packageRef && !!chainId && !!deployers?.length,
-    queryKey: ['cannon', 'find-upgrade-from', packageRef?.name, packageRef?.preset, packageRef?.version, chainId, deployers],
+    enabled: !!packageRef && !!chainId,
+    queryKey: ['cannon', 'find-upgrade-from', packageRef?.fullPackageRef, chainId, deployers?.join(','), upgradeFrom],
+    refetchOnWindowFocus: false,
     queryFn: async () => {
-      return await findUpgradeFromPackage(
-        registry,
-        publicClient as Parameters<typeof findUpgradeFromPackage>[1],
-        packageRef!,
-        chainId!,
-        deployers || []
-      );
+      if (deployers?.length) {
+        const url = await findUpgradeFromPackage(
+          registry,
+          publicClient as Parameters<typeof findUpgradeFromPackage>[1],
+          packageRef!,
+          chainId!,
+          deployers!
+        );
+        return url;
+      } else if (upgradeFrom) {
+        const url = await _getCannonPackageRegistryUrl(registry, upgradeFrom, chainId!);
+        return url;
+      }
+
+      throw new Error(`Missing required parameters for ${packageRef?.fullPackageRef}`);
     },
     staleTime: 1000 * 60, // 1 minute
     retry: false,
   });
 }
 
-export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?: number) {
+async function _getCannonPackageRegistryUrl(registry: CannonRegistry, packageRefOrUrl: string, chainId: number) {
+  if (PackageReference.isValid(packageRefOrUrl)) {
+    const url = await registry.getUrl(packageRefOrUrl, chainId);
+    if (!url) throw new Error(`package not found: ${packageRefOrUrl} (${chainId})`);
+    return url;
+  } else if (getIpfsUrl(packageRefOrUrl)) {
+    return getIpfsUrl(packageRefOrUrl);
+  }
+
+  throw new Error(`package not found: ${packageRefOrUrl} (${chainId})`);
+}
+
+export function useCannonPackageRegistryUrl(urlOrRef?: string | PackageReference | null, chainId?: number) {
   const normalizedUrlOrRef = useMemo(() => {
     if (!urlOrRef) return undefined;
-    if (typeof urlOrRef !== 'string') return urlOrRef.fullPackageRef;
-    return urlOrRef;
+    if (typeof urlOrRef === 'string') return urlOrRef;
+    return urlOrRef.fullPackageRef!;
   }, [urlOrRef]);
 
+  const registry = useCannonRegistry();
   const connectedChainId = useChainId();
+  const packageChainId = chainId || connectedChainId;
+
+  return useQuery({
+    queryKey: ['cannon', 'registry-url', normalizedUrlOrRef, packageChainId],
+    queryFn: async () => {
+      const url = await _getCannonPackageRegistryUrl(registry, normalizedUrlOrRef!, packageChainId);
+      return { chainId: packageChainId, url };
+    },
+    enabled: typeof normalizedUrlOrRef === 'string' && !!normalizedUrlOrRef && !!packageChainId,
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?: number) {
   const registry = useCannonRegistry();
   const settings = useStore((s) => s.settings);
   const { addLog } = useLogs();
 
-  const packageChainId = chainId ?? connectedChainId;
-
   // Registry query with proper typing
-  const registryQuery = useQuery({
-    queryKey: ['cannon', 'registry-url', normalizedUrlOrRef, packageChainId],
-    queryFn: async () => {
-      const ipfsUrl = getIpfsUrl(normalizedUrlOrRef);
-      if (ipfsUrl) return { url: ipfsUrl };
-      const url = await registry.getUrl(normalizedUrlOrRef!, packageChainId);
-      if (!url) throw new Error(`package not found: ${normalizedUrlOrRef} (${packageChainId})`);
-      return { url };
-    },
-    enabled: typeof normalizedUrlOrRef === 'string' && normalizedUrlOrRef.length > 3,
-    refetchOnWindowFocus: false,
-    staleTime: 1000 * 60, // 1 minute
-  });
+  const registryQuery = useCannonPackageRegistryUrl(urlOrRef, chainId);
 
   const ipfsQuery = useQuery<{
     deployInfo: DeploymentInfo;
@@ -477,6 +515,7 @@ export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?:
         fullPackageRef,
       };
     },
+    refetchOnWindowFocus: false,
     enabled: !!registryQuery.data?.url,
     staleTime: 1000 * 60, // 1 minute
     retry: false,
@@ -484,13 +523,13 @@ export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?:
 
   // Meta query with proper typing
   const registryQueryMeta = useQuery<{ metaUrl: string } | null>({
-    queryKey: ['cannon', 'registry-meta', ipfsQuery.data?.fullPackageRef, packageChainId],
+    queryKey: ['cannon', 'registry-meta', ipfsQuery.data?.fullPackageRef, registryQuery.data?.chainId],
     queryFn: async () => {
-      if (!ipfsQuery.data?.fullPackageRef) return null;
-      const metaUrl = await registry.getMetaUrl(ipfsQuery.data.fullPackageRef, packageChainId);
+      if (!ipfsQuery.data?.fullPackageRef || !registryQuery.data?.chainId) return null;
+      const metaUrl = await registry.getMetaUrl(ipfsQuery.data.fullPackageRef, registryQuery.data.chainId);
       return metaUrl ? { metaUrl } : null;
     },
-    enabled: !!ipfsQuery.data?.fullPackageRef,
+    enabled: !!ipfsQuery.data?.fullPackageRef && !!registryQuery.data?.chainId,
     staleTime: 1000 * 60, // 1 minute
     refetchOnWindowFocus: false,
   });
@@ -534,12 +573,8 @@ function getContractsRecursive(outputs: ChainArtifacts, prefix?: string): Contra
   return contracts;
 }
 
-export function useMergedCannonDefInfo(
-  gitUrl: string,
-  gitRef: string,
-  gitFile: string,
-  partialDeployInfo: ReturnType<typeof useCannonPackage>
-) {
+export function useMergedCannonDefInfo(gitInfo: CannonfileGitInfo, partialDeployInfo: ReturnType<typeof useCannonPackage>) {
+  const { gitUrl, gitRef, gitFile } = gitInfo;
   const originalCannonDefInfo = useLoadCannonDefinition(gitUrl, gitRef, gitFile);
 
   const {
@@ -570,7 +605,7 @@ export function useMergedCannonDefInfo(
       isFetching,
       isError,
       error,
-      def: workerDef!,
+      def: workerDef,
     };
   }, [originalCannonDefInfo, workerDef, workerError, isLoading]);
 }

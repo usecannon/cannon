@@ -2,7 +2,6 @@
 
 import dynamic from 'next/dynamic';
 import { ReactNode } from 'react';
-import { Box, Flex, useBreakpointValue } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
@@ -10,6 +9,8 @@ import { SafeAddressInput } from '@/features/Deploy/SafeAddressInput';
 import ClientOnly from '@/components/ClientOnly';
 import { useParams } from 'next/navigation';
 import PageLoading from '@/components/PageLoading';
+import { SidebarLayout } from '@/components/layouts/SidebarLayout';
+import { useMediaQuery } from 'usehooks-ts';
 
 const NoSSRWithSafe = dynamic(() => import('@/features/Deploy/WithSafe'), {
   ssr: false,
@@ -18,33 +19,23 @@ const NoSSRWithSafe = dynamic(() => import('@/features/Deploy/WithSafe'), {
 export default function DeployLayout({ children }: { children: ReactNode }) {
   const params = useParams();
   const pathname = useRouter().pathname;
+  const isLarge = useMediaQuery('(min-width: 1024px)');
 
-  const isLarge = useBreakpointValue({ base: false, lg: true });
+  if (params == null) {
+    return <PageLoading />;
+  }
 
-  return params == null ? (
-    <PageLoading />
-  ) : (
-    <Flex flexDir="column" width="100%">
+  return (
+    <div className="flex flex-col w-full">
       {/* Header */}
-      <Box bg="black" borderBottom="1px solid" borderColor="gray.700">
-        <Flex
-          alignItems="center"
-          flexWrap="nowrap"
-          justifyContent="between"
-          whiteSpace="nowrap"
-          direction={['column', 'column', 'column', 'row']}
-        >
-          <Box
-            w="100%"
-            maxW={{ lg: 'container.sm' }}
-            mb={{ base: 2, lg: 0 }}
-            p={1.5}
-          >
+      <div className="sticky top-[var(--header-height)] bg-black border-b border-border pl-2 z-10">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center flex-nowrap justify-between whitespace-nowrap">
+          <div className="w-full lg:max-w-[640px] pt-4 lg:pt-0 truncate">
             <ClientOnly>
               <SafeAddressInput />
             </ClientOnly>
-          </Box>
-          <Flex gap={6} alignItems="end" justifyContent="end" grow={1} px={4}>
+          </div>
+          <div className="flex gap-6 items-center justify-start lg:justify-end grow lg:px-4 w-full overflow-x-auto overflow-y-hidden">
             <NavLink
               isSmall
               href={links.DEPLOY}
@@ -60,7 +51,7 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
               href={links.QUEUEFROMGITOPS}
               isActive={pathname.startsWith(links.QUEUEFROMGITOPS)}
             >
-              {isLarge && 'Queue '} Deployment
+              Queue Deployment
             </NavLink>
             <NavLink
               isSmall
@@ -69,12 +60,14 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
             >
               Stage{isLarge && ' Transactions'}
             </NavLink>
-          </Flex>
-        </Flex>
-      </Box>
+          </div>
+        </div>
+      </div>
 
       {/* Body */}
-      <NoSSRWithSafe>{children}</NoSSRWithSafe>
-    </Flex>
+      <SidebarLayout hasSubheader centered>
+        <NoSSRWithSafe>{children}</NoSSRWithSafe>
+      </SidebarLayout>
+    </div>
   );
 }

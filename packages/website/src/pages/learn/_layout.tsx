@@ -36,8 +36,11 @@ export default function LearnLayout({ children }: { children: ReactNode }) {
   const pathname = useRouter().pathname;
 
   return (
-    <div className="flex flex-col w-full">
-      <div className="bg-black border-b border-border">
+    <div className="w-full h-full">
+      <div
+        className="sticky top-[var(--header-height)] bg-black border-b border-border"
+        style={{ zIndex: 40 }}
+      >
         <div className="flex items-center justify-center md:gap-4 flex-nowrap overflow-x-auto whitespace-nowrap">
           <NavLink href={links.LEARN} isActive={links.LEARN === pathname}>
             Overview
@@ -59,7 +62,7 @@ export default function LearnLayout({ children }: { children: ReactNode }) {
           </NavLink>
         </div>
       </div>
-      <div className="px-4 md:px-8 flex w-full h-full">{children}</div>
+      {children}
     </div>
   );
 }

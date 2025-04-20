@@ -36,14 +36,14 @@ const ChainButton = ({
         </div>
         {connected ? (
           <span
-            className="text-sm text-emerald-400 font-medium uppercase tracking-wider font-['var(--font-miriam)']"
+            className="text-sm text-emerald-400 font-medium uppercase tracking-wider text-mono"
             style={{ textShadow: '0px 0px 4px #00ff00' }}
           >
             Connected
           </span>
         ) : switching ? (
           <span
-            className="text-sm text-yellow-400 font-medium uppercase tracking-wider font-['var(--font-miriam)']"
+            className="text-sm text-yellow-400 font-medium uppercase tracking-wider text-mono"
             style={{ textShadow: '0px 0px 4px #ffff00' }}
           >
             Confirm in wallet
@@ -109,7 +109,7 @@ const ChainSelectorModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-zinc-900 text-white border-zinc-700 max-h-[50vh] overflow-auto">
+      <DialogContent className="max-h-[50vh] overflow-auto border-border">
         <DialogHeader>
           <DialogTitle>Select Chain</DialogTitle>
         </DialogHeader>

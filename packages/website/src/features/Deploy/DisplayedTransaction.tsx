@@ -1,4 +1,11 @@
-import { Alert } from '@/components/Alert';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { formatToken } from '@/helpers/formatters';
 import {
   ContractInfo,
@@ -6,38 +13,10 @@ import {
   UseCannonPackageContractsReturnType,
 } from '@/hooks/cannon';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
-import {
-  AlertDescription,
-  Box,
-  Flex,
-  FormControl,
-  FormLabel,
-  Heading,
-  Input,
-  Link,
-  Spinner,
-  Text,
-  Tooltip,
-} from '@chakra-ui/react';
-import { FC, ReactNode } from 'react';
-import { a11yDark, CopyBlock } from 'react-code-blocks';
-import {
-  bytesToString,
-  decodeFunctionData,
-  DecodeFunctionDataReturnType,
-  formatEther,
-  Hex,
-  hexToBytes,
-  TransactionRequestBase,
-  trim,
-} from 'viem';
-import { ClipboardButton } from '@/components/ClipboardButton';
-
-const TxWrapper: FC<{ children: ReactNode }> = ({ children }) => (
-  <Box p={6} border="1px solid" borderColor="gray.600" bgColor="black">
-    {children}
-  </Box>
-);
+import * as viem from 'viem';
+import { CustomSpinner } from '@/components/CustomSpinner';
+import { Snippet } from '@/components/snippet';
+import { AbiParameterPreview } from '@/components/AbiParameterPreview';
 
 // TODO: refactor caching mechanism
 // A possible solution is to use useQuery from tanstack/react-query
@@ -52,11 +31,12 @@ const useCannonPreloadedContracts = (
 };
 
 export function DisplayedTransaction(props: {
-  txn?: Omit<TransactionRequestBase, 'from'>;
+  txn?: Omit<viem.TransactionRequestBase, 'from'>;
   chainId: number;
   pkgUrl: string;
   cannonInfo?: UseCannonPackageContractsReturnType;
   isPreloaded?: boolean;
+  cannonOperation?: string;
 }) {
   const { getChainById, getExplorerUrl } = useCannonChains();
   const chain = getChainById(props.chainId);
@@ -71,23 +51,29 @@ export function DisplayedTransaction(props: {
 
   if (cannonInfo.isLoading) {
     return (
-      <TxWrapper>
-        <Flex alignItems="center" justifyContent="center" height="100%">
-          <Spinner />
-        </Flex>
-      </TxWrapper>
+      <Card className="bg-black">
+        <CardHeader>
+          <CardTitle>Loading Transaction Data</CardTitle>
+          <CardDescription>
+            Fetching cannon package contracts...
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-full">
+            <CustomSpinner />
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   if (cannonInfo.isError) {
     return (
-      <TxWrapper>
-        <Alert status="error">
-          <AlertDescription fontSize="sm" lineHeight="0">
-            Unable to fetch cannon package contracts.
-          </AlertDescription>
-        </Alert>
-      </TxWrapper>
+      <Alert variant="destructive">
+        <AlertDescription>
+          Unable to parse this transaction data.
+        </AlertDescription>
+      </Alert>
     );
   }
 
@@ -97,16 +83,19 @@ export function DisplayedTransaction(props: {
   const parsedContractNames =
     props.txn && contracts
       ? Object.entries(contracts)
-          .filter(([, { address }]) => address === props.txn?.to)
+          .filter(
+            ([, { address }]) =>
+              address.toLowerCase() === props.txn?.to?.toLowerCase()
+          )
           .map(([contractName]) => contractName)
       : [];
 
   let contractName = props.txn?.to ?? '';
-  let decodedFunctionData: DecodeFunctionDataReturnType | null = null;
+  let decodedFunctionData: viem.DecodeFunctionDataReturnType | null = null;
   if (contracts) {
     for (const n of parsedContractNames) {
       try {
-        decodedFunctionData = decodeFunctionData({
+        decodedFunctionData = viem.decodeFunctionData({
           abi: contracts[n]?.abi,
           data: props.txn?.data || '0x',
         });
@@ -141,9 +130,14 @@ export function DisplayedTransaction(props: {
     [];
 
   const address = props.txn?.to ? (
-    <Link isExternal href={getExplorerUrl(chain.id, props.txn?.to)}>
+    <a
+      className="font-mono border-b border-dotted border-gray-300"
+      href={getExplorerUrl(chain.id, props.txn?.to)}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
       {props.txn?.to}
-    </Link>
+    </a>
   ) : null;
 
   const value = formatToken(props.txn?.value || BigInt(0), {
@@ -152,202 +146,75 @@ export function DisplayedTransaction(props: {
 
   if (!contracts && !cannonInfo.isFetching) {
     return (
-      <TxWrapper>
-        <Box mb={5}>
-          <Alert status="warning">
-            <AlertDescription fontSize="sm" lineHeight="0">
-              Unable to parse transaction data. Try restaging or manually verify
-              this data.
-            </AlertDescription>
-          </Alert>
-        </Box>
-        <Box mb={2}>
-          <Text fontSize="xs" color="gray.300">
-            <Text as="span" mr={3}>
-              Target: {address}
-            </Text>
-            <Text as="span" mr={3}>
-              Selector: {functionHash}
-            </Text>
-            <Text as="span">Value: {value}</Text>
-          </Text>
-        </Box>
-        <Text fontSize="xs" color="gray.300" mb={0.5}>
-          Transaction Data:
-        </Text>
-        <CopyBlock
-          text={props.txn?.data || ''}
-          language="bash"
-          showLineNumbers={false}
-          codeBlock
-          theme={a11yDark}
-          customStyle={{ fontSize: '14px' }}
-        />
-      </TxWrapper>
+      <Card className="bg-black">
+        <CardHeader>
+          <CardTitle>Transaction Data</CardTitle>
+          <CardDescription>
+            <span className="mr-3">Target: {address}</span>
+            <span className="mr-3">Selector: {functionHash}</span>
+            <span>Value: {value}</span>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4">
+            <Alert variant="warning">
+              <AlertDescription>
+                Unable to parse transaction data. Try restaging or manually
+                verify this data.
+              </AlertDescription>
+            </Alert>
+          </div>
+          <p className="text-xs text-muted-foreground mb-0.5">
+            Transaction Data:
+          </p>
+
+          <Snippet>
+            <code className="break-all whitespace-pre-wrap">
+              {props.txn?.data}
+            </code>
+          </Snippet>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <Box p={6} border="1px solid" borderColor="gray.600" bgColor="black">
-      <Box maxW="100%" overflowX="auto">
-        <Box whiteSpace="nowrap" mb={functionParameters.length > 0 ? 4 : 0}>
-          <Heading size="sm" fontFamily="mono" fontWeight="semibold" mb={1}>
-            {`${contractName}.${functionName || functionHash}`}
-          </Heading>
-          <Text fontSize="xs" color="gray.300">
-            <Text as="span" mr={3}>
-              Target: {address}
-            </Text>
-            <Text as="span" mr={3}>
-              Selector: {functionHash}
-            </Text>
-            <Text as="span">Value: {value}</Text>
-          </Text>
-        </Box>
-        <Flex flexDirection={['column', 'column', 'row']} gap={8} height="100%">
-          <Box flex="1" w={['100%', '100%', '50%']}>
-            {functionParameters.map((_arg, i) => [
-              <Box key={JSON.stringify(functionParameters[i])}>
-                <FormControl mb="4">
-                  <FormLabel fontSize="sm" mb={1}>
-                    {functionParameters[i].name && (
-                      <Text display="inline">{functionParameters[i].name}</Text>
-                    )}
-                    {functionParameters[i].type && (
-                      <Text
-                        fontSize="xs"
-                        color="whiteAlpha.700"
-                        display="inline"
-                      >
-                        {' '}
-                        {functionParameters[i].type}
-                      </Text>
-                    )}
-                  </FormLabel>
-                  {_renderInput(
-                    functionParameters[i].type,
-                    functionArgs[i] as string
-                  )}
-                </FormControl>
-              </Box>,
-            ])}
-          </Box>
-        </Flex>
-      </Box>
-    </Box>
-  );
-}
-
-function _encodeArg(type: string, val: string): string {
-  if (Array.isArray(val)) {
-    if (!type.endsWith('[]')) {
-      throw Error(`Invalid arg type "${type}" and val "${val}"`);
-    }
-
-    return `["${val
-      .map((v) => _encodeArg(type.slice(0, -2), v))
-      .join('", "')}"]`;
-  }
-
-  if (type.startsWith('bytes') && val.startsWith('0x')) {
-    try {
-      const b = hexToBytes(val as Hex);
-      const t = b.findIndex((v) => v < 0x20);
-      if (b[t] != 0 || b.slice(t).find((v) => v != 0) || t === 0) {
-        // this doesn't look like a terminated ascii hex string. leave it as hex
-        return val;
-      }
-
-      return bytesToString(trim(b, { dir: 'right' }));
-    } catch (err) {
-      return val.toString();
-    }
-  } else if (type == 'tuple') {
-    // TODO: use a lib?
-    return JSON.stringify(val, (_, v) =>
-      typeof v === 'bigint' ? v.toString() : v
-    );
-  } else if (type == 'bool') {
-    return val ? 'true' : 'false';
-  } else if (type.startsWith('uint') || type.startsWith('int')) {
-    return val ? BigInt(val).toString() : '0';
-  }
-
-  return val.toString();
-}
-
-function _encodeArgTooltip(type: string, val: string): string {
-  if (Array.isArray(val)) {
-    if (!type.endsWith('[]')) {
-      throw Error(`Invalid arg type "${type}" and val "${val}"`);
-    }
-
-    return `["${val
-      .map((v) => _encodeArgTooltip(type.slice(0, -2), v))
-      .join('", "')}"]`;
-  }
-
-  if (type.startsWith('bytes') && val.startsWith('0x')) {
-    return val.toString();
-  } else if (type == 'tuple') {
-    return JSON.stringify(val, (_, v) =>
-      typeof v === 'bigint' ? v.toString() : v
-    );
-  } else if (type == 'bool') {
-    return val ? 'true' : 'false';
-  } else if (['int256', 'uint256', 'int128', 'uint128'].includes(type)) {
-    return val ? formatEther(BigInt(val)) : '0';
-  }
-
-  // if we get here no tooltip is needed
-  return '';
-}
-
-function _renderInput(type: string, val: string) {
-  if (type === 'tuple') {
-    return (
-      <CopyBlock
-        text={JSON.stringify(JSON.parse(_encodeArg(type, val || '')), null, 2)}
-        language="json"
-        showLineNumbers={false}
-        codeBlock
-        theme={a11yDark}
-        customStyle={{ fontSize: '14px' }}
-      />
-    );
-  }
-
-  return (
-    <Tooltip
-      label={_encodeArgTooltip(type, val as string)}
-      placement="bottom-start"
-    >
-      <div>
-        <Input
-          type="text"
-          size="sm"
-          bg="black"
-          borderColor="whiteAlpha.400"
-          isReadOnly
-          _focus={{
-            boxShadow: 'none !important',
-            outline: 'none !important',
-            borderColor: 'whiteAlpha.400 !important',
-          }}
-          _focusVisible={{
-            boxShadow: 'none !important',
-            outline: 'none !important',
-            borderColor: 'whiteAlpha.400 !important',
-          }}
-          _hover={{
-            boxShadow: 'none !important',
-            outline: 'none !important',
-            borderColor: 'whiteAlpha.400 !important',
-          }}
-          value={_encodeArg(type, (val as string) || '')}
-        />
-        <ClipboardButton text={val} className="mt-0.5" />
-      </div>
-    </Tooltip>
+    <Card className="rounded-sm">
+      <CardHeader>
+        <CardTitle className="font-mono">
+          {`${contractName}.${functionName || functionHash} `}
+        </CardTitle>
+        <CardDescription>
+          {props.cannonOperation && (
+            <span className="mr-4">
+              via <span className="font-mono">[{props.cannonOperation}]</span>
+            </span>
+          )}
+          <span className="mr-4">Target Address: {address}</span>
+          <span className="mr-4">
+            Function Selector: <span className="font-mono">{functionHash}</span>
+          </span>
+          <span>
+            Value: <span className="font-mono">{value}</span>
+          </span>
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col lg:flex-row gap-8 h-full">
+          <div className="flex-1 w-full lg:w-1/2">
+            <div className="flex flex-col gap-4">
+              {functionParameters.map((_arg, i) => (
+                <AbiParameterPreview
+                  chainId={chain.id}
+                  key={JSON.stringify(functionParameters[i])}
+                  abiParameter={functionParameters[i]}
+                  value={functionArgs[i] as string}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

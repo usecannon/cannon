@@ -4,8 +4,8 @@ import { FC, ReactNode, useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import ChainSelectorModal from '@/components/ChainSelectorModal';
 import { Button } from '@/components/ui/button';
-import { useMediaQuery } from 'usehooks-ts';
 import { cn } from '@/lib/utils';
+import { useMedia } from '@/hooks/useMedia';
 
 const styleMap = {
   primary: 'bg-teal-900 border-teal-500 hover:bg-teal-800',
@@ -31,13 +31,14 @@ const CustomButton = ({
       'shadow-[0px_0px_4px_rgba(255,255,255,0.33)]',
       styleMap[variant]
     )}
+    data-testid="custom-button"
   >
     {children}
   </Button>
 );
 
 const ConnectWallet: FC = () => {
-  const isMobile = useMediaQuery('(max-width: 768px)');
+  const { isMobile } = useMedia();
   const [showingChainModal, setShowingChainModal] = useState(false);
 
   const handleOpenChainModal = () => {

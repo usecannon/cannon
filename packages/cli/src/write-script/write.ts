@@ -29,9 +29,11 @@ export async function createWriteScript(
 
   const events = createStepsStream(runtime);
 
+  const blockNumber = await runtime.provider.getBlockNumber();
+
   const stream = events.stream // Listen for step execution events
     .pipe(events.fetchTransactions) // asynchronically add the executed transactions
-    .pipe(createRenderer()) // render step lines into the desired format
+    .pipe(createRenderer(Number(blockNumber))) // render step lines into the desired format
     .pipe(createWriteStream(targetFile)); // save to file
 
   return {

@@ -15,7 +15,7 @@ import { IpfsSpinner } from '@/components/IpfsSpinner';
 import { useState, useEffect } from 'react';
 import { getChainDefinitionFromWorker } from '@/helpers/chain-definition';
 import { CommandPreview } from '@/components/CommandPreview';
-import { DownloadIcon } from '@radix-ui/react-icons';
+import { Download } from 'lucide-react';
 import { Braces } from 'lucide-react';
 import Link from 'next/link';
 import { CustomSpinner } from '@/components/CustomSpinner';
@@ -108,7 +108,7 @@ export default function PackageAccordionHelper({
   };
 
   return (
-    <div className="max-w-screen-lg mx-auto px-6">
+    <div className="max-w-screen-lg mx-auto p-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Run Package Card */}
         <Card>
@@ -127,7 +127,7 @@ export default function PackageAccordionHelper({
                 href="/learn/cli/"
                 className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
               >
-                <DownloadIcon className="h-4 w-4" />
+                <Download className="h-4 w-4" />
                 Install CLI
               </Link>
             </div>
@@ -152,6 +152,7 @@ export default function PackageAccordionHelper({
               <button
                 onClick={() => handleDownload(addressesAbis)}
                 className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                data-testid="download-deployments-button"
               >
                 <Braces className="h-4 w-4" />
                 Download JSON

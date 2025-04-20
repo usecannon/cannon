@@ -11,11 +11,9 @@
     "lint:fix": "pnpm run '/^lint:fix:(js|sol)/'",
     "clean": "pnpm -r --if-present run clean",
     "build": "pnpm run clean && pnpm -r --filter @usecannon/builder --filter @usecannon/cli --filter hardhat-cannon --filter @usecannon/api run build",
+    "build:website": "pnpm run clean && pnpm -r --filter @usecannon/builder --filter @usecannon/cli --filter @usecannon/api --filter @usecannon/website run build",
     "watch": "pnpm -r --parallel --filter @usecannon/builder --filter @usecannon/cli run watch",
-    "version-alpha": "lerna version prerelease --no-private",
-    "version-patch": "lerna version patch --no-private",
-    "version-minor": "lerna version minor --no-private",
-    "version-major": "lerna version major --no-private",
+    "version": "lerna version --no-private",
     "publish": "lerna publish from-package --no-private",
     "publish-alpha": "lerna publish from-package --no-private --preid alpha --dist-tag alpha",
     "test": "pnpm -r --if-present --filter './packages/**' --filter !@usecannon/repo run test",
@@ -60,5 +58,5 @@
     "node": ">=18",
     "pnpm": ">=9"
   },
-  "packageManager": "pnpm@9.10.0"
+  "packageManager": "pnpm@9.15.9+sha512.68046141893c66fad01c079231128e9afb89ef87e2691d69e4d40eee228988295fd4682181bae55b58418c3a253bde65a505ec7c5f9403ece5cc3cd37dcf2531"
 }

@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import _ from 'lodash';
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import * as viem from 'viem';
 import {
   useAccount,
@@ -18,74 +18,53 @@ import {
   useWalletClient,
 } from 'wagmi';
 
-interface CannonSafeTransaction {
+export interface CannonSafeTransaction {
   txn: SafeTransaction;
   sigs: string[];
 }
 
-export function useSafeTransactions(safe: SafeDefinition | null, refetchInterval?: number) {
+export function useSafeTransactions(safe: SafeDefinition | null, refetchInterval: number | false = false) {
+  const { chainId: safeChainId, address: safeAddress } = safe || {};
   const stagingUrl = useStore((s) => s.settings.stagingUrl);
 
   const stagedQuery = useQuery({
-    queryKey: ['staged', safe?.chainId, safe?.address],
+    queryKey: ['staged', safeChainId, safeAddress],
     enabled: !!safe,
     queryFn: async () => {
       if (!safe) return [];
-      const response = await axios.get<CannonSafeTransaction[]>(`${stagingUrl}/${safe.chainId}/${safe.address}`);
+      const response = await axios.get<CannonSafeTransaction[]>(`${stagingUrl}/${safeChainId}/${safeAddress}`);
       return response.data;
     },
     refetchInterval,
   });
-  // Use JSON.stringify for deep comparison
-  const stagedQueryDataAsJson = JSON.stringify(stagedQuery.data);
 
   const nonceQuery = useReadContract({
-    address: safe?.address,
-    chainId: safe?.chainId,
+    address: safeAddress,
+    chainId: safeChainId,
     abi: SafeABI,
     functionName: 'nonce',
   });
 
-  const memoizedStaged = useMemo(() => {
-    if (!stagedQuery.isSuccess || !nonceQuery.isSuccess || !Array.isArray(stagedQuery.data)) {
-      return [];
-    }
-    const nonce = Number(nonceQuery.data || 0);
-    return _.sortBy(
-      stagedQuery.data.filter((t) => t.txn._nonce >= nonce),
-      'txn._nonce'
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stagedQuery.isSuccess, nonceQuery.isSuccess, stagedQueryDataAsJson, nonceQuery.data]);
+  const memoizedStaged = _.sortBy(
+    stagedQuery.data?.filter((t) => t.txn._nonce >= Number(nonceQuery.data || 0)) || [],
+    'txn._nonce'
+  );
 
-  const memoizedNextNonce = useMemo(() => {
-    if (memoizedStaged.length === 0 && !nonceQuery.isSuccess) return null;
-    const lastNonce = memoizedStaged.length ? _.last(memoizedStaged)?.txn._nonce : Number(nonceQuery.data || 0);
-    return lastNonce ? lastNonce + 1 : null;
-  }, [memoizedStaged, nonceQuery.data, nonceQuery.isSuccess]);
+  const memoizedNextNonce = !memoizedStaged ? 0 : (_.last(memoizedStaged)?.txn._nonce || 0) + 1;
 
   const isFetched = stagedQuery.isFetched && nonceQuery.isFetched;
   const isSuccess = stagedQuery.isSuccess && nonceQuery.isSuccess;
   const isLoading = stagedQuery.isLoading || nonceQuery.isLoading;
-  const stagedQueryRefetch = stagedQuery.refetch;
-  const nonceQueryRefetch = nonceQuery.refetch;
-  const refetch = useCallback(
-    () => Promise.all([stagedQueryRefetch(), nonceQueryRefetch()]),
-    [stagedQueryRefetch, nonceQueryRefetch]
-  );
 
-  return useMemo(
-    () => ({
-      isLoading,
-      isSuccess,
-      isFetched,
-      refetch,
-      nonce: BigInt(Number(nonceQuery.data || 0)),
-      staged: memoizedStaged,
-      nextNonce: memoizedNextNonce,
-    }),
-    [isLoading, isSuccess, isFetched, refetch, nonceQuery, memoizedStaged, memoizedNextNonce]
-  );
+  return {
+    isLoading,
+    isSuccess,
+    isFetched,
+    refetch: () => Promise.all([stagedQuery.refetch(), nonceQuery.refetch()]),
+    nonce: BigInt(Number(nonceQuery.data || 0)),
+    staged: memoizedStaged,
+    nextNonce: memoizedNextNonce,
+  };
 }
 
 export function useTxnStager(
@@ -175,7 +154,6 @@ export function useTxnStager(
       const signers: viem.Address[] = [];
       for (const sig of alreadyStaged.sigs) {
         const signature = viem.toBytes(sig);
-        signature[signature.length - 1] -= 4; // remove 4 at the end from gnosis signature version code
         const signerAddress = await viem.recoverAddress({
           hash: viem.hashMessage({
             raw: hashToSign as any, // TODO: fix type
@@ -208,6 +186,7 @@ export function useTxnStager(
     },
     onSuccess: async () => {
       void refetchSafeTxs();
+      void reads.refetch();
     },
   });
 
@@ -251,22 +230,22 @@ export function useTxnStager(
 
   let signConditionFailed = '';
   if (!isSigner) {
-    signConditionFailed = `current wallet ${account.address} not signer of this safe`;
+    signConditionFailed = `Connected wallet ${account.address} not signer of this safe.`;
   } else if (!walletClient.data) {
-    signConditionFailed = 'wallet not connected';
+    signConditionFailed = 'Wallet not connected.';
   } else if (alreadyStagedSigners.indexOf(account.address!) !== -1) {
-    signConditionFailed = `current wallet ${account.address} has already signed the transaction`;
+    signConditionFailed = `Connected wallet ${account.address} has already signed the transaction.`;
   }
 
   let execConditionFailed = '';
   if (reads.isError) {
     execConditionFailed = `Prepare error: ${reads.failureReason}`;
   } else if (!reads.isSuccess || reads.isFetching || reads.isRefetching) {
-    execConditionFailed = 'loading transaction data, please wait...';
+    execConditionFailed = 'Loading transaction data, please wait...';
   } else if (!isSigner) {
-    execConditionFailed = `current wallet ${account.address} not signer of this safe`;
+    execConditionFailed = `Connected wallet ${account.address} not signer of this safe.`;
   } else if (existingSigsCount < requiredSigs && (signConditionFailed || existingSigsCount + 1 < requiredSigs)) {
-    execConditionFailed = `insufficient signers to execute (required: ${requiredSigs})`;
+    execConditionFailed = `Insufficient signers to execute (required: ${requiredSigs})`;
   } else if (stageTxnMutate.isError) {
     execConditionFailed = `Simulation error: ${stageTxnMutate.failureReason}`;
   }
@@ -290,16 +269,73 @@ export function useTxnStager(
           });
         }
 
-        const signature = await walletClient.data!.signMessage({
-          account: account.address,
-          message: { raw: hashToSign as any },
+        const signature = await walletClient.data!.signTypedData({
+          domain: {
+            chainId: currentSafe?.chainId,
+            verifyingContract: currentSafe?.address,
+          },
+          types: {
+            SafeTx: [
+              {
+                name: 'to',
+                type: 'address',
+              },
+              {
+                name: 'value',
+                type: 'uint256',
+              },
+              {
+                name: 'data',
+                type: 'bytes',
+              },
+              {
+                name: 'operation',
+                type: 'uint8',
+              },
+              {
+                name: 'safeTxGas',
+                type: 'uint256',
+              },
+              {
+                name: 'baseGas',
+                type: 'uint256',
+              },
+              {
+                name: 'gasPrice',
+                type: 'uint256',
+              },
+              {
+                name: 'gasToken',
+                type: 'address',
+              },
+              {
+                name: 'refundReceiver',
+                type: 'address',
+              },
+              {
+                name: 'nonce',
+                type: 'uint256',
+              },
+            ],
+          },
+          primaryType: 'SafeTx',
+          message: {
+            to: safeTxn.to,
+            value: BigInt(safeTxn.value),
+            data: safeTxn.data,
+            operation: Number(safeTxn.operation),
+            safeTxGas: BigInt(safeTxn.safeTxGas),
+            baseGas: BigInt(safeTxn.baseGas),
+            gasPrice: BigInt(safeTxn.gasPrice),
+            gasToken: safeTxn.gasToken,
+            refundReceiver: safeTxn.refundReceiver,
+            nonce: BigInt(safeTxn._nonce),
+          },
         });
-
-        const gnosisSignature = viem.toBytes(signature);
 
         // sometimes the signature comes back with a `v` of 0 or 1 when when it should 27 or 28, called a "recid" apparently
         // Allow a recid to be used as the v
-        if (gnosisSignature[gnosisSignature.length - 1] < 27) {
+        /*if (gnosisSignature[gnosisSignature.length - 1] < 27) {
           if (gnosisSignature[gnosisSignature.length - 1] === 0 || gnosisSignature[gnosisSignature.length - 1] === 1) {
             gnosisSignature[gnosisSignature.length - 1] += 27;
           } else {
@@ -308,11 +344,11 @@ export function useTxnStager(
         }
 
         // gnosis for some reason requires adding 4 to the signature version code
-        gnosisSignature[gnosisSignature.length - 1] += 4;
+        gnosisSignature[gnosisSignature.length - 1] += 4;*/
 
         await mutation.mutateAsync({
           txn: safeTxn,
-          sig: viem.toHex(gnosisSignature),
+          sig: signature,
         });
 
         if (options.onSignComplete) {

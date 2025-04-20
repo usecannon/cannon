@@ -9,7 +9,6 @@ import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { CannonfileGraph } from './CannonfileGraph';
 import { StepModalProvider } from '@/providers/stepModalProvider';
 import { stringify } from '@iarna/toml';
-import { PiGraphLight, PiCodeLight, PiListBullets } from 'react-icons/pi';
 import { ApiPackage } from '@usecannon/api/dist/src/types';
 import {
   Table,
@@ -26,6 +25,7 @@ import {
   TooltipProvider,
 } from '@/components/ui/tooltip';
 import { IpfsSpinner } from '@/components/IpfsSpinner';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 function omitEmptyObjects(config: { [x: string]: any }) {
   for (const key in config) {
@@ -97,51 +97,48 @@ export const CannonfileExplorer: FC<{ pkg: ApiPackage }> = ({ pkg }) => {
   };
 
   return pkg?.deployUrl ? (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col h-full w-full">
       {deploymentData.isLoading ? (
         <div className="py-20">
           <IpfsSpinner ipfsUrl={pkg?.deployUrl} />
         </div>
       ) : deploymentInfo ? (
-        <div className="relative flex flex-1 flex-col min-h-[420px]">
+        <div className="relative h-full w-full">
           <TooltipProvider>
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center rounded-full border border-gray-500 bg-black z-50 overflow-hidden">
-              <button
-                onClick={() => setDisplayMode(1)}
-                className={`p-3 pl-4 hover:bg-gray-900 ${
-                  displayMode === 1 ? 'text-[#1ad6ff]' : 'text-white'
-                }`}
+            <div className="sticky top-0 overflow-x-scroll overflow-y-hidden max-w-full border-b border-border bg-muted">
+              <Tabs
+                value={displayMode.toString()}
+                onValueChange={(value) => setDisplayMode(parseInt(value))}
               >
-                <PiGraphLight size="24" />
-              </button>
-              <button
-                onClick={() => setDisplayMode(2)}
-                className={`p-3 hover:bg-gray-900 ${
-                  displayMode === 2 ? 'text-[#1ad6ff]' : 'text-white'
-                }`}
-              >
-                <PiListBullets size="24" />
-              </button>
-              <button
-                onClick={() => setDisplayMode(3)}
-                className={`p-3 pr-4 hover:bg-gray-900 ${
-                  displayMode === 3 ? 'text-[#1ad6ff]' : 'text-white'
-                }`}
-              >
-                <PiCodeLight size="24" />
-              </button>
+                <TabsList className="h-full">
+                  <TabsTrigger value="1" data-testid="dependency-graph-button">
+                    Dependency Graph
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="2"
+                    data-testid="processed-cannonfile-button"
+                  >
+                    Processed Cannonfile
+                  </TabsTrigger>
+                  <TabsTrigger value="3" data-testid="raw-cannonfile-button">
+                    Raw Cannonfile
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
 
             <StepModalProvider>
               <div
-                className={`flex-1 ${displayMode === 1 ? 'block' : 'hidden'}`}
+                className={`${displayMode === 1 ? 'block h-full' : 'hidden'} `}
               >
-                <CannonfileGraph deploymentDefinition={deploymentInfo.def} />
+                <div className="h-full">
+                  <CannonfileGraph deploymentDefinition={deploymentInfo.def} />
+                </div>
               </div>
 
               <div
-                className={`container mx-auto max-w-5xl py-14 ${
-                  displayMode === 2 ? 'block' : 'hidden'
+                className={`container mx-auto p-4 ${
+                  displayMode === 2 ? 'flex flex-col' : 'hidden'
                 }`}
               >
                 {Object.entries(settings).length > 0 && (
@@ -172,12 +169,7 @@ export const CannonfileExplorer: FC<{ pkg: ApiPackage }> = ({ pkg }) => {
                               </TableCell>
                               <TableCell className="border-border">
                                 {value.option ? (
-                                  <>
-                                    {value.option}
-                                    <span className="text-gray-500 text-decoration-line-through">
-                                      {value.defaultValue}
-                                    </span>
-                                  </>
+                                  <>{value.option}</>
                                 ) : (
                                   <>{value.defaultValue}</>
                                 )}
@@ -248,9 +240,7 @@ export const CannonfileExplorer: FC<{ pkg: ApiPackage }> = ({ pkg }) => {
                 )}
               </div>
 
-              <div
-                className={`flex-1 ${displayMode === 3 ? 'block' : 'hidden'}`}
-              >
+              <div className={`${displayMode === 3 ? 'h-screen' : 'hidden'} `}>
                 <CodePreview
                   code={stringify(processedDeploymentInfo as any)}
                   language="ini"

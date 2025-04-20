@@ -80,8 +80,8 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
   }
 
   let artifact = possibleArtifacts[0];
-  if (possibleArtifactPaths.length > 1) {
-    const sourceNames = possibleArtifacts.map((v) => v.ast.absolutePath);
+  const sourceNames = possibleArtifacts.map((v) => v.ast?.absolutePath ?? '').filter((v) => v);
+  if (sourceNames.length > 1) {
     if (!inputSourceName) {
       throw new Error(
         `more than one contract was found with the name ${inputContractName}. Please tell us which file for the contract to use:\n${sourceNames
@@ -134,7 +134,7 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
     };
 
     return {
-      contractName: name,
+      contractName: inputContractName,
       sourceName: artifact.ast.absolutePath,
       abi: artifact.abi,
       bytecode: artifact.bytecode.object,
@@ -145,7 +145,7 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
   }
 
   return {
-    contractName: inputContractName!,
+    contractName: inputContractName,
     sourceName: artifact.ast.absolutePath,
     abi: artifact.abi,
     bytecode: artifact.bytecode.object,

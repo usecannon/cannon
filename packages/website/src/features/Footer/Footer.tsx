@@ -1,25 +1,28 @@
 import { Button } from '@/components/ui/button';
 import {
-  DiscordLogoIcon,
-  GitHubLogoIcon,
-  TwitterLogoIcon,
-} from '@radix-ui/react-icons';
+  Discord as DiscordIcon,
+  Github as GithubIcon,
+  Twitter as TwitterIcon,
+} from '@/components/specialIcons';
+import { useRouter } from 'next/router';
 
 interface FooterProps {
   isFixed?: boolean;
 }
 
 export const Footer = ({ isFixed }: FooterProps) => {
+  const router = useRouter();
+
+  const isHomePage = router.pathname == '/';
+
   return (
     <div
       className={`
+        h-[var(--footer-height)]
         flex flex-col sm:flex-row items-center px-2 
-        ${
-          isFixed
-            ? 'fixed bottom-0 w-full z-10 bg-transparent'
-            : 'relative bg-black'
-        }
-        ${!isFixed && 'border-t border-border'}
+        ${isFixed ? 'fixed bottom-0 w-full z-10' : 'relative'}
+        ${isHomePage ? 'bg-transparent' : 'bg-black'}
+        ${isHomePage ? '' : 'border-t border-border'} 
         pb-3 pt-2 md:py-1
       `}
     >
@@ -30,7 +33,7 @@ export const Footer = ({ isFixed }: FooterProps) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <GitHubLogoIcon className="h-5 w-5" />
+            <GithubIcon className="h-5 w-5" />
           </a>
         </Button>
         <Button variant="ghost" size="icon" asChild>
@@ -39,7 +42,7 @@ export const Footer = ({ isFixed }: FooterProps) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <TwitterLogoIcon className="h-5 w-5" />
+            <TwitterIcon className="h-5 w-5" />
           </a>
         </Button>
         <Button variant="ghost" size="icon" asChild>
@@ -48,7 +51,7 @@ export const Footer = ({ isFixed }: FooterProps) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <DiscordLogoIcon className="h-5 w-5" />
+            <DiscordIcon className="h-5 w-5" />
           </a>
         </Button>
       </div>

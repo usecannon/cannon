@@ -1,0 +1,11 @@
+name = "examples-foundry-artifacts"
+description = "Example importing external artifacts from a foundry project"
+version = "0.0.1"
+includeSourceCode = false
+
+[contract.Greeter]
+artifact = "Greeter"
+
+[contract.AccessManager]
+artifact = "AccessManager"
+args = ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"]

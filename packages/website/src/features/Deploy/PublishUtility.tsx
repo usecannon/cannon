@@ -6,25 +6,7 @@ import { useStore } from '@/helpers/store';
 import { useCannonPackage } from '@/hooks/cannon';
 import { useCannonPackagePublishers } from '@/hooks/registry';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
-import {
-  ExternalLinkIcon,
-  InfoOutlineIcon,
-  QuestionOutlineIcon,
-} from '@chakra-ui/icons';
-import {
-  Alert,
-  AlertIcon,
-  Button,
-  Image,
-  Link,
-  ListItem,
-  Skeleton,
-  Stack,
-  Text,
-  Tooltip,
-  UnorderedList,
-  useToast,
-} from '@chakra-ui/react';
+import { ExternalLink, Info } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import {
   CannonStorage,
@@ -33,10 +15,23 @@ import {
   InMemoryRegistry,
   OnChainRegistry,
   publishPackage,
+  CannonSigner,
 } from '@usecannon/builder';
 import * as viem from 'viem';
 import { mainnet, optimism } from 'viem/chains';
 import { useSwitchChain, useWalletClient } from 'wagmi';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
+import Link from 'next/link';
+import { toast } from 'sonner';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function PublishUtility(props: {
   deployUrl: string;
@@ -46,7 +41,6 @@ export default function PublishUtility(props: {
 
   const wc = useWalletClient();
   const { switchChainAsync } = useSwitchChain();
-  const toast = useToast();
 
   // get the package referenced by this ipfs package
   const {
@@ -96,12 +90,12 @@ export default function PublishUtility(props: {
       );
 
       return new OnChainRegistry({
-        signer: { address: walletAddress, wallet: wc.data as any },
+        signer: { address: walletAddress, wallet: wc.data } as CannonSigner,
         address: config.address,
         provider: viem.createPublicClient({
           chain: getChainById(config.chainId),
           transport: customTransports[config.chainId] || viem.http(rpcUrl),
-        }),
+        }) as any,
       });
     });
 
@@ -156,19 +150,9 @@ export default function PublishUtility(props: {
       // eslint-disable-next-line no-console
       console.error(err);
       if (err.message.includes('exceeds the balance of the account')) {
-        toast({
-          title: 'Error Publishing Package: Insufficient Funds',
-          status: 'error',
-          duration: 10000,
-          isClosable: true,
-        });
+        toast.error('Error Publishing Package: Insufficient Funds');
       } else {
-        toast({
-          title: 'Error Publishing Package',
-          status: 'error',
-          duration: 10000,
-          isClosable: true,
-        });
+        toast.error('Error Publishing Package');
       }
     },
   });
@@ -185,30 +169,21 @@ export default function PublishUtility(props: {
       console.error(err);
 
       if (err.message.includes('exceeds the balance of the account')) {
-        toast({
-          title: 'Error Publishing Package: Insufficient Funds',
-          status: 'error',
-          duration: 10000,
-          isClosable: true,
-        });
+        toast.error('Error Publishing Package: Insufficient Funds');
       } else {
-        toast({
-          title: 'Error Publishing Package',
-          status: 'error',
-          duration: 10000,
-          isClosable: true,
-        });
+        toast.error('Error Publishing Package');
       }
     },
   });
 
   if (ipfsPkgQuery.isFetching || ipfsChkQuery.isFetching) {
     return (
-      <Stack>
-        <Skeleton height="20px" />
-        <Skeleton height="60px" />
-        <Skeleton height="20px" />
-      </Stack>
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-full" />
+      </div>
     );
   } else if (existingRegistryUrl !== props.deployUrl) {
     // Any difference means that this deployment is not technically published
@@ -217,90 +192,59 @@ export default function PublishUtility(props: {
         {props.deployUrl && (
           <Link
             href={`/ipfs?cid=${props.deployUrl.substring(7)}`}
-            textDecoration="none"
-            _hover={{ textDecoration: 'none' }}
-            display="flex"
-            alignItems="center"
-            mb={4}
+            className="flex items-center mb-4 no-underline hover:no-underline"
           >
             <Image
-              display="inline-block"
               src="/images/ipfs.svg"
               alt="IPFS"
-              height="14px"
-              mr={1.5}
+              height={18}
+              width={18}
+              className="mr-2"
             />
-            <Text
-              fontSize="xs"
-              display="inline"
-              borderBottom="1px dotted"
-              borderBottomColor="gray.300"
-            >
+            <span className="border-b border-dotted border-gray-300">
               {`${props.deployUrl.substring(0, 13)}...${props.deployUrl.slice(
                 -6
               )}`}
-            </Text>
+            </span>
           </Link>
         )}
 
         {!!existingRegistryUrl && (
-          <Alert mb={4} status="warning" bg="gray.700" fontSize="sm">
-            <AlertIcon boxSize={4} mr={3} />
-            <Text>
-              A different package has already been published to {packageDisplay}
-              . Publishing again will overwrite it.
-            </Text>
+          <Alert variant="warning" className="mb-4">
+            <AlertDescription>
+              A package has already been published to {packageDisplay}.
+              Publishing again will overwrite it.
+            </AlertDescription>
           </Alert>
         )}
 
         {!canPublish && (
           <div>
-            <Text fontSize="xs" fontWeight="medium" mb={2}>
+            <p className="text-xs font-medium mb-2">
               Connect{' '}
               {publishers.length > 1
                 ? 'one of the following wallets'
                 : 'the following wallet'}{' '}
               to Ethereum or OP Mainnet to publish this package:
-            </Text>
-            <UnorderedList mb={4}>
+            </p>
+            <ul className="mb-4 list-disc pl-4">
               {publishers.map(({ publisher, chainName, chainId }) => (
-                <ListItem key={publisher + chainName} mb={1}>
-                  <Text
-                    display="inline"
-                    fontFamily="mono"
-                    fontWeight={200}
-                    color="gray.200"
-                    fontSize="xs"
-                    key={`publisher-${publisher}`}
-                  >
+                <li key={publisher + chainName} className="mb-1">
+                  <span className="font-mono font-light text-gray-200 text-xs">
                     {`${truncateAddress(publisher)} (${chainName})`}
                     <Link
-                      isExternal
-                      styleConfig={{ 'text-decoration': 'none' }}
                       href={getExplorerUrl(chainId, publisher)}
-                      ml={1}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-1 inline-block align-middle"
                     >
-                      <ExternalLinkIcon transform="translateY(-1px)" />
+                      <ExternalLink />
                     </Link>
-                  </Text>
-                </ListItem>
+                  </span>
+                </li>
               ))}
-            </UnorderedList>
-            <Button
-              variant="outline"
-              colorScheme="white"
-              size="sm"
-              bg="teal.900"
-              borderColor="teal.500"
-              _hover={{ bg: 'teal.800' }}
-              textTransform="uppercase"
-              letterSpacing="1px"
-              fontFamily="var(--font-miriam)"
-              color="gray.200"
-              fontWeight={500}
-              isDisabled
-              w="full"
-            >
+            </ul>
+            <Button className="w-full" disabled>
               Publish Package
             </Button>
           </div>
@@ -309,34 +253,28 @@ export default function PublishUtility(props: {
         {canPublish && (
           <>
             <Button
-              variant="outline"
-              colorScheme="white"
-              size="sm"
-              bg="teal.900"
-              borderColor="teal.500"
-              _hover={{ bg: 'teal.800' }}
-              textTransform="uppercase"
-              letterSpacing="1px"
-              fontFamily="var(--font-miriam)"
-              color="gray.200"
-              fontWeight={500}
-              isDisabled={
+              className="w-full mb-2"
+              disabled={
                 publishOptimismMutation.isPending ||
                 publishMainnetMutation.isPending
               }
-              mb={2}
-              w="full"
               onClick={async () => {
                 await switchChainAsync({ chainId: optimism.id });
                 await sleep(100);
                 publishOptimismMutation.mutate();
               }}
-              isLoading={publishOptimismMutation.isPending}
             >
-              Publish to Optimism
+              {publishOptimismMutation.isPending ? (
+                <span className="flex items-center gap-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  Publishing...
+                </span>
+              ) : (
+                'Publish to Optimism'
+              )}
             </Button>
-            <Text fontSize="xs" textAlign="center">
-              <Link
+            <div className="text-xs text-center">
+              <button
                 onClick={async () => {
                   if (
                     publishOptimismMutation.isPending ||
@@ -349,15 +287,26 @@ export default function PublishUtility(props: {
                   await sleep(100);
                   publishMainnetMutation.mutate();
                 }}
+                className="hover:underline"
               >
                 {publishMainnetMutation.isPending
                   ? 'Publishing...'
                   : 'Publish to Mainnet'}
-              </Link>{' '}
-              <Tooltip label="Cannon will detect packages published to Optimism or Mainnet.">
-                <InfoOutlineIcon />
-              </Tooltip>
-            </Text>
+              </button>{' '}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="inline-block" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Cannon will detect packages published to Optimism or
+                    Mainnet. When publishing, the registry collects some ETH
+                    (indicated as the value for the transaction in your wallet)
+                    to support an IPFS cluster that pins package data.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </>
         )}
       </>
@@ -365,44 +314,36 @@ export default function PublishUtility(props: {
   } else {
     return (
       <>
-        <Text mb={1} fontSize="sm">
-          <strong>Name:</strong> {resolvedName}
-        </Text>
-        {resolvedVersion !== 'latest' && (
-          <Text mb={1} fontSize="sm">
-            <strong>Version:</strong> {resolvedVersion}
-          </Text>
-        )}
-        {resolvedPreset !== 'main' && (
-          <Text mb={1} fontSize="sm">
-            <strong>Preset:</strong> {resolvedPreset}
-            <Tooltip label="Presets are useful for distinguishing multiple deployments of the same protocol on the same chain.">
-              <QuestionOutlineIcon ml={1.5} opacity={0.8} />
-            </Tooltip>
-          </Text>
-        )}
-
-        <Button
-          mt={2}
-          as={Link}
-          href={packageUrl}
-          variant="outline"
-          colorScheme="white"
-          size="sm"
-          bg="teal.900"
-          borderColor="teal.500"
-          _hover={{ bg: 'teal.800', textDecoration: 'none' }}
-          textTransform="uppercase"
-          letterSpacing="1px"
-          fontFamily="var(--font-miriam)"
-          color="gray.200"
-          fontWeight={500}
-          textDecoration="none"
-          isExternal
-          rightIcon={<ExternalLinkIcon transform="translateY(-1px)" />}
-        >
-          View Package
-        </Button>
+        <div className="space-y-4">
+          <div>
+            <p className="text-sm">Name</p>
+            <p className="text-lg font-medium">{resolvedName}</p>
+          </div>
+          <div>
+            <p className="text-sm">Version</p>
+            <p className="text-lg font-medium">{resolvedVersion}</p>
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm">Preset</p>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="opacity-80" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Presets are useful for distinguishing multiple deployments
+                    of the same protocol on the same chain.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <p className="text-lg font-medium">{resolvedPreset}</p>
+          </div>
+          <Button asChild className="mt-4">
+            <Link href={packageUrl}>View Package</Link>
+          </Button>
+        </div>
       </>
     );
   }

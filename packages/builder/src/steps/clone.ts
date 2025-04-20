@@ -8,17 +8,12 @@ import { build, createInitialContext, getOutputs } from '../builder';
 import { CANNON_CHAIN_ID } from '../constants';
 import { ChainDefinition } from '../definition';
 import { PackageReference } from '../package-reference';
-import { ChainBuilderRuntime, Events } from '../runtime';
+import { Events } from '../runtime';
 import { cloneSchema } from '../schemas';
-import {
-  ChainArtifacts,
-  ChainBuilderContext,
-  ChainBuilderContextWithHelpers,
-  DeploymentState,
-  PackageState,
-} from '../types';
+import { DeploymentState } from '../types';
 import { template } from '../utils/template';
 import { getContentUrl } from '../ipfs';
+import { CannonAction } from '../actions';
 
 const debug = Debug('cannon:builder:clone');
 
@@ -46,14 +41,14 @@ const cloneSpec = {
     return [];
   },
 
-  configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
+  configInject(ctx, config, packageState) {
     config = _.cloneDeep(config);
 
     if (config.target && config.targetPreset) {
       throw new Error(`only one of \`target\` and \`targetPreset\` can specified for ${packageState.currentLabel}`);
     }
 
-    const ref = new PackageReference(template(config.source)(ctx));
+    const ref = new PackageReference(template(config.source, ctx));
 
     config.source = ref.fullPackageRef;
 
@@ -61,28 +56,28 @@ const cloneSpec = {
       config.source = PackageReference.from(ref.name, ref.version, config.sourcePreset).fullPackageRef;
     }
 
-    config.sourcePreset = template(config.sourcePreset)(ctx);
-    config.targetPreset = template(config.targetPreset)(ctx);
-    config.target = template(config.target)(ctx);
+    config.sourcePreset = template(config.sourcePreset || '', ctx);
+    config.targetPreset = template(config.targetPreset || '', ctx);
+    config.target = template(config.target || '', ctx);
 
     if (config.var) {
       config.var = _.mapValues(config.var, (v) => {
-        return template(v)(ctx);
+        return template(v, ctx);
       });
     } else if (config.options) {
       config.options = _.mapValues(config.options, (v) => {
-        return template(v)(ctx);
+        return template(v, ctx);
       });
     }
 
     if (config.tags) {
-      config.tags = config.tags.map((t: string) => template(t)(ctx));
+      config.tags = config.tags.map((t: string) => template(t, ctx));
     }
 
     return config;
   },
 
-  getInputs(config: Config, possibleFields: string[]) {
+  getInputs(config, possibleFields) {
     let accesses = computeTemplateAccesses(config.source);
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.target, possibleFields));
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.sourcePreset, possibleFields));
@@ -109,16 +104,11 @@ const cloneSpec = {
     return accesses;
   },
 
-  getOutputs(_: Config, packageState: PackageState) {
+  getOutputs(_, packageState) {
     return [`imports.${packageState.currentLabel.split('.')[1]}`, `${packageState.currentLabel.split('.')[1]}`];
   },
 
-  async exec(
-    runtime: ChainBuilderRuntime,
-    ctx: ChainBuilderContext,
-    config: Config,
-    packageState: PackageState
-  ): Promise<ChainArtifacts> {
+  async exec(runtime, ctx, config, packageState) {
     const importLabel = packageState.currentLabel.split('.')[1] || '';
     debug(`[clone.${importLabel}]`, 'exec', config);
 
@@ -290,6 +280,6 @@ const cloneSpec = {
   },
 
   timeout: 3600000,
-};
+} satisfies CannonAction<Config>;
 
 export default cloneSpec;

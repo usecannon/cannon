@@ -80,7 +80,7 @@ export { createDefaultReadRegistry, createDryRunRegistry } from './registry';
 export { resolveProviderAndSigners } from './util/provider';
 export { resolveCliSettings } from './settings';
 export { getFoundryArtifact } from './foundry';
-export { loadCannonfile } from './helpers';
+export { loadCannonfile, getPackageInfo } from './helpers';
 
 const program = new Command();
 
@@ -185,6 +185,11 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
       throw new Error('Cannot build on Cannon Network with --dry-run flag.');
     }
 
+    // throw an error if `--dry-run`, and `--impersonate` or `--impersonate-all` is not declared
+    if (options.dryRun && !options.impersonate && !options.impersonateAll) {
+      throw new Error('Must specify one of `--impersonate` or `--impersonate-all`');
+    }
+
     // throw an error if the chainId is not consistent with the provider's chainId
     await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
 
@@ -223,7 +228,11 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     const pickedCliSettings = _.pick(cliSettings, Object.keys(options));
     const mergedOptions = _.assign({}, options, pickedCliSettings);
 
-    const [node, pkgSpec, outputs, runtime] = await doBuild(cannonfile, settings, mergedOptions);
+    const [node, pkgSpec, outputs, runtime, deployInfo] = await doBuild(cannonfile, settings, mergedOptions);
+
+    if (deployInfo.status !== 'complete') {
+      process.exitCode = deployInfo.status === 'partial' ? 90 : 91;
+    }
 
     if (options.writeDeployments) {
       await writeModuleDeployments(path.join(process.cwd(), options.writeDeployments), '', outputs);
@@ -519,15 +528,29 @@ applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(a
   const { inspect } = await import('./commands/inspect');
 
   const cliSettings = resolveCliSettings(options);
-  const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
+  const { fullPackageRef, chainId, ipfsUrl, deployInfo } = await getPackageInfo(
+    packageRef,
+    options.chainId,
+    cliSettings.rpcUrl
+  );
 
   await inspect(
     fullPackageRef,
+<<<<<<< HEAD
     cliSettings,
     chainId,
     options.json ? 'json' : options.out,
     options.writeDeployments,
     options.sources,
+=======
+    ipfsUrl,
+    chainId,
+    deployInfo,
+    cliSettings,
+    options.json ? 'deploy-json' : options.out,
+    options.writeDeployments,
+    options.sources
+>>>>>>> origin/dev
   );
 });
 

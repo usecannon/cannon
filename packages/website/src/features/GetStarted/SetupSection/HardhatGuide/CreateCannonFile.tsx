@@ -1,4 +1,4 @@
-import { CodePreview } from '@/components/CodePreview';
+import { Snippet } from '@/components/snippet';
 import { CommandPreview } from '@/components/CommandPreview';
 
 const code1 = `// SPDX-License-Identifier: UNLICENSED
@@ -83,7 +83,9 @@ export const CreateCannonFile = () => {
       </p>
       <p className="mb-4">Your project should have the following contract:</p>
       <div className="mb-4">
-        <CodePreview code={code1} language="sol" />
+        <Snippet>
+          <code>{code1}</code>
+        </Snippet>
       </div>
       <p className="mb-4">
         Create a cannonfile.toml in the root directory of the project with the
@@ -92,7 +94,9 @@ export const CreateCannonFile = () => {
         time to 1700000000:
       </p>
       <div className="mb-4">
-        <CodePreview code={code2} language="ini" />
+        <Snippet>
+          <code>{code2}</code>
+        </Snippet>
       </div>
       <p className="mb-4">
         Now build the cannonfile for local development and testing:

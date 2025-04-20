@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { z } from 'zod';
-import { ChainArtifacts, ChainBuilderContext, ChainBuilderRuntimeInfo } from '../types';
 import { template } from '../utils/template';
+import { CannonAction } from '../actions';
 
 /**
  *  Available properties for keeper operation (Not yet implemented)
@@ -15,8 +15,14 @@ export const keeperSchema = z
   .merge(
     z
       .object({
+        description: z.string().describe('Description of the operation'),
         args: z.array(z.string()),
         env: z.array(z.string()),
+        depends: z
+          .array(z.string())
+          .describe(
+            'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+          ),
       })
       .deepPartial()
   );
@@ -31,32 +37,31 @@ export default {
 
   validate: keeperSchema,
 
-  async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
-    return [this.configInject(ctx, config)];
+  async getState(_runtime, ctx, config, packageState) {
+    return [this.configInject(ctx, config, packageState)];
   },
 
-  configInject(ctx: ChainBuilderContext, config: Config) {
+  configInject(ctx, config) {
     config = _.cloneDeep(config);
 
-    config.exec = template(config.exec)(ctx);
+    config.exec = template(config.exec, ctx);
 
     if (config.args) {
       config.args = _.map(config.args, (v) => {
-        return template(v)(ctx);
+        return template(v, ctx);
       });
     }
 
     if (config.env) {
       config.env = _.map(config.env, (v) => {
-        return template(v)(ctx);
+        return template(v, ctx);
       });
     }
 
     return config;
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async exec(_runtime: ChainBuilderRuntimeInfo, _ctx: ChainBuilderContext, _config: Config): Promise<ChainArtifacts> {
+  async exec() {
     return {};
   },
-};
+} satisfies CannonAction<Config>;

@@ -6,16 +6,10 @@ import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-record
 import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
 import { CannonError, handleTxnError } from '../error';
 import { deploySchema } from '../schemas';
-import {
-  ChainArtifacts,
-  ChainBuilderContext,
-  ChainBuilderContextWithHelpers,
-  ChainBuilderRuntimeInfo,
-  ContractArtifact,
-  PackageState,
-} from '../types';
+import { ChainArtifacts, ChainBuilderContext, ContractArtifact } from '../types';
 import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 import { template } from '../utils/template';
+import { CannonAction } from '../actions';
 
 const debug = Debug('cannon:builder:deploy');
 
@@ -141,8 +135,8 @@ const deploySpec = {
 
   validate: _.cloneDeep(deploySchema),
 
-  async getState(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
-    const parsedConfig = this.configInject(ctx, config);
+  async getState(runtime, ctx, config, packageState) {
+    const parsedConfig = this.configInject(ctx, config, packageState);
 
     return [
       [
@@ -160,48 +154,48 @@ const deploySpec = {
     ];
   },
 
-  configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
+  configInject(ctx, config) {
     config = _.cloneDeep(config);
 
-    config.from = template(config.from || '')(ctx);
+    config.from = template(config.from || '', ctx);
 
-    config.nonce = template(config.nonce || '')(ctx);
+    config.nonce = template(config.nonce || '', ctx);
 
-    config.artifact = template(config.artifact)(ctx);
+    config.artifact = template(config.artifact, ctx);
 
-    config.value = template(config.value || '')(ctx);
+    config.value = template(config.value || '', ctx);
 
-    config.abi = template(config.abi || '')(ctx);
+    config.abi = template(config.abi || '', ctx);
 
     if (config.abiOf) {
-      config.abiOf = _.map(config.abiOf, (v) => template(v)(ctx));
+      config.abiOf = _.map(config.abiOf, (v) => template(v, ctx));
     }
 
     if (config.args) {
       config.args = _.map(config.args, (a) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
-        return JSON.parse(template(JSON.stringify(a))(ctx));
+        return JSON.parse(template(JSON.stringify(a), ctx));
       });
     }
 
     if (config.libraries) {
       config.libraries = _.mapValues(config.libraries, (a) => {
-        return template(a)(ctx);
+        return template(a, ctx);
       });
     }
 
     if (config.salt) {
-      config.salt = template(config.salt)(ctx);
+      config.salt = template(config.salt, ctx);
     }
 
     if (config?.overrides?.gasLimit) {
-      config.overrides.gasLimit = template(config.overrides.gasLimit)(ctx);
+      config.overrides.gasLimit = template(config.overrides.gasLimit, ctx);
     }
 
     return config;
   },
 
-  getInputs(config: Config, possibleFields: string[]) {
+  getInputs(config, possibleFields) {
     let accesses = computeTemplateAccesses(config.from);
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.nonce, possibleFields));
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.artifact, possibleFields));
@@ -237,17 +231,12 @@ const deploySpec = {
     return accesses;
   },
 
-  getOutputs(_: Config, packageState: PackageState) {
+  getOutputs(_, packageState) {
     const stepName = packageState.currentLabel.split('.')[1];
     return [`contracts.${stepName}`, stepName];
   },
 
-  async exec(
-    runtime: ChainBuilderRuntimeInfo,
-    ctx: ChainBuilderContext,
-    config: Config,
-    packageState: PackageState
-  ): Promise<ChainArtifacts> {
+  async exec(runtime, ctx, config, packageState) {
     debug('exec', config);
 
     // sanity check that any connected libraries are bytecoded
@@ -430,13 +419,7 @@ const deploySpec = {
     return generateOutputs(config, ctx, artifactData, receipt, block, deployAddress, packageState.currentLabel);
   },
 
-  async importExisting(
-    runtime: ChainBuilderRuntimeInfo,
-    ctx: ChainBuilderContext,
-    config: Config,
-    packageState: PackageState,
-    existingKeys: string[]
-  ): Promise<ChainArtifacts> {
+  async importExisting(runtime, ctx, config, packageState, existingKeys) {
     if (existingKeys.length != 1) {
       throw new Error(
         'a contract can only be deployed on one transaction, so you can only supply one hash transaction to import'
@@ -459,6 +442,6 @@ const deploySpec = {
 
     return generateOutputs(config, ctx, artifactData, txn, block, contractAddress!, packageState.currentLabel);
   },
-};
+} satisfies CannonAction<Config>;
 
 export default deploySpec;

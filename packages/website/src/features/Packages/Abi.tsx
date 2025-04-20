@@ -1,63 +1,35 @@
-import {
-  Alert,
-  AlertIcon,
-  Box,
-  Flex,
-  Heading,
-  Skeleton,
-  Text,
-  useBreakpointValue,
-} from '@chakra-ui/react';
 import sortBy from 'lodash/sortBy';
 import * as viem from 'viem';
 import { ChainArtifacts } from '@usecannon/builder';
-import { FC, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { AbiFunction, Abi as AbiType } from 'abitype';
 import { Function } from '@/features/Packages/Function';
-import { SubnavContext } from './Tabs/InteractTab';
 import SearchInput from '@/components/SearchInput';
 import { scroller, Element, scrollSpy } from 'react-scroll';
 
-import { Button, ButtonProps } from '@chakra-ui/react';
 import React from 'react';
 import { useRouter } from 'next/router';
 import { CustomSpinner } from '@/components/CustomSpinner';
+import {
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from '@/components/ui/sidebar';
+import { SidebarLayout } from '@/components/layouts/SidebarLayout';
 
 const getSelectorSlug = (f: AbiFunction) =>
   `selector-${viem.toFunctionSelector(f)}`;
 
-const ButtonLink: React.FC<ButtonProps & { selected?: boolean }> = ({
-  children,
-  selected,
-  ...props
-}) => (
-  <Button
-    display="block"
-    borderRadius="md"
-    w="100%"
-    textAlign="left"
-    px="2"
-    cursor={props.disabled ? 'not-allowed' : 'pointer'}
-    fontSize="xs"
-    _hover={{ background: 'gray.800' }}
-    whiteSpace="nowrap"
-    overflow="hidden"
-    textOverflow="ellipsis"
-    color="white"
-    background={selected ? 'gray.800' : 'transparent'}
-    height={30}
-    {...props}
-  >
-    {children}
-  </Button>
-);
-
 const FunctionRowsSkeleton = () => (
-  <Flex direction="column" gap={2}>
+  <div className="flex flex-col gap-2">
     {Array.from({ length: 7 }).map((_, i) => (
-      <Skeleton key={i} height={3} />
+      <div key={i} className="h-3 animate-pulse bg-muted rounded" />
     ))}
-  </Flex>
+  </div>
 );
 
 export const Abi: FC<{
@@ -67,25 +39,22 @@ export const Abi: FC<{
   cannonOutputs: ChainArtifacts;
   chainId: number;
   contractName?: string;
-  contractSource?: string;
   onDrawerOpen?: () => void;
   packageUrl?: string;
+  isDrawerOpen?: boolean;
 }> = ({
   isLoading,
   abi,
-  contractSource,
   contractName,
   address,
   cannonOutputs,
   chainId,
   onDrawerOpen,
   packageUrl,
+  isDrawerOpen,
 }) => {
   const router = useRouter();
-  const isSmall = useBreakpointValue([true, true, false]);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const hasSubnav = useContext(SubnavContext);
-  const containerRef = useRef<HTMLDivElement | null>(null);
   const [selectedSelector, setSelectedSelector] = useState<string | null>(null);
   const [scrollInitialized, setScrollInitialized] = useState(false);
 
@@ -123,9 +92,9 @@ export const Abi: FC<{
     () => ({
       duration: 1200,
       smooth: true,
-      offset: (102 + (hasSubnav ? 65 : 0)) * -1,
+      offset: -145,
     }),
-    [hasSubnav]
+    []
   );
 
   const onSelectedSelector = async (newSelector: string) => {
@@ -152,155 +121,137 @@ export const Abi: FC<{
     scrollSpy.update();
   }, []);
 
-  // Make the auto scroll after the page loads if the url has a selector
+  // Update the useEffect that handles initial scroll
   useEffect(() => {
-    if (scrollInitialized) return;
+    if (!abi || isLoading) return; // Wait until ABI is loaded
 
     const urlSelectorFromPath = router.asPath.split('#')[1];
-    if (urlSelectorFromPath || !selectedSelector) {
-      setSelectedSelector(urlSelectorFromPath);
+    if (!urlSelectorFromPath || scrollInitialized) return;
 
-      // Add a timeout to delay the scroll
-      const timeoutId = setTimeout(() => {
-        scroller.scrollTo(urlSelectorFromPath, scrollOptions);
+    // Verify if the selector exists in our ABI functions
+    const matchingFunction = allContractMethods?.find(
+      (f) => getSelectorSlug(f) === urlSelectorFromPath
+    );
+
+    if (!matchingFunction) return;
+
+    // Set the selected selector
+    setSelectedSelector(urlSelectorFromPath);
+
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        scroller.scrollTo(urlSelectorFromPath, {
+          ...scrollOptions,
+          ignoreCancelEvents: true,
+          smooth: false,
+        });
         setScrollInitialized(true);
       }, 100);
-
-      return () => clearTimeout(timeoutId);
-    }
+    });
   }, [
-    hasSubnav,
+    abi,
+    isLoading,
     router.asPath,
     scrollOptions,
-    selectedSelector,
     scrollInitialized,
+    allContractMethods,
   ]);
 
-  return (
-    <Flex flex="1" direction="column" maxWidth="100%">
-      <Flex flex="1" direction={['column', 'column', 'row']}>
-        {/* Methods Sidebar */}
-        <Flex
-          flexDirection="column"
-          maxWidth={['100%', '100%', '320px']}
-          borderRight={isSmall ? 'none' : '1px solid'}
-          borderBottom={isSmall ? '1px solid' : 'none'}
-          borderColor={isSmall ? 'gray.600' : 'gray.700'}
-          width={['100%', '100%', '320px']}
-          maxHeight={['190px', '190px', 'none']}
-          top="0"
-        >
-          <Box
-            px={3}
-            pb={2}
-            position={{ md: 'sticky' }}
-            top={hasSubnav ? 81 + 65 : 81}
-            maxHeight={{ base: '100%', md: 'calc(100vh - 81px)' }}
-            overflowY="auto"
-          >
-            <Box mt={4}>
-              <SearchInput onSearchChange={setSearchTerm} />
-            </Box>
+  const sidebarContent = (
+    <SidebarContent className="overflow-y-auto">
+      <SidebarGroup className="pb-1 px-3">
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <SidebarMenuItem className="mt-1">
+              <SearchInput size="sm" onSearchChange={setSearchTerm} />
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
 
-            <Box mt={4}>
-              <Flex flexDirection="row" px="2" alignItems="center" mb="1.5">
-                <Heading
-                  fontWeight="500"
-                  size="sm"
-                  color="gray.200"
-                  letterSpacing="0.1px"
-                >
-                  Read Functions
-                </Heading>
-              </Flex>
+      <SidebarGroup className="pt-0">
+        <SidebarGroupContent>
+          <SidebarGroupLabel className="h-6">Read Functions</SidebarGroupLabel>
+        </SidebarGroupContent>
 
-              {isLoading ? (
-                <FunctionRowsSkeleton />
-              ) : (
-                readContractMethods
-                  ?.filter((f) =>
-                    f.name.toLowerCase().includes(searchTerm.toLowerCase())
-                  )
-                  .map((f, index) => (
-                    <ButtonLink
-                      key={index}
-                      selected={selectedSelector == getSelectorSlug(f)}
-                      onClick={() => handleMethodClick(f)}
-                    >
-                      {f.name}(
-                      {f.inputs
-                        .map((i) => i.type + (i.name ? ' ' + i.name : ''))
-                        .join(',')}
-                      )
-                    </ButtonLink>
-                  ))
-              )}
-            </Box>
-            <Box mt={4}>
-              <Flex flexDirection="row" px="2" alignItems="center" mb="1.5">
-                <Heading
-                  fontWeight="500"
-                  size="sm"
-                  color="gray.200"
-                  letterSpacing="0.1px"
-                >
-                  Write Functions
-                </Heading>
-              </Flex>
-              {isLoading ? (
-                <FunctionRowsSkeleton />
-              ) : (
-                writeContractMethods
-                  ?.filter((f) =>
-                    f.name.toLowerCase().includes(searchTerm.toLowerCase())
-                  )
-                  .map((f, index) => (
-                    <ButtonLink
-                      key={index}
-                      selected={selectedSelector == getSelectorSlug(f)}
-                      onClick={() => handleMethodClick(f)}
-                    >
-                      {f.name}(
-                      {f.inputs
-                        .map((i) => i.type + (i.name ? ' ' + i.name : ''))
-                        .join(',')}
-                      )
-                    </ButtonLink>
-                  ))
-              )}
-            </Box>
-          </Box>
-        </Flex>
-
-        {/* Methods Interactions */}
-        <Flex background="black" ref={containerRef} w="100%" direction="column">
-          <Alert
-            status="warning"
-            bg="gray.900"
-            borderBottom="1px solid"
-            borderColor="gray.700"
-          >
-            <AlertIcon />
-            <Text fontWeight="bold">
-              Always review transactions carefully in your wallet application
-              prior to execution.
-            </Text>
-          </Alert>
-
-          <Flex
-            direction="column"
-            px={4}
-            py={4}
-            borderBottom="1px solid"
-            borderColor="gray.700"
-            gap={4}
-            flex={1}
-            overflowX="auto"
-          >
+        <SidebarGroupContent>
+          <SidebarMenu className="gap-0">
             {isLoading ? (
-              <Flex align="center" justify="center" flex={1}>
+              <FunctionRowsSkeleton />
+            ) : (
+              readContractMethods
+                ?.filter((f) =>
+                  f.name.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .map((f, index) => (
+                  <SidebarMenuButton
+                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full font-mono text-sm py-0"
+                    key={index}
+                    isActive={selectedSelector == getSelectorSlug(f)}
+                    onClick={() => handleMethodClick(f)}
+                    data-testid={`${f.name}-button`}
+                  >
+                    {f.name}(
+                    {f.inputs
+                      .map((i) => i.type + (i.name ? ' ' + i.name : ''))
+                      .join(',')}
+                    )
+                  </SidebarMenuButton>
+                ))
+            )}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+
+      <SidebarGroup className="pt-0">
+        <SidebarGroupLabel className="h-6">Write Functions</SidebarGroupLabel>
+
+        <SidebarGroupContent>
+          <SidebarMenu className="gap-0">
+            {isLoading ? (
+              <FunctionRowsSkeleton />
+            ) : (
+              writeContractMethods
+                ?.filter((f) =>
+                  f.name.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .map((f, index) => (
+                  <SidebarMenuButton
+                    className="overflow-hidden text-ellipsis whitespace-nowrap block w-full font-mono text-sm py-0"
+                    key={index}
+                    isActive={selectedSelector == getSelectorSlug(f)}
+                    onClick={() => handleMethodClick(f)}
+                    data-testid={`${f.name}-button`}
+                  >
+                    {f.name}(
+                    {f.inputs
+                      .map((i) => i.type + (i.name ? ' ' + i.name : ''))
+                      .join(',')}
+                    )
+                  </SidebarMenuButton>
+                ))
+            )}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    </SidebarContent>
+  );
+
+  return (
+    <div className="flex flex-1 flex-col max-w-full">
+      <div className="flex flex-1 flex-col md:flex-row">
+        <SidebarLayout
+          sidebarContent={sidebarContent}
+          centered={false}
+          sidebarTop="134px"
+          mainContentOverflowY="visible"
+        >
+          {/* Methods Interactions */}
+          <div className="flex flex-col p-3 gap-4 flex-1">
+            {isLoading ? (
+              <div className="flex items-center justify-center flex-1">
                 <CustomSpinner />
-              </Flex>
+              </div>
             ) : (
               allContractMethods?.map((f) => (
                 <Element
@@ -314,19 +265,19 @@ export const Abi: FC<{
                     address={address}
                     cannonOutputs={cannonOutputs}
                     chainId={chainId}
-                    contractSource={contractSource}
                     contractName={contractName}
                     onDrawerOpen={onDrawerOpen}
                     collapsible
                     showFunctionSelector={false}
                     packageUrl={packageUrl}
+                    isDrawerOpen={isDrawerOpen}
                   />
                 </Element>
               ))
             )}
-          </Flex>
-        </Flex>
-      </Flex>
-    </Flex>
+          </div>
+        </SidebarLayout>
+      </div>
+    </div>
   );
 };

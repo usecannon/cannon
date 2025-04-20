@@ -6,10 +6,9 @@ import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-record
 import { getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { PackageReference } from '../package-reference';
-import { ChainBuilderRuntime } from '../runtime';
 import { pullSchema } from '../schemas';
-import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
 import { template } from '../utils/template';
+import { CannonAction } from '../actions';
 
 const debug = Debug('cannon:builder:pull');
 
@@ -32,8 +31,8 @@ const pullSpec = {
 
   validate: pullSchema,
 
-  async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config) {
-    const cfg = this.configInject(ctx, config);
+  async getState(runtime, ctx, config, packageState) {
+    const cfg = this.configInject(ctx, config, packageState);
 
     const source = cfg.source;
     const chainId = cfg.chainId ?? runtime.chainId;
@@ -49,34 +48,29 @@ const pullSpec = {
     ];
   },
 
-  configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
+  configInject(ctx, config) {
     config = _.cloneDeep(config);
 
-    const packageRef = new PackageReference(template(config.source)(ctx));
+    const packageRef = new PackageReference(template(config.source, ctx));
 
     config.source = packageRef.fullPackageRef;
-    config.preset = template(config.preset)(ctx) || packageRef.preset;
+    config.preset = template(config.preset || '', ctx) || packageRef.preset;
 
     return config;
   },
 
-  getInputs(config: Config, possibleFields: string[]) {
+  getInputs(config, possibleFields) {
     let accesses = computeTemplateAccesses(config.source, possibleFields);
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.preset, possibleFields));
 
     return accesses;
   },
 
-  getOutputs(_: Config, packageState: PackageState) {
+  getOutputs(_, packageState) {
     return [`imports.${packageState.currentLabel.split('.')[1]}`, `${packageState.currentLabel.split('.')[1]}`];
   },
 
-  async exec(
-    runtime: ChainBuilderRuntime,
-    ctx: ChainBuilderContext,
-    config: Config,
-    packageState: PackageState
-  ): Promise<ChainArtifacts> {
+  async exec(runtime, ctx, config, packageState) {
     const importLabel = packageState.currentLabel?.split('.')[1] || '';
     debug('exec', config);
 
@@ -117,6 +111,6 @@ const pullSpec = {
       },
     };
   },
-};
+} satisfies CannonAction<Config>;
 
 export default pullSpec;

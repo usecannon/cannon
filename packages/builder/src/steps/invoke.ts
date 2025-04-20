@@ -8,7 +8,6 @@ import {
   CannonSigner,
   ChainArtifacts,
   ChainBuilderContext,
-  ChainBuilderContextWithHelpers,
   ChainBuilderRuntimeInfo,
   Contract,
   PackageState,
@@ -21,8 +20,9 @@ import {
   getContractFromPath,
   getMergedAbiFromContractPaths,
 } from '../util';
-import { getTemplateMatches, isTemplateString, template } from '../utils/template';
+import { template, getTemplateMatches, isTemplateString } from '../utils/template';
 import { isStepPath, isStepName } from '../utils/matchers';
+import { CannonAction } from '../actions';
 
 const debug = Debug('cannon:builder:invoke');
 
@@ -107,7 +107,7 @@ async function runTxn(
         .map((v) => v[1])
         .join(
           '\n'
-        )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it. If you’re calling an overloaded function, update func to include parentheses.`
+        )}\n\nIf this is a proxy contract, make sure you've specified abiOf for the contract action in the cannonfile that deploys it. If you’re calling an overloaded function, update func to include parentheses.`
     );
   }
 
@@ -319,8 +319,8 @@ const invokeSpec = {
 
   validate: invokeSchema,
 
-  async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
-    const cfg = this.configInject(ctx, config);
+  async getState(_runtime, ctx, config, packageState) {
+    const cfg = this.configInject(ctx, config, packageState);
 
     if (typeof cfg.target === 'string') {
       cfg.target = [cfg.target as string];
@@ -360,7 +360,7 @@ const invokeSpec = {
     ];
   },
 
-  configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
+  configInject(ctx, config) {
     config = _.cloneDeep(config);
 
     if (typeof config.target === 'string') {
@@ -369,58 +369,57 @@ const invokeSpec = {
 
     if (config.target) {
       // [string, ...string[]] refers to a nonempty array
-      config.target = config.target.map((v) => template(v)(ctx)) as [string, ...string[]];
+      config.target = config.target.map((v) => template(v, ctx)) as [string, ...string[]];
     }
 
     if (config.abi) {
-      config.abi = template(config.abi)(ctx);
+      config.abi = template(config.abi, ctx);
     }
 
-    config.func = template(config.func)(ctx);
+    config.func = template(config.func, ctx);
 
     if (config.args) {
       debug('rendering invoke args with settings: ', ctx.settings);
-      config.args = _.map(config.args, (a) => {
-        // just convert it to a JSON string when. This will allow parsing of complicated nested structures
-        return JSON.parse(template(JSON.stringify(a))(ctx));
+      config.args = _.map(config.args, (arg) => {
+        return JSON.parse(template(JSON.stringify(arg), ctx));
       });
     }
 
     if (config.from) {
-      config.from = template(config.from)(ctx);
+      config.from = template(config.from, ctx);
     }
 
     if (config.fromCall) {
-      config.fromCall.func = template(config.fromCall.func)(ctx);
-      config.fromCall.args = _.map(config.fromCall.args, (a) => {
+      config.fromCall.func = template(config.fromCall.func, ctx);
+      config.fromCall.args = _.map(config.fromCall.args, (arg) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
-        return JSON.parse(template(JSON.stringify(a))(ctx));
+        return JSON.parse(template(JSON.stringify(arg), ctx));
       });
     }
 
     if (config.value) {
-      config.value = template(config.value)(ctx);
+      config.value = template(config.value, ctx);
     }
 
     if (config?.overrides?.gasLimit) {
-      config.overrides.gasLimit = template(config.overrides.gasLimit)(ctx);
+      config.overrides.gasLimit = template(config.overrides.gasLimit, ctx);
     }
 
     for (const name in config.factory) {
       const f = config.factory[name];
 
-      f.event = template(f.event)(ctx);
+      f.event = template(f.event, ctx);
 
       if (f.artifact) {
-        f.artifact = template(f.artifact)(ctx);
+        f.artifact = template(f.artifact, ctx);
       }
 
       if (f.abiOf) {
-        f.abiOf = _.map(f.abiOf, (v) => template(v)(ctx));
+        f.abiOf = _.map(f.abiOf, (v) => template(v, ctx));
       }
 
       if (f.abi) {
-        f.abi = template(f.abi || '')(ctx);
+        f.abi = template(f.abi || '', ctx);
       }
     }
 
@@ -428,13 +427,13 @@ const invokeSpec = {
 
     for (const name in varsConfig) {
       const f = varsConfig[name];
-      f.event = template(f.event)(ctx);
+      f.event = template(f.event, ctx);
     }
 
     return config;
   },
 
-  getInputs(config: Config, possibleFields: string[]) {
+  getInputs(config, possibleFields) {
     let accesses = computeTemplateAccesses(config.abi, possibleFields);
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.func, possibleFields));
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.from, possibleFields));
@@ -497,7 +496,7 @@ const invokeSpec = {
     return accesses;
   },
 
-  getOutputs(config: Config, packageState: PackageState) {
+  getOutputs(config, packageState) {
     const outputs = [`txns.${packageState.currentLabel.split('.')[1]}`];
 
     // factories can output contracts, and var can output vars
@@ -535,12 +534,7 @@ const invokeSpec = {
     return outputs;
   },
 
-  async exec(
-    runtime: ChainBuilderRuntimeInfo,
-    ctx: ChainBuilderContext,
-    config: Config,
-    packageState: PackageState
-  ): Promise<ChainArtifacts> {
+  async exec(runtime, ctx, config, packageState) {
     debug('exec', config);
 
     const txns: TransactionMap = {};
@@ -605,13 +599,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
     return importTxnData(runtime, ctx, config, packageState, txns);
   },
 
-  async importExisting(
-    runtime: ChainBuilderRuntimeInfo,
-    ctx: ChainBuilderContext,
-    config: Config,
-    packageState: PackageState,
-    existingKeys: string[]
-  ): Promise<ChainArtifacts> {
+  async importExisting(runtime, ctx, config, packageState, existingKeys) {
     const txns: TransactionMap = {};
     for (let i = 0; i < existingKeys.length; i++) {
       const key = existingKeys[i] as viem.Hash;
@@ -667,6 +655,6 @@ ${getAllContractPaths(ctx).join('\n')}`);
 
     return importTxnData(runtime, ctx, config, packageState, txns);
   },
-};
+} satisfies CannonAction<Config>;
 
 export default invokeSpec;

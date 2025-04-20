@@ -831,33 +831,12 @@ export const chainDefinitionSchema = z
     /**
      * Name of the package
      */
-    name: z
-      .string()
-      .min(3)
-      .refine(
-        (val) => {
-          return new Blob([val]).size <= 32;
-        },
-        (val) => ({ message: `Package name "${val}" is too long. Package name exceeds 32 bytes` })
-      )
-      .refine((val) => !!val.match(RegExp(/[a-zA-Z0-9-]+/, 'gm')), {
-        message: 'Name cannot contain any special characters',
-      })
-      .describe('Name of the package'),
+    name: z.string().min(3).describe('Name of the package'),
     /**
      *  Version of the package
      */
     version: z
       .string()
-      .refine(
-        (val) => {
-          return new Blob([val]).size <= 32;
-        },
-        (val) => ({ message: `Package version "${val}" is too long. Package version exceeds 32 bytes` })
-      )
-      .refine((val) => !!val.match(RegExp(/[\w.]+/, 'gm')), {
-        message: 'Version cannot contain any special characters',
-      })
       .describe(
         'Version of the package. Publishes as the "latest" version by default in addition to the version specified here.'
       ),
@@ -869,6 +848,12 @@ export const chainDefinitionSchema = z
       .refine((val) => !!val.match(RegExp(/[\w.]+/, 'gm')), {
         message: 'Preset cannot contain any special characters',
       })
+      .refine(
+        (val) => {
+          return new Blob([val]).size <= 24;
+        },
+        (val) => ({ message: `Package preset "${val}" is too long. Package preset exceeds 24 bytes` })
+      )
       .describe(
         'Preset of the package (Presets are useful for distinguishing multiple deployments of the same protocol on the same chain.) Defaults to "main".'
       )

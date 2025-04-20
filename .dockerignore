@@ -1,6 +1,7 @@
 .dockerignore
 .DS_Store
 .env
+.git
 .gitignore
 coverage/
 dist/

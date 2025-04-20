@@ -2,13 +2,14 @@ import { addCucumberPreprocessorPlugin } from '@badeball/cypress-cucumber-prepro
 import { createEsbuildPlugin } from '@badeball/cypress-cucumber-preprocessor/esbuild';
 import createBundler from '@bahmutov/cypress-esbuild-preprocessor';
 import { defineConfig } from 'cypress';
+import task from '@cypress/code-coverage/task';
 
 export default defineConfig({
   e2e: {
-    defaultCommandTimeout: 1000_000,
-    pageLoadTimeout: 1000_000,
-    requestTimeout: 1000_000,
-    responseTimeout: 1000_000,
+    defaultCommandTimeout: 100_000,
+    pageLoadTimeout: 100_000,
+    requestTimeout: 100_000,
+    responseTimeout: 300_000,
     specPattern: '**/*.feature',
     baseUrl: 'http://localhost:3000',
     video: false, // GH provides 2 CPUs, and cypress video eats one up, ref https://github.com/cypress-io/cypress/issues/20468#issuecomment-1307608025
@@ -21,6 +22,9 @@ export default defineConfig({
     ): Promise<Cypress.PluginConfigOptions> {
       // This is required for the preprocessor to be able to generate JSON reports after each run, and more,
       await addCucumberPreprocessorPlugin(on, config);
+
+      // For Code Coverage
+      task(on, config);
 
       // create a custom task to log messages
       on('task', {

@@ -16,7 +16,11 @@ export const CannonfileTab: FC<{
   const packagesQuery = usePackageByRef({ name, tag, preset, chainId });
 
   if (packagesQuery.isPending) {
-    return <CustomSpinner />;
+    return (
+      <div className="py-20">
+        <CustomSpinner />
+      </div>
+    );
   }
 
   if (packagesQuery.isError) {
@@ -24,7 +28,7 @@ export const CannonfileTab: FC<{
   }
 
   return (
-    <div className="flex flex-col w-full flex-1">
+    <div className="flex flex-col w-full">
       <CannonfileExplorer pkg={packagesQuery.data} />
     </div>
   );

@@ -3,11 +3,12 @@ import { BoolInput } from '@/features/Packages/FunctionInput/BoolInput';
 import { ByteInput } from '@/features/Packages/FunctionInput/ByteInput';
 import { DefaultInput } from '@/features/Packages/FunctionInput/DefaultInput';
 import { NumberInput } from '@/features/Packages/FunctionInput/NumberInput';
-import { AddIcon, CloseIcon } from '@chakra-ui/icons';
-import { Box, Flex, IconButton } from '@chakra-ui/react';
+import { PlusIcon, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { AbiParameter } from 'abitype';
 import { FC, useEffect, useMemo, useState } from 'react';
 import TupleInput from './FunctionInput/TupleInput';
+import { JsonInput } from '@/features/Packages/FunctionInput/JsonInput';
 
 interface Props {
   input: AbiParameter;
@@ -20,7 +21,11 @@ export const FunctionInput: FC<Props> = ({
   handleUpdate,
   initialValue,
 }) => {
-  const isArray = useMemo(() => !!input?.type?.endsWith('[]'), [input]);
+  const isTuple = useMemo(() => !!input?.type?.endsWith('[][]'), [input]);
+  const isArray = useMemo(
+    () => !isTuple && !!input?.type?.endsWith('[]'),
+    [input, isTuple]
+  );
   const [dataArray, setDataArray] = useState<{ val: any | null }[]>([]);
 
   const updateValue = (value: any) => {
@@ -75,6 +80,8 @@ export const FunctionInput: FC<Props> = ({
         : initialValue;
 
     switch (true) {
+      case input.type.endsWith('[][]'):
+        return <JsonInput handleUpdate={_handleUpdate} value={_initialValue} />;
       case input.type.startsWith('bool'):
         return <BoolInput handleUpdate={_handleUpdate} value={_initialValue} />;
       case input.type.startsWith('address'):
@@ -151,58 +158,57 @@ export const FunctionInput: FC<Props> = ({
     }
   };
 
-  let c;
-
-  if (!isArray) {
-    c = (
-      <Flex direction="row" align="center">
-        <Flex flex="1">
+  if (isTuple || !isArray) {
+    return (
+      <div className="flex flex-row items-center">
+        <div className="flex-1">
           {getInputComponent((value: any) => _handleUpdate(null, value))}
-        </Flex>
-      </Flex>
-    );
-  } else {
-    c = (
-      <>
-        <Box>
-          {dataArray.map((inp, index) => {
-            return (
-              <Flex
-                flex="1"
-                alignItems="center"
-                mb={index === dataArray.length - 1 ? 0 : 4}
-                key={index}
-              >
-                {getInputComponent(
-                  (value: any) => _handleUpdate(index, value),
-                  index
-                )}
-                {dataArray.length > 1 && (
-                  <IconButton
-                    variant="link"
-                    colorScheme="red"
-                    onClick={() => remove(index)}
-                    aria-label="add value"
-                    icon={<CloseIcon fontSize=".8rem" />}
-                  />
-                )}
-              </Flex>
-            );
-          })}
-          <Box textAlign="right" alignItems="right">
-            <IconButton
-              py="4"
-              variant="link"
-              colorScheme="green"
-              onClick={add}
-              aria-label="add value"
-              icon={<AddIcon />}
-            />
-          </Box>
-        </Box>
-      </>
+        </div>
+      </div>
     );
   }
 
-  return <Box>{c}</Box>;
+  return (
+    <div>
+      <div>
+        {dataArray.map((inp, index) => {
+          return (
+            <div
+              className={`flex flex-1 items-center ${
+                index === dataArray.length - 1 ? '' : 'mb-4'
+              }`}
+              key={index}
+            >
+              {getInputComponent(
+                (value: any) => _handleUpdate(index, value),
+                index
+              )}
+              {dataArray.length > 1 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => remove(index)}
+                  className="text-destructive hover:text-destructive/90"
+                  data-testid="remove-input-button"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          );
+        })}
+        <div className="text-right">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={add}
+            className="py-4 text-primary hover:text-primary/90"
+            data-testid="add-input-button"
+          >
+            <PlusIcon className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 };

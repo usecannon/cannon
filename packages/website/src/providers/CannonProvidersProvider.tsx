@@ -1,34 +1,78 @@
 'use client';
 
-import { useStore } from '@/helpers/store';
+import { SafeTxService, useStore } from '@/helpers/store';
 import React, {
   createContext,
   PropsWithChildren,
   useContext,
   useMemo,
 } from 'react';
-import * as viem from 'viem';
+
 // eslint-disable-next-line no-restricted-imports
 import * as chains from 'viem/chains';
 import sortBy from 'lodash/sortBy';
+import merge from 'lodash/merge';
 
 import { externalLinks } from '@/constants/externalLinks';
 import isEmpty from 'lodash/isEmpty';
 import cloneDeep from 'lodash/cloneDeep';
 import { useQuery } from '@tanstack/react-query';
 import PageLoading from '@/components/PageLoading';
+import { isE2ETest } from '@/constants/misc';
+import { randomItem } from '@/helpers/random';
+import {
+  Address,
+  Chain,
+  createPublicClient,
+  defineChain,
+  Hash,
+  http,
+  HttpTransport,
+  isAddress,
+} from 'viem';
 
-type CustomProviders =
+export const polynomial = defineChain({
+  id: 8008,
+  name: 'Polynomial Chain',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Ether',
+    symbol: 'ETH',
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://rpc.polynomial.fi'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Polynomial Explorer',
+      url: 'https://polynomialscan.io',
+    },
+  },
+  testnet: false,
+});
+
+export type CustomChainMetadata = Record<
+  number,
+  {
+    color?: string;
+    shortName?: string;
+    serviceUrl?: string;
+  }
+>;
+
+export type CustomProviders =
   | {
-      chains: viem.Chain[];
-      chainMetadata: Record<
-        number,
-        { color?: string; shortName?: string; serviceUrl?: string }
-      >;
-      transports: Record<number, viem.HttpTransport>;
-      customTransports: Record<number, viem.HttpTransport>;
-      getChainById: (chainId: number) => viem.Chain | undefined;
-      getExplorerUrl: (chainId: number, hash: viem.Hash) => string;
+      chains: Chain[];
+      chainMetadata: CustomChainMetadata;
+      transports: Record<number, HttpTransport>;
+      customTransports: Record<number, HttpTransport>;
+      getChainById: (chainId: number) => Chain | undefined;
+      getExplorerUrl: (
+        chainId: number,
+        hash: Hash | Address | `0x${string}`
+      ) => string;
     }
   | undefined;
 const ProvidersContext = createContext<CustomProviders>(undefined);
@@ -37,13 +81,51 @@ const cannonNetwork = {
   ...chains.localhost,
   id: 13370,
   name: 'Cannon',
-} as viem.Chain;
+} as Chain;
+
+// Some chains have default rpc urls that don't work properly with interact on the website
+// because they are being rate limited. We use custom rpc urls for these chains.
+// we walso use the e2e provider urls if they are available
+const customDefaultRpcs: Record<number, Chain['rpcUrls']> = {
+  [`${chains.mainnet.id}`]: {
+    default: {
+      http: [
+        isE2ETest
+          ? process.env.NEXT_PUBLIC_CANNON_E2E_RPC_URL_ETHEREUM ||
+            'https://please-configure'
+          : randomItem([
+              'https://eth.llamarpc.com',
+              'https://ethereum-rpc.publicnode.com',
+              'https://rpc.ankr.com/eth',
+              'https://eth.blockrazor.xyz',
+            ]),
+      ],
+    },
+  },
+  [`${chains.sepolia.id}`]: {
+    default: {
+      http: [
+        isE2ETest
+          ? process.env.NEXT_PUBLIC_CANNON_E2E_RPC_URL_SEPOLIA ||
+            'https://please-configure'
+          : randomItem([
+              'https://gateway.tenderly.co/public/sepolia',
+              'https://ethereum-sepolia-rpc.publicnode.com',
+              'https://eth-sepolia.public.blastapi.io',
+            ]),
+      ],
+    },
+  },
+};
 
 // Service urls taken from https://docs.safe.global/learn/safe-core/safe-core-api/available-services
 // shortNames taken from https://github.com/ethereum-lists/chains/blob/master/_data/chains
 // export const chains = [
 
-export const chainMetadata = {
+const chainMetadata = {
+  [polynomial.id]: {
+    color: '#cdfe40',
+  },
   [chains.arbitrum.id]: {
     color: '#96bedc',
     shortName: 'arb1',
@@ -58,6 +140,11 @@ export const chainMetadata = {
     color: '#0052ff',
     shortName: 'base',
     serviceUrl: 'https://safe-transaction-base.safe.global',
+  },
+  [chains.baseSepolia.id]: {
+    color: '#0052ff',
+    shortName: 'base',
+    serviceUrl: 'https://safe-transaction-base-sepolia.safe.global',
   },
   [chains.bsc.id]: {
     color: '#ebac0e',
@@ -81,12 +168,12 @@ export const chainMetadata = {
     serviceUrl: 'https://safe-transaction-optimism.safe.global',
   },
   [chains.polygon.id]: {
-    color: '#9f71ec',
+    color: '#6600ff',
     shortName: 'matic',
     serviceUrl: 'https://safe-transaction-polygon.safe.global',
   },
   [chains.polygonZkEvm.id]: {
-    color: '#9f71ec',
+    color: '#5100b9',
   },
   [chains.zora.id]: {
     color: '#000000',
@@ -124,16 +211,37 @@ export const chainMetadata = {
   [chains.celo.id]: {
     color: '#fdff52',
   },
+  [chains.berachain.id]: {
+    color: '#814625',
+  },
+  [chains.unichain.id]: {
+    color: '#FF007A',
+  },
+  [chains.harmonyOne.id]: {
+    color: '#00b5e7',
+  },
+  [chains.sonic.id]: {
+    color: '#fe9a4d',
+  },
 } as const;
 
-export const supportedChains = [cannonNetwork, ...Object.values(chains)];
+export const supportedChains = (
+  [cannonNetwork, polynomial, ...Object.values(chains)] as Chain[]
+).map((c) => {
+  if (!customDefaultRpcs[`${c.id}`]) return c;
+
+  return {
+    ...c,
+    rpcUrls: merge({}, c.rpcUrls, customDefaultRpcs[`${c.id}`]),
+  };
+});
 
 export const defaultTransports = supportedChains.reduce((transports, chain) => {
-  transports[chain.id] = viem.http();
+  transports[chain.id] = http();
   return transports;
-}, {} as Record<number, viem.HttpTransport>);
+}, {} as Record<number, HttpTransport>);
 
-type RpcUrlAndTransport = { rpcUrl: string; transport: viem.HttpTransport };
+type RpcUrlAndTransport = { rpcUrl: string; transport: HttpTransport };
 
 async function _getProvidersChainId({ queryKey }: { queryKey: string[] }) {
   const [, ...providerUrls] = queryKey;
@@ -143,8 +251,8 @@ async function _getProvidersChainId({ queryKey }: { queryKey: string[] }) {
   }
 
   const allPromises = providerUrls.map(async (rpcUrl) => {
-    const client = viem.createPublicClient({
-      transport: viem.http(rpcUrl),
+    const client = createPublicClient({
+      transport: http(rpcUrl),
     });
     const chainId = await client.getChainId();
     return {
@@ -158,7 +266,7 @@ async function _getProvidersChainId({ queryKey }: { queryKey: string[] }) {
     if (r.status === 'fulfilled') {
       transports[+r.value.chainId] = {
         rpcUrl: r.value.rpcUrl,
-        transport: viem.http(r.value.rpcUrl),
+        transport: http(r.value.rpcUrl),
       };
     }
 
@@ -167,7 +275,7 @@ async function _getProvidersChainId({ queryKey }: { queryKey: string[] }) {
 }
 
 function _getAllChains(verifiedProviders?: Record<number, RpcUrlAndTransport>) {
-  const customChains: viem.Chain[] = cloneDeep(supportedChains);
+  const customChains: Chain[] = cloneDeep(supportedChains);
 
   if (!verifiedProviders || isEmpty(verifiedProviders)) {
     return customChains;
@@ -216,7 +324,7 @@ function _getAllTransports(
 function _getCustomTransports(
   verifiedProviders?: Record<number, RpcUrlAndTransport>
 ) {
-  const customTransports: { [chainId: number]: viem.HttpTransport } = {};
+  const customTransports: { [chainId: number]: HttpTransport } = {};
 
   for (const [chainId, provider] of Object.entries(verifiedProviders || {})) {
     customTransports[+chainId] = provider.transport;
@@ -225,16 +333,12 @@ function _getCustomTransports(
   return customTransports;
 }
 
-function _getChainById(allChains: viem.Chain[], chainId: number) {
+function _getChainById(allChains: Chain[], chainId: number) {
   const chain = allChains.find((c) => c.id === +chainId);
   return chain;
 }
 
-const _getExplorerUrl = (
-  allChains: viem.Chain[],
-  chainId: number,
-  hash: viem.Hash
-) => {
+const _getExplorerUrl = (allChains: Chain[], chainId: number, hash: Hash) => {
   const chain = _getChainById(allChains, +chainId);
   if (!chain) return externalLinks.ETHERSCAN;
 
@@ -243,14 +347,30 @@ const _getExplorerUrl = (
 
   const url = explorer?.url || externalLinks.ETHERSCAN;
 
-  const type = viem.isAddress(hash) ? 'address' : 'tx';
+  const type = isAddress(hash) ? 'address' : 'tx';
   return `${url}/${type}/${hash}`;
 };
+
+function _getMergedChainMetadata(safeTxServices: SafeTxService[]) {
+  const customServiceUrls = safeTxServices.reduce(
+    (acc, service) => ({
+      ...acc,
+      [service.chainId]: {
+        ...chainMetadata[service.chainId],
+        serviceUrl: service.url,
+      },
+    }),
+    {}
+  );
+
+  return merge({}, chainMetadata, customServiceUrls);
+}
 
 export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
   const customProviders = useStore((state) => state.settings.customProviders);
+  const safeTxServices = useStore((state) => state.safeTxServices);
 
   const { isLoading, data: verifiedProviders } = useQuery({
     queryKey: ['fetchCustomProviders', ...customProviders],
@@ -261,12 +381,19 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
     (v) => v.rpcUrl
   );
   const chainsUrlsString = JSON.stringify(sortBy(chainsUrls));
+
+  const mergedChainMetadata = useMemo(
+    () => _getMergedChainMetadata(safeTxServices),
+    [safeTxServices]
+  );
+
   const [_allChains, _allTransports, _customTransports] = useMemo(
     () => [
       _getAllChains(verifiedProviders),
       _getAllTransports(verifiedProviders),
       _getCustomTransports(verifiedProviders),
     ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [chainsUrlsString]
   );
 
@@ -274,11 +401,11 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
     <ProvidersContext.Provider
       value={{
         chains: _allChains,
-        chainMetadata,
+        chainMetadata: mergedChainMetadata,
         transports: _allTransports,
         customTransports: _customTransports,
-        getChainById: (chainId: number) => _getChainById(_allChains, chainId),
-        getExplorerUrl: (chainId: number, hash: viem.Hash) =>
+        getChainById: (chainId) => _getChainById(_allChains, chainId),
+        getExplorerUrl: (chainId, hash) =>
           _getExplorerUrl(_allChains, chainId, hash),
       }}
     >
