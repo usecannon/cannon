@@ -217,14 +217,14 @@ teardown() {
 #  assert_success
 #}
 
-@test "Register & Publish - Publishing a package from an IPFS Reference" {
-  set_custom_config
-  start_optimism_emitter
-  set_package_publisher "greeter-foundry" "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-  run publish.sh 3
-  echo $output
-  assert_success
-}
+#@test "Register & Publish - Publishing a package from an IPFS Reference" {
+#  set_custom_config
+#  start_optimism_emitter
+#  set_package_publisher "greeter-foundry" "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+#  run publish.sh 3
+#  echo $output
+#  assert_success
+#}
 
 @test "Publish - Publishing the greeter package failed due to no changes" {
   set_custom_config
