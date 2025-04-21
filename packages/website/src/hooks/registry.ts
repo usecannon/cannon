@@ -24,7 +24,7 @@ export function useCannonPackagePublishers(packageName?: string) {
         provider: viem.createPublicClient({
           chain: getChainById(config.chainId),
           transport: customTransports[config.chainId] || viem.http(rpcUrl),
-        }),
+        }) as any,
       });
     });
 

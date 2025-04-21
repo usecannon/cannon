@@ -1,0 +1,57 @@
+name: Bump viem
+
+on: workflow_dispatch
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bump-viem:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: dev
+          fetch-tags: false
+          token: ${{ secrets.WORKFLOW_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name '0xusecannon'
+          git config user.email 'noreply@usecannon.com'
+
+      - name: Create PR to update viem
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branchName = `bump/viem-${{ github.sha }}`;
+            await exec.exec('git', ['checkout', '-b', branchName, 'origin/main']);
+            await exec.exec('pnpm', ['upgrade', '-L', 'viem']);
+            await exec.exec('git', ['push', 'origin', branchName]);
+
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'chore(ci): bump viem',
+              body: 'Automatic bumping of version for viem.',
+              head: branchName,
+              base: 'dev'
+            });
+
+            // Request review from Core Contributors team
+            await github.rest.pulls.requestReviewers({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.data.number,
+              team_reviewers: ['core-contributors']
+            });
+
+            // Enable auto-merge
+            await github.rest.pulls.updateBranch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.data.number,
+              merge_method: 'merge'
+            });
