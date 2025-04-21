@@ -91,7 +91,7 @@ describe('trace.ts', () => {
         },
         viem.zeroAddress,
         viem.encodeFunctionData({ abi: testFunc, functionName: 'testFunc', args: ['woot', 1234] }),
-        viem.encodeFunctionResult({ abi: testFunc, functionName: 'testFunc', result: [viem.zeroHash] })
+        viem.encodeFunctionResult({ abi: testFunc, functionName: 'testFunc', result: viem.zeroHash })
       );
 
       expect(functionData.contractName).toEqual('FunTest');
@@ -174,7 +174,7 @@ describe('trace.ts', () => {
           result: {
             gasUsed: '1234',
             code: '1',
-            output: viem.encodeFunctionResult({ abi: testFunc, functionName: 'testFunc', result: [viem.zeroHash] }),
+            output: viem.encodeFunctionResult({ abi: testFunc, functionName: 'testFunc', result: viem.zeroHash }),
           },
           subtraces: 0,
           traceAddress: [5, 2],

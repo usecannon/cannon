@@ -4,6 +4,7 @@ import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
 import { usePackageNameTagVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import InteractComponent from '@/features/Packages/interact/Interact';
 
 function generateMetadata({
   name,
@@ -62,7 +63,7 @@ export default function Interact() {
           description: metadata.description,
         }}
       />
-      <Interact />
+      <InteractComponent />
     </>
   );
 }

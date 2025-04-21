@@ -1,4 +1,3 @@
-@skip
 Feature: Interact page
 
   Scenario: Navigating to the interact page
@@ -35,15 +34,15 @@ Feature: Interact page
   Scenario: Executing call function with the bool input
     Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
     When User clicks on the 1st element with id "other-option-section"
-    Then "CoreProxy-button" value on "data-testid" attribute should exist
-    When User clicks on the 1st element with id "CoreProxy-button"
+    Then "synthetix.CoreProxy-button" value on "data-testid" attribute should exist
+    When User clicks on the 1st element with id "synthetix.CoreProxy-button"
     Then "getCollateralConfigurations-button" value on "data-testid" attribute should exist
     When User clicks on the 1st element with id "getCollateralConfigurations-button"
     Then "bool-button" value on "data-testid" attribute should exist
     When User clicks on the 1st element with id "bool-button"
     * User clicks on the 1st element with id "bool-true-input"
     * User clicks on the 1st element with id "call-function-button"
-    Then Output contains "100000000000000000000"
+    Then Output contains "issuanceRatioD18"
 
   Scenario: Executing call function with address output
     Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
