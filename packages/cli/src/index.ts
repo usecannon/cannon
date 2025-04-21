@@ -531,26 +531,18 @@ applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(a
   const { fullPackageRef, chainId, ipfsUrl, deployInfo } = await getPackageInfo(
     packageRef,
     options.chainId,
-    cliSettings.rpcUrl
+    cliSettings.rpcUrl,
   );
 
   await inspect(
     fullPackageRef,
-<<<<<<< HEAD
-    cliSettings,
-    chainId,
-    options.json ? 'json' : options.out,
-    options.writeDeployments,
-    options.sources,
-=======
     ipfsUrl,
     chainId,
     deployInfo,
     cliSettings,
     options.json ? 'deploy-json' : options.out,
     options.writeDeployments,
-    options.sources
->>>>>>> origin/dev
+    options.sources,
   );
 });
 

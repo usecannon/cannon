@@ -59,16 +59,12 @@ contract CannonDeploy is Script {
         for (const c in line.result.contracts) {
           const fullContractPath = [...line.cloneNames, c].join('.');
           this.push(`${indent}// > CONTRACT DEPLOYED: ${line.result.contracts[c].address}\n`);
-<<<<<<< HEAD
-          this.push(`${indent}getAddress[keccak256("${c}")] = address(${getAddress(line.result.contracts[c].address)});\n`);
-=======
           this.push(
             `${indent}addresses[keccak256("${fullContractPath}")] = address(${getAddress(
               line.result.contracts[c].address
             )});\n`
           );
           this.push(`${indent}vm.label(${getAddress(line.result.contracts[c].address)}, "${fullContractPath}");\n`);
->>>>>>> origin/dev
         }
 
         for (const t in line.result.txns) {

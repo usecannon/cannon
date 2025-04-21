@@ -6,10 +6,7 @@ import {
   DeploymentState,
   fetchIPFSAvailability,
   getArtifacts,
-<<<<<<< HEAD
   PackageReference,
-=======
->>>>>>> origin/dev
 } from '@usecannon/builder';
 import { bold, cyan, green, yellow } from 'chalk';
 import Debug from 'debug';
@@ -32,13 +29,9 @@ export async function inspect(
   fullPackageRef: string,
   ipfsUrl: string,
   chainId: number,
-<<<<<<< HEAD
-  out: 'overview' | 'deploy-json' | 'misc-json' | 'artifact-json',
-=======
   deployInfo: DeploymentInfo,
   cliSettings: CliSettings,
   out: FormatType,
->>>>>>> origin/dev
   writeDeployments: string,
   sources: boolean
 ) {
@@ -72,18 +65,6 @@ export async function inspect(
   }
 
   if (out === 'deploy-json') {
-<<<<<<< HEAD
-    _outputJson(deployData);
-  } else if (out === 'misc-json') {
-    if (!deployData.miscUrl) {
-      log('null');
-      return;
-    }
-    const miscData = await loader[deployData.miscUrl.split(':')[0] as 'ipfs'].read(deployData.miscUrl);
-    _outputJson(miscData);
-  } else if (out === 'artifact-json') {
-    _outputJson(getArtifacts(chainDefinition, deployData.state));
-=======
     _outputJson(deployInfo);
   } else if (out === 'misc-json') {
     if (!deployInfo.miscUrl) {
@@ -94,7 +75,6 @@ export async function inspect(
     _outputJson(miscData);
   } else if (out === 'artifact-json') {
     _outputJson(getArtifacts(chainDefinition, deployInfo.state));
->>>>>>> origin/dev
   } else {
     const metaUrl = await resolver.getMetaUrl(fullPackageRef, chainId);
     const packageOwner = deployInfo.def.setting?.owner?.defaultValue;
