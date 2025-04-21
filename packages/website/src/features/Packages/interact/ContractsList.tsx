@@ -16,11 +16,13 @@ import { useActiveContract } from '@/features/Packages/interact/useActiveContrac
 interface ContractsListProps {
   highlightedOptions: Option[];
   otherOptions: Option[];
+  contractAllOptions: Option[];
 }
 
 export const ContractsList: FC<ContractsListProps> = ({
   highlightedOptions,
   otherOptions,
+  contractAllOptions,
 }) => {
   const router = useRouter();
   const { variant, tag, name } = usePackageNameTagVersionUrlParams();
@@ -35,6 +37,33 @@ export const ContractsList: FC<ContractsListProps> = ({
       activeContractOption.contractName === contract.contractName &&
       activeContractOption.contractAddress === contract.contractAddress
     );
+  };
+
+  const filteredOptions = contractAllOptions.filter((o) =>
+    searchTerm
+      ? o.contractName.toLowerCase().includes(searchTerm.toLowerCase())
+      : true
+  );
+
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    filteredOptions: Option[]
+  ) => {
+    if (e.key === 'Enter') {
+      const firstOption = filteredOptions[0];
+      if (firstOption) {
+        void router.push(
+          buildInteractPath(
+            name,
+            tag,
+            variant,
+            firstOption.moduleName,
+            firstOption.contractName,
+            firstOption.contractAddress
+          )
+        );
+      }
+    }
   };
 
   return (
@@ -71,16 +100,13 @@ export const ContractsList: FC<ContractsListProps> = ({
         }}
       >
         <TabsList className="h-full font-mono">
-          {highlightedOptions.map((option, i) => (
-            <TabsTrigger
-              key={i}
-              value={`${option.moduleName}::${option.contractName}`}
-              data-testid={`${option.contractName}-button`}
-            >
-              {`${option.moduleName}.${option.contractName}`}
-            </TabsTrigger>
-          ))}
-
+          <div className="p-2 min-w-[150px]">
+            <SearchInput
+              size="sm"
+              onSearchChange={setSearchTerm}
+              onKeyDown={(e) => handleKeyDown(e, filteredOptions)}
+            />
+          </div>
           {otherOptions.length > 0 && (
             <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
               <PopoverTrigger asChild>
@@ -91,42 +117,65 @@ export const ContractsList: FC<ContractsListProps> = ({
                   <MoreHorizontal className="h-4 w-4 text-white" />
                 </div>
               </PopoverTrigger>
-              <PopoverContent className="max-h-[320px] max-w-[320px] overflow-y-auto overflow-x-hidden w-full bg-background border border-border p-0">
-                {otherOptions.length > 5 && (
-                  <div className="p-2">
-                    <SearchInput size="sm" onSearchChange={setSearchTerm} />
+              <PopoverContent className="max-h-[320px] max-w-[350px] overflow-y-auto overflow-x-hidden w-full bg-background border border-border p-0">
+                {otherOptions.map((option, i) => (
+                  <div
+                    key={i}
+                    className={`cursor-pointer p-2 border-t border-border font-mono ${
+                      isActiveContract(option)
+                        ? 'bg-background'
+                        : 'bg-transparent'
+                    } hover:bg-accent/50`}
+                    onClick={async () => {
+                      setIsPopoverOpen(false);
+                      await router.push(
+                        buildInteractPath(
+                          name,
+                          tag,
+                          variant,
+                          option.moduleName,
+                          option.contractName,
+                          option.contractAddress
+                        )
+                      );
+                    }}
+                    data-testid={`${option.contractName}-button`}
+                  >
+                    <span className="text-sm">
+                      {`${option.moduleName}.${option.contractName}`}
+                    </span>
                   </div>
-                )}
-                {otherOptions
-                  .filter((o) =>
-                    searchTerm
-                      ? o.contractName.toLowerCase().includes(searchTerm)
-                      : true
-                  )
-                  .map((option, i) => (
-                    <div
-                      key={i}
-                      className={`cursor-pointer p-2 border-t border-border font-mono ${
-                        isActiveContract(option)
-                          ? 'bg-background'
-                          : 'bg-transparent'
-                      } hover:bg-accent/50`}
-                      onClick={async () => {
-                        setIsPopoverOpen(false);
-                        await router.push(
-                          `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
-                        );
-                      }}
-                      data-testid={`${option.contractName}-button`}
-                    >
-                      <span className="text-sm">
-                        {`${option.moduleName}.${option.contractName}`}
-                      </span>
-                    </div>
-                  ))}
+                ))}
               </PopoverContent>
             </Popover>
-          )}
+          )}{' '}
+          {searchTerm
+            ? contractAllOptions
+                .filter((o) =>
+                  searchTerm
+                    ? o.contractName
+                        .toLowerCase()
+                        .includes(searchTerm.toLowerCase())
+                    : true
+                )
+                .map((option, i) => (
+                  <TabsTrigger
+                    key={i}
+                    value={`${option.moduleName}::${option.contractName}`}
+                    data-testid={`${option.contractName}-button`}
+                  >
+                    {`${option.moduleName}.${option.contractName}`}
+                  </TabsTrigger>
+                ))
+            : highlightedOptions.map((option, i) => (
+                <TabsTrigger
+                  key={i}
+                  value={`${option.moduleName}::${option.contractName}`}
+                  data-testid={`${option.contractName}-button`}
+                >
+                  {`${option.moduleName}.${option.contractName}`}
+                </TabsTrigger>
+              ))}
         </TabsList>
       </Tabs>
     </div>

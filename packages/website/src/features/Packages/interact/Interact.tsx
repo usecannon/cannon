@@ -17,6 +17,7 @@ import { useProcessedOptions } from './useProcessedOptions';
 import { ContractsList } from './ContractsList';
 import { ContractHeaderInfo } from './ContractHeaderInfo';
 import { Abi } from '@/features/Packages/interact/Abi';
+import { buildInteractPath } from '@/lib/interact';
 
 const Interact: FC = () => {
   const router = useRouter();
@@ -42,6 +43,7 @@ const Interact: FC = () => {
     deploymentData.data,
     name
   );
+  const contractAllOptions = [...highlightedOptions, ...otherOptions];
 
   const deployUrl = `${
     externalLinks.IPFS_CANNON
@@ -71,7 +73,14 @@ const Interact: FC = () => {
     const _contract = highlightedOptions[0] || otherOptions[0];
     if (_contract) {
       void router.push(
-        `/packages/${name}/${tag}/${variant}/interact/${_contract.moduleName}/${_contract.contractName}/${_contract.contractAddress}`
+        buildInteractPath(
+          name,
+          tag,
+          variant,
+          _contract.moduleName,
+          _contract.contractName,
+          _contract.contractAddress
+        )
       );
     }
   }, [
@@ -99,6 +108,7 @@ const Interact: FC = () => {
         <ContractsList
           highlightedOptions={highlightedOptions}
           otherOptions={otherOptions}
+          contractAllOptions={contractAllOptions}
         />
 
         <ContractHeaderInfo
