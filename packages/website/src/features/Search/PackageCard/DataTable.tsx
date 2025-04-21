@@ -27,6 +27,7 @@ import Chain from './Chain';
 import { format, formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import ClipboardButton from '@/components/ClipboardButton';
 
 export type DataTableProps<Data extends object> = {
   data: Data[];
@@ -70,6 +71,10 @@ const getCellContent = ({ cell }: { cell: any }) => {
       return (
         <code className="text-xs translate-y-[1px]">
           {formatIPFS(cell.row.original.deployUrl, 10)}
+          <ClipboardButton
+            text={cell.row.original.deployUrl}
+            className="ml-3 z-10 relative"
+          />
         </code>
       );
     }
