@@ -12,6 +12,7 @@ import { buildInteractPath } from '@/lib/interact';
 import { Option } from '@/lib/interact';
 import { usePackageNameTagVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import { useActiveContract } from '@/features/Packages/interact/useActiveContract';
+import { useContractSearch } from '@/features/Packages/interact/useContractSearch';
 
 interface ContractsListProps {
   highlightedOptions: Option[];
@@ -25,7 +26,8 @@ export const ContractsList: FC<ContractsListProps> = ({
   const router = useRouter();
   const { variant, tag, name } = usePackageNameTagVersionUrlParams();
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const { searchTerm, setSearchTerm, searchResults } =
+    useContractSearch(otherOptions);
   const activeContractOption = useActiveContract();
 
   const isActiveContract = (contract: Option) => {
@@ -81,7 +83,7 @@ export const ContractsList: FC<ContractsListProps> = ({
             </TabsTrigger>
           ))}
 
-          {otherOptions.length > 0 && (
+          {searchResults.length > 0 && (
             <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
               <PopoverTrigger asChild>
                 <div
@@ -92,38 +94,32 @@ export const ContractsList: FC<ContractsListProps> = ({
                 </div>
               </PopoverTrigger>
               <PopoverContent className="max-h-[320px] max-w-[320px] overflow-y-auto overflow-x-hidden w-full bg-background border border-border p-0">
-                {otherOptions.length > 5 && (
+                {searchResults.length > 5 && (
                   <div className="p-2">
                     <SearchInput size="sm" onSearchChange={setSearchTerm} />
                   </div>
                 )}
-                {otherOptions
-                  .filter((o) =>
-                    searchTerm
-                      ? o.contractName.toLowerCase().includes(searchTerm)
-                      : true
-                  )
-                  .map((option, i) => (
-                    <div
-                      key={i}
-                      className={`cursor-pointer p-2 border-t border-border font-mono ${
-                        isActiveContract(option)
-                          ? 'bg-background'
-                          : 'bg-transparent'
-                      } hover:bg-accent/50`}
-                      onClick={async () => {
-                        setIsPopoverOpen(false);
-                        await router.push(
-                          `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
-                        );
-                      }}
-                      data-testid={`${option.contractName}-button`}
-                    >
-                      <span className="text-sm">
-                        {`${option.moduleName}.${option.contractName}`}
-                      </span>
-                    </div>
-                  ))}
+                {searchResults.map((option, i) => (
+                  <div
+                    key={i}
+                    className={`cursor-pointer p-2 border-t border-border font-mono ${
+                      isActiveContract(option)
+                        ? 'bg-background'
+                        : 'bg-transparent'
+                    } hover:bg-accent/50`}
+                    onClick={async () => {
+                      setIsPopoverOpen(false);
+                      await router.push(
+                        `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
+                      );
+                    }}
+                    data-testid={`${option.contractName}-button`}
+                  >
+                    <span className="text-sm">
+                      {`${option.moduleName}.${option.contractName}`}
+                    </span>
+                  </div>
+                ))}
               </PopoverContent>
             </Popover>
           )}
