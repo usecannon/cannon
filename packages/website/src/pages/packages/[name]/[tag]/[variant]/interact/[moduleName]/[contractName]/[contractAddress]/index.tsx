@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 
 import defaultSEO from '@/constants/defaultSeo';
 import PageLoading from '@/components/PageLoading';
-import Interact from '@/features/Packages/Interact';
+import Interact from '@/features/Packages/interact/Interact';
 import NameTagVariantLayout from '@/pages/packages/[name]/[tag]/[variant]/NameTagVariantLayout';
 import { PackageReference } from '@usecannon/builder';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
