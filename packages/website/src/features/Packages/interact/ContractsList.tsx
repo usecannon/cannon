@@ -112,7 +112,7 @@ export const ContractsList: FC<ContractsListProps> = ({
                         `/packages/${name}/${tag}/${variant}/interact/${option.moduleName}/${option.contractName}/${option.contractAddress}`
                       );
                     }}
-                    data-testid={`${option.contractName}-button`}
+                    data-testid={`${option.moduleName}.${option.contractName}-button`}
                   >
                     <span className="text-sm">
                       {`${option.moduleName}.${option.contractName}`}
