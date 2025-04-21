@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -29,6 +29,7 @@ export const ContractsList: FC<ContractsListProps> = ({
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const activeContractOption = useActiveContract();
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const isActiveContract = (contract: Option) => {
     if (!activeContractOption) return false;
@@ -38,6 +39,15 @@ export const ContractsList: FC<ContractsListProps> = ({
       activeContractOption.contractAddress === contract.contractAddress
     );
   };
+
+  useEffect(() => {
+    setIsAnimating(true);
+
+    const timer = setTimeout(() => {
+      setIsAnimating(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const filteredOptions = contractAllOptions.filter((o) =>
     searchTerm
@@ -141,8 +151,9 @@ export const ContractsList: FC<ContractsListProps> = ({
                     }}
                     data-testid={`${option.contractName}-button`}
                   >
-                    <span className="text-sm">
-                      {`${option.moduleName}.${option.contractName}`}
+                    <span className="text-sm font-mono">
+                      <span>{option.contractName}</span>
+                      <span className="text-xs text-muted-foreground">{`.${option.moduleName}`}</span>
                     </span>
                   </div>
                 ))}
@@ -163,6 +174,7 @@ export const ContractsList: FC<ContractsListProps> = ({
                     key={i}
                     value={`${option.moduleName}::${option.contractName}`}
                     data-testid={`${option.contractName}-button`}
+                    className={isAnimating ? 'animate-pulse' : ''}
                   >
                     {`${option.moduleName}.${option.contractName}`}
                   </TabsTrigger>
