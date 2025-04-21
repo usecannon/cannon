@@ -26,8 +26,7 @@ export const ContractsList: FC<ContractsListProps> = ({
   const router = useRouter();
   const { variant, tag, name } = usePackageNameTagVersionUrlParams();
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const { searchTerm, setSearchTerm, searchResults } =
-    useContractSearch(otherOptions);
+  const { setSearchTerm, searchResults } = useContractSearch(otherOptions);
   const activeContractOption = useActiveContract();
 
   const isActiveContract = (contract: Option) => {
