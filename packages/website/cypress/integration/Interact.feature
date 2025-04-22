@@ -8,12 +8,12 @@ Feature: Interact page
 
   Scenario: Selecting the tuple input
     Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
-    When User clicks on the 1st element with id "other-option-section" 
+    When User clicks on the 1st element with id "other-option-section"
     * User clicks on the 1st element with id "CoreRouter-button"
     * User clicks on the 1st element with id "ccipReceive-button"
     Then "byte32-input" value on "data-testid" attribute should exist
     When User clicks on the 1st element with id "add-input-button"
-    * User clicks on the 1st element with id "add-input-button"    
+    * User clicks on the 1st element with id "add-input-button"
     * User clicks on the 1st element with id "remove-input-button"
     Then "remove-input-button" value on "data-testid" attribute should not exist
 
@@ -33,9 +33,9 @@ Feature: Interact page
 
   Scenario: Executing call function with the bool input
     Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
-    When User clicks on the 1st element with id "other-option-section" 
-    Then "CoreProxy-button" value on "data-testid" attribute should exist
-    When User clicks on the 1st element with id "CoreProxy-button"
+    When User clicks on the 1st element with id "other-option-section"
+    Then "synthetix.CoreProxy-button" value on "data-testid" attribute should exist
+    When User clicks on the 1st element with id "synthetix.CoreProxy-button"
     Then "getCollateralConfigurations-button" value on "data-testid" attribute should exist
     When User clicks on the 1st element with id "getCollateralConfigurations-button"
     Then "bool-button" value on "data-testid" attribute should exist
@@ -106,7 +106,7 @@ Feature: Interact page
     * Wallet is connected
     Then URL includes "/pyth-erc7412-wrapper/PythERC7412Wrapper/0x08C1F629Ec5935F95Ef3e614dF5B94086528C25c"
     * User clicks on the 1st element with id "getLatestPrice-button"
-    * User types "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43" into the 1st input with id "byte32-input"    
+    * User types "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43" into the 1st input with id "byte32-input"
     * User types "1" into the 1st input with id "number-input"
     * User clicks on the 1st element with id "call-function-button"
     Then View renders a "div" displaying the text "The contract function \"getLatestPrice\" reverted."

@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   cypress-run:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04-arm
     env:
       NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID: ${{secrets.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID}}
     steps:
@@ -38,7 +38,7 @@ jobs:
           runTests: false
 
       - name: Cypress verify
-        run: pnpm cypress verify || pnpm cypress install
+        run: pnpm cypress verify || pnpm cypress install --force
         working-directory: packages/website
 
       - name: Cypress run
