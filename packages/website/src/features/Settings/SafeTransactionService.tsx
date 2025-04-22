@@ -93,6 +93,7 @@ const SafeTransactionService: React.FC = () => {
             cannonSafeBackendUrl: initialState.settings.cannonSafeBackendUrl,
           })
         }
+        sectionName="Safe Transaction Service URL"
       />
     </>
   );

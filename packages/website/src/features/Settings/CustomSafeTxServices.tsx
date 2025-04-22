@@ -124,6 +124,7 @@ export default function CustomSafeTxServices() {
       </div>
       <SettingResetButton
         onReset={() => setSafeTxServices(initialState.safeTxServices)}
+        sectionName="Custom Safe Transaction Services"
       />
     </div>
   );

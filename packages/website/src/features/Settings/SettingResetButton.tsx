@@ -3,9 +3,13 @@ import React from 'react';
 
 type SettingResetButtonProps = {
   onReset: () => void;
+  sectionName: string;
 };
 
-const SettingResetButton: React.FC<SettingResetButtonProps> = ({ onReset }) => {
+const SettingResetButton: React.FC<SettingResetButtonProps> = ({
+  onReset,
+  sectionName,
+}) => {
   return (
     <div className="flex justify-end">
       <Button
@@ -15,7 +19,7 @@ const SettingResetButton: React.FC<SettingResetButtonProps> = ({ onReset }) => {
           e.preventDefault();
           if (
             window.confirm(
-              "Are you sure you want to reset to default settings? This can't be undone."
+              `Are you sure you want to reset to default settings for ${sectionName}? This can't be undone.`
             )
           ) {
             onReset();

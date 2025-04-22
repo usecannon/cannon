@@ -134,6 +134,7 @@ export default function SettingsPage() {
             onReset={() =>
               setSettings({ pythUrl: initialState.settings.pythUrl })
             }
+            sectionName="Oracle Multicalls"
           />
         </CardContent>
       </Card>
@@ -179,6 +180,7 @@ export default function SettingsPage() {
             onReset={() =>
               setSettings({ ipfsApiUrl: initialState.settings.ipfsApiUrl })
             }
+            sectionName="IPFS"
           />
         </CardContent>
       </Card>

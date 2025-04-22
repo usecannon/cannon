@@ -122,6 +122,7 @@ export default function CustomProviders() {
             customProviders: initialState.settings.customProviders,
           })
         }
+        sectionName="Custom Providers"
       />
     </div>
   );
