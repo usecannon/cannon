@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC } from 'react';
 import {
   Select,
   SelectContent,
@@ -7,17 +7,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-export const BoolInput: FC<{
+type BoolInputProps = {
   handleUpdate: (value: boolean) => void;
-  value?: boolean;
-}> = ({ handleUpdate, value = false }) => {
-  const [updateValue, setUpdateValue] = useState<boolean>(value);
-  useEffect(() => handleUpdate(updateValue), [updateValue]);
+  value: boolean;
+};
 
+export const BoolInput: FC<BoolInputProps> = ({ handleUpdate, value }) => {
   return (
     <Select
-      defaultValue={updateValue ? 'true' : 'false'}
-      onValueChange={(value) => setUpdateValue(value === 'true')}
+      defaultValue={value ? 'true' : 'false'}
+      onValueChange={(value) => handleUpdate(value === 'true')}
     >
       <SelectTrigger
         className="bg-background border-input"

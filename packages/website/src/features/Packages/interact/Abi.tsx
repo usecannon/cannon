@@ -130,7 +130,6 @@ export const Abi: FC<{
                       chainId={chainId}
                       contractName={contractName}
                       onDrawerOpen={onDrawerOpen}
-                      showFunctionSelector={false}
                       packageUrl={packageUrl}
                       isDrawerOpen={isDrawerOpen}
                     />
