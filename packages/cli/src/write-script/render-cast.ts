@@ -41,7 +41,7 @@ export const createRenderer = () =>
 
         // Add `--to` if present (for non-deployment transactions)
         if (to) {
-          command += ` --to ${to}`;
+          command += ` ${to}`;
         }
 
         // Add `--value` if a value is specified
