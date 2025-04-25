@@ -25,7 +25,6 @@ import { useConnectModal } from '@rainbow-me/rainbowkit';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
@@ -197,18 +196,17 @@ export default function PrepareNetwork({
                 >
                   {arachnidDeployed ? 'Deployed' : 'Deploy Contract'}
                 </Button>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="text-muted-foreground h-4 w-4" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      This contract is deployed by sending a small amount of ETH
-                      to an EOA with a known private key. Then the contract is
-                      deployed from that address.
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="text-muted-foreground h-4 w-4" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    This contract is deployed by sending a small amount of ETH
+                    to an EOA with a known private key. Then the contract is
+                    deployed from that address.
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </CardContent>
           </Card>

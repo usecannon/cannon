@@ -3,7 +3,6 @@ import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
@@ -45,17 +44,15 @@ const Chain: FC<{
   return (
     <div className="flex items-center gap-1.5">
       {isSmall ? (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>{icon}</TooltipTrigger>
-            <TooltipContent>
-              <p>
-                {name}
-                {!hideId ? ` (ID ${id})` : ''}
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger>{icon}</TooltipTrigger>
+          <TooltipContent>
+            <p>
+              {name}
+              {!hideId ? ` (ID ${id})` : ''}
+            </p>
+          </TooltipContent>
+        </Tooltip>
       ) : (
         <>
           {icon}

@@ -26,7 +26,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -188,21 +187,19 @@ export function TransactionDisplay(props: {
                   </>
                 )}
               </CardDescription>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => setExpandDiff(!expandDiff)}
-                      className="absolute top-4 right-5 hover:text-gray-300"
-                    >
-                      {expandDiff ? <Shrink /> : <Expand />}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{expandDiff ? 'Collapse' : 'Expand'}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setExpandDiff(!expandDiff)}
+                    className="absolute top-4 right-5 hover:text-gray-300"
+                  >
+                    {expandDiff ? <Shrink /> : <Expand />}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{expandDiff ? 'Collapse' : 'Expand'}</p>
+                </TooltipContent>
+              </Tooltip>
             </CardHeader>
 
             <CardContent>

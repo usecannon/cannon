@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { parseAbiParameter } from '@/components/AbiParameterPreview/utils';
@@ -34,14 +33,12 @@ function TooltipWrapper({
   tooltipText: string;
 }) {
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger className="w-full">{children}</TooltipTrigger>
-        <TooltipContent>
-          <p className="text-xs font-mono">{tooltipText}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger className="w-full">{children}</TooltipTrigger>
+      <TooltipContent>
+        <p className="text-xs font-mono">{tooltipText}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
