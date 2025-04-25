@@ -48,6 +48,7 @@ import { AddressInput } from '@/features/Packages/AbiMethod/AddressInput';
 import { links } from '@/constants/links';
 import isEqual from 'lodash/isEqual';
 import { NumberInput } from '@/features/Packages/AbiMethod/NumberInput';
+import { useMethodArgs } from '@/features/Packages/AbiMethod/utils';
 
 // Internal button components
 const SimulateButton: React.FC<{
@@ -282,7 +283,8 @@ export const AbiMethodRenderContent: FC<{
     transport: transports[chainId],
   });
 
-  const [params, setParams] = useState<any[] | any>([]);
+  // const [params, setParams] = useState<any[] | any>([]);
+  const [params, setParams] = useMethodArgs(f.inputs);
   const [paramsError, setParamsError] = useState<(string | undefined)[]>([]);
   const [simulatedSender, setSimulatedSender] = useState<Address>(zeroAddress);
   const [isSimulation, setIsSimulation] = useState(false);
@@ -498,7 +500,7 @@ export const AbiMethodRenderContent: FC<{
           <div className="flex flex-1 w-full lg:w-1/2 flex-col">
             {f.inputs.map((input, index) => (
               <div
-                key={JSON.stringify(input)}
+                key={JSON.stringify(input) + index}
                 className="mb-4 gap-1 flex flex-col"
               >
                 <Label className="text-sm">

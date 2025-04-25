@@ -56,6 +56,27 @@ export const NumberInput: FC<NumberInputProps> = ({
     }
   };
 
+  // Handle decimal changes while maintaining the real value
+  const handleDecimalChange = (newDecimals: number) => {
+    if (value === undefined) {
+      setDecimals(newDecimals);
+      return;
+    }
+
+    // Convert the current value to a decimal string with the current decimals
+    const valueInEth = formatUnits(value, decimals);
+    setDecimals(newDecimals);
+
+    try {
+      // Parse the value with new decimals maintaining the same real value
+      const newValue = parseUnits(valueInEth, newDecimals);
+      handleUpdate(newValue);
+    } catch (err) {
+      handleUpdate(undefined, 'Invalid number format');
+      setHasError(true);
+    }
+  };
+
   return (
     <div className="flex flex-col">
       <div className="flex items-stretch">
@@ -91,7 +112,7 @@ export const NumberInput: FC<NumberInputProps> = ({
                 min="0"
                 max="18"
                 value={decimals}
-                onChange={(e) => setDecimals(Number(e.target.value))}
+                onChange={(e) => handleDecimalChange(Number(e.target.value))}
                 className="bg-background"
               />
               <p className="text-sm text-muted-foreground">
@@ -108,7 +129,7 @@ export const NumberInput: FC<NumberInputProps> = ({
       </div>
       {showWeiValue && value !== undefined && (
         <p className="text-xs text-muted-foreground mt-1">
-          {parseUnits(value.toString(), decimals).toString()} wei
+          {value.toString()} wei
         </p>
       )}
     </div>

@@ -3,9 +3,7 @@ import { Button } from '@/components/ui/button';
 import { AbiParameter } from 'abitype';
 import { FC } from 'react';
 import { AbiMethodRenderInput } from './AbiMethodRenderInput';
-
-// Define type for objects that must have a val property
-type UnknownArrayItem = { val: unknown } & Record<string, unknown>;
+import { getDefaultValue } from '@/features/Packages/AbiMethod/utils';
 
 // Helper function to determine input type based on ABI parameter type
 type InputType = 'single' | 'array' | 'tuple';
@@ -49,7 +47,7 @@ const ArrayActionButtons: FC<ArrayActionButtonsProps> = ({ type, onClick }) => {
 interface Props {
   input: AbiParameter;
   handleUpdate: (value: any, error?: string) => void;
-  initialValue?: unknown | UnknownArrayItem[];
+  initialValue?: unknown | unknown[];
 }
 
 export const AbiMethodRender: FC<Props> = ({
@@ -62,18 +60,18 @@ export const AbiMethodRender: FC<Props> = ({
 
   const addInputToArray = () => {
     if (!isInputTypeArray) throw new Error('input is not an array');
-    const _value = initialValue as UnknownArrayItem[];
-    handleUpdate([..._value, { val: undefined }]);
+    const _value = initialValue as unknown[];
+    handleUpdate([..._value, getDefaultValue(input.type)]);
   };
 
   const removeInputFromArray = (index: number) => {
     if (!isInputTypeArray) throw new Error('input is not an array');
-    const _value = initialValue as UnknownArrayItem[];
+    const _value = initialValue as unknown[];
     handleUpdate(_value.slice(0, index).concat(_value.slice(index + 1)));
   };
 
   if (isInputTypeArray) {
-    const _value = initialValue as UnknownArrayItem[];
+    const _value = initialValue as unknown[];
     return (
       <div>
         {_value.map((indexValue, index) => {
@@ -89,10 +87,11 @@ export const AbiMethodRender: FC<Props> = ({
                 handleUpdate={(value: any, error?: string) => {
                   if (!isInputTypeArray)
                     throw new Error('input is not an array');
-                  const copy = [...(initialValue as UnknownArrayItem[])].map(
-                    (item: any, i: number) =>
-                      i === index ? { val: value } : item
+
+                  const copy = [...(initialValue as unknown[])].map(
+                    (item: any, i: number) => (i === index ? value : item)
                   );
+
                   handleUpdate(
                     copy,
                     error
