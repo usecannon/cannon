@@ -73,29 +73,27 @@ export const ByteInput: FC<ByteInputProps> = ({
   };
 
   return (
-    <TooltipProvider>
-      <Tooltip open={!!error}>
-        <TooltipTrigger asChild>
-          <Input
-            type="text"
-            className={cn(
-              'bg-background',
-              error
-                ? 'border-destructive focus:border-destructive focus-visible:ring-destructive'
-                : 'border-input'
-            )}
-            placeholder={`0x${'0'.repeat(byte * 2)}`}
-            value={value}
-            onChange={(e) => handleChange(e.target.value || '')}
-            data-testid={`byte${String(byte)}-input`}
-          />
-        </TooltipTrigger>
-        {error && (
-          <TooltipContent side="top" className="max-w-sm text-center">
-            <p>{error}</p>
-          </TooltipContent>
-        )}
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip open={!!error}>
+      <TooltipTrigger asChild>
+        <Input
+          type="text"
+          className={cn(
+            'bg-background',
+            error
+              ? 'border-destructive focus:border-destructive focus-visible:ring-destructive'
+              : 'border-input'
+          )}
+          placeholder={`0x${'0'.repeat(byte * 2)}`}
+          value={value}
+          onChange={(e) => handleChange(e.target.value || '')}
+          data-testid={`byte${String(byte)}-input`}
+        />
+      </TooltipTrigger>
+      {error && (
+        <TooltipContent side="top" className="max-w-sm text-center">
+          <p>{error}</p>
+        </TooltipContent>
+      )}
+    </Tooltip>
   );
 };
