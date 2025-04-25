@@ -20,7 +20,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import Chain from './Chain';
@@ -80,12 +79,10 @@ const getCellContent = ({ cell }: { cell: any }) => {
     }
     case 'published': {
       return (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>{timeAgo}</TooltipTrigger>
-            <TooltipContent>{tooltipTime}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger>{timeAgo}</TooltipTrigger>
+          <TooltipContent>{tooltipTime}</TooltipContent>
+        </Tooltip>
       );
     }
     case 'arrow': {
@@ -149,18 +146,16 @@ export function DataTable<Data extends object>({
                           )}
                           <ArrowDownUp className="ml-2 h-4 w-4" />
                           {header.column.columnDef.accessorKey == 'preset' && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <CircleHelp className="inline-block whitespace-nowrap align-sub" />
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-sm text-center">
-                                  Presets are useful for distinguishing multiple
-                                  deployments of the same protocol on the same
-                                  chain.
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <CircleHelp className="inline-block whitespace-nowrap align-sub" />
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-sm text-center">
+                                Presets are useful for distinguishing multiple
+                                deployments of the same protocol on the same
+                                chain.
+                              </TooltipContent>
+                            </Tooltip>
                           )}
                         </Button>
                       ) : (
