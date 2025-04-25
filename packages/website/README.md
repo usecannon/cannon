@@ -1,5 +1,7 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+[![IPFS](https://img.shields.io/badge/IPFS-View%20on%20IPFS-blue?style=flat-square)](https://bafybeiahijmgeixnbuuw6jmrk4ofvymlitmby5bluo5oohnqzdab6fwjfm.ipfs.dweb.link)
+
 ## Getting Started
 
 First, run the development server:
