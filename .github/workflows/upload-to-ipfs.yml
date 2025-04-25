@@ -28,7 +28,9 @@ jobs:
       - run: pnpm run clean && pnpm -r --filter @usecannon/builder --filter @usecannon/cli --filter @usecannon/api --filter @usecannon/website run build
 
       - name: Create ZIP file
-        run: zip -r "build-${{ github.event.inputs.commit_hash }}.zip" packages/website/out
+        run: |
+          cd packages/website/out
+          zip -r "../../../build-${{ github.event.inputs.commit_hash }}.zip" .
 
       - name: Upload to Cannon Repo
         run: |
@@ -37,7 +39,3 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.REPO_CANNON_JWT }}" \
             -H "Content-Type: multipart/form-data" \
             -F "file=@build-${{ github.event.inputs.commit_hash }}.zip"
-
-  
-
-      
