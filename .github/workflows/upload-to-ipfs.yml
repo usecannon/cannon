@@ -29,8 +29,8 @@ jobs:
 
       - name: Create ZIP file
         run: |
-          cd packages/website/out
-          zip -r "../../../build-${{ github.event.inputs.commit_hash }}.zip" .
+          cd packages/website
+          zip -r "../../build-${{ github.event.inputs.commit_hash }}.zip" out
 
       - name: Upload to Cannon Repo
         run: |
