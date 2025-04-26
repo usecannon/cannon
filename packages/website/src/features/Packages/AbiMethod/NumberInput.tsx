@@ -34,7 +34,7 @@ export const NumberInput: FC<NumberInputProps> = ({
   suffix,
   showWeiValue = false,
 }) => {
-  const [decimals, setDecimals] = useState(18);
+  const [decimals, setDecimals] = useState(0);
   const [hasError, setHasError] = useState(false);
 
   const handleChange = (inputValue: string) => {
