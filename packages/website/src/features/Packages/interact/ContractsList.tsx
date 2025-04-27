@@ -152,8 +152,8 @@ export const ContractsList: FC<ContractsListProps> = ({
                     data-testid={`${option.contractName}-button`}
                   >
                     <span className="text-sm font-mono">
-                      <span>{option.contractName}</span>
-                      <span className="text-xs text-muted-foreground">{`.${option.moduleName}`}</span>
+                      <span>{option.moduleName}</span>
+                      <span className="text-xs text-muted-foreground">{`.${option.contractName}`}</span>
                     </span>
                   </div>
                 ))}
