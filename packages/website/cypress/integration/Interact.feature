@@ -10,7 +10,7 @@ Feature: Interact page
     Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
     Then View renders a "h4" displaying the text "AccountProxy"
     When User clicks on the 1st element with id "other-option-section"
-    * User clicks on the 1st element with id "synthetix.CoreRouter-button"
+    * User clicks on the 1st element with id "CoreRouter-button"
     * User clicks on the 1st element with id "ccipReceive-button"
     Then "byte32-input" value on "data-testid" attribute should exist
     When User clicks on the 1st element with id "add-input-button"
@@ -36,8 +36,8 @@ Feature: Interact page
     Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
     Then View renders a "h4" displaying the text "AccountProxy"
     When User clicks on the 1st element with id "other-option-section"
-    Then "synthetix.CoreProxy-button" value on "data-testid" attribute should exist
-    When User clicks on the 1st element with id "synthetix.CoreProxy-button"
+    Then "CoreProxy-button" value on "data-testid" attribute should exist
+    When User clicks on the 1st element with id "CoreProxy-button"
     Then "getCollateralConfigurations-button" value on "data-testid" attribute should exist
     When User clicks on the 1st element with id "getCollateralConfigurations-button"
     Then "bool-button" value on "data-testid" attribute should exist

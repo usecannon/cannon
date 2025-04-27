@@ -8,6 +8,7 @@ interface SearchInputProps {
   debounceDelay?: number;
   placeholder?: string;
   size?: 'sm' | 'default' | 'lg';
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 }
 
 const SearchInput: React.FC<SearchInputProps> = ({
@@ -15,6 +16,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
   debounceDelay = 300,
   placeholder = '',
   size = 'default',
+  onKeyDown,
 }) => {
   const debouncedHandleSearch = React.useMemo(
     () => debounce(onSearchChange, debounceDelay),
@@ -31,6 +33,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
       <Input
         onChange={(e) => debouncedHandleSearch(e.target.value)}
         name="search"
+        onKeyDown={onKeyDown}
         placeholder={placeholder}
         className={`pl-8 ${
           size === 'sm'
