@@ -27,7 +27,7 @@ export const getDefaultValue = (type: string): any => {
       }
 
       if (type.startsWith('int') || type.startsWith('uint')) {
-        return BigInt(0);
+        return undefined;
       }
 
       // Handle fixed-size bytes (bytes1 to bytes32)

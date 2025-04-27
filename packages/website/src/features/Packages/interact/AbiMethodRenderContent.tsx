@@ -93,7 +93,8 @@ const SimulateSenderPopover: React.FC<SimulateSenderPopoverProps> = ({
         <Button
           disabled={isCallingMethod || hasParamsError}
           variant="outline"
-          className="rounded-l-none px-2"
+          className="rounded-l-none px-2 h-9"
+          size="sm"
         >
           <ChevronDownIcon className="h-4 w-4" />
         </Button>
@@ -549,7 +550,7 @@ export const AbiMethodRenderContent: FC<{
                     variant="outline"
                     size="sm"
                     onClick={async () => await submit()}
-                    className="rounded-r-none border-r-0"
+                    className="rounded-r-none border-r-0 h-9"
                     data-testid="call-function-button"
                   >
                     <EyeIcon className="w-4 h-4" />

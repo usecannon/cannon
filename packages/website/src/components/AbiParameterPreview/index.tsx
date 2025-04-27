@@ -34,7 +34,9 @@ function TooltipWrapper({
 }) {
   return (
     <Tooltip>
-      <TooltipTrigger className="w-full">{children}</TooltipTrigger>
+      <TooltipTrigger asChild className="w-full">
+        {children}
+      </TooltipTrigger>
       <TooltipContent>
         <p className="text-xs font-mono">{tooltipText}</p>
       </TooltipContent>
