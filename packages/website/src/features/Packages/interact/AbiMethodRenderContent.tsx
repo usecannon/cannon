@@ -55,7 +55,15 @@ const SimulateButton: React.FC<{
   isCallingMethod: boolean;
   hasParamsError: boolean;
   onSimulate: () => Promise<void>;
-}> = ({ isCallingMethod, hasParamsError, onSimulate }) => {
+  isSimulation: boolean;
+  methodCallOrQueuedResult: { error: string | null } | null;
+}> = ({
+  isCallingMethod,
+  hasParamsError,
+  onSimulate,
+  isSimulation,
+  methodCallOrQueuedResult,
+}) => {
   return (
     <Button
       disabled={isCallingMethod || hasParamsError}
@@ -66,6 +74,9 @@ const SimulateButton: React.FC<{
     >
       <PlayIcon className="w-4 h-4" />
       Simulate transaction
+      {isSimulation && methodCallOrQueuedResult && (
+        <StatusIcon error={Boolean(methodCallOrQueuedResult.error)} />
+      )}
     </Button>
   );
 };
@@ -575,7 +586,9 @@ export const AbiMethodRenderContent: FC<{
                     <SimulateButton
                       isCallingMethod={isCallingMethod}
                       hasParamsError={hasParamsError}
-                      onSimulate={async () => await submit({ simulate: true })}
+                      onSimulate={async () => submit({ simulate: true })}
+                      isSimulation={isSimulation}
+                      methodCallOrQueuedResult={methodCallOrQueuedResult}
                     />
                     <SimulateSenderPopover
                       isCallingMethod={isCallingMethod}
