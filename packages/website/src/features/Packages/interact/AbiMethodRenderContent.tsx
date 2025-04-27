@@ -69,7 +69,7 @@ const SimulateButton: React.FC<{
       disabled={isCallingMethod || hasParamsError}
       variant="outline"
       onClick={onSimulate}
-      className="rounded-r-none border-r-0"
+      className="rounded-r-none border-r-0 w-1/2 w-full"
       data-testid="simulate-txs-button"
     >
       <PlayIcon className="w-4 h-4" />
@@ -104,7 +104,7 @@ const SimulateSenderPopover: React.FC<SimulateSenderPopoverProps> = ({
         <Button
           disabled={isCallingMethod || hasParamsError}
           variant="outline"
-          className="rounded-l-none px-2 h-9"
+          className="rounded-l-none px-2 h-9 w-1/2 max-w-[55px]"
           size="sm"
         >
           <ChevronDownIcon className="h-4 w-4" />
@@ -508,7 +508,7 @@ export const AbiMethodRenderContent: FC<{
         className="max-w-container-xl"
       >
         <div className="flex flex-col md:flex-row gap-8 h-full py-2">
-          {/* Inputs */}
+          {/* Inputs y botones */}
           <div className="flex flex-1 w-full lg:w-1/2 flex-col">
             {f.inputs.map((input, index) => (
               <div
@@ -553,20 +553,43 @@ export const AbiMethodRenderContent: FC<{
               </div>
             )}
 
-            <div className="flex gap-4 mt-1">
-              {isFunctionReadOnly && (
+            {isFunctionReadOnly && (
+              <div className="flex">
+                <Button
+                  disabled={isCallingMethod || hasParamsError}
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => await submit()}
+                  className="rounded-r-none border-r-0 h-9"
+                  data-testid="call-function-button"
+                >
+                  <EyeIcon className="w-4 h-4" />
+                  Call function
+                </Button>
+                <SimulateSenderPopover
+                  isCallingMethod={isCallingMethod}
+                  hasParamsError={hasParamsError}
+                  simulatedSender={simulatedSender}
+                  chainId={chainId}
+                  onSenderChange={(value) => {
+                    setMethodCallOrQueuedResult(null);
+                    setSimulatedSender(value as Address);
+                  }}
+                />
+              </div>
+            )}
+
+            {!isFunctionReadOnly && (
+              <div className="flex flex-col lg:flex-row gap-2">
+                {/* Composite Simulate Button with Dropdown */}
                 <div className="flex">
-                  <Button
-                    disabled={isCallingMethod || hasParamsError}
-                    variant="outline"
-                    size="sm"
-                    onClick={async () => await submit()}
-                    className="rounded-r-none border-r-0 h-9"
-                    data-testid="call-function-button"
-                  >
-                    <EyeIcon className="w-4 h-4" />
-                    Call function
-                  </Button>
+                  <SimulateButton
+                    isCallingMethod={isCallingMethod}
+                    hasParamsError={hasParamsError}
+                    onSimulate={async () => submit({ simulate: true })}
+                    isSimulation={isSimulation}
+                    methodCallOrQueuedResult={methodCallOrQueuedResult}
+                  />
                   <SimulateSenderPopover
                     isCallingMethod={isCallingMethod}
                     hasParamsError={hasParamsError}
@@ -578,45 +601,21 @@ export const AbiMethodRenderContent: FC<{
                     }}
                   />
                 </div>
-              )}
-
-              {!isFunctionReadOnly && (
-                <div className="flex w-full justify-between gap-4">
-                  <div className="flex">
-                    <SimulateButton
-                      isCallingMethod={isCallingMethod}
-                      hasParamsError={hasParamsError}
-                      onSimulate={async () => submit({ simulate: true })}
-                      isSimulation={isSimulation}
-                      methodCallOrQueuedResult={methodCallOrQueuedResult}
-                    />
-                    <SimulateSenderPopover
-                      isCallingMethod={isCallingMethod}
-                      hasParamsError={hasParamsError}
-                      simulatedSender={simulatedSender}
-                      chainId={chainId}
-                      onSenderChange={(value) => {
-                        setMethodCallOrQueuedResult(null);
-                        setSimulatedSender(value as Address);
-                      }}
-                    />
-                    <SubmitButton
-                      isCallingMethod={isCallingMethod}
-                      hasParamsError={hasParamsError}
-                      onSubmit={async () => await submit()}
-                      isSimulation={isSimulation}
-                      methodCallOrQueuedResult={methodCallOrQueuedResult}
-                    />
-                    <StageToSafeButton
-                      isCallingMethod={isCallingMethod}
-                      hasParamsError={hasParamsError}
-                      onStage={handleQueueTransaction}
-                      functionName={f.name}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
+                <SubmitButton
+                  isCallingMethod={isCallingMethod}
+                  hasParamsError={hasParamsError}
+                  onSubmit={async () => await submit()}
+                  isSimulation={isSimulation}
+                  methodCallOrQueuedResult={methodCallOrQueuedResult}
+                />
+                <StageToSafeButton
+                  isCallingMethod={isCallingMethod}
+                  hasParamsError={hasParamsError}
+                  onStage={handleQueueTransaction}
+                  functionName={f.name}
+                />
+              </div>
+            )}
 
             {methodCallOrQueuedResult?.error && (
               <MethodCallAlertError
