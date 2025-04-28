@@ -5,11 +5,10 @@ import { FC } from 'react';
 import { AbiMethodRenderInput } from './AbiMethodRenderInput';
 import { getDefaultValue } from '@/features/Packages/AbiMethod/utils';
 
-// Helper function to determine input type based on ABI parameter type
-type InputType = 'single' | 'array' | 'tuple';
-const getInputType = (input: AbiParameter): InputType => {
-  if (input.type.endsWith('[][]')) return 'tuple';
-  if (input.type.endsWith('[]')) return 'array';
+const getInputType = (input: AbiParameter): 'single' | 'array' => {
+  // tuple[] is handled as a single input receiving a string that is parsed as a JSON object
+  if (input.type.endsWith('[]') && !input.type.includes('tuple'))
+    return 'array';
   return 'single';
 };
 
@@ -19,10 +18,6 @@ interface ArrayActionButtonsProps {
 }
 
 const ArrayActionButtons: FC<ArrayActionButtonsProps> = ({ type, onClick }) => {
-  {
-    /* <div className="text-right">
-        </div> */
-  }
   return (
     <Button
       variant="ghost"

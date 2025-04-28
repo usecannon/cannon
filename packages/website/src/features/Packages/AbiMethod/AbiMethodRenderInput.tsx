@@ -28,18 +28,14 @@ export const AbiMethodRenderInput: FC<AbiMethodInputProps> = ({
   value,
 }) => {
   switch (true) {
-    case input.type.endsWith('[][]'):
-      if (!isObject(value)) {
-        throw new Error(
-          `Expected object for type ${input.type}, got ${typeof value}`
-        );
-      }
+    // handle tuples in arrays
+    case input.type.startsWith('tuple') && input.type.includes('[]'):
       return (
         <JsonInput
-          handleUpdate={(jsonString) => {
+          handleUpdate={(value) => {
             try {
-              const parsedValue = JSON.parse(jsonString);
-              handleUpdate(parsedValue);
+              JSON.stringify(value);
+              handleUpdate(value);
             } catch (error) {
               handleUpdate(value, 'Invalid JSON format');
             }
@@ -47,7 +43,8 @@ export const AbiMethodRenderInput: FC<AbiMethodInputProps> = ({
           value={JSON.stringify(value)}
         />
       );
-    case input.type.startsWith('tuple'):
+    // handle tuples, but not tuples in arrays
+    case input.type.startsWith('tuple') && !input.type.includes('[]'):
       if (!isObject(value)) {
         throw new Error(`Expected object for tuple type, got ${typeof value}`);
       }

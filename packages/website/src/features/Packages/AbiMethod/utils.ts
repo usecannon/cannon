@@ -1,6 +1,5 @@
 import { AbiFunction } from 'abitype';
 import { useState } from 'react';
-// import { toBytes, pad } from 'viem/utils';
 
 // Helper function to get default values for Solidity types
 export const getDefaultValue = (type: string): any => {
@@ -35,6 +34,7 @@ export const getDefaultValue = (type: string): any => {
       //     const size = parseInt(type.slice(5));
       //     return pad(toBytes('0x'), { size }).toString();
       //   }
+
       return null;
   }
 };
@@ -45,6 +45,11 @@ export const useMethodArgs = (inputs: AbiFunction['inputs']) => {
     // Initialize each input with its default value based on type
     return inputs.map((input) => {
       const type = input.type.toLowerCase();
+
+      // Handle tuples in arrays
+      if (type.includes('tuple[]')) {
+        return undefined;
+      }
 
       // Handle arrays
       if (type.includes('[]')) {
