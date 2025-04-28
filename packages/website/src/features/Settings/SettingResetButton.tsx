@@ -17,17 +17,17 @@ const SettingResetButton: React.FC<SettingResetButtonProps> = ({
         className="h-auto"
         onClick={(e) => {
           e.preventDefault();
-          if (
-            window.confirm(
-              `Are you sure you want to reset to default settings for ${sectionName}? This can't be undone.`
-            )
-          ) {
+          const message =
+            sectionName === 'all'
+              ? 'Are you sure you want to reset all settings to defaults? This action cannot be undone.'
+              : `Are you sure you want to reset the default settings for ${sectionName}? This action cannot be undone.`;
+          if (window.confirm(message)) {
             onReset();
             alert('Done!');
           }
         }}
       >
-        Reset to defaults
+        {sectionName === 'all' ? 'Reset all settings' : 'Reset to defaults'}
       </Button>
     </div>
   );

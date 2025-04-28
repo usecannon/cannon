@@ -31,6 +31,7 @@ import SettingResetButton from '@/features/Settings/SettingResetButton';
 export default function SettingsPage() {
   const settings = useStore((s) => s.settings);
   const setSettings = useStore((s) => s.setSettings);
+  const setSafeTxServices = useStore((s) => s.setSafeTxServices);
 
   return (
     <div className="container.md mx-auto max-w-screen-md py-12 px-6">
@@ -194,6 +195,13 @@ export default function SettingsPage() {
             </AlertTitle>
           </div>
         </Alert>
+        <SettingResetButton
+          onReset={() => {
+            setSettings(initialState.settings);
+            setSafeTxServices(initialState.safeTxServices);
+          }}
+          sectionName="all"
+        />
       </div>
     </div>
   );
