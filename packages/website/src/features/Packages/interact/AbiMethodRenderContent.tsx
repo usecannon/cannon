@@ -17,6 +17,7 @@ import {
   EyeIcon,
   XIcon,
   EditIcon,
+  ClockIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -37,7 +38,12 @@ import {
   zeroAddress,
   isAddress,
 } from 'viem';
-import { useAccount, useSwitchChain, useWalletClient } from 'wagmi';
+import {
+  useAccount,
+  useSwitchChain,
+  useWalletClient,
+  useWaitForTransactionReceipt,
+} from 'wagmi';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Popover,
@@ -52,17 +58,21 @@ import { useMethodArgs } from '@/features/Packages/AbiMethod/utils';
 
 // Internal button components
 const SimulateButton: React.FC<{
+  chainId: number;
   isCallingMethod: boolean;
   hasParamsError: boolean;
   onSimulate: () => Promise<void>;
   isSimulation: boolean;
   methodCallOrQueuedResult: { error: string | null } | null;
+  txHash?: `0x${string}`;
 }> = ({
+  chainId,
   isCallingMethod,
   hasParamsError,
   onSimulate,
   isSimulation,
   methodCallOrQueuedResult,
+  txHash,
 }) => {
   return (
     <Button
@@ -74,8 +84,12 @@ const SimulateButton: React.FC<{
     >
       <PlayIcon className="w-4 h-4" />
       Simulate transaction
-      {isSimulation && methodCallOrQueuedResult && (
-        <StatusIcon error={Boolean(methodCallOrQueuedResult.error)} />
+      {isSimulation && (txHash || methodCallOrQueuedResult) && (
+        <StatusIcon
+          chainId={chainId}
+          error={Boolean(methodCallOrQueuedResult?.error)}
+          txHash={txHash}
+        />
       )}
     </Button>
   );
@@ -148,12 +162,16 @@ const SubmitButton: React.FC<{
   onSubmit: () => Promise<void>;
   isSimulation: boolean;
   methodCallOrQueuedResult: { error: string | null } | null;
+  txHash?: `0x${string}`;
+  chainId: number;
 }> = ({
   isCallingMethod,
   hasParamsError,
   onSubmit,
   isSimulation,
   methodCallOrQueuedResult,
+  txHash,
+  chainId,
 }) => {
   return (
     <Button
@@ -164,8 +182,12 @@ const SubmitButton: React.FC<{
     >
       <WalletIcon className="w-4 h-4" />
       Submit with wallet{' '}
-      {!isSimulation && methodCallOrQueuedResult && (
-        <StatusIcon error={Boolean(methodCallOrQueuedResult.error)} />
+      {!isSimulation && (txHash || methodCallOrQueuedResult) && (
+        <StatusIcon
+          error={Boolean(methodCallOrQueuedResult?.error)}
+          txHash={txHash}
+          chainId={chainId}
+        />
       )}
     </Button>
   );
@@ -204,15 +226,30 @@ const StageToSafeButton: React.FC<{
   );
 };
 
-const StatusIcon = ({ error }: { error: boolean }) => (
-  <div className="inline-block ml-2">
-    {error ? (
-      <AlertTriangleIcon className="text-red-700" />
-    ) : (
-      <CheckIcon className="text-green-500" />
-    )}
-  </div>
-);
+const StatusIcon = ({
+  error,
+  txHash,
+  chainId,
+}: {
+  error: boolean;
+  txHash?: `0x${string}`;
+  chainId: number;
+}) => {
+  const { data: receipt } = useWaitForTransactionReceipt({
+    hash: txHash,
+    chainId,
+  });
+
+  if (txHash && !receipt) {
+    return <ClockIcon className="text-yellow-500" />;
+  }
+
+  return error ? (
+    <AlertTriangleIcon className="text-red-700" />
+  ) : (
+    <CheckIcon className="text-green-500" />
+  );
+};
 
 const extractError = (e: any): string => {
   return typeof e === 'string'
@@ -295,7 +332,6 @@ export const AbiMethodRenderContent: FC<{
     transport: transports[chainId],
   });
 
-  // const [params, setParams] = useState<any[] | any>([]);
   const [params, setParams] = useMethodArgs(f.inputs);
   const [paramsError, setParamsError] = useState<(string | undefined)[]>([]);
   const [simulatedSender, setSimulatedSender] = useState<Address>(zeroAddress);
@@ -309,6 +345,12 @@ export const AbiMethodRenderContent: FC<{
   } | null>(null);
   const isFunctionReadOnly = _isReadOnly(f);
   const isFunctionPayable = _isPayable(f);
+  const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
+
+  const { data: receipt } = useWaitForTransactionReceipt({
+    hash: txHash,
+    chainId,
+  });
 
   const currentSafe = useStore((s) => s.currentSafe);
   const { setQueuedIdentifiableTxns, setLastQueuedTxnsId } = useQueueTxsStore(
@@ -397,14 +439,23 @@ export const AbiMethodRenderContent: FC<{
       await switchChain({ chainId: chainId });
     }
 
-    const result = await fetchWriteContractResult();
-    if (result.error) {
+    try {
+      const result = await fetchWriteContractResult();
+
+      if (result.error) {
+        setMethodCallOrQueuedResult({
+          value: null,
+          error: extractError(result.error),
+        });
+        return;
+      }
+
+      setTxHash(result.value);
+    } catch (error) {
       setMethodCallOrQueuedResult({
         value: null,
-        error: extractError(result.error),
+        error: extractError(error),
       });
-    } else {
-      setMethodCallOrQueuedResult({ value: result.value, error: null });
     }
   };
 
@@ -499,6 +550,19 @@ export const AbiMethodRenderContent: FC<{
     }
   }, [from]);
 
+  useEffect(() => {
+    if (receipt) {
+      if (receipt.status === 'success') {
+        setMethodCallOrQueuedResult({ value: txHash, error: null });
+      } else {
+        setMethodCallOrQueuedResult({
+          value: null,
+          error: 'Transaction failed',
+        });
+      }
+    }
+  }, [receipt, txHash]);
+
   return (
     <div className={cn('px-3 py-2 bg-background', 'border-t border-border')}>
       <motion.div
@@ -584,11 +648,13 @@ export const AbiMethodRenderContent: FC<{
                 {/* Composite Simulate Button with Dropdown */}
                 <div className="flex">
                   <SimulateButton
+                    chainId={chainId}
                     isCallingMethod={isCallingMethod}
                     hasParamsError={hasParamsError}
                     onSimulate={async () => submit({ simulate: true })}
                     isSimulation={isSimulation}
                     methodCallOrQueuedResult={methodCallOrQueuedResult}
+                    txHash={txHash}
                   />
                   <SimulateSenderPopover
                     isCallingMethod={isCallingMethod}
@@ -607,6 +673,8 @@ export const AbiMethodRenderContent: FC<{
                   onSubmit={async () => await submit()}
                   isSimulation={isSimulation}
                   methodCallOrQueuedResult={methodCallOrQueuedResult}
+                  txHash={txHash}
+                  chainId={chainId}
                 />
                 <StageToSafeButton
                   isCallingMethod={isCallingMethod}
