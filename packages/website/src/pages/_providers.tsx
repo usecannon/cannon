@@ -7,6 +7,7 @@ import LogsProvider from '@/providers/logsProvider';
 import { CannonProvidersProvider } from '@/providers/CannonProvidersProvider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToasterProvider } from '@/components/providers/ToasterProvider';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const NoSsrCannonRegistryProvider = dynamic(
   () => import('@/providers/CannonRegistryProvider'),
@@ -32,17 +33,19 @@ const queryClient = new QueryClient({
 
 export default function Providers({ children }: { children: ReactNode }) {
   return (
-    <LogsProvider>
-      <QueryClientProvider client={queryClient}>
-        <CannonProvidersProvider>
-          <NoSsrCannonRegistryProvider>
-            <NoSsrWalletProvider>
-              {children}
-              <ToasterProvider />
-            </NoSsrWalletProvider>
-          </NoSsrCannonRegistryProvider>
-        </CannonProvidersProvider>
-      </QueryClientProvider>
-    </LogsProvider>
+    <TooltipProvider>
+      <LogsProvider>
+        <QueryClientProvider client={queryClient}>
+          <CannonProvidersProvider>
+            <NoSsrCannonRegistryProvider>
+              <NoSsrWalletProvider>
+                {children}
+                <ToasterProvider />
+              </NoSsrWalletProvider>
+            </NoSsrCannonRegistryProvider>
+          </CannonProvidersProvider>
+        </QueryClientProvider>
+      </LogsProvider>
+    </TooltipProvider>
   );
 }

@@ -4,7 +4,6 @@ import { stringToHex } from 'viem';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -50,31 +49,29 @@ export const ByteInput: FC<{
   }, [updateValue]);
 
   return (
-    <TooltipProvider>
-      <Tooltip open={!!isInvalid}>
-        <TooltipTrigger asChild>
-          <Input
-            type="text"
-            className={cn(
-              'bg-background',
-              isInvalid
-                ? 'border-destructive focus:border-destructive focus-visible:ring-destructive'
-                : 'border-input'
-            )}
-            placeholder="0x0000000000000000000000000000000000000000"
-            value={updateValue}
-            onChange={(e) => {
-              setUpdateValue(e.target.value || '');
-            }}
-            data-testid={`byte${String(byte)}-input`}
-          />
-        </TooltipTrigger>
-        {isInvalid && (
-          <TooltipContent side="top" className="max-w-sm text-center">
-            <p>{isInvalid}</p>
-          </TooltipContent>
-        )}
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip open={!!isInvalid}>
+      <TooltipTrigger asChild>
+        <Input
+          type="text"
+          className={cn(
+            'bg-background',
+            isInvalid
+              ? 'border-destructive focus:border-destructive focus-visible:ring-destructive'
+              : 'border-input'
+          )}
+          placeholder="0x0000000000000000000000000000000000000000"
+          value={updateValue}
+          onChange={(e) => {
+            setUpdateValue(e.target.value || '');
+          }}
+          data-testid={`byte${String(byte)}-input`}
+        />
+      </TooltipTrigger>
+      {isInvalid && (
+        <TooltipContent side="top" className="max-w-sm text-center">
+          <p>{isInvalid}</p>
+        </TooltipContent>
+      )}
+    </Tooltip>
   );
 };
