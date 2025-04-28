@@ -32,7 +32,6 @@ import Chain from '@/features/Search/PackageCard/Chain';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
@@ -200,21 +199,20 @@ export function SafeAddressInput() {
               data-testid="selected-safe"
             >
               <Chain isSmall id={currentSafe.chainId} />
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <span className="font-mono md:hidden">
-                      {chainMetadata[currentSafe.chainId]?.shortName
-                        ? `${chainMetadata[currentSafe.chainId].shortName}:`
-                        : ''}
-                      {truncateAddress(currentSafe.address, 4)}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{currentSafe.address}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+
+              <Tooltip>
+                <TooltipTrigger>
+                  <span className="font-mono md:hidden">
+                    {chainMetadata[currentSafe.chainId]?.shortName
+                      ? `${chainMetadata[currentSafe.chainId].shortName}:`
+                      : ''}
+                    {truncateAddress(currentSafe.address, 4)}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{currentSafe.address}</p>
+                </TooltipContent>
+              </Tooltip>
 
               <span className="font-mono hidden md:inline">
                 {chainMetadata[currentSafe.chainId]?.shortName
@@ -224,22 +222,20 @@ export function SafeAddressInput() {
               </span>
             </div>
 
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    onClick={() => setIsDialogOpen(true)}
-                    className="h-5 w-5 ml-0.5"
-                  >
-                    <ChevronsUpDown className="h-3 w-3" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Select Safe</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  onClick={() => setIsDialogOpen(true)}
+                  className="h-5 w-5 ml-0.5"
+                >
+                  <ChevronsUpDown className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Select Safe</p>
+              </TooltipContent>
+            </Tooltip>
           </>
         ) : (
           <Button
@@ -279,21 +275,20 @@ export function SafeAddressInput() {
                         setIsDialogOpen(false);
                       }}
                     >
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <span className="font-mono tracking-wider md:hidden">
-                              {truncateAddress(option.value.split(':')[1], 4)}
-                            </span>
-                            <span className="font-mono tracking-wider hidden md:inline">
-                              {truncateAddress(option.value.split(':')[1], 8)}
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{option.value.split(':')[1]}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <span className="font-mono tracking-wider md:hidden">
+                            {truncateAddress(option.value.split(':')[1], 4)}
+                          </span>
+                          <span className="font-mono tracking-wider hidden md:inline">
+                            {truncateAddress(option.value.split(':')[1], 8)}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{option.value.split(':')[1]}</p>
+                        </TooltipContent>
+                      </Tooltip>
+
                       <Chain id={parseInt(option.value.split(':')[0])} />
                     </Button>
                     {option.isDeletable && (
@@ -331,21 +326,17 @@ export function SafeAddressInput() {
                             setIsDialogOpen(false);
                           }}
                         >
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <span className="font-mono tracking-wider">
-                                  {truncateAddress(
-                                    option.value.split(':')[1],
-                                    8
-                                  )}
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{option.value.split(':')[1]}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <span className="font-mono tracking-wider">
+                                {truncateAddress(option.value.split(':')[1], 8)}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{option.value.split(':')[1]}</p>
+                            </TooltipContent>
+                          </Tooltip>
+
                           <Chain id={parseInt(option.value.split(':')[0])} />
                         </div>
                       ))}
@@ -417,23 +408,21 @@ export function SafeAddressInput() {
       </div>
 
       {currentSafe && pendingServiceTransactions.count > 0 && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <AlertTriangle className="h-5 w-5 text-orange-400" />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                There{' '}
-                {pendingServiceTransactions.count === 1
-                  ? 'is 1 pending transaction'
-                  : `are ${pendingServiceTransactions.count} pending transactions`}{' '}
-                on the Safe app. Any transactions executed using Cannon will
-                override transactions there.
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger>
+            <AlertTriangle className="h-5 w-5 text-orange-400" />
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>
+              There{' '}
+              {pendingServiceTransactions.count === 1
+                ? 'is 1 pending transaction'
+                : `are ${pendingServiceTransactions.count} pending transactions`}{' '}
+              on the Safe app. Any transactions executed using Cannon will
+              override transactions there.
+            </p>
+          </TooltipContent>
+        </Tooltip>
       )}
     </div>
   );

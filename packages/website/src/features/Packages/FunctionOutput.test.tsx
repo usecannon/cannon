@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 // Add mock before other imports
 vi.mock('@/providers/CannonProvidersProvider', () => ({
@@ -22,11 +23,13 @@ describe('FunctionOutput', () => {
     ];
 
     render(
-      <FunctionOutput
-        chainId={1}
-        abiParameters={singleParameter}
-        methodResult="123"
-      />
+      <TooltipProvider>
+        <FunctionOutput
+          chainId={1}
+          abiParameters={singleParameter}
+          methodResult="123"
+        />
+      </TooltipProvider>
     );
 
     expect(screen.getByText('testParam')).toBeInTheDocument();
@@ -43,11 +46,13 @@ describe('FunctionOutput', () => {
     const methodResults = ['123', 'test'];
 
     render(
-      <FunctionOutput
-        chainId={1}
-        abiParameters={arrayParameters}
-        methodResult={methodResults}
-      />
+      <TooltipProvider>
+        <FunctionOutput
+          chainId={1}
+          abiParameters={arrayParameters}
+          methodResult={methodResults}
+        />
+      </TooltipProvider>
     );
 
     expect(screen.getByText('param1')).toBeInTheDocument();
@@ -69,11 +74,13 @@ describe('FunctionOutput', () => {
     ];
 
     render(
-      <FunctionOutput
-        chainId={1}
-        abiParameters={singleParameter}
-        methodResult={undefined}
-      />
+      <TooltipProvider>
+        <FunctionOutput
+          chainId={1}
+          abiParameters={singleParameter}
+          methodResult={undefined}
+        />
+      </TooltipProvider>
     );
 
     expect(screen.getByText('testParam')).toBeInTheDocument();

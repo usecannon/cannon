@@ -2,7 +2,6 @@
 
 import { FC, useEffect, useState } from 'react';
 import QueueDrawer from '@/features/Deploy/QueueDrawer';
-import { Abi } from '@/features/Packages/Abi';
 import { useQueryIpfsDataParsed } from '@/hooks/ipfs';
 import { usePackageNameTagVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import { DeploymentInfo, PackageReference } from '@usecannon/builder';
@@ -17,6 +16,8 @@ import { useDeploymentContracts } from './useDeploymentContracts';
 import { useProcessedOptions } from './useProcessedOptions';
 import { ContractsList } from './ContractsList';
 import { ContractHeaderInfo } from './ContractHeaderInfo';
+import { Abi } from '@/features/Packages/interact/Abi';
+import { buildInteractPath } from '@/lib/interact';
 
 const Interact: FC = () => {
   const router = useRouter();
@@ -42,6 +43,7 @@ const Interact: FC = () => {
     deploymentData.data,
     name
   );
+  const contractAllOptions = [...highlightedOptions, ...otherOptions];
 
   const deployUrl = `${
     externalLinks.IPFS_CANNON
@@ -71,7 +73,14 @@ const Interact: FC = () => {
     const _contract = highlightedOptions[0] || otherOptions[0];
     if (_contract) {
       void router.push(
-        `/packages/${name}/${tag}/${variant}/interact/${_contract.moduleName}/${_contract.contractName}/${_contract.contractAddress}`
+        buildInteractPath(
+          name,
+          tag,
+          variant,
+          _contract.moduleName,
+          _contract.contractName,
+          _contract.contractAddress
+        )
       );
     }
   }, [
@@ -85,7 +94,7 @@ const Interact: FC = () => {
     otherOptions,
   ]);
 
-  if (isLoadingData) {
+  if (isLoadingData || !contract) {
     return (
       <div className="py-20">
         <IpfsSpinner ipfsUrl={packagesQuery?.data?.deployUrl} />
@@ -99,6 +108,7 @@ const Interact: FC = () => {
         <ContractsList
           highlightedOptions={highlightedOptions}
           otherOptions={otherOptions}
+          contractAllOptions={contractAllOptions}
         />
 
         <ContractHeaderInfo
@@ -114,8 +124,7 @@ const Interact: FC = () => {
 
       {/* Interact with Contract methods */}
       <Abi
-        isLoading={isLoadingData}
-        abi={contract?.abi}
+        abi={contract.abi}
         contractName={contract?.contractName ?? 'Unknown'}
         address={contractAddress!}
         cannonOutputs={cannonOutputs}

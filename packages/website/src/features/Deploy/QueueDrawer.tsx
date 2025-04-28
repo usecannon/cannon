@@ -28,7 +28,6 @@ import { Info } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
@@ -488,42 +487,6 @@ export const QueuedTxns = ({
             ) : (
               <div className="flex gap-6">
                 {disableExecute ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="w-full">
-                          <Button
-                            size="lg"
-                            variant="default"
-                            className="w-full"
-                            disabled={
-                              stager.signing ||
-                              !targetTxn ||
-                              !!stager.signConditionFailed ||
-                              queuedIdentifiableTxns.length === 0
-                            }
-                            onClick={async () => {
-                              await stager.sign();
-                            }}
-                          >
-                            {stager.signing ? (
-                              <div className="flex items-center gap-2">
-                                Currently Signing
-                                <CustomSpinner />
-                              </div>
-                            ) : (
-                              'Stage & Sign'
-                            )}
-                          </Button>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {stager.signConditionFailed}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : null}
-                <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="w-full">
@@ -531,28 +494,58 @@ export const QueuedTxns = ({
                           size="lg"
                           variant="default"
                           className="w-full"
-                          disabled={disableExecute}
-                          onClick={() => {
-                            execTxn.writeContract(stager.executeTxnConfig!, {
-                              onSuccess: async () => {
-                                await router.push(links.DEPLOY);
-
-                                toast.success(
-                                  'You successfully executed the transaction.'
-                                );
-                              },
-                            });
+                          disabled={
+                            stager.signing ||
+                            !targetTxn ||
+                            !!stager.signConditionFailed ||
+                            queuedIdentifiableTxns.length === 0
+                          }
+                          onClick={async () => {
+                            await stager.sign();
                           }}
                         >
-                          Execute
+                          {stager.signing ? (
+                            <div className="flex items-center gap-2">
+                              Currently Signing
+                              <CustomSpinner />
+                            </div>
+                          ) : (
+                            'Stage & Sign'
+                          )}
                         </Button>
                       </div>
                     </TooltipTrigger>
                     <TooltipContent>
-                      {stager.execConditionFailed}
+                      {stager.signConditionFailed}
                     </TooltipContent>
                   </Tooltip>
-                </TooltipProvider>
+                ) : null}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="w-full">
+                      <Button
+                        size="lg"
+                        variant="default"
+                        className="w-full"
+                        disabled={disableExecute}
+                        onClick={() => {
+                          execTxn.writeContract(stager.executeTxnConfig!, {
+                            onSuccess: async () => {
+                              await router.push(links.DEPLOY);
+
+                              toast.success(
+                                'You successfully executed the transaction.'
+                              );
+                            },
+                          });
+                        }}
+                      >
+                        Execute
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>{stager.execConditionFailed}</TooltipContent>
+                </Tooltip>
               </div>
             )}
           </div>

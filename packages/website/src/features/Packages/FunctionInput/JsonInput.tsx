@@ -3,7 +3,6 @@ import { Input } from '@/components/ui/input';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -38,31 +37,29 @@ export const JsonInput: FC<{
   }, [updateValue, isInvalid, handleUpdate]);
 
   return (
-    <TooltipProvider>
-      <Tooltip open={!!isInvalid}>
-        <TooltipTrigger asChild>
-          <Input
-            type="text"
-            className={cn(
-              'bg-background',
-              isInvalid
-                ? 'border-destructive focus:border-destructive focus-visible:ring-destructive'
-                : 'border-input'
-            )}
-            placeholder="[[v1, v2], [v3, v4]]"
-            value={updateValue}
-            onChange={(e) => {
-              setUpdateValue(e.target.value || '');
-            }}
-            data-testid="json-input"
-          />
-        </TooltipTrigger>
-        {isInvalid && (
-          <TooltipContent side="top" className="max-w-sm text-center">
-            <p>{isInvalid}</p>
-          </TooltipContent>
-        )}
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip open={!!isInvalid}>
+      <TooltipTrigger asChild>
+        <Input
+          type="text"
+          className={cn(
+            'bg-background',
+            isInvalid
+              ? 'border-destructive focus:border-destructive focus-visible:ring-destructive'
+              : 'border-input'
+          )}
+          placeholder="[[v1, v2], [v3, v4]]"
+          value={updateValue}
+          onChange={(e) => {
+            setUpdateValue(e.target.value || '');
+          }}
+          data-testid="json-input"
+        />
+      </TooltipTrigger>
+      {isInvalid && (
+        <TooltipContent side="top" className="max-w-sm text-center">
+          <p>{isInvalid}</p>
+        </TooltipContent>
+      )}
+    </Tooltip>
   );
 };
