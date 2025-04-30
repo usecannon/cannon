@@ -9,21 +9,26 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { parseAbiParameter } from '@/components/AbiParameterPreview/utils';
-import { ReactNode } from 'react';
+import { ReactNode, forwardRef } from 'react';
 import { ExternalLinkButton } from '@/components/ExternalLinkButton';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
-function EncodedValueInput({ value }: { value: string }) {
-  return (
-    <Input
-      type="text"
-      className="focus:border-muted-foreground/40 focus:ring-0 hover:border-muted-foreground/40 font-mono"
-      readOnly
-      value={value}
-      data-testid="encode-value-input"
-    />
-  );
-}
+const EncodedValueInput = forwardRef<HTMLInputElement, { value: string }>(
+  ({ value }, ref) => {
+    return (
+      <Input
+        ref={ref}
+        type="text"
+        className="focus:border-muted-foreground/40 focus:ring-0 hover:border-muted-foreground/40 font-mono"
+        readOnly
+        value={value}
+        data-testid="encode-value-input"
+      />
+    );
+  }
+);
+
+EncodedValueInput.displayName = 'EncodedValueInput';
 
 function TooltipWrapper({
   children,
