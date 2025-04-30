@@ -6,7 +6,6 @@ import {
   useStore,
   useQueuedTransactions,
 } from '@/helpers/store';
-import { useContractCall, useContractTransaction } from '@/hooks/ethereum';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import {
   CheckIcon,
@@ -25,25 +24,16 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { Abi, AbiFunction } from 'abitype';
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useState } from 'react';
 import {
   Address,
-  createPublicClient,
   encodeFunctionData,
   parseEther,
   toFunctionSelector,
   TransactionRequestBase,
-  zeroAddress,
   isAddress,
 } from 'viem';
-import {
-  useAccount,
-  useSwitchChain,
-  useWalletClient,
-  useWaitForTransactionReceipt,
-} from 'wagmi';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Popover,
@@ -55,8 +45,9 @@ import { links } from '@/constants/links';
 import isEqual from 'lodash/isEqual';
 import { NumberInput } from '@/features/Packages/AbiMethod/NumberInput';
 import { useMethodArgs } from '@/features/Packages/AbiMethod/utils';
+import { useContractInteraction } from './useContractInteraction';
+import { isPayable, isReadOnly } from '@/helpers/abi';
 
-// Internal button components
 const SimulateButton: React.FC<{
   chainId: number;
   isCallingMethod: boolean;
@@ -66,13 +57,11 @@ const SimulateButton: React.FC<{
   methodCallOrQueuedResult: { error: string | null } | null;
   txHash?: `0x${string}`;
 }> = ({
-  chainId,
   isCallingMethod,
   hasParamsError,
   onSimulate,
   isSimulation,
   methodCallOrQueuedResult,
-  txHash,
 }) => {
   return (
     <Button
@@ -84,11 +73,10 @@ const SimulateButton: React.FC<{
     >
       <PlayIcon className="w-4 h-4" />
       Simulate transaction
-      {isSimulation && (txHash || methodCallOrQueuedResult) && (
+      {isSimulation && (isCallingMethod || methodCallOrQueuedResult) && (
         <StatusIcon
-          chainId={chainId}
+          isCallingMethod={isCallingMethod}
           error={Boolean(methodCallOrQueuedResult?.error)}
-          txHash={txHash}
         />
       )}
     </Button>
@@ -162,16 +150,12 @@ const SubmitButton: React.FC<{
   onSubmit: () => Promise<void>;
   isSimulation: boolean;
   methodCallOrQueuedResult: { error: string | null } | null;
-  txHash?: `0x${string}`;
-  chainId: number;
 }> = ({
   isCallingMethod,
   hasParamsError,
   onSubmit,
   isSimulation,
   methodCallOrQueuedResult,
-  txHash,
-  chainId,
 }) => {
   return (
     <Button
@@ -182,11 +166,10 @@ const SubmitButton: React.FC<{
     >
       <WalletIcon className="w-4 h-4" />
       Submit with wallet{' '}
-      {!isSimulation && (txHash || methodCallOrQueuedResult) && (
+      {!isSimulation && (isCallingMethod || methodCallOrQueuedResult) && (
         <StatusIcon
           error={Boolean(methodCallOrQueuedResult?.error)}
-          txHash={txHash}
-          chainId={chainId}
+          isCallingMethod={isCallingMethod}
         />
       )}
     </Button>
@@ -228,19 +211,12 @@ const StageToSafeButton: React.FC<{
 
 const StatusIcon = ({
   error,
-  txHash,
-  chainId,
+  isCallingMethod,
 }: {
   error: boolean;
-  txHash?: `0x${string}`;
-  chainId: number;
+  isCallingMethod: boolean;
 }) => {
-  const { data: receipt } = useWaitForTransactionReceipt({
-    hash: txHash,
-    chainId,
-  });
-
-  if (txHash && !receipt) {
+  if (isCallingMethod) {
     return <ClockIcon className="text-yellow-500" />;
   }
 
@@ -250,19 +226,6 @@ const StatusIcon = ({
     <CheckIcon className="text-green-500" />
   );
 };
-
-const extractError = (e: any): string => {
-  return typeof e === 'string'
-    ? e
-    : e?.cause?.message || e?.message || e?.error?.message || e?.error || e;
-};
-
-const _isReadOnly = (abiFunction: AbiFunction) =>
-  abiFunction.stateMutability === 'view' ||
-  abiFunction.stateMutability === 'pure';
-
-const _isPayable = (abiFunction: AbiFunction) =>
-  abiFunction.stateMutability === 'payable';
 
 const MethodCallAlertError: React.FC<{
   error: string;
@@ -319,62 +282,33 @@ export const AbiMethodRenderContent: FC<{
   packageUrl,
   isDrawerOpen,
 }) => {
-  const { getChainById, transports } = useCannonChains();
-  const chain = getChainById(chainId);
-  const { isConnected, address: from, chain: connectedChain } = useAccount();
-  const { switchChain } = useSwitchChain();
-  const { openConnectModal } = useConnectModal();
-  const { data: walletClient } = useWalletClient({
-    chainId: chainId as number,
-  })!;
-  const publicClient = createPublicClient({
-    chain,
-    transport: transports[chainId],
-  });
-
-  const [params, setParams] = useMethodArgs(f.inputs);
-  const [paramsError, setParamsError] = useState<(string | undefined)[]>([]);
-  const [simulatedSender, setSimulatedSender] = useState<Address>(zeroAddress);
-  const [isSimulation, setIsSimulation] = useState(false);
-  const hasParamsError = paramsError.some((error) => error !== undefined);
-  const [isCallingMethod, setIsCallingMethod] = useState(false);
-  const [txValue, setTxValue] = useState<any>();
-  const [methodCallOrQueuedResult, setMethodCallOrQueuedResult] = useState<{
-    value: unknown;
-    error: string | null;
-  } | null>(null);
-  const isFunctionReadOnly = _isReadOnly(f);
-  const isFunctionPayable = _isPayable(f);
-  const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
-
-  const { data: receipt } = useWaitForTransactionReceipt({
-    hash: txHash,
-    chainId,
-  });
-
+  const isFunctionReadOnly = isReadOnly(f);
+  const isFunctionPayable = isPayable(f);
   const currentSafe = useStore((s) => s.currentSafe);
   const { setQueuedIdentifiableTxns, setLastQueuedTxnsId } = useQueueTxsStore(
     (s) => s
   );
   const { queuedIdentifiableTxns, lastQueuedTxnsId } = useQueuedTransactions();
-
-  const fetchReadContractResult = useContractCall(
+  const [params, setParams] = useMethodArgs(f.inputs);
+  const [paramsError, setParamsError] = useState<(string | undefined)[]>([]);
+  const hasParamsError = paramsError.some((error) => error !== undefined);
+  const [txValue, setTxValue] = useState<any>();
+  const {
+    isCallingMethod,
+    isSimulation,
+    callMethodResult,
+    simulationSender,
+    setSimulationSender,
+    submit,
+    clearResult,
+  } = useContractInteraction({
+    f,
+    abi,
     address,
-    f.name,
-    [...params],
-    abi,
-    publicClient
-  );
-
-  const fetchWriteContractResult = useContractTransaction(
-    from as Address,
-    address as Address,
-    f.name,
-    [...params],
-    abi,
-    publicClient,
-    walletClient as any
-  );
+    chainId,
+    params,
+    isFunctionReadOnly,
+  });
 
   const setParam = (index: number, value: any, error?: string) => {
     if (isEqual(params[index], value)) {
@@ -392,71 +326,6 @@ export const AbiMethodRenderContent: FC<{
       newErrors[index] = error;
       return newErrors;
     });
-  };
-
-  const submit = async ({ simulate = false }: { simulate?: boolean } = {}) => {
-    setIsCallingMethod(true);
-    setMethodCallOrQueuedResult(null);
-    setIsSimulation(simulate);
-
-    try {
-      if (isFunctionReadOnly || simulate) {
-        await handleReadFunction();
-      } else {
-        await handleWriteFunction(simulate);
-      }
-    } finally {
-      setIsCallingMethod(false);
-    }
-  };
-
-  const handleReadFunction = async () => {
-    const result = await fetchReadContractResult(
-      isSimulation ? simulatedSender : from ?? zeroAddress
-    );
-    if (result.error) {
-      setMethodCallOrQueuedResult({
-        value: null,
-        error: extractError(result.error),
-      });
-    } else {
-      setMethodCallOrQueuedResult({ value: result.value, error: null });
-    }
-  };
-
-  const handleWriteFunction = async (simulate: boolean) => {
-    if (simulate) {
-      await handleReadFunction();
-      return;
-    }
-
-    if (!isConnected) {
-      if (openConnectModal) openConnectModal();
-      return;
-    }
-
-    if (connectedChain?.id !== chainId) {
-      await switchChain({ chainId: chainId });
-    }
-
-    try {
-      const result = await fetchWriteContractResult();
-
-      if (result.error) {
-        setMethodCallOrQueuedResult({
-          value: null,
-          error: extractError(result.error),
-        });
-        return;
-      }
-
-      setTxHash(result.value);
-    } catch (error) {
-      setMethodCallOrQueuedResult({
-        value: null,
-        error: extractError(error),
-      });
-    }
   };
 
   const handleQueueTransaction = () => {
@@ -504,10 +373,7 @@ export const AbiMethodRenderContent: FC<{
               : undefined,
         };
       } catch (err: unknown) {
-        setMethodCallOrQueuedResult({
-          value: null,
-          error: extractError(err),
-        });
+        clearResult();
         return;
       }
     }
@@ -542,26 +408,6 @@ export const AbiMethodRenderContent: FC<{
       duration: 5000,
     });
   };
-
-  // set wallet address as "from" for simulations
-  useEffect(() => {
-    if (from) {
-      setSimulatedSender(from);
-    }
-  }, [from]);
-
-  useEffect(() => {
-    if (receipt) {
-      if (receipt.status === 'success') {
-        setMethodCallOrQueuedResult({ value: txHash, error: null });
-      } else {
-        setMethodCallOrQueuedResult({
-          value: null,
-          error: 'Transaction failed',
-        });
-      }
-    }
-  }, [receipt, txHash]);
 
   return (
     <div className={cn('px-3 py-2 bg-background', 'border-t border-border')}>
@@ -633,11 +479,11 @@ export const AbiMethodRenderContent: FC<{
                 <SimulateSenderPopover
                   isCallingMethod={isCallingMethod}
                   hasParamsError={hasParamsError}
-                  simulatedSender={simulatedSender}
+                  simulatedSender={simulationSender}
                   chainId={chainId}
                   onSenderChange={(value) => {
-                    setMethodCallOrQueuedResult(null);
-                    setSimulatedSender(value as Address);
+                    clearResult();
+                    setSimulationSender(value as Address);
                   }}
                 />
               </div>
@@ -653,17 +499,16 @@ export const AbiMethodRenderContent: FC<{
                     hasParamsError={hasParamsError}
                     onSimulate={async () => submit({ simulate: true })}
                     isSimulation={isSimulation}
-                    methodCallOrQueuedResult={methodCallOrQueuedResult}
-                    txHash={txHash}
+                    methodCallOrQueuedResult={callMethodResult}
                   />
                   <SimulateSenderPopover
                     isCallingMethod={isCallingMethod}
                     hasParamsError={hasParamsError}
-                    simulatedSender={simulatedSender}
+                    simulatedSender={simulationSender}
                     chainId={chainId}
                     onSenderChange={(value) => {
-                      setMethodCallOrQueuedResult(null);
-                      setSimulatedSender(value as Address);
+                      clearResult();
+                      setSimulationSender(value as Address);
                     }}
                   />
                 </div>
@@ -672,9 +517,7 @@ export const AbiMethodRenderContent: FC<{
                   hasParamsError={hasParamsError}
                   onSubmit={async () => await submit()}
                   isSimulation={isSimulation}
-                  methodCallOrQueuedResult={methodCallOrQueuedResult}
-                  txHash={txHash}
-                  chainId={chainId}
+                  methodCallOrQueuedResult={callMethodResult}
                 />
                 <StageToSafeButton
                   isCallingMethod={isCallingMethod}
@@ -685,10 +528,10 @@ export const AbiMethodRenderContent: FC<{
               </div>
             )}
 
-            {methodCallOrQueuedResult?.error && (
+            {callMethodResult?.error && (
               <MethodCallAlertError
-                error={methodCallOrQueuedResult.error}
-                onClose={() => setMethodCallOrQueuedResult(null)}
+                error={callMethodResult.error}
+                onClose={clearResult}
               />
             )}
           </div>
@@ -701,7 +544,7 @@ export const AbiMethodRenderContent: FC<{
             <div className="flex-1 flex flex-col gap-4">
               <AnimatePresence>
                 {f.outputs.length !== 0 &&
-                  (methodCallOrQueuedResult == null || isCallingMethod) && (
+                  (callMethodResult == null || isCallingMethod) && (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -724,7 +567,7 @@ export const AbiMethodRenderContent: FC<{
               {f.outputs.length !== 0 && (
                 <FunctionOutput
                   chainId={chainId}
-                  methodResult={methodCallOrQueuedResult?.value}
+                  methodResult={callMethodResult?.value}
                   abiParameters={f.outputs}
                 />
               )}
