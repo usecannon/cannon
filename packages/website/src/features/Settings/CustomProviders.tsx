@@ -2,11 +2,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { X, Plus } from 'lucide-react';
-import { useStore } from '@/helpers/store';
+import { initialState, useStore } from '@/helpers/store';
 import { isValidUrl } from '@/helpers/isValidUrl';
 import { useEffect, useRef, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import SettingResetButton from '@/features/Settings/SettingResetButton';
 
 export default function CustomProviders() {
   const [inputValue, setInputValue] = useState('');
@@ -114,6 +115,15 @@ export default function CustomProviders() {
           <Plus className="h-4 w-4" />
         </Button>
       </div>
+
+      <SettingResetButton
+        onReset={() =>
+          setSettings({
+            customProviders: initialState.settings.customProviders,
+          })
+        }
+        sectionName="Custom Providers"
+      />
     </div>
   );
 }
