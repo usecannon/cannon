@@ -5,7 +5,6 @@ import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
@@ -23,22 +22,19 @@ const ChainNav: FC<{
   return (
     <div className="flex gap-2">
       {sortedVariants.map((variant) => (
-        <TooltipProvider key={variant.id}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link
-                href={`/packages/${packageName}/${variant.tag.name}/${variant.chain_id}-${variant.preset}`}
-                className="inline-flex items-center justify-center px-1 py-1 text-xs border border-gray-500 bg-gray-900 hover:bg-gray-800 rounded-md"
-              >
-                <Chain id={variant.chain_id} isSmall />
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent>
-              {getChainById(variant.chain_id)?.name +
-                ` (ID ${variant.chain_id})`}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip key={variant.id}>
+          <TooltipTrigger asChild>
+            <Link
+              href={`/packages/${packageName}/${variant.tag.name}/${variant.chain_id}-${variant.preset}`}
+              className="inline-flex items-center justify-center px-1 py-1 text-xs border border-gray-500 bg-gray-900 hover:bg-gray-800 rounded-md"
+            >
+              <Chain id={variant.chain_id} isSmall />
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>
+            {getChainById(variant.chain_id)?.name + ` (ID ${variant.chain_id})`}
+          </TooltipContent>
+        </Tooltip>
       ))}
     </div>
   );
