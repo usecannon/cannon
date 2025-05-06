@@ -18,6 +18,8 @@ contract CannonSubscription is ReentrancyGuard {
   error TransferFailed(address from, address to, uint256 amount);
   error PriceOverflow();
   error MembershipNotActive(address user);
+  error PlanNotAvailable(address user, uint16 planId);
+
 
   /// @notice Emitted when a new plan is registered by the owner
   event PlanRegistered(
@@ -29,20 +31,23 @@ contract CannonSubscription is ReentrancyGuard {
     uint256 price
   );
 
-  /// @notice Emitted when a plan is set as the default
-  event PlanSetAsDefault(uint16 indexed planId);
+  /// @notice Emitted when the available plans are changed
+  event AvailablePlansChanged(uint16[] planId);
 
   /// @notice Emitted when a user uses their membership credits
   event CreditsUsed(address indexed user, uint32 creditsUsed, uint32 remainingCredits);
 
   /// @notice Emitted when a user purchases a membership
-  event MembershipPurchased(address indexed user, uint32 amountOfTerms, uint256 totalPrice);
+  event MembershipPurchased(address indexed user, uint16 indexed planId, uint32 amountOfTerms, uint256 totalPrice);
+
+  /// @notice Emitted when a user purchases a membership
+  event MembershipGifted(address indexed user, uint16 indexed planId, uint32 amountOfTerms);
 
   /// @notice Emitted when a user cancels their membership
   event MembershipCancelled(address indexed user, uint32 pendingTerms, uint256 reimbursement);
 
-  /// @notice Emitted when a custom plan is set for a user
-  event CustomPlanSet(address indexed user, uint16 planId);
+  /// @notice Emitted when a custom plans are set for a user
+  event CustomPlansSet(address indexed user, uint16[] planIds);
 
   /// @notice The token that is used to pay for the subscription
   IERC20 public immutable TOKEN;
@@ -60,10 +65,6 @@ contract CannonSubscription is ReentrancyGuard {
 
   function getPlan(uint16 _planId) external view returns (Subscription.Plan memory) {
     return Subscription.load().getPlan(_planId);
-  }
-
-  function getDefaultPlan() external view returns (Subscription.Plan memory) {
-    return Subscription.load().getDefaultPlan();
   }
 
   function registerPlan(
@@ -90,20 +91,20 @@ contract CannonSubscription is ReentrancyGuard {
     return planId;
   }
 
-  function setDefaultPlan(uint16 _planId) external {
+  function setAvailablePlans(uint16[] memory _availablePlans) external {
     OwnableStorage.onlyOwner();
-    Subscription.load().setDefaultPlan(_planId);
-    emit PlanSetAsDefault(_planId);
+    Subscription.load().availablePlanIds = _availablePlans;
+    emit AvailablePlansChanged(_availablePlans);
   }
 
-  function setCustomPlan(address _user, uint16 _planId) external {
+  function setCustomPlans(address _user, uint16[] memory _planIds) external {
     OwnableStorage.onlyOwner();
-    Subscription.load().setCustomPlan(_user, _planId);
-    emit CustomPlanSet(_user, _planId);
+    Subscription.load().setCustomPlans(_user, _planIds);
+    emit CustomPlansSet(_user, _planIds);
   }
 
-  function getCustomPlan(address _user) external view returns (uint16) {
-    return Subscription.load().getCustomPlan(_user);
+  function getCustomPlans(address _user) external view returns (uint16[] memory) {
+    return Subscription.load().getCustomPlans(_user);
   }
 
   function updatePlanStatus(uint16 _planId, bool _isActive) external {
@@ -115,55 +116,53 @@ contract CannonSubscription is ReentrancyGuard {
     return Subscription.load().getMembership(_user);
   }
 
-  function purchaseMembership(uint32 _amountOfTerms) external nonReentrant {
-    address _sender = ERC2771Context.msgSender();
+  function giftMembership(address _user, uint16 _planId, uint32 _amountOfTerms) external {
+    OwnableStorage.onlyOwner();
     Subscription.Data storage _subscription = Subscription.load();
 
-    Subscription.Membership storage _membership = _subscription.getMembership(_sender);
-    Subscription.Plan storage _plan = _membership.planId == 0
-      ? _subscription.getDefaultPlan()
-      : _subscription.getPlan(_membership.planId);
-
-    _purchaseMembership(_subscription, _plan, _membership, _sender, _amountOfTerms);
-  }
-
-  function purchaseCustomMembership(uint32 _amountOfTerms) external nonReentrant {
-    address _sender = ERC2771Context.msgSender();
-    Subscription.Data storage _subscription = Subscription.load();
-
-    Subscription.Membership storage _membership = _subscription.getMembership(_sender);
-    uint16 _planId = _subscription.getCustomPlan(_sender);
+    Subscription.Membership storage _membership = _subscription.getMembership(_user);
     Subscription.Plan storage _plan = _subscription.getPlan(_planId);
 
-    _purchaseMembership(_subscription, _plan, _membership, _sender, _amountOfTerms);
+    _subscription.acquireMembership(_plan, _membership, _amountOfTerms);
+    
+    emit MembershipGifted(_user, _planId, _amountOfTerms);
   }
 
-  function _purchaseMembership(
-    Subscription.Data storage _subscription,
-    Subscription.Plan storage _plan,
-    Subscription.Membership storage _membership,
-    address _user,
-    uint32 _amountOfTerms
-  ) internal {
+  function purchaseMembership(uint16 _planId, uint32 _amountOfTerms) external nonReentrant {
+    address _sender = ERC2771Context.msgSender();
+    Subscription.Data storage _subscription = Subscription.load();
+
+    if (!_subscription.isAvailablePlan(_sender, _planId)) {
+      revert PlanNotAvailable(_sender, _planId);
+    }
+
+    Subscription.Membership storage _membership = _subscription.getMembership(_sender);
+    Subscription.Plan storage _plan = _subscription.getPlan(_planId);
+
     uint256 _totalPrice = _plan.price * _amountOfTerms;
 
     if (_totalPrice / _amountOfTerms != _plan.price) {
       revert PriceOverflow();
     }
 
-    uint256 _allowance = TOKEN.allowance(_user, VAULT);
+    uint256 _allowance = TOKEN.allowance(_sender, VAULT);
     if (_allowance < _totalPrice) {
-      revert InsufficientAllowance(_user, _allowance, _totalPrice);
+      revert InsufficientAllowance(_sender, _allowance, _totalPrice);
+    }
+
+    bool _success = TOKEN.transferFrom(_sender, VAULT, _totalPrice);
+    if (!_success) {
+      revert TransferFailed(_sender, VAULT, _totalPrice);
     }
 
     _subscription.acquireMembership(_plan, _membership, _amountOfTerms);
 
-    bool _success = TOKEN.transferFrom(_user, VAULT, _totalPrice);
-    if (!_success) {
-      revert TransferFailed(_user, VAULT, _totalPrice);
-    }
+    emit MembershipPurchased(_sender, _planId, _amountOfTerms, _totalPrice);
+  }
 
-    emit MembershipPurchased(_user, _amountOfTerms, _totalPrice);
+  function getAvailablePlans(address _user) external view returns (uint16[] memory) {
+    Subscription.Data storage _subscription = Subscription.load();
+    return _subscription.getAvailablePlans(_user);
   }
 
   function hasActiveMembership(address _user) external view returns (bool) {

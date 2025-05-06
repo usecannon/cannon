@@ -81,10 +81,10 @@ library Subscription {
 
   struct Data {
     /**
-     * @notice The default plan for new user memberships. This is the plan that
-     *         will be used if the user does not have an active membership
+     * @notice The list of plan IDs that can be used for new memberships. If a user doesn't have a custom plan id
+     *         associated with their account, these are the only plans available to them.
      */
-    uint16 defaultPlanId;
+    uint16[] availablePlanIds;
     /**
      * @notice The latest plan id that was created. This is used to generate the
      *         id for new plans incrementally
@@ -101,7 +101,7 @@ library Subscription {
     /**
      * @notice Custom plans assigned to users that they are allowed to purchase
      */
-    mapping(address user => uint16 planId) allowedCustomPlans;
+    mapping(address user => uint16[] planId) allowedCustomPlans;
   }
 
   function load() internal pure returns (Data storage store) {
@@ -118,20 +118,42 @@ library Subscription {
     return plan;
   }
 
-  function getDefaultPlan(Data storage _self) internal view returns (Plan storage) {
-    return getPlan(_self, _self.defaultPlanId);
+  function setAvailablePlans(Data storage _self, uint16[] memory _availablePlanIds) internal {
+    _self.availablePlanIds = _availablePlanIds;
   }
 
-  function setDefaultPlan(Data storage _self, uint16 _planId) internal {
-    _self.defaultPlanId = _planId;
+  function setCustomPlans(Data storage _self, address _user, uint16[] memory _planIds) internal {
+    _self.allowedCustomPlans[_user] = _planIds;
   }
 
-  function setCustomPlan(Data storage _self, address _user, uint16 _planId) internal {
-    _self.allowedCustomPlans[_user] = _planId;
-  }
-
-  function getCustomPlan(Data storage _self, address _user) internal view returns (uint16) {
+  function getCustomPlans(Data storage _self, address _user) internal view returns (uint16[] memory) {
     return _self.allowedCustomPlans[_user];
+  }
+
+  function getAvailablePlans(Data storage _self, address _user) internal view returns (uint16[] memory) {
+    uint16[] memory _availablePlanIds = new uint16[](_self.availablePlanIds.length + _self.allowedCustomPlans[_user].length);
+
+    for (uint256 i = 0; i < _self.availablePlanIds.length;i++) {
+      _availablePlanIds[i] = _self.availablePlanIds[i];
+    }
+
+    for (uint256 i = 0;i < _self.allowedCustomPlans[_user].length;i++) {
+      _availablePlanIds[_self.availablePlanIds.length + i] = _self.allowedCustomPlans[_user][i];
+    }
+
+    return _availablePlanIds;
+  }
+
+  function isAvailablePlan(Data storage _self, address _user, uint16 _checkPlanId) internal view returns (bool) {
+    uint16[] memory _availablePlanIds = getAvailablePlans(_self, _user);
+
+    for (uint256 i = 0;i < _availablePlanIds.length;i++) {
+      if (_checkPlanId == _availablePlanIds[i]) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   function registerPlan(
@@ -166,10 +188,6 @@ library Subscription {
   }
 
   function updatePlanStatus(Data storage _self, uint16 _planId, bool _isActive) internal {
-    if (!_isActive && _planId == _self.defaultPlanId) {
-      revert CannotDeactivateDefaultPlan(_planId);
-    }
-
     Plan storage _plan = getPlan(_self, _planId);
     _plan.active = _isActive;
   }

@@ -8,6 +8,8 @@ import {UUPSImplementation} from "@synthetixio/core-contracts/contracts/proxy/UU
  * @title Inhereted in order to make a contract upgradable. Upon upgrade, ensures the new contract is also upgradable.
  */
 contract OwnedUpgradableUpdated is Ownable, UUPSImplementation {
+
+  constructor() Ownable(msg.sender) {}
   /**
    * @notice Called by the contract owner to change the implementation code for the proxy
    */
