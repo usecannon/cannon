@@ -6,6 +6,7 @@ import {
   DeploymentState,
   fetchIPFSAvailability,
   getArtifacts,
+  PackageReference,
 } from '@usecannon/builder';
 import { bold, cyan, green, yellow } from 'chalk';
 import Debug from 'debug';
