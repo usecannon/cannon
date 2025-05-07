@@ -6,15 +6,18 @@ import { daysToSeconds } from '../helpers/date';
 import { getTimestamp } from '../helpers/rpc';
 import { assertBn } from '../helpers/assert-bignumber';
 
-type CannonRegistry = Awaited<ReturnType<typeof bootstrap>>['CannonRegistry'];
+type CannonSubscription = Awaited<ReturnType<typeof bootstrap>>['CannonSubscription'];
+type MockERC20 = Awaited<ReturnType<typeof bootstrap>>['MockERC20'];
 
 describe('CannonSubscription', function () {
-  let CannonRegistry: CannonRegistry;
+  let CannonSubscription: CannonSubscription;
+  let Token: MockERC20;
 
   function resetContext() {
     before('load context', async function () {
       const ctx = await bootstrap();
-      CannonRegistry = ctx.CannonRegistry;
+      CannonSubscription = ctx.CannonSubscription;
+      Token = ctx.MockERC20;
     });
   }
 
@@ -22,14 +25,12 @@ describe('CannonSubscription', function () {
     resetContext();
 
     it('should not have a default plan', async function () {
-      await assertRevert(async () => {
-        await CannonRegistry.getDefaultPlan();
-      }, 'PlanNotFound(0)');
+      assert.equal((await CannonSubscription.getAvailablePlans(ethers.constants.AddressZero)).length, 0);
     });
 
     it('should return PlanNotFound when getting a non-existent plan', async function () {
       await assertRevert(async () => {
-        await CannonRegistry.getPlan(420);
+        await CannonSubscription.getPlan(420);
       }, 'PlanNotFound(420)');
     });
   });
@@ -39,84 +40,91 @@ describe('CannonSubscription', function () {
 
     it('should revert when not owner', async function () {
       const randomUser = await fixtureSigner();
-      await assertRevert(async () => {
-        await CannonRegistry.connect(randomUser).registerDefaultPlan(100, 100, 100);
-      }, `Unauthorized("${await randomUser.getAddress()}")`);
+      await assertRevert(
+        async () => {
+          await CannonSubscription.connect(randomUser).setAvailablePlans([100, 100, 100]);
+        },
+        `Unauthorized("${await randomUser.getAddress()}")`,
+      );
     });
 
     it('register default plan', async function () {
-      const planDuration = daysToSeconds(30);
-      const planPrice = 1; // Not implemented
-      const planPublishQuota = 500;
-      const tx = await CannonRegistry.registerDefaultPlan(planDuration, planPrice, planPublishQuota);
+      const tx = await CannonSubscription.setAvailablePlans([1]);
       await tx.wait();
-      const plan = await CannonRegistry.getDefaultPlan();
-      equal(plan.duration.toString(), planDuration.toString());
-      equal(plan.price.toString(), planPrice.toString());
-      equal(plan.publishQuota.toString(), planPublishQuota.toString());
+      const plans = await CannonSubscription.getAvailablePlans(ethers.constants.AddressZero);
+
+      assert.equal(plans.length, 1);
     });
   });
 
   describe('membership management', function () {
     resetContext();
 
-    const planDuration = daysToSeconds(30);
-    const planPrice = 1; // Not implemented
-    const planPublishQuota = 500;
-
     before('register default plan', async function () {
-      await CannonRegistry.registerDefaultPlan(planDuration, planPrice, planPublishQuota);
+      await CannonSubscription.setAvailablePlans([1]);
     });
 
     it('returns empty membership for user without one', async function () {
       const randomUser = await fixtureSigner();
-      const membership = await CannonRegistry.getMembership(await randomUser.getAddress());
+      const membership = await CannonSubscription.getMembership(await randomUser.getAddress());
       assertBn.equal(membership.planId, 0);
-      assertBn.equal(membership.activatedAt, 0);
-      assertBn.equal(membership.publishCount, 0);
-      assertBn.equal(membership.termsLeft, 0);
+      assertBn.equal(membership.activeFrom, 0);
+      assertBn.equal(membership.activeUntil, 0);
+      assertBn.equal(membership.availableCredits, 0);
     });
 
     it('reverts when purchasing an invalid number of terms', async function () {
       const randomUser = await fixtureSigner();
-      const userAddress = await randomUser.getAddress();
       await assertRevert(async () => {
-        await CannonRegistry.purchaseMembership(userAddress, 0);
-      }, 'InvalidNumberOfTerms(0)');
+        await CannonSubscription.purchaseMembership(1, 0);
+      }, 'InvalidAmountOfTerms(0)');
+
+      await Token.connect(randomUser).mint(1234123400);
+      await Token.connect(randomUser).approve(CannonSubscription.address, 1234123400);
+      await assertRevert(async () => {
+        await CannonSubscription.connect(randomUser).purchaseMembership(1, 12341234);
+      }, 'InvalidAmountOfTerms(12341234)');
     });
 
     it('can purchase a 1 month membership', async function () {
       const randomUser = await fixtureSigner();
       const userAddress = await randomUser.getAddress();
-      const defaultPlan = await CannonRegistry.getDefaultPlan();
 
       const timestamp = await getTimestamp();
 
-      const tx = await CannonRegistry.purchaseMembership(userAddress, 1);
+      await Token.connect(randomUser).mint(100);
+      await Token.connect(randomUser).approve(CannonSubscription.address, 100);
+
+      const tx = await CannonSubscription.connect(randomUser).purchaseMembership(1, 1);
       await tx.wait();
 
-      const membership = await CannonRegistry.getMembership(userAddress);
-      assertBn.equal(membership.planId, defaultPlan.id);
-      assertBn.near(membership.activatedAt, timestamp, 10);
-      assertBn.equal(membership.publishCount, 0);
-      assertBn.equal(membership.termsLeft, 1);
+      const membership = await CannonSubscription.getMembership(userAddress);
+      assertBn.equal(membership.planId, 1);
+      assertBn.near(membership.activeFrom, timestamp, 10);
+      assertBn.equal(membership.availableCredits, 10);
+      assertBn.near(membership.activeUntil, timestamp + 86400 * 1, 10);
     });
 
     it('can purchase a 2 month membership', async function () {
       const randomUser = await fixtureSigner();
       const userAddress = await randomUser.getAddress();
-      const defaultPlan = await CannonRegistry.getDefaultPlan();
+      const defaultPlan = 1;
 
       const timestamp = await getTimestamp();
 
-      const tx = await CannonRegistry.purchaseMembership(userAddress, 2);
+      await Token.connect(randomUser).mint(200);
+      await Token.connect(randomUser).approve(CannonSubscription.address, 200);
+
+
+      const tx = await CannonSubscription.connect(randomUser).purchaseMembership(1, 2);
       await tx.wait();
 
-      const membership = await CannonRegistry.getMembership(userAddress);
-      assertBn.equal(membership.planId, defaultPlan.id);
-      assertBn.near(membership.activatedAt, timestamp, 10);
-      assertBn.equal(membership.publishCount, 0);
-      assertBn.equal(membership.termsLeft, 2);
+      const membership = await CannonSubscription.getMembership(userAddress);
+      console.log('membership', membership);
+      assertBn.equal(membership.planId, 1);
+      assertBn.near(membership.activeFrom, timestamp, 10);
+      assertBn.equal(membership.availableCredits, 10);
+      assertBn.near(membership.activeUntil, timestamp + 86400 * 2, 10);
     });
   });
 });

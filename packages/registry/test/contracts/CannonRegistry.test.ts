@@ -3,6 +3,7 @@ import { BigNumber, ContractTransaction, Signer } from 'ethers';
 import { ethers } from 'hardhat';
 import { stringToHex } from 'viem';
 import { CannonRegistry as TCannonRegistry } from '../../typechain-types/contracts/CannonRegistry';
+import { CannonRegistry as TMockERC20 } from '../../typechain-types/contracts/MockERC20';
 import { MockOptimismBridge as TMockOptimismBridge } from '../../typechain-types/contracts/MockOptimismBridge';
 import { assertRevert } from '../helpers/assert-revert';
 import { bootstrap, deployCannonRegistry } from '../helpers/bootstrap';
@@ -12,6 +13,7 @@ const parseEther = ethers.utils.parseEther;
 
 describe('CannonRegistry', function () {
   let CannonRegistry: TCannonRegistry;
+  let MockERC20: TMockERC20;
   let MockOPSendBridge: TMockOptimismBridge;
   let MockOPRecvBridge: TMockOptimismBridge;
   let owner: Signer;
@@ -24,7 +26,7 @@ describe('CannonRegistry', function () {
     const ctx = await bootstrap();
     [owner, user2, user3] = await ethers.getSigners();
     ownerAddress = await owner.getAddress();
-    ({ CannonRegistry, MockOPSendBridge, MockOPRecvBridge } = ctx);
+    ({ CannonRegistry, MockOPSendBridge, MockOPRecvBridge, MockERC20 } = ctx);
     fee = await CannonRegistry.publishFee();
   });
 
@@ -35,7 +37,7 @@ describe('CannonRegistry', function () {
   describe('Upgradedability', function () {
     it('upgrades to a new implementation', async function () {
       const { chainId } = await ethers.provider.getNetwork();
-      const newImplementation = await deployCannonRegistry(MockOPSendBridge.address, MockOPRecvBridge.address, chainId);
+      const [newImplementation] = await deployCannonRegistry(MockERC20.address, MockERC20.address, MockOPSendBridge.address, MockOPRecvBridge.address, chainId);
       const tx = await CannonRegistry.upgradeTo(newImplementation.address);
       await tx.wait();
       equal(await CannonRegistry.getImplementation(), newImplementation.address);

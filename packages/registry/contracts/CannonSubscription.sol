@@ -4,13 +4,14 @@ pragma solidity 0.8.24;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {OwnableStorage} from "@synthetixio/core-contracts/contracts/ownership/OwnableStorage.sol";
+import {Ownable} from "@synthetixio/core-contracts/contracts/ownership/Ownable.sol";
 import {ERC2771Context} from "./ERC2771Context.sol";
 import {Subscription} from "./storage/Subscription.sol";
 
 /**
  * @title Management of Subscriptions to Cannon Registry
  */
-contract CannonSubscription is ReentrancyGuard {
+contract CannonSubscription is ReentrancyGuard, Ownable {
   using Subscription for Subscription.Data;
 
   error ZeroAddressNotAllowed(string variableName);
@@ -19,6 +20,7 @@ contract CannonSubscription is ReentrancyGuard {
   error PriceOverflow();
   error MembershipNotActive(address user);
   error PlanNotAvailable(address user, uint16 planId);
+  error InvalidAmountOfTerms(uint32 amountOfTerms);
 
 
   /// @notice Emitted when a new plan is registered by the owner
@@ -55,7 +57,7 @@ contract CannonSubscription is ReentrancyGuard {
   /// @notice The address of the vault that receives users payments
   address public immutable VAULT;
 
-  constructor(address _paymentTokenAddress, address _vaultAddress) {
+  constructor(address _paymentTokenAddress, address _vaultAddress) Ownable(msg.sender) {
     if (_paymentTokenAddress == address(0)) revert ZeroAddressNotAllowed("_paymentTokenAddress");
     if (_vaultAddress == address(0)) revert ZeroAddressNotAllowed("_vaultAddress");
 
@@ -132,6 +134,10 @@ contract CannonSubscription is ReentrancyGuard {
     address _sender = ERC2771Context.msgSender();
     Subscription.Data storage _subscription = Subscription.load();
 
+    if (_amountOfTerms == 0) {
+      revert InvalidAmountOfTerms(_amountOfTerms);
+    }
+
     if (!_subscription.isAvailablePlan(_sender, _planId)) {
       revert PlanNotAvailable(_sender, _planId);
     }
@@ -145,7 +151,7 @@ contract CannonSubscription is ReentrancyGuard {
       revert PriceOverflow();
     }
 
-    uint256 _allowance = TOKEN.allowance(_sender, VAULT);
+    uint256 _allowance = TOKEN.allowance(_sender, address(this));
     if (_allowance < _totalPrice) {
       revert InsufficientAllowance(_sender, _allowance, _totalPrice);
     }
