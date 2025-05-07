@@ -36,7 +36,7 @@ export function ExecutedTransactions({
 
   const filteredResults = useMemo(() => {
     return isChecked
-      ? enhancedExecutedTxs.filter((enhanced) => enhanced.isLink)
+      ? enhancedExecutedTxs.filter((tx) => tx.isLink)
       : enhancedExecutedTxs;
   }, [enhancedExecutedTxs, isChecked]);
 

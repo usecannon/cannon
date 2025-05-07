@@ -99,15 +99,17 @@ export function TransactionTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {enhancedTxs.map((tx) => (
+        {enhancedTxs.map((enhanced) => (
           <TransactionRow
-            key={isStaged ? JSON.stringify(tx.tx) : tx.tx.safeTxHash}
+            key={
+              isStaged ? JSON.stringify(enhanced.tx) : enhanced.tx.safeTxHash
+            }
             safe={safe}
-            tx={tx.tx}
+            tx={enhanced.tx}
             isStaged={isStaged}
-            hintData={tx.hintData}
-            sigHash={tx.sigHash}
-            isLink={tx.isLink}
+            hintData={enhanced.hintData}
+            sigHash={enhanced.sigHash}
+            isLink={enhanced.isLink}
           />
         ))}
       </TableBody>
@@ -133,7 +135,6 @@ function TransactionRow({
   isLink,
 }: TransactionRowProps) {
   const stager = useTxnAdditionalData({ safe, tx, isStaged });
-  // const hintData = parseHintedMulticall(tx.data);
   const getSafeUrl = useSafeUrl();
 
   const { resolvedName, resolvedVersion, resolvedPreset } = useCannonPackage(
