@@ -339,6 +339,32 @@ export default function PublishUtility(props: {
             </div>
             <p className="text-lg font-medium">{resolvedPreset}</p>
           </div>
+          {props.deployUrl && (
+            <div>
+              <p className="text-sm">IPFS</p>
+              <div className="flex items-center mb-4">
+                <Link
+                  href={`/ipfs?cid=${props.deployUrl.substring(7)}`}
+                  className="flex items-center no-underline hover:no-underline"
+                >
+                  <Image
+                    src="/images/ipfs.svg"
+                    alt="IPFS"
+                    height={18}
+                    width={18}
+                    className="mr-2"
+                  />
+                  <span className="border-b border-dotted border-gray-300">
+                    {`${props.deployUrl.substring(
+                      0,
+                      13
+                    )}...${props.deployUrl.slice(-6)}`}
+                  </span>
+                </Link>
+                <ClipboardButton text={props.deployUrl} className="ml-2" />
+              </div>
+            </div>
+          )}
           <Button asChild className="mt-4">
             <Link href={packageUrl}>View Package</Link>
           </Button>
