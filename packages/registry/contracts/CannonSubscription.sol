@@ -19,8 +19,10 @@ contract CannonSubscription is ReentrancyGuard, Ownable {
   error TransferFailed(address from, address to, uint256 amount);
   error PriceOverflow();
   error MembershipNotActive(address user);
+  error NoTermToCancel(address user);
   error PlanNotAvailable(address user, uint16 planId);
   error InvalidAmountOfTerms(uint32 amountOfTerms);
+  error CreditConsumerExhausted(address consumer, uint256 requiredCredits, uint256 remainingCredits);
 
 
   /// @notice Emitted when a new plan is registered by the owner
@@ -50,6 +52,9 @@ contract CannonSubscription is ReentrancyGuard, Ownable {
 
   /// @notice Emitted when a custom plans are set for a user
   event CustomPlansSet(address indexed user, uint16[] planIds);
+
+  /// @notice Emitted on call to allocateCreditConsumer
+  event AllocatedCreditConsumer(address indexed consumer, uint256 newlyAllocatedCredits, uint256 totalAllocatedCredits);
 
   /// @notice The token that is used to pay for the subscription
   IERC20 public immutable TOKEN;
@@ -177,13 +182,31 @@ contract CannonSubscription is ReentrancyGuard, Ownable {
     return Subscription.isMembershipActive(_membership);
   }
 
-  function useMembershipCredits(uint32 _amountOfCredits) external {
-    address _sender = ERC2771Context.msgSender();
+  function allocateCreditConsumer(address _consumer, uint256 _consumableCredits) external onlyOwner returns (uint256) {
     Subscription.Data storage _subscription = Subscription.load();
-    Subscription.Membership storage _membership = _subscription.getMembership(_sender);
+
+    _subscription.creditConsumers[_consumer] += _consumableCredits;
+
+    emit AllocatedCreditConsumer(_consumer, _consumableCredits, _subscription.creditConsumers[_consumer]);
+
+    return _subscription.creditConsumers[_consumer];
+  }
+
+  function useMembershipCredits(address _user, uint32 _amountOfCredits) external {
+    Subscription.Data storage _subscription = Subscription.load();
+
+    address _consumer = msg.sender;
+
+    if (_subscription.creditConsumers[_consumer] < _amountOfCredits) {
+      revert CreditConsumerExhausted(_consumer, _amountOfCredits, _subscription.creditConsumers[_consumer]);
+    }
+
+    _subscription.creditConsumers[_consumer] -= _amountOfCredits;
+
+    Subscription.Membership storage _membership = _subscription.getMembership(_user);
     Subscription.Plan storage _plan = _subscription.getPlan(_membership.planId);
     _subscription.useMembershipCredits(_plan, _membership, _amountOfCredits);
-    emit CreditsUsed(_sender, _amountOfCredits, _membership.availableCredits);
+    emit CreditsUsed(_user, _amountOfCredits, _membership.availableCredits);
   }
 
   function cancelMembership() external nonReentrant {
@@ -200,7 +223,7 @@ contract CannonSubscription is ReentrancyGuard, Ownable {
     uint32 _pendingTerms = Subscription.getPendingTermsCount(_plan, _membership);
 
     if (_pendingTerms == 0) {
-      revert MembershipNotActive(_sender);
+      revert NoTermToCancel(_sender);
     }
 
     Subscription.clearMembership(_membership);

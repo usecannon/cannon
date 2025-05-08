@@ -12,7 +12,7 @@ library Subscription {
   error InvalidPlanId(uint16 planId);
   error CannotDeactivateDefaultPlan(uint16 planId);
   error MembershipNotActive();
-  error InsufficientCredits(uint32 availableCredits);
+  error InsufficientCredits(uint32 neededCredits, uint32 availableCredits);
 
   bytes32 private constant _SLOT = keccak256(abi.encode("usecannon.cannon.registry.subscription"));
 
@@ -93,15 +93,20 @@ library Subscription {
     /**
      * @notice All the plans ever created
      */
-    mapping(uint16 planId => Plan plan) plans;
+    mapping(uint16 => Plan) plans;
     /**
      * @notice All the user memberships. A user can have only one membership
      */
-    mapping(address user => Membership membership) memberships;
+    mapping(address => Membership) memberships;
     /**
      * @notice Custom plans assigned to users that they are allowed to purchase
      */
-    mapping(address user => uint16[] planId) allowedCustomPlans;
+    mapping(address => uint16[]) allowedCustomPlans;
+
+    /**
+     * @notice List of accounts that can consume credits from a membership
+     */
+    mapping(address => uint256) creditConsumers;
   }
 
   function load() internal pure returns (Data storage store) {
@@ -297,7 +302,7 @@ library Subscription {
     }
 
     if (_membership.availableCredits < _amountOfCredits) {
-      revert InsufficientCredits(_membership.availableCredits);
+      revert InsufficientCredits(_amountOfCredits, _membership.availableCredits);
     }
 
     _membership.availableCredits -= _amountOfCredits;

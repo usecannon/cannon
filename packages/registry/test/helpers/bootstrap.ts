@@ -10,7 +10,7 @@ export async function bootstrap() {
   const { chainId } = await ethers.provider.getNetwork();
   const [Implementation, SubscriptionContract] = await deployCannonRegistry(
     MockERC20.address,
-    '0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f',
+    '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
     MockOPSendBridge.address,
     MockOPRecvBridge.address,
     chainId,
@@ -18,6 +18,7 @@ export async function bootstrap() {
   const Proxy = await _deployProxy(Implementation.address);
   const CannonRegistry = await ethers.getContractAt('CannonRegistry', Proxy.address);
   const CannonSubscription = await ethers.getContractAt('CannonSubscription', SubscriptionContract.address);
+  MockERC20.approve(CannonSubscription.address, ethers.constants.MaxUint256);
 
   return {
     MockOPSendBridge,
@@ -63,7 +64,7 @@ export async function deployCannonRegistry(
 
   // register a couple plans which will be nice to have around later
   await subscriptionContract.registerPlan(86400, 10, 1, 30, 100, false);
-  await subscriptionContract.registerPlan(43200, 5, 1, 90, 50, false);
+  await subscriptionContract.registerPlan(43200, 5, 1, 90, 50, true);
 
   const factory = await ethers.getContractFactory('CannonRegistry');
   const contract = await factory.deploy(

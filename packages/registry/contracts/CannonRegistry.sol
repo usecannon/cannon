@@ -196,7 +196,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
     string memory _packageDeployUrl,
     string memory _packageMetaUrl
   ) external {
-    _CANNON_SUBSCRIPTION.useMembershipCredits(1);
+    _CANNON_SUBSCRIPTION.useMembershipCredits(ERC2771Context.msgSender(), 1);
     _publish(_packageName, _variant, _packageTags, _packageDeployUrl, _packageMetaUrl);
   }
 
