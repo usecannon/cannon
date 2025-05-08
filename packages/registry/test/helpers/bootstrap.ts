@@ -13,7 +13,7 @@ export async function bootstrap() {
     '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
     MockOPSendBridge.address,
     MockOPRecvBridge.address,
-    chainId,
+    chainId
   );
   const Proxy = await _deployProxy(Implementation.address);
   const CannonRegistry = await ethers.getContractAt('CannonRegistry', Proxy.address);
@@ -56,7 +56,7 @@ export async function deployCannonRegistry(
   vaultAddress: string,
   optimismMessengerAddress: string,
   optimismReceiverAddress: string,
-  chainId: number,
+  chainId: number
 ) {
   const subscriptionFactory = await ethers.getContractFactory('CannonSubscription');
   const subscriptionContract = await subscriptionFactory.deploy(paymentTokenAddress, vaultAddress);
@@ -71,7 +71,7 @@ export async function deployCannonRegistry(
     optimismMessengerAddress,
     optimismReceiverAddress,
     chainId,
-    subscriptionContract.address,
+    subscriptionContract.address
   );
   await contract.deployed();
 

@@ -24,7 +24,6 @@ contract CannonSubscription is ReentrancyGuard, Ownable {
   error InvalidAmountOfTerms(uint32 amountOfTerms);
   error CreditConsumerExhausted(address consumer, uint256 requiredCredits, uint256 remainingCredits);
 
-
   /// @notice Emitted when a new plan is registered by the owner
   event PlanRegistered(
     uint16 indexed planId,
@@ -84,14 +83,7 @@ contract CannonSubscription is ReentrancyGuard, Ownable {
   ) external returns (uint16) {
     OwnableStorage.onlyOwner();
 
-    uint16 planId = Subscription.load().registerPlan(
-      _termDuration,
-      _quota,
-      _minTerms,
-      _maxTerms,
-      _price,
-      _refundable
-    );
+    uint16 planId = Subscription.load().registerPlan(_termDuration, _quota, _minTerms, _maxTerms, _price, _refundable);
 
     emit PlanRegistered(planId, _termDuration, _quota, _minTerms, _maxTerms, _price);
 
@@ -131,7 +123,7 @@ contract CannonSubscription is ReentrancyGuard, Ownable {
     Subscription.Plan storage _plan = _subscription.getPlan(_planId);
 
     _subscription.acquireMembership(_plan, _membership, _amountOfTerms);
-    
+
     emit MembershipGifted(_user, _planId, _amountOfTerms);
   }
 

@@ -5,7 +5,6 @@ import {Ownable} from "@synthetixio/core-contracts/contracts/ownership/Ownable.s
 import {UUPSImplementation} from "@synthetixio/core-contracts/contracts/proxy/UUPSImplementation.sol";
 
 contract OwnedUpgradable is Ownable, UUPSImplementation {
-
   constructor() Ownable(msg.sender) {}
 
   function upgradeTo(address _newImplementation) public override onlyOwner {

@@ -39,12 +39,9 @@ describe('CannonSubscription', function () {
 
     it('should revert when not owner', async function () {
       const randomUser = await fixtureSigner();
-      await assertRevert(
-        async () => {
-          await CannonSubscription.connect(randomUser).setAvailablePlans([100, 100, 100]);
-        },
-        `Unauthorized("${await randomUser.getAddress()}")`,
-      );
+      await assertRevert(async () => {
+        await CannonSubscription.connect(randomUser).setAvailablePlans([100, 100, 100]);
+      }, `Unauthorized("${await randomUser.getAddress()}")`);
     });
 
     it('register default plan', async function () {
@@ -93,8 +90,7 @@ describe('CannonSubscription', function () {
       }, `Unauthorized("${userAddress}")`);
     });
 
-
-    it('can gift a membership', async function() {
+    it('can gift a membership', async function () {
       const randomUser = await fixtureSigner();
       const userAddress = await randomUser.getAddress();
 
@@ -142,7 +138,6 @@ describe('CannonSubscription', function () {
       await Token.connect(randomUser).mint(200);
       await Token.connect(randomUser).approve(CannonSubscription.address, 200);
 
-
       const tx = await CannonSubscription.connect(randomUser).purchaseMembership(1, 2);
       await tx.wait();
 
@@ -171,7 +166,7 @@ describe('CannonSubscription', function () {
       // now cancel the subscription (should not be possible because insufficient terms are remaining)
       await assertRevert(async () => {
         await CannonSubscription.connect(randomUser).cancelMembership();
-      }, `NoTermToCancel("${userAddress}")`)
+      }, `NoTermToCancel("${userAddress}")`);
     });
 
     it('reverts when purchasing a membership outside of the available ones', async () => {
@@ -221,14 +216,14 @@ describe('CannonSubscription', function () {
       assertBn.near(membership.activeUntil, timestamp + 43200 * 2, 10);
 
       assertBn.equal(await Token.balanceOf(userAddress), 0);
-      
+
       // cannot use more credits than is allocated to the credit consumer
       await assertRevert(async () => {
         await CannonSubscription.connect(randomConsumer).useMembershipCredits(userAddress, 6);
       }, `CreditConsumerExhausted("${consumerAddress}", 6, 0)`);
 
       await CannonSubscription.allocateCreditConsumer(consumerAddress, 6);
-      
+
       // cannot use more credits than is in the account
       await assertRevert(async () => {
         await CannonSubscription.connect(randomConsumer).useMembershipCredits(userAddress, 6);

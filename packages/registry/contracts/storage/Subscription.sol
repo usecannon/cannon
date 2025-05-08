@@ -102,7 +102,6 @@ library Subscription {
      * @notice Custom plans assigned to users that they are allowed to purchase
      */
     mapping(address => uint16[]) allowedCustomPlans;
-
     /**
      * @notice List of accounts that can consume credits from a membership
      */
@@ -138,11 +137,11 @@ library Subscription {
   function getAvailablePlans(Data storage _self, address _user) internal view returns (uint16[] memory) {
     uint16[] memory _availablePlanIds = new uint16[](_self.availablePlanIds.length + _self.allowedCustomPlans[_user].length);
 
-    for (uint256 i = 0; i < _self.availablePlanIds.length;i++) {
+    for (uint256 i = 0; i < _self.availablePlanIds.length; i++) {
       _availablePlanIds[i] = _self.availablePlanIds[i];
     }
 
-    for (uint256 i = 0;i < _self.allowedCustomPlans[_user].length;i++) {
+    for (uint256 i = 0; i < _self.allowedCustomPlans[_user].length; i++) {
       _availablePlanIds[_self.availablePlanIds.length + i] = _self.allowedCustomPlans[_user][i];
     }
 
@@ -152,7 +151,7 @@ library Subscription {
   function isAvailablePlan(Data storage _self, address _user, uint16 _checkPlanId) internal view returns (bool) {
     uint16[] memory _availablePlanIds = getAvailablePlans(_self, _user);
 
-    for (uint256 i = 0;i < _availablePlanIds.length;i++) {
+    for (uint256 i = 0; i < _availablePlanIds.length; i++) {
       if (_checkPlanId == _availablePlanIds[i]) {
         return true;
       }

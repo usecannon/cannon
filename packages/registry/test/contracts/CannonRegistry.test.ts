@@ -37,7 +37,13 @@ describe('CannonRegistry', function () {
   describe('Upgradedability', function () {
     it('upgrades to a new implementation', async function () {
       const { chainId } = await ethers.provider.getNetwork();
-      const [newImplementation] = await deployCannonRegistry(MockERC20.address, MockERC20.address, MockOPSendBridge.address, MockOPRecvBridge.address, chainId);
+      const [newImplementation] = await deployCannonRegistry(
+        MockERC20.address,
+        MockERC20.address,
+        MockOPSendBridge.address,
+        MockOPRecvBridge.address,
+        chainId
+      );
       const tx = await CannonRegistry.upgradeTo(newImplementation.address);
       await tx.wait();
       equal(await CannonRegistry.getImplementation(), newImplementation.address);
