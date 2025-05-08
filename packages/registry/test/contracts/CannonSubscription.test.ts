@@ -5,6 +5,8 @@ import { getTimestamp } from '../helpers/rpc';
 import { assertBn } from '../helpers/assert-bignumber';
 import { ethers } from 'hardhat';
 
+import assert from 'assert/strict';
+
 type CannonSubscription = Awaited<ReturnType<typeof bootstrap>>['CannonSubscription'];
 type MockERC20 = Awaited<ReturnType<typeof bootstrap>>['MockERC20'];
 
@@ -154,7 +156,7 @@ describe('CannonSubscription', function () {
 
       await assertRevert(async () => {
         await CannonSubscription.connect(randomConsumer).useMembershipCredits(userAddress, 2);
-      }, `InsufficientCredits(2, 1)`);
+      }, 'InsufficientCredits(2, 1)');
 
       // now move forward in time
       await ethers.provider.send('evm_setNextBlockTimestamp', [timestamp + 86450]);
@@ -227,7 +229,7 @@ describe('CannonSubscription', function () {
       // cannot use more credits than is in the account
       await assertRevert(async () => {
         await CannonSubscription.connect(randomConsumer).useMembershipCredits(userAddress, 6);
-      }, `InsufficientCredits(6, 5)`);
+      }, 'InsufficientCredits(6, 5)');
 
       // now use some of the remaining credits
       await CannonSubscription.connect(randomConsumer).useMembershipCredits(userAddress, 2);
