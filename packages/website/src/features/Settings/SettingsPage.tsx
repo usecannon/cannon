@@ -7,7 +7,6 @@ import CustomProviders from '@/features/Settings/CustomProviders';
 import SafeTransactionService from '@/features/Settings/SafeTransactionService';
 import { initialState, useStore } from '@/helpers/store';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { badgeVariants } from '@/components/ui/badge';
 import {
   Table,
@@ -27,10 +26,12 @@ import {
 } from '@/components/ui/card';
 import Link from 'next/link';
 import CustomSafeTxServices from '@/features/Settings/CustomSafeTxServices';
+import SettingResetButton from '@/features/Settings/SettingResetButton';
 
 export default function SettingsPage() {
   const settings = useStore((s) => s.settings);
   const setSettings = useStore((s) => s.setSettings);
+  const setSafeTxServices = useStore((s) => s.setSafeTxServices);
 
   return (
     <div className="container.md mx-auto max-w-screen-md py-12 px-6">
@@ -130,6 +131,12 @@ export default function SettingsPage() {
               </TableRow>
             </TableBody>
           </Table>
+          <SettingResetButton
+            onReset={() =>
+              setSettings({ pythUrl: initialState.settings.pythUrl })
+            }
+            sectionName="Oracle Multicalls"
+          />
         </CardContent>
       </Card>
 
@@ -170,6 +177,12 @@ export default function SettingsPage() {
               Test IPFS Endpoint
             </Link>
           ) : null}
+          <SettingResetButton
+            onReset={() =>
+              setSettings({ ipfsApiUrl: initialState.settings.ipfsApiUrl })
+            }
+            sectionName="IPFS"
+          />
         </CardContent>
       </Card>
 
@@ -182,23 +195,13 @@ export default function SettingsPage() {
             </AlertTitle>
           </div>
         </Alert>
-        <Button
-          variant="destructive"
-          className="h-auto"
-          onClick={(e) => {
-            e.preventDefault();
-            if (
-              window.confirm(
-                "Are you sure you want to reset to default settings? This can't be undone."
-              )
-            ) {
-              setSettings(initialState.settings);
-              alert('Done!');
-            }
+        <SettingResetButton
+          onReset={() => {
+            setSettings(initialState.settings);
+            setSafeTxServices(initialState.safeTxServices);
           }}
-        >
-          Reset to defaults
-        </Button>
+          sectionName="all"
+        />
       </div>
     </div>
   );
