@@ -314,7 +314,13 @@ describe('builder.ts', () => {
   describe('createInitialContext()', () => {
     it('assembles correctly', async () => {
       const pkg = { foo: 'bard' };
-      const ctx = await createInitialContext(new ChainDefinition(fakeDefinition), pkg, 5, { baz: 'boop' });
+      const ctx = await createInitialContext(
+        new ChainDefinition(fakeDefinition),
+        pkg,
+        5,
+        { baz: 'boop' },
+        '0x0987098709870987098709870987098709870987'
+      );
 
       expect(ctx.chainId).toBe(5);
       expect(ctx.package).toBe(pkg);
@@ -324,6 +330,7 @@ describe('builder.ts', () => {
       expect(ctx.txns).toStrictEqual({});
       expect(ctx.imports).toStrictEqual({});
       expect(ctx.settings).toStrictEqual({ baz: 'boop' });
+      expect(ctx.deployer).toEqual('0x0987098709870987098709870987098709870987');
     });
   });
 });
