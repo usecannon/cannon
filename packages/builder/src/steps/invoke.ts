@@ -168,7 +168,10 @@ async function runTxn(
   const txnEvents: EncodedTxnEvents = _.groupBy(
     viem.parseEventLogs({ ...contract, logs: receipt.logs }).map((l) => {
       const eventAbi = viem.getAbiItem({ abi: contract!.abi, name: l.eventName }) as any;
-      return { name: l.eventName, args: eventAbi.inputs.map((i: any) => (l.args as any)[i.name]) };
+      return {
+        name: l.eventName,
+        args: _.isArray(l.args) ? l.args : eventAbi.inputs.map((i: any) => (l.args as any)[i.name]),
+      };
     }),
     'name'
   );
@@ -240,7 +243,11 @@ async function importTxnData(
       const factoryInfo = config.factory[topLabel];
 
       if (!contractAddress || !viem.isAddress(contractAddress)) {
-        throw new Error(`address is not valid in ${topLabel}. Ensure "arg" parameter is correct`);
+        throw new Error(
+          `Address for factory could not be resolved from the event for ${k}. Ensure "arg" parameter is correct. Found args: ${JSON.stringify(
+            _.map(txns, 'events')
+          )}`
+        );
       }
 
       let abi: viem.Abi | null = null;
