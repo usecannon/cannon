@@ -27,7 +27,7 @@ export async function createInitialContext(
     package: pkg,
     timestamp: Math.floor(Date.now() / 1000),
     chainId,
-    deployer: viem.zeroAddress,
+    deployer: defaultSigner,
     overrideSettings: opts,
   };
 

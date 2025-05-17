@@ -75,6 +75,7 @@ function setupTemplateContext(possibleNames: string[] = []): TemplateContext {
     // Include base context variables, no access recording as they are always available
     chainId: 0,
     timestamp: 0,
+    deployer: viem.zeroAddress,
     package: { version: '0.0.0' },
     ...fakeHelperContext,
 
