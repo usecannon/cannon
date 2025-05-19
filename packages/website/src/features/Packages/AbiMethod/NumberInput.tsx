@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useState, useRef, ChangeEvent } from 'react';
 import { Input } from '@/components/ui/input';
 import { formatUnits, parseUnits } from 'viem';
 import { cn } from '@/lib/utils';
@@ -18,16 +18,6 @@ interface NumberInputProps {
   showWeiValue?: boolean;
 }
 
-// Validates if a string value is a valid uint
-function isValidUint(value: string): boolean {
-  try {
-    const num = BigInt(value);
-    return num >= 0n;
-  } catch {
-    return false;
-  }
-}
-
 export const NumberInput: FC<NumberInputProps> = ({
   handleUpdate,
   value,
@@ -35,25 +25,42 @@ export const NumberInput: FC<NumberInputProps> = ({
   showWeiValue = false,
 }) => {
   const [decimals, setDecimals] = useState(0);
-  const [hasError, setHasError] = useState(false);
+  const [error, setError] = useState<string | undefined>();
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleChange = (inputValue: string) => {
-    try {
-      if (!inputValue) {
-        handleUpdate(undefined);
-        setHasError(false);
-        return;
-      }
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const inputValue = event.target.value;
 
-      const parsedValue = parseUnits(inputValue, decimals);
-      const hasError = !isValidUint(inputValue);
-
-      handleUpdate(parsedValue, hasError ? 'Invalid uint value' : undefined);
-      setHasError(hasError);
-    } catch (err) {
-      handleUpdate(undefined, 'Invalid number format');
-      setHasError(true);
+    if (inputValue === '') {
+      handleUpdate(undefined);
+      setError(undefined);
+      return;
     }
+
+    // Check if input has more decimals than allowed
+    const decimalPlaces = inputValue.includes('.')
+      ? inputValue.split('.')[1].length
+      : 0;
+
+    if (decimalPlaces > decimals) {
+      handleUpdate(
+        undefined,
+        `Input has more decimal places than allowed (max: ${decimals})`
+      );
+      setError(`Input has more decimal places than allowed (max: ${decimals})`);
+      return;
+    }
+
+    let newValue: bigint | undefined;
+    try {
+      newValue = parseUnits(inputValue, decimals);
+      setError(undefined);
+    } catch {
+      newValue = undefined;
+      setError('Invalid number format');
+    }
+
+    handleUpdate(newValue, error);
   };
 
   // Handle decimal changes while maintaining the real value
@@ -63,34 +70,34 @@ export const NumberInput: FC<NumberInputProps> = ({
       return;
     }
 
-    // Convert the current value to a decimal string with the current decimals
     const valueInEth = formatUnits(value, decimals);
     setDecimals(newDecimals);
 
+    let newValue: bigint | undefined;
     try {
-      // Parse the value with new decimals maintaining the same real value
-      const newValue = parseUnits(valueInEth, newDecimals);
-      handleUpdate(newValue);
-    } catch (err) {
-      handleUpdate(undefined, 'Invalid number format');
-      setHasError(true);
+      newValue = parseUnits(valueInEth, newDecimals);
+      setError(undefined);
+    } catch {
+      newValue = undefined;
+      setError('Invalid number format');
     }
+
+    handleUpdate(newValue, error);
   };
 
   return (
     <div className="flex flex-col">
       <div className="flex items-stretch">
         <Input
-          type="number"
+          ref={inputRef}
+          type="text"
           className={cn(
             'bg-background border-input rounded-r-none h-10',
-            hasError &&
+            error &&
               'border-destructive focus:border-destructive focus-visible:ring-destructive'
           )}
-          step="1"
           placeholder="0"
-          value={value !== undefined ? formatUnits(value, decimals) : ''}
-          onChange={(e) => handleChange(e.target.value)}
+          onChange={handleChange}
           data-testid="number-input"
         />
         <Popover>
