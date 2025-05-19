@@ -32,6 +32,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { usePackageNameTagVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
+import { useMedia } from '@/hooks/useMedia';
 
 const handleDownload = (content: Record<string, unknown>, filename: string) => {
   const blob = new Blob([JSON.stringify(content, null, 2)], {
@@ -452,6 +453,10 @@ export const CodeExplorer: FC<{
     isLoadingMiscData ||
     isLoadingProvisionedMiscData;
 
+  const { isMobile } = useMedia();
+  const contentHeight =
+    'calc(100vh -  var(--header-height) - var(--package-header-height) - var(--package-nav-height) - var(--package-code-contracts-nav-height) - var(--footer-height) )';
+
   const sidebarContent = (
     <SidebarContent className="overflow-y-auto">
       {/* Artifacts */}
@@ -573,9 +578,6 @@ export const CodeExplorer: FC<{
     </SidebarContent>
   );
 
-  const contentHeight =
-    'calc(100vh -  var(--header-height) - var(--package-header-height) - var(--package-nav-height) - var(--package-code-contracts-nav-height) - var(--footer-height) )';
-
   return (
     <div className="flex flex-1 flex-col max-h-full max-w-full">
       {isLoading ? (
@@ -646,7 +648,12 @@ export const CodeExplorer: FC<{
             centered={false}
             extraContentHeight="var(--package-header-height) - var(--package-nav-height) - var(--package-code-contracts-nav-height)"
           >
-            <div className="h-full flex">
+            <div
+              style={{
+                display: 'flex',
+                height: isMobile ? contentHeight : '100%',
+              }}
+            >
               {selectedCode.length ? (
                 <>
                   {/* Make sure code preview is not rendered if function name exists but no selected line is set yet */}
