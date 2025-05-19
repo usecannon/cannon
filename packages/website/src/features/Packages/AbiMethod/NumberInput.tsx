@@ -28,6 +28,29 @@ export const NumberInput: FC<NumberInputProps> = ({
   const [error, setError] = useState<string | undefined>();
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const checkDecimalPlaces = (input: string | bigint) => {
+    let decimalPlaces: number;
+
+    if (typeof input === 'string') {
+      decimalPlaces = input.includes('.') ? input.split('.')[1].length : 0;
+    } else {
+      const decimalValue = formatUnits(input, decimals);
+      decimalPlaces = decimalValue.includes('.')
+        ? decimalValue.split('.')[1].length
+        : 0;
+    }
+
+    if (decimalPlaces > decimals) {
+      const errorMessage = `Input has more decimal places than allowed (max: ${decimals})`;
+      handleUpdate(undefined, errorMessage);
+      setError(errorMessage);
+      return false;
+    }
+
+    setError(undefined);
+    return true;
+  };
+
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const inputValue = event.target.value;
 
@@ -37,17 +60,7 @@ export const NumberInput: FC<NumberInputProps> = ({
       return;
     }
 
-    // Check if input has more decimals than allowed
-    const decimalPlaces = inputValue.includes('.')
-      ? inputValue.split('.')[1].length
-      : 0;
-
-    if (decimalPlaces > decimals) {
-      handleUpdate(
-        undefined,
-        `Input has more decimal places than allowed (max: ${decimals})`
-      );
-      setError(`Input has more decimal places than allowed (max: ${decimals})`);
+    if (!checkDecimalPlaces(inputValue)) {
       return;
     }
 
@@ -63,25 +76,28 @@ export const NumberInput: FC<NumberInputProps> = ({
     handleUpdate(newValue, error);
   };
 
-  // Handle decimal changes while maintaining the real value
   const handleDecimalChange = (newDecimals: number) => {
     if (value === undefined) {
       setDecimals(newDecimals);
       return;
     }
 
-    const valueInEth = formatUnits(value, decimals);
-    setDecimals(newDecimals);
+    const decimalValue = formatUnits(value, newDecimals);
+
+    if (!checkDecimalPlaces(decimalValue)) {
+      return;
+    }
 
     let newValue: bigint | undefined;
     try {
-      newValue = parseUnits(valueInEth, newDecimals);
+      newValue = parseUnits(decimalValue, newDecimals);
       setError(undefined);
     } catch {
       newValue = undefined;
       setError('Invalid number format');
     }
 
+    setDecimals(newDecimals);
     handleUpdate(newValue, error);
   };
 

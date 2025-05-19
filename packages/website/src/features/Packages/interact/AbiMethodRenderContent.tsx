@@ -458,7 +458,6 @@ export const AbiMethodRenderContent: FC<{
                   handleUpdate={setTxValue}
                   value={txValue?.toString() ?? ''}
                   suffix="ETH"
-                  showWeiValue
                 />
               </div>
             )}

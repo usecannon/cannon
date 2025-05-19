@@ -69,7 +69,9 @@ export const AbiMethodRenderInput: FC<AbiMethodInputProps> = ({
           `Expected bigint or undefined for number type, got ${typeof value}`
         );
       }
-      return <NumberInput handleUpdate={handleUpdate} value={value} />;
+      return (
+        <NumberInput handleUpdate={handleUpdate} value={value} showWeiValue />
+      );
     case input.type.startsWith('bytes'): {
       if (!isString(value) && value !== undefined) {
         throw new Error(
