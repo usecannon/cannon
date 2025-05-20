@@ -2,10 +2,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { X, Plus } from 'lucide-react';
-import { useStore } from '@/helpers/store';
+import { initialState, useStore } from '@/helpers/store';
 import { isValidUrl } from '@/helpers/isValidUrl';
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
+import SettingResetButton from '@/features/Settings/SettingResetButton';
 
 // example:baseSepolia
 // ChainId: 84532
@@ -121,6 +122,10 @@ export default function CustomSafeTxServices() {
           <Plus className="h-4 w-4" />
         </Button>
       </div>
+      <SettingResetButton
+        onReset={() => setSafeTxServices(initialState.safeTxServices)}
+        sectionName="Custom Safe Transaction Services"
+      />
     </div>
   );
 }

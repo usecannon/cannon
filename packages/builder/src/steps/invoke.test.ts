@@ -35,6 +35,22 @@ describe('steps/invoke.ts', () => {
               {
                 internalType: 'address',
                 name: 'firstArg',
+                type: 'address',
+              },
+              {
+                // without name triggers viem to parse the event differently
+                internalType: 'address',
+                type: 'address',
+              },
+            ],
+            name: 'SomethingElseHappened',
+            type: 'event',
+          },
+          {
+            inputs: [
+              {
+                internalType: 'address',
+                name: 'firstArg',
                 type: 'string',
               },
               {
@@ -194,12 +210,14 @@ describe('steps/invoke.ts', () => {
 
   describe('exec()', () => {
     // TODO: reenable once I better understand transaction event parsing in viem
-    it.skip('works and parses all information from transaction result', async () => {
+    it('works and parses all information from transaction result', async () => {
       jest.mocked(fakeRuntime.provider.simulateContract).mockResolvedValue({ request: {} } as any);
       jest.mocked(fakeRuntime.provider.waitForTransactionReceipt).mockResolvedValue({
         transactionHash: '0x1234',
         gasUsed: BigInt(0),
         effectiveGasPrice: 0,
+        blockNumber: 0,
+        from: '0x0987098709870987098709870987098709870978',
         logs: [
           {
             blockNumber: 0,
@@ -214,13 +232,24 @@ describe('steps/invoke.ts', () => {
             transactionHash: '0x1234',
             logIndex: 0,
           },
-        ],
-        /*events: [
           {
-            event: 'SomethingHappend',
-            args: ['0x1234123412341234123412341234123412341234', '0x5678567856785678567856785678567856785678']
-          }
-        ]*/
+            blockNumber: 0,
+            blockHash: '0x',
+            transactionIndex: 0,
+            removed: false,
+            address: fakeContractInfo.contracts.Woot.address,
+            data: '0x00000000000000000000000012341234123412341234123412341234123412340000000000000000000000006678567856785678567856785678567856785678',
+
+            topics: ['0x5982b9f44b13456ee27cfabc93fb4d6bbc63639124ec74a6debe6595a2076420'],
+
+            transactionHash: '0x1234',
+            logIndex: 0,
+          },
+        ],
+      } as any);
+
+      jest.mocked(fakeRuntime.provider.getBlock).mockResolvedValue({
+        timestamp: 0n,
       } as any);
 
       const result = await action.exec(
@@ -237,6 +266,12 @@ describe('steps/invoke.ts', () => {
               abiOf: ['Woot', 'What'],
               constructorArgs: ['whoot'],
             },
+            Whoofy: {
+              event: 'SomethingElseHappened',
+              arg: 1,
+              abiOf: ['Woot', 'What'],
+              constructorArgs: ['whoot'],
+            },
           },
         },
         { ref: new PackageReference('fun:1.0.0'), currentLabel: 'invoke.something' }
@@ -248,6 +283,21 @@ describe('steps/invoke.ts', () => {
           constructorArgs: ['whoot'],
           abi: fakeContractInfo.contracts.Woot.abi,
           contractName: '',
+          deployTimestamp: '',
+          deployTxnBlockNumber: '',
+          deployTxnHash: '',
+          deployedOn: 'invoke.something',
+          sourceName: '',
+          gasCost: '0',
+          gasUsed: 0,
+        },
+        Whoofy: {
+          address: '0x6678567856785678567856785678567856785678',
+          constructorArgs: ['whoot'],
+          abi: fakeContractInfo.contracts.Woot.abi,
+          contractName: '',
+          deployTimestamp: '',
+          deployTxnBlockNumber: '',
           deployTxnHash: '',
           deployedOn: 'invoke.something',
           sourceName: '',
@@ -256,9 +306,18 @@ describe('steps/invoke.ts', () => {
         },
       });
 
-      expect(result.txns!.something.events.SomethingHappened).toHaveLength(1);
+      expect(result.txns!.something.events.SomethingHappened[0].args).toEqual([
+        '0x1234123412341234123412341234123412341234',
+        '0x5678567856785678567856785678567856785678',
+      ]);
+      expect(result.txns!.something.events.SomethingElseHappened[0].args).toEqual([
+        '0x1234123412341234123412341234123412341234',
+        '0x6678567856785678567856785678567856785678',
+      ]);
       expect(result.txns!.something.hash).toEqual('0x1234');
       expect(result.txns!.something.deployedOn).toEqual('invoke.something');
+
+      // try again if one of the events is unnamed in the api (changes how viem handles it)
     });
   });
 });
