@@ -12,7 +12,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
@@ -40,38 +39,37 @@ export default function NoncePicker({ safe, handleChange }: Params) {
 
   return (
     <div className="flex justify-between items-center flex-wrap gap-4 mb-4">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="override-nonce"
-                disabled={!safeTxs.isSuccess || safeTxs.staged.length === 0}
-                checked={isOverridingNonce}
-                onCheckedChange={(checked) =>
-                  setNonceOverride(checked as boolean)
-                }
-              />
-              <label
-                htmlFor="override-nonce"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Override Previously Staged Transaction
-                {safeTxs.staged.length > 0
-                  ? ` (Use nonce ${
-                      safeTxs.nextNonce ? safeTxs.nextNonce - 1 : ''
-                    })`
-                  : ''}
-              </label>
-            </div>
-          </TooltipTrigger>
-          {safeTxs.staged.length === 0 && (
-            <TooltipContent>
-              <p>You must have at least one transaction staged to override</p>
-            </TooltipContent>
-          )}
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="override-nonce"
+              disabled={!safeTxs.isSuccess || safeTxs.staged.length === 0}
+              checked={isOverridingNonce}
+              onCheckedChange={(checked) =>
+                setNonceOverride(checked as boolean)
+              }
+            />
+            <label
+              htmlFor="override-nonce"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Override Previously Staged Transaction
+              {safeTxs.staged.length > 0
+                ? ` (Use nonce ${
+                    safeTxs.nextNonce ? safeTxs.nextNonce - 1 : ''
+                  })`
+                : ''}
+            </label>
+          </div>
+        </TooltipTrigger>
+        {safeTxs.staged.length === 0 && (
+          <TooltipContent>
+            <p>You must have at least one transaction staged to override</p>
+          </TooltipContent>
+        )}
+      </Tooltip>
+
       {isOverridingNonce && (
         <div className="flex flex-row items-center justify-between flex-1">
           <Select

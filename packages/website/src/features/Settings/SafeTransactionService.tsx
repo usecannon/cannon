@@ -7,11 +7,12 @@ import {
   FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useStore } from '@/helpers/store';
+import { initialState, useStore } from '@/helpers/store';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
+import SettingResetButton from '@/features/Settings/SettingResetButton';
 
 const formSchema = z.object({
   cannonSafeBackendUrl: z.string().url('Change not saved! Invalid URL format'),
@@ -56,35 +57,45 @@ const SafeTransactionService: React.FC = () => {
   };
 
   return (
-    <Form {...form}>
-      <form className="space-y-4">
-        <FormControl>
-          <FormItem className={validationError ? 'space-y-1' : ''}>
-            <FormLabel>Safe Transaction Service URL</FormLabel>
-            <Input
-              className="bg-black border-white/40"
-              value={inputUrl}
-              type="text"
-              name="cannonSafeBackendUrl"
-              onChange={handleUrlChange}
-              placeholder="https://safe-transaction.example.com"
-            />
-            {validationError && <FormMessage>{validationError}</FormMessage>}
-            <FormDescription className="text-gray-300">
-              The same collection service URL must be used by all signers for a
-              given transaction. Hosting Instructions are available on{' '}
-              <a
-                className="underline"
-                href="https://github.com/usecannon/cannon-safe-app-backend"
-              >
-                GitHub
-              </a>
-              .
-            </FormDescription>
-          </FormItem>
-        </FormControl>
-      </form>
-    </Form>
+    <>
+      <Form {...form}>
+        <form className="space-y-4">
+          <FormControl>
+            <FormItem className={validationError ? 'space-y-1' : ''}>
+              <FormLabel>Safe Transaction Service URL</FormLabel>
+              <Input
+                className="bg-black border-white/40"
+                value={inputUrl}
+                type="text"
+                name="cannonSafeBackendUrl"
+                onChange={handleUrlChange}
+                placeholder="https://safe-transaction.example.com"
+              />
+              {validationError && <FormMessage>{validationError}</FormMessage>}
+              <FormDescription className="text-gray-300">
+                The same collection service URL must be used by all signers for
+                a given transaction. Hosting Instructions are available on{' '}
+                <a
+                  className="underline"
+                  href="https://github.com/usecannon/cannon-safe-app-backend"
+                >
+                  GitHub
+                </a>
+                .
+              </FormDescription>
+            </FormItem>
+          </FormControl>
+        </form>
+      </Form>
+      <SettingResetButton
+        onReset={() =>
+          setSettings({
+            cannonSafeBackendUrl: initialState.settings.cannonSafeBackendUrl,
+          })
+        }
+        sectionName="Safe Transaction Service URL"
+      />
+    </>
   );
 };
 
