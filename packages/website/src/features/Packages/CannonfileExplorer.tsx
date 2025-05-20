@@ -95,6 +95,9 @@ export const CannonfileExplorer: FC<{ pkg: ApiPackage }> = ({ pkg }) => {
     ...(deploymentInfo?.def?.deploy || {}),
   };
 
+  const contentHeight =
+    'calc(100vh -  var(--header-height) - var(--package-header-height) - var(--package-nav-height) - var(--package-code-contracts-nav-height) - var(--footer-height) )';
+
   return pkg?.deployUrl ? (
     <div className="flex flex-1 flex-col h-full w-full">
       {deploymentData.isLoading ? (
@@ -102,7 +105,10 @@ export const CannonfileExplorer: FC<{ pkg: ApiPackage }> = ({ pkg }) => {
           <IpfsSpinner ipfsUrl={pkg?.deployUrl} />
         </div>
       ) : deploymentInfo ? (
-        <div className="relative h-full w-full">
+        <div
+          className="relative h-full w-full"
+          style={{ height: contentHeight }}
+        >
           <div className="sticky top-0 overflow-x-scroll overflow-y-hidden max-w-full border-b border-border bg-muted">
             <Tabs
               value={displayMode.toString()}
