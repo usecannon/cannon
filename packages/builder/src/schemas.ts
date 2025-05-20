@@ -874,6 +874,10 @@ export const chainDefinitionSchema = z
      */
     description: z.string().describe('Description for the package').optional(),
     /**
+     * Indicates if this definition is the result of a dry run.
+     */
+    dryRun: z.boolean().optional().describe('Indicates if this definition is the result of a dry run.'),
+    /**
      * Keywords for search indexing
      */
     keywords: z.array(z.string()).describe('Keywords for search indexing').optional(),

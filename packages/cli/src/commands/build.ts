@@ -408,6 +408,7 @@ export async function build({
     meta: pkgInfo,
     miscUrl: miscUrl || '',
     chainId: runtime.chainId,
+    dryRun: dryRun,
   } satisfies DeploymentInfo;
 
   if (miscUrl) {

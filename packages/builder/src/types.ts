@@ -208,6 +208,7 @@ export type DeploymentInfo = {
 
   // EVM chain which this deployment is for
   chainId?: number;
+  dryRun?: boolean;
 };
 
 export type DeploymentManifest = {

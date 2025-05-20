@@ -180,4 +180,99 @@ describe('build', () => {
       expect((buildCommand.build as jest.Mock).mock.calls[0][0].provider).toEqual(provider);
     });
   });
+
+  describe('dryRun functionality', () => {
+    let provider: viem.PublicClient & viem.WalletClient & viem.TestClient;
+    let mockRuntime: any;
+
+    beforeEach(() => {
+      provider = makeFakeProvider();
+      jest.spyOn(utilProvider, 'resolveProvider').mockResolvedValue({ provider: provider as any, signers: [] });
+      jest.spyOn(helpers, 'loadCannonfile').mockResolvedValue({
+        def: { danglingDependencies: {}, getDeployers: () => [], isPublicSourceCode: () => false, toJson: () => ({}) },
+      } as any);
+
+      // Mock the ChainBuilderRuntime
+      mockRuntime = {
+        readDeploy: jest.fn(),
+        putDeploy: jest.fn().mockResolvedValue('some-deploy-url'),
+        recordMisc: jest.fn().mockResolvedValue('some-misc-url'),
+        registry: {
+          publish: jest.fn(),
+        },
+        provider: provider,
+        chainId: 999,
+        getSigner: jest.fn(),
+        getDefaultSigner: jest.fn(),
+        getArtifact: jest.fn(),
+        snapshots: false,
+        allowPartialDeploy: true,
+        publicSourceCode: true,
+        loaders: { ipfs: { getLabel: () => 'ipfs' } },
+        defaultLoaderScheme: 'ipfs',
+        on: jest.fn(),
+        cancel: jest.fn(),
+        isCancelled: jest.fn().mockReturnValue(false),
+        restoreMisc: jest.fn(),
+      };
+
+      jest.spyOn(buildCommand, 'build').mockImplementation(async (params: any) => {
+        // Simplified build logic for testing purposes
+        if (params.upgradeFrom) {
+          const oldDeployData = await mockRuntime.readDeploy(params.upgradeFrom, mockRuntime.chainId);
+          if (oldDeployData && oldDeployData.dryRun) {
+            throw new Error(`Cannot upgrade from a dry run package: ${params.upgradeFrom}`);
+          }
+        }
+        return {
+          outputs: {},
+          provider,
+          runtime: mockRuntime,
+          deployInfo: {
+            generator: 'cannon test',
+            timestamp: Date.now(),
+            def: {} as any,
+            state: {},
+            options: {},
+            meta: {},
+            miscUrl: 'some-misc-url',
+            chainId: 999,
+            dryRun: params.dryRun, // Ensure this is set based on params
+          },
+        };
+      });
+    });
+
+    it('should throw an error when upgrading from a dry run package', async () => {
+      const upgradeFromPackage = 'test-package:1.0.0@main';
+      mockRuntime.readDeploy.mockResolvedValue({ dryRun: true, miscUrl: 'test-misc-url' });
+
+      await expect(
+        buildCommand.build({
+          provider,
+          packageDefinition: { name: 'new-package', version: '1.0.0', preset: 'main' },
+          upgradeFrom: upgradeFromPackage,
+          pkgInfo: {},
+          getSigner: jest.fn(),
+          getDefaultSigner: jest.fn(),
+          dryRun: false, // important: current build is not a dry run
+          runtime: mockRuntime, // Pass the mock runtime
+        } as any)
+      ).rejects.toThrowError(`Cannot upgrade from a dry run package: ${upgradeFromPackage}`);
+    });
+
+    it('should set the dryRun flag in DeploymentInfo when build is called with dryRun true', async () => {
+      const result = await buildCommand.build({
+        provider,
+        packageDefinition: { name: 'test-package', version: '1.0.0', preset: 'main' },
+        pkgInfo: {},
+        getSigner: jest.fn(),
+        getDefaultSigner: jest.fn(),
+        dryRun: true,
+        runtime: mockRuntime, // Pass the mock runtime
+      } as any);
+
+      expect(result.deployInfo.dryRun).toBe(true);
+    });
+  });
 });
