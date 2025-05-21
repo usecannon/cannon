@@ -43,7 +43,7 @@ describe('package.ts', () => {
         expect(() => {
           new PackageReference(packageRef);
         }).toThrow();
-      },
+      }
     );
   });
 
@@ -141,7 +141,7 @@ describe('package.ts', () => {
           tags: [],
           fromStorage,
           toStorage,
-        }),
+        })
       ).rejects.toThrowError('could not find');
     });
 
