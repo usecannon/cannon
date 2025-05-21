@@ -19,7 +19,7 @@ describe('types.ts', () => {
         {
           timestamp: 0,
           chainId: 0,
-          deployer: viem.zeroAddress,
+          defaultSigner: viem.zeroAddress,
           package: {},
           overrideSettings: {
             foo: 'bar',
@@ -66,7 +66,7 @@ describe('types.ts', () => {
         {
           timestamp: 0,
           chainId: 0,
-          deployer: viem.zeroAddress,
+          defaultSigner: viem.zeroAddress,
           package: {},
           overrideSettings: {},
           contracts: {},
@@ -79,7 +79,7 @@ describe('types.ts', () => {
         {
           timestamp: 0,
           chainId: 0,
-          deployer: viem.zeroAddress,
+          defaultSigner: viem.zeroAddress,
           package: {},
           overrideSettings: {},
           contracts: {

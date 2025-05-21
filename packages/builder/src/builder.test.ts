@@ -330,7 +330,7 @@ describe('builder.ts', () => {
       expect(ctx.txns).toStrictEqual({});
       expect(ctx.imports).toStrictEqual({});
       expect(ctx.settings).toStrictEqual({ baz: 'boop' });
-      expect(ctx.deployer).toEqual('0x0987098709870987098709870987098709870987');
+      expect(ctx.defaultSigner).toEqual('0x0987098709870987098709870987098709870987');
     });
   });
 });

@@ -78,7 +78,7 @@ export interface PreChainBuilderContext {
 
   timestamp: number;
 
-  deployer: viem.Address;
+  defaultSigner: viem.Address;
 
   overrideSettings: { [label: string]: string };
 }

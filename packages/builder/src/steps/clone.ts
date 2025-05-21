@@ -185,7 +185,7 @@ const cloneSpec = {
     }
 
     // TODO: needs npm package from the manifest
-    const initialCtx = await createInitialContext(def, deployInfo.meta, runtime.chainId, importPkgOptions, ctx.deployer);
+    const initialCtx = await createInitialContext(def, deployInfo.meta, runtime.chainId, importPkgOptions, ctx.defaultSigner);
 
     // use separate runtime to ensure everything is clear
     // we override `getArtifact` to use a simple loader from the upstream misc data to ensure that any contract upgrades are captured as expected

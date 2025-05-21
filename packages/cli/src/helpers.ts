@@ -239,7 +239,7 @@ export async function loadCannonfile(filepath: string) {
     chainId: CANNON_CHAIN_ID,
     settings: {},
     timestamp: 0,
-    deployer: viem.zeroAddress,
+    defaultSigner: viem.zeroAddress,
 
     contracts: {},
     txns: {},

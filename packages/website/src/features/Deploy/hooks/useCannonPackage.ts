@@ -10,7 +10,7 @@ import { ChainBuilderContext, getIpfsUrl, PackageReference } from '@usecannon/bu
 // TODO: is there any way to make a better context? maybe this means we should get rid of name using context?
 const ctx: ChainBuilderContext = {
   chainId: 0,
-  deployer: zeroAddress,
+  defaultSigner: zeroAddress,
   package: {},
   timestamp: 0 as any, // TODO: fix this
   settings: {},
@@ -25,7 +25,7 @@ function getCannonPackageError(
   cannonDefInfo: ReturnType<typeof useMergedCannonDefInfo>,
   partialDeployInfo: ReturnType<typeof useFetchCannonPackage>,
   prevCannonDeployInfo: ReturnType<typeof useFetchCannonPackage>,
-  hasDeployers: boolean
+  hasDeployers: boolean,
 ): {
   message: string;
   type: 'definition' | 'partialDeploy' | 'prevDeploy';
@@ -150,7 +150,7 @@ export function useCannonPackage({
     currentPackageReference,
     chainId,
     cannonDefInfo?.def?.getDeployers(),
-    prevPackageReference
+    prevPackageReference,
   );
 
   const prevDeployLocation = onChainPrevPkgQuery.data || '';
@@ -165,7 +165,7 @@ export function useCannonPackage({
   // Check if the cannonfile requires a previous package
   const requiresPrevPackage = Boolean(
     !hasDeployers &&
-      cannonDefInfo.def?.allActionNames.some((item) => item.startsWith('deploy.') || item.startsWith('contract.'))
+      cannonDefInfo.def?.allActionNames.some((item) => item.startsWith('deploy.') || item.startsWith('contract.')),
   );
 
   const isLoading =
