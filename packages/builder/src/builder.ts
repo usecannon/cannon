@@ -20,12 +20,14 @@ export async function createInitialContext(
   def: ChainDefinition,
   pkg: any,
   chainId: number,
-  opts: BuildOptions
+  opts: BuildOptions,
+  defaultSigner: viem.Address = viem.zeroAddress
 ): Promise<ChainBuilderContext> {
   const preCtx: PreChainBuilderContext = {
     package: pkg,
     timestamp: Math.floor(Date.now() / 1000),
     chainId,
+    defaultSigner,
     overrideSettings: opts,
   };
 

@@ -22,7 +22,6 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-  TooltipProvider,
 } from '@/components/ui/tooltip';
 import { IpfsSpinner } from '@/components/IpfsSpinner';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -96,6 +95,9 @@ export const CannonfileExplorer: FC<{ pkg: ApiPackage }> = ({ pkg }) => {
     ...(deploymentInfo?.def?.deploy || {}),
   };
 
+  const contentHeight =
+    'calc(100vh -  var(--header-height) - var(--package-header-height) - var(--package-nav-height) - var(--package-code-contracts-nav-height) - var(--footer-height) )';
+
   return pkg?.deployUrl ? (
     <div className="flex flex-1 flex-col h-full w-full">
       {deploymentData.isLoading ? (
@@ -103,152 +105,147 @@ export const CannonfileExplorer: FC<{ pkg: ApiPackage }> = ({ pkg }) => {
           <IpfsSpinner ipfsUrl={pkg?.deployUrl} />
         </div>
       ) : deploymentInfo ? (
-        <div className="relative h-full w-full">
-          <TooltipProvider>
-            <div className="sticky top-0 overflow-x-scroll overflow-y-hidden max-w-full border-b border-border bg-muted">
-              <Tabs
-                value={displayMode.toString()}
-                onValueChange={(value) => setDisplayMode(parseInt(value))}
-              >
-                <TabsList className="h-full">
-                  <TabsTrigger value="1" data-testid="dependency-graph-button">
-                    Dependency Graph
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="2"
-                    data-testid="processed-cannonfile-button"
-                  >
-                    Processed Cannonfile
-                  </TabsTrigger>
-                  <TabsTrigger value="3" data-testid="raw-cannonfile-button">
-                    Raw Cannonfile
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+        <div
+          className="relative h-full w-full"
+          style={{ height: contentHeight }}
+        >
+          <div className="sticky top-0 overflow-x-scroll overflow-y-hidden max-w-full border-b border-border bg-muted">
+            <Tabs
+              value={displayMode.toString()}
+              onValueChange={(value) => setDisplayMode(parseInt(value))}
+            >
+              <TabsList className="h-full">
+                <TabsTrigger value="1" data-testid="dependency-graph-button">
+                  Dependency Graph
+                </TabsTrigger>
+                <TabsTrigger
+                  value="2"
+                  data-testid="processed-cannonfile-button"
+                >
+                  Processed Cannonfile
+                </TabsTrigger>
+                <TabsTrigger value="3" data-testid="raw-cannonfile-button">
+                  Raw Cannonfile
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
+          <StepModalProvider>
+            <div
+              className={`${displayMode === 1 ? 'block h-full' : 'hidden'} `}
+            >
+              <div className="h-full">
+                <CannonfileGraph deploymentDefinition={deploymentInfo.def} />
+              </div>
             </div>
 
-            <StepModalProvider>
-              <div
-                className={`${displayMode === 1 ? 'block h-full' : 'hidden'} `}
-              >
-                <div className="h-full">
-                  <CannonfileGraph deploymentDefinition={deploymentInfo.def} />
-                </div>
-              </div>
-
-              <div
-                className={`container mx-auto p-4 ${
-                  displayMode === 2 ? 'flex flex-col' : 'hidden'
-                }`}
-              >
-                {Object.entries(settings).length > 0 && (
-                  <div className="mt-4">
-                    <h2 className="text-xl font-semibold mb-3">Variables</h2>
-                    <div className="overflow-x-auto mb-6">
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="border-border">
-                            <TableHead className="border-border">
-                              <code>var</code>
-                            </TableHead>
-                            <TableHead className="border-border">
-                              Value
-                            </TableHead>
+            <div
+              className={`container mx-auto p-4 ${
+                displayMode === 2 ? 'flex flex-col' : 'hidden'
+              }`}
+            >
+              {Object.entries(settings).length > 0 && (
+                <div className="mt-4">
+                  <h2 className="text-xl font-semibold mb-3">Variables</h2>
+                  <div className="overflow-x-auto mb-6">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-border">
+                          <TableHead className="border-border">
+                            <code>var</code>
+                          </TableHead>
+                          <TableHead className="border-border">Value</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody className="font-mono">
+                        {Object.entries(settings).map(([key, value]) => (
+                          <TableRow key={key} className="border-border">
+                            <TableCell className="border-border">
+                              <Tooltip>
+                                <TooltipTrigger>{key}</TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{key}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell className="border-border">
+                              {value.option ? (
+                                <>{value.option}</>
+                              ) : (
+                                <>{value.defaultValue}</>
+                              )}
+                            </TableCell>
                           </TableRow>
-                        </TableHeader>
-                        <TableBody className="font-mono">
-                          {Object.entries(settings).map(([key, value]) => (
-                            <TableRow key={key} className="border-border">
-                              <TableCell className="border-border">
-                                <Tooltip>
-                                  <TooltipTrigger>{key}</TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>{key}</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TableCell>
-                              <TableCell className="border-border">
-                                {value.option ? (
-                                  <>{value.option}</>
-                                ) : (
-                                  <>{value.defaultValue}</>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
-                )}
-                {deploymentInfo?.def?.var && (
-                  <div className="mt-4">
-                    <h2 className="text-xl font-semibold mb-3">
-                      Variable Setting
-                    </h2>
-                    <ChainDefinitionSteps
-                      name="var"
-                      modules={deploymentInfo?.def?.var}
-                    />
-                  </div>
-                )}
-                {!isEmpty(pulls) && (
-                  <div className="mt-4">
-                    <h2 className="text-xl font-semibold mb-3">
-                      Pulled Packages
-                    </h2>
-                    <ChainDefinitionSteps name="pull" modules={pulls} />
-                  </div>
-                )}
-                {!isEmpty(clones) && (
-                  <div className="mt-4">
-                    <h2 className="text-xl font-semibold mb-3">
-                      Cloned Package
-                    </h2>
-                    <ChainDefinitionSteps name="clone" modules={clones} />
-                  </div>
-                )}
-                {deploymentInfo?.def?.router && (
-                  <div className="mt-4">
-                    <h2 className="text-xl font-semibold mb-3">
-                      Router Generation
-                    </h2>
-                    <ChainDefinitionSteps
-                      name="router"
-                      modules={deploymentInfo.def.router}
-                    />
-                  </div>
-                )}
-                {!isEmpty(deploys) && (
-                  <div className="mt-4 max-w-full overflow-x-auto">
-                    <h2 className="text-xl font-semibold mb-3">
-                      Contract Deployments
-                    </h2>
-                    <ChainDefinitionSteps name="deploy" modules={deploys} />
-                  </div>
-                )}
-                {deploymentInfo?.def?.invoke && (
-                  <div className="mt-4 max-w-full overflow-x-auto">
-                    <h2 className="text-xl font-semibold mb-3">
-                      Function Calls
-                    </h2>
-                    <ChainDefinitionSteps
-                      name="invoke"
-                      modules={deploymentInfo.def.invoke}
-                    />
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
+              {deploymentInfo?.def?.var && (
+                <div className="mt-4">
+                  <h2 className="text-xl font-semibold mb-3">
+                    Variable Setting
+                  </h2>
+                  <ChainDefinitionSteps
+                    name="var"
+                    modules={deploymentInfo?.def?.var}
+                  />
+                </div>
+              )}
+              {!isEmpty(pulls) && (
+                <div className="mt-4">
+                  <h2 className="text-xl font-semibold mb-3">
+                    Pulled Packages
+                  </h2>
+                  <ChainDefinitionSteps name="pull" modules={pulls} />
+                </div>
+              )}
+              {!isEmpty(clones) && (
+                <div className="mt-4">
+                  <h2 className="text-xl font-semibold mb-3">Cloned Package</h2>
+                  <ChainDefinitionSteps name="clone" modules={clones} />
+                </div>
+              )}
+              {deploymentInfo?.def?.router && (
+                <div className="mt-4">
+                  <h2 className="text-xl font-semibold mb-3">
+                    Router Generation
+                  </h2>
+                  <ChainDefinitionSteps
+                    name="router"
+                    modules={deploymentInfo.def.router}
+                  />
+                </div>
+              )}
+              {!isEmpty(deploys) && (
+                <div className="mt-4 max-w-full overflow-x-auto">
+                  <h2 className="text-xl font-semibold mb-3">
+                    Contract Deployments
+                  </h2>
+                  <ChainDefinitionSteps name="deploy" modules={deploys} />
+                </div>
+              )}
+              {deploymentInfo?.def?.invoke && (
+                <div className="mt-4 max-w-full overflow-x-auto">
+                  <h2 className="text-xl font-semibold mb-3">Function Calls</h2>
+                  <ChainDefinitionSteps
+                    name="invoke"
+                    modules={deploymentInfo.def.invoke}
+                  />
+                </div>
+              )}
+            </div>
 
-              <div className={`${displayMode === 3 ? 'h-screen' : 'hidden'} `}>
-                <CodePreview
-                  code={stringify(processedDeploymentInfo as any)}
-                  language="ini"
-                  height="100%"
-                />
-              </div>
-            </StepModalProvider>
-          </TooltipProvider>
+            <div className={`${displayMode === 3 ? 'h-screen' : 'hidden'} `}>
+              <CodePreview
+                code={stringify(processedDeploymentInfo as any)}
+                language="ini"
+                height="100%"
+              />
+            </div>
+          </StepModalProvider>
         </div>
       ) : (
         <div className="text-center py-20 opacity-50">

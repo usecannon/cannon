@@ -11,7 +11,6 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-  TooltipProvider,
 } from '@/components/ui/tooltip';
 
 type Orientation = 'horizontal' | 'vertical';
@@ -152,26 +151,24 @@ export function TransactionStepper(props: {
         <div className="flex items-center">
           {props.signers?.length || 0} of {props.threshold || 0} signed
           {props.signers?.length > 0 && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button className="hover:opacity-100">
-                    <Info className="ml-1 h-3 w-3 -translate-y-[0.5px] opacity-70" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent
-                  side="top"
-                  align="start"
-                  className="max-h-[200px] w-auto overflow-y-auto overflow-x-hidden"
-                >
-                  {props.signers.map((s) => (
-                    <div key={s} className="mb-1">
-                      {s}
-                    </div>
-                  ))}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button className="hover:opacity-100">
+                  <Info className="ml-1 h-3 w-3 -translate-y-[0.5px] opacity-70" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent
+                side="top"
+                align="start"
+                className="max-h-[200px] w-auto overflow-y-auto overflow-x-hidden"
+              >
+                {props.signers.map((s) => (
+                  <div key={s} className="mb-1">
+                    {s}
+                  </div>
+                ))}
+              </TooltipContent>
+            </Tooltip>
           )}
         </div>
       ),

@@ -28,10 +28,10 @@ import { toast } from 'sonner';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ClipboardButton } from '@/components/ClipboardButton';
 
 export default function PublishUtility(props: {
   deployUrl: string;
@@ -190,23 +190,26 @@ export default function PublishUtility(props: {
     return (
       <>
         {props.deployUrl && (
-          <Link
-            href={`/ipfs?cid=${props.deployUrl.substring(7)}`}
-            className="flex items-center mb-4 no-underline hover:no-underline"
-          >
-            <Image
-              src="/images/ipfs.svg"
-              alt="IPFS"
-              height={18}
-              width={18}
-              className="mr-2"
-            />
-            <span className="border-b border-dotted border-gray-300">
-              {`${props.deployUrl.substring(0, 13)}...${props.deployUrl.slice(
-                -6
-              )}`}
-            </span>
-          </Link>
+          <div className="flex items-center mb-4">
+            <Link
+              href={`/ipfs?cid=${props.deployUrl.substring(7)}`}
+              className="flex items-center no-underline hover:no-underline"
+            >
+              <Image
+                src="/images/ipfs.svg"
+                alt="IPFS"
+                height={18}
+                width={18}
+                className="mr-2"
+              />
+              <span className="border-b border-dotted border-gray-300">
+                {`${props.deployUrl.substring(0, 13)}...${props.deployUrl.slice(
+                  -6
+                )}`}
+              </span>
+            </Link>
+            <ClipboardButton text={props.deployUrl} className="ml-2" />
+          </div>
         )}
 
         {!!existingRegistryUrl && (
@@ -293,19 +296,17 @@ export default function PublishUtility(props: {
                   ? 'Publishing...'
                   : 'Publish to Mainnet'}
               </button>{' '}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="inline-block" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Cannon will detect packages published to Optimism or
-                    Mainnet. When publishing, the registry collects some ETH
-                    (indicated as the value for the transaction in your wallet)
-                    to support an IPFS cluster that pins package data.
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="inline-block" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  Cannon will detect packages published to Optimism or Mainnet.
+                  When publishing, the registry collects some ETH (indicated as
+                  the value for the transaction in your wallet) to support an
+                  IPFS cluster that pins package data.
+                </TooltipContent>
+              </Tooltip>
             </div>
           </>
         )}
@@ -326,20 +327,44 @@ export default function PublishUtility(props: {
           <div>
             <div className="flex items-center gap-1.5">
               <p className="text-sm">Preset</p>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="opacity-80" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Presets are useful for distinguishing multiple deployments
-                    of the same protocol on the same chain.
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="opacity-80" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  Presets are useful for distinguishing multiple deployments of
+                  the same protocol on the same chain.
+                </TooltipContent>
+              </Tooltip>
             </div>
             <p className="text-lg font-medium">{resolvedPreset}</p>
           </div>
+          {props.deployUrl && (
+            <div>
+              <p className="text-sm">IPFS</p>
+              <div className="flex items-center mb-4">
+                <Link
+                  href={`/ipfs?cid=${props.deployUrl.substring(7)}`}
+                  className="flex items-center no-underline hover:no-underline"
+                >
+                  <Image
+                    src="/images/ipfs.svg"
+                    alt="IPFS"
+                    height={18}
+                    width={18}
+                    className="mr-2"
+                  />
+                  <span className="border-b border-dotted border-gray-300">
+                    {`${props.deployUrl.substring(
+                      0,
+                      13
+                    )}...${props.deployUrl.slice(-6)}`}
+                  </span>
+                </Link>
+                <ClipboardButton text={props.deployUrl} className="ml-2" />
+              </div>
+            </div>
+          )}
           <Button asChild className="mt-4">
             <Link href={packageUrl}>View Package</Link>
           </Button>
