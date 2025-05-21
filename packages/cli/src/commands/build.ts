@@ -189,7 +189,13 @@ export async function build({
     throw new Error('no deployment definition to build');
   }
 
-  const initialCtx = await createInitialContext(def, pkgInfo, chainId, resolvedSettings);
+  const initialCtx = await createInitialContext(
+    def,
+    pkgInfo,
+    chainId,
+    resolvedSettings,
+    getDefaultSigner ? (await getDefaultSigner()).address : viem.zeroAddress
+  );
 
   const pkgName = name || def.getName(initialCtx);
   const pkgVersion = version || def.getVersion(initialCtx);

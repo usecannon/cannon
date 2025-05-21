@@ -25,3 +25,6 @@
 [submodule "packages/cli/test/e2e/helpers/bats-file"]
 	path = packages/cli/test/e2e/helpers/bats-file
 	url = https://github.com/bats-core/bats-file.git
+[submodule "examples/test/lib/forge-std"]
+	path = examples/test/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
