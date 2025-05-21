@@ -21,7 +21,7 @@ export const ChainFilter: FC<ChainFilterProps> = ({ id }) => {
         <div className="ml-auto flex items-center">
           <Tooltip delayDuration={0}>
             <TooltipTrigger className="flex items-center">
-              <Info className="text-gray-300" />
+              <Info className="text-gray-300 h-4 w-4 flex-shrink-0" />
             </TooltipTrigger>
             <TooltipContent
               className="max-w-[250px]"
