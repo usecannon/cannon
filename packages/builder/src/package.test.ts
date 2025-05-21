@@ -19,6 +19,15 @@ describe('package.ts', () => {
         'super-long-package-valid-nameee',
         ['super-long-package-valid-nameee', 'latest', undefined, 'super-long-package-valid-nameee:latest@main'],
       ],
+      [
+        'ipfs://Qmao1ynMwcpn6rtUWxP4XyNCN5BMQKCbHeEMv9MyAZ2nd8',
+        [
+          'ipfs',
+          '//Qmao1ynMwcpn6rtUWxP4XyNCN5BMQKCbHeEMv9MyAZ2nd8',
+          undefined,
+          'ipfs://Qmao1ynMwcpn6rtUWxP4XyNCN5BMQKCbHeEMv9MyAZ2nd8@main',
+        ],
+      ],
     ])('correctly parses "%s"', (packageRef, [name, version, preset, fullPackageRef]) => {
       const ref = new PackageReference(packageRef);
 
@@ -34,7 +43,7 @@ describe('package.ts', () => {
         expect(() => {
           new PackageReference(packageRef);
         }).toThrow();
-      }
+      },
     );
   });
 
@@ -132,7 +141,7 @@ describe('package.ts', () => {
           tags: [],
           fromStorage,
           toStorage,
-        })
+        }),
       ).rejects.toThrowError('could not find');
     });
 
