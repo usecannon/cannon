@@ -73,7 +73,7 @@ export function SafeAddressInput() {
     if (safeString == '') {
       setIsClearing(true);
       setCurrentSafe(null);
-      await router.push({
+      await router.replace({
         pathname: router.pathname,
         query: omit(router.query, ['chainId', 'address']),
       });
@@ -90,7 +90,7 @@ export function SafeAddressInput() {
       return;
     }
 
-    await router.push({
+    await router.replace({
       pathname: router.pathname,
       query: {
         ...router.query,
@@ -115,7 +115,7 @@ export function SafeAddressInput() {
     ) {
       setIsClearing(true);
       void router
-        .push({
+        .replace({
           pathname: '/deploy',
           query: {},
         })
