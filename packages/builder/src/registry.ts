@@ -427,7 +427,7 @@ export class OnChainRegistry extends CannonRegistry {
   }
 
   async publish(packagesNames: string[], chainId: number, url: string, metaUrl?: string): Promise<string[]> {
-    console.log(bold(blueBright('\nPublishing package to the registry on-chain...\n')));
+    console.log(bold(blueBright('\nPublishing package to the registry onchain...')));
     const packageData = this._preparePackageData(packagesNames, chainId, url, metaUrl);
     return [await this._publishPackages([packageData])];
   }
@@ -435,19 +435,19 @@ export class OnChainRegistry extends CannonRegistry {
   async publishMany(
     toPublish: { packagesNames: string[]; chainId: number; url: string; metaUrl?: string }[]
   ): Promise<string[]> {
-    console.log(bold(blueBright('\nPublishing packages to the registry on-chain...\n')));
+    console.log(bold(blueBright('\nPublishing packages to the registry onchain...')));
     const packageDatas = toPublish.map((p) => this._preparePackageData(p.packagesNames, p.chainId, p.url, p.metaUrl));
     return [await this._publishPackages(packageDatas)];
   }
 
   async unpublish(packagesNames: string[], chainId: number): Promise<string[]> {
-    console.log(bold(blueBright('\nUnpublishing package to the registry on-chain...\n')));
+    console.log(bold(blueBright('\nUnpublishing package to the registry onchain...')));
     const packageData = this._preparePackageData(packagesNames, chainId);
     return [await this._unpublishPackages([packageData])];
   }
 
   async unpublishMany(toUnpublish: { name: string[]; chainId: number }[]): Promise<string[]> {
-    console.log(bold(blueBright('\nUnpublishing packages to the registry on-chain...\n')));
+    console.log(bold(blueBright('\nUnpublishing packages to the registry onchain...')));
     const packageDatas = toUnpublish.map((p) => this._preparePackageData(p.name, p.chainId));
     return [await this._unpublishPackages(packageDatas)];
   }
@@ -759,12 +759,11 @@ export class OnChainRegistry extends CannonRegistry {
       );
     }
 
-    console.log(`\nEstimated gas: ${simulatedGas} wei`);
-
+    console.log(`Estimated gas required: ${simulatedGas} wei`);
     const gasPrice = BigInt(this.overrides.maxFeePerGas || this.overrides.gasPrice || (await this.provider.getGasPrice()));
-    console.log(`\nGas price: ${viem.formatEther(gasPrice)} ETH`);
+    console.log(`Current gas price: ${viem.formatEther(gasPrice)} ETH`);
     const transactionFeeWei = simulatedGas * gasPrice;
-    console.log(`\nEstimated transaction Fee: ${viem.formatEther(transactionFeeWei)} ETH\n\n`);
+    console.log(`Estimated transaction fee: ${viem.formatEther(transactionFeeWei)} ETH\n\n`);
 
     if (this.signer && userBalance < transactionFeeWei) {
       console.log(
