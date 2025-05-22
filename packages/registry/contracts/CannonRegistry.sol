@@ -7,6 +7,7 @@ import {EfficientStorage} from "./EfficientStorage.sol";
 import {ERC2771Context} from "./ERC2771Context.sol";
 import {IOptimismL1Sender} from "./IOptimismL1Sender.sol";
 import {IOptimismL2Receiver} from "./IOptimismL2Receiver.sol";
+import {CannonSubscription} from "./CannonSubscription.sol";
 
 /**
  * @title An on-chain record of contract deployments with Cannon
@@ -118,6 +119,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
   IOptimismL1Sender private immutable _OPTIMISM_MESSENGER;
   IOptimismL2Receiver private immutable _OPTIMISM_RECEIVER;
   uint256 private immutable _L1_CHAIN_ID;
+  CannonSubscription private immutable _CANNON_SUBSCRIPTION;
 
   /**
    * @notice Initializes the immutable fields for this contract implementation
@@ -125,10 +127,15 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
    * @param _optimismReceiver the address of the bridge contract which receives message on L2
    * @param _l1ChainId the L1 deployment of the registry. For example, sepolia would have argument `11155111` here.
    */
-  constructor(address _optimismMessenger, address _optimismReceiver, uint256 _l1ChainId) {
+  constructor(address _optimismMessenger, address _optimismReceiver, uint256 _l1ChainId, address _cannonSubscription) {
     _OPTIMISM_MESSENGER = IOptimismL1Sender(_optimismMessenger); // IOptimismL1Sender(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1)
     _OPTIMISM_RECEIVER = IOptimismL2Receiver(_optimismReceiver); // IOptimismL2Receiver(0x4200000000000000000000000000000000000007)
     _L1_CHAIN_ID = _l1ChainId; // 1
+    _CANNON_SUBSCRIPTION = CannonSubscription(_cannonSubscription);
+  }
+
+  function getCannonSubscription() external view returns (address) {
+    return address(_CANNON_SUBSCRIPTION);
   }
 
   /**
@@ -178,6 +185,29 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
     if (msg.value < store.publishFee) {
       revert FeeRequired(store.publishFee);
     }
+
+    _publish(_packageName, _variant, _packageTags, _packageDeployUrl, _packageMetaUrl);
+  }
+
+  function publishWithSubscription(
+    bytes32 _packageName,
+    bytes32 _variant,
+    bytes32[] memory _packageTags,
+    string memory _packageDeployUrl,
+    string memory _packageMetaUrl
+  ) external {
+    _CANNON_SUBSCRIPTION.useMembershipCredits(ERC2771Context.msgSender(), 1);
+    _publish(_packageName, _variant, _packageTags, _packageDeployUrl, _packageMetaUrl);
+  }
+
+  function _publish(
+    bytes32 _packageName,
+    bytes32 _variant,
+    bytes32[] memory _packageTags,
+    string memory _packageDeployUrl,
+    string memory _packageMetaUrl
+  ) internal {
+    Store storage store = _store();
 
     // do we have tags for the package, and not an excessive number
     if (_packageTags.length == 0 || _packageTags.length > MAX_PACKAGE_PUBLISH_TAGS) {
