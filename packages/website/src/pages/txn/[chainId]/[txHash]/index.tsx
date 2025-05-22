@@ -1,11 +1,6 @@
-import dynamic from 'next/dynamic';
 import { NextSeo } from 'next-seo';
 import defaultSEO from '@/constants/defaultSeo';
-import TransactionDetail from './TransactionDetail';
-
-const NoSSR = dynamic(() => import('@/features/Ipfs/Download'), {
-  ssr: false,
-});
+import TransactionPage from '@/features/Txn/TransactionPage';
 
 export default function Transaction() {
   return (
@@ -20,7 +15,7 @@ export default function Transaction() {
           description: 'Transaction Detail',
         }}
       />
-      <TransactionDetail />
+      <TransactionPage />
     </>
   );
 }
