@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, KeyboardEvent } from 'react';
 import { useRouter } from 'next/router';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -56,7 +56,7 @@ export const ContractsList: FC<ContractsListProps> = ({
   );
 
   const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
+    e: KeyboardEvent<HTMLInputElement>,
     filteredOptions: Option[]
   ) => {
     if (e.key === 'Enter') {
