@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC } from 'react';
 import { Input } from '@/components/ui/input';
 import {
   Tooltip,
@@ -6,58 +6,56 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { InputState } from './utils';
 
-export const JsonInput: FC<{
-  handleUpdate: (value: string) => void;
-  value?: string;
-}> = ({ handleUpdate, value = '' }) => {
-  const [updateValue, setUpdateValue] = useState<string>(value);
+interface JsonInputProps {
+  isTupleArray: boolean;
+  handleUpdate: (state: InputState) => void;
+  state: InputState;
+}
 
-  // Check if the input is valid JSON
-  const isInvalid = useMemo(() => {
-    // Allow empty input
-    if (updateValue.trim() === '') return null;
-
-    try {
-      JSON.parse(updateValue);
-      return null;
-    } catch (error) {
-      if (error instanceof Error) {
-        return `Invalid JSON: ${error.message}`;
-      }
-      return 'Invalid JSON format';
-    }
-  }, [updateValue]);
-
-  useEffect(() => {
-    // Only update if JSON is valid
-    if (!isInvalid) {
-      handleUpdate(updateValue ? JSON.parse(updateValue) : '');
-    }
-  }, [updateValue, isInvalid, handleUpdate]);
+export const JsonInput: FC<JsonInputProps> = ({
+  handleUpdate,
+  state,
+  isTupleArray,
+}) => {
+  const _value = Array.isArray(state.inputValue)
+    ? JSON.stringify(state.inputValue)
+    : (state.inputValue as string);
 
   return (
-    <Tooltip open={!!isInvalid}>
+    <Tooltip open={!!state.error}>
       <TooltipTrigger asChild>
         <Input
           type="text"
           className={cn(
             'bg-background',
-            isInvalid
+            state.error
               ? 'border-destructive focus:border-destructive focus-visible:ring-destructive'
               : 'border-input'
           )}
-          placeholder="[[v1, v2], [v3, v4]]"
-          value={updateValue}
+          placeholder={isTupleArray ? '[[v1, v2], [v3, v4]]' : '[v1, v2]'}
+          value={_value}
           onChange={(e) => {
-            setUpdateValue(e.target.value || '');
+            let newError = undefined;
+            let parsedValue = undefined;
+            try {
+              parsedValue = JSON.parse(e.target.value);
+            } catch (error) {
+              newError = 'Invalid JSON format';
+            }
+            handleUpdate({
+              inputValue: e.target.value,
+              parsedValue,
+              error: newError,
+            });
           }}
           data-testid="json-input"
         />
       </TooltipTrigger>
-      {isInvalid && (
+      {state.error && (
         <TooltipContent side="top" className="max-w-sm text-center">
-          <p>{isInvalid}</p>
+          <p className="break-words">{state.error}</p>
         </TooltipContent>
       )}
     </Tooltip>

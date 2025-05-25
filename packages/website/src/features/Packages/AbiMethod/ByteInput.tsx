@@ -1,6 +1,7 @@
-import { FC, useState } from 'react';
+import { FC } from 'react';
 import { Input } from '@/components/ui/input';
 import { stringToHex } from 'viem';
+import { InputState } from './utils';
 import {
   Tooltip,
   TooltipContent,
@@ -8,8 +9,22 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-const validateByteInput = (value: string, byte: number): string | undefined => {
-  // Only validate length for complete inputs
+interface ByteInputProps {
+  handleUpdate: (state: InputState) => void;
+  state: InputState;
+  byte?: number;
+}
+
+const validateByteInput = (
+  value: string,
+  byte?: number
+): string | undefined => {
+  // For dynamic bytes (bytes), no length validation needed
+  if (!byte) {
+    return undefined;
+  }
+
+  // For fixed-size bytes (bytes1-32)
   if (value.startsWith('0x')) {
     const expectedLength = 2 + byte * 2; // 2 for '0x' prefix + 2 characters per byte
     if (value?.length > expectedLength) {
@@ -27,70 +42,80 @@ const validateByteInput = (value: string, byte: number): string | undefined => {
   return undefined;
 };
 
-type ByteInputProps = {
-  handleUpdate: (value: string, error?: string) => void;
-  value?: string;
-  byte?: number;
-};
-
 export const ByteInput: FC<ByteInputProps> = ({
   handleUpdate,
-  value = '',
-  byte = 32,
+  state,
+  byte,
 }) => {
   // Create a dynamic regex based on the byte size
-  // This regex validates that the input is a valid hex string with the correct length
-  // Example for byte=32: ^0x[0-9a-fA-F]{64}$ (0x + 64 hex characters)
-  const hexRegex = new RegExp(`^0x[0-9a-fA-F]{${byte * 2}}$`);
-  const [error, setError] = useState<string | undefined>(
-    validateByteInput(value, byte)
-  );
+  const hexRegex = byte
+    ? new RegExp(`^0x[0-9a-fA-F]{${byte * 2}}$`) // Fixed size: exact length
+    : /^0x[0-9a-fA-F]*$/; // Dynamic: any length hex string
 
   const handleChange = (inputValue: string) => {
     const validationError = validateByteInput(inputValue, byte);
-    setError(validationError);
 
-    // If the input is not a valid hex string
+    // Allow empty input
+    if (!inputValue) {
+      handleUpdate({
+        inputValue: '',
+        parsedValue: undefined,
+        error: undefined,
+      });
+      return;
+    }
+
     if (!hexRegex.test(inputValue)) {
       if (inputValue.startsWith('0x')) {
         // If it starts with 0x but isn't a valid hex, pass it through as is
         // This allows partial hex inputs while typing
-        handleUpdate(inputValue, validationError);
+        handleUpdate({
+          inputValue: inputValue,
+          parsedValue: undefined,
+          error: validationError,
+        });
       } else {
         // If it's not a hex string at all, convert it to hex
-        // We slice to ensure we don't exceed the byte limit
-        // Example: "hello" -> "0x68656c6c6f"
-        handleUpdate(
-          stringToHex(inputValue.slice(0, byte), { size: byte }),
-          validationError
+        const hexValue = stringToHex(
+          inputValue,
+          byte ? { size: byte } : undefined
         );
+        handleUpdate({
+          inputValue: hexValue,
+          parsedValue: hexValue,
+          error: validationError,
+        });
       }
     } else {
       // If it's already a valid hex string, pass it through
-      handleUpdate(inputValue, validationError);
+      handleUpdate({
+        inputValue: inputValue,
+        parsedValue: inputValue,
+        error: validationError,
+      });
     }
   };
 
   return (
-    <Tooltip open={!!error}>
+    <Tooltip open={!!state.error}>
       <TooltipTrigger asChild>
         <Input
           type="text"
           className={cn(
             'bg-background',
-            error
+            state.error
               ? 'border-destructive focus:border-destructive focus-visible:ring-destructive'
               : 'border-input'
           )}
-          placeholder={`0x${'0'.repeat(byte * 2)}`}
-          value={value}
+          placeholder={byte ? `0x${'0'.repeat(byte * 2)}` : '0x...'}
+          value={state.inputValue as string}
           onChange={(e) => handleChange(e.target.value || '')}
-          data-testid={`byte${String(byte)}-input`}
+          data-testid={`byte${byte ? String(byte) : 'dynamic'}-input`}
         />
       </TooltipTrigger>
-      {error && (
+      {state.error && (
         <TooltipContent side="top" className="max-w-sm text-center">
-          <p>{error}</p>
+          <p>{state.error}</p>
         </TooltipContent>
       )}
     </Tooltip>

@@ -7,8 +7,8 @@ import { useRouter } from 'next/router';
 import { SidebarLayout } from '@/components/layouts/SidebarLayout';
 import { AbiSidebar } from './AbiSidebar';
 import { useContractMethods } from './useContractMethods';
-import { AbiMethodRenderCollapsible } from './AbiMethodRenderCollapsible';
-import { AbiMethodRenderContent } from './AbiMethodRenderContent';
+import { AbiContractMethodAccordion } from './AbiContractMethodAccordion';
+import { AbiContractMethodInteraction } from './AbiContractMethodInteraction';
 
 const getSelectorSlug = (f: AbiFunction) =>
   `selector-${viem.toFunctionSelector(f)}`;
@@ -120,10 +120,10 @@ export const Abi: FC<{
                 name={getSelectorSlug(f)}
                 key={`${address}-${getSelectorSlug(f)}`}
               >
-                <AbiMethodRenderCollapsible
+                <AbiContractMethodAccordion
                   f={f}
                   content={
-                    <AbiMethodRenderContent
+                    <AbiContractMethodInteraction
                       f={f}
                       abi={abi as AbiType}
                       address={address}

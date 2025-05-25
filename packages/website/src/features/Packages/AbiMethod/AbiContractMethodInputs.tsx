@@ -2,8 +2,11 @@ import { PlusIcon, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AbiParameter } from 'abitype';
 import { FC } from 'react';
-import { AbiMethodRenderInput } from './AbiMethodRenderInput';
-import { getDefaultValue } from '@/features/Packages/AbiMethod/utils';
+import { AbiContractMethodInputType } from './AbiContractMethodInputType';
+import {
+  getDefaultValue,
+  InputState,
+} from '@/features/Packages/AbiMethod/utils';
 
 const getInputType = (input: AbiParameter): 'single' | 'array' => {
   // tuple[] is handled as a single input receiving a string that is parsed as a JSON object
@@ -41,62 +44,68 @@ const ArrayActionButtons: FC<ArrayActionButtonsProps> = ({ type, onClick }) => {
 
 interface Props {
   input: AbiParameter;
-  handleUpdate: (value: any, error?: string) => void;
-  initialValue?: unknown | unknown[];
+  handleUpdate: (state: InputState) => void;
+  state: InputState;
 }
 
-export const AbiMethodRender: FC<Props> = ({
+export const ContractMethodInputs: FC<Props> = ({
   input,
   handleUpdate,
-  initialValue,
+  state,
 }) => {
   const inputType = getInputType(input);
   const isInputTypeArray = inputType === 'array';
 
   const addInputToArray = () => {
     if (!isInputTypeArray) throw new Error('input is not an array');
-    const _value = initialValue as unknown[];
-    handleUpdate([..._value, getDefaultValue(input.type)]);
+    const currentArray = (state.parsedValue as InputState[]) || [];
+    const newArray = [...currentArray, getDefaultValue(input)];
+    handleUpdate({
+      inputValue: '',
+      parsedValue: newArray,
+      error: undefined,
+    });
   };
 
   const removeInputFromArray = (index: number) => {
     if (!isInputTypeArray) throw new Error('input is not an array');
-    const _value = initialValue as unknown[];
-    handleUpdate(_value.slice(0, index).concat(_value.slice(index + 1)));
+    const currentArray = (state.parsedValue as InputState[]) || [];
+    const newArray = currentArray
+      .slice(0, index)
+      .concat(currentArray.slice(index + 1));
+    handleUpdate({
+      inputValue: '',
+      parsedValue: newArray,
+      error: undefined,
+    });
   };
 
   if (isInputTypeArray) {
-    const _value = initialValue as unknown[];
+    const arrayValue = (state.parsedValue as InputState[]) || [];
     return (
       <div>
-        {_value.map((indexValue, index) => {
+        {arrayValue.map((itemState, index) => {
           return (
             <div
               className={`flex flex-1 items-center ${
-                index === _value.length - 1 ? '' : 'mb-4'
+                index === arrayValue.length - 1 ? '' : 'mb-4'
               }`}
               key={index}
             >
-              <AbiMethodRenderInput
+              <AbiContractMethodInputType
                 input={input}
-                handleUpdate={(value: any, error?: string) => {
-                  if (!isInputTypeArray)
-                    throw new Error('input is not an array');
-
-                  const copy = [...(initialValue as unknown[])].map(
-                    (item: any, i: number) => (i === index ? value : item)
-                  );
-
-                  handleUpdate(
-                    copy,
-                    error
-                      ? `value: ${value} at index ${index} is invalid`
-                      : undefined
-                  );
+                state={itemState}
+                handleUpdate={(newState) => {
+                  const newArray = [...arrayValue];
+                  newArray[index] = newState;
+                  handleUpdate({
+                    inputValue: '',
+                    parsedValue: newArray,
+                    error: undefined,
+                  });
                 }}
-                value={indexValue}
               />
-              {_value.length > 1 && (
+              {arrayValue.length > 1 && (
                 <ArrayActionButtons
                   type="remove"
                   onClick={() => removeInputFromArray(index)}
@@ -112,10 +121,10 @@ export const AbiMethodRender: FC<Props> = ({
     return (
       <div className="flex flex-row items-center">
         <div className="flex-1">
-          <AbiMethodRenderInput
+          <AbiContractMethodInputType
             input={input}
+            state={state}
             handleUpdate={handleUpdate}
-            value={initialValue}
           />
         </div>
       </div>

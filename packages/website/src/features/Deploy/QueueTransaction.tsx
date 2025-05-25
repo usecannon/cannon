@@ -23,7 +23,7 @@ import {
 import { AbiFunction } from 'abitype';
 import { useEffect, useState } from 'react';
 import * as viem from 'viem';
-import { AbiMethodRender } from '../Packages/AbiMethod/AbiMethodRender';
+import { ContractMethodInputs } from '../Packages/AbiMethod/AbiContractMethodInputs';
 import 'react-diff-view/style/index.css';
 
 function decodeError(err: viem.Hex, abi: viem.Abi) {
@@ -368,7 +368,7 @@ export function QueueTransaction({
                       </span>
                     )}
                   </Label>
-                  <AbiMethodRender
+                  <ContractMethodInputs
                     key={JSON.stringify(input)}
                     input={input}
                     handleUpdate={(value) => {

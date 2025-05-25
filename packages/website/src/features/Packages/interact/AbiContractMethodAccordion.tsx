@@ -7,16 +7,19 @@ import { AbiFunction } from 'abitype';
 import { toFunctionSignature } from 'viem';
 import { useRouter } from 'next/router';
 
-interface AbiMethodRenderCollapsibleProps {
+interface Props {
   f: AbiFunction;
   content: ReactNode;
   anchor: string;
   selected?: boolean;
 }
 
-export const AbiMethodRenderCollapsible: FC<
-  AbiMethodRenderCollapsibleProps
-> = ({ f, content, anchor, selected }) => {
+export const AbiContractMethodAccordion: FC<Props> = ({
+  f,
+  content,
+  anchor,
+  selected,
+}) => {
   const [isOpen, setIsOpen] = useState(selected || false);
   const router = useRouter();
 

@@ -1,37 +1,30 @@
 import { FC } from 'react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { InputState } from './utils';
 
-type BoolInputProps = {
-  handleUpdate: (value: boolean) => void;
-  value: boolean;
-};
+interface BoolInputProps {
+  handleUpdate: (state: InputState) => void;
+  state: InputState;
+}
 
-export const BoolInput: FC<BoolInputProps> = ({ handleUpdate, value }) => {
+export const BoolInput: FC<BoolInputProps> = ({ handleUpdate, state }) => {
+  const handleChange = (checked: boolean) => {
+    handleUpdate({
+      inputValue: checked.toString(),
+      parsedValue: checked,
+      error: undefined,
+    });
+  };
+
   return (
-    <Select
-      defaultValue={value ? 'true' : 'false'}
-      onValueChange={(value) => handleUpdate(value === 'true')}
-    >
-      <SelectTrigger
-        className="bg-background border-input"
-        data-testid="bool-button"
-      >
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="false" data-testid="bool-false-input">
-          False
-        </SelectItem>
-        <SelectItem value="true" data-testid="bool-true-input">
-          True
-        </SelectItem>
-      </SelectContent>
-    </Select>
+    <div className="flex items-center space-x-2">
+      <Switch
+        id="bool-input"
+        checked={state.parsedValue as boolean}
+        onCheckedChange={handleChange}
+      />
+      <Label htmlFor="bool-input">{state.parsedValue ? 'True' : 'False'}</Label>
+    </div>
   );
 };

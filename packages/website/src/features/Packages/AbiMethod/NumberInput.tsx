@@ -10,44 +10,31 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
+import { InputState } from './utils';
 
 interface NumberInputProps {
-  handleUpdate: (value: bigint | undefined, error?: string) => void;
-  value?: bigint;
+  handleUpdate: (state: InputState) => void;
+  state: InputState;
   suffix?: string;
   showWeiValue?: boolean;
+  fixedDecimals?: number;
 }
 
 export const NumberInput: FC<NumberInputProps> = ({
   handleUpdate,
-  value,
+  state,
   suffix,
   showWeiValue = false,
+  fixedDecimals = 0,
 }) => {
-  const [decimals, setDecimals] = useState(0);
-  const [error, setError] = useState<string | undefined>();
+  const [decimals, setDecimals] = useState(fixedDecimals);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const checkDecimalPlaces = (input: string | bigint) => {
-    let decimalPlaces: number;
-
-    if (typeof input === 'string') {
-      decimalPlaces = input.includes('.') ? input.split('.')[1].length : 0;
-    } else {
-      const decimalValue = formatUnits(input, decimals);
-      decimalPlaces = decimalValue.includes('.')
-        ? decimalValue.split('.')[1].length
-        : 0;
-    }
-
+  const checkDecimalPlaces = (input: string) => {
+    const decimalPlaces = input.includes('.') ? input.split('.')[1].length : 0;
     if (decimalPlaces > decimals) {
-      const errorMessage = `Input has more decimal places than allowed (max: ${decimals})`;
-      handleUpdate(undefined, errorMessage);
-      setError(errorMessage);
       return false;
     }
-
-    setError(undefined);
     return true;
   };
 
@@ -55,50 +42,78 @@ export const NumberInput: FC<NumberInputProps> = ({
     const inputValue = event.target.value;
 
     if (inputValue === '') {
-      handleUpdate(undefined);
-      setError(undefined);
+      handleUpdate({
+        inputValue: '',
+        parsedValue: undefined,
+        error: undefined,
+      });
       return;
     }
 
     if (!checkDecimalPlaces(inputValue)) {
+      handleUpdate({
+        inputValue,
+        parsedValue: undefined,
+        error: `Input has more decimal places than allowed (max: ${decimals})`,
+      });
       return;
     }
 
-    let newValue: bigint | undefined;
     try {
-      newValue = parseUnits(inputValue, decimals);
-      setError(undefined);
+      const parsedValue = parseUnits(inputValue, decimals);
+      handleUpdate({
+        inputValue,
+        parsedValue,
+        error: undefined,
+      });
     } catch {
-      newValue = undefined;
-      setError('Invalid number format');
+      handleUpdate({
+        inputValue,
+        parsedValue: undefined,
+        error: 'Invalid number format',
+      });
     }
-
-    handleUpdate(newValue, error);
   };
 
   const handleDecimalChange = (newDecimals: number) => {
-    if (value === undefined) {
-      setDecimals(newDecimals);
-      return;
-    }
-
-    const decimalValue = formatUnits(value, newDecimals);
-
-    if (!checkDecimalPlaces(decimalValue)) {
-      return;
-    }
-
-    let newValue: bigint | undefined;
-    try {
-      newValue = parseUnits(decimalValue, newDecimals);
-      setError(undefined);
-    } catch {
-      newValue = undefined;
-      setError('Invalid number format');
-    }
-
     setDecimals(newDecimals);
-    handleUpdate(newValue, error);
+
+    if (!state.inputValue) {
+      return;
+    }
+
+    try {
+      // Convert the current value to the new decimal places
+      const currentValue = parseUnits(state.inputValue, decimals);
+      const adaptedValue = formatUnits(currentValue, newDecimals);
+
+      // Check if the adapted value has more decimals than allowed
+      if (
+        adaptedValue.includes('.') &&
+        adaptedValue.split('.')[1].length > newDecimals
+      ) {
+        handleUpdate({
+          inputValue: state.inputValue,
+          parsedValue: undefined,
+          error: `Value has more decimal places than allowed (max: ${newDecimals})`,
+        });
+        return;
+      }
+
+      // Update with the adapted value
+      const newValue = parseUnits(adaptedValue, newDecimals);
+      handleUpdate({
+        inputValue: adaptedValue,
+        parsedValue: newValue,
+        error: undefined,
+      });
+    } catch {
+      handleUpdate({
+        inputValue: state.inputValue,
+        parsedValue: undefined,
+        error: 'Invalid number format',
+      });
+    }
   };
 
   return (
@@ -109,50 +124,55 @@ export const NumberInput: FC<NumberInputProps> = ({
           type="text"
           className={cn(
             'bg-background border-input rounded-r-none h-10',
-            error &&
+            state.error &&
               'border-destructive focus:border-destructive focus-visible:ring-destructive'
           )}
           placeholder="0"
+          value={state.inputValue as string}
           onChange={handleChange}
           data-testid="number-input"
         />
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-l-none px-2 h-10 flex items-center gap-1"
-            >
-              <span className="text-xs text-muted-foreground">{decimals}d</span>
-              <ChevronDownIcon className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80">
-            <Label>Decimal Places</Label>
-            <div className="grid gap-4 mt-1">
-              <Input
-                type="number"
-                min="0"
-                max="18"
-                value={decimals}
-                onChange={(e) => handleDecimalChange(Number(e.target.value))}
-                className="bg-background"
-              />
-              <p className="text-sm text-muted-foreground">
-                Configure the number of decimal for this value
-              </p>
-            </div>
-          </PopoverContent>
-        </Popover>
+        {!fixedDecimals && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-l-none px-2 h-10 flex items-center gap-1"
+              >
+                <span className="text-xs text-muted-foreground">
+                  {decimals}d
+                </span>
+                <ChevronDownIcon className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <Label>Decimal Places</Label>
+              <div className="grid gap-4 mt-1">
+                <Input
+                  type="number"
+                  min="0"
+                  max="18"
+                  value={decimals}
+                  onChange={(e) => handleDecimalChange(Number(e.target.value))}
+                  className="bg-background"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Configure the number of decimal for this value
+                </p>
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
         {suffix && (
           <div className="flex items-center px-3 py-1 bg-background text-gray-300 border border-l-0 border-border rounded-r-md h-10">
             {suffix}
           </div>
         )}
       </div>
-      {showWeiValue && value !== undefined && (
+      {showWeiValue && state.parsedValue && (
         <p className="text-xs text-muted-foreground mt-1">
-          {value.toString()} wei
+          {state.parsedValue.toString()} wei
         </p>
       )}
     </div>

@@ -1,75 +1,167 @@
-import { AbiFunction } from 'abitype';
+import { AbiFunction, AbiParameter } from 'abitype';
 import { useState } from 'react';
+export interface InputState {
+  inputValue: string; // the value used to display in the input
+  parsedValue: any; // if the input value is correct, we use this attribute to store the parsed value, for example a BigInt(inputValue).
+  error?: string;
+}
 
 // Helper function to get default values for Solidity types
-export const getDefaultValue = (type: string): any => {
-  // Handle tuples (e.g., (uint256,address))
-  if (type.startsWith('(') && type.endsWith(')')) {
-    // Extract inner types and create a tuple with default values
-    const innerTypes = type
+export const getDefaultValue = (input: AbiParameter): InputState => {
+  const typeString = input.type.toLowerCase();
+  // const components =
+  //   'components' in input && Array.isArray(input.components)
+  //     ? (input as AbiParameter & { components: readonly AbiParameter[] }).components
+  //     : undefined;
+
+  // 1. Handle tuples
+  // if (typeString.startsWith('tuple') && !typeString.endsWith('[]') && components) {
+  //   const tupleObject: Record<string, any> = {};
+  //   for (const component of components) {
+  //     if (component.name) {
+  //       // Recursive call, passing the full component AbiParameter
+  //       tupleObject[component.name] = getDefaultValue(component);
+  //     }
+  //     // TODO: Consider how to handle tuple components without names if that's a valid case
+  //   }
+  //   return tupleObject;
+  // }
+
+  // 2. Handle literal tuple string representation (e.g., "(uint256,address)")
+  // This part might become less relevant if all inputs are proper AbiParameter objects,
+  // but can be kept for robustness if such string types can still appear.
+  // However, to strictly adhere to input: AbiParameter, this section would ideally be
+  // removed or handled by the caller constructing an AbiParameter first.
+  // For now, we'll adapt it to create AbiParameter objects for the recursive call.
+  if (typeString.startsWith('(') && typeString.endsWith(')')) {
+    const innerTypes = typeString
       .slice(1, -1)
       .split(',')
       .map((t) => t.trim());
-    return innerTypes.map((innerType) => getDefaultValue(innerType));
+    // This returns an array of default values.
+    return {
+      inputValue: '',
+      parsedValue: innerTypes.map((innerType) =>
+        getDefaultValue({ type: innerType, name: '_innerElement' } as AbiParameter)
+      ),
+      error: undefined,
+    };
   }
 
-  switch (type) {
+  // const _typeString = typeString.includes('tuple') ? (typeString.endsWith('[]') ? 'tupleArray' : 'tuple') : typeString;
+
+  // 3. Handle basic types
+  switch (typeString) {
     case 'bool':
-      return false;
+      return {
+        inputValue: '',
+        parsedValue: false,
+        error: undefined,
+      };
     case 'address':
-      return '';
+      return {
+        inputValue: '',
+        parsedValue: '', // Default empty address
+        error: undefined,
+      };
     case 'string':
-      return '';
+      return {
+        inputValue: '',
+        parsedValue: '',
+        error: undefined,
+      };
+    case 'tuple':
+      return {
+        inputValue: '',
+        parsedValue: undefined,
+        error: undefined,
+      };
     default:
-      if (type.startsWith('bytes')) {
-        return '';
+      // bytesN (fixed size)
+      if (typeString.startsWith('bytes')) {
+        return {
+          inputValue: '',
+          parsedValue: '',
+          error: undefined,
+        };
       }
-
-      if (type.startsWith('int') || type.startsWith('uint')) {
-        return undefined;
+      if (typeString.startsWith('int') || typeString.startsWith('uint')) {
+        return {
+          inputValue: '',
+          parsedValue: undefined,
+          error: undefined,
+        };
       }
-
-      // Handle fixed-size bytes (bytes1 to bytes32)
-      //   if (type.startsWith('bytes') && !isNaN(parseInt(type.slice(5)))) {
-      //     const size = parseInt(type.slice(5));
-      //     return pad(toBytes('0x'), { size }).toString();
-      //   }
-
-      return null;
+      return {
+        inputValue: '',
+        parsedValue: null,
+        error: undefined,
+      };
   }
 };
 
-// Hook to initialize and manage method arguments based on Solidity data types
-export const useMethodArgs = (inputs: AbiFunction['inputs']) => {
-  const [params, setParams] = useState<any[]>(() => {
-    // Initialize each input with its default value based on type
+export const useInitMethodParams = (inputs: AbiFunction['inputs']) => {
+  const [params, setParams] = useState<InputState[]>(() => {
     return inputs.map((input) => {
       const type = input.type.toLowerCase();
 
-      // Handle tuples in arrays
-      if (type.includes('tuple[]')) {
-        return undefined;
+      // // 1. Tuple arrays (e.g., tuple[])
+      // if (type.startsWith('tuple') && type.endsWith('[]')) {
+      //   return [];
+      // }
+
+      // 2. Dynamic arrays (e.g., uint256[], string[])
+      if (type.endsWith('[]') && !type.startsWith('tuple')) {
+        return {
+          inputValue: '',
+          parsedValue: [],
+          error: undefined,
+        };
       }
 
-      // Handle arrays
-      if (type.includes('[]')) {
-        return [];
+      // 3. Fixed-size arrays (e.g., uint256[2], string[3])
+      const fixedArrayMatch = type.match(/^(.*)\\[(\\d+)\\]$/);
+      if (fixedArrayMatch && !type.startsWith('tuple')) {
+        const baseType = fixedArrayMatch[1]; // e.g., "uint256"
+        const size = parseInt(fixedArrayMatch[2]);
+        if (size > 0) {
+          // Create an array of 'size' elements, each initialized by getDefaultValue(baseType)
+          return {
+            inputValue: '',
+            parsedValue: Array(size)
+              .fill(null)
+              .map(() => getDefaultValue({ type: baseType, name: '_arrayElement' } as AbiParameter).parsedValue),
+            error: undefined,
+          };
+        }
+        return {
+          inputValue: '',
+          parsedValue: [],
+          error: undefined,
+        };
       }
 
-      // Handle fixed-size arrays
-      if (type.includes('[') && type.includes(']')) {
-        const size = parseInt(type.match(/\[(\d+)\]/)?.[1] || '0');
-        return Array(size).fill(getDefaultValue(type.replace(/\[\d+\]/, '')));
-      }
-
-      // Handle mappings
-      if (type.startsWith('mapping')) {
-        return {};
-      }
-
-      return getDefaultValue(type);
+      // 4. Single values
+      return getDefaultValue(input);
     });
   });
 
   return [params, setParams] as const;
+};
+
+/**
+ * Extracts the final values from an array of InputState objects, handling both single values and arrays
+ * @param params Array of InputState objects
+ * @returns Array of final values, with nested arrays properly handled
+ */
+export const extractParamValues = (params: InputState[]): any[] => {
+  return params.map((p) => {
+    // arrays and tuples assign to parsedValue and array.
+    // only inputType of type array save an InputStates on each element of the array.
+    // tuples arrays save raw values.
+    if (Array.isArray(p.parsedValue) && p.parsedValue[0]?.parsedValue) {
+      return p.parsedValue.map((item) => item.parsedValue);
+    }
+    return p.parsedValue;
+  });
 };
