@@ -6,13 +6,14 @@ import TransactionAction from '@/features/Txn/TransactionAction';
 import TransactionOverview from '@/features/Txn/TransactionOverview';
 import TransactionDetail from '@/features/Txn/TransactionDetail';
 import TransactionEventLog from '@/features/Txn/TransactionEventLog';
+import TransactionTab from '@/features/Txn/TransactionTab';
 
-const tabs = [
+export const tabs = [
   { id: 'overview', label: 'Overview' },
   { id: 'eventlog', label: 'Logs' },
 ] as const;
 
-type TabId = (typeof tabs)[number]['id'];
+export type TabId = (typeof tabs)[number]['id'];
 
 export default function TransactionPage() {
   const router = useRouter();
@@ -54,25 +55,6 @@ export default function TransactionPage() {
       void fetchStatus(txHash as Hash);
     }
   }, [chainId, txHash]);
-
-  useEffect(() => {
-    const hash = window.location.hash.replace('#', '');
-
-    if (hash === 'eventlog') {
-      setActiveTab(hash as TabId);
-    } else {
-      setActiveTab('overview');
-    }
-  }, [router.asPath]);
-
-  const handleTabClick = (tabId: TabId) => {
-    if (tabId === 'overview') {
-      history.pushState(null, '', router.asPath.split('#')[0]);
-    } else {
-      window.location.hash = tabId;
-    }
-    setActiveTab(tabId);
-  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -117,35 +99,13 @@ export default function TransactionPage() {
           <div className="ml-3">
             <h1 className="text-2xl font-bold mt-4">Transaction Details</h1>
           </div>
-          <hr className="mt-3" />
-          <div className="mt-3 ml-3">
-            <ul className="flex space-x-2 mt-3">
-              {tabs
-                .filter((tab) => {
-                  if (tab.id === 'eventlog') {
-                    return txnReceipt.logs.length > 0;
-                  }
-                  return true;
-                })
-                .map((tab) => (
-                  <li
-                    key={tab.id}
-                    className={`pb-2 cursor-pointer ${
-                      activeTab === tab.id
-                        ? 'px-2 py-1 font-bold text-xs text-white border border-gray-600 bg-gray-600 rounded-lg'
-                        : 'px-2 py-1 text-xs font-semibold text-gray-200 border border-gray-800 bg-gray-800 rounded-lg flex items-center'
-                    }`}
-                    onClick={() => handleTabClick(tab.id)}
-                  >
-                    {tab.id === 'eventlog'
-                      ? `${tab.label} (${txnReceipt.logs.length})`
-                      : tab.label}
-                  </li>
-                ))}
-            </ul>
-          </div>
-
-          <div className="w-full px-4 mt-3">{renderContent()}</div>
+          <hr className="opacity-75 mt-3" />
+          <TransactionTab
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            txReceipt={txnReceipt}
+          />
+          <div className="w-full mt-3">{renderContent()}</div>
         </div>
       )}
     </>
