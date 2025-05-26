@@ -25,7 +25,7 @@ export const BoolInput: FC<BoolInputProps> = ({ handleUpdate, value }) => {
   return (
     <div className="flex items-center space-x-2">
       <Switch
-        id="bool-input"
+        data-testid="bool-input"
         checked={state.inputValue === 'true'}
         onCheckedChange={handleChange}
       />

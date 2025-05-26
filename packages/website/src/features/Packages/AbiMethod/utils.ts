@@ -9,12 +9,41 @@ export interface InputState {
 // Helper function to get default values for Solidity types
 export const getDefaultValue = (input: AbiParameter): any => {
   const typeString = input.type.toLowerCase();
+
+  // Tuple arrays (e.g., tuple[])
+  // if (type.startsWith('tuple') && type.endsWith('[]')) {
+  //   return [];
+  // }
+
+  if (typeString.endsWith('[][]')) {
+    return undefined;
+  }
+
+  // Dynamic arrays (e.g., uint256[], string[])
+  if (typeString.endsWith('[]') && !typeString.startsWith('tuple')) {
+    return [];
+  }
+
+  // Fixed-size arrays (e.g., uint256[2], string[3])
+  const fixedArrayMatch = typeString.match(/^(.*)\\[(\\d+)\\]$/);
+  if (fixedArrayMatch && !typeString.startsWith('tuple')) {
+    const baseType = fixedArrayMatch[1]; // e.g., "uint256"
+    const size = parseInt(fixedArrayMatch[2]);
+    if (size > 0) {
+      // Create an array of 'size' elements, each initialized by getDefaultValue(baseType)
+      return Array(size)
+        .fill(null)
+        .map(() => getDefaultValue({ type: baseType, name: '_arrayElement' } as AbiParameter));
+    }
+    return [];
+  }
+
   // const components =
   //   'components' in input && Array.isArray(input.components)
   //     ? (input as AbiParameter & { components: readonly AbiParameter[] }).components
   //     : undefined;
 
-  // 1. Handle tuples
+  // Handle tuples
   // if (typeString.startsWith('tuple') && !typeString.endsWith('[]') && components) {
   //   const tupleObject: Record<string, any> = {};
   //   for (const component of components) {
@@ -27,7 +56,7 @@ export const getDefaultValue = (input: AbiParameter): any => {
   //   return tupleObject;
   // }
 
-  // 2. Handle literal tuple string representation (e.g., "(uint256,address)")
+  // Handle literal tuple string representation (e.g., "(uint256,address)")
   // This part might become less relevant if all inputs are proper AbiParameter objects,
   // but can be kept for robustness if such string types can still appear.
   // However, to strictly adhere to input: AbiParameter, this section would ideally be
@@ -68,36 +97,7 @@ export const getDefaultValue = (input: AbiParameter): any => {
 
 export const useInitMethodParams = (inputs: AbiFunction['inputs']) => {
   const [params, setParams] = useState<any[]>(() => {
-    return inputs.map((input) => {
-      const type = input.type.toLowerCase();
-
-      // // 1. Tuple arrays (e.g., tuple[])
-      // if (type.startsWith('tuple') && type.endsWith('[]')) {
-      //   return [];
-      // }
-
-      // 2. Dynamic arrays (e.g., uint256[], string[])
-      if (type.endsWith('[]') && !type.startsWith('tuple')) {
-        return [];
-      }
-
-      // 3. Fixed-size arrays (e.g., uint256[2], string[3])
-      const fixedArrayMatch = type.match(/^(.*)\\[(\\d+)\\]$/);
-      if (fixedArrayMatch && !type.startsWith('tuple')) {
-        const baseType = fixedArrayMatch[1]; // e.g., "uint256"
-        const size = parseInt(fixedArrayMatch[2]);
-        if (size > 0) {
-          // Create an array of 'size' elements, each initialized by getDefaultValue(baseType)
-          return Array(size)
-            .fill(null)
-            .map(() => getDefaultValue({ type: baseType, name: '_arrayElement' } as AbiParameter));
-        }
-        return [];
-      }
-
-      // 4. Single values
-      return getDefaultValue(input);
-    });
+    return inputs.map(getDefaultValue);
   });
 
   return [params, setParams] as const;

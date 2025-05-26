@@ -12,11 +12,7 @@ Feature: Interact page
     When User clicks on the 1st element with id "other-option-section"
     * User clicks on the 1st element with id "CoreRouter-button"
     * User clicks on the 1st element with id "ccipReceive-button"
-    Then "byte32-input" value on "data-testid" attribute should exist
-    When User clicks on the 1st element with id "add-input-button"
-    * User clicks on the 1st element with id "add-input-button"
-    * User clicks on the 1st element with id "remove-input-button"
-    Then "remove-input-button" value on "data-testid" attribute should not exist
+    Then "json-input" value on "data-testid" attribute should exist
 
   Scenario: Selecting the JSON input
     Given User opens the "/packages/reya-omnibus/1.0.45/1729-main/interact" page
@@ -24,7 +20,7 @@ Feature: Interact page
     * User clicks on the 1st element with id "createRiskMatrix-button"
     Then "json-input" value on "data-testid" attribute should exist
     * User types "[[v1, v2], [v3, v4]]" into the 1st input with id "json-input"
-    Then View renders a "p" displaying the text "Invalid JSON:"
+    Then View renders a "div" displaying the text "Invalid JSON"
 
   Scenario: Executing submit with wallet
     Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
@@ -40,9 +36,9 @@ Feature: Interact page
     When User clicks on the 1st element with id "CoreProxy-button"
     Then "getCollateralConfigurations-button" value on "data-testid" attribute should exist
     When User clicks on the 1st element with id "getCollateralConfigurations-button"
-    Then "bool-button" value on "data-testid" attribute should exist
-    When User clicks on the 1st element with id "bool-button"
-    * User clicks on the 1st element with id "bool-true-input"
+    Then "bool-input" value on "data-testid" attribute should exist
+    When User clicks on the 1st element with id "bool-input"
+    * User clicks on the 1st element with id "bool-input"
     * User clicks on the 1st element with id "call-function-button"
     Then Output contains "issuanceRatioD18"
 

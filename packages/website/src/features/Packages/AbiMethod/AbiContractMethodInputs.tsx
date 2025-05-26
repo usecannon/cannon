@@ -74,7 +74,8 @@ export const ContractMethodInputs: FC<Props> = ({
     handleUpdate(newArray);
   };
 
-  if (isInputTypeArray) {
+  if (isInputTypeArray && !methodParameter.type.endsWith('[][]')) {
+    // only single arrays have dynamic inputs, nested arrays are handled by JsonInputs
     const arrayValue = (value as Array<unknown>) || [];
     return (
       <div>

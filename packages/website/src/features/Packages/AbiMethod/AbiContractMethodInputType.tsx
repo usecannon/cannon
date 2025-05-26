@@ -43,6 +43,14 @@ export const AbiContractMethodInputType: FC<AbiMethodInputProps> = ({
   error,
 }) => {
   switch (true) {
+    case input.type.endsWith('[][]'):
+      return (
+        <JsonInput
+          isTupleArray={true}
+          handleUpdate={handleUpdate}
+          value={value}
+        />
+      );
     // handle tuples in arrays
     case input.type.startsWith('tuple'):
       return (
