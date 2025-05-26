@@ -15,6 +15,6 @@ value = "2929372"
 
 [deploy.greeter]
 artifact = "Greeter"
-args = ["<%= settings.msg %>"]
+args = ["<%= settings.msg %>! call from signer <%= defaultSigner %>"]
 libraries.Library = "<%= contracts.library.address %>"
 salt = "<%= settings.salt %>"

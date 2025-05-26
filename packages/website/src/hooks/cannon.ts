@@ -273,7 +273,13 @@ export function useCannonBuild(safe: SafeDefinition | null) {
       await currentRuntime.restoreMisc(prevDeploy.miscUrl);
     }
 
-    const ctx = await createInitialContext(def, prevDeploy?.meta || {}, safe.chainId, prevDeploy?.options || {});
+    const ctx = await createInitialContext(
+      def,
+      prevDeploy?.meta || {},
+      safe.chainId,
+      prevDeploy?.options || {},
+      safe.address
+    );
 
     const newState = await cannonBuild(currentRuntime, def, _.cloneDeep(prevDeploy?.state) ?? {}, ctx);
 

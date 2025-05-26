@@ -158,7 +158,7 @@ function TransactionDetailsPage() {
 
           {/* Tx extra data: right column */}
           <div>
-            <div className="h-full">
+            <div className="sticky top-4">
               <div className="flex flex-col gap-4">
                 {/* Verify txs */}
                 {!transaction.isExecuted && !unorderedNonce && (
