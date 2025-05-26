@@ -1,22 +1,27 @@
-import { ChangeEvent, FC } from 'react';
+import { ChangeEvent, FC, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { InputState } from './utils';
 
 interface DefaultInputProps {
-  handleUpdate: (state: InputState) => void;
-  state: InputState;
+  handleUpdate: (value: any, error?: string) => void;
+  value: any;
 }
 
 export const DefaultInput: FC<DefaultInputProps> = ({
   handleUpdate,
-  state,
+  value,
 }) => {
+  const [state, setInputState] = useState<InputState>({
+    inputValue: value || '',
+    error: undefined,
+  });
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    handleUpdate({
+    handleUpdate(value);
+    setInputState({
       inputValue: value,
-      parsedValue: value,
       error: undefined,
     });
   };

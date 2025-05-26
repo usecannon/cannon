@@ -1,18 +1,23 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { InputState } from './utils';
 
 interface BoolInputProps {
-  handleUpdate: (state: InputState) => void;
-  state: InputState;
+  handleUpdate: (value: any, error?: string) => void;
+  value: any;
 }
 
-export const BoolInput: FC<BoolInputProps> = ({ handleUpdate, state }) => {
+export const BoolInput: FC<BoolInputProps> = ({ handleUpdate, value }) => {
+  const [state, setInputState] = useState<InputState>({
+    inputValue: value?.toString() || 'false',
+    error: undefined,
+  });
+
   const handleChange = (checked: boolean) => {
-    handleUpdate({
+    handleUpdate(checked);
+    setInputState({
       inputValue: checked.toString(),
-      parsedValue: checked,
       error: undefined,
     });
   };
@@ -21,10 +26,12 @@ export const BoolInput: FC<BoolInputProps> = ({ handleUpdate, state }) => {
     <div className="flex items-center space-x-2">
       <Switch
         id="bool-input"
-        checked={state.parsedValue as boolean}
+        checked={state.inputValue === 'true'}
         onCheckedChange={handleChange}
       />
-      <Label htmlFor="bool-input">{state.parsedValue ? 'True' : 'False'}</Label>
+      <Label htmlFor="bool-input">
+        {state.inputValue === 'true' ? 'True' : 'False'}
+      </Label>
     </div>
   );
 };

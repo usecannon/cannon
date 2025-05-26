@@ -370,13 +370,13 @@ export function QueueTransaction({
                   </Label>
                   <ContractMethodInputs
                     key={JSON.stringify(input)}
-                    input={input}
+                    methodParameter={input}
+                    value={params[index]}
                     handleUpdate={(value) => {
                       const params = [...selectedParams];
                       params[index] = value;
                       setSelectedParams(params);
                     }}
-                    initialValue={params[index]}
                   />
                 </div>
               ))}

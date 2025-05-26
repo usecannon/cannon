@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { stringToHex } from 'viem';
 import { InputState } from './utils';
@@ -10,8 +10,8 @@ import {
 import { cn } from '@/lib/utils';
 
 interface ByteInputProps {
-  handleUpdate: (state: InputState) => void;
-  state: InputState;
+  handleUpdate: (value: any, error?: string) => void;
+  value: any;
   byte?: number;
 }
 
@@ -44,9 +44,14 @@ const validateByteInput = (
 
 export const ByteInput: FC<ByteInputProps> = ({
   handleUpdate,
-  state,
+  value,
   byte,
 }) => {
+  const [state, setInputState] = useState<InputState>({
+    inputValue: value || '',
+    error: undefined,
+  });
+
   // Create a dynamic regex based on the byte size
   const hexRegex = byte
     ? new RegExp(`^0x[0-9a-fA-F]{${byte * 2}}$`) // Fixed size: exact length
@@ -57,9 +62,9 @@ export const ByteInput: FC<ByteInputProps> = ({
 
     // Allow empty input
     if (!inputValue) {
-      handleUpdate({
+      handleUpdate(undefined);
+      setInputState({
         inputValue: '',
-        parsedValue: undefined,
         error: undefined,
       });
       return;
@@ -69,9 +74,9 @@ export const ByteInput: FC<ByteInputProps> = ({
       if (inputValue.startsWith('0x')) {
         // If it starts with 0x but isn't a valid hex, pass it through as is
         // This allows partial hex inputs while typing
-        handleUpdate({
+        handleUpdate(undefined, validationError);
+        setInputState({
           inputValue: inputValue,
-          parsedValue: undefined,
           error: validationError,
         });
       } else {
@@ -80,17 +85,17 @@ export const ByteInput: FC<ByteInputProps> = ({
           inputValue,
           byte ? { size: byte } : undefined
         );
-        handleUpdate({
+        handleUpdate(hexValue, validationError);
+        setInputState({
           inputValue: hexValue,
-          parsedValue: hexValue,
           error: validationError,
         });
       }
     } else {
       // If it's already a valid hex string, pass it through
-      handleUpdate({
+      handleUpdate(inputValue, validationError);
+      setInputState({
         inputValue: inputValue,
-        parsedValue: inputValue,
         error: validationError,
       });
     }

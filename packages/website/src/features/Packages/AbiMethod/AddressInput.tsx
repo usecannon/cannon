@@ -1,8 +1,7 @@
 import { isAddress } from 'viem';
 import { Input } from '@/components/ui/input';
-import { FC } from 'react';
+import React, { FC, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { InputState } from './utils';
 
 // Validates if a value is a valid Ethereum address or an array of valid addresses
 const isValidEthereumAddress = (value: string | string[]): boolean => {
@@ -13,37 +12,47 @@ const isValidEthereumAddress = (value: string | string[]): boolean => {
 };
 
 interface AddressInputProps {
-  handleUpdate: (state: InputState) => void;
-  state: InputState;
+  handleUpdate: (value: any, error?: string) => void;
+  value: any;
+  error?: string;
 }
 
 export const AddressInput: FC<AddressInputProps> = ({
   handleUpdate,
-  state,
+  value,
+  error,
 }) => {
-  const isInvalid =
-    state.inputValue && !isValidEthereumAddress(state.inputValue);
+  const [inputValue, setInputValue] = useState(value || '');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const _value = e.target.value;
+
+    if (_value === '') {
+      handleUpdate(undefined);
+      setInputValue('');
+      return;
+    }
+
+    const isValid = isValidEthereumAddress(_value);
+    if (!isValid) {
+      handleUpdate(undefined, 'Invalid address');
+    } else {
+      handleUpdate(_value);
+    }
+    setInputValue(_value);
+  };
 
   return (
     <Input
       type="text"
       className={cn(
         'bg-background',
-        isInvalid
-          ? 'border-destructive focus:border-destructive focus-visible:ring-destructive'
-          : 'border-input'
+        error &&
+          'border-destructive focus:border-destructive focus-visible:ring-destructive'
       )}
       placeholder="0x0000000000000000000000000000000000000000"
-      value={state.inputValue as string}
-      onChange={(e) => {
-        const value = e.target.value || '';
-        const isValid = isAddress(value);
-        handleUpdate({
-          inputValue: value,
-          parsedValue: isValid ? value : undefined,
-          error: isValid ? undefined : 'Invalid address',
-        });
-      }}
+      value={inputValue}
+      onChange={handleChange}
       data-testid="address-input"
     />
   );

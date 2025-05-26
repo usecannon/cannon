@@ -5,7 +5,7 @@ import { FC } from 'react';
 import { AbiContractMethodInputType } from './AbiContractMethodInputType';
 import {
   getDefaultValue,
-  InputState,
+  //InputState,
 } from '@/features/Packages/AbiMethod/utils';
 
 const getInputType = (input: AbiParameter): 'single' | 'array' => {
@@ -43,45 +43,39 @@ const ArrayActionButtons: FC<ArrayActionButtonsProps> = ({ type, onClick }) => {
 };
 
 interface Props {
-  input: AbiParameter;
-  handleUpdate: (state: InputState) => void;
-  state: InputState;
+  methodParameter: AbiParameter;
+  handleUpdate: (value: any, error?: string) => void;
+  value: unknown | unknown[];
+  error?: string;
 }
 
 export const ContractMethodInputs: FC<Props> = ({
-  input,
+  methodParameter,
   handleUpdate,
-  state,
+  value,
+  error,
 }) => {
-  const inputType = getInputType(input);
+  const inputType = getInputType(methodParameter);
   const isInputTypeArray = inputType === 'array';
 
   const addInputToArray = () => {
     if (!isInputTypeArray) throw new Error('input is not an array');
-    const currentArray = (state.parsedValue as InputState[]) || [];
-    const newArray = [...currentArray, getDefaultValue(input)];
-    handleUpdate({
-      inputValue: '',
-      parsedValue: newArray,
-      error: undefined,
-    });
+    const currentArray = (value as Array<unknown>) || [];
+    const newArray = [...currentArray, getDefaultValue(methodParameter)];
+    handleUpdate(newArray);
   };
 
   const removeInputFromArray = (index: number) => {
     if (!isInputTypeArray) throw new Error('input is not an array');
-    const currentArray = (state.parsedValue as InputState[]) || [];
+    const currentArray = (value as Array<unknown>) || [];
     const newArray = currentArray
       .slice(0, index)
       .concat(currentArray.slice(index + 1));
-    handleUpdate({
-      inputValue: '',
-      parsedValue: newArray,
-      error: undefined,
-    });
+    handleUpdate(newArray);
   };
 
   if (isInputTypeArray) {
-    const arrayValue = (state.parsedValue as InputState[]) || [];
+    const arrayValue = (value as Array<unknown>) || [];
     return (
       <div>
         {arrayValue.map((itemState, index) => {
@@ -93,16 +87,13 @@ export const ContractMethodInputs: FC<Props> = ({
               key={index}
             >
               <AbiContractMethodInputType
-                input={input}
-                state={itemState}
+                input={methodParameter}
+                value={itemState}
+                error={error}
                 handleUpdate={(newState) => {
                   const newArray = [...arrayValue];
                   newArray[index] = newState;
-                  handleUpdate({
-                    inputValue: '',
-                    parsedValue: newArray,
-                    error: undefined,
-                  });
+                  handleUpdate(newArray);
                 }}
               />
               {arrayValue.length > 1 && (
@@ -122,8 +113,8 @@ export const ContractMethodInputs: FC<Props> = ({
       <div className="flex flex-row items-center">
         <div className="flex-1">
           <AbiContractMethodInputType
-            input={input}
-            state={state}
+            input={methodParameter}
+            value={value}
             handleUpdate={handleUpdate}
           />
         </div>

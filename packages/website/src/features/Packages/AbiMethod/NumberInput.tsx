@@ -1,20 +1,12 @@
-import { FC, useState, useRef, ChangeEvent } from 'react';
+import { FC, useRef, ChangeEvent, useState } from 'react';
 import { Input } from '@/components/ui/input';
-import { formatUnits, parseUnits } from 'viem';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { ChevronDownIcon } from 'lucide-react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Label } from '@/components/ui/label';
-import { InputState } from './utils';
+import { parseUnits } from 'viem';
 
 interface NumberInputProps {
-  handleUpdate: (state: InputState) => void;
-  state: InputState;
+  handleUpdate: (value: any, error?: string) => void;
+  value: any;
+  error?: string;
   suffix?: string;
   showWeiValue?: boolean;
   fixedDecimals?: number;
@@ -22,117 +14,111 @@ interface NumberInputProps {
 
 export const NumberInput: FC<NumberInputProps> = ({
   handleUpdate,
-  state,
+  value,
+  error,
   suffix,
   showWeiValue = false,
   fixedDecimals = 0,
 }) => {
-  const [decimals, setDecimals] = useState(fixedDecimals);
+  const [inputValue, setInputValue] = useState(value || '');
+  const decimals = fixedDecimals;
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const checkDecimalPlaces = (input: string) => {
-    const decimalPlaces = input.includes('.') ? input.split('.')[1].length : 0;
-    if (decimalPlaces > decimals) {
-      return false;
-    }
-    return true;
-  };
+  // const checkDecimalPlaces = (input: string) => {
+  //   const decimalPlaces = input.includes('.') ? input.split('.')[1].length : 0;
+  //   if (decimalPlaces > decimals) {
+  //     return false;
+  //   }
+  //   return true;
+  // };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const inputValue = event.target.value;
+    const _value = event.target.value;
 
-    if (inputValue === '') {
-      handleUpdate({
-        inputValue: '',
-        parsedValue: undefined,
-        error: undefined,
-      });
+    if (_value === '') {
+      handleUpdate(undefined);
+      setInputValue('');
       return;
     }
 
-    if (!checkDecimalPlaces(inputValue)) {
-      handleUpdate({
-        inputValue,
-        parsedValue: undefined,
-        error: `Input has more decimal places than allowed (max: ${decimals})`,
-      });
-      return;
-    }
+    // if (!checkDecimalPlaces(inputValue)) {
+    //   handleUpdate({
+    //     inputValue,
+    //     parsedValue: undefined,
+    //     error: `Input has more decimal places than allowed (max: ${decimals})`,
+    //   });
+    //   return;
+    // }
 
     try {
-      const parsedValue = parseUnits(inputValue, decimals);
-      handleUpdate({
-        inputValue,
-        parsedValue,
-        error: undefined,
-      });
+      parseUnits(_value, decimals);
+      handleUpdate(_value);
+      setInputValue(_value);
     } catch {
-      handleUpdate({
-        inputValue,
-        parsedValue: undefined,
-        error: 'Invalid number format',
-      });
+      handleUpdate(undefined, 'Invalid number format');
     }
   };
 
-  const handleDecimalChange = (newDecimals: number) => {
-    setDecimals(newDecimals);
+  // const handleDecimalChange = (newDecimals: number) => {
+  //   setDecimals(newDecimals);
 
-    if (!state.inputValue) {
-      return;
-    }
+  //   if (!state.inputValue) {
+  //     return;
+  //   }
 
-    try {
-      // Convert the current value to the new decimal places
-      const currentValue = parseUnits(state.inputValue, decimals);
-      const adaptedValue = formatUnits(currentValue, newDecimals);
+  //   try {
+  //     // Convert the current value to the new decimal places
+  //     const currentValue = parseUnits(state.inputValue, decimals);
+  //     const adaptedValue = formatUnits(currentValue, newDecimals);
 
-      // Check if the adapted value has more decimals than allowed
-      if (
-        adaptedValue.includes('.') &&
-        adaptedValue.split('.')[1].length > newDecimals
-      ) {
-        handleUpdate({
-          inputValue: state.inputValue,
-          parsedValue: undefined,
-          error: `Value has more decimal places than allowed (max: ${newDecimals})`,
-        });
-        return;
-      }
+  //     // Check if the adapted value has more decimals than allowed
+  //     if (
+  //       adaptedValue.includes('.') &&
+  //       adaptedValue.split('.')[1].length > newDecimals
+  //     ) {
+  //       handleUpdate({
+  //         inputValue: state.inputValue,
+  //         parsedValue: undefined,
+  //         error: `Value has more decimal places than allowed (max: ${newDecimals})`,
+  //       });
+  //       return;
+  //     }
 
-      // Update with the adapted value
-      const newValue = parseUnits(adaptedValue, newDecimals);
-      handleUpdate({
-        inputValue: adaptedValue,
-        parsedValue: newValue,
-        error: undefined,
-      });
-    } catch {
-      handleUpdate({
-        inputValue: state.inputValue,
-        parsedValue: undefined,
-        error: 'Invalid number format',
-      });
-    }
-  };
+  //     // Update with the adapted value
+  //     const newValue = parseUnits(adaptedValue, newDecimals);
+  //     handleUpdate({
+  //       inputValue: adaptedValue,
+  //       parsedValue: newValue,
+  //       error: undefined,
+  //     });
+  //   } catch {
+  //     handleUpdate({
+  //       inputValue: state.inputValue,
+  //       parsedValue: undefined,
+  //       error: 'Invalid number format',
+  //     });
+  //   }
+  // };
 
   return (
     <div className="flex flex-col">
       <div className="flex items-stretch">
         <Input
           ref={inputRef}
-          type="text"
+          type="number"
+          min={0}
+          step="1"
           className={cn(
             'bg-background border-input rounded-r-none h-10',
-            state.error &&
+            error &&
               'border-destructive focus:border-destructive focus-visible:ring-destructive'
           )}
           placeholder="0"
-          value={state.inputValue as string}
+          value={inputValue}
           onChange={handleChange}
           data-testid="number-input"
         />
-        {!fixedDecimals && (
+        {/* {!fixedDecimals && (
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -163,17 +149,15 @@ export const NumberInput: FC<NumberInputProps> = ({
               </div>
             </PopoverContent>
           </Popover>
-        )}
+        )} */}
         {suffix && (
           <div className="flex items-center px-3 py-1 bg-background text-gray-300 border border-l-0 border-border rounded-r-md h-10">
             {suffix}
           </div>
         )}
       </div>
-      {showWeiValue && state.parsedValue && (
-        <p className="text-xs text-muted-foreground mt-1">
-          {state.parsedValue.toString()} wei
-        </p>
+      {showWeiValue && inputValue && (
+        <p className="text-xs text-muted-foreground mt-1">{inputValue} wei</p>
       )}
     </div>
   );

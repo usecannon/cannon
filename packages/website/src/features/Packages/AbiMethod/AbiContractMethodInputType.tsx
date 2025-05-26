@@ -6,7 +6,6 @@ import { ByteInput } from './ByteInput';
 import { DefaultInput } from './DefaultInput';
 import { NumberInput } from './NumberInput';
 import { JsonInput } from './JsonInput';
-import { InputState } from './utils';
 //import TupleInput from './TupleInput';
 
 // Type guards for value assertions
@@ -15,20 +14,33 @@ const isBoolean = (value: unknown): value is boolean =>
 const isString = (value: unknown): value is string => typeof value === 'string';
 const isStringArray = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every((item) => typeof item === 'string');
-const isBigInt = (value: unknown): value is bigint => typeof value === 'bigint';
+const isBigInt = (value: unknown): value is bigint => {
+  if (typeof value == 'string') {
+    try {
+      BigInt(value);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  } else {
+    return typeof value === 'bigint';
+  }
+};
 // const isObject = (value: unknown): value is Record<string, unknown> =>
 //   typeof value === 'object' && value !== null;
 
 interface AbiMethodInputProps {
   input: AbiParameter;
-  handleUpdate: (state: InputState) => void;
-  state: InputState;
+  handleUpdate: (value: any) => void;
+  value: any;
+  error?: string;
 }
 
 export const AbiContractMethodInputType: FC<AbiMethodInputProps> = ({
   input,
   handleUpdate,
-  state,
+  value,
+  error,
 }) => {
   switch (true) {
     // handle tuples in arrays
@@ -37,7 +49,7 @@ export const AbiContractMethodInputType: FC<AbiMethodInputProps> = ({
         <JsonInput
           isTupleArray={input.type.includes('[]')}
           handleUpdate={handleUpdate}
-          state={state}
+          value={value}
         />
       );
     // handle tuples, but not tuples in arrays
@@ -49,40 +61,35 @@ export const AbiContractMethodInputType: FC<AbiMethodInputProps> = ({
     //     <TupleInput input={input} handleUpdate={handleUpdate} value={value} />
     //   );
     case input.type.startsWith('bool'):
-      if (!isBoolean(state.parsedValue) && state.parsedValue !== undefined) {
-        throw new Error(
-          `Expected boolean for bool type, got ${typeof state.parsedValue}`
-        );
+      if (!isBoolean(value) && value !== undefined) {
+        throw new Error(`Expected boolean for bool type, got ${typeof value}`);
       }
-      return <BoolInput handleUpdate={handleUpdate} state={state} />;
+      return <BoolInput handleUpdate={handleUpdate} value={value} />;
     case input.type.startsWith('address'):
-      if (
-        !isString(state.parsedValue) &&
-        !isStringArray(state.parsedValue) &&
-        state.parsedValue !== undefined
-      ) {
+      if (!isString(value) && !isStringArray(value) && value !== undefined) {
         throw new Error(
-          `Expected string, string array or undefined for address type, got ${typeof state.parsedValue}`
+          `Expected string, string array or undefined for address type, got ${typeof value}`
         );
       }
-      return <AddressInput handleUpdate={handleUpdate} state={state} />;
+      return <AddressInput handleUpdate={handleUpdate} value={value} />;
     case input.type.startsWith('int') || input.type.startsWith('uint'):
-      if (!isBigInt(state.parsedValue) && state.parsedValue !== undefined) {
+      if (!isBigInt(value) && value !== undefined) {
         throw new Error(
-          `Expected bigint or undefined for number type, got ${typeof state.parsedValue}`
+          `Expected bigint or undefined for number type, got ${typeof value}`
         );
       }
       return (
-        <NumberInput handleUpdate={handleUpdate} state={state} showWeiValue />
+        <NumberInput
+          handleUpdate={handleUpdate}
+          value={value}
+          error={error}
+          showWeiValue
+        />
       );
     case input.type.startsWith('bytes'): {
-      if (
-        !isString(state.parsedValue) &&
-        !isStringArray(state.parsedValue) &&
-        state.parsedValue !== undefined
-      ) {
+      if (!isString(value) && !isStringArray(value) && value !== undefined) {
         throw new Error(
-          `Expected string, string array or undefined for bytes type, got ${typeof state.parsedValue}`
+          `Expected string, string array or undefined for bytes type, got ${typeof value}`
         );
       }
       // Extract the number of bytes from the type string (e.g., 'bytes32' -> 32)
@@ -90,21 +97,17 @@ export const AbiContractMethodInputType: FC<AbiMethodInputProps> = ({
       return (
         <ByteInput
           handleUpdate={handleUpdate}
-          state={state}
+          value={value}
           byte={isNaN(byteSize) ? undefined : byteSize}
         />
       );
     }
     default:
-      if (
-        !isString(state.parsedValue) &&
-        !isStringArray(state.parsedValue) &&
-        state.parsedValue !== undefined
-      ) {
+      if (!isString(value) && !isStringArray(value) && value !== undefined) {
         throw new Error(
-          `Expected string, string array or undefined for default type, got ${typeof state.parsedValue}`
+          `Expected string, string array or undefined for default type, got ${typeof value}`
         );
       }
-      return <DefaultInput handleUpdate={handleUpdate} state={state} />;
+      return <DefaultInput handleUpdate={handleUpdate} value={value} />;
   }
 };

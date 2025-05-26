@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AbiParameter } from 'viem';
 import { ContractMethodInputs } from './AbiContractMethodInputs';
 import { Label } from '@/components/ui/label';
@@ -13,11 +13,16 @@ const isTupleTypeWithComponents = (
 
 interface TupleInputProps {
   input: AbiParameter;
-  handleUpdate: (state: InputState) => void;
-  state: InputState;
+  handleUpdate: (value: any, error?: string) => void;
+  value: any;
 }
 
-const TupleInput = ({ input, handleUpdate, state }: TupleInputProps) => {
+const TupleInput = ({ input, handleUpdate, value }: TupleInputProps) => {
+  const [state, setInputState] = useState<InputState>({
+    inputValue: value ? JSON.stringify(value) : '',
+    error: undefined,
+  });
+
   const getDefaultValueForType = (component: AbiParameter) => {
     if (component.type.startsWith('bool')) return false;
     if (component.type.startsWith('int')) return '0';
@@ -29,7 +34,7 @@ const TupleInput = ({ input, handleUpdate, state }: TupleInputProps) => {
     if (!isTupleTypeWithComponents(input)) return;
 
     // If value is undefined or empty, initialize with default values
-    if (!state.parsedValue || Object.keys(state.parsedValue).length === 0) {
+    if (!value || Object.keys(value).length === 0) {
       const initialValue = input.components.reduce(
         (acc: Record<string, any>, component: AbiParameter) => {
           if (component.name) {
@@ -39,13 +44,13 @@ const TupleInput = ({ input, handleUpdate, state }: TupleInputProps) => {
         },
         {}
       );
-      handleUpdate({
+      handleUpdate(initialValue);
+      setInputState({
         inputValue: JSON.stringify(initialValue),
-        parsedValue: initialValue,
         error: undefined,
       });
     }
-  }, [input, state.parsedValue, handleUpdate]);
+  }, [input, value, handleUpdate]);
 
   if (!isTupleTypeWithComponents(input)) {
     throw new Error('Input is not a tuple type with components');
@@ -64,26 +69,18 @@ const TupleInput = ({ input, handleUpdate, state }: TupleInputProps) => {
             )}
           </Label>
           <ContractMethodInputs
-            input={component}
-            state={{
-              inputValue: component.name
-                ? state.parsedValue?.[component.name]?.toString()
-                : '',
-              parsedValue: component.name
-                ? state.parsedValue?.[component.name]
-                : undefined,
-              error: undefined,
-            }}
-            handleUpdate={(newState) => {
+            methodParameter={component}
+            value={component.name ? value?.[component.name] : undefined}
+            handleUpdate={(newValue, error) => {
               if (component.name) {
                 const updatedValue = {
-                  ...state.parsedValue,
-                  [component.name]: newState.parsedValue,
+                  ...value,
+                  [component.name]: newValue,
                 };
-                handleUpdate({
+                handleUpdate(updatedValue, error);
+                setInputState({
                   inputValue: JSON.stringify(updatedValue),
-                  parsedValue: updatedValue,
-                  error: newState.error,
+                  error,
                 });
               }
             }}

@@ -2,12 +2,12 @@ import { AbiFunction, AbiParameter } from 'abitype';
 import { useState } from 'react';
 export interface InputState {
   inputValue: string; // the value used to display in the input
-  parsedValue: any; // if the input value is correct, we use this attribute to store the parsed value, for example a BigInt(inputValue).
+  // parsedValue: any; // if the input value is correct, we use this attribute to store the parsed value, for example a BigInt(inputValue).
   error?: string;
 }
 
 // Helper function to get default values for Solidity types
-export const getDefaultValue = (input: AbiParameter): InputState => {
+export const getDefaultValue = (input: AbiParameter): any => {
   const typeString = input.type.toLowerCase();
   // const components =
   //   'components' in input && Array.isArray(input.components)
@@ -39,13 +39,7 @@ export const getDefaultValue = (input: AbiParameter): InputState => {
       .split(',')
       .map((t) => t.trim());
     // This returns an array of default values.
-    return {
-      inputValue: '',
-      parsedValue: innerTypes.map((innerType) =>
-        getDefaultValue({ type: innerType, name: '_innerElement' } as AbiParameter)
-      ),
-      error: undefined,
-    };
+    return innerTypes.map((innerType) => getDefaultValue({ type: innerType, name: '_innerElement' } as AbiParameter));
   }
 
   // const _typeString = typeString.includes('tuple') ? (typeString.endsWith('[]') ? 'tupleArray' : 'tuple') : typeString;
@@ -53,55 +47,27 @@ export const getDefaultValue = (input: AbiParameter): InputState => {
   // 3. Handle basic types
   switch (typeString) {
     case 'bool':
-      return {
-        inputValue: '',
-        parsedValue: false,
-        error: undefined,
-      };
+      return false;
     case 'address':
-      return {
-        inputValue: '',
-        parsedValue: '', // Default empty address
-        error: undefined,
-      };
+      return ''; // Default empty address
     case 'string':
-      return {
-        inputValue: '',
-        parsedValue: '',
-        error: undefined,
-      };
+      return '';
     case 'tuple':
-      return {
-        inputValue: '',
-        parsedValue: undefined,
-        error: undefined,
-      };
+      return undefined;
     default:
       // bytesN (fixed size)
       if (typeString.startsWith('bytes')) {
-        return {
-          inputValue: '',
-          parsedValue: '',
-          error: undefined,
-        };
+        return '';
       }
       if (typeString.startsWith('int') || typeString.startsWith('uint')) {
-        return {
-          inputValue: '',
-          parsedValue: undefined,
-          error: undefined,
-        };
+        return undefined;
       }
-      return {
-        inputValue: '',
-        parsedValue: null,
-        error: undefined,
-      };
+      return null;
   }
 };
 
 export const useInitMethodParams = (inputs: AbiFunction['inputs']) => {
-  const [params, setParams] = useState<InputState[]>(() => {
+  const [params, setParams] = useState<any[]>(() => {
     return inputs.map((input) => {
       const type = input.type.toLowerCase();
 
@@ -112,11 +78,7 @@ export const useInitMethodParams = (inputs: AbiFunction['inputs']) => {
 
       // 2. Dynamic arrays (e.g., uint256[], string[])
       if (type.endsWith('[]') && !type.startsWith('tuple')) {
-        return {
-          inputValue: '',
-          parsedValue: [],
-          error: undefined,
-        };
+        return [];
       }
 
       // 3. Fixed-size arrays (e.g., uint256[2], string[3])
@@ -126,19 +88,11 @@ export const useInitMethodParams = (inputs: AbiFunction['inputs']) => {
         const size = parseInt(fixedArrayMatch[2]);
         if (size > 0) {
           // Create an array of 'size' elements, each initialized by getDefaultValue(baseType)
-          return {
-            inputValue: '',
-            parsedValue: Array(size)
-              .fill(null)
-              .map(() => getDefaultValue({ type: baseType, name: '_arrayElement' } as AbiParameter).parsedValue),
-            error: undefined,
-          };
+          return Array(size)
+            .fill(null)
+            .map(() => getDefaultValue({ type: baseType, name: '_arrayElement' } as AbiParameter));
         }
-        return {
-          inputValue: '',
-          parsedValue: [],
-          error: undefined,
-        };
+        return [];
       }
 
       // 4. Single values
@@ -154,14 +108,14 @@ export const useInitMethodParams = (inputs: AbiFunction['inputs']) => {
  * @param params Array of InputState objects
  * @returns Array of final values, with nested arrays properly handled
  */
-export const extractParamValues = (params: InputState[]): any[] => {
-  return params.map((p) => {
-    // arrays and tuples assign to parsedValue and array.
-    // only inputType of type array save an InputStates on each element of the array.
-    // tuples arrays save raw values.
-    if (Array.isArray(p.parsedValue) && p.parsedValue[0]?.parsedValue) {
-      return p.parsedValue.map((item) => item.parsedValue);
-    }
-    return p.parsedValue;
-  });
-};
+// export const extractParamValues = (params: InputState[]): any[] => {
+//   return params.map((p) => {
+//     // arrays and tuples assign to parsedValue and array.
+//     // only inputType of type array save an InputStates on each element of the array.
+//     // tuples arrays save raw values.
+//     if (Array.isArray(p.parsedValue) && p.parsedValue[0]?.parsedValue) {
+//       return p.parsedValue.map((item) => item.parsedValue);
+//     }
+//     return p.parsedValue;
+//   });
+// };

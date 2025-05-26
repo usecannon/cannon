@@ -25,7 +25,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { Abi, AbiFunction, AbiParameter } from 'abitype';
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useState } from 'react';
 import {
   Address,
   encodeFunctionData,
@@ -42,10 +42,7 @@ import {
 import { AddressInput } from '@/features/Packages/AbiMethod/AddressInput';
 import { links } from '@/constants/links';
 import { NumberInput } from '@/features/Packages/AbiMethod/NumberInput';
-import {
-  useInitMethodParams,
-  extractParamValues,
-} from '@/features/Packages/AbiMethod/utils';
+import { useInitMethodParams } from '@/features/Packages/AbiMethod/utils';
 import { useContractInteraction } from './useContractInteraction';
 import { isPayable, isReadOnly } from '@/helpers/abi';
 import { InputState } from '@/features/Packages/AbiMethod/utils';
@@ -98,28 +95,16 @@ const SimulateSenderPopover: React.FC<SimulateSenderPopoverProps> = ({
   hasParamsError,
   simulatedSender,
   chainId,
+  onSenderChange,
 }) => {
   const { getChainById } = useCannonChains();
-
-  const [state, setState] = useState<InputState>({
-    inputValue: simulatedSender,
-    parsedValue: simulatedSender,
-    error: undefined,
-  });
-
-  useEffect(() => {
-    setState({
-      inputValue: simulatedSender,
-      parsedValue: simulatedSender,
-      error: undefined,
-    });
-  }, [simulatedSender]);
+  const [error, setError] = useState<string | undefined>(undefined);
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          disabled={isCallingMethod || hasParamsError || Boolean(state.error)}
+          disabled={isCallingMethod || hasParamsError || Boolean(error)}
           variant="outline"
           className="rounded-l-none px-2 h-9 w-1/2 max-w-[55px]"
           size="sm"
@@ -130,7 +115,16 @@ const SimulateSenderPopover: React.FC<SimulateSenderPopoverProps> = ({
       <PopoverContent className="w-80">
         <Label>Simulated Sender</Label>
         <div className="grid gap-4 mt-1">
-          <AddressInput state={state} handleUpdate={setState} />
+          <AddressInput
+            value={simulatedSender}
+            handleUpdate={(value, error) => {
+              if (error) {
+                setError(error);
+                return;
+              }
+              onSenderChange(value);
+            }}
+          />
           <p className="text-sm text-muted-foreground">
             Using{' '}
             {(() => {
@@ -297,12 +291,16 @@ export const AbiContractMethodInteraction: FC<{
     (s) => s
   );
   const { queuedIdentifiableTxns, lastQueuedTxnsId } = useQueuedTransactions();
+
+  // values and errors for the method inputs.
   const [params, setParams] = useInitMethodParams(f.inputs);
-  const [txValue, setTxValue] = useState<InputState>({
-    inputValue: '',
-    parsedValue: undefined,
-    error: undefined,
-  });
+  const [paramsError, setParamsError] = useState<(string | undefined)[]>([]);
+  // error when trying to stage the transaction.
+  const [stageToSafeError, setStageToSafeError] = useState<string | undefined>(
+    undefined
+  );
+
+  const [txValue, setTxValue] = useState<string | undefined>(undefined);
   const {
     isCallingMethod,
     isSimulation,
@@ -316,7 +314,7 @@ export const AbiContractMethodInteraction: FC<{
     abi,
     address,
     chainId,
-    params: extractParamValues(params),
+    params: [...params],
     isFunctionReadOnly,
   });
 
@@ -354,6 +352,8 @@ export const AbiContractMethodInteraction: FC<{
   };
 
   const handleQueueTransaction = () => {
+    setStageToSafeError(undefined);
+
     if (!currentSafe) {
       toast.error('Please select a Safe first', {
         duration: 5000,
@@ -378,10 +378,7 @@ export const AbiContractMethodInteraction: FC<{
       _txn = {
         to: address,
         data: toFunctionSelector(f),
-        value:
-          isFunctionPayable && txValue.parsedValue !== undefined
-            ? parseEther(txValue.parsedValue.toString())
-            : undefined,
+        value: isFunctionPayable && txValue ? parseEther(txValue) : undefined,
       };
     } else {
       try {
@@ -389,14 +386,12 @@ export const AbiContractMethodInteraction: FC<{
           to: address,
           data: encodeFunctionData({
             abi: [f],
-            args: extractParamValues(params),
+            args: [...params],
           }),
-          value:
-            isFunctionPayable && txValue.parsedValue !== undefined
-              ? parseEther(txValue.parsedValue.toString())
-              : undefined,
+          value: isFunctionPayable && txValue ? parseEther(txValue) : undefined,
         };
-      } catch (err: unknown) {
+      } catch (err: any) {
+        setStageToSafeError(err.message);
         clearResult();
         return;
       }
@@ -411,7 +406,7 @@ export const AbiContractMethodInteraction: FC<{
           contractName,
           target: address,
           fn: f,
-          params: extractParamValues(params),
+          params: [...params],
           chainId,
           pkgUrl: packageUrl || '',
         },
@@ -458,12 +453,20 @@ export const AbiContractMethodInteraction: FC<{
                   )}
                 </Label>
                 <ContractMethodInputs
-                  input={input}
-                  state={params[index]}
-                  handleUpdate={(newState) => setParam(index, newState)}
+                  methodParameter={input}
+                  value={params[index]}
+                  error={paramsError[index]}
+                  handleUpdate={(newState, error) => {
+                    setParamsError((prev) => {
+                      const newErrors = [...prev];
+                      newErrors[index] = error;
+                      return newErrors;
+                    });
+                    setParam(index, newState);
+                  }}
                 />
-                {params[index].error && (
-                  <InputErrorAlert error={params[index].error!} />
+                {paramsError[index] && (
+                  <InputErrorAlert error={paramsError[index]} />
                 )}
               </div>
             ))}
@@ -479,7 +482,7 @@ export const AbiContractMethodInteraction: FC<{
                 <NumberInput
                   handleUpdate={setTxValue}
                   fixedDecimals={18}
-                  state={txValue}
+                  value={txValue}
                   suffix="ETH"
                 />
               </div>
@@ -488,7 +491,9 @@ export const AbiContractMethodInteraction: FC<{
             {isFunctionReadOnly && (
               <div className="flex">
                 <Button
-                  disabled={isCallingMethod || params.some((p) => p.error)}
+                  disabled={
+                    isCallingMethod || paramsError.some((p) => p !== undefined)
+                  }
                   variant="outline"
                   size="sm"
                   onClick={async () => await submit()}
@@ -500,7 +505,7 @@ export const AbiContractMethodInteraction: FC<{
                 </Button>
                 <SimulateSenderPopover
                   isCallingMethod={isCallingMethod}
-                  hasParamsError={params.some((p) => p.error)}
+                  hasParamsError={paramsError.some((p) => p !== undefined)}
                   simulatedSender={simulationSender}
                   chainId={chainId}
                   onSenderChange={(value) => {
@@ -518,14 +523,14 @@ export const AbiContractMethodInteraction: FC<{
                   <SimulateButton
                     chainId={chainId}
                     isCallingMethod={isCallingMethod}
-                    hasParamsError={params.some((p) => p.error)}
+                    hasParamsError={paramsError.some((p) => p !== undefined)}
                     onSimulate={async () => submit({ simulate: true })}
                     isSimulation={isSimulation}
                     methodCallOrQueuedResult={callMethodResult}
                   />
                   <SimulateSenderPopover
                     isCallingMethod={isCallingMethod}
-                    hasParamsError={params.some((p) => p.error)}
+                    hasParamsError={paramsError.some((p) => p !== undefined)}
                     simulatedSender={simulationSender}
                     chainId={chainId}
                     onSenderChange={(value) => {
@@ -536,14 +541,14 @@ export const AbiContractMethodInteraction: FC<{
                 </div>
                 <SubmitButton
                   isCallingMethod={isCallingMethod}
-                  hasParamsError={params.some((p) => p.error)}
+                  hasParamsError={paramsError.some((p) => p !== undefined)}
                   onSubmit={async () => await submit()}
                   isSimulation={isSimulation}
                   methodCallOrQueuedResult={callMethodResult}
                 />
                 <StageToSafeButton
                   isCallingMethod={isCallingMethod}
-                  hasParamsError={params.some((p) => p.error)}
+                  hasParamsError={paramsError.some((p) => p !== undefined)}
                   onStage={handleQueueTransaction}
                   functionName={f.name}
                 />
@@ -556,6 +561,8 @@ export const AbiContractMethodInteraction: FC<{
                 onClose={clearResult}
               />
             )}
+
+            {stageToSafeError && <InputErrorAlert error={stageToSafeError} />}
           </div>
 
           {/* Output */}
