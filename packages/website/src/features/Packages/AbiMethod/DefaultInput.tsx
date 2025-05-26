@@ -1,40 +1,35 @@
 import { ChangeEvent, FC, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { InputState } from './utils';
 
 interface DefaultInputProps {
   handleUpdate: (value: any, error?: string) => void;
   value: any;
+  error?: string;
 }
 
 export const DefaultInput: FC<DefaultInputProps> = ({
   handleUpdate,
   value,
+  error,
 }) => {
-  const [state, setInputState] = useState<InputState>({
-    inputValue: value || '',
-    error: undefined,
-  });
+  const [inputValue, setInputValue] = useState(value || '');
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     handleUpdate(value);
-    setInputState({
-      inputValue: value,
-      error: undefined,
-    });
+    setInputValue(value);
   };
 
   return (
     <div className="space-y-2">
       <Input
         type="text"
-        value={state.inputValue as string}
+        value={inputValue}
         onChange={handleChange}
-        className={cn(state.error && 'border-red-500')}
+        className={cn(error && 'border-red-500')}
       />
-      {state.error && <p className="text-sm text-red-500">{state.error}</p>}
+      {error && <p className="text-sm text-red-500">{error}</p>}
     </div>
   );
 };

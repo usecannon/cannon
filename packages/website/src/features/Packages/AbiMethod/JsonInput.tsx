@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { ChangeEvent, FC, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import {
   Tooltip,
@@ -6,72 +6,63 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { InputState } from './utils';
 
 interface JsonInputProps {
   isTupleArray: boolean;
   handleUpdate: (value: any, error?: string) => void;
   value: any;
+  error?: string;
 }
 
 export const JsonInput: FC<JsonInputProps> = ({
   handleUpdate,
   value,
   isTupleArray,
+  error,
 }) => {
-  const [state, setInputState] = useState<InputState>({
-    inputValue: Array.isArray(value) ? JSON.stringify(value) : value || '',
-    error: undefined,
-  });
+  const [inputValue, setInputValue] = useState(
+    Array.isArray(value) ? JSON.stringify(value) : value || ''
+  );
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
 
-    if (inputValue === '') {
+    if (value === '') {
       handleUpdate(undefined);
-      setInputState({
-        inputValue: '',
-        error: undefined,
-      });
+      setInputValue('');
       return;
     }
 
     try {
-      const parsedValue = JSON.parse(inputValue);
+      const parsedValue = JSON.parse(value);
       handleUpdate(parsedValue);
-      setInputState({
-        inputValue,
-        error: undefined,
-      });
+      setInputValue(value);
     } catch (error) {
       handleUpdate(undefined, 'Invalid JSON format');
-      setInputState({
-        inputValue,
-        error: 'Invalid JSON format',
-      });
+      setInputValue(value);
     }
   };
 
   return (
-    <Tooltip open={!!state.error}>
+    <Tooltip open={!!error}>
       <TooltipTrigger asChild>
         <Input
           type="text"
           className={cn(
             'bg-background',
-            state.error
+            error
               ? 'border-destructive focus:border-destructive focus-visible:ring-destructive'
               : 'border-input'
           )}
           placeholder={isTupleArray ? '[[v1, v2], [v3, v4]]' : '[v1, v2]'}
-          value={state.inputValue as string}
+          value={inputValue}
           onChange={handleChange}
           data-testid="json-input"
         />
       </TooltipTrigger>
-      {state.error && (
+      {error && (
         <TooltipContent side="top" className="max-w-sm text-center">
-          <p className="break-words">{state.error}</p>
+          <p className="break-words">{error}</p>
         </TooltipContent>
       )}
     </Tooltip>
