@@ -6,6 +6,14 @@ Feature: Interact page
     * View renders a "h1" displaying the text "synthetix"
     * User clicks on the 1st element with id "interact-link"
 
+  Scenario: Add and remove items from array input
+    Given User opens the "/packages/test-contracts/latest/11155111-types-tester/interact" page
+    Then View renders a "h4" displaying the text "Diamond"
+    When User clicks on the 1st element with id "setArrU256-button"
+      * User clicks on the 1st element with id "add-input-button"
+      * User clicks on the 1st element with id "remove-input-button"
+    Then "remove-input-button" value on "data-testid" attribute should not exist
+
   Scenario: Selecting the tuple input
     Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
     Then View renders a "h4" displaying the text "AccountProxy"
