@@ -133,7 +133,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.21",
     "babel-plugin-istanbul": "^7.0.0",
-    "cypress": "^13.17.0",
+    "cypress": "^14.4.0",
     "cypress-xpath": "^2.0.1",
     "eslint": "8.43.0",
     "eslint-config-next": "^14.2.26",
