@@ -57,10 +57,12 @@ export const useContractInteraction = ({
   const { switchChain } = useSwitchChain();
   const { openConnectModal } = useConnectModal();
   const { data: walletClient } = useWalletClient({
-    chainId: chainId as number,
+    chainId,
   })!;
 
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({
+    chainId,
+  });
   if (!publicClient) throw new Error('Public client not found');
 
   // Local state
