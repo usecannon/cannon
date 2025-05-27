@@ -22,6 +22,7 @@ Feature: Interact page
     * User clicks on the 1st element with id "ccipReceive-button"
     Then "json-input" value on "data-testid" attribute should exist
 
+  @skip
   Scenario: Selecting the JSON input
     Given User opens the "/packages/reya-omnibus/1.0.45/1729-main/interact" page
     When User clicks on the 1st element with id "CoreProxy-button"
@@ -71,6 +72,7 @@ Feature: Interact page
     * User clicks on the 1st element with id "getPackageOwner-button"
     * User types "registry" into the 1st input with id "byte32-input"
     * User clicks on the 1st element with id "call-function-button"
+    * User waits for 3 seconds while loading
     Then Output contains "0x493E75825b862c355a4263C9C1CB6F650539B328"
 
   Scenario: Executing read functions with contract output

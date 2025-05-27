@@ -1,9 +1,10 @@
 import { useContractCall, useContractTransaction } from '@/hooks/ethereum';
-import { useAccount, useSwitchChain, useWalletClient, usePublicClient } from 'wagmi';
+import { useAccount, useSwitchChain, useWalletClient } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { Abi, AbiFunction } from 'abitype';
-import { Address, zeroAddress } from 'viem';
+import { Address, createPublicClient, zeroAddress } from 'viem';
 import { useState, useEffect } from 'react';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
 // Types
 interface UseContractInteractionProps {
@@ -60,15 +61,11 @@ export const useContractInteraction = ({
     chainId,
   })!;
 
-  // TODO: maybe this should use as before from Function.tsx:
-  //       const { getChainById, transports } = useCannonChains();
-  //       const chain = getChainById(chainId);
-  //       const publicClient = createPublicClient({
-  //         chain,
-  //         transport: transports[chainId],
-  //       });
-  const publicClient = usePublicClient({
-    chainId,
+  const { getChainById, transports } = useCannonChains();
+  const chain = getChainById(chainId);
+  const publicClient = createPublicClient({
+    chain,
+    transport: transports[chainId],
   });
   if (!publicClient) throw new Error('Public client not found');
 
