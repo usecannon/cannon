@@ -1,9 +1,5 @@
 import { CircleHelp } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import InfoTooltip from '@/features/Txn/InfoTooltip';
 
 type TxInfoRowProps = {
   label: string;
@@ -19,14 +15,9 @@ const TxInfoRow: React.FC<TxInfoRowProps> = ({
   return (
     <div className="flex flex-col sm:flex-row items-start gap-x-4 gap-y-1">
       <div className="flex items-center gap-1 w-full sm:w-1/4 text-left font-medium text-gray-400">
-        <Tooltip>
-          <TooltipTrigger className="cursor-default">
-            <CircleHelp className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent side="right" className="max-w-sm text-center">
-            {description}
-          </TooltipContent>
-        </Tooltip>
+        <InfoTooltip trigger={<CircleHelp className="h-4 w-4" />} side="right">
+          {description}
+        </InfoTooltip>
         <span>{label}</span>
       </div>
       <div className="w-full sm:w-3/4 flex items-center gap-2 break-all">

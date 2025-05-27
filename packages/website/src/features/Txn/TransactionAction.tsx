@@ -1,13 +1,13 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import React from 'react';
 import { formatEther, GetTransactionReturnType } from 'viem';
-import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { ExtendedTransactionReceipt } from '@/types/ExtendedTransactionReceipt';
+import { Chain } from '@/types/Chain';
 
 type TransactionActionProps = {
   tx: GetTransactionReturnType;
   txReceipt: ExtendedTransactionReceipt;
-  chain: ReturnType<ReturnType<typeof useCannonChains>['getChainById']>;
+  chain: Chain;
 };
 
 const TransactionAction: React.FC<TransactionActionProps> = ({

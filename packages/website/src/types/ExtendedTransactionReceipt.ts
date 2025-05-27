@@ -1,4 +1,4 @@
-import { GetTransactionReceiptReturnType } from "viem";
+import { GetTransactionReceiptReturnType } from 'viem';
 
 type L2ReceiptExtension = {
   l1BaseFeeScalar?: string;
@@ -10,5 +10,4 @@ type L2ReceiptExtension = {
   l1FeeScalar?: bigint;
 };
 
-export type ExtendedTransactionReceipt = GetTransactionReceiptReturnType &
-  Partial<L2ReceiptExtension>;
+export type ExtendedTransactionReceipt = GetTransactionReceiptReturnType & Partial<L2ReceiptExtension>;

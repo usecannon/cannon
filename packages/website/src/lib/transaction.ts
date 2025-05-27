@@ -13,39 +13,23 @@ export function getTxnTypeLabel(typeHex: string): string {
   }
 }
 
-export function getTransactionSavings(
-  maxFeePerGas: bigint,
-  effectiveGasPrice: bigint,
-  gasUsed: bigint
-): string {
-  return formatEther(
-    maxFeePerGas * gasUsed - effectiveGasPrice * gasUsed
-  ).toLocaleString();
+export function getTransactionSavings(maxFeePerGas: bigint, effectiveGasPrice: bigint, gasUsed: bigint): string {
+  return formatEther(maxFeePerGas * gasUsed - effectiveGasPrice * gasUsed).toLocaleString();
 }
 
 export function convertToGwei(value: bigint): string {
   return `${formatUnits(value, 9).toLocaleString()} Gwei`;
 }
 
-export function convertToFormatEther(
-  value: bigint,
-  symbol: string | undefined
-): string {
+export function convertToFormatEther(value: bigint, symbol: string | undefined): string {
   return `${formatEther(value).toLocaleString()} ${symbol}`;
 }
 
 export function getDifferentDays(date: bigint): string {
-    return `${Math.floor(
-                    (Math.floor(Date.now() / 1000) - Number(date)) /
-                    (60 * 60 * 24)
-                )} days ago`
-
+  return `${Math.floor((Math.floor(Date.now() / 1000) - Number(date)) / (60 * 60 * 24))} days ago`;
 }
 
-export function getGasUsedPercentage(
-  gasUsed: bigint,
-  gasLimit: bigint
-): string {
+export function getGasUsedPercentage(gasUsed: bigint, gasLimit: bigint): string {
   if (gasLimit === BigInt(0)) return '0%';
   const percentage = (Number(gasUsed) / Number(gasLimit)) * 100;
   return `${percentage === 100 ? percentage.toFixed(0) : percentage.toFixed(2)}%`;
