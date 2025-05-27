@@ -28,6 +28,7 @@ export const DefaultInput: FC<DefaultInputProps> = ({
         value={inputValue}
         onChange={handleChange}
         className={cn(error && 'border-red-500')}
+        data-testid="default-input"
       />
       {error && <p className="text-sm text-red-500">{error}</p>}
     </div>
