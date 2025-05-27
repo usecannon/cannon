@@ -6,6 +6,20 @@ export interface InputState {
   error?: string;
 }
 
+// Given an array type, return the base type
+export const getBaseType = (input: AbiParameter) => {
+  const typeString = input.type.toLowerCase();
+  if (!typeString.endsWith('[]')) {
+    return input;
+  }
+  const baseType = typeString.replace(/\[.*\]$/, '');
+  return {
+    type: baseType,
+    name: input.name,
+    internalType: baseType,
+  } as AbiParameter;
+};
+
 // Helper function to get default values for Solidity types
 export const getDefaultValue = (input: AbiParameter): any => {
   const typeString = input.type.toLowerCase();

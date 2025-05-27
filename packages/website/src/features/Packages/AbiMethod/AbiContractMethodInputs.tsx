@@ -4,6 +4,7 @@ import { AbiParameter } from 'abitype';
 import { FC } from 'react';
 import { AbiContractMethodInputType } from './AbiContractMethodInputType';
 import {
+  getBaseType,
   getDefaultValue,
   //InputState,
 } from '@/features/Packages/AbiMethod/utils';
@@ -61,7 +62,10 @@ export const ContractMethodInputs: FC<Props> = ({
   const addInputToArray = () => {
     if (!isInputTypeArray) throw new Error('input is not an array');
     const currentArray = (value as Array<unknown>) || [];
-    const newArray = [...currentArray, getDefaultValue(methodParameter)];
+    const newArray = [
+      ...currentArray,
+      getDefaultValue(getBaseType(methodParameter)),
+    ];
     handleUpdate(newArray);
   };
 
@@ -97,7 +101,7 @@ export const ContractMethodInputs: FC<Props> = ({
                   handleUpdate(newArray);
                 }}
               />
-              {arrayValue.length > 1 && (
+              {arrayValue.length > 0 && (
                 <ArrayActionButtons
                   type="remove"
                   onClick={() => removeInputFromArray(index)}
