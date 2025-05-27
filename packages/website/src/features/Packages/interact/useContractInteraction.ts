@@ -60,6 +60,13 @@ export const useContractInteraction = ({
     chainId,
   })!;
 
+  // TODO: maybe this should use as before from Function.tsx:
+  //       const { getChainById, transports } = useCannonChains();
+  //       const chain = getChainById(chainId);
+  //       const publicClient = createPublicClient({
+  //         chain,
+  //         transport: transports[chainId],
+  //       });
   const publicClient = usePublicClient({
     chainId,
   });
