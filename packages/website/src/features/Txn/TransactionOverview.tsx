@@ -1,7 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import React from 'react';
 import { GetTransactionReturnType, GetBlockReturnType } from 'viem';
-import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { ExtendedTransactionReceipt } from '@/types/ExtendedTransactionReceipt';
 import SummaryInfo from '@/features/Txn/overview/SummaryInfo';
 import AddressInfo from '@/features/Txn/overview/AddressInfo';
@@ -13,7 +12,7 @@ type TransactionOverviewProps = {
   txReceipt: ExtendedTransactionReceipt;
   txBlock: GetBlockReturnType;
   chain: Chain;
-  getExplorerUrl: ReturnType<typeof useCannonChains>['getExplorerUrl'];
+  latestBlockNumber: bigint;
 };
 
 const TransactionOverview: React.FC<TransactionOverviewProps> = ({
@@ -21,7 +20,7 @@ const TransactionOverview: React.FC<TransactionOverviewProps> = ({
   txReceipt,
   txBlock,
   chain,
-  getExplorerUrl,
+  latestBlockNumber,
 }) => {
   return (
     <div className="w-full overflow-x-auto">
@@ -29,19 +28,24 @@ const TransactionOverview: React.FC<TransactionOverviewProps> = ({
         <CardContent className="pt-4">
           <div className="space-y-2">
             {/* Display Summary Information */}
-            <SummaryInfo tx={tx} txReceipt={txReceipt} txBlock={txBlock} />
-            <hr className="opacity-75" />
-
-            {/* Display Address Information */}
-            <AddressInfo
+            <SummaryInfo
               tx={tx}
               txReceipt={txReceipt}
-              getExplorerUrl={getExplorerUrl}
+              timestamp={txBlock.timestamp}
+              latestBlockNumber={latestBlockNumber}
             />
             <hr className="opacity-75" />
 
+            {/* Display Address Information */}
+            <AddressInfo chainId={tx.chainId} txReceipt={txReceipt} />
+            <hr className="opacity-75" />
+
             {/* Display Cost Information */}
-            <CostInfo tx={tx} txReceipt={txReceipt} chain={chain} />
+            <CostInfo
+              tx={tx}
+              txReceipt={txReceipt}
+              symbol={chain?.nativeCurrency.symbol || 'ETH'}
+            />
           </div>
         </CardContent>
       </Card>

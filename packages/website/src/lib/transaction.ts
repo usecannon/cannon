@@ -25,8 +25,28 @@ export function convertToFormatEther(value: bigint, symbol: string | undefined):
   return `${formatEther(value).toLocaleString()} ${symbol}`;
 }
 
-export function getDifferentDays(date: bigint): string {
-  return `${Math.floor((Math.floor(Date.now() / 1000) - Number(date)) / (60 * 60 * 24))} days ago`;
+export function getTimeAgo(date: bigint): string {
+  const now = Date.now();
+  const past = Number(date) * 1000;
+  const diffMs = now - past;
+
+  const seconds = Math.floor(diffMs / 1000);
+  if (seconds < 60) {
+    return `${seconds} second${seconds !== 1 ? "s" : ""} ago`;
+  }
+
+  const minutes = Math.floor(diffMs / (1000 * 60));
+  if (minutes < 60) {
+    return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+  }
+
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  if (hours < 24) {
+    return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+  }
+
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  return `${days} day${days !== 1 ? "s" : ""} ago`;
 }
 
 export function getGasUsedPercentage(gasUsed: bigint, gasLimit: bigint): string {

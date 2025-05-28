@@ -26,7 +26,7 @@ const OtherDetail: React.FC<OtherDetailProps> = ({ tx }) => {
         <DetailBadge label="Nonce:" value={String(tx.nonce)} />
         <DetailBadge
           label="Position in Block:"
-          value={tx.transactionIndex.toLocaleString()}
+          value={String(tx.transactionIndex)}
         />
       </TxInfoRow>
       <TxInfoRow
@@ -36,7 +36,7 @@ const OtherDetail: React.FC<OtherDetailProps> = ({ tx }) => {
                         sent to the recipient."
       >
         <textarea
-          className="w-full h-24 bg-gray-800 text-gray-400 font-mono border border-gray-800 rounded-md p-2 text-xs"
+          className="w-full h-24 bg-gray-800 text-gray-400 font-mono border border-gray-800 rounded-md p-2 text-sm"
           value={`${tx.input}`}
           readOnly
         />

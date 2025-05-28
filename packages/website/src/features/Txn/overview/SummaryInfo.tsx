@@ -3,20 +3,23 @@ import TxInfoRow from '@/features/Txn/TxInfoRow';
 import { ClipboardButton } from '@/components/ClipboardButton';
 import { Clock5 } from 'lucide-react';
 import StatusBadge from '@/features/Txn/overview/StatusBadge';
-import { GetTransactionReturnType, GetBlockReturnType } from 'viem';
+import { GetTransactionReturnType } from 'viem';
+import { getTimeAgo, formatUTCDate } from '@/lib/transaction';
+import DetailBadge from '@/features/Txn/detail/DetailBadge';
 import { ExtendedTransactionReceipt } from '@/types/ExtendedTransactionReceipt';
-import { getDifferentDays, formatUTCDate } from '@/lib/transaction';
 
 type SummaryInfoProps = {
   tx: GetTransactionReturnType;
   txReceipt: ExtendedTransactionReceipt;
-  txBlock: GetBlockReturnType;
+  timestamp: bigint;
+  latestBlockNumber: bigint;
 };
 
 const SummaryInfo: React.FC<SummaryInfoProps> = ({
   tx,
   txReceipt,
-  txBlock,
+  timestamp,
+  latestBlockNumber,
 }) => {
   return (
     <>
@@ -38,15 +41,24 @@ const SummaryInfo: React.FC<SummaryInfoProps> = ({
                     Block confirmations indicate how many blocks have been added
                     since the transaction was produced."
       >
-        <span>{tx.blockNumber.toLocaleString()}</span>
+        <span>{String(tx.blockNumber)}</span>
+        <DetailBadge
+          value={
+            txReceipt.l1Fee != null
+              ? 'Confirmed by Sequencer'
+              : `${String(
+                  latestBlockNumber - txReceipt.blockNumber
+                )} Block Confirmations`
+          }
+        />
       </TxInfoRow>
       <TxInfoRow
         label="Timestamp:"
         description="The date and time at which a transaction is produced."
       >
         <Clock5 className="w-4 h-4 text-gray-400" />
-        <span>{getDifferentDays(txBlock.timestamp)}</span>
-        <span>{`(${formatUTCDate(txBlock.timestamp)})`}</span>
+        <span>{getTimeAgo(timestamp)}</span>
+        <span>{`(${formatUTCDate(timestamp)})`}</span>
       </TxInfoRow>
     </>
   );

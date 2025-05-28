@@ -7,6 +7,7 @@ import TransactionOverview from '@/features/Txn/TransactionOverview';
 import TransactionDetail from '@/features/Txn/TransactionDetail';
 import TransactionEventLog from '@/features/Txn/TransactionEventLog';
 import TransactionTab from '@/features/Txn/TransactionTab';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const tabs = [
   { id: 'overview', label: 'Overview' },
@@ -18,13 +19,17 @@ export type TabId = (typeof tabs)[number]['id'];
 export default function TransactionPage() {
   const router = useRouter();
   const { chainId, txHash } = router.query;
-  const [txn, setTxn] = useState<any>(null);
-  const [txnReceipt, setTxnReceipt] = useState<any>(null);
-  const [txnBlock, setTxnBlock] = useState<any>(null);
+  const [tx, setTx] = useState<any>(null);
+  const [txReceipt, setTxReceipt] = useState<any>(null);
+  const [txBlock, setTxBlock] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const [errorFlag, setErrorFlag] = useState<boolean>(false);
+  const [latestBlockNumber, setLatestBlockNumber] = useState<bigint>(0n);
 
-  const { getChainById, getExplorerUrl } = useCannonChains();
+  const { getChainById } = useCannonChains();
   const chain = getChainById(Number(chainId));
+
+  if (!chain) throw new Error(`Chain ${chainId} not found`);
 
   const publicClient = createPublicClient({
     chain,
@@ -33,21 +38,31 @@ export default function TransactionPage() {
 
   useEffect(() => {
     const fetchStatus = async (transactionHash: Hash | undefined) => {
-      if (transactionHash) {
-        const receipt = await publicClient.getTransactionReceipt({
-          hash: transactionHash,
-        });
-        const tx = await publicClient.getTransaction({ hash: transactionHash });
-        const block = await publicClient.getBlock({
-          blockNumber: receipt.blockNumber,
-        });
+      try {
+        if (transactionHash) {
+          const tx = await publicClient.getTransaction({
+            hash: transactionHash,
+          });
+          const receipt = await publicClient.getTransactionReceipt({
+            hash: transactionHash,
+          });
+          const block = await publicClient.getBlock({
+            blockNumber: receipt.blockNumber,
+          });
 
-        setTxnReceipt(receipt);
-        setTxn(tx);
-        setTxnBlock(block);
-        console.log(receipt);
-        // console.log(tx);
-        // console.log(block);
+          const blockNumber = await publicClient.getBlockNumber();
+
+          setTxReceipt(receipt);
+          setTx(tx);
+          setTxBlock(block);
+          setLatestBlockNumber(blockNumber);
+          // console.log(tx);
+          // console.log(receipt);
+          // console.log(block);
+        }
+      } catch (err) {
+        console.error('Transaction Error', err);
+        setErrorFlag(true);
       }
     };
 
@@ -58,43 +73,44 @@ export default function TransactionPage() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'overview':
+      case 'eventlog':
+        return <TransactionEventLog tx={tx} txReceipt={txReceipt} />;
+      default:
         return (
           <>
-            <TransactionAction tx={txn} txReceipt={txnReceipt} chain={chain} />
+            <TransactionAction tx={tx} txReceipt={txReceipt} chain={chain} />
 
             <TransactionOverview
-              tx={txn}
-              txReceipt={txnReceipt}
-              txBlock={txnBlock}
+              tx={tx}
+              txReceipt={txReceipt}
+              txBlock={txBlock}
               chain={chain}
-              getExplorerUrl={getExplorerUrl}
+              latestBlockNumber={latestBlockNumber}
             />
 
             <TransactionDetail
-              tx={txn}
-              txReceipt={txnReceipt}
-              txBlock={txnBlock}
+              tx={tx}
+              txReceipt={txReceipt}
+              txBlock={txBlock}
               chain={chain}
             />
           </>
         );
-      case 'eventlog':
-        return (
-          <TransactionEventLog
-            tx={txn}
-            txReceipt={txnReceipt}
-            getExplorerUrl={getExplorerUrl}
-          />
-        );
-      default:
-        return <div>Default tag</div>;
     }
   };
 
-  return (
+  return errorFlag ? (
+    <div className="w-full max-w-screen-lg mx-auto px-4 mt-3">
+      <Alert variant="destructive">
+        <AlertDescription>
+          Failed to load transaction data. Please check the transaction hash or
+          try again later.
+        </AlertDescription>
+      </Alert>
+    </div>
+  ) : (
     <>
-      {txn && txnReceipt && txnBlock && (
+      {tx && txReceipt && txBlock && (
         <div className="w-full max-w-screen-lg mx-auto px-4">
           <div className="ml-3">
             <h1 className="text-2xl font-bold mt-4">Transaction Details</h1>
@@ -103,7 +119,7 @@ export default function TransactionPage() {
           <TransactionTab
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            txReceipt={txnReceipt}
+            txReceipt={txReceipt}
           />
           <div className="w-full mt-3">{renderContent()}</div>
         </div>

@@ -77,11 +77,9 @@ const GasDetail: React.FC<GasDetailProps> = ({
                         max amount a user is willing to pay for their tx & to
                         give to the block producer respectively."
       >
-        {baseFeePerGas !== null && (
-          <InfoTooltip trigger={baseGasFeeTrigger}>
-            {` ${convertToFormatEther(baseFeePerGas, symbol)}`}
-          </InfoTooltip>
-        )}
+        <InfoTooltip trigger={baseGasFeeTrigger}>
+          {` ${convertToFormatEther(baseFeePerGas, symbol)}`}
+        </InfoTooltip>
         {tx.maxFeePerGas !== undefined && (
           <>
             <span className="text-gray-400 mr-1">|</span>
@@ -104,16 +102,14 @@ const GasDetail: React.FC<GasDetailProps> = ({
         label="Burnt & Txn Savings Fees:"
         description={`Total amount of ${symbol} burnt from this tx & total fees saved from the amount the user was willing to pay for this tx.`}
       >
-        {baseFeePerGas !== null && (
-          <DetailBadge
-            label="Burnt:"
-            value={`${convertToFormatEther(
-              baseFeePerGas * txReceipt.gasUsed,
-              symbol
-            )}`}
-          />
-        )}
-        {tx.maxFeePerGas != null && (
+        <DetailBadge
+          label="Burnt:"
+          value={`${convertToFormatEther(
+            baseFeePerGas * txReceipt.gasUsed,
+            symbol
+          )}`}
+        />
+        {tx.maxFeePerGas != undefined && (
           <DetailBadge
             label="Txn Savings:"
             value={`${getTransactionSavings(

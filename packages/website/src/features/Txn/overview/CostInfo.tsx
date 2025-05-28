@@ -3,23 +3,22 @@ import TxInfoRow from '@/features/Txn/TxInfoRow';
 import { convertToFormatEther, convertToGwei } from '@/lib/transaction';
 import { GetTransactionReturnType } from 'viem';
 import { ExtendedTransactionReceipt } from '@/types/ExtendedTransactionReceipt';
-import { Chain } from '@/types/Chain';
 import InfoTooltip from '@/features/Txn/InfoTooltip';
 
 type ConstInfoProps = {
   tx: GetTransactionReturnType;
   txReceipt: ExtendedTransactionReceipt;
-  chain: Chain;
+  symbol: string;
 };
 
-const CostInfo: React.FC<ConstInfoProps> = ({ tx, txReceipt, chain }) => {
+const CostInfo: React.FC<ConstInfoProps> = ({ tx, txReceipt, symbol }) => {
   const transactionFeeTrigger = (
     <span className="">
       {`${convertToFormatEther(
         txReceipt.l1Fee
           ? tx.gasPrice! * txReceipt.gasUsed + txReceipt.l1Fee
           : tx.gasPrice! * txReceipt.gasUsed,
-        chain?.nativeCurrency.symbol
+        symbol
       )}`}
     </span>
   );
@@ -28,14 +27,11 @@ const CostInfo: React.FC<ConstInfoProps> = ({ tx, txReceipt, chain }) => {
     <>
       <TxInfoRow
         label="Value:"
-        description={`The value being transacted in ${chain?.nativeCurrency.symbol} and fital value. Note;
+        description={`The value being transacted in ${symbol} and fital value. Note;
                     You can click the fiat value(if available) tto see
                     historical value at the time of transaction.`}
       >
-        <span>{`${convertToFormatEther(
-          tx.value,
-          chain?.nativeCurrency.symbol
-        )}`}</span>
+        <span>{`${convertToFormatEther(tx.value, symbol)}`}</span>
       </TxInfoRow>
 
       {tx.gasPrice !== undefined && (
@@ -50,16 +46,11 @@ const CostInfo: React.FC<ConstInfoProps> = ({ tx, txReceipt, chain }) => {
           </TxInfoRow>
           <TxInfoRow
             label="Gas Price:"
-            description={`Cost per unit of gas specified for the transaction, in ${chain?.nativeCurrency.symbol} and Gwei. The higher the gas price the higher chance of getting included in a block.`}
+            description={`Cost per unit of gas specified for the transaction, in ${symbol} and Gwei. The higher the gas price the higher chance of getting included in a block.`}
           >
             <span>{convertToGwei(tx.gasPrice).toLocaleString()}</span>
             <span className="text-gray-400">
-              (
-              {`${convertToFormatEther(
-                tx.gasPrice,
-                chain?.nativeCurrency.symbol
-              )}`}
-              )
+              ({`${convertToFormatEther(tx.gasPrice, symbol)}`})
             </span>
           </TxInfoRow>
         </>

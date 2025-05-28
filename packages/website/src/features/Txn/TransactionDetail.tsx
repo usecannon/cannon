@@ -22,6 +22,7 @@ const TransactionDetail: React.FC<TransactionDetailProps> = ({
   chain,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const symbol = chain?.nativeCurrency.symbol || 'ETH';
 
   return (
     <div className="w-full overflow-x-auto">
@@ -35,11 +36,11 @@ const TransactionDetail: React.FC<TransactionDetailProps> = ({
                   tx={tx}
                   txReceipt={txReceipt}
                   baseFeePerGas={txBlock.baseFeePerGas ?? 0n}
-                  symbol={chain?.nativeCurrency.symbol || 'ETH'}
+                  symbol={symbol}
                 />
 
                 {/* Display Layer 1 and 2 Detail */}
-                <LayerFeeDetail tx={tx} txReceipt={txReceipt} chain={chain} />
+                <LayerFeeDetail tx={tx} txReceipt={txReceipt} symbol={symbol} />
                 <hr className="opacity-75" />
 
                 {/* Display Other Detail */}

@@ -6,10 +6,11 @@ import { GetTransactionReturnType } from 'viem';
 type EventLogProps = {
   tx: GetTransactionReturnType;
   log: any;
-  getExplorerUrl: ReturnType<typeof useCannonChains>['getExplorerUrl'];
 };
 
-const EventLog: React.FC<EventLogProps> = ({ tx, log, getExplorerUrl }) => {
+const EventLog: React.FC<EventLogProps> = ({ tx, log }) => {
+  const { getExplorerUrl } = useCannonChains();
+
   return (
     <>
       <div className="space-y-2 mb-3 mt-4">
