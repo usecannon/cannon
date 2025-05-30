@@ -28,6 +28,8 @@ function sleep(t: number): Promise<void> {
 export async function scan4ByteDirectory(rdb: ActualRedisClientType, nextDirectoryUrl: string, type: 'function' | 'event') {
   const response = await axios.get<DirectoryResponse>(nextDirectoryUrl);
 
+  console.log('received batch', nextDirectoryUrl, response.statusText);
+
   const batch = rdb.multi();
 
   for (const item of response.data.results) {
@@ -37,7 +39,6 @@ export async function scan4ByteDirectory(rdb: ActualRedisClientType, nextDirecto
     batch.hSetNX(abiSearchKey, 'type', type);
     batch.hSetNX(abiSearchKey, 'timestamp', Math.floor(new Date(item.created_at).getTime() / 1000).toString());
   }
-
   await batch.exec();
 
   return response.data.next;
@@ -80,4 +81,8 @@ export async function loop() {
       }
     }
   }
+}
+
+if (require.main === module) {
+  void loop();
 }

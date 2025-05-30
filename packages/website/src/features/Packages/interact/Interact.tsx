@@ -124,7 +124,7 @@ const Interact: FC = () => {
 
       {/* Interact with Contract methods */}
       <Abi
-        abi={contract.abi}
+        abi={contract?.abi}
         contractName={contract?.contractName ?? 'Unknown'}
         address={contractAddress!}
         cannonOutputs={cannonOutputs}
