@@ -31,17 +31,17 @@ const GasDetail: React.FC<GasDetailProps> = ({
     </>
   );
 
-  const maxGasFeeTrigger = (
+  const maxGasFeeTrigger = tx.maxFeePerGas !== undefined && (
     <>
       <span className="text-gray-400 mr-1">Max:</span>
-      <span className="mr-1">{convertToGwei(tx.maxFeePerGas!)}</span>
+      <span className="mr-1">{convertToGwei(tx.maxFeePerGas)}</span>
     </>
   );
 
-  const maxPriorityGasFeeTrigger = (
+  const maxPriorityGasFeeTrigger = tx.maxPriorityFeePerGas !== undefined && (
     <>
       <span className="text-gray-400 mr-1">Max Priority:</span>
-      <span>{convertToGwei(tx.maxPriorityFeePerGas!)}</span>
+      <span>{convertToGwei(tx.maxPriorityFeePerGas)}</span>
     </>
   );
 
