@@ -1,7 +1,7 @@
 import { PackageReference } from '@usecannon/builder';
 import * as viem from 'viem';
 import { isChainId, isContractName, isFunctionSelector } from '../helpers';
-import { ApiFunction, ApiPackage, IpfsUrl, RedisDocument, RedisFunction, RedisPackage, RedisTag } from '../types';
+import { ApiSelectorResult, ApiPackage, IpfsUrl, RedisDocument, RedisFunction, RedisPackage, RedisTag } from '../types';
 
 export function findPackageByTag(documents: { value: RedisDocument }[], tag: RedisTag) {
   const result = documents.find(
@@ -53,21 +53,32 @@ export function transformFunction(value: RedisFunction) {
   if (typeof value.name !== 'string' || !value.name) return;
   if (!isFunctionSelector(value.selector)) return;
   if (typeof value.timestamp !== 'string' || !value.timestamp) return;
-  if (!PackageReference.isValid(value.package)) return;
-  if (!isChainId(value.chainId)) return;
-  if (!viem.isAddress(value.address)) return;
-  if (!isContractName(value.contractName)) return;
+  if (value.package && !PackageReference.isValid(value.package)) return;
+  if (value.chainId && !isChainId(value.chainId)) return;
+  if (value.address && !viem.isAddress(value.address)) return;
+  if (value.contractName && !isContractName(value.contractName)) return;
 
-  const ref = new PackageReference(value.package);
-  return {
-    type: 'function',
-    name: value.name,
-    selector: value.selector,
-    contractName: value.contractName,
-    chainId: Number.parseInt(value.chainId),
-    address: viem.getAddress(value.address),
-    packageName: ref.name,
-    preset: ref.preset,
-    version: ref.version,
-  } satisfies ApiFunction;
+  if (value.package) {
+    const ref = new PackageReference(value.package);
+    return {
+      type: 'function',
+      name: value.name,
+      selector: value.selector,
+      contractName: value.contractName,
+      chainId: Number.parseInt(value.chainId),
+      address: viem.getAddress(value.address),
+      packageName: ref.name,
+      preset: ref.preset,
+      version: ref.version,
+    } satisfies ApiSelectorResult;
+  } else {
+    return {
+      type: 'function',
+      name: value.name,
+      selector: value.selector,
+      contractName: value.contractName,
+      chainId: value.chainId ? Number.parseInt(value.chainId) : undefined,
+      address: value.address ? viem.getAddress(value.address) : undefined,
+    } satisfies ApiSelectorResult;
+  }
 }
