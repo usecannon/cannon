@@ -24,8 +24,8 @@
     "@synthetixio/core-contracts": "1.1.1",
     "@typechain/ethers-v5": "10.1.0",
     "@typechain/hardhat": "6.1.2",
-    "@types/mocha": "9.1.1",
-    "@types/node": "22.7.5",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.14.0",
     "@usecannon/builder": "workspace:*",
     "@usecannon/cli": "workspace:*",
     "at-least-node": "^1.0.0",
@@ -38,9 +38,9 @@
     "hardhat-gas-reporter": "^1.0.9",
     "mocha": "10.0.0",
     "solidity-coverage": "0.7.21",
-    "ts-node": "10.8.1",
+    "ts-node": "^10.9.2",
     "typechain": "8.1.0",
-    "typescript": "^5.3.3",
-    "viem": "^2.23.1"
+    "typescript": "^5.8.3",
+    "viem": "^2.25.1"
   }
 }

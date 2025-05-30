@@ -34,13 +34,13 @@
     "helmet": "^7.1.0",
     "prom-client": "^15.1.2",
     "redis": "^4.6.13",
-    "viem": "^2.23.1"
+    "viem": "^2.25.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
-    "@types/node": "^20.12.7",
+    "@types/node": "^22.14.0",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.8.3"
   }
 }
