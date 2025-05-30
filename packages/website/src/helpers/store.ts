@@ -92,6 +92,31 @@ export type Store = State & Actions;
 export type IpfsStore = IpfsState & ipfsActions;
 export type QueueTxsStore = QueueTxsState & QueueTxsActions;
 
+// Selector to get queued transactions and last queued transaction ID for the current safe
+export const selectQueuedTransactions = (state: QueueTxsState & { currentSafe: SafeDefinition | null }) => {
+  const { currentSafe } = state;
+  if (!currentSafe?.address || !currentSafe?.chainId) {
+    return {
+      queuedIdentifiableTxns: [],
+      lastQueuedTxnsId: 0,
+    };
+  }
+
+  const safeId = `${currentSafe.chainId}:${currentSafe.address}`;
+  const safeData = state.safes[safeId];
+
+  return {
+    queuedIdentifiableTxns: safeData?.queuedIdentifiableTxns || [],
+    lastQueuedTxnsId: safeData?.lastQueuedTxnsId || 0,
+  };
+};
+
+// Custom hook to get queued transactions
+export const useQueuedTransactions = () => {
+  const currentSafe = useStore((s) => s.currentSafe);
+  return useQueueTxsStore((state) => selectQueuedTransactions({ ...state, currentSafe }));
+};
+
 export const initialState = {
   currentSafe: null,
   safeAddresses: [],

@@ -2,12 +2,13 @@ import * as viem from 'viem';
 import { ChainArtifacts } from '@usecannon/builder';
 import { FC, useEffect, useState } from 'react';
 import { AbiFunction, Abi as AbiType } from 'abitype';
-import { Function } from '@/features/Packages/Function';
 import { scroller, Element, scrollSpy } from 'react-scroll';
 import { useRouter } from 'next/router';
 import { SidebarLayout } from '@/components/layouts/SidebarLayout';
 import { AbiSidebar } from './AbiSidebar';
 import { useContractMethods } from './useContractMethods';
+import { AbiContractMethodAccordion } from './AbiContractMethodAccordion';
+import { AbiContractMethodInteraction } from './AbiContractMethodInteraction';
 
 const getSelectorSlug = (f: AbiFunction) =>
   `selector-${viem.toFunctionSelector(f)}`;
@@ -31,7 +32,6 @@ export const Abi: FC<{
   abi,
   contractName,
   address,
-  cannonOutputs,
   chainId,
   onDrawerOpen,
   packageUrl,
@@ -120,19 +120,22 @@ export const Abi: FC<{
                 name={getSelectorSlug(f)}
                 key={`${address}-${getSelectorSlug(f)}`}
               >
-                <Function
-                  selected={selectedSelector == getSelectorSlug(f)}
+                <AbiContractMethodAccordion
                   f={f}
-                  abi={abi as AbiType}
-                  address={address}
-                  cannonOutputs={cannonOutputs}
-                  chainId={chainId}
-                  contractName={contractName}
-                  onDrawerOpen={onDrawerOpen}
-                  collapsible
-                  showFunctionSelector={false}
-                  packageUrl={packageUrl}
-                  isDrawerOpen={isDrawerOpen}
+                  content={
+                    <AbiContractMethodInteraction
+                      f={f}
+                      abi={abi as AbiType}
+                      address={address}
+                      chainId={chainId}
+                      contractName={contractName}
+                      onDrawerOpen={onDrawerOpen}
+                      packageUrl={packageUrl}
+                      isDrawerOpen={isDrawerOpen}
+                    />
+                  }
+                  anchor={getSelectorSlug(f)}
+                  selected={selectedSelector === getSelectorSlug(f)}
                 />
               </Element>
             ))}
