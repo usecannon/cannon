@@ -207,6 +207,7 @@ const chainMetadata = {
   },
   [chains.blast.id]: {
     color: '#FCFC06',
+    serviceUrl: 'https://safe.protofire.io',
   },
   [chains.celo.id]: {
     color: '#fdff52',

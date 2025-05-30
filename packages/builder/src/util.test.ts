@@ -141,6 +141,7 @@ describe('util.ts', () => {
     txns: {},
     chainId: 0,
     timestamp: 0,
+    defaultSigner: viem.zeroAddress,
     package: {},
   };
 

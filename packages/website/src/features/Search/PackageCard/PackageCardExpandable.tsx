@@ -79,7 +79,10 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
           animate={{ height: 'auto' }}
           className="overflow-hidden bg-background"
         >
-          <div className="align-middle overflow-auto" style={{ maxHeight }}>
+          <div
+            className="align-middle overflow-auto max-h-[290px]"
+            style={{ maxHeight }}
+          >
             <PackageTable latestOnly={!isOpen} pkgs={pkgs} />
           </div>
         </motion.div>
