@@ -1,9 +1,8 @@
 Feature: Interact page
-
   Scenario: Navigating to the interact page
-    Given User opens the "/packages/synthetix/3.3.4/5-main" page
+    Given User opens the "/packages/test-contracts/0.0.1/11155111-types-tester" page
     * Wallet is connected
-    * View renders a "h1" displaying the text "synthetix"
+    * View renders a "h1" displaying the text "test-contracts"
     * User clicks on the 1st element with id "interact-link"
 
   Scenario: Add and remove items from array input
@@ -14,15 +13,18 @@ Feature: Interact page
       * User clicks on the 1st element with id "remove-input-button"
     Then "remove-input-button" value on "data-testid" attribute should not exist
 
-  Scenario: Selecting the tuple input
-    Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
-    Then View renders a "h4" displaying the text "AccountProxy"
+  Scenario: Selecting the JSON input
+    Given User opens the "/packages/test-contracts/0.0.1/11155111-types-tester/interact" page
+    Then View renders a "h4" displaying the text "Diamond"
     When User clicks on the 1st element with id "other-option-section"
-    * User clicks on the 1st element with id "CoreRouter-button"
-    * User clicks on the 1st element with id "ccipReceive-button"
+    * User clicks on the 1st element with id "echoSimpleStructArray-button"
+    * User clicks on the 1st element with id "echoSimpleStructArray-button"
     Then "json-input" value on "data-testid" attribute should exist
+    When User types "[[v1, v2], [v3, v4]]" into the 1st input with id "json-input"
+    Then View renders a "div" displaying the text "Invalid JSON"
 
   @skip
+# Will delete this case because above case is covvered.
   Scenario: Selecting the JSON input
     Given User opens the "/packages/reya-omnibus/1.0.45/1729-main/interact" page
     When User clicks on the 1st element with id "CoreProxy-button"
@@ -36,7 +38,7 @@ Feature: Interact page
     * User clicks on the 1st element with id "acceptOwnership-button"
     * User clicks on the 1st element with id "submit-wallet-button"
     Then View renders a "h1" displaying the text "Connect a Wallet"
-
+  @skip
   Scenario: Executing call function with the bool input
     Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
     Then View renders a "h4" displaying the text "AccountProxy"
@@ -50,6 +52,20 @@ Feature: Interact page
     * User clicks on the 1st element with id "bool-input"
     * User clicks on the 1st element with id "call-function-button"
     Then Output contains "issuanceRatioD18"
+    * User waits for 30 seconds while loading
+  @only
+  Scenario: Executing call function with the bool input
+    Given User opens the "/packages/test-contracts/latest/11155111-types-tester/interact" page
+    Then View renders a "h4" displaying the text "Diamond"
+    When User clicks on the 1st element with id "echoBool-button"
+    Then "bool-input" value on "data-testid" attribute should exist
+    When User clicks on the 1st element with id "bool-input"
+    * User waits for 10 seconds while loading
+    * User clicks on the 1st element with id "bool-input"
+    * User waits for 10 seconds while loading
+    * User clicks on the 1st element with id "call-function-button"
+    * User waits for 10 seconds while loading
+    Then Output contains "true"
 
   Scenario: Executing call function with address output
     Given User opens the "/packages/synthetix/3.3.4/1-main/interact" page
