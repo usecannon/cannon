@@ -2,15 +2,17 @@ import React from 'react';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { ClipboardButton } from '@/components/ClipboardButton';
 import { GetTransactionReturnType } from 'viem';
-import ConvertInput from '@/features/Txn/log/ConvertInput';
+import ConvertComboBox from '@/features/Txn/log/ConvertComboBox';
+import { ExtendedTransactionReceipt } from '@/types/ExtendedTransactionReceipt';
 
 type EventLogProps = {
   tx: GetTransactionReturnType;
+  txReceipt: ExtendedTransactionReceipt;
   log: any;
   txNames: any;
 };
 
-const EventLog: React.FC<EventLogProps> = ({ tx, log, txNames }) => {
+const EventLog: React.FC<EventLogProps> = ({ tx, txReceipt, log, txNames }) => {
   const { getExplorerUrl } = useCannonChains();
   // Parameters
   const argNames = txNames[0]?.name.match(/\((.*)\)/)?.[1];
@@ -73,14 +75,13 @@ const EventLog: React.FC<EventLogProps> = ({ tx, log, txNames }) => {
                   </li>
                   {log.topics.slice(1).map((topic: string, index: number) => {
                     return (
-                      <li key={index} className="items-center mb-1">
+                      <li key={index} className="flex items-center mb-1">
                         <span className="p-1 mr-1 text-xs text-gray-900 border border-gray-400 bg-gray-400 rounded-sm">
                           {`${String(index + 1)}: ${
                             args && args.length > 0 ? args[index] : ''
                           }`}
                         </span>
-                        {/* <ConvertInput /> */}
-                        <span className="text-xs">{topic}</span>
+                        <ConvertComboBox topic={topic} />
                       </li>
                     );
                   })}
