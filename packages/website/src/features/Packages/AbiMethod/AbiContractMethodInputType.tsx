@@ -79,7 +79,9 @@ export const AbiContractMethodInputType: FC<AbiMethodInputProps> = ({
           `Expected string, string array or undefined for address type, got ${typeof value}`
         );
       }
-      return <AddressInput handleUpdate={handleUpdate} value={value} />;
+      return (
+        <AddressInput handleUpdate={handleUpdate} value={value} error={error} />
+      );
     case input.type.startsWith('int') || input.type.startsWith('uint'):
       if (!isBigInt(value) && value !== undefined) {
         throw new Error(
@@ -106,6 +108,7 @@ export const AbiContractMethodInputType: FC<AbiMethodInputProps> = ({
         <ByteInput
           handleUpdate={handleUpdate}
           value={value}
+          error={error}
           byte={isNaN(byteSize) ? undefined : byteSize}
         />
       );
@@ -116,6 +119,8 @@ export const AbiContractMethodInputType: FC<AbiMethodInputProps> = ({
           `Expected string, string array or undefined for default type, got ${typeof value}`
         );
       }
-      return <DefaultInput handleUpdate={handleUpdate} value={value} />;
+      return (
+        <DefaultInput handleUpdate={handleUpdate} value={value} error={error} />
+      );
   }
 };
