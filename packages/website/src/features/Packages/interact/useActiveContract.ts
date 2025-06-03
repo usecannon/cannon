@@ -5,10 +5,15 @@ import { useRouter } from 'next/router';
  */
 export function useActiveContract() {
   const pathName = useRouter().asPath;
-  const activeContractPath = pathName.split('#')[0].split('interact/')[1];
+  const withoutMethodSelector = pathName.split('#')[0];
+  const selectedContractInfo = withoutMethodSelector.split('interact/')[1];
 
-  if (activeContractPath) {
-    const [moduleName, contractName, contractAddress] = activeContractPath.split('/');
+  if (selectedContractInfo) {
+    const [moduleName, contractName, contractAddress] = selectedContractInfo.split('/');
+
+    if (!moduleName || !contractName || !contractAddress) {
+      return undefined;
+    }
 
     return {
       moduleName,
