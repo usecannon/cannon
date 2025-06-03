@@ -8,6 +8,7 @@ import TransactionDetail from '@/features/Txn/TransactionDetail';
 import TransactionEventLog from '@/features/Txn/TransactionEventLog';
 import TransactionTab from '@/features/Txn/TransactionTab';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { TransactionMethod } from '@/types/TransactionMethod';
 
 export const tabs = [
   { id: 'overview', label: 'Overview' },
@@ -25,6 +26,9 @@ export default function TransactionPage() {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [errorFlag, setErrorFlag] = useState<boolean>(false);
   const [latestBlockNumber, setLatestBlockNumber] = useState<bigint>(0n);
+  const [txNames, setTxNames] = useState<
+    Record<string, TransactionMethod[]> | undefined
+  >();
 
   const { getChainById } = useCannonChains();
   const chain = getChainById(Number(chainId));
@@ -52,13 +56,26 @@ export default function TransactionPage() {
 
           const blockNumber = await publicClient.getBlockNumber();
 
+          if (receipt.logs.length > 0) {
+            const topics = receipt.logs.map((log: any) =>
+              log.topics[0]?.slice(0, 10)
+            );
+            const url = `http://localhost:8080/selector?q=${topics.join(',')}`;
+            const response = await fetch(url);
+            const names = await response.json();
+            setTxNames(names.results);
+          } else {
+            setTxNames(undefined);
+          }
+
           setTxReceipt(receipt);
           setTx(tx);
           setTxBlock(block);
           setLatestBlockNumber(blockNumber);
           // console.log(tx);
-          // console.log(receipt);
+          console.log(receipt);
           // console.log(block);
+          // console.log(names.results);
         }
       } catch (err) {
         console.error('Transaction Error', err);
@@ -74,11 +91,22 @@ export default function TransactionPage() {
   const renderContent = () => {
     switch (activeTab) {
       case 'eventlog':
-        return <TransactionEventLog tx={tx} txReceipt={txReceipt} />;
+        return (
+          <TransactionEventLog
+            tx={tx}
+            txReceipt={txReceipt}
+            txNames={txNames}
+          />
+        );
       default:
         return (
           <>
-            <TransactionAction tx={tx} txReceipt={txReceipt} chain={chain} />
+            <TransactionAction
+              tx={tx}
+              txReceipt={txReceipt}
+              chain={chain}
+              txNames={txNames}
+            />
 
             <TransactionOverview
               tx={tx}

@@ -2,14 +2,19 @@ import React from 'react';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { ClipboardButton } from '@/components/ClipboardButton';
 import { GetTransactionReturnType } from 'viem';
+import ConvertInput from '@/features/Txn/log/ConvertInput';
 
 type EventLogProps = {
   tx: GetTransactionReturnType;
   log: any;
+  txNames: any;
 };
 
-const EventLog: React.FC<EventLogProps> = ({ tx, log }) => {
+const EventLog: React.FC<EventLogProps> = ({ tx, log, txNames }) => {
   const { getExplorerUrl } = useCannonChains();
+  // Parameters
+  const argNames = txNames[0]?.name.match(/\((.*)\)/)?.[1];
+  const args = argNames ? argNames.split(',') : null;
 
   return (
     <>
@@ -46,27 +51,36 @@ const EventLog: React.FC<EventLogProps> = ({ tx, log }) => {
                 )}
               </dd>
             </dl>
+            <dl className="flex flex-col sm:flex-row alighn-items-baseline mb-2 w-full">
+              <dt className="w-full sm:w-1/6 text-left font-medium text-gray-400 text-sm">
+                <h6>Name:</h6>
+              </dt>
+              <dd className="flex w-full sm:w-5/6 items-center break-all">
+                {txNames[0]?.name}
+              </dd>
+            </dl>
             <dl className="flex flex-col sm:flex-row align-items-baseline mb-2 w-full">
               <dt className="w-full sm:w-1/6 text-left font-medium text-gray-400 text-sm">
                 <h6>Topics:</h6>
               </dt>
               <dd className="flex w-full sm:w-5/6 items-center break-all">
                 <ul>
-                  {log.topics.map((topic: string, index: number) => {
+                  <li className="items-center mb-1">
+                    <span className="p-1 mr-1 text-xs text-gray-900 border border-gray-400 bg-gray-400 rounded-sm">
+                      0
+                    </span>
+                    <span className="text-sm">{log.topics[0]}</span>
+                  </li>
+                  {log.topics.slice(1).map((topic: string, index: number) => {
                     return (
                       <li key={index} className="items-center mb-1">
                         <span className="p-1 mr-1 text-xs text-gray-900 border border-gray-400 bg-gray-400 rounded-sm">
-                          {index === 1
-                            ? `${String(index)}:from`
-                            : index === 2
-                            ? `${String(index)}:to`
-                            : String(index)}
+                          {`${String(index + 1)}: ${
+                            args && args.length > 0 ? args[index] : ''
+                          }`}
                         </span>
-                        {index === 0 ? (
-                          <span className="text-sm">{topic}</span>
-                        ) : (
-                          <>{topic}</>
-                        )}
+                        {/* <ConvertInput /> */}
+                        <span className="text-xs">{topic}</span>
                       </li>
                     );
                   })}
