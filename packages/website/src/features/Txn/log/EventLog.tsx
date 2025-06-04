@@ -3,16 +3,24 @@ import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { ClipboardButton } from '@/components/ClipboardButton';
 import { GetTransactionReturnType } from 'viem';
 import ConvertComboBox from '@/features/Txn/log/ConvertComboBox';
-import { ExtendedTransactionReceipt } from '@/types/ExtendedTransactionReceipt';
+import ConvertDataSection from '@/features/Txn/log/ConvertDataSection';
+import HoverHighlight from '@/features/Txn/HoverHighlight';
 
 type EventLogProps = {
   tx: GetTransactionReturnType;
-  txReceipt: ExtendedTransactionReceipt;
   log: any;
   txNames: any;
+  hoverId: string;
+  setHoverId: (hoverId: string) => void;
 };
 
-const EventLog: React.FC<EventLogProps> = ({ tx, txReceipt, log, txNames }) => {
+const EventLog: React.FC<EventLogProps> = ({
+  tx,
+  log,
+  txNames,
+  hoverId,
+  setHoverId,
+}) => {
   const { getExplorerUrl } = useCannonChains();
   // Parameters
   const argNames = txNames[0]?.name.match(/\((.*)\)/)?.[1];
@@ -37,17 +45,29 @@ const EventLog: React.FC<EventLogProps> = ({ tx, txReceipt, log, txNames }) => {
                   <>
                     <a
                       href={getExplorerUrl(tx.chainId, log.address)}
-                      className="inline-flex items-center border-b border-dotted border-muted-foreground hover:text-foreground mr-1"
+                      className="inline-flex items-center border-b border-dotted border-muted-foreground"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      {log.address}
+                      <HoverHighlight
+                        id={log.address}
+                        hoverId={hoverId}
+                        setHoverId={setHoverId}
+                      >
+                        {log.address}
+                      </HoverHighlight>
                     </a>
-                    <ClipboardButton text={log.address} />
+                    <ClipboardButton text={log.address} className="mx-1" />
                   </>
                 ) : (
                   <>
-                    <span>{log.address}</span>
+                    <HoverHighlight
+                      id={log.address}
+                      hoverId={hoverId}
+                      setHoverId={setHoverId}
+                    >
+                      {log.address}
+                    </HoverHighlight>
                     <ClipboardButton text={log.address} />
                   </>
                 )}
@@ -81,7 +101,12 @@ const EventLog: React.FC<EventLogProps> = ({ tx, txReceipt, log, txNames }) => {
                             args && args.length > 0 ? args[index] : ''
                           }`}
                         </span>
-                        <ConvertComboBox topic={topic} />
+                        <ConvertComboBox
+                          topicHex={topic}
+                          chainId={tx.chainId!}
+                          hoverId={hoverId}
+                          setHoverId={setHoverId}
+                        />
                       </li>
                     );
                   })}
@@ -93,11 +118,7 @@ const EventLog: React.FC<EventLogProps> = ({ tx, txReceipt, log, txNames }) => {
                 <h6>Data:</h6>
               </div>
               <div className="w-full sm:w-5/6 flex items-center gap-2 break-all">
-                <textarea
-                  className="w-full h-24 bg-gray-800 text-gray-400 font-mono border border-gray-800 rounded-md p-2 text-sm"
-                  value={log.data}
-                  readOnly
-                />
+                <ConvertDataSection data={log.data} />
               </div>
             </dl>
           </div>

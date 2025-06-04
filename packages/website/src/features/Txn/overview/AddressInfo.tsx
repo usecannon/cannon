@@ -3,24 +3,31 @@ import TxInfoRow from '@/features/Txn/TxInfoRow';
 import { ClipboardButton } from '@/components/ClipboardButton';
 import { ExtendedTransactionReceipt } from '@/types/ExtendedTransactionReceipt';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import HoverHighlight from '@/features/Txn/HoverHighlight';
 
 type AddressInfoProps = {
   chainId: number | undefined;
   txReceipt: ExtendedTransactionReceipt;
+  hoverId: string;
+  setHoverId: (hoverId: string) => void;
 };
 
-const AddressInfo: React.FC<AddressInfoProps> = ({ chainId, txReceipt }) => {
+const AddressInfo: React.FC<AddressInfoProps> = ({
+  chainId,
+  txReceipt,
+  hoverId,
+  setHoverId,
+}) => {
   const { getExplorerUrl } = useCannonChains();
-  const to =
-    txReceipt.contractAddress != null
-      ? txReceipt.contractAddress
-      : txReceipt.to;
+  const toAddress = txReceipt.contractAddress ?? txReceipt.to;
 
   const exploreFrom =
     chainId !== undefined ? getExplorerUrl(chainId, txReceipt.from) : null;
 
   const exploreTo =
-    chainId !== undefined && to != null ? getExplorerUrl(chainId, to) : null;
+    chainId !== undefined && toAddress != null
+      ? getExplorerUrl(chainId, toAddress)
+      : null;
 
   return (
     <>
@@ -35,7 +42,13 @@ const AddressInfo: React.FC<AddressInfoProps> = ({ chainId, txReceipt }) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <span>{txReceipt.from}</span>
+            <HoverHighlight
+              id={txReceipt.from}
+              hoverId={hoverId}
+              setHoverId={setHoverId}
+            >
+              <span>{txReceipt.from}</span>
+            </HoverHighlight>
           </a>
         ) : (
           <span>{txReceipt.from}</span>
@@ -55,10 +68,16 @@ const AddressInfo: React.FC<AddressInfoProps> = ({ chainId, txReceipt }) => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <span>{to}</span>
+              <HoverHighlight
+                id={toAddress ?? ''}
+                hoverId={hoverId}
+                setHoverId={setHoverId}
+              >
+                {toAddress}
+              </HoverHighlight>
             </a>
             {txReceipt.contractAddress && <span className="ml-1">Created</span>}
-            <ClipboardButton text={to ? to : ''} />
+            <ClipboardButton text={toAddress ?? ''} />
           </>
         )}
       </TxInfoRow>

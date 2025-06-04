@@ -13,6 +13,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { isAddress, getAddress } from 'viem';
+import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import HoverHighlight from '@/features/Txn/HoverHighlight';
 
 const frameworks = [
   {
@@ -26,14 +29,23 @@ const frameworks = [
 ];
 
 type ConvertComboBoxProps = {
-  topic: string;
+  topicHex: string;
+  chainId: number;
+  hoverId: string;
+  setHoverId: (hoverId: string) => void;
 };
 
-const ConvertComboBox: React.FC<ConvertComboBoxProps> = ({ topic }) => {
+const ConvertComboBox: React.FC<ConvertComboBoxProps> = ({
+  topicHex,
+  chainId,
+  hoverId,
+  setHoverId,
+}) => {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState('Dec');
-  const topicDec = BigInt(topic).toString(10);
-  const topicHex = '0x' + topic.slice(-40);
+  const address = '0x' + topicHex.slice(-40);
+  const topicDec = isAddress(address) ? getAddress(address) : address;
+  const { getExplorerUrl } = useCannonChains();
 
   return (
     <>
@@ -84,9 +96,24 @@ const ConvertComboBox: React.FC<ConvertComboBoxProps> = ({ topic }) => {
         </Popover>
       </div>
       <ArrowRight className="h-3 w-3 mr-1 font-bold" />
-      <span className="text-xs">
-        {value === 'Dec' ? topicDec : topicHex}
-      </span>{' '}
+      {value === 'Dec' ? (
+        <a
+          href={getExplorerUrl(chainId, topicDec)}
+          className="inline-flex items-center border-b border-dotted border-muted-foreground hover:text-foreground text-xs"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <HoverHighlight
+            id={topicDec}
+            hoverId={hoverId}
+            setHoverId={setHoverId}
+          >
+            {topicDec}
+          </HoverHighlight>
+        </a>
+      ) : (
+        <span className="text-xs">{topicHex}</span>
+      )}
     </>
   );
 };

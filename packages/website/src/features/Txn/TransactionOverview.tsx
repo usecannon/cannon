@@ -13,6 +13,8 @@ type TransactionOverviewProps = {
   txBlock: GetBlockReturnType;
   chain: Chain;
   latestBlockNumber: bigint;
+  hoverId: string;
+  setHoverId: (hoverId: string) => void;
 };
 
 const TransactionOverview: React.FC<TransactionOverviewProps> = ({
@@ -21,6 +23,8 @@ const TransactionOverview: React.FC<TransactionOverviewProps> = ({
   txBlock,
   chain,
   latestBlockNumber,
+  hoverId,
+  setHoverId,
 }) => {
   return (
     <div className="w-full overflow-x-auto">
@@ -37,7 +41,12 @@ const TransactionOverview: React.FC<TransactionOverviewProps> = ({
             <hr className="opacity-75" />
 
             {/* Display Address Information */}
-            <AddressInfo chainId={tx.chainId} txReceipt={txReceipt} />
+            <AddressInfo
+              chainId={tx.chainId}
+              txReceipt={txReceipt}
+              hoverId={hoverId}
+              setHoverId={setHoverId}
+            />
             <hr className="opacity-75" />
 
             {/* Display Cost Information */}

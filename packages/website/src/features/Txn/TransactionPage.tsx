@@ -29,6 +29,7 @@ export default function TransactionPage() {
   const [txNames, setTxNames] = useState<
     Record<string, TransactionMethod[]> | undefined
   >();
+  const [hoverId, setHoverId] = useState<string>('');
 
   const { getChainById } = useCannonChains();
   const chain = getChainById(Number(chainId));
@@ -96,6 +97,8 @@ export default function TransactionPage() {
             tx={tx}
             txReceipt={txReceipt}
             txNames={txNames}
+            hoverId={hoverId}
+            setHoverId={setHoverId}
           />
         );
       default:
@@ -106,6 +109,8 @@ export default function TransactionPage() {
               txReceipt={txReceipt}
               chain={chain}
               txNames={txNames}
+              hoverId={hoverId}
+              setHoverId={setHoverId}
             />
 
             <TransactionOverview
@@ -114,6 +119,8 @@ export default function TransactionPage() {
               txBlock={txBlock}
               chain={chain}
               latestBlockNumber={latestBlockNumber}
+              hoverId={hoverId}
+              setHoverId={setHoverId}
             />
 
             <TransactionDetail

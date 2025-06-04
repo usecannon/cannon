@@ -6,12 +6,15 @@ import { Chain } from '@/types/Chain';
 import { TransactionMethod } from '@/types/TransactionMethod';
 import InfoTooltip from '@/features/Txn/InfoTooltip';
 import DetailBadge from '@/features/Txn/detail/DetailBadge';
+import HoverHighlight from '@/features/Txn/HoverHighlight';
 
 type TransactionActionProps = {
   tx: GetTransactionReturnType;
   txReceipt: ExtendedTransactionReceipt;
   chain: Chain;
   txNames: Record<string, TransactionMethod[]> | undefined;
+  hoverId: string;
+  setHoverId: (hoverId: string) => void;
 };
 
 export const isTxHash = (hash: string): boolean => {
@@ -62,14 +65,12 @@ const TransactionAction: React.FC<TransactionActionProps> = ({
   txReceipt,
   chain,
   txNames,
+  hoverId,
+  setHoverId,
 }) => {
+  const toAddress = tx.to ?? txReceipt?.contractAddress ?? '';
+
   const RrenderTxEvent = () => {
-    // const topic =
-    //   txReceipt.logs.length > 0
-    //     ? txReceipt.logs[txReceipt.logs.length - 1].topics[0]
-    //     : null;
-    // const selector = topic && topic.slice(0, 10);
-    // const method = selector && txNames?.[selector];
     const input = tx.input.slice(0, 10);
 
     return (
@@ -80,24 +81,35 @@ const TransactionAction: React.FC<TransactionActionProps> = ({
           <span className="text-gray-400 text-sm ml-1 mr-1">Method by</span>
           <InfoTooltip
             trigger={
-              <span className="text-base mr-1 ml-1 break-all">{`${tx.from.substring(
-                0,
-                8
-              )}...${tx.from.slice(-6)}`}</span>
+              <HoverHighlight
+                id={tx.from}
+                hoverId={hoverId}
+                setHoverId={setHoverId}
+              >
+                <span className="text-base break-all">{`${tx.from.substring(
+                  0,
+                  8
+                )}...${tx.from.slice(-6)}`}</span>
+              </HoverHighlight>
             }
           >
             {tx.from}
           </InfoTooltip>
-          {/* If contactAddress is null --> add "on to" */}
           {!txReceipt.contractAddress && tx.to != null && (
             <>
               <span className="text-gray-400 text-sm ml-1 mr-1">on</span>
               <InfoTooltip
                 trigger={
-                  <span className="text-base mr-1 ml-1 break-all">{`${tx.to.substring(
-                    0,
-                    8
-                  )}...${tx.from.slice(-6)}`}</span>
+                  <HoverHighlight
+                    id={tx.to}
+                    hoverId={hoverId}
+                    setHoverId={setHoverId}
+                  >
+                    <span className="text-base break-all">{`${tx.to.substring(
+                      0,
+                      8
+                    )}...${tx.to.slice(-6)}`}</span>
+                  </HoverHighlight>
                 }
               >
                 {tx.to}
@@ -121,10 +133,16 @@ const TransactionAction: React.FC<TransactionActionProps> = ({
             </span>
             <InfoTooltip
               trigger={
-                <span className="text-base mr-1 break-all">{`${tx.from.substring(
-                  0,
-                  8
-                )}...${tx.from.slice(-6)}`}</span>
+                <HoverHighlight
+                  id={tx.from}
+                  hoverId={hoverId}
+                  setHoverId={setHoverId}
+                >
+                  <span className="text-base mr-1 break-all">{`${tx.from.substring(
+                    0,
+                    8
+                  )}...${tx.from.slice(-6)}`}</span>
+                </HoverHighlight>
               }
             >
               {tx.from}
@@ -132,19 +150,25 @@ const TransactionAction: React.FC<TransactionActionProps> = ({
             <span className="text-gray-400 text-sm mr-1">to</span>
             <InfoTooltip
               trigger={
-                <span className="text-base break-all">
-                  {tx.to
-                    ? `${tx.to.substring(0, 8)}...${tx.to.slice(-6)}`
-                    : txReceipt?.contractAddress
-                    ? `${txReceipt?.contractAddress.substring(
-                        0,
-                        8
-                      )}...${txReceipt?.contractAddress.slice(-6)}`
-                    : ''}
-                </span>
+                <HoverHighlight
+                  id={toAddress}
+                  hoverId={hoverId}
+                  setHoverId={setHoverId}
+                >
+                  <span className="text-base break-all">
+                    {tx.to
+                      ? `${tx.to.substring(0, 8)}...${tx.to.slice(-6)}`
+                      : txReceipt?.contractAddress
+                      ? `${txReceipt?.contractAddress.substring(
+                          0,
+                          8
+                        )}...${txReceipt?.contractAddress.slice(-6)}`
+                      : ''}
+                  </span>
+                </HoverHighlight>
               }
             >
-              {tx.to ? tx.to : txReceipt?.contractAddress}
+              {toAddress}
             </InfoTooltip>
           </div>
         </>
