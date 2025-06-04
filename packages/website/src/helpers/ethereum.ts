@@ -134,6 +134,7 @@ export async function contractCall(
 export async function contractTransaction(
   from: Address,
   to: Address,
+  value: bigint,
   functionName: string,
   params: any,
   abi: Abi,
@@ -150,6 +151,7 @@ export async function contractTransaction(
     account: from,
     to,
     data,
+    value,
   };
 
   let call;
@@ -168,7 +170,7 @@ export async function contractTransaction(
     account: from,
     to: call?.to || to,
     data: call?.data || data,
-    value: call?.value || params.value,
+    value: call?.value,
   });
 
   return hash;
