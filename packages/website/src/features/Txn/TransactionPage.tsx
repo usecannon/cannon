@@ -128,7 +128,7 @@ export default function TransactionPage() {
   };
 
   return errorFlag ? (
-    <div className="w-full max-w-screen-lg mx-auto px-4 mt-3">
+    <div className="w-full max-w-screen-xl mx-auto px-4 mt-3">
       <Alert variant="destructive">
         <AlertDescription>
           Failed to load transaction data. Please check the transaction hash or
