@@ -128,7 +128,7 @@ export const Function: FC<FunctionProps> = ({
   };
 
   // for payable functions only
-  const [value, setValue] = useState<any>();
+  const [value, setValue] = useState<string>('0');
   const [valueIsValid, setValueIsValid] = useState<boolean>(true);
 
   const { safes, setQueuedIdentifiableTxns, setLastQueuedTxnsId } =
@@ -176,6 +176,7 @@ export const Function: FC<FunctionProps> = ({
   const fetchWriteContractResult = useContractTransaction(
     from as Address,
     address as Address,
+    parseEther(value),
     f.name,
     [...params],
     abi,
@@ -402,7 +403,7 @@ export const Function: FC<FunctionProps> = ({
                     value={value?.toString() ?? ''}
                     onChange={(e) => {
                       const val = e.target.value;
-                      setValue(val === '' ? 0 : Number(val));
+                      setValue(val === '' ? '0' : val);
                       try {
                         parseEther(val === '' ? '0' : val);
                         setValueIsValid(true);
