@@ -170,7 +170,7 @@ export async function contractTransaction(
     account: from,
     to: call?.to || to,
     data: call?.data || data,
-    value: call?.value,
+    value: call?.value || value,
   });
 
   return hash;
