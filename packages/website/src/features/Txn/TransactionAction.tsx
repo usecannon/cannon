@@ -3,16 +3,16 @@ import React from 'react';
 import { GetTransactionReturnType, isHash } from 'viem';
 import { ExtendedTransactionReceipt } from '@/types/ExtendedTransactionReceipt';
 import { Chain } from '@/types/Chain';
-import { TransactionMethod } from '@/types/TransactionMethod';
 import InfoTooltip from '@/features/Txn/InfoTooltip';
 import DetailBadge from '@/features/Txn/detail/DetailBadge';
 import HoverHighlight from '@/features/Txn/HoverHighlight';
+import { ExtendedTransactionMethod } from '@/types/TransactionMethod';
 
 type TransactionActionProps = {
   tx: GetTransactionReturnType;
   txReceipt: ExtendedTransactionReceipt;
   chain: Chain;
-  txNames: Record<string, TransactionMethod[]> | undefined;
+  txNames: ExtendedTransactionMethod;
   hoverId: string;
   setHoverId: (hoverId: string) => void;
 };
@@ -26,7 +26,7 @@ export const isTxHash = (hash: string): boolean => {
 
 function isTransferAction(
   logs: any,
-  txNames: Record<string, TransactionMethod[]> | undefined,
+  txNames: ExtendedTransactionMethod,
   input: string
 ): boolean {
   //0. input = 0x
@@ -70,9 +70,8 @@ const TransactionAction: React.FC<TransactionActionProps> = ({
 }) => {
   const toAddress = tx.to ?? txReceipt?.contractAddress ?? '';
 
-  const RrenderTxEvent = () => {
+  const RenderTxEvent = () => {
     const input = tx.input.slice(0, 10);
-
     return (
       <>
         <div className="flex flex-wrap items-center break-all">
@@ -121,59 +120,55 @@ const TransactionAction: React.FC<TransactionActionProps> = ({
     );
   };
 
-  const renderContent = () => {
-    if (!isTransferAction(txReceipt.logs, txNames, tx.input)) {
-      return RrenderTxEvent();
-    } else {
-      return (
-        <>
-          <div className="flex flex-wrap items-center break-all">
-            <span className="text-gray-400 text-sm mr-1">
-              Transfer Ownership from
-            </span>
-            <InfoTooltip
-              trigger={
-                <HoverHighlight
-                  id={tx.from}
-                  hoverId={hoverId}
-                  setHoverId={setHoverId}
-                >
-                  <span className="text-base mr-1 break-all">{`${tx.from.substring(
-                    0,
-                    8
-                  )}...${tx.from.slice(-6)}`}</span>
-                </HoverHighlight>
-              }
-            >
-              {tx.from}
-            </InfoTooltip>
-            <span className="text-gray-400 text-sm mr-1">to</span>
-            <InfoTooltip
-              trigger={
-                <HoverHighlight
-                  id={toAddress}
-                  hoverId={hoverId}
-                  setHoverId={setHoverId}
-                >
-                  <span className="text-base break-all">
-                    {tx.to
-                      ? `${tx.to.substring(0, 8)}...${tx.to.slice(-6)}`
-                      : txReceipt?.contractAddress
-                      ? `${txReceipt?.contractAddress.substring(
-                          0,
-                          8
-                        )}...${txReceipt?.contractAddress.slice(-6)}`
-                      : ''}
-                  </span>
-                </HoverHighlight>
-              }
-            >
-              {toAddress}
-            </InfoTooltip>
-          </div>
-        </>
-      );
-    }
+  const RenderTxTransferEvent = () => {
+    return (
+      <>
+        <div className="flex flex-wrap items-center break-all">
+          <span className="text-gray-400 text-sm mr-1">
+            Transfer Ownership from
+          </span>
+          <InfoTooltip
+            trigger={
+              <HoverHighlight
+                id={tx.from}
+                hoverId={hoverId}
+                setHoverId={setHoverId}
+              >
+                <span className="text-base mr-1 break-all">{`${tx.from.substring(
+                  0,
+                  8
+                )}...${tx.from.slice(-6)}`}</span>
+              </HoverHighlight>
+            }
+          >
+            {tx.from}
+          </InfoTooltip>
+          <span className="text-gray-400 text-sm mr-1">to</span>
+          <InfoTooltip
+            trigger={
+              <HoverHighlight
+                id={toAddress}
+                hoverId={hoverId}
+                setHoverId={setHoverId}
+              >
+                <span className="text-base break-all">
+                  {tx.to
+                    ? `${tx.to.substring(0, 8)}...${tx.to.slice(-6)}`
+                    : txReceipt?.contractAddress
+                    ? `${txReceipt?.contractAddress.substring(
+                        0,
+                        8
+                      )}...${txReceipt?.contractAddress.slice(-6)}`
+                    : ''}
+                </span>
+              </HoverHighlight>
+            }
+          >
+            {toAddress}
+          </InfoTooltip>
+        </div>
+      </>
+    );
   };
 
   return (
@@ -188,7 +183,9 @@ const TransactionAction: React.FC<TransactionActionProps> = ({
             <span className="mr-2">{chain?.name}</span>
             <span className="text-gray-400 text-sm mr-2">{`(ID: ${chain?.id})`}</span>
           </div>
-          {renderContent()}
+          {isTransferAction(txReceipt.logs, txNames, tx.input)
+            ? RenderTxTransferEvent()
+            : RenderTxEvent()}
         </CardContent>
       </Card>
     </div>

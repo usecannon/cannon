@@ -10,3 +10,6 @@ export type TransactionMethod = {
   preset?: string;
   version?: string;
 };
+
+export type ExtendedTransactionMethod = Record<string, TransactionMethod[]>;
+

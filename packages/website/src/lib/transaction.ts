@@ -17,12 +17,20 @@ export function getTransactionSavings(maxFeePerGas: bigint, effectiveGasPrice: b
   return formatEther(maxFeePerGas * gasUsed - effectiveGasPrice * gasUsed).toLocaleString();
 }
 
-export function convertToGwei(value: bigint): string {
+export function convertToGwei(value: bigint | string): string {
+  if(typeof value === 'string'){
+  return `${formatUnits(BigInt(parseInt(value.slice(2), 16)), 9).toLocaleString()} Gwei`;
+  }else{
   return `${formatUnits(value, 9).toLocaleString()} Gwei`;
+  }
 }
 
-export function convertToFormatEther(value: bigint, symbol: string | undefined): string {
-  return `${formatEther(value).toLocaleString()} ${symbol}`;
+export function covertToDec(value: bigint | string): bigint {  
+  return typeof value === 'string' ? BigInt(parseInt(value.slice(2), 16)) : value;
+}
+
+export function convertToFormatEther(value: bigint | string, symbol: string | undefined): string {
+  return `${formatEther(covertToDec(value)).toLocaleString()} ${symbol}`;
 }
 
 export function getTimeAgo(date: bigint): string {

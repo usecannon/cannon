@@ -99,7 +99,7 @@ const ConvertComboBox: React.FC<ConvertComboBoxProps> = ({
       {value === 'Dec' ? (
         <a
           href={getExplorerUrl(chainId, topicDec)}
-          className="inline-flex items-center border-b border-dotted border-muted-foreground hover:text-foreground text-xs"
+          className="inline-flex items-center"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -107,6 +107,7 @@ const ConvertComboBox: React.FC<ConvertComboBoxProps> = ({
             id={topicDec}
             hoverId={hoverId}
             setHoverId={setHoverId}
+            className="text-xs"
           >
             {topicDec}
           </HoverHighlight>

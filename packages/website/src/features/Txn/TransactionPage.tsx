@@ -8,7 +8,8 @@ import TransactionDetail from '@/features/Txn/TransactionDetail';
 import TransactionEventLog from '@/features/Txn/TransactionEventLog';
 import TransactionTab from '@/features/Txn/TransactionTab';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { TransactionMethod } from '@/types/TransactionMethod';
+import { ExtendedTransactionMethod } from '@/types/TransactionMethod';
+import { initialSelectorDecodeUrl } from '@/helpers/store';
 
 export const tabs = [
   { id: 'overview', label: 'Overview' },
@@ -26,9 +27,7 @@ export default function TransactionPage() {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [errorFlag, setErrorFlag] = useState<boolean>(false);
   const [latestBlockNumber, setLatestBlockNumber] = useState<bigint>(0n);
-  const [txNames, setTxNames] = useState<
-    Record<string, TransactionMethod[]> | undefined
-  >();
+  const [txNames, setTxNames] = useState<ExtendedTransactionMethod>({});
   const [hoverId, setHoverId] = useState<string>('');
 
   const { getChainById } = useCannonChains();
@@ -61,22 +60,16 @@ export default function TransactionPage() {
             const topics = receipt.logs.map((log: any) =>
               log.topics[0]?.slice(0, 10)
             );
-            const url = `http://localhost:8080/selector?q=${topics.join(',')}`;
+            const url = initialSelectorDecodeUrl + topics.join(',');
             const response = await fetch(url);
             const names = await response.json();
             setTxNames(names.results);
-          } else {
-            setTxNames(undefined);
           }
 
           setTxReceipt(receipt);
           setTx(tx);
           setTxBlock(block);
           setLatestBlockNumber(blockNumber);
-          // console.log(tx);
-          console.log(receipt);
-          // console.log(block);
-          // console.log(names.results);
         }
       } catch (err) {
         console.error('Transaction Error', err);
@@ -146,7 +139,7 @@ export default function TransactionPage() {
   ) : (
     <>
       {tx && txReceipt && txBlock && (
-        <div className="w-full max-w-screen-lg mx-auto px-4">
+        <div className="w-full max-w-screen-xl mx-auto px-4">
           <div className="ml-3">
             <h1 className="text-2xl font-bold mt-4">Transaction Details</h1>
           </div>

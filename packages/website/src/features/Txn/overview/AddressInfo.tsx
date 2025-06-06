@@ -38,7 +38,7 @@ const AddressInfo: React.FC<AddressInfoProps> = ({
         {exploreFrom ? (
           <a
             href={exploreFrom}
-            className="inline-flex items-center gap-1 border-b border-dotted border-muted-foreground hover:text-foreground"
+            className="inline-flex items-center gap-1"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -64,7 +64,7 @@ const AddressInfo: React.FC<AddressInfoProps> = ({
           <>
             <a
               href={exploreTo}
-              className="inline-flex items-center gap-1 border-b border-dotted border-muted-foreground hover:text-foreground"
+              className="inline-flex items-center gap-1"
               target="_blank"
               rel="noopener noreferrer"
             >

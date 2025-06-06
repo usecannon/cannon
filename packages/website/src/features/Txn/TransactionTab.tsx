@@ -1,5 +1,5 @@
 import { ExtendedTransactionReceipt } from '@/types/ExtendedTransactionReceipt';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { tabs, TabId } from '@/features/Txn/TransactionPage';
 

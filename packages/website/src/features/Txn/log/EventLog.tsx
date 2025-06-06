@@ -5,11 +5,12 @@ import { GetTransactionReturnType } from 'viem';
 import ConvertComboBox from '@/features/Txn/log/ConvertComboBox';
 import ConvertDataSection from '@/features/Txn/log/ConvertDataSection';
 import HoverHighlight from '@/features/Txn/HoverHighlight';
+import { TransactionMethod } from '@/types/TransactionMethod';
 
 type EventLogProps = {
   tx: GetTransactionReturnType;
   log: any;
-  txNames: any;
+  functionNames: TransactionMethod[];
   hoverId: string;
   setHoverId: (hoverId: string) => void;
 };
@@ -17,15 +18,11 @@ type EventLogProps = {
 const EventLog: React.FC<EventLogProps> = ({
   tx,
   log,
-  txNames,
+  functionNames,
   hoverId,
   setHoverId,
 }) => {
   const { getExplorerUrl } = useCannonChains();
-  // Parameters
-  const argNames = txNames[0]?.name.match(/\((.*)\)/)?.[1];
-  const args = argNames ? argNames.split(',') : null;
-
   return (
     <>
       <div className="space-y-2 mb-3 mt-4">
@@ -40,12 +37,12 @@ const EventLog: React.FC<EventLogProps> = ({
               <dt className="w-full sm:w-1/6 text-left font-medium text-gray-200">
                 <h6 className="font-bold">Address:</h6>
               </dt>
-              <dd className="w-full sm:w-5/6 items-center gap-2 break-all">
+              <dd className="w-full sm:w-5/6 flex items-center gap-2 break-all">
                 {tx.chainId !== undefined && tx.chainId !== null ? (
                   <>
                     <a
                       href={getExplorerUrl(tx.chainId, log.address)}
-                      className="inline-flex items-center border-b border-dotted border-muted-foreground"
+                      className="inline-flex items-center"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -78,7 +75,7 @@ const EventLog: React.FC<EventLogProps> = ({
                 <h6>Name:</h6>
               </dt>
               <dd className="flex w-full sm:w-5/6 items-center break-all">
-                {txNames[0]?.name}
+                {functionNames[0]?.name}
               </dd>
             </dl>
             <dl className="flex flex-col sm:flex-row align-items-baseline mb-2 w-full">
@@ -87,29 +84,26 @@ const EventLog: React.FC<EventLogProps> = ({
               </dt>
               <dd className="flex w-full sm:w-5/6 items-center break-all">
                 <ul>
-                  <li className="items-center mb-1">
-                    <span className="p-1 mr-1 text-xs text-gray-900 border border-gray-400 bg-gray-400 rounded-sm">
-                      0
-                    </span>
-                    <span className="text-sm">{log.topics[0]}</span>
-                  </li>
-                  {log.topics.slice(1).map((topic: string, index: number) => {
-                    return (
-                      <li key={index} className="flex items-center mb-1">
-                        <span className="p-1 mr-1 text-xs text-gray-900 border border-gray-400 bg-gray-400 rounded-sm">
-                          {`${String(index + 1)}: ${
-                            args && args.length > 0 ? args[index] : ''
-                          }`}
-                        </span>
+                  {log.topics.map((topic: string, index: number) => (
+                    <li
+                      key={index}
+                      className="flex clex-col sm:flex-row items-center mb-1"
+                    >
+                      <span className="p-1 mr-1 text-xs text-gray-900 border border-gray-400 bg-gray-400 rounded-sm">
+                        {String(index)}
+                      </span>
+                      {index === 0 ? (
+                        <span className="text-sm">{topic}</span>
+                      ) : (
                         <ConvertComboBox
                           topicHex={topic}
                           chainId={tx.chainId!}
                           hoverId={hoverId}
                           setHoverId={setHoverId}
                         />
-                      </li>
-                    );
-                  })}
+                      )}
+                    </li>
+                  ))}
                 </ul>
               </dd>
             </dl>

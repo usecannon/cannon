@@ -5,6 +5,7 @@ type HoverHighlightProps = {
   id: string;
   hoverId: string;
   setHoverId: (hoverId: string) => void;
+  className?: string;
 };
 
 const HoverHighlight: React.FC<HoverHighlightProps> = ({
@@ -12,9 +13,10 @@ const HoverHighlight: React.FC<HoverHighlightProps> = ({
   id,
   hoverId,
   setHoverId,
+  className,
 }) => {
   const hoverColorSetting =
-    'border-yellow-500 bg-yellow-100 opacity-70 border-dotted text-black';
+    'bg-yellow-100 text-black opacity-70 border-yellow-500 rounded-md';
   const isHover = id === hoverId;
 
   return (
@@ -26,12 +28,19 @@ const HoverHighlight: React.FC<HoverHighlightProps> = ({
         onMouseLeave={() => {
           setHoverId('');
         }}
-        className={`px-1 border border-transparent transition-colors duration-200 rounded-md ${
-          isHover ? hoverColorSetting : ''
-        }`}
         id={id}
       >
-        {children}
+        <span
+          className={`inline ${className} border-b border-dotted px-1 transition-all duration-200
+      ${
+        isHover
+          ? hoverColorSetting
+          : 'border-muted-foreground bg-transparent text-inherit'
+      }
+    `}
+        >
+          {children}
+        </span>
       </span>
     </>
   );

@@ -15,6 +15,19 @@ const LayerFeeDetail: React.FC<LayerFeeDetailProps> = ({
   txReceipt,
   symbol,
 }) => {
+  console.log(txReceipt);
+  if (typeof txReceipt.l1GasUsed === 'string') {
+    const test = parseInt(txReceipt.l1GasUsed.slice(2), 16);
+    console.log(`test : ${String(test)}`);
+  }
+  console.log(
+    `l1 fee type of : ${typeof txReceipt.l1Fee}, l1 fee : ${txReceipt.l1Fee},`
+  );
+  console.log(
+    `l1GasUsed type of : ${typeof txReceipt.l1GasUsed}, l1 l1GasUsed : ${
+      txReceipt.l1GasUsed
+    }`
+  );
   return (
     <>
       {txReceipt.l1Fee != null &&
@@ -41,10 +54,18 @@ const LayerFeeDetail: React.FC<LayerFeeDetailProps> = ({
               label="L1 Gas Used by Txn:"
               description="L1 Gas Used by Transaction"
             >
-              <span>{`${txReceipt.l1GasUsed.toLocaleString()}`}</span>
+              <span>{`${
+                typeof txReceipt.l1GasUsed === 'string'
+                  ? String(parseInt(txReceipt.l1GasUsed.slice(2), 16))
+                  : txReceipt.l1GasUsed.toLocaleString()
+              }`}</span>
             </TxInfoRow>
             <TxInfoRow label="L1 Fee Scalar:" description="L1 Fee Scalar">
-              <span>{`${String(txReceipt.l1FeeScalar ?? 0)}`}</span>
+              <span>{`${
+                typeof txReceipt.l1FeeScalar === 'string'
+                  ? String(parseInt(txReceipt.l1FeeScalar.slice(2), 16))
+                  : String(txReceipt.l1FeeScalar ?? 0)
+              }`}</span>
             </TxInfoRow>
           </>
         )}

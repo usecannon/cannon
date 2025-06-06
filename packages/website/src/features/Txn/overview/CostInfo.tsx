@@ -1,6 +1,10 @@
 import React from 'react';
 import TxInfoRow from '@/features/Txn/TxInfoRow';
-import { convertToFormatEther, convertToGwei } from '@/lib/transaction';
+import {
+  covertToDec,
+  convertToFormatEther,
+  convertToGwei,
+} from '@/lib/transaction';
 import { GetTransactionReturnType } from 'viem';
 import { ExtendedTransactionReceipt } from '@/types/ExtendedTransactionReceipt';
 import InfoTooltip from '@/features/Txn/InfoTooltip';
@@ -16,7 +20,8 @@ const CostInfo: React.FC<ConstInfoProps> = ({ tx, txReceipt, symbol }) => {
     <span className="">
       {`${convertToFormatEther(
         txReceipt.l1Fee
-          ? tx.gasPrice! * txReceipt.gasUsed + txReceipt.l1Fee
+          ? tx.gasPrice! * covertToDec(txReceipt.gasUsed) +
+              covertToDec(txReceipt.l1Fee)
           : tx.gasPrice! * txReceipt.gasUsed,
         symbol
       )}`}
