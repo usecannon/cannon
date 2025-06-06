@@ -1,3 +1,4 @@
+import { zeroAddress } from 'viem';
 import {
   useCannonPackage as useFetchCannonPackage,
   useMergedCannonDefInfo,
@@ -9,6 +10,7 @@ import { ChainBuilderContext, getIpfsUrl, PackageReference } from '@usecannon/bu
 // TODO: is there any way to make a better context? maybe this means we should get rid of name using context?
 const ctx: ChainBuilderContext = {
   chainId: 0,
+  defaultSigner: zeroAddress,
   package: {},
   timestamp: 0 as any, // TODO: fix this
   settings: {},

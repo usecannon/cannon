@@ -1,7 +1,6 @@
 'use client';
 
 import { Share, PlusSquare } from 'lucide-react';
-import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 import {
@@ -43,15 +42,6 @@ const InstallDialog = () => {
       >
         <div className="mx-auto w-full max-w-sm">
           <DialogHeader className="mb-6">
-            <div className="my-4 flex justify-center">
-              <Image
-                src="images/icons/icon-144x144.png"
-                alt="Foil App Icon"
-                width={72}
-                height={72}
-                className="rounded-2xl border border-border shadow-lg"
-              />
-            </div>
             <DialogTitle className="text-center text-2xl">
               Install Cannon
             </DialogTitle>

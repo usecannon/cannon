@@ -27,6 +27,7 @@ export function useContractCall(to: Address, functionName: string, params: any, 
 export function useContractTransaction(
   from: Address,
   to: Address,
+  value: bigint,
   functionName: string,
   params: any,
   abi: Abi,
@@ -38,7 +39,7 @@ export function useContractTransaction(
 
   return useCallback(
     () =>
-      contractTransaction(from, to, functionName, params, abi, publicClient, walletClient, settings.pythUrl)
+      contractTransaction(from, to, value, functionName, params, abi, publicClient, walletClient, settings.pythUrl)
         .then((result) => {
           addLog('info', `Sending ${to}: ${functionName}(${params})`);
           return { value: result, error: null };

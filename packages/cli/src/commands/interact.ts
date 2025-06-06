@@ -190,7 +190,7 @@ async function pickContract({
   contractNames: string[];
   contractArtifacts?: ContractMap;
 }) {
-  const isHighlighted = (n: string) => !!contractArtifacts?.[n].highlight;
+  const isHighlighted = (n: string) => !!contractArtifacts?.[n]?.highlight;
 
   const choices: Choice[] = _.sortBy(contractNames, [
     (contractName) => !isHighlighted(contractName),

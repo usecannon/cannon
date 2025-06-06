@@ -61,7 +61,7 @@ export class PackageReference {
 
     if (match.groups.version) {
       res.version = match.groups.version;
-      if (res.version.length > 32) {
+      if (res.name !== 'ipfs' && res.version.length > 32) {
         throw new Error(`Package version for "${ref}" is too long. Package version exceeds 32 characters`);
       }
     }
