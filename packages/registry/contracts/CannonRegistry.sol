@@ -57,6 +57,11 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
   error WithdrawFail(uint256 withdrawAmount);
 
   /**
+   * @notice Thrown when the subscription is not configured and the user tries to publish with it
+   */
+  error SubscriptionNotAvailable();
+
+  /**
    * @notice Emitted when `setPackageOwnership` is called and a package is registered for the first time
    */
   event PackageRegistered(bytes32 indexed name, address registrant);
@@ -119,7 +124,6 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
   IOptimismL1Sender private immutable _OPTIMISM_MESSENGER;
   IOptimismL2Receiver private immutable _OPTIMISM_RECEIVER;
   uint256 private immutable _L1_CHAIN_ID;
-  CannonSubscription private immutable _CANNON_SUBSCRIPTION;
 
   /**
    * @notice Initializes the immutable fields for this contract implementation
@@ -127,21 +131,17 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
    * @param _optimismReceiver the address of the bridge contract which receives message on L2
    * @param _l1ChainId the L1 deployment of the registry. For example, sepolia would have argument `11155111` here.
    */
-  constructor(address _optimismMessenger, address _optimismReceiver, uint256 _l1ChainId, address _cannonSubscription) {
+  constructor(address _optimismMessenger, address _optimismReceiver, uint256 _l1ChainId) {
     _OPTIMISM_MESSENGER = IOptimismL1Sender(_optimismMessenger); // IOptimismL1Sender(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1)
     _OPTIMISM_RECEIVER = IOptimismL2Receiver(_optimismReceiver); // IOptimismL2Receiver(0x4200000000000000000000000000000000000007)
     _L1_CHAIN_ID = _l1ChainId; // 1
-    _CANNON_SUBSCRIPTION = CannonSubscription(_cannonSubscription);
-  }
-
-  function getCannonSubscription() external view returns (address) {
-    return address(_CANNON_SUBSCRIPTION);
   }
 
   /**
    * @notice Allows for owner to withdraw all collected fees.
    */
   function withdraw() external onlyOwner {
+    address sender = ERC2771Context.msgSender();
     uint256 amount = address(this).balance;
 
     // we check that the send amount is not 0 just in case, the contract is unexpectedly empty, would save the owner some gas.
@@ -149,8 +149,21 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
       revert WithdrawFail(0);
     }
 
-    (bool success, ) = msg.sender.call{value: amount}("");
+    (bool success, ) = sender.call{value: amount}("");
     if (!success) revert WithdrawFail(amount);
+
+    // Withdraw subscription tokens
+    address subscriptionAddress = _store().subscriptionAddress;
+    if (subscriptionAddress != address(0)) {
+      IERC20 token = IERC20(subscriptionAddress.TOKEN());
+      uint256 tokenBalance = token.balanceOf(address(this));
+      if (tokenBalance > 0) {
+        bool tokenSuccess = token.transfer(sender, tokenBalance);
+        if (!tokenSuccess) {
+          revert WithdrawFail(tokenBalance);
+        }
+      }
+    }
   }
 
   /**
@@ -162,6 +175,22 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
     Store storage store = _store();
     store.publishFee = _publishFee;
     store.registerFee = _registerFee;
+  }
+
+  /**
+   * @notice Change the subscription address for the registry. This is the contract
+   *         that will be used to check and use the subscriptions for the registry.
+   * @param _subscriptionAddress The new subscription address
+   */
+  function setSubscriptionAddress(address _subscriptionAddress) external onlyOwner {
+    _store().subscriptionAddress = _subscriptionAddress;
+  }
+
+  /**
+   * @notice Get the subscription contract address.
+   */
+  function getSubscriptionAddress() external view returns (address) {
+    return _store().subscriptionAddress;
   }
 
   /**
@@ -196,7 +225,13 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
     string memory _packageDeployUrl,
     string memory _packageMetaUrl
   ) external {
-    _CANNON_SUBSCRIPTION.useMembershipCredits(ERC2771Context.msgSender(), 1);
+    address subscriptionAddress = _store().subscriptionAddress;
+
+    if (subscriptionAddress == address(0)) {
+      revert SubscriptionNotAvailable();
+    }
+
+    CannonSubscription(subscriptionAddress).useMembershipCredits(ERC2771Context.msgSender(), 1);
     _publish(_packageName, _variant, _packageTags, _packageDeployUrl, _packageMetaUrl);
   }
 

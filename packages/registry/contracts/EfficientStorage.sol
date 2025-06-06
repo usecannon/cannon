@@ -28,6 +28,10 @@ contract EfficientStorage {
      * @notice The amount of ETh required to register a new package
      */
     uint256 registerFee;
+    /**
+     * @notice The address of the CannonSubscription contract
+     */
+    address subscriptionAddress;
   }
 
   /**
