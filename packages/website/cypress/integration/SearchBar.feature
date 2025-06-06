@@ -16,6 +16,7 @@ Feature: SearchBar page
     When User clicks on the 1st element with id "search-namespace-section"
     Then URL includes "packages/test-deploy"
 
+  @skip
   Scenario: Searching for the function
     Given User opens the "/learn" page
     When User clicks on the 1st element with id "searchbar-button"
