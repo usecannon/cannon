@@ -23,6 +23,8 @@ const EventLog: React.FC<EventLogProps> = ({
   setHoverId,
 }) => {
   const { getExplorerUrl } = useCannonChains();
+  const exploreUrl = getExplorerUrl(tx.chainId ?? 0, log.address);
+
   return (
     <>
       <div className="space-y-2 mb-3 mt-4">
@@ -38,10 +40,10 @@ const EventLog: React.FC<EventLogProps> = ({
                 <h6 className="font-bold">Address:</h6>
               </dt>
               <dd className="w-full sm:w-5/6 flex items-center gap-2 break-all">
-                {tx.chainId !== undefined && tx.chainId !== null ? (
+                {exploreUrl ? (
                   <>
                     <a
-                      href={getExplorerUrl(tx.chainId, log.address)}
+                      href={exploreUrl}
                       className="inline-flex items-center"
                       target="_blank"
                       rel="noopener noreferrer"

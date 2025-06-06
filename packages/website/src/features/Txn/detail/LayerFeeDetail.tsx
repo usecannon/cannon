@@ -15,19 +15,6 @@ const LayerFeeDetail: React.FC<LayerFeeDetailProps> = ({
   txReceipt,
   symbol,
 }) => {
-  console.log(txReceipt);
-  if (typeof txReceipt.l1GasUsed === 'string') {
-    const test = parseInt(txReceipt.l1GasUsed.slice(2), 16);
-    console.log(`test : ${String(test)}`);
-  }
-  console.log(
-    `l1 fee type of : ${typeof txReceipt.l1Fee}, l1 fee : ${txReceipt.l1Fee},`
-  );
-  console.log(
-    `l1GasUsed type of : ${typeof txReceipt.l1GasUsed}, l1 l1GasUsed : ${
-      txReceipt.l1GasUsed
-    }`
-  );
   return (
     <>
       {txReceipt.l1Fee != null &&
