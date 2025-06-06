@@ -17,6 +17,9 @@ defaultValue = "0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1"
 [setting.optimismL2Receiver]
 defaultValue = "0x4200000000000000000000000000000000000007"
 
+[setting.subscriptionToken]
+defaultValue = "0x0000000000000000000000000000000000000000"
+
 [contract.InitialImpl]
 artifact = "OwnedUpgradable"
 salt = "<%= settings.salt %>"
@@ -43,10 +46,8 @@ target = ["InitialProxy"]
 func = "upgradeTo"
 args = ["<%= contracts.Implementation.address %>"]
 fromCall.func = "owner"
-
 factory.Proxy.abiOf = ["Implementation"]
 factory.Proxy.event = "Upgraded"
 factory.Proxy.arg = 0
 factory.Proxy.highlight = true
-
 depends = ["contract.InitialProxy", "contract.Implementation"]

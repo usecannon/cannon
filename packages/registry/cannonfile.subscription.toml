@@ -1,0 +1,33 @@
+[setting.subscriptionToken]
+defaultValue = "0x0000000000000000000000000000000000000000"
+
+[contract.CannonSubscriptionImplementation]
+artifact = "CannonSubscription"
+args = [
+  "<%= settings.subscriptionToken %>",
+  "<%= contracts.Proxy.address %>"
+]
+
+[contract.CannonSubscriptionInitialProxy]
+artifact = "Proxy"
+abi = "InitialImpl"
+create2 = true
+salt = "<%= settings.salt %>"
+args = ["<%= contracts.InitialImpl.address %>", "<%= settings.initialOwner %>"]
+
+[invoke.upgrade_subscription_proxy]
+target = ["CannonSubscriptionInitialProxy"]
+func = "upgradeTo"
+args = ["<%= contracts.CannonSubscriptionImplementation.address %>"]
+fromCall.func = "owner"
+factory.Subscription.abiOf = ["CannonSubscriptionImplementation"]
+factory.Subscription.event = "Upgraded"
+factory.Subscription.arg = 0
+factory.Subscription.highlight = true
+
+[invoke.set_subscription_address]
+target = ["Proxy"]
+func = "setSubscriptionAddress"
+args = ["<%= contracts.Subscription.address %>"]
+fromCall.func = "owner"
+depends = ["invoke.upgrade_subscription_proxy"]
