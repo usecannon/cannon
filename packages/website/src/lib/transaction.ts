@@ -18,14 +18,14 @@ export function getTransactionSavings(maxFeePerGas: bigint, effectiveGasPrice: b
 }
 
 export function convertToGwei(value: bigint | string): string {
-  if(typeof value === 'string'){
-  return `${formatUnits(BigInt(parseInt(value.slice(2), 16)), 9).toLocaleString()} Gwei`;
-  }else{
-  return `${formatUnits(value, 9).toLocaleString()} Gwei`;
+  if (typeof value === 'string') {
+    return `${formatUnits(BigInt(parseInt(value.slice(2), 16)), 9).toLocaleString()} Gwei`;
+  } else {
+    return `${formatUnits(value, 9).toLocaleString()} Gwei`;
   }
 }
 
-export function covertToDec(value: bigint | string): bigint {  
+export function covertToDec(value: bigint | string): bigint {
   return typeof value === 'string' ? BigInt(parseInt(value.slice(2), 16)) : value;
 }
 
@@ -40,21 +40,21 @@ export function getTimeAgo(date: bigint): string {
 
   const seconds = Math.floor(diffMs / 1000);
   if (seconds < 60) {
-    return `${seconds} second${seconds !== 1 ? "s" : ""} ago`;
+    return `${seconds} second${seconds !== 1 ? 's' : ''} ago`;
   }
 
   const minutes = Math.floor(diffMs / (1000 * 60));
   if (minutes < 60) {
-    return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+    return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
   }
 
   const hours = Math.floor(diffMs / (1000 * 60 * 60));
   if (hours < 24) {
-    return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+    return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
   }
 
   const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  return `${days} day${days !== 1 ? "s" : ""} ago`;
+  return `${days} day${days !== 1 ? 's' : ''} ago`;
 }
 
 export function getGasUsedPercentage(gasUsed: bigint, gasLimit: bigint): string {

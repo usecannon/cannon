@@ -1,5 +1,5 @@
 import axios from 'axios';
-import _ from 'lodash';
+// import _ from 'lodash';
 import * as rkey from './db';
 /* eslint no-console: "off" */
 import { ActualRedisClientType, useRedis } from './redis';

@@ -25,8 +25,8 @@ async function _querySelectors(params: { query: string; limit?: number }) {
         new Error(
           `Could not parse "${value && JSON.stringify(value)}" on query "FT.SEARCH ${keys.RKEY_ABI_SEARCHABLE} ${
             params.query
-          }"`,
-        ),
+          }"`
+        )
       );
       continue;
     }

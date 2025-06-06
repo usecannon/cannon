@@ -1,4 +1,3 @@
-
 export type TransactionMethod = {
   type: string;
   name: string;
@@ -12,4 +11,3 @@ export type TransactionMethod = {
 };
 
 export type ExtendedTransactionMethod = Record<string, TransactionMethod[]>;
-
