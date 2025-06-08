@@ -69,6 +69,15 @@ teardown() {
   assert_file_exists "$CANNON_DIRECTORY/tags/greeter-foundry-private-source_latest_13370-main.txt"
 }
 
+@test "Build - Write Scripts with Foundry" {
+  run build-foundry-write-script.sh cast
+  run build-foundry-write-script.sh ethers
+  run build-foundry-write-script.sh foundry
+  run build-foundry-write-script.sh json
+  echo $output
+  assert_success
+}
+
 @test "Build - Building foundry greeter example live" {
   set_custom_config
   run build-foundry-live.sh

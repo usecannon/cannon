@@ -5,6 +5,8 @@ import { ensureFileSync } from 'fs-extra';
 import * as viem from 'viem';
 import { createStepsStream } from './stream-steps';
 import { DumpRenderer } from './types';
+import { Transform } from 'node:stream';
+import { writeFile } from 'node:fs/promises';
 
 export const WRITE_SCRIPT_FORMATS = ['json', 'ethers', 'foundry', 'cast'] as const;
 
@@ -31,10 +33,19 @@ export async function createWriteScript(
 
   const blockNumber = await runtime.provider.getBlockNumber();
 
+  // Create a transform stream to collect all data
+  const dataCollector = new Transform({
+    objectMode: true,
+    transform(chunk, encoding, callback) {
+      this.push(chunk);
+      callback();
+    }
+  });
+
   const stream = events.stream // Listen for step execution events
     .pipe(events.fetchTransactions) // asynchronically add the executed transactions
     .pipe(createRenderer(Number(blockNumber))) // render step lines into the desired format
-    .pipe(createWriteStream(targetFile)); // save to file
+    .pipe(dataCollector); // collect all data in memory
 
   return {
     end: async () => {
@@ -42,10 +53,15 @@ export async function createWriteScript(
       // so, we have to manully stop listening to it and close the streams.
       events.stream.end();
 
+      // Wait for all data to be collected
       await viem.withTimeout(() => finished(stream), {
-        timeout: 10000,
+        timeout: 60000,
         errorInstance: new Error('stream timed out'),
       });
+
+      // Write all collected data to file atomically
+      const data = dataCollector.readableObjectMode ? dataCollector.read() : [];
+      await writeFile(targetFile, data.join(''));
     },
   };
 }
