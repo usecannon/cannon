@@ -71,9 +71,10 @@ export async function deployCannonRegistry(
     optimismMessengerAddress,
     optimismReceiverAddress,
     chainId,
-    subscriptionContract.address
   );
   await contract.deployed();
+
+  await contract.setSubscriptionAddress(subscriptionContract.address);
 
   return [contract, subscriptionContract];
 }

@@ -2,6 +2,7 @@
 pragma solidity 0.8.24;
 
 import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {OwnedUpgradableUpdated} from "./OwnedUpgradableUpdated.sol";
 import {EfficientStorage} from "./EfficientStorage.sol";
 import {ERC2771Context} from "./ERC2771Context.sol";
@@ -155,7 +156,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
     // Withdraw subscription tokens
     address subscriptionAddress = _store().subscriptionAddress;
     if (subscriptionAddress != address(0)) {
-      IERC20 token = IERC20(subscriptionAddress.TOKEN());
+      IERC20 token = CannonSubscription(subscriptionAddress).TOKEN();
       uint256 tokenBalance = token.balanceOf(address(this));
       if (tokenBalance > 0) {
         bool tokenSuccess = token.transfer(sender, tokenBalance);
