@@ -67,11 +67,7 @@ export async function deployCannonRegistry(
   await subscriptionContract.registerPlan(43200, 5, 1, 90, 50, true);
 
   const factory = await ethers.getContractFactory('CannonRegistry');
-  const contract = await factory.deploy(
-    optimismMessengerAddress,
-    optimismReceiverAddress,
-    chainId,
-  );
+  const contract = await factory.deploy(optimismMessengerAddress, optimismReceiverAddress, chainId);
   await contract.deployed();
 
   await contract.setSubscriptionAddress(subscriptionContract.address);
