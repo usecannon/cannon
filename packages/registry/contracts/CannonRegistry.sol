@@ -2,11 +2,13 @@
 pragma solidity 0.8.24;
 
 import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {OwnedUpgradableUpdated} from "./OwnedUpgradableUpdated.sol";
 import {EfficientStorage} from "./EfficientStorage.sol";
 import {ERC2771Context} from "./ERC2771Context.sol";
 import {IOptimismL1Sender} from "./IOptimismL1Sender.sol";
 import {IOptimismL2Receiver} from "./IOptimismL2Receiver.sol";
+import {CannonSubscription} from "./CannonSubscription.sol";
 
 /**
  * @title An on-chain record of contract deployments with Cannon
@@ -54,6 +56,11 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
    * @notice Thrown when there was a problem withdrawing collected fees from the contract
    */
   error WithdrawFail(uint256 withdrawAmount);
+
+  /**
+   * @notice Thrown when the subscription is not configured and the user tries to publish with it
+   */
+  error SubscriptionNotAvailable();
 
   /**
    * @notice Emitted when `setPackageOwnership` is called and a package is registered for the first time
@@ -135,6 +142,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
    * @notice Allows for owner to withdraw all collected fees.
    */
   function withdraw() external onlyOwner {
+    address sender = ERC2771Context.msgSender();
     uint256 amount = address(this).balance;
 
     // we check that the send amount is not 0 just in case, the contract is unexpectedly empty, would save the owner some gas.
@@ -142,8 +150,21 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
       revert WithdrawFail(0);
     }
 
-    (bool success, ) = msg.sender.call{value: amount}("");
+    (bool success, ) = sender.call{value: amount}("");
     if (!success) revert WithdrawFail(amount);
+
+    // Withdraw subscription tokens
+    address subscriptionAddress = _store().subscriptionAddress;
+    if (subscriptionAddress != address(0)) {
+      IERC20 token = CannonSubscription(subscriptionAddress).TOKEN();
+      uint256 tokenBalance = token.balanceOf(address(this));
+      if (tokenBalance > 0) {
+        bool tokenSuccess = token.transfer(sender, tokenBalance);
+        if (!tokenSuccess) {
+          revert WithdrawFail(tokenBalance);
+        }
+      }
+    }
   }
 
   /**
@@ -155,6 +176,22 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
     Store storage store = _store();
     store.publishFee = _publishFee;
     store.registerFee = _registerFee;
+  }
+
+  /**
+   * @notice Change the subscription address for the registry. This is the contract
+   *         that will be used to check and use the subscriptions for the registry.
+   * @param _subscriptionAddress The new subscription address
+   */
+  function setSubscriptionAddress(address _subscriptionAddress) external onlyOwner {
+    _store().subscriptionAddress = _subscriptionAddress;
+  }
+
+  /**
+   * @notice Get the subscription contract address.
+   */
+  function getSubscriptionAddress() external view returns (address) {
+    return _store().subscriptionAddress;
   }
 
   /**
@@ -178,6 +215,35 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
     if (msg.value < store.publishFee) {
       revert FeeRequired(store.publishFee);
     }
+
+    _publish(_packageName, _variant, _packageTags, _packageDeployUrl, _packageMetaUrl);
+  }
+
+  function publishWithSubscription(
+    bytes32 _packageName,
+    bytes32 _variant,
+    bytes32[] memory _packageTags,
+    string memory _packageDeployUrl,
+    string memory _packageMetaUrl
+  ) external {
+    address subscriptionAddress = _store().subscriptionAddress;
+
+    if (subscriptionAddress == address(0)) {
+      revert SubscriptionNotAvailable();
+    }
+
+    CannonSubscription(subscriptionAddress).useMembershipCredits(ERC2771Context.msgSender(), 1);
+    _publish(_packageName, _variant, _packageTags, _packageDeployUrl, _packageMetaUrl);
+  }
+
+  function _publish(
+    bytes32 _packageName,
+    bytes32 _variant,
+    bytes32[] memory _packageTags,
+    string memory _packageDeployUrl,
+    string memory _packageMetaUrl
+  ) internal {
+    Store storage store = _store();
 
     // do we have tags for the package, and not an excessive number
     if (_packageTags.length == 0 || _packageTags.length > MAX_PACKAGE_PUBLISH_TAGS) {
