@@ -68,6 +68,14 @@ contract EfficientStorage {
      * @notice The URL of the additional package information metadata. The actual URL is stored in `strings`
      */
     bytes16 meta;
+    /**
+     * @notice The mutability of the deployment.
+     */
+    bytes16 mutability;
+    /**
+     * @notice Reserved for future use.
+     */
+    bytes16 __reserved;
   }
 
   /**
