@@ -148,6 +148,8 @@ export const initialQueueTxsState = {
   safes: {},
 } satisfies QueueTxsState;
 
+export const initialSelectorDecodeUrl = 'http://localhost:8080/selector?q=';
+
 const useIpfsStore = create<IpfsStore>()(
   persist(
     (set) => ({
