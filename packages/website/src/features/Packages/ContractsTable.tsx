@@ -194,7 +194,7 @@ export const ContractsTable: React.FC<{
                           const explorerUrl = getExplorerUrl(chainId, value);
                           return explorerUrl ? (
                             <Link
-                              href={`/txn/${Number(chainId)}/${value}`}
+                              href={`/tx/${Number(chainId)}/${value}`}
                               className="font-mono border-b border-dotted border-muted-foreground hover:border-solid"
                             >
                               {formatTransactionHash(value)}
