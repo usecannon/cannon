@@ -78,7 +78,7 @@ export const useContractInteraction = ({
   const { simulationSender, setSimulationSender } = useSimulation();
 
   // Contract interaction hooks
-  const fetchReadContractResult = useContractCall(address, f.name, [...params], abi, publicClient);
+  const fetchReadContractResult = useContractCall(address, f.name, [...params], value, abi, publicClient);
   const fetchWriteContractResult = useContractTransaction(
     from as Address,
     address as Address,
