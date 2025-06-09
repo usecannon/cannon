@@ -1,11 +1,11 @@
 import { FC, useRef, ChangeEvent, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { parseUnits } from 'viem';
+import { parseUnits, formatUnits } from 'viem';
 
 interface NumberInputProps {
-  handleUpdate: (value: any, error?: string) => void;
-  value: any;
+  handleUpdate: (value: string | undefined, error?: string) => void;
+  value: bigint | undefined;
   error?: string;
   suffix?: string;
   showWeiValue?: boolean;
@@ -20,7 +20,13 @@ export const NumberInput: FC<NumberInputProps> = ({
   showWeiValue = false,
   fixedDecimals = 0,
 }) => {
-  const [inputValue, setInputValue] = useState(value || '');
+  const [inputValue, setInputValue] = useState(() => {
+    if (value === undefined) return '';
+    if (fixedDecimals > 0) {
+      return formatUnits(value, fixedDecimals);
+    }
+    return value.toString();
+  });
   const decimals = fixedDecimals;
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -36,26 +42,37 @@ export const NumberInput: FC<NumberInputProps> = ({
     const _value = event.target.value;
 
     if (_value === '') {
-      handleUpdate(undefined);
       setInputValue('');
+      handleUpdate(undefined);
       return;
     }
 
-    // if (!checkDecimalPlaces(inputValue)) {
-    //   handleUpdate({
-    //     inputValue,
-    //     parsedValue: undefined,
-    //     error: `Input has more decimal places than allowed (max: ${decimals})`,
-    //   });
-    //   return;
-    // }
-
-    try {
-      parseUnits(_value, decimals);
-      handleUpdate(_value);
+    // Si fixedDecimals > 0, permitimos decimales
+    if (fixedDecimals > 0) {
       setInputValue(_value);
-    } catch {
-      handleUpdate(undefined, 'Invalid number format');
+      try {
+        // Convertir a wei
+        parseUnits(_value, decimals);
+        handleUpdate(_value);
+      } catch (error) {
+        handleUpdate(undefined, 'Invalid number format');
+      }
+      return;
+    } else {
+      // Si fixedDecimals = 0, solo permitimos números enteros
+      if (!/^\d+$/.test(_value)) {
+        setInputValue(_value);
+        handleUpdate(undefined, 'Invalid number format');
+        return;
+      }
+
+      try {
+        setInputValue(_value);
+        handleUpdate(_value);
+      } catch {
+        setInputValue(_value);
+        handleUpdate(undefined, 'Invalid number format');
+      }
     }
   };
 
@@ -151,13 +168,20 @@ export const NumberInput: FC<NumberInputProps> = ({
           </Popover>
         )} */}
         {suffix && (
-          <div className="flex items-center px-3 py-1 bg-background text-gray-300 border border-l-0 border-border rounded-r-md h-10">
+          <div
+            className="flex items-center px-3 py-1 bg-background text-gray-300 border border-l-0 border-border rounded-r-md h-10"
+            data-testid="suffix"
+          >
             {suffix}
           </div>
         )}
       </div>
       {showWeiValue && inputValue && (
-        <p className="text-xs text-muted-foreground mt-1">{inputValue} wei</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          {fixedDecimals > 0
+            ? `${parseUnits(inputValue, decimals).toString()} wei`
+            : `${inputValue} wei`}
+        </p>
       )}
     </div>
   );
