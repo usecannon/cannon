@@ -169,6 +169,7 @@ export const Function: FC<FunctionProps> = ({
     address,
     f.name,
     [...params],
+    parseEther(value),
     abi,
     publicClient
   );
