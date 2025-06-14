@@ -5,6 +5,7 @@ import { ensureFileSync } from 'fs-extra';
 import * as viem from 'viem';
 import { createStepsStream } from './stream-steps';
 import { DumpRenderer } from './types';
+import { writeFile } from 'node:fs/promises';
 
 export const WRITE_SCRIPT_FORMATS = ['json', 'ethers', 'foundry', 'cast'] as const;
 
@@ -28,13 +29,19 @@ export async function createWriteScript(
   const createRenderer = (await import(`./render-${format}`)).createRenderer as DumpRenderer;
 
   const events = createStepsStream(runtime);
-
   const blockNumber = await runtime.provider.getBlockNumber();
+  const renderer = createRenderer(Number(blockNumber));
+  
+  // Collect all events into an array
+  const eventsData: string[] = [];
 
-  const stream = events.stream // Listen for step execution events
-    .pipe(events.fetchTransactions) // asynchronically add the executed transactions
-    .pipe(createRenderer(Number(blockNumber))) // render step lines into the desired format
-    .pipe(createWriteStream(targetFile)); // save to file
+  // Set up the event processing pipeline
+  events.stream
+    .pipe(events.fetchTransactions)
+    .pipe(renderer)
+    .on('data', (chunk: string) => {
+      eventsData.push(chunk);
+    });
 
   return {
     end: async () => {
@@ -42,10 +49,8 @@ export async function createWriteScript(
       // so, we have to manully stop listening to it and close the streams.
       events.stream.end();
 
-      await viem.withTimeout(() => finished(stream), {
-        timeout: 10000,
-        errorInstance: new Error('stream timed out'),
-      });
+      // Write all collected data to file atomically
+      await writeFile(targetFile, eventsData.join(''));
     },
   };
 }
