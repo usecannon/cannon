@@ -295,8 +295,18 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
 
     // set the first package deploy version info (always the first tag)
     bytes32 _firstTag = _packageTags[0];
-    _p.deployments[_firstTag][_variant] = CannonDeployInfo({deploy: packageDeployString, meta: packageMetaString, mutability: "version", __reserved: ""});
-    CannonDeployInfo memory _deployInfo = CannonDeployInfo({deploy: packageDeployString, meta: packageMetaString, mutability: "tag", __reserved: ""});
+    _p.deployments[_firstTag][_variant] = CannonDeployInfo({
+      deploy: packageDeployString,
+      meta: packageMetaString,
+      mutability: "version",
+      __reserved: ""
+    });
+    CannonDeployInfo memory _deployInfo = CannonDeployInfo({
+      deploy: packageDeployString,
+      meta: packageMetaString,
+      mutability: "tag",
+      __reserved: ""
+    });
     emit PackagePublishWithFee(_packageName, _firstTag, _variant, _packageDeployUrl, _packageMetaUrl, sender, msg.value);
 
     if (_packageTags.length > 1) {
@@ -583,7 +593,11 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
    * @param _packageVersionName The tag or version of the package to check
    * @param _packageVariant The variant of the package to check (see publish)
    */
-  function getPackageInfo(bytes32 _packageName, bytes32 _packageVersionName, bytes32 _packageVariant) external view returns (CannonDecodedDeployInfo memory) {
+  function getPackageInfo(
+    bytes32 _packageName,
+    bytes32 _packageVersionName,
+    bytes32 _packageVariant
+  ) external view returns (CannonDecodedDeployInfo memory) {
     return _getDecodedDeployInfo(_packageName, _packageVersionName, _packageVariant);
   }
 
@@ -665,15 +679,20 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
     return k;
   }
 
-  function _getDecodedDeployInfo(bytes32 _packageName, bytes32 _packageVersionName, bytes32 _packageVariant) internal view returns (CannonDecodedDeployInfo memory) {
+  function _getDecodedDeployInfo(
+    bytes32 _packageName,
+    bytes32 _packageVersionName,
+    bytes32 _packageVariant
+  ) internal view returns (CannonDecodedDeployInfo memory) {
     CannonDeployInfo memory _deployInfo = _store().packages[_packageName].deployments[_packageVersionName][_packageVariant];
 
-    return CannonDecodedDeployInfo({
-      owner: _store().packages[_packageName].owner,
-      deployUrl: _store().strings[_deployInfo.deploy],
-      metaUrl: _store().strings[_deployInfo.meta],
-      mutability: _deployInfo.mutability,
-      __reserved: _deployInfo.__reserved
-    });
+    return
+      CannonDecodedDeployInfo({
+        owner: _store().packages[_packageName].owner,
+        deployUrl: _store().strings[_deployInfo.deploy],
+        metaUrl: _store().strings[_deployInfo.meta],
+        mutability: _deployInfo.mutability,
+        __reserved: _deployInfo.__reserved
+      });
   }
 }
