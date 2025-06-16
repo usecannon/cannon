@@ -17,7 +17,13 @@ export abstract class CannonRegistry {
   abstract publish(packagesNames: string[], chainId: number, url: string, metaUrl: string): Promise<string[]>;
 
   async publishMany(
-    toPublish: { packagesNames: string[]; chainId: number; url: string; metaUrl: string }[]
+    toPublish: {
+      packagesNames: string[];
+      chainId: number;
+      url: string;
+      metaUrl: string;
+      mutabilityOverride?: 'version' | 'tag';
+    }[]
   ): Promise<string[]> {
     const receipts: string[] = [];
     for (const pub of toPublish) {
@@ -29,8 +35,8 @@ export abstract class CannonRegistry {
 
   // in general a "catchall" is that if the fullPackageRef is an ipfs url (ex. ipfs://Qm..) , then that is a direct service resolve.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async getUrl(serviceRef: string, chainId: number): Promise<string | null> {
-    return getIpfsUrl(serviceRef);
+  async getUrl(serviceRef: string, chainId: number): Promise<{ url: string | null; mutability: 'version' | 'tag' | '' }> {
+    return { url: getIpfsUrl(serviceRef), mutability: '' };
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -52,7 +58,7 @@ export abstract class CannonRegistry {
  * useful for testing and deployment dry-runs
  */
 export class InMemoryRegistry extends CannonRegistry {
-  readonly pkgs: { [name: string]: { [variant: string]: string } } = {};
+  readonly pkgs: { [name: string]: { [variant: string]: { url: string; mutability: 'version' | 'tag' | '' } } } = {};
   readonly metas: { [name: string]: { [variant: string]: string } } = {};
 
   count = 0;
@@ -61,9 +67,15 @@ export class InMemoryRegistry extends CannonRegistry {
     return 'memory';
   }
 
-  async publish(packagesNames: string[], chainId: number, url: string, meta?: string): Promise<string[]> {
+  async publish(
+    packagesNames: string[],
+    chainId: number,
+    url: string,
+    meta?: string,
+    mutabilityOverride?: 'version' | 'tag'
+  ): Promise<string[]> {
     const receipts: string[] = [];
-    for (const rawName of packagesNames) {
+    for (const [index, rawName] of packagesNames.entries()) {
       const { preset, packageRef } = new PackageReference(rawName);
       const variant = `${chainId}-${preset}`;
       debug('in memory publish', preset, packageRef, variant, rawName);
@@ -75,7 +87,7 @@ export class InMemoryRegistry extends CannonRegistry {
         this.metas[packageRef] = {};
       }
 
-      this.pkgs[packageRef][variant] = url;
+      this.pkgs[packageRef][variant] = { url, mutability: mutabilityOverride || (index === 0 ? 'version' : 'tag') };
       if (meta) {
         this.metas[packageRef][variant] = meta;
       }
@@ -85,14 +97,19 @@ export class InMemoryRegistry extends CannonRegistry {
     return receipts;
   }
 
-  async getUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
+  async getUrl(
+    packageOrServiceRef: string,
+    chainId: number
+  ): Promise<{ url: string | null; mutability: 'version' | 'tag' | '' }> {
     const baseResolved = await super.getUrl(packageOrServiceRef, chainId);
-    if (baseResolved) return baseResolved;
+    if (baseResolved.url) return baseResolved;
 
     const { preset, packageRef } = new PackageReference(packageOrServiceRef);
     const variant = `${chainId}-${preset}`;
 
-    return this.pkgs[packageRef] ? this.pkgs[packageRef][variant] : null;
+    return this.pkgs[packageRef] && this.pkgs[packageRef][variant]
+      ? this.pkgs[packageRef][variant]
+      : { url: null, mutability: '' };
   }
 
   async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
@@ -124,7 +141,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
     return `${this.registries.map((r) => r.getLabel()).join(', ')}`;
   }
 
-  async getUrl(packageRef: string, chainId: number): Promise<string | null> {
+  async getUrl(packageRef: string, chainId: number): Promise<{ url: string | null; mutability: 'version' | 'tag' | '' }> {
     const { fullPackageRef } = new PackageReference(packageRef);
 
     debug('resolving', fullPackageRef, chainId);
@@ -133,7 +150,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
       try {
         const result = await registry.getUrl(packageRef, chainId);
 
-        if (result) {
+        if (result.url) {
           debug('fallback registry: loaded from registry', registry.getLabel());
           await this.emit('getPackageUrl', { fullPackageRef, chainId, result, registry, fallbackRegistry: this });
           return result;
@@ -151,7 +168,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
       }
     }
 
-    return null;
+    return { url: null, mutability: '' };
   }
 
   async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
@@ -188,8 +205,14 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
     return new Set(r.flatMap((s) => Array.from(s)));
   }
 
-  async publish(packagesNames: string[], chainId: number, url: string, metaUrl?: string): Promise<string[]> {
-    debug('publish to fallback database: ', packagesNames);
+  async publish(
+    packagesNames: string[],
+    chainId: number,
+    url: string,
+    metaUrl?: string,
+    mutabilityOverride?: 'version' | 'tag'
+  ): Promise<string[]> {
+    debug('publish to fallback database: ', packagesNames, mutabilityOverride);
     // try to publish to any of the registries
     await this.memoryCacheRegistry.publish(packagesNames, chainId, url, metaUrl);
 
@@ -210,7 +233,13 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
   }
 
   async publishMany(
-    toPublish: { packagesNames: string[]; chainId: number; url: string; metaUrl: string }[]
+    toPublish: {
+      packagesNames: string[];
+      chainId: number;
+      url: string;
+      metaUrl: string;
+      mutabilityOverride?: 'version' | 'tag';
+    }[]
   ): Promise<string[]> {
     return this.publishRegistry.publishMany(toPublish);
   }
@@ -290,7 +319,13 @@ export class OnChainRegistry extends CannonRegistry {
     }
   }
 
-  private _preparePackageData(packagesNames: string[], chainId: number, url?: string, metaUrl?: string): PackageData {
+  private _preparePackageData(
+    packagesNames: string[],
+    chainId: number,
+    url?: string,
+    metaUrl?: string,
+    mutabilityOverride?: 'version' | 'tag'
+  ): PackageData {
     const refs = packagesNames.map((name) => new PackageReference(name));
 
     // Sanity check, all package definitions should have the same name
@@ -320,6 +355,10 @@ export class OnChainRegistry extends CannonRegistry {
 
     if (metaUrl) {
       console.log(`Metadata URL: ${metaUrl}`);
+    }
+
+    if (mutabilityOverride) {
+      console.log(`Mutability Override: ${mutabilityOverride}`);
     }
 
     console.log('\n');
@@ -426,14 +465,26 @@ export class OnChainRegistry extends CannonRegistry {
     return receipt.transactionHash;
   }
 
-  async publish(packagesNames: string[], chainId: number, url: string, metaUrl?: string): Promise<string[]> {
+  async publish(
+    packagesNames: string[],
+    chainId: number,
+    url: string,
+    metaUrl?: string,
+    mutabilityOverride?: 'version' | 'tag'
+  ): Promise<string[]> {
     console.log(bold(blueBright('\nPublishing package to the registry on-chain...\n')));
-    const packageData = this._preparePackageData(packagesNames, chainId, url, metaUrl);
+    const packageData = this._preparePackageData(packagesNames, chainId, url, metaUrl, mutabilityOverride);
     return [await this._publishPackages([packageData])];
   }
 
   async publishMany(
-    toPublish: { packagesNames: string[]; chainId: number; url: string; metaUrl?: string }[]
+    toPublish: {
+      packagesNames: string[];
+      chainId: number;
+      url: string;
+      metaUrl?: string;
+      mutabilityOverride?: 'version' | 'tag';
+    }[]
   ): Promise<string[]> {
     console.log(bold(blueBright('\nPublishing packages to the registry on-chain...\n')));
     const packageDatas = toPublish.map((p) => this._preparePackageData(p.packagesNames, p.chainId, p.url, p.metaUrl));
@@ -452,29 +503,33 @@ export class OnChainRegistry extends CannonRegistry {
     return [await this._unpublishPackages(packageDatas)];
   }
 
-  async getUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
+  async getUrl(
+    packageOrServiceRef: string,
+    chainId: number
+  ): Promise<{ url: string | null; mutability: 'version' | 'tag' | '' }> {
     if (!this.provider) {
       throw new Error('provider not given to getUrl');
     }
 
     const baseResolved = await super.getUrl(packageOrServiceRef, chainId);
-    if (baseResolved) return baseResolved;
+    if (baseResolved.url) return baseResolved;
 
     const { name, version, preset } = new PackageReference(packageOrServiceRef);
     const variant = `${chainId}-${preset}`;
 
-    const url = await this.provider.readContract({
+    const onChainDeployInfo = (await this.provider.readContract({
       address: this.contract.address,
       abi: this.contract.abi,
-      functionName: 'getPackageUrl',
+      functionName: 'getPackageInfo',
       args: [
         viem.stringToHex(name, { size: 32 }),
         viem.stringToHex(version, { size: 32 }),
         viem.stringToHex(variant, { size: 32 }),
       ],
-    });
+      // TODO: I dont understand why viem does not recognize the return type of this function (so I have to use any)
+    })) as any;
 
-    return (url as string) || null;
+    return { url: onChainDeployInfo.deployUrl, mutability: onChainDeployInfo.mutability as 'version' | 'tag' | '' };
   }
 
   async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
@@ -482,7 +537,7 @@ export class OnChainRegistry extends CannonRegistry {
       throw new Error('provider not given to getUrl');
     }
 
-    const baseResolved = await super.getUrl(packageOrServiceRef, chainId);
+    const baseResolved = await super.getMetaUrl(packageOrServiceRef, chainId);
     if (baseResolved) return baseResolved;
 
     const { name, version, preset } = new PackageReference(packageOrServiceRef);

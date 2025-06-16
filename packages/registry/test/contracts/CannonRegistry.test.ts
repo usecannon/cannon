@@ -1,7 +1,7 @@
 import { deepEqual, equal, ok } from 'node:assert/strict';
 import { BigNumber, ContractTransaction, Signer } from 'ethers';
 import { ethers } from 'hardhat';
-import { stringToHex } from 'viem';
+import { stringToHex, toHex } from 'viem';
 import { CannonRegistry as TCannonRegistry } from '../../typechain-types/contracts/CannonRegistry';
 import { CannonRegistry as TMockERC20 } from '../../typechain-types/contracts/MockERC20';
 import { MockOptimismBridge as TMockOptimismBridge } from '../../typechain-types/contracts/MockOptimismBridge';
@@ -347,6 +347,114 @@ describe('CannonRegistry', function () {
           { value: fee }
         );
       }, 'Unauthorized()');
+    });
+  });
+
+  describe('tag immutability and version tracking', function () {
+    it('should not allow republishing a version', async function () {
+      // First publish a version
+      await CannonRegistry.connect(owner).publish(
+        toBytes32('some-module'),
+        toBytes32('1337-main'),
+        [toBytes32('1.0.0')],
+        'ipfs://some-module-hash@1.0.0',
+        'ipfs://some-module-meta@1.0.0',
+        { value: fee }
+      );
+
+      // Try to republish the same version
+      await assertRevert(async () => {
+        await CannonRegistry.connect(owner).publish(
+          toBytes32('some-module'),
+          toBytes32('1337-main'),
+          [toBytes32('1.0.0')],
+          'ipfs://some-module-hash@1.0.0-new',
+          'ipfs://some-module-meta@1.0.0-new',
+          { value: fee }
+        );
+      }, 'RepublishNotAllowed("0x736f6d652d6d6f64756c65000000000000000000000000000000000000000000", "0x313333372d6d61696e0000000000000000000000000000000000000000000000", "0x312e302e30000000000000000000000000000000000000000000000000000000", "0x76657273696f6e000000000000000000")');
+    });
+
+    it('should not allow turning a tag into a version', async function () {
+      // First publish a tag
+      await CannonRegistry.connect(owner).publish(
+        toBytes32('some-module'),
+        toBytes32('1337-main'),
+        [toBytes32('1.2.3.4'), toBytes32('latest')],
+        'ipfs://some-module-hash@latest',
+        'ipfs://some-module-meta@latest',
+        { value: fee }
+      );
+
+      // Try to publish the same tag as a version
+      await assertRevert(async () => {
+        await CannonRegistry.connect(owner).publish(
+          toBytes32('some-module'),
+          toBytes32('1337-main'),
+          [toBytes32('latest')],
+          'ipfs://some-module-hash@latest-new',
+          'ipfs://some-module-meta@latest-new',
+          { value: fee }
+        );
+      }, 'RepublishNotAllowed("0x736f6d652d6d6f64756c65000000000000000000000000000000000000000000", "0x313333372d6d61696e0000000000000000000000000000000000000000000000", "0x6c61746573740000000000000000000000000000000000000000000000000000", "0x74616700000000000000000000000000")');
+    });
+
+    it('should correctly track version and tag mutability', async function () {
+      // Publish a version and tag
+      await CannonRegistry.connect(owner).publish(
+        toBytes32('some-module'),
+        toBytes32('1337-main'),
+        [toBytes32('2.0.0'), toBytes32('stable')],
+        'ipfs://some-module-hash@2.0.0',
+        'ipfs://some-module-meta@2.0.0',
+        { value: fee }
+      );
+
+      // Get package info for both
+      const versionInfo = await CannonRegistry.getPackageInfo(
+        toBytes32('some-module'),
+        toBytes32('2.0.0'),
+        toBytes32('1337-main')
+      );
+      const tagInfo = await CannonRegistry.getPackageInfo(
+        toBytes32('some-module'),
+        toBytes32('stable'),
+        toBytes32('1337-main')
+      );
+
+      // Check mutability values
+      equal(versionInfo.mutability, toHex('version', { size: 16 }));
+      equal(tagInfo.mutability, toHex('tag', { size: 16 }));
+    });
+
+    it('should allow updating a tag to point to a new version', async function () {
+      // First publish a version and tag
+      await CannonRegistry.connect(owner).publish(
+        toBytes32('some-module'),
+        toBytes32('1337-main'),
+        [toBytes32('3.0.0'), toBytes32('latest')],
+        'ipfs://some-module-hash@3.0.0',
+        'ipfs://some-module-meta@3.0.0',
+        { value: fee }
+      );
+
+      // Publish a new version
+      await CannonRegistry.connect(owner).publish(
+        toBytes32('some-module'),
+        toBytes32('1337-main'),
+        [toBytes32('4.0.0'), toBytes32('latest')],
+        'ipfs://some-module-hash@4.0.0',
+        'ipfs://some-module-meta@4.0.0',
+        { value: fee }
+      );
+
+      // Verify the tag now points to the new version
+      const tagInfo = await CannonRegistry.getPackageInfo(
+        toBytes32('some-module'),
+        toBytes32('latest'),
+        toBytes32('1337-main')
+      );
+      equal(tagInfo.deployUrl, 'ipfs://some-module-hash@4.0.0');
     });
   });
 

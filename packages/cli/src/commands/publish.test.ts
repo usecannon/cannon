@@ -183,8 +183,8 @@ describe('publish command', () => {
         includeProvisioned: false,
       });
 
-      expect(await onChainRegistry.getUrl(fullPackageRef, chainId)).toEqual(testPkgDataNewIpfsUrl);
-      expect(await onChainRegistry.getUrl(`${fullPackageRef}:tag0@${preset}`, chainId)).toEqual(testPkgDataNewIpfsUrl);
+      expect((await onChainRegistry.getUrl(fullPackageRef, chainId)).url).toEqual(testPkgDataNewIpfsUrl);
+      expect((await onChainRegistry.getUrl(`${fullPackageRef}:tag0@${preset}`, chainId)).url).toEqual(testPkgDataNewIpfsUrl);
     });
 
     it('should publish the package to the registry with no tags', async () => {
@@ -210,7 +210,7 @@ describe('publish command', () => {
         includeProvisioned: true,
       });
 
-      expect(await onChainRegistry.getUrl(fullPackageRef, chainId)).toEqual(testPkgDataNewIpfsUrl);
+      expect((await onChainRegistry.getUrl(fullPackageRef, chainId)).url).toEqual(testPkgDataNewIpfsUrl);
     });
   });
 

@@ -38,7 +38,7 @@ const pullSpec = {
     const chainId = cfg.chainId ?? runtime.chainId;
 
     debug('resolved pkg', source, chainId);
-    const url = await runtime.registry.getUrl(source, chainId);
+    const url = (await runtime.registry.getUrl(source, chainId)).url;
 
     return [
       [url],
@@ -105,7 +105,7 @@ const pullSpec = {
     return {
       imports: {
         [importLabel]: {
-          url: (await runtime.registry.getUrl(source, chainId))!, // todo: duplication
+          url: (await runtime.registry.getUrl(source, chainId)).url!, // todo: duplication
           ...(await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state))!,
         },
       },

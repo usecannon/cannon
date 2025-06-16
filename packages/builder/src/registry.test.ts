@@ -21,7 +21,7 @@ describe('registry.ts', () => {
 
         const url = await registry.getUrl('QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i', 13370);
 
-        expect(url).toBe('ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i');
+        expect(url.url).toBe('ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i');
       });
 
       it('just passes through for any non "@" prefixed cannon packages', async () => {
@@ -29,7 +29,7 @@ describe('registry.ts', () => {
 
         const url = await registry.getUrl('testing:3.0.0', 13370);
 
-        expect(url).toBe(null);
+        expect(url.url).toBeFalsy();
       });
     });
   });
@@ -181,14 +181,20 @@ describe('registry.ts', () => {
         const provider = makeFakeProvider();
         const registry = createRegistry({ provider });
 
-        jest.mocked(provider.readContract).mockResolvedValue('ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i');
+        jest.mocked(provider.readContract).mockResolvedValue({
+          deployUrl: 'ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i',
+          metaUrl: 'ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6j',
+          mutability: 'foobar',
+          owner: signer.address,
+        });
 
         const url = await registry.getUrl('dummy-package:0.0.1@main', 13370);
 
-        expect(url).toBe('ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i');
+        expect(url.url).toBe('ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i');
+        expect(url.mutability).toBe('foobar');
 
         expect(jest.mocked(provider.readContract).mock.lastCall?.[0]).toMatchObject({
-          functionName: 'getPackageUrl',
+          functionName: 'getPackageInfo',
           args: [
             viem.stringToHex('dummy-package', { size: 32 }),
             viem.stringToHex('0.0.1', { size: 32 }),
