@@ -1,13 +1,15 @@
 import { useExecutedTransactions } from '@/hooks/safe';
 import { useInMemoryPagination } from '@/hooks/useInMemoryPagination';
-import { TransactionTable } from './Transaction';
+import { TransactionTable, EnhancedTransaction } from './Transaction';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { Switch } from '@/components/ui/switch';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { SafeDefinition } from '@/helpers/store';
 import TableSkeleton from '@/components/ui/Skeletons/Table';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
+import { parseHintedMulticall } from '@/helpers/cannon';
+import { getSafeTransactionHash } from '@/helpers/safe';
 
 export function ExecutedTransactions({
   currentSafe,
@@ -17,11 +19,32 @@ export function ExecutedTransactions({
   const executedTransactions = useExecutedTransactions(currentSafe);
   const [isChecked, setIsChecked] = useState(true);
 
+  const enhancedExecutedTxs: EnhancedTransaction[] = useMemo(() => {
+    const allTxs = executedTransactions.data?.results || [];
+    return allTxs.map((tx) => {
+      const hintData = parseHintedMulticall(tx.data);
+      const sigHash = hintData && getSafeTransactionHash(currentSafe, tx);
+      const isLink = sigHash != null;
+      return {
+        tx,
+        hintData,
+        sigHash,
+        isLink,
+      };
+    });
+  }, [executedTransactions.data?.results, currentSafe]);
+
+  const filteredResults = useMemo(() => {
+    return isChecked
+      ? enhancedExecutedTxs.filter((tx) => tx.isLink)
+      : enhancedExecutedTxs;
+  }, [enhancedExecutedTxs, isChecked]);
+
   const {
     paginatedData: paginatedExecutedTxs,
     hasMore: hasMoreExecutedTxs,
     fetchMoreData: fetchMoreExecutedTxs,
-  } = useInMemoryPagination(executedTransactions.data?.results || [], 20);
+  } = useInMemoryPagination(filteredResults, 20);
 
   const noResults =
     !executedTransactions.data ||
@@ -95,7 +118,6 @@ export function ExecutedTransactions({
                 <TransactionTable
                   transactions={paginatedExecutedTxs}
                   safe={currentSafe}
-                  hideExternal={isChecked}
                 />
               </div>
             </InfiniteScroll>

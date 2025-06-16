@@ -1,81 +1,51 @@
-import { deepEqual, equal, ok } from 'assert/strict';
+import { deepEqual, equal, ok } from 'node:assert/strict';
 import { BigNumber, ContractTransaction, Signer } from 'ethers';
 import { ethers } from 'hardhat';
 import { stringToHex, toBytes, toHex } from 'viem';
 import { CannonRegistry as TCannonRegistry } from '../../typechain-types/contracts/CannonRegistry';
+import { CannonRegistry as TMockERC20 } from '../../typechain-types/contracts/MockERC20';
 import { MockOptimismBridge as TMockOptimismBridge } from '../../typechain-types/contracts/MockOptimismBridge';
-import assertRevert from '../helpers/assert-revert';
+import { assertRevert } from '../helpers/assert-revert';
+import { bootstrap, deployCannonRegistry } from '../helpers/bootstrap';
 
 const toBytes32 = (str: string) => stringToHex(str, { size: 32 });
 const parseEther = ethers.utils.parseEther;
 
 describe('CannonRegistry', function () {
-  let l1ChainId: number;
   let CannonRegistry: TCannonRegistry;
+  let MockERC20: TMockERC20;
   let MockOPSendBridge: TMockOptimismBridge;
   let MockOPRecvBridge: TMockOptimismBridge;
-  let owner: Signer, user2: Signer, user3: Signer;
+  let owner: Signer;
   let ownerAddress: string;
+  let user2: Signer;
+  let user3: Signer;
   let fee: BigNumber;
 
-  before('identify signers', async function () {
+  before('load context', async function () {
+    const ctx = await bootstrap();
     [owner, user2, user3] = await ethers.getSigners();
     ownerAddress = await owner.getAddress();
-  });
-
-  before('deploy contract', async function () {
-    l1ChainId = (await ethers.provider.getNetwork()).chainId;
-    const MockOptimismBridge = await ethers.getContractFactory('MockOptimismBridge');
-    const MockOPBridgeImpl = await MockOptimismBridge.deploy();
-    await MockOPBridgeImpl.deployed();
-    const MockOPBridgeImplCode = await ethers.provider.send('eth_getCode', [MockOPBridgeImpl.address]);
-
-    await ethers.provider.send('hardhat_setCode', ['0x4200000000000000000000000000000000000007', MockOPBridgeImplCode]);
-    await ethers.provider.send('hardhat_setCode', ['0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1', MockOPBridgeImplCode]);
-
-    MockOPSendBridge = (await ethers.getContractAt(
-      'MockOptimismBridge',
-      '0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1'
-    )) as TMockOptimismBridge;
-    MockOPRecvBridge = (await ethers.getContractAt(
-      'MockOptimismBridge',
-      '0x4200000000000000000000000000000000000007'
-    )) as TMockOptimismBridge;
-
-    const CannonRegistryFactory = await ethers.getContractFactory('CannonRegistry');
-    const Implementation = await CannonRegistryFactory.deploy(MockOPSendBridge.address, MockOPRecvBridge.address, l1ChainId);
-    await Implementation.deployed();
-
-    const ProxyFactory = await ethers.getContractFactory('Proxy');
-    const Proxy = await ProxyFactory.deploy(Implementation.address, ownerAddress);
-    await Proxy.deployed();
-
-    CannonRegistry = (await ethers.getContractAt('CannonRegistry', Proxy.address)) as TCannonRegistry;
-
+    ({ CannonRegistry, MockOPSendBridge, MockOPRecvBridge, MockERC20 } = ctx);
     fee = await CannonRegistry.publishFee();
   });
 
   before('register', async () => {
-    await CannonRegistry.setPackageOwnership(toBytes32('some-module'), await owner.getAddress());
+    await CannonRegistry.setPackageOwnership(toBytes32('some-module'), ownerAddress);
   });
 
   describe('Upgradedability', function () {
-    let newImplementation: TCannonRegistry;
-
-    before('deploy new implementation', async function () {
-      const CannonRegistry = await ethers.getContractFactory('CannonRegistry');
-      newImplementation = (await CannonRegistry.deploy(
+    it('upgrades to a new implementation', async function () {
+      const { chainId } = await ethers.provider.getNetwork();
+      const [newImplementation] = await deployCannonRegistry(
+        MockERC20.address,
+        MockERC20.address,
         MockOPSendBridge.address,
         MockOPRecvBridge.address,
-        l1ChainId
-      )) as TCannonRegistry;
-      await newImplementation.deployed();
-    });
-
-    it('upgrades to a new implementation', async function () {
-      const { address } = newImplementation;
-      await CannonRegistry.upgradeTo(address).then((tx) => tx.wait());
-
+        chainId
+      );
+      const tx = await CannonRegistry.upgradeTo(newImplementation.address);
+      await tx.wait();
       equal(await CannonRegistry.getImplementation(), newImplementation.address);
     });
   });
@@ -569,9 +539,11 @@ describe('CannonRegistry', function () {
 
       it('sends cross chain message', async function () {
         const functionName = 'setAdditionalPublishers';
-        const expectedArgs = [toBytes32('some-module'), [], [await user3.getAddress()]];
+        const expectedArgs = [toBytes32('some-module'), [], [await user3.getAddress()]] as const;
         const functionSelector = CannonRegistry.interface.getSighash(functionName);
-        const encodedParameters = CannonRegistry.interface.encodeFunctionData(functionName, expectedArgs).slice(10); // Remove the first 10 characters (0x + selector)
+        const encodedParameters = CannonRegistry.interface
+          .encodeFunctionData(functionName as any, expectedArgs as any)
+          .slice(10);
 
         const data = functionSelector + encodedParameters;
 

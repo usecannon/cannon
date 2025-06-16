@@ -1,16 +1,16 @@
 include = ["cannonfile.toml", "cannonfile.subscription.toml"]
 
 [setting.initialOwner]
-defaultValue = "0xca7777aB932E8F0b930dE9F0d96f4E9a2a00DdD3"
+defaultValue = "0x3852C9fdc6a5C0A4A6230c1d2d954ccCB9b90465"
 
 [setting.l1ChainId]
-defaultValue = "11155111"
+defaultValue = "1"
 
 [setting.optimismL1Sender]
-defaultValue = "0x58Cc85b8D04EA49cC6DBd3CbFFd00B4B8D6cb3ef"
+defaultValue = "0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1"
 
 [setting.optimismL2Receiver]
 defaultValue = "0x4200000000000000000000000000000000000007"
 
 [setting.subscriptionToken]
-defaultValue = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
+defaultValue = "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85"
