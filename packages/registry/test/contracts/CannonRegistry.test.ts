@@ -1,7 +1,7 @@
 import { deepEqual, equal, ok } from 'node:assert/strict';
 import { BigNumber, ContractTransaction, Signer } from 'ethers';
 import { ethers } from 'hardhat';
-import { stringToHex, toBytes, toHex } from 'viem';
+import { stringToHex, toHex } from 'viem';
 import { CannonRegistry as TCannonRegistry } from '../../typechain-types/contracts/CannonRegistry';
 import { CannonRegistry as TMockERC20 } from '../../typechain-types/contracts/MockERC20';
 import { MockOptimismBridge as TMockOptimismBridge } from '../../typechain-types/contracts/MockOptimismBridge';

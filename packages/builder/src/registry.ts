@@ -210,7 +210,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
     metaUrl?: string,
     mutabilityOverride?: 'version' | 'tag'
   ): Promise<string[]> {
-    debug('publish to fallback database: ', packagesNames);
+    debug('publish to fallback database: ', packagesNames, mutabilityOverride);
     // try to publish to any of the registries
     await this.memoryCacheRegistry.publish(packagesNames, chainId, url, metaUrl);
 
@@ -322,7 +322,7 @@ export class OnChainRegistry extends CannonRegistry {
     chainId: number,
     url?: string,
     metaUrl?: string,
-    _mutabilityOverride?: 'version' | 'tag'
+    mutabilityOverride?: 'version' | 'tag'
   ): PackageData {
     const refs = packagesNames.map((name) => new PackageReference(name));
 
@@ -353,6 +353,10 @@ export class OnChainRegistry extends CannonRegistry {
 
     if (metaUrl) {
       console.log(`Metadata URL: ${metaUrl}`);
+    }
+
+    if (mutabilityOverride) {
+      console.log(`Mutability Override: ${mutabilityOverride}`);
     }
 
     console.log('\n');

@@ -185,7 +185,7 @@ export class ReadOnlyOnChainRegistry extends OnChainRegistry {
   }
 }
 
-async function checkLocalRegistryOverride({
+export async function checkLocalRegistryOverride({
   fullPackageRef,
   chainId,
   result,

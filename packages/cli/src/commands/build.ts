@@ -150,7 +150,6 @@ export async function build({
 
   // before building, make sure that the name/version isnt already taken on the registry
   const isPackageAlreadyPublished = await onChainOnlyResolver.getUrl(fullPackageRef, chainId);
-  console.log('isPackageAlreadyPublished', fullPackageRef, chainId, isPackageAlreadyPublished);
   if (isPackageAlreadyPublished.url) {
     throw new Error(
       'The package ${fullPackageRef} is already published on the registry. Please bump the `version` field in your cannonfile.'
