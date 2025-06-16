@@ -102,12 +102,14 @@ export class InMemoryRegistry extends CannonRegistry {
     chainId: number
   ): Promise<{ url: string | null; mutability: 'version' | 'tag' | '' }> {
     const baseResolved = await super.getUrl(packageOrServiceRef, chainId);
-    if (baseResolved) return baseResolved;
+    if (baseResolved.url) return baseResolved;
 
     const { preset, packageRef } = new PackageReference(packageOrServiceRef);
     const variant = `${chainId}-${preset}`;
 
-    return this.pkgs[packageRef] ? this.pkgs[packageRef][variant] : { url: null, mutability: '' };
+    return this.pkgs[packageRef] && this.pkgs[packageRef][variant]
+      ? this.pkgs[packageRef][variant]
+      : { url: null, mutability: '' };
   }
 
   async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {

@@ -38,7 +38,7 @@ const pullSpec = {
     const chainId = cfg.chainId ?? runtime.chainId;
 
     debug('resolved pkg', source, chainId);
-    const url = await runtime.registry.getUrl(source, chainId);
+    const url = (await runtime.registry.getUrl(source, chainId)).url;
 
     return [
       [url],
