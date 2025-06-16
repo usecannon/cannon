@@ -44,16 +44,15 @@ const AddressPage = () => {
     chain,
     transport: http(chain?.rpcUrls.default.http[0]),
   });
-
+  const addressStr = Array.isArray(address) ? address[0] : address;
   useEffect(() => {
-    const addressStr = Array.isArray(address) ? address[0] : address;
     const fetchBalance = async () => {
       try {
-        console.log(`Fetching balance for ${addressStr}`);
+        // console.log(`Fetching balance for ${addressStr}`);
         const estimatedBalance = await publicClient.getBalance({
           address: addressStr!,
         });
-        console.log(`Balance: ${String(estimatedBalance)}`);
+        // console.log(`Balance: ${String(estimatedBalance)}`);
         setBalance(
           convertToFormatEther(estimatedBalance, chain?.nativeCurrency.symbol)
         );
@@ -83,9 +82,14 @@ const AddressPage = () => {
         <AddressMultiChain />
       </div>
       <AddressTabProps activeTab={activeTab} setActiveTab={setActiveTab} />
-      <div className="flex w-full my-3">
-        <AddressLists />
-      </div>
+      {addressStr && (
+        <div className="flex w-full my-3">
+          <AddressLists
+            address={addressStr}
+            symbol={chain?.nativeCurrency.symbol ?? 'ETH'}
+          />
+        </div>
+      )}
     </div>
   );
 };
