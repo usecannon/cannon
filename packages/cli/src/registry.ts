@@ -244,6 +244,8 @@ export async function createDefaultReadRegistry(
     debug('using local registry');
     const fallbackRegistry = new FallbackRegistry([...additionalRegistries, localRegistry, ...onChainRegistries]);
 
+    // for some reason the promises checker really doesn't like the next line
+    // eslint-disable-next-line
     fallbackRegistry.on('getPackageUrl', async (event) => {
       // if we had to load this package from the on-chain registry and it was immutable, record
       if (event.result.mutability === 'version' && event.registry instanceof OnChainRegistry) {

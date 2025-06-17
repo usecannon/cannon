@@ -6,7 +6,6 @@ import { assertBn } from '../helpers/assert-bignumber';
 import { ethers } from 'hardhat';
 
 import assert from 'assert/strict';
-import { getAddress } from 'viem';
 
 type CannonSubscription = Awaited<ReturnType<typeof bootstrap>>['CannonSubscription'];
 type MockERC20 = Awaited<ReturnType<typeof bootstrap>>['MockERC20'];
