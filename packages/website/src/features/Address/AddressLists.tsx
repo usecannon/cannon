@@ -26,7 +26,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { convertToFormatEther } from '@/features/Address/AddressPage';
-import { formatEther } from 'viem';
+import { formatEther, formatGwei } from 'viem';
 import { ClipboardButton } from '@/components/ClipboardButton';
 import {
   Tooltip,
@@ -35,13 +35,17 @@ import {
 } from '@/components/ui/tooltip';
 import Link from 'next/link';
 import { transactions } from './addressDemoData';
+import { format } from 'date-fns';
+import AddressAdditionalInfo from '@/features/Address/AddressAdditionalInfo';
 
 type AddressListsProps = {
   address: string;
-  symbol: string;
+  chain: any;
 };
 
-const AddressLists: React.FC<AddressListsProps> = ({ address, symbol }) => {
+const AddressLists: React.FC<AddressListsProps> = ({ address, chain }) => {
+  const [isUtcDate, setIsUtcDate] = useState<boolean>(false);
+  const [isGasPrice, setIsGasPrice] = useState<boolean>(false);
   const txs = transactions.result.txs;
   const receipts = transactions.result.receipts;
   //   console.log(txs);
@@ -57,12 +61,13 @@ const AddressLists: React.FC<AddressListsProps> = ({ address, symbol }) => {
     method: string;
     amount: string;
     txnFee: string;
+    gasPrice: string;
   };
 
   const data = React.useMemo(() => {
     return Object.entries(txs).map(([, tx]): TransactionRow => {
       const receipt = receipts.find((r) => r.transactionHash === tx.hash);
-      // console.log(`gasPrice : ${parseInt(tx.gasPrice.slice(2), 16)}`);
+
       return {
         detail: '',
         hash: tx.hash,
@@ -79,6 +84,7 @@ const AddressLists: React.FC<AddressListsProps> = ({ address, symbol }) => {
                 10
               )
             : '',
+        gasPrice: tx.gasPrice,
       };
     });
   }, [txs]);
@@ -87,93 +93,12 @@ const AddressLists: React.FC<AddressListsProps> = ({ address, symbol }) => {
   const columnHelper = createColumnHelper<TransactionRow>();
   const [openToolTipIndex, setOpenTooltipIndex] = useState<number>();
 
-  const renderDetail = (info: any) => {
-    const rowIndex = info.row.index;
-
-    return (
-      <>
-        <Tooltip open={openToolTipIndex === rowIndex}>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              className="px-2 py-1 text-xs text-gray-200 border border-gray-800 bg-gray-800 border-opacity-75 bg-opacity-0 rounded-lg"
-              onClick={() => setOpenTooltipIndex(info.row.index)}
-            >
-              <Eye className="h-3 w-3" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent
-            side="right"
-            align="start"
-            className="w-auto overflow-y-auto overflow-x-hidden"
-          >
-            <h5 className="mb-4">Additional Info</h5>
-            <div className="mb-4">
-              <h6 className="font-bold mb-1">Status:</h6>
-              <div className="flex items-center space-x-1">
-                <Check className="w-3 h-3 items-center justify-center text-xs text-green-900 rounded-full font-bold bg-green-200 border border-green-200" />
-                <span className="text-green-200">Success</span>
-                <span className="text-gray-400">
-                  (124543 Block Confirmations)
-                </span>
-              </div>
-            </div>
-            <hr />
-            <div className="my-4">
-              <h6 className="font-bold mb-1">Transaction Action:</h6>
-              <div className="flex items-center space-x-1">
-                <span className="text-gray-400">Transfer</span>
-                <span className="">0.023748243 ETH</span>
-                <span className="text-gray-400">to</span>
-                <span className="">0xsdas...dajso</span>
-              </div>
-            </div>
-            <hr />
-            <div className="my-4">
-              <h6 className="font-bold mb-1">Transaction Fee:</h6>
-              <div className="flex items-center space-x-1">
-                <span className="">0.139002394900254 ETH</span>
-              </div>
-            </div>
-            <hr />
-            <div className="my-4">
-              <h6 className="font-bold mb-1">Gas Info:</h6>
-              <div className="flex items-center space-x-1">
-                <span className="">2,1000 gas used from 21000 limit</span>
-              </div>
-            </div>
-            <hr />
-            <div className="my-4">
-              <h6 className="font-bold mb-1">Nounce:</h6>
-              <div className="flex items-center space-x-1">
-                <span className="">24123</span>
-                <span className="text-gray-400">(in the position 348)</span>
-              </div>
-            </div>
-            <hr />
-            <div className="my-4">
-              <div className="flex items-center space-x-1">
-                <Link
-                  href="/tx/xxxxxxxx"
-                  className="flex items-center font-mono border-b border-dotted border-muted-foreground hover:border-solid"
-                >
-                  <span>See more details</span>
-                  <MoveUpRight className="h-3 w-3" />
-                </Link>
-              </div>
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      </>
-    );
-  };
-
   const renderFrom = (info: any) => {
     const fromAddress = info.getValue();
     return (
       <div className="flex items-center space-x-3">
         <Link
-          href={`/tx/${info.getValue()}`}
+          href={`/tx/${chain?.id}/${info.getValue()}`}
           className="flex items-center font-mono border-b border-dotted border-muted-foreground hover:border-solid"
         >
           <span>{`${fromAddress.substring(0, 8)}...${info
@@ -186,7 +111,7 @@ const AddressLists: React.FC<AddressListsProps> = ({ address, symbol }) => {
             OUT
           </span>
         ) : (
-          <span className="inline-flex justify-center items-center w-10 text-center w-10 font-bold px-2 py-1 text-xs text-green-700 border border-green-700 border-opacity-75 bg-opacity-10 rounded-lg">
+          <span className="inline-flex justify-center items-center w-10 text-center font-bold px-2 py-1 text-xs text-green-700 border border-green-700 border-opacity-75 bg-opacity-10 rounded-lg">
             IN
           </span>
         )}
@@ -201,7 +126,7 @@ const AddressLists: React.FC<AddressListsProps> = ({ address, symbol }) => {
         {toAddress === '' ? (
           <>
             <Link
-              href={`/tx/${toAddress}`}
+              href={`/tx/${chain?.id}/${toAddress}`}
               className="flex items-center font-mono border-b border-dotted border-muted-foreground hover:border-solid"
             >
               <span>Contract Creation</span>
@@ -216,7 +141,7 @@ const AddressLists: React.FC<AddressListsProps> = ({ address, symbol }) => {
               )}`}</span>
             ) : (
               <Link
-                href={`/tx/${toAddress}`}
+                href={`/tx/${chain?.id}/${toAddress}`}
                 className="flex items-center font-mono border-b border-dotted border-muted-foreground hover:border-solid"
               >
                 <span>{`${toAddress.substring(0, 8)}...${toAddress.slice(
@@ -234,7 +159,14 @@ const AddressLists: React.FC<AddressListsProps> = ({ address, symbol }) => {
   const columns = [
     columnHelper.accessor('detail', {
       id: 'detail',
-      cell: (info: any) => renderDetail(info),
+      cell: (info: any) => (
+        <AddressAdditionalInfo
+          info={info}
+          openToolTipIndex={openToolTipIndex!}
+          setOpenTooltipIndex={setOpenTooltipIndex}
+          chain={chain}
+        />
+      ),
       header: () => <CircleHelp className="h-3 w-3" />,
     }),
     columnHelper.accessor('hash', {
@@ -242,7 +174,7 @@ const AddressLists: React.FC<AddressListsProps> = ({ address, symbol }) => {
       cell: (info: any) => (
         <div className="flex items-center space-x-2">
           <Link
-            href={`/tx/${info.getValue()}`}
+            href={`/tx/${chain?.id}/${info.getValue()}`}
             className="flex items-center font-mono border-b border-dotted border-muted-foreground hover:border-solid"
           >
             <span>{`${info.getValue().slice(0, 12)}...`}</span>
@@ -270,9 +202,24 @@ const AddressLists: React.FC<AddressListsProps> = ({ address, symbol }) => {
       id: 'age',
       cell: (info: any) => {
         const timestamp = info.getValue();
-        return String(formatDistanceToNow(new Date(timestamp * 1000)) + ' ago');
+        if (isUtcDate) {
+          return format(
+            new Date(Number(timestamp) * 1000),
+            'yyyy-MM-dd H:mm:ss'
+          );
+        } else {
+          return String(
+            formatDistanceToNow(new Date(timestamp * 1000)) + ' ago'
+          );
+        }
       },
-      header: 'Age',
+      header: () => {
+        return (
+          <span className="font-mono border-b border-dotted border-muted-foreground hover:border-solid">
+            {isUtcDate ? 'Date Time' : 'Age'}
+          </span>
+        );
+      },
     }),
     columnHelper.accessor('from', {
       id: 'from',
@@ -287,13 +234,34 @@ const AddressLists: React.FC<AddressListsProps> = ({ address, symbol }) => {
     columnHelper.accessor('amount', {
       id: 'amount',
       cell: (info: any) =>
-        String(convertToFormatEther(info.getValue(), symbol) ?? '0 ETH'),
+        String(
+          convertToFormatEther(info.getValue(), chain?.nativeCurrency.symbol) ??
+            '0 ETH'
+        ),
       header: 'Amount',
     }),
     columnHelper.accessor('txnFee', {
       id: 'txnFee',
-      cell: (info: any) => String(info.getValue()),
-      header: 'Txn Fee',
+      cell: (info: any) => {
+        const txnFee = info.getValue();
+        const gasPrice = info.row.getValue('gasPrice');
+        return isGasPrice
+          ? formatGwei(BigInt(gasPrice)).toLocaleString()
+          : txnFee;
+      },
+      header: () => {
+        return (
+          <span className="font-mono border-b border-dotted border-muted-foreground hover:border-solid">
+            {isGasPrice ? 'GasPrice' : 'Txn Fee'}
+          </span>
+        );
+      },
+    }),
+    columnHelper.accessor('gasPrice', {
+      id: 'gasPrice',
+      enableHiding: true,
+      cell: () => null,
+      header: () => null,
     }),
   ];
 
@@ -339,18 +307,46 @@ const AddressLists: React.FC<AddressListsProps> = ({ address, symbol }) => {
                           className={meta?.isNumeric ? 'text-right' : ''}
                         >
                           {header.column.columnDef.id === 'age' ||
-                          header.column.columnDef.id === 'amount' ||
                           header.column.columnDef.id === 'txnFee' ? (
-                            <Button
-                              variant="ghost"
-                              onClick={header.column.getToggleSortingHandler()}
-                              className="h-8 px-2"
-                            >
-                              {flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                            </Button>
+                            <>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Button
+                                    variant="ghost"
+                                    onClick={() => {
+                                      if (
+                                        header.column.columnDef.id === 'age'
+                                      ) {
+                                        setIsUtcDate(!isUtcDate);
+                                      } else {
+                                        setIsGasPrice(!isGasPrice);
+                                      }
+                                    }}
+                                    className="h-8 px-2"
+                                  >
+                                    {flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext()
+                                    )}
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {header.column.columnDef.id === 'age' ? (
+                                    <span>
+                                      {isUtcDate
+                                        ? 'Click to show Datetime Format'
+                                        : 'Click to show Age Format'}
+                                    </span>
+                                  ) : (
+                                    <span>
+                                      {isGasPrice
+                                        ? 'Gas Price in Gwei'
+                                        : '(Gas Price * Gas Used bt Txn) in Either'}
+                                    </span>
+                                  )}
+                                </TooltipContent>
+                              </Tooltip>
+                            </>
                           ) : (
                             flexRender(
                               header.column.columnDef.header,

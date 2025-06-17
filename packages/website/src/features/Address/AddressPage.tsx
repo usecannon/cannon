@@ -84,10 +84,7 @@ const AddressPage = () => {
       <AddressTabProps activeTab={activeTab} setActiveTab={setActiveTab} />
       {addressStr && (
         <div className="flex w-full my-3">
-          <AddressLists
-            address={addressStr}
-            symbol={chain?.nativeCurrency.symbol ?? 'ETH'}
-          />
+          <AddressLists address={addressStr} chain={chain} />
         </div>
       )}
     </div>
