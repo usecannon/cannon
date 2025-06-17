@@ -6,6 +6,7 @@ import { assertBn } from '../helpers/assert-bignumber';
 import { ethers } from 'hardhat';
 
 import assert from 'assert/strict';
+import { getAddress } from 'viem';
 
 type CannonSubscription = Awaited<ReturnType<typeof bootstrap>>['CannonSubscription'];
 type MockERC20 = Awaited<ReturnType<typeof bootstrap>>['MockERC20'];
@@ -77,7 +78,7 @@ describe('CannonSubscription', function () {
         await CannonSubscription.purchaseMembership(1, 0);
       }, 'InvalidAmountOfTerms(0)');
 
-      await Token.connect(randomUser).mint(1234123400);
+      await Token.connect(randomUser).mint(await randomUser.getAddress(), 1234123400);
       await Token.connect(randomUser).approve(CannonSubscription.address, 1234123400);
       await assertRevert(async () => {
         await CannonSubscription.connect(randomUser).purchaseMembership(1, 12341234);
@@ -114,7 +115,7 @@ describe('CannonSubscription', function () {
 
       const timestamp = await getTimestamp();
 
-      await Token.connect(randomUser).mint(100);
+      await Token.connect(randomUser).mint(await randomUser.getAddress(), 100);
       await Token.connect(randomUser).approve(CannonSubscription.address, 100);
 
       const tx = await CannonSubscription.connect(randomUser).purchaseMembership(1, 1);
@@ -137,7 +138,7 @@ describe('CannonSubscription', function () {
 
       const timestamp = await getTimestamp();
 
-      await Token.connect(randomUser).mint(200);
+      await Token.connect(randomUser).mint(await randomUser.getAddress(), 200);
       await Token.connect(randomUser).approve(CannonSubscription.address, 200);
 
       const tx = await CannonSubscription.connect(randomUser).purchaseMembership(1, 2);
@@ -205,7 +206,7 @@ describe('CannonSubscription', function () {
 
       const timestamp = await getTimestamp();
 
-      await Token.connect(randomUser).mint(100);
+      await Token.connect(randomUser).mint(await randomUser.getAddress(), 100);
       await Token.connect(randomUser).approve(CannonSubscription.address, 200);
 
       const tx = await CannonSubscription.connect(randomUser).purchaseMembership(2, 2);

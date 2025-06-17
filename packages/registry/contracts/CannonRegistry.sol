@@ -2,6 +2,7 @@
 pragma solidity 0.8.24;
 
 import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
+import {OwnableStorage} from "@synthetixio/core-contracts/contracts/ownership/OwnableStorage.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {OwnedUpgradableUpdated} from "./OwnedUpgradableUpdated.sol";
 import {EfficientStorage} from "./EfficientStorage.sol";
@@ -149,6 +150,9 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
     _OPTIMISM_MESSENGER = IOptimismL1Sender(_optimismMessenger); // IOptimismL1Sender(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1)
     _OPTIMISM_RECEIVER = IOptimismL2Receiver(_optimismReceiver); // IOptimismL2Receiver(0x4200000000000000000000000000000000000007)
     _L1_CHAIN_ID = _l1ChainId; // 1
+
+    // needed for tests
+    OwnableStorage.load().owner = msg.sender;
   }
 
   /**
