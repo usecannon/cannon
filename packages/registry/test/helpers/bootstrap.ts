@@ -18,7 +18,7 @@ export async function bootstrap() {
   const Proxy = await _deployProxy(Implementation.address);
   const CannonRegistry = await ethers.getContractAt('CannonRegistry', Proxy.address);
   const CannonSubscription = await ethers.getContractAt('CannonSubscription', SubscriptionContract.address);
-  MockERC20.approve(CannonSubscription.address, ethers.constants.MaxUint256);
+  await MockERC20.approve(CannonSubscription.address, ethers.constants.MaxUint256);
 
   return {
     MockOPSendBridge,

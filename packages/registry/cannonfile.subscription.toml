@@ -12,7 +12,7 @@ args = [
 artifact = "Proxy"
 abi = "InitialImpl"
 create2 = true
-salt = "<%= settings.salt %>"
+salt = "<%= settings.salt %>-subscription"
 args = ["<%= contracts.InitialImpl.address %>", "<%= settings.initialOwner %>"]
 
 [invoke.upgrade_subscription_proxy]
