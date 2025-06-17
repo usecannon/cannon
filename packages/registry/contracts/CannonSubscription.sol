@@ -7,11 +7,12 @@ import {OwnableStorage} from "@synthetixio/core-contracts/contracts/ownership/Ow
 import {Ownable} from "@synthetixio/core-contracts/contracts/ownership/Ownable.sol";
 import {ERC2771Context} from "./ERC2771Context.sol";
 import {Subscription} from "./storage/Subscription.sol";
+import {OwnedUpgradableUpdated} from "./OwnedUpgradableUpdated.sol";
 
 /**
  * @title Management of Subscriptions to Cannon Registry
  */
-contract CannonSubscription is ReentrancyGuard, Ownable {
+contract CannonSubscription is ReentrancyGuard, OwnedUpgradableUpdated {
   using Subscription for Subscription.Data;
 
   error ZeroAddressNotAllowed(string variableName);
@@ -61,12 +62,14 @@ contract CannonSubscription is ReentrancyGuard, Ownable {
   /// @notice The address of the vault that receives users payments
   address public immutable VAULT;
 
-  constructor(address _paymentTokenAddress, address _vaultAddress) Ownable(msg.sender) {
+  constructor(address _paymentTokenAddress, address _vaultAddress) {
     if (_paymentTokenAddress == address(0)) revert ZeroAddressNotAllowed("_paymentTokenAddress");
     if (_vaultAddress == address(0)) revert ZeroAddressNotAllowed("_vaultAddress");
 
     TOKEN = IERC20(_paymentTokenAddress);
     VAULT = _vaultAddress;
+
+    OwnableStorage.load().owner = msg.sender;
   }
 
   function getPlan(uint16 _planId) external view returns (Subscription.Plan memory) {

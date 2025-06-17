@@ -1,5 +1,5 @@
 name = "registry"
-version = "2.15.1"
+version = "2.23.0"
 
 [setting.salt]
 defaultValue = "official-registry"
