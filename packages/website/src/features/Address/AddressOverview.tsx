@@ -19,7 +19,7 @@ const AddressOverview: React.FC<AddressOverviewProps> = ({
         <CardContent>
           <h4 className="text-gray-400">{symbol} BALANCE</h4>
           <div className="flex items-center">
-            <span>{balance}</span>
+            <span className="text-sm">{balance}</span>
           </div>
         </CardContent>
       </Card>

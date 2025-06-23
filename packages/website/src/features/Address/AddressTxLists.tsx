@@ -7,15 +7,15 @@ import {
   getCoreRowModel,
 } from '@tanstack/react-table';
 import { convertToFormatEther } from '@/features/Address/AddressPage';
+import { formatEther } from 'viem';
 import AddressAdditionalInfo from '@/features/Address/column/AddressAdditionalInfo';
 import { Chain } from '@/types/Chain';
-import { TokenTransferRow } from '@/types/AddressList';
 import {
   getMethods,
   matchFunctionName,
-  mapToTokenTransferList,
+  mapToTransactionLlist,
 } from '@/lib/address';
-import AddressDataTable from '@/features/Address/AddressDataTable';
+import { TransactionRow } from '@/types/AddressList';
 import FromColumn from '@/features/Address/column/FromColumn';
 import ToColumn from '@/features/Address/column/ToColumn';
 import HashColumn from '@/features/Address/column/HashColumn';
@@ -23,34 +23,28 @@ import MethodColumn from '@/features/Address/column/MethodColumn';
 import MethodHeader from '@/features/Address/column/MethodHeader';
 import AgeColumn from '@/features/Address/column/AgeColumn';
 import AgeHeader from '@/features/Address/column/AgeHeader';
+import TxFeeHeader from '@/features/Address/column/TxFeeHeader';
+import TxFeeColumn from '@/features/Address/column/TxFeeColumn';
 import BlockColumn from '@/features/Address/column/BlockColumn';
+import AddressDataTable from '@/features/Address/AddressDataTable';
 
-const erc20Hash =
-  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
-
-type AddressTokenTransferProps = {
+type AddressListsProps = {
   address: string;
+  chain: Chain;
   txs: any[];
   receipts: any[];
-  chain: Chain;
 };
 
-const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
+const AddressLists: React.FC<AddressListsProps> = ({
   address,
+  chain,
   txs,
   receipts,
-  chain,
 }) => {
-  const [hoverId, setHoverId] = useState<string>('');
-  const [openToolTipIndex, setOpenTooltipIndex] = useState<number>();
   const [isUtcDate, setIsUtcDate] = useState<boolean>(false);
+  const [isGasPrice, setIsGasPrice] = useState<boolean>(false);
+  const [hoverId, setHoverId] = useState<string>('');
   const [names, setNames] = useState<any>('');
-
-  const filteredReceipts = receipts.filter((receipt) => {
-    if (receipt.logs.length > 0 && receipt.logs[0].topics[0] === erc20Hash) {
-      return true;
-    }
-  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,10 +55,12 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
   }, []);
 
   const data = React.useMemo(() => {
-    return mapToTokenTransferList(txs, filteredReceipts, names);
+    return mapToTransactionLlist(txs, receipts, names);
   }, [names]);
+  // }, [txs]);
 
-  const columnHelper = createColumnHelper<TokenTransferRow>();
+  const columnHelper = createColumnHelper<TransactionRow>();
+  const [openToolTipIndex, setOpenTooltipIndex] = useState<number>();
 
   const columns = [
     columnHelper.accessor('detail', {
@@ -138,6 +134,19 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
         ),
       header: 'Amount',
     }),
+    columnHelper.accessor('txnFee', {
+      id: 'txnFee',
+      cell: (info: any) => <TxFeeColumn info={info} isGasPrice={isGasPrice} />,
+      header: () => (
+        <TxFeeHeader isGasPrice={isGasPrice} setIsGasPrice={setIsGasPrice} />
+      ),
+    }),
+    columnHelper.accessor('gasPrice', {
+      id: 'gasPrice',
+      enableHiding: true,
+      cell: () => null,
+      header: () => null,
+    }),
     columnHelper.accessor('contractAddress', {
       id: 'contractAddress',
       enableHiding: true,
@@ -161,7 +170,7 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
               <div className="flex flex-wrap items-center space-x-1">
                 <ArrowDownWideNarrow className="h-4 w-4" />
                 <span className="text-sm">
-                  Latest xx ERC-20 Token Transfer Events
+                  Latest 25 from a total transactions
                 </span>
               </div>
             </CardTitle>
@@ -177,4 +186,4 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
   );
 };
 
-export default AddressTokenTransfer;
+export default AddressLists;

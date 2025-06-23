@@ -4,13 +4,14 @@ import { ClipboardButton } from '@/components/ClipboardButton';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { createPublicClient, http } from 'viem';
 import { formatEther } from 'viem';
-import AddressTabProps from '@/features/Address/AddressTab';
+import AddressTab from '@/features/Address/AddressTab';
 import QrcodeDialog from '@/components/QrcodeDialog';
 import AddressOverview from '@/features/Address/AddressOverview';
 import AddressMoreInfo from '@/features/Address/AddressMoreInfo';
 import AddressMultiChain from '@/features/Address/AddressMultiChain';
-import AddressLists from '@/features/Address/AddressLists';
+import AddressLists from '@/features/Address/AddressTxLists';
 import AddressTokenTransfer from '@/features/Address/AddressTokenTransfer';
+import AddressNftTransfer from '@/features/Address/AddressNftTransfer';
 import { transactions, afterTx } from './addressDemoData';
 
 export function covertToDec(value: bigint | string): bigint {
@@ -50,16 +51,14 @@ const AddressPage = () => {
   // Get demo transaction data
   const txs = transactions.result.txs;
   const receipts = transactions.result.receipts;
-  const txAfter = afterTx.result.txs;
+  const afterTxs = afterTx.result;
 
   useEffect(() => {
     const fetchBalance = async () => {
       try {
-        // console.log(`Fetching balance for ${addressStr}`);
         const estimatedBalance = await publicClient.getBalance({
           address: addressStr!,
         });
-        // console.log(`Balance: ${String(estimatedBalance)}`);
         setBalance(
           convertToFormatEther(estimatedBalance, chain?.nativeCurrency.symbol)
         );
@@ -75,7 +74,23 @@ const AddressPage = () => {
     if (addressStr) {
       switch (activeTab) {
         case 'tokentxns':
-          return <AddressTokenTransfer />;
+          return (
+            <AddressTokenTransfer
+              address={addressStr!}
+              txs={txs}
+              receipts={receipts}
+              chain={chain}
+            />
+          );
+        case 'nfttransfers':
+          return (
+            <AddressNftTransfer
+              address={addressStr!}
+              txs={txs}
+              receipts={receipts}
+              chain={chain}
+            />
+          );
         default:
           return (
             <AddressLists
@@ -91,22 +106,27 @@ const AddressPage = () => {
 
   return (
     <div className="w-full max-w-screen-xl mx-auto px-4 my-4">
-      <div className="flex items-baseline space-x-4">
+      <div className="flex flex-wrap items-baseline gap-2 sm:gap-4">
         <h1 className="text-2xl font-bold">Address</h1>
-        <span className="">0xE0707EB3a3f115Be661B2ABFb73b511C61301554</span>
-        <ClipboardButton text="" />
+        <span>{addressStr}</span>
+        <ClipboardButton text={addressStr ?? ''} />
         <QrcodeDialog />
       </div>
       <hr className="opacity-75 my-3" />
-      <div className="flex sm:flex-row flex-col gap-3">
+      <div className="flex sm:flex-row flex-col gap-3 w-full">
         <AddressOverview
           symbol={chain?.nativeCurrency.symbol}
           balance={balance}
         />
-        <AddressMoreInfo chainId={chain?.id} />
+        <AddressMoreInfo
+          address={addressStr!}
+          chainId={chain?.id}
+          receipts={receipts}
+          afterTxs={afterTxs}
+        />
         <AddressMultiChain />
       </div>
-      <AddressTabProps activeTab={activeTab} setActiveTab={setActiveTab} />
+      <AddressTab activeTab={activeTab} setActiveTab={setActiveTab} />
       <div className="flex w-full my-3">{renderContent()}</div>
     </div>
   );

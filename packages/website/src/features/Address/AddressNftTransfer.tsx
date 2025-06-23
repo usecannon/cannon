@@ -10,11 +10,7 @@ import { convertToFormatEther } from '@/features/Address/AddressPage';
 import AddressAdditionalInfo from '@/features/Address/column/AddressAdditionalInfo';
 import { Chain } from '@/types/Chain';
 import { TokenTransferRow } from '@/types/AddressList';
-import {
-  getMethods,
-  matchFunctionName,
-  mapToTokenTransferList,
-} from '@/lib/address';
+import { getMethods, matchFunctionName } from '@/lib/address';
 import AddressDataTable from '@/features/Address/AddressDataTable';
 import FromColumn from '@/features/Address/column/FromColumn';
 import ToColumn from '@/features/Address/column/ToColumn';
@@ -25,17 +21,17 @@ import AgeColumn from '@/features/Address/column/AgeColumn';
 import AgeHeader from '@/features/Address/column/AgeHeader';
 import BlockColumn from '@/features/Address/column/BlockColumn';
 
-const erc20Hash =
-  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+const erc721Hash =
+  ' 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
 
-type AddressTokenTransferProps = {
+type AddressNftTransferProps = {
   address: string;
   txs: any[];
   receipts: any[];
   chain: Chain;
 };
 
-const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
+const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
   address,
   txs,
   receipts,
@@ -47,7 +43,7 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
   const [names, setNames] = useState<any>('');
 
   const filteredReceipts = receipts.filter((receipt) => {
-    if (receipt.logs.length > 0 && receipt.logs[0].topics[0] === erc20Hash) {
+    if (receipt.logs.length > 0 && receipt.logs[0].topics[0] === erc721Hash) {
       return true;
     }
   });
@@ -61,7 +57,24 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
   }, []);
 
   const data = React.useMemo(() => {
-    return mapToTokenTransferList(txs, filteredReceipts, names);
+    return Object.entries(filteredReceipts).map(
+      ([, receipt]): TokenTransferRow => {
+        const tx = txs.find((t) => receipt.transactionHash === t.hash);
+        const method = matchFunctionName(names, tx.input ?? '');
+
+        return {
+          detail: '',
+          hash: tx.hash,
+          method: method,
+          blockNumber: tx.blockNumber,
+          age: receipt?.timestamp,
+          from: tx.from,
+          to: tx.to ? tx.to : '',
+          amount: tx.value,
+          contractAddress: receipt?.contractAddress,
+        };
+      }
+    );
   }, [names]);
 
   const columnHelper = createColumnHelper<TokenTransferRow>();
@@ -161,7 +174,7 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
               <div className="flex flex-wrap items-center space-x-1">
                 <ArrowDownWideNarrow className="h-4 w-4" />
                 <span className="text-sm">
-                  Latest xx ERC-20 Token Transfer Events
+                  Latest 5 from a total transactions
                 </span>
               </div>
             </CardTitle>
@@ -177,4 +190,4 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
   );
 };
 
-export default AddressTokenTransfer;
+export default AddressNftTransfer;

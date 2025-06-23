@@ -10,7 +10,7 @@ const AddressMultiChain = () => {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap items-center">
-            <span className="text-gray-400 text-sm mr-2">Contracts:</span>
+            <span className="text-gray-400 text-sm mr-2">N/A</span>
           </div>
         </CardContent>
       </Card>

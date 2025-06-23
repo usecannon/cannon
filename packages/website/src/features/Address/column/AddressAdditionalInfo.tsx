@@ -124,10 +124,15 @@ const AddressAdditionalInfo: React.FC<AddressAdditionalInfoProps> = ({
                         )}
                       </span>
                       <span className="text-gray-400">to</span>
-                      <span className="">{`${tx.to.substring(
-                        0,
-                        8
-                      )}...${tx.to.slice(-6)}`}</span>
+                      <Link
+                        href={`/tx/${chainId}/${tx.to}`}
+                        className="flex items-center border-b border-dotted border-muted-foreground hover:border-solid"
+                      >
+                        <span className="">{`${tx.to.substring(
+                          0,
+                          8
+                        )}...${tx.to.slice(-6)}`}</span>
+                      </Link>
                     </div>
                   </div>
                 </>
@@ -173,7 +178,7 @@ const AddressAdditionalInfo: React.FC<AddressAdditionalInfoProps> = ({
                     className="flex items-center font-mono border-b border-dotted border-muted-foreground hover:border-solid"
                   >
                     <span>See more details</span>
-                    <MoveUpRight className="h-3 w-3" />
+                    <MoveUpRight className="h-4 w-4" />
                   </Link>
                 </div>
               </div>{' '}
