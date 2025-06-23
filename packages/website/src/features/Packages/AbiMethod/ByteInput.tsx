@@ -19,8 +19,15 @@ const validateByteInput = (
   value: string,
   byte?: number
 ): string | undefined => {
-  // For dynamic bytes (bytes), no length validation needed
+  // For dynamic bytes (bytes), validate hex format and odd length
   if (!byte) {
+    if (value.startsWith('0x')) {
+      // Only check odd length if the hex part contains only valid hex characters
+      const hexPart = value.slice(2); // Remove '0x' prefix
+      if (/^[0-9a-fA-F]*$/.test(hexPart) && hexPart.length % 2 === 1) {
+        return 'Hex string must have even number of characters after 0x prefix';
+      }
+    }
     return undefined;
   }
 
@@ -53,35 +60,40 @@ export const ByteInput: FC<ByteInputProps> = ({
   // Create a dynamic regex based on the byte size
   const hexRegex = byte
     ? new RegExp(`^0x[0-9a-fA-F]{${byte * 2}}$`) // Fixed size: exact length
-    : /^0x[0-9a-fA-F]*$/; // Dynamic: any length hex string
+    : /^0x([0-9a-fA-F]{2})*$/; // Dynamic: any even length hex string
 
-  const handleChange = (inputValue: string) => {
+  const getHandleUpdateValues = (
+    inputValue: string,
+    byte?: number
+  ): [string | undefined, string?] => {
     const validationError = validateByteInput(inputValue, byte);
 
     // Allow empty input
     if (!inputValue) {
-      handleUpdate(undefined);
-      setInputValue('');
-      return;
+      return [undefined];
     }
 
     if (!hexRegex.test(inputValue)) {
       if (inputValue.startsWith('0x')) {
-        // If it starts with 0x but isn't a valid hex, pass it through as is
-        // This allows partial hex inputs while typing
-        handleUpdate(undefined, validationError);
+        // Invalid hex format - only return error if it's a validation error (like odd length)
+        return validationError ? [undefined, validationError] : [undefined];
       } else {
-        // If it's not a hex string at all, convert it to hex
+        // Convert string to hex
         const hexValue = stringToHex(
           inputValue,
           byte ? { size: byte } : undefined
         );
-        handleUpdate(hexValue, validationError);
+        return validationError ? [hexValue, validationError] : [hexValue];
       }
     } else {
-      // If it's already a valid hex string, pass it through
-      handleUpdate(inputValue, validationError);
+      // Valid hex string
+      return [inputValue];
     }
+  };
+
+  const handleChange = (inputValue: string) => {
+    const updateValues = getHandleUpdateValues(inputValue, byte);
+    handleUpdate(...updateValues);
     setInputValue(inputValue);
   };
 

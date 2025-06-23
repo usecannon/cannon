@@ -97,9 +97,9 @@ export const AbiContractMethodInputType: FC<AbiMethodInputProps> = ({
         />
       );
     case input.type.startsWith('bytes'): {
-      if (!isString(value) && !isStringArray(value) && value !== undefined) {
+      if (!isString(value) && value !== undefined) {
         throw new Error(
-          `Expected string, string array or undefined for bytes type, got ${typeof value}`
+          `Expected string or undefined for bytes type, got ${typeof value}`
         );
       }
       // Extract the number of bytes from the type string (e.g., 'bytes32' -> 32)
