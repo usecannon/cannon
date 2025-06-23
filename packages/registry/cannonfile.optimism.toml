@@ -1,7 +1,7 @@
 include = ["cannonfile.toml", "cannonfile.subscription.toml"]
 
 [setting.initialOwner]
-defaultValue = "0x3852C9fdc6a5C0A4A6230c1d2d954ccCB9b90465"
+defaultValue = "0xca111279D6aeEc39849ed5CD2bA3045381643422"
 
 [setting.l1ChainId]
 defaultValue = "1"
