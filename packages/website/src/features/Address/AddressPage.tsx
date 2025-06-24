@@ -110,7 +110,7 @@ const AddressPage = () => {
         <h1 className="text-2xl font-bold">Address</h1>
         <span>{addressStr}</span>
         <ClipboardButton text={addressStr ?? ''} />
-        <QrcodeDialog />
+        <QrcodeDialog text={addressStr ?? ''} />
       </div>
       <hr className="opacity-75 my-3" />
       <div className="flex sm:flex-row flex-col gap-3 w-full">

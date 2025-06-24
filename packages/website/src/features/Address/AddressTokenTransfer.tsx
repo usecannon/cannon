@@ -10,11 +10,7 @@ import { convertToFormatEther } from '@/features/Address/AddressPage';
 import AddressAdditionalInfo from '@/features/Address/column/AddressAdditionalInfo';
 import { Chain } from '@/types/Chain';
 import { TokenTransferRow } from '@/types/AddressList';
-import {
-  getMethods,
-  matchFunctionName,
-  mapToTokenTransferList,
-} from '@/lib/address';
+import { getMethods, mapToTokenTransferList } from '@/lib/address';
 import AddressDataTable from '@/features/Address/AddressDataTable';
 import FromColumn from '@/features/Address/column/FromColumn';
 import ToColumn from '@/features/Address/column/ToColumn';

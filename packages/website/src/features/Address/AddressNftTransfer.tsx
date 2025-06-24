@@ -6,10 +6,9 @@ import {
   useReactTable,
   getCoreRowModel,
 } from '@tanstack/react-table';
-import { convertToFormatEther } from '@/features/Address/AddressPage';
 import AddressAdditionalInfo from '@/features/Address/column/AddressAdditionalInfo';
 import { Chain } from '@/types/Chain';
-import { TokenTransferRow } from '@/types/AddressList';
+import { NftTransferRow } from '@/types/AddressList';
 import { getMethods, matchFunctionName } from '@/lib/address';
 import AddressDataTable from '@/features/Address/AddressDataTable';
 import FromColumn from '@/features/Address/column/FromColumn';
@@ -20,9 +19,13 @@ import MethodHeader from '@/features/Address/column/MethodHeader';
 import AgeColumn from '@/features/Address/column/AgeColumn';
 import AgeHeader from '@/features/Address/column/AgeHeader';
 import BlockColumn from '@/features/Address/column/BlockColumn';
+import TypeColumn from '@/features/Address/column/TypeColumn';
 
 const erc721Hash =
   ' 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+
+const erc1155Hash =
+  '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62';
 
 type AddressNftTransferProps = {
   address: string;
@@ -43,7 +46,11 @@ const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
   const [names, setNames] = useState<any>('');
 
   const filteredReceipts = receipts.filter((receipt) => {
-    if (receipt.logs.length > 0 && receipt.logs[0].topics[0] === erc721Hash) {
+    if (
+      receipt.logs.length > 0 &&
+      (receipt.logs[0].topics[0] === erc721Hash ||
+        receipt.logs[0].topics[0] === erc1155Hash)
+    ) {
       return true;
     }
   });
@@ -58,7 +65,7 @@ const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
 
   const data = React.useMemo(() => {
     return Object.entries(filteredReceipts).map(
-      ([, receipt]): TokenTransferRow => {
+      ([, receipt]): NftTransferRow => {
         const tx = txs.find((t) => receipt.transactionHash === t.hash);
         const method = matchFunctionName(names, tx.input ?? '');
 
@@ -70,14 +77,15 @@ const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
           age: receipt?.timestamp,
           from: tx.from,
           to: tx.to ? tx.to : '',
-          amount: tx.value,
           contractAddress: receipt?.contractAddress,
+          type:
+            receipt.logs[0].topics[0] === erc721Hash ? 'ERC-721' : 'ERC-1155',
         };
       }
     );
   }, [names]);
 
-  const columnHelper = createColumnHelper<TokenTransferRow>();
+  const columnHelper = createColumnHelper<NftTransferRow>();
 
   const columns = [
     columnHelper.accessor('detail', {
@@ -142,14 +150,10 @@ const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
       ),
       header: 'To',
     }),
-    columnHelper.accessor('amount', {
-      id: 'amount',
-      cell: (info: any) =>
-        String(
-          convertToFormatEther(info.getValue(), chain?.nativeCurrency.symbol) ??
-            '0 ETH'
-        ),
-      header: 'Amount',
+    columnHelper.accessor('type', {
+      id: 'type',
+      cell: (info: any) => <TypeColumn info={info} />,
+      header: () => 'Type',
     }),
     columnHelper.accessor('contractAddress', {
       id: 'contractAddress',

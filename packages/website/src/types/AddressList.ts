@@ -23,3 +23,15 @@ export type TokenTransferRow = {
   amount: string;
   contractAddress: string | null | undefined;
 };
+
+export type NftTransferRow = {
+  detail: string;
+  hash: string;
+  method: string;
+  blockNumber: string;
+  age: number | undefined;
+  from: string;
+  to: string;
+  type: string;
+  contractAddress: string | null | undefined;
+};

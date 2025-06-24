@@ -10,7 +10,11 @@ import {
 } from '@/components/ui/dialog';
 import { QrCode } from 'lucide-react';
 
-const QrcodeDialog = () => {
+type QrcodeDialogProps = {
+  text: string;
+};
+
+const QrcodeDialog: React.FC<QrcodeDialogProps> = ({ text }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -29,10 +33,10 @@ const QrcodeDialog = () => {
           <DialogOverlay className="bg-black/80" />
           <DialogContent className="">
             <DialogHeader>
-              <DialogTitle>SAddress QR code</DialogTitle>
+              <DialogTitle>Address QR code</DialogTitle>
             </DialogHeader>
             <div className="text-gray-200 border border-gray-400 p-4 rounded-md">
-              QR Code Shows up!
+              {text}
             </div>
           </DialogContent>
         </DialogPortal>
