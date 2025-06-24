@@ -43,16 +43,14 @@ export const AbiContractMethodInputType: FC<AbiMethodInputProps> = ({
   error,
 }) => {
   switch (true) {
-    case input.type.endsWith('[][]'):
-      return (
-        <JsonInput
-          isTupleArray={true}
-          handleUpdate={handleUpdate}
-          value={value}
-        />
-      );
-    // handle tuples in arrays
-    case input.type.startsWith('tuple'):
+    // Handle tuples and arrays of tuples (complex data structures)
+    case input.type.startsWith('tuple') || input.type.endsWith('[][]'):
+      if (value !== undefined && typeof value !== 'object') {
+        throw new Error(
+          'Expected object or array for tuple or nested arrays, got ' +
+            typeof value
+        );
+      }
       return (
         <JsonInput
           isTupleArray={input.type.includes('[]')}
