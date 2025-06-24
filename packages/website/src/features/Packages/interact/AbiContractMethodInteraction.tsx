@@ -483,7 +483,7 @@ export const AbiContractMethodInteraction: FC<{
                 <NumberInput
                   handleUpdate={setTxValue}
                   fixedDecimals={18}
-                  value={txValue}
+                  value={txValue ? parseEther(txValue) : undefined}
                   suffix="ETH"
                 />
               </div>
