@@ -9,6 +9,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { QrCode } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 type QrcodeDialogProps = {
   text: string;
@@ -19,24 +25,43 @@ const QrcodeDialog: React.FC<QrcodeDialogProps> = ({ text }) => {
 
   return (
     <>
-      <Button
-        size="icon"
-        variant="ghost"
-        className="flex-shrink-0 h-7 w-7 bg-background border border-border"
-        data-testid="clipboard-copy-button"
-        onClick={() => setIsOpen(true)}
-      >
-        <QrCode className="h-3.5 w-3.5 text-muted-foreground" />
-      </Button>
+      <Tooltip>
+        <TooltipTrigger>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="flex-shrink-0 h-7 w-7 bg-background border border-border"
+            data-testid="clipboard-copy-button"
+            onClick={() => setIsOpen(true)}
+          >
+            <QrCode className="h-3.5 w-3.5 text-muted-foreground" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Click to view QR Code</TooltipContent>
+      </Tooltip>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogPortal>
           <DialogOverlay className="bg-black/80" />
-          <DialogContent className="">
+          <DialogContent className="max-w-[300px] w-full px-2 py-4">
             <DialogHeader>
-              <DialogTitle>Address QR code</DialogTitle>
+              <DialogTitle className="font-bold px-2">
+                Address QR code
+              </DialogTitle>
             </DialogHeader>
-            <div className="text-gray-200 border border-gray-400 p-4 rounded-md">
-              {text}
+            <hr className="w-full" />
+            <div className="flex items-center justify-center">
+              <QRCodeCanvas
+                value={text}
+                size={235}
+                bgColor="#000000"
+                fgColor="#ffffff"
+                level="H"
+              />
+            </div>
+            <div className="mt-4 text-center w-full break-words">
+              <span className="text-sm text-muted-foreground break-all">
+                {text}
+              </span>
             </div>
           </DialogContent>
         </DialogPortal>

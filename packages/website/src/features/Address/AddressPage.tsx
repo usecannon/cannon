@@ -13,6 +13,11 @@ import AddressLists from '@/features/Address/AddressTxLists';
 import AddressTokenTransfer from '@/features/Address/AddressTokenTransfer';
 import AddressNftTransfer from '@/features/Address/AddressNftTransfer';
 import { transactions, afterTx } from './addressDemoData';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export function covertToDec(value: bigint | string): bigint {
   return typeof value === 'string'
@@ -31,7 +36,6 @@ export const tabs = [
   { id: 'transactions', label: 'Transactions' },
   { id: 'tokentxns', label: 'Token Transfers (ERC-20)' },
   { id: 'nfttransfers', label: 'NFT Transfers' },
-  { id: 'events', label: 'Events' },
 ] as const;
 
 export type TabId = (typeof tabs)[number]['id'];
@@ -109,7 +113,12 @@ const AddressPage = () => {
       <div className="flex flex-wrap items-baseline gap-2 sm:gap-4">
         <h1 className="text-2xl font-bold">Address</h1>
         <span>{addressStr}</span>
-        <ClipboardButton text={addressStr ?? ''} />
+        <Tooltip>
+          <TooltipTrigger>
+            <ClipboardButton text={addressStr ?? ''} />
+          </TooltipTrigger>
+          <TooltipContent>Copy Address</TooltipContent>
+        </Tooltip>
         <QrcodeDialog text={addressStr ?? ''} />
       </div>
       <hr className="opacity-75 my-3" />

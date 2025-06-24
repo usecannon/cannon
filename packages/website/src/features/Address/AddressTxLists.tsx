@@ -7,14 +7,9 @@ import {
   getCoreRowModel,
 } from '@tanstack/react-table';
 import { convertToFormatEther } from '@/features/Address/AddressPage';
-import { formatEther } from 'viem';
 import AddressAdditionalInfo from '@/features/Address/column/AddressAdditionalInfo';
 import { Chain } from '@/types/Chain';
-import {
-  getMethods,
-  matchFunctionName,
-  mapToTransactionLlist,
-} from '@/lib/address';
+import { getMethods, mapToTransactionLlist } from '@/lib/address';
 import { TransactionRow } from '@/types/AddressList';
 import FromColumn from '@/features/Address/column/FromColumn';
 import ToColumn from '@/features/Address/column/ToColumn';

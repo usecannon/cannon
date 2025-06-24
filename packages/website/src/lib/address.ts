@@ -12,18 +12,18 @@ export async function getMethods(txs: any[]) {
 }
 
 export function matchFunctionName(names: any, input: string) {
-  let method = 'Transfer';
-  if (input !== '0x') {
-    const functionNames = names[input.slice(0, 10)];
-    if (functionNames && functionNames.length > 0) {
-      const functionName = functionNames[0];
-      const methodname = functionNames.length > 0 ? functionName['name'] : input.slice(0, 10);
-      const match = methodname.match(/([A-Za-z0-9]*)\(/);
-      method = match[1];
-    }
+  if (input === '0x') return 'Transfer';
+
+  const selector = input.slice(0, 10);
+  const functionNames = names[selector];
+  if (functionNames && functionNames.length > 0) {
+    const methodname = functionNames[0].name ?? selector;
+    const match = methodname.match(/([A-Za-z0-9]*)\(/);
+    return match ? match[1] : methodname;
   }
-  return method;
+  return selector;
 }
+
 export function mapToTransactionLlist(txs: any[], receipts: any[], names: any) {
   return Object.entries(txs).map(([, tx]): TransactionRow => {
     const receipt = receipts.find((r) => r.transactionHash === tx.hash);
