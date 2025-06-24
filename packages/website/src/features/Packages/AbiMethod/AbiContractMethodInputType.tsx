@@ -31,7 +31,7 @@ const isBigInt = (value: unknown): value is bigint => {
 
 interface AbiMethodInputProps {
   input: AbiParameter;
-  handleUpdate: (value: any) => void;
+  handleUpdate: (value: any, error?: string) => void;
   value: any;
   error?: string;
 }
