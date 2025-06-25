@@ -6,12 +6,13 @@ import {
   useReactTable,
   getCoreRowModel,
 } from '@tanstack/react-table';
-import { convertToFormatEther } from '@/features/Address/AddressPage';
+import { convertToFormatEther } from '@/lib/transaction';
 import AddressAdditionalInfo from '@/features/Address/column/AddressAdditionalInfo';
 import { Chain } from '@/types/Chain';
 import { TokenTransferRow } from '@/types/AddressList';
 import { getMethods, mapToTokenTransferList } from '@/lib/address';
 import AddressDataTable from '@/features/Address/AddressDataTable';
+import AmountColumn from '@/features/Address/column/AmountColumn';
 import FromColumn from '@/features/Address/column/FromColumn';
 import ToColumn from '@/features/Address/column/ToColumn';
 import HashColumn from '@/features/Address/column/HashColumn';
@@ -20,9 +21,6 @@ import MethodHeader from '@/features/Address/column/MethodHeader';
 import AgeColumn from '@/features/Address/column/AgeColumn';
 import AgeHeader from '@/features/Address/column/AgeHeader';
 import BlockColumn from '@/features/Address/column/BlockColumn';
-
-const erc20Hash =
-  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
 
 type AddressTokenTransferProps = {
   address: string;
@@ -42,12 +40,6 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
   const [isUtcDate, setIsUtcDate] = useState<boolean>(false);
   const [names, setNames] = useState<any>('');
 
-  const filteredReceipts = receipts.filter((receipt) => {
-    if (receipt.logs.length > 0 && receipt.logs[0].topics[0] === erc20Hash) {
-      return true;
-    }
-  });
-
   useEffect(() => {
     const fetchData = async () => {
       const results = await getMethods(txs);
@@ -57,7 +49,7 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
   }, []);
 
   const data = React.useMemo(() => {
-    return mapToTokenTransferList(txs, filteredReceipts, names);
+    return mapToTokenTransferList(txs, receipts, names);
   }, [names]);
 
   const columnHelper = createColumnHelper<TokenTransferRow>();
@@ -127,11 +119,9 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
     }),
     columnHelper.accessor('amount', {
       id: 'amount',
-      cell: (info: any) =>
-        String(
-          convertToFormatEther(info.getValue(), chain?.nativeCurrency.symbol) ??
-            '0 ETH'
-        ),
+      cell: (info: any) => (
+        <AmountColumn info={info} symbol={chain?.nativeCurrency.symbol!} />
+      ),
       header: 'Amount',
     }),
     columnHelper.accessor('contractAddress', {
@@ -157,7 +147,8 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
               <div className="flex flex-wrap items-center space-x-1">
                 <ArrowDownWideNarrow className="h-4 w-4" />
                 <span className="text-sm">
-                  Latest xx ERC-20 Token Transfer Events
+                  Latest {table.getRowModel().rows.length} ERC-20 Token Transfer
+                  Events
                 </span>
               </div>
             </CardTitle>

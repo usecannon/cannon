@@ -18,25 +18,22 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { convertToFormatEther } from '@/lib/transaction';
 
-export function covertToDec(value: bigint | string): bigint {
-  return typeof value === 'string'
-    ? BigInt(parseInt(value.slice(2), 16))
-    : value;
-}
+export const erc20Hash =
+  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
 
-export function convertToFormatEther(
-  value: bigint | string,
-  symbol: string | undefined
-): string {
-  return `${formatEther(covertToDec(value)).toLocaleString()} ${symbol}`;
-}
+export const erc721Hash =
+  ' 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+
+export const erc1155Hash =
+  '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62';
 
 export const tabs = [
   { id: 'transactions', label: 'Transactions' },
   { id: 'tokentxns', label: 'Token Transfers (ERC-20)' },
   { id: 'nfttransfers', label: 'NFT Transfers' },
-] as const;
+];
 
 export type TabId = (typeof tabs)[number]['id'];
 
@@ -56,6 +53,23 @@ const AddressPage = () => {
   const txs = transactions.result.txs;
   const receipts = transactions.result.receipts;
   const afterTxs = afterTx.result;
+
+  const tokenReceipts = receipts.filter(
+    (receipt) =>
+      receipt.logs.length > 0 && receipt.logs[0].topics[0] === erc20Hash
+  );
+
+  const nftReceipts = receipts.filter(
+    (receipt) =>
+      receipt.logs.length > 0 &&
+      (receipt.logs[0].topics[0] === erc721Hash ||
+        receipt.logs[0].topics[0] === erc1155Hash)
+  );
+
+  const visivleTabs = tabs.filter((tab) => {
+    if (tab.id === 'nfttransfers' && !nftReceipts.length) return false;
+    return true;
+  });
 
   useEffect(() => {
     const fetchBalance = async () => {
@@ -82,7 +96,7 @@ const AddressPage = () => {
             <AddressTokenTransfer
               address={addressStr!}
               txs={txs}
-              receipts={receipts}
+              receipts={tokenReceipts}
               chain={chain}
             />
           );
@@ -91,7 +105,7 @@ const AddressPage = () => {
             <AddressNftTransfer
               address={addressStr!}
               txs={txs}
-              receipts={receipts}
+              receipts={nftReceipts}
               chain={chain}
             />
           );
@@ -109,10 +123,10 @@ const AddressPage = () => {
   };
 
   return (
-    <div className="w-full max-w-screen-xl mx-auto px-4 my-4">
+    <div className="w-full max-w-screen-2xl mx-auto px-4 my-4">
       <div className="flex flex-wrap items-baseline gap-2 sm:gap-4">
         <h1 className="text-2xl font-bold">Address</h1>
-        <span>{addressStr}</span>
+        <span className="">{addressStr}</span>
         <Tooltip>
           <TooltipTrigger>
             <ClipboardButton text={addressStr ?? ''} />
@@ -135,7 +149,11 @@ const AddressPage = () => {
         />
         <AddressMultiChain />
       </div>
-      <AddressTab activeTab={activeTab} setActiveTab={setActiveTab} />
+      <AddressTab
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        tabs={visivleTabs}
+      />
       <div className="flex w-full my-3">{renderContent()}</div>
     </div>
   );

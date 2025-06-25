@@ -20,12 +20,7 @@ import AgeColumn from '@/features/Address/column/AgeColumn';
 import AgeHeader from '@/features/Address/column/AgeHeader';
 import BlockColumn from '@/features/Address/column/BlockColumn';
 import TypeColumn from '@/features/Address/column/TypeColumn';
-
-const erc721Hash =
-  ' 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
-
-const erc1155Hash =
-  '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62';
+import { erc721Hash } from '@/features/Address/AddressPage';
 
 type AddressNftTransferProps = {
   address: string;
@@ -45,16 +40,6 @@ const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
   const [isUtcDate, setIsUtcDate] = useState<boolean>(false);
   const [names, setNames] = useState<any>('');
 
-  const filteredReceipts = receipts.filter((receipt) => {
-    if (
-      receipt.logs.length > 0 &&
-      (receipt.logs[0].topics[0] === erc721Hash ||
-        receipt.logs[0].topics[0] === erc1155Hash)
-    ) {
-      return true;
-    }
-  });
-
   useEffect(() => {
     const fetchData = async () => {
       const results = await getMethods(txs);
@@ -64,25 +49,22 @@ const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
   }, []);
 
   const data = React.useMemo(() => {
-    return Object.entries(filteredReceipts).map(
-      ([, receipt]): NftTransferRow => {
-        const tx = txs.find((t) => receipt.transactionHash === t.hash);
-        const method = matchFunctionName(names, tx.input ?? '');
+    return Object.entries(receipts).map(([, receipt]): NftTransferRow => {
+      const tx = txs.find((t) => receipt.transactionHash === t.hash);
+      const method = matchFunctionName(names, tx.input ?? '');
 
-        return {
-          detail: '',
-          hash: tx.hash,
-          method: method,
-          blockNumber: tx.blockNumber,
-          age: receipt?.timestamp,
-          from: tx.from,
-          to: tx.to ? tx.to : '',
-          contractAddress: receipt?.contractAddress,
-          type:
-            receipt.logs[0].topics[0] === erc721Hash ? 'ERC-721' : 'ERC-1155',
-        };
-      }
-    );
+      return {
+        detail: '',
+        hash: tx.hash,
+        method: method,
+        blockNumber: tx.blockNumber,
+        age: receipt?.timestamp,
+        from: tx.from,
+        to: tx.to ? tx.to : '',
+        contractAddress: receipt?.contractAddress,
+        type: receipt.logs[0].topics[0] === erc721Hash ? 'ERC-721' : 'ERC-1155',
+      };
+    });
   }, [names]);
 
   const columnHelper = createColumnHelper<NftTransferRow>();
@@ -178,7 +160,8 @@ const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
               <div className="flex flex-wrap items-center space-x-1">
                 <ArrowDownWideNarrow className="h-4 w-4" />
                 <span className="text-sm">
-                  Latest 5 from a total transactions
+                  Latest {table.getRowModel().rows.length} from a total
+                  transactions
                 </span>
               </div>
             </CardTitle>

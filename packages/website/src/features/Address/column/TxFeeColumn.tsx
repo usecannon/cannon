@@ -10,7 +10,7 @@ const TxFeeColumn: React.FC<TxFeeColumnProps> = ({ info, isGasPrice }) => {
   const txnFee = info.getValue();
   const gasPrice = info.row.getValue('gasPrice');
   return (
-    <span className="text-gray-400">
+    <span>
       {isGasPrice ? formatGwei(BigInt(gasPrice)).toLocaleString() : txnFee}
     </span>
   );

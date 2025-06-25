@@ -40,25 +40,25 @@ const AddressMoreInfo: React.FC<AddressMoreInfoProps> = ({
           <CardTitle>More Info</CardTitle>
         </CardHeader>
         <CardContent>
-          <h5 className="text-gray-500">TRANSACNS SENT</h5>
+          <h5 className="text-gray-500">TRANASACTION SENT</h5>
           <div className="flex items-center mb-4">
-            <span className="text-gray-400 mr-2 text-sm">Latest:</span>
+            <span className="text-gray-400 text-sm mr-2">Latest:</span>
             <Link
               href={`/tx/${chainId}/${latestSentTx.transactionHash}`}
-              className="flex items-center border-b border-dotted border-muted-foreground text-sm"
+              className="flex items-center border-b border-dotted border-muted-foreground text-sm font-mono"
             >
-              <span className="mr-1">
+              <span>
                 {formatDistanceToNow(new Date(latestSentTx.timestamp * 1000)) +
                   ' ago'}
               </span>
               <MoveUpRight className="h-4 w-4" />
             </Link>
-            <span className="text-gray-400 ml-4 mr-2 text-sm">First:</span>
+            <span className="text-gray-400 ml-4 text-sm mr-2">First:</span>
             <Link
               href={`/tx/${chainId}/${oldestSentTx.transactionHash}`}
-              className="flex items-center border-b border-dotted border-muted-foreground text-sm"
+              className="flex items-center border-b border-dotted border-muted-foreground text-sm font-mono"
             >
-              <span className="mr-1">
+              <span>
                 {formatDistanceToNow(new Date(oldestSentTx.timestamp * 1000)) +
                   ' ago'}
               </span>
@@ -73,12 +73,12 @@ const AddressMoreInfo: React.FC<AddressMoreInfoProps> = ({
                   <TooltipTrigger>
                     <Link
                       href={`/address/${chainId}/${receipt.contractAddress}`}
-                      className="mr-2 border-b border-dotted border-muted-foreground text-sm"
+                      className="mr-2 border-b border-dotted border-muted-foreground text-sm font-mono"
                     >
-                      {`${receipt.contractAddress.substring(
+                      <span>{`${receipt.contractAddress.substring(
                         0,
                         10
-                      )}...${receipt.contractAddress.slice(-9)}`}
+                      )}...${receipt.contractAddress.slice(-9)}`}</span>
                     </Link>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -94,7 +94,7 @@ const AddressMoreInfo: React.FC<AddressMoreInfoProps> = ({
                   href={`/tx/${chainId}/${receipt.transactionHash}`}
                   className="flex items-center border-b border-dotted border-muted-foreground text-sm"
                 >
-                  <span className="mr-1">
+                  <span className="mr-1 font-mono">
                     {formatDistanceToNow(new Date(receipt.timestamp * 1000)) +
                       ' ago'}
                   </span>
@@ -109,7 +109,7 @@ const AddressMoreInfo: React.FC<AddressMoreInfoProps> = ({
                 <Link href={`/address/${chainId}/${receipt.from}`}>
                   <Tooltip>
                     <TooltipTrigger>
-                      <span className="mr-2 border-b border-dotted border-muted-foreground text-sm">{`${receipt.from.substring(
+                      <span className="mr-2 border-b border-dotted border-muted-foreground text-sm font-mono">{`${receipt.from.substring(
                         0,
                         10
                       )}...${receipt.from.slice(-9)}`}</span>
@@ -125,7 +125,7 @@ const AddressMoreInfo: React.FC<AddressMoreInfoProps> = ({
                   href={`/tx/${chainId}/${receipt.transactionHash}`}
                   className="flex items-center border-b border-dotted border-muted-foreground"
                 >
-                  <span className="mr-1 order-b border-dotted border-muted-foreground text-sm">
+                  <span className="mr-1 order-b border-dotted border-muted-foreground text-sm font-mono">
                     {formatDistanceToNow(new Date(receipt.timestamp * 1000)) +
                       ' ago'}
                   </span>

@@ -1,19 +1,25 @@
 import React, { useEffect } from 'react';
-import { tabs, TabId } from '@/features/Address/AddressPage';
+import { TabId } from '@/features/Address/AddressPage';
 import { useRouter } from 'next/router';
 
 type AddressTabProps = {
   activeTab: string;
   setActiveTab: (tabId: TabId) => void;
+  tabs: { id: TabId; label: string }[];
 };
 
-const AddressTab: React.FC<AddressTabProps> = ({ activeTab, setActiveTab }) => {
+const AddressTab: React.FC<AddressTabProps> = ({
+  activeTab,
+  setActiveTab,
+  tabs,
+}) => {
   const router = useRouter();
 
   useEffect(() => {
     const hash = window.location.hash.replace('#', '');
+    const tabList = tabs.map((tab) => tab.id);
 
-    if (hash !== 'transacitons') {
+    if (tabList.includes(hash)) {
       setActiveTab(hash as TabId);
     } else {
       setActiveTab('transactions');

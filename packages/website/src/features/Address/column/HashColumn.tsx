@@ -15,7 +15,10 @@ const HashColumn: React.FC<HashColumnProps> = ({ info, chainId }) => {
         href={`/tx/${chainId}/${transactionHash}`}
         className="flex items-center font-mono border-b border-dotted border-muted-foreground hover:border-solid"
       >
-        <span>{`${transactionHash.slice(0, 12)}...`}</span>
+        <span className="font-mono">{`${transactionHash.slice(
+          0,
+          12
+        )}...`}</span>
       </Link>
       <ClipboardButton text={transactionHash} />
     </div>

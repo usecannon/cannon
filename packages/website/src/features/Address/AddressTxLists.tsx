@@ -6,11 +6,11 @@ import {
   useReactTable,
   getCoreRowModel,
 } from '@tanstack/react-table';
-import { convertToFormatEther } from '@/features/Address/AddressPage';
 import AddressAdditionalInfo from '@/features/Address/column/AddressAdditionalInfo';
 import { Chain } from '@/types/Chain';
 import { getMethods, mapToTransactionLlist } from '@/lib/address';
 import { TransactionRow } from '@/types/AddressList';
+import AmountColumn from '@/features/Address/column/AmountColumn';
 import FromColumn from '@/features/Address/column/FromColumn';
 import ToColumn from '@/features/Address/column/ToColumn';
 import HashColumn from '@/features/Address/column/HashColumn';
@@ -122,11 +122,9 @@ const AddressLists: React.FC<AddressListsProps> = ({
     }),
     columnHelper.accessor('amount', {
       id: 'amount',
-      cell: (info: any) =>
-        String(
-          convertToFormatEther(info.getValue(), chain?.nativeCurrency.symbol) ??
-            '0 ETH'
-        ),
+      cell: (info: any) => (
+        <AmountColumn info={info} symbol={chain?.nativeCurrency.symbol!} />
+      ),
       header: 'Amount',
     }),
     columnHelper.accessor('txnFee', {
@@ -165,7 +163,8 @@ const AddressLists: React.FC<AddressListsProps> = ({
               <div className="flex flex-wrap items-center space-x-1">
                 <ArrowDownWideNarrow className="h-4 w-4" />
                 <span className="text-sm">
-                  Latest 25 from a total transactions
+                  Latest {table.getRowModel().rows.length} from a total
+                  transactions
                 </span>
               </div>
             </CardTitle>

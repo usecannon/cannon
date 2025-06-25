@@ -36,7 +36,7 @@ const ToColumn: React.FC<ToColumnProps> = ({
                 href={`/tx/${chainId}/${contractAddress}`}
                 className="flex items-center font-mono border-b border-dotted border-muted-foreground hover:border-solid"
               >
-                <span>Contract Creation</span>
+                <span className="font-mono">Contract Creation</span>
               </Link>
             </TooltipTrigger>
             <TooltipContent>
@@ -58,7 +58,10 @@ const ToColumn: React.FC<ToColumnProps> = ({
                   hoverId={hoverId}
                   setHoverId={setHoverId}
                 >
-                  {`${toAddress.substring(0, 10)}...${toAddress.slice(-9)}`}
+                  <span className="font-mono">{`${toAddress.substring(
+                    0,
+                    10
+                  )}...${toAddress.slice(-9)}`}</span>
                 </HoverHighlight>
               ) : (
                 <Link href={`/tx/${chainId}/${toAddress}`}>
@@ -67,7 +70,10 @@ const ToColumn: React.FC<ToColumnProps> = ({
                     hoverId={hoverId}
                     setHoverId={setHoverId}
                   >
-                    {`${toAddress.substring(0, 10)}...${toAddress.slice(-9)}`}
+                    <span className="font-mono">{`${toAddress.substring(
+                      0,
+                      10
+                    )}...${toAddress.slice(-9)}`}</span>
                   </HoverHighlight>
                 </Link>
               )}

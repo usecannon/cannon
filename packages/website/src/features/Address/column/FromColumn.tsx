@@ -34,7 +34,10 @@ const FromColumn: React.FC<FromColumnProps> = ({
               hoverId={hoverId!}
               setHoverId={setHoverId}
             >
-              {`${fromAddress.substring(0, 10)}...${fromAddress.slice(-9)}`}
+              <span className="font-mono">{`${fromAddress.substring(
+                0,
+                10
+              )}...${fromAddress.slice(-9)}`}</span>
             </HoverHighlight>
           </TooltipTrigger>
           <TooltipContent>{fromAddress}</TooltipContent>
