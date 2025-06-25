@@ -193,7 +193,11 @@ export function TransactionDisplay(props: {
                     onClick={() => setExpandDiff(!expandDiff)}
                     className="absolute top-4 right-5 hover:text-gray-300"
                   >
-                    {expandDiff ? <Shrink /> : <Expand />}
+                    {expandDiff ? (
+                      <Shrink className="h-5 w-5" />
+                    ) : (
+                      <Expand className="h-5 w-5" />
+                    )}
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>
