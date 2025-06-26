@@ -69,8 +69,6 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
 
   const possibleArtifactPaths = await glob(outPath + `/**/${inputContractName}.json`);
 
-  debug('possible artifact paths', possibleArtifactPaths);
-
   const possibleArtifacts = [];
   for (const artifactPath of possibleArtifactPaths) {
     const artifactBuffer = await fs.readFile(artifactPath);
@@ -134,8 +132,6 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
         },
       }),
     };
-
-    console.log('FINAL ARTIFACT', Object.keys(artifact));
 
     return {
       contractName: inputContractName,

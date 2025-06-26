@@ -8,7 +8,6 @@ function formatSolidityConstructorArg(
   inputType: { name: string; type: string; internalType: string } | undefined,
   arg: string | string[]
 ): [string, string[]] {
-  console.log('format type name', inputType, arg);
   if (inputType && (inputType.type === 'string' || inputType.type === 'bytes')) {
     return [`"${arg}"`, []];
   } else if (
@@ -110,10 +109,6 @@ export const createRenderer = (blockNumber: number) => {
 
           lines.push(`${indent}{`);
 
-          console.log(
-            'artifact abi',
-            line.result.contracts[c].abi.map((f: AbiItem) => `${f.type} ${(f as any).name}`).join(', ')
-          );
           const constructorAbiResults = line.result.contracts[c].abi.filter((f: AbiItem) => f.type === 'constructor');
 
           let constructorAbi = { inputs: [], type: 'constructor', stateMutability: 'nonpayable' } as any;
