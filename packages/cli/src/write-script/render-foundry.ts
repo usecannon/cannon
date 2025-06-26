@@ -1,14 +1,35 @@
 import { EOL } from 'node:os';
 import { Transform } from 'node:stream';
 
-import { AbiItem, getAddress } from 'viem';
+import _ from 'lodash';
+import { AbiItem, getAddress, isAddress } from 'viem';
 
-function formatSolidityConstructorArg(type: string, arg: string) {
-  console.log('format type name', type, arg);
-  if (type === 'string' || type === 'bytes') {
-    return `"${arg}"`;
+function formatSolidityConstructorArg(
+  inputType: { name: string; type: string; internalType: string } | undefined,
+  arg: string | string[]
+): [string, string[]] {
+  console.log('format type name', inputType, arg);
+  if (inputType && (inputType.type === 'string' || inputType.type === 'bytes')) {
+    return [`"${arg}"`, []];
+  } else if (
+    (inputType && inputType.internalType === 'address') ||
+    (!inputType && typeof arg === 'string' && isAddress(arg))
+  ) {
+    return [`${getAddress(arg as string)}`, []];
+  } else if (inputType && inputType.internalType.endsWith('[]')) {
+    const typeName = _.last(inputType.internalType.split(' '));
+    const args = arg as string[];
+    const priorLines = [`${typeName} memory tmparray${inputType.name} = new ${typeName}(${args.length});`];
+    for (let i = 0; i < args.length; i++) {
+      // TODO: recurse
+      priorLines.push(`tmparray${inputType.name}[${i}] = ${args[i]};`);
+    }
+
+    return [`tmparray${inputType.name}`, priorLines];
+  } else if (inputType && inputType.internalType) {
+    return [`${_.last(inputType.internalType.split(' '))}(  ${arg})`, []];
   }
-  return arg;
+  return [arg as string, []];
 }
 
 /**
@@ -87,6 +108,8 @@ export const createRenderer = (blockNumber: number) => {
             continue;
           }
 
+          lines.push(`${indent}{`);
+
           console.log(
             'artifact abi',
             line.result.contracts[c].abi.map((f: AbiItem) => `${f.type} ${(f as any).name}`).join(', ')
@@ -99,17 +122,25 @@ export const createRenderer = (blockNumber: number) => {
           }
 
           // add etch so that if the contract is later modified, the new source code is used
-          imports.add(
-            `import { ${line.result.contracts[c].contractName} } from "../${line.result.contracts[c].sourceName}";`
+          imports.add(`import "../${line.result.contracts[c].sourceName}";`);
+
+          const constructorArgs = (line.result.contracts[c].constructorArgs ?? []).map((arg: any, i: number) =>
+            formatSolidityConstructorArg(constructorAbi.inputs[i], arg)
           );
+
+          for (const a of constructorArgs) {
+            lines.push(a[1].map((v: string) => `${indent}${indent}${v}`).join('\n'));
+          }
+
           lines.push(
-            `${indent}tmp = address(new ${line.result.contracts[c].contractName}(${(
-              line.result.contracts[c].constructorArgs ?? []
-            )
-              .map((arg: any, i: number) => formatSolidityConstructorArg(constructorAbi.inputs[i]?.type, arg))
+            `${indent}${indent}tmp = address(new ${line.result.contracts[c].contractName}(${constructorArgs
+              // TODO: why do we need a type here
+              .map((a: [string, string[]]) => a[0])
               .join(',')}));\n`
           );
-          lines.push(`${indent}vm.etch(${getAddress(line.result.contracts[c].address)}, tmp.code);\n`);
+          lines.push(`${indent}${indent}vm.etch(${getAddress(line.result.contracts[c].address)}, tmp.code);\n`);
+
+          lines.push(`${indent}}`);
         }
       }
 
