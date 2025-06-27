@@ -72,9 +72,7 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
                   asChild
                   className={cn(
                     'w-full',
-                    pathname === item.href &&
-                      !item.nav &&
-                      'bg-muted font-medium'
+                    pathname === item.href && 'bg-muted font-medium'
                   )}
                 >
                   <Link href={item.href}>{item.text}</Link>
