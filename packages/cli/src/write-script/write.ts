@@ -33,18 +33,29 @@ export async function createWriteScript(
   const eventsData: string[] = [];
 
   // Set up the event processing pipeline
-  events.stream
-    .pipe(events.fetchTransactions)
-    .pipe(renderer)
-    .on('data', (chunk: string) => {
-      eventsData.push(chunk);
-    });
+  const pipeline = events.stream.pipe(events.fetchTransactions).pipe(renderer);
+
+  pipeline.on('data', (chunk: string) => {
+    eventsData.push(chunk);
+  });
 
   return {
     end: async () => {
-      // The runtime does not have an event to notify when the build has finished
-      // so, we have to manully stop listening to it and close the streams.
+      // Signal the start of the pipeline to end
       events.stream.end();
+
+      // Wait for the entire pipeline to finish processing
+      await new Promise<void>((resolve, reject) => {
+        pipeline.on('end', () => {
+          console.log('Pipeline finished processing');
+          resolve();
+        });
+
+        pipeline.on('error', (error: Error) => {
+          console.error('Pipeline error:', error);
+          reject(error);
+        });
+      });
 
       // Write all collected data to file atomically
       await writeFile(targetFile, eventsData.join(''));
