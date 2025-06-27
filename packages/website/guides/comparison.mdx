@@ -1,0 +1,67 @@
+---
+title: Cannon Compared with...
+description: Modify existing Cannon packages outside of the regular build process.
+---
+
+## Cannon Compared with...
+
+Cannon is a powerful deployment framework that offers unique advantages over traditional smart contract deployment tools. Let's compare Cannon with other popular deployment solutions to understand why Cannon stands out.
+
+## Comparison Overview
+
+| Feature | Cannon | Foundry Scripts | hardhat-deploy | Hardhat Ignition |
+|---------|--------|-----------------|-----------------|------------------|
+| **Framework Compatibility** | Universal (Hardhat, Foundry, etc.) | Foundry only | Hardhat only | Hardhat only |
+| **Deployment Language** | YAML/JSON | Solidity | JavaScript | TypeScript |
+| **Deployment Style** | Declarative | Imperative | Imperative | Declarative |
+| **Artifact Distribution** | Onchain packages | Local files | Local files | Local files |
+| **Cross-chain Support** | Native | Manual | Manual | Manual |
+| **Package Management** | Built-in | None | None | None |
+| **State Management** | Immutable, versioned | Manual | Manual | Manual |
+
+## Detailed Comparison
+
+### Framework Compatibility
+
+**Cannon** provides universal compatibility, working seamlessly with both Hardhat and Foundry projects. You can use your existing development environment without switching tools.
+
+**Foundry Scripts** are limited to Foundry projects only, requiring you to use Foundry's testing framework and tooling.
+
+**hardhat-deploy** and **Hardhat Ignition** are exclusive to Hardhat projects, limiting your framework choices.
+
+### Deployment Language
+
+**Cannon** uses declarative TOML configuration files that clearly define your deployment steps, dependencies, and contract interactions. This makes deployments more readable and maintainable.
+
+**Foundry Scripts** use Solidity for deployment logic, which can be powerful but requires more boilerplate code and is less intuitive for complex deployment scenarios.
+
+**hardhat-deploy** and **Hardhat Ignition** use JavaScript/TypeScript, which is familiar to many developers but can become verbose for complex deployments.
+
+### Deployment Style
+
+**Cannon** follows a declarative approach where you specify what you want deployed rather than how to deploy it. This makes deployments more predictable and easier to reason about.
+
+**Foundry Scripts** and **hardhat-deploy** use imperative deployment scripts where you manually control each step, which can lead to inconsistencies and harder debugging.
+
+**Hardhat Ignition** also uses a declarative approach.
+
+### Artifact Distribution
+
+**Cannon** stores all deployment artifacts (addresses, ABIs, configuration) onchain as immutable packages which are rooted on an on-chain manifest, and fetchable on IPFS. Cannon also provides an IPFS service which will automatically pin your artifacts. This ensures:
+- No lost deployment data
+- Version-controlled deployments
+- Easy sharing across teams
+- Reproducible deployments
+
+**Foundry Scripts**, **hardhat-deploy**, and **Hardhat Ignition** store artifacts locally and are usually either/both checked into Git, or . Every project has its own structure for distributing or handling these artifacts, and this makes it difficult to share across environments.
+
+### Package Management
+
+**Cannon** includes built-in package management, allowing you to:
+- Publish and share deployment packages
+- Install and use packages from the registry
+- Version control your deployments and track the evolution
+- Keep version sources
+- Reuse deployment configurations
+
+Other tools rely on other tools like NPM for this functionality.
