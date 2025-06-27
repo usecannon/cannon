@@ -171,11 +171,11 @@ export function SafeSignExecuteButtons({
           <>
             <div className="flex flex-col gap-3">
               {signers?.map((s) => (
-                <div key={s}>
+                <div key={s} className="flex items-center">
                   <div className="inline-flex items-center justify-center w-5 h-5 mr-2.5 bg-teal-500 rounded-full">
                     <Check className="w-2.5 h-2.5 text-white" />
                   </div>
-                  <span className="inline font-mono font-light text-gray-200">
+                  <span className="inline-flex font-mono font-light text-gray-200">
                     {`${s.substring(0, 8)}...${s.slice(-6)}`}
                     <a
                       target="_blank"
@@ -183,7 +183,7 @@ export function SafeSignExecuteButtons({
                       className="ml-1.5 hover:text-gray-300"
                       href={getExplorerUrl(safeChain?.id, s)}
                     >
-                      <ExternalLink className="inline" />
+                      <ExternalLink className="h-5 w-5" />
                     </a>
                   </span>
                 </div>
@@ -197,7 +197,7 @@ export function SafeSignExecuteButtons({
         )}
 
         {!isTransactionExecuted && !executionTxnHash && (
-          <div className="flex gap-4">
+          <div className="flex gap-4 mt-3">
             {accountConnected && walletChainId === safe.chainId ? (
               <>
                 <Tooltip>

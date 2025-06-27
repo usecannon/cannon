@@ -46,7 +46,6 @@ export function StagedTransactions({
             <TransactionTable
               transactions={stagedTransactions.staged.map((tx) => tx.txn)}
               safe={currentSafe}
-              hideExternal={false}
               isStaged
             />
           </div>

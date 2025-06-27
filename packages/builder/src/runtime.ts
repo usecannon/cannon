@@ -82,7 +82,7 @@ export class CannonStorage extends EventEmitter {
 
     this.emit(Events.ResolveDeploy, packageRef, preset, chainId, registryName, 0);
 
-    const uri = await this.registry.getUrl(packageRef, chainId);
+    const uri = (await this.registry.getUrl(packageRef, chainId)).url;
 
     if (!uri) return null;
 

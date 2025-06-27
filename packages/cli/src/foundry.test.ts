@@ -48,7 +48,12 @@ describe('getFoundryArtifact', () => {
           metadata: {
             compiler: { version: '0.8.1' },
             sources: { 'test.sol': {} },
-            settings: { optimizer: {}, remappings: {}, outputSelection: { '*': { '*': ['*'] } } },
+            settings: {
+              optimizer: {},
+              remappings: {},
+              outputSelection: { '*': { '*': ['*'] } },
+              compilationTarget: { Test: 'test.sol' },
+            },
           },
           ast: { absolutePath: 'test.sol' },
           abi: [],
