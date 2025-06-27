@@ -217,6 +217,10 @@ export async function createOnChainOnlyRegistry(cliSettings: CliSettings): Promi
   );
 }
 
+export async function createLocalOnlyRegistry(cliSettings: CliSettings): Promise<LocalRegistry> {
+  return new LocalRegistry(cliSettings.cannonDirectory);
+}
+
 export async function createDefaultReadRegistry(
   cliSettings: CliSettings,
   additionalRegistries: CannonRegistry[] = []
