@@ -3,6 +3,7 @@ import { ensureFileSync } from 'fs-extra';
 import { createStepsStream } from './stream-steps';
 import { DumpRenderer } from './types';
 import { writeFile } from 'node:fs/promises';
+import * as logger from '../util/console';
 
 export const WRITE_SCRIPT_FORMATS = ['json', 'ethers', 'foundry', 'cast'] as const;
 
@@ -47,12 +48,11 @@ export async function createWriteScript(
       // Wait for the entire pipeline to finish processing
       await new Promise<void>((resolve, reject) => {
         pipeline.on('end', () => {
-          console.log('Pipeline finished processing');
           resolve();
         });
 
         pipeline.on('error', (error: Error) => {
-          console.error('Pipeline error:', error);
+          logger.error('Pipeline error:', error);
           reject(error);
         });
       });
