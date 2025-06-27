@@ -1,8 +1,5 @@
-import { createWriteStream } from 'node:fs';
-import { finished } from 'node:stream/promises';
 import { ChainBuilderRuntime } from '@usecannon/builder';
 import { ensureFileSync } from 'fs-extra';
-import * as viem from 'viem';
 import { createStepsStream } from './stream-steps';
 import { DumpRenderer } from './types';
 import { writeFile } from 'node:fs/promises';
@@ -31,7 +28,7 @@ export async function createWriteScript(
   const events = createStepsStream(runtime);
   const blockNumber = await runtime.provider.getBlockNumber();
   const renderer = createRenderer(Number(blockNumber));
-  
+
   // Collect all events into an array
   const eventsData: string[] = [];
 
