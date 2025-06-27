@@ -135,7 +135,9 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
 
     return {
       contractName: inputContractName,
-      sourceName: Object.keys(artifact.metadata.settings.compilationTarget)[0],
+      sourceName:
+        artifact.metadata?.settings?.compilationTarget?.[inputContractName] ??
+        Object.keys(artifact.metadata.settings.compilationTarget)[0],
       abi: artifact.abi,
       bytecode: artifact.bytecode.object,
       deployedBytecode: artifact.deployedBytecode.object,
