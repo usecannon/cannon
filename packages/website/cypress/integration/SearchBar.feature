@@ -19,10 +19,10 @@ Feature: SearchBar page
   Scenario: Searching for the function
     Given User opens the "/learn" page
     When User clicks on the 1st element with id "searchbar-button"
-    * User types "synthetix" into the 1st input with id "sidebar-search-input"
-    Then View renders a "span" displaying the text "AccountUtilsModule"
+    * User types "supportedEVMChains" into the 1st input with id "sidebar-search-input"
+    Then View renders a "span" displaying the text "RelayAppBeacon"
     When User clicks on the 1st element with id "search-function-section"
-    Then URL includes "AccountUtilsModule"
+    Then URL includes "RelayAppBeacon"
 
   Scenario: Searching for the package
     Given User opens the "/learn" page

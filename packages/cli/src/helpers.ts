@@ -514,7 +514,7 @@ export async function getPackageInfo(
   // if its not an ipfs url, try to parse the package reference and get the ipfsUrl, or throw a parsing error
   if (!ipfsUrl) {
     const { fullPackageRef, chainId: _chainId } = await getPackageReference(packageRef, givenChainId, givenRpcUrl);
-    ipfsUrl = await registry.getUrl(fullPackageRef, _chainId);
+    ipfsUrl = (await registry.getUrl(fullPackageRef, _chainId)).url;
     chainId = _chainId;
 
     if (!ipfsUrl) {

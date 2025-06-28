@@ -157,12 +157,12 @@ describe('package.ts', () => {
       //expect(toLoader.putDeploy).toBeCalledTimes(1);
       expect(toLoader.put).toBeCalledWith(testPkgData);
       expect(toLoader.put).toBeCalledWith({ misc: 'info' });
-      expect(await toRegistry.getUrl(testPkg, 1)).toStrictEqual('https://usecannon.com');
+      expect((await toRegistry.getUrl(testPkg, 1)).url).toStrictEqual('https://usecannon.com');
       // TODO: temp meta url is disabled due to cannon registry support
       //expect(await toRegistry.getMetaUrl(testPkg, 1)).toStrictEqual('https://usecannon.com/meta');
 
       // didnt recurse
-      expect(await toRegistry.getUrl(nestedPkg, 1)).toBeFalsy();
+      expect((await toRegistry.getUrl(nestedPkg, 1)).url).toBeFalsy();
     });
 
     it('recurses with correct tags and name', async () => {
@@ -177,9 +177,9 @@ describe('package.ts', () => {
       });
 
       // the recursed package data should be pushed, and all the declared tags should have been honored
-      expect(await toRegistry.getUrl(nestedPkg, 1)).toStrictEqual('https://usecannon.com/nested');
-      expect(await toRegistry.getUrl('nested:tag1@main', 1)).toStrictEqual('https://usecannon.com/nested');
-      expect(await toRegistry.getUrl('nested:tag2@main', 1)).toStrictEqual('https://usecannon.com/nested');
+      expect((await toRegistry.getUrl(nestedPkg, 1)).url).toStrictEqual('https://usecannon.com/nested');
+      expect((await toRegistry.getUrl('nested:tag1@main', 1)).url).toStrictEqual('https://usecannon.com/nested');
+      expect((await toRegistry.getUrl('nested:tag2@main', 1)).url).toStrictEqual('https://usecannon.com/nested');
     });
 
     describe('recursive = true', () => {
@@ -195,9 +195,9 @@ describe('package.ts', () => {
         });
 
         // the recursed package data should be pushed, and all the declared tags should have been honored
-        expect(await toRegistry.getUrl(nestedPkg, 1)).toStrictEqual('https://usecannon.com/nested');
-        expect(await toRegistry.getUrl('nested:tag3@main', 1)).toStrictEqual('https://usecannon.com/nested');
-        expect(await toRegistry.getUrl('nested:tag4@main', 1)).toStrictEqual('https://usecannon.com/nested');
+        expect((await toRegistry.getUrl(nestedPkg, 1)).url).toStrictEqual('https://usecannon.com/nested');
+        expect((await toRegistry.getUrl('nested:tag3@main', 1)).url).toStrictEqual('https://usecannon.com/nested');
+        expect((await toRegistry.getUrl('nested:tag4@main', 1)).url).toStrictEqual('https://usecannon.com/nested');
       });
     });
   });

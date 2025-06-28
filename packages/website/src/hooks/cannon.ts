@@ -398,7 +398,7 @@ export function useCannonWriteDeployToIpfs() {
     });
 
     // load the new ipfs url
-    const mainUrl = await memoryRegistry.getUrl(packageRef, runtime.chainId);
+    const mainUrl = (await memoryRegistry.getUrl(packageRef, runtime.chainId)).url;
 
     return {
       packageRef,
@@ -450,7 +450,7 @@ export function useCannonFindUpgradeFromUrl(
 
 async function _getCannonPackageRegistryUrl(registry: CannonRegistry, packageRefOrUrl: string, chainId: number) {
   if (PackageReference.isValid(packageRefOrUrl)) {
-    const url = await registry.getUrl(packageRefOrUrl, chainId);
+    const url = (await registry.getUrl(packageRefOrUrl, chainId)).url;
     if (!url) throw new Error(`package not found: ${packageRefOrUrl} (${chainId})`);
     return url;
   } else if (getIpfsUrl(packageRefOrUrl)) {

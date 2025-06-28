@@ -553,6 +553,91 @@ export default [
         type: 'bytes32',
       },
     ],
+    name: 'getPackageInfo',
+    outputs: [
+      {
+        components: [
+          {
+            internalType: 'address',
+            name: 'owner',
+            type: 'address',
+          },
+          {
+            internalType: 'string',
+            name: 'deployUrl',
+            type: 'string',
+          },
+          {
+            internalType: 'string',
+            name: 'metaUrl',
+            type: 'string',
+          },
+          {
+            internalType: 'bytes16',
+            name: 'mutability',
+            type: 'bytes16',
+          },
+          {
+            internalType: 'bytes16',
+            name: '__reserved',
+            type: 'bytes16',
+          },
+        ],
+        internalType: 'struct CannonRegistry.CannonDecodedDeployInfo',
+        name: '',
+        type: 'tuple',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: '_packageName',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bytes32',
+        name: '_packageVersionName',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bytes32',
+        name: '_packageVariant',
+        type: 'bytes32',
+      },
+    ],
+    name: 'getPackageMeta',
+    outputs: [
+      {
+        internalType: 'string',
+        name: '',
+        type: 'string',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: '_packageName',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bytes32',
+        name: '_packageVersionName',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bytes32',
+        name: '_packageVariant',
+        type: 'bytes32',
+      },
+    ],
     name: 'getPackageUrl',
     outputs: [
       {

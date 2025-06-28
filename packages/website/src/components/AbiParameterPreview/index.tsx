@@ -9,21 +9,26 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { parseAbiParameter } from '@/components/AbiParameterPreview/utils';
-import { ReactNode } from 'react';
+import { ReactNode, forwardRef } from 'react';
 import { ExternalLinkButton } from '@/components/ExternalLinkButton';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
-function EncodedValueInput({ value }: { value: string }) {
-  return (
-    <Input
-      type="text"
-      className="focus:border-muted-foreground/40 focus:ring-0 hover:border-muted-foreground/40 font-mono"
-      readOnly
-      value={value}
-      data-testid="encode-value-input"
-    />
-  );
-}
+const EncodedValueInput = forwardRef<HTMLInputElement, { value: string }>(
+  ({ value }, ref) => {
+    return (
+      <Input
+        ref={ref}
+        type="text"
+        className="focus:border-muted-foreground/40 focus:ring-0 hover:border-muted-foreground/40 font-mono"
+        readOnly
+        value={value}
+        data-testid="encode-value-input"
+      />
+    );
+  }
+);
+
+EncodedValueInput.displayName = 'EncodedValueInput';
 
 function TooltipWrapper({
   children,
@@ -34,7 +39,9 @@ function TooltipWrapper({
 }) {
   return (
     <Tooltip>
-      <TooltipTrigger className="w-full">{children}</TooltipTrigger>
+      <TooltipTrigger asChild className="w-full">
+        {children}
+      </TooltipTrigger>
       <TooltipContent>
         <p className="text-xs font-mono">{tooltipText}</p>
       </TooltipContent>
@@ -90,7 +97,7 @@ export function AbiParameterPreview({
             <EncodedValueInput value={parsedValue} />
           )}
 
-          <div className="absolute right-2 top-1">
+          <div className="absolute right-2 top-1 space-x-1">
             {explorerUrl && <ExternalLinkButton href={explorerUrl} />}
             <ClipboardButton text={rawValue as string} />
           </div>
