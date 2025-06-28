@@ -17,4 +17,5 @@ export const links = {
   IPFS_UPLOAD: '/ipfs/upload',
   DOCS_CLI_RUN: '/learn/cli#run',
   DOCS_CANNONFILE_PROVISION: '/learn/cannonfile#clone',
+  PRICING: '/pricing',
 };

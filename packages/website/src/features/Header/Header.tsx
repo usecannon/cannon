@@ -37,6 +37,9 @@ const NavLinks = () => {
       <NavLink href={links.LEARN} isActive={pathname.startsWith('/learn')}>
         Docs
       </NavLink>
+      <NavLink href={links.PRICING} isActive={pathname.startsWith('/pricing')}>
+        Pricing
+      </NavLink>
     </div>
   );
 };
