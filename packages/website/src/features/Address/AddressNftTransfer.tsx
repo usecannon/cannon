@@ -6,7 +6,7 @@ import {
   useReactTable,
   getCoreRowModel,
 } from '@tanstack/react-table';
-import AddressAdditionalInfo from '@/features/Address/column/AddressAdditionalInfo';
+import AddressAdditionalInfo from '@/features/Address/AddressAdditionalDialog';
 import { Chain } from '@/types/Chain';
 import { NftTransferRow } from '@/types/AddressList';
 import { getMethods, matchFunctionName } from '@/lib/address';
@@ -21,6 +21,7 @@ import AgeHeader from '@/features/Address/column/AgeHeader';
 import BlockColumn from '@/features/Address/column/BlockColumn';
 import TypeColumn from '@/features/Address/column/TypeColumn';
 import { erc721Hash } from '@/features/Address/AddressPage';
+import DownloadListButton from '@/features/Address/DownloadListButton';
 
 type AddressNftTransferProps = {
   address: string;
@@ -37,7 +38,7 @@ const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
 }) => {
   const [hoverId, setHoverId] = useState<string>('');
   const [openToolTipIndex, setOpenTooltipIndex] = useState<number>();
-  const [isUtcDate, setIsUtcDate] = useState<boolean>(false);
+  const [isDate, setIsDate] = useState<boolean>(false);
   const [names, setNames] = useState<any>('');
 
   useEffect(() => {
@@ -65,7 +66,7 @@ const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
         type: receipt.logs[0].topics[0] === erc721Hash ? 'ERC-721' : 'ERC-1155',
       };
     });
-  }, [names]);
+  }, [txs, receipts, names]);
 
   const columnHelper = createColumnHelper<NftTransferRow>();
 
@@ -101,10 +102,8 @@ const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
     }),
     columnHelper.accessor('age', {
       id: 'age',
-      cell: (info: any) => <AgeColumn info={info} isUtcDate={isUtcDate} />,
-      header: () => (
-        <AgeHeader isUtcDate={isUtcDate} setIsUtcDate={setIsUtcDate} />
-      ),
+      cell: (info: any) => <AgeColumn info={info} isDate={isDate} />,
+      header: () => <AgeHeader isDate={isDate} setIsDate={setIsDate} />,
     }),
     columnHelper.accessor('from', {
       id: 'from',
@@ -157,12 +156,21 @@ const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
         <CardHeader>
           {table.getRowModel().rows.length > 0 && (
             <CardTitle>
-              <div className="flex flex-wrap items-center space-x-1">
-                <ArrowDownWideNarrow className="h-4 w-4" />
-                <span className="text-sm">
-                  Latest {table.getRowModel().rows.length} from a total
-                  transactions
-                </span>
+              <div className="flex sm:flex-row flex-col justify-between w-full sm:space-y-0 space-y-2">
+                <div className="flex flex-wrap items-center space-x-1">
+                  <ArrowDownWideNarrow className="h-4 w-4" />
+                  <span className="text-sm">
+                    Latest {table.getRowModel().rows.length} from a total
+                    transactions
+                  </span>
+                </div>
+                <DownloadListButton
+                  txs={txs}
+                  receipts={receipts}
+                  names={names}
+                  chain={chain}
+                  fileName={`export-nft-transfer-${address}.csv`}
+                />
               </div>
             </CardTitle>
           )}

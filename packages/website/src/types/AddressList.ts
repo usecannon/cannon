@@ -12,6 +12,18 @@ export type TransactionRow = {
   contractAddress: string | null | undefined;
 };
 
+export type TransactionCsvRow = {
+  hash: string;
+  status: string;
+  method: string;
+  blockNumber: string;
+  dateTime: string;
+  from: string;
+  to: string;
+  amount: string;
+  txnFee: string;
+};
+
 export type TokenTransferRow = {
   detail: string;
   hash: string;

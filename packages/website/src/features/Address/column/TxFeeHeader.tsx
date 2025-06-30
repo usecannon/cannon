@@ -17,7 +17,7 @@ const TxFeeHeader: React.FC<TxFeeHeaderProps> = ({
 }) => {
   return (
     <Tooltip>
-      <TooltipTrigger>
+      <TooltipTrigger asChild>
         <Button
           variant="ghost"
           onClick={() => {

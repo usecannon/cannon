@@ -6,27 +6,25 @@ import {
 } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
 import { formatDistanceToNow } from 'date-fns';
+import { formatDateTime } from '@/lib/address';
 
 type AgeColumnProps = {
   info: any;
-  isUtcDate: boolean;
+  isDate: boolean;
 };
 
-const AgeColumn: React.FC<AgeColumnProps> = ({ info, isUtcDate }) => {
+const AgeColumn: React.FC<AgeColumnProps> = ({ info, isDate }) => {
   const timestamp = info.getValue();
-  const dateTime = format(
-    new Date(Number(timestamp) * 1000),
-    'yyyy-MM-dd H:mm:ss'
-  );
+  const dateTime = formatDateTime(timestamp);
 
   const timeAgo = formatDistanceToNow(new Date(timestamp * 1000)) + ' ago';
   return (
     <Tooltip>
       <TooltipTrigger>
-        <span>{isUtcDate ? dateTime : timeAgo}</span>
+        <span className="cursol-defualt">{isDate ? dateTime : timeAgo}</span>
       </TooltipTrigger>
       <TooltipContent>
-        <span>{isUtcDate ? timeAgo : dateTime}</span>
+        <span>{isDate ? timeAgo : dateTime}</span>
       </TooltipContent>
     </Tooltip>
   );

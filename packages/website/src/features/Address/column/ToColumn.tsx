@@ -80,7 +80,6 @@ const ToColumn: React.FC<ToColumnProps> = ({
             </TooltipTrigger>
             <TooltipContent>{toAddress}</TooltipContent>
           </Tooltip>
-
           <ClipboardButton text={toAddress} />
         </>
       )}

@@ -7,29 +7,29 @@ import {
 import { Button } from '@/components/ui/button';
 
 type AgeHeaderProps = {
-  isUtcDate: boolean;
-  setIsUtcDate: (isUtcDate: boolean) => void;
+  isDate: boolean;
+  setIsDate: (isDate: boolean) => void;
 };
 
-const AgeHeader: React.FC<AgeHeaderProps> = ({ isUtcDate, setIsUtcDate }) => {
+const AgeHeader: React.FC<AgeHeaderProps> = ({ isDate, setIsDate }) => {
   return (
     <Tooltip>
-      <TooltipTrigger>
+      <TooltipTrigger asChild>
         <Button
           variant="ghost"
           onClick={() => {
-            setIsUtcDate(!isUtcDate);
+            setIsDate(!isDate);
           }}
           className="h-8 px-2"
         >
           <span className="font-mono border-b border-dotted border-muted-foreground hover:border-solid">
-            {isUtcDate ? 'Date Time' : 'Age'}
+            {isDate ? 'Date Time' : 'Age'}
           </span>
         </Button>
       </TooltipTrigger>
       <TooltipContent>
         <span>
-          {isUtcDate
+          {isDate
             ? 'Click to show Age Format'
             : 'Click to show Datetime Format'}
         </span>

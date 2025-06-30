@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ArrowDownWideNarrow, CircleHelp } from 'lucide-react';
+import { CircleHelp } from 'lucide-react';
 import {
   createColumnHelper,
   useReactTable,
   getCoreRowModel,
 } from '@tanstack/react-table';
-import { convertToFormatEther } from '@/lib/transaction';
-import AddressAdditionalInfo from '@/features/Address/column/AddressAdditionalInfo';
+import AddressAdditionalInfo from '@/features/Address/AddressAdditionalDialog';
 import { Chain } from '@/types/Chain';
 import { TokenTransferRow } from '@/types/AddressList';
 import { getMethods, mapToTokenTransferList } from '@/lib/address';
@@ -21,6 +20,7 @@ import MethodHeader from '@/features/Address/column/MethodHeader';
 import AgeColumn from '@/features/Address/column/AgeColumn';
 import AgeHeader from '@/features/Address/column/AgeHeader';
 import BlockColumn from '@/features/Address/column/BlockColumn';
+import DownloadListButton from '@/features/Address/DownloadListButton';
 
 type AddressTokenTransferProps = {
   address: string;
@@ -37,7 +37,7 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
 }) => {
   const [hoverId, setHoverId] = useState<string>('');
   const [openToolTipIndex, setOpenTooltipIndex] = useState<number>();
-  const [isUtcDate, setIsUtcDate] = useState<boolean>(false);
+  const [isDate, setIsDate] = useState<boolean>(false);
   const [names, setNames] = useState<any>('');
 
   useEffect(() => {
@@ -50,7 +50,7 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
 
   const data = React.useMemo(() => {
     return mapToTokenTransferList(txs, receipts, names);
-  }, [names]);
+  }, [txs, receipts, names]);
 
   const columnHelper = createColumnHelper<TokenTransferRow>();
 
@@ -86,10 +86,8 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
     }),
     columnHelper.accessor('age', {
       id: 'age',
-      cell: (info: any) => <AgeColumn info={info} isUtcDate={isUtcDate} />,
-      header: () => (
-        <AgeHeader isUtcDate={isUtcDate} setIsUtcDate={setIsUtcDate} />
-      ),
+      cell: (info: any) => <AgeColumn info={info} isDate={isDate} />,
+      header: () => <AgeHeader isDate={isDate} setIsDate={setIsDate} />,
     }),
     columnHelper.accessor('from', {
       id: 'from',
@@ -144,12 +142,20 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
         <CardHeader>
           {table.getRowModel().rows.length > 0 && (
             <CardTitle>
-              <div className="flex flex-wrap items-center space-x-1">
-                <ArrowDownWideNarrow className="h-4 w-4" />
-                <span className="text-sm">
-                  Latest {table.getRowModel().rows.length} ERC-20 Token Transfer
-                  Events
-                </span>
+              <div className="flex sm:flex-row flex-col justify-between w-full sm:space-y-0 space-y-2">
+                <div className="flex flex-wrap items-center space-x-1">
+                  <span className="text-sm">
+                    Latest {table.getRowModel().rows.length} ERC-20 Token
+                    Transfer Events
+                  </span>
+                </div>
+                <DownloadListButton
+                  txs={txs}
+                  receipts={receipts}
+                  names={names}
+                  chain={chain}
+                  fileName={`export-token-transfer-${address}.csv`}
+                />
               </div>
             </CardTitle>
           )}

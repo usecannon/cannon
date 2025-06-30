@@ -1,9 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { ClipboardButton } from '@/components/ClipboardButton';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
-import { createPublicClient, http } from 'viem';
-import { formatEther } from 'viem';
 import AddressTab from '@/features/Address/AddressTab';
 import QrcodeDialog from '@/components/QrcodeDialog';
 import AddressOverview from '@/features/Address/AddressOverview';
@@ -18,7 +16,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { convertToFormatEther } from '@/lib/transaction';
 
 export const erc20Hash =
   '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
@@ -40,20 +37,15 @@ export type TabId = (typeof tabs)[number]['id'];
 const AddressPage = () => {
   const router = useRouter();
   const { chainId, address } = router.query;
-  const [balance, setBalance] = useState<string>('');
   const [activeTab, setActiveTab] = useState<TabId>('transactions');
   const { getChainById } = useCannonChains();
   const chain = getChainById(Number(chainId));
-  const publicClient = createPublicClient({
-    chain,
-    transport: http(chain?.rpcUrls.default.http[0]),
-  });
-  const addressStr = Array.isArray(address) ? address[0] : address;
+  const displayAddress = Array.isArray(address) ? address[0] : address;
   // Get demo transaction data
   const txs = transactions.result.txs;
   const receipts = transactions.result.receipts;
   const afterTxs = afterTx.result;
-
+  // console.log(receipts);
   const tokenReceipts = receipts.filter(
     (receipt) =>
       receipt.logs.length > 0 && receipt.logs[0].topics[0] === erc20Hash
@@ -71,30 +63,13 @@ const AddressPage = () => {
     return true;
   });
 
-  useEffect(() => {
-    const fetchBalance = async () => {
-      try {
-        const estimatedBalance = await publicClient.getBalance({
-          address: addressStr!,
-        });
-        setBalance(
-          convertToFormatEther(estimatedBalance, chain?.nativeCurrency.symbol)
-        );
-      } catch (error) {
-        console.error('getBalance error:', error);
-      }
-    };
-
-    fetchBalance();
-  }, [address]);
-
   const renderContent = () => {
-    if (addressStr) {
+    if (displayAddress) {
       switch (activeTab) {
         case 'tokentxns':
           return (
             <AddressTokenTransfer
-              address={addressStr!}
+              address={displayAddress!}
               txs={txs}
               receipts={tokenReceipts}
               chain={chain}
@@ -103,7 +78,7 @@ const AddressPage = () => {
         case 'nfttransfers':
           return (
             <AddressNftTransfer
-              address={addressStr!}
+              address={displayAddress!}
               txs={txs}
               receipts={nftReceipts}
               chain={chain}
@@ -112,7 +87,7 @@ const AddressPage = () => {
         default:
           return (
             <AddressLists
-              address={addressStr}
+              address={displayAddress}
               chain={chain}
               txs={txs}
               receipts={receipts}
@@ -126,23 +101,20 @@ const AddressPage = () => {
     <div className="w-full max-w-screen-2xl mx-auto px-4 my-4">
       <div className="flex flex-wrap items-baseline gap-2 sm:gap-4">
         <h1 className="text-2xl font-bold">Address</h1>
-        <span className="">{addressStr}</span>
-        <Tooltip>
-          <TooltipTrigger>
-            <ClipboardButton text={addressStr ?? ''} />
-          </TooltipTrigger>
+        <span className="">{displayAddress}</span>
+        {/* <Tooltip>
+          <TooltipTrigger asChild> */}
+        <ClipboardButton text={displayAddress ?? ''} />
+        {/* </TooltipTrigger>
           <TooltipContent>Copy Address</TooltipContent>
-        </Tooltip>
-        <QrcodeDialog text={addressStr ?? ''} />
+        </Tooltip> */}
+        <QrcodeDialog text={displayAddress ?? ''} />
       </div>
       <hr className="opacity-75 my-3" />
       <div className="flex sm:flex-row flex-col gap-3 w-full">
-        <AddressOverview
-          symbol={chain?.nativeCurrency.symbol}
-          balance={balance}
-        />
+        <AddressOverview chain={chain} address={displayAddress ?? ''} />
         <AddressMoreInfo
-          address={addressStr!}
+          address={displayAddress!}
           chainId={chain?.id}
           receipts={receipts}
           afterTxs={afterTxs}

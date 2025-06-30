@@ -38,7 +38,6 @@ export default function TransactionPage() {
   }
 
   const { tx, txReceipt, txBlock, chain, latestBlockNumber, txNames } = data;
-  console.log(txBlock);
   const renderContent = () => {
     switch (activeTab) {
       case 'eventlog':

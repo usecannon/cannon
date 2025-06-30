@@ -6,7 +6,7 @@ import {
   useReactTable,
   getCoreRowModel,
 } from '@tanstack/react-table';
-import AddressAdditionalInfo from '@/features/Address/column/AddressAdditionalInfo';
+import AddressAdditionalInfo from '@/features/Address/AddressAdditionalDialog';
 import { Chain } from '@/types/Chain';
 import { getMethods, mapToTransactionLlist } from '@/lib/address';
 import { TransactionRow } from '@/types/AddressList';
@@ -22,6 +22,7 @@ import TxFeeHeader from '@/features/Address/column/TxFeeHeader';
 import TxFeeColumn from '@/features/Address/column/TxFeeColumn';
 import BlockColumn from '@/features/Address/column/BlockColumn';
 import AddressDataTable from '@/features/Address/AddressDataTable';
+import DownloadListButton from '@/features/Address/DownloadListButton';
 
 type AddressListsProps = {
   address: string;
@@ -36,7 +37,7 @@ const AddressLists: React.FC<AddressListsProps> = ({
   txs,
   receipts,
 }) => {
-  const [isUtcDate, setIsUtcDate] = useState<boolean>(false);
+  const [isDate, setIsDate] = useState<boolean>(false);
   const [isGasPrice, setIsGasPrice] = useState<boolean>(false);
   const [hoverId, setHoverId] = useState<string>('');
   const [names, setNames] = useState<any>('');
@@ -51,8 +52,7 @@ const AddressLists: React.FC<AddressListsProps> = ({
 
   const data = React.useMemo(() => {
     return mapToTransactionLlist(txs, receipts, names);
-  }, [names]);
-  // }, [txs]);
+  }, [txs, receipts, names]);
 
   const columnHelper = createColumnHelper<TransactionRow>();
   const [openToolTipIndex, setOpenTooltipIndex] = useState<number>();
@@ -89,10 +89,8 @@ const AddressLists: React.FC<AddressListsProps> = ({
     }),
     columnHelper.accessor('age', {
       id: 'age',
-      cell: (info: any) => <AgeColumn info={info} isUtcDate={isUtcDate} />,
-      header: () => (
-        <AgeHeader isUtcDate={isUtcDate} setIsUtcDate={setIsUtcDate} />
-      ),
+      cell: (info: any) => <AgeColumn info={info} isDate={isDate} />,
+      header: () => <AgeHeader isDate={isDate} setIsDate={setIsDate} />,
     }),
     columnHelper.accessor('from', {
       id: 'from',
@@ -159,15 +157,26 @@ const AddressLists: React.FC<AddressListsProps> = ({
       <Card className="rounded-sm w-full">
         <CardHeader>
           {table.getRowModel().rows.length > 0 && (
-            <CardTitle>
-              <div className="flex flex-wrap items-center space-x-1">
-                <ArrowDownWideNarrow className="h-4 w-4" />
-                <span className="text-sm">
-                  Latest {table.getRowModel().rows.length} from a total
-                  transactions
-                </span>
-              </div>
-            </CardTitle>
+            <>
+              <CardTitle>
+                <div className="flex sm:flex-row flex-col justify-between w-full sm:space-y-0 space-y-2">
+                  <div className="flex flex-wrap items-center space-x-1">
+                    <ArrowDownWideNarrow className="h-4 w-4" />
+                    <span className="text-sm">
+                      Latest {table.getRowModel().rows.length} from a total
+                      transactions
+                    </span>
+                  </div>
+                  <DownloadListButton
+                    txs={txs}
+                    receipts={receipts}
+                    names={names}
+                    chain={chain}
+                    fileName={`export-${address}.csv`}
+                  />
+                </div>
+              </CardTitle>
+            </>
           )}
         </CardHeader>
         <CardContent>

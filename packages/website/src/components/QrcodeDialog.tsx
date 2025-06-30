@@ -26,7 +26,7 @@ const QrcodeDialog: React.FC<QrcodeDialogProps> = ({ text }) => {
   return (
     <>
       <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger asChild>
           <Button
             size="icon"
             variant="ghost"
