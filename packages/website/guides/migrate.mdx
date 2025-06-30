@@ -1,0 +1,184 @@
+---
+title: Migration Guide
+description: Tips for moving to cannon from another deployment framework
+---
+
+# Migration Guide
+
+This guide helps you migrate from various deployment tools to Cannon. Each section covers a specific tool and provides step-by-step instructions.
+
+## Table of Contents
+
+- [From Hardhat Deploy](#from-hardhat-deploy)
+- [From Custom Foundry Scripts](#from-custom-foundry-scripts)
+- [From Deployment Manifests](#from-deployment-manifests)
+- [From JSON File Dumps](#from-json-file-dumps)
+
+## From Hardhat Deploy
+
+### Overview
+[Hardhat Deploy](https://www.npmjs.com/package/hardhat-deploy) uses a deployment system with tagged deployments and deployment functions. Cannon can import from these deployments once the equivalent Cannonfile has been created.
+
+### Migration Steps
+
+1. 
+
+2. 
+
+3. 
+
+### Key Differences
+- Cannon operates declarative deployments in TOML; Hardhat Deploy operates generally imperative deployments in JS/TS.
+- Cannon writes deployment artifacts to a internal storage that can be deployed to IPFS and Onchain, separate from your repository; Hardhat Deploy writes JSON files directly to your repository.
+- Cannon supports multi-chain deployments out of the box; Hardhat Deploy typically requires a new deployment configuration for every network.
+
+## From Foundry Scripts
+
+### Overview
+[Foundry scripts](https://getfoundry.sh/guides/scripting-with-solidity/) are written in Solidity and can be used to execute deployments, among other things. Cannon import any deployed contracts or transactions previously executed once the declarative deployment configuration is created.
+
+### Migration Steps
+
+1. **Extract deployment logic**
+   ```solidity
+   // Original Foundry script
+   contract DeployScript is Script {
+       function run() external {
+           vm.startBroadcast();
+           Greeter greeter = new Greeter("Hello, Foundry!");
+           vm.stopBroadcast();
+       }
+   }
+   ```
+
+2. **Create cannonfile.toml**
+   ```toml
+   [contract.greeter]
+   source = "./src/Greeter.sol"
+   
+   [contract.greeter.deploy]
+   args = ["Hello, Cannon!"]
+   ```
+
+3. **Convert constructor arguments**
+   - Extract constructor parameters from your script
+   - Convert them to TOML format in the cannonfile
+
+### Key Differences
+- Cannon operates declarative deployments in TOML; Hardhat Deploy operates generally imperative deployments in JS/TS.
+- Cannon handles dependency management automatically, so ordering operations is not needed.
+- Cannon writes deployment artifacts to a internal storage that can be deployed to IPFS and Onchain, separate from your repository; Hardhat Deploy writes JSON files directly to your repository.
+- Cannon supports multi-chain deployments out of the box; Hardhat Deploy typically requires a new deployment configuration for every network.
+
+## From Deployment Manifests
+
+### Overview
+Deployment manifests (JSON/YAML files) contain contract addresses and deployment metadata. Cannon can import and use this data.
+
+### Migration Steps
+
+1. **Prepare your manifest file**
+   ```json
+   {
+     "contracts": {
+       "Greeter": {
+         "address": "0x1234...",
+         "constructorArgs": ["Hello, World!"],
+         "deployedAt": "2024-01-01T00:00:00Z"
+       }
+     }
+   }
+   ```
+
+2. **Import to Cannon**
+   ```bash
+   # Import the manifest
+   cannon import manifest deployment.json
+   ```
+
+3. **Verify and build**
+   ```bash
+   # Build the cannonfile
+   cannon build
+   
+   # Verify the deployment
+   cannon verify
+   ```
+
+### Key Differences
+- Cannon provides live deployment capabilities
+- Cannon handles contract verification automatically
+- Cannon supports complex deployment dependencies
+
+## From JSON File Dumps
+
+### Overview
+JSON file dumps contain raw deployment data, often from tools like `cast` or custom scripts. Cannon can parse and convert these to structured deployments.
+
+### Migration Steps
+
+1. **Format your JSON dump**
+   ```json
+   {
+     "transactions": [
+       {
+         "to": null,
+         "data": "0x608060405234801561001057600080fd5b506040516101e83803806101e88339818101604052810190610032919061005a565b806000819055505061007a565b60008151905061005481610063565b92915050565b6000602082840312156100705761006f61005e565b5b600061007e8482850161004b565b91505092915050565b6100a08161008d565b81146100ab57600080fd5b50565b6100b7816100a0565b81146100c257600080fd5b5056fea2646970667358221220...",
+         "value": "0"
+       }
+     ]
+   }
+   ```
+
+2. **Use Cannon's import functionality**
+   ```bash
+   # Import the JSON dump
+   cannon import json dump.json
+   ```
+
+3. **Generate deployment script**
+   ```bash
+   # Generate a Foundry-compatible script
+   cannon write-script --format foundry
+   ```
+
+### Key Differences
+- Cannon provides structured deployment management
+- Cannon handles transaction ordering and dependencies
+- Cannon supports multiple output formats (Foundry, Ethers, Cast)
+
+## Best Practices
+
+### General Migration Tips
+
+1. **Start with a simple contract**
+   - Begin with a single contract deployment
+   - Gradually add complexity
+
+2. **Verify your deployments**
+   - Always verify contracts after migration
+   - Use Cannon's built-in verification tools
+
+3. **Test thoroughly**
+   - Deploy to testnets first
+   - Verify all functionality works as expected
+
+4. **Document your changes**
+   - Keep track of any modifications
+   - Update your deployment documentation
+
+### Common Pitfalls
+
+- **Constructor arguments**: Ensure all constructor arguments are correctly converted
+- **Dependencies**: Check that contract dependencies are properly declared
+- **Networks**: Verify network configurations match your requirements
+- **Verification**: Don't forget to verify contracts on block explorers
+
+## Next Steps
+
+After migration, explore these Cannon features:
+
+- [Multi-chain deployments](/guides/multi-chain)
+- [Package management](/guides/packages)
+- [Advanced configuration](/guides/advanced)
+- [CI/CD integration](/guides/ci-cd)
