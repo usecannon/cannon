@@ -5,7 +5,7 @@ import { DumpRenderer } from './types';
 import { writeFile } from 'node:fs/promises';
 import * as logger from '../util/console';
 
-export const WRITE_SCRIPT_FORMATS = ['json', 'ethers', 'foundry', 'cast'] as const;
+export const WRITE_SCRIPT_FORMATS = ['json', 'ethers', 'foundry', 'foundry-portable', 'cast'] as const;
 
 export type WriteScriptFormat = (typeof WRITE_SCRIPT_FORMATS)[number];
 
