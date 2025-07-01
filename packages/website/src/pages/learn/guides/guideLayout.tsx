@@ -50,7 +50,7 @@ const advancedGuides = [
   { text: 'Deploy a Router', href: links.ROUTER },
   { text: 'Debugging Tips', href: links.DEBUG },
   { text: 'Cannon Compared with...', href: links.COMPARISON },
-  { text: 'Troubleshooting a Broken Build', href: links.BUILD_TROUBLESHOOTING },
+  { text: 'Troubleshooting Tips', href: links.BUILD_TROUBLESHOOTING },
   {
     text: 'Migrating to Cannon from Another Build Platform',
     href: links.MIGRATE,

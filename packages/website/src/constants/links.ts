@@ -13,7 +13,7 @@ export const links = {
   DEBUG: '/learn/guides/debug',
   ALTER: '/learn/guides/alter',
   COMPARISON: '/learn/guides/comparison',
-  BUILD_TROUBLESHOOTING: '/learn/guides/build-troubleshooting',
+  BUILD_TROUBLESHOOTING: '/learn/guides/troubleshooting',
   MIGRATE: '/learn/guides/migrate',
   CLI: '/learn/cli',
   CANNONFILE: '/learn/cannonfile',

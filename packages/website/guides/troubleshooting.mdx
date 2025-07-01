@@ -1,5 +1,5 @@
 ---
-title: Troubleshooting a Broken Build
+title: Troubleshooting
 description: 
 ---
 
@@ -54,20 +54,30 @@ Cannon uses Ethereum JSON-RPC to lookup data and complete transacitons. There ar
 
 #### Deployment RPC URL issue
 
+If you see an unsual, nonsense error like this, there is a good chance you are dealing with some sort 
+of an issue with your RPC provider:
+
+```
+Executing [invoke.setSomething]...
+⚠️ Skipping [invoke.setSomething] (BlockNotFoundError: Block at hash "0x532f8ec74bc0e43c050b4c9b51a11a6e6f2e81dcf199c45e96601200fa09af49" could not be found.
+```
+
 By default, Cannon uses the default public RPC provided by the [Viem chains library](https://viem.sh/docs/chains/introduction). These RPCs are generally designed for low importance, low volume consumption,
 and it is highly reccomended to specify your own RPC during a deployment.
 
 You can configure your own RPC on the CLI by using the `--rpc-url` argument. This is supported on any command that may need to connect to an RPC, such as `build`, `inspect`, `run`, or `alter`. For example:
 
 ```bash
-cannon build --rpc-url http://evm-mainnet
+cannon build --rpc-url http://evm-mainnet.com
 ```
 
 On the website, we also provide a settings page where you can set your own Ethereum RPC URLs for any requests from the website.
 
+Note that this does not affect registry RPC requests, which use their own RPC, as described below.
+
 #### Registry RPC Issue
 
-Cannon may look up package data information from the Cannon Registry deployed on mainnet or optimism network.
+Cannon looks up package data information from the Cannon Registry deployed on the ETH mainnet and optimism networks.
 By default, Cannon uses publicly-provided RPC that we operate on Alchemy and Infura which is gated to only allow requests for our own contracts. However, if these RPCs are malfunctioning,
 it may be necessary to override the default RPC providers.
 
@@ -96,7 +106,33 @@ Replace the `rpcUrl` values above with the address of your own RPC provider URLs
 
 ### JS Heap overflow
 
-As builds get larger, more memory may be required to complete a build. By defualt the amount of memory that Cannon can allocate in NodeJS is quite low. To increase it, use an environment variable. For example, to increase the amount of memory available to the build command:
+If you see an error like this, you may be running out of memory:
+
+```
+Executing [invoke.doSomething]...
+
+<--- Last few GCs --->
+
+[30530:0xff72ac4c0000]   387503 ms: Mark-Compact 4040.7 (4128.9) -> 4023.9 (4132.1) MB, pooled: 0 MB, 950.20 / 0.00 ms  (average mu = 0.146, current mu = 0.108) allocation failure; scavenge might not succeed
+[30530:0xff72ac4c0000]   388582 ms: Mark-Compact 4039.7 (4132.1) -> 4021.7 (4128.6) MB, pooled: 4 MB, 1049.12 / 0.00 ms  (average mu = 0.089, current mu = 0.028) allocation failure; scavenge might not succeed
+
+
+<--- JS stacktrace --->
+
+FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 0xe07548 node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/usr/bin/node]
+ 2: 0x11d041c v8::Utils::ReportOOMFailure(v8::internal::Isolate*, char const*, v8::OOMDetails const&) [/usr/bin/node]
+ 3: 0x11d05cc v8::internal::V8::FatalProcessOutOfMemory(v8::internal::Isolate*, char const*, v8::OOMDetails const&) [/usr/bin/node]
+ 4: 0x13f4e5c  [/usr/bin/node]
+ 5: 0x13f4e8c  [/usr/bin/node]
+ 6: 0x140c860  [/usr/bin/node]
+ 7: 0x140f44c  [/usr/bin/node]
+ 8: 0x1bcc924  [/usr/bin/node]
+```
+
+As builds get very large, more memory may be required to complete a build. By defualt the amount of memory that Cannon can allocate in NodeJS is quite low. To increase it, use an environment variable. For example, to increase the amount of memory available to the build command:
 
 ```bash
 NODE_OPTIONS="--max-old-space-size=8196" cannon build
