@@ -5,106 +5,42 @@ description: Tips for moving to cannon from another deployment framework
 
 # Migration Guide
 
-This guide helps you migrate from various deployment tools to Cannon. Each section covers a specific tool and provides step-by-step instructions.
-
-## Table of Contents
-
-- [From Hardhat Deploy](#from-hardhat-deploy)
-- [From Custom Foundry Scripts](#from-custom-foundry-scripts)
-- [From JSON File Dumps](#from-json-file-dumps)
-
-## From Hardhat Deploy
-
-### Overview
-[Hardhat Deploy](https://www.npmjs.com/package/hardhat-deploy) uses a deployment system with tagged deployments and deployment functions. Cannon can import from these deployments once the equivalent Cannonfile has been created.
+This guide helps you migrate from various deployment tools to Cannon. There are many different deployment tools
+which may have been used, but the general steps below can be applied to any of them.
 
 ### Migration Steps
 
-1. 
+1. Recreate the deployment of your project as a Cannonfile. This has to be done manually but is usually a relatively quick process as 
+cannon's deployment process is generally quite concise.
 
-2. 
+2. Build the Cannon package you just created in the directory of the Cannonfile: `cannon build`. This is the local network "template" of your project. At the end, the IPFS hash of your package will be printed. Remember to save this!
 
-3. 
+Then, for each network that your project is deployed to:
 
-### Key Differences
-- Cannon operates declarative deployments in TOML; Hardhat Deploy operates generally imperative deployments in JS/TS.
-- Cannon writes deployment artifacts to a internal storage that can be deployed to IPFS and Onchain, separate from your repository; Hardhat Deploy writes JSON files directly to your repository.
-- Cannon supports multi-chain deployments out of the box; Hardhat Deploy typically requires a new deployment configuration for every network.
+1. Create a package based on the local network template (use the IPFS hash saved from earlier):
+```
+cannon alter <my-package> --chain-id <chain id> set-url <local network pkg url>
+```
+2. For each step in your cannon package, import it using the alter import command. 
+* If its a deployed contract (deploy step), provide the contract creation transaction hash
+* If its a executed transaction (invoke step), provide the transaction hash
 
-## From Foundry Scripts
+3. Run the build for your network to check that everything is healthy. No steps should be executed:
+```
+cannon build --chain-id <chain id>
+```
+4. Publish your package to the Cannon registry
 
-### Overview
-[Foundry scripts](https://getfoundry.sh/guides/scripting-with-solidity/) are written in Solidity and can be used to execute deployments, among other things. Cannon import any deployed contracts or transactions previously executed once the declarative deployment configuration is created.
+```
+cannon publish <my-package> --chain-id <chain id>
+```
 
-### Migration Steps
+## Example projects that have been ported to Cannon
 
-1. **Extract deployment logic**
-   ```solidity
-   // Original Foundry script
-   contract DeployScript is Script {
-       function run() external {
-           vm.startBroadcast();
-           Greeter greeter = new Greeter("Hello, Foundry!");
-           vm.stopBroadcast();
-       }
-   }
-   ```
+Our team has converted some popular DeFi projects to Safe for compatibility and testing. These can serve as an 
+example of the ideas process described in this guide.
 
-2. **Create cannonfile.toml**
-   ```toml
-   [contract.greeter]
-   source = "./src/Greeter.sol"
-   
-   [contract.greeter.deploy]
-   args = ["Hello, Cannon!"]
-   ```
-
-3. **Convert constructor arguments**
-   - Extract constructor parameters from your script
-   - Convert them to TOML format in the cannonfile
-
-### Key Differences
-- Cannon operates declarative deployments in TOML; Hardhat Deploy operates generally imperative deployments in JS/TS.
-- Cannon handles dependency management automatically, so ordering operations is not needed.
-- Cannon writes deployment artifacts to a internal storage that can be deployed to IPFS and Onchain, separate from your repository; Hardhat Deploy writes JSON files directly to your repository.
-- Cannon supports multi-chain deployments out of the box; Hardhat Deploy typically requires a new deployment configuration for every network.
-
-## From Deployment Manifests/Other Deployment Tools
-
-### Overview
-Deployment manifests (JSON/YAML files) contain contract addresses and deployment metadata. Regardless of the format used, Cannon can import and use this data.
-
-### Migration Steps
-
-1. **Prepare your manifest file**
-   ```json
-   {
-     "contracts": {
-       "Greeter": {
-         "address": "0x1234...",
-         "constructorArgs": ["Hello, World!"],
-         "deployedAt": "2024-01-01T00:00:00Z"
-       }
-     }
-   }
-   ```
-
-2. **Import to Cannon**
-   ```bash
-   # Import the manifest
-   cannon import manifest deployment.json
-   ```
-
-3. **Verify and build**
-   ```bash
-   # Build the cannonfile
-   cannon build
-   
-   # Verify the deployment
-   cannon verify
-   ```
-
-### Key Differences
-- Cannon provides live deployment capabilities
-- Cannon handles contract verification automatically
-- Cannon supports complex deployment dependencies
+* [Safe](https://github.com/usecannon/safe-smart-account)
+* [Chainlink](https://github.com/usecannon/chainlink)
+* [Uniswap V3](https://github.com/usecannon/uniswap-v3)
+* [Multicall3](https://github.com/usecannon/multicall)
