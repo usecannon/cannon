@@ -8,7 +8,6 @@ import { CliSettings } from '../settings';
 import { getProvider, runRpc } from '../rpc';
 import { createDefaultReadRegistry } from '../registry';
 
-import { getChainById } from '../chains';
 import { getMainLoader } from '../loader';
 
 import { log } from '../util/console';
