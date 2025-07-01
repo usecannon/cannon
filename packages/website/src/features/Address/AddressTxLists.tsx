@@ -55,14 +55,14 @@ const AddressLists: React.FC<AddressListsProps> = ({
   }, [txs, receipts, names]);
 
   const columnHelper = createColumnHelper<TransactionRow>();
-  const [openToolTipIndex, setOpenTooltipIndex] = useState<number>();
+  const [openToolTipIndex, setOpenTooltipIndex] = useState<number | null>();
 
   const columns = [
     columnHelper.accessor('detail', {
       id: 'detail',
       cell: (info: any) => (
         <AddressAdditionalInfo
-          info={info}
+          rowIndex={info.row.index}
           openToolTipIndex={openToolTipIndex!}
           setOpenTooltipIndex={setOpenTooltipIndex}
           chain={chain}

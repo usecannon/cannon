@@ -36,7 +36,7 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
   chain,
 }) => {
   const [hoverId, setHoverId] = useState<string>('');
-  const [openToolTipIndex, setOpenTooltipIndex] = useState<number>();
+  const [openToolTipIndex, setOpenTooltipIndex] = useState<number | null>();
   const [isDate, setIsDate] = useState<boolean>(false);
   const [names, setNames] = useState<any>('');
 
@@ -59,7 +59,7 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
       id: 'detail',
       cell: (info: any) => (
         <AddressAdditionalInfo
-          info={info}
+          rowIndex={info.row.index}
           openToolTipIndex={openToolTipIndex!}
           setOpenTooltipIndex={setOpenTooltipIndex}
           chain={chain}

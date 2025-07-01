@@ -11,11 +11,6 @@ import AddressLists from '@/features/Address/AddressTxLists';
 import AddressTokenTransfer from '@/features/Address/AddressTokenTransfer';
 import AddressNftTransfer from '@/features/Address/AddressNftTransfer';
 import { transactions, afterTx } from './addressDemoData';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 
 export const erc20Hash =
   '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
@@ -45,7 +40,6 @@ const AddressPage = () => {
   const txs = transactions.result.txs;
   const receipts = transactions.result.receipts;
   const afterTxs = afterTx.result;
-  // console.log(receipts);
   const tokenReceipts = receipts.filter(
     (receipt) =>
       receipt.logs.length > 0 && receipt.logs[0].topics[0] === erc20Hash
@@ -101,14 +95,15 @@ const AddressPage = () => {
     <div className="w-full max-w-screen-2xl mx-auto px-4 my-4">
       <div className="flex flex-wrap items-baseline gap-2 sm:gap-4">
         <h1 className="text-2xl font-bold">Address</h1>
-        <span className="">{displayAddress}</span>
-        {/* <Tooltip>
-          <TooltipTrigger asChild> */}
-        <ClipboardButton text={displayAddress ?? ''} />
-        {/* </TooltipTrigger>
-          <TooltipContent>Copy Address</TooltipContent>
-        </Tooltip> */}
-        <QrcodeDialog text={displayAddress ?? ''} />
+        {txs.length > 0 ? (
+          <>
+            <span>{displayAddress}</span>
+            <ClipboardButton text={displayAddress ?? ''} />
+            <QrcodeDialog text={displayAddress ?? ''} />
+          </>
+        ) : (
+          <span>(Invalid Address)</span>
+        )}
       </div>
       <hr className="opacity-75 my-3" />
       <div className="flex sm:flex-row flex-col gap-3 w-full">

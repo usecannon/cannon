@@ -13,23 +13,22 @@ import { Chain } from '@/types/Chain';
 import { convertToFormatEther } from '@/lib/transaction';
 
 type AddressAdditionalInfoProps = {
-  info: any;
+  rowIndex: number;
   openToolTipIndex: number;
-  setOpenTooltipIndex: (openToolTipIndex: number) => void;
+  setOpenTooltipIndex: (openToolTipIndex: number | null) => void;
   chain: Chain;
   txHash: string;
   method: string;
 };
 
 const AddressAdditionalInfo: React.FC<AddressAdditionalInfoProps> = ({
-  info,
+  rowIndex,
   openToolTipIndex,
   setOpenTooltipIndex,
   chain,
   txHash,
   method,
 }) => {
-  const rowIndex = info.row.index;
   const chainId = chain?.id;
   const [tx, setTx] = useState<GetTransactionReturnType>();
   const [txReceipt, setTxreceipt] = useState<ExtendedTransactionReceipt>();
@@ -72,7 +71,7 @@ const AddressAdditionalInfo: React.FC<AddressAdditionalInfoProps> = ({
           <Button
             variant="ghost"
             className="px-2 py-1 text-xs text-gray-200 border border-gray-800 bg-gray-800 border-opacity-75 bg-opacity-0 rounded-lg"
-            onClick={() => setOpenTooltipIndex(info.row.index)}
+            onClick={() => setOpenTooltipIndex(rowIndex)}
           >
             <Eye className="h-3 w-3" />
           </Button>
