@@ -43,7 +43,7 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
     getMainLoader(cliSettings)
   );
 
-  const etherscanApi = cliSettings.etherscanApiUrl || 'https://api.etherscan.io/api';
+  const etherscanApi = cliSettings.etherscanApiUrl || 'https://api.etherscan.io/v2/api';
 
   if (!etherscanApi) {
     throw new Error(
@@ -100,7 +100,7 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
         continue;
       }
 
-      if (await isVerified(contractInfo.address, etherscanApi, cliSettings.etherscanApiKey, chainId)) {
+      if (await isVerified(contractInfo.address, chainId, etherscanApi, cliSettings.etherscanApiKey)) {
         log(`✅ ${c}: Contract source code already verified`);
         await sleep(500);
         continue;

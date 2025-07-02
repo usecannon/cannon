@@ -1,6 +1,6 @@
 {
   "name": "hardhat-cannon",
-  "version": "2.24.0",
+  "version": "2.24.1",
   "description": "Agnostic chain construction. Select the protocols and configuration you need to quickly and easily verify your project",
   "author": "Synthetix",
   "license": "MIT",
