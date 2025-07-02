@@ -1,0 +1,173 @@
+---
+title: Manipulate the Package State
+description: Modify existing Cannon packages outside of the regular build process.
+---
+
+## Manipulate the Package State
+
+The `alter` command allows you to modify existing Cannon packages without going through the regular build process. This is particularly useful for troubleshooting deployments, updating contract addresses, or managing deployment state. Generally speaking, the `alter` command should only be used when no other option exists in order to fix a broken package state.
+
+Learn how to use `alter` to:
+* [Migrate an existing deployment/project to Cannon](migrate)
+* [Troubleshoot and Repair a broken build or upgrade](build-troubleshooting)
+
+### Overview
+
+The `alter` command provides several subcommands to modify different aspects of your Cannon packages:
+
+- **`import`** - Import existing artifacts into a deployment step. Useful if a deployment was already executed outside of Cannon and needs to be brought in.
+- **`set-contract-address`** - Change a contract's address in the deployment. Useful if a contract is redeployed unexpectedly and the address should be reset to another target.
+- **`mark-complete`** - Mark a deployment step as complete. Useful if an extranous action is executing and this should be surpressed.
+- **`mark-incomplete`** - Mark a deployment step as incomplete. Useful if an action that should be executing is not being triggered.
+- **`set-url`** - Update the deployment URL reference
+- **`set-misc`** - Update the miscellaneous data URL. Same as `set-url` except
+- **`clean-unused`** - Remove unused deployment states. Useful if your state has grown large and needs to be shruk.
+- **`migrate-212`** - Migrate packages from version 2.12 format. Only needed if you are importing from an older cannon package format.
+
+### Basic Usage
+
+```bash
+cannon alter <packageRef> <command> [options...]
+```
+
+Where:
+- `<packageRef>` is the name, version, and preset of the package (e.g., `mypackage:1.0.0@main`)
+- `<command>` is one of the alteration commands listed above
+- `[options...]` are additional arguments specific to each command
+
+### Required Options
+
+- **`--chain-id <chainId>`** - Chain ID of the deployment to alter
+
+### Optional Options
+
+- **`--subpkg <subpackagePath>`** - Comma-separated step names leading to a subpackage when changes need to be made in a subpackage
+- **`--rpc-url [url]`** - RPC endpoint to connect to
+
+## Common Use Cases
+
+### Update Contract Address
+
+If you need to update a contract's address in your deployment (perhaps after a manual deployment or fix):
+
+```bash
+cannon alter mypackage:1.0.0@main set-contract-address MyContract 0x1234567890123456789012345678901234567890 --chain-id 1
+```
+
+This command updates the address of `MyContract` to the specified address in your deployment.
+
+### Mark Step as Complete
+
+When a deployment step fails but you've manually completed it, you can mark it as complete:
+
+```bash
+cannon alter mypackage:1.0.0@main mark-complete deploy.MyContract --chain-id 1
+```
+
+This sets the step's hash to `SKIP`, indicating it's been completed outside of the normal build process.
+
+### Mark Step as Incomplete
+
+To force a step to be re-executed on the next build:
+
+```bash
+cannon alter mypackage:1.0.0@main mark-incomplete deploy.MyContract --chain-id 1
+```
+
+This marks the step as `INCOMPLETE`, ensuring it will be processed during the next build.
+
+### Import Existing Artifacts
+
+If you have existing deployed contracts that you want to import into your Cannon package:
+
+```bash
+cannon alter mypackage:1.0.0@main import deploy.MyContract MyContract --chain-id 1
+```
+
+This imports the existing `MyContract` artifacts into the `deploy.MyContract` step.
+
+### Update Deployment URL
+
+To change the deployment URL reference:
+
+```bash
+cannon alter mypackage:1.0.0@main set-url ipfs://QmNewHashHere --chain-id 1
+```
+
+This updates the deployment to reference a new IPFS URL.
+
+### Clean Unused States
+
+Remove deployment states that are no longer defined in your Cannonfile:
+
+```bash
+cannon alter mypackage:1.0.0@main clean-unused --chain-id 1
+```
+
+This removes any state entries that don't correspond to steps in your current Cannonfile.
+
+## Working with Subpackages
+
+When you need to alter a subpackage (a package imported by another package), use the `--subpkg` option:
+
+```bash
+cannon alter mypackage:1.0.0@main set-contract-address MyContract 0x1234567890123456789012345678901234567890 --chain-id 1 --subpkg clone.dependency
+```
+
+The subpackage path should be comma-separated step names leading to the subpackage you want to modify.
+
+## Advanced Usage
+
+### Set Miscellaneous Data URL
+
+Update the miscellaneous data URL for your deployment:
+
+```bash
+cannon alter mypackage:1.0.0@main set-misc ipfs://QmMiscDataHash --chain-id 1
+```
+
+### Migrate Legacy Packages
+
+If you have packages from version 2.1.2 that need to be migrated to the current format:
+
+```bash
+cannon alter mypackage:1.0.0@main migrate-212 --chain-id 1
+```
+
+This updates the package format from the legacy 2.1.2 structure to the current format.
+
+## Important Notes
+
+<Alert variant="warning">
+  <AlertTitle>Use with Caution</AlertTitle>
+  The `alter` command modifies your deployment state directly. Always ensure you understand the implications of your changes before proceeding.
+</Alert>
+
+- **Backup your data**: Consider backing up your deployment state before making alterations
+- **Test thoroughly**: After altering a package, test your deployment to ensure it still works as expected
+- **Chain consistency**: Always specify the correct `--chain-id` to ensure you're modifying the right deployment
+- **Subpackage paths**: When working with subpackages, ensure you specify the correct path using the `--subpkg` option
+
+## Troubleshooting
+
+### Package Not Found
+
+If you get a "deployment not found" error:
+
+1. Verify the package reference format is correct
+2. Check that the package exists on the specified chain
+3. Ensure you have the necessary permissions to access the package
+
+### Invalid Address
+
+When using `set-contract-address`, make sure the address is a valid Ethereum address (42 characters starting with `0x`).
+
+### Step Not Found
+
+If a step name is not found:
+
+1. Use `cannon inspect` to see all available steps in your package
+2. Verify the step name matches exactly (case-sensitive)
+3. Check if the step exists in a subpackage and use the `--subpkg` option accordingly
+
+The `alter` command is a powerful tool for managing your Cannon deployments. Use it wisely to maintain and troubleshoot your protocol deployments effectively. 

@@ -1,0 +1,146 @@
+---
+title: Troubleshooting
+description: General troubleshooting tips and common problems & solutions
+---
+
+# Troubleshooting
+
+This guide covers common issues you may encounter when building Cannon packages and how to resolve them.
+
+### Package Not Found
+
+Example Error:
+
+```bash
+> cannon run reye
+Error: deployment not found: reye:latest@main. please make sure it exists for the network 13370
+```
+
+Troubleshooting Tips:
+* Ensure that the package name is not misspelled
+* Ensure that the `--chain-id` argument is correct (or, if it's not provided, that the package is deployed to the local network)
+* Double check if the preset is correct/non-default
+* If you are seeing the issue intermittently, you may need to configure a [custom registry provider](#custom-registry)
+
+### IPFS Configuration Issues
+
+Cannon uses [IPFS](https://ipfs.tech/) in order to store deployment artifacts in a decentralized way, but this can sometimes lead to resolution errors.
+
+You may see an error like this, or the command that you are trying to run just times out entirely:
+
+```bash
+> cannon inspect ipfs://QmdDu3qvRVyBuCmWygy5g17tE4ZpcZ9AMWaUuUweTUJCNx
+Error: could not download cannon package data from "QmdDu3qvRVyBuCmWygy5g17tE4ZpcZ9AMWaUuUweTUJCNx": AxiosError: Request failed with status code 404
+```
+
+When this error is seen, it usually means that the printed artifact has not been pinned properly to the IPFS network. By default, Cannon attempts to pin 
+your artifact to the IPFS network whenever the `cannon publish` command is used. The Cannon Repo IPFS service will also automatically attempt to pin any published
+Cannon packages to ensure the health of the entire network. However, it is sometimes the case that packages manage to get released without their necessary artifacts.
+
+In cases like this, the only solution is to find the missing artifact and ensure it is pinned on IPFS.
+Often, you still have the affected IPFS artifact handy on the package deployer's machine. The deployer can force cannon to pin the artifact to your configured IPFS server using this command:
+
+```bash
+> cannon pin <ipfs://Qm...>
+```
+
+...where `<ipfs://Qm...>` is the IPFS hash to pin from the error above.
+
+If the problem persists, double check your [IPFS configuration](#configure-ipfs).
+
+### Ethereum RPC Connection Issue
+
+Cannon uses Ethereum JSON-RPC to lookup data and complete transacitons. There are a couple different ways that RPC errors can manifest in Cannon.
+
+#### Deployment RPC URL issue
+
+If you see an unsual, nonsense error like this, there is a good chance you are dealing with some sort 
+of an issue with your RPC provider:
+
+```
+Executing [invoke.setSomething]...
+⚠️ Skipping [invoke.setSomething] (BlockNotFoundError: Block at hash "0x532f8ec74bc0e43c050b4c9b51a11a6e6f2e81dcf199c45e96601200fa09af49" could not be found.
+```
+
+By default, Cannon uses the default public RPC provided by the [Viem chains library](https://viem.sh/docs/chains/introduction). These RPCs are generally designed for low importance, low volume consumption,
+and it is highly reccomended to specify your own RPC during a deployment.
+
+You can configure your own RPC on the CLI by using the `--rpc-url` argument. This is supported on any command that may need to connect to an RPC, such as `build`, `inspect`, `run`, or `alter`. For example:
+
+```bash
+cannon build --rpc-url http://evm-mainnet.com
+```
+
+On the website, we also provide a settings page where you can set your own Ethereum RPC URLs for any requests from the website.
+
+Note that this does not affect registry RPC requests, which use their own RPC, as described below.
+
+#### Registry RPC Issue
+
+Cannon looks up package data information from the Cannon Registry deployed on the ETH mainnet and optimism networks.
+By default, Cannon uses publicly-provided RPC that we operate on Alchemy and Infura which is gated to only allow requests for our own contracts. However, if these RPCs are malfunctioning,
+it may be necessary to override the default RPC providers.
+
+The default registry configuration can be modified by editing `~/.local/share/cannon/settings.json` file and setting the following field:
+
+```json
+{
+    "registries": [
+        {
+            "name": "OP Mainnet",
+            "chainId": 10,
+            "rpcUrl": ["<https://your optimism RPC URL>"],
+            "address": "0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba"
+        },
+        {
+            "name": "Ethereum Mainnet",
+            "chainId": 1,
+            "rpcUrl": ["<https://your ethereum RPC URL>"],
+            "address": "0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba"
+        }
+  ]
+}
+```
+
+Replace the `rpcUrl` values above with the address of your own RPC provider URLs.
+
+### JS Heap overflow
+
+If you see an error like this, you may be running out of memory:
+
+```
+Executing [invoke.doSomething]...
+
+<--- Last few GCs --->
+
+[30530:0xff72ac4c0000]   387503 ms: Mark-Compact 4040.7 (4128.9) -> 4023.9 (4132.1) MB, pooled: 0 MB, 950.20 / 0.00 ms  (average mu = 0.146, current mu = 0.108) allocation failure; scavenge might not succeed
+[30530:0xff72ac4c0000]   388582 ms: Mark-Compact 4039.7 (4132.1) -> 4021.7 (4128.6) MB, pooled: 4 MB, 1049.12 / 0.00 ms  (average mu = 0.089, current mu = 0.028) allocation failure; scavenge might not succeed
+
+
+<--- JS stacktrace --->
+
+FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 0xe07548 node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/usr/bin/node]
+ 2: 0x11d041c v8::Utils::ReportOOMFailure(v8::internal::Isolate*, char const*, v8::OOMDetails const&) [/usr/bin/node]
+ 3: 0x11d05cc v8::internal::V8::FatalProcessOutOfMemory(v8::internal::Isolate*, char const*, v8::OOMDetails const&) [/usr/bin/node]
+ 4: 0x13f4e5c  [/usr/bin/node]
+ 5: 0x13f4e8c  [/usr/bin/node]
+ 6: 0x140c860  [/usr/bin/node]
+ 7: 0x140f44c  [/usr/bin/node]
+ 8: 0x1bcc924  [/usr/bin/node]
+```
+
+As builds get very large, more memory may be required to complete a build. By defualt the amount of memory that Cannon can allocate in NodeJS is quite low. To increase it, use an environment variable. For example, to increase the amount of memory available to the build command:
+
+```bash
+NODE_OPTIONS="--max-old-space-size=8196" cannon build
+```
+
+### Contract Verification Issues
+
+Cannon allows for verification of contracts on Etherscan or other same format API using the `cannon verify` command. Cannon does everything it can to store all the data it needs to complete a veriication within the package data, so usually no additional action is required. However if issues are encountered, make sure:
+* the API key you have for `--api-key` is correct
+* you are not exceeding the rate limit
+* you have provided an API URL (if needed) with `--api-url`

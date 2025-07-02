@@ -1,4 +1,5 @@
 import { defineDocumentType, defineNestedType, makeSource } from 'contentlayer/source-files';
+import remarkGfm from 'remark-gfm';
 
 const Nav = defineNestedType(() => ({
   name: 'Nav',
@@ -33,4 +34,10 @@ export const Guides = defineDocumentType(() => ({
   },
 }));
 
-export default makeSource({ contentDirPath: 'guides', documentTypes: [Guides] });
+export default makeSource({
+  contentDirPath: 'guides',
+  documentTypes: [Guides],
+  mdx: {
+    remarkPlugins: [remarkGfm],
+  },
+});

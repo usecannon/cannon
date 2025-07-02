@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/learn/guides/:section",
+      "destination": "/learn/guides/[section].html"
+    },
+    {
       "source": "/packages/:name",
       "destination": "/packages/[name].html"
     },

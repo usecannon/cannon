@@ -1,0 +1,107 @@
+---
+title: Deploy a Router
+description: Build an upgradable protocol of any size with Synthetix's Router plug-in.
+---
+
+## Deploy a Router
+
+Build an upgradable protocol of any size with Synthetix's Router plug-in
+
+There is a limit to the size of smart contracts deployed on EVM blockchains. This can create complications during the development of protocols, where engineers may want an arbitrary amount of code to be executable at a single address.
+
+To avoid the need to manage complex inheritance and dependency structures, Cannon includes [Synthetix's Router plug-in](https://github.com/synthetixio/synthetix-router). This can be used by defining a `router` operation in Cannonfiles. This accepts an array of contracts and automatically generates a router contract which will delegate calls to them. For a more technical explanation of the router, review its [README](https://github.com/synthetixio/synthetix-router#readme).
+
+In this guide, we'll walk through [a simple example](https://github.com/usecannon/cannon/tree/main/examples/router-architecture) that uses the router and adds a transparent upgradable proxy.
+
+### Create a Router
+
+Start by installing/upgrading Cannon:
+
+```bash
+npm i -g @usecannon/cli
+```
+
+Then set up a new [Foundry](https://github.com/foundry-rs/foundry) project:
+
+```bash
+forge init
+```
+
+This project will include a `Counter.sol` contract by default. Duplicate this contract, rename it, and alter the function names in it. For this example, we'll assume you've renamed the file and contract to `AnotherCounter`.
+
+Create `cannonfile.toml` that deploys the two contracts and a router:
+
+```toml
+name = "sample-router-project"
+version = "0.1"
+description = "Sample Router Project"
+
+[contract.Counter]
+artifact = "Counter"
+
+[contract.AnotherCounter]
+artifact = "AnotherCounter"
+
+[router.Router]
+contracts = [
+  "Counter",
+  "AnotherCounter",
+]
+```
+
+Build the Cannonfile:
+
+```bash
+cannon build
+```
+
+Run it. (By default, Cannon runs packages from the [package manager](/search). Here, we add the `--registry-priority local` option to ensure we're using the version of this package that you just built, regardless of what others have published.)
+
+```bash
+cannon sample-router-project --registry-priority local
+```
+
+Press `i` to interact with the contracts in this project. You'll see that the router contract exposes the functions from both contracts.
+
+<Alert>
+  <AlertDescription>
+    **Interact with the router contract**
+    
+    When using this pattern, users should interact with the router and not the dependent contracts directly.
+  </AlertDescription>
+</Alert>
+
+### Add an Upgradability Proxy
+
+We can also deploy a [transparent upgradeable proxy](/packages/transparent-upgradable-proxy) pointing at the router, making this protocol upgradeable. In the Cannonfile, add a setting for the admin (which will be allowed to upgrade the proxy) and then provision the package which includes [the proxy contract](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/proxy/transparent/TransparentUpgradeableProxy.sol):
+
+```toml
+[setting.admin]
+defaultValue = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+
+[provision.proxy]
+source = "transparent-upgradable-proxy:4.9.3"
+options.admin = "<%= settings.admin %>"
+options.implementation = "<%= contracts.Router.address %>"
+options.abi = "<%= JSON.stringify(contracts.Router.abi) %>"
+```
+
+If you alter one of your contracts, when building, Cannon will automatically detect this, generate a new router, and upgrade the proxy to point at it. (Old versions of the contracts aren't included in the router, saving gas.) When building an upgrade, increase the version in your Cannonfile and use the `--upgrade-from` option to reference the package from your previous version.
+
+<Alert>
+  <AlertDescription>
+    **Interact with the proxy contract**
+    
+    When using this pattern, users should always interact with the proxy contract rather than the router contract.
+  </AlertDescription>
+</Alert>
+
+### Avoid Storage Collisions
+
+Changing the storage layout in smart contracts can irreversibly corrupt protocol data. Thoroughly understand how to avoid [storage collisions](https://docs.openzeppelin.com/upgrades-plugins/1.x/proxies) when upgrading. If you're using Hardhat, check out the [hardhat-storage](https://github.com/Synthetixio/synthetix-v3/tree/main/utils/hardhat-storage) plug-in, which validates storage changes.
+
+You can use libraries for executing storage reads/writes to create an MVC-style architecture. See the [Synthetix V3 documentation](https://docs.synthetix.io/v/v3/for-developers/technical-architecture) for inspiration.
+
+---
+
+If the protocol is owned by a [Safe](https://safe.global/), you can use the [deployer](/deploy) to run upgrades. ([Safe Modules](https://docs.safe.global/safe-smart-account/modules) and [Safe Guards](https://docs.safe.global/safe-smart-account/guards) can be developed for additional on-chain, governance-related logic.) When your protocol no longer needs to be upgraded, it can be made immutable with a call to `renounceOwnership` on the proxy. 

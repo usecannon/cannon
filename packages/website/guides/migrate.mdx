@@ -1,0 +1,46 @@
+---
+title: Migration Guide
+description: Tips for moving to cannon from another deployment framework
+---
+
+# Migration Guide
+
+This guide helps you migrate from various deployment tools to Cannon. There are many different deployment tools
+which may have been used, but the general steps below can be applied to any of them.
+
+### Migration Steps
+
+1. Recreate the deployment of your project as a Cannonfile. This has to be done manually but is usually a relatively quick process as 
+cannon's deployment process is generally quite concise.
+
+2. Build the Cannon package you just created in the directory of the Cannonfile: `cannon build`. This is the local network "template" of your project. At the end, the IPFS hash of your package will be printed. Remember to save this!
+
+Then, for each network that your project is deployed to:
+
+1. Create a package based on the local network template (use the IPFS hash saved from earlier):
+```
+cannon alter <my-package> --chain-id <chain id> set-url <local network pkg url>
+```
+2. For each step in your cannon package, import it using the alter import command. 
+* If its a deployed contract (deploy step), provide the contract creation transaction hash
+* If its a executed transaction (invoke step), provide the transaction hash
+
+3. Run the build for your network to check that everything is healthy. No steps should be executed:
+```
+cannon build --chain-id <chain id>
+```
+4. Publish your package to the Cannon registry
+
+```
+cannon publish <my-package> --chain-id <chain id>
+```
+
+## Example projects that have been ported to Cannon
+
+Our team has converted some popular DeFi projects to Safe for compatibility and testing. These can serve as an 
+example of the ideas process described in this guide.
+
+* [Safe](https://github.com/usecannon/safe-smart-account)
+* [Chainlink](https://github.com/usecannon/chainlink)
+* [Uniswap V3](https://github.com/usecannon/uniswap-v3)
+* [Multicall3](https://github.com/usecannon/multicall)
