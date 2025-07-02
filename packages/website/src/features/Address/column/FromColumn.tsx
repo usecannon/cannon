@@ -24,35 +24,47 @@ const FromColumn: React.FC<FromColumnProps> = ({
   chainId,
 }) => {
   const fromAddress = info.getValue();
+  const isSelfAddress = fromAddress.toLowerCase() === address.toLowerCase();
+  const displayAddress = `${fromAddress.substring(0, 10)}...${fromAddress.slice(
+    -9
+  )}`;
+
   return (
     <div className="flex items-center space-x-3">
-      <Link href={`/tx/${chainId}/${fromAddress}`}>
-        <Tooltip>
-          <TooltipTrigger>
+      <Tooltip>
+        <TooltipTrigger>
+          {isSelfAddress ? (
             <HoverHighlight
               id={fromAddress}
               hoverId={hoverId!}
               setHoverId={setHoverId}
             >
-              <span className="font-mono">{`${fromAddress.substring(
-                0,
-                10
-              )}...${fromAddress.slice(-9)}`}</span>
+              <span className="font-mono">{displayAddress}</span>
             </HoverHighlight>
-          </TooltipTrigger>
-          <TooltipContent>{fromAddress}</TooltipContent>
-        </Tooltip>
-      </Link>
+          ) : (
+            <Link href={`/address/${chainId}/${fromAddress}`}>
+              <HoverHighlight
+                id={fromAddress}
+                hoverId={hoverId!}
+                setHoverId={setHoverId}
+              >
+                <span className="font-mono">{displayAddress}</span>
+              </HoverHighlight>
+            </Link>
+          )}
+        </TooltipTrigger>
+        <TooltipContent>{fromAddress}</TooltipContent>
+      </Tooltip>
       <ClipboardButton text={fromAddress} />
-      {fromAddress.toLowerCase() === address.toLowerCase() ? (
-        <span className="inline-flex justify-center items-center w-10 text-center font-bold px-2 py-1 text-xs text-yellow-700 border border-yellow-700 border-opacity-75 bg-opacity-10 rounded-lg">
-          OUT
-        </span>
-      ) : (
-        <span className="inline-flex justify-center items-center w-10 text-center font-bold px-2 py-1 text-xs text-green-700 border border-green-700 border-opacity-75 bg-opacity-10 rounded-lg">
-          IN
-        </span>
-      )}
+      <span
+        className={`inline-flex justify-center items-center w-10 text-center font-bold px-2 py-1 text-xs rounded-lg border bg-opacity-10 ${
+          isSelfAddress
+            ? 'text-yellow-700 border-yellow-700'
+            : 'text-green-700 border-green-700'
+        }`}
+      >
+        {isSelfAddress ? 'OUT' : 'IN'}
+      </span>
     </div>
   );
 };

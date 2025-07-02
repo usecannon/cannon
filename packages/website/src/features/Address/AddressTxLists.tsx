@@ -59,7 +59,6 @@ const AddressLists: React.FC<AddressListsProps> = ({
 
   const columns = [
     columnHelper.accessor('detail', {
-      id: 'detail',
       cell: (info: any) => (
         <AddressAdditionalInfo
           rowIndex={info.row.index}
@@ -73,27 +72,22 @@ const AddressLists: React.FC<AddressListsProps> = ({
       header: () => <CircleHelp className="h-4 w-4" />,
     }),
     columnHelper.accessor('hash', {
-      id: 'hash',
       cell: (info: any) => <HashColumn info={info} chainId={chain?.id!} />,
       header: 'Transaction Hash',
     }),
     columnHelper.accessor('method', {
-      id: 'method',
       cell: (info: any) => <MethodColumn info={info} />,
       header: () => <MethodHeader />,
     }),
     columnHelper.accessor('blockNumber', {
-      id: 'blockNumber',
       cell: (info: any) => <BlockColumn info={info} />,
       header: 'Block',
     }),
     columnHelper.accessor('age', {
-      id: 'age',
       cell: (info: any) => <AgeColumn info={info} isDate={isDate} />,
       header: () => <AgeHeader isDate={isDate} setIsDate={setIsDate} />,
     }),
     columnHelper.accessor('from', {
-      id: 'from',
       cell: (info: any) => (
         <FromColumn
           info={info}
@@ -106,7 +100,6 @@ const AddressLists: React.FC<AddressListsProps> = ({
       header: 'From',
     }),
     columnHelper.accessor('to', {
-      id: 'to',
       cell: (info: any) => (
         <ToColumn
           info={info}
@@ -119,27 +112,23 @@ const AddressLists: React.FC<AddressListsProps> = ({
       header: 'To',
     }),
     columnHelper.accessor('amount', {
-      id: 'amount',
       cell: (info: any) => (
         <AmountColumn info={info} symbol={chain?.nativeCurrency.symbol!} />
       ),
       header: 'Amount',
     }),
     columnHelper.accessor('txnFee', {
-      id: 'txnFee',
       cell: (info: any) => <TxFeeColumn info={info} isGasPrice={isGasPrice} />,
       header: () => (
         <TxFeeHeader isGasPrice={isGasPrice} setIsGasPrice={setIsGasPrice} />
       ),
     }),
     columnHelper.accessor('gasPrice', {
-      id: 'gasPrice',
       enableHiding: true,
       cell: () => null,
       header: () => null,
     }),
     columnHelper.accessor('contractAddress', {
-      id: 'contractAddress',
       enableHiding: true,
       cell: () => null,
       header: () => null,

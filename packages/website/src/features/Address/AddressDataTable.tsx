@@ -27,7 +27,7 @@ const AddressDataTable: React.FC<AddressDataTableProps> = ({ table }) => {
                   <TableHead
                     key={header.id}
                     className={
-                      header.column.columnDef.id === 'detail'
+                      header.column.columnDef.accessorKey === 'detail'
                         ? 'flex items-center justify-center'
                         : meta?.isNumeric
                         ? 'text-right'

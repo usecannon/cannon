@@ -25,6 +25,9 @@ const ToColumn: React.FC<ToColumnProps> = ({
 }) => {
   const toAddress = info.getValue();
   const contractAddress = info.row.getValue('contractAddress');
+  const displayAddress = `${toAddress.substring(0, 10)}...${toAddress.slice(
+    -9
+  )}`;
 
   return (
     <div className="flex items-center space-x-2">
@@ -33,7 +36,7 @@ const ToColumn: React.FC<ToColumnProps> = ({
           <Tooltip>
             <TooltipTrigger>
               <Link
-                href={`/tx/${chainId}/${contractAddress}`}
+                href={`/address/${chainId}/${contractAddress}`}
                 className="flex items-center font-mono border-b border-dotted border-muted-foreground hover:border-solid"
               >
                 <span className="font-mono">Contract Creation</span>
@@ -58,22 +61,16 @@ const ToColumn: React.FC<ToColumnProps> = ({
                   hoverId={hoverId}
                   setHoverId={setHoverId}
                 >
-                  <span className="font-mono">{`${toAddress.substring(
-                    0,
-                    10
-                  )}...${toAddress.slice(-9)}`}</span>
+                  <span className="font-mono">{displayAddress}</span>
                 </HoverHighlight>
               ) : (
-                <Link href={`/tx/${chainId}/${toAddress}`}>
+                <Link href={`/address/${chainId}/${toAddress}`}>
                   <HoverHighlight
                     id={toAddress}
                     hoverId={hoverId}
                     setHoverId={setHoverId}
                   >
-                    <span className="font-mono">{`${toAddress.substring(
-                      0,
-                      10
-                    )}...${toAddress.slice(-9)}`}</span>
+                    <span className="font-mono">{displayAddress}</span>
                   </HoverHighlight>
                 </Link>
               )}
