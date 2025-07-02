@@ -113,7 +113,6 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
 
         const reqData: { [k: string]: string } = {
           apikey: cliSettings.etherscanApiKey,
-          chainid: chainId.toString(),
           module: 'contract',
           action: 'verifysourcecode',
           contractaddress: contractInfo.address,
@@ -134,7 +133,7 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
 
         debug('verification request', reqData);
 
-        const res = await axios.post(etherscanApi, reqData, {
+        const res = await axios.post(etherscanApi + '?chainid=' + chainId, reqData, {
           headers: { 'content-type': 'application/x-www-form-urlencoded' },
         });
 
@@ -170,7 +169,7 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
   for (const c in guids) {
     for (;;) {
       const res = await axios.post(
-        etherscanApi,
+        etherscanApi + '?chainid=' + chainId,
         {
           apiKey: cliSettings.etherscanApiKey,
           module: 'contract',

@@ -1,3 +1,7 @@
+import Debug from 'debug';
+
+const debug = Debug('cannon:cli:verify');
+
 interface EtherscanContract {
   SourceCode: string;
   ABI: string;
@@ -48,6 +52,8 @@ export async function isVerified(address: string, chainId: number, apiUrl: strin
 
   const url = new URL(apiUrl);
   url.search = parameters.toString();
+
+  debug('isVerified params ' + url.search);
 
   try {
     const response = await fetch(url);
