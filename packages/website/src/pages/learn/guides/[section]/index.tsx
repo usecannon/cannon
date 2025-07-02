@@ -5,8 +5,8 @@ import defaultSEO from '@/constants/defaultSeo';
 import { Mdx } from '@/components/mdx-components';
 import { DocsNav } from '@/components/docs';
 import Custom404 from '@/pages/404';
-import Layout from '../_layout';
-import NestedLayout from './guideLayout';
+import Layout from '../../_layout';
+import NestedLayout from '../guideLayout';
 import { useRouter } from 'next/router';
 
 export default function GuidePage() {
@@ -15,7 +15,10 @@ export default function GuidePage() {
 
   useEffect(() => {
     const guide = allGuides.find((guide: Guides) => {
-      return guide.url.split('/').pop() === asPath.split('/').pop();
+      return (
+        guide.url.split('/').pop()?.split('#').shift() ===
+        asPath.split('/').pop()
+      );
     });
 
     if (!guide) setGuide(null);
