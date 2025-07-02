@@ -77,7 +77,7 @@ We bump and publish manually using lerna's [version and publish](https://lerna.j
 
 2. Run `pnpm run version` and select one of the desired patch, minor or major versions.
 3. Create PR for the release branch
-4. From the branch, run `pnpm run publish` and follow the prompts.
+4. From the branch, in the root of the repository, run `pnpm run build && pnpm run publish` and follow the prompts.
 5. Create a new GitHub release here: https://github.com/usecannon/cannon/releases/new
 6. Merge release PR
 
@@ -89,7 +89,7 @@ We bump and publish manually using lerna's [version and publish](https://lerna.j
 
 1. Run `pnpm run version` to bump package versions and select one of the desired alpha versions.
 2. Create PR for the branch and merge when required tests are passing
-3. From the `main` branch, run `pnpm publish-alpha` and follow the prompts.
+3. From the `main` branch, run `pnpm run build && pnpm publish-alpha` and follow the prompts.
 
 #### Changesets
 
