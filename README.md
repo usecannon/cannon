@@ -2,7 +2,7 @@
 
 Cannon is a DevOps tool for EVM chains. It's a tool for testing, deploying, and publishing of smart contracts.
 
-This is the monorepo for Cannon. If you're just interested in using the project, [visit the website](https://usecannon.com).
+This is the monorepo for Cannon. If you're just interested in using the project, [visit the website](https://usecannon.com/learn).
 
 **⚠️ Cannon is under active development. While the interface and functionality are generally stable, use the tool with caution when conducting high-risk deployments.**
 

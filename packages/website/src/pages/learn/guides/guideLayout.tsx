@@ -12,45 +12,46 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
 import { SidebarLayout } from '@/components/layouts/SidebarLayout';
 
-const useCannon = [
+const getStartedGuides = [
   {
-    text: 'Get Started',
+    text: 'Set up Dev Environment',
     href: `${links.GETSTARTED}/setup`,
-    nav: [
-      {
-        text: 'Set up Dev Environment',
-        href: `${links.GETSTARTED}/setup`,
-      },
-      {
-        text: 'Create a Project',
-        href: `${links.GETSTARTED}/create-a-project`,
-      },
-      {
-        text: 'Build with Cannon',
-        href: `${links.GETSTARTED}/build-with-cannon`,
-      },
-      {
-        text: 'Test with Cannon',
-        href: `${links.GETSTARTED}/test-with-cannon`,
-      },
-      {
-        text: 'Deploy Onchain',
-        href: `${links.GETSTARTED}/deploy-onchain`,
-      },
-      {
-        text: 'Publish Your Package',
-        href: `${links.GETSTARTED}/publish`,
-      },
-    ],
   },
+  {
+    text: 'Create a Project',
+    href: `${links.GETSTARTED}/create-a-project`,
+  },
+  {
+    text: 'Build with Cannon',
+    href: `${links.GETSTARTED}/build-with-cannon`,
+  },
+  {
+    text: 'Test with Cannon',
+    href: `${links.GETSTARTED}/test-with-cannon`,
+  },
+  {
+    text: 'Deploy Onchain',
+    href: `${links.GETSTARTED}/deploy-onchain`,
+  },
+  {
+    text: 'Publish Your Package',
+    href: `${links.GETSTARTED}/publish`,
+  },
+];
+
+const advancedGuides = [
+  { text: 'Manipulate the Package State', href: links.ALTER },
   { text: 'Deploy a Router', href: links.ROUTER },
   { text: 'Debugging Tips', href: links.DEBUG },
+  { text: 'Cannon Compared with...', href: links.COMPARISON },
+  { text: 'Troubleshooting Tips', href: links.BUILD_TROUBLESHOOTING },
+  {
+    text: 'Migrating to Cannon from Another Build Platform',
+    href: links.MIGRATE,
+  },
 ];
 
 export default function GuideLayout({ children }: { children: ReactNode }) {
@@ -59,40 +60,20 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
   const sidebarContent = (
     <div className="md:pt-6">
       <SidebarGroup>
-        <SidebarGroupLabel>Use Cannon</SidebarGroupLabel>
+        <SidebarGroupLabel>Getting Started</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            {useCannon.map((item) => (
+            {getStartedGuides.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
                   className={cn(
                     'w-full',
-                    pathname === item.href &&
-                      !item.nav &&
-                      'bg-muted font-medium'
+                    pathname === item.href && 'bg-muted font-medium'
                   )}
                 >
                   <Link href={item.href}>{item.text}</Link>
                 </SidebarMenuButton>
-                {item.nav && (
-                  <SidebarMenuSub className="w-full">
-                    {item.nav?.map((navItem) => (
-                      <SidebarMenuSubItem key={navItem.href}>
-                        <SidebarMenuSubButton
-                          asChild
-                          isActive={pathname === navItem.href}
-                          className={cn(
-                            'w-full',
-                            pathname === navItem.href && 'bg-muted font-medium'
-                          )}
-                        >
-                          <Link href={navItem.href}>{navItem.text}</Link>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
-                  </SidebarMenuSub>
-                )}
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
@@ -100,14 +81,22 @@ export default function GuideLayout({ children }: { children: ReactNode }) {
       </SidebarGroup>
 
       <SidebarGroup>
-        <SidebarGroupLabel>Build DeFi</SidebarGroupLabel>
+        <SidebarGroupLabel>Advanced Topics</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild className="pointer-events-none">
-                <span className="italic text-gray-400">Coming Soon</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            {advancedGuides.map((item) => (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                  asChild
+                  className={cn(
+                    'w-full',
+                    pathname === item.href && 'bg-muted font-medium'
+                  )}
+                >
+                  <Link href={item.href}>{item.text}</Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
