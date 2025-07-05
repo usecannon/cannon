@@ -257,18 +257,25 @@ export async function alter(
       // some steps may require access to misc artifacts
       await runtime.restoreMisc(deployInfo.miscUrl);
       // compute the state hash for the step
-      for (const target of targets) {
-        if (!deployInfo.state[target]) {
-          warn(
-            `WARN: action ${target} does not exist in the cannon state for the given package. Setting dummy empty state.`
-          );
-          deployInfo.state[target] = {
-            artifacts: { contracts: {}, txns: {}, extras: {} },
-            hash: 'SKIP',
-            version: BUILD_VERSION,
-          };
-        } else {
-          deployInfo.state[target].hash = 'SKIP';
+      for (const rawTarget of targets) {
+        let resolvedTargets: string[] = [rawTarget];
+        if (rawTarget.includes('*')) {
+          resolvedTargets = Object.keys(deployInfo.state).filter((k) => k.match(new RegExp(rawTarget.replace(/\*/g, '.*'))));
+        }
+
+        for (const target of resolvedTargets) {
+          if (!deployInfo.state[target]) {
+            warn(
+              `WARN: action ${target} does not exist in the cannon state for the given package. Setting dummy empty state.`
+            );
+            deployInfo.state[target] = {
+              artifacts: { contracts: {}, txns: {}, extras: {} },
+              hash: 'SKIP',
+              version: BUILD_VERSION,
+            };
+          } else {
+            deployInfo.state[target].hash = 'SKIP';
+          }
         }
       }
       // clear txn hash if we have it
