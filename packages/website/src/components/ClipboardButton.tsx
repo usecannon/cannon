@@ -22,17 +22,24 @@ export const ClipboardButton: FC<ClibpboardButtonProps> = ({
     setTimeout(() => setHasCopied(false), 2000);
   }
 
+  function adjustCopyIconClass(size: 'sm' | 'default' | 'lg') {
+    switch (size) {
+      case 'sm':
+        return 'h-6 w-6 [&_svg]:h-3.5 [&_svg]:w-3.5';
+      case 'lg':
+        return 'h-8 w-8 [&_svg]:h-4.5 [&_svg]:w-4.5';
+      default:
+        return 'h-7 w-7 [&_svg]:h-4 [&_svg]:w-4';
+    }
+  }
+
   return (
     <Button
       size="icon"
       variant="ghost"
-      className={`flex-shrink-0 ${
-        size === 'sm'
-          ? 'h-6 w-6 [&_svg]:h-3.5 [&_svg]:w-3.5'
-          : size === 'lg'
-          ? 'h-8 w-8 [&_svg]:h-4.5 [&_svg]:w-4.5'
-          : 'h-7 w-7 [&_svg]:h-4 [&_svg]:w-4'
-      } bg-background border border-border ${className}`}
+      className={`flex-shrink-0 ${adjustCopyIconClass(
+        size
+      )} bg-background border border-border ${className}`}
       onClick={copyToClipboard}
       data-testid="clipboard-copy-button"
     >

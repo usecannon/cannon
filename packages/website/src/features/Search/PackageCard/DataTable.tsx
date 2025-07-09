@@ -69,7 +69,7 @@ const getCellContent = ({ cell }: { cell: any }) => {
     case 'deployUrl': {
       return (
         <div className="flex items-center">
-          <code className="text-xs translate-y-[1px]">
+          <code className="text-xs">
             {formatIPFS(cell.row.original.deployUrl, 10)}
           </code>
           <ClipboardButton
