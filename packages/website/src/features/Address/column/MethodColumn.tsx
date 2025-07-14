@@ -15,7 +15,7 @@ const MethodColumn: React.FC<MethodColumnProps> = ({ info }) => {
       <TooltipTrigger>
         <DetailBadge
           value={method.length > 10 ? `${method.slice(0, 10)}...` : method}
-          className="min-w-28"
+          className="min-w-24"
         />
       </TooltipTrigger>
       <TooltipContent>{method}</TooltipContent>

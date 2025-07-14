@@ -23,9 +23,9 @@ const AddressMoreInfo: React.FC<AddressMoreInfoProps> = ({
   receipts,
   afterTxs,
 }) => {
-  const receipt = afterTxs.receipts[0];
+  const receipt = afterTxs.receipts[afterTxs.receipts.length - 1];
 
-  const oldestSentTx = afterTxs.receipts
+  const oldestSentTx = [...afterTxs.receipts]
     .reverse()
     .find((tx: any) => address.toLowerCase() === tx.from.toLowerCase());
 
@@ -40,31 +40,38 @@ const AddressMoreInfo: React.FC<AddressMoreInfoProps> = ({
           <CardTitle>More Info</CardTitle>
         </CardHeader>
         <CardContent>
-          <h5 className="text-gray-500">TRANASACTION SENT</h5>
-          <div className="flex items-center mb-4">
-            <span className="text-gray-400 text-sm mr-2">Latest:</span>
-            <Link
-              href={`/tx/${chainId}/${latestSentTx.transactionHash}`}
-              className="flex items-center border-b border-dotted border-muted-foreground text-sm font-mono"
-            >
-              <span>
-                {formatDistanceToNow(new Date(latestSentTx.timestamp * 1000)) +
-                  ' ago'}
-              </span>
-              <MoveUpRight className="h-4 w-4" />
-            </Link>
-            <span className="text-gray-400 ml-4 text-sm mr-2">First:</span>
-            <Link
-              href={`/tx/${chainId}/${oldestSentTx.transactionHash}`}
-              className="flex items-center border-b border-dotted border-muted-foreground text-sm font-mono"
-            >
-              <span>
-                {formatDistanceToNow(new Date(oldestSentTx.timestamp * 1000)) +
-                  ' ago'}
-              </span>
-              <MoveUpRight className="h-4 w-4" />
-            </Link>
-          </div>
+          {oldestSentTx && latestSentTx && (
+            <>
+              <h5 className="text-gray-500">TRANASACTION SENT</h5>
+              <div className="flex items-center mb-4">
+                <span className="text-gray-400 text-sm mr-2">Latest:</span>
+                <Link
+                  href={`/tx/${chainId}/${latestSentTx.transactionHash}`}
+                  className="flex items-center border-b border-dotted border-muted-foreground text-sm font-mono"
+                >
+                  <span>
+                    {formatDistanceToNow(
+                      new Date(latestSentTx.timestamp * 1000)
+                    ) + ' ago'}
+                  </span>
+                  <MoveUpRight className="h-4 w-4" />
+                </Link>
+                <span className="text-gray-400 ml-4 text-sm mr-2">First:</span>
+                <Link
+                  href={`/tx/${chainId}/${oldestSentTx.transactionHash}`}
+                  className="flex items-center border-b border-dotted border-muted-foreground text-sm font-mono"
+                >
+                  <span>
+                    {formatDistanceToNow(
+                      new Date(oldestSentTx.timestamp * 1000)
+                    ) + ' ago'}
+                  </span>
+                  <MoveUpRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </>
+          )}
+
           {receipt && receipt.to === null && receipt.contractAddress != null ? (
             <>
               <h5 className="text-gray-500">Contract Creator</h5>
