@@ -13,7 +13,7 @@ const DetailBadge: React.FC<DetailBadgeProps> = ({
 }) => {
   return (
     <span
-      className={`inline-block px-2 py-1 text-xs font-semibold border border-gray-800 bg-gray-800 rounded-md ${className}`}
+      className={`inline-block text-center justify-center itens-center px-2 py-1 text-xs font-semibold border border-gray-800 bg-gray-800 rounded-md ${className}`}
     >
       {label && <span className="text-gray-400 mr-1">{label}</span>}
       <span>{value}</span>

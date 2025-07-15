@@ -12,13 +12,13 @@ const MethodColumn: React.FC<MethodColumnProps> = ({ info }) => {
   const method = info.getValue();
   return (
     <Tooltip>
-      <TooltipTrigger>
+      <TooltipTrigger asChild>
         <DetailBadge
           value={method.length > 10 ? `${method.slice(0, 10)}...` : method}
           className="min-w-24"
         />
       </TooltipTrigger>
-      <TooltipContent>{method}</TooltipContent>
+      <TooltipContent className="cursol-default">{method}</TooltipContent>
     </Tooltip>
   );
 };

@@ -54,7 +54,7 @@ const ToColumn: React.FC<ToColumnProps> = ({
       ) : (
         <>
           <Tooltip>
-            <TooltipTrigger>
+            <TooltipTrigger asChild>
               {toAddress.toLowerCase() === address.toLowerCase() ? (
                 <HoverHighlight
                   id={toAddress}
@@ -75,7 +75,9 @@ const ToColumn: React.FC<ToColumnProps> = ({
                 </Link>
               )}
             </TooltipTrigger>
-            <TooltipContent>{toAddress}</TooltipContent>
+            <TooltipContent className="cursol-default">
+              {toAddress}
+            </TooltipContent>
           </Tooltip>
           <ClipboardButton text={toAddress} />
         </>

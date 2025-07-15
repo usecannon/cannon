@@ -32,7 +32,7 @@ const FromColumn: React.FC<FromColumnProps> = ({
   return (
     <div className="flex items-center space-x-3">
       <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger asChild>
           {isSelfAddress ? (
             <HoverHighlight
               id={fromAddress}
@@ -53,7 +53,9 @@ const FromColumn: React.FC<FromColumnProps> = ({
             </Link>
           )}
         </TooltipTrigger>
-        <TooltipContent>{fromAddress}</TooltipContent>
+        <TooltipContent className="cursol-default">
+          {fromAddress}
+        </TooltipContent>
       </Tooltip>
       <ClipboardButton text={fromAddress} />
       <span
