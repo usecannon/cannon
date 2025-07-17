@@ -67,7 +67,7 @@ const SimulateButton: React.FC<{
       disabled={isCallingMethod || hasParamsError}
       variant="outline"
       onClick={onSimulate}
-      className="rounded-r-none border-r-0 w-1/2 w-full"
+      className="rounded-r-none border-r-0 w-full"
       data-testid="simulate-txs-button"
     >
       <PlayIcon className="w-4 h-4" />
@@ -257,6 +257,32 @@ const MethodCallAlertError: React.FC<{
   );
 };
 
+const CustomProviderAlert: React.FC<{ onClose: () => void }> = ({
+  onClose,
+}) => {
+  return (
+    <Alert variant="warning" className="mt-4">
+      <div className="flex justify-between items-start">
+        <AlertDescription>
+          No custom provider specified. Please configure one on the{' '}
+          <Link
+            href="/settings"
+            className="border-b border-dotted border-gray-300"
+          >
+            settings page.
+          </Link>
+        </AlertDescription>
+        <button
+          onClick={onClose}
+          className="ml-2 hover:opacity-70 flex-shrink-0"
+        >
+          <XIcon className="h-4 w-4" />
+        </button>
+      </div>
+    </Alert>
+  );
+};
+
 const InputErrorAlert: React.FC<{
   error: string;
 }> = ({ error }) => (
@@ -306,9 +332,11 @@ export const AbiContractMethodInteraction: FC<{
     isSimulation,
     callMethodResult,
     simulationSender,
+    hasCustomProviderAlert,
     setSimulationSender,
     submit,
     clearResult,
+    cleanCustomProviderAlert,
   } = useContractInteraction({
     f,
     abi,
@@ -561,6 +589,10 @@ export const AbiContractMethodInteraction: FC<{
                 error={callMethodResult.error}
                 onClose={clearResult}
               />
+            )}
+
+            {hasCustomProviderAlert && (
+              <CustomProviderAlert onClose={() => cleanCustomProviderAlert()} />
             )}
 
             {stageToSafeError && <InputErrorAlert error={stageToSafeError} />}

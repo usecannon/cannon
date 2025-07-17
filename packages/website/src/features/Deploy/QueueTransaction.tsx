@@ -25,6 +25,7 @@ import { useEffect, useState } from 'react';
 import * as viem from 'viem';
 import { ContractMethodInputs } from '../Packages/AbiMethod/AbiContractMethodInputs';
 import 'react-diff-view/style/index.css';
+import Link from 'next/link';
 
 function decodeError(err: viem.Hex, abi: viem.Abi) {
   try {
@@ -95,6 +96,11 @@ export function QueueTransaction({
   > | null>(tx || null);
   const [paramsEncodeError, setParamsEncodeError] = useState<string | null>();
 
+  const [hasCustomProviderAlert, setHasCustomProviderAlert] =
+    useState<boolean>(false);
+  const customProviders = useStore((s) => s.settings.customProviders);
+  const hasNoCustomProviderSetting = customProviders.length === 0;
+
   useEffect(() => {
     if (!selectedContractName) {
       setSelectedFunction(null);
@@ -153,6 +159,7 @@ export function QueueTransaction({
     }
 
     setParamsEncodeError(error);
+    setHasCustomProviderAlert(hasNoCustomProviderSetting);
     setTxn(_txn);
     onChange(
       _txn,
@@ -429,6 +436,20 @@ export function QueueTransaction({
               <AlertTitle>Params Encode Error</AlertTitle>
               <AlertDescription className="text-sm">
                 {paramsEncodeError}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {paramsEncodeError && hasCustomProviderAlert && (
+            <Alert variant="warning" className="mt-2">
+              <AlertDescription>
+                No custom provider specified. Please configure one on the{' '}
+                <Link
+                  href="/settings"
+                  className="border-b border-dotted border-gray-300"
+                >
+                  settings page.
+                </Link>
               </AlertDescription>
             </Alert>
           )}

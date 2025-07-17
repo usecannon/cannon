@@ -5,6 +5,7 @@ import { Abi, AbiFunction } from 'abitype';
 import { Address, createPublicClient, zeroAddress } from 'viem';
 import { useState, useEffect } from 'react';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import { useStore } from '@/helpers/store';
 
 interface ContractCallResult {
   value: unknown;
@@ -73,6 +74,9 @@ export const useContractInteraction = ({
   const [isCallingMethod, setIsCallingMethod] = useState(false);
   const [isSimulation, setIsSimulation] = useState(false);
   const [callMethodResult, setCallMethodResult] = useState<ContractCallResult | null>(null);
+  const [hasCustomProviderAlert, setHasCustomProviderAlert] = useState<boolean>(false);
+  const customProviders = useStore((s) => s.settings.customProviders);
+  const hasNoCustomProviderSetting = customProviders.length === 0;
 
   // Simulation state
   const { simulationSender, setSimulationSender } = useSimulation();
@@ -98,8 +102,10 @@ export const useContractInteraction = ({
         value: null,
         error: extractError(result.error),
       });
+      setHasCustomProviderAlert(hasNoCustomProviderSetting);
     } else {
       setCallMethodResult({ value: result.value, error: null });
+      setHasCustomProviderAlert(false);
     }
   };
 
@@ -126,6 +132,7 @@ export const useContractInteraction = ({
           value: null,
           error: extractError(result.error),
         });
+        setHasCustomProviderAlert(hasNoCustomProviderSetting);
         return;
       }
 
@@ -136,11 +143,13 @@ export const useContractInteraction = ({
         .then((r) => {
           if (r.status === 'success') {
             setCallMethodResult({ value: result.value, error: null });
+            setHasCustomProviderAlert(false);
           } else {
             setCallMethodResult({
               value: null,
               error: 'Transaction failed',
             });
+            setHasCustomProviderAlert(hasNoCustomProviderSetting);
           }
         });
     } catch (error) {
@@ -148,6 +157,7 @@ export const useContractInteraction = ({
         value: null,
         error: extractError(error),
       });
+      setHasCustomProviderAlert(hasNoCustomProviderSetting);
     }
   };
 
@@ -156,6 +166,7 @@ export const useContractInteraction = ({
     setIsCallingMethod(true);
     setCallMethodResult(null);
     setIsSimulation(simulate);
+    setHasCustomProviderAlert(false);
 
     try {
       if (isFunctionReadOnly || simulate) {
@@ -172,13 +183,19 @@ export const useContractInteraction = ({
     setCallMethodResult(null);
   };
 
+  const cleanCustomProviderAlert = () => {
+    setHasCustomProviderAlert(false);
+  };
+
   return {
     isCallingMethod,
     isSimulation,
     callMethodResult,
     simulationSender,
+    hasCustomProviderAlert,
     setSimulationSender,
     submit,
     clearResult,
+    cleanCustomProviderAlert,
   };
 };
