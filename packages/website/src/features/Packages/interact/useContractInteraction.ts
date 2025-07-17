@@ -75,7 +75,7 @@ export const useContractInteraction = ({
   const [isSimulation, setIsSimulation] = useState(false);
   const [callMethodResult, setCallMethodResult] = useState<ContractCallResult | null>(null);
   const [hasCustomProviderAlert, setHasCustomProviderAlert] = useState<boolean>(false);
-  const customProviders = useStore((s) => s.settings.customProviders)
+  const customProviders = useStore((s) => s.settings.customProviders);
   const hasNoCustomProviderSetting = customProviders.length === 0;
 
   // Simulation state
@@ -166,7 +166,7 @@ export const useContractInteraction = ({
     setIsCallingMethod(true);
     setCallMethodResult(null);
     setIsSimulation(simulate);
-    setHasCustomProviderAlert(false)
+    setHasCustomProviderAlert(false);
 
     try {
       if (isFunctionReadOnly || simulate) {
@@ -185,7 +185,7 @@ export const useContractInteraction = ({
 
   const cleanCustomProviderAlert = () => {
     setHasCustomProviderAlert(false);
-  }
+  };
 
   return {
     isCallingMethod,
