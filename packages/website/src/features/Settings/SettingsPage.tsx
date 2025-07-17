@@ -27,6 +27,8 @@ import {
 import Link from 'next/link';
 import CustomSafeTxServices from '@/features/Settings/CustomSafeTxServices';
 import SettingResetButton from '@/features/Settings/SettingResetButton';
+import CopySettingButton from '@/features/Settings/CopySettingButton';
+import ImportSettingDialog from '@/features/Settings/ImportSettingDialog';
 
 export default function SettingsPage() {
   const settings = useStore((s) => s.settings);
@@ -203,6 +205,8 @@ export default function SettingsPage() {
           sectionName="all"
         />
       </div>
+      <CopySettingButton className="mr-3" />
+      <ImportSettingDialog />
     </div>
   );
 }
