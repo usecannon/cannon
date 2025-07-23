@@ -9,28 +9,30 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { OtterscanReceipt } from '@/types/AddressList';
 
 type AddressMoreInfoProps = {
   address: string;
   chainId: number | undefined;
-  receipts: any[];
-  afterTxs: any;
+  receipts: OtterscanReceipt[];
+  oldReceipts: OtterscanReceipt[];
 };
 
 const AddressMoreInfo: React.FC<AddressMoreInfoProps> = ({
   address,
   chainId,
   receipts,
-  afterTxs,
+  oldReceipts,
 }) => {
-  const receipt = afterTxs.receipts[afterTxs.receipts.length - 1];
-
-  const oldestSentTx = [...afterTxs.receipts]
+  const receipt = receipts[receipts.length - 1];
+  const oldestSentReceipt = [...oldReceipts]
     .reverse()
-    .find((tx: any) => address.toLowerCase() === tx.from.toLowerCase());
+    .find(
+      (receipt: any) => address.toLowerCase() === receipt.from.toLowerCase()
+    );
 
-  const latestSentTx = receipts.find(
-    (tx: any) => address.toLowerCase() === tx.from.toLowerCase()
+  const latestSentReceipt = receipts.find(
+    (receipt: any) => address.toLowerCase() === receipt.from.toLowerCase()
   );
 
   return (
@@ -40,37 +42,41 @@ const AddressMoreInfo: React.FC<AddressMoreInfoProps> = ({
           <CardTitle>More Info</CardTitle>
         </CardHeader>
         <CardContent>
-          {oldestSentTx && latestSentTx && (
-            <>
-              <h5 className="text-gray-500">TRANASACTION SENT</h5>
-              <div className="flex items-center mb-4">
+          <h5 className="text-gray-500">TRANASACTION SENT</h5>
+          <div className="flex items-center mb-4">
+            {latestSentReceipt && (
+              <>
                 <span className="text-gray-400 text-sm mr-2">Latest:</span>
                 <Link
-                  href={`/tx/${chainId}/${latestSentTx.transactionHash}`}
-                  className="flex items-center border-b border-dotted border-muted-foreground text-sm font-mono"
+                  href={`/tx/${chainId}/${latestSentReceipt.transactionHash}`}
+                  className="flex items-center"
                 >
-                  <span>
+                  <span className="inline-block whitespace-nowrap max-w-full overflow-hidden text-ellipsis border-b border-dotted border-muted-foreground text-sm font-mono">
                     {formatDistanceToNow(
-                      new Date(latestSentTx.timestamp * 1000)
+                      new Date(latestSentReceipt.timestamp * 1000)
                     ) + ' ago'}
                   </span>
-                  <MoveUpRight className="h-4 w-4" />
                 </Link>
+                <MoveUpRight className="h-4 w-4" />
+              </>
+            )}
+            {oldestSentReceipt && (
+              <>
                 <span className="text-gray-400 ml-4 text-sm mr-2">First:</span>
                 <Link
-                  href={`/tx/${chainId}/${oldestSentTx.transactionHash}`}
-                  className="flex items-center border-b border-dotted border-muted-foreground text-sm font-mono"
+                  href={`/tx/${chainId}/${oldestSentReceipt.transactionHash}`}
+                  className="flex items-center"
                 >
-                  <span>
+                  <span className="inline-block whitespace-nowrap max-w-full overflow-hidden text-ellipsis border-b border-dotted border-muted-foreground text-sm font-mono">
                     {formatDistanceToNow(
-                      new Date(oldestSentTx.timestamp * 1000)
+                      new Date(oldestSentReceipt.timestamp * 1000)
                     ) + ' ago'}
                   </span>
-                  <MoveUpRight className="h-4 w-4" />
                 </Link>
-              </div>
-            </>
-          )}
+                <MoveUpRight className="h-4 w-4" />
+              </>
+            )}
+          </div>
 
           {receipt && receipt.to === null && receipt.contractAddress != null ? (
             <>
@@ -80,9 +86,9 @@ const AddressMoreInfo: React.FC<AddressMoreInfoProps> = ({
                   <TooltipTrigger>
                     <Link
                       href={`/address/${chainId}/${receipt.contractAddress}`}
-                      className="mr-2 border-b border-dotted border-muted-foreground text-sm font-mono"
+                      className="mr-2"
                     >
-                      <span>{`${receipt.contractAddress.substring(
+                      <span className="border-b border-dotted border-muted-foreground text-sm font-mono">{`${receipt.contractAddress.substring(
                         0,
                         10
                       )}...${receipt.contractAddress.slice(-9)}`}</span>
@@ -99,9 +105,9 @@ const AddressMoreInfo: React.FC<AddressMoreInfoProps> = ({
                 <span className="mx-2 text-gray-400">|</span>
                 <Link
                   href={`/tx/${chainId}/${receipt.transactionHash}`}
-                  className="flex items-center border-b border-dotted border-muted-foreground text-sm"
+                  className="flex items-center"
                 >
-                  <span className="mr-1 font-mono">
+                  <span className="mr-1 font-mono inline-block whitespace-nowrap border-b border-dotted border-muted-foreground text-sm">
                     {formatDistanceToNow(new Date(receipt.timestamp * 1000)) +
                       ' ago'}
                   </span>
@@ -110,35 +116,39 @@ const AddressMoreInfo: React.FC<AddressMoreInfoProps> = ({
               </div>
             </>
           ) : (
-            <>
-              <h5 className="text-gray-500">FUNDED BY</h5>
-              <div className="flex items-center mb-4">
-                <Link href={`/address/${chainId}/${receipt.from}`}>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <span className="mr-2 border-b border-dotted border-muted-foreground text-sm font-mono">{`${receipt.from.substring(
-                        0,
-                        10
-                      )}...${receipt.from.slice(-9)}`}</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <span>{receipt.from}</span>
-                    </TooltipContent>
-                  </Tooltip>
-                </Link>
-                <ClipboardButton text={receipt.from} />
-                <span className="mx-2 text-gray-400">|</span>
-                <Link
-                  href={`/tx/${chainId}/${receipt.transactionHash}`}
-                  className="flex items-center border-b border-dotted border-muted-foreground"
-                >
-                  <span className="mr-1 order-b border-dotted border-muted-foreground text-sm font-mono">
-                    {formatDistanceToNow(new Date(receipt.timestamp * 1000)) +
-                      ' ago'}
-                  </span>
-                </Link>
-              </div>
-            </>
+            oldestSentReceipt &&
+            oldestSentReceipt.from && (
+              <>
+                <h5 className="text-gray-500">FUNDED BY</h5>
+                <div className="flex items-center mb-4">
+                  <Link href={`/address/${chainId}/${oldestSentReceipt.from}`}>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <span className="mr-2 border-b border-dotted border-muted-foreground text-sm font-mono">{`${oldestSentReceipt.from.substring(
+                          0,
+                          10
+                        )}...${oldestSentReceipt.from.slice(-9)}`}</span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <span>{oldestSentReceipt.from}</span>
+                      </TooltipContent>
+                    </Tooltip>
+                  </Link>
+                  <ClipboardButton text={oldestSentReceipt.from} />
+                  <span className="mx-2 text-gray-400">|</span>
+                  <Link
+                    href={`/tx/${chainId}/${oldestSentReceipt.transactionHash}`}
+                    className="flex items-center"
+                  >
+                    <span className="mr-1 inline-block whitespace-nowrap border-b border-dotted border-muted-foreground text-sm font-mono">
+                      {formatDistanceToNow(
+                        new Date(oldestSentReceipt.timestamp * 1000)
+                      ) + ' ago'}
+                    </span>
+                  </Link>
+                </div>
+              </>
+            )
           )}
         </CardContent>
       </Card>

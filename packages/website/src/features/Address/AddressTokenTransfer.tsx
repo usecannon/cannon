@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { CircleHelp } from 'lucide-react';
 import {
@@ -9,7 +9,7 @@ import {
 import AddressAdditionalInfo from '@/features/Address/AddressAdditionalDialog';
 import { Chain } from '@/types/Chain';
 import { TokenTransferRow } from '@/types/AddressList';
-import { getMethods, mapToTokenTransferList } from '@/lib/address';
+import { mapToTokenTransferList } from '@/lib/address';
 import AddressDataTable from '@/features/Address/AddressDataTable';
 import AmountColumn from '@/features/Address/column/AmountColumn';
 import FromColumn from '@/features/Address/column/FromColumn';
@@ -21,11 +21,13 @@ import AgeColumn from '@/features/Address/column/AgeColumn';
 import AgeHeader from '@/features/Address/column/AgeHeader';
 import BlockColumn from '@/features/Address/column/BlockColumn';
 import DownloadListButton from '@/features/Address/DownloadListButton';
+import { OtterscanTransaction, OtterscanReceipt } from '@/types/AddressList';
+import { erc20Hash } from '@/features/Address/AddressPage';
 
 type AddressTokenTransferProps = {
   address: string;
-  txs: any[];
-  receipts: any[];
+  txs: OtterscanTransaction[];
+  receipts: OtterscanReceipt[];
   chain: Chain;
 };
 
@@ -38,20 +40,27 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
   const [hoverId, setHoverId] = useState<string>('');
   const [openToolTipIndex, setOpenTooltipIndex] = useState<number | null>();
   const [isDate, setIsDate] = useState<boolean>(false);
-  const [names, setNames] = useState<any>('');
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const results = await getMethods(txs);
-      setNames(results);
-    };
-    fetchData();
-  }, []);
+  const tokenReceipts = receipts.flatMap((receipt) => {
+    return receipt.logs
+      .filter((log) => log.topics?.[0]?.toLowerCase() === erc20Hash)
+      .reverse()
+      .map((log) => {
+        return {
+          hash: receipt.transactionHash,
+          blockNumber: receipt.blockNumber,
+          timestamp: receipt.timestamp,
+          from: '0x' + log.topics[1].slice(26),
+          to: '0x' + log.topics[2].slice(26),
+          amount: log.data,
+          contractAddress: receipt.contractAddress,
+        };
+      });
+  });
 
   const data = React.useMemo(() => {
-    return mapToTokenTransferList(txs, receipts, names);
-  }, [txs, receipts, names]);
-
+    return mapToTokenTransferList(txs, tokenReceipts);
+  }, [txs, receipts]);
   const columnHelper = createColumnHelper<TokenTransferRow>();
 
   const columns = [
@@ -109,9 +118,7 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
       header: 'To',
     }),
     columnHelper.accessor('amount', {
-      cell: (info: any) => (
-        <AmountColumn info={info} symbol={chain?.nativeCurrency.symbol!} />
-      ),
+      cell: (info: any) => <AmountColumn info={info} />,
       header: 'Amount',
     }),
     columnHelper.accessor('contractAddress', {
@@ -143,7 +150,6 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
                 <DownloadListButton
                   txs={txs}
                   receipts={receipts}
-                  names={names}
                   chain={chain}
                   fileName={`export-token-transfer-${address}.csv`}
                 />

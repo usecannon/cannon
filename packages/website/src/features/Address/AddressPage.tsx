@@ -10,7 +10,8 @@ import AddressMultiChain from '@/features/Address/AddressMultiChain';
 import AddressLists from '@/features/Address/AddressTxLists';
 import AddressTokenTransfer from '@/features/Address/AddressTokenTransfer';
 import AddressNftTransfer from '@/features/Address/AddressNftTransfer';
-import { transactions, afterTx } from './addressDemoData';
+import { useAddressTransactions } from '@/hooks/useAddressTransactions';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const erc20Hash =
   '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
@@ -36,21 +37,34 @@ const AddressPage = () => {
   const { getChainById } = useCannonChains();
   const chain = getChainById(Number(chainId));
   const displayAddress = Array.isArray(address) ? address[0] : address;
-  // Get demo transaction data
-  const txs = transactions.result.txs;
-  const receipts = transactions.result.receipts;
-  const afterTxs = afterTx.result;
-  const tokenReceipts = receipts.filter(
-    (receipt) =>
-      receipt.logs.length > 0 && receipt.logs[0].topics[0] === erc20Hash
+  const { data, isLoading, isError } = useAddressTransactions(
+    displayAddress ?? ''
   );
+  if (isLoading) return null;
 
+  if (isError || !data) {
+    return (
+      <div className="w-full max-w-screen-xl mx-auto px-4 mt-3">
+        <Alert variant="destructive">
+          <AlertDescription>
+            Failed to load transaction data. Please check the transaction hash
+            or try again later.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  const { txs, receipts, oldReceipts } = data;
+
+  console.log(receipts);
   const nftReceipts = receipts.filter(
     (receipt) =>
       receipt.logs.length > 0 &&
       (receipt.logs[0].topics[0] === erc721Hash ||
         receipt.logs[0].topics[0] === erc1155Hash)
   );
+  console.log(nftReceipts);
 
   const visivleTabs = tabs.filter((tab) => {
     if (tab.id === 'nfttransfers' && !nftReceipts.length) return false;
@@ -65,7 +79,7 @@ const AddressPage = () => {
             <AddressTokenTransfer
               address={displayAddress!}
               txs={txs}
-              receipts={tokenReceipts}
+              receipts={receipts}
               chain={chain}
             />
           );
@@ -112,7 +126,7 @@ const AddressPage = () => {
           address={displayAddress!}
           chainId={chain?.id}
           receipts={receipts}
-          afterTxs={afterTxs}
+          oldReceipts={oldReceipts}
         />
         <AddressMultiChain />
       </div>

@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-table';
 import AddressAdditionalInfo from '@/features/Address/AddressAdditionalDialog';
 import { Chain } from '@/types/Chain';
-import { getMethods, mapToTransactionLlist } from '@/lib/address';
+import { mapToTransactionList } from '@/lib/address';
 import { TransactionRow } from '@/types/AddressList';
 import AmountColumn from '@/features/Address/column/AmountColumn';
 import FromColumn from '@/features/Address/column/FromColumn';
@@ -40,19 +40,10 @@ const AddressLists: React.FC<AddressListsProps> = ({
   const [isDate, setIsDate] = useState<boolean>(false);
   const [isGasPrice, setIsGasPrice] = useState<boolean>(false);
   const [hoverId, setHoverId] = useState<string>('');
-  const [names, setNames] = useState<any>('');
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const results = await getMethods(txs);
-      setNames(results);
-    };
-    fetchData();
-  }, []);
 
   const data = React.useMemo(() => {
-    return mapToTransactionLlist(txs, receipts, names);
-  }, [txs, receipts, names]);
+    return mapToTransactionList(txs, receipts);
+  }, [txs, receipts]);
 
   const columnHelper = createColumnHelper<TransactionRow>();
   const [openToolTipIndex, setOpenTooltipIndex] = useState<number | null>();
@@ -159,7 +150,6 @@ const AddressLists: React.FC<AddressListsProps> = ({
                   <DownloadListButton
                     txs={txs}
                     receipts={receipts}
-                    names={names}
                     chain={chain}
                     fileName={`export-${address}.csv`}
                   />

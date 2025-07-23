@@ -3,7 +3,7 @@ import { convertToFormatEther } from '@/lib/transaction';
 
 type AmountColumnProps = {
   info: any;
-  symbol: string;
+  symbol?: string;
 };
 
 const AmountColumn: React.FC<AmountColumnProps> = ({ info, symbol }) => {

@@ -4,6 +4,7 @@ import { formatEther } from 'viem';
 import { format } from 'date-fns';
 import { Chain } from '@/types/Chain';
 import { convertToFormatEther } from '@/lib/transaction';
+import { OtterscanTransaction, OtterscanReceipt } from '@/types/AddressList';
 
 export async function getMethods(txs: any[]) {
   const inputs = txs.filter((tx: any) => tx.input !== '0x').map((tx: any) => tx.input.slice(0, 10));
@@ -13,23 +14,22 @@ export async function getMethods(txs: any[]) {
   return names.results;
 }
 
-export function matchFunctionName(names: any, input: string) {
+export function matchFunctionName(methods: any, input: string) {
   if (input === '0x') return 'Transfer';
 
   const selector = input.slice(0, 10);
-  const functionNames = names[selector];
-  if (functionNames && functionNames.length > 0) {
-    const methodname = functionNames[0].name ?? selector;
-    const match = methodname.match(/([A-Za-z0-9]*)\(/);
-    return match ? match[1] : methodname;
+  const functionMethods = methods?.[selector];
+  if (functionMethods && functionMethods.length > 0) {
+    const methodName = functionMethods[0].name ?? selector;
+    const match = methodName.match(/([A-Za-z0-9]*)\(/);
+    return match ? match[1] : methodName;
   }
   return selector;
 }
 
-export function mapToTransactionLlist(txs: any[], receipts: any[], names: any) {
+export function mapToTransactionList(txs: OtterscanTransaction[], receipts: OtterscanReceipt[]) {
   return Object.entries(txs).map(([, tx]): TransactionRow => {
     const receipt = receipts.find((r) => r.transactionHash === tx.hash);
-    const method = matchFunctionName(names, tx.input);
     const txnFee =
       receipt?.gasUsed && tx.gasPrice ? formatEther(BigInt(receipt.gasUsed) * BigInt(tx.gasPrice)).slice(0, 10) : '';
 
@@ -38,10 +38,10 @@ export function mapToTransactionLlist(txs: any[], receipts: any[], names: any) {
       hash: tx.hash,
       blockNumber: tx.blockNumber,
       from: tx.from,
-      to: tx.to ? tx.to : '',
+      to: tx.to ?? '',
       amount: tx.value,
       age: receipt?.timestamp,
-      method: method,
+      method: tx.method ?? '',
       txnFee: txnFee,
       gasPrice: tx.gasPrice,
       contractAddress: receipt?.contractAddress,
@@ -49,10 +49,9 @@ export function mapToTransactionLlist(txs: any[], receipts: any[], names: any) {
   });
 }
 
-export function mapToTransactionCsvLlist(txs: any[], receipts: any[], names: any, chain: Chain) {
+export function mapToTransactionCsvRows(txs: any[], receipts: any[], chain: Chain) {
   return Object.entries(receipts).map(([, receipt]): TransactionCsvRow => {
     const tx = txs.find((tx) => receipt.transactionHash === tx.hash);
-    const method = matchFunctionName(names, tx.input);
     const dateTime = formatDateTime(receipt?.timestamp);
     const status = receipt?.status.slice(2) === '1' ? 'Sucess' : 'Fail';
     const txnFee =
@@ -63,7 +62,7 @@ export function mapToTransactionCsvLlist(txs: any[], receipts: any[], names: any
     return {
       hash: tx.hash,
       status: status,
-      method: method,
+      method: tx.method,
       blockNumber: blockNumber,
       dateTime: dateTime,
       from: tx.from,
@@ -74,33 +73,33 @@ export function mapToTransactionCsvLlist(txs: any[], receipts: any[], names: any
   });
 }
 
-export function formatDateTime(timestamp: bigint) {
-  return format(new Date(Number(timestamp) * 1000), 'yyyy-MM-dd H:mm:ss');
-}
-
-export function mapToTokenTransferList(txs: any[], receipts: any[], names: any) {
+export function mapToTokenTransferList(txs: any[], receipts: any[]) {
   return Object.entries(receipts).map(([, receipt]): TokenTransferRow => {
-    const tx = txs.find((t) => receipt.transactionHash === t.hash);
-    const method = matchFunctionName(names, tx.input ?? '');
-
+    const tx = txs.find((t) => receipt.hash === t.hash);
+    
     return {
       detail: '',
-      hash: tx.hash,
-      method: method,
+      hash: receipt.hash,
+      method: tx.method ?? '',
       blockNumber: tx.blockNumber,
       age: receipt?.timestamp,
-      from: tx.from,
-      to: tx.to ? tx.to : '',
-      amount: tx.value,
+      from: receipt.from,
+      to: receipt.to ? receipt.to : '',
+      amount: receipt.amount,
       contractAddress: receipt?.contractAddress,
     };
   });
 }
 
-export function handleDownload(txs: any[], receipts: any[], names: any, chain: Chain, fileName: string) {
+export function formatDateTime(timestamp: bigint) {
+  return format(new Date(Number(timestamp) * 1000), 'yyyy-MM-dd H:mm:ss');
+}
+
+
+export function handleDownload(txs: OtterscanTransaction[], receipts: OtterscanReceipt[], chain: Chain, fileName: string) {
   const csvHeader = ['Transaction Hash', 'Status', 'Method', 'Blockno', 'Date Time', 'From', 'To', 'Amount', 'Txn Fee'];
 
-  const rows = mapToTransactionCsvLlist(txs, receipts, names, chain);
+  const rows = mapToTransactionCsvRows(txs, receipts, chain);
 
   const csvContent = [csvHeader, ...rows.map((row) => Object.values(row))].map((row) => row.join(',')).join('\n');
 
@@ -111,4 +110,36 @@ export function handleDownload(txs: any[], receipts: any[], names: any, chain: C
   anchor.download = fileName;
   anchor.click();
   URL.revokeObjectURL(url);
+}
+
+export async function searchTransactions(
+  address: string,
+  direction: 'before' | 'after',
+  offset = 0,
+  limit = 25
+) {
+  const method =
+    direction === 'before'
+      ? 'ots_searchTransactionsBefore'
+      : 'ots_searchTransactionsAfter';
+
+  const response = await fetch('http://100.118.195.120:48546', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 1,
+      method,
+      params: [address, offset, limit],
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data;
 }

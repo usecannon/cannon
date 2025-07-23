@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ArrowDownWideNarrow, CircleHelp } from 'lucide-react';
 import {
@@ -9,7 +9,6 @@ import {
 import AddressAdditionalInfo from '@/features/Address/AddressAdditionalDialog';
 import { Chain } from '@/types/Chain';
 import { NftTransferRow } from '@/types/AddressList';
-import { getMethods, matchFunctionName } from '@/lib/address';
 import AddressDataTable from '@/features/Address/AddressDataTable';
 import FromColumn from '@/features/Address/column/FromColumn';
 import ToColumn from '@/features/Address/column/ToColumn';
@@ -22,6 +21,7 @@ import BlockColumn from '@/features/Address/column/BlockColumn';
 import TypeColumn from '@/features/Address/column/TypeColumn';
 import { erc721Hash } from '@/features/Address/AddressPage';
 import DownloadListButton from '@/features/Address/DownloadListButton';
+import { OtterscanTransaction, OtterscanReceipt } from '@/types/AddressList';
 
 type AddressNftTransferProps = {
   address: string;
@@ -39,25 +39,15 @@ const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
   const [hoverId, setHoverId] = useState<string>('');
   const [openToolTipIndex, setOpenTooltipIndex] = useState<number | null>();
   const [isDate, setIsDate] = useState<boolean>(false);
-  const [names, setNames] = useState<any>('');
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const results = await getMethods(txs);
-      setNames(results);
-    };
-    fetchData();
-  }, []);
 
   const data = React.useMemo(() => {
     return Object.entries(receipts).map(([, receipt]): NftTransferRow => {
       const tx = txs.find((t) => receipt.transactionHash === t.hash);
-      const method = matchFunctionName(names, tx.input ?? '');
 
       return {
         detail: '',
         hash: tx.hash,
-        method: method,
+        method: tx.method,
         blockNumber: tx.blockNumber,
         age: receipt?.timestamp,
         from: tx.from,
@@ -66,7 +56,7 @@ const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
         type: receipt.logs[0].topics[0] === erc721Hash ? 'ERC-721' : 'ERC-1155',
       };
     });
-  }, [txs, receipts, names]);
+  }, [txs, receipts]);
 
   const columnHelper = createColumnHelper<NftTransferRow>();
 
@@ -158,7 +148,6 @@ const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
                 <DownloadListButton
                   txs={txs}
                   receipts={receipts}
-                  names={names}
                   chain={chain}
                   fileName={`export-nft-transfer-${address}.csv`}
                 />

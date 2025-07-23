@@ -2,11 +2,11 @@ import React from 'react';
 import { Download } from 'lucide-react';
 import { handleDownload } from '@/lib/address';
 import { Chain } from '@/types/Chain';
+import { OtterscanTransaction, OtterscanReceipt } from '@/types/AddressList';
 
 type DownloadListButtonProps = {
-  txs: any[];
-  receipts: any[];
-  names: any;
+  txs: OtterscanTransaction[];
+  receipts: OtterscanReceipt[];
   chain: Chain;
   fileName: string;
 };
@@ -14,14 +14,13 @@ type DownloadListButtonProps = {
 const DownloadListButton: React.FC<DownloadListButtonProps> = ({
   txs,
   receipts,
-  names,
   chain,
   fileName,
 }) => {
   return (
     <div>
       <button
-        onClick={() => handleDownload(txs, receipts, names, chain, fileName)}
+        onClick={() => handleDownload(txs, receipts, chain, fileName)}
         className="inline-flex items-center px-3 py-1 text-xs border border-gray-500 text-gray-300 rounded hover:bg-gray-700"
       >
         <Download className="mr-2 h-4 w-4" />
