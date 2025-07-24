@@ -21,8 +21,12 @@ import AgeColumn from '@/features/Address/column/AgeColumn';
 import AgeHeader from '@/features/Address/column/AgeHeader';
 import BlockColumn from '@/features/Address/column/BlockColumn';
 import DownloadListButton from '@/features/Address/DownloadListButton';
-import { OtterscanTransaction, OtterscanReceipt } from '@/types/AddressList';
-import { erc20Hash } from '@/features/Address/AddressPage';
+import {
+  OtterscanTransaction,
+  OtterscanReceipt,
+  TokenTransferType,
+} from '@/types/AddressList';
+import { ERC_EVENT_SIGNATURES } from '@/constants/eventSignatures';
 
 type AddressTokenTransferProps = {
   address: string;
@@ -41,9 +45,15 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
   const [openToolTipIndex, setOpenTooltipIndex] = useState<number | null>();
   const [isDate, setIsDate] = useState<boolean>(false);
 
-  const tokenReceipts = receipts.flatMap((receipt) => {
+  const tokenTransfers: TokenTransferType[] = receipts.flatMap((receipt) => {
     return receipt.logs
-      .filter((log) => log.topics?.[0]?.toLowerCase() === erc20Hash)
+      .filter(
+        (log) =>
+          log.topics?.[0]?.toLowerCase() ===
+            ERC_EVENT_SIGNATURES.ERC20_TRANSFER &&
+          log.data !== '0x' &&
+          BigInt(log.data) !== 0n
+      )
       .reverse()
       .map((log) => {
         return {
@@ -59,8 +69,9 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
   });
 
   const data = React.useMemo(() => {
-    return mapToTokenTransferList(txs, tokenReceipts);
+    return mapToTokenTransferList(txs, tokenTransfers);
   }, [txs, receipts]);
+
   const columnHelper = createColumnHelper<TokenTransferRow>();
 
   const columns = [

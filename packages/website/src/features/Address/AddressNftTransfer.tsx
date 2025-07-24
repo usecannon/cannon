@@ -8,7 +8,12 @@ import {
 } from '@tanstack/react-table';
 import AddressAdditionalInfo from '@/features/Address/AddressAdditionalDialog';
 import { Chain } from '@/types/Chain';
-import { NftTransferRow } from '@/types/AddressList';
+import {
+  NftTokenType,
+  NftTransferRow,
+  OtterscanTransaction,
+  OtterscanReceipt,
+} from '@/types/AddressList';
 import AddressDataTable from '@/features/Address/AddressDataTable';
 import FromColumn from '@/features/Address/column/FromColumn';
 import ToColumn from '@/features/Address/column/ToColumn';
@@ -19,14 +24,14 @@ import AgeColumn from '@/features/Address/column/AgeColumn';
 import AgeHeader from '@/features/Address/column/AgeHeader';
 import BlockColumn from '@/features/Address/column/BlockColumn';
 import TypeColumn from '@/features/Address/column/TypeColumn';
-import { erc721Hash } from '@/features/Address/AddressPage';
 import DownloadListButton from '@/features/Address/DownloadListButton';
-import { OtterscanTransaction, OtterscanReceipt } from '@/types/AddressList';
+import { mapToNftTransferList } from '@/lib/address';
+import { ERC_EVENT_SIGNATURES } from '@/constants/eventSignatures';
 
 type AddressNftTransferProps = {
   address: string;
-  txs: any[];
-  receipts: any[];
+  txs: OtterscanTransaction[];
+  receipts: OtterscanReceipt[];
   chain: Chain;
 };
 
@@ -40,22 +45,42 @@ const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
   const [openToolTipIndex, setOpenTooltipIndex] = useState<number | null>();
   const [isDate, setIsDate] = useState<boolean>(false);
 
-  const data = React.useMemo(() => {
-    return Object.entries(receipts).map(([, receipt]): NftTransferRow => {
-      const tx = txs.find((t) => receipt.transactionHash === t.hash);
+  const nftTransfers: NftTokenType[] = receipts.flatMap((receipt) =>
+    receipt.logs
+      .filter(
+        (log: any) =>
+          (log.topics[0] === ERC_EVENT_SIGNATURES.ERC721_TRANSFER &&
+            log.topics.length === 4 &&
+            log.data === '0x') ||
+          (log.topics[0] === ERC_EVENT_SIGNATURES.ERC1155_TRANSFER_SINGLE &&
+            log.topics.length === 4 &&
+            log.data !== '0x')
+      )
+      .map((log: any) => ({
+        hash: receipt.transactionHash,
+        blockNumber: receipt.blockNumber,
+        timestamp: receipt.timestamp,
+        from:
+          log.topics[0] === ERC_EVENT_SIGNATURES.ERC721_TRANSFER
+            ? '0x' + log.topics[1].slice(26)
+            : '0x' + log.topics[2].slice(26),
+        to:
+          log.topics[0] === ERC_EVENT_SIGNATURES.ERC721_TRANSFER
+            ? '0x' + log.topics[2].slice(26)
+            : '0x' + log.topics[3].slice(26),
+        contractAddress: receipt.contractAddress,
+        type:
+          log.topics[0] === ERC_EVENT_SIGNATURES.ERC721_TRANSFER
+            ? 'ERC-721'
+            : 'ERC-1155',
+      }))
+  );
 
-      return {
-        detail: '',
-        hash: tx.hash,
-        method: tx.method,
-        blockNumber: tx.blockNumber,
-        age: receipt?.timestamp,
-        from: tx.from,
-        to: tx.to ? tx.to : '',
-        contractAddress: receipt?.contractAddress,
-        type: receipt.logs[0].topics[0] === erc721Hash ? 'ERC-721' : 'ERC-1155',
-      };
-    });
+  // const test = receipts.filter((receipt) => receipt.blockNumber === '0x86a791');
+  // console.log(test);
+
+  const data = React.useMemo(() => {
+    return mapToNftTransferList(txs, nftTransfers);
   }, [txs, receipts]);
 
   const columnHelper = createColumnHelper<NftTransferRow>();

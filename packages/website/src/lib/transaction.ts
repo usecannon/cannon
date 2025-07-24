@@ -12,12 +12,12 @@ export function convertToGwei(value: bigint | string): string {
   }
 }
 
-export function covertToDec(value: bigint | string): bigint {
+export function convertToDec(value: bigint | string): bigint {
   return typeof value === 'string' ? BigInt(parseInt(value.slice(2), 16)) : value;
 }
 
 export function convertToFormatEther(value: bigint | string, symbol: string | undefined): string {
-  return `${formatEther(covertToDec(value)).toLocaleString()} ${symbol ?? ''}`;
+  return `${formatEther(convertToDec(value)).toLocaleString()} ${symbol ?? ''}`;
 }
 
 export function getGasUsedPercentage(gasUsed: bigint, gasLimit: bigint): string {

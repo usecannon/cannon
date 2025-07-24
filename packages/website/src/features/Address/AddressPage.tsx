@@ -13,15 +13,6 @@ import AddressNftTransfer from '@/features/Address/AddressNftTransfer';
 import { useAddressTransactions } from '@/hooks/useAddressTransactions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-export const erc20Hash =
-  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
-
-export const erc721Hash =
-  ' 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
-
-export const erc1155Hash =
-  '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62';
-
 export const tabs = [
   { id: 'transactions', label: 'Transactions' },
   { id: 'tokentxns', label: 'Token Transfers (ERC-20)' },
@@ -57,20 +48,6 @@ const AddressPage = () => {
 
   const { txs, receipts, oldReceipts } = data;
 
-  console.log(receipts);
-  const nftReceipts = receipts.filter(
-    (receipt) =>
-      receipt.logs.length > 0 &&
-      (receipt.logs[0].topics[0] === erc721Hash ||
-        receipt.logs[0].topics[0] === erc1155Hash)
-  );
-  console.log(nftReceipts);
-
-  const visivleTabs = tabs.filter((tab) => {
-    if (tab.id === 'nfttransfers' && !nftReceipts.length) return false;
-    return true;
-  });
-
   const renderContent = () => {
     if (displayAddress) {
       switch (activeTab) {
@@ -88,7 +65,7 @@ const AddressPage = () => {
             <AddressNftTransfer
               address={displayAddress!}
               txs={txs}
-              receipts={nftReceipts}
+              receipts={receipts}
               chain={chain}
             />
           );
@@ -133,7 +110,7 @@ const AddressPage = () => {
       <AddressTab
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        tabs={visivleTabs}
+        tabs={tabs}
       />
       <div className="flex w-full my-3">{renderContent()}</div>
     </div>
