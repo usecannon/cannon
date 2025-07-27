@@ -92,7 +92,7 @@ const pullSpec = {
 
     if (!deployInfo) {
       throw new Error(
-        `deployment not found: ${source}. please make sure it exists for the cannon network and ${preset} preset.`
+        `deployment not found: ${source}. please make sure it exists for the ${chainId} network and ${preset} preset.`
       );
     }
 
