@@ -9,7 +9,11 @@ import {
 import AddressAdditionalInfo from '@/features/Address/AddressAdditionalDialog';
 import { Chain } from '@/types/Chain';
 import { mapToTransactionList } from '@/lib/address';
-import { TransactionRow } from '@/types/AddressList';
+import {
+  TransactionRow,
+  OtterscanTransaction,
+  OtterscanReceipt,
+} from '@/types/AddressList';
 import AmountColumn from '@/features/Address/column/AmountColumn';
 import FromColumn from '@/features/Address/column/FromColumn';
 import ToColumn from '@/features/Address/column/ToColumn';
@@ -23,12 +27,14 @@ import TxFeeColumn from '@/features/Address/column/TxFeeColumn';
 import BlockColumn from '@/features/Address/column/BlockColumn';
 import AddressDataTable from '@/features/Address/AddressDataTable';
 import DownloadListButton from '@/features/Address/DownloadListButton';
+import { TabId } from '@/lib/address';
 
 type AddressListsProps = {
   address: string;
   chain: Chain;
-  txs: any[];
-  receipts: any[];
+  txs: OtterscanTransaction[];
+  receipts: OtterscanReceipt[];
+  activeTab: TabId;
 };
 
 const AddressLists: React.FC<AddressListsProps> = ({
@@ -36,6 +42,7 @@ const AddressLists: React.FC<AddressListsProps> = ({
   chain,
   txs,
   receipts,
+  activeTab,
 }) => {
   const [isDate, setIsDate] = useState<boolean>(false);
   const [isGasPrice, setIsGasPrice] = useState<boolean>(false);
@@ -152,6 +159,7 @@ const AddressLists: React.FC<AddressListsProps> = ({
                     receipts={receipts}
                     chain={chain}
                     fileName={`export-${address}.csv`}
+                    activeTab={activeTab}
                   />
                 </div>
               </CardTitle>

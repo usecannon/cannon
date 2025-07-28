@@ -27,12 +27,14 @@ import TypeColumn from '@/features/Address/column/TypeColumn';
 import DownloadListButton from '@/features/Address/DownloadListButton';
 import { mapToNftTransferList } from '@/lib/address';
 import { ERC_EVENT_SIGNATURES } from '@/constants/eventSignatures';
+import { TabId } from '@/lib/address';
 
 type AddressNftTransferProps = {
   address: string;
   txs: OtterscanTransaction[];
   receipts: OtterscanReceipt[];
   chain: Chain;
+  activeTab: TabId;
 };
 
 const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
@@ -40,6 +42,7 @@ const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
   txs,
   receipts,
   chain,
+  activeTab,
 }) => {
   const [hoverId, setHoverId] = useState<string>('');
   const [openToolTipIndex, setOpenTooltipIndex] = useState<number | null>();
@@ -173,8 +176,10 @@ const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
                 <DownloadListButton
                   txs={txs}
                   receipts={receipts}
+                  nftTransfers={nftTransfers}
                   chain={chain}
                   fileName={`export-nft-transfer-${address}.csv`}
+                  activeTab={activeTab}
                 />
               </div>
             </CardTitle>

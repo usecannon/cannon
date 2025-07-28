@@ -13,6 +13,14 @@ import {
   TokenTransferCsvRow,
 } from '@/types/AddressList';
 
+export const tabs = [
+  { id: 'transactions', label: 'Transactions' },
+  { id: 'tokentxns', label: 'Token Transfers (ERC-20)' },
+  { id: 'nfttransfers', label: 'NFT Transfers' },
+];
+
+export type TabId = (typeof tabs)[number]['id'];
+
 export async function getMethods(txs: any[]) {
   const inputs = txs.filter((tx: any) => tx.input !== '0x').map((tx: any) => tx.input.slice(0, 10));
   const url = initialSelectorDecodeUrl + inputs.join(',');
@@ -146,7 +154,7 @@ export function mapToTokenTransferCsvRows(
 export function mapToNftTransferCsvRows(
   txs: OtterscanTransaction[],
   receipts: OtterscanReceipt[],
-  nftTransfers: NftTokenType[],
+  nftTransfers: NftTokenType[]
 ): NftTransferCsvRow[] {
   return Object.entries(nftTransfers).map(([, transfer]): NftTransferCsvRow => {
     const dateTime = formatDateTime(BigInt(transfer?.timestamp));
@@ -172,12 +180,8 @@ export function formatDateTime(timestamp: bigint) {
   return format(new Date(Number(timestamp) * 1000), 'yyyy-MM-dd H:mm:ss');
 }
 
-export function handleDownload(txs: OtterscanTransaction[], receipts: OtterscanReceipt[], chain: Chain, fileName: string) {
-  const csvHeader = ['Transaction Hash', 'Status', 'Method', 'Blockno', 'Date Time', 'From', 'To', 'Amount', 'Txn Fee'];
-
-  const rows = mapToTransactionCsvRows(txs, receipts, chain);
-
-  const csvContent = [csvHeader, ...rows.map((row) => Object.values(row))].map((row) => row.join(',')).join('\n');
+function downloadCsv(headers: string[], rows: any[], fileName: string) {
+  const csvContent = [headers, ...rows.map((row) => Object.values(row))].map((row) => row.join(',')).join('\n');
 
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
@@ -186,6 +190,38 @@ export function handleDownload(txs: OtterscanTransaction[], receipts: OtterscanR
   anchor.download = fileName;
   anchor.click();
   URL.revokeObjectURL(url);
+}
+
+export function handleDownloadCsv(
+  activeTab: TabId,
+  txs: OtterscanTransaction[],
+  receipts: OtterscanReceipt[],
+  chain: Chain,
+  fileName: string,
+  tokenTransfers?: TokenTransferType[],
+  nftTransfers?: NftTokenType[]
+) {
+  let headers: string[];
+  let rows: any[];
+  const tokenTransferList = tokenTransfers || [];
+  const nftTransferList = nftTransfers || [];
+
+  switch (activeTab) {
+    case 'tokentxns':
+      headers = ['Transaction Hash', 'Status', 'Method', 'Blockno', 'Date Time', 'From', 'To', 'Value'];
+      rows = mapToTokenTransferCsvRows(txs, receipts, tokenTransferList, chain);
+      break;
+    case 'nfttransfers':
+      headers = ['Transaction Hash', 'Status', 'Method', 'Blockno', 'Date Time', 'From', 'To', 'Type'];
+      rows = mapToNftTransferCsvRows(txs, receipts, nftTransferList);
+      break;
+    default:
+      headers = ['Transaction Hash', 'Status', 'Method', 'Blockno', 'Date Time', 'From', 'To', 'Amount', 'Txn Fee'];
+      rows = mapToTransactionCsvRows(txs, receipts, chain);
+      break;
+  }
+
+  downloadCsv(headers, rows, fileName);
 }
 
 export async function searchTransactions(address: string, direction: 'before' | 'after', offset = 0, limit = 25) {

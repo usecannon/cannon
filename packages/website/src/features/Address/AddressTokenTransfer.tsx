@@ -27,12 +27,14 @@ import {
   TokenTransferType,
 } from '@/types/AddressList';
 import { ERC_EVENT_SIGNATURES } from '@/constants/eventSignatures';
+import { TabId } from '@/lib/address';
 
 type AddressTokenTransferProps = {
   address: string;
   txs: OtterscanTransaction[];
   receipts: OtterscanReceipt[];
   chain: Chain;
+  activeTab: TabId;
 };
 
 const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
@@ -40,10 +42,14 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
   txs,
   receipts,
   chain,
+  activeTab,
 }) => {
   const [hoverId, setHoverId] = useState<string>('');
   const [openToolTipIndex, setOpenTooltipIndex] = useState<number | null>();
   const [isDate, setIsDate] = useState<boolean>(false);
+
+  // const test = receipts.filter((receipt) => receipt.blockNumber === '0x7fb052');
+  // console.log(receipts);
 
   const tokenTransfers: TokenTransferType[] = receipts.flatMap((receipt) => {
     return receipt.logs
@@ -161,8 +167,10 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
                 <DownloadListButton
                   txs={txs}
                   receipts={receipts}
+                  tokenTransfers={tokenTransfers}
                   chain={chain}
                   fileName={`export-token-transfer-${address}.csv`}
+                  activeTab={activeTab}
                 />
               </div>
             </CardTitle>

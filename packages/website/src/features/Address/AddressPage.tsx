@@ -12,14 +12,7 @@ import AddressTokenTransfer from '@/features/Address/AddressTokenTransfer';
 import AddressNftTransfer from '@/features/Address/AddressNftTransfer';
 import { useAddressTransactions } from '@/hooks/useAddressTransactions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-
-export const tabs = [
-  { id: 'transactions', label: 'Transactions' },
-  { id: 'tokentxns', label: 'Token Transfers (ERC-20)' },
-  { id: 'nfttransfers', label: 'NFT Transfers' },
-];
-
-export type TabId = (typeof tabs)[number]['id'];
+import { tabs, TabId } from '@/lib/address';
 
 const AddressPage = () => {
   const router = useRouter();
@@ -58,6 +51,7 @@ const AddressPage = () => {
               txs={txs}
               receipts={receipts}
               chain={chain}
+              activeTab={activeTab}
             />
           );
         case 'nfttransfers':
@@ -67,6 +61,7 @@ const AddressPage = () => {
               txs={txs}
               receipts={receipts}
               chain={chain}
+              activeTab={activeTab}
             />
           );
         default:
@@ -76,6 +71,7 @@ const AddressPage = () => {
               chain={chain}
               txs={txs}
               receipts={receipts}
+              activeTab={activeTab}
             />
           );
       }

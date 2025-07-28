@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
-import { TabId } from '@/features/Address/AddressPage';
+import { TabId } from '@/lib/address';
 import { useRouter } from 'next/router';
 
 type AddressTabProps = {
-  activeTab: string;
+  activeTab: TabId;
   setActiveTab: (tabId: TabId) => void;
   tabs: { id: TabId; label: string }[];
 };
