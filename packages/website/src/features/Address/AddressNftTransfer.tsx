@@ -52,10 +52,12 @@ const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
     receipt.logs
       .filter(
         (log: any) =>
-          (log.topics[0] === ERC_EVENT_SIGNATURES.ERC721_TRANSFER &&
+          (log.topics[0].toLowerCase() ===
+            ERC_EVENT_SIGNATURES.ERC721_TRANSFER.toLowerCase() &&
             log.topics.length === 4 &&
             log.data === '0x') ||
-          (log.topics[0] === ERC_EVENT_SIGNATURES.ERC1155_TRANSFER_SINGLE &&
+          (log.topics[0].toLowerCase() ===
+            ERC_EVENT_SIGNATURES.ERC1155_TRANSFER_SINGLE.toLowerCase() &&
             log.topics.length === 4 &&
             log.data !== '0x')
       )
@@ -64,23 +66,23 @@ const AddressNftTransfer: React.FC<AddressNftTransferProps> = ({
         blockNumber: receipt.blockNumber,
         timestamp: receipt.timestamp,
         from:
-          log.topics[0] === ERC_EVENT_SIGNATURES.ERC721_TRANSFER
+          log.topics[0].toLowerCase() ===
+          ERC_EVENT_SIGNATURES.ERC721_TRANSFER.toLowerCase()
             ? '0x' + log.topics[1].slice(26)
             : '0x' + log.topics[2].slice(26),
         to:
-          log.topics[0] === ERC_EVENT_SIGNATURES.ERC721_TRANSFER
+          log.topics[0].toLowerCase() ===
+          ERC_EVENT_SIGNATURES.ERC721_TRANSFER.toLowerCase()
             ? '0x' + log.topics[2].slice(26)
             : '0x' + log.topics[3].slice(26),
         contractAddress: receipt.contractAddress,
         type:
-          log.topics[0] === ERC_EVENT_SIGNATURES.ERC721_TRANSFER
+          log.topics[0].toLowerCase() ===
+          ERC_EVENT_SIGNATURES.ERC721_TRANSFER.toLowerCase()
             ? 'ERC-721'
             : 'ERC-1155',
       }))
   );
-
-  // const test = receipts.filter((receipt) => receipt.blockNumber === '0x86a791');
-  // console.log(test);
 
   const data = React.useMemo(() => {
     return mapToNftTransferList(txs, nftTransfers);

@@ -48,9 +48,6 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
   const [openToolTipIndex, setOpenTooltipIndex] = useState<number | null>();
   const [isDate, setIsDate] = useState<boolean>(false);
 
-  // const test = receipts.filter((receipt) => receipt.blockNumber === '0x7fb052');
-  // console.log(receipts);
-
   const tokenTransfers: TokenTransferType[] = receipts.flatMap((receipt) => {
     return receipt.logs
       .filter(
@@ -58,7 +55,11 @@ const AddressTokenTransfer: React.FC<AddressTokenTransferProps> = ({
           log.topics?.[0]?.toLowerCase() ===
             ERC_EVENT_SIGNATURES.ERC20_TRANSFER &&
           log.data !== '0x' &&
-          BigInt(log.data) !== 0n
+          BigInt(log.data) > 0n &&
+          (address.toLowerCase() ===
+            '0x' + log.topics[1].slice(26).toLowerCase() ||
+            address.toLowerCase() ===
+              '0x' + log.topics[2].slice(26).toLowerCase())
       )
       .reverse()
       .map((log) => {

@@ -21,7 +21,7 @@ export const tabs = [
 
 export type TabId = (typeof tabs)[number]['id'];
 
-export async function getMethods(txs: any[]) {
+export async function getMethods(txs: OtterscanTransaction[]) {
   const inputs = txs.filter((tx: any) => tx.input !== '0x').map((tx: any) => tx.input.slice(0, 10));
   const url = initialSelectorDecodeUrl + inputs.join(',');
   const response = await fetch(url);
@@ -40,6 +40,10 @@ export function matchFunctionName(methods: any, input: string) {
     return match ? match[1] : methodName;
   }
   return selector;
+}
+
+export function formatDateTime(timestamp: bigint) {
+  return format(new Date(Number(timestamp) * 1000), 'yyyy-MM-dd H:mm:ss');
 }
 
 export function mapToTransactionList(txs: OtterscanTransaction[], receipts: OtterscanReceipt[]) {
@@ -100,24 +104,24 @@ export function mapToNftTransferList(txs: OtterscanTransaction[], nftTransfers: 
   });
 }
 
-export function mapToTransactionCsvRows(txs: any[], receipts: any[], chain: Chain) {
+export function mapToTransactionCsvRows(txs: OtterscanTransaction[], receipts: OtterscanReceipt[], chain: Chain) {
   return Object.entries(receipts).map(([, receipt]): TransactionCsvRow => {
     const tx = txs.find((tx) => receipt.transactionHash === tx.hash);
-    const dateTime = formatDateTime(receipt?.timestamp);
+    const dateTime = formatDateTime(BigInt(receipt?.timestamp));
     const status = receipt?.status.slice(2) === '1' ? 'Sucess' : 'Fail';
     const txnFee =
-      receipt?.gasUsed && tx.gasPrice ? formatEther(BigInt(receipt.gasUsed) * BigInt(tx.gasPrice)).slice(0, 10) : '';
-    const blockNumber = String(parseInt(tx.blockNumber.slice(2), 16));
-    const amount = String(convertToFormatEther(tx.value, chain?.nativeCurrency.symbol) ?? '0 ETH');
+      receipt?.gasUsed && tx?.gasPrice ? formatEther(BigInt(receipt.gasUsed) * BigInt(tx.gasPrice)).slice(0, 10) : '';
+    const blockNumber = String(parseInt(tx?.blockNumber.slice(2) ?? '0', 16));
+    const amount = String(convertToFormatEther(tx?.value ?? 0n, chain?.nativeCurrency.symbol) ?? '0 ETH');
 
     return {
-      hash: tx.hash,
+      hash: receipt.transactionHash,
       status: status,
-      method: tx.method,
+      method: tx?.method ?? '',
       blockNumber: blockNumber,
       dateTime: dateTime,
-      from: tx.from,
-      to: tx.to ? tx.to : '',
+      from: receipt.from,
+      to: receipt.to ?? '',
       amount: amount,
       txnFee: txnFee,
     };
@@ -174,10 +178,6 @@ export function mapToNftTransferCsvRows(
       type: transfer.type,
     };
   });
-}
-
-export function formatDateTime(timestamp: bigint) {
-  return format(new Date(Number(timestamp) * 1000), 'yyyy-MM-dd H:mm:ss');
 }
 
 function downloadCsv(headers: string[], rows: any[], fileName: string) {

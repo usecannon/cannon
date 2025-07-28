@@ -4,7 +4,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { format } from 'date-fns';
 import { formatDistanceToNow } from 'date-fns';
 import { formatDateTime } from '@/lib/address';
 
