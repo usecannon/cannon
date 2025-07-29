@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -19,26 +19,28 @@ const ImportSettingDialog = () => {
   const setSafeTxServices = useStore((s) => s.setSafeTxServices);
   const setSettings = useStore((s) => s.setSettings);
   const [isFormatError, setIsFormatError] = useState<boolean>(false);
+  const [jsonInput, setJsonInput] = useState<string>('');
 
-  const data = {
-    safeTxServices: safeTxServices,
-    settings: {
-      ipfsApiUrl: settings.ipfsApiUrl,
-      cannonSafeBackendUrl: settings.cannonSafeBackendUrl,
-      customProviders: settings.customProviders,
-      pythUrl: settings.pythUrl,
-    },
-  };
-  let jsonData = JSON.stringify(data);
-
-  const updateJson = (value: string | undefined) => {
-    jsonData = value ?? '';
-  };
+  useEffect(() => {
+    if (open) {
+      const data = {
+        safeTxServices,
+        settings: {
+          ipfsApiUrl: settings.ipfsApiUrl,
+          cannonSafeBackendUrl: settings.cannonSafeBackendUrl,
+          customProviders: settings.customProviders,
+          pythUrl: settings.pythUrl,
+        },
+      };
+      setJsonInput(JSON.stringify(data, null, 2));
+      setIsFormatError(false);
+    }
+  }, [open]);
 
   const importSettings = () => {
     setIsFormatError(false);
     try {
-      const obj = JSON.parse(jsonData);
+      const obj = JSON.parse(jsonInput);
       setSafeTxServices(obj.safeTxServices);
       setSettings({
         ipfsApiUrl: obj.settings.ipfsApiUrl,
@@ -61,7 +63,7 @@ const ImportSettingDialog = () => {
         onClick={() => setOpen(true)}
         data-testid="setting-dialog-button"
       >
-        Open Settings
+        Edit as JSON
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -77,8 +79,8 @@ const ImportSettingDialog = () => {
             theme="vs-dark"
             defaultLanguage="json"
             defaultValue="Enter file content..."
-            value={JSON.stringify(data, null, 2)}
-            onChange={(value) => updateJson(value)}
+            value={jsonInput}
+            onChange={(value) => setJsonInput(value ?? '')}
           />
           {isFormatError && (
             <Alert variant="destructive" className="mt-4">
@@ -87,7 +89,7 @@ const ImportSettingDialog = () => {
               </AlertDescription>
             </Alert>
           )}
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
             <Button
               onClick={() => {
                 setOpen(false);

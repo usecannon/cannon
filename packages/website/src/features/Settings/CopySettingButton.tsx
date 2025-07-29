@@ -61,7 +61,7 @@ const CopySettingButton: React.FC<CopySettingButtonProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-      <span className="">Copy Settings</span>
+      <span className="">Copy as JSON</span>
     </Button>
   );
 };
