@@ -28,7 +28,7 @@ import { getChainById } from '../chains';
 import { filterSettings, saveToMetadataCache } from '../helpers';
 import { getMainLoader } from '../loader';
 import { listInstalledPlugins, loadPlugins } from '../plugins';
-import { createDefaultReadRegistry } from '../registry';
+import { createDefaultReadRegistry, createLocalOnlyRegistry, createOnChainOnlyRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { log, warn, error } from '../util/console';
@@ -139,6 +139,8 @@ export async function build({
     priorityGasFee,
   };
 
+  const onChainOnlyResolver = await createOnChainOnlyRegistry(cliSettings);
+  const localOnlyResolver = await createLocalOnlyRegistry(cliSettings);
   const resolver = overrideResolver || (await createDefaultReadRegistry(cliSettings));
 
   const runtime = new ChainBuilderRuntime(runtimeOptions, resolver, getMainLoader(cliSettings), 'ipfs');
@@ -146,6 +148,17 @@ export async function build({
   const dump = writeScript ? await createWriteScript(runtime, writeScript, writeScriptFormat) : null;
 
   let oldDeployData: DeploymentInfo | null = null;
+
+  // before building, make sure that the name/version isnt already taken on the registry
+  const localPackageUrl = await localOnlyResolver.getUrl(fullPackageRef, chainId);
+  if (!localPackageUrl.url) {
+    const isPackageAlreadyPublished = await onChainOnlyResolver.getUrl(fullPackageRef, chainId);
+    if (isPackageAlreadyPublished.url) {
+      throw new Error(
+        'The package ${fullPackageRef} is already published on the registry. Please bump the `version` field in your cannonfile.'
+      );
+    }
+  }
 
   if (!wipe) {
     log(bold('Checking for existing package...'));

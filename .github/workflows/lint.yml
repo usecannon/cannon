@@ -21,4 +21,5 @@ jobs:
           cache: pnpm
           node-version: '20.5.1'
       - run: pnpm i --frozen-lockfile
-      - run: pnpm lint
+      # need to increase memory for the below command because apparently eslint really needs more
+      - run: NODE_OPTIONS="--max-old-space-size=8196" pnpm lint

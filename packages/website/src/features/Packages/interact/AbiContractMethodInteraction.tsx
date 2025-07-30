@@ -316,6 +316,7 @@ export const AbiContractMethodInteraction: FC<{
     chainId,
     params: [...params],
     isFunctionReadOnly,
+    value: parseEther(txValue || '0'),
   });
 
   const formatAbiParameterType = (input: AbiParameter): string => {

@@ -1,81 +1,51 @@
-import { deepEqual, equal, ok } from 'assert/strict';
+import { deepEqual, equal, ok } from 'node:assert/strict';
 import { BigNumber, ContractTransaction, Signer } from 'ethers';
 import { ethers } from 'hardhat';
-import { stringToHex } from 'viem';
+import { stringToHex, toHex } from 'viem';
 import { CannonRegistry as TCannonRegistry } from '../../typechain-types/contracts/CannonRegistry';
+import { CannonRegistry as TMockERC20 } from '../../typechain-types/contracts/MockERC20';
 import { MockOptimismBridge as TMockOptimismBridge } from '../../typechain-types/contracts/MockOptimismBridge';
-import assertRevert from '../helpers/assert-revert';
+import { assertRevert } from '../helpers/assert-revert';
+import { bootstrap, deployCannonRegistry } from '../helpers/bootstrap';
 
 const toBytes32 = (str: string) => stringToHex(str, { size: 32 });
 const parseEther = ethers.utils.parseEther;
 
 describe('CannonRegistry', function () {
-  let l1ChainId: number;
   let CannonRegistry: TCannonRegistry;
+  let MockERC20: TMockERC20;
   let MockOPSendBridge: TMockOptimismBridge;
   let MockOPRecvBridge: TMockOptimismBridge;
-  let owner: Signer, user2: Signer, user3: Signer;
+  let owner: Signer;
   let ownerAddress: string;
+  let user2: Signer;
+  let user3: Signer;
   let fee: BigNumber;
 
-  before('identify signers', async function () {
+  before('load context', async function () {
+    const ctx = await bootstrap();
     [owner, user2, user3] = await ethers.getSigners();
     ownerAddress = await owner.getAddress();
-  });
-
-  before('deploy contract', async function () {
-    l1ChainId = (await ethers.provider.getNetwork()).chainId;
-    const MockOptimismBridge = await ethers.getContractFactory('MockOptimismBridge');
-    const MockOPBridgeImpl = await MockOptimismBridge.deploy();
-    await MockOPBridgeImpl.deployed();
-    const MockOPBridgeImplCode = await ethers.provider.send('eth_getCode', [MockOPBridgeImpl.address]);
-
-    await ethers.provider.send('hardhat_setCode', ['0x4200000000000000000000000000000000000007', MockOPBridgeImplCode]);
-    await ethers.provider.send('hardhat_setCode', ['0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1', MockOPBridgeImplCode]);
-
-    MockOPSendBridge = (await ethers.getContractAt(
-      'MockOptimismBridge',
-      '0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1'
-    )) as TMockOptimismBridge;
-    MockOPRecvBridge = (await ethers.getContractAt(
-      'MockOptimismBridge',
-      '0x4200000000000000000000000000000000000007'
-    )) as TMockOptimismBridge;
-
-    const CannonRegistryFactory = await ethers.getContractFactory('CannonRegistry');
-    const Implementation = await CannonRegistryFactory.deploy(MockOPSendBridge.address, MockOPRecvBridge.address, l1ChainId);
-    await Implementation.deployed();
-
-    const ProxyFactory = await ethers.getContractFactory('Proxy');
-    const Proxy = await ProxyFactory.deploy(Implementation.address, ownerAddress);
-    await Proxy.deployed();
-
-    CannonRegistry = (await ethers.getContractAt('CannonRegistry', Proxy.address)) as TCannonRegistry;
-
+    ({ CannonRegistry, MockOPSendBridge, MockOPRecvBridge, MockERC20 } = ctx);
     fee = await CannonRegistry.publishFee();
   });
 
   before('register', async () => {
-    await CannonRegistry.setPackageOwnership(toBytes32('some-module'), await owner.getAddress());
+    await CannonRegistry.setPackageOwnership(toBytes32('some-module'), ownerAddress);
   });
 
   describe('Upgradedability', function () {
-    let newImplementation: TCannonRegistry;
-
-    before('deploy new implementation', async function () {
-      const CannonRegistry = await ethers.getContractFactory('CannonRegistry');
-      newImplementation = (await CannonRegistry.deploy(
+    it('upgrades to a new implementation', async function () {
+      const { chainId } = await ethers.provider.getNetwork();
+      const [newImplementation] = await deployCannonRegistry(
+        MockERC20.address,
+        MockERC20.address,
         MockOPSendBridge.address,
         MockOPRecvBridge.address,
-        l1ChainId
-      )) as TCannonRegistry;
-      await newImplementation.deployed();
-    });
-
-    it('upgrades to a new implementation', async function () {
-      const { address } = newImplementation;
-      await CannonRegistry.upgradeTo(address).then((tx) => tx.wait());
-
+        chainId
+      );
+      const tx = await CannonRegistry.upgradeTo(newImplementation.address);
+      await tx.wait();
       equal(await CannonRegistry.getImplementation(), newImplementation.address);
     });
   });
@@ -380,6 +350,114 @@ describe('CannonRegistry', function () {
     });
   });
 
+  describe('tag immutability and version tracking', function () {
+    it('should not allow republishing a version', async function () {
+      // First publish a version
+      await CannonRegistry.connect(owner).publish(
+        toBytes32('some-module'),
+        toBytes32('1337-main'),
+        [toBytes32('1.0.0')],
+        'ipfs://some-module-hash@1.0.0',
+        'ipfs://some-module-meta@1.0.0',
+        { value: fee }
+      );
+
+      // Try to republish the same version
+      await assertRevert(async () => {
+        await CannonRegistry.connect(owner).publish(
+          toBytes32('some-module'),
+          toBytes32('1337-main'),
+          [toBytes32('1.0.0')],
+          'ipfs://some-module-hash@1.0.0-new',
+          'ipfs://some-module-meta@1.0.0-new',
+          { value: fee }
+        );
+      }, 'RepublishNotAllowed("0x736f6d652d6d6f64756c65000000000000000000000000000000000000000000", "0x313333372d6d61696e0000000000000000000000000000000000000000000000", "0x312e302e30000000000000000000000000000000000000000000000000000000", "0x76657273696f6e000000000000000000")');
+    });
+
+    it('should not allow turning a tag into a version', async function () {
+      // First publish a tag
+      await CannonRegistry.connect(owner).publish(
+        toBytes32('some-module'),
+        toBytes32('1337-main'),
+        [toBytes32('1.2.3.4'), toBytes32('latest')],
+        'ipfs://some-module-hash@latest',
+        'ipfs://some-module-meta@latest',
+        { value: fee }
+      );
+
+      // Try to publish the same tag as a version
+      await assertRevert(async () => {
+        await CannonRegistry.connect(owner).publish(
+          toBytes32('some-module'),
+          toBytes32('1337-main'),
+          [toBytes32('latest')],
+          'ipfs://some-module-hash@latest-new',
+          'ipfs://some-module-meta@latest-new',
+          { value: fee }
+        );
+      }, 'RepublishNotAllowed("0x736f6d652d6d6f64756c65000000000000000000000000000000000000000000", "0x313333372d6d61696e0000000000000000000000000000000000000000000000", "0x6c61746573740000000000000000000000000000000000000000000000000000", "0x74616700000000000000000000000000")');
+    });
+
+    it('should correctly track version and tag mutability', async function () {
+      // Publish a version and tag
+      await CannonRegistry.connect(owner).publish(
+        toBytes32('some-module'),
+        toBytes32('1337-main'),
+        [toBytes32('2.0.0'), toBytes32('stable')],
+        'ipfs://some-module-hash@2.0.0',
+        'ipfs://some-module-meta@2.0.0',
+        { value: fee }
+      );
+
+      // Get package info for both
+      const versionInfo = await CannonRegistry.getPackageInfo(
+        toBytes32('some-module'),
+        toBytes32('2.0.0'),
+        toBytes32('1337-main')
+      );
+      const tagInfo = await CannonRegistry.getPackageInfo(
+        toBytes32('some-module'),
+        toBytes32('stable'),
+        toBytes32('1337-main')
+      );
+
+      // Check mutability values
+      equal(versionInfo.mutability, toHex('version', { size: 16 }));
+      equal(tagInfo.mutability, toHex('tag', { size: 16 }));
+    });
+
+    it('should allow updating a tag to point to a new version', async function () {
+      // First publish a version and tag
+      await CannonRegistry.connect(owner).publish(
+        toBytes32('some-module'),
+        toBytes32('1337-main'),
+        [toBytes32('3.0.0'), toBytes32('latest')],
+        'ipfs://some-module-hash@3.0.0',
+        'ipfs://some-module-meta@3.0.0',
+        { value: fee }
+      );
+
+      // Publish a new version
+      await CannonRegistry.connect(owner).publish(
+        toBytes32('some-module'),
+        toBytes32('1337-main'),
+        [toBytes32('4.0.0'), toBytes32('latest')],
+        'ipfs://some-module-hash@4.0.0',
+        'ipfs://some-module-meta@4.0.0',
+        { value: fee }
+      );
+
+      // Verify the tag now points to the new version
+      const tagInfo = await CannonRegistry.getPackageInfo(
+        toBytes32('some-module'),
+        toBytes32('latest'),
+        toBytes32('1337-main')
+      );
+      equal(tagInfo.deployUrl, 'ipfs://some-module-hash@4.0.0');
+    });
+  });
+
   describe('unpublish()', function () {
     it('should be able to unpublish', async function () {
       const tx = await CannonRegistry.connect(owner).unpublish(toBytes32('some-module'), toBytes32('1337-main'), [
@@ -461,9 +539,11 @@ describe('CannonRegistry', function () {
 
       it('sends cross chain message', async function () {
         const functionName = 'setAdditionalPublishers';
-        const expectedArgs = [toBytes32('some-module'), [], [await user3.getAddress()]];
+        const expectedArgs = [toBytes32('some-module'), [], [await user3.getAddress()]] as const;
         const functionSelector = CannonRegistry.interface.getSighash(functionName);
-        const encodedParameters = CannonRegistry.interface.encodeFunctionData(functionName, expectedArgs).slice(10); // Remove the first 10 characters (0x + selector)
+        const encodedParameters = CannonRegistry.interface
+          .encodeFunctionData(functionName as any, expectedArgs as any)
+          .slice(10);
 
         const data = functionSelector + encodedParameters;
 

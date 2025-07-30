@@ -18,7 +18,81 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Snippet } from '@/components/snippet';
 import { FilesBlock } from '@/components/files-block';
-import { Info } from 'lucide-react';
+import { Info, Link as LinkIcon } from 'lucide-react';
+
+// Utility function to generate URL-friendly slugs from heading text
+function slugify(text: string): string {
+  if (typeof text !== 'string') {
+    // Handle cases where children might be React elements
+    return '';
+  }
+
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '');
+}
+
+// Extract text content from React children (including nested elements)
+function getTextContent(children: React.ReactNode): string {
+  if (typeof children === 'string') {
+    return children;
+  }
+
+  if (typeof children === 'number') {
+    return children.toString();
+  }
+
+  if (React.isValidElement(children)) {
+    return getTextContent(children.props.children);
+  }
+
+  if (Array.isArray(children)) {
+    return children.map(getTextContent).join('');
+  }
+
+  return '';
+}
+
+// Heading component with anchor link
+function createHeadingComponent(
+  tagName: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6',
+  baseClassName: string
+) {
+  return function HeadingComponent({
+    className,
+    children,
+    ...props
+  }: React.HTMLAttributes<HTMLHeadingElement>) {
+    const textContent = getTextContent(children);
+    const id = slugify(textContent);
+
+    return React.createElement(
+      tagName,
+      {
+        className: cn('group relative scroll-m-20', baseClassName, className),
+        id,
+        ...props,
+      },
+      children,
+      id &&
+        React.createElement(
+          'a',
+          {
+            href: `#${id}`,
+            className:
+              'ml-2 inline-flex h-4 w-4 items-center justify-center opacity-0 transition-opacity group-hover:opacity-100',
+            'aria-label': `Link to ${textContent}`,
+          },
+          React.createElement(LinkIcon, { className: 'h-3 w-3' })
+        )
+    );
+  };
+}
 
 const components = {
   Accordion,
@@ -36,59 +110,26 @@ const components = {
   AlertTitle,
   AlertDescription,
   Info,
-  h1: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h1
-      className={cn(
-        'mt-8 scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl',
-        className
-      )}
-      {...props}
-    />
+  h1: createHeadingComponent(
+    'h1',
+    'mt-8 text-4xl font-extrabold tracking-tight lg:text-5xl'
   ),
-  h2: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h2
-      className={cn(
-        'mt-8 scroll-m-20 text-3xl font-semibold tracking-tight first:mt-0',
-        className
-      )}
-      {...props}
-    />
+  h2: createHeadingComponent(
+    'h2',
+    'mt-8 text-3xl font-semibold tracking-tight first:mt-0'
   ),
-  h3: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h3
-      className={cn(
-        'mt-8 scroll-m-20 border-b border-border pb-3 text-2xl font-semibold tracking-tight',
-        className
-      )}
-      {...props}
-    />
+  h3: createHeadingComponent(
+    'h3',
+    'mt-8 border-b border-border pb-3 text-2xl font-semibold tracking-tight'
   ),
-  h4: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h4
-      className={cn(
-        'mt-8 scroll-m-20 border-b border-border pb-3 text-xl font-semibold tracking-tight',
-        className
-      )}
-      {...props}
-    />
+  h4: createHeadingComponent(
+    'h4',
+    'mt-8 border-b border-border pb-3 text-xl font-semibold tracking-tight'
   ),
-  h5: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h5
-      className={cn(
-        'mt-8 scroll-m-20 text-lg font-semibold tracking-tight',
-        className
-      )}
-      {...props}
-    />
-  ),
-  h6: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h6
-      className={cn(
-        'mt-8 scroll-m-20 text-base font-semibold tracking-tight',
-        className
-      )}
-      {...props}
-    />
+  h5: createHeadingComponent('h5', 'mt-8 text-lg font-semibold tracking-tight'),
+  h6: createHeadingComponent(
+    'h6',
+    'mt-8 text-base font-semibold tracking-tight'
   ),
   a: ({ className, ...props }: React.HTMLAttributes<HTMLAnchorElement>) => (
     <a

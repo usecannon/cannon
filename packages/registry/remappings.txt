@@ -1,0 +1,2 @@
+@synthetixio/core-contracts/=node_modules/@synthetixio/core-contracts/
+@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/

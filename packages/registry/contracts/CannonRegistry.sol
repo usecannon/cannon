@@ -2,11 +2,14 @@
 pragma solidity 0.8.24;
 
 import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
+import {OwnableStorage} from "@synthetixio/core-contracts/contracts/ownership/OwnableStorage.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {OwnedUpgradableUpdated} from "./OwnedUpgradableUpdated.sol";
 import {EfficientStorage} from "./EfficientStorage.sol";
 import {ERC2771Context} from "./ERC2771Context.sol";
 import {IOptimismL1Sender} from "./IOptimismL1Sender.sol";
 import {IOptimismL2Receiver} from "./IOptimismL2Receiver.sol";
+import {CannonSubscription} from "./CannonSubscription.sol";
 
 /**
  * @title An on-chain record of contract deployments with Cannon
@@ -54,6 +57,16 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
    * @notice Thrown when there was a problem withdrawing collected fees from the contract
    */
   error WithdrawFail(uint256 withdrawAmount);
+
+  /**
+   * @notice Thrown when a package is not mutable
+   */
+  error RepublishNotAllowed(bytes32 packageName, bytes32 variant, bytes32 tag, bytes16 mutability);
+
+  /*
+   * @notice Thrown when the subscription is not configured and the user tries to publish with it
+   */
+  error SubscriptionNotAvailable();
 
   /**
    * @notice Emitted when `setPackageOwnership` is called and a package is registered for the first time
@@ -110,6 +123,14 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
    */
   event PackageUnverify(bytes32 indexed name, address indexed verifier);
 
+  struct CannonDecodedDeployInfo {
+    address owner;
+    string deployUrl;
+    string metaUrl;
+    bytes16 mutability;
+    bytes16 __reserved;
+  }
+
   uint256 public constant MIN_PACKAGE_NAME_LENGTH = 3;
   uint256 public constant MAX_PACKAGE_PUBLISH_TAGS = 5;
   uint256 public unused = 0 wei;
@@ -129,12 +150,16 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
     _OPTIMISM_MESSENGER = IOptimismL1Sender(_optimismMessenger); // IOptimismL1Sender(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1)
     _OPTIMISM_RECEIVER = IOptimismL2Receiver(_optimismReceiver); // IOptimismL2Receiver(0x4200000000000000000000000000000000000007)
     _L1_CHAIN_ID = _l1ChainId; // 1
+
+    // needed for tests
+    OwnableStorage.load().owner = msg.sender;
   }
 
   /**
    * @notice Allows for owner to withdraw all collected fees.
    */
   function withdraw() external onlyOwner {
+    address sender = ERC2771Context.msgSender();
     uint256 amount = address(this).balance;
 
     // we check that the send amount is not 0 just in case, the contract is unexpectedly empty, would save the owner some gas.
@@ -142,8 +167,21 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
       revert WithdrawFail(0);
     }
 
-    (bool success, ) = msg.sender.call{value: amount}("");
+    (bool success, ) = sender.call{value: amount}("");
     if (!success) revert WithdrawFail(amount);
+
+    // Withdraw subscription tokens
+    address subscriptionAddress = _store().subscriptionAddress;
+    if (subscriptionAddress != address(0)) {
+      IERC20 token = CannonSubscription(subscriptionAddress).TOKEN();
+      uint256 tokenBalance = token.balanceOf(address(this));
+      if (tokenBalance > 0) {
+        bool tokenSuccess = token.transfer(sender, tokenBalance);
+        if (!tokenSuccess) {
+          revert WithdrawFail(tokenBalance);
+        }
+      }
+    }
   }
 
   /**
@@ -155,6 +193,22 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
     Store storage store = _store();
     store.publishFee = _publishFee;
     store.registerFee = _registerFee;
+  }
+
+  /**
+   * @notice Change the subscription address for the registry. This is the contract
+   *         that will be used to check and use the subscriptions for the registry.
+   * @param _subscriptionAddress The new subscription address
+   */
+  function setSubscriptionAddress(address _subscriptionAddress) external onlyOwner {
+    _store().subscriptionAddress = _subscriptionAddress;
+  }
+
+  /**
+   * @notice Get the subscription contract address.
+   */
+  function getSubscriptionAddress() external view returns (address) {
+    return _store().subscriptionAddress;
   }
 
   /**
@@ -179,6 +233,35 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
       revert FeeRequired(store.publishFee);
     }
 
+    _publish(_packageName, _variant, _packageTags, _packageDeployUrl, _packageMetaUrl);
+  }
+
+  function publishWithSubscription(
+    bytes32 _packageName,
+    bytes32 _variant,
+    bytes32[] memory _packageTags,
+    string memory _packageDeployUrl,
+    string memory _packageMetaUrl
+  ) external {
+    address subscriptionAddress = _store().subscriptionAddress;
+
+    if (subscriptionAddress == address(0)) {
+      revert SubscriptionNotAvailable();
+    }
+
+    CannonSubscription(subscriptionAddress).useMembershipCredits(ERC2771Context.msgSender(), 1);
+    _publish(_packageName, _variant, _packageTags, _packageDeployUrl, _packageMetaUrl);
+  }
+
+  function _publish(
+    bytes32 _packageName,
+    bytes32 _variant,
+    bytes32[] memory _packageTags,
+    string memory _packageDeployUrl,
+    string memory _packageMetaUrl
+  ) internal {
+    Store storage store = _store();
+
     // do we have tags for the package, and not an excessive number
     if (_packageTags.length == 0 || _packageTags.length > MAX_PACKAGE_PUBLISH_TAGS) {
       revert InvalidTags();
@@ -202,10 +285,32 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
     bytes16 packageDeployString = bytes16(_writeString(_packageDeployUrl));
     bytes16 packageMetaString = bytes16(_writeString(_packageMetaUrl));
 
+    // make sure all the published tags/fields are mutable
+    for (uint256 i = 0; i < _packageTags.length; i++) {
+      bytes16 mutability = _p.deployments[_packageTags[i]][_variant].mutability;
+      if (mutability == "version") {
+        // versions cannot be republished
+        revert RepublishNotAllowed(_packageName, _variant, _packageTags[i], mutability);
+      } else if (mutability == "tag" && i == 0) {
+        // trying to turn a tag into a version
+        revert RepublishNotAllowed(_packageName, _variant, _packageTags[i], mutability);
+      }
+    }
+
     // set the first package deploy version info (always the first tag)
     bytes32 _firstTag = _packageTags[0];
-    _p.deployments[_firstTag][_variant] = CannonDeployInfo({deploy: packageDeployString, meta: packageMetaString});
-    CannonDeployInfo storage _deployInfo = _p.deployments[_firstTag][_variant];
+    _p.deployments[_firstTag][_variant] = CannonDeployInfo({
+      deploy: packageDeployString,
+      meta: packageMetaString,
+      mutability: "version",
+      __reserved: ""
+    });
+    CannonDeployInfo memory _deployInfo = CannonDeployInfo({
+      deploy: packageDeployString,
+      meta: packageMetaString,
+      mutability: "tag",
+      __reserved: ""
+    });
     emit PackagePublishWithFee(_packageName, _firstTag, _variant, _packageDeployUrl, _packageMetaUrl, sender, msg.value);
 
     if (_packageTags.length > 1) {
@@ -240,7 +345,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
       bytes32 _tag = _packageTags[i];
 
       // zero out package data (basically empty strings)
-      _p.deployments[_tag][_variant] = CannonDeployInfo({deploy: "", meta: ""});
+      _p.deployments[_tag][_variant] = CannonDeployInfo({deploy: "", meta: "", mutability: "", __reserved: ""});
 
       emit PackageUnpublish(_packageName, _tag, _variant, sender);
     }
@@ -487,6 +592,20 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
   }
 
   /**
+   * @notice Returns the full deploy info for the given package
+   * @param _packageName The package namespace to check
+   * @param _packageVersionName The tag or version of the package to check
+   * @param _packageVariant The variant of the package to check (see publish)
+   */
+  function getPackageInfo(
+    bytes32 _packageName,
+    bytes32 _packageVersionName,
+    bytes32 _packageVariant
+  ) external view returns (CannonDecodedDeployInfo memory) {
+    return _getDecodedDeployInfo(_packageName, _packageVersionName, _packageVariant);
+  }
+
+  /**
    * @notice Returns the recorded URL of a previously published package
    * @param _packageName The package namespace to check
    * @param _packageVersionName The tag or version of the package to check
@@ -562,5 +681,22 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradableUpdated {
     }
 
     return k;
+  }
+
+  function _getDecodedDeployInfo(
+    bytes32 _packageName,
+    bytes32 _packageVersionName,
+    bytes32 _packageVariant
+  ) internal view returns (CannonDecodedDeployInfo memory) {
+    CannonDeployInfo memory _deployInfo = _store().packages[_packageName].deployments[_packageVersionName][_packageVariant];
+
+    return
+      CannonDecodedDeployInfo({
+        owner: _store().packages[_packageName].owner,
+        deployUrl: _store().strings[_deployInfo.deploy],
+        metaUrl: _store().strings[_deployInfo.meta],
+        mutability: _deployInfo.mutability,
+        __reserved: _deployInfo.__reserved
+      });
   }
 }

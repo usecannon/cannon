@@ -19,6 +19,28 @@ import {
 } from '@/components/ui/table';
 import { useSafeUrl } from '@/hooks/safe';
 
+function isEnhancedTransaction(tx: any): tx is EnhancedTransaction {
+  return (
+    tx && 'tx' in tx && 'hintData' in tx && 'sigHash' in tx && 'isLink' in tx
+  );
+}
+
+function toEnhancedTransaction(
+  tx: SafeTransaction,
+  safe: SafeDefinition
+): EnhancedTransaction {
+  const hintData = parseHintedMulticall(tx.data);
+  const sigHash = hintData ? getSafeTransactionHash(safe, tx) : null;
+  const isLink = sigHash != null;
+
+  return {
+    tx,
+    hintData,
+    sigHash,
+    isLink,
+  };
+}
+
 const useTxnAdditionalData = ({
   safe,
   tx,
@@ -37,19 +59,32 @@ const useTxnAdditionalData = ({
   return useTxnData(tx, { safe: safe }) as any;
 };
 
+export interface EnhancedTransaction {
+  tx: SafeTransaction;
+  hintData: ReturnType<typeof parseHintedMulticall> | null;
+  sigHash: string | null;
+  isLink: boolean;
+}
+
 interface TransactionTableProps {
-  transactions: SafeTransaction[];
+  transactions: SafeTransaction[] | EnhancedTransaction[];
   safe: SafeDefinition;
-  hideExternal: boolean;
   isStaged?: boolean;
 }
 
 export function TransactionTable({
   transactions,
   safe,
-  hideExternal,
   isStaged,
 }: TransactionTableProps) {
+  const enhancedTxs: EnhancedTransaction[] = useMemo(
+    () =>
+      transactions.map((tx) => {
+        return isEnhancedTransaction(tx) ? tx : toEnhancedTransaction(tx, safe);
+      }),
+    [transactions, safe]
+  );
+
   return (
     <Table>
       <TableHeader>
@@ -64,13 +99,17 @@ export function TransactionTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {transactions.map((tx) => (
+        {enhancedTxs.map((enhanced) => (
           <TransactionRow
-            key={isStaged ? JSON.stringify(tx) : tx.safeTxHash}
+            key={
+              isStaged ? JSON.stringify(enhanced.tx) : enhanced.tx.safeTxHash
+            }
             safe={safe}
-            tx={tx}
-            hideExternal={hideExternal}
+            tx={enhanced.tx}
             isStaged={isStaged}
+            hintData={enhanced.hintData}
+            sigHash={enhanced.sigHash}
+            isLink={enhanced.isLink}
           />
         ))}
       </TableBody>
@@ -81,34 +120,26 @@ export function TransactionTable({
 interface TransactionRowProps {
   safe: SafeDefinition;
   tx: SafeTransaction;
-  hideExternal: boolean;
   isStaged?: boolean;
+  hintData?: ReturnType<typeof parseHintedMulticall> | null;
+  sigHash?: string | null;
+  isLink?: boolean;
 }
 
 function TransactionRow({
   safe,
   tx,
-  hideExternal,
   isStaged,
+  hintData,
+  sigHash,
+  isLink,
 }: TransactionRowProps) {
   const stager = useTxnAdditionalData({ safe, tx, isStaged });
-  const hintData = parseHintedMulticall(tx.data);
   const getSafeUrl = useSafeUrl();
 
   const { resolvedName, resolvedVersion, resolvedPreset } = useCannonPackage(
     hintData?.cannonPackage
   );
-
-  const sigHash = useMemo(
-    () => hintData && getSafeTransactionHash(safe, tx),
-    [safe, tx]
-  );
-
-  const isLink = sigHash != null;
-
-  if (hideExternal && !isLink) {
-    return null;
-  }
 
   return (
     <TableRow
