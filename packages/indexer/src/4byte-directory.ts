@@ -49,6 +49,7 @@ export async function loop() {
 
   console.log('start signature database scan loop');
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     let nextUrl: string | null = 'https://www.4byte.directory/api/v1/signatures/?format=json';
     let failureCount = 0;
