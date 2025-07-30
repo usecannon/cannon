@@ -1,7 +1,7 @@
 import React from 'react';
 import TxInfoRow from '@/features/Tx/TxInfoRow';
 import {
-  covertToDec,
+  convertToDec,
   convertToFormatEther,
   convertToGwei,
 } from '@/lib/transaction';
@@ -20,8 +20,8 @@ const CostInfo: React.FC<ConstInfoProps> = ({ tx, txReceipt, symbol }) => {
     <span className="">
       {`${convertToFormatEther(
         txReceipt.l1Fee
-          ? tx.gasPrice! * covertToDec(txReceipt.gasUsed) +
-              covertToDec(txReceipt.l1Fee)
+          ? tx.gasPrice! * convertToDec(txReceipt.gasUsed) +
+              convertToDec(txReceipt.l1Fee)
           : tx.gasPrice! * txReceipt.gasUsed,
         symbol
       )}`}
