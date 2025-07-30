@@ -68,13 +68,16 @@ const getCellContent = ({ cell }: { cell: any }) => {
     }
     case 'deployUrl': {
       return (
-        <code className="text-xs translate-y-[1px]">
-          {formatIPFS(cell.row.original.deployUrl, 10)}
+        <div className="flex items-center">
+          <code className="text-xs">
+            {formatIPFS(cell.row.original.deployUrl, 10)}
+          </code>
           <ClipboardButton
             text={cell.row.original.deployUrl}
-            className="ml-3 z-10 relative"
+            className="ml-3 z-10"
+            size="sm"
           />
-        </code>
+        </div>
       );
     }
     case 'published': {
