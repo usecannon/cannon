@@ -242,10 +242,8 @@ const SearchBar = () => {
                                       result.preset ?? ''
                                     )}{' '}
                                     on{' '}
-                                    {result.chainId !== undefined
-                                      ? getChainById(result.chainId)?.name ||
-                                        'Unknown Chain'
-                                      : 'Unknown Chain'}{' '}
+                                    {getChainById(result.chainId!)?.name ||
+                                      'Unknown Chain'}{' '}
                                     (ID: {result.chainId})
                                   </span>
                                 </div>
