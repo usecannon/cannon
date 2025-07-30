@@ -38,7 +38,10 @@ const generateLink = (result: any) => {
   }
 };
 
-const formatVersionAndPreset = (version: string, preset: string) => {
+const formatVersionAndPreset = (
+  version: string | undefined,
+  preset: string | undefined
+) => {
   const formattedVersion = version !== 'latest' ? `:${version}` : '';
   const formattedPreset = preset !== 'main' ? `@${preset}` : '';
   return `${formattedVersion}${formattedPreset}`;
@@ -242,8 +245,10 @@ const SearchBar = () => {
                                       result.preset
                                     )}{' '}
                                     on{' '}
-                                    {getChainById(result.chainId)?.name ||
-                                      'Unknown Chain'}{' '}
+                                    {result.chainId !== undefined
+                                      ? getChainById(result.chainId)?.name ||
+                                        'Unknown Chain'
+                                      : 'Unknown Chain'}{' '}
                                     (ID: {result.chainId})
                                   </span>
                                 </div>
