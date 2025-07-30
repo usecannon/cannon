@@ -38,10 +38,7 @@ const generateLink = (result: any) => {
   }
 };
 
-const formatVersionAndPreset = (
-  version: string | undefined,
-  preset: string | undefined
-) => {
+const formatVersionAndPreset = (version: string, preset: string) => {
   const formattedVersion = version !== 'latest' ? `:${version}` : '';
   const formattedPreset = preset !== 'main' ? `@${preset}` : '';
   return `${formattedVersion}${formattedPreset}`;
@@ -241,8 +238,8 @@ const SearchBar = () => {
                                   <span className="text-xs text-muted-foreground">
                                     {result.packageName}
                                     {formatVersionAndPreset(
-                                      result.version,
-                                      result.preset
+                                      result.version ?? '',
+                                      result.preset ?? ''
                                     )}{' '}
                                     on{' '}
                                     {result.chainId !== undefined
