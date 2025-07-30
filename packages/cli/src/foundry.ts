@@ -90,7 +90,7 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
       );
     }
 
-    const matchingArtifact = possibleArtifacts.find((v) => v.ast.absolutePath == inputSourceName);
+    const matchingArtifact = possibleArtifacts.find((v) => v.ast?.absolutePath == inputSourceName);
     if (!matchingArtifact) {
       throw new Error(
         `no artifact was found at the given source name "${inputSourceName}". Should be one of:\n${sourceNames.join('\n')}`
@@ -105,7 +105,7 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
     // save build metadata
     const evmVersionInfo = foundryOpts.evm_version;
 
-    debug('detected foundry info', artifact.metadata);
+    //debug('detected foundry info', artifact.metadata);
     debug('evm version', evmVersionInfo);
 
     const solcVersion = artifact.metadata.compiler.version;
@@ -135,7 +135,9 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
 
     return {
       contractName: inputContractName,
-      sourceName: artifact.ast.absolutePath,
+      sourceName:
+        artifact.metadata?.settings?.compilationTarget?.[inputContractName] ??
+        Object.keys(artifact.metadata.settings.compilationTarget)[0],
       abi: artifact.abi,
       bytecode: artifact.bytecode.object,
       deployedBytecode: artifact.deployedBytecode.object,
@@ -146,7 +148,7 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
 
   return {
     contractName: inputContractName,
-    sourceName: artifact.ast.absolutePath,
+    sourceName: Object.keys(artifact.metadata.settings.compilationTarget)[0],
     abi: artifact.abi,
     bytecode: artifact.bytecode.object,
     deployedBytecode: artifact.deployedBytecode.object,

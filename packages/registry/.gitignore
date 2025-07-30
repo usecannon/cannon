@@ -5,3 +5,5 @@ cannon/
 coverage.json
 deployments/
 typechain-types/
+
+out/

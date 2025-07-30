@@ -8,7 +8,6 @@ import { CliSettings } from '../settings';
 import { getProvider, runRpc } from '../rpc';
 import { createDefaultReadRegistry } from '../registry';
 
-import { getChainById } from '../chains';
 import { getMainLoader } from '../loader';
 
 import { log } from '../util/console';
@@ -44,7 +43,7 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
     getMainLoader(cliSettings)
   );
 
-  const etherscanApi = cliSettings.etherscanApiUrl || getChainById(chainId)?.blockExplorers?.default.apiUrl;
+  const etherscanApi = cliSettings.etherscanApiUrl || 'https://api.etherscan.io/v2/api';
 
   if (!etherscanApi) {
     throw new Error(
@@ -60,6 +59,8 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
 
   const guids: { [c: string]: string } = {};
 
+  const verifiedAddresses = new Set<string>();
+
   const verifyPackage = async (deployData: DeploymentInfo) => {
     const miscData = await runtime.readBlob(deployData.miscUrl);
 
@@ -73,6 +74,13 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
 
     for (const c in outputs.contracts) {
       const contractInfo = outputs.contracts[c];
+
+      // simple safeguard to ensure we dont keep trying to verify the same contract multiple times
+      if (verifiedAddresses.has(contractInfo.address)) {
+        continue;
+      } else {
+        verifiedAddresses.add(contractInfo.address);
+      }
 
       // contracts can either be imported by just their name, or by a full path.
       // technically it may be more correct to just load by the actual name of the `artifact` property used, but that is complicated
@@ -92,7 +100,7 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
         continue;
       }
 
-      if (await isVerified(contractInfo.address, etherscanApi, cliSettings.etherscanApiKey)) {
+      if (await isVerified(contractInfo.address, chainId, etherscanApi, cliSettings.etherscanApiKey)) {
         log(`✅ ${c}: Contract source code already verified`);
         await sleep(500);
         continue;
@@ -105,6 +113,7 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
 
         const reqData: { [k: string]: string } = {
           apikey: cliSettings.etherscanApiKey,
+          chainid: chainId.toString(),
           module: 'contract',
           action: 'verifysourcecode',
           contractaddress: contractInfo.address,

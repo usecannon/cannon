@@ -33,14 +33,17 @@
     "dotenv": "16.0.1",
     "ethers": "5.7.1",
     "hardhat": "^2.22.3",
-    "hardhat-cannon": "workspace:*",
+    "hardhat-cannon": "2.21.0",
     "hardhat-contract-sizer": "^2.7.0",
     "hardhat-gas-reporter": "^1.0.9",
     "mocha": "10.0.0",
     "solidity-coverage": "0.7.21",
     "ts-node": "^10.9.2",
     "typechain": "8.1.0",
-    "typescript": "^5.8.3",
-    "viem": "^2.25.1"
+    "typescript": "^5.3.3",
+    "viem": "^2.23.1"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.2.0"
   }
 }

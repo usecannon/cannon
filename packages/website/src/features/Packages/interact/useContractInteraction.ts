@@ -6,16 +6,6 @@ import { Address, createPublicClient, zeroAddress } from 'viem';
 import { useState, useEffect } from 'react';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
-// Types
-interface UseContractInteractionProps {
-  f: AbiFunction;
-  abi: Abi;
-  address: Address;
-  chainId: number;
-  params: any[];
-  isFunctionReadOnly: boolean;
-}
-
 interface ContractCallResult {
   value: unknown;
   error: string | null;
@@ -44,6 +34,15 @@ const useSimulation = () => {
 
   return { simulationSender, setSimulationSender };
 };
+interface UseContractInteractionProps {
+  f: AbiFunction;
+  abi: Abi;
+  address: Address;
+  chainId: number;
+  params: any[];
+  value: bigint;
+  isFunctionReadOnly: boolean;
+}
 
 export const useContractInteraction = ({
   f,
@@ -51,6 +50,7 @@ export const useContractInteraction = ({
   address,
   chainId,
   params,
+  value,
   isFunctionReadOnly,
 }: UseContractInteractionProps) => {
   // Wallet and chain state
@@ -78,10 +78,11 @@ export const useContractInteraction = ({
   const { simulationSender, setSimulationSender } = useSimulation();
 
   // Contract interaction hooks
-  const fetchReadContractResult = useContractCall(address, f.name, [...params], abi, publicClient);
+  const fetchReadContractResult = useContractCall(address, f.name, [...params], value, abi, publicClient);
   const fetchWriteContractResult = useContractTransaction(
     from as Address,
     address as Address,
+    value,
     f.name,
     [...params],
     abi,
