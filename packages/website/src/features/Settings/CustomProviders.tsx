@@ -63,22 +63,19 @@ export default function CustomProviders() {
         {settings.customProviders.map((url, index) => (
           <div
             key={index}
-            className="flex items-center justify-between pl-3 pr-1 py-1 rounded-lg bg-accent/50 overflow-x-auto max-w-full group"
+            className="flex items-center justify-between pl-3 pr-1 py-1 rounded-lg bg-accent/50 max-w-full group"
           >
-            <div className="flex items-center gap-3 min-w-0 overflow-x-auto">
-              <span className="text-sm truncate whitespace-nowrap">{url}</span>
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="text-sm truncate">{url}</span>
               {findChainIdByUrl(url) ? (
                 <Badge
                   variant="secondary"
-                  className="shrink-0 opacity-50 px-1.5 whitespace-nowrap"
+                  className="shrink-0 opacity-50 px-1.5"
                 >
                   Chain ID: {findChainIdByUrl(url)}
                 </Badge>
               ) : (
-                <Badge
-                  variant="destructive"
-                  className="shrink-0 whitespace-nowrap"
-                >
+                <Badge variant="destructive" className="shrink-0">
                   Unable to connect
                 </Badge>
               )}
@@ -115,15 +112,16 @@ export default function CustomProviders() {
           <Plus className="h-4 w-4" />
         </Button>
       </div>
-
-      <SettingResetButton
-        onReset={() =>
-          setSettings({
-            customProviders: initialState.settings.customProviders,
-          })
-        }
-        sectionName="Custom Providers"
-      />
+      <div className="flex justify-end">
+        <SettingResetButton
+          onReset={() =>
+            setSettings({
+              customProviders: initialState.settings.customProviders,
+            })
+          }
+          sectionName="Custom Providers"
+        />
+      </div>
     </div>
   );
 }

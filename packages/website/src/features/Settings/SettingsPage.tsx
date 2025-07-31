@@ -103,7 +103,7 @@ export default function SettingsPage() {
             .
           </CardDescription>
         </CardHeader>
-        <CardContent className="pb-2">
+        <CardContent className="pb-2 mb-4">
           <Table>
             <TableHeader>
               <TableRow className="border-b border-border hover:bg-transparent">
@@ -133,12 +133,14 @@ export default function SettingsPage() {
               </TableRow>
             </TableBody>
           </Table>
-          <SettingResetButton
-            onReset={() =>
-              setSettings({ pythUrl: initialState.settings.pythUrl })
-            }
-            sectionName="Oracle Multicalls"
-          />
+          <div className="flex justify-end">
+            <SettingResetButton
+              onReset={() =>
+                setSettings({ pythUrl: initialState.settings.pythUrl })
+              }
+              sectionName="Oracle Multicalls"
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -179,17 +181,19 @@ export default function SettingsPage() {
               Test IPFS Endpoint
             </Link>
           ) : null}
-          <SettingResetButton
-            onReset={() =>
-              setSettings({ ipfsApiUrl: initialState.settings.ipfsApiUrl })
-            }
-            sectionName="IPFS"
-          />
+          <div className="flex justify-end">
+            <SettingResetButton
+              onReset={() =>
+                setSettings({ ipfsApiUrl: initialState.settings.ipfsApiUrl })
+              }
+              sectionName="IPFS"
+            />
+          </div>
         </CardContent>
       </Card>
 
-      <div className="my-10 flex flex-col sm:flex-row gap-4">
-        <Alert className="flex-1 flex items-center min-h-[44px]">
+      <div className="my-10 flex flex-col gap-4">
+        <Alert className="flex items-center min-h-[44px]">
           <div className="flex items-center gap-2">
             <Info className="h-4 w-4" />
             <AlertTitle className="mb-0">
@@ -197,16 +201,19 @@ export default function SettingsPage() {
             </AlertTitle>
           </div>
         </Alert>
-        <SettingResetButton
-          onReset={() => {
-            setSettings(initialState.settings);
-            setSafeTxServices(initialState.safeTxServices);
-          }}
-          sectionName="all"
-        />
+
+        <div className="flex justify-end gap-2">
+          <CopySettingButton />
+          <ImportSettingDialog />
+          <SettingResetButton
+            onReset={() => {
+              setSettings(initialState.settings);
+              setSafeTxServices(initialState.safeTxServices);
+            }}
+            sectionName="all"
+          />
+        </div>
       </div>
-      <CopySettingButton className="mr-3" />
-      <ImportSettingDialog />
     </div>
   );
 }

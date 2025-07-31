@@ -63,7 +63,7 @@ const ImportSettingDialog = () => {
         onClick={() => setOpen(true)}
         data-testid="setting-dialog-button"
       >
-        Edit as JSON
+        Edit settings
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -78,7 +78,7 @@ const ImportSettingDialog = () => {
             height="450px"
             theme="vs-dark"
             defaultLanguage="json"
-            defaultValue="Enter file content..."
+            defaultValue="Loading settings..."
             value={jsonInput}
             onChange={(value) => setJsonInput(value ?? '')}
           />
