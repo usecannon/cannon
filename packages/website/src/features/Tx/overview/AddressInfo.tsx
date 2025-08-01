@@ -4,6 +4,7 @@ import { ClipboardButton } from '@/components/ClipboardButton';
 import { ExtendedTransactionReceipt } from '@/types/ExtendedTransactionReceipt';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import HoverHighlight from '@/features/Tx/HoverHighlight';
+import Link from 'next/link';
 
 type AddressInfoProps = {
   chainId: number | undefined;
@@ -36,10 +37,10 @@ const AddressInfo: React.FC<AddressInfoProps> = ({
         description="The sending party of the transaction."
       >
         {exploreFrom ? (
-          <a
+          <Link
             href={exploreFrom}
             className="inline-flex items-center gap-1"
-            target="_blank"
+            target={exploreFrom.startsWith('http') ? '_blank' : '_self'}
             rel="noopener noreferrer"
           >
             <HoverHighlight
@@ -49,7 +50,7 @@ const AddressInfo: React.FC<AddressInfoProps> = ({
             >
               <span>{txReceipt.from}</span>
             </HoverHighlight>
-          </a>
+          </Link>
         ) : (
           <span>{txReceipt.from}</span>
         )}
@@ -62,10 +63,10 @@ const AddressInfo: React.FC<AddressInfoProps> = ({
       >
         {exploreTo && (
           <>
-            <a
+            <Link
               href={exploreTo}
               className="inline-flex items-center gap-1"
-              target="_blank"
+              target={exploreTo.startsWith('http') ? '_blank' : '_self'}
               rel="noopener noreferrer"
             >
               <HoverHighlight
@@ -75,7 +76,7 @@ const AddressInfo: React.FC<AddressInfoProps> = ({
               >
                 {toAddress}
               </HoverHighlight>
-            </a>
+            </Link>
             {txReceipt.contractAddress && <span className="ml-1">Created</span>}
             <ClipboardButton text={toAddress ?? ''} />
           </>

@@ -20,11 +20,12 @@ export default function TransactionPage() {
   const { chainId, txHash } = router.query;
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [hoverId, setHoverId] = useState<string>('');
-  const { data, isLoading, isError } = useTransactionDetails(chainId, txHash);
+  const { data, isLoading, isError, error } = useTransactionDetails(chainId, txHash);
 
   if (isLoading) return null;
 
   if (isError || !data) {
+    console.log('not rendering transaction because', error, data);
     return (
       <div className="w-full max-w-screen-xl mx-auto px-4 mt-3">
         <Alert variant="destructive">

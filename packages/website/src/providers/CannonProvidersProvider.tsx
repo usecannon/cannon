@@ -339,7 +339,13 @@ function _getChainById(allChains: Chain[], chainId: number) {
   return chain;
 }
 
-const _getExplorerUrl = (allChains: Chain[], chainId: number, hash: Hash) => {
+const _getExplorerUrl = (allChains: Chain[], verifiedOtterscanProviders: Record<number, RpcUrlAndTransport>, chainId: number, hash: Hash) => {
+  if (verifiedOtterscanProviders[chainId]) {
+    return isAddress(hash)
+      ? `/address/${chainId}/${hash}`
+      : `/tx/${chainId}/${hash}`
+  }
+
   const chain = _getChainById(allChains, +chainId);
   if (!chain) return externalLinks.ETHERSCAN;
 
@@ -379,7 +385,7 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
     queryFn: _getProvidersChainId,
   });
 
-  const { isLoadingOtterscan, data: verifiedOtterscanProviders } = useQuery({
+  const { isLoading: isLoadingOtterscan, data: verifiedOtterscanProviders } = useQuery({
     queryKey: ['fetchCustomOtterscan', ...otterscanProviders],
     queryFn: _getProvidersChainId,
   });
@@ -412,10 +418,10 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
         chainMetadata: mergedChainMetadata,
         transports: _allTransports,
         customTransports: _customTransports,
-        otterscanApis: verifiedOtterscanProviders,
+        otterscanApis: verifiedOtterscanProviders || {},
         getChainById: (chainId) => _getChainById(_allChains, chainId),
         getExplorerUrl: (chainId, hash) =>
-          _getExplorerUrl(_allChains, chainId, hash as Hash),
+          _getExplorerUrl(_allChains, verifiedOtterscanProviders, chainId, hash as Hash),
       }}
     >
       {isLoadingProviders || isLoadingOtterscan ? <PageLoading /> : children}

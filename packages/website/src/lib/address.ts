@@ -24,9 +24,13 @@ export type TabId = (typeof tabs)[number]['id'];
 export async function getMethods(txs: OtterscanTransaction[]) {
   const inputs = txs.filter((tx: any) => tx.input !== '0x').map((tx: any) => tx.input.slice(0, 10));
 
-  const res = await getSelectors(inputs)
+  if (inputs.length) {
+    const res = await getSelectors(inputs)
 
-  return res.results;
+    return res.results;
+  }
+
+  return [];
 }
 
 export function matchFunctionName(methods: any, input: string) {
