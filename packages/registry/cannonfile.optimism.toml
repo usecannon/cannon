@@ -1,0 +1,16 @@
+include = ["cannonfile.toml", "cannonfile.subscription.toml"]
+
+[setting.initialOwner]
+defaultValue = "0xca111279D6aeEc39849ed5CD2bA3045381643422"
+
+[setting.l1ChainId]
+defaultValue = "1"
+
+[setting.optimismL1Sender]
+defaultValue = "0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1"
+
+[setting.optimismL2Receiver]
+defaultValue = "0x4200000000000000000000000000000000000007"
+
+[setting.subscriptionToken]
+defaultValue = "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85"

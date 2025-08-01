@@ -33,7 +33,7 @@
     "dotenv": "16.0.1",
     "ethers": "5.7.1",
     "hardhat": "^2.22.3",
-    "hardhat-cannon": "workspace:*",
+    "hardhat-cannon": "2.21.0",
     "hardhat-contract-sizer": "^2.7.0",
     "hardhat-gas-reporter": "^1.0.9",
     "mocha": "10.0.0",

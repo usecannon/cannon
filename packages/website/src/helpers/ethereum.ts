@@ -63,6 +63,7 @@ export async function contractCall(
   to: Address,
   functionName: string,
   params: any,
+  value: bigint,
   abi: Abi,
   publicClient: PublicClient,
   pythUrl: string
@@ -75,6 +76,7 @@ export async function contractCall(
   const txn = {
     account: from,
     to,
+    value,
     data,
   };
 
@@ -89,7 +91,7 @@ export async function contractCall(
      * because the multicall txn doesnt return error data when it fails
      * We default simulateContract because behaves almost exactly like readContract, but uses abi-encoded data
      */
-    res = await publicClient.simulateContract({ address: to, abi, functionName, args: params, account: from });
+    res = await publicClient.simulateContract({ address: to, abi, functionName, args: params, account: from, value });
   }
 
   try {
@@ -134,6 +136,7 @@ export async function contractCall(
 export async function contractTransaction(
   from: Address,
   to: Address,
+  value: bigint,
   functionName: string,
   params: any,
   abi: Abi,
@@ -150,6 +153,7 @@ export async function contractTransaction(
     account: from,
     to,
     data,
+    value,
   };
 
   let call;
@@ -168,7 +172,7 @@ export async function contractTransaction(
     account: from,
     to: call?.to || to,
     data: call?.data || data,
-    value: call?.value || params.value,
+    value: call?.value || value,
   });
 
   return hash;

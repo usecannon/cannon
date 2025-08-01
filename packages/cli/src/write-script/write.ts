@@ -1,12 +1,11 @@
-import { createWriteStream } from 'node:fs';
-import { finished } from 'node:stream/promises';
 import { ChainBuilderRuntime } from '@usecannon/builder';
 import { ensureFileSync } from 'fs-extra';
-import * as viem from 'viem';
 import { createStepsStream } from './stream-steps';
 import { DumpRenderer } from './types';
+import { writeFile } from 'node:fs/promises';
+import * as logger from '../util/console';
 
-export const WRITE_SCRIPT_FORMATS = ['json', 'ethers', 'foundry', 'cast'] as const;
+export const WRITE_SCRIPT_FORMATS = ['json', 'ethers', 'foundry', 'foundry-portable', 'cast'] as const;
 
 export type WriteScriptFormat = (typeof WRITE_SCRIPT_FORMATS)[number];
 
@@ -28,24 +27,38 @@ export async function createWriteScript(
   const createRenderer = (await import(`./render-${format}`)).createRenderer as DumpRenderer;
 
   const events = createStepsStream(runtime);
-
   const blockNumber = await runtime.provider.getBlockNumber();
+  const renderer = createRenderer(Number(blockNumber));
 
-  const stream = events.stream // Listen for step execution events
-    .pipe(events.fetchTransactions) // asynchronically add the executed transactions
-    .pipe(createRenderer(Number(blockNumber))) // render step lines into the desired format
-    .pipe(createWriteStream(targetFile)); // save to file
+  // Collect all events into an array
+  const eventsData: string[] = [];
+
+  // Set up the event processing pipeline
+  const pipeline = events.stream.pipe(events.fetchTransactions).pipe(renderer);
+
+  pipeline.on('data', (chunk: string) => {
+    eventsData.push(chunk);
+  });
 
   return {
     end: async () => {
-      // The runtime does not have an event to notify when the build has finished
-      // so, we have to manully stop listening to it and close the streams.
+      // Signal the start of the pipeline to end
       events.stream.end();
 
-      await viem.withTimeout(() => finished(stream), {
-        timeout: 10000,
-        errorInstance: new Error('stream timed out'),
+      // Wait for the entire pipeline to finish processing
+      await new Promise<void>((resolve, reject) => {
+        pipeline.on('end', () => {
+          resolve();
+        });
+
+        pipeline.on('error', (error: Error) => {
+          logger.error('Pipeline error:', error);
+          reject(error);
+        });
       });
+
+      // Write all collected data to file atomically
+      await writeFile(targetFile, eventsData.join(''));
     },
   };
 }

@@ -28,6 +28,13 @@ export class LocalRegistry extends CannonRegistry {
     return 'local';
   }
 
+  getTagMutabilityStorage(packageRef: string, chainId: number): string {
+    const { name, version, preset } = new PackageReference(packageRef);
+    const variant = `${chainId}-${preset}`;
+
+    return path.join(this.packagesDir, 'tags', `${name}_${version}_${variant}.txt.mutability`);
+  }
+
   getTagReferenceStorage(packageRef: string, chainId: number): string {
     const { name, version, preset } = new PackageReference(packageRef);
     const variant = `${chainId}-${preset}`;
@@ -42,11 +49,11 @@ export class LocalRegistry extends CannonRegistry {
     return path.join(this.packagesDir, 'tags', `${name}_${version}_${variant}.txt.meta`);
   }
 
-  async getUrl(packageRef: string, chainId: number): Promise<string | null> {
+  async getUrl(packageRef: string, chainId: number): Promise<{ url: string | null; mutability: 'version' | 'tag' | '' }> {
     const { fullPackageRef } = new PackageReference(packageRef);
 
     const baseResolved = await super.getUrl(fullPackageRef, chainId);
-    if (baseResolved) {
+    if (baseResolved.url) {
       return baseResolved;
     }
 
@@ -57,10 +64,18 @@ export class LocalRegistry extends CannonRegistry {
       this.getTagReferenceStorage(fullPackageRef, chainId).replace(os.homedir(), '')
     );
     try {
-      return (await fs.readFile(this.getTagReferenceStorage(fullPackageRef, chainId))).toString().trim();
+      return {
+        url: (await fs.readFile(this.getTagReferenceStorage(fullPackageRef, chainId))).toString().trim(),
+        mutability: fs.existsSync(this.getTagMutabilityStorage(fullPackageRef, chainId))
+          ? ((await fs.readFile(this.getTagMutabilityStorage(fullPackageRef, chainId))).toString().trim() as
+              | 'version'
+              | 'tag'
+              | '')
+          : '',
+      };
     } catch (err) {
       debug('could not load:', err);
-      return null;
+      return { url: null, mutability: '' };
     }
   }
 
@@ -76,7 +91,13 @@ export class LocalRegistry extends CannonRegistry {
     }
   }
 
-  async publish(packagesNames: string[], chainId: number, url: string, metaUrl: string): Promise<string[]> {
+  async publish(
+    packagesNames: string[],
+    chainId: number,
+    url: string,
+    metaUrl: string,
+    mutabilityOverride?: 'version' | 'tag'
+  ): Promise<string[]> {
     for (const packageName of packagesNames) {
       const { fullPackageRef } = new PackageReference(packageName);
       debug('package local link', packageName);
@@ -85,6 +106,9 @@ export class LocalRegistry extends CannonRegistry {
       await fs.mkdirp(path.dirname(file));
       await fs.writeFile(file, url);
       await fs.writeFile(metaFile, metaUrl);
+      if (mutabilityOverride) {
+        await fs.writeFile(this.getTagMutabilityStorage(fullPackageRef, chainId), mutabilityOverride);
+      }
     }
 
     return [];
@@ -161,7 +185,7 @@ export class ReadOnlyOnChainRegistry extends OnChainRegistry {
   }
 }
 
-async function checkLocalRegistryOverride({
+export async function checkLocalRegistryOverride({
   fullPackageRef,
   chainId,
   result,
@@ -182,6 +206,19 @@ async function checkLocalRegistryOverride({
       )
     );
   }
+}
+
+export async function createOnChainOnlyRegistry(cliSettings: CliSettings): Promise<FallbackRegistry> {
+  const registryProviders = await resolveRegistryProviders({ cliSettings, action: ProviderAction.ReadProvider });
+  return new FallbackRegistry(
+    registryProviders.map(
+      (p) => new ReadOnlyOnChainRegistry({ provider: p.provider, address: cliSettings.registries[0].address })
+    )
+  );
+}
+
+export async function createLocalOnlyRegistry(cliSettings: CliSettings): Promise<LocalRegistry> {
+  return new LocalRegistry(cliSettings.cannonDirectory);
 }
 
 export async function createDefaultReadRegistry(
@@ -207,18 +244,19 @@ export async function createDefaultReadRegistry(
       )
     );
     return new FallbackRegistry([...additionalRegistries, localRegistry]);
-  } else if (cliSettings.registryPriority === 'local') {
-    debug('local registry is the priority, using local registry first');
-    return new FallbackRegistry([...additionalRegistries, localRegistry, ...onChainRegistries]);
   } else {
-    debug('on-chain registry is the priority, using on-chain registry first');
-    const fallbackRegistry = new FallbackRegistry([...additionalRegistries, ...onChainRegistries, localRegistry]);
+    debug('using local registry');
+    const fallbackRegistry = new FallbackRegistry([...additionalRegistries, localRegistry, ...onChainRegistries]);
 
-    if (!cliSettings.quiet) {
-      fallbackRegistry.on('getUrl', checkLocalRegistryOverride).catch((err: Error) => {
-        throw err;
-      });
-    }
+    // for some reason the promises checker really doesn't like the next line
+    // eslint-disable-next-line
+    fallbackRegistry.on('getPackageUrl', async (event) => {
+      // if we had to load this package from the on-chain registry and it was immutable, record
+      if (event.result.mutability === 'version' && event.registry instanceof OnChainRegistry) {
+        debug('caching immutable package from on-chain registry', event.fullPackageRef);
+        await localRegistry.publish(event.fullPackageRef, event.chainId, event.result.url, '', 'version');
+      }
+    });
 
     return fallbackRegistry;
   }

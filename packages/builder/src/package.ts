@@ -105,10 +105,10 @@ export async function pinIpfs(
   const packageReference = PackageReference.from(def.getName(preCtx), def.getVersion(preCtx), checkKeyPreset);
 
   // if the package has already been published to the registry and it has the same ipfs hash, skip.
-  const toUrl = await toStorage.registry.getUrl(packageReference.fullPackageRef, pkgChainId);
+  const toUrl = (await toStorage.registry.getUrl(packageReference.fullPackageRef, pkgChainId)).url;
   debug('toStorage.getLabel: ' + toStorage.getLabel() + ' toUrl: ' + toUrl);
 
-  const fromUrl = await fromStorage.registry.getUrl(packageReference.fullPackageRef, pkgChainId);
+  const fromUrl = (await fromStorage.registry.getUrl(packageReference.fullPackageRef, pkgChainId)).url;
   debug('fromStorage.getLabel: ' + fromStorage.getLabel() + ' fromUrl: ' + fromUrl);
 
   if (fromUrl && toUrl === fromUrl) {
@@ -261,7 +261,7 @@ export async function findUpgradeFromPackage(
   if (!oldDeployHash) {
     debug('fallback: find upgrade from with registry');
     // fallback to the registry with the same package name
-    oldDeployHash = await registry.getUrl(packageReference.fullPackageRef, chainId);
+    oldDeployHash = (await registry.getUrl(packageReference.fullPackageRef, chainId)).url;
   }
 
   return oldDeployHash;
