@@ -333,6 +333,7 @@ export async function initializeIndexes(redis: RedisClientType) {
     {
       name: { type: SchemaFieldTypes.TEXT, NOSTEM: true },
       contractName: { type: SchemaFieldTypes.TEXT, NOSTEM: true },
+      type: { type: SchemaFieldTypes.TAG },
       selector: { type: SchemaFieldTypes.TAG },
       address: { type: SchemaFieldTypes.TAG },
       chainId: { type: SchemaFieldTypes.TAG },

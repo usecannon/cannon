@@ -32,6 +32,7 @@ app.use(
   })
 );
 
+app.use(routes.selector);
 app.use(routes.metrics);
 app.use(routes.chains);
 app.use(routes.packages);
