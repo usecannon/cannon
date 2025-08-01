@@ -49,7 +49,7 @@
     "@usecannon/router": "^4.1.3",
     "@usecannon/web-solc": "0.5.1",
     "acorn": "^8.14.1",
-    "axios": "^1.8.4",
+    "axios": "^1.9.0",
     "axios-retry": "^4.5.0",
     "buffer": "^6.0.3",
     "chalk": "^4.1.2",
@@ -63,7 +63,7 @@
     "rfdc": "^1.4.1",
     "ses": "^1.12.0",
     "typestub-ipfs-only-hash": "^4.0.0",
-    "viem": "^2.25.0",
+    "viem": "^2.25.1",
     "zod": "^3.24.2"
   },
   "engines": {

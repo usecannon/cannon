@@ -1,5 +1,5 @@
 import { getDeploymentImports, extractValidCid, readRawIpfs, uncompress, writeRawIpfs } from '@usecannon/builder';
-import { getS3Client } from '@usecannon/repo/src/s3';
+import { getS3Client } from '@usecannon/repo/dist/src/s3';
 import { config } from '../config';
 import { createJobs } from '../helpers/create-queue';
 

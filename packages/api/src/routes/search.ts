@@ -11,7 +11,7 @@ import {
   parseTextQuery,
 } from '../helpers';
 import { findContractsByAddress, searchContracts } from '../queries/contracts';
-import { findFunctionsBySelector, searchFunctions } from '../queries/functions';
+import { findSelector, searchFunctions } from '../queries/selectors';
 import { findPackagesByPartialRef, searchPackages } from '../queries/packages';
 import { ApiDocument } from '../types';
 
@@ -76,7 +76,7 @@ search.get('/search', async (req, res) => {
   } else if (response.isHex) {
     if (query.length >= 10) {
       const selector = query.slice(0, 10);
-      const result = await findFunctionsBySelector({
+      const result = await findSelector({
         selector: selector as viem.Hex,
         limit: 20,
       });
@@ -84,7 +84,7 @@ search.get('/search', async (req, res) => {
       _pushResults(response, result);
     }
   } else if (response.isFunctionSelector) {
-    const result = await findFunctionsBySelector({
+    const result = await findSelector({
       selector: query as viem.Hex,
       limit: 20,
     });
