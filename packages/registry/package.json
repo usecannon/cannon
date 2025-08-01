@@ -21,6 +21,7 @@
   "homepage": "https://github.com/Synthetixio/cannon#readme",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "2.0.6",
+    "@openzeppelin/contracts": "^5.2.0",
     "@synthetixio/core-contracts": "1.1.1",
     "@typechain/ethers-v5": "10.1.0",
     "@typechain/hardhat": "6.1.2",
