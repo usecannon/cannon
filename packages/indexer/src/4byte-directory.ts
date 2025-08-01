@@ -1,5 +1,4 @@
 import axios from 'axios';
-import _ from 'lodash';
 import * as rkey from './db';
 /* eslint no-console: "off" */
 import { ActualRedisClientType, useRedis } from './redis';
@@ -49,6 +48,7 @@ export async function loop() {
 
   console.log('start signature database scan loop');
 
+  /* @eslint no-constant-condition: "off" */
   while (true) {
     let nextUrl: string | null = 'https://www.4byte.directory/api/v1/signatures/?format=json';
     let failureCount = 0;
