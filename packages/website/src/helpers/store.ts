@@ -42,6 +42,7 @@ export interface State {
     isIpfsGateway: boolean;
     cannonSafeBackendUrl: string;
     customProviders: string[];
+    customOtterscanAPIs: string[];
     pythUrl: string;
   };
 }
@@ -133,6 +134,7 @@ export const initialState = {
     isIpfsGateway: false,
     cannonSafeBackendUrl: 'https://safe-staging.usecannon.com',
     customProviders: [],
+    customOtterscanAPIs: [],
     pythUrl: 'https://hermes.pyth.network',
   },
 } satisfies State;
@@ -147,8 +149,6 @@ export const initialIpfsState = {
 export const initialQueueTxsState = {
   safes: {},
 } satisfies QueueTxsState;
-
-export const initialSelectorDecodeUrl = 'http://localhost:8080/selector?q=';
 
 const useIpfsStore = create<IpfsStore>()(
   persist(

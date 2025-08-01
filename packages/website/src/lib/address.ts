@@ -1,4 +1,3 @@
-import { initialSelectorDecodeUrl } from '@/helpers/store';
 import { TransactionRow, TransactionCsvRow, TokenTransferRow, NftTransferRow } from '@/types/AddressList';
 import { formatEther } from 'viem';
 import { format } from 'date-fns';
@@ -12,6 +11,7 @@ import {
   NftTransferCsvRow,
   TokenTransferCsvRow,
 } from '@/types/AddressList';
+import { getSelectors } from '@/helpers/api';
 
 export const tabs = [
   { id: 'transactions', label: 'Transactions' },
@@ -23,10 +23,10 @@ export type TabId = (typeof tabs)[number]['id'];
 
 export async function getMethods(txs: OtterscanTransaction[]) {
   const inputs = txs.filter((tx: any) => tx.input !== '0x').map((tx: any) => tx.input.slice(0, 10));
-  const url = initialSelectorDecodeUrl + inputs.join(',');
-  const response = await fetch(url);
-  const names = await response.json();
-  return names.results;
+
+  const res = await getSelectors(inputs)
+
+  return res.results;
 }
 
 export function matchFunctionName(methods: any, input: string) {
@@ -224,10 +224,10 @@ export function handleDownloadCsv(
   downloadCsv(headers, rows, fileName);
 }
 
-export async function searchTransactions(address: string, direction: 'before' | 'after', offset = 0, limit = 25) {
+export async function searchTransactions(url: string, address: string, direction: 'before' | 'after', offset = 0, limit = 25) {
   const method = direction === 'before' ? 'ots_searchTransactionsBefore' : 'ots_searchTransactionsAfter';
 
-  const response = await fetch('http://100.118.195.120:48546', {
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

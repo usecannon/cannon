@@ -44,3 +44,12 @@ export const getChains = async () => {
     throw new Error('Failed to fetch chains', error as Error);
   }
 };
+
+export const getSelectors = async (sigs: string[]) => {
+  try {
+    const response = await axios.get('selectors', { baseURL: externalLinks.API_CANNON, params: { q: sigs.join(',') } });
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to fetch selectors', error as Error);
+  }
+}

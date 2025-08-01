@@ -1,6 +1,5 @@
 import { Hash, createPublicClient, http } from 'viem';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
-import { initialSelectorDecodeUrl } from '@/helpers/store';
 import { useQuery } from '@tanstack/react-query';
 
 export function useTransactionDetails(chainId: string | string[] | undefined, txHash: string | string[] | undefined) {
@@ -35,7 +34,7 @@ export function useTransactionDetails(chainId: string | string[] | undefined, tx
       let txNames = {};
       if (txReceipt.logs.length > 0) {
         const topics = txReceipt.logs.map((log: any) => log.topics[0]?.slice(0, 10));
-        const url = initialSelectorDecodeUrl + topics.join(',');
+        const url = cannonApiUrl + '/selectors?q=' + topics.join(',');
         const response = await fetch(url);
         const names = await response.json();
         txNames = names.results;

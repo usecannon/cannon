@@ -13,6 +13,7 @@ import AddressNftTransfer from '@/features/Address/AddressNftTransfer';
 import { useAddressTransactions } from '@/hooks/useAddressTransactions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { tabs, TabId } from '@/lib/address';
+import Link from 'next/link';
 
 const AddressPage = () => {
   const router = useRouter();
@@ -21,25 +22,27 @@ const AddressPage = () => {
   const { getChainById } = useCannonChains();
   const chain = getChainById(Number(chainId));
   const displayAddress = Array.isArray(address) ? address[0] : address;
-  const { data, isLoading, isError } = useAddressTransactions(
+  const { data: transactionData, isLoading, isError } = useAddressTransactions(
+    parseInt(chainId as string) || 0,
     displayAddress ?? ''
   );
   if (isLoading) return null;
 
-  if (isError || !data) {
+  if (isError || !transactionData) {
     return (
       <div className="w-full max-w-screen-xl mx-auto px-4 mt-3">
         <Alert variant="destructive">
           <AlertDescription>
-            Failed to load transaction data. Please check the transaction hash
-            or try again later.
+            Transaction data is not available. This chain may not be set up with
+            block explorer (Otterscan API) support. Please set up a block explorer API
+            on the <Link href="/settings">Settings</Link> page.
           </AlertDescription>
         </Alert>
       </div>
     );
   }
 
-  const { txs, receipts, oldReceipts } = data;
+  const { txs, receipts, oldReceipts } = transactionData;
 
   const renderContent = () => {
     if (displayAddress) {

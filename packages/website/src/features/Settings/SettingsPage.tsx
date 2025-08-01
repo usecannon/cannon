@@ -27,6 +27,7 @@ import {
 import Link from 'next/link';
 import CustomSafeTxServices from '@/features/Settings/CustomSafeTxServices';
 import SettingResetButton from '@/features/Settings/SettingResetButton';
+import CustomOtterscanAPIs from './CustomOtterscanAPIs';
 
 export default function SettingsPage() {
   const settings = useStore((s) => s.settings);
@@ -53,6 +54,18 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent>
           <CustomProviders />
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6 border-border">
+        <CardHeader>
+          <CardTitle>Otterscan Providers</CardTitle>
+          <CardDescription>
+            Specify endpoints for loading block explorer data from an Otterscan-compatible API.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CustomOtterscanAPIs />
         </CardContent>
       </Card>
 
