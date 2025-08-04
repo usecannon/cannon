@@ -58,7 +58,7 @@ const SummaryInfo: React.FC<SummaryInfoProps> = ({
         description="The date and time at which a transaction is produced."
       >
         <Clock5 className="w-4 h-4 text-gray-400" />
-        <span>{`${formatDistanceToNow(Number(timestamp) * 1000)} agp`}</span>
+        <span>{`${formatDistanceToNow(Number(timestamp) * 1000)} ago`}</span>
         <span>{`(${formatUTCDate(timestamp)})`}</span>
       </TxInfoRow>
     </>

@@ -7,6 +7,7 @@ import TransactionEventLog from '@/features/Tx/TransactionEventLog';
 import TransactionTab from '@/features/Tx/TransactionTab';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTransactionDetails } from '@/hooks/useTransactionDetail';
+import { CustomSpinner } from '@/components/CustomSpinner';
 
 export const tabs = [
   { id: 'overview', label: 'Overview' },
@@ -20,9 +21,18 @@ export default function TransactionPage() {
   const { chainId, txHash } = router.query;
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [hoverId, setHoverId] = useState<string>('');
-  const { data, isLoading, isError, error } = useTransactionDetails(chainId, txHash);
+  const { data, isLoading, isError, error } = useTransactionDetails(
+    chainId,
+    txHash
+  );
 
-  if (isLoading) return null;
+  if (isLoading) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center">
+        <CustomSpinner />
+      </div>
+    );
+  }
 
   if (isError || !data) {
     console.log('not rendering transaction because', error, data);

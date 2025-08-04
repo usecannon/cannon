@@ -26,6 +26,7 @@ function isTransferAction(
   if (logs.length < 1) {
     return input === '0x';
   }
+  if (input === '0x') return true;
 
   const topic = logs[logs.length - 1].topics[0];
   const selector = topic.slice(0, 10);
@@ -78,6 +79,7 @@ const TransactionAction: React.FC<TransactionActionProps> = ({
               toAddress={toAddress}
               hoverId={hoverId}
               setHoverId={setHoverId}
+              chainId={chain?.id}
             />
           ) : (
             <OtherEvent
@@ -85,6 +87,7 @@ const TransactionAction: React.FC<TransactionActionProps> = ({
               txReceipt={txReceipt}
               hoverId={hoverId}
               setHoverId={setHoverId}
+              chainId={chain?.id}
             />
           )}
         </CardContent>

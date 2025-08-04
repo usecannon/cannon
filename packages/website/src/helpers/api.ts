@@ -52,4 +52,4 @@ export const getSelectors = async (sigs: string[]) => {
   } catch (error) {
     throw new Error('Failed to fetch selectors', error as Error);
   }
-}
+};

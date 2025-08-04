@@ -27,7 +27,7 @@ export function getGasUsedPercentage(gasUsed: bigint, gasLimit: bigint): string 
 }
 
 export function formatUTCDate(timestamp: bigint): string {
-  const date = new Date(Number(timestamp));
+  const date = new Date(Number(timestamp) * 1000);
 
   const options: Intl.DateTimeFormatOptions = {
     month: 'short',

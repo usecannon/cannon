@@ -1,16 +1,8 @@
-import { TransactionRow, TransactionCsvRow, TokenTransferRow, NftTransferRow } from '@/types/AddressList';
 import { formatEther } from 'viem';
 import { format } from 'date-fns';
 import { Chain } from '@/types/Chain';
 import { convertToFormatEther } from '@/lib/transaction';
-import {
-  OtterscanTransaction,
-  OtterscanReceipt,
-  NftTokenType,
-  TokenTransferType,
-  NftTransferCsvRow,
-  TokenTransferCsvRow,
-} from '@/types/AddressList';
+import { TransactionRow, TransactionCsvRow, OtterscanTransaction, OtterscanReceipt } from '@/types/AddressList';
 import { getSelectors } from '@/helpers/api';
 
 export const tabs = [
@@ -25,7 +17,7 @@ export async function getMethods(txs: OtterscanTransaction[]) {
   const inputs = txs.filter((tx: any) => tx.input !== '0x').map((tx: any) => tx.input.slice(0, 10));
 
   if (inputs.length) {
-    const res = await getSelectors(inputs)
+    const res = await getSelectors(inputs);
 
     return res.results;
   }
@@ -72,42 +64,6 @@ export function mapToTransactionList(txs: OtterscanTransaction[], receipts: Otte
   });
 }
 
-export function mapToTokenTransferList(txs: OtterscanTransaction[], tokenTransfers: TokenTransferType[]) {
-  return Object.entries(tokenTransfers).map(([, transfer]): TokenTransferRow => {
-    const tx = txs.find((t) => transfer.hash === t.hash);
-
-    return {
-      detail: '',
-      hash: transfer.hash,
-      method: tx?.method ?? '',
-      blockNumber: transfer.blockNumber ?? '',
-      age: transfer?.timestamp,
-      from: transfer.from,
-      to: transfer.to ? transfer.to : '',
-      amount: transfer.amount,
-      contractAddress: transfer?.contractAddress,
-    };
-  });
-}
-
-export function mapToNftTransferList(txs: OtterscanTransaction[], nftTransfers: NftTokenType[]) {
-  return Object.entries(nftTransfers).map(([, transfer]): NftTransferRow => {
-    const tx = txs.find((t) => transfer.hash === t.hash);
-
-    return {
-      detail: '',
-      hash: transfer.hash,
-      method: tx?.method ?? '',
-      blockNumber: transfer.blockNumber,
-      age: transfer?.timestamp,
-      from: transfer.from,
-      to: transfer.to ?? '',
-      type: transfer.type,
-      contractAddress: transfer?.contractAddress,
-    };
-  });
-}
-
 export function mapToTransactionCsvRows(txs: OtterscanTransaction[], receipts: OtterscanReceipt[], chain: Chain) {
   return Object.entries(receipts).map(([, receipt]): TransactionCsvRow => {
     const tx = txs.find((tx) => receipt.transactionHash === tx.hash);
@@ -132,58 +88,6 @@ export function mapToTransactionCsvRows(txs: OtterscanTransaction[], receipts: O
   });
 }
 
-export function mapToTokenTransferCsvRows(
-  txs: OtterscanTransaction[],
-  receipts: OtterscanReceipt[],
-  tokenTransfers: TokenTransferType[],
-  chain: Chain
-): TokenTransferCsvRow[] {
-  return Object.entries(tokenTransfers).map(([, transfer]): TokenTransferCsvRow => {
-    const dateTime = formatDateTime(BigInt(transfer?.timestamp));
-    const tx = txs.find((tx) => transfer.hash === tx.hash);
-    const receipt = receipts.find((r) => r.transactionHash === transfer.hash);
-    const status = receipt?.status.slice(2) === '1' ? 'Sucess' : 'Fail';
-    const blockNumber = String(parseInt(transfer.blockNumber.slice(2), 16));
-    const amount = String(convertToFormatEther(transfer.amount, chain?.nativeCurrency.symbol) ?? '0 ETH');
-
-    return {
-      hash: transfer.hash,
-      status: status,
-      method: tx?.method ?? '',
-      blockNumber: blockNumber,
-      dateTime: dateTime,
-      from: transfer.from,
-      to: transfer.to,
-      amount: amount,
-    };
-  });
-}
-
-export function mapToNftTransferCsvRows(
-  txs: OtterscanTransaction[],
-  receipts: OtterscanReceipt[],
-  nftTransfers: NftTokenType[]
-): NftTransferCsvRow[] {
-  return Object.entries(nftTransfers).map(([, transfer]): NftTransferCsvRow => {
-    const dateTime = formatDateTime(BigInt(transfer?.timestamp));
-    const tx = txs.find((tx) => transfer.hash === tx.hash);
-    const receipt = receipts.find((r) => r.transactionHash === transfer.hash);
-    const status = receipt?.status.slice(2) === '1' ? 'Sucess' : 'Fail';
-    const blockNumber = String(parseInt(transfer.blockNumber.slice(2), 16));
-
-    return {
-      hash: transfer.hash,
-      status: status,
-      method: tx?.method ?? '',
-      blockNumber: blockNumber,
-      dateTime: dateTime,
-      from: transfer.from,
-      to: transfer.to,
-      type: transfer.type,
-    };
-  });
-}
-
 function downloadCsv(headers: string[], rows: any[], fileName: string) {
   const csvContent = [headers, ...rows.map((row) => Object.values(row))].map((row) => row.join(',')).join('\n');
 
@@ -197,38 +101,24 @@ function downloadCsv(headers: string[], rows: any[], fileName: string) {
 }
 
 export function handleDownloadCsv(
-  activeTab: TabId,
   txs: OtterscanTransaction[],
   receipts: OtterscanReceipt[],
   chain: Chain,
-  fileName: string,
-  tokenTransfers?: TokenTransferType[],
-  nftTransfers?: NftTokenType[]
+  fileName: string
 ) {
-  let headers: string[];
-  let rows: any[];
-  const tokenTransferList = tokenTransfers || [];
-  const nftTransferList = nftTransfers || [];
-
-  switch (activeTab) {
-    case 'tokentxns':
-      headers = ['Transaction Hash', 'Status', 'Method', 'Blockno', 'Date Time', 'From', 'To', 'Value'];
-      rows = mapToTokenTransferCsvRows(txs, receipts, tokenTransferList, chain);
-      break;
-    case 'nfttransfers':
-      headers = ['Transaction Hash', 'Status', 'Method', 'Blockno', 'Date Time', 'From', 'To', 'Type'];
-      rows = mapToNftTransferCsvRows(txs, receipts, nftTransferList);
-      break;
-    default:
-      headers = ['Transaction Hash', 'Status', 'Method', 'Blockno', 'Date Time', 'From', 'To', 'Amount', 'Txn Fee'];
-      rows = mapToTransactionCsvRows(txs, receipts, chain);
-      break;
-  }
+  const headers = ['Transaction Hash', 'Status', 'Method', 'Blockno', 'Date Time', 'From', 'To', 'Amount', 'Txn Fee'];
+  const rows = mapToTransactionCsvRows(txs, receipts, chain);
 
   downloadCsv(headers, rows, fileName);
 }
 
-export async function searchTransactions(url: string, address: string, direction: 'before' | 'after', offset = 0, limit = 25) {
+export async function searchTransactions(
+  url: string,
+  address: string,
+  direction: 'before' | 'after',
+  offset = 0,
+  limit = 25
+) {
   const method = direction === 'before' ? 'ots_searchTransactionsBefore' : 'ots_searchTransactionsAfter';
 
   const response = await fetch(url, {

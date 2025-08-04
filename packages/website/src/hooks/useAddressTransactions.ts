@@ -8,7 +8,7 @@ export function useAddressTransactions(chainId: number, address: string) {
   const cannonChains = useCannonChains();
 
   const apiUrl = cannonChains.otterscanApis[chainId]?.rpcUrl;
-  
+
   return useQuery({
     queryKey: ['transaction-details', apiUrl, address],
     queryFn: async () => {

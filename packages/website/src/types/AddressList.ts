@@ -12,30 +12,6 @@ export type TransactionRow = {
   contractAddress: string | null | undefined;
 };
 
-export type TokenTransferRow = {
-  detail: string;
-  hash: string;
-  method: string;
-  blockNumber: string;
-  age: number | undefined;
-  from: string;
-  to: string;
-  amount: string;
-  contractAddress: string | null | undefined;
-};
-
-export type NftTransferRow = {
-  detail: string;
-  hash: string;
-  method: string;
-  blockNumber: string;
-  age: number | undefined;
-  from: string;
-  to: string;
-  type: string;
-  contractAddress: string | null | undefined;
-};
-
 export type TransactionCsvRow = {
   hash: string;
   status: string;
@@ -46,28 +22,6 @@ export type TransactionCsvRow = {
   to: string;
   amount: string;
   txnFee: string;
-};
-
-export type TokenTransferCsvRow = {
-  hash: string;
-  status: string;
-  method: string;
-  blockNumber: string;
-  dateTime: string;
-  from: string;
-  to: string;
-  amount: string;
-};
-
-export type NftTransferCsvRow = {
-  hash: string;
-  status: string;
-  method: string;
-  blockNumber: string;
-  dateTime: string;
-  from: string;
-  to: string;
-  type: string;
 };
 
 export type OtterscanTransaction = {
@@ -110,24 +64,4 @@ export type OtterscanReceipt = {
   transactionHash: string;
   transactionIndex: string;
   type: string;
-};
-
-export type NftTokenType = {
-  hash: string;
-  blockNumber: string;
-  timestamp: number;
-  from: string;
-  to: string;
-  contractAddress: string | null;
-  type: string;
-};
-
-export type TokenTransferType = {
-  hash: string;
-  blockNumber: string;
-  timestamp: number;
-  from: string;
-  to: string;
-  amount: string;
-  contractAddress: string | null;
 };

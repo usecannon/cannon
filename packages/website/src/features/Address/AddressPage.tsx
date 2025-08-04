@@ -14,6 +14,7 @@ import { useAddressTransactions } from '@/hooks/useAddressTransactions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { tabs, TabId } from '@/lib/address';
 import Link from 'next/link';
+import { CustomSpinner } from '@/components/CustomSpinner';
 
 const AddressPage = () => {
   const router = useRouter();
@@ -22,11 +23,22 @@ const AddressPage = () => {
   const { getChainById } = useCannonChains();
   const chain = getChainById(Number(chainId));
   const displayAddress = Array.isArray(address) ? address[0] : address;
-  const { data: transactionData, isLoading, isError } = useAddressTransactions(
+  const {
+    data: transactionData,
+    isLoading,
+    isError,
+  } = useAddressTransactions(
     parseInt(chainId as string) || 0,
     displayAddress ?? ''
   );
-  if (isLoading) return null;
+
+  if (isLoading) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center">
+        <CustomSpinner />
+      </div>
+    );
+  }
 
   if (isError || !transactionData) {
     return (
@@ -34,8 +46,8 @@ const AddressPage = () => {
         <Alert variant="destructive">
           <AlertDescription>
             Transaction data is not available. This chain may not be set up with
-            block explorer (Otterscan API) support. Please set up a block explorer API
-            on the <Link href="/settings">Settings</Link> page.
+            block explorer (Otterscan API) support. Please set up a block
+            explorer API on the <Link href="/settings">Settings</Link> page.
           </AlertDescription>
         </Alert>
       </div>
@@ -48,25 +60,9 @@ const AddressPage = () => {
     if (displayAddress) {
       switch (activeTab) {
         case 'tokentxns':
-          return (
-            <AddressTokenTransfer
-              address={displayAddress!}
-              txs={txs}
-              receipts={receipts}
-              chain={chain}
-              activeTab={activeTab}
-            />
-          );
+          return <AddressTokenTransfer />;
         case 'nfttransfers':
-          return (
-            <AddressNftTransfer
-              address={displayAddress!}
-              txs={txs}
-              receipts={receipts}
-              chain={chain}
-              activeTab={activeTab}
-            />
-          );
+          return <AddressNftTransfer />;
         default:
           return (
             <AddressLists
