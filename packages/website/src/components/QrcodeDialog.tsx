@@ -43,14 +43,21 @@ const QrcodeDialog: React.FC<QrcodeDialogProps> = ({ text }) => {
               </DialogDescription>
             </DialogHeader>
             <hr className="w-full" />
-            <div className="flex items-center justify-center">
+            <div className="relative flex items-center justify-center w-[235px] h-[235px] mx-auto">
               <QRCodeCanvas
                 value={text}
                 size={235}
-                bgColor="#000000"
-                fgColor="#ffffff"
+                bgColor="#ffffff"
+                fgColor="#000000"
                 level="H"
               />
+              <div className="absolute w-12 h-12 rounded-full bg-black flex items-center justify-center shadow-md p-2">
+                <img
+                  src="/images/logomark.svg"
+                  alt="logo"
+                  className="w-10 h-10"
+                />
+              </div>
             </div>
             <div className="mt-4 text-center w-full break-words">
               <span className="text-sm text-muted-foreground break-all">
