@@ -140,7 +140,11 @@ describe('inspect', () => {
   });
 
   test('should inspect package deployment', async () => {
+<<<<<<< HEAD
+    const result = await inspect(packageName, cliSettings, chainId, 'overview', '', false);
+=======
     const result = await inspect(packageName, ipfsUrl, chainId, testPkgData, cliSettings, 'overview', '', false);
+>>>>>>> origin/dev
 
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(packageName, chainId);
@@ -152,6 +156,9 @@ describe('inspect', () => {
 
   test('should write deployment files', async () => {
     const writeDeployments = 'contracts';
+<<<<<<< HEAD
+    const result = await inspect(packageName, cliSettings, chainId, 'overview', writeDeployments, false);
+=======
     const result = await inspect(
       packageName,
       ipfsUrl,
@@ -162,6 +169,7 @@ describe('inspect', () => {
       writeDeployments,
       false
     );
+>>>>>>> origin/dev
 
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(packageName, chainId);
@@ -169,7 +177,11 @@ describe('inspect', () => {
   });
 
   test('should call inspect with sources flag ', async () => {
+<<<<<<< HEAD
+    const result = await inspect(packageName, cliSettings, chainId, 'overview', '', true);
+=======
     const result = await inspect(packageName, ipfsUrl, chainId, testPkgData, cliSettings, 'overview', '', true);
+>>>>>>> origin/dev
 
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(packageName, chainId);
@@ -180,7 +192,11 @@ describe('inspect', () => {
   });
 
   test('should call inspect with json flag ', async () => {
+<<<<<<< HEAD
+    const result = await inspect(packageName, cliSettings, chainId, 'deploy-json', '', false);
+=======
     const result = await inspect(packageName, ipfsUrl, chainId, testPkgData, cliSettings, 'deploy-json', '', false);
+>>>>>>> origin/dev
 
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getMetaUrl).not.toHaveBeenCalled();
