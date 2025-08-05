@@ -1,12 +1,16 @@
+import { spawn } from 'node:child_process';
 import path from 'path';
 import fs from 'fs-extra';
 import { glob } from 'glob';
 import { ContractArtifact } from '@usecannon/builder';
 import _ from 'lodash';
-import Debug from 'debug';
+import Debug, { log } from 'debug';
 
 import { execPromise } from './helpers';
 import { warn } from './util/console';
+import { bold, gray, red, yellow } from 'chalk';
+import { forgeBuildOptions } from './commands/config/forge/build';
+import { fromFoundryOptionsToArgs, pickForgeBuildOptions } from './util/foundry-options';
 
 const debug = Debug('cannon:cli:foundry');
 
@@ -72,11 +76,15 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
   const possibleArtifacts = [];
   for (const artifactPath of possibleArtifactPaths) {
     const artifactBuffer = await fs.readFile(artifactPath);
-    possibleArtifacts.push(JSON.parse(artifactBuffer.toString()) as any);
+    const artifact = JSON.parse(artifactBuffer.toString()) as any;
+    if (!artifact.ast) {
+      throw new Error(`Unable to find output from forge with ast for ${inputContractName} (from ${name}). Before running this command, run forge build --ast`);
+    }
+    possibleArtifacts.push(artifact);
   }
 
   if (!possibleArtifacts.length) {
-    throw new Error(`no contract was found by name: ${inputContractName} (from ${name})`);
+    throw new Error(`Unable to find output from forge with ast for ${inputContractName} (from ${name}). Before running this command, run forge build --ast`);
   }
 
   let artifact = possibleArtifacts[0];
@@ -154,4 +162,41 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
     deployedBytecode: artifact.deployedBytecode.object,
     linkReferences: artifact.bytecode.linkReferences,
   };
+}
+
+
+export async function forgeBuild(options: Record<string, any>, cannonfile: string) {
+
+  const cannonfilePath = path.resolve(cannonfile);
+  const projectDirectory = path.dirname(cannonfilePath);
+
+if (!options.skipCompile) {
+  log(bold('Building the foundry project...'));
+
+  // use --build-info to output build info
+  // ref: https://github.com/foundry-rs/foundry/pull/7197
+  const forgeBuildArgs = [
+    'build',
+    '--build-info',
+    ...fromFoundryOptionsToArgs(pickForgeBuildOptions(options), forgeBuildOptions),
+  ];
+
+  const forgeBuildProcess = spawn('forge', forgeBuildArgs, { cwd: projectDirectory, shell: true });
+
+  await new Promise((resolve, reject) => {
+    forgeBuildProcess.on('exit', (code) => {
+      if (code === 0) {
+        log(gray('forge build succeeded'));
+      } else {
+        log(red('forge build failed'));
+        log(red('Make sure "forge build" runs successfully or use the --skip-compile flag.'));
+        return reject(new Error(`forge build failed with exit code "${code}"`));
+      }
+
+      resolve(null);
+    });
+  });
+} else {
+  log(yellow('--skip-compile flag detected. Skipping forge build...'));
+}
 }
