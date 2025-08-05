@@ -21,7 +21,9 @@ export const JsonInput: FC<JsonInputProps> = ({
   error,
 }) => {
   const [inputValue, setInputValue] = useState(
-    Array.isArray(value) ? JSON.stringify(value) : value || ''
+    Array.isArray(value) || (typeof value === 'object' && value !== null)
+      ? JSON.stringify(value)
+      : value || ''
   );
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {

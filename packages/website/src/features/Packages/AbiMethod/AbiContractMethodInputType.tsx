@@ -31,7 +31,7 @@ const isBigInt = (value: unknown): value is bigint => {
 
 interface AbiMethodInputProps {
   input: AbiParameter;
-  handleUpdate: (value: any) => void;
+  handleUpdate: (value: any, error?: string) => void;
   value: any;
   error?: string;
 }
@@ -43,16 +43,14 @@ export const AbiContractMethodInputType: FC<AbiMethodInputProps> = ({
   error,
 }) => {
   switch (true) {
-    case input.type.endsWith('[][]'):
-      return (
-        <JsonInput
-          isTupleArray={true}
-          handleUpdate={handleUpdate}
-          value={value}
-        />
-      );
-    // handle tuples in arrays
-    case input.type.startsWith('tuple'):
+    // Handle tuples and arrays of tuples (complex data structures)
+    case input.type.startsWith('tuple') || input.type.endsWith('[][]'):
+      if (value !== undefined && typeof value !== 'object') {
+        throw new Error(
+          'Expected object or array for tuple or nested arrays, got ' +
+            typeof value
+        );
+      }
       return (
         <JsonInput
           isTupleArray={input.type.includes('[]')}
@@ -79,7 +77,9 @@ export const AbiContractMethodInputType: FC<AbiMethodInputProps> = ({
           `Expected string, string array or undefined for address type, got ${typeof value}`
         );
       }
-      return <AddressInput handleUpdate={handleUpdate} value={value} />;
+      return (
+        <AddressInput handleUpdate={handleUpdate} value={value} error={error} />
+      );
     case input.type.startsWith('int') || input.type.startsWith('uint'):
       if (!isBigInt(value) && value !== undefined) {
         throw new Error(
@@ -95,9 +95,9 @@ export const AbiContractMethodInputType: FC<AbiMethodInputProps> = ({
         />
       );
     case input.type.startsWith('bytes'): {
-      if (!isString(value) && !isStringArray(value) && value !== undefined) {
+      if (!isString(value) && value !== undefined) {
         throw new Error(
-          `Expected string, string array or undefined for bytes type, got ${typeof value}`
+          `Expected string or undefined for bytes type, got ${typeof value}`
         );
       }
       // Extract the number of bytes from the type string (e.g., 'bytes32' -> 32)
@@ -106,6 +106,7 @@ export const AbiContractMethodInputType: FC<AbiMethodInputProps> = ({
         <ByteInput
           handleUpdate={handleUpdate}
           value={value}
+          error={error}
           byte={isNaN(byteSize) ? undefined : byteSize}
         />
       );
@@ -116,6 +117,8 @@ export const AbiContractMethodInputType: FC<AbiMethodInputProps> = ({
           `Expected string, string array or undefined for default type, got ${typeof value}`
         );
       }
-      return <DefaultInput handleUpdate={handleUpdate} value={value} />;
+      return (
+        <DefaultInput handleUpdate={handleUpdate} value={value} error={error} />
+      );
   }
 };
