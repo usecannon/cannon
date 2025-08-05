@@ -3,7 +3,7 @@ import { getSafeTransactionHash } from '@/helpers/safe';
 import { SafeDefinition } from '@/helpers/store';
 import { CannonSafeTransaction, useSafeTransactions, useTxnStager } from '@/hooks/backend';
 import { useCannonPackage } from '@/hooks/cannon';
-import { useExecutedTransactions, useGetPreviousGitInfoQuery } from '@/hooks/safe';
+import { useExecutedTransactions, useExecutedTransactionsFromRpc, useGetPreviousGitInfoQuery } from '@/hooks/safe';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { Hex } from 'viem';
 
@@ -54,6 +54,10 @@ export function useSafeTxInfo(safeDefinition: SafeDefinition, txSignature: strin
     refetch: refetchHistory,
     isLoading: areTxsHistoryLoading,
   } = useExecutedTransactions(safeDefinition);
+  // const safeTxsHistory = { results: [] };
+  // const areTxsHistoryLoading = false;
+  // // eslint-disable-next-line @typescript-eslint/no-empty-function
+  // const refetchHistory = () => {};
 
   // Get specific transaction info
   const safeTxn = getSafeTransaction(
