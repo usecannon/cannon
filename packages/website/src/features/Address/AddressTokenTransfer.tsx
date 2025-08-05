@@ -1,8 +1,5 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Chain } from '@/types/Chain';
-import { OtterscanTransaction, OtterscanReceipt } from '@/types/AddressList';
-import { TabId } from '@/lib/address';
 import { Inbox } from 'lucide-react';
 
 const AddressTokenTransfer = () => {

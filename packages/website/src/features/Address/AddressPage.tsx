@@ -70,7 +70,6 @@ const AddressPage = () => {
               chain={chain}
               txs={txs}
               receipts={receipts}
-              activeTab={activeTab}
             />
           );
       }
