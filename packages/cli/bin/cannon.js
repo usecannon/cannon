@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env -S node --enable-source-maps
 
 const { red } = require('chalk');
 const cli = require('../dist/src');

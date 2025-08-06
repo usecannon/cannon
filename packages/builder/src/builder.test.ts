@@ -296,6 +296,37 @@ describe('builder.ts', () => {
   });
 
   describe('runStep()', () => {
+    it('handles chain ID skipping behavior as expected', async () => {
+      const handler = jest.fn();
+      runtime.on(Events.PreStepExecute, handler);
+      runtime.on(Events.PostStepExecute, handler);
+      const stepData = await runStep(
+        runtime,
+        { ref: new ChainDefinition(fakeDefinition).getPackageRef({} as any), currentLabel: 'deploy.Yoop' },
+        _.merge({}, (fakeDefinition as any).deploy.Yoop, { chains: [5555, 5678] }),
+        initialCtx
+      );
+
+      expect(stepData).toBeNull();
+
+      expect(handler).toHaveBeenCalledTimes(0);
+
+      const origChainId = runtime.chainId;
+      (runtime as any).chainId = 5555;
+      const stepData2 = await runStep(
+        runtime,
+        { ref: new ChainDefinition(fakeDefinition).getPackageRef({} as any), currentLabel: 'deploy.Yoop' },
+        _.merge({}, (fakeDefinition as any).deploy.Yoop, { chains: [5555, 5678] }),
+        initialCtx
+      );
+
+      (runtime as any).chainId = origChainId;
+
+      expect(stepData2).toStrictEqual(expectedStateOut['deploy.Yoop'].artifacts);
+
+      expect(handler).toHaveBeenCalledTimes(2);
+    });
+
     it('emits on runtime', async () => {
       const handler = jest.fn();
       runtime.on(Events.PreStepExecute, handler);
