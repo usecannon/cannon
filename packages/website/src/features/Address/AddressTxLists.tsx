@@ -27,12 +27,17 @@ import TxFeeColumn from '@/features/Address/column/TxFeeColumn';
 import BlockColumn from '@/features/Address/column/BlockColumn';
 import AddressDataTable from '@/features/Address/AddressDataTable';
 import DownloadListButton from '@/features/Address/DownloadListButton';
+import Link from 'next/link';
 
 type AddressListsProps = {
   address: string;
   chain: Chain;
   txs: OtterscanTransaction[];
   receipts: OtterscanReceipt[];
+  isLastPage: boolean;
+  isFirstPage: boolean;
+  blockNumber: string;
+  pages: string[];
 };
 
 const AddressLists: React.FC<AddressListsProps> = ({
@@ -40,6 +45,10 @@ const AddressLists: React.FC<AddressListsProps> = ({
   chain,
   txs,
   receipts,
+  isLastPage,
+  isFirstPage,
+  blockNumber,
+  pages,
 }) => {
   const [isDate, setIsDate] = useState<boolean>(false);
   const [isGasPrice, setIsGasPrice] = useState<boolean>(false);
@@ -151,12 +160,63 @@ const AddressLists: React.FC<AddressListsProps> = ({
                       transactions
                     </span>
                   </div>
-                  <DownloadListButton
-                    txs={txs}
-                    receipts={receipts}
-                    chain={chain}
-                    fileName={`export-${address}.csv`}
-                  />
+                  <div className="flex items-center gap-2">
+                    <DownloadListButton
+                      txs={txs}
+                      receipts={receipts}
+                      chain={chain}
+                      fileName={`export-${address}.csv`}
+                    />
+                    {pages.length > 0 && (
+                      <div className="flex gap-2 items-center">
+                        {/* Prev */}
+                        <Link
+                          href={`/txs?a=${address}&p=${
+                            isLastPage
+                              ? pages.length
+                              : pages.indexOf(blockNumber)
+                          }&c=${chain?.id}`}
+                          className={`items-center px-3 py-1 text-xs border border-gray-500 text-gray-300 rounded ${
+                            isFirstPage ? 'pointer-events-none opacity-50' : ''
+                          }`}
+                        >
+                          <span className="">Prev</span>
+                        </Link>
+
+                        {/* Page Info */}
+                        <span className="items-center px-3 py-1 text-xs border border-gray-500 text-gray-300 rounded">
+                          Page
+                          {isLastPage
+                            ? pages.length + 1
+                            : pages.indexOf(blockNumber) + 1}
+                          /{pages.length + 1}
+                        </span>
+
+                        {/* Next */}
+                        <Link
+                          href={`/txs?a=${address}&p=${
+                            pages.indexOf(blockNumber) + 2
+                          }&c=${chain?.id}`}
+                          className={`items-center px-3 py-1 text-xs border border-gray-500 text-gray-300 rounded ${
+                            isLastPage ? 'pointer-events-none opacity-50' : ''
+                          }`}
+                        >
+                          <span className="">Next</span>
+                        </Link>
+                        {/* Last */}
+                        <Link
+                          href={`/txs?a=${address}&p=${pages.length + 1}&c=${
+                            chain?.id
+                          }`}
+                          className={`items-center px-3 py-1 text-xs border border-gray-500 text-gray-300 rounded ${
+                            isLastPage ? 'pointer-events-none opacity-50' : ''
+                          }`}
+                        >
+                          <span className="">Last</span>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </CardTitle>
             </>

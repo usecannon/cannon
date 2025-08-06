@@ -3,20 +3,23 @@ import { searchTransactions, getMethods, matchFunctionName } from '@/lib/address
 import { OtterscanTransaction, OtterscanReceipt } from '@/types/AddressList';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
-export function useAddressTransactions(chainId: number, address: string) {
+export function useAddressTransactions(chainId: number, address: string, blockNumber: string, pagesReady: boolean) {
   // get the otterscan API from the settings store
   const cannonChains = useCannonChains();
 
   const apiUrl = cannonChains.otterscanApis[chainId]?.rpcUrl;
 
+  // const enabled = !!chainId && !!address && blockNumber !== undefined && blockNumber !== null && pagesReady;
+  const enabled = !!chainId && !!address && !!blockNumber && pagesReady;
+
   return useQuery({
-    queryKey: ['transaction-details', apiUrl, address],
+    queryKey: ['transaction-details', apiUrl, address, blockNumber],
     queryFn: async () => {
       if (!apiUrl) {
         return null;
       }
 
-      const data = await searchTransactions(apiUrl, address, 'before');
+      const data = await searchTransactions(apiUrl, address, 'before', Number(blockNumber));
       if (!data) {
         return null;
       }
@@ -31,10 +34,12 @@ export function useAddressTransactions(chainId: number, address: string) {
         };
       });
       const receipts: OtterscanReceipt[] = data.result.receipts;
+      const isLastPage = data.result.lastPage;
+      const isFirstPage = data.result.firstPage;
       const oldData = await searchTransactions(apiUrl, address, 'after');
       const oldReceipts: OtterscanReceipt[] = oldData.result.receipts;
-      return { txs, receipts, oldReceipts };
+      return { txs, receipts, oldReceipts, isLastPage, isFirstPage };
     },
-    enabled: !!chainId && !!address,
+    enabled: enabled,
   });
 }

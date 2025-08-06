@@ -137,3 +137,33 @@ export async function searchTransactions(
   const data = await response.json();
   return data;
 }
+
+export async function fetchBlockPages(apiUrl: string, displayAddress: string, maxPagesSafety = 100): Promise<string[]> {
+  const blocksSet = new Set<string>();
+  let isLastPage = false;
+  let block = 0;
+  let iterations = 0;
+
+  do {
+    const data = await searchTransactions(apiUrl, displayAddress, 'before', block);
+
+    const receipts = data.result?.receipts ?? [];
+    if (!receipts.length) break;
+
+    const lastReceipt = receipts[receipts.length - 1];
+    const nextBlock = parseInt(lastReceipt.blockNumber.slice(2), 16);
+    block = nextBlock;
+
+    isLastPage = !!data.result?.lastPage;
+    if (!isLastPage) {
+      blocksSet.add(String(nextBlock));
+    }
+
+    iterations++;
+    if (iterations > maxPagesSafety) {
+      break;
+    }
+  } while (!isLastPage);
+
+  return Array.from(blocksSet).sort((a, b) => Number(b) - Number(a));
+}
