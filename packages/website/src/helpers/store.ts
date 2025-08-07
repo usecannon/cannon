@@ -42,6 +42,7 @@ export interface State {
     isIpfsGateway: boolean;
     cannonSafeBackendUrl: string;
     customProviders: string[];
+    customOtterscanAPIs: string[];
     pythUrl: string;
   };
 }
@@ -133,6 +134,7 @@ export const initialState = {
     isIpfsGateway: false,
     cannonSafeBackendUrl: 'https://safe-staging.usecannon.com',
     customProviders: [],
+    customOtterscanAPIs: [],
     pythUrl: 'https://hermes.pyth.network',
   },
 } satisfies State;
