@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { ClipboardButton } from '@/components/ClipboardButton';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
@@ -12,7 +12,7 @@ import AddressTokenTransfer from '@/features/Address/AddressTokenTransfer';
 import AddressNftTransfer from '@/features/Address/AddressNftTransfer';
 import { useAddressTransactions } from '@/hooks/useAddressTransactions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { tabs, TabId, fetchBlockPages } from '@/lib/address';
+import { tabs, TabId } from '@/lib/address';
 import Link from 'next/link';
 import { CustomSpinner } from '@/components/CustomSpinner';
 
@@ -23,20 +23,6 @@ const AddressPage = () => {
   const { getChainById } = useCannonChains();
   const chain = getChainById(Number(chainId));
   const displayAddress = Array.isArray(address) ? address[0] : address;
-  const [pages, setPages] = useState<string[]>([]);
-
-  const cannonChains = useCannonChains();
-
-  const apiUrl = cannonChains.otterscanApis[chain?.id ?? 0]?.rpcUrl;
-
-  useEffect(() => {
-    fetchBlockPages(apiUrl, displayAddress ?? '')
-      .then((blocks) => setPages(blocks))
-      .catch((err) => {
-        console.error('failed to fetch pages', err);
-        setPages([]);
-      });
-  }, [displayAddress, apiUrl]);
 
   const {
     data: transactionData,
@@ -71,10 +57,7 @@ const AddressPage = () => {
     );
   }
 
-  const { txs, receipts, oldReceipts, isFirstPage, isLastPage } =
-    transactionData;
-  const receipt = receipts[receipts.length - 1];
-  const blockNumber = String(parseInt(receipt.blockNumber.slice(2), 16));
+  const { txs, receipts, oldReceipts } = transactionData;
 
   const renderContent = () => {
     if (displayAddress) {
@@ -90,10 +73,6 @@ const AddressPage = () => {
               chain={chain}
               txs={txs}
               receipts={receipts}
-              isFirstPage={isFirstPage}
-              isLastPage={isLastPage}
-              blockNumber={blockNumber}
-              pages={pages}
             />
           );
       }

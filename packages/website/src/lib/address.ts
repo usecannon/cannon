@@ -11,6 +11,8 @@ export const tabs = [
   { id: 'nfttransfers', label: 'NFT Transfers' },
 ];
 
+export const maxPageSize = 100;
+
 export type TabId = (typeof tabs)[number]['id'];
 
 export async function getMethods(txs: OtterscanTransaction[]) {
@@ -138,13 +140,14 @@ export async function searchTransactions(
   return data;
 }
 
-export async function fetchBlockPages(apiUrl: string, displayAddress: string, maxPagesSafety = 100): Promise<string[]> {
+export async function fetchBlockPages(apiUrl: string, displayAddress: string, maxPagesSafety = maxPageSize - 1): Promise<string[]> {
   const blocksSet = new Set<string>();
   let isLastPage = false;
   let block = 0;
   let iterations = 0;
 
   do {
+    console.log("test");
     const data = await searchTransactions(apiUrl, displayAddress, 'before', block);
 
     const receipts = data.result?.receipts ?? [];

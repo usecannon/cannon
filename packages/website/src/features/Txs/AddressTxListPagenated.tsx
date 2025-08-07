@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-table';
 import AddressAdditionalInfo from '@/features/Address/AddressAdditionalDialog';
 import { Chain } from '@/types/Chain';
-import { mapToTransactionList } from '@/lib/address';
+import { mapToTransactionList, maxPageSize } from '@/lib/address';
 import {
   TransactionRow,
   OtterscanTransaction,
@@ -27,19 +27,29 @@ import TxFeeColumn from '@/features/Address/column/TxFeeColumn';
 import BlockColumn from '@/features/Address/column/BlockColumn';
 import AddressDataTable from '@/features/Address/AddressDataTable';
 import DownloadListButton from '@/features/Address/DownloadListButton';
+import TransactionPagenation from '@/features/Txs/TransactionPagination';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
-type AddressListsProps = {
+type AddressTxListPagenatedProps = {
   address: string;
   chain: Chain;
   txs: OtterscanTransaction[];
   receipts: OtterscanReceipt[];
+  isLastPage: boolean;
+  isFirstPage: boolean;
+  blockNumber: string;
+  pages: string[];
 };
 
-const AddressLists: React.FC<AddressListsProps> = ({
+const AddressTxListPagenated: React.FC<AddressTxListPagenatedProps> = ({
   address,
   chain,
   txs,
   receipts,
+  isLastPage,
+  isFirstPage,
+  blockNumber,
+  pages,
 }) => {
   const [isDate, setIsDate] = useState<boolean>(false);
   const [isGasPrice, setIsGasPrice] = useState<boolean>(false);
@@ -151,13 +161,34 @@ const AddressLists: React.FC<AddressListsProps> = ({
                       transactions
                     </span>
                   </div>
-                  <DownloadListButton
-                    txs={txs}
-                    receipts={receipts}
-                    chain={chain}
-                    fileName={`export-${address}.csv`}
-                  />
+                  <div className="flex items-center gap-2">
+                    <DownloadListButton
+                      txs={txs}
+                      receipts={receipts}
+                      chain={chain}
+                      fileName={`export-${address}.csv`}
+                    />
+                    {pages.length > 0 && (
+                      <TransactionPagenation
+                        address={address}
+                        chainId={chain?.id ?? 0}
+                        isLastPage={isLastPage}
+                        isFirstPage={isFirstPage}
+                        blockNumber={blockNumber}
+                        pages={pages}
+                      />
+                    )}
+                  </div>
                 </div>
+                {!isLastPage &&
+                  pages.indexOf(blockNumber) + 1 === maxPageSize && (
+                    <Alert variant="info" className="mt-2">
+                      <AlertDescription>
+                        This is the maximum number of pages currently supported
+                        by this website.
+                      </AlertDescription>
+                    </Alert>
+                  )}
               </CardTitle>
             </>
           )}
@@ -172,4 +203,4 @@ const AddressLists: React.FC<AddressListsProps> = ({
   );
 };
 
-export default AddressLists;
+export default AddressTxListPagenated;
