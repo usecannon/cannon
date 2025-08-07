@@ -1,6 +1,7 @@
 export const links = {
   HOMEPAGE: '/',
   EXPLORE: '/packages',
+  EDITOR: '/editor',
   DEPLOY: '/deploy',
   QUEUETXS: '/deploy/queue',
   QUEUEFROMGITOPS: '/deploy/gitops',

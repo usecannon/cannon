@@ -31,6 +31,9 @@ const NavLinks = () => {
       <NavLink href={links.EXPLORE} isActive={pathname.startsWith('/packages')}>
         Explore
       </NavLink>
+      <NavLink href={links.EDITOR} isActive={pathname.startsWith('/editor')}>
+        Editor
+      </NavLink>
       <NavLink href={links.DEPLOY} isActive={pathname.startsWith('/deploy')}>
         Deploy
       </NavLink>

@@ -175,6 +175,20 @@ Here's a breakdown of the build output:
     
     Cannon generates the package data, including deployment data, package code, and metadata, which are stored locally and can be published to the registry or run locally.
 
+### Bonus Step: Simulate a build with `--dry-run`
+
+Before deploying to a live network, you can simulate the build process using the `--dry-run` flag. This allows you to test your `cannonfile.toml` and estimate gas costs without sending any transactions or making any changes to the blockchain.
+
+When using `--dry-run`, you must also specify which signers to impersonate using either the `--impersonate <addresses>` or `--impersonate-all` flag. This ensures that the simulation can execute all the necessary transactions as if they were signed by the appropriate accounts.
+
+To run a dry run of your build, use the following command:
+
+```bash
+cannon build --dry-run --impersonate-all
+```
+
+The output will be similar to a regular build, but it will clearly state that it's a simulation and no changes will be made. It will also provide an estimated total cost for the deployment.
+
 ### Step 3: Run your package
 
 To run your package locally, you can use the `cannon run` command. This command takes the package name as an argument. It's also used by Cannon if no command is specified. Learn more about the `run` command in the [docs](/learn/cli#run).
