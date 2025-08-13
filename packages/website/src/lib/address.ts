@@ -4,7 +4,6 @@ import { Chain } from '@/types/Chain';
 import { convertToFormatEther } from '@/lib/transaction';
 import { TransactionRow, TransactionCsvRow, OtterscanTransaction, OtterscanReceipt } from '@/types/AddressList';
 import { getSelectors } from '@/helpers/api';
-// import { MAX_PAGE_SIZE } from '@/constants/pagination';
 
 export const tabs = [
   { id: 'transactions', label: 'Transactions' },
@@ -138,47 +137,3 @@ export async function searchTransactions(
   const data = await response.json();
   return data;
 }
-
-// export async function fetchBlockPages(
-//   apiUrl: string,
-//   displayAddress: string,
-//   maxPagesSafety = MAX_PAGE_SIZE - 1
-// ): Promise<{ pages: string[]; totalTxs: number }> {
-//   const blocksSet = new Set<string>();
-//   let isLastPage = false;
-//   let block = 0;
-//   let iterations = 0;
-//   let totalTxs = 0;
-
-//   do {
-//     const data = await searchTransactions(apiUrl, displayAddress, 'before', block);
-
-//     const receipts = data.result?.receipts ?? [];
-//     if (!receipts.length) break;
-
-//     totalTxs += receipts.length;
-
-//     const lastReceipt = receipts[receipts.length - 1];
-//     const nextBlock = parseInt(lastReceipt.blockNumber.slice(2), 16);
-//     block = nextBlock;
-
-//     isLastPage = !!data.result?.lastPage;
-//     if (!isLastPage) {
-//       blocksSet.add(String(nextBlock));
-//     }
-
-//     iterations++;
-//     if (iterations > maxPagesSafety) {
-//       break;
-//     }
-//   } while (!isLastPage);
-
-//   if (totalTxs === 0 && blocksSet.size === 0) {
-//     throw new Error('No transactions found');
-//   }
-
-//   return {
-//     pages: Array.from(blocksSet).sort((a, b) => Number(b) - Number(a)),
-//     totalTxs: totalTxs,
-//   };
-// }
