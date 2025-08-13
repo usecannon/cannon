@@ -15,6 +15,7 @@ export const DEFAULT_REGISTRY_CONFIG = [
     name: 'OP Mainnet',
     chainId: 10,
     rpcUrl: [
+      'https://mainnet.optimism.io',
       'https://optimism-mainnet.infura.io/v3/9f7e95d07f4e42e7a54d4dc90f57fd5d',
       'https://opt-mainnet.g.alchemy.com/v2/2c6Mq72inJF0FBlKPMK8pe6TolJMar6G',
     ],
