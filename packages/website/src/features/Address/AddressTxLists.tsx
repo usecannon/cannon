@@ -33,6 +33,7 @@ type AddressListsProps = {
   chain: Chain;
   txs: OtterscanTransaction[];
   receipts: OtterscanReceipt[];
+  isLastPage: boolean;
 };
 
 const AddressLists: React.FC<AddressListsProps> = ({
@@ -40,6 +41,7 @@ const AddressLists: React.FC<AddressListsProps> = ({
   chain,
   txs,
   receipts,
+  isLastPage,
 }) => {
   const [isDate, setIsDate] = useState<boolean>(false);
   const [isGasPrice, setIsGasPrice] = useState<boolean>(false);
@@ -52,6 +54,7 @@ const AddressLists: React.FC<AddressListsProps> = ({
   const columnHelper = createColumnHelper<TransactionRow>();
   const [openToolTipIndex, setOpenTooltipIndex] = useState<number | null>();
 
+  const url = isLastPage ? '' : `/txs?a=${address}&c=${chain?.id}`;
   const columns = [
     columnHelper.accessor('detail', {
       cell: (info: any) => (
@@ -164,7 +167,7 @@ const AddressLists: React.FC<AddressListsProps> = ({
         </CardHeader>
         <CardContent>
           <div className="w-full rounded-md border border-border overflow-x-auto">
-            <AddressDataTable table={table} />
+            <AddressDataTable table={table} url={url} />
           </div>
         </CardContent>
       </Card>

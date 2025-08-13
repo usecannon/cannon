@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ArrowDownWideNarrow, CircleHelp } from 'lucide-react';
+import { CircleHelp } from 'lucide-react';
 import {
   createColumnHelper,
   useReactTable,
@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-table';
 import AddressAdditionalInfo from '@/features/Address/AddressAdditionalDialog';
 import { Chain } from '@/types/Chain';
-import { mapToTransactionList, maxPageSize } from '@/lib/address';
+import { mapToTransactionList } from '@/lib/address';
 import {
   TransactionRow,
   OtterscanTransaction,
@@ -27,10 +27,11 @@ import TxFeeColumn from '@/features/Address/column/TxFeeColumn';
 import BlockColumn from '@/features/Address/column/BlockColumn';
 import AddressDataTable from '@/features/Address/AddressDataTable';
 import DownloadListButton from '@/features/Address/DownloadListButton';
-import TransactionPagenation from '@/features/Txs/TransactionPagination';
+import TransactionsPagination from '@/features/Txs/TransactionsPagination';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { MAX_PAGE_SIZE } from '@/constants/pagination';
 
-type AddressTxListPagenatedProps = {
+type TransactionsPaginatedListProps = {
   address: string;
   chain: Chain;
   txs: OtterscanTransaction[];
@@ -39,9 +40,10 @@ type AddressTxListPagenatedProps = {
   isFirstPage: boolean;
   blockNumber: string;
   pages: string[];
+  totalTxs: number;
 };
 
-const AddressTxListPagenated: React.FC<AddressTxListPagenatedProps> = ({
+const TransactionsPaginatedList: React.FC<TransactionsPaginatedListProps> = ({
   address,
   chain,
   txs,
@@ -50,11 +52,12 @@ const AddressTxListPagenated: React.FC<AddressTxListPagenatedProps> = ({
   isFirstPage,
   blockNumber,
   pages,
+  totalTxs,
 }) => {
   const [isDate, setIsDate] = useState<boolean>(false);
   const [isGasPrice, setIsGasPrice] = useState<boolean>(false);
   const [hoverId, setHoverId] = useState<string>('');
-
+  const chainId = chain?.id ?? 0;
   const data = React.useMemo(() => {
     return mapToTransactionList(txs, receipts);
   }, [txs, receipts]);
@@ -77,7 +80,7 @@ const AddressTxListPagenated: React.FC<AddressTxListPagenatedProps> = ({
       header: () => <CircleHelp className="h-4 w-4" />,
     }),
     columnHelper.accessor('hash', {
-      cell: (info: any) => <HashColumn info={info} chainId={chain?.id!} />,
+      cell: (info: any) => <HashColumn info={info} chainId={chainId!} />,
       header: 'Transaction Hash',
     }),
     columnHelper.accessor('method', {
@@ -99,7 +102,7 @@ const AddressTxListPagenated: React.FC<AddressTxListPagenatedProps> = ({
           hoverId={hoverId}
           setHoverId={setHoverId}
           address={address}
-          chainId={chain?.id!}
+          chainId={chainId!}
         />
       ),
       header: 'From',
@@ -111,7 +114,7 @@ const AddressTxListPagenated: React.FC<AddressTxListPagenatedProps> = ({
           hoverId={hoverId}
           setHoverId={setHoverId}
           address={address}
-          chainId={chain?.id!}
+          chainId={chainId!}
         />
       ),
       header: 'To',
@@ -155,10 +158,8 @@ const AddressTxListPagenated: React.FC<AddressTxListPagenatedProps> = ({
               <CardTitle>
                 <div className="flex sm:flex-row flex-col justify-between w-full sm:space-y-0 space-y-2">
                   <div className="flex flex-wrap items-center space-x-1">
-                    <ArrowDownWideNarrow className="h-4 w-4" />
                     <span className="text-sm">
-                      Latest {table.getRowModel().rows.length} from a total
-                      transactions
+                      A total of {totalTxs.toLocaleString()} transactions found
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -169,9 +170,9 @@ const AddressTxListPagenated: React.FC<AddressTxListPagenatedProps> = ({
                       fileName={`export-${address}.csv`}
                     />
                     {pages.length > 0 && (
-                      <TransactionPagenation
+                      <TransactionsPagination
                         address={address}
-                        chainId={chain?.id ?? 0}
+                        chainId={chainId}
                         isLastPage={isLastPage}
                         isFirstPage={isFirstPage}
                         blockNumber={blockNumber}
@@ -181,7 +182,7 @@ const AddressTxListPagenated: React.FC<AddressTxListPagenatedProps> = ({
                   </div>
                 </div>
                 {!isLastPage &&
-                  pages.indexOf(blockNumber) + 1 === maxPageSize && (
+                  pages.indexOf(blockNumber) + 1 === MAX_PAGE_SIZE && (
                     <Alert variant="info" className="mt-2">
                       <AlertDescription>
                         This is the maximum number of pages currently supported
@@ -203,4 +204,4 @@ const AddressTxListPagenated: React.FC<AddressTxListPagenatedProps> = ({
   );
 };
 
-export default AddressTxListPagenated;
+export default TransactionsPaginatedList;

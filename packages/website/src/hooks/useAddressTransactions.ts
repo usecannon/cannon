@@ -9,7 +9,6 @@ export function useAddressTransactions(chainId: number, address: string, blockNu
 
   const apiUrl = cannonChains.otterscanApis[chainId]?.rpcUrl;
 
-  // const enabled = !!chainId && !!address && blockNumber !== undefined && blockNumber !== null && pagesReady;
   const enabled = !!chainId && !!address && !!blockNumber && pagesReady;
 
   return useQuery({

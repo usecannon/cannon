@@ -57,7 +57,7 @@ const AddressPage = () => {
     );
   }
 
-  const { txs, receipts, oldReceipts } = transactionData;
+  const { txs, receipts, oldReceipts, isLastPage } = transactionData;
 
   const renderContent = () => {
     if (displayAddress) {
@@ -73,6 +73,7 @@ const AddressPage = () => {
               chain={chain}
               txs={txs}
               receipts={receipts}
+              isLastPage={isLastPage}
             />
           );
       }

@@ -4,14 +4,13 @@ import { Chain } from '@/types/Chain';
 import { convertToFormatEther } from '@/lib/transaction';
 import { TransactionRow, TransactionCsvRow, OtterscanTransaction, OtterscanReceipt } from '@/types/AddressList';
 import { getSelectors } from '@/helpers/api';
+// import { MAX_PAGE_SIZE } from '@/constants/pagination';
 
 export const tabs = [
   { id: 'transactions', label: 'Transactions' },
   { id: 'tokentxns', label: 'Token Transfers (ERC-20)' },
   { id: 'nfttransfers', label: 'NFT Transfers' },
 ];
-
-export const maxPageSize = 100;
 
 export type TabId = (typeof tabs)[number]['id'];
 
@@ -140,33 +139,46 @@ export async function searchTransactions(
   return data;
 }
 
-export async function fetchBlockPages(apiUrl: string, displayAddress: string, maxPagesSafety = maxPageSize - 1): Promise<string[]> {
-  const blocksSet = new Set<string>();
-  let isLastPage = false;
-  let block = 0;
-  let iterations = 0;
+// export async function fetchBlockPages(
+//   apiUrl: string,
+//   displayAddress: string,
+//   maxPagesSafety = MAX_PAGE_SIZE - 1
+// ): Promise<{ pages: string[]; totalTxs: number }> {
+//   const blocksSet = new Set<string>();
+//   let isLastPage = false;
+//   let block = 0;
+//   let iterations = 0;
+//   let totalTxs = 0;
 
-  do {
-    console.log("test");
-    const data = await searchTransactions(apiUrl, displayAddress, 'before', block);
+//   do {
+//     const data = await searchTransactions(apiUrl, displayAddress, 'before', block);
 
-    const receipts = data.result?.receipts ?? [];
-    if (!receipts.length) break;
+//     const receipts = data.result?.receipts ?? [];
+//     if (!receipts.length) break;
 
-    const lastReceipt = receipts[receipts.length - 1];
-    const nextBlock = parseInt(lastReceipt.blockNumber.slice(2), 16);
-    block = nextBlock;
+//     totalTxs += receipts.length;
 
-    isLastPage = !!data.result?.lastPage;
-    if (!isLastPage) {
-      blocksSet.add(String(nextBlock));
-    }
+//     const lastReceipt = receipts[receipts.length - 1];
+//     const nextBlock = parseInt(lastReceipt.blockNumber.slice(2), 16);
+//     block = nextBlock;
 
-    iterations++;
-    if (iterations > maxPagesSafety) {
-      break;
-    }
-  } while (!isLastPage);
+//     isLastPage = !!data.result?.lastPage;
+//     if (!isLastPage) {
+//       blocksSet.add(String(nextBlock));
+//     }
 
-  return Array.from(blocksSet).sort((a, b) => Number(b) - Number(a));
-}
+//     iterations++;
+//     if (iterations > maxPagesSafety) {
+//       break;
+//     }
+//   } while (!isLastPage);
+
+//   if (totalTxs === 0 && blocksSet.size === 0) {
+//     throw new Error('No transactions found');
+//   }
+
+//   return {
+//     pages: Array.from(blocksSet).sort((a, b) => Number(b) - Number(a)),
+//     totalTxs: totalTxs,
+//   };
+// }
