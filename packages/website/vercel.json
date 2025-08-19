@@ -55,6 +55,14 @@
     {
       "source": "/learn/guides/get-started/:section",
       "destination": "/learn/guides/get-started/[section]"
+    },
+    {
+      "source": "/address/:chainId/:address",
+      "destination": "/address/[chainId]/[address]"
+    },
+    {
+      "source": "/tx/:chainId/:txHash",
+      "destination": "/tx/[chainId]/[txHash]"
     }
   ],
   "framework": null,

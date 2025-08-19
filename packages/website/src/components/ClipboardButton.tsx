@@ -6,11 +6,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface ClibpboardButtonProps {
   text: string;
   className?: string;
+  size?: 'sm' | 'default' | 'lg';
 }
 
 export const ClipboardButton: FC<ClibpboardButtonProps> = ({
   text,
   className,
+  size = 'default',
 }) => {
   const [hasCopied, setHasCopied] = useState(false);
 
@@ -20,11 +22,24 @@ export const ClipboardButton: FC<ClibpboardButtonProps> = ({
     setTimeout(() => setHasCopied(false), 2000);
   }
 
+  function adjustCopyIconClass(size: 'sm' | 'default' | 'lg') {
+    switch (size) {
+      case 'sm':
+        return 'h-6 w-6 [&_svg]:h-3.5 [&_svg]:w-3.5';
+      case 'lg':
+        return 'h-8 w-8 [&_svg]:h-4.5 [&_svg]:w-4.5';
+      default:
+        return 'h-7 w-7 [&_svg]:h-4 [&_svg]:w-4';
+    }
+  }
+
   return (
     <Button
       size="icon"
       variant="ghost"
-      className={`flex-shrink-0 h-7 w-7 bg-background border border-border ${className}`}
+      className={`flex-shrink-0 ${adjustCopyIconClass(
+        size
+      )} bg-background border border-border ${className}`}
       onClick={copyToClipboard}
       data-testid="clipboard-copy-button"
     >
@@ -37,10 +52,7 @@ export const ClipboardButton: FC<ClibpboardButtonProps> = ({
             exit={{ scale: 0.5, opacity: 0 }}
             transition={{ duration: 0.15 }}
           >
-            <Check
-              className="h-3.5 w-3.5 text-green-500"
-              data-testid="copied-icon"
-            />
+            <Check className="text-green-500" data-testid="copied-icon" />
           </motion.div>
         ) : (
           <motion.div
@@ -50,10 +62,7 @@ export const ClipboardButton: FC<ClibpboardButtonProps> = ({
             exit={{ scale: 0.5, opacity: 0 }}
             transition={{ duration: 0.15 }}
           >
-            <Copy
-              className="h-3.5 w-3.5 text-muted-foreground"
-              data-testid="copy-icon"
-            />
+            <Copy className="text-muted-foreground" data-testid="copy-icon" />
           </motion.div>
         )}
       </AnimatePresence>
