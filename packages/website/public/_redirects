@@ -10,3 +10,4 @@
 /deploy/txn/:chainId/:safeAddress/:nonce/:sigHash /deploy/txn/[chainId]/[safeAddress]/[nonce]/[sigHash].html 200
 /address/:chainId/:address /address/[chainId]/[address].html 200
 /tx/:chainId/:txHash /tx/[chainId]/[txHash].html 200
+/txs /txs.html 200
