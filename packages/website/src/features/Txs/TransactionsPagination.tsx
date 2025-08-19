@@ -24,7 +24,8 @@ const TransactionsPagination: React.FC<TransactionPagenationProp> = ({
   blockNumber,
   pages,
 }) => {
-  const currentPageIndex = pages.indexOf(blockNumber);
+  const currentPageIndex =
+    pages.indexOf(blockNumber) < 0 ? 0 : pages.indexOf(blockNumber);
   const totalPages =
     MAX_PAGE_SIZE === pages.length ? MAX_PAGE_SIZE : pages.length + 1;
 
