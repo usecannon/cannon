@@ -53,6 +53,8 @@ import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
 import { ANVIL_PORT_DEFAULT_VALUE } from './constants';
 import { deprecatedWarn } from './util/deprecated-warn';
+// import ora from 'ora';
+import { createSpinner } from 'nanospinner';
 
 export * from './types';
 export * from './constants';
@@ -632,64 +634,79 @@ applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async
 });
 
 applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(async function (packageRef, data, options) {
-  const { decode } = await import('./commands/decode');
+  const spinner = createSpinner('Decoding...').start();
+  try {
+    const { decode } = await import('./commands/decode');
+    const cliSettings = resolveCliSettings(options);
 
-  const cliSettings = resolveCliSettings(options);
-  const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
+    const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
-  await decode({
-    packageRef: fullPackageRef,
-    data,
-    chainId,
-    json: options.json,
-  });
+    spinner.stop();
+    await decode({
+      packageRef: fullPackageRef,
+      data,
+      chainId,
+      json: options.json,
+    });
+  } catch (err) {
+    spinner.stop();
+    throw err;
+  }
 });
 
 applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOptions, options) {
-  const cliSettings = resolveCliSettings(options);
+  const spinner = createSpinner('Testing...').start();
+  try {
 
-  if (cliSettings.rpcUrl.startsWith('https')) {
-    options.dryRun = true;
-  }
+    const cliSettings = resolveCliSettings(options);
 
-  if (forgeOptions.length) {
-    log();
-    warn(
-      yellowBright(
-        bold(
-          '⚠️  The `--` syntax for passing options to forge or anvil is deprecated. Please use `--forge.*` or `--anvil.*` instead.'
+    if (cliSettings.rpcUrl.startsWith('https')) {
+      options.dryRun = true;
+    }
+
+    if (forgeOptions.length) {
+      log();
+      warn(
+        yellowBright(
+          bold(
+            '⚠️  The `--` syntax for passing options to forge or anvil is deprecated. Please use `--forge.*` or `--anvil.*` instead.'
+          )
         )
-      )
-    );
-    log();
-  }
+      );
+      log();
+    }
 
-  // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
+    spinner.stop();
+    // throw an error if the chainId is not consistent with the provider's chainId
+    await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
 
-  const [node, , outputs] = await doBuild(cannonfile, [], options);
+    const [node, , outputs] = await doBuild(cannonfile, [], options);
+    spinner.stop();
+    // basically we need to write deployments here
+    await writeModuleDeployments(path.join(process.cwd(), 'deployments/test'), '', outputs);
 
-  // basically we need to write deployments here
-  await writeModuleDeployments(path.join(process.cwd(), 'deployments/test'), '', outputs);
+    // after the build is done we can run the forge tests for the user
+    await getProvider(node!)!.mine({ blocks: 1 });
+  
+    const pickedOptions = pickForgeTestOptions(options);
 
-  // after the build is done we can run the forge tests for the user
-  await getProvider(node!)!.mine({ blocks: 1 });
+    const forgeTestArgs = fromFoundryOptionsToArgs(pickedOptions, forgeTestOptions);
 
-  const pickedOptions = pickForgeTestOptions(options);
-
-  const forgeTestArgs = fromFoundryOptionsToArgs(pickedOptions, forgeTestOptions);
-
-  const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeTestArgs, ...forgeOptions], {
-    stdio: 'inherit',
-  });
-
-  await new Promise(() => {
-    forgeProcess.on('close', (code: number) => {
-      log(`forge exited with code ${code}`);
-      node?.kill();
-      process.exit(code);
+    const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeTestArgs, ...forgeOptions], {
+      stdio: 'inherit',
     });
-  });
+
+    await new Promise(() => {
+      forgeProcess.on('close', (code: number) => {
+        log(`forge exited with code ${code}`);
+        node?.kill();
+        process.exit(code);
+      });
+    });
+  } catch (err) {
+    spinner.stop();
+    throw err;
+  }
 });
 
 applyCommandsConfig(program.command('interact'), commandsConfig.interact).action(async function (packageRef, options) {
