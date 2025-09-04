@@ -8,7 +8,7 @@ import { bold, gray, green, italic, yellow } from 'chalk';
 import { ensureFoundryCompatibility } from '../helpers';
 import { CLI_SETTINGS_STORE } from '../constants';
 import { resolveCliSettings } from '../settings';
-import { log } from '../util/console';
+import { logSpinner } from '../util/console';
 
 export async function setup() {
   // ensure foundry compatibility
@@ -16,21 +16,23 @@ export async function setup() {
 
   // exit if settings is already configured
   if (process.env.CANNON_SETTINGS) {
-    log('Your Cannon settings are being explicitly defined as follows:');
-    log(JSON.stringify(process.env.CANNON_SETTINGS));
+    logSpinner('Your Cannon settings are being explicitly defined as follows:');
+    logSpinner(JSON.stringify(process.env.CANNON_SETTINGS));
     return;
   }
 
   const settings = resolveCliSettings();
   const cliSettingsStore = untildify(path.join(settings.cannonDirectory, CLI_SETTINGS_STORE));
-  log('Cannon’s settings are optional. They can be defined in a JSON file and overridden with environment variables.\n');
-  log(`This will update your settings stored in ${cliSettingsStore}`);
+  logSpinner(
+    'Cannon’s settings are optional. They can be defined in a JSON file and overridden with environment variables.\n'
+  );
+  logSpinner(`This will update your settings stored in ${cliSettingsStore}`);
 
   const configExists = fs.existsSync(cliSettingsStore);
   let fileSettings = configExists ? fs.readJsonSync(cliSettingsStore) : {};
 
-  Object.entries(fileSettings).map(([k, v]: [string, any]) => log(`${gray('›')} ${bold(k)} - ${v}`));
-  log('');
+  Object.entries(fileSettings).map(([k, v]: [string, any]) => logSpinner(`${gray('›')} ${bold(k)} - ${v}`));
+  logSpinner('');
 
   const questions: prompts.PromptObject[] = [
     {
@@ -56,8 +58,8 @@ export async function setup() {
 
   const response = await prompts(questions, {
     onCancel: () => {
-      log(bold('Aborting...'));
-      log(yellow(italic('No changes were made to your configuration.')));
+      logSpinner(bold('Aborting...'));
+      logSpinner(yellow(italic('No changes were made to your configuration.')));
       process.exit(0);
     },
   });
@@ -74,9 +76,9 @@ export async function setup() {
     fileSettings.writeIpfsUrl = response.writeIpfsUrl;
   }
 
-  log(`\nSaving ${cliSettingsStore}`);
+  logSpinner(`\nSaving ${cliSettingsStore}`);
   fileSettings = _.omitBy(fileSettings, _.isEmpty);
   await fs.mkdirp(path.dirname(cliSettingsStore));
   fs.writeFileSync(cliSettingsStore, JSON.stringify(fileSettings), 'utf8');
-  log(green('Cannon settings updated successfully'));
+  logSpinner(green('Cannon settings updated successfully'));
 }

@@ -3,7 +3,7 @@ import _ from 'lodash';
 import Debug from 'debug';
 import * as viem from 'viem';
 import prompts from 'prompts';
-import { log } from '../util/console';
+import { logSpinner } from '../util/console';
 import { blueBright, gray, green, bold } from 'chalk';
 
 import { CliSettings } from '../settings';
@@ -87,13 +87,13 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
       })
     ).value;
 
-    log();
+    logSpinner();
   }
 
   const isMainnet = selectedNetwork === Network.MAINNET;
   const [readRegistry, writeRegistry] = cliSettings.registries;
 
-  log(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
+  logSpinner(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
 
   const registryProviders = await Promise.all([
     resolveProviderAndSigners({
@@ -159,12 +159,12 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   ]);
 
   if (options.list) {
-    log('');
-    log(`The ${packageName} package lists the following publishers: `);
-    log(`  - ${packageOwner} (Mainnet) (Package Owner)`);
-    mainnetCurrentPublishers.forEach((p) => log(`  - ${p} (Mainnet)`));
-    optimismCurrentPublishers.forEach((p) => log(`  - ${p} (Optimism)`));
-    log('');
+    logSpinner('');
+    logSpinner(`The ${packageName} package lists the following publishers: `);
+    logSpinner(`  - ${packageOwner} (Mainnet) (Package Owner)`);
+    mainnetCurrentPublishers.forEach((p) => logSpinner(`  - ${p} (Mainnet)`));
+    optimismCurrentPublishers.forEach((p) => logSpinner(`  - ${p} (Optimism)`));
+    logSpinner('');
 
     return;
   }
@@ -193,12 +193,12 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     throw new Error('The publishers list is already up to date.');
   }
 
-  log();
-  log('The publishers list will be updated as follows:');
-  publishers.forEach((publisher) => log(` - ${publisher} (${isMainnet ? 'Ethereum Mainnet' : 'OP Mainnet'})`));
+  logSpinner();
+  logSpinner('The publishers list will be updated as follows:');
+  publishers.forEach((publisher) => logSpinner(` - ${publisher} (${isMainnet ? 'Ethereum Mainnet' : 'OP Mainnet'})`));
   const restOfPublishers = !isMainnet ? mainnetCurrentPublishers : optimismCurrentPublishers;
-  restOfPublishers.forEach((publisher) => log(` - ${publisher} (${!isMainnet ? 'Ethereum Mainnet' : 'OP Mainnet'})`));
-  log();
+  restOfPublishers.forEach((publisher) => logSpinner(` - ${publisher} (${!isMainnet ? 'Ethereum Mainnet' : 'OP Mainnet'})`));
+  logSpinner();
 
   if (!options.skipConfirm) {
     const confirm = await prompts({
@@ -208,7 +208,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     });
 
     if (!confirm.confirmation) {
-      log('Cancelled');
+      logSpinner('Cancelled');
       process.exit(1);
     }
   }
@@ -218,21 +218,21 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
 
   const packageNameHex = viem.stringToHex(packageName, { size: 32 });
 
-  log('Submitting transaction, waiting for transaction to succeed...');
-  log();
+  logSpinner('Submitting transaction, waiting for transaction to succeed...');
+  logSpinner();
 
   const [hash] = await Promise.all([
     (async () => {
       const hash = await mainnetRegistry.setAdditionalPublishers(packageName, mainnetPublishers, optimismPublishers);
 
-      log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
-      log('');
-      log(
+      logSpinner(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+      logSpinner('');
+      logSpinner(
         gray(
           `Waiting for the transaction to propagate to ${optimismRegistryConfig.name}... It may take approximately 1-3 minutes.`
         )
       );
-      log('');
+      logSpinner('');
 
       return hash;
     })(),
@@ -259,8 +259,8 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         }),
       ]);
 
-      log(green('Success - The publishers list has been updated!'));
-      log('');
+      logSpinner(green('Success - The publishers list has been updated!'));
+      logSpinner('');
     })(),
   ]);
 

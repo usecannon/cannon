@@ -6,7 +6,7 @@ import { blueBright, gray, green, bold } from 'chalk';
 import { OnChainRegistry, prepareMulticall, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 
 import { CliSettings } from '../settings';
-import { log } from '../util/console';
+import { logSpinner } from '../util/console';
 import { waitForEvent } from '../util/wait-for-event';
 import { resolveProviderAndSigners, ProviderAction } from '../util/provider';
 import { isPackageRegistered } from '../util/register';
@@ -37,7 +37,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
   // [optimism registry, mainnet registry]
   const [readRegistry, writeRegistry] = cliSettings.registries;
 
-  log(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
+  logSpinner(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
 
   const registryProviders = await Promise.all([
     resolveProviderAndSigners({
@@ -145,12 +145,14 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
 
   const currentGasPrice = await mainnetRegistryProvider.provider.getGasPrice();
 
-  log('');
-  log('You are about to register the following packages:');
-  packageRefs.forEach((pkg: PackageReference) => log(' - Package:', blueBright(pkg.name)));
-  log();
-  log(`The transaction will cost ~${viem.formatEther(estimateGas * currentGasPrice)} ETH on ${mainnetRegistryConfig.name}.`);
-  log('');
+  logSpinner('');
+  logSpinner('You are about to register the following packages:');
+  packageRefs.forEach((pkg: PackageReference) => logSpinner(' - Package:', blueBright(pkg.name)));
+  logSpinner();
+  logSpinner(
+    `The transaction will cost ~${viem.formatEther(estimateGas * currentGasPrice)} ETH on ${mainnetRegistryConfig.name}.`
+  );
+  logSpinner('');
 
   if (!options.skipConfirm) {
     const confirm = await prompts({
@@ -160,27 +162,27 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
     });
 
     if (!confirm.confirmation) {
-      log('Cancelled');
+      logSpinner('Cancelled');
       process.exit(1);
     }
   }
 
-  log('Submitting transaction, waiting for transaction to succeed...');
-  log();
+  logSpinner('Submitting transaction, waiting for transaction to succeed...');
+  logSpinner();
 
   try {
     const [hash] = await Promise.all([
       (async () => {
         const hash = await mainnetRegistry.setPackageOwnership(multicallTx);
 
-        log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
-        log('');
-        log(
+        logSpinner(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+        logSpinner('');
+        logSpinner(
           gray(
             `Waiting for the transaction to propagate to ${optimismRegistryConfig.name}... It may take approximately 1-3 minutes.`
           )
         );
-        log('');
+        logSpinner('');
 
         return hash;
       })(),
@@ -216,12 +218,12 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
     ]);
 
     packageRefs.map(async (pkg) => {
-      log(green(`Success - Package "${pkg.name}" has been registered.`));
+      logSpinner(green(`Success - Package "${pkg.name}" has been registered.`));
     });
 
     if (fromPublish) {
-      log('');
-      log(gray('We will continue with the publishing process.'));
+      logSpinner('');
+      logSpinner(gray('We will continue with the publishing process.'));
     }
 
     return hash;
