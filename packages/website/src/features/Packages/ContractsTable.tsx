@@ -23,6 +23,7 @@ import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import UnavailableTransaction from '@/features/Packages/UnavailableTransaction';
 import { formatTransactionHash } from '@/helpers/formatters';
 import { ContractRow, ContractOptionMap } from '@/lib/interact';
+import Link from 'next/link';
 
 /*
   * Smart Contract Deployments
@@ -192,14 +193,12 @@ export const ContractsTable: React.FC<{
                           }
                           const explorerUrl = getExplorerUrl(chainId, value);
                           return explorerUrl ? (
-                            <a
-                              href={explorerUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            <Link
+                              href={`/tx/${Number(chainId)}/${value}`}
                               className="font-mono border-b border-dotted border-muted-foreground hover:border-solid"
                             >
                               {formatTransactionHash(value)}
-                            </a>
+                            </Link>
                           ) : (
                             <code className="text-xs">{value}</code>
                           );

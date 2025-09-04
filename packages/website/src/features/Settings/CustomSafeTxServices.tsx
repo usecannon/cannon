@@ -70,16 +70,11 @@ export default function CustomSafeTxServices() {
         {safeTxServices.map((service) => (
           <div
             key={service.chainId}
-            className="flex items-center justify-between pl-3 pr-1 py-1 rounded-lg bg-accent/50 overflow-x-auto max-w-full group"
+            className="flex items-center justify-between pl-3 pr-1 py-1 rounded-lg bg-accent/50 max-w-full group"
           >
-            <div className="flex items-center gap-3 min-w-0 overflow-x-auto">
-              <span className="text-sm truncate whitespace-nowrap">
-                {service.url}
-              </span>
-              <Badge
-                variant="secondary"
-                className="shrink-0 opacity-50 px-1.5 whitespace-nowrap"
-              >
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="text-sm truncate">{service.url}</span>
+              <Badge variant="secondary" className="shrink-0 opacity-50 px-1.5">
                 Chain ID: {service.chainId}
               </Badge>
             </div>
@@ -122,10 +117,12 @@ export default function CustomSafeTxServices() {
           <Plus className="h-4 w-4" />
         </Button>
       </div>
-      <SettingResetButton
-        onReset={() => setSafeTxServices(initialState.safeTxServices)}
-        sectionName="Custom Safe Transaction Services"
-      />
+      <div className="flex justify-end">
+        <SettingResetButton
+          onReset={() => setSafeTxServices(initialState.safeTxServices)}
+          sectionName="Custom Safe Transaction Services"
+        />
+      </div>
     </div>
   );
 }

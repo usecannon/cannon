@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --enable-source-maps
+#!/usr/bin/env -S node --enable-source-maps --max-old-space-size=8192
 
 const { red } = require('chalk');
 const cli = require('../dist/src');

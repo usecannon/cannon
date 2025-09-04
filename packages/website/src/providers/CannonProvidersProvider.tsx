@@ -68,6 +68,7 @@ export type CustomProviders =
       chainMetadata: CustomChainMetadata;
       transports: Record<number, HttpTransport>;
       customTransports: Record<number, HttpTransport>;
+      otterscanApis: Record<number, RpcUrlAndTransport>;
       getChainById: (chainId: number) => Chain | undefined;
       getExplorerUrl: (
         chainId: number,
@@ -96,7 +97,6 @@ const customDefaultRpcs: Record<number, Chain['rpcUrls']> = {
           : randomItem([
               'https://eth.llamarpc.com',
               'https://ethereum-rpc.publicnode.com',
-              'https://rpc.ankr.com/eth',
               'https://eth.blockrazor.xyz',
             ]),
       ],
@@ -339,7 +339,18 @@ function _getChainById(allChains: Chain[], chainId: number) {
   return chain;
 }
 
-const _getExplorerUrl = (allChains: Chain[], chainId: number, hash: Hash) => {
+const _getExplorerUrl = (
+  allChains: Chain[],
+  verifiedOtterscanProviders: Record<number, RpcUrlAndTransport>,
+  chainId: number,
+  hash: Hash
+) => {
+  if (verifiedOtterscanProviders[chainId]) {
+    return isAddress(hash)
+      ? `/address/${chainId}/${hash}`
+      : `/tx/${chainId}/${hash}`;
+  }
+
   const chain = _getChainById(allChains, +chainId);
   if (!chain) return externalLinks.ETHERSCAN;
 
@@ -371,16 +382,26 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
   const customProviders = useStore((state) => state.settings.customProviders);
+  const otterscanProviders = useStore(
+    (state) => state.settings.customOtterscanAPIs
+  );
   const safeTxServices = useStore((state) => state.safeTxServices);
 
-  const { isLoading, data: verifiedProviders } = useQuery({
+  const { isLoading: isLoadingProviders, data: verifiedProviders } = useQuery({
     queryKey: ['fetchCustomProviders', ...customProviders],
     queryFn: _getProvidersChainId,
   });
 
+  const { isLoading: isLoadingOtterscan, data: verifiedOtterscanProviders } =
+    useQuery({
+      queryKey: ['fetchCustomOtterscan', ...otterscanProviders],
+      queryFn: _getProvidersChainId,
+    });
+
   const chainsUrls = Object.values(verifiedProviders || {}).map(
     (v) => v.rpcUrl
   );
+
   const chainsUrlsString = JSON.stringify(sortBy(chainsUrls));
 
   const mergedChainMetadata = useMemo(
@@ -405,12 +426,18 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
         chainMetadata: mergedChainMetadata,
         transports: _allTransports,
         customTransports: _customTransports,
+        otterscanApis: verifiedOtterscanProviders || {},
         getChainById: (chainId) => _getChainById(_allChains, chainId),
         getExplorerUrl: (chainId, hash) =>
-          _getExplorerUrl(_allChains, chainId, hash as Hash),
+          _getExplorerUrl(
+            _allChains,
+            verifiedOtterscanProviders || {},
+            chainId,
+            hash as Hash
+          ),
       }}
     >
-      {isLoading ? <PageLoading /> : children}
+      {isLoadingProviders || isLoadingOtterscan ? <PageLoading /> : children}
     </ProvidersContext.Provider>
   );
 };

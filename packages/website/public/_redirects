@@ -8,3 +8,5 @@
 /packages/:name/:tag/:variant/interact/:moduleName/:contractName/:contractAddress /packages/[name]/[tag]/[variant]/interact/[moduleName]/[contractName]/[contractAddress].html 200
 /packages/:name/:tag/:variant/cannonfile /packages/[name]/[tag]/[variant]/cannonfile.html 200
 /deploy/txn/:chainId/:safeAddress/:nonce/:sigHash /deploy/txn/[chainId]/[safeAddress]/[nonce]/[sigHash].html 200
+/address/:chainId/:address /address/[chainId]/[address].html 200
+/tx/:chainId/:txHash /tx/[chainId]/[txHash].html 200

@@ -67,19 +67,19 @@ export interface ApiContract {
   version: string;
 }
 
-export interface ApiFunction {
-  type: 'function';
+export interface ApiSelectorResult {
+  type: 'function' | 'event' | 'error';
   name: string;
   selector: string;
-  contractName: string;
-  chainId: number;
-  address: Address;
-  packageName: string;
-  preset: string;
-  version: string;
+  contractName?: string;
+  chainId?: number;
+  address?: Address;
+  packageName?: string;
+  preset?: string;
+  version?: string;
 }
 
-export type ApiDocument = ApiNamespace | ApiPackage | ApiContract | ApiFunction;
+export type ApiDocument = ApiNamespace | ApiPackage | ApiContract | ApiSelectorResult;
 
 type ExtractType<T> = T extends { type: infer U } ? U : never;
 export type ApiDocumentType = ExtractType<ApiDocument>;

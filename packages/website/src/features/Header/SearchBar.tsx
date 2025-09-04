@@ -238,11 +238,11 @@ const SearchBar = () => {
                                   <span className="text-xs text-muted-foreground">
                                     {result.packageName}
                                     {formatVersionAndPreset(
-                                      result.version,
-                                      result.preset
+                                      result.version || 'latest',
+                                      result.preset || 'main'
                                     )}{' '}
                                     on{' '}
-                                    {getChainById(result.chainId)?.name ||
+                                    {getChainById(result.chainId || 0)?.name ||
                                       'Unknown Chain'}{' '}
                                     (ID: {result.chainId})
                                   </span>
