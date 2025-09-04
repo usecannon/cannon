@@ -1,40 +1,103 @@
 /* eslint-disable no-console */
 import { createSpinner } from 'nanospinner';
-export const spinner = createSpinner('Fetching...').start();
+
+// Detect if we're in a test environment or non-TTY environment
+const isTestEnv = process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID !== undefined;
+const isTTY = process.stdout.isTTY;
+const shouldUseSpinner = !isTestEnv && isTTY;
+
+export const spinner = shouldUseSpinner ? createSpinner('Fetching...') : null;
+
+// Initialize spinner if we should use it
+if (spinner) {
+  spinner.start();
+}
+
+// Add process cleanup handlers
+const cleanupSpinner = () => {
+  if (spinner) {
+    spinner.stop();
+  }
+};
+
+process.on('exit', cleanupSpinner);
+process.on('SIGINT', () => {
+  cleanupSpinner();
+  process.exit();
+});
+process.on('SIGTERM', cleanupSpinner);
 
 export const log = console.log.bind(console);
 export const error = console.error.bind(console);
 export const warn = console.warn.bind(console);
 export const info = console.info.bind(console);
 
-export const logSpinner = (...consoleText: any) => {
-  spinner.stop();
-  console.log(...consoleText);
-  spinner.start();
-  return;
+export const logSpinner = (...consoleText: any[]) => {
+  try {
+    if (spinner) {
+      spinner.stop();
+    }
+    console.log(...consoleText);
+    if (spinner) {
+      spinner.start();
+    }
+  } catch (err) {
+    // Fallback to regular console if spinner fails
+    console.log(...consoleText);
+  }
 };
 
-export const warnSpinner = (...consoleText: any) => {
-  spinner.stop();
-  console.warn(...consoleText);
-  spinner.start();
-  return;
+export const warnSpinner = (...consoleText: any[]) => {
+  try {
+    if (spinner) {
+      spinner.stop();
+    }
+    console.warn(...consoleText);
+    if (spinner) {
+      spinner.start();
+    }
+  } catch (err) {
+    // Fallback to regular console if spinner fails
+    console.warn(...consoleText);
+  }
 };
 
-export const errorSpinner = (...consoleText: any) => {
-  spinner.stop();
-  console.error(...consoleText);
-  spinner.start();
-  return;
+export const errorSpinner = (...consoleText: any[]) => {
+  try {
+    if (spinner) {
+      spinner.stop();
+    }
+    console.error(...consoleText);
+    if (spinner) {
+      spinner.start();
+    }
+  } catch (err) {
+    // Fallback to regular console if spinner fails
+    console.error(...consoleText);
+  }
 };
 
-export const infoSpinner = (...consoleText: any) => {
-  spinner.stop();
-  console.info(...consoleText);
-  spinner.start();
-  return;
+export const infoSpinner = (...consoleText: any[]) => {
+  try {
+    if (spinner) {
+      spinner.stop();
+    }
+    console.info(...consoleText);
+    if (spinner) {
+      spinner.start();
+    }
+  } catch (err) {
+    // Fallback to regular console if spinner fails
+    console.info(...consoleText);
+  }
 };
 
 export const logSpinnerEnd = () => {
-  spinner.stop();
+  try {
+    if (spinner) {
+      spinner.stop();
+    }
+  } catch (err) {
+    // Ignore spinner errors on cleanup
+  }
 };
