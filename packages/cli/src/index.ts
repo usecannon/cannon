@@ -38,7 +38,7 @@ import { PackageSpecification } from './types';
 
 import { doBuild } from './util/build';
 import { setDebugLevel } from './util/debug-level';
-import { logSpinner, warnSpinner, errorSpinner, logSpinnerEnd, spinner } from './util/console';
+import { logSpinner, warn, errorSpinner, logSpinnerEnd, spinner } from './util/console';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { applyCommandsConfig } from './util/commands-config';
 import {
@@ -759,7 +759,7 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
 
     if (forgeOptions.length) {
       logSpinner();
-      warnSpinner(
+      warn(
         yellowBright(
           bold(
             '⚠️  The `--` syntax for passing options to forge or anvil is deprecated. Please use `--forge.*` or `--anvil.*` instead.'

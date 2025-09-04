@@ -22,7 +22,7 @@ import { createDefaultReadRegistry } from '../registry';
 import { CannonRpcNode, getProvider } from '../rpc';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
-import { logSpinner, warnSpinner } from '../util/console';
+import { logSpinner, warn } from '../util/console';
 import { getContractsRecursive } from '../util/contracts-recursive';
 import onKeypress from '../util/on-keypress';
 import { build } from './build';
@@ -153,7 +153,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   }
 
   if (!signers.length) {
-    warnSpinner(
+    warn(
       yellow(
         '\nWARNING: no signers resolved. Specify signers with --mnemonic or --private-key (or use --impersonate if on a fork).'
       )

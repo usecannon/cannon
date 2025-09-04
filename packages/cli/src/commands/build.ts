@@ -31,7 +31,7 @@ import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { createDefaultReadRegistry, createLocalOnlyRegistry, createOnChainOnlyRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
-import { logSpinner, warnSpinner, errorSpinner } from '../util/console';
+import { logSpinner, warn, error } from '../util/console';
 import { hideApiKey } from '../util/provider';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
 import { mergeErrors } from '../util/merge-errors';
@@ -281,7 +281,7 @@ export async function build({
     );
   });
   runtime.on(Events.Notice, (n, msg) => {
-    warnSpinner(yellowBright(`WARN: ${n}: ${msg}`));
+    warn(yellowBright(`WARN: ${n}: ${msg}`));
   });
   runtime.on(Events.PostStepExecute, (t, n, c, ctx, o, d) => {
     for (const txnKey in o.txns) {
@@ -459,10 +459,10 @@ export async function build({
           await writeUpgradeFromInfo(runtime, packageReference, deployUrl);
           break;
         } catch (err) {
-          errorSpinner(err);
-          errorSpinner(red(`Failed to write upgrade record to on-chain state. Try ${i + 1}/3`));
+          error(err);
+          error(red(`Failed to write upgrade record to on-chain state. Try ${i + 1}/3`));
           if (i === 2) {
-            errorSpinner(
+            error(
               red(
                 bold(
                   `Failed to write state on-chain. The next time you upgrade your package, you should include the option --upgrade-from ${deployUrl}.`
