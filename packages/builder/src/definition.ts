@@ -343,7 +343,7 @@ export class ChainDefinition {
 
     computeDepsDebug('finished compute dependencies');
 
-    const cycles = this.checkCycles()
+    const cycles = this.checkCycles();
     if (cycles?.length) {
       throw new Error(`cannot generate dependency tree: dependency cycle found: ${cycles.join(' => ')}`);
     }
