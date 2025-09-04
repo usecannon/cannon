@@ -343,6 +343,11 @@ export class ChainDefinition {
 
     computeDepsDebug('finished compute dependencies');
 
+    const cycles = this.checkCycles()
+    if (cycles?.length) {
+      throw new Error(`cannot generate dependency tree: dependency cycle found: ${cycles.join(' => ')}`);
+    }
+
     this._roots = new Set(this.allActionNames.filter((n) => !this.getDependencies(n).length));
 
     if (computeDepsDebug.enabled) {
@@ -482,8 +487,6 @@ export class ChainDefinition {
     currentPath = new Set<string>()
   ): string[] | null {
     // resolved dependencies gets set during dependency computation
-    this.initializeComputedDependencies();
-
     for (const n of actions) {
       if (seenNodes.has(n)) {
         return null;

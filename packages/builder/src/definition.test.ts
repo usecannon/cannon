@@ -12,7 +12,13 @@ function makeFakeChainDefinition(nodes: { [n: string]: any }) {
     _.set(rawDef, n, nodes[n]);
   }
 
-  return new ChainDefinition(rawDef);
+  const def = new ChainDefinition(rawDef);
+
+  try {
+    def.initializeComputedDependencies();
+  } catch {}
+
+  return def;
 }
 
 describe('ChainDefinition', () => {
