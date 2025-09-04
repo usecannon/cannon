@@ -16,7 +16,9 @@ function makeFakeChainDefinition(nodes: { [n: string]: any }) {
 
   try {
     def.initializeComputedDependencies();
-  } catch {}
+  } catch {
+    // no contents
+  }
 
   return def;
 }
