@@ -4,7 +4,7 @@ import path from 'node:path';
 import Debug from 'debug';
 import prompts from 'prompts';
 
-import { logSpinner } from '../util/console';
+import { log } from '../util/console';
 import { resolveCliSettings } from '../settings';
 
 const debug = Debug('cannon:cli:clean');
@@ -25,13 +25,13 @@ export async function clean(confirm = true) {
   ).then((entries) => entries.flat());
 
   if (!filesAndDirs.length) {
-    logSpinner('No files or folders found that could be deleted.');
+    log('No files or folders found that could be deleted.');
     return false;
   }
 
-  logSpinner('Found the following files and/or folders for deletion:');
-  for (const entry of filesAndDirs) logSpinner(`  - ${entry}`);
-  logSpinner();
+  log('Found the following files and/or folders for deletion:');
+  for (const entry of filesAndDirs) log(`  - ${entry}`);
+  log();
 
   if (confirm) {
     const confirm = await prompts({
