@@ -28,7 +28,7 @@ import { getMainLoader } from './loader';
 import { privateKeyToAccount } from 'viem/accounts';
 import { getChainById, chains } from './chains';
 import { resolveCliSettings } from './settings';
-import { logSpinner, warnSpinner } from './util/console';
+import { logSpinner, warn } from './util/console';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 import { getChainIdFromRpcUrl, isURL, hideApiKey } from './util/provider';
 import { createDefaultReadRegistry } from './registry';
@@ -198,7 +198,7 @@ export async function checkCannonVersion(currentVersion: string): Promise<void> 
   const latestVersion = await resolveCannonVersion();
 
   if (latestVersion && currentVersion && semver.lt(currentVersion, latestVersion)) {
-    warnSpinner(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
+    warn(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
   }
 }
 
