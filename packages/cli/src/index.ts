@@ -172,7 +172,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, options) => {
     try {
-      spinner.update({ text: 'Building...' });
+      spinner?.update({ text: 'Building...' });
       // ensure foundry compatibility
       await ensureFoundryCompatibility();
 
@@ -271,7 +271,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
 
 applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(async function (packageRef, options) {
   try {
-    spinner.update({ text: 'Verifying...' });
+    spinner?.update({ text: 'Verifying...' });
     const { verify } = await import('./commands/verify');
 
     // Override CLI settings with --api-key value
@@ -294,7 +294,7 @@ applyCommandsConfig(program.command('diff'), commandsConfig.diff).action(async f
   options
 ) {
   try {
-    spinner.update({ text: 'Diffing...' });
+    spinner?.update({ text: 'Diffing...' });
     const { diff } = await import('./commands/diff');
 
     const cliSettings = resolveCliSettings(options);
@@ -325,7 +325,7 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
   flags
 ) {
   try {
-    spinner.update({ text: 'Altering...' });
+    spinner?.update({ text: 'Altering...' });
     const { alter } = await import('./commands/alter');
 
     const cliSettings = resolveCliSettings(flags);
@@ -410,7 +410,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   options: { [opt: string]: string }
 ) {
   try {
-    spinner.update({ text: 'Publishing...' });
+    spinner?.update({ text: 'Publishing...' });
     const { publish } = await import('./commands/publish');
 
     const cliSettings = resolveCliSettings(options);
@@ -563,7 +563,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
 applyCommandsConfig(program.command('unpublish'), commandsConfig.unpublish).action(async function (packageRef, options) {
   try {
-    spinner.update({ text: 'Unpublishing...' });
+    spinner?.update({ text: 'Unpublishing...' });
     const { unpublish } = await import('./commands/unpublish');
 
     const cliSettings = resolveCliSettings(options);
@@ -580,7 +580,7 @@ applyCommandsConfig(program.command('unpublish'), commandsConfig.unpublish).acti
 
 applyCommandsConfig(program.command('register'), commandsConfig.register).action(async function (packageRef, options) {
   try {
-    spinner.update({ text: 'Registering...' });
+    spinner?.update({ text: 'Registering...' });
     const { register } = await import('./commands/register');
 
     const cliSettings = resolveCliSettings(options);
@@ -610,7 +610,7 @@ applyCommandsConfig(program.command('publishers'), commandsConfig.publishers).ac
 
 applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(async function (packageRef, options) {
   try {
-    spinner.update({ text: 'Inspecting...' });
+    spinner?.update({ text: 'Inspecting...' });
     const { inspect } = await import('./commands/inspect');
 
     const cliSettings = resolveCliSettings(options);
