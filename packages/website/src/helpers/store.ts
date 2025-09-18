@@ -54,6 +54,15 @@ export interface IpfsState {
   format: string;
 }
 
+export interface deployInputState {
+  deployInputs: string[];
+}
+
+export interface deployInputActions {
+  setInput: (input: any) => void;
+  resetInput: () => void;
+}
+
 export interface ipfsActions {
   download: (state: IpfsState, cid: string) => void;
   setState: (state: IpfsState, payload: Partial<IpfsState>) => void;
@@ -92,6 +101,7 @@ export interface QueueTxsState {
 export type Store = State & Actions;
 export type IpfsStore = IpfsState & ipfsActions;
 export type QueueTxsStore = QueueTxsState & QueueTxsActions;
+export type DeployInputStore = deployInputState & deployInputActions;
 
 // Selector to get queued transactions and last queued transaction ID for the current safe
 export const selectQueuedTransactions = (state: QueueTxsState & { currentSafe: SafeDefinition | null }) => {
@@ -146,9 +156,33 @@ export const initialIpfsState = {
   format: 'text',
 } satisfies IpfsState;
 
+export const initialDeployInput = {
+  deployInputs: [],
+} satisfies deployInputState;
+
 export const initialQueueTxsState = {
   safes: {},
 } satisfies QueueTxsState;
+
+export const useDeployInputStore = create<DeployInputStore>()(
+  persist(
+    (set, get) => ({
+      ...initialDeployInput,
+      setInput: (input) => {
+        const { deployInputs } = get();
+        if (!deployInputs.includes(input)) {
+          set((state: deployInputState) => ({
+            deployInputs: [...state.deployInputs, input],
+          }));
+        }
+      },
+      resetInput: () => set(() => ({ deployInputs: [] })),
+    }),
+    {
+      name: 'deploy-inputs',
+    }
+  )
+);
 
 const useIpfsStore = create<IpfsStore>()(
   persist(

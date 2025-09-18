@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/command';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import { useDeployInputStore } from '@/helpers/store';
 
 const generateLink = (result: any) => {
   switch (result.type) {
@@ -49,6 +50,7 @@ const SearchBar = () => {
   const onOpen = () => setIsOpen(true);
   const onClose = () => setIsOpen(false);
   const router = useRouter();
+  const { deployInputs, setInput, resetInput } = useDeployInputStore();
 
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const PLACEHOLDER = isDesktop
@@ -70,7 +72,9 @@ const SearchBar = () => {
 
   useEffect(() => {
     debouncedSetValue(inputValue);
-
+    // setInput(inputValue);
+    // resetInput();
+    console.log(`deployInputs : ${deployInputs}`);
     return () => {
       debouncedSetValue.cancel();
     };
@@ -86,6 +90,12 @@ const SearchBar = () => {
   const results = useMemo(() => {
     return searchQuery?.data?.data || [];
   }, [searchQuery.data]);
+
+  useEffect(() => {
+    if (results.length > 0 && debouncedValue) {
+      setInput(debouncedValue);
+    }
+  }, [results]);
 
   useEffect(() => {
     if (!isOpen) {

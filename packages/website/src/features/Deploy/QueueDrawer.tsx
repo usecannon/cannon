@@ -37,6 +37,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { toast } from 'sonner';
+import { useDeployInputStore } from '@/helpers/store';
 
 // Because of a weird type cohercion, after using viem.isAddress during website build,
 // the string type of the given value gets invalid to "never", and breaks the build.
@@ -56,6 +57,7 @@ export const QueuedTxns = ({
   const router = useRouter();
   const { safes, setQueuedIdentifiableTxns, setLastQueuedTxnsId } =
     useQueueTxsStore((s) => s);
+  const { setInput } = useDeployInputStore();
 
   const queuedIdentifiableTxns =
     currentSafe?.address &&
@@ -185,6 +187,7 @@ export const QueuedTxns = ({
   };
 
   const addQueuedTxn = () => {
+    setInput(target);
     setQueuedIdentifiableTxns({
       queuedIdentifiableTxns: [
         ...queuedIdentifiableTxns,
