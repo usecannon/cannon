@@ -892,9 +892,10 @@ applyCommandsConfig(program.command('setup'), commandsConfig.setup).action(async
 
 applyCommandsConfig(program.command('clean'), commandsConfig.clean).action(async function ({ noConfirm }) {
   try {
+    logSpinnerEnd();
     const { clean } = await import('./commands/clean');
     const executed = await clean(!noConfirm);
-    if (executed) logSpinner('Complete!');
+    if (executed) log('Complete!');
 
     logSpinnerEnd();
   } catch (err) {

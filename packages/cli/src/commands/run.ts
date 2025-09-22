@@ -221,7 +221,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
     logSpinner();
     logSpinner(INITIAL_INSTRUCTIONS);
     logSpinner(INSTRUCTIONS);
-    
+
     logSpinnerEnd();
     await onKeypress(async (evt, { pause, stop }) => {
       if (evt.ctrl && evt.name === 'c') {

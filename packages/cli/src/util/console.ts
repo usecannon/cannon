@@ -100,8 +100,7 @@ export const logSpinnerStart = (text?: string) => {
   } catch (err) {
     // Ignore spinner errors on cleanup
   }
-}
-
+};
 
 export const logSpinnerEnd = () => {
   try {
