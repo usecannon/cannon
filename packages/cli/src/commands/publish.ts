@@ -11,7 +11,7 @@ import {
 import { blueBright, bold, gray } from 'chalk';
 import prompts from 'prompts';
 import * as viem from 'viem';
-import { logSpinner } from '../util/console';
+import { logSpinner, logSpinnerStart, logSpinnerEnd } from '../util/console';
 import { getMainLoader } from '../loader';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';
@@ -73,6 +73,7 @@ export async function publish({
 
   // Select screen for when a user is looking for all the local deploys
   if (!skipConfirm && deploys.length > 1) {
+    logSpinnerEnd();
     const prompt = await prompts({
       type: 'select',
       message: 'Select the package you want to publish:\n',
@@ -87,6 +88,7 @@ export async function publish({
         };
       }),
     });
+    logSpinnerStart();
 
     if (!prompt.value) {
       logSpinner('You must select a package to publish');
@@ -166,12 +168,14 @@ export async function publish({
   }
 
   if (!skipConfirm) {
+    logSpinnerEnd();
     const verification = await prompts({
       type: 'confirm',
       name: 'confirmation',
       message: 'Proceed?',
       initial: true,
     });
+    logSpinnerStart();
 
     if (!verification.confirmation) {
       logSpinner('Cancelled');

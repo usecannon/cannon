@@ -8,7 +8,7 @@ import { bold, gray, green, italic, yellow } from 'chalk';
 import { ensureFoundryCompatibility } from '../helpers';
 import { CLI_SETTINGS_STORE } from '../constants';
 import { resolveCliSettings } from '../settings';
-import { logSpinner } from '../util/console';
+import { logSpinner, logSpinnerStart, logSpinnerEnd } from '../util/console';
 
 export async function setup() {
   // ensure foundry compatibility
@@ -56,6 +56,7 @@ export async function setup() {
     },
   ];
 
+  logSpinnerEnd();
   const response = await prompts(questions, {
     onCancel: () => {
       logSpinner(bold('Aborting...'));
@@ -64,6 +65,7 @@ export async function setup() {
     },
   });
 
+  logSpinnerStart();
   if (response.publishIpfsUrl) {
     fileSettings.publishIpfsUrl = response.publishIpfsUrl;
   }

@@ -4,7 +4,7 @@ import prompts, { Choice } from 'prompts';
 import { red, bold, gray, green, yellow, cyan } from 'chalk';
 import { CannonSigner, ChainArtifacts, Contract, ContractMap, traceActions } from '@usecannon/builder';
 
-import { log, logSpinner, errorSpinner } from '../util/console';
+import { log, logSpinner, errorSpinner, logSpinnerStart, logSpinnerEnd } from '../util/console';
 import { formatAbiFunction } from '../helpers';
 import { PackageSpecification } from '../types';
 import { getChainById } from '../chains';
@@ -170,7 +170,7 @@ async function pickPackage(packages: PackageSpecification[]) {
   }));
 
   choices.unshift({ ...PROMPT_BACK_OPTION, value: -1 });
-
+  logSpinnerEnd();
   const { pickedPackage } = await prompts.prompt([
     {
       type: 'select',
@@ -179,6 +179,7 @@ async function pickPackage(packages: PackageSpecification[]) {
       choices,
     },
   ]);
+  logSpinnerStart();
 
   return typeof pickedPackage === 'number' ? pickedPackage : -1;
 }
@@ -201,7 +202,7 @@ async function pickContract({
   }));
 
   choices.unshift(PROMPT_BACK_OPTION);
-
+  logSpinnerEnd();
   const { pickedContract } = await prompts.prompt([
     {
       type: 'autocomplete',
@@ -211,7 +212,7 @@ async function pickContract({
       suggest: suggestBySubtring,
     },
   ]);
-
+  logSpinnerStart();
   return pickedContract === PROMPT_BACK_OPTION.title ? null : pickedContract;
 }
 
@@ -228,7 +229,7 @@ async function pickFunction({ contract }: { contract: Contract }) {
 
   const choices = _.sortBy(functionSignatures).map((s) => ({ title: s }));
   choices.unshift(PROMPT_BACK_OPTION);
-
+  logSpinnerEnd();
   const { pickedFunction } = await prompts.prompt([
     {
       type: 'autocomplete',
@@ -238,7 +239,7 @@ async function pickFunction({ contract }: { contract: Contract }) {
       suggest: suggestBySubtring,
     },
   ]);
-
+  logSpinnerStart();
   return pickedFunction == PROMPT_BACK_OPTION.title ? null : abiFunctions[functionSignatures.indexOf(pickedFunction)];
 }
 
@@ -247,6 +248,7 @@ async function pickFunctionArgs({ func }: { func: viem.AbiFunction }) {
   let value = BigInt(0);
 
   if (func.stateMutability === 'payable') {
+    logSpinnerEnd();
     const { txnValue } = await prompts.prompt([
       {
         type: 'text',
@@ -254,7 +256,7 @@ async function pickFunctionArgs({ func }: { func: viem.AbiFunction }) {
         message: 'Function is payable. ETH AMOUNT (in eth units):',
       },
     ]);
-
+    logSpinnerStart();
     value = viem.parseEther(txnValue);
   }
 
@@ -375,6 +377,7 @@ async function execTxn({
   }
 
   if (signer != null) {
+    logSpinnerEnd();
     const { confirmation } = await prompts.prompt([
       {
         type: 'confirm',
@@ -382,7 +385,7 @@ async function execTxn({
         message: 'Send transaction?',
       },
     ]);
-
+    logSpinnerStart();
     if (!confirmation) {
       return null;
     }
@@ -415,6 +418,7 @@ async function promptInputValue(input: viem.AbiParameter): Promise<any> {
 
   for (let i = 0; i < 5; i++) {
     try {
+      logSpinnerEnd();
       const answer = await prompts.prompt([
         {
           type: 'text',
@@ -423,6 +427,7 @@ async function promptInputValue(input: viem.AbiParameter): Promise<any> {
         },
       ]);
 
+      logSpinnerStart();
       // if there is a problem this will throw and user will be forced to re-enter data
       return parseInput(input, answer[name]);
     } catch (err) {

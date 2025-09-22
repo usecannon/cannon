@@ -22,7 +22,7 @@ import { createDefaultReadRegistry } from '../registry';
 import { CannonRpcNode, getProvider } from '../rpc';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
-import { logSpinner, warnSpinner } from '../util/console';
+import { logSpinner, warnSpinner, logSpinnerStart, logSpinnerEnd } from '../util/console';
 import { getContractsRecursive } from '../util/contracts-recursive';
 import onKeypress from '../util/on-keypress';
 import { build } from './build';
@@ -221,22 +221,27 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
     logSpinner();
     logSpinner(INITIAL_INSTRUCTIONS);
     logSpinner(INSTRUCTIONS);
-
+    
+    logSpinnerEnd();
     await onKeypress(async (evt, { pause, stop }) => {
       if (evt.ctrl && evt.name === 'c') {
         stop();
         process.exit();
       } else if (evt.name === 'a') {
+        logSpinnerStart();
         // Toggle showAnvilLogs when the user presses "a"
         if (nodeLogging.enabled()) {
           logSpinner(gray('Paused anvil logs...'));
           logSpinner(INSTRUCTIONS);
+          logSpinnerEnd();
           nodeLogging.disable();
         } else {
           logSpinner(gray('Unpaused anvil logs...'));
+          logSpinnerEnd();
           nodeLogging.enable();
         }
       } else if (evt.name === 'i') {
+        logSpinnerEnd();
         if (nodeLogging.enabled()) return;
 
         await pause(async () => {
@@ -252,10 +257,13 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
             provider,
           });
         });
+        logSpinnerStart();
 
         logSpinner(INITIAL_INSTRUCTIONS);
         logSpinner(INSTRUCTIONS);
+        logSpinnerEnd();
       } else if (evt.name == 'v') {
+        logSpinnerStart();
         // Toggle showAnvilLogs when the user presses "a"
         if (traceLevel === 0) {
           traceLevel = 1;
@@ -267,12 +275,15 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
           traceLevel = 0;
           logSpinner(gray('Disabled transaction tracing...'));
         }
+        logSpinnerEnd();
       } else if (evt.name === 'h') {
+        logSpinnerStart();
         if (nodeLogging.enabled()) return;
 
         if (options.helpInformation) logSpinner('\n' + options.helpInformation);
         logSpinner();
         logSpinner(INSTRUCTIONS);
+        logSpinnerEnd();
       }
     });
   }

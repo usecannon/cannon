@@ -92,6 +92,17 @@ export const infoSpinner = (...consoleText: any[]) => {
   }
 };
 
+export const logSpinnerStart = (text?: string) => {
+  try {
+    if (spinner) {
+      spinner.start({ text: text ?? 'Fetching...' });
+    }
+  } catch (err) {
+    // Ignore spinner errors on cleanup
+  }
+}
+
+
 export const logSpinnerEnd = () => {
   try {
     if (spinner) {

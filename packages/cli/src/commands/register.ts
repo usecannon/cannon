@@ -6,7 +6,7 @@ import { blueBright, gray, green, bold } from 'chalk';
 import { OnChainRegistry, prepareMulticall, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 
 import { CliSettings } from '../settings';
-import { logSpinner } from '../util/console';
+import { logSpinner, logSpinnerEnd, logSpinnerStart } from '../util/console';
 import { waitForEvent } from '../util/wait-for-event';
 import { resolveProviderAndSigners, ProviderAction } from '../util/provider';
 import { isPackageRegistered } from '../util/register';
@@ -155,11 +155,13 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
   logSpinner('');
 
   if (!options.skipConfirm) {
+    logSpinnerEnd();
     const confirm = await prompts({
       type: 'confirm',
       name: 'confirmation',
       message: 'Proceed?',
     });
+    logSpinnerStart();
 
     if (!confirm.confirmation) {
       logSpinner('Cancelled');

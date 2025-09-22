@@ -38,7 +38,7 @@ import { PackageSpecification } from './types';
 
 import { doBuild } from './util/build';
 import { setDebugLevel } from './util/debug-level';
-import { logSpinner, warnSpinner, errorSpinner, logSpinnerEnd, spinner } from './util/console';
+import { log, logSpinner, warnSpinner, errorSpinner, logSpinnerEnd, spinner } from './util/console';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { applyCommandsConfig } from './util/commands-config';
 import {

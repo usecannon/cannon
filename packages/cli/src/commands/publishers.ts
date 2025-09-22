@@ -3,7 +3,7 @@ import _ from 'lodash';
 import Debug from 'debug';
 import * as viem from 'viem';
 import prompts from 'prompts';
-import { logSpinner } from '../util/console';
+import { logSpinner, logSpinnerEnd, logSpinnerStart } from '../util/console';
 import { blueBright, gray, green, bold } from 'chalk';
 
 import { CliSettings } from '../settings';
@@ -74,6 +74,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   let selectedNetwork = options.optimism ? Network.OP : Network.MAINNET;
 
   if (!options.optimism && !options.mainnet && !options.list) {
+    logSpinnerEnd();
     selectedNetwork = (
       await prompts({
         type: 'select',
@@ -87,6 +88,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
       })
     ).value;
 
+    logSpinnerStart();
     logSpinner();
   }
 
@@ -201,11 +203,13 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   logSpinner();
 
   if (!options.skipConfirm) {
+    logSpinnerEnd();
     const confirm = await prompts({
       type: 'confirm',
       name: 'confirmation',
       message: 'Proceed?',
     });
+    logSpinnerStart();
 
     if (!confirm.confirmation) {
       logSpinner('Cancelled');

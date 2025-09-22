@@ -6,7 +6,7 @@ import * as viem from 'viem';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';
 import { resolveProviderAndSigners, ProviderAction } from '../util/provider';
-import { logSpinner } from '../util/console';
+import { logSpinner, logSpinnerStart, logSpinnerEnd } from '../util/console';
 
 interface Options {
   maxFeePerGas?: string;
@@ -57,6 +57,7 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
       value: p,
     }));
 
+    logSpinnerEnd();
     // override writeRegistry with the picked provider
     writeRegistry = (
       await prompts([
@@ -69,7 +70,7 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
       ])
     ).writeRegistry;
 
-    logSpinner();
+    logSpinnerStart();
   }
 
   logSpinner(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
@@ -142,6 +143,7 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
   let selectedDeploys;
   if (publishedDeploys.length > 1) {
     logSpinner();
+    logSpinnerEnd();
 
     const prompt = await prompts({
       type: 'multiselect',
@@ -159,6 +161,7 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
         };
       }),
     });
+    logSpinnerStart();
 
     if (!prompt.value) {
       logSpinner('You must select a package to unpublish');
