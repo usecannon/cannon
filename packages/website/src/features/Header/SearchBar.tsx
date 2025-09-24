@@ -2,7 +2,7 @@
 
 import { getSearch } from '@/helpers/api';
 import { Search } from 'lucide-react';
-import { Boxes, FileCode, Box, CodeXml } from 'lucide-react';
+import { Boxes, FileCode, Box, CodeXml, X } from 'lucide-react';
 import { useEventListener } from 'usehooks-ts';
 import { useMediaQuery } from 'usehooks-ts';
 import { useQuery } from '@tanstack/react-query';
@@ -50,7 +50,7 @@ const SearchBar = () => {
   const onOpen = () => setIsOpen(true);
   const onClose = () => setIsOpen(false);
   const router = useRouter();
-  const { deployInputs, setInput, resetInput } = useDeployInputStore();
+  const { deployInputs, setInput, deleteInput } = useDeployInputStore();
 
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const PLACEHOLDER = isDesktop
@@ -72,9 +72,6 @@ const SearchBar = () => {
 
   useEffect(() => {
     debouncedSetValue(inputValue);
-    // setInput(inputValue);
-    // resetInput();
-    console.log(`deployInputs : ${deployInputs}`);
     return () => {
       debouncedSetValue.cancel();
     };
@@ -119,6 +116,10 @@ const SearchBar = () => {
     }
   });
 
+  const filteredInputs = deployInputs.filter(
+    (input) => input && input.trim() !== '' && input.includes(inputValue)
+  );
+
   return (
     <>
       <Button
@@ -155,118 +156,148 @@ const SearchBar = () => {
             ) : debouncedValue && (!results || results.length === 0) ? (
               <CommandEmpty>No results found.</CommandEmpty>
             ) : (
-              results?.length > 0 &&
-              inputValue?.length > 0 && (
-                <CommandGroup className="py-2">
-                  {results.map((result) => (
-                    <CommandItem
-                      key={`${result.type}-${result.name}-${
-                        'version' in result ? result.version : ''
-                      }`}
-                      value={`${result.type}-${result.name}-${Math.random()}`}
-                      onSelect={async () => {
-                        onClose();
-                        await router.push(generateLink(result));
-                      }}
-                      className="flex items-center gap-2 cursor-pointer"
-                    >
-                      {(() => {
-                        switch (result.type) {
-                          case 'package':
-                            return (
-                              <>
-                                <Box className="h-6 w-6 shrink-0 opacity-50 mr-1" />
-                                <div
-                                  className="flex flex-col gap-0.5"
-                                  data-testid="search-package-section"
-                                >
-                                  <span>{result.name}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {result.name}
-                                    {formatVersionAndPreset(
-                                      result.version,
-                                      result.preset
-                                    )}{' '}
-                                    on{' '}
-                                    {getChainById(result.chainId)?.name ||
-                                      'Unknown Chain'}{' '}
-                                    (ID: {result.chainId})
-                                  </span>
-                                </div>
-                              </>
-                            );
-                          case 'namespace':
-                            return (
-                              <>
-                                <Boxes className="h-6 w-6 shrink-0 opacity-50 mr-1" />
-                                <div
-                                  className="flex flex-col gap-0.5"
-                                  data-testid="search-namespace-section"
-                                >
-                                  <span>{result.name}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {result.count} package
-                                    {result.count !== 1 && 's'}
-                                  </span>
-                                </div>
-                              </>
-                            );
-                          case 'contract':
-                            return (
-                              <>
-                                <FileCode className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
-                                <div
-                                  className="flex flex-col gap-0.5"
-                                  data-testid="search-contract-section"
-                                >
-                                  <span>{result.name}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {result.packageName}
-                                    {formatVersionAndPreset(
-                                      result.version,
-                                      result.preset
-                                    )}{' '}
-                                    on{' '}
-                                    {getChainById(result.chainId)?.name ||
-                                      'Unknown Chain'}{' '}
-                                    (ID: {result.chainId})
-                                  </span>
-                                </div>
-                              </>
-                            );
-                          case 'function':
-                            return (
-                              <>
-                                <CodeXml className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
-                                <div
-                                  className="flex flex-col gap-0.5"
-                                  data-testid="search-function-section"
-                                >
-                                  <span>
-                                    {result.contractName}.{result.name}
-                                  </span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {result.packageName}
-                                    {formatVersionAndPreset(
-                                      result.version || 'latest',
-                                      result.preset || 'main'
-                                    )}{' '}
-                                    on{' '}
-                                    {getChainById(result.chainId || 0)?.name ||
-                                      'Unknown Chain'}{' '}
-                                    (ID: {result.chainId})
-                                  </span>
-                                </div>
-                              </>
-                            );
-                          default:
-                            return null;
-                        }
-                      })()}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              )
+              <>
+                {inputValue?.length === 0 && filteredInputs.length > 0 && (
+                  <CommandGroup className="py-2">
+                    {filteredInputs.map((input, key) => (
+                      <div
+                        key={key}
+                        className="relative flex items-center w-full"
+                      >
+                        <CommandItem
+                          value={input}
+                          onSelect={() => setInputValue(input)}
+                          className="flex-1 flex items-center gap-2 cursor-pointer px-2 py-1"
+                        >
+                          <Search className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
+                          <span>{input}</span>
+                        </CommandItem>
+
+                        <X
+                          className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 cursor-pointer opacity-80"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            deleteInput(input);
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </CommandGroup>
+                )}
+
+                {results?.length > 0 && inputValue?.length > 0 && (
+                  <CommandGroup className="py-2">
+                    {results.map((result) => (
+                      <CommandItem
+                        key={`${result.type}-${result.name}-${
+                          'version' in result ? result.version : ''
+                        }`}
+                        value={`${result.type}-${result.name}-${Math.random()}`}
+                        onSelect={async () => {
+                          onClose();
+                          await router.push(generateLink(result));
+                        }}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        {(() => {
+                          switch (result.type) {
+                            case 'package':
+                              return (
+                                <>
+                                  <Box className="h-6 w-6 shrink-0 opacity-50 mr-1" />
+                                  <div
+                                    className="flex flex-col gap-0.5"
+                                    data-testid="search-package-section"
+                                  >
+                                    <span>{result.name}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {result.name}
+                                      {formatVersionAndPreset(
+                                        result.version,
+                                        result.preset
+                                      )}{' '}
+                                      on{' '}
+                                      {getChainById(result.chainId)?.name ||
+                                        'Unknown Chain'}{' '}
+                                      (ID: {result.chainId})
+                                    </span>
+                                  </div>
+                                </>
+                              );
+                            case 'namespace':
+                              return (
+                                <>
+                                  <Boxes className="h-6 w-6 shrink-0 opacity-50 mr-1" />
+                                  <div
+                                    className="flex flex-col gap-0.5"
+                                    data-testid="search-namespace-section"
+                                  >
+                                    <span>{result.name}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {result.count} package
+                                      {result.count !== 1 && 's'}
+                                    </span>
+                                  </div>
+                                </>
+                              );
+                            case 'contract':
+                              return (
+                                <>
+                                  <FileCode className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
+                                  <div
+                                    className="flex flex-col gap-0.5"
+                                    data-testid="search-contract-section"
+                                  >
+                                    <span>{result.name}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {result.packageName}
+                                      {formatVersionAndPreset(
+                                        result.version,
+                                        result.preset
+                                      )}{' '}
+                                      on{' '}
+                                      {getChainById(result.chainId)?.name ||
+                                        'Unknown Chain'}{' '}
+                                      (ID: {result.chainId})
+                                    </span>
+                                  </div>
+                                </>
+                              );
+                            case 'function':
+                              return (
+                                <>
+                                  <CodeXml className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
+                                  <div
+                                    className="flex flex-col gap-0.5"
+                                    data-testid="search-function-section"
+                                  >
+                                    <span>
+                                      {result.contractName}.{result.name}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {result.packageName}
+                                      {formatVersionAndPreset(
+                                        result.version || 'latest',
+                                        result.preset || 'main'
+                                      )}{' '}
+                                      on{' '}
+                                      {getChainById(result.chainId || 0)
+                                        ?.name || 'Unknown Chain'}{' '}
+                                      (ID: {result.chainId})
+                                    </span>
+                                  </div>
+                                </>
+                              );
+                            default:
+                              return null;
+                          }
+                        })()}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+              </>
             )}
           </CommandList>
         </Command>

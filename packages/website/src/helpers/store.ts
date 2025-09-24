@@ -60,7 +60,7 @@ export interface deployInputState {
 
 export interface deployInputActions {
   setInput: (input: any) => void;
-  resetInput: () => void;
+  deleteInput: (input: any) => void;
 }
 
 export interface ipfsActions {
@@ -176,7 +176,11 @@ export const useDeployInputStore = create<DeployInputStore>()(
           }));
         }
       },
-      resetInput: () => set(() => ({ deployInputs: [] })),
+      deleteInput: (input) => {
+        set((state: deployInputState) => ({
+          deployInputs: state.deployInputs.filter((i) => i !== input),
+        }));
+      },
     }),
     {
       name: 'deploy-inputs',
