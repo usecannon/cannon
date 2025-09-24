@@ -12,7 +12,7 @@ import { useSimulatedTxns } from '@/hooks/fork';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useRouter } from 'next/router';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import * as viem from 'viem';
 import { useAccount, useWriteContract } from 'wagmi';
 import NoncePicker from './NoncePicker';
@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CustomSpinner } from '@/components/CustomSpinner';
-import { Info } from 'lucide-react';
+import { Info, Search, X } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -57,7 +57,8 @@ export const QueuedTxns = ({
   const router = useRouter();
   const { safes, setQueuedIdentifiableTxns, setLastQueuedTxnsId } =
     useQueueTxsStore((s) => s);
-  const { setInput } = useDeployInputStore();
+  const { deployInputs, setInput, deleteInput } = useDeployInputStore();
+  const [isFocused, setIsFocused] = useState(false);
 
   const queuedIdentifiableTxns =
     currentSafe?.address &&
@@ -286,6 +287,12 @@ export const QueuedTxns = ({
     );
   };
 
+  const ignoreBlur = useRef(false);
+
+  const filteredInputs = deployInputs.filter(
+    (input) => input && input.trim() !== '' && input.includes(target)
+  );
+
   return (
     <>
       <div className="mt-6 mb-8">
@@ -337,9 +344,48 @@ export const QueuedTxns = ({
                 type="text"
                 className="bg-black"
                 onChange={(event: any) => setTarget(event.target.value)}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => {
+                  if (!ignoreBlur.current) {
+                    setTimeout(() => setIsFocused(false), 100);
+                  }
+                }}
                 value={target}
                 data-testid="target-input"
+                autoComplete="off"
               />
+              {isFocused && filteredInputs.length > 0 && (
+                <div className="absolute top-full left-0 mt-1 w-full bg-popover border border-border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+                  {filteredInputs.map((input, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between px-3 py-2 hover:bg-accent cursor-pointer"
+                      onClick={() => {
+                        setTarget(input);
+                        setIsFocused(false);
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Search className="h-5 w-5 text-gray-500" />
+                        <span className="truncate">{input}</span>
+                      </div>
+                      <X
+                        className="h-4 w-4 text-gray-400"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          ignoreBlur.current = true;
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteInput(input);
+                          ignoreBlur.current = false;
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {!isAddress(target) &&
                 target.length >= 3 &&
                 cannonInfo.registryQuery.status === 'pending' && (
