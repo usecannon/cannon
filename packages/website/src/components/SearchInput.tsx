@@ -20,8 +20,8 @@ const SearchInput: React.FC<SearchInputProps> = ({
   onKeyDown,
 }) => {
   const { deployInputs, setInput, deleteInput } = useDeployInputStore();
-  const [isFocused, setIsFocused] = React.useState(false);
-  const [inputValue, setInputValue] = React.useState('');
+  const [isFocused, setIsFocused] = useState(false);
+  const [inputValue, setInputValue] = useState('');
   const [debouncedValue, setDebouncedValue] = useState('');
 
   const debouncedSetValue = useRef(
@@ -59,6 +59,8 @@ const SearchInput: React.FC<SearchInputProps> = ({
     (input) => input && input.trim() !== '' && input.includes(inputValue)
   );
 
+  const ignoreBlur = useRef(false);
+
   return (
     <div className="relative">
       <Search
@@ -71,7 +73,9 @@ const SearchInput: React.FC<SearchInputProps> = ({
         onChange={(e) => handleChange(e.target.value)}
         onFocus={() => setIsFocused(true)}
         onBlur={() => {
-          setTimeout(() => setIsFocused(false), 100);
+          if (!ignoreBlur.current) {
+            setTimeout(() => setIsFocused(false), 100);
+          }
         }}
         name="search"
         onKeyDown={onKeyDown}
@@ -87,7 +91,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
         data-testid="search-input"
       />
       {isFocused && filteredInputs.length > 0 && (
-        <div className="absolute top-full left-0 mt-1 w-full bg-popover border border-border rounded-md shadow-lg z-[100] max-h-60 overflow-y-auto">
+        <div className="absolute top-full left-0 mt-1 w-full bg-popover border border-border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
           {filteredInputs.map((input, index) => (
             <div
               key={index}
@@ -104,9 +108,14 @@ const SearchInput: React.FC<SearchInputProps> = ({
               </div>
               <X
                 className="h-4 w-4 text-gray-400"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  ignoreBlur.current = true;
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   deleteInput(input);
+                  ignoreBlur.current = false;
                 }}
               />
             </div>
