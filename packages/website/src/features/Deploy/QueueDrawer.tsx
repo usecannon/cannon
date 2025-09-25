@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CustomSpinner } from '@/components/CustomSpinner';
-import { Info, Search, X } from 'lucide-react';
+import { Info } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -38,6 +38,7 @@ import {
 } from '@/components/ui/sheet';
 import { toast } from 'sonner';
 import { useDeployInputStore } from '@/helpers/store';
+import InputDropdownList from '@/components/InputDropdownList';
 
 // Because of a weird type cohercion, after using viem.isAddress during website build,
 // the string type of the given value gets invalid to "never", and breaks the build.
@@ -355,35 +356,19 @@ export const QueuedTxns = ({
                 autoComplete="off"
               />
               {isFocused && filteredInputs.length > 0 && (
-                <div className="absolute top-full left-0 mt-1 w-full bg-popover border border-border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
-                  {filteredInputs.map((input, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between px-3 py-2 hover:bg-accent cursor-pointer"
-                      onClick={() => {
-                        setTarget(input);
-                        setIsFocused(false);
-                      }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Search className="h-5 w-5 text-gray-500" />
-                        <span className="truncate">{input}</span>
-                      </div>
-                      <X
-                        className="h-4 w-4 text-gray-400"
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          ignoreBlur.current = true;
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteInput(input);
-                          ignoreBlur.current = false;
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div>
+                <InputDropdownList
+                  inputs={filteredInputs}
+                  onSelect={(input) => {
+                    setTarget(input);
+                    setIsFocused(false);
+                  }}
+                  onDelete={(input) => {
+                    deleteInput(input);
+                  }}
+                  setIgnoreBlur={(value) => {
+                    ignoreBlur.current = value;
+                  }}
+                />
               )}
 
               {!isAddress(target) &&

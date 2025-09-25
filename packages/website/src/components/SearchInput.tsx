@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { debounce } from 'lodash';
 import { useDeployInputStore } from '@/helpers/store';
+import InputDropdownList from '@/components/InputDropdownList';
 
 interface SearchInputProps {
   onSearchChange: (value: string) => void;
@@ -91,36 +92,20 @@ const SearchInput: React.FC<SearchInputProps> = ({
         data-testid="search-input"
       />
       {isFocused && filteredInputs.length > 0 && (
-        <div className="absolute top-full left-0 mt-1 w-full bg-popover border border-border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
-          {filteredInputs.map((input, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between px-3 py-2 hover:bg-accent cursor-pointer"
-              onClick={() => {
-                setInputValue(input);
-                debouncedHandleSearch(input);
-                setIsFocused(false);
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <Search className="h-5 w-5 text-gray-500" />
-                <span className="truncate">{input}</span>
-              </div>
-              <X
-                className="h-4 w-4 text-gray-400"
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  ignoreBlur.current = true;
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deleteInput(input);
-                  ignoreBlur.current = false;
-                }}
-              />
-            </div>
-          ))}
-        </div>
+        <InputDropdownList
+          inputs={filteredInputs}
+          onSelect={(input) => {
+            setInputValue(input);
+            debouncedHandleSearch(input);
+            setIsFocused(false);
+          }}
+          onDelete={(input) => {
+            deleteInput(input);
+          }}
+          setIgnoreBlur={(value) => {
+            ignoreBlur.current = value;
+          }}
+        />
       )}
     </div>
   );

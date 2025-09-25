@@ -4,6 +4,10 @@ import { FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { SafeDefinition } from '@/helpers/store';
+import React, { useState, useEffect, useRef } from 'react';
+import { useDeployInputStore } from '@/helpers/store';
+import { debounce } from 'lodash';
+import InputDropdownList from '@/components/InputDropdownList';
 
 export type DeployType = 'git' | 'partial';
 
@@ -36,6 +40,38 @@ export function DeploymentSourceInput({
   inputError,
   handleDeploymentSourceInputChange,
 }: DeploymentSourceInputProps) {
+  const { deployInputs, setInput, deleteInput } = useDeployInputStore();
+  const [isFocused, setIsFocused] = useState(false);
+  const [debouncedValue, setDebouncedValue] = useState('');
+
+  const debouncedSetValue = useRef(
+    debounce((value: string) => {
+      if (value.trim().length > 2) {
+        setDebouncedValue(value.trim());
+      }
+    }, 300)
+  ).current;
+
+  useEffect(() => {
+    debouncedSetValue(deploymentSourceInput);
+    return () => {
+      debouncedSetValue.cancel();
+    };
+  }, [deploymentSourceInput, debouncedSetValue]);
+
+  useEffect(() => {
+    if (debouncedValue) {
+      setInput(debouncedValue);
+    }
+  }, [debouncedValue]);
+
+  const filteredInputs = deployInputs.filter(
+    (input) =>
+      input && input.trim() !== '' && input.includes(deploymentSourceInput)
+  );
+
+  const ignoreBlur = useRef(false);
+
   return (
     <div>
       <FormItem>
@@ -52,7 +88,29 @@ export function DeploymentSourceInput({
               setDeploymentSourceInput(value);
               handleDeploymentSourceInputChange(value);
             }}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => {
+              if (!ignoreBlur.current) {
+                setTimeout(() => setIsFocused(false), 100);
+              }
+            }}
           />
+          {isFocused && filteredInputs.length > 0 && (
+            <InputDropdownList
+              inputs={filteredInputs}
+              onSelect={(input) => {
+                setDeploymentSourceInput(input);
+                handleDeploymentSourceInputChange(input);
+                setIsFocused(false);
+              }}
+              onDelete={(input) => {
+                deleteInput(input);
+              }}
+              setIgnoreBlur={(value) => {
+                ignoreBlur.current = value;
+              }}
+            />
+          )}
           {selectedDeployType === 'git' && cannonfileUrlInput.length > 0 && (
             <div className="absolute inset-y-0 right-3 flex items-center">
               {isLoading ? (
