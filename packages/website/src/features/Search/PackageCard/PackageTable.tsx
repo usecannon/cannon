@@ -10,7 +10,8 @@ import { ApiDocument } from '@usecannon/api/dist/src/types';
 const PackageTable: FC<{
   pkgs: ApiDocument[];
   latestOnly: boolean;
-}> = ({ pkgs, latestOnly }) => {
+  searchTerm?: string;
+}> = ({ pkgs, latestOnly, searchTerm }) => {
   const { getChainById } = useCannonChains();
   let data = pkgs.map((v: any) => {
     return {
@@ -51,6 +52,18 @@ const PackageTable: FC<{
       header: '',
     }),
   ];
+
+  if (searchTerm) {
+    data = data.filter((row: any) => {
+      const matchingChain = getChainById(row.chain);
+      return (
+        row.version.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        row.preset.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        row.deployUrl.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        matchingChain?.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
+  }
 
   if (latestOnly) {
     data = data.filter(

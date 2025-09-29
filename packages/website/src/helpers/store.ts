@@ -134,7 +134,7 @@ export const initialState = {
     isIpfsGateway: false,
     cannonSafeBackendUrl: 'https://safe-staging.usecannon.com',
     customProviders: [],
-    customOtterscanAPIs: [],
+    customOtterscanAPIs: ['https://evm.dbeal.dev/oVR6x7ZirgHZuY3abvLnQ06F/mainnet'],
     pythUrl: 'https://hermes.pyth.network',
   },
 } satisfies State;

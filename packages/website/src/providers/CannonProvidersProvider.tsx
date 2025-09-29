@@ -339,11 +339,16 @@ function _getChainById(allChains: Chain[], chainId: number) {
   return chain;
 }
 
-const _getExplorerUrl = (allChains: Chain[], verifiedOtterscanProviders: Record<number, RpcUrlAndTransport>, chainId: number, hash: Hash) => {
+const _getExplorerUrl = (
+  allChains: Chain[],
+  verifiedOtterscanProviders: Record<number, RpcUrlAndTransport>,
+  chainId: number,
+  hash: Hash
+) => {
   if (verifiedOtterscanProviders[chainId]) {
     return isAddress(hash)
       ? `/address/${chainId}/${hash}`
-      : `/tx/${chainId}/${hash}`
+      : `/tx/${chainId}/${hash}`;
   }
 
   const chain = _getChainById(allChains, +chainId);
@@ -377,7 +382,9 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
   const customProviders = useStore((state) => state.settings.customProviders);
-  const otterscanProviders = useStore((state) => state.settings.customOtterscanAPIs);
+  const otterscanProviders = useStore(
+    (state) => state.settings.customOtterscanAPIs
+  );
   const safeTxServices = useStore((state) => state.safeTxServices);
 
   const { isLoading: isLoadingProviders, data: verifiedProviders } = useQuery({
@@ -385,10 +392,11 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
     queryFn: _getProvidersChainId,
   });
 
-  const { isLoading: isLoadingOtterscan, data: verifiedOtterscanProviders } = useQuery({
-    queryKey: ['fetchCustomOtterscan', ...otterscanProviders],
-    queryFn: _getProvidersChainId,
-  });
+  const { isLoading: isLoadingOtterscan, data: verifiedOtterscanProviders } =
+    useQuery({
+      queryKey: ['fetchCustomOtterscan', ...otterscanProviders],
+      queryFn: _getProvidersChainId,
+    });
 
   const chainsUrls = Object.values(verifiedProviders || {}).map(
     (v) => v.rpcUrl
@@ -421,7 +429,12 @@ export const CannonProvidersProvider: React.FC<PropsWithChildren> = ({
         otterscanApis: verifiedOtterscanProviders || {},
         getChainById: (chainId) => _getChainById(_allChains, chainId),
         getExplorerUrl: (chainId, hash) =>
-          _getExplorerUrl(_allChains, verifiedOtterscanProviders, chainId, hash as Hash),
+          _getExplorerUrl(
+            _allChains,
+            verifiedOtterscanProviders || {},
+            chainId,
+            hash as Hash
+          ),
       }}
     >
       {isLoadingProviders || isLoadingOtterscan ? <PageLoading /> : children}

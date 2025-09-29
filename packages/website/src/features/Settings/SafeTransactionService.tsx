@@ -87,14 +87,16 @@ const SafeTransactionService: React.FC = () => {
           </FormControl>
         </form>
       </Form>
-      <SettingResetButton
-        onReset={() =>
-          setSettings({
-            cannonSafeBackendUrl: initialState.settings.cannonSafeBackendUrl,
-          })
-        }
-        sectionName="Safe Transaction Service URL"
-      />
+      <div className="flex justify-end">
+        <SettingResetButton
+          onReset={() =>
+            setSettings({
+              cannonSafeBackendUrl: initialState.settings.cannonSafeBackendUrl,
+            })
+          }
+          sectionName="Safe Transaction Service URL"
+        />
+      </div>
     </>
   );
 };
