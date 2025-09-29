@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, X, History } from 'lucide-react';
 
 interface InputDropdownListProps {
   inputs: string[];
@@ -27,7 +27,7 @@ const InputDropdownList: React.FC<InputDropdownListProps> = ({
           }}
         >
           <div className="flex items-center gap-2">
-            <Search className="h-5 w-5 text-gray-500" />
+            <History className="h-5 w-5 text-gray-500" />
             <span className="truncate">{input}</span>
           </div>
           <X

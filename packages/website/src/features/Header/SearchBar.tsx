@@ -2,7 +2,7 @@
 
 import { getSearch } from '@/helpers/api';
 import { Search } from 'lucide-react';
-import { Boxes, FileCode, Box, CodeXml, X } from 'lucide-react';
+import { Boxes, FileCode, Box, CodeXml, X, History } from 'lucide-react';
 import { useEventListener } from 'usehooks-ts';
 import { useMediaQuery } from 'usehooks-ts';
 import { useQuery } from '@tanstack/react-query';
@@ -169,7 +169,7 @@ const SearchBar = () => {
                           onSelect={() => setInputValue(input)}
                           className="flex-1 flex items-center gap-2 cursor-pointer px-2 py-1"
                         >
-                          <Search className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
+                          <History className="h-6 w-6 shrink-0 opacity-50 mr-1.5" />
                           <span>{input}</span>
                         </CommandItem>
 
