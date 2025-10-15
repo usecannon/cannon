@@ -693,10 +693,6 @@ importers:
       unzipper:
         specifier: ^0.12.3
         version: 0.12.3
-    optionalDependencies:
-      redis-memory-server:
-        specifier: ^0.11.0
-        version: 0.11.0
     devDependencies:
       '@types/busboy':
         specifier: ^1.5.4
@@ -773,6 +769,10 @@ importers:
       vitest:
         specifier: ^2.1.8
         version: 2.1.8(@types/node@22.14.0)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(sass@1.86.3)(terser@5.39.0)
+    optionalDependencies:
+      redis-memory-server:
+        specifier: ^0.11.0
+        version: 0.11.0
 
   packages/safe-app-backend:
     dependencies:
