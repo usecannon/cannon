@@ -23,6 +23,7 @@ contracts = [
 ]
 includeReceive = false
 includeDiamondCompatibility = false
+create2 = true
 highlight = true
 
 # Deploy a new Proxy using as implementation our just craeted Router

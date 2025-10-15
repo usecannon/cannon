@@ -62,6 +62,7 @@ const routerStep = {
           newConfig.includeReceive,
           newConfig.includeDiamondCompatibility,
           newConfig.highlight,
+          newConfig.create2,
         ],
       ],
       {
