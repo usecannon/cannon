@@ -3,6 +3,8 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { generateRouter } from '@usecannon/router';
+import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
+import { CannonError } from '../error';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { routerSchema } from '../schemas';
 import { ContractMap } from '../types';
@@ -93,6 +95,13 @@ const routerStep = {
       config.salt = template(config.salt, ctx);
     }
 
+    if (config.create2) {
+      // template the address if its a string
+      if (typeof config.create2 === 'string') {
+        config.create2 = template(config.create2, ctx);
+      }
+    }
+
     if (config?.overrides?.gasLimit) {
       config.overrides.gasLimit = template(config.overrides.gasLimit, ctx);
     }
@@ -107,6 +116,10 @@ const routerStep = {
   getInputs(config, possibleFields) {
     let accesses = computeTemplateAccesses(config.from);
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt, possibleFields));
+    accesses = mergeTemplateAccesses(
+      accesses,
+      computeTemplateAccesses(typeof config.create2 === 'string' ? config.create2 : '', possibleFields)
+    );
     accesses.accesses.push(
       ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`))
     );
@@ -192,47 +205,89 @@ const routerStep = {
       },
     });
 
-    const signer = config.from
-      ? await runtime.getSigner(config.from as viem.Address)
-      : await runtime.getDefaultSigner({ data: solidityInfo.bytecode as viem.Hex }, config.salt);
-
-    debug('using deploy signer with address', signer.address);
-
-    const preparedTxn = await signer.wallet.prepareTransactionRequest({
-      account: signer.wallet.account || signer.address!,
+    const txn = {
       data: encodeDeployData({
         abi: solidityInfo.abi,
-        bytecode: solidityInfo.bytecode as viem.Hash,
+        bytecode: solidityInfo.bytecode as viem.Hex,
+        args: [],
       }),
-      chain: undefined,
-    });
+    };
+
+    const overrides: any = {};
 
     if (config.overrides?.gasLimit) {
-      preparedTxn.gas = BigInt(config.overrides.gasLimit);
+      overrides.gasLimit = config.overrides.gasLimit;
     }
 
     if (runtime.gasPrice) {
-      preparedTxn.gasPrice = runtime.gasPrice;
+      overrides.gasPrice = runtime.gasPrice;
     }
 
     if (runtime.gasFee) {
-      preparedTxn.maxFeePerGas = runtime.gasFee;
+      overrides.maxFeePerGas = runtime.gasFee;
     }
 
     if (runtime.priorityGasFee) {
-      preparedTxn.maxPriorityFeePerGas = runtime.priorityGasFee;
+      overrides.maxPriorityFeePerGas = runtime.priorityGasFee;
     }
 
-    const hash = await signer.wallet.sendTransaction(preparedTxn as any);
+    let receipt: viem.TransactionReceipt;
+    let deployAddress: viem.Address;
 
-    const receipt = await runtime.provider.waitForTransactionReceipt({ hash });
+    if (config.create2) {
+      const arachnidDeployerAddress = await ensureArachnidCreate2Exists(
+        runtime,
+        typeof config.create2 === 'string' ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR
+      );
+
+      debug('performing arachnid create2');
+      const [create2Txn, addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!, arachnidDeployerAddress);
+      deployAddress = addr;
+      debug(`create2: deploy ${addr} by ${arachnidDeployerAddress}`);
+
+      const bytecode = await runtime.provider.getCode({ address: addr });
+
+      if (bytecode && bytecode !== '0x') {
+        debug('create2 contract already completed');
+        throw new CannonError(
+          `The contract at the create2 destination ${addr} is already deployed, but the Cannon state does not recognize that this contract has already been deployed. This typically indicates incorrect upgrade configuration. Please confirm if this contract should already be deployed or not, and if you want to continue the build as-is, add 'ifExists = "continue"' to the step definition`,
+          'CREATE2_COLLISION'
+        );
+      }
+
+      const signer = config.from
+        ? await runtime.getSigner(config.from as viem.Address)
+        : await runtime.getDefaultSigner!(txn, config.salt);
+
+      const fullCreate2Txn = _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
+      debug('final create2 txn', fullCreate2Txn);
+
+      const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
+
+      const hash = await signer.wallet.sendTransaction(preparedTxn as any);
+      receipt = await runtime.provider.waitForTransactionReceipt({ hash });
+      debug('arachnid create2 complete', receipt);
+    } else {
+      const signer = config.from
+        ? await runtime.getSigner(config.from as viem.Address)
+        : await runtime.getDefaultSigner!(txn, config.salt);
+      debug('using deploy signer with address', signer.address);
+
+      const preparedTxn = await signer.wallet.prepareTransactionRequest(
+        _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
+      );
+
+      const hash = await signer.wallet.sendTransaction(preparedTxn as any);
+      receipt = await runtime.provider.waitForTransactionReceipt({ hash });
+      deployAddress = receipt.contractAddress!;
+    }
 
     const block = await runtime.provider.getBlock({ blockHash: receipt.blockHash });
 
     return {
       contracts: {
         [contractName]: {
-          address: receipt.contractAddress,
+          address: deployAddress,
           abi: routableAbi,
           deployedOn: packageState.currentLabel,
           deployTxnHash: receipt.transactionHash,

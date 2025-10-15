@@ -730,6 +730,15 @@ export const routerSchema = z
      */
     salt: z.string().optional().describe('Used to force new copy of a contract (not actually used)'),
     /**
+     * Determines whether to deploy the contract using create2
+     */
+    create2: z
+      .union([z.boolean(), z.string().refine((val) => isAddress(val))])
+      .optional()
+      .describe(
+        'Determines whether to deploy the contract using create2. If an address is specified, the arachnid create2 contract will be deployed/used from this address.'
+      ),
+    /**
      *   Override transaction settings
      */
     overrides: z

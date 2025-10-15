@@ -37,30 +37,47 @@ describe('steps/router.ts', () => {
         salt: 'SALT',
       });
     });
-  });
 
-  describe('getState()', () => {
-    it('resolves correct properties on state', async () => {
-      const contracts = {
-        GreeterOne: fixtureContractData('GreeterOne'),
-        GreeterTwo: fixtureContractData('GreeterTwo'),
+    it('generates and deploys Router with create2', async () => {
+      const signer = fixtureSigner();
+      const contracts = { Greeter: fixtureContractData('Greeter') };
+
+      const step = {
+        ref: new PackageReference('router-test:0.0.0'),
+        currentLabel: 'router.Router',
       };
 
       const runtime = fakeRuntime;
-
       const ctx = fixtureCtx({ contracts });
+      const config = { from: await signer.address, contracts: Object.keys(contracts), create2: true, salt: 'is.salty' };
 
-      const config = {
-        contracts: Object.keys(contracts),
-      };
+      (runtime as any).getSigner = jest.fn();
+      jest.mocked(runtime.getSigner).mockResolvedValue(signer);
+      jest.mocked(signer.wallet.sendTransaction).mockResolvedValue('0x8484');
+      jest.mocked(runtime.provider.getCode).mockResolvedValue('0x');
 
-      const result = await action.getState(runtime, ctx, config, { ref: null, currentLabel: 'router.Router' });
+      const rx = fixtureTransactionReceipt();
 
-      expect((result[0] as any)[0].GreeterOne).toStrictEqual(contracts.GreeterOne.abi);
-      expect((result[0] as any)[1].GreeterOne).toStrictEqual(contracts.GreeterOne.address);
+      jest.mocked(runtime.provider.waitForTransactionReceipt).mockResolvedValue(rx);
+      jest.mocked(runtime.provider.getBlock).mockResolvedValue({ timestamp: BigInt(123444) } as any);
 
-      expect((result[0] as any)[0].GreeterTwo).toStrictEqual(contracts.GreeterTwo.abi);
-      expect((result[0] as any)[1].GreeterTwo).toStrictEqual(contracts.GreeterTwo.address);
+      const res = await action.exec(runtime, ctx, config, step);
+
+      expect(fakeRuntime.provider.waitForTransactionReceipt).toHaveBeenCalledTimes(1);
+
+      expect(res.contracts).toMatchObject({
+        Router: {
+          abi: contracts.Greeter.abi,
+          deployedOn: step.currentLabel,
+          deployTxnHash: rx.transactionHash,
+          deployTxnBlockNumber: '0',
+          deployTimestamp: '123444',
+          contractName: 'Router',
+          sourceName: 'Router.sol',
+          gasCost: rx.effectiveGasPrice.toString(),
+          gasUsed: Number(rx.gasUsed.toString()),
+        },
+      });
     });
   });
 
