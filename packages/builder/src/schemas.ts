@@ -190,6 +190,13 @@ export const deploySchema = z
           .describe('Override transaction settings'),
 
         /**
+         * Allows for a specific step to only be executed on the given chain IDs.
+         */
+        chains: z
+          .array(z.number().int())
+          .optional()
+          .describe('If specified, this action is only executed on the specified chain IDs.'),
+        /**
          *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
          */
         depends: z
@@ -268,6 +275,13 @@ export const pullSchema = z
          *  Preset label of the package being imported
          */
         preset: z.string().describe('Preset label of the package being imported'),
+        /**
+         * Allows for a specific step to only be executed on the given chain IDs.
+         */
+        chains: z
+          .array(z.number().int())
+          .optional()
+          .describe('If specified, this action is only executed on the specified chain IDs.'),
         /**
          *  Previous operations this operation is dependent on
          *  ```toml
@@ -527,6 +541,14 @@ export const invokeSchema = z
           .describe(
             'Object defined to hold deployment transaction result data. For now its limited to getting deployment event data so it can be reused in other operations'
           ),
+
+        /**
+         * Allows for a specific step to only be executed on the given chain IDs.
+         */
+        chains: z
+          .array(z.number().int())
+          .optional()
+          .describe('If specified, this action is only executed on the specified chain IDs.'),
         /**
          *  Previous operations this operation is dependent on
          */
@@ -682,6 +704,15 @@ export const cloneSchema = z
         tags: z
           .array(z.string())
           .describe('Additional tags to set on the registry for when this provisioned package is published.'),
+
+        /**
+         * Allows for a specific step to only be executed on the given chain IDs.
+         */
+        chains: z
+          .array(z.number().int())
+          .optional()
+          .describe('If specified, this action is only executed on the specified chain IDs.'),
+
         /**
          *  Previous operations this operation is dependent on
          */
@@ -738,6 +769,14 @@ export const routerSchema = z
       })
       .optional()
       .describe('Override transaction settings'),
+
+    /**
+     * Allows for a specific step to only be executed on the given chain IDs.
+     */
+    chains: z
+      .array(z.number().int())
+      .optional()
+      .describe('If specified, this action is only executed on the specified chain IDs.'),
     /**
      *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
      */
