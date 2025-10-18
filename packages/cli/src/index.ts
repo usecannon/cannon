@@ -213,15 +213,15 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
         ];
 
         const forgeBuildProcess = spawn('forge', forgeBuildArgs, { cwd: projectDirectory, shell: true });
-        let forgeStdout = '';
-        let forgeStderr = '';
+        const forgeStdout: string[] = [];
+        const forgeStderr: string[] = [];
 
         await new Promise((resolve, reject) => {
           forgeBuildProcess.stdout.on('data', (d) => {
-            forgeStdout += d;
+            forgeStdout.push(d.toString('utf8'));
           });
           forgeBuildProcess.stderr.on('data', (d) => {
-            forgeStderr += d;
+            forgeStderr.push(d.toString('utf8'));
           });
           forgeBuildProcess.on('exit', (code) => {
             if (code === 0) {
@@ -229,8 +229,8 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
             } else {
               logSpinner(red('forge build failed'));
               logSpinner(red('Make sure "forge build" runs successfully or use the --skip-compile flag.'));
-              log(`forge stdout:\n${forgeStdout}`);
-              error(`forge stderr:\n${forgeStderr}`);
+              log(`forge stdout:\n${forgeStdout.join('')}`);
+              error(`forge stderr:\n${forgeStderr.join('')}`);
               return reject(new Error(`forge build failed with exit code "${code}"`));
             }
 
