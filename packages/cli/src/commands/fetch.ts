@@ -14,7 +14,7 @@ import fs from 'node:fs';
 import path from 'path';
 import util from 'util';
 
-import { log } from '../util/console';
+import { logSpinner } from '../util/console';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 
@@ -58,8 +58,8 @@ export async function fetch(fullPackageRef: string, chainId: number, _ipfsUrl: s
     ipfs: new IPFSLoader(cliSettings.publishIpfsUrl! || getCannonRepoRegistryUrl()),
   });
 
-  log(blueBright('Fetching IPFS data from: '));
-  log(`\n - ${ipfsUrl}`);
+  logSpinner(blueBright('Fetching IPFS data from: '));
+  logSpinner(`\n - ${ipfsUrl}`);
 
   debug('reading deploy from ipfs');
 
@@ -92,8 +92,8 @@ export async function fetch(fullPackageRef: string, chainId: number, _ipfsUrl: s
     await storeDeployReference(deployMetadataPath, metaIpfsUrl);
   }
 
-  log(`\n\nSuccessfully fetched and saved deployment data for the following package: ${pkgName}`);
-  log(
+  logSpinner(`\n\nSuccessfully fetched and saved deployment data for the following package: ${pkgName}`);
+  logSpinner(
     `run 'cannon publish ${pkgName} --chain-id <CHAIN_ID> --private-key <PRIVATE_KEY>' to publish the package to the registry`
   );
 }

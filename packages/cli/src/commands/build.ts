@@ -31,7 +31,7 @@ import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { createDefaultReadRegistry, createLocalOnlyRegistry, createOnChainOnlyRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
-import { log, warn, error } from '../util/console';
+import { logSpinner, warnSpinner, errorSpinner } from '../util/console';
 import { hideApiKey } from '../util/provider';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
 import { mergeErrors } from '../util/merge-errors';
@@ -94,7 +94,7 @@ export async function build({
   }
 
   if (dryRun && rpcUrl) {
-    log(
+    logSpinner(
       yellowBright(bold('⚠️ This is a simulation. No changes will be made to the chain. No package data will be saved.\n'))
     );
   }
@@ -161,7 +161,7 @@ export async function build({
   }
 
   if (!wipe) {
-    log(bold('Checking for existing package...'));
+    logSpinner(bold('Checking for existing package...'));
 
     if (upgradeFrom) {
       oldDeployData = await runtime.readDeploy(upgradeFrom, runtime.chainId);
@@ -177,7 +177,7 @@ export async function build({
         def.getDeployers()
       );
       if (oldDeployHash) {
-        log(green(bold(`Found deployment state via on-chain store: ${oldDeployHash}`)));
+        logSpinner(green(bold(`Found deployment state via on-chain store: ${oldDeployHash}`)));
         oldDeployData = (await runtime.readBlob(oldDeployHash)) as DeploymentInfo;
       }
     }
@@ -185,13 +185,13 @@ export async function build({
 
   // Update pkgInfo (package.json) with information from existing package, if present
   if (oldDeployData) {
-    log(gray(`  ${fullPackageRef} (Chain ID: ${chainId}) found`));
+    logSpinner(gray(`  ${fullPackageRef} (Chain ID: ${chainId}) found`));
     if (!wipe) {
       await runtime.restoreMisc(oldDeployData.miscUrl);
       pkgInfo = pkgInfo || oldDeployData.meta;
     }
   } else {
-    log(gray('Starting fresh build...'));
+    logSpinner(gray('Starting fresh build...'));
   }
 
   const resolvedSettings = _.pickBy(_.assign((!wipe && oldDeployData?.options) || {}, packageDefinition.settings));
@@ -213,62 +213,66 @@ export async function build({
   const pkgName = name || def.getName(initialCtx);
   const pkgVersion = version || def.getVersion(initialCtx);
 
-  log('');
+  logSpinner('');
   if (oldDeployData && wipe) {
-    log('Wiping existing package...');
-    log(bold('Initializing new package...'));
+    logSpinner('Wiping existing package...');
+    logSpinner(bold('Initializing new package...'));
     oldDeployData = null;
   } else if (oldDeployData && !upgradeFrom) {
-    log(bold('Continuing with existing package...'));
+    logSpinner(bold('Continuing with existing package...'));
   } else {
-    log(bold('Initializing new package...'));
+    logSpinner(bold('Initializing new package...'));
   }
-  log('Name: ' + cyanBright(`${pkgName}`));
-  log('Version: ' + cyanBright(`${pkgVersion}`));
-  log('Preset: ' + cyanBright(`${preset}`) + (preset == 'main' ? gray(' (default)') : ''));
-  log('Chain ID: ' + cyanBright(`${chainId}`));
+  logSpinner('Name: ' + cyanBright(`${pkgName}`));
+  logSpinner('Version: ' + cyanBright(`${pkgVersion}`));
+  logSpinner('Preset: ' + cyanBright(`${preset}`) + (preset == 'main' ? gray(' (default)') : ''));
+  logSpinner('Chain ID: ' + cyanBright(`${chainId}`));
   if (!privateSourceCode) {
-    log(`Private Source Code: ${cyanBright('false')} ${gray('(source code will be included in the package)')}`);
+    logSpinner(`Private Source Code: ${cyanBright('false')} ${gray('(source code will be included in the package)')}`);
   } else {
-    log(`Private Source Code: ${cyanBright('true')} ${gray('(source code will not be included in the resulting package)')}`);
+    logSpinner(
+      `Private Source Code: ${cyanBright('true')} ${gray('(source code will not be included in the resulting package)')}`
+    );
   }
   if (upgradeFrom) {
-    log(`Upgrading from: ${cyanBright(upgradeFrom)}`);
+    logSpinner(`Upgrading from: ${cyanBright(upgradeFrom)}`);
   }
-  log('');
+  logSpinner('');
 
   const rpcUrlMsg =
     provider.transport.type === 'http' ? provider.transport.url : typeof rpcUrl === 'string' ? rpcUrl.split(',')[0] : rpcUrl;
 
-  log(bold(`Building the chain (ID ${chainId})${rpcUrlMsg ? ' via ' + hideApiKey(rpcUrlMsg) : ''}...`));
+  logSpinner(bold(`Building the chain (ID ${chainId})${rpcUrlMsg ? ' via ' + hideApiKey(rpcUrlMsg) : ''}...`));
 
   if (getDefaultSigner) {
     const defaultSigner = await getDefaultSigner();
-    log(`Using ${defaultSigner.address}`);
+    logSpinner(`Using ${defaultSigner.address}`);
   }
 
   if (!_.isEmpty(resolvedSettings)) {
-    log(gray('Overriding settings in the cannonfile with the following:'));
+    logSpinner(gray('Overriding settings in the cannonfile with the following:'));
     for (const [key, value] of Object.entries(resolvedSettings)) {
-      log(gray(`  - ${key} = ${value}`));
+      logSpinner(gray(`  - ${key} = ${value}`));
     }
-    log('');
+    logSpinner('');
   }
 
   if (plugins) {
     const pluginList = await listInstalledPlugins();
 
     if (pluginList.length) {
-      log('plugins:', pluginList.join(', '), 'detected');
+      logSpinner('plugins:', pluginList.join(', '), 'detected');
     }
   }
-  log('');
+  logSpinner('');
 
   let partialDeploy = false;
-  runtime.on(Events.PreStepExecute, (t, n, _c, d) => log(cyanBright(`${'  '.repeat(d)}Executing ${`[${t}.${n}]`}...`)));
+  runtime.on(Events.PreStepExecute, (t, n, _c, d) =>
+    logSpinner(cyanBright(`${'  '.repeat(d)}Executing ${`[${t}.${n}]`}...`))
+  );
   runtime.on(Events.SkipDeploy, (n, err, d) => {
     partialDeploy = true;
-    log(
+    logSpinner(
       yellowBright(
         `${'  '.repeat(d)}  \u26A0\uFE0F  Skipping [${n}] (${
           typeof err === 'object' && err.toString === Object.prototype.toString ? JSON.stringify(err) : err.toString()
@@ -277,34 +281,34 @@ export async function build({
     );
   });
   runtime.on(Events.Notice, (n, msg) => {
-    warn(yellowBright(`WARN: ${n}: ${msg}`));
+    warnSpinner(yellowBright(`WARN: ${n}: ${msg}`));
   });
   runtime.on(Events.PostStepExecute, (t, n, c, ctx, o, d) => {
     for (const txnKey in o.txns) {
       const txn = o.txns[txnKey];
       if (c.func) {
-        log(
+        logSpinner(
           `${'  '.repeat(d)}  ${green('\u2714')} Successfully called ${c.func}(${c?.args
             ?.map((arg: any) => (typeof arg === 'object' && arg !== null ? JSON.stringify(arg) : arg))
             .join(', ')})`
         );
       } else {
-        log(`${'  '.repeat(d)}  ${green('\u2714')} Successfully performed operation`);
+        logSpinner(`${'  '.repeat(d)}  ${green('\u2714')} Successfully performed operation`);
       }
 
-      log(gray(`${'  '.repeat(d)}  Signer: ${txn.signer}`));
+      logSpinner(gray(`${'  '.repeat(d)}  Signer: ${txn.signer}`));
 
       if (c.target) {
         const contractAddress = getContractFromPath(ctx, c.target[0])?.address;
         if (contractAddress) {
-          log(gray(`${'  '.repeat(d)}  Contract Address: ${contractAddress}`));
+          logSpinner(gray(`${'  '.repeat(d)}  Contract Address: ${contractAddress}`));
         }
       }
-      log(gray(`${'  '.repeat(d)}  Transaction Hash: ${txn.hash}`));
+      logSpinner(gray(`${'  '.repeat(d)}  Transaction Hash: ${txn.hash}`));
       const cost = BigInt(txn.gasCost) * BigInt(txn.gasUsed);
       totalCost = totalCost + cost;
       totalGasUsed = totalGasUsed + BigInt(txn.gasUsed);
-      log(
+      logSpinner(
         gray(
           `${'  '.repeat(d)}  Transaction Cost: ${viem.formatEther(
             cost
@@ -315,17 +319,17 @@ export async function build({
     for (const contractKey in o.contracts) {
       const contract = o.contracts[contractKey];
       if (contract.deployTxnHash) {
-        log(
+        logSpinner(
           `${'  '.repeat(d)}  ${green('\u2714')} Successfully deployed ${contract.contractName}${
             c.create2 ? ' using CREATE2' : ''
           }`
         );
-        log(gray(`${'  '.repeat(d)}  Contract Address: ${contract.address}`));
-        log(gray(`${'  '.repeat(d)}  Transaction Hash: ${contract.deployTxnHash}`));
+        logSpinner(gray(`${'  '.repeat(d)}  Contract Address: ${contract.address}`));
+        logSpinner(gray(`${'  '.repeat(d)}  Transaction Hash: ${contract.deployTxnHash}`));
         const cost = BigInt(contract.gasCost) * BigInt(contract.gasUsed);
         totalCost = totalCost + cost;
         totalGasUsed = totalGasUsed + BigInt(contract.gasUsed);
-        log(
+        logSpinner(
           gray(
             `${'  '.repeat(d)}  Transaction Cost: ${viem.formatEther(
               cost
@@ -336,36 +340,36 @@ export async function build({
     }
     for (const setting in o.settings) {
       if (ctx.overrideSettings[setting]) {
-        log(`${'  '.repeat(d)} Setting (Override): ${setting} = ${ctx.overrideSettings[setting]}`);
+        logSpinner(`${'  '.repeat(d)} Setting (Override): ${setting} = ${ctx.overrideSettings[setting]}`);
       } else {
-        log(`${'  '.repeat(d)}  Setting: ${setting} = ${o.settings[setting]}`);
+        logSpinner(`${'  '.repeat(d)}  Setting: ${setting} = ${o.settings[setting]}`);
       }
     }
     stepsExecuted = true;
 
-    log();
+    logSpinner();
   });
 
   runtime.on(Events.ResolveDeploy, (packageName, preset, chainId, registry, d) =>
-    log(magenta(`${'  '.repeat(d)}  Resolving ${packageName} (Chain ID: ${chainId}) via ${registry}...`))
+    logSpinner(magenta(`${'  '.repeat(d)}  Resolving ${packageName} (Chain ID: ${chainId}) via ${registry}...`))
   );
   runtime.on(Events.DownloadDeploy, (hash, gateway, d) =>
-    log(gray(`${'  '.repeat(d)}    Downloading ${hash} via ${gateway}`))
+    logSpinner(gray(`${'  '.repeat(d)}    Downloading ${hash} via ${gateway}`))
   );
 
   // attach control-c handler
   let ctrlcs = 0;
   const handler = () => {
     if (!runtime.isCancelled()) {
-      log('interrupt received, finishing current operation and cancelling...');
-      log('please be patient, or state loss may occur.');
+      logSpinner('interrupt received, finishing current operation and cancelling...');
+      logSpinner('please be patient, or state loss may occur.');
       partialDeploy = true;
       runtime.cancel();
     } else if (ctrlcs < 4) {
-      log('you really should not try to cancel the build unless you know what you are doing.');
-      log('continue pressing control-c to FORCE, and UNCLEANLY exit cannon');
+      logSpinner('you really should not try to cancel the build unless you know what you are doing.');
+      logSpinner('continue pressing control-c to FORCE, and UNCLEANLY exit cannon');
     } else {
-      log('exiting uncleanly. state loss may have occured. please DO NOT raise bug reports.');
+      logSpinner('exiting uncleanly. state loss may have occured. please DO NOT raise bug reports.');
       process.exit(1234);
     }
     ctrlcs++;
@@ -449,14 +453,16 @@ export async function build({
     if (stepsExecuted && !dryRun && !skipUpgradeRecord) {
       for (let i = 0; i < 3; i++) {
         try {
-          log(gray(`Attesting that ${(await runtime.getDefaultSigner({})).address} deployed ${deployUrl} onchain...`));
+          logSpinner(
+            gray(`Attesting that ${(await runtime.getDefaultSigner({})).address} deployed ${deployUrl} onchain...`)
+          );
           await writeUpgradeFromInfo(runtime, packageReference, deployUrl);
           break;
         } catch (err) {
-          error(err);
-          error(red(`Failed to write upgrade record to on-chain state. Try ${i + 1}/3`));
+          errorSpinner(err);
+          errorSpinner(red(`Failed to write upgrade record to on-chain state. Try ${i + 1}/3`));
           if (i === 2) {
-            error(
+            errorSpinner(
               red(
                 bold(
                   `Failed to write state on-chain. The next time you upgrade your package, you should include the option --upgrade-from ${deployUrl}.`
@@ -476,51 +482,53 @@ export async function build({
     process.off('SIGQUIT', handler);
 
     if (partialDeploy) {
-      log(
+      logSpinner(
         yellowBright(
           bold(
             '\n\u26A0\uFE0F  Your deployment was not fully completed. Please inspect the issues listed above and resolve as necessary.'
           )
         )
       );
-      log(gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`));
-      log('');
-      log(
+      logSpinner(
+        gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`)
+      );
+      logSpinner('');
+      logSpinner(
         '- Rerunning the build command will attempt to execute skipped operations. It will not rerun executed operations. (To rerun executed operations, delete the partial build package generated by this run by adding the --wipe flag to the build command on the next run.)'
       );
       if (upgradeFrom) {
-        log(bold('  Remove the --upgrade-from option to continue from the partial build.'));
+        logSpinner(bold('  Remove the --upgrade-from option to continue from the partial build.'));
       }
-      log(`- Your partial deployment has been stored to ${deployUrl}`);
-      log(
+      logSpinner(`- Your partial deployment has been stored to ${deployUrl}`);
+      logSpinner(
         '- Run ' +
           bold(`cannon pin ${deployUrl}`) +
           ' to pin the partial deployment package on IPFS. Then use https://usecannon.com/deploy to collect signatures from a Safe for the skipped operations in the partial deployment package.'
       );
     } else {
       if (dryRun) {
-        log(
+        logSpinner(
           gray(
             `Estimated Total Cost: ${viem.formatEther(
               totalCost
             )} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`
           )
         );
-        log(bold(`💥 ${fullPackageRef} would have been successfully built on ${chainName} (Chain ID: ${chainId})`));
+        logSpinner(bold(`💥 ${fullPackageRef} would have been successfully built on ${chainName} (Chain ID: ${chainId})`));
       } else {
         if (chainId == 13370) {
-          log(bold(`💥 ${fullPackageRef} built for Cannon (Chain ID: ${chainId})`));
-          log(gray('This package can be run locally and cloned in cannonfiles.'));
+          logSpinner(bold(`💥 ${fullPackageRef} built for Cannon (Chain ID: ${chainId})`));
+          logSpinner(gray('This package can be run locally and cloned in cannonfiles.'));
         } else {
-          log(bold(`💥 ${fullPackageRef} built on ${chainName} (Chain ID: ${chainId})`));
-          log(
+          logSpinner(bold(`💥 ${fullPackageRef} built on ${chainName} (Chain ID: ${chainId})`));
+          logSpinner(
             gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`)
           );
         }
       }
-      log();
-      log(bold(`These JSON files have been added to ${cliSettings.cannonDirectory}`));
-      log(
+      logSpinner();
+      logSpinner(bold(`These JSON files have been added to ${cliSettings.cannonDirectory}`));
+      logSpinner(
         table([
           ['Deployment Data', deployUrl],
           ['Package Code', miscUrl],
@@ -529,42 +537,42 @@ export async function build({
       );
 
       if (dryRun) {
-        log(bold('Inspect the deployment data'));
-        log(`> cannon inspect ${deployUrl}`);
-        log();
-        log(bold('Upload deployment data to IPFS'));
-        log(`> cannon pin ${deployUrl}`);
+        logSpinner(bold('Inspect the deployment data'));
+        logSpinner(`> cannon inspect ${deployUrl}`);
+        logSpinner();
+        logSpinner(bold('Upload deployment data to IPFS'));
+        logSpinner(`> cannon pin ${deployUrl}`);
       }
 
       const isMainPreset = preset === PackageReference.DEFAULT_PRESET;
 
       if (!dryRun) {
         if (isMainPreset) {
-          log(bold(`Publish ${bold(`${packageRef}`)} to the registry`));
-          log(`> cannon publish ${packageRef} --chain-id ${chainId}`);
+          logSpinner(bold(`Publish ${bold(`${packageRef}`)} to the registry`));
+          logSpinner(`> cannon publish ${packageRef} --chain-id ${chainId}`);
         } else {
-          log(
+          logSpinner(
             bold(
               `Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`
             )
           );
-          log(`> cannon publish ${fullPackageRef} --chain-id ${chainId}`);
+          logSpinner(`> cannon publish ${fullPackageRef} --chain-id ${chainId}`);
         }
 
-        log('');
+        logSpinner('');
         if (chainId == 13370) {
-          log(bold('Run this package'));
+          logSpinner(bold('Run this package'));
 
-          if (isMainPreset) log(`> cannon ${packageRef}`);
-          else log(`> cannon ${fullPackageRef}`);
+          if (isMainPreset) logSpinner(`> cannon ${packageRef}`);
+          else logSpinner(`> cannon ${fullPackageRef}`);
         } else {
-          log(bold('Verify contracts on Etherscan'));
-          log(`> cannon verify ${fullPackageRef} --chain-id ${chainId}`);
+          logSpinner(bold('Verify contracts on Etherscan'));
+          logSpinner(`> cannon verify ${fullPackageRef} --chain-id ${chainId}`);
         }
       }
     }
   } else {
-    log(
+    logSpinner(
       bold(
         yellow(
           `Chain state could not be saved via ${runtime.loaders[
@@ -576,10 +584,10 @@ export async function build({
   }
 
   if (!stepsExecuted) {
-    log(bold('\nNo operations were executed during the build.'));
+    logSpinner(bold('\nNo operations were executed during the build.'));
   }
 
-  log('');
+  logSpinner('');
 
   provider = provider.extend(traceActions(outputs) as any);
 

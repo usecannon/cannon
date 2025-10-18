@@ -6,7 +6,7 @@ import * as viem from 'viem';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';
 import { resolveProviderAndSigners, ProviderAction } from '../util/provider';
-import { log } from '../util/console';
+import { logSpinner, logSpinnerStart, logSpinnerEnd } from '../util/console';
 
 interface Options {
   maxFeePerGas?: string;
@@ -57,6 +57,7 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
       value: p,
     }));
 
+    logSpinnerEnd();
     // override writeRegistry with the picked provider
     writeRegistry = (
       await prompts([
@@ -69,10 +70,10 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
       ])
     ).writeRegistry;
 
-    log();
+    logSpinnerStart();
   }
 
-  log(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
+  logSpinner(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
 
   const readRegistry = _.differenceWith(cliSettings.registries, [writeRegistry], _.isEqual)[0];
   const registryProviders = await Promise.all([
@@ -141,7 +142,8 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
 
   let selectedDeploys;
   if (publishedDeploys.length > 1) {
-    log();
+    logSpinner();
+    logSpinnerEnd();
 
     const prompt = await prompts({
       type: 'multiselect',
@@ -159,9 +161,10 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
         };
       }),
     });
+    logSpinnerStart();
 
     if (!prompt.value) {
-      log('You must select a package to unpublish');
+      logSpinner('You must select a package to unpublish');
       process.exit(1);
     }
 
@@ -170,8 +173,8 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
     selectedDeploys = publishedDeploys;
   }
 
-  log();
-  log(
+  logSpinner();
+  logSpinner(
     `\nSettings:\n - Max Fee Per Gas: ${
       overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
     }\n - Max Priority Fee Per Gas: ${
@@ -180,18 +183,18 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
       " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
   );
 
-  log();
-  log('Submitting transaction, waiting for transaction to succeed...');
-  log();
+  logSpinner();
+  logSpinner('Submitting transaction, waiting for transaction to succeed...');
+  logSpinner();
 
   if (selectedDeploys.length > 1) {
     const [hash] = await onChainRegistry.unpublishMany(selectedDeploys);
 
-    log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+    logSpinner(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
   } else {
     const [deploy] = selectedDeploys;
     const hash = await onChainRegistry.unpublish(deploy.name, deploy.chainId);
 
-    log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+    logSpinner(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
   }
 }
