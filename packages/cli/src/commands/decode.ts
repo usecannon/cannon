@@ -3,7 +3,7 @@ import { AbiFunction, AbiEvent, formatAbiItem } from 'abitype';
 import { bold, gray, green, italic } from 'chalk';
 import { ContractData, DeploymentInfo, PackageReference, decodeTxError } from '@usecannon/builder';
 
-import { log, error } from '../util/console';
+import { errorSpinner, logSpinner } from '../util/console';
 import { readDeployRecursive } from '../package';
 import { formatAbiFunction, getSighash, stripCredentialsFromURL } from '../helpers';
 import { resolveCliSettings } from '../../src/settings';
@@ -40,13 +40,13 @@ export async function decode({
 
     inputData = tx.input;
 
-    log('     RPC: ', stripCredentialsFromURL(provider.transport.url));
-    log('Chain ID: ', tx.chainId);
-    log(' TX hash: ', tx.hash);
-    log('    From: ', tx.from);
-    if (tx.to) log('      To: ', tx.to);
-    if (tx.value) log('   Value: ', tx.value);
-    log();
+    logSpinner('     RPC: ', stripCredentialsFromURL(provider.transport.url));
+    logSpinner('Chain ID: ', tx.chainId);
+    logSpinner(' TX hash: ', tx.hash);
+    logSpinner('    From: ', tx.from);
+    if (tx.to) logSpinner('      To: ', tx.to);
+    if (tx.value) logSpinner('   Value: ', tx.value);
+    logSpinner();
   }
 
   const deployInfos = await readDeployRecursive(fullPackageRef, chainId!);
@@ -58,7 +58,7 @@ export async function decode({
   if (!parsed) {
     const errorMessage = decodeTxError(inputData, abis);
     if (errorMessage) {
-      log(errorMessage);
+      logSpinner(errorMessage);
       return;
     }
 
@@ -68,7 +68,7 @@ export async function decode({
   }
 
   if (typeof parsed.result === 'string') {
-    log(green(`${parsed.result}`), `${italic(gray(inputData.slice(0, 10)))}`);
+    logSpinner(green(`${parsed.result}`), `${italic(gray(inputData.slice(0, 10)))}`);
     return;
   }
 
@@ -83,17 +83,17 @@ export async function decode({
   });
 
   if (json || !fragment) {
-    return log(JSON.stringify(parsed.result, null, 2));
+    return logSpinner(JSON.stringify(parsed.result, null, 2));
   }
 
   const sighash = getSighash(fragment as AbiFunction | AbiEvent);
 
-  log(green(`${formatAbiFunction(fragment as any)}`), `${sighash ? italic(gray(sighash)) : ''}`);
+  logSpinner(green(`${formatAbiFunction(fragment as any)}`), `${sighash ? italic(gray(sighash)) : ''}`);
 
   if ((parsed.result as viem.DecodeErrorResultReturnType).errorName) {
     const errorMessage = decodeTxError(inputData, abis);
     if (errorMessage) {
-      log(errorMessage);
+      logSpinner(errorMessage);
       return;
     }
   }
@@ -104,7 +104,7 @@ export async function decode({
     switch (true) {
       case input.type.startsWith('tuple'): {
         // e.g. tuple, tuple[]
-        log(renderParam(offset, input));
+        logSpinner(renderParam(offset, input));
         // @ts-ignore: TODO - figure out how to type this
         const components = input.components;
         const values = input.type.endsWith('[]') ? value.map(Object.values) : [value];
@@ -125,7 +125,7 @@ export async function decode({
 
       case input.type.endsWith('[]'): {
         //e.g. uint256[], bool[], bytes[], bytes8[], bytes32[], etc
-        log(renderParam(offset, input));
+        logSpinner(renderParam(offset, input));
         for (let i = 0; i < value.length; i++) {
           renderArgs(
             {
@@ -141,7 +141,7 @@ export async function decode({
       }
 
       default: {
-        log(renderParam(offset, input), _renderValue(input, value));
+        logSpinner(renderParam(offset, input), _renderValue(input, value));
       }
     }
   };
@@ -183,7 +183,7 @@ function _renderValue(type: viem.AbiParameter, value: string | bigint) {
       } catch (err) {
         const settings = resolveCliSettings();
         if (settings.trace) {
-          error(err);
+          errorSpinner(err);
         }
       }
 

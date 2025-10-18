@@ -18,7 +18,7 @@ import * as viem from 'viem';
 import { getMainLoader } from '../loader';
 import { createDefaultReadRegistry } from '../registry';
 import { CliSettings } from '../settings';
-import { warn } from '../util/console';
+import { warnSpinner } from '../util/console';
 import { ProviderAction, resolveProvider } from '../util/provider';
 
 const debug = Debug('cannon:cli:alter');
@@ -259,7 +259,7 @@ export async function alter(
       // compute the state hash for the step
       for (const target of targets) {
         if (!deployInfo.state[target]) {
-          warn(
+          warnSpinner(
             `WARN: action ${target} does not exist in the cannon state for the given package. Setting dummy empty state.`
           );
           deployInfo.state[target] = {
