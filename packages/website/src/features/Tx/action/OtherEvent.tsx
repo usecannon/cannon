@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import DetailBadge from '@/features/Tx/detail/DetailBadge';
 import InfoTooltip from '@/features/Tx/InfoTooltip';
 import HoverHighlight from '@/features/Tx/HoverHighlight';
@@ -5,6 +6,7 @@ import { ExtendedTransactionReceipt } from '@/types/ExtendedTransactionReceipt';
 import { GetTransactionReturnType } from 'viem';
 import Link from 'next/link';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import { getSelectors } from '@/helpers/api';
 
 type OtherEvent = {
   tx: GetTransactionReturnType;
@@ -21,8 +23,8 @@ const OtherEvent: React.FC<OtherEvent> = ({
   setHoverId,
   chainId,
 }) => {
-  const input = tx.input.slice(0, 10);
   const { getExplorerUrl } = useCannonChains();
+  const [input, setInput] = useState<string>('');
 
   const exploreFrom =
     chainId !== undefined ? getExplorerUrl(chainId, tx.from) : '';
@@ -32,64 +34,82 @@ const OtherEvent: React.FC<OtherEvent> = ({
       ? getExplorerUrl(chainId, tx.to)
       : '';
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const selector = tx.input.slice(0, 10);
+      const names = await getSelectors([selector]);
+      const txNames = names.results;
+      const txName = txNames[selector];
+      const formatted =
+        txName && txName.length > 0
+          ? txName[0].name.split('(')[0]
+          : tx.input.slice(0, 10);
+
+      setInput(formatted);
+    };
+    fetchData();
+  }, []);
+
   return (
     <>
-      <div className="flex flex-wrap items-center break-all">
-        <span className="text-gray-400 text-sm mr-1">Call</span>
-        <DetailBadge value={input} />
-        <span className="text-gray-400 text-sm ml-1 mr-1">Method by</span>
-        <InfoTooltip
-          trigger={
-            <Link
-              href={exploreFrom}
-              className="inline-flex items-center gap-1"
-              target={exploreFrom.startsWith('http') ? '_blank' : '_self'}
-              rel="noopener noreferrer"
-            >
-              <HoverHighlight
-                id={tx.from}
-                hoverId={hoverId}
-                setHoverId={setHoverId}
+      {input && (
+        <div className="flex flex-wrap items-center break-all">
+          <span className="text-gray-400 text-sm mr-1">Call</span>
+          <DetailBadge value={input} />
+          <span className="text-gray-400 text-sm ml-1 mr-1">Method by</span>
+          <InfoTooltip
+            trigger={
+              <Link
+                href={exploreFrom}
+                className="inline-flex items-center gap-1"
+                target={exploreFrom.startsWith('http') ? '_blank' : '_self'}
+                rel="noopener noreferrer"
               >
-                <span className="text-base break-all">{`${tx.from.substring(
-                  0,
-                  8
-                )}...${tx.from.slice(-6)}`}</span>
-              </HoverHighlight>
-            </Link>
-          }
-        >
-          {tx.from}
-        </InfoTooltip>
-        {!txReceipt.contractAddress && tx.to != null && (
-          <>
-            <span className="text-gray-400 text-sm ml-1 mr-1">on</span>
-            <InfoTooltip
-              trigger={
-                <Link
-                  href={exploreTo}
-                  className="inline-flex items-center gap-1"
-                  target={exploreTo.startsWith('http') ? '_blank' : '_self'}
-                  rel="noopener noreferrer"
+                <HoverHighlight
+                  id={tx.from}
+                  hoverId={hoverId}
+                  setHoverId={setHoverId}
                 >
-                  <HoverHighlight
-                    id={tx.to}
-                    hoverId={hoverId}
-                    setHoverId={setHoverId}
+                  <span className="text-base break-all">{`${tx.from.substring(
+                    0,
+                    8
+                  )}...${tx.from.slice(-6)}`}</span>
+                </HoverHighlight>
+              </Link>
+            }
+          >
+            {tx.from}
+          </InfoTooltip>
+          {!txReceipt.contractAddress && tx.to != null && (
+            <>
+              <span className="text-gray-400 text-sm ml-1 mr-1">on</span>
+              <InfoTooltip
+                trigger={
+                  <Link
+                    href={exploreTo}
+                    className="inline-flex items-center gap-1"
+                    target={exploreTo.startsWith('http') ? '_blank' : '_self'}
+                    rel="noopener noreferrer"
                   >
-                    <span className="text-base break-all">{`${tx.to.substring(
-                      0,
-                      8
-                    )}...${tx.to.slice(-6)}`}</span>
-                  </HoverHighlight>
-                </Link>
-              }
-            >
-              {tx.to}
-            </InfoTooltip>
-          </>
-        )}
-      </div>
+                    <HoverHighlight
+                      id={tx.to}
+                      hoverId={hoverId}
+                      setHoverId={setHoverId}
+                    >
+                      <span className="text-base break-all">{`${tx.to.substring(
+                        0,
+                        8
+                      )}...${tx.to.slice(-6)}`}</span>
+                    </HoverHighlight>
+                  </Link>
+                }
+              >
+                {tx.to}
+              </InfoTooltip>
+            </>
+          )}
+        </div>
+      )}
     </>
   );
 };
