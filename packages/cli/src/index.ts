@@ -218,10 +218,10 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
 
         await new Promise((resolve, reject) => {
           forgeBuildProcess.stdout.on('data', (d) => {
-            forgeStdout.slice(-999).push(d.toString('utf8'));
+            forgeStdout.push(d.toString('utf8'));
           });
           forgeBuildProcess.stderr.on('data', (d) => {
-            forgeStderr.slice(-999).push(d.toString('utf8'));
+            forgeStderr.push(d.toString('utf8'));
           });
           forgeBuildProcess.stdout.on('error', (err) => {
             warnSpinner('forge child process stdout error:', err);
