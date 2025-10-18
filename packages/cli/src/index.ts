@@ -101,7 +101,7 @@ function configureRun(program: Command) {
   return applyCommandsConfig(program, commandsConfig.run).action(async function (
     packages: PackageSpecification[],
     options,
-    program,
+    program
   ) {
     try {
       logSpinner(bold('Starting local node...\n'));
@@ -304,87 +304,94 @@ applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(asy
   }
 });
 
-applyCommandsConfig(program.command('diff'), commandsConfig.diff).action(
-  async function (packageRef, projectDirectory, options) {
-    try {
-      spinner?.update({ text: 'Diffing...' });
-      const { diff } = await import('./commands/diff');
+applyCommandsConfig(program.command('diff'), commandsConfig.diff).action(async function (
+  packageRef,
+  projectDirectory,
+  options
+) {
+  try {
+    spinner?.update({ text: 'Diffing...' });
+    const { diff } = await import('./commands/diff');
 
-      const cliSettings = resolveCliSettings(options);
-      const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
+    const cliSettings = resolveCliSettings(options);
+    const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
-      const foundDiffs = await diff(
-        fullPackageRef,
-        cliSettings,
-        chainId,
-        projectDirectory,
-        options.matchContract,
-        options.matchSource,
-      );
+    const foundDiffs = await diff(
+      fullPackageRef,
+      cliSettings,
+      chainId,
+      projectDirectory,
+      options.matchContract,
+      options.matchSource
+    );
 
-      logSpinnerEnd();
-      // exit code is the number of differences found--useful for CI checks
-      process.exit(foundDiffs);
-    } catch (err) {
-      logSpinnerEnd();
-      throw err;
+    logSpinnerEnd();
+    // exit code is the number of differences found--useful for CI checks
+    process.exit(foundDiffs);
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
+});
+
+applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async function (
+  packageName,
+  command,
+  options,
+  flags
+) {
+  try {
+    spinner?.update({ text: 'Altering...' });
+    const { alter } = await import('./commands/alter');
+
+    const cliSettings = resolveCliSettings(flags);
+
+    // throw an error if the chainId is not consistent with the provider's chainId
+    await ensureChainIdConsistency(cliSettings.rpcUrl, flags.chainId);
+
+    // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
+    const newUrl = await alter(
+      packageName,
+      flags.subpkg ? flags.subpkg.split(',') : [],
+      parseInt(flags.chainId),
+      cliSettings,
+      {},
+      command,
+      options,
+      {}
+    );
+
+    logSpinner(newUrl);
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
+});
+
+applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async function (
+  packageRef,
+  givenIpfsUrl,
+  options
+) {
+  try {
+    const { fetch } = await import('./commands/fetch');
+
+    const { fullPackageRef, chainId } = await getPackageReference(packageRef, options.chainId);
+    const ipfsUrl = getIpfsUrl(givenIpfsUrl);
+    const metaIpfsUrl = getIpfsUrl(options.metaHash) || undefined;
+
+    if (!ipfsUrl) {
+      throw new Error('IPFS URL is required.');
     }
-  },
-);
 
-applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(
-  async function (packageName, command, options, flags) {
-    try {
-      spinner?.update({ text: 'Altering...' });
-      const { alter } = await import('./commands/alter');
-
-      const cliSettings = resolveCliSettings(flags);
-
-      // throw an error if the chainId is not consistent with the provider's chainId
-      await ensureChainIdConsistency(cliSettings.rpcUrl, flags.chainId);
-
-      // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
-      const newUrl = await alter(
-        packageName,
-        flags.subpkg ? flags.subpkg.split(',') : [],
-        parseInt(flags.chainId),
-        cliSettings,
-        {},
-        command,
-        options,
-        {},
-      );
-
-      logSpinner(newUrl);
-      logSpinnerEnd();
-    } catch (err) {
-      logSpinnerEnd();
-      throw err;
-    }
-  },
-);
-
-applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(
-  async function (packageRef, givenIpfsUrl, options) {
-    try {
-      const { fetch } = await import('./commands/fetch');
-
-      const { fullPackageRef, chainId } = await getPackageReference(packageRef, options.chainId);
-      const ipfsUrl = getIpfsUrl(givenIpfsUrl);
-      const metaIpfsUrl = getIpfsUrl(options.metaHash) || undefined;
-
-      if (!ipfsUrl) {
-        throw new Error('IPFS URL is required.');
-      }
-
-      await fetch(fullPackageRef, chainId, ipfsUrl, metaIpfsUrl);
-      logSpinnerEnd();
-    } catch (err) {
-      logSpinnerEnd();
-      throw err;
-    }
-  },
-);
+    await fetch(fullPackageRef, chainId, ipfsUrl, metaIpfsUrl);
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
+});
 
 applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async function (packageRef, options) {
   try {
@@ -416,7 +423,7 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
 
 applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (
   packageRef,
-  options: { [opt: string]: string },
+  options: { [opt: string]: string }
 ) {
   try {
     spinner?.update({ text: 'Publishing...' });
@@ -495,8 +502,8 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       logSpinner();
       logSpinner(
         gray(
-          `Package "${pkgRef.name}" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`,
-        ),
+          `Package "${pkgRef.name}" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
+        )
       );
       logSpinner();
 
@@ -549,7 +556,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       }\n - Max Priority Fee Per Gas: ${
         overrides.maxPriorityFeePerGas ? overrides.maxPriorityFeePerGas.toString() : 'default'
       }\n - Gas Limit: ${overrides.gasLimit ? overrides.gasLimit : 'default'}\n` +
-        " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n",
+        " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
     );
 
     await publish({
@@ -626,7 +633,7 @@ applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(a
     const { fullPackageRef, chainId, ipfsUrl, deployInfo } = await getPackageInfo(
       packageRef,
       options.chainId,
-      cliSettings.rpcUrl,
+      cliSettings.rpcUrl
     );
 
     await inspect(
@@ -637,7 +644,7 @@ applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(a
       cliSettings,
       options.json ? 'deploy-json' : options.out,
       options.writeDeployments,
-      options.sources,
+      options.sources
     );
 
     logSpinnerEnd();
@@ -665,7 +672,7 @@ applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async
       storage,
       options.filterPackage?.split(',') || '',
       options.filterVariant?.split(',') || '',
-      options.keepAge,
+      options.keepAge
     );
 
     if (pruneUrls.length) {
@@ -771,9 +778,9 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
       warnSpinner(
         yellowBright(
           bold(
-            '⚠️  The `--` syntax for passing options to forge or anvil is deprecated. Please use `--forge.*` or `--anvil.*` instead.',
-          ),
-        ),
+            '⚠️  The `--` syntax for passing options to forge or anvil is deprecated. Please use `--forge.*` or `--anvil.*` instead.'
+          )
+        )
       );
       logSpinner();
     }
@@ -843,14 +850,14 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
         priorityGasFee: options.maxPriorityFee,
       },
       resolver,
-      getMainLoader(cliSettings),
+      getMainLoader(cliSettings)
     );
 
     const deployData = await runtime.readDeploy(fullPackageRef, runtime.chainId);
 
     if (!deployData) {
       throw new Error(
-        `deployment not found for package: ${fullPackageRef} with chaindId ${chainId}. please make sure it exists for the given preset and current network.`,
+        `deployment not found for package: ${fullPackageRef} with chaindId ${chainId}. please make sure it exists for the given preset and current network.`
       );
     }
 
@@ -858,7 +865,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
     if (!outputs) {
       throw new Error(
-        `no cannon build found for ${fullPackageRef} with chaindId ${chainId}. Did you mean to run the package instead?`,
+        `no cannon build found for ${fullPackageRef} with chaindId ${chainId}. Did you mean to run the package instead?`
       );
     }
 
