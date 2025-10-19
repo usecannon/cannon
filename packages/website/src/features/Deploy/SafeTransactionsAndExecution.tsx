@@ -42,7 +42,7 @@ interface Props {
 function calculateTotalGas(safeSteps: CannonTxRecord[] | undefined): bigint {
   return (safeSteps || []).reduce(
     (total, step) => total + BigInt(step.gas.toString()),
-    BigInt(0)
+    BigInt(0),
   );
 }
 
@@ -62,7 +62,7 @@ export function SafeTransactionsAndExecution({
   const gitHash = getGitHash(refsInfo.refs, gitInfo.gitRef);
   const prevInfoQuery = useGetPreviousGitInfoQuery(
     currentSafe,
-    gitInfo.gitUrl + ':' + gitInfo.gitFile
+    gitInfo.gitUrl + ':' + gitInfo.gitFile,
   );
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
   const multicallTxn = useMultisendTxsParams({
@@ -77,7 +77,8 @@ export function SafeTransactionsAndExecution({
   });
 
   const isOutsideSafeTxnsRequired =
-    (buildState.result?.deployerSteps.length || 0) > 0 && !deployer.isComplete;
+    (buildState.result?.deployerSteps.length || 0) > 0 &&
+    deployer.executionProgress.length < deployer.queuedTransactions.length;
 
   const stager = useTxnStager(
     multicallTxn?.data
@@ -98,7 +99,7 @@ export function SafeTransactionsAndExecution({
           duration: 5000,
         });
       },
-    }
+    },
   );
 
   const showPackage = cannonDefInfo && cannonDefInfo.def && multicallTxn?.data;
@@ -164,6 +165,14 @@ export function SafeTransactionsAndExecution({
           </AlertDescription>
         </Alert>
       )}
+      {isOutsideSafeTxnsRequired && (
+        <Alert variant="warning" className="mt-0 border-none">
+          <AlertDescription>
+            You must execute the Outside Safe Transactions before continuing
+            with the Safe deployment.
+          </AlertDescription>
+        </Alert>
+      )}
       {canExecute && (
         <div>
           <NoncePicker safe={currentSafe} handleChange={setPickedNonce} />
@@ -205,7 +214,7 @@ export function SafeTransactionsAndExecution({
                           'You successfully executed the transaction.',
                           {
                             duration: 5000,
-                          }
+                          },
                         );
                       },
                     });
