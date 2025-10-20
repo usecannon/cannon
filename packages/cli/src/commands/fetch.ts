@@ -14,7 +14,7 @@ import fs from 'node:fs';
 import path from 'path';
 import util from 'util';
 
-import { logSpinner, warnSpinner } from '../util/console';
+import { log, logSpinner, warnSpinner } from '../util/console';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 
@@ -90,11 +90,13 @@ export async function fetch(fullPackageRef: string | null, chainId: number | nul
       warnSpinner(yellow('The IPFS package you downloaded is being saved to a different name than is recorded in the package data. Please double check to make sure this is correct.'));
       warnSpinner(yellow(bold(`Package Name (IPFS Data): ${deployInfo.def.name}`)))
       warnSpinner(yellow(bold(`Provided Name:            ${ref.name}`)))
-    } else if (ref.version !== deployInfo.def.version) {
+    }
+    if (ref.version !== deployInfo.def.version) {
       warnSpinner(yellow('The IPFS package you downloaded is being saved to a different version than is recorded in the package data. Please double check to make sure that this is correct.'));
       warnSpinner(yellow(bold(`Package Version (IPFS Data): ${deployInfo.def.version}`)))
       warnSpinner(yellow(bold(`Provided Version:            ${ref.version}`)))
-    } else if (deployInfo.chainId && chainId !== deployInfo.chainId) {
+    }
+    if (deployInfo.chainId !== null && chainId !== deployInfo.chainId) {
       warnSpinner(yellow('The IPFS package you downloaded is being saved to a different chain ID than is recorded in the package data. Please double check to make sure that this is correct.'));
       warnSpinner(yellow(bold(`Chain ID (IPFS Data):    ${deployInfo.chainId}`)))
       warnSpinner(yellow(bold(`Chain ID (User Input):   ${chainId}`)))
@@ -122,8 +124,8 @@ export async function fetch(fullPackageRef: string | null, chainId: number | nul
     await storeDeployReference(deployMetadataPath, metaIpfsUrl);
   }
 
-  logSpinner(`\n\nSuccessfully fetched and saved deployment data for the following package: ${pkgName}`);
+  logSpinner(`\n\nSuccessfully fetched and saved deployment data for the following package: ${packageRef}`);
   logSpinner(
-    `run 'cannon publish ${pkgName} --chain-id <CHAIN_ID> --private-key <PRIVATE_KEY>' to publish the package to the registry`
+    `run 'cannon publish ${packageRef} --chain-id <CHAIN_ID> --private-key <PRIVATE_KEY>' to publish the package to the registry`
   );
 }
