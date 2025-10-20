@@ -38,7 +38,7 @@ import { PackageSpecification } from './types';
 
 import { doBuild } from './util/build';
 import { setDebugLevel } from './util/debug-level';
-import { log, logSpinner, warnSpinner, errorSpinner, logSpinnerEnd, spinner } from './util/console';
+import { log, error, logSpinner, warnSpinner, errorSpinner, logSpinnerEnd, spinner } from './util/console';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { applyCommandsConfig } from './util/commands-config';
 import {
@@ -213,14 +213,30 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
         ];
 
         const forgeBuildProcess = spawn('forge', forgeBuildArgs, { cwd: projectDirectory, shell: true });
+        const forgeStdout: string[] = [];
+        const forgeStderr: string[] = [];
 
         await new Promise((resolve, reject) => {
+          forgeBuildProcess.stdout.on('data', (d) => {
+            forgeStdout.push(d.toString('utf8'));
+          });
+          forgeBuildProcess.stderr.on('data', (d) => {
+            forgeStderr.push(d.toString('utf8'));
+          });
+          forgeBuildProcess.stdout.on('error', (err) => {
+            warnSpinner('forge child process stdout error:', err);
+          });
+          forgeBuildProcess.stderr.on('error', (err) => {
+            warnSpinner('forge child process stderr error:', err);
+          });
           forgeBuildProcess.on('exit', (code) => {
             if (code === 0) {
               logSpinner(gray('forge build succeeded'));
             } else {
               logSpinner(red('forge build failed'));
               logSpinner(red('Make sure "forge build" runs successfully or use the --skip-compile flag.'));
+              log(`forge stdout:\n${forgeStdout.join('')}`);
+              error(`forge stderr:\n${forgeStderr.join('')}`);
               return reject(new Error(`forge build failed with exit code "${code}"`));
             }
 
