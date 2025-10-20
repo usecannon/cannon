@@ -39,6 +39,7 @@ Cannon is a DevOps tool for EVM chains designed for testing, deploying, and publ
 - `cannon build --keep-alive` - Build and keep node running for interaction
 - `cannon run <package:version>` - Run a built package locally
 - `cannon test` - Build cannonfile and run forge tests with deployment context
+- `cannon fetch <ipfs-hash> [package:version]` - Fetch package data from IPFS (auto-detects package name)
 - `cannon publish <package:version> --chain-id <id>` - Publish package to registry
 - `cannon verify <package:version>` - Verify contracts on Etherscan
 - `cannon inspect <package:version>` - Inspect package deployment data
@@ -158,6 +159,7 @@ examples/          # Sample projects and usage demos
 4. **Test**: `cannon test` runs forge tests with deployment context using cannon-std
 5. **Deploy**: `cannon build --rpc-url <url> --private-key <key>` for live networks
 6. **Publish**: `cannon publish <name:version> --chain-id <id>` to share with others
+7. **Fetch**: `cannon fetch <ipfs-hash>` to download and use published packages
 
 ### Cannonfile Structure
 ```toml
@@ -184,6 +186,26 @@ args = []
 - Access transaction data with `contracts.<name>.deployTxnHash`
 - Chain actions using template interpolation for dependencies
 - Add `privateSourceCode = true` to exclude source from published packages
+
+### Fetching Packages
+The `cannon fetch` command downloads package data from IPFS and stores it locally:
+
+```bash
+# Auto-detect package name from IPFS data (recommended)
+cannon fetch ipfs://QmTK6qhaBAxwRTmFVejHyKyVeAzibxeWdJ1j3LXVj98eej --chain-id 1
+
+# Or specify package name explicitly for validation
+cannon fetch ipfs://QmTK6qhaBAxwRTmFVejHyKyVeAzibxeWdJ1j3LXVj98eej synthetix-omnibus:3.10.1 --chain-id 1
+
+# Use the fetched package
+cannon run synthetix-omnibus:3.10.1 --chain-id 1
+```
+
+**When to use `cannon fetch`:**
+- Download published packages from IPFS to use locally
+- Share package deployments across teams using IPFS hashes
+- Access packages that aren't published to the on-chain registry
+- Work with packages in development or testing environments
 
 ## Development Notes
 

@@ -370,14 +370,20 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
 });
 
 applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async function (
-  packageRef,
   givenIpfsUrl,
+  packageRef,
   options
 ) {
   try {
     const { fetch } = await import('./commands/fetch');
 
-    const { fullPackageRef, chainId } = await getPackageReference(packageRef, options.chainId);
+    let fullPackageRef = null;
+    let chainId = null;
+    if (packageRef) {
+      const refInfo = await getPackageReference(packageRef, options.chainId);
+      fullPackageRef = refInfo.fullPackageRef;
+      chainId = refInfo.chainId;
+    }
     const ipfsUrl = getIpfsUrl(givenIpfsUrl);
     const metaIpfsUrl = getIpfsUrl(options.metaHash) || undefined;
 

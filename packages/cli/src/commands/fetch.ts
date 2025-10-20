@@ -14,9 +14,11 @@ import fs from 'node:fs';
 import path from 'path';
 import util from 'util';
 
-import { logSpinner } from '../util/console';
+import { log, logSpinner, warnSpinner } from '../util/console';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
+
+import { yellow, bold } from 'chalk';
 
 const debug = Debug('cannon:cli:fetch');
 
@@ -38,7 +40,7 @@ async function storeDeployReference(filePath: string, content: string) {
   }
 }
 
-export async function fetch(fullPackageRef: string, chainId: number, _ipfsUrl: string, _metaIpfsUrl?: string) {
+export async function fetch(fullPackageRef: string | null, chainId: number | null, _ipfsUrl: string, _metaIpfsUrl?: string) {
   const ipfsUrl = getIpfsUrl(_ipfsUrl);
   const metaIpfsUrl = getIpfsUrl(_metaIpfsUrl);
 
@@ -49,8 +51,6 @@ export async function fetch(fullPackageRef: string, chainId: number, _ipfsUrl: s
   debug('resolving user settings');
 
   const cliSettings = resolveCliSettings();
-
-  const { name, version, preset } = new PackageReference(fullPackageRef);
 
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
 
@@ -66,34 +66,83 @@ export async function fetch(fullPackageRef: string, chainId: number, _ipfsUrl: s
   // Fetching deployment info
   const deployInfo: DeploymentInfo = await storage.readBlob(ipfsUrl);
 
-  const def = new ChainDefinition(deployInfo.def);
-
-  const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId || chainId, deployInfo.options);
-
-  const pkgName = `${name}:${def.getVersion(preCtx) || version}@${preset}`;
-
   if (!deployInfo || Object.keys(deployInfo).length === 0) {
-    throw new Error(`could not find package data on IPFS using the hash: ${ipfsUrl}`);
+    throw new Error(
+      `Could not find package data on IPFS using the hash: ${ipfsUrl}\n` +
+        'Please verify that:\n' +
+        '  - The IPFS hash is correct\n' +
+        '  - The IPFS gateway is accessible\n' +
+        '  - The hash contains valid Cannon package data'
+    );
   }
 
-  if (name !== deployInfo.def.name) {
-    throw new Error(`deployment data at ${ipfsUrl} does not match the specified package "${pkgName}"`);
+  const def = new ChainDefinition(deployInfo.def);
+  const preCtx = await createInitialContext(
+    def,
+    deployInfo.meta,
+    deployInfo.chainId || chainId || 13370,
+    deployInfo.options
+  );
+
+  let packageRef = '';
+  if (fullPackageRef) {
+    // Package reference was provided, validate it matches the IPFS data
+    const ref = new PackageReference(fullPackageRef);
+
+    if (ref.name !== deployInfo.def.name) {
+      warnSpinner(
+        yellow(
+          'The IPFS package you downloaded is being saved to a different name than is recorded in the package data. Please double check to make sure this is correct.'
+        )
+      );
+      warnSpinner(yellow(bold(`Package Name (IPFS Data): ${deployInfo.def.name}`)));
+      warnSpinner(yellow(bold(`Provided Name:            ${ref.name}`)));
+    }
+    if (ref.version !== deployInfo.def.version) {
+      warnSpinner(
+        yellow(
+          'The IPFS package you downloaded is being saved to a different version than is recorded in the package data. Please double check to make sure that this is correct.'
+        )
+      );
+      warnSpinner(yellow(bold(`Package Version (IPFS Data): ${deployInfo.def.version}`)));
+      warnSpinner(yellow(bold(`Provided Version:            ${ref.version}`)));
+    }
+    if (deployInfo.chainId !== null && chainId !== deployInfo.chainId) {
+      warnSpinner(
+        yellow(
+          'The IPFS package you downloaded is being saved to a different chain ID than is recorded in the package data. Please double check to make sure that this is correct.'
+        )
+      );
+      warnSpinner(yellow(bold(`Chain ID (IPFS Data):    ${deployInfo.chainId}`)));
+      warnSpinner(yellow(bold(`Chain ID (User Input):   ${chainId}`)));
+    }
+
+    packageRef = fullPackageRef;
+  } else {
+    // Auto-detect package information from IPFS data
+    packageRef = new PackageReference(
+      `${deployInfo.def.name}:${def.getVersion(preCtx) || 'latest'}@${def.getPreset(preCtx)}`
+    ).fullPackageRef;
+
+    log(`\nDetected package: ${packageRef}`);
   }
 
   debug('storing deploy info');
 
-  const deployPath = localRegistry.getTagReferenceStorage(pkgName, deployInfo.chainId || chainId);
+  const resolvedChainId = chainId || deployInfo.chainId || 13370;
+
+  const deployPath = localRegistry.getTagReferenceStorage(packageRef, resolvedChainId);
 
   await storeDeployReference(deployPath, ipfsUrl);
 
   if (metaIpfsUrl) {
     debug('reading metadata from ipfs');
-    const deployMetadataPath = localRegistry.getMetaTagReferenceStorage(pkgName, chainId);
+    const deployMetadataPath = localRegistry.getMetaTagReferenceStorage(packageRef, resolvedChainId);
     await storeDeployReference(deployMetadataPath, metaIpfsUrl);
   }
 
-  logSpinner(`\n\nSuccessfully fetched and saved deployment data for the following package: ${pkgName}`);
+  logSpinner(`\n\nSuccessfully fetched and saved deployment data for the following package: ${packageRef}`);
   logSpinner(
-    `run 'cannon publish ${pkgName} --chain-id <CHAIN_ID> --private-key <PRIVATE_KEY>' to publish the package to the registry`
+    `run 'cannon publish ${packageRef} --chain-id <CHAIN_ID> --private-key <PRIVATE_KEY>' to publish the package to the registry`
   );
 }
