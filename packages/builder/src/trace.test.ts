@@ -184,7 +184,7 @@ describe('trace.ts', () => {
       );
 
       expect(traceEntryString).toContain(
-        `      CALL FunTest.testFunc("woot", "1234") => ("${viem.zeroHash}") (123,402 gas)`
+        `      CALL FunTest.testFunc("woot", "1234"){value:0.000000000000001234} => ("${viem.zeroHash}") (123,402 gas)`
       );
     });
   });

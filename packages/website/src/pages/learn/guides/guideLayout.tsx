@@ -37,6 +37,14 @@ const getStartedGuides = [
     href: `${links.GETSTARTED}/deploy-onchain`,
   },
   {
+    text: 'Queue with GitOps',
+    href: links.QUEUE_WITH_GITOPS,
+  },
+  {
+    text: 'Create a Deployments Repository',
+    href: links.DEPLOYMENTS_REPO,
+  },
+  {
     text: 'Publish Your Package',
     href: `${links.GETSTARTED}/publish`,
   },

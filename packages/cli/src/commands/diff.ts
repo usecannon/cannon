@@ -10,7 +10,7 @@ import { createDefaultReadRegistry } from '../registry';
 
 import { getMainLoader } from '../loader';
 
-import { log, error } from '../util/console';
+import { logSpinner, errorSpinner } from '../util/console';
 
 const debug = Debug('cannon:cli:diff');
 
@@ -97,12 +97,12 @@ async function diffPackage(
       miscData.artifacts[`${contractInfo.sourceName}:${contractInfo.contractName}`];
 
     if (!contractArtifact) {
-      log(`${c}: cannot verify: no contract artifact found`);
+      logSpinner(`${c}: cannot verify: no contract artifact found`);
       continue;
     }
 
     if (!contractArtifact.source?.input) {
-      log(`${c}: cannot verify: no source code recorded in deploy data`);
+      logSpinner(`${c}: cannot verify: no source code recorded in deploy data`);
       continue;
     }
 
@@ -116,7 +116,7 @@ async function diffPackage(
       try {
         localArtifact = await getFoundryArtifact(`${contractInfo.contractName}`, contractsDirectory);
       } catch (err) {
-        error('❌ ${c}: foundry does not recognize contract artifact for', c);
+        errorSpinner('❌ ${c}: foundry does not recognize contract artifact for', c);
         foundDiffs++;
         continue;
       }
@@ -134,19 +134,19 @@ async function diffPackage(
         }
 
         if (!localSources[source]) {
-          log(`❌ ${c}: local artifact does not have ${source}`);
+          logSpinner(`❌ ${c}: local artifact does not have ${source}`);
           continue;
         }
         if (localSources[source].content !== sources[source].content) {
           foundDiffs++;
-          log(`❌ ${c}: ${source} differs`);
-          log(Diff.createPatch(source, localSources[source].content, sources[source].content));
+          logSpinner(`❌ ${c}: ${source} differs`);
+          logSpinner(Diff.createPatch(source, localSources[source].content, sources[source].content));
         } else {
-          log(`✅ ${c}: ${source} matches`);
+          logSpinner(`✅ ${c}: ${source} matches`);
         }
       }
     } catch (err) {
-      error('could not parse', c, err);
+      errorSpinner('could not parse', c, err);
     }
   }
 

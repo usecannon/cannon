@@ -38,7 +38,7 @@ import { PackageSpecification } from './types';
 
 import { doBuild } from './util/build';
 import { setDebugLevel } from './util/debug-level';
-import { error, log, warn } from './util/console';
+import { log, error, logSpinner, warnSpinner, errorSpinner, logSpinnerEnd, spinner } from './util/console';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { applyCommandsConfig } from './util/commands-config';
 import {
@@ -103,168 +103,205 @@ function configureRun(program: Command) {
     options,
     program
   ) {
-    log(bold('Starting local node...\n'));
+    try {
+      logSpinner(bold('Starting local node...\n'));
 
-    const { run } = await import('./commands/run');
+      const { run } = await import('./commands/run');
 
-    // backwards compatibility for --port flag
-    if (options.port !== ANVIL_PORT_DEFAULT_VALUE) {
-      deprecatedWarn('--port', '--anvil.port');
-      options['anvil.port'] = options.port;
-    } else {
-      options.port = options['anvil.port'];
-    }
+      // backwards compatibility for --port flag
+      if (options.port !== ANVIL_PORT_DEFAULT_VALUE) {
+        deprecatedWarn('--port', '--anvil.port');
+        options['anvil.port'] = options.port;
+      } else {
+        options.port = options['anvil.port'];
+      }
 
-    const cliSettings = resolveCliSettings(options);
+      const cliSettings = resolveCliSettings(options);
 
-    let node: CannonRpcNode;
-    if (options.chainId) {
-      const { provider } = await resolveProvider({
-        action: ProviderAction.ReadProvider,
-        cliSettings,
-        chainId: Number.parseInt(options.chainId),
-      });
-
-      // throw an error if the chainId is not consistent with the provider's chainId
-      await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
-
-      node = await runRpc(pickAnvilOptions(options), {
-        forkProvider: provider,
-      });
-    } else {
-      if (isURL(cliSettings.rpcUrl)) {
-        options.chainId = await getChainIdFromRpcUrl(cliSettings.rpcUrl);
-
+      let node: CannonRpcNode;
+      if (options.chainId) {
         const { provider } = await resolveProvider({
           action: ProviderAction.ReadProvider,
           cliSettings,
           chainId: Number.parseInt(options.chainId),
         });
 
+        // throw an error if the chainId is not consistent with the provider's chainId
+        await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
+
         node = await runRpc(pickAnvilOptions(options), {
           forkProvider: provider,
         });
       } else {
-        node = await runRpc(pickAnvilOptions(options));
+        if (isURL(cliSettings.rpcUrl)) {
+          options.chainId = await getChainIdFromRpcUrl(cliSettings.rpcUrl);
+
+          const { provider } = await resolveProvider({
+            action: ProviderAction.ReadProvider,
+            cliSettings,
+            chainId: Number.parseInt(options.chainId),
+          });
+
+          node = await runRpc(pickAnvilOptions(options), {
+            forkProvider: provider,
+          });
+        } else {
+          node = await runRpc(pickAnvilOptions(options));
+        }
       }
+
+      // Override options with CLI settings
+      const pickedCliSettings = _.pick(cliSettings, Object.keys(options));
+      const mergedOptions = _.assign({}, options, pickedCliSettings);
+
+      await run(packages, {
+        ...mergedOptions,
+        node,
+        helpInformation: program.helpInformation(),
+      });
+
+      logSpinnerEnd();
+    } catch (err) {
+      logSpinnerEnd();
+      throw err;
     }
-
-    // Override options with CLI settings
-    const pickedCliSettings = _.pick(cliSettings, Object.keys(options));
-    const mergedOptions = _.assign({}, options, pickedCliSettings);
-
-    await run(packages, {
-      ...mergedOptions,
-      node,
-      helpInformation: program.helpInformation(),
-    });
   });
 }
 
 applyCommandsConfig(program.command('build'), commandsConfig.build)
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, options) => {
-    // ensure foundry compatibility
-    await ensureFoundryCompatibility();
+    try {
+      spinner?.update({ text: 'Building...' });
+      // ensure foundry compatibility
+      await ensureFoundryCompatibility();
 
-    // backwards compatibility for --port flag
-    if (options.port !== ANVIL_PORT_DEFAULT_VALUE) {
-      deprecatedWarn('--port', '--anvil.port');
-      options['anvil.port'] = options.port;
-    } else {
-      options.port = options['anvil.port'];
-    }
+      // backwards compatibility for --port flag
+      if (options.port !== ANVIL_PORT_DEFAULT_VALUE) {
+        deprecatedWarn('--port', '--anvil.port');
+        options['anvil.port'] = options.port;
+      } else {
+        options.port = options['anvil.port'];
+      }
 
-    const cannonfilePath = path.resolve(cannonfile);
-    const projectDirectory = path.dirname(cannonfilePath);
+      const cannonfilePath = path.resolve(cannonfile);
+      const projectDirectory = path.dirname(cannonfilePath);
 
-    const cliSettings = resolveCliSettings(options);
+      const cliSettings = resolveCliSettings(options);
 
-    // throw an error if chain id and rpc url is undefined and dry run is true
-    if (options.chainId === undefined && cliSettings.rpcUrl === DEFAULT_RPC_URL && options.dryRun) {
-      throw new Error('Cannot build on Cannon Network with --dry-run flag.');
-    }
+      // throw an error if chain id and rpc url is undefined and dry run is true
+      if (options.chainId === undefined && cliSettings.rpcUrl === DEFAULT_RPC_URL && options.dryRun) {
+        throw new Error('Cannot build on Cannon Network with --dry-run flag.');
+      }
 
-    // throw an error if `--dry-run`, and `--impersonate` or `--impersonate-all` is not declared
-    if (options.dryRun && !options.impersonate && !options.impersonateAll) {
-      throw new Error('Must specify one of `--impersonate` or `--impersonate-all`');
-    }
+      // throw an error if `--dry-run`, and `--impersonate` or `--impersonate-all` is not declared
+      if (options.dryRun && !options.impersonate && !options.impersonateAll) {
+        throw new Error('Must specify one of `--impersonate` or `--impersonate-all`');
+      }
 
-    // throw an error if the chainId is not consistent with the provider's chainId
-    await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
+      // throw an error if the chainId is not consistent with the provider's chainId
+      await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
 
-    log(bold('Building the foundry project...'));
-    if (!options.skipCompile) {
-      // use --build-info to output build info
-      // ref: https://github.com/foundry-rs/foundry/pull/7197
-      const forgeBuildArgs = [
-        'build',
-        '--build-info',
-        ...fromFoundryOptionsToArgs(pickForgeBuildOptions(options), forgeBuildOptions),
-      ];
+      logSpinner(bold('Building the foundry project...'));
+      if (!options.skipCompile) {
+        // use --build-info to output build info
+        // ref: https://github.com/foundry-rs/foundry/pull/7197
+        const forgeBuildArgs = [
+          'build',
+          '--build-info',
+          ...fromFoundryOptionsToArgs(pickForgeBuildOptions(options), forgeBuildOptions),
+        ];
 
-      const forgeBuildProcess = spawn('forge', forgeBuildArgs, { cwd: projectDirectory, shell: true });
+        const forgeBuildProcess = spawn('forge', forgeBuildArgs, { cwd: projectDirectory, shell: true });
+        const forgeStdout: string[] = [];
+        const forgeStderr: string[] = [];
 
-      await new Promise((resolve, reject) => {
-        forgeBuildProcess.on('exit', (code) => {
-          if (code === 0) {
-            log(gray('forge build succeeded'));
-          } else {
-            log(red('forge build failed'));
-            log(red('Make sure "forge build" runs successfully or use the --skip-compile flag.'));
-            return reject(new Error(`forge build failed with exit code "${code}"`));
-          }
+        await new Promise((resolve, reject) => {
+          forgeBuildProcess.stdout.on('data', (d) => {
+            forgeStdout.push(d.toString('utf8'));
+          });
+          forgeBuildProcess.stderr.on('data', (d) => {
+            forgeStderr.push(d.toString('utf8'));
+          });
+          forgeBuildProcess.stdout.on('error', (err) => {
+            warnSpinner('forge child process stdout error:', err);
+          });
+          forgeBuildProcess.stderr.on('error', (err) => {
+            warnSpinner('forge child process stderr error:', err);
+          });
+          forgeBuildProcess.on('exit', (code) => {
+            if (code === 0) {
+              logSpinner(gray('forge build succeeded'));
+            } else {
+              logSpinner(red('forge build failed'));
+              logSpinner(red('Make sure "forge build" runs successfully or use the --skip-compile flag.'));
+              log(`forge stdout:\n${forgeStdout.join('')}`);
+              error(`forge stderr:\n${forgeStderr.join('')}`);
+              return reject(new Error(`forge build failed with exit code "${code}"`));
+            }
 
-          resolve(null);
+            resolve(null);
+          });
         });
-      });
-    } else {
-      log(yellow('Skipping forge build...'));
+      } else {
+        logSpinner(yellow('Skipping forge build...'));
+      }
+
+      logSpinner(''); // Linebreak in CLI to signify end of compilation.
+
+      // Override options with CLI settings
+      const pickedCliSettings = _.pick(cliSettings, Object.keys(options));
+      const mergedOptions = _.assign({}, options, pickedCliSettings);
+
+      const [node, pkgSpec, outputs, runtime, deployInfo] = await doBuild(cannonfile, settings, mergedOptions);
+
+      if (deployInfo.status !== 'complete') {
+        process.exitCode = deployInfo.status === 'partial' ? 90 : 91;
+      }
+
+      if (options.writeDeployments) {
+        await writeModuleDeployments(path.join(process.cwd(), options.writeDeployments), '', outputs);
+        logSpinner('');
+      }
+
+      if (options.keepAlive && node) {
+        logSpinner(`The local node will continue running at ${node!.host}`);
+
+        const { run } = await import('./commands/run');
+
+        await run([{ ...pkgSpec, settings: {} }], {
+          ...mergedOptions,
+          resolver: runtime.registry,
+          node,
+          helpInformation: program.helpInformation(),
+        });
+      }
+
+      node?.kill();
+      logSpinnerEnd();
+    } catch (err) {
+      logSpinnerEnd();
+      throw err;
     }
-
-    log(''); // Linebreak in CLI to signify end of compilation.
-
-    // Override options with CLI settings
-    const pickedCliSettings = _.pick(cliSettings, Object.keys(options));
-    const mergedOptions = _.assign({}, options, pickedCliSettings);
-
-    const [node, pkgSpec, outputs, runtime, deployInfo] = await doBuild(cannonfile, settings, mergedOptions);
-
-    if (deployInfo.status !== 'complete') {
-      process.exitCode = deployInfo.status === 'partial' ? 90 : 91;
-    }
-
-    if (options.writeDeployments) {
-      await writeModuleDeployments(path.join(process.cwd(), options.writeDeployments), '', outputs);
-      log('');
-    }
-
-    if (options.keepAlive && node) {
-      log(`The local node will continue running at ${node!.host}`);
-
-      const { run } = await import('./commands/run');
-
-      await run([{ ...pkgSpec, settings: {} }], {
-        ...mergedOptions,
-        resolver: runtime.registry,
-        node,
-        helpInformation: program.helpInformation(),
-      });
-    }
-
-    node?.kill();
   });
 
 applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(async function (packageRef, options) {
-  const { verify } = await import('./commands/verify');
+  try {
+    spinner?.update({ text: 'Verifying...' });
+    const { verify } = await import('./commands/verify');
 
-  // Override CLI settings with --api-key value
-  options.etherscanApiKey = options.apiKey;
+    // Override CLI settings with --api-key value
+    options.etherscanApiKey = options.apiKey;
 
-  const cliSettings = resolveCliSettings(options);
-  const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
+    const cliSettings = resolveCliSettings(options);
+    const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
-  await verify(fullPackageRef, cliSettings, chainId);
+    await verify(fullPackageRef, cliSettings, chainId);
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
 });
 
 applyCommandsConfig(program.command('diff'), commandsConfig.diff).action(async function (
@@ -272,22 +309,29 @@ applyCommandsConfig(program.command('diff'), commandsConfig.diff).action(async f
   projectDirectory,
   options
 ) {
-  const { diff } = await import('./commands/diff');
+  try {
+    spinner?.update({ text: 'Diffing...' });
+    const { diff } = await import('./commands/diff');
 
-  const cliSettings = resolveCliSettings(options);
-  const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
+    const cliSettings = resolveCliSettings(options);
+    const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
-  const foundDiffs = await diff(
-    fullPackageRef,
-    cliSettings,
-    chainId,
-    projectDirectory,
-    options.matchContract,
-    options.matchSource
-  );
+    const foundDiffs = await diff(
+      fullPackageRef,
+      cliSettings,
+      chainId,
+      projectDirectory,
+      options.matchContract,
+      options.matchSource
+    );
 
-  // exit code is the number of differences found--useful for CI checks
-  process.exit(foundDiffs);
+    logSpinnerEnd();
+    // exit code is the number of differences found--useful for CI checks
+    process.exit(foundDiffs);
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
 });
 
 applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async function (
@@ -296,26 +340,33 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
   options,
   flags
 ) {
-  const { alter } = await import('./commands/alter');
+  try {
+    spinner?.update({ text: 'Altering...' });
+    const { alter } = await import('./commands/alter');
 
-  const cliSettings = resolveCliSettings(flags);
+    const cliSettings = resolveCliSettings(flags);
 
-  // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(cliSettings.rpcUrl, flags.chainId);
+    // throw an error if the chainId is not consistent with the provider's chainId
+    await ensureChainIdConsistency(cliSettings.rpcUrl, flags.chainId);
 
-  // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
-  const newUrl = await alter(
-    packageName,
-    flags.subpkg ? flags.subpkg.split(',') : [],
-    parseInt(flags.chainId),
-    cliSettings,
-    {},
-    command,
-    options,
-    {}
-  );
+    // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
+    const newUrl = await alter(
+      packageName,
+      flags.subpkg ? flags.subpkg.split(',') : [],
+      parseInt(flags.chainId),
+      cliSettings,
+      {},
+      command,
+      options,
+      {}
+    );
 
-  log(newUrl);
+    logSpinner(newUrl);
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
 });
 
 applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async function (
@@ -323,480 +374,597 @@ applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async
   packageRef,
   options
 ) {
-  const { fetch } = await import('./commands/fetch');
+  try {
+    const { fetch } = await import('./commands/fetch');
 
-  let fullPackageRef = null;
-  let chainId = null;
-  if (packageRef) {
-    const refInfo = await getPackageReference(packageRef, options.chainId);
-    fullPackageRef = refInfo.fullPackageRef;
-    chainId = refInfo.chainId;
+    let fullPackageRef = null;
+    let chainId = null;
+    if (packageRef) {
+      const refInfo = await getPackageReference(packageRef, options.chainId);
+      fullPackageRef = refInfo.fullPackageRef;
+      chainId = refInfo.chainId;
+    }
+    const ipfsUrl = getIpfsUrl(givenIpfsUrl);
+    const metaIpfsUrl = getIpfsUrl(options.metaHash) || undefined;
+
+    if (!ipfsUrl) {
+      throw new Error('IPFS URL is required.');
+    }
+
+    await fetch(fullPackageRef, chainId, ipfsUrl, metaIpfsUrl);
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
   }
-  const ipfsUrl = getIpfsUrl(givenIpfsUrl);
-  const metaIpfsUrl = getIpfsUrl(options.metaHash) || undefined;
-
-  if (!ipfsUrl) {
-    throw new Error('IPFS URL is required.');
-  }
-
-  await fetch(fullPackageRef, chainId, ipfsUrl, metaIpfsUrl);
 });
 
 applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async function (packageRef, options) {
-  const cliSettings = resolveCliSettings(options);
+  try {
+    const cliSettings = resolveCliSettings(options);
 
-  const ipfsUrl = getIpfsUrl(packageRef);
+    const ipfsUrl = getIpfsUrl(packageRef);
 
-  if (!ipfsUrl) {
-    throw new Error('IPFS URL is required.');
+    if (!ipfsUrl) {
+      throw new Error('IPFS URL is required.');
+    }
+
+    const fromStorage = new CannonStorage(await createDefaultReadRegistry(cliSettings), getMainLoader(cliSettings));
+
+    const toStorage = new CannonStorage(new InMemoryRegistry(), {
+      ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || getCannonRepoRegistryUrl()),
+    });
+
+    logSpinner('Uploading package data for pinning...');
+
+    await pin(ipfsUrl, fromStorage, toStorage);
+
+    logSpinner('Done!');
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
   }
-
-  const fromStorage = new CannonStorage(await createDefaultReadRegistry(cliSettings), getMainLoader(cliSettings));
-
-  const toStorage = new CannonStorage(new InMemoryRegistry(), {
-    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || getCannonRepoRegistryUrl()),
-  });
-
-  log('Uploading package data for pinning...');
-
-  await pin(ipfsUrl, fromStorage, toStorage);
-
-  log('Done!');
 });
 
 applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (
   packageRef,
   options: { [opt: string]: string }
 ) {
-  const { publish } = await import('./commands/publish');
+  try {
+    spinner?.update({ text: 'Publishing...' });
+    const { publish } = await import('./commands/publish');
 
-  const cliSettings = resolveCliSettings(options);
+    const cliSettings = resolveCliSettings(options);
 
-  const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
+    const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
-  const isDefaultRegistryChains =
-    cliSettings.registries[0].chainId === DEFAULT_REGISTRY_CONFIG[0].chainId &&
-    cliSettings.registries[1].chainId === DEFAULT_REGISTRY_CONFIG[1].chainId;
-  if (!isDefaultRegistryChains) throw new Error('Only default registries are supported for now');
+    const isDefaultRegistryChains =
+      cliSettings.registries[0].chainId === DEFAULT_REGISTRY_CONFIG[0].chainId &&
+      cliSettings.registries[1].chainId === DEFAULT_REGISTRY_CONFIG[1].chainId;
+    if (!isDefaultRegistryChains) throw new Error('Only default registries are supported for now');
 
-  // mock provider urls when the execution comes from e2e tests
-  if (cliSettings.isE2E) {
-    // anvil optimism fork
-    cliSettings.registries[0].rpcUrl = ['http://127.0.0.1:9546'];
-    // anvil mainnet fork
-    cliSettings.registries[1].rpcUrl = ['http://127.0.0.1:9545'];
-  }
-
-  // initialized optimism as the default registry
-  let [writeRegistry] = cliSettings.registries;
-
-  if (!cliSettings.isE2E) {
-    const choices = cliSettings.registries.map((p) => ({
-      title: `${p.name ?? 'Unknown Network'} (Chain ID: ${p.chainId})`,
-      value: p,
-    }));
-
-    // override writeRegistry with the picked provider
-    writeRegistry = (
-      await prompts([
-        {
-          type: 'select',
-          name: 'writeRegistry',
-          message: 'Which registry would you like to use? (Cannon will find the package on either):',
-          choices,
-        },
-      ])
-    ).writeRegistry;
-
-    log();
-  }
-
-  log(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
-
-  const readRegistry = _.differenceWith(cliSettings.registries, [writeRegistry], _.isEqual)[0];
-  const registryProviders = await Promise.all([
-    // write to picked provider
-    resolveProviderAndSigners({
-      chainId: writeRegistry.chainId!,
-      privateKey: cliSettings.privateKey!,
-      checkProviders: writeRegistry.rpcUrl,
-      action: ProviderAction.WriteProvider,
-    }),
-    // read from the other one
-    resolveProviderAndSigners({
-      chainId: readRegistry.chainId!,
-      checkProviders: readRegistry.rpcUrl,
-      action: ProviderAction.ReadProvider,
-    }),
-  ]);
-
-  const [writeRegistryProvider] = registryProviders;
-
-  // Check if the package is already registered
-  const isRegistered = await isPackageRegistered(registryProviders, fullPackageRef, [
-    writeRegistry.address,
-    readRegistry.address,
-  ]);
-
-  if (!isRegistered) {
-    const pkgRef = new PackageReference(fullPackageRef);
-    log();
-    log(
-      gray(
-        `Package "${pkgRef.name}" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
-      )
-    );
-    log();
-
-    if (!options.skipConfirm) {
-      const registerPrompt = await prompts({
-        type: 'confirm',
-        name: 'value',
-        message: 'Would you like to register the package now?',
-        initial: true,
-      });
-
-      if (!registerPrompt.value) {
-        return process.exit(0);
-      }
+    // mock provider urls when the execution comes from e2e tests
+    if (cliSettings.isE2E) {
+      // anvil optimism fork
+      cliSettings.registries[0].rpcUrl = ['http://127.0.0.1:9546'];
+      // anvil mainnet fork
+      cliSettings.registries[1].rpcUrl = ['http://127.0.0.1:9545'];
     }
 
-    log();
-    const { register } = await import('./commands/register');
-    await register({ cliSettings, options, packageRefs: [pkgRef], fromPublish: true });
+    // initialized optimism as the default registry
+    let [writeRegistry] = cliSettings.registries;
+
+    if (!cliSettings.isE2E) {
+      const choices = cliSettings.registries.map((p) => ({
+        title: `${p.name ?? 'Unknown Network'} (Chain ID: ${p.chainId})`,
+        value: p,
+      }));
+
+      // override writeRegistry with the picked provider
+      writeRegistry = (
+        await prompts([
+          {
+            type: 'select',
+            name: 'writeRegistry',
+            message: 'Which registry would you like to use? (Cannon will find the package on either):',
+            choices,
+          },
+        ])
+      ).writeRegistry;
+
+      logSpinner();
+    }
+
+    logSpinner(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
+
+    const readRegistry = _.differenceWith(cliSettings.registries, [writeRegistry], _.isEqual)[0];
+    const registryProviders = await Promise.all([
+      // write to picked provider
+      resolveProviderAndSigners({
+        chainId: writeRegistry.chainId!,
+        privateKey: cliSettings.privateKey!,
+        checkProviders: writeRegistry.rpcUrl,
+        action: ProviderAction.WriteProvider,
+      }),
+      // read from the other one
+      resolveProviderAndSigners({
+        chainId: readRegistry.chainId!,
+        checkProviders: readRegistry.rpcUrl,
+        action: ProviderAction.ReadProvider,
+      }),
+    ]);
+
+    const [writeRegistryProvider] = registryProviders;
+
+    // Check if the package is already registered
+    const isRegistered = await isPackageRegistered(registryProviders, fullPackageRef, [
+      writeRegistry.address,
+      readRegistry.address,
+    ]);
+
+    if (!isRegistered) {
+      const pkgRef = new PackageReference(fullPackageRef);
+      logSpinner();
+      logSpinner(
+        gray(
+          `Package "${pkgRef.name}" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
+        )
+      );
+      logSpinner();
+
+      if (!options.skipConfirm) {
+        const registerPrompt = await prompts({
+          type: 'confirm',
+          name: 'value',
+          message: 'Would you like to register the package now?',
+          initial: true,
+        });
+
+        if (!registerPrompt.value) {
+          return process.exit(0);
+        }
+      }
+
+      logSpinner();
+      const { register } = await import('./commands/register');
+      await register({ cliSettings, options, packageRefs: [pkgRef], fromPublish: true });
+    }
+
+    const overrides: any = {};
+
+    if (options.maxFeePerGas) {
+      overrides.maxFeePerGas = viem.parseGwei(options.maxFeePerGas);
+    }
+
+    if (options.gasLimit) {
+      overrides.gasLimit = options.gasLimit;
+    }
+
+    if (options.value) {
+      overrides.value = options.value;
+    }
+
+    const registryAddress =
+      cliSettings.registries.find((registry) => registry.chainId === writeRegistryProvider.provider.chain?.id)?.address ||
+      DEFAULT_REGISTRY_CONFIG[0].address;
+
+    const onChainRegistry = new OnChainRegistry({
+      signer: writeRegistryProvider.signers[0],
+      provider: writeRegistryProvider.provider,
+      address: registryAddress,
+      overrides,
+    });
+
+    logSpinner(
+      `\nSettings:\n - Max Fee Per Gas: ${
+        overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
+      }\n - Max Priority Fee Per Gas: ${
+        overrides.maxPriorityFeePerGas ? overrides.maxPriorityFeePerGas.toString() : 'default'
+      }\n - Gas Limit: ${overrides.gasLimit ? overrides.gasLimit : 'default'}\n` +
+        " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
+    );
+
+    await publish({
+      fullPackageRef,
+      cliSettings,
+      onChainRegistry,
+      chainId,
+      tags: options.tags ? options.tags.split(',') : undefined,
+      quiet: !!options.quiet,
+      includeProvisioned: !options.excludeCloned,
+      skipConfirm: !!options.skipConfirm,
+    });
+
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
   }
-
-  const overrides: any = {};
-
-  if (options.maxFeePerGas) {
-    overrides.maxFeePerGas = viem.parseGwei(options.maxFeePerGas);
-  }
-
-  if (options.gasLimit) {
-    overrides.gasLimit = options.gasLimit;
-  }
-
-  if (options.value) {
-    overrides.value = options.value;
-  }
-
-  const registryAddress =
-    cliSettings.registries.find((registry) => registry.chainId === writeRegistryProvider.provider.chain?.id)?.address ||
-    DEFAULT_REGISTRY_CONFIG[0].address;
-
-  const onChainRegistry = new OnChainRegistry({
-    signer: writeRegistryProvider.signers[0],
-    provider: writeRegistryProvider.provider,
-    address: registryAddress,
-    overrides,
-  });
-
-  log(
-    `\nSettings:\n - Max Fee Per Gas: ${
-      overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
-    }\n - Max Priority Fee Per Gas: ${
-      overrides.maxPriorityFeePerGas ? overrides.maxPriorityFeePerGas.toString() : 'default'
-    }\n - Gas Limit: ${overrides.gasLimit ? overrides.gasLimit : 'default'}\n` +
-      " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
-  );
-
-  await publish({
-    fullPackageRef,
-    cliSettings,
-    onChainRegistry,
-    chainId,
-    tags: options.tags ? options.tags.split(',') : undefined,
-    quiet: !!options.quiet,
-    includeProvisioned: !options.excludeCloned,
-    skipConfirm: !!options.skipConfirm,
-  });
 });
 
 applyCommandsConfig(program.command('unpublish'), commandsConfig.unpublish).action(async function (packageRef, options) {
-  const { unpublish } = await import('./commands/unpublish');
+  try {
+    spinner?.update({ text: 'Unpublishing...' });
+    const { unpublish } = await import('./commands/unpublish');
 
-  const cliSettings = resolveCliSettings(options);
-  const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
+    const cliSettings = resolveCliSettings(options);
+    const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
-  await unpublish({ cliSettings, options, fullPackageRef, chainId });
+    await unpublish({ cliSettings, options, fullPackageRef, chainId });
+
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
 });
 
 applyCommandsConfig(program.command('register'), commandsConfig.register).action(async function (packageRef, options) {
-  const { register } = await import('./commands/register');
+  try {
+    spinner?.update({ text: 'Registering...' });
+    const { register } = await import('./commands/register');
 
-  const cliSettings = resolveCliSettings(options);
+    const cliSettings = resolveCliSettings(options);
 
-  await register({ cliSettings, options, packageRefs: packageRef, fromPublish: false });
+    await register({ cliSettings, options, packageRefs: packageRef, fromPublish: false });
+
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
 });
 
 applyCommandsConfig(program.command('publishers'), commandsConfig.publishers).action(async function (packageRef, options) {
-  const { publishers } = await import('./commands/publishers');
+  try {
+    const { publishers } = await import('./commands/publishers');
 
-  const cliSettings = resolveCliSettings(options);
+    const cliSettings = resolveCliSettings(options);
 
-  await publishers({ cliSettings, options, packageRef });
+    await publishers({ cliSettings, options, packageRef });
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
 });
 
 applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(async function (packageRef, options) {
-  const { inspect } = await import('./commands/inspect');
+  try {
+    spinner?.update({ text: 'Inspecting...' });
+    const { inspect } = await import('./commands/inspect');
 
-  const cliSettings = resolveCliSettings(options);
-  const { fullPackageRef, chainId, ipfsUrl, deployInfo } = await getPackageInfo(
-    packageRef,
-    options.chainId,
-    cliSettings.rpcUrl
-  );
+    const cliSettings = resolveCliSettings(options);
+    const { fullPackageRef, chainId, ipfsUrl, deployInfo } = await getPackageInfo(
+      packageRef,
+      options.chainId,
+      cliSettings.rpcUrl
+    );
 
-  await inspect(
-    fullPackageRef,
-    ipfsUrl,
-    chainId,
-    deployInfo,
-    cliSettings,
-    options.json ? 'deploy-json' : options.out,
-    options.writeDeployments,
-    options.sources
-  );
+    await inspect(
+      fullPackageRef,
+      ipfsUrl,
+      chainId,
+      deployInfo,
+      cliSettings,
+      options.json ? 'deploy-json' : options.out,
+      options.writeDeployments,
+      options.sources
+    );
+
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
 });
 
 applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async function (options) {
-  const { prune } = await import('./commands/prune');
+  try {
+    const { prune } = await import('./commands/prune');
 
-  const cliSettings = resolveCliSettings(options);
+    const cliSettings = resolveCliSettings(options);
 
-  const registry = await createDefaultReadRegistry(cliSettings);
+    const registry = await createDefaultReadRegistry(cliSettings);
 
-  const loader = getMainLoader(cliSettings);
+    const loader = getMainLoader(cliSettings);
 
-  const storage = new CannonStorage(registry, loader);
+    const storage = new CannonStorage(registry, loader);
 
-  log('Scanning for storage artifacts to prune (this may take some time)...');
+    logSpinner('Scanning for storage artifacts to prune (this may take some time)...');
 
-  const [pruneUrls, pruneStats] = await prune(
-    storage,
-    options.filterPackage?.split(',') || '',
-    options.filterVariant?.split(',') || '',
-    options.keepAge
-  );
+    const [pruneUrls, pruneStats] = await prune(
+      storage,
+      options.filterPackage?.split(',') || '',
+      options.filterVariant?.split(',') || '',
+      options.keepAge
+    );
 
-  if (pruneUrls.length) {
-    log(bold(`Found ${pruneUrls.length} storage artifacts to prune.`));
-    log(`Matched with Registry: ${pruneStats.matchedFromRegistry}`);
-    log(`Not Expired: ${pruneStats.notExpired}`);
-    log(`Not Cannon Package: ${pruneStats.notCannonPackage}`);
+    if (pruneUrls.length) {
+      logSpinner(bold(`Found ${pruneUrls.length} storage artifacts to prune.`));
+      logSpinner(`Matched with Registry: ${pruneStats.matchedFromRegistry}`);
+      logSpinner(`Not Expired: ${pruneStats.notExpired}`);
+      logSpinner(`Not Cannon Package: ${pruneStats.notCannonPackage}`);
 
-    if (options.dryRun) {
-      process.exit(0);
-    }
-
-    if (!options.yes) {
-      const verification = await prompts({
-        type: 'confirm',
-        name: 'confirmation',
-        message: 'Delete these artifacts?',
-        initial: true,
-      });
-
-      if (!verification.confirmation) {
-        log('Cancelled');
-        process.exit(1);
+      if (options.dryRun) {
+        process.exit(0);
       }
-    }
 
-    for (const url of pruneUrls) {
-      log(`delete ${url}`);
-      try {
-        await storage.deleteBlob(url);
-      } catch (err: any) {
-        error(`Failed to delete ${url}: ${err.message}`);
+      if (!options.yes) {
+        const verification = await prompts({
+          type: 'confirm',
+          name: 'confirmation',
+          message: 'Delete these artifacts?',
+          initial: true,
+        });
+
+        if (!verification.confirmation) {
+          logSpinner('Cancelled');
+          process.exit(1);
+        }
       }
-    }
 
-    log('Done!');
-  } else {
-    log(bold('Nothing to prune.'));
+      for (const url of pruneUrls) {
+        logSpinner(`delete ${url}`);
+        try {
+          await storage.deleteBlob(url);
+        } catch (err: any) {
+          errorSpinner(`Failed to delete ${url}: ${err.message}`);
+        }
+      }
+
+      logSpinner('Done!');
+    } else {
+      logSpinner(bold('Nothing to prune.'));
+    }
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
   }
 });
 
 applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async function (packageRef, data, options) {
-  const { trace } = await import('./commands/trace');
+  try {
+    const { trace } = await import('./commands/trace');
 
-  const cliSettings = resolveCliSettings(options);
-  const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
+    const cliSettings = resolveCliSettings(options);
+    const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
-  await trace({
-    packageRef: fullPackageRef,
-    data,
-    chainId, // chainId is guaranteed to be defined here
-    cliSettings,
-    from: options.from,
-    to: options.to,
-    value: options.value,
-    block: options.blockNumber,
-    json: options.json,
-  });
+    await trace({
+      packageRef: fullPackageRef,
+      data,
+      chainId, // chainId is guaranteed to be defined here
+      cliSettings,
+      from: options.from,
+      to: options.to,
+      value: options.value,
+      block: options.blockNumber,
+      json: options.json,
+    });
+
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
 });
 
 applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(async function (packageRef, data, options) {
-  const { decode } = await import('./commands/decode');
+  try {
+    const { decode } = await import('./commands/decode');
+    const cliSettings = resolveCliSettings(options);
 
-  const cliSettings = resolveCliSettings(options);
-  const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
+    const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
-  await decode({
-    packageRef: fullPackageRef,
-    data,
-    chainId,
-    json: options.json,
-  });
+    await decode({
+      packageRef: fullPackageRef,
+      data,
+      chainId,
+      json: options.json,
+    });
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
 });
 
 applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOptions, options) {
-  const cliSettings = resolveCliSettings(options);
+  try {
+    const cliSettings = resolveCliSettings(options);
 
-  if (cliSettings.rpcUrl.startsWith('https')) {
-    options.dryRun = true;
-  }
+    if (cliSettings.rpcUrl.startsWith('https')) {
+      options.dryRun = true;
+    }
 
-  if (forgeOptions.length) {
-    log();
-    warn(
-      yellowBright(
-        bold(
-          '⚠️  The `--` syntax for passing options to forge or anvil is deprecated. Please use `--forge.*` or `--anvil.*` instead.'
+    if (forgeOptions.length) {
+      logSpinner();
+      warnSpinner(
+        yellowBright(
+          bold(
+            '⚠️  The `--` syntax for passing options to forge or anvil is deprecated. Please use `--forge.*` or `--anvil.*` instead.'
+          )
         )
-      )
-    );
-    log();
-  }
+      );
+      logSpinner();
+    }
 
-  // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
+    // throw an error if the chainId is not consistent with the provider's chainId
+    await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
 
-  const [node, , outputs] = await doBuild(cannonfile, [], options);
+    const [node, , outputs] = await doBuild(cannonfile, [], options);
+    // basically we need to write deployments here
+    await writeModuleDeployments(path.join(process.cwd(), 'deployments/test'), '', outputs);
 
-  // basically we need to write deployments here
-  await writeModuleDeployments(path.join(process.cwd(), 'deployments/test'), '', outputs);
+    // after the build is done we can run the forge tests for the user
+    await getProvider(node!)!.mine({ blocks: 1 });
 
-  // after the build is done we can run the forge tests for the user
-  await getProvider(node!)!.mine({ blocks: 1 });
+    const pickedOptions = pickForgeTestOptions(options);
 
-  const pickedOptions = pickForgeTestOptions(options);
+    const forgeTestArgs = fromFoundryOptionsToArgs(pickedOptions, forgeTestOptions);
 
-  const forgeTestArgs = fromFoundryOptionsToArgs(pickedOptions, forgeTestOptions);
-
-  const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeTestArgs, ...forgeOptions], {
-    stdio: 'inherit',
-  });
-
-  await new Promise(() => {
-    forgeProcess.on('close', (code: number) => {
-      log(`forge exited with code ${code}`);
-      node?.kill();
-      process.exit(code);
+    const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeTestArgs, ...forgeOptions], {
+      stdio: 'inherit',
     });
-  });
+
+    await new Promise(() => {
+      forgeProcess.on('close', (code: number) => {
+        logSpinner(`forge exited with code ${code}`);
+        node?.kill();
+        process.exit(code);
+      });
+    });
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
 });
 
 applyCommandsConfig(program.command('interact'), commandsConfig.interact).action(async function (packageRef, options) {
-  const cliSettings = resolveCliSettings(options);
-  const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
+  try {
+    const cliSettings = resolveCliSettings(options);
+    const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
-  // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(cliSettings.rpcUrl, chainId);
+    // throw an error if the chainId is not consistent with the provider's chainId
+    await ensureChainIdConsistency(cliSettings.rpcUrl, chainId);
 
-  const { provider, signers } = await resolveProvider({
-    action: ProviderAction.OptionalWriteProvider,
-    cliSettings,
-    chainId: chainId!,
-  });
+    const { provider, signers } = await resolveProvider({
+      action: ProviderAction.OptionalWriteProvider,
+      cliSettings,
+      chainId: chainId!,
+    });
 
-  const resolver = await createDefaultReadRegistry(cliSettings);
+    const resolver = await createDefaultReadRegistry(cliSettings);
 
-  const runtime = new ChainBuilderRuntime(
-    {
-      provider,
-      chainId: chainId!, // chainId is guaranteed to be defined here
-      async getSigner(address: viem.Address) {
-        // on test network any user can be conjured
-        //await p.provider.impersonateAccount({ address: addr });
-        //await p.provider.setBalance({ address: addr, value: viem.parseEther('10000') });
-        return { address: address, wallet: provider };
+    const runtime = new ChainBuilderRuntime(
+      {
+        provider,
+        chainId: chainId!, // chainId is guaranteed to be defined here
+        async getSigner(address: viem.Address) {
+          // on test network any user can be conjured
+          //await p.provider.impersonateAccount({ address: addr });
+          //await p.provider.setBalance({ address: addr, value: viem.parseEther('10000') });
+          return { address: address, wallet: provider };
+        },
+        snapshots: false,
+        allowPartialDeploy: false,
+        gasPrice: options.gasPrice,
+        gasFee: options.maxGasFee,
+        priorityGasFee: options.maxPriorityFee,
       },
-      snapshots: false,
-      allowPartialDeploy: false,
-      gasPrice: options.gasPrice,
-      gasFee: options.maxGasFee,
-      priorityGasFee: options.maxPriorityFee,
-    },
-    resolver,
-    getMainLoader(cliSettings)
-  );
-
-  const deployData = await runtime.readDeploy(fullPackageRef, runtime.chainId);
-
-  if (!deployData) {
-    throw new Error(
-      `deployment not found for package: ${fullPackageRef} with chaindId ${chainId}. please make sure it exists for the given preset and current network.`
+      resolver,
+      getMainLoader(cliSettings)
     );
+
+    const deployData = await runtime.readDeploy(fullPackageRef, runtime.chainId);
+
+    if (!deployData) {
+      throw new Error(
+        `deployment not found for package: ${fullPackageRef} with chaindId ${chainId}. please make sure it exists for the given preset and current network.`
+      );
+    }
+
+    const outputs = await getOutputs(runtime, new ChainDefinition(deployData.def), deployData.state);
+
+    if (!outputs) {
+      throw new Error(
+        `no cannon build found for ${fullPackageRef} with chaindId ${chainId}. Did you mean to run the package instead?`
+      );
+    }
+
+    const contracts = [getContractsRecursive(outputs)];
+
+    const extendedProvider = provider.extend(traceActions(outputs) as any);
+    const ref = new PackageReference(fullPackageRef);
+    const packageDefinition = {
+      name: ref.name,
+      version: ref.version,
+      preset: ref.preset,
+      settings: {},
+    };
+
+    await interact({
+      packages: [packageDefinition],
+      contracts,
+      signer: signers[0],
+      provider: extendedProvider,
+    });
+
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
   }
-
-  const outputs = await getOutputs(runtime, new ChainDefinition(deployData.def), deployData.state);
-
-  if (!outputs) {
-    throw new Error(
-      `no cannon build found for ${fullPackageRef} with chaindId ${chainId}. Did you mean to run the package instead?`
-    );
-  }
-
-  const contracts = [getContractsRecursive(outputs)];
-
-  const extendedProvider = provider.extend(traceActions(outputs) as any);
-  const ref = new PackageReference(fullPackageRef);
-  const packageDefinition = {
-    name: ref.name,
-    version: ref.version,
-    preset: ref.preset,
-    settings: {},
-  };
-
-  await interact({
-    packages: [packageDefinition],
-    contracts,
-    signer: signers[0],
-    provider: extendedProvider,
-  });
 });
 
 applyCommandsConfig(program.command('setup'), commandsConfig.setup).action(async function () {
-  const { setup } = await import('./commands/setup');
-  await setup();
+  try {
+    const { setup } = await import('./commands/setup');
+    await setup();
+
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
 });
 
 applyCommandsConfig(program.command('clean'), commandsConfig.clean).action(async function ({ noConfirm }) {
-  const { clean } = await import('./commands/clean');
-  const executed = await clean(!noConfirm);
-  if (executed) log('Complete!');
+  try {
+    logSpinnerEnd();
+    const { clean } = await import('./commands/clean');
+    const executed = await clean(!noConfirm);
+    if (executed) log('Complete!');
+
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
 });
 
 const pluginCmd = applyCommandsConfig(program.command('plugin'), commandsConfig.plugin);
 
 applyCommandsConfig(pluginCmd.command('list'), commandsConfig.plugin.commands.list).action(async function () {
-  log(green(bold('\n=============== Installed Plug-ins ===============')));
-  const installedPlugins = await listInstalledPlugins();
-  installedPlugins.forEach((plugin) => log(yellow(plugin)));
+  try {
+    logSpinner(green(bold('\n=============== Installed Plug-ins ===============')));
+    const installedPlugins = await listInstalledPlugins();
+    installedPlugins.forEach((plugin) => logSpinner(yellow(plugin)));
+
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
 });
 
 applyCommandsConfig(pluginCmd.command('add'), commandsConfig.plugin.commands.add).action(async function (name) {
-  log(`Installing plug-in ${name}...`);
-  await installPlugin(name);
-  log('Complete!');
+  try {
+    logSpinner(`Installing plug-in ${name}...`);
+    await installPlugin(name);
+    logSpinner('Complete!');
+
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
 });
 
 applyCommandsConfig(pluginCmd.command('remove'), commandsConfig.plugin.commands.remove).action(async function (name) {
-  log(`Removing plugin ${name}...`);
-  await removePlugin(name);
-  log('Complete!');
+  try {
+    logSpinner(`Removing plugin ${name}...`);
+    await removePlugin(name);
+    logSpinner('Complete!');
+
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
 });
 
 export default program;

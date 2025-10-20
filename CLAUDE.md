@@ -78,6 +78,44 @@ Each package has its own scripts:
 - **Presets** - Different configurations of the same package (default is "main")
 - **cannon-std** - Foundry library for accessing deployment data in tests via `vm.getAddress()`
 
+### Cannonfile Syntax Changes
+**IMPORTANT**: When creating new cannonfiles, use the modern syntax for both variables and action steps:
+
+#### Variable Syntax
+- **Deprecated `[setting.]` syntax**: `[setting.actual_setting_name]` where the section name itself was the setting
+- **Current `[var.]` syntax**: `[var.section_label]` where the section name is just a label, and inside you define key-value pairs
+
+Example of correct `[var.]` syntax:
+```toml
+[var.protocol_config]
+min_deposit_amount = "100000000000000000000"
+protocol_fee_percentage = "250" 
+admin_address = "0x1234..."
+```
+
+Variables are still referenced using the same template syntax: `<%= settings.min_deposit_amount %>`, `<%= settings.protocol_fee_percentage %>`, etc.
+
+#### Action Step Syntax
+The following action steps have been renamed (functionality remains identical):
+
+- **`[contract.]` → `[deploy.]`**: Deploy smart contracts
+- **`[provision.]` → `[clone.]`**: Clone/provision packages from the registry  
+- **`[import.]` → `[pull.]`**: Pull external package data
+
+Example of modern action syntax:
+```toml
+[deploy.MyContract]
+artifact = "MyContract"
+args = ["<%= settings.admin_address %>"]
+
+[clone.oracle_manager] 
+source = "oracle-manager:1.0.0"
+target = "oracle-manager:1.0.0@main"
+
+[pull.external_data]
+source = "external-package:1.0.0"
+```
+
 ### Workspace Structure
 ```
 packages/

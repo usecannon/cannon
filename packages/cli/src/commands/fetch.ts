@@ -14,7 +14,7 @@ import fs from 'node:fs';
 import path from 'path';
 import util from 'util';
 
-import { log, warn } from '../util/console';
+import { logSpinner, warnSpinner } from '../util/console';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 
@@ -58,8 +58,8 @@ export async function fetch(fullPackageRef: string | null, chainId: number | nul
     ipfs: new IPFSLoader(cliSettings.publishIpfsUrl! || getCannonRepoRegistryUrl()),
   });
 
-  log(blueBright('Fetching IPFS data from: '));
-  log(`\n - ${ipfsUrl}`);
+  logSpinner(blueBright('Fetching IPFS data from: '));
+  logSpinner(`\n - ${ipfsUrl}`);
 
   debug('reading deploy from ipfs');
 
@@ -87,17 +87,17 @@ export async function fetch(fullPackageRef: string | null, chainId: number | nul
     const ref = new PackageReference(fullPackageRef);
 
     if (ref.name !== deployInfo.def.name) {
-      warn(yellow('The IPFS package you downloaded is being saved to a different name than is recorded in the package data. Please double check to make sure this is correct.'));
-      warn(yellow(bold(`Package Name (IPFS Data): ${deployInfo.def.name}`)))
-      warn(yellow(bold(`Provided Name:            ${ref.name}`)))
+      warnSpinner(yellow('The IPFS package you downloaded is being saved to a different name than is recorded in the package data. Please double check to make sure this is correct.'));
+      warnSpinner(yellow(bold(`Package Name (IPFS Data): ${deployInfo.def.name}`)))
+      warnSpinner(yellow(bold(`Provided Name:            ${ref.name}`)))
     } else if (ref.version !== deployInfo.def.version) {
-      warn(yellow('The IPFS package you downloaded is being saved to a different version than is recorded in the package data. Please double check to make sure that this is correct.'));
-      warn(yellow(bold(`Package Version (IPFS Data): ${deployInfo.def.version}`)))
-      warn(yellow(bold(`Provided Version:            ${ref.version}`)))
+      warnSpinner(yellow('The IPFS package you downloaded is being saved to a different version than is recorded in the package data. Please double check to make sure that this is correct.'));
+      warnSpinner(yellow(bold(`Package Version (IPFS Data): ${deployInfo.def.version}`)))
+      warnSpinner(yellow(bold(`Provided Version:            ${ref.version}`)))
     } else if (deployInfo.chainId && chainId !== deployInfo.chainId) {
-      warn(yellow('The IPFS package you downloaded is being saved to a different chain ID than is recorded in the package data. Please double check to make sure that this is correct.'));
-      warn(yellow(bold(`Chain ID (IPFS Data):    ${deployInfo.chainId}`)))
-      warn(yellow(bold(`Chain ID (User Input):   ${chainId}`)))
+      warnSpinner(yellow('The IPFS package you downloaded is being saved to a different chain ID than is recorded in the package data. Please double check to make sure that this is correct.'));
+      warnSpinner(yellow(bold(`Chain ID (IPFS Data):    ${deployInfo.chainId}`)))
+      warnSpinner(yellow(bold(`Chain ID (User Input):   ${chainId}`)))
     }
 
     packageRef = fullPackageRef;
@@ -122,8 +122,8 @@ export async function fetch(fullPackageRef: string | null, chainId: number | nul
     await storeDeployReference(deployMetadataPath, metaIpfsUrl);
   }
 
-  log(`\n\nSuccessfully fetched and saved deployment data for the following package: ${packageRef}`);
-  log(
-    `run 'cannon publish ${packageRef} --chain-id <CHAIN_ID> --private-key <PRIVATE_KEY>' to publish the package to the registry`
+  logSpinner(`\n\nSuccessfully fetched and saved deployment data for the following package: ${pkgName}`);
+  logSpinner(
+    `run 'cannon publish ${pkgName} --chain-id <CHAIN_ID> --private-key <PRIVATE_KEY>' to publish the package to the registry`
   );
 }

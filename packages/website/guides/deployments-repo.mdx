@@ -1,0 +1,419 @@
+---
+title: Create a Deployments Repository
+description: Learn how to create and structure a dedicated deployments repository for managing protocol deployments with Cannon and GitOps workflows.
+after:
+  url: "queue-with-gitops"
+  title: "Queue with GitOps"
+  description: "Learn how to use the Queue with GitOps functionality on the Cannon website."
+---
+
+## Create a Deployments Repository
+
+A deployments repository is a dedicated Git repository that contains only your Cannon deployment configurations, separate from your main smart contract codebase. This approach enables [GitOps](https://about.gitlab.com/topics/gitops/) workflows for teams that want to keep their smart contract source code private while maintaining transparent and collaborative deployment processes.
+
+<Alert variant="info">
+  <AlertTitle className="mb-0">When to use a deployments repository</AlertTitle>
+  Consider using a deployments repository when you have private smart contract repositories but want to use the Cannon website's GitOps functionality, or when you want to separate deployment concerns from development workflows.
+</Alert>
+
+### Benefits of a Deployments Repository
+
+Using a dedicated deployments repository provides several advantages:
+
+- **Separation of Concerns**: Isolate deployment configurations from development workflows  
+- **Team Collaboration**: Allow engineers who work on deployments to work independently from contract developers
+- **GitOps Integration**: Enable GitOps workflows
+- **Audit Trail**: Maintain a clear history of all deployment activities and configurations
+- **Privacy**: Have the option to keep your smart contract source code private while maintaining transparent deployments
+
+### Real-World Example: Synthetix Deployments
+
+The [Synthetix deployments repository](https://github.com/synthetixio/synthetix-deployments) is an excellent example of this pattern in practice. It demonstrates how a complex protocol with multiple networks, markets, and governance components can be managed entirely through a deployments repository.
+
+[Screenshot placeholder: Synthetix deployments repository structure on GitHub]
+
+### Repository Structure
+
+Based on the Synthetix model, here's an example structure for a deployments repository:
+
+```
+protocol-deployments/
+├── README.md
+├── package.json
+├── omnibus-mainnet.toml          # Main network deployment
+├── omnibus-sepolia.toml          # Testnet deployment
+├── omnibus-arbitrum-mainnet.toml # L2 deployments
+├── omnibus-base-mainnet.toml
+├── tomls/                        # Modular configuration files
+│   ├── settings.toml            # Global settings
+│   ├── core.toml               # Core system deployment
+│   ├── permissions.toml        # Access control configurations
+│   ├── collaterals/            # Collateral configurations
+│   │   ├── weth.toml
+│   │   ├── wsteth.toml
+│   │   └── usdc.toml
+│   ├── markets/                # Market-specific configs
+│   │   ├── spot-factory.toml
+│   │   └── perps.toml
+│   ├── oracles/                # Oracle configurations
+│   │   ├── chainlink.toml
+│   │   └── pyth.toml
+│   └── omnibus-mainnet/        # Network-specific overrides
+│       ├── governance/
+│       ├── pools/
+│       └── overrides.toml
+├── scripts/                     # Utility scripts
+│   ├── deploy.sh
+│   └── verify.sh
+└── e2e/                        # End-to-end testing
+    └── tests/
+```
+
+### Setting Up Your Deployments Repository
+
+#### Step 1: Create the Repository Structure
+
+1. **Initialize the repository**:
+   ```bash
+   mkdir protocol-deployments
+   cd protocol-deployments
+   git init
+   ```
+
+2. **Set up package.json** with Cannon CLI and build scripts:
+   ```json
+   {
+     "name": "protocol-deployments",
+     "version": "1.0.0",
+     "private": true,
+     "scripts": {
+       "anvil:mainnet": "anvil --chain-id 1 --fork-url $MAINNET_RPC_URL",
+       "start:mainnet": "cannon build omnibus-mainnet.toml --keep-alive --dry-run --upgrade-from my-protocol:latest@main",
+       "build:mainnet": "cannon build omnibus-mainnet.toml --dry-run",
+       "test:mainnet": "mocha ./e2e/tests/omnibus-mainnet.toml/**/*.e2e.js",
+       "deploy:mainnet": "cannon build omnibus-mainnet.toml --private-key $PRIVATE_KEY",
+       "verify:mainnet": "cannon verify my-protocol@main --chain-id 1",
+       "publish:mainnet": "cannon publish my-protocol@main --chain-id 1"
+     },
+     "devDependencies": {
+       "@usecannon/builder": "latest",
+       "@usecannon/cli": "latest",
+       "mocha": "^10.0.0",
+       "ethers": "^5.7.2"
+     }
+   }
+   ```
+
+3. **Install dependencies**:
+   ```bash
+   yarn install
+   # Configure Cannon settings
+   yarn cannon setup
+   ```
+
+[Screenshot placeholder: Package.json configuration and yarn install process]
+
+#### Step 2: Create Modular Configuration Files
+
+The key to maintainable deployments is breaking your configuration into modular files. You can place individual build steps in a TOML file:
+
+##### Global Settings (`tomls/settings.toml`)
+```toml
+[var.protocol_config]
+min_deposit_amount = "100000000000000000000" # 100 tokens in wei
+protocol_fee_percentage = "250" # 2.5% in basis points
+withdrawal_delay = "86400" # 24 hours in seconds
+
+[invoke.setMinimumDeposit]
+target = ["contracts.Protocol"]
+fromCall.func = "owner"
+func = "setMinimumDeposit"
+args = ["<%= settings.min_deposit_amount %>"]
+
+[invoke.setProtocolFee]
+target = ["contracts.Protocol"]
+fromCall.func = "owner"
+func = "setProtocolFee"
+args = ["<%= settings.protocol_fee_percentage %>"]
+
+[invoke.setWithdrawalDelay]
+target = ["contracts.Protocol"]
+fromCall.func = "owner"
+func = "setWithdrawalDelay"
+args = ["<%= settings.withdrawal_delay %>"]
+```
+
+##### Core System (`tomls/core.toml`)
+```toml
+[var.system_config]
+core_package = "my-protocol-core:1.0.0"
+oracle_package = "oracle-manager:2.1.0"  
+owner_address = ""
+target_preset = "main"
+deployment_salt = "my-protocol"
+
+[clone.oracle_manager]
+source = "<%= settings.oracle_package %>"
+target = "<%= settings.oracle_package %>"
+options.salt = "<%= settings.deployment_salt %>-oracle"
+options.owner = "<%= settings.owner_address %>"
+
+[provision.system]
+source = "<%= settings.core_package %>"
+target = "<%= settings.core_package %>@<%= settings.target_preset %>"
+options.owner = "<%= settings.owner_address %>"
+options.salt = "<%= settings.deployment_salt %>"
+```
+
+##### Collateral Configuration (`tomls/collaterals/weth.toml`)
+```toml
+[var.weth_config]
+token_address = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2" # WETH mainnet
+liquidation_reward = "<%= parseEther('0.01') %>"
+issuance_ratio = "<%= parseEther('1.25') %>"
+liquidation_ratio = "<%= parseEther('1.05') %>"
+min_delegation = "<%= parseEther('1') %>"
+
+[invoke.configureWethCollateral]
+target = ["contracts.Protocol"]
+fromCall.func = "owner"  
+func = "configureCollateral"
+args = [
+    { 
+        tokenAddress = "<%= settings.token_address %>", 
+        oracleNodeId = "<%= extras.weth_oracle_id %>", 
+        issuanceRatioD18 = "<%= settings.issuance_ratio %>", 
+        liquidationRatioD18 = "<%= settings.liquidation_ratio %>", 
+        liquidationRewardD18 = "<%= settings.liquidation_reward %>", 
+        minDelegationD18 = "<%= settings.min_delegation %>", 
+        depositingEnabled = true 
+    },
+]
+```
+
+[Screenshot placeholder: Modular TOML file structure in file explorer]
+
+#### Step 3: Create Network-Specific Omnibus Files
+
+Now that you have created modular deployments, We can use `include` to pull components into our comprehensive deployment.
+
+Each network gets its own omnibus file that includes the relevant modules:
+
+##### Mainnet (`omnibus-mainnet.toml`)
+```toml
+name = "my-protocol"
+version = "0.1.0"
+description = "My Protocol full system deployment on Mainnet"
+deployers = [
+    "0x742d35Cc6634C0532925a3b8D4956AF55e86dB31", # Deployer 1 (EOA, for example)
+    "0x1234567890123456789012345678901234567890", # Deployer 2 (Safe, for example)
+]
+include = [
+    "tomls/settings.toml",
+    "tomls/core.toml", 
+    "tomls/permissions.toml",
+    "tomls/oracles/chainlink.toml",
+    "tomls/collaterals/weth.toml",
+    "tomls/collaterals/usdc.toml", 
+    "tomls/markets/spot-factory.toml",
+    "tomls/omnibus-mainnet/overrides.toml",
+]
+
+[var.packages]
+core_package = "my-protocol-core:2.1.0"
+oracle_package = "oracle-manager:3.10.1"
+spot_market_package = "spot-market:1.5.0"
+
+[var.mainnet_config]
+owner_address = "0x742d35Cc6634C0532925a3b8D4956AF55e86dB31"
+deployment_salt = "my-protocol-mainnet"
+```
+
+##### Testnet (`omnibus-sepolia.toml`)
+```toml
+name = "my-protocol"
+version = "2.1.0-sepolia"
+description = "My Protocol testnet deployment"
+include = [
+    "tomls/settings.toml",
+    "tomls/core.toml",
+    "tomls/permissions.toml",
+    # Reduced configuration for testing
+    "tomls/collaterals/weth.toml",
+]
+
+# Testnet-specific package versions (can be different/newer)
+[var.packages]
+core_package = "my-protocol-core:2.1.0-alpha"
+oracle_package = "oracle-manager:3.10.1"
+
+[var.sepolia_config]
+owner_address = "0x1234567890123456789012345678901234567890"
+deployment_salt = "my-protocol-sepolia"
+```
+
+[Screenshot placeholder: Network-specific omnibus files showing includes and settings]
+
+#### Step 4: Set Up Testing Infrastructure
+
+Add end-to-end testing capabilities:
+
+```bash
+mkdir -p e2e/tests/omnibus-mainnet.toml
+```
+
+Create test files that validate your deployments:
+
+```javascript
+// e2e/tests/omnibus-mainnet.toml/basic-functionality.e2e.js
+const { ethers } = require('ethers');
+const { expect } = require('chai');
+
+describe('Basic Protocol Functionality', () => {
+  let provider, system;
+
+  before(async () => {
+    provider = new ethers.providers.JsonRpcProvider('http://localhost:8545');
+    // Load deployed contracts from Cannon state
+    const deployments = require('../../../deployments.json');
+    system = deployments.system.CoreProxy;
+  });
+
+  it('should have correct owner configured', async () => {
+    const contract = new ethers.Contract(system.address, system.abi, provider);
+    const owner = await contract.owner();
+    expect(owner).to.not.equal(ethers.constants.AddressZero);
+  });
+});
+```
+
+[Screenshot placeholder: E2E test structure and example test file]
+
+### Best Practices
+
+#### Version Management
+
+1. **Package Versioning**: Use semantic versioning for your protocol packages
+2. **Synchronized Updates**: Keep all omnibus files updated when core packages change
+3. **Git Tagging**: Tag deployments for easy reference
+
+```bash
+# After successful mainnet deployment
+git tag -a v2.1.0-mainnet -m "Mainnet deployment v2.1.0"
+git push origin v2.1.0-mainnet
+```
+
+### Advanced Patterns
+
+#### Multi-Chain Deployment
+
+For protocols deploying across multiple chains, you can selectively include or override additional components specific to different changes by adding them to `include`:
+
+```toml
+# omnibus-base-mainnet.toml
+include = [
+    "tomls/settings.toml",
+    "tomls/core.toml",
+    "tomls/omnibus-base-mainnet/ccip-config.toml",  # Cross-chain specific
+    "tomls/omnibus-base-mainnet/bridge-config.toml",
+]
+```
+
+### Understanding the Clone Action
+
+An important aspect of deployments repositories is the use of the `clone` action to reference published packages. Unlike copying artifacts manually, `clone` reuses artifacts used on a local network release to replicate the same release on an actual live network.
+
+#### Publishing from Private Repositories
+
+Even if your main development repository is private, you can still publish packages to the Cannon registry for use in your deployments repository:
+
+1. **FRom your private repository**, tell Cannon to keep your code private:
+   ```toml
+   # at the top of your TOML file, under `name` and `version`
+   privateSourceCode = true # will prevent your solidity source codes from being packaged in public publish
+   ```
+
+2. **From your private repository**, build and publish your packages:
+   ```bash
+   # In your private development repository
+   cannon build
+   cannon publish my-protocol-core:1.0.0 --chain-id 1 --private-key $DEPLOYER_KEY
+   ```
+
+2. **In your deployments repository**, reference the published package:
+   ```toml
+   [clone.oracle_manager]
+   source = "my-protocol-core:1.0.0"
+   target = "my-protocol-core:1.0.0@main"
+   options.salt = "<%= settings.deployment_salt %>-oracle"
+   options.owner = "<%= settings.owner_address %>"
+   ```
+
+#### Benefits of the Clone Pattern
+
+- **Immutable Packages**: Published packages are immutable and verifiable
+- **Version Control**: Precise control over which package versions are deployed
+- **Separation**: Complete separation between development and deployment workflows
+- **Reproducibility**: Deployments are reproducible across different environments
+
+[Screenshot placeholder: CLI publishing from private repo and clone usage in deployments repo]
+
+### Integration with Development Workflow
+
+#### Artifact Synchronization
+
+Set up automation to keep deployment artifacts synchronized:
+
+```bash
+#!/bin/bash
+# scripts/sync-artifacts.sh
+# Copy latest artifacts from main repository
+rsync -av ../main-protocol/out/ ./artifacts/
+git add artifacts/
+git commit -m "Update artifacts to $(cd ../main-protocol && git rev-parse --short HEAD)"
+```
+
+#### CI/CD Integration
+
+Add GitHub Actions for automated verification of deployment plans prior to release:
+
+```yaml
+# .github/workflows/test-deployments.yml
+name: Test Deployments
+on:
+  pull_request:
+    paths: ['omnibus-*.toml', 'tomls/**']
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: yarn install
+      - name: Test Sepolia deployment
+        run: yarn build:sepolia
+        env:
+          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
+```
+
+### Troubleshooting
+
+#### Common Issues
+
+**Problem**: "Package not found" errors during deployment
+**Solution**: Ensure all referenced packages are published to the registry. You can also build the package locally to test it prior to publishing.
+
+**Problem**: Settings override not working
+**Solution**: Check the order of includes - later files override earlier ones
+
+#### Debugging Workflow
+
+1. **Local Testing**: Always test with `--dry-run` first
+2. **Network Validation**: Verify RPC connectivity and chain ID
+3. **Package Resolution**: Check that all package references resolve correctly
+4. **Log Analysis**: Review Cannon build logs for detailed error information

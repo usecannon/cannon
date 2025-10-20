@@ -15,6 +15,8 @@ export const links = {
   COMPARISON: '/learn/guides/comparison',
   BUILD_TROUBLESHOOTING: '/learn/guides/troubleshooting',
   MIGRATE: '/learn/guides/migrate',
+  QUEUE_WITH_GITOPS: '/learn/guides/get-started/queue-with-gitops',
+  DEPLOYMENTS_REPO: '/learn/guides/get-started/deployments-repo',
   CLI: '/learn/cli',
   CANNONFILE: '/learn/cannonfile',
   IPFS_DOWNLOAD: '/ipfs',

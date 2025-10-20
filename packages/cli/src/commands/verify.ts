@@ -10,7 +10,7 @@ import { createDefaultReadRegistry } from '../registry';
 
 import { getMainLoader } from '../loader';
 
-import { log } from '../util/console';
+import { logSpinner } from '../util/console';
 import { isVerified } from '../util/verify';
 
 const debug = Debug('cannon:cli:verify');
@@ -91,17 +91,17 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
         miscData.artifacts[`${contractInfo.sourceName}:${contractInfo.contractName}`];
 
       if (!contractArtifact) {
-        log(`${c}: cannot verify: no contract artifact found`);
+        logSpinner(`${c}: cannot verify: no contract artifact found`);
         continue;
       }
 
       if (!contractArtifact.source) {
-        log(`${c}: cannot verify: no source code recorded in deploy data`);
+        logSpinner(`${c}: cannot verify: no source code recorded in deploy data`);
         continue;
       }
 
       if (await isVerified(contractInfo.address, chainId, etherscanApi, cliSettings.etherscanApiKey)) {
-        log(`✅ ${c}: Contract source code already verified`);
+        logSpinner(`✅ ${c}: Contract source code already verified`);
         await sleep(500);
         continue;
       }
@@ -140,13 +140,13 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
 
         if (res.data.status === '0') {
           debug('etherscan failed', res.data);
-          log(`${c}:\tcannot verify:`, res.data.result);
+          logSpinner(`${c}:\tcannot verify:`, res.data.result);
         } else {
-          log(`${c}:\tsubmitted verification (${contractInfo.address})`);
+          logSpinner(`${c}:\tsubmitted verification (${contractInfo.address})`);
           guids[c] = res.data.result;
         }
       } catch (err) {
-        log(`verification for ${c} (${contractInfo.address}) failed:`, err);
+        logSpinner(`verification for ${c} (${contractInfo.address}) failed:`, err);
       }
 
       await sleep(500);
@@ -184,12 +184,12 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
         if (res.data.result === 'Pending in queue') {
           await sleep(1000);
         } else {
-          log(`❌ ${c}`, res.data.result);
-          log(res.data);
+          logSpinner(`❌ ${c}`, res.data.result);
+          logSpinner(res.data);
           break;
         }
       } else {
-        log(`✅ ${c}`);
+        logSpinner(`✅ ${c}`);
         await sleep(500);
         break;
       }
