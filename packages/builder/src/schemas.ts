@@ -92,7 +92,7 @@ export const deploySchema = z
             'Determines whether to deploy the contract using create2. If an address is specified, the arachnid create2 contract will be deployed/used from this address.'
           ),
         /**
-         * Determines whether to deploy the contract using create2
+         * Determines what should happen when a contract is deployed with create2 if it already exists
          */
         ifExists: z
           .enum(['continue'])
@@ -770,7 +770,7 @@ export const routerSchema = z
         'Determines whether to deploy the contract using create2. If an address is specified, the arachnid create2 contract will be deployed/used from this address.'
       ),
     /**
-     * Determines whether to deploy the contract using create2
+     * Determines what should happen when a contract is deployed with create2 if it already exists
      */
     ifExists: z
       .enum(['continue'])
