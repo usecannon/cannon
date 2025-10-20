@@ -1,0 +1,229 @@
+---
+title: Queue with GitOps
+description: Learn how to use the Queue with GitOps functionality on the Cannon website to deploy protocols from Git repositories or IPFS.
+before:
+  url: "deploy-onchain"
+  title: "Deploy Onchain"
+  description: "Deploy your protocol onchain."
+after:
+  url: "publish"
+  title: "Publish Your Package"
+  description: "Publish your protocol to the Cannon explorer."
+---
+
+## Queue with GitOps
+
+The Queue with GitOps functionality allows you to deploy Cannon packages directly from Git repositories or IPFS hashes through the Cannon website interface. This is particularly useful for teams using Safe multisig wallets and wanting to make their deployments as declarative as possible.
+
+<Alert variant="info">
+  <AlertTitle className="mb-0">Before you start</AlertTitle>
+  This guide assumes you have a Safe multisig wallet configured and are familiar with basic Cannon concepts. Make sure you have completed the [Setup](/learn/guides/setup) guide.
+</Alert>
+
+### Overview
+
+The Queue with GitOps feature enables you to:
+- Deploy Cannon packages from GitHub repositories containing cannonfiles
+- Resume partial deployments from IPFS hashes
+- Preview transactions before execution (and the corresponding Git Diff of the changes)
+- Execute deployments through Safe multisig wallets
+- Publish the resulting package after deployment to the Cannon registry
+
+### Getting Started
+
+#### Step 1: Access the Queue Interface
+
+1. Navigate to the [Cannon website](https://usecannon.com)
+2. Connect your wallet and ensure you're on the correct network
+3. Go to the **Deploy** section and select **Queue with GitOps**
+
+[Screenshot placeholder: Navigation to Queue with GitOps interface]
+
+#### Step 2: Configure Your Safe
+
+Before queuing deployments, please ensure:
+
+1. Confirm you're on the correct network and Safe for your deployment
+2. The Safe that you are executing the transaction on does not currently have staged transactions on https://app.safe.global
+  * Cannon uses its own staging service, so any transactions that are pending on the Safe app will conflict with transactions executed on the Cannon website.
+2. Ensure you have a deployer EOA with sufficient funds to execute the upgrade transaction
+3. The required signers are available
+
+[Screenshot placeholder: Safe configuration interface]
+
+### Deployment Methods
+
+The Queue with GitOps interface supports two primary deployment methods:
+
+#### Method 1: Deploy from Git Repository (reccomended for most tasks)
+
+Use this method when you have a Cannon project stored in a Git repository.
+
+##### Input Format
+Provide a direct URL to your cannonfile in the repository. This should be the URL of the page you reach when you preview the file on GitHub. For example:
+```
+https://github.com/usecannon/cannon/blob/dev/examples/sample-foundry-project/cannonfile.toml
+```
+
+<Alert variant="info">
+  **NOTE:** The repository being deployed must be publicly accessible. If you do not want to expose your smart contract repositories, it is reccomended to [create a deployments repository](/learn/guides/deployments-repo) instead.
+
+  Additionally, if the repository's branch checkout is too large, it can be difficult to download in your browser.
+  
+</Alert>
+
+You can also input a IPFS hash of a partial build completed with the Cannon CLI. This will be the IPFS hash of the partial build given by Cannon. For example:
+
+```
+ipfs://QmUGX7nJFBxiGfwunwTe1YnEHnStKibzuWusvzPmt4d5Yg
+```
+
+
+<Alert variant="warning">
+  Before you can read the IPFS hash from the website, your partial build must be pinned to the IPFS network. You can do this with `cannon pin ipfs://QmUGX7nJFBxiGfwunwTe1YnEHnStKibzuWusvzPmt4d5Yg`
+</Alert>
+
+
+##### Steps:
+1. In the **Deployment Source** field, enter the URL to your cannonfile or partial IPFS hash
+2. The system will automatically detect this as a Git deployment
+3. Click the "Preview Transactions to Queue". The build will be completed client side in your browser. It may take a few minutes to generate.
+4. Review the parsed cannonfile configuration, and use the buttons at the bottom of the page to stage it to the Safe.
+
+[Screenshot placeholder: Git repository input interface showing URL field and validation]
+
+#### After Staging
+Your transaction will appear as pending on the deploy page of the Cannon website. You can click it to.
+
+It is reccomended to send the URL of the transaction to execute to other signers to simplify the signer process. Each signer can click "Sign" to add their signature.
+
+<Alert variant="warning">
+  Carefully validate all transaction data displayed by the website. 
+</Alert>
+
+<Alert variant="warning">
+  When signing, verify that the data that is included in the transaction being signed by your wallet matches the data being displayed by the website. You can view tips on how to do this on [Safe's website](https://help.safe.global/en/articles/276344-how-to-verify-safe-wallet-transactions-on-a-hardware-wallet).
+</Alert>
+
+Once enough signatures have been accumulated, a wallet with gas tokens (aka ETH) can execute by using the `Execute` button on the page.
+
+### Configuration Options
+
+You can adjust the URLs of any servers or backends connected to by the website from the [Settings](/settings) page. For best results, it is reccomended to set your organization's URLs for:
+* Any network provider RPCs that you have (ex. Optimism, Mainnet, your deployment network)
+* Custom safe transaction services (if you are using a custom chain that isnt supported by main Safe transaction service)
+* A IPFS endpoint, if your organization uses its own IPFS
+
+#### Previous Package Input
+
+When deploying upgrades or continuing deployments, you may need to specify a previous package:
+
+- **Package Reference**: Use the format `package-name:version@preset` (e.g., `my-protocol:1.0.0@main`)
+- **IPFS URL**: Reference a specific IPFS deployment hash
+
+[Screenshot placeholder: Previous package input field with examples]
+
+#### Deployment Preview
+
+Before executing transactions, always preview your deployment:
+
+1. Click **Preview Transactions** after configuring your deployment source
+2. Review the list of transactions that will be executed
+3. Check gas estimates and transaction details
+4. Verify contract addresses and function calls
+
+[Screenshot placeholder: Transaction preview interface showing list of pending transactions with gas estimates]
+
+### Executing Deployments
+
+#### Safe Transaction Flow
+
+Once you've previewed and confirmed your deployment:
+
+1. **Queue Transactions**: Click to add transactions to your Safe queue
+2. **Review in Safe**: Switch to your Safe interface to review queued transactions
+3. **Collect Signatures**: Have other Safe owners sign the transactions
+4. **Execute**: Once threshold signatures are collected, execute the deployment
+
+[Screenshot placeholder: Safe transaction execution flow showing queued transactions and signature collection]
+
+#### Monitoring Deployment
+
+Track your deployment progress through several indicators:
+
+- **Build Status**: Shows compilation and transaction preparation progress
+- **IPFS Status**: Indicates when artifacts are being uploaded to IPFS
+- **Transaction Status**: Displays execution progress for each transaction
+
+[Screenshot placeholder: Deployment monitoring interface showing progress indicators]
+
+### Advanced Features
+
+#### Upgrading Existing Deployments
+
+When upgrading an existing protocol:
+
+1. Ensure your cannonfile includes proper version incrementing
+2. Specify the previous package reference for state continuity
+3. Review the upgrade diff to understand what changes will be applied
+4. Test the upgrade on a testnet before mainnet deployment
+
+#### Handling Deployment Errors
+
+Common issues and solutions:
+
+- **Invalid Cannonfile URL**: Ensure the URL is publicly accessible and points to a valid cannonfile
+- **IPFS Gateway Errors**: Try using a different IPFS gateway or wait and retry
+- **Insufficient Funds**: Ensure your Safe has enough ETH for gas fees
+- **Transaction Failures**: Review the transaction details and check for contract address conflicts
+
+[Screenshot placeholder: Error handling interface showing common error messages and suggested solutions]
+
+### Best Practices
+
+#### Security Considerations
+
+- **Verify Sources**: Always verify that Git repositories and IPFS hashes are from trusted sources
+- **Review Transactions**: Carefully review all transactions before signing
+- **Test First**: Deploy to testnets before mainnet
+- **Monitor Deployments**: Keep track of deployment status and transaction confirmations
+
+#### Workflow Integration
+
+- **Version Control**: Tag your repository releases to ensure reproducible deployments
+- **CI/CD Integration**: Consider integrating Cannon builds into your continuous deployment pipeline
+- **Documentation**: Keep deployment logs and package references for future upgrades
+
+### Troubleshooting
+
+#### Common Issues
+
+**Problem**: "Invalid input" error when entering deployment source
+**Solution**: Verify your URL format and ensure the cannonfile is publicly accessible
+
+**Problem**: Transactions fail during execution
+**Solution**: Check that all deployer addresses have sufficient permissions and funds
+
+**Problem**: IPFS loading takes too long
+**Solution**: Try using a different IPFS gateway in your settings
+
+[Screenshot placeholder: Troubleshooting interface showing error logs and diagnostic information]
+
+#### Getting Help
+
+If you encounter issues:
+- Check the [Troubleshooting Guide](/learn/guides/troubleshooting) for common solutions
+- Join the [Cannon Discord](https://discord.gg/cannon) for community support
+- Review transaction details in your Safe interface
+- Check network status and gas prices
+
+### Next Steps
+
+After successfully deploying with Queue with GitOps:
+
+1. **Verify Deployment**: Confirm all contracts are deployed correctly
+2. **Update Documentation**: Record deployment addresses and transaction hashes
+3. **Publish Package**: Consider [publishing your package](/learn/guides/publish) to make it discoverable
+4. **Set Up Monitoring**: Implement monitoring for your deployed contracts
+
+The Queue with GitOps functionality streamlines the deployment process while maintaining the security benefits of multisig wallets, making it an essential tool for protocol teams operating in production environments.

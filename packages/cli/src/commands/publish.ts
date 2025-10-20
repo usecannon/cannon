@@ -11,7 +11,7 @@ import {
 import { blueBright, bold, gray } from 'chalk';
 import prompts from 'prompts';
 import * as viem from 'viem';
-import { log } from '../util/console';
+import { logSpinner, logSpinnerStart, logSpinnerEnd } from '../util/console';
 import { getMainLoader } from '../loader';
 import { LocalRegistry } from '../registry';
 import { CliSettings } from '../settings';
@@ -49,8 +49,8 @@ export async function publish({
       throw new Error('signer not provided in registry');
     }
     if (!quiet) {
-      log(blueBright(`Publishing with ${onChainRegistry.signer!.address}`));
-      log();
+      logSpinner(blueBright(`Publishing with ${onChainRegistry.signer!.address}`));
+      logSpinner();
     }
   }
   // Generate CannonStorage to publish ipfs remotely and write to the registry
@@ -73,6 +73,7 @@ export async function publish({
 
   // Select screen for when a user is looking for all the local deploys
   if (!skipConfirm && deploys.length > 1) {
+    logSpinnerEnd();
     const prompt = await prompts({
       type: 'select',
       message: 'Select the package you want to publish:\n',
@@ -87,9 +88,10 @@ export async function publish({
         };
       }),
     });
+    logSpinnerStart();
 
     if (!prompt.value) {
-      log('You must select a package to publish');
+      logSpinner('You must select a package to publish');
       process.exit(1);
     }
 
@@ -140,21 +142,21 @@ export async function publish({
 
   for (const publishCall of publishCalls) {
     const packageName = new PackageReference(publishCall.packagesNames[0]).name;
-    log(blueBright(`\nThis will publish ${bold(packageName)} to the registry:`));
+    logSpinner(blueBright(`\nThis will publish ${bold(packageName)} to the registry:`));
 
     for (const fullPackageRef of publishCall.packagesNames) {
       const { version, preset } = new PackageReference(fullPackageRef);
-      log(` - ${version} (preset: ${preset})`);
+      logSpinner(` - ${version} (preset: ${preset})`);
     }
   }
 
-  log();
+  logSpinner();
 
   if (onChainRegistry instanceof OnChainRegistry) {
     const totalFees = await onChainRegistry.calculatePublishingFee(publishCalls.length);
 
-    log(`Total publishing fees: ${viem.formatEther(totalFees)} ETH`);
-    log();
+    logSpinner(`Total publishing fees: ${viem.formatEther(totalFees)} ETH`);
+    logSpinner();
 
     const balance = await onChainRegistry.provider!.getBalance({ address: onChainRegistry.signer!.address });
 
@@ -166,27 +168,29 @@ export async function publish({
   }
 
   if (!skipConfirm) {
+    logSpinnerEnd();
     const verification = await prompts({
       type: 'confirm',
       name: 'confirmation',
       message: 'Proceed?',
       initial: true,
     });
+    logSpinnerStart();
 
     if (!verification.confirmation) {
-      log('Cancelled');
+      logSpinner('Cancelled');
       process.exit(1);
     }
   }
 
-  log(bold('Publishing package...'));
-  log(gray('This may take a few minutes.'));
-  log();
+  logSpinner(bold('Publishing package...'));
+  logSpinner(gray('This may take a few minutes.'));
+  logSpinner();
 
   const registrationReceipts = await toStorage.registry.publishMany(publishCalls);
 
   if (!quiet) {
-    log(blueBright('Transactions:'));
-    for (const tx of registrationReceipts) log(`  - ${tx}`);
+    logSpinner(blueBright('Transactions:'));
+    for (const tx of registrationReceipts) logSpinner(`  - ${tx}`);
   }
 }
