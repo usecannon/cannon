@@ -69,7 +69,9 @@ export function renderTraceEntry(ctx: ChainArtifacts, trace: TraceEntry): string
         (contractName || callTraceAction.to) +
         '.' +
         (parsedInput || callTraceAction.input) +
-        (BigInt(callTraceAction.value || '0') != BigInt(0) ? red(`{value:${viem.formatEther(BigInt(callTraceAction.value))}}`) : '') +
+        (BigInt(callTraceAction.value || '0') != BigInt(0)
+          ? red(`{value:${viem.formatEther(BigInt(callTraceAction.value))}}`)
+          : '') +
         (parsedOutput ? ' => ' + parsedOutput : '');
 
       str = actionStr + (contractName ? green(txStr) : txStr) + gasStr;
