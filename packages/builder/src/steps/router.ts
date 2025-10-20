@@ -232,7 +232,7 @@ const routerStep = {
       overrides.maxPriorityFeePerGas = runtime.priorityGasFee;
     }
 
-    let receipt: viem.TransactionReceipt;
+    let receipt: viem.TransactionReceipt|null;
     let deployAddress: viem.Address;
 
     if (config.create2) {
@@ -258,20 +258,21 @@ const routerStep = {
             'CREATE2_COLLISION'
           );
         }
+        receipt = null;
+      } else {
+        const signer = config.from
+          ? await runtime.getSigner(config.from as viem.Address)
+          : await runtime.getDefaultSigner!(txn, config.salt);
+
+        const fullCreate2Txn = _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
+        debug('final create2 txn', fullCreate2Txn);
+
+        const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
+
+        const hash = await signer.wallet.sendTransaction(preparedTxn as any);
+        receipt = await runtime.provider.waitForTransactionReceipt({ hash });
+        debug('arachnid create2 complete', receipt);
       }
-
-      const signer = config.from
-        ? await runtime.getSigner(config.from as viem.Address)
-        : await runtime.getDefaultSigner!(txn, config.salt);
-
-      const fullCreate2Txn = _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
-      debug('final create2 txn', fullCreate2Txn);
-
-      const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
-
-      const hash = await signer.wallet.sendTransaction(preparedTxn as any);
-      receipt = await runtime.provider.waitForTransactionReceipt({ hash });
-      debug('arachnid create2 complete', receipt);
     } else {
       const signer = config.from
         ? await runtime.getSigner(config.from as viem.Address)
@@ -287,7 +288,7 @@ const routerStep = {
       deployAddress = receipt.contractAddress!;
     }
 
-    const block = await runtime.provider.getBlock({ blockHash: receipt.blockHash });
+    const block = receipt ? await runtime.provider.getBlock({ blockHash: receipt.blockHash }) : null;
 
     return {
       contracts: {
@@ -295,14 +296,14 @@ const routerStep = {
           address: deployAddress,
           abi: routableAbi,
           deployedOn: packageState.currentLabel,
-          deployTxnHash: receipt.transactionHash,
-          deployTxnBlockNumber: receipt.blockNumber.toString(),
-          deployTimestamp: block.timestamp.toString(),
+          deployTxnHash: receipt?.transactionHash,
+          deployTxnBlockNumber: receipt?.blockNumber.toString(),
+          deployTimestamp: block?.timestamp.toString(),
           contractName,
           sourceName: contractName + '.sol',
           highlight: config.highlight,
-          gasUsed: Number(receipt.gasUsed),
-          gasCost: receipt.effectiveGasPrice.toString(),
+          gasUsed: Number(receipt?.gasUsed),
+          gasCost: receipt?.effectiveGasPrice.toString(),
         },
       } as ContractMap,
     };
