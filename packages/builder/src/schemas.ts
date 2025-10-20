@@ -92,7 +92,7 @@ export const deploySchema = z
             'Determines whether to deploy the contract using create2. If an address is specified, the arachnid create2 contract will be deployed/used from this address.'
           ),
         /**
-         * Determines whether to deploy the contract using create2
+         * Determines what should happen when a contract is deployed with create2 if it already exists
          */
         ifExists: z
           .enum(['continue'])
@@ -760,6 +760,24 @@ export const routerSchema = z
      *   Used to force new copy of a contract (not actually used)
      */
     salt: z.string().optional().describe('Used to force new copy of a contract (not actually used)'),
+    /**
+     * Determines whether to deploy the contract using create2
+     */
+    create2: z
+      .union([z.boolean(), z.string().refine((val) => isAddress(val))])
+      .optional()
+      .describe(
+        'Determines whether to deploy the contract using create2. If an address is specified, the arachnid create2 contract will be deployed/used from this address.'
+      ),
+    /**
+     * Determines what should happen when a contract is deployed with create2 if it already exists
+     */
+    ifExists: z
+      .enum(['continue'])
+      .optional()
+      .describe(
+        'When deploying a contract with CREATE2, determines the behavior when the target contract is already deployed (ex. due to same bytecode and salt). Set to continue to allow the build to continue if the contract is found to have already been deployed. By default, an error is thrown and the action is halted.'
+      ),
     /**
      *   Override transaction settings
      */
