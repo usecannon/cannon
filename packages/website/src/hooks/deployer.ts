@@ -24,7 +24,13 @@ export function useDeployerWallet(chainId?: number) {
 
       (async () => {
         // is this the first transaction, or have we finished executing a transaction?
-        if ((isIdle && !executionProgress.length && queuedTransactions.length) || isConfirmed) {
+        if (
+          (isIdle &&
+            !executionProgress.length &&
+            queuedTransactions.length &&
+            queuedTransactions.length > executionProgress.length) ||
+          isConfirmed
+        ) {
           // ensure we are on the correct network
           await switchChainAsync({ chainId });
           // execute the next transaction
@@ -43,7 +49,7 @@ export function useDeployerWallet(chainId?: number) {
               onSuccess(hash: viem.Hash) {
                 setExecutionProgress([...executionProgress, hash]);
               },
-            }
+            },
           );
         }
       })()
@@ -55,7 +61,7 @@ export function useDeployerWallet(chainId?: number) {
           setError(err);
         });
     },
-    [isConfirmed, isIdle, executionProgress.length, queuedTransactions, chainId, executionProgress]
+    [isConfirmed, isIdle, executionProgress.length, queuedTransactions, chainId, executionProgress],
   );
 
   return {
