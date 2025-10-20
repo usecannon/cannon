@@ -232,7 +232,7 @@ const routerStep = {
       overrides.maxPriorityFeePerGas = runtime.priorityGasFee;
     }
 
-    let receipt: viem.TransactionReceipt|null;
+    let receipt: viem.TransactionReceipt | null;
     let deployAddress: viem.Address;
 
     if (config.create2) {
@@ -296,14 +296,14 @@ const routerStep = {
           address: deployAddress,
           abi: routableAbi,
           deployedOn: packageState.currentLabel,
-          deployTxnHash: receipt?.transactionHash,
-          deployTxnBlockNumber: receipt?.blockNumber.toString(),
-          deployTimestamp: block?.timestamp.toString(),
+          deployTxnHash: receipt?.transactionHash || '',
+          deployTxnBlockNumber: receipt?.blockNumber?.toString() || '',
+          deployTimestamp: block?.timestamp?.toString() || '',
           contractName,
           sourceName: contractName + '.sol',
           highlight: config.highlight,
-          gasUsed: Number(receipt?.gasUsed),
-          gasCost: receipt?.effectiveGasPrice.toString(),
+          gasUsed: Number(receipt?.gasUsed || '0'),
+          gasCost: receipt?.effectiveGasPrice?.toString() || '0',
         },
       } as ContractMap,
     };
