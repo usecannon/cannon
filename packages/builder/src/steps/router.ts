@@ -232,7 +232,7 @@ const routerStep = {
       overrides.maxPriorityFeePerGas = runtime.priorityGasFee;
     }
 
-    let receipt: viem.TransactionReceipt|null;
+    let receipt: viem.TransactionReceipt | null;
     let deployAddress: viem.Address;
 
     if (config.create2) {

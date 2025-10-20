@@ -120,7 +120,9 @@ describe('steps/router.ts', () => {
       jest.mocked(signer.wallet.sendTransaction).mockResolvedValue('0x8484');
 
       // Mock ensureArachnidCreate2Exists to return the deployer address without actually deploying
-      jest.mocked(create2Module.ensureArachnidCreate2Exists).mockResolvedValue(create2Module.ARACHNID_DEFAULT_DEPLOY_ADDR as any);
+      jest
+        .mocked(create2Module.ensureArachnidCreate2Exists)
+        .mockResolvedValue(create2Module.ARACHNID_DEFAULT_DEPLOY_ADDR as any);
 
       jest.mocked(runtime.provider.getCode).mockResolvedValue('0x');
 
@@ -159,7 +161,9 @@ describe('steps/router.ts', () => {
       };
 
       // Mock ensureArachnidCreate2Exists to return the deployer address
-      jest.mocked(create2Module.ensureArachnidCreate2Exists).mockResolvedValue(create2Module.ARACHNID_DEFAULT_DEPLOY_ADDR as any);
+      jest
+        .mocked(create2Module.ensureArachnidCreate2Exists)
+        .mockResolvedValue(create2Module.ARACHNID_DEFAULT_DEPLOY_ADDR as any);
 
       jest.mocked(runtime.provider.getCode).mockResolvedValue('0x60806040'); // Contract exists
 
@@ -167,7 +171,7 @@ describe('steps/router.ts', () => {
         contracts: ['Greeter'],
         create2: true,
         salt: 'test-salt',
-        ifExists: 'continue' as const
+        ifExists: 'continue' as const,
       };
 
       const res = await action.exec(runtime, ctx, config, step);
@@ -189,15 +193,22 @@ describe('steps/router.ts', () => {
       };
 
       // Mock ensureArachnidCreate2Exists to return the deployer address
-      jest.mocked(create2Module.ensureArachnidCreate2Exists).mockResolvedValue(create2Module.ARACHNID_DEFAULT_DEPLOY_ADDR as any);
+      jest
+        .mocked(create2Module.ensureArachnidCreate2Exists)
+        .mockResolvedValue(create2Module.ARACHNID_DEFAULT_DEPLOY_ADDR as any);
 
       jest.mocked(runtime.provider.getCode).mockResolvedValue('0x60806040');
 
       await expect(
-        action.exec(runtime, ctx, {
-          contracts: ['Greeter'],
-          create2: true
-        }, step)
+        action.exec(
+          runtime,
+          ctx,
+          {
+            contracts: ['Greeter'],
+            create2: true,
+          },
+          step
+        )
       ).rejects.toThrow('The contract at the create2 destination');
     });
 
@@ -208,7 +219,7 @@ describe('steps/router.ts', () => {
         from: await signer.address,
         contracts: ['Greeter'],
         create2: customDeployer,
-        salt: 'test'
+        salt: 'test',
       };
 
       const runtime = fakeRuntime;
@@ -235,10 +246,7 @@ describe('steps/router.ts', () => {
       await action.exec(runtime, ctx, config, step);
 
       // Verify ensureArachnidCreate2Exists was called with custom address
-      expect(create2Module.ensureArachnidCreate2Exists).toHaveBeenCalledWith(
-        runtime,
-        customDeployer
-      );
+      expect(create2Module.ensureArachnidCreate2Exists).toHaveBeenCalledWith(runtime, customDeployer);
     });
   });
 });
