@@ -274,7 +274,8 @@ export const commandsConfig: CommandsConfig = {
     ],
   },
   fetch: {
-    description: 'Fetch cannon package data from an IPFS hash and store it in the local registry. Package name will be auto-detected from IPFS data if not specified.',
+    description:
+      'Fetch cannon package data from an IPFS hash and store it in the local registry. Package name will be auto-detected from IPFS data if not specified.',
     arguments: [
       {
         flags: '<ipfsHash>',
@@ -282,7 +283,8 @@ export const commandsConfig: CommandsConfig = {
       },
       {
         flags: '[packageRef]',
-        description: 'Optional: Name, version and preset of the Cannon package (name:version@preset). Will be auto-detected if not provided.',
+        description:
+          'Optional: Name, version and preset of the Cannon package (name:version@preset). Will be auto-detected if not provided.',
       },
     ],
     options: [
