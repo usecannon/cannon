@@ -37,48 +37,6 @@ describe('steps/router.ts', () => {
         salt: 'SALT',
       });
     });
-
-    it('generates and deploys Router with create2', async () => {
-      const signer = fixtureSigner();
-      const contracts = { Greeter: fixtureContractData('Greeter') };
-
-      const step = {
-        ref: new PackageReference('router-test:0.0.0'),
-        currentLabel: 'router.Router',
-      };
-
-      const runtime = fakeRuntime;
-      const ctx = fixtureCtx({ contracts });
-      const config = { from: await signer.address, contracts: Object.keys(contracts), create2: true, salt: 'is.salty' };
-
-      (runtime as any).getSigner = jest.fn();
-      jest.mocked(runtime.getSigner).mockResolvedValue(signer);
-      jest.mocked(signer.wallet.sendTransaction).mockResolvedValue('0x8484');
-      jest.mocked(runtime.provider.getCode).mockResolvedValue('0x');
-
-      const rx = fixtureTransactionReceipt();
-
-      jest.mocked(runtime.provider.waitForTransactionReceipt).mockResolvedValue(rx);
-      jest.mocked(runtime.provider.getBlock).mockResolvedValue({ timestamp: BigInt(123444) } as any);
-
-      const res = await action.exec(runtime, ctx, config, step);
-
-      expect(fakeRuntime.provider.waitForTransactionReceipt).toHaveBeenCalledTimes(1);
-
-      expect(res.contracts).toMatchObject({
-        Router: {
-          abi: contracts.Greeter.abi,
-          deployedOn: step.currentLabel,
-          deployTxnHash: rx.transactionHash,
-          deployTxnBlockNumber: '0',
-          deployTimestamp: '123444',
-          contractName: 'Router',
-          sourceName: 'Router.sol',
-          gasCost: rx.effectiveGasPrice.toString(),
-          gasUsed: Number(rx.gasUsed.toString()),
-        },
-      });
-    });
   });
 
   describe('exec()', () => {
@@ -125,6 +83,48 @@ describe('steps/router.ts', () => {
       expect(res.contracts).toMatchObject({
         Router: {
           address: rx.contractAddress,
+          abi: contracts.Greeter.abi,
+          deployedOn: step.currentLabel,
+          deployTxnHash: rx.transactionHash,
+          deployTxnBlockNumber: '0',
+          deployTimestamp: '123444',
+          contractName: 'Router',
+          sourceName: 'Router.sol',
+          gasCost: rx.effectiveGasPrice.toString(),
+          gasUsed: Number(rx.gasUsed.toString()),
+        },
+      });
+    });
+
+    it('generates and deploys Router with create2', async () => {
+      const signer = fixtureSigner();
+      const contracts = { Greeter: fixtureContractData('Greeter') };
+
+      const step = {
+        ref: new PackageReference('router-test:0.0.0'),
+        currentLabel: 'router.Router',
+      };
+
+      const runtime = fakeRuntime;
+      const ctx = fixtureCtx({ contracts });
+      const config = { from: await signer.address, contracts: Object.keys(contracts), create2: true, salt: 'is.salty' };
+
+      (runtime as any).getSigner = jest.fn();
+      jest.mocked(runtime.getSigner).mockResolvedValue(signer);
+      jest.mocked(signer.wallet.sendTransaction).mockResolvedValue('0x8484');
+      jest.mocked(runtime.provider.getCode).mockResolvedValue('0x');
+
+      const rx = fixtureTransactionReceipt();
+
+      jest.mocked(runtime.provider.waitForTransactionReceipt).mockResolvedValue(rx);
+      jest.mocked(runtime.provider.getBlock).mockResolvedValue({ timestamp: BigInt(123444) } as any);
+
+      const res = await action.exec(runtime, ctx, config, step);
+
+      expect(fakeRuntime.provider.waitForTransactionReceipt).toHaveBeenCalledTimes(1);
+
+      expect(res.contracts).toMatchObject({
+        Router: {
           abi: contracts.Greeter.abi,
           deployedOn: step.currentLabel,
           deployTxnHash: rx.transactionHash,

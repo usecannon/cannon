@@ -250,10 +250,14 @@ const routerStep = {
 
       if (bytecode && bytecode !== '0x') {
         debug('create2 contract already completed');
-        throw new CannonError(
-          `The contract at the create2 destination ${addr} is already deployed, but the Cannon state does not recognize that this contract has already been deployed. This typically indicates incorrect upgrade configuration. Please confirm if this contract should already be deployed or not, and if you want to continue the build as-is, add 'ifExists = "continue"' to the step definition`,
-          'CREATE2_COLLISION'
-        );
+        // the cannon state does not think a contract should be deployed, but the on-chain state says a contract
+        // is deployed. this could be a mistake. alert the user and explain how to override
+        if (config.ifExists !== 'continue') {
+          throw new CannonError(
+            `The contract at the create2 destination ${addr} is already deployed, but the Cannon state does not recognize that this contract has already been deployed. This typically indicates incorrect upgrade configuration. Please confirm if this contract should already be deployed or not, and if you want to continue the build as-is, add 'ifExists = "continue"' to the step definition`,
+            'CREATE2_COLLISION'
+          );
+        }
       }
 
       const signer = config.from

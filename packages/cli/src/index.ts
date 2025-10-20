@@ -205,7 +205,15 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
 
       const forgeBuildProcess = spawn('forge', forgeBuildArgs, { cwd: projectDirectory, shell: true });
 
+      console.log('forge ubild process launched');
+
       await new Promise((resolve, reject) => {
+        forgeBuildProcess.stdout.on('data', (data) => {
+          console.log(`forge stdout: ${data}`);
+        });
+        forgeBuildProcess.stderr.on('data', (data) => {
+          console.error(`forge stderr: ${data}`);
+        });
         forgeBuildProcess.on('exit', (code) => {
           if (code === 0) {
             log(gray('forge build succeeded'));
