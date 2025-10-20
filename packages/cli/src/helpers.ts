@@ -28,7 +28,7 @@ import { getMainLoader } from './loader';
 import { privateKeyToAccount } from 'viem/accounts';
 import { getChainById, chains } from './chains';
 import { resolveCliSettings } from './settings';
-import { log, warn } from './util/console';
+import { logSpinner, warnSpinner } from './util/console';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 import { getChainIdFromRpcUrl, isURL, hideApiKey } from './util/provider';
 import { createDefaultReadRegistry } from './registry';
@@ -96,7 +96,7 @@ export async function ensureFoundryCompatibility(): Promise<void> {
       });
 
       if (anvilResponse.confirmation) {
-        log(magentaBright('Upgrading Foundry to the latest version...'));
+        logSpinner(magentaBright('Upgrading Foundry to the latest version...'));
         await execPromise('foundryup');
       } else {
         process.exit(1);
@@ -111,7 +111,7 @@ export async function ensureFoundryCompatibility(): Promise<void> {
     });
 
     if (response.confirmation) {
-      log(magentaBright('Installing Foundry...'));
+      logSpinner(magentaBright('Installing Foundry...'));
       await execPromise('curl -L https://foundry.paradigm.xyz | bash');
       await execPromise(os.homedir() + '/.foundry/bin/foundryup');
     } else {
@@ -198,7 +198,7 @@ export async function checkCannonVersion(currentVersion: string): Promise<void> 
   const latestVersion = await resolveCannonVersion();
 
   if (latestVersion && currentVersion && semver.lt(currentVersion, latestVersion)) {
-    warn(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
+    warnSpinner(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
   }
 }
 
@@ -333,7 +333,7 @@ export async function ensureChainIdConsistency(rpcUrl?: string, chainId?: number
 
       // throw an expected error if the chainId is not consistent with the provider's chainId
       if (Number(chainId) !== Number(providerChainId)) {
-        log(
+        logSpinner(
           red(
             `Error: The chainId (${providerChainId}) obtained from the ${bold('--rpc-url')} does not match with ${bold(
               '--chain-id'
@@ -555,7 +555,7 @@ async function _promptChainId(): Promise<number> {
     throw new Error('A valid Chain Id is required.');
   }
 
-  log();
+  logSpinner();
 
   return Number(chainIdPrompt.value);
 }

@@ -24,7 +24,7 @@ export function useDeployerWallet(chainId?: number) {
 
       (async () => {
         // is this the first transaction, or have we finished executing a transaction?
-        if ((isIdle && !executionProgress.length && queuedTransactions.length) || isConfirmed) {
+        if ((isIdle && executionProgress.length < queuedTransactions.length) || isConfirmed) {
           // ensure we are on the correct network
           await switchChainAsync({ chainId });
           // execute the next transaction

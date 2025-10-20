@@ -22,7 +22,7 @@ import { createDefaultReadRegistry } from '../registry';
 import { CannonRpcNode, getProvider } from '../rpc';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
-import { log, warn } from '../util/console';
+import { logSpinner, warnSpinner, logSpinnerStart, logSpinnerEnd } from '../util/console';
 import { getContractsRecursive } from '../util/contracts-recursive';
 import onKeypress from '../util/on-keypress';
 import { build } from './build';
@@ -145,15 +145,15 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       buildOutputs.push({ pkg, outputs });
     }
 
-    log(greenBright(`${bold(`${name}:${version}@${preset}`)} has been deployed to a local node.`));
+    logSpinner(greenBright(`${bold(`${name}:${version}@${preset}`)} has been deployed to a local node.`));
 
     if (node.forkProvider) {
-      log(gray('Running from fork provider'));
+      logSpinner(gray('Running from fork provider'));
     }
   }
 
   if (!signers.length) {
-    warn(
+    warnSpinner(
       yellow(
         '\nWARNING: no signers resolved. Specify signers with --mnemonic or --private-key (or use --impersonate if on a fork).'
       )
@@ -162,7 +162,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
   if (options.logs) {
     await new Promise(() => {
-      log('Displaying node logs.....');
+      logSpinner('Displaying node logs.....');
       nodeLogging.enable();
     });
   }
@@ -194,18 +194,18 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
           // only show lines containing `log`s, and prettify
           renderedTrace = renderedTrace
             .split('\n')
-            .filter((l) => l.includes('log('))
+            .filter((l) => l.includes('logSpinner('))
             .map((l) => l.trim())
             .join('\n');
         }
 
         if (renderedTrace) {
-          log(`trace: ${txn.hash}`);
-          log(renderedTrace);
-          log();
+          logSpinner(`trace: ${txn.hash}`);
+          logSpinner(renderedTrace);
+          logSpinner();
         }
       } catch (err) {
-        log('could not render trace for transaction:', err);
+        logSpinner('could not render trace for transaction:', err);
       }
     }
   }
@@ -215,28 +215,33 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
   if (options.nonInteractive) {
     await new Promise(() => {
-      log(gray('Non-interactive mode enabled. Press Ctrl+C to exit.'));
+      logSpinner(gray('Non-interactive mode enabled. Press Ctrl+C to exit.'));
     });
   } else {
-    log();
-    log(INITIAL_INSTRUCTIONS);
-    log(INSTRUCTIONS);
+    logSpinner();
+    logSpinner(INITIAL_INSTRUCTIONS);
+    logSpinner(INSTRUCTIONS);
 
+    logSpinnerEnd();
     await onKeypress(async (evt, { pause, stop }) => {
       if (evt.ctrl && evt.name === 'c') {
         stop();
         process.exit();
       } else if (evt.name === 'a') {
+        logSpinnerStart();
         // Toggle showAnvilLogs when the user presses "a"
         if (nodeLogging.enabled()) {
-          log(gray('Paused anvil logs...'));
-          log(INSTRUCTIONS);
+          logSpinner(gray('Paused anvil logs...'));
+          logSpinner(INSTRUCTIONS);
+          logSpinnerEnd();
           nodeLogging.disable();
         } else {
-          log(gray('Unpaused anvil logs...'));
+          logSpinner(gray('Unpaused anvil logs...'));
+          logSpinnerEnd();
           nodeLogging.enable();
         }
       } else if (evt.name === 'i') {
+        logSpinnerEnd();
         if (nodeLogging.enabled()) return;
 
         await pause(async () => {
@@ -252,27 +257,33 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
             provider,
           });
         });
+        logSpinnerStart();
 
-        log(INITIAL_INSTRUCTIONS);
-        log(INSTRUCTIONS);
+        logSpinner(INITIAL_INSTRUCTIONS);
+        logSpinner(INSTRUCTIONS);
+        logSpinnerEnd();
       } else if (evt.name == 'v') {
+        logSpinnerStart();
         // Toggle showAnvilLogs when the user presses "a"
         if (traceLevel === 0) {
           traceLevel = 1;
-          log(gray('Enabled display of log events from transactions...'));
+          logSpinner(gray('Enabled display of log events from transactions...'));
         } else if (traceLevel === 1) {
           traceLevel = 2;
-          log(gray('Enabled display of full transaction logs...'));
+          logSpinner(gray('Enabled display of full transaction logs...'));
         } else {
           traceLevel = 0;
-          log(gray('Disabled transaction tracing...'));
+          logSpinner(gray('Disabled transaction tracing...'));
         }
+        logSpinnerEnd();
       } else if (evt.name === 'h') {
+        logSpinnerStart();
         if (nodeLogging.enabled()) return;
 
-        if (options.helpInformation) log('\n' + options.helpInformation);
-        log();
-        log(INSTRUCTIONS);
+        if (options.helpInformation) logSpinner('\n' + options.helpInformation);
+        logSpinner();
+        logSpinner(INSTRUCTIONS);
+        logSpinnerEnd();
       }
     });
   }
@@ -291,7 +302,7 @@ async function createLoggingInterface(node: CannonRpcNode) {
       .join('\n');
 
     if (enabled) {
-      log(newData);
+      logSpinner(newData);
     } else {
       outputBuffer += '\n' + newData;
     }
@@ -302,7 +313,7 @@ async function createLoggingInterface(node: CannonRpcNode) {
 
     enable: () => {
       if (outputBuffer) {
-        log(outputBuffer);
+        logSpinner(outputBuffer);
         outputBuffer = '';
       }
 

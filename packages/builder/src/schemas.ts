@@ -92,7 +92,7 @@ export const deploySchema = z
             'Determines whether to deploy the contract using create2. If an address is specified, the arachnid create2 contract will be deployed/used from this address.'
           ),
         /**
-         * Determines whether to deploy the contract using create2
+         * Determines what should happen when a contract is deployed with create2 if it already exists
          */
         ifExists: z
           .enum(['continue'])
@@ -190,6 +190,13 @@ export const deploySchema = z
           .describe('Override transaction settings'),
 
         /**
+         * Allows for a specific step to only be executed on the given chain IDs.
+         */
+        chains: z
+          .array(z.number().int())
+          .optional()
+          .describe('If specified, this action is only executed on the specified chain IDs.'),
+        /**
          *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
          */
         depends: z
@@ -268,6 +275,13 @@ export const pullSchema = z
          *  Preset label of the package being imported
          */
         preset: z.string().describe('Preset label of the package being imported'),
+        /**
+         * Allows for a specific step to only be executed on the given chain IDs.
+         */
+        chains: z
+          .array(z.number().int())
+          .optional()
+          .describe('If specified, this action is only executed on the specified chain IDs.'),
         /**
          *  Previous operations this operation is dependent on
          *  ```toml
@@ -527,6 +541,14 @@ export const invokeSchema = z
           .describe(
             'Object defined to hold deployment transaction result data. For now its limited to getting deployment event data so it can be reused in other operations'
           ),
+
+        /**
+         * Allows for a specific step to only be executed on the given chain IDs.
+         */
+        chains: z
+          .array(z.number().int())
+          .optional()
+          .describe('If specified, this action is only executed on the specified chain IDs.'),
         /**
          *  Previous operations this operation is dependent on
          */
@@ -682,6 +704,15 @@ export const cloneSchema = z
         tags: z
           .array(z.string())
           .describe('Additional tags to set on the registry for when this provisioned package is published.'),
+
+        /**
+         * Allows for a specific step to only be executed on the given chain IDs.
+         */
+        chains: z
+          .array(z.number().int())
+          .optional()
+          .describe('If specified, this action is only executed on the specified chain IDs.'),
+
         /**
          *  Previous operations this operation is dependent on
          */
@@ -730,6 +761,24 @@ export const routerSchema = z
      */
     salt: z.string().optional().describe('Used to force new copy of a contract (not actually used)'),
     /**
+     * Determines whether to deploy the contract using create2
+     */
+    create2: z
+      .union([z.boolean(), z.string().refine((val) => isAddress(val))])
+      .optional()
+      .describe(
+        'Determines whether to deploy the contract using create2. If an address is specified, the arachnid create2 contract will be deployed/used from this address.'
+      ),
+    /**
+     * Determines what should happen when a contract is deployed with create2 if it already exists
+     */
+    ifExists: z
+      .enum(['continue'])
+      .optional()
+      .describe(
+        'When deploying a contract with CREATE2, determines the behavior when the target contract is already deployed (ex. due to same bytecode and salt). Set to continue to allow the build to continue if the contract is found to have already been deployed. By default, an error is thrown and the action is halted.'
+      ),
+    /**
      *   Override transaction settings
      */
     overrides: z
@@ -738,6 +787,14 @@ export const routerSchema = z
       })
       .optional()
       .describe('Override transaction settings'),
+
+    /**
+     * Allows for a specific step to only be executed on the given chain IDs.
+     */
+    chains: z
+      .array(z.number().int())
+      .optional()
+      .describe('If specified, this action is only executed on the specified chain IDs.'),
     /**
      *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
      */

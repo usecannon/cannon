@@ -63,7 +63,8 @@ export default function SettingsPage() {
         <CardHeader>
           <CardTitle>Otterscan Providers</CardTitle>
           <CardDescription>
-            Specify endpoints for loading block explorer data from an Otterscan-compatible API.
+            Specify endpoints for loading block explorer data from an
+            Otterscan-compatible API.
           </CardDescription>
         </CardHeader>
         <CardContent>

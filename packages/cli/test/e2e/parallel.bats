@@ -150,3 +150,12 @@ teardown() {
   echo $output
   assert_success
 }
+
+@test "Build - Forge compile error displays stdout/stderr" {
+  run build-foundry-compile-error.sh
+  echo $output
+  assert_output --partial 'forge build failed'
+  assert_output --partial 'forge stdout:'
+  assert_output --partial 'forge stderr:'
+  assert_success
+}

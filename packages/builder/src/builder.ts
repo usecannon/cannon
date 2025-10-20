@@ -138,6 +138,10 @@ ${printChainDefinitionProblems(problems)}`);
             debug('run isolated', n);
             const newArtifacts = await runStep(runtime, { ref, currentLabel: n }, def.getConfig(n, ctx), ctx);
 
+            if (!newArtifacts) {
+              continue;
+            }
+
             // some steps may be self introspective, causing a step to be giving the wrong hash initially. to counteract this, we recompute the hash
             addOutputsToContext(ctx, newArtifacts);
             const newStates = await def.getState(n, runtime, ctx, depsTainted);
@@ -311,6 +315,10 @@ export async function buildLayer(
         _.clone(ctx)
       );
 
+      if (!newArtifacts) {
+        continue;
+      }
+
       addOutputsToContext(ctx, newArtifacts);
 
       const newHashes = await def.getState(action, runtime, ctx, false);
@@ -332,6 +340,9 @@ export async function buildLayer(
     const chainDump = await runtime.dumpState();
 
     for (const action of layer.actions) {
+      if (!state[action]) {
+        continue;
+      }
       state[action].chainDump = chainDump;
     }
   }
@@ -339,6 +350,11 @@ export async function buildLayer(
 
 export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageState, cfg: any, ctx: ChainBuilderContext) {
   const [type, label] = pkgState.currentLabel.split('.') as [keyof typeof ActionKinds, string];
+
+  if (cfg && cfg.chains && !cfg.chains.includes(runtime.chainId)) {
+    debug(`skipping step ${label} on chain ${runtime.chainId}`);
+    return null;
+  }
 
   runtime.emit(Events.PreStepExecute, type, label, cfg, 0);
 

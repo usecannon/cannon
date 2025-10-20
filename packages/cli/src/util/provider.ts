@@ -6,7 +6,7 @@ import provider from 'eth-provider';
 import { privateKeyToAccount } from 'viem/accounts';
 import { CannonSigner, traceActions } from '@usecannon/builder';
 
-import { log, error } from './console';
+import { logSpinner, errorSpinner, logSpinnerStart, logSpinnerEnd } from './console';
 import { getChainById } from '../chains';
 import { CliSettings } from '../settings';
 
@@ -93,7 +93,7 @@ export async function resolveProvider({
   const chainData = getChainById(chainId!);
 
   if (!quiet) {
-    log(bold(`Resolving connection to ${chainData.name} (Chain ID: ${chainId})...`));
+    logSpinner(bold(`Resolving connection to ${chainData.name} (Chain ID: ${chainId})...`));
   }
 
   // Check if the first provider URL is actually an URL.
@@ -103,7 +103,7 @@ export async function resolveProvider({
     // If privateKey is present or no valid http URLs are available in rpcUrls
     if (cliSettings.privateKey) {
       if (chainData.rpcUrls.default.http.length === 0) {
-        error(
+        errorSpinner(
           red(
             `Failed to establish a connection with any RPC. Please specify a valid RPC url using the ${bold(
               '--rpc-url'
@@ -179,8 +179,8 @@ export async function resolveProviderAndSigners({
     ProviderAction.WriteDryRunProvider === action ||
     ProviderAction.OptionalWriteProvider === action
   ) {
-    log(grey(`Attempting to find connection via ${bold(providerDisplayName(checkProviders[0]))}`));
-    if (checkProviders.length === 1) log('');
+    logSpinner(grey(`Attempting to find connection via ${bold(providerDisplayName(checkProviders[0]))}`));
+    if (checkProviders.length === 1) logSpinner('');
   }
 
   debug(
@@ -195,7 +195,7 @@ export async function resolveProviderAndSigners({
   try {
     rawProvider.setChain(Number.parseInt(chainId.toString())); // its important here we ensure chainId is a number
   } catch (err) {
-    error(`Failed to use chain id ${chainId}`, err);
+    errorSpinner(`Failed to use chain id ${chainId}`, err);
     throw err;
   }
 
@@ -217,7 +217,7 @@ export async function resolveProviderAndSigners({
       ).extend(traceActions({}));
     } catch (err) {
       if (checkProviders.length <= 1) {
-        error(
+        errorSpinner(
           red(
             `Failed to establish a connection with any RPC. Please specify a valid RPC url using the ${bold(
               '--rpc-url'
@@ -258,6 +258,7 @@ export async function resolveProviderAndSigners({
         case ProviderAction.OptionalWriteProvider: {
           const isOptional = ProviderAction.OptionalWriteProvider === action;
 
+          logSpinnerEnd();
           const keyPrompt = await prompts({
             type: 'text',
             name: 'value',
@@ -268,7 +269,7 @@ export async function resolveProviderAndSigners({
               return isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid';
             },
           });
-
+          logSpinnerStart();
           if (keyPrompt.value) {
             const account = privateKeyToAccount(normalizePrivateKey(keyPrompt.value as viem.Hex));
 
@@ -333,7 +334,7 @@ export async function resolveProviderAndSigners({
       }
     } catch (err: any) {
       if (checkProviders.length <= 1) {
-        error(
+        errorSpinner(
           red(
             `Failed to establish a connection with any RPC. Please specify a valid RPC url using the ${bold(
               '--rpc-url'
