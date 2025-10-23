@@ -75,7 +75,7 @@ export async function prepareRawFormData(data: Buffer) {
 
   // This check is needed for proper functionality in the browser, as the Buffer is not correctly concatenated
   // But, for node we still wanna keep using Buffer
-  const content = typeof window !== 'undefined' && typeof Blob !== 'undefined' ? new Blob([data]) : data;
+  const content = typeof window !== 'undefined' && typeof Blob !== 'undefined' ? new Blob([new Uint8Array(data)]) : data;
 
   formData.append('data', content);
 

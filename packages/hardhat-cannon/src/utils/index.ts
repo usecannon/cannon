@@ -1,4 +1,5 @@
 import hre from 'hardhat';
+import type { ContractData } from '@usecannon/builder';
 import { getAllContractDatasFromOutputs, getContractDataFromOutputs } from '../internal/cannon';
 
 /** Get data of a given contract from the built outputs */
@@ -14,7 +15,7 @@ export function getAllContractDatas() {
 }
 
 /** Get the abi and address from the built outputs */
-export function getContract(contractName: string) {
+export function getContract(contractName: string): Pick<ContractData, 'address' | 'abi'> {
   const contract = getContractData(contractName);
   return { address: contract.address, abi: contract.abi };
 }
