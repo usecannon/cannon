@@ -56,7 +56,7 @@ describe('steps/deploy.ts', () => {
 
     it('fails when setting invalid value', () => {
       expect(() => validateConfig(action.validate, { artifact: 'Greeter', invalid: ['something'] })).toThrow(
-        "Unrecognized key(s) in object: 'invalid'"
+        "Unrecognized key(s) in object: 'invalid'",
       );
     });
   });
@@ -107,7 +107,7 @@ describe('steps/deploy.ts', () => {
         fakeRuntime,
         fakeCtx,
         { artifact: 'hello' },
-        { ref: null, currentLabel: 'deploy.Deploy' }
+        { ref: null, currentLabel: 'deploy.Deploy' },
       );
 
       expect(result).toContainEqual({
@@ -132,7 +132,7 @@ describe('steps/deploy.ts', () => {
           salt: 'wohoo',
           value: '1234',
         },
-        { ref: null, currentLabel: 'deploy.Deploy' }
+        { ref: null, currentLabel: 'deploy.Deploy' },
       );
 
       expect(result).toContainEqual({
@@ -159,9 +159,9 @@ describe('steps/deploy.ts', () => {
               args: ['<%= contracts.h %>', '<%= contracts.i %>'],
               salt: '<%= contracts.j %>',
             },
-            []
+            [],
           )
-          .accesses.sort()
+          .accesses.sort(),
       ).toEqual([
         'contracts.a',
         'contracts.b',
@@ -180,7 +180,7 @@ describe('steps/deploy.ts', () => {
   describe('getOutputs()', () => {
     it('returns the contract that is outputted', () => {
       expect(
-        action.getOutputs({ artifact: 'hello' }, { ref: new PackageReference('foo'), currentLabel: 'contract.Hello' })
+        action.getOutputs({ artifact: 'hello' }, { ref: new PackageReference('foo'), currentLabel: 'contract.Hello' }),
       ).toEqual(['contracts.Hello', 'Hello']);
     });
   });
@@ -201,8 +201,8 @@ describe('steps/deploy.ts', () => {
               salt: 'wohoo',
               value: '1234',
             },
-            { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
-          )
+            { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' },
+          ),
         ).rejects.toThrowErrorMatchingSnapshot();
       });
 
@@ -220,7 +220,7 @@ describe('steps/deploy.ts', () => {
             salt: 'wohoo',
             value: '1234',
           },
-          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
+          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' },
         );
 
         expect(result).toStrictEqual({
@@ -267,7 +267,7 @@ describe('steps/deploy.ts', () => {
             salt: 'wohoo',
             value: '1234',
           },
-          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
+          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' },
         );
 
         expect(result).toStrictEqual({
@@ -310,7 +310,7 @@ describe('steps/deploy.ts', () => {
             salt: 'wohoo',
             value: '1234',
           },
-          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
+          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' },
         );
 
         expect(result).toStrictEqual({
@@ -357,7 +357,7 @@ describe('steps/deploy.ts', () => {
             salt: 'wohoo',
             value: '1234',
           },
-          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
+          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' },
         );
 
         expect(result).toStrictEqual({
@@ -395,7 +395,7 @@ describe('steps/deploy.ts', () => {
             salt: 'wohoo',
             value: '1234',
           },
-          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
+          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' },
         );
 
         expect(result).toStrictEqual({

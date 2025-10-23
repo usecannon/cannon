@@ -59,7 +59,7 @@ export class IPFSLoader implements CannonLoader {
       this.customHeaders,
       this.isGateway,
       this.timeout,
-      this.retries
+      this.retries,
     );
   }
 

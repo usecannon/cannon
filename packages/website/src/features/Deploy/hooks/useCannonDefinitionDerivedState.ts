@@ -22,9 +22,9 @@ export function useCannonDefinitionDerivedState({
       Boolean(
         cannonDefInfo?.def &&
           !hasDeployers &&
-          cannonDefInfo.def.allActionNames.some((item) => item.startsWith('deploy.') || item.startsWith('contract.'))
+          cannonDefInfo.def.allActionNames.some((item) => item.startsWith('deploy.') || item.startsWith('contract.')),
       ),
-    [cannonDefInfo?.def, hasDeployers]
+    [cannonDefInfo?.def, hasDeployers],
   );
 
   // Check if the cannonfile can be deployed using the website
@@ -46,7 +46,7 @@ export function useCannonDefinitionDerivedState({
   // Check if the cannon info definition is loaded
   const isDefinitionLoaded = useMemo(
     () => Boolean(cannonfileUrlInput.length > 0 && !cannonDefInfo?.error && cannonDefInfo?.def),
-    [cannonfileUrlInput, cannonDefInfo]
+    [cannonfileUrlInput, cannonDefInfo],
   );
 
   // Error message logic

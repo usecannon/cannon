@@ -6,7 +6,7 @@ export function augmentProvider(originalProvider: CannonProvider, outputs: Chain
 
   // Monkey patch to call original cannon extended estimateGas fn
   const originalRequest = provider.request;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   provider.request = async function request(args: any) {
     if (args.method === 'eth_estimateGas') {
       return await provider.estimateGas({

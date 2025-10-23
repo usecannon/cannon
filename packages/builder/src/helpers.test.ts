@@ -49,7 +49,7 @@ describe('helpers.test.ts', () => {
           package: 'wooted:latest',
           contractName: 'Something',
           chainId: 282,
-        })
+        }),
       ).rejects.toThrow();
     });
 
@@ -60,7 +60,7 @@ describe('helpers.test.ts', () => {
           contractName: 'Something',
           storage: fakeStorage,
           chainId: 282,
-        })
+        }),
       ).rejects.toThrow();
     });
 
@@ -71,7 +71,7 @@ describe('helpers.test.ts', () => {
           contractName: 'SomethingElse',
           storage: fakeStorage,
           chainId: 282,
-        })
+        }),
       ).rejects.toThrow();
     });
 

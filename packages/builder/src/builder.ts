@@ -1,5 +1,5 @@
 import Debug from 'debug';
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 import _ from 'lodash';
 import * as viem from 'viem';
 import { ContractMap, DeploymentState, TransactionMap } from './';
@@ -21,7 +21,7 @@ export async function createInitialContext(
   pkg: any,
   chainId: number,
   opts: BuildOptions,
-  defaultSigner: viem.Address = viem.zeroAddress
+  defaultSigner: viem.Address = viem.zeroAddress,
 ): Promise<ChainBuilderContext> {
   const preCtx: PreChainBuilderContext = {
     package: pkg,
@@ -49,7 +49,7 @@ export async function build(
   def: ChainDefinition,
   state: DeploymentState,
   initialCtx: ChainBuilderContext,
-  skipPreflight?: true
+  skipPreflight?: true,
 ): Promise<DeploymentState> {
   if (!skipPreflight) {
     debug('preflight');
@@ -195,7 +195,7 @@ export async function buildLayer(
   state: DeploymentState,
   cur: string,
   tainted: Set<string> = new Set(),
-  built: Map<string, ChainArtifacts> = new Map()
+  built: Map<string, ChainArtifacts> = new Map(),
 ) {
   const layers = def.getStateLayers();
 
@@ -312,7 +312,7 @@ export async function buildLayer(
           currentLabel: action,
         },
         def.getConfig(action, ctx),
-        _.clone(ctx)
+        _.clone(ctx),
       );
 
       if (!newArtifacts) {
@@ -367,7 +367,7 @@ export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageSta
     {
       timeout: ActionKinds[type].timeout || DEFAULT_STEP_TIMEOUT,
       errorInstance: new Error('timed out without error'),
-    }
+    },
   );
 
   runtime.emit(Events.PostStepExecute, type, label, cfg, ctx, result, 0);
@@ -390,7 +390,7 @@ export function getArtifacts(def: ChainDefinition, state: DeploymentState) {
 export async function getOutputs(
   runtime: ChainBuilderRuntime,
   def: ChainDefinition,
-  state: DeploymentState
+  state: DeploymentState,
 ): Promise<ChainArtifacts> {
   const artifacts = getArtifacts(def, state);
   if (runtime.snapshots) {

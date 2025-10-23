@@ -71,7 +71,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
           ' isRegisteredOnOptimism: ' +
           isRegisteredOnOptimism +
           ' isRegisteredOnMainnet: ' +
-          isRegisteredOnMainnet
+          isRegisteredOnMainnet,
       );
 
       // Throw an error if the package is registered on both
@@ -80,7 +80,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
       }
 
       return [isRegisteredOnOptimism, isRegisteredOnMainnet];
-    })
+    }),
   );
 
   const overrides: any = {};
@@ -127,7 +127,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
       debug('Should nominate owner for package: ', pkg.name, ' - ', shouldNominateOwner ? 'yes' : 'no');
 
       return mainnetRegistry.prepareSetPackageOwnership(pkg.name, undefined, shouldNominateOwner);
-    })
+    }),
   );
 
   const multicallTx = prepareMulticall(transactions.flat());
@@ -139,7 +139,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
   const cost = estimateGas + registerFee;
   if (cost > userBalance) {
     throw new Error(
-      `Account "${userAddress}" does not have the required ${viem.formatEther(cost)} ETH for gas and registration fee`
+      `Account "${userAddress}" does not have the required ${viem.formatEther(cost)} ETH for gas and registration fee`,
     );
   }
 
@@ -150,7 +150,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
   packageRefs.forEach((pkg: PackageReference) => logSpinner(' - Package:', blueBright(pkg.name)));
   logSpinner();
   logSpinner(
-    `The transaction will cost ~${viem.formatEther(estimateGas * currentGasPrice)} ETH on ${mainnetRegistryConfig.name}.`
+    `The transaction will cost ~${viem.formatEther(estimateGas * currentGasPrice)} ETH on ${mainnetRegistryConfig.name}.`,
   );
   logSpinner('');
 
@@ -181,8 +181,8 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
         logSpinner('');
         logSpinner(
           gray(
-            `Waiting for the transaction to propagate to ${optimismRegistryConfig.name}... It may take approximately 1-3 minutes.`
-          )
+            `Waiting for the transaction to propagate to ${optimismRegistryConfig.name}... It may take approximately 1-3 minutes.`,
+          ),
         );
         logSpinner('');
 
@@ -214,14 +214,14 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
                 },
               }),
             ]);
-          })
+          }),
         );
       })(),
     ]);
 
-    packageRefs.map(async (pkg) => {
+    for (const pkg of packageRefs) {
       logSpinner(green(`Success - Package "${pkg.name}" has been registered.`));
-    });
+    }
 
     if (fromPublish) {
       logSpinner('');

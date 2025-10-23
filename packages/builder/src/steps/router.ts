@@ -119,10 +119,10 @@ const routerStep = {
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt, possibleFields));
     accesses = mergeTemplateAccesses(
       accesses,
-      computeTemplateAccesses(typeof config.create2 === 'string' ? config.create2 : '', possibleFields)
+      computeTemplateAccesses(typeof config.create2 === 'string' ? config.create2 : '', possibleFields),
     );
     accesses.accesses.push(
-      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`))
+      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`)),
     );
 
     if (config?.overrides) {
@@ -238,7 +238,7 @@ const routerStep = {
     if (config.create2) {
       const arachnidDeployerAddress = await ensureArachnidCreate2Exists(
         runtime,
-        typeof config.create2 === 'string' ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR
+        typeof config.create2 === 'string' ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR,
       );
 
       debug('performing arachnid create2');
@@ -255,7 +255,7 @@ const routerStep = {
         if (config.ifExists !== 'continue') {
           throw new CannonError(
             `The contract at the create2 destination ${addr} is already deployed, but the Cannon state does not recognize that this contract has already been deployed. This typically indicates incorrect upgrade configuration. Please confirm if this contract should already be deployed or not, and if you want to continue the build as-is, add 'ifExists = "continue"' to the step definition`,
-            'CREATE2_COLLISION'
+            'CREATE2_COLLISION',
           );
         }
         receipt = null;
@@ -280,7 +280,7 @@ const routerStep = {
       debug('using deploy signer with address', signer.address);
 
       const preparedTxn = await signer.wallet.prepareTransactionRequest(
-        _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
+        _.assign(txn, overrides, { account: signer.wallet.account || signer.address }),
       );
 
       const hash = await signer.wallet.sendTransaction(preparedTxn as any);

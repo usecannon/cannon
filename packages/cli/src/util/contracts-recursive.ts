@@ -3,7 +3,7 @@ import { mapKeys } from 'lodash';
 
 export function getContractsRecursive(
   outputs: ChainArtifacts,
-  prefix?: string
+  prefix?: string,
 ): {
   [x: string]: ContractData;
 } {

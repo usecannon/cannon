@@ -67,7 +67,7 @@ export async function publish({
 
   if (!deploys || deploys.length === 0) {
     throw new Error(
-      `Could not find any deployments for ${fullPackageRef} with chain id ${chainId}. If you have the IPFS hash of the deployment data, use the fetch command. Otherwise, rebuild the package.`
+      `Could not find any deployments for ${fullPackageRef} with chain id ${chainId}. If you have the IPFS hash of the deployment data, use the fetch command. Otherwise, rebuild the package.`,
     );
   }
 
@@ -162,7 +162,7 @@ export async function publish({
 
     if (totalFees > 0n && totalFees >= balance) {
       throw new Error(
-        `You do not appear to have enough ETH in your wallet to publish (balance: ${viem.formatEther(balance)} ETH)`
+        `You do not appear to have enough ETH in your wallet to publish (balance: ${viem.formatEther(balance)} ETH)`,
       );
     }
   }

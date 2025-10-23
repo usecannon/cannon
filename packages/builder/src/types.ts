@@ -107,7 +107,7 @@ export const CannonHelperContext = deepFreeze(
     ...viemContext,
     ...ethersContext,
     ...jsContext,
-  })
+  }),
 );
 
 export type BuildOptions = { [val: string]: string };
@@ -131,7 +131,7 @@ export interface ChainBuilderRuntimeInfo {
   // returns a signer which should be used for sending the specified transaction.
   getDefaultSigner?: (
     txn: Omit<viem.SendTransactionParameters, 'account' | 'chain'>,
-    salt?: string
+    salt?: string,
   ) => Promise<CannonSigner>;
 
   // returns contract information from the specified artifact name.

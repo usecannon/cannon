@@ -16,7 +16,7 @@ describe('steps/var.ts', () => {
           bar: '<%= settings.salt %>',
           // TODO: For some reason the zod types dont come out here to properly represent `depends`
           depends: ['<%= settings.A %>'] as any,
-        }
+        },
       );
 
       expect(result).toStrictEqual({

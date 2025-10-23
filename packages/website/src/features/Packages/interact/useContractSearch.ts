@@ -11,7 +11,7 @@ export function useContractSearch(options: Option[]) {
       new Fuse<Option>(options, {
         keys: ['moduleName', 'contractName', 'contractAddress'],
       }),
-    [options]
+    [options],
   );
 
   useEffect(() => {

@@ -50,7 +50,7 @@ export async function readDeployRecursive(packageRef: string, chainId: number): 
             debug(`Error processing ${url}: ${error}`);
           }
         }
-      })
+      }),
     );
   }
 

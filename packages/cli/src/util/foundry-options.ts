@@ -20,7 +20,7 @@ const normalizeFlag = (flag: string): string =>
 const pickFoundryOptions = (
   prefix: FoundryFlagPrefix,
   options: Record<string, any>,
-  cannonOptions: Option[]
+  cannonOptions: Option[],
 ): Record<string, any> => {
   const validKeys = cannonOptions.reduce((accum, curr) => {
     if (curr.flags.startsWith(`--${prefix}`)) {

@@ -21,10 +21,10 @@ export const keeperSchema = z
         depends: z
           .array(z.string())
           .describe(
-            'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+            'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.',
           ),
       })
-      .deepPartial()
+      .deepPartial(),
   );
 
 export type Config = z.infer<typeof keeperSchema>;

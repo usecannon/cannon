@@ -50,10 +50,10 @@ export interface RunOptions {
 const INITIAL_INSTRUCTIONS = green(`Press ${bold('h')} to see help information for this command.`);
 const INSTRUCTIONS = green(
   `Press ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
-    'i'
+    'i',
   )} to interact with contracts via the command line.\nPress ${bold(
-    'v'
-  )} to toggle display verbosity of transaction traces as they run.`
+    'v',
+  )} to toggle display verbosity of transaction traces as they run.`,
 );
 
 export async function run(packages: PackageSpecification[], options: RunOptions): Promise<void> {
@@ -108,7 +108,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       allowPartialDeploy: false,
     },
     resolver,
-    getMainLoader(cliSettings)
+    getMainLoader(cliSettings),
   );
 
   for (const pkg of packages) {
@@ -132,7 +132,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
       if (!deployData) {
         throw new Error(
-          `deployment not found: ${fullPackageRef}. please make sure it exists for the network ${basicRuntime.chainId}`
+          `deployment not found: ${fullPackageRef}. please make sure it exists for the network ${basicRuntime.chainId}`,
         );
       }
 
@@ -155,8 +155,8 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   if (!signers.length) {
     warnSpinner(
       yellow(
-        '\nWARNING: no signers resolved. Specify signers with --mnemonic or --private-key (or use --impersonate if on a fork).'
-      )
+        '\nWARNING: no signers resolved. Specify signers with --mnemonic or --private-key (or use --impersonate if on a fork).',
+      ),
     );
   }
 

@@ -135,7 +135,7 @@ describe('alter', () => {
       [packageName],
       chainId,
       newUrl,
-      metaUrl
+      metaUrl,
     );
   });
 
@@ -154,7 +154,7 @@ describe('alter', () => {
       [packageName],
       chainId,
       newUrl,
-      metaUrl
+      metaUrl,
     );
   }, 10000);
 
@@ -180,7 +180,7 @@ describe('alter', () => {
       [packageName],
       chainId,
       newUrl,
-      metaUrl
+      metaUrl,
     );
   });
 
@@ -202,7 +202,7 @@ describe('alter', () => {
       [packageName],
       chainId,
       newUrl,
-      metaUrl
+      metaUrl,
     );
   });
 
@@ -221,7 +221,7 @@ describe('alter', () => {
       [packageName],
       chainId,
       newUrl,
-      metaUrl
+      metaUrl,
     );
   }, 10000);
 });

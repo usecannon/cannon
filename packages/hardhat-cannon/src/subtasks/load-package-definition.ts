@@ -22,7 +22,7 @@ subtask(SUBTASK_LOAD_PACKAGE_DEFINITION).setAction(
         return parsePackageArguments(val, result);
       }, packageSpec));
     }
-  }
+  },
 );
 
 async function getDefaultPackageDefinition(hre: HardhatRuntimeEnvironment): Promise<PackageSpecification> {

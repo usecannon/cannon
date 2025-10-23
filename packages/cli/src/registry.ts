@@ -61,7 +61,7 @@ export class LocalRegistry extends CannonRegistry {
       'load local package link',
       fullPackageRef,
       'at file',
-      this.getTagReferenceStorage(fullPackageRef, chainId).replace(os.homedir(), '')
+      this.getTagReferenceStorage(fullPackageRef, chainId).replace(os.homedir(), ''),
     );
     try {
       return {
@@ -96,7 +96,7 @@ export class LocalRegistry extends CannonRegistry {
     chainId: number,
     url: string,
     metaUrl: string,
-    mutabilityOverride?: 'version' | 'tag'
+    mutabilityOverride?: 'version' | 'tag',
   ): Promise<string[]> {
     for (const packageName of packagesNames) {
       const { fullPackageRef } = new PackageReference(packageName);
@@ -136,7 +136,7 @@ export class LocalRegistry extends CannonRegistry {
           let tag: PackageReference;
           try {
             tag = PackageReference.from(tagName, tagVersion, tagPreset);
-          } catch (er) {
+          } catch (err) {
             return false;
           }
 
@@ -202,8 +202,8 @@ export async function checkLocalRegistryOverride({
   if (registry instanceof OnChainRegistry && localResult && localResult != result) {
     log(
       yellowBright(
-        `⚠️  The package ${fullPackageRef} was found on the official on-chain registry, but you also have a local build of this package. To use this local build instead, run this command with '--registry-priority local'`
-      )
+        `⚠️  The package ${fullPackageRef} was found on the official on-chain registry, but you also have a local build of this package. To use this local build instead, run this command with '--registry-priority local'`,
+      ),
     );
   }
 }
@@ -212,8 +212,8 @@ export async function createOnChainOnlyRegistry(cliSettings: CliSettings): Promi
   const registryProviders = await resolveRegistryProviders({ cliSettings, action: ProviderAction.ReadProvider });
   return new FallbackRegistry(
     registryProviders.map(
-      (p) => new ReadOnlyOnChainRegistry({ provider: p.provider, address: cliSettings.registries[0].address })
-    )
+      (p) => new ReadOnlyOnChainRegistry({ provider: p.provider, address: cliSettings.registries[0].address }),
+    ),
   );
 }
 
@@ -223,13 +223,13 @@ export async function createLocalOnlyRegistry(cliSettings: CliSettings): Promise
 
 export async function createDefaultReadRegistry(
   cliSettings: CliSettings,
-  additionalRegistries: CannonRegistry[] = []
+  additionalRegistries: CannonRegistry[] = [],
 ): Promise<FallbackRegistry> {
   const registryProviders = await resolveRegistryProviders({ cliSettings, action: ProviderAction.ReadProvider });
 
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
   const onChainRegistries = registryProviders.map(
-    (p, i) => new ReadOnlyOnChainRegistry({ provider: p.provider, address: cliSettings.registries[i].address })
+    (p, i) => new ReadOnlyOnChainRegistry({ provider: p.provider, address: cliSettings.registries[i].address }),
   );
 
   if (cliSettings.registryPriority === 'offline') {
@@ -240,8 +240,8 @@ export async function createDefaultReadRegistry(
     // When not connected to the internet, we don't want to check the on-chain registry version to not throw an error
     log(
       yellowBright(
-        '⚠️  You are not connected to the internet or using a VPN that is limiting connectivity. Cannon will only use packages available locally.'
-      )
+        '⚠️  You are not connected to the internet or using a VPN that is limiting connectivity. Cannon will only use packages available locally.',
+      ),
     );
     return new FallbackRegistry([...additionalRegistries, localRegistry]);
   } else {

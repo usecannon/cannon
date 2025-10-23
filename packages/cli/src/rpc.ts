@@ -87,7 +87,7 @@ export async function runRpc(anvilOptions: Record<string, any>, rpcOptions: RpcO
       {
         timeout: ANVIL_OP_TIMEOUT,
         errorInstance: new Error('could not shut down previous anvil'),
-      }
+      },
     );
   }
 
@@ -125,7 +125,7 @@ curl -L https://foundry.paradigm.xyz | bash
 foundryup
 
 For more info, see https://book.getfoundry.sh/getting-started/installation.html
-          `)
+          `),
             );
           }
         });
@@ -169,9 +169,9 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
     {
       timeout: ANVIL_OP_TIMEOUT,
       errorInstance: new Error(
-        'Timeout - Anvil failed to start. If you are using a VPN or firewall, it might be causing a connection issue. Try disabling them.'
+        'Timeout - Anvil failed to start. If you are using a VPN or firewall, it might be causing a connection issue. Try disabling them.',
       ),
-    }
+    },
   );
 }
 
@@ -198,7 +198,7 @@ export function createProviderProxy(provider: viem.Client): Promise<string> {
             jsonrpc: '2.0',
             result: proxiedResult,
             id: reqJson.id,
-          })
+          }),
         );
       } catch (err) {
         debug('got rpc error', err);
@@ -208,7 +208,7 @@ export function createProviderProxy(provider: viem.Client): Promise<string> {
             jsonrpc: '2.0',
             error: err,
             id: reqJson.id,
-          })
+          }),
         );
       }
     });

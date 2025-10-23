@@ -8,7 +8,7 @@ task(TASK_TEST, 'Utility for running hardhat tests on the cannon network')
   .addOptionalVariadicPositionalParam('settings', 'Custom settings for building the cannonfile', [])
   .addOptionalParam(
     'anvilOptions',
-    '(Optional) Custom anvil options json string or json file to configure when running on the cannon network or a local forked node'
+    '(Optional) Custom anvil options json string or json file to configure when running on the cannon network or a local forked node',
   )
   .addOptionalParam('registryPriority', '(Optional) Which registry should be used first?', 'local')
   .addFlag('noCompile', "Don't compile before running this task")

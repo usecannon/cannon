@@ -233,8 +233,8 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
       logSpinner('');
       logSpinner(
         gray(
-          `Waiting for the transaction to propagate to ${optimismRegistryConfig.name}... It may take approximately 1-3 minutes.`
-        )
+          `Waiting for the transaction to propagate to ${optimismRegistryConfig.name}... It may take approximately 1-3 minutes.`,
+        ),
       );
       logSpinner('');
 

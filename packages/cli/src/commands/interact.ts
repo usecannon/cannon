@@ -33,7 +33,6 @@ export async function interact(ctx: InteractTaskArgs) {
   let currentArgs: any[] | null = null;
   let txnValue = BigInt(0);
 
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     if (ctx.packages.length === 1) {
       pickedPackage = 0;
@@ -315,7 +314,7 @@ async function query({
 
     logSpinner(
       cyan(`  ↪ ${output.name || ''}(${output.type}):`),
-      renderArgs(output, functionAbi.outputs.length > 1 ? result[i] : result)
+      renderArgs(output, functionAbi.outputs.length > 1 ? result[i] : result),
     );
   }
 
@@ -356,7 +355,7 @@ async function execTxn({
       _.assign(txn, {
         account: signer.wallet.account || signer.address,
         chain,
-      })
+      }),
     )) as any;
 
     logSpinner(gray(`  > calldata: ${txn!.data}`));
@@ -364,9 +363,9 @@ async function execTxn({
     logSpinner(
       gray(
         `  > gas: ${JSON.stringify(
-          _.mapValues(_.pick(txn, 'gasPrice', 'maxFeePerGas', 'maxPriorityFeePerGas'), viem.formatGwei)
-        )}`
-      )
+          _.mapValues(_.pick(txn, 'gasPrice', 'maxFeePerGas', 'maxPriorityFeePerGas'), viem.formatGwei),
+        )}`,
+      ),
     );
     logSpinner(green(bold('  ✅ txn will succeed')));
   } catch (err) {
@@ -512,7 +511,7 @@ function parseWeiValue(v: string): bigint {
  * @returns {boolean} - True if the parameter is a tuple with components, false otherwise.
  */
 function _isTupleParameter(
-  parameter: viem.AbiParameter
+  parameter: viem.AbiParameter,
 ): parameter is viem.AbiParameter & { components: readonly viem.AbiParameter[] } {
   return 'components' in parameter && parameter.type.startsWith('tuple');
 }
@@ -582,7 +581,7 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: viem.TransactionRece
   if (receipt.logs && receipt.logs.length > 0) {
     const contractsByAddress = _.mapKeys(
       _.groupBy(_.flatten(ctx.contracts.map((contract) => _.toPairs(contract))), '1.address'),
-      (v, k) => k.toLowerCase()
+      (v, k) => k.toLowerCase(),
     );
 
     for (let i = 0; i < receipt.logs.length; i++) {
@@ -657,5 +656,5 @@ const suggestBySubtring = (input: string, choices: [{ title: string }]) =>
         }
       }
       return true;
-    })
+    }),
   );

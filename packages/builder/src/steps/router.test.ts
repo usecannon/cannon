@@ -18,7 +18,7 @@ describe('steps/router.ts', () => {
 
     it('fails when setting invalid value', () => {
       expect(() => validateConfig(action.validate, { contracts: [], invalid: ['something'] })).toThrow(
-        "Unrecognized key(s) in object: 'invalid'"
+        "Unrecognized key(s) in object: 'invalid'",
       );
     });
   });
@@ -33,7 +33,7 @@ describe('steps/router.ts', () => {
           contracts: ['<%= settings.a %>', '<%= settings.b %>'],
           from: '<%= settings.from %>',
           salt: '<%= settings.salt %>',
-        }
+        },
       );
 
       expect(result).toStrictEqual({
@@ -207,8 +207,8 @@ describe('steps/router.ts', () => {
             contracts: ['Greeter'],
             create2: true,
           },
-          step
-        )
+          step,
+        ),
       ).rejects.toThrow('The contract at the create2 destination');
     });
 

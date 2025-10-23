@@ -39,7 +39,7 @@ export async function alter(
     | 'migrate-212'
     | 'clean-unused',
   targets: string[],
-  runtimeOverrides: Partial<ChainBuilderRuntime>
+  runtimeOverrides: Partial<ChainBuilderRuntime>,
 ) {
   const { fullPackageRef } = new PackageReference(packageRef);
 
@@ -67,7 +67,7 @@ export async function alter(
       ...runtimeOverrides,
     },
     resolver,
-    loader
+    loader,
   );
 
   const startDeployInfo = [await runtime.readDeploy(fullPackageRef, chainId)];
@@ -88,7 +88,7 @@ export async function alter(
       throw new Error('subpkg path name not found: ' + pathItem);
     }
     startDeployInfo.push(
-      await runtime.readBlob(_.last(startDeployInfo)!.state[pathItem].artifacts.imports![pathItem.split('.')[1]].url)
+      await runtime.readBlob(_.last(startDeployInfo)!.state[pathItem].artifacts.imports![pathItem.split('.')[1]].url),
     );
   }
 
@@ -122,7 +122,7 @@ export async function alter(
         for (const imp in deployInfo.state[actionStep].artifacts.imports) {
           // try to find the equivalent deployment for this network
           const thisNetworkState: DeploymentInfo = await runtime.readBlob(
-            deployInfo.state[actionStep].artifacts.imports![imp].url
+            deployInfo.state[actionStep].artifacts.imports![imp].url,
           );
 
           const thisNetworkDefinition = new ChainDefinition(thisNetworkState.def);
@@ -143,7 +143,7 @@ export async function alter(
 
           deployInfo.state[actionStep].artifacts.imports![imp] = _.assign(
             { url: '' },
-            await getOutputs(runtime, new ChainDefinition(newNetworkDeployment.def), newNetworkDeployment.state)
+            await getOutputs(runtime, new ChainDefinition(newNetworkDeployment.def), newNetworkDeployment.state),
           );
         }
       }
@@ -160,7 +160,7 @@ export async function alter(
     case 'import':
       if (targets.length !== 2) {
         throw new Error(
-          'incorrect number of arguments for import. Should be <operationName> <existingArtifacts (comma separated)>'
+          'incorrect number of arguments for import. Should be <operationName> <existingArtifacts (comma separated)>',
         );
       }
 
@@ -172,7 +172,7 @@ export async function alter(
 
         if (!stepAction.importExisting) {
           throw new Error(
-            `The given operation ${stepName} does not support import. Consider using mark-complete, mark-incomplete`
+            `The given operation ${stepName} does not support import. Consider using mark-complete, mark-incomplete`,
           );
         }
 
@@ -187,7 +187,7 @@ export async function alter(
           ctx,
           config,
           { currentLabel: stepName, ref: def.getPackageRef(ctx) },
-          existingKeys
+          existingKeys,
         );
 
         if (deployInfo.state[stepName]) {
@@ -206,7 +206,7 @@ export async function alter(
               ctx,
               config,
               { currentLabel: stepName, ref: def.getPackageRef(ctx) },
-              existingKeys
+              existingKeys,
             );
 
             // Recompute hash for this step in case there is a mismatch
@@ -215,10 +215,10 @@ export async function alter(
           } catch (err) {
             throw new Error(
               `Operation ${stepName} not found in deployment state and could not be populated by Cannon, here are the available operation options: \n ${Object.keys(
-                deployInfo.state
+                deployInfo.state,
               )
                 .map((s) => `\n ${s}`)
-                .join('\n')}`
+                .join('\n')}`,
             );
           }
         }
@@ -228,7 +228,7 @@ export async function alter(
     case 'set-contract-address': {
       if (targets.length !== 2) {
         throw new Error(
-          'incorrect number of arguments for set-contract-address. Should be <operationName> <contract address>'
+          'incorrect number of arguments for set-contract-address. Should be <operationName> <contract address>',
         );
       }
       const [targetContractName, targetAddress] = targets;
@@ -239,7 +239,7 @@ export async function alter(
 
       // find the step that deploy contract
       const [targetStep] = Object.values(deployInfo.state).filter(
-        (step) => !!step.artifacts?.contracts?.[targetContractName]
+        (step) => !!step.artifacts?.contracts?.[targetContractName],
       );
 
       if (!targetStep) {
@@ -260,7 +260,7 @@ export async function alter(
       for (const target of targets) {
         if (!deployInfo.state[target]) {
           warnSpinner(
-            `WARN: action ${target} does not exist in the cannon state for the given package. Setting dummy empty state.`
+            `WARN: action ${target} does not exist in the cannon state for the given package. Setting dummy empty state.`,
           );
           deployInfo.state[target] = {
             artifacts: { contracts: {}, txns: {}, extras: {} },
@@ -304,7 +304,7 @@ export async function alter(
             meta,
             'migrate-212',
             targets,
-            runtimeOverrides
+            runtimeOverrides,
           );
 
           deployInfo.state[k].artifacts.imports![k.split('.')[1]].url = newUrl;

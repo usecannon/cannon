@@ -24,7 +24,7 @@ export async function setup() {
   const settings = resolveCliSettings();
   const cliSettingsStore = untildify(path.join(settings.cannonDirectory, CLI_SETTINGS_STORE));
   logSpinner(
-    'Cannon’s settings are optional. They can be defined in a JSON file and overridden with environment variables.\n'
+    'Cannon’s settings are optional. They can be defined in a JSON file and overridden with environment variables.\n',
   );
   logSpinner(`This will update your settings stored in ${cliSettingsStore}`);
 

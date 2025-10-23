@@ -90,14 +90,14 @@ const cloneSpec = {
     if (config.options) {
       _.forEach(
         config.options,
-        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields)))
+        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))),
       );
     }
 
     if (config.tags) {
       _.forEach(
         config.tags,
-        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields)))
+        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))),
       );
     }
 
@@ -124,7 +124,7 @@ const cloneSpec = {
       runtime.emit(
         Events.Notice,
         packageState.currentLabel,
-        'To prevent unexpected upgrades, it is strongly recommended to lock the version of the source package by specifying a version in the `source` field.'
+        'To prevent unexpected upgrades, it is strongly recommended to lock the version of the source package by specifying a version in the `source` field.',
       );
     }
 
@@ -132,7 +132,7 @@ const cloneSpec = {
       runtime.emit(
         Events.Notice,
         packageState.currentLabel,
-        `Deploying cloned package to default preset ${targetRef.preset}`
+        `Deploying cloned package to default preset ${targetRef.preset}`,
       );
     }
 
@@ -142,7 +142,7 @@ const cloneSpec = {
       throw new Error(
         `deployment not found: ${source}. please make sure it exists for preset ${
           sourcePreset || sourceRef.preset
-        } and network ${chainId}.`
+        } and network ${chainId}.`,
       );
     }
 
@@ -176,8 +176,8 @@ const cloneSpec = {
         debug(
           `[clone.${importLabel}]`,
           yellow(
-            'There is a pre-existing deployment for this preset and chain id. This build will overwrite. Did you mean `import`?'
-          )
+            'There is a pre-existing deployment for this preset and chain id. This build will overwrite. Did you mean `import`?',
+          ),
         );
       }
 
@@ -190,7 +190,7 @@ const cloneSpec = {
       deployInfo.meta,
       runtime.chainId,
       importPkgOptions,
-      ctx.defaultSigner
+      ctx.defaultSigner,
     );
 
     // use separate runtime to ensure everything is clear
@@ -228,7 +228,7 @@ const cloneSpec = {
       debug(
         `[clone.${importLabel}]`,
         'built state is exactly equal to previous state. skip generation of new deploy url',
-        importLabel
+        importLabel,
       );
       return {
         imports: {
@@ -268,7 +268,7 @@ const cloneSpec = {
         [target, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
         runtime.chainId,
         newSubDeployUrl,
-        (await runtime.registry.getMetaUrl(source, chainId)) || ''
+        (await runtime.registry.getMetaUrl(source, chainId)) || '',
       );
     }
 

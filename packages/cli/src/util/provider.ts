@@ -106,9 +106,9 @@ export async function resolveProvider({
         errorSpinner(
           red(
             `Failed to establish a connection with any RPC. Please specify a valid RPC url using the ${bold(
-              '--rpc-url'
-            )} flag.`
-          )
+              '--rpc-url',
+            )} flag.`,
+          ),
         );
         process.exit(1);
       }
@@ -143,7 +143,7 @@ export async function resolveRegistryProviders({
         checkProviders: registryInfo.rpcUrl,
         privateKey: cliSettings.privateKey!,
         action,
-      })
+      }),
     );
   }
 
@@ -186,7 +186,7 @@ export async function resolveProviderAndSigners({
   debug(
     'resolving provider',
     checkProviders.map((p) => hideApiKey(p)),
-    chainId
+    chainId,
   );
 
   const rawProvider = provider(checkProviders, { origin: 'Cannon' });
@@ -206,7 +206,7 @@ export async function resolveProviderAndSigners({
   if (isURL(checkProviders[0])) {
     debug(
       'use explicit provider url',
-      checkProviders.map((p) => hideApiKey(p))
+      checkProviders.map((p) => hideApiKey(p)),
     );
     try {
       publicClient = (
@@ -220,9 +220,9 @@ export async function resolveProviderAndSigners({
         errorSpinner(
           red(
             `Failed to establish a connection with any RPC. Please specify a valid RPC url using the ${bold(
-              '--rpc-url'
-            )} flag.`
-          )
+              '--rpc-url',
+            )} flag.`,
+          ),
         );
         process.exit(1);
       }
@@ -248,7 +248,7 @@ export async function resolveProviderAndSigners({
               transport: viem.custom(publicClient.transport),
             }),
           };
-        })
+        }),
       );
     } else {
       debug('no signer supplied for provider');
@@ -295,7 +295,7 @@ export async function resolveProviderAndSigners({
                 chain: getChainById(chainId),
                 transport: viem.custom(publicClient.transport),
               }),
-            }))
+            })),
           );
 
           break;
@@ -337,9 +337,9 @@ export async function resolveProviderAndSigners({
         errorSpinner(
           red(
             `Failed to establish a connection with any RPC. Please specify a valid RPC url using the ${bold(
-              '--rpc-url'
-            )} flag.`
-          )
+              '--rpc-url',
+            )} flag.`,
+          ),
         );
         process.exit(1);
       }

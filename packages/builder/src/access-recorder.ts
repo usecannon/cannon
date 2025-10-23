@@ -46,7 +46,7 @@ export class AccessRecorder extends ExtendableProxy {
         ...this.accessed
           .get(k)!
           .getAccesses(depth, (cur || 1) + 1)
-          .map((a) => `${k}.${a}`)
+          .map((a) => `${k}.${a}`),
       );
     }
 

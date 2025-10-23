@@ -32,7 +32,7 @@ export async function inspect(
   cliSettings: CliSettings,
   out: FormatType,
   writeDeployments: string,
-  sources: boolean
+  sources: boolean,
 ) {
   if (out && !formatTypes.includes(out)) {
     throw new Error(`invalid --out value: "${out}". Valid types are: '${formatTypes.join("' | '")}'`);
@@ -59,7 +59,7 @@ export async function inspect(
     await Promise.all(
       files.map(([filepath, contractData]) => {
         return fs.outputFile(filepath, JSON.stringify(contractData, null, 2));
-      })
+      }),
     );
   }
 
@@ -87,15 +87,19 @@ export async function inspect(
     logSpinner();
     logSpinner(
       '   Deploy Status:',
-      deployInfo.status === 'partial' ? yellow(bold(deployInfo.status)) : green(deployInfo.status || 'complete')
+      deployInfo.status === 'partial' ? yellow(bold(deployInfo.status)) : green(deployInfo.status || 'complete'),
     );
     logSpinner(
       '         Options:',
       Object.entries(deployInfo.options)
         .map((o) => `${o[0]}=${o[1]}`)
-        .join(' ') || '(none)'
+        .join(' ') || '(none)',
     );
-    packageOwner ? logSpinner('           Owner:', packageOwner) : logSpinner('          Source:', localSource || '(none)');
+    if (packageOwner) {
+      logSpinner('           Owner:', packageOwner);
+    } else {
+      logSpinner('          Source:', localSource || '(none)');
+    }
     logSpinner('     Package URL:', ipfsUrl);
     logSpinner('        Misc URL:', deployInfo.miscUrl);
     logSpinner('Package Info URL:', metaUrl || '(none)');
@@ -103,7 +107,7 @@ export async function inspect(
     logSpinner('       Timestamp:', new Date(deployInfo.timestamp * 1000).toLocaleString());
     logSpinner(
       'Contract Sources:',
-      bold((contractSources.length ? yellow : green)(contractSources.length + ' sources included'))
+      bold((contractSources.length ? yellow : green)(contractSources.length + ' sources included')),
     );
     logSpinner();
     logSpinner('IPFS Availability Score(# of nodes): ', ipfsAvailabilityScore || 'Run IPFS Locally to get this score');

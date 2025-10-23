@@ -16,7 +16,7 @@ export function getHardhatSigners(hre: HardhatRuntimeEnvironment /*, provider: v
     signers = Array(accounts.count)
       .fill(0)
       .map((_, i) =>
-        mnemonicToAccount(accounts.mnemonic, { path: (accounts.path + `/${i + accounts.initialIndex}`) as any })
+        mnemonicToAccount(accounts.mnemonic, { path: (accounts.path + `/${i + accounts.initialIndex}`) as any }),
       );
   }
 

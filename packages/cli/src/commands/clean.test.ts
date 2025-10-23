@@ -24,7 +24,7 @@ describe('clean function', () => {
       Promise.resolve([
         { name: 'file1.txt', isDirectory: () => false },
         { name: 'dir1', isDirectory: () => true },
-      ])
+      ]),
     );
     jest.spyOn(fs, 'rm').mockImplementation(() => Promise.resolve());
   });

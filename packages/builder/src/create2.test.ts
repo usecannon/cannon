@@ -20,7 +20,7 @@ describe('util.ts', () => {
       };
 
       await expect(() => ensureArachnidCreate2Exists(fakeRuntime, ARACHNID_DEFAULT_DEPLOY_ADDR)).rejects.toThrowError(
-        'could not populate arachnid signer address'
+        'could not populate arachnid signer address',
       );
     });
 
@@ -44,7 +44,7 @@ describe('util.ts', () => {
       const [, addr] = makeArachnidCreate2Txn(
         '0x0000000000000000000000000000000000000000000000000000000000000000',
         '0x00',
-        '0x0000000000000000000000000000000000000000'
+        '0x0000000000000000000000000000000000000000',
       );
 
       expect(addr).toEqual('0x4D1A2e2bB4F88F0250f26Ffff098B0b30B26BF38');
@@ -54,7 +54,7 @@ describe('util.ts', () => {
       const [txn] = makeArachnidCreate2Txn(
         '0x0987654321000000000000000000000000000000000000000000000000000000',
         '0x1234567890',
-        DEFAULT_ARACHNID_ADDRESS
+        DEFAULT_ARACHNID_ADDRESS,
       );
 
       expect(txn.to).toEqual(DEFAULT_ARACHNID_ADDRESS);
@@ -65,7 +65,7 @@ describe('util.ts', () => {
       const [, addr] = makeArachnidCreate2Txn(
         'hello world', // arbitrary string salt
         '0x00',
-        '0x0000000000000000000000000000000000000000'
+        '0x0000000000000000000000000000000000000000',
       );
 
       expect(addr).toEqual('0x69D36DFe281136ef662ED1A2E80a498A5461226D');

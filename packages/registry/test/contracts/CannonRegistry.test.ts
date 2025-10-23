@@ -42,7 +42,7 @@ describe('CannonRegistry', function () {
         MockERC20.address,
         MockOPSendBridge.address,
         MockOPRecvBridge.address,
-        chainId
+        chainId,
       );
       const tx = await CannonRegistry.upgradeTo(newImplementation.address);
       await tx.wait();
@@ -75,7 +75,7 @@ describe('CannonRegistry', function () {
     it('it validates package names of 32 characters directly', async function () {
       equal(
         await CannonRegistry.validatePackageName('0x692D646F6E742D636F6E7461696E2D612D6E756C6C2D7465726D696E61746F72'),
-        true
+        true,
       );
 
       equal(await CannonRegistry.validatePackageName(toBytes32('i-dont-contain-a-null-terminator')), true);
@@ -143,7 +143,7 @@ describe('CannonRegistry', function () {
     it('sends package ownership change function', async function () {
       equal(
         await MockOPSendBridge.lastCrossChainMessage(),
-        '0xbc1fe85d736f6d652d6d6f64756c6500000000000000000000000000000000000000000000000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c8'
+        '0xbc1fe85d736f6d652d6d6f64756c6500000000000000000000000000000000000000000000000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c8',
       );
     });
 
@@ -155,7 +155,7 @@ describe('CannonRegistry', function () {
             CannonRegistry.interface.encodeFunctionData('setPackageOwnership' as any, [
               toBytes32('some-module'),
               await user2.getAddress(),
-            ])
+            ]),
           );
         }, 'WrongChain(1)');
       });
@@ -167,7 +167,7 @@ describe('CannonRegistry', function () {
           CannonRegistry.interface.encodeFunctionData('setPackageOwnership' as any, [
             toBytes32('some-module'),
             await user2.getAddress(),
-          ])
+          ]),
         );
         await MockOPRecvBridge.setXDomainMessageSender(await user2.getAddress());
       });
@@ -189,7 +189,7 @@ describe('CannonRegistry', function () {
             [toBytes32('0.0.1')],
             '',
             'ipfs://some-module-meta@0.0.1',
-            { value: 0 }
+            { value: 0 },
           );
         }, 'FeeRequired(100)');
       } finally {
@@ -208,7 +208,7 @@ describe('CannonRegistry', function () {
             [toBytes32('0.0.1')],
             '',
             'ipfs://some-module-meta@0.0.1',
-            { value: 80 }
+            { value: 80 },
           );
         }, 'FeeRequired(100)');
       } finally {
@@ -224,7 +224,7 @@ describe('CannonRegistry', function () {
           [toBytes32('0.0.1')],
           '',
           'ipfs://some-module-meta@0.0.1',
-          { value: fee }
+          { value: fee },
         );
       }, 'InvalidUrl("")');
     });
@@ -237,7 +237,7 @@ describe('CannonRegistry', function () {
           [],
           'ipfs://some-module-hash@0.0.1',
           'ipfs://some-module-meta@0.0.1',
-          { value: fee }
+          { value: fee },
         );
       }, 'InvalidTags()');
     });
@@ -250,7 +250,7 @@ describe('CannonRegistry', function () {
           ['one', 'two', 'three', 'four', 'five', 'six'].map(toBytes32),
           'ipfs://some-module-hash@0.0.1',
           'ipfs://some-module-hash@0.0.1',
-          { value: fee }
+          { value: fee },
         );
       }, 'InvalidTags()');
     });
@@ -262,7 +262,7 @@ describe('CannonRegistry', function () {
         [toBytes32('0.0.2')],
         'ipfs://some-module-hash@0.0.2',
         'ipfs://some-module-meta@0.0.2',
-        { value: fee }
+        { value: fee },
       );
 
       const { events } = await tx.wait();
@@ -273,12 +273,12 @@ describe('CannonRegistry', function () {
       const resultUrl = await CannonRegistry.getPackageUrl(
         toBytes32('some-module'),
         toBytes32('0.0.2'),
-        toBytes32('1337-main')
+        toBytes32('1337-main'),
       );
       const metaUrl = await CannonRegistry.getPackageMeta(
         toBytes32('some-module'),
         toBytes32('0.0.2'),
-        toBytes32('1337-main')
+        toBytes32('1337-main'),
       );
 
       equal(resultUrl, 'ipfs://some-module-hash@0.0.2');
@@ -292,7 +292,7 @@ describe('CannonRegistry', function () {
         [toBytes32('0.0.1')],
         'ipfs://some-module-hash@0.0.1',
         'ipfs://some-module-meta@0.0.1',
-        { value: fee }
+        { value: fee },
       );
 
       const { events } = await tx.wait();
@@ -310,7 +310,7 @@ describe('CannonRegistry', function () {
         tags.map(toBytes32),
         'ipfs://updated-module-hash@0.0.3',
         'ipfs://updated-module-meta@0.0.3',
-        { value: fee }
+        { value: fee },
       );
 
       const expectedEvents = [
@@ -344,7 +344,7 @@ describe('CannonRegistry', function () {
           ['0.0.4', 'latest', 'stable'].map(toBytes32),
           'ipfs://some-module-hash@0.0.4',
           'ipfs://some-module-meta@0.0.4',
-          { value: fee }
+          { value: fee },
         );
       }, 'Unauthorized()');
     });
@@ -359,7 +359,7 @@ describe('CannonRegistry', function () {
         [toBytes32('1.0.0')],
         'ipfs://some-module-hash@1.0.0',
         'ipfs://some-module-meta@1.0.0',
-        { value: fee }
+        { value: fee },
       );
 
       // Try to republish the same version
@@ -370,7 +370,7 @@ describe('CannonRegistry', function () {
           [toBytes32('1.0.0')],
           'ipfs://some-module-hash@1.0.0-new',
           'ipfs://some-module-meta@1.0.0-new',
-          { value: fee }
+          { value: fee },
         );
       }, 'RepublishNotAllowed("0x736f6d652d6d6f64756c65000000000000000000000000000000000000000000", "0x313333372d6d61696e0000000000000000000000000000000000000000000000", "0x312e302e30000000000000000000000000000000000000000000000000000000", "0x76657273696f6e000000000000000000")');
     });
@@ -383,7 +383,7 @@ describe('CannonRegistry', function () {
         [toBytes32('1.2.3.4'), toBytes32('latest')],
         'ipfs://some-module-hash@latest',
         'ipfs://some-module-meta@latest',
-        { value: fee }
+        { value: fee },
       );
 
       // Try to publish the same tag as a version
@@ -394,7 +394,7 @@ describe('CannonRegistry', function () {
           [toBytes32('latest')],
           'ipfs://some-module-hash@latest-new',
           'ipfs://some-module-meta@latest-new',
-          { value: fee }
+          { value: fee },
         );
       }, 'RepublishNotAllowed("0x736f6d652d6d6f64756c65000000000000000000000000000000000000000000", "0x313333372d6d61696e0000000000000000000000000000000000000000000000", "0x6c61746573740000000000000000000000000000000000000000000000000000", "0x74616700000000000000000000000000")');
     });
@@ -407,19 +407,19 @@ describe('CannonRegistry', function () {
         [toBytes32('2.0.0'), toBytes32('stable')],
         'ipfs://some-module-hash@2.0.0',
         'ipfs://some-module-meta@2.0.0',
-        { value: fee }
+        { value: fee },
       );
 
       // Get package info for both
       const versionInfo = await CannonRegistry.getPackageInfo(
         toBytes32('some-module'),
         toBytes32('2.0.0'),
-        toBytes32('1337-main')
+        toBytes32('1337-main'),
       );
       const tagInfo = await CannonRegistry.getPackageInfo(
         toBytes32('some-module'),
         toBytes32('stable'),
-        toBytes32('1337-main')
+        toBytes32('1337-main'),
       );
 
       // Check mutability values
@@ -435,7 +435,7 @@ describe('CannonRegistry', function () {
         [toBytes32('3.0.0'), toBytes32('latest')],
         'ipfs://some-module-hash@3.0.0',
         'ipfs://some-module-meta@3.0.0',
-        { value: fee }
+        { value: fee },
       );
 
       // Publish a new version
@@ -445,14 +445,14 @@ describe('CannonRegistry', function () {
         [toBytes32('4.0.0'), toBytes32('latest')],
         'ipfs://some-module-hash@4.0.0',
         'ipfs://some-module-meta@4.0.0',
-        { value: fee }
+        { value: fee },
       );
 
       // Verify the tag now points to the new version
       const tagInfo = await CannonRegistry.getPackageInfo(
         toBytes32('some-module'),
         toBytes32('latest'),
-        toBytes32('1337-main')
+        toBytes32('1337-main'),
       );
       equal(tagInfo.deployUrl, 'ipfs://some-module-hash@4.0.0');
     });
@@ -472,12 +472,12 @@ describe('CannonRegistry', function () {
       const resultUrl = await CannonRegistry.getPackageUrl(
         toBytes32('some-module'),
         toBytes32('0.0.2'),
-        toBytes32('1337-main')
+        toBytes32('1337-main'),
       );
       const metaUrl = await CannonRegistry.getPackageMeta(
         toBytes32('some-module'),
         toBytes32('0.0.2'),
-        toBytes32('1337-main')
+        toBytes32('1337-main'),
       );
 
       equal(resultUrl, '');
@@ -489,7 +489,7 @@ describe('CannonRegistry', function () {
         await CannonRegistry.connect(user2).unpublish(
           toBytes32('some-module'),
           toBytes32('1337-main'),
-          ['0.0.4', 'latest', 'stable'].map(toBytes32)
+          ['0.0.4', 'latest', 'stable'].map(toBytes32),
         );
       }, 'Unauthorized()');
     });
@@ -509,7 +509,7 @@ describe('CannonRegistry', function () {
         tx = await CannonRegistry.connect(owner).setAdditionalPublishers(
           toBytes32('some-module'),
           [await user2.getAddress()],
-          [await user3.getAddress()]
+          [await user3.getAddress()],
         );
       });
 
@@ -533,7 +533,7 @@ describe('CannonRegistry', function () {
           ['0.0.10', 'latest', 'stable'].map(toBytes32),
           'ipfs://some-module-hash@0.0.10',
           'ipfs://some-module-meta@0.0.10',
-          { value: fee }
+          { value: fee },
         );
       });
 
@@ -564,7 +564,7 @@ describe('CannonRegistry', function () {
     it('nominates', async function () {
       const tx = await CannonRegistry.connect(owner).nominatePackageOwner(
         toBytes32('some-module'),
-        await user2.getAddress()
+        await user2.getAddress(),
       );
       const { events } = await tx.wait();
       equal(events!.length, 1);
@@ -582,7 +582,7 @@ describe('CannonRegistry', function () {
               toBytes32('some-module'),
               [await user3.getAddress()],
               [],
-            ])
+            ]),
           );
         }, 'WrongChain(1)');
       });
@@ -595,7 +595,7 @@ describe('CannonRegistry', function () {
             toBytes32('some-module'),
             [await user3.getAddress()],
             [],
-          ])
+          ]),
         );
         await MockOPRecvBridge.setXDomainMessageSender(await user2.getAddress());
       });
@@ -671,9 +671,12 @@ describe('CannonRegistry', function () {
     after(() => setBalance('0'));
 
     it('reverts when trying to withdraw not being the owner', async function () {
-      await assertRevert(async () => {
-        await CannonRegistry.connect(user2).withdraw();
-      }, `Unauthorized("${await user2.getAddress()}")`);
+      await assertRevert(
+        async () => {
+          await CannonRegistry.connect(user2).withdraw();
+        },
+        `Unauthorized("${await user2.getAddress()}")`,
+      );
     });
 
     it('reverts if there is no ETH in the contract to withdraw', async function () {

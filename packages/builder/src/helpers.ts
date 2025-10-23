@@ -21,7 +21,7 @@ export function getDefaultStorage() {
           chain: viem.extractChain({ chains: [mainnet, optimism], id: chainId as 10 | 1 }),
           transport: viem.http(),
         }) as viem.PublicClient,
-      })
+      }),
   );
 
   // Create a regsitry that loads data first from Memory to be able to utilize
@@ -42,7 +42,7 @@ export async function getCannonContract(args: {
 
   const deployInfo = await storage.readDeploy(
     typeof args.package === 'string' ? args.package : args.package.fullPackageRef,
-    args.chainId ?? CANNON_CHAIN_ID
+    args.chainId ?? CANNON_CHAIN_ID,
   );
 
   if (!deployInfo) {
@@ -55,7 +55,7 @@ export async function getCannonContract(args: {
 
   if (!contract) {
     throw new Error(
-      `requested contract ${args.contractName} not found in cannon package: ${args.package} (${args.chainId})`
+      `requested contract ${args.contractName} not found in cannon package: ${args.package} (${args.chainId})`,
     );
   }
 

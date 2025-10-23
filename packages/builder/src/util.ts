@@ -20,7 +20,7 @@ import { ChainArtifacts, CannonSigner, Contract } from './types';
 export async function getExecutionSigner(
   provider: viem.TestClient,
   txn: Omit<viem.SendTransactionParameters, 'account' | 'chain'>,
-  salt = ''
+  salt = '',
 ): Promise<CannonSigner> {
   const hasher = crypto.createHash('sha256');
 
@@ -49,7 +49,7 @@ export async function getExecutionSigner(
 
 export async function passThroughSigner(
   getSigner: (addr: string) => Promise<CannonSigner | null>,
-  addr: string
+  addr: string,
 ): Promise<CannonSigner> {
   const signer = await getSigner(addr);
 
@@ -177,7 +177,7 @@ ${def.allActionNames.join('\n')}`);
 
   for (const deps of problems.extraneousDeps) {
     str.push(
-      `${counter}: extraneous dependency ${deps.extraneous} in action ${deps.node} (note: already depended upon by ${deps.inDep})`
+      `${counter}: extraneous dependency ${deps.extraneous} in action ${deps.node} (note: already depended upon by ${deps.inDep})`,
     );
 
     counter++;
@@ -186,8 +186,8 @@ ${def.allActionNames.join('\n')}`);
   for (const clash of problems.outputClashes) {
     str.push(
       `${counter}: The following actions output the field '${clash.output}': ${clash.actions.join(
-        ', '
-      )}. (Only one action can occupy a particular output name)`
+        ', ',
+      )}. (Only one action can occupy a particular output name)`,
     );
   }
 

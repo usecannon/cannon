@@ -76,7 +76,7 @@ describe('registry.ts', () => {
     describe('publish()', () => {
       it('throws if signer is not specified', async () => {
         await expect(() =>
-          providerOnlyRegistry.publish(['dummy-package:0.0.1'], 1, 'ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i')
+          providerOnlyRegistry.publish(['dummy-package:0.0.1'], 1, 'ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i'),
         ).rejects.toThrowError('Missing signer for executing registry operations');
       });
 
@@ -89,7 +89,7 @@ describe('registry.ts', () => {
         jest.mocked(provider.getBalance).mockResolvedValue(BigInt(0));
 
         await expect(() =>
-          registry.publish(['dummy-package:0.0.1'], 1, 'ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i')
+          registry.publish(['dummy-package:0.0.1'], 1, 'ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i'),
         ).rejects.toThrowError(/Signer at .* is not funded with ETH./);
       });
 
@@ -129,8 +129,8 @@ describe('registry.ts', () => {
           registry.publish(
             ['dummy-package:0.0.1@main', 'dummy-package:latest@main'],
             1,
-            'ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i'
-          )
+            'ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i',
+          ),
         ).rejects.toThrow(`Signer "${signer.address}" does not have publishing permissions on the "dummy-package" package`);
       });
 
@@ -166,7 +166,7 @@ describe('registry.ts', () => {
         const retValue = await registry.publish(
           ['dummy-package:0.0.1@main', 'dummy-package:latest@main'],
           1,
-          'ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i'
+          'ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i',
         );
 
         // should only return the first receipt because its a multicall

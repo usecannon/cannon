@@ -125,6 +125,6 @@ export async function storeRead(publicClient: viem.PublicClient, space: viem.Add
       abi: ABI,
       functionName: 'getWithAddress',
       args: [space, k],
-    })) as viem.Hex
+    })) as viem.Hex,
   );
 }

@@ -72,7 +72,7 @@ export async function fetch(fullPackageRef: string | null, chainId: number | nul
         'Please verify that:\n' +
         '  - The IPFS hash is correct\n' +
         '  - The IPFS gateway is accessible\n' +
-        '  - The hash contains valid Cannon package data'
+        '  - The hash contains valid Cannon package data',
     );
   }
 
@@ -81,7 +81,7 @@ export async function fetch(fullPackageRef: string | null, chainId: number | nul
     def,
     deployInfo.meta,
     deployInfo.chainId || chainId || 13370,
-    deployInfo.options
+    deployInfo.options,
   );
 
   let packageRef = '';
@@ -92,8 +92,8 @@ export async function fetch(fullPackageRef: string | null, chainId: number | nul
     if (ref.name !== deployInfo.def.name) {
       warnSpinner(
         yellow(
-          'The IPFS package you downloaded is being saved to a different name than is recorded in the package data. Please double check to make sure this is correct.'
-        )
+          'The IPFS package you downloaded is being saved to a different name than is recorded in the package data. Please double check to make sure this is correct.',
+        ),
       );
       warnSpinner(yellow(bold(`Package Name (IPFS Data): ${deployInfo.def.name}`)));
       warnSpinner(yellow(bold(`Provided Name:            ${ref.name}`)));
@@ -101,8 +101,8 @@ export async function fetch(fullPackageRef: string | null, chainId: number | nul
     if (ref.version !== deployInfo.def.version) {
       warnSpinner(
         yellow(
-          'The IPFS package you downloaded is being saved to a different version than is recorded in the package data. Please double check to make sure that this is correct.'
-        )
+          'The IPFS package you downloaded is being saved to a different version than is recorded in the package data. Please double check to make sure that this is correct.',
+        ),
       );
       warnSpinner(yellow(bold(`Package Version (IPFS Data): ${deployInfo.def.version}`)));
       warnSpinner(yellow(bold(`Provided Version:            ${ref.version}`)));
@@ -110,8 +110,8 @@ export async function fetch(fullPackageRef: string | null, chainId: number | nul
     if (deployInfo.chainId !== null && chainId !== deployInfo.chainId) {
       warnSpinner(
         yellow(
-          'The IPFS package you downloaded is being saved to a different chain ID than is recorded in the package data. Please double check to make sure that this is correct.'
-        )
+          'The IPFS package you downloaded is being saved to a different chain ID than is recorded in the package data. Please double check to make sure that this is correct.',
+        ),
       );
       warnSpinner(yellow(bold(`Chain ID (IPFS Data):    ${deployInfo.chainId}`)));
       warnSpinner(yellow(bold(`Chain ID (User Input):   ${chainId}`)));
@@ -121,7 +121,7 @@ export async function fetch(fullPackageRef: string | null, chainId: number | nul
   } else {
     // Auto-detect package information from IPFS data
     packageRef = new PackageReference(
-      `${deployInfo.def.name}:${def.getVersion(preCtx) || 'latest'}@${def.getPreset(preCtx)}`
+      `${deployInfo.def.name}:${def.getVersion(preCtx) || 'latest'}@${def.getPreset(preCtx)}`,
     ).fullPackageRef;
 
     log(`\nDetected package: ${packageRef}`);
@@ -143,6 +143,6 @@ export async function fetch(fullPackageRef: string | null, chainId: number | nul
 
   logSpinner(`\n\nSuccessfully fetched and saved deployment data for the following package: ${packageRef}`);
   logSpinner(
-    `run 'cannon publish ${packageRef} --chain-id <CHAIN_ID> --private-key <PRIVATE_KEY>' to publish the package to the registry`
+    `run 'cannon publish ${packageRef} --chain-id <CHAIN_ID> --private-key <PRIVATE_KEY>' to publish the package to the registry`,
   );
 }

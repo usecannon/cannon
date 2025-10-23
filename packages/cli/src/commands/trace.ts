@@ -77,7 +77,7 @@ export async function trace({
       try {
         viem.decodeFunctionData({ abi, data });
         return true;
-      } catch (_) {
+      } catch (err) {
         // intentionally empty
       }
 
@@ -89,8 +89,8 @@ export async function trace({
     } else {
       logSpinner(
         yellow(
-          'Could not find a contract for this call. Are you sure the call can be traced on a contract on this cannon package? Pass `--to` to set manually if necessary'
-        )
+          'Could not find a contract for this call. Are you sure the call can be traced on a contract on this cannon package? Pass `--to` to set manually if necessary',
+        ),
       );
     }
   }
@@ -100,7 +100,7 @@ export async function trace({
   if (block) {
     // subtract one second because 1 second is added when the block is mined
     const blockInfo = await provider.getBlock(
-      (block || 'latest').match(/^[0-9]*$/) ? { blockNumber: BigInt(block) } : { blockTag: block as viem.BlockTag }
+      (block || 'latest').match(/^[0-9]*$/) ? { blockNumber: BigInt(block) } : { blockTag: block as viem.BlockTag },
     );
     const timestamp = blockInfo.timestamp - BigInt(1);
     rpc = await runRpc(
@@ -110,7 +110,7 @@ export async function trace({
         timestamp,
         chainId,
       },
-      { forkProvider: provider as any }
+      { forkProvider: provider as any },
     );
   } else {
     rpc = await runRpc({ port: 0, chainId }, { forkProvider: provider as any });
@@ -167,13 +167,13 @@ export async function trace({
           bold(
             `Transaction completes successfully with return value: ${
               traces[0].result?.output ?? 'unknown'
-            } (${totalGasUsed} gas)`
-          )
-        )
+            } (${totalGasUsed} gas)`,
+          ),
+        ),
       );
     } else {
       logSpinner(
-        red(bold(`Transaction completes with error: ${traces[0].result?.output ?? 'unknown'} (${totalGasUsed} gas)`))
+        red(bold(`Transaction completes with error: ${traces[0].result?.output ?? 'unknown'} (${totalGasUsed} gas)`)),
       );
     }
   } else {

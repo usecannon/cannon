@@ -204,8 +204,9 @@ export async function checkCannonVersion(currentVersion: string): Promise<void> 
 
 function loadPackageJson(filepath: string): { name: string; version: string } {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     return require(filepath);
-  } catch (_) {
+  } catch (err) {
     return { name: '', version: '' };
   }
 }
@@ -265,7 +266,7 @@ export async function loadCannonfile(filepath: string) {
 async function loadChainDefinitionToml(filepath: string, trace: string[]): Promise<[Partial<RawChainDefinition>, Buffer]> {
   if (!fs.existsSync(filepath)) {
     throw new Error(
-      `Chain definition TOML '${filepath}' not found. Include trace:\n${trace.map((p) => ' => ' + p).join('\n')}`
+      `Chain definition TOML '${filepath}' not found. Include trace:\n${trace.map((p) => ' => ' + p).join('\n')}`,
     );
   }
 
@@ -336,11 +337,11 @@ export async function ensureChainIdConsistency(rpcUrl?: string, chainId?: number
         logSpinner(
           red(
             `Error: The chainId (${providerChainId}) obtained from the ${bold('--rpc-url')} does not match with ${bold(
-              '--chain-id'
+              '--chain-id',
             )} value (${chainId}). Please ensure that the ${bold(
-              '--chain-id'
-            )} value matches the network your RPC is connected to.`
-          )
+              '--chain-id',
+            )} value matches the network your RPC is connected to.`,
+          ),
         );
 
         process.exit(1);
@@ -454,7 +455,7 @@ export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | unde
   normalizedPrivateKeys.forEach((key: viem.Hex) => {
     if (!isPrivateKey(key)) {
       throw new Error(
-        'Invalid private key found. Please verify the CANNON_PRIVATE_KEY environment variable, review your settings file, or check the value supplied to the --private-key flag'
+        'Invalid private key found. Please verify the CANNON_PRIVATE_KEY environment variable, review your settings file, or check the value supplied to the --private-key flag',
       );
     }
   });
@@ -472,7 +473,7 @@ interface PackageReferenceResult {
 export async function getPackageReference(
   packageRef: string,
   givenChainId: any,
-  givenRpcUrl?: string
+  givenRpcUrl?: string,
 ): Promise<{
   fullPackageRef: string;
   chainId: number;
@@ -498,7 +499,7 @@ export async function getPackageReference(
 export async function getPackageInfo(
   packageRef: string,
   givenChainId: any,
-  givenRpcUrl: string
+  givenRpcUrl: string,
 ): Promise<{
   fullPackageRef: string;
   chainId: number;

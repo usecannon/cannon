@@ -33,6 +33,6 @@ task(TASK_INSPECT, 'Inspect the details of a Cannon package')
       cliSettings,
       json ? 'deploy-json' : 'overview',
       writeDeployments,
-      sources
+      sources,
     );
   });

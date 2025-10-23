@@ -37,7 +37,7 @@ export function parsePackageArguments(val: string, result?: PackageSpecification
 
   if (!result && !packageMatch) {
     throw new InvalidArgumentError(
-      'First argument should be a cannon package name, e.g.: greeter:1.0.0 or greeter:latest@main'
+      'First argument should be a cannon package name, e.g.: greeter:1.0.0 or greeter:latest@main',
     );
   }
 

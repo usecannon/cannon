@@ -118,14 +118,14 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
 
   if (!deploys || deploys.length === 0) {
     throw new Error(
-      `Could not find any deployments for ${fullPackageRef} with chain id ${chainId}. If you have the IPFS hash of the deployment data, use the fetch command. Otherwise, rebuild the package.`
+      `Could not find any deployments for ${fullPackageRef} with chain id ${chainId}. If you have the IPFS hash of the deployment data, use the fetch command. Otherwise, rebuild the package.`,
     );
   }
 
   const onChainResults = await Promise.all(
     deploys.map(async (d) => {
       return [await onChainRegistry.getUrl(d.name, d.chainId), await onChainRegistry.getMetaUrl(d.name, d.chainId)];
-    })
+    }),
   );
 
   const publishedDeploys = deploys.reduce((acc: any[], deploy, index) => {
@@ -180,7 +180,7 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
     }\n - Max Priority Fee Per Gas: ${
       overrides.maxPriorityFeePerGas ? overrides.maxPriorityFeePerGas.toString() : 'default'
     }\n - Gas Limit: ${overrides.gasLimit ? overrides.gasLimit : 'default'}\n` +
-      " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
+      " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n",
   );
 
   logSpinner();

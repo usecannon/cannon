@@ -44,7 +44,7 @@ describe('runtime.ts', () => {
           getArtifact,
         },
         new InMemoryRegistry(),
-        { ipfs: loader }
+        { ipfs: loader },
       );
     });
 
@@ -242,7 +242,7 @@ describe('runtime.ts', () => {
         expect(() =>
           runtime.derive({
             priorityGasFee,
-          })
+          }),
         ).toThrow();
       });
     });

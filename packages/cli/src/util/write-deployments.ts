@@ -29,7 +29,6 @@ export async function writeModuleDeployments(deploymentPath: string, prefix: str
   for (const contract in outputs.contracts) {
     const file = path.join(deploymentPath, `${prefix}${contract}.json`);
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const contractOutputs = outputs.contracts![contract];
 
     const transformedOutput = {

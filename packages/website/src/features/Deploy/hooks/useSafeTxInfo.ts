@@ -14,7 +14,7 @@ function getSafeTransaction(
   txParamSignatureHash: string,
   txParamNonce: number,
   safeNonce: number,
-  safeDefinition: SafeDefinition
+  safeDefinition: SafeDefinition,
 ) {
   if (safeNonce && txParamNonce < safeNonce) {
     return (
@@ -23,7 +23,7 @@ function getSafeTransaction(
           txn._nonce.toString() === txParamNonce.toString() &&
           (!txParamSignatureHash ||
             txParamSignatureHash === txn.safeTxHash ||
-            txParamSignatureHash === getSafeTransactionHash(safeDefinition, txn))
+            txParamSignatureHash === getSafeTransactionHash(safeDefinition, txn)),
       ) || null
     );
   } else if (Array.isArray(stagedTxs) && stagedTxs.length) {
@@ -31,7 +31,7 @@ function getSafeTransaction(
       stagedTxs.find(
         (s) =>
           s.txn._nonce.toString() === txParamNonce.toString() &&
-          (!txParamSignatureHash || txParamSignatureHash === getSafeTransactionHash(safeDefinition, s.txn))
+          (!txParamSignatureHash || txParamSignatureHash === getSafeTransactionHash(safeDefinition, s.txn)),
       )?.txn || null
     );
   } else {
@@ -62,7 +62,7 @@ export function useSafeTxInfo(safeDefinition: SafeDefinition, txSignature: strin
     txSignature,
     txNonce,
     Number(safeNonce),
-    safeDefinition
+    safeDefinition,
   );
 
   // Parse multicall data and get related info

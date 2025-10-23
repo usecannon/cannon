@@ -23,7 +23,7 @@ export abstract class CannonRegistry {
       url: string;
       metaUrl: string;
       mutabilityOverride?: 'version' | 'tag';
-    }[]
+    }[],
   ): Promise<string[]> {
     const receipts: string[] = [];
     for (const pub of toPublish) {
@@ -72,7 +72,7 @@ export class InMemoryRegistry extends CannonRegistry {
     chainId: number,
     url: string,
     meta?: string,
-    mutabilityOverride?: 'version' | 'tag'
+    mutabilityOverride?: 'version' | 'tag',
   ): Promise<string[]> {
     const receipts: string[] = [];
     for (const [index, rawName] of packagesNames.entries()) {
@@ -99,7 +99,7 @@ export class InMemoryRegistry extends CannonRegistry {
 
   async getUrl(
     packageOrServiceRef: string,
-    chainId: number
+    chainId: number,
   ): Promise<{ url: string | null; mutability: 'version' | 'tag' | '' }> {
     const baseResolved = await super.getUrl(packageOrServiceRef, chainId);
     if (baseResolved.url) return baseResolved;
@@ -160,7 +160,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
         if (err.error && err.error.data === '0x') {
           throw new Error(
             'JSON-RPC Error: This is likely an error on the RPC provider being used, ' +
-              `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`
+              `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`,
           );
         }
 
@@ -187,7 +187,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
         if (err.error && err.error.data === '0x') {
           throw new Error(
             'JSON-RPC Error: This is likely an error on the RPC provider being used, ' +
-              `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`
+              `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`,
           );
         }
 
@@ -210,7 +210,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
     chainId: number,
     url: string,
     metaUrl?: string,
-    mutabilityOverride?: 'version' | 'tag'
+    mutabilityOverride?: 'version' | 'tag',
   ): Promise<string[]> {
     debug('publish to fallback database: ', packagesNames, mutabilityOverride);
     // try to publish to any of the registries
@@ -239,7 +239,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
       url: string;
       metaUrl: string;
       mutabilityOverride?: 'version' | 'tag';
-    }[]
+    }[],
   ): Promise<string[]> {
     return this.publishRegistry.publishMany(toPublish);
   }
@@ -306,7 +306,7 @@ export class OnChainRegistry extends CannonRegistry {
 
     if (viem.isAddressEqual(packageOwner, viem.zeroAddress)) {
       throw new Error(
-        `The package "${packageName}" is not registered to be owned by anyone. Please register the package before publishing for the first time.`
+        `The package "${packageName}" is not registered to be owned by anyone. Please register the package before publishing for the first time.`,
       );
     }
 
@@ -324,7 +324,7 @@ export class OnChainRegistry extends CannonRegistry {
     chainId: number,
     url?: string,
     metaUrl?: string,
-    mutabilityOverride?: 'version' | 'tag'
+    mutabilityOverride?: 'version' | 'tag',
   ): PackageData {
     const refs = packagesNames.map((name) => new PackageReference(name));
 
@@ -442,7 +442,7 @@ export class OnChainRegistry extends CannonRegistry {
             args: [viem.stringToHex(name, { size: 32 }), ownerAddress],
           });
         }
-      })
+      }),
     );
 
     const txData = txs.length === 1 ? txs[0] : prepareMulticall(txs);
@@ -470,7 +470,7 @@ export class OnChainRegistry extends CannonRegistry {
     chainId: number,
     url: string,
     metaUrl?: string,
-    mutabilityOverride?: 'version' | 'tag'
+    mutabilityOverride?: 'version' | 'tag',
   ): Promise<string[]> {
     console.log(bold(blueBright('\nPublishing package to the registry on-chain...\n')));
     const packageData = this._preparePackageData(packagesNames, chainId, url, metaUrl, mutabilityOverride);
@@ -484,7 +484,7 @@ export class OnChainRegistry extends CannonRegistry {
       url: string;
       metaUrl?: string;
       mutabilityOverride?: 'version' | 'tag';
-    }[]
+    }[],
   ): Promise<string[]> {
     console.log(bold(blueBright('\nPublishing packages to the registry on-chain...\n')));
     const packageDatas = toPublish.map((p) => this._preparePackageData(p.packagesNames, p.chainId, p.url, p.metaUrl));
@@ -505,7 +505,7 @@ export class OnChainRegistry extends CannonRegistry {
 
   async getUrl(
     packageOrServiceRef: string,
-    chainId: number
+    chainId: number,
   ): Promise<{ url: string | null; mutability: 'version' | 'tag' | '' }> {
     if (!this.provider) {
       throw new Error('provider not given to getUrl');
@@ -587,7 +587,7 @@ export class OnChainRegistry extends CannonRegistry {
           args: [filterName, filterVersion, filterVariant],
           fromBlock: BigInt(i),
           toBlock: BigInt(Math.min(curBlock, i + BLOCK_SCAN_BATCH)),
-        }))
+        })),
       );
     }
 
@@ -810,7 +810,7 @@ export class OnChainRegistry extends CannonRegistry {
 
     if (!userBalance) {
       throw new Error(
-        `Signer at address ${this.signer.address} is not funded with ETH. Please ensure you have ETH in your wallet in order to perform the operation.`
+        `Signer at address ${this.signer.address} is not funded with ETH. Please ensure you have ETH in your wallet in order to perform the operation.`,
       );
     }
 
@@ -825,9 +825,9 @@ export class OnChainRegistry extends CannonRegistry {
       console.log(
         bold(
           yellow(
-            `The address "${this.signer.address}" does not have enough funds to pay for the transaction, the transaction will likely revert.\n`
-          )
-        )
+            `The address "${this.signer.address}" does not have enough funds to pay for the transaction, the transaction will likely revert.\n`,
+          ),
+        ),
       );
     }
   }

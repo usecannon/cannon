@@ -19,7 +19,7 @@ export async function prune(
   storage: CannonStorage,
   packageFilters: string[],
   chainIds: number[],
-  keepAge: number
+  keepAge: number,
 ): Promise<[string[], PruneStats]> {
   const loaderUrls = [];
   for (const loader in storage.loaders) {
@@ -84,7 +84,7 @@ export async function prune(
         keepUrls.add(normalizeMiscUrl(deployInfo.miscUrl));
       } else {
         debug(
-          `${url}: prune (${deployInfo.timestamp ? new Date(deployInfo.timestamp * 1000).toISOString() : 'no timestamp'})`
+          `${url}: prune (${deployInfo.timestamp ? new Date(deployInfo.timestamp * 1000).toISOString() : 'no timestamp'})`,
         );
         pruneUrls.add(url);
         if (deployInfo.miscUrl) {

@@ -248,7 +248,7 @@ function computeCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
       isE2E: CANNON_E2E,
       trace: TRACE,
     },
-    _.pickBy(overrides)
+    _.pickBy(overrides),
   ) as CliSettings;
 
   if (overrides.providerUrl && !overrides.rpcUrl) {

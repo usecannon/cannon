@@ -28,7 +28,7 @@ describe('Lock', function () {
       (err: any) => {
         match(err.info.error.message, /Unauthorized\("0x70997970C51812dc3A010C7d01b50e0d17dc79C8"\)/);
         return true;
-      }
+      },
     );
   });
 
@@ -38,7 +38,7 @@ describe('Lock', function () {
       (err: any) => {
         match(err.info.error.message, /InvalidUnlockTime/);
         return true;
-      }
+      },
     );
   });
 
@@ -63,7 +63,7 @@ describe('Lock', function () {
         {
           name: 'Error',
           message: `transaction reverted in contract Lock: Unauthorized("${signers[1].address}")`,
-        }
+        },
       );
     });
   });

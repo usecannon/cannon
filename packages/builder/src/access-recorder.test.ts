@@ -53,7 +53,7 @@ describe('access-recorder.ts', () => {
 
     it('computes dependency with complex math operation', () => {
       expect(
-        computeTemplateAccesses('<%= (settings.value1 + settings.value2) * settings.value3 / settings.value4 %>')
+        computeTemplateAccesses('<%= (settings.value1 + settings.value2) * settings.value3 / settings.value4 %>'),
       ).toEqual({
         accesses: ['settings.value1', 'settings.value2', 'settings.value3', 'settings.value4'],
         unableToCompute: false,
@@ -77,8 +77,8 @@ describe('access-recorder.ts', () => {
     it('computes array dependency', () => {
       expect(
         computeTemplateAccesses(
-          '["<%= settings.camelotSwapPublisherAdmin1 %>","<%= settings.camelotSwapPublisherAdmin2 %>"]'
-        )
+          '["<%= settings.camelotSwapPublisherAdmin1 %>","<%= settings.camelotSwapPublisherAdmin2 %>"]',
+        ),
       ).toEqual({
         accesses: ['settings.camelotSwapPublisherAdmin1', 'settings.camelotSwapPublisherAdmin2'],
         unableToCompute: false,
@@ -95,8 +95,8 @@ describe('access-recorder.ts', () => {
     it('computes dependency using complex CannonHelperContext', () => {
       expect(
         computeTemplateAccesses(
-          '<%= defaultAbiCoder.encode(parseEther(settings.woot)) %> + <%= defaultAbiCoder.decode(contracts.compound) %>'
-        )
+          '<%= defaultAbiCoder.encode(parseEther(settings.woot)) %> + <%= defaultAbiCoder.decode(contracts.compound) %>',
+        ),
       ).toEqual({
         accesses: ['contracts.compound', 'settings.woot'],
         unableToCompute: false,
@@ -179,7 +179,7 @@ describe('access-recorder.ts', () => {
 
     it('prevents overriding console.log', () => {
       expect(
-        computeTemplateAccesses('<%= console.log=function(n){require("fs").writeFileSync("./exploit.log",n)} %>')
+        computeTemplateAccesses('<%= console.log=function(n){require("fs").writeFileSync("./exploit.log",n)} %>'),
       ).toEqual({
         accesses: [],
         unableToCompute: true,

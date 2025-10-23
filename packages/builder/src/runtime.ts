@@ -102,7 +102,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   readonly getSigner: (addr: viem.Address) => Promise<CannonSigner>;
   readonly getDefaultSigner: (
     txn: Omit<viem.SendTransactionParameters, 'account' | 'chain'>,
-    salt?: string
+    salt?: string,
   ) => Promise<CannonSigner>;
   readonly getArtifact: (name: string) => Promise<ContractArtifact>;
   readonly snapshots: boolean;
@@ -131,7 +131,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     registry: CannonRegistry,
     loaders: { [scheme: string]: CannonLoader } = { ipfs: new IPFSLoader('') },
     defaultLoaderScheme = 'ipfs',
-    subpkgDepth = 0
+    subpkgDepth = 0,
   ) {
     super(registry, loaders, defaultLoaderScheme);
 
@@ -206,7 +206,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     const chainId = await this.provider.getChainId();
     if (chainId !== this.chainId) {
       throw new Error(
-        `provider network reported chainId (${chainId}) does not match configured deployment chain id (${this.chainId})`
+        `provider network reported chainId (${chainId}) does not match configured deployment chain id (${this.chainId})`,
       );
     }
   }
@@ -286,7 +286,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
       this.registry,
       this.loaders,
       this.defaultLoaderScheme,
-      this.subpkgDepth + 1
+      this.subpkgDepth + 1,
     );
 
     newRuntime.signals = this.signals;
@@ -298,14 +298,14 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     // forward any events which come from our child
     newRuntime.on(Events.PreStepExecute, (t, n, c, d) => this.emit(Events.PreStepExecute, t, n, c, d + 1));
     newRuntime.on(Events.PostStepExecute, (t, n, cfg, ctx, result, d) =>
-      this.emit(Events.PostStepExecute, t, n, cfg, ctx, result, d + 1)
+      this.emit(Events.PostStepExecute, t, n, cfg, ctx, result, d + 1),
     );
     newRuntime.on(Events.DeployContract, (n, c, d) => this.emit(Events.DeployContract, n, c, d + 1));
     newRuntime.on(Events.DeployTxn, (n, t, d) => this.emit(Events.DeployTxn, n, t, d + 1));
     newRuntime.on(Events.DeployExtra, (n, v, d) => this.emit(Events.DeployExtra, n, v, d + 1));
     newRuntime.on(Events.SkipDeploy, (n, e, d) => this.emit(Events.SkipDeploy, n, e, d + 1));
     newRuntime.on(Events.ResolveDeploy, (packageName, preset, chainId, registry, d) =>
-      this.emit(Events.ResolveDeploy, packageName, preset, chainId, registry, d + 1)
+      this.emit(Events.ResolveDeploy, packageName, preset, chainId, registry, d + 1),
     );
     newRuntime.on(Events.DownloadDeploy, (hash, gateway, d) => this.emit(Events.DownloadDeploy, hash, gateway, d + 1));
     newRuntime.on(Events.Notice, (n, msg, d) => this.emit(Events.Notice, n, msg, d + 1));

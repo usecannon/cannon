@@ -233,7 +233,7 @@ export function getMainLoader(cliSettings: CliSettings) {
         getCannonRepoRegistryUrl(),
         {},
         cliSettings.ipfsTimeout,
-        cliSettings.ipfsRetries
+        cliSettings.ipfsRetries,
       ),
       fileCacheDir: path.join(cliSettings.cannonDirectory, 'ipfs_cache'),
     }),

@@ -40,20 +40,20 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
       allowPartialDeploy: false,
     },
     resolver,
-    getMainLoader(cliSettings)
+    getMainLoader(cliSettings),
   );
 
   const etherscanApi = cliSettings.etherscanApiUrl || 'https://api.etherscan.io/v2/api';
 
   if (!etherscanApi) {
     throw new Error(
-      `couldn't find etherscan api url for network with ${chainId}. Please set your etherscan URL with CANNON_ETHERSCAN_API_URL`
+      `couldn't find etherscan api url for network with ${chainId}. Please set your etherscan URL with CANNON_ETHERSCAN_API_URL`,
     );
   }
 
   if (!cliSettings.etherscanApiKey) {
     throw new Error(
-      'Etherscan Api Key not supplied. Please set it with --api-key or CANNON_ETHERSCAN_API_KEY environment variable'
+      'Etherscan Api Key not supplied. Please set it with --api-key or CANNON_ETHERSCAN_API_KEY environment variable',
     );
   }
 
@@ -127,7 +127,7 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
           constructorArguements: viem
             .encodeAbiParameters(
               contractArtifact.abi.find((i: viem.AbiItem) => i.type === 'constructor')?.inputs ?? [],
-              contractInfo.constructorArgs || []
+              contractInfo.constructorArgs || [],
             )
             .slice(2),
         };
@@ -159,7 +159,7 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
 
   if (!deployData) {
     throw new Error(
-      `deployment not found: ${fullPackageRef}. please make sure it exists for the given preset and current network.`
+      `deployment not found: ${fullPackageRef}. please make sure it exists for the given preset and current network.`,
     );
   }
 
@@ -177,7 +177,7 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
           action: 'checkverifystatus',
           guid: guids[c],
         },
-        { headers: { 'content-type': 'application/x-www-form-urlencoded' } }
+        { headers: { 'content-type': 'application/x-www-form-urlencoded' } },
       );
 
       if (res.data.status === '0') {

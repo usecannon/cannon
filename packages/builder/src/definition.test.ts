@@ -37,7 +37,7 @@ describe('ChainDefinition', () => {
       },
     };
 
-    expect(new ChainDefinition(rawDef)).toBeTruthy;
+    expect(new ChainDefinition(rawDef)).toBeTruthy();
   });
 
   describe('validatePackageName()', () => {

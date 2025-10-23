@@ -43,7 +43,7 @@ export function useDeployerWallet(chainId?: number) {
               onSuccess(hash: viem.Hash) {
                 setExecutionProgress([...executionProgress, hash]);
               },
-            }
+            },
           );
         }
       })()
@@ -55,7 +55,7 @@ export function useDeployerWallet(chainId?: number) {
           setError(err);
         });
     },
-    [isConfirmed, isIdle, executionProgress.length, queuedTransactions, chainId, executionProgress]
+    [isConfirmed, isIdle, executionProgress.length, queuedTransactions, chainId, executionProgress],
   );
 
   return {

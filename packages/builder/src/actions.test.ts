@@ -19,7 +19,6 @@ const FakeAction: CannonAction = {
     return config;
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async exec(): /*_runtime: ChainBuilderRuntimeInfo,
     _ctx: ChainBuilderContext,
     _config: Record<string, unknown>*/
@@ -36,7 +35,7 @@ describe('actions.ts', () => {
 
     it('throws an error on missing "label"', () => {
       expect(() => registerAction({ ...FakeAction, label: undefined as unknown as string })).toThrowError(
-        'missing "label" property on plugin definition'
+        'missing "label" property on plugin definition',
       );
     });
 

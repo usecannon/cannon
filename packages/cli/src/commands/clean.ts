@@ -21,7 +21,7 @@ export async function clean(confirm = true) {
       if (!existsSync(dir)) return [];
       const entries = await fs.readdir(dir, { withFileTypes: true });
       return entries.map((entry) => path.join(dir, entry.name));
-    })
+    }),
   ).then((entries) => entries.flat());
 
   if (!filesAndDirs.length) {
@@ -56,7 +56,7 @@ export async function clean(confirm = true) {
           debug('An error has occurred');
         }
       }
-    })
+    }),
   );
 
   return true;

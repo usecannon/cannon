@@ -41,9 +41,12 @@ describe('CannonSubscription', function () {
 
     it('should revert when not owner', async function () {
       const randomUser = await fixtureSigner();
-      await assertRevert(async () => {
-        await CannonSubscription.connect(randomUser).setAvailablePlans([100, 100, 100]);
-      }, `Unauthorized("${await randomUser.getAddress()}")`);
+      await assertRevert(
+        async () => {
+          await CannonSubscription.connect(randomUser).setAvailablePlans([100, 100, 100]);
+        },
+        `Unauthorized("${await randomUser.getAddress()}")`,
+      );
     });
 
     it('register default plan', async function () {

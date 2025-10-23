@@ -131,7 +131,7 @@ export async function readRawIpfs({
       responseType: 'arraybuffer',
       headers: customHeaders,
       timeout,
-    }
+    },
   );
 
   return res.data;
@@ -143,7 +143,7 @@ export async function readIpfs(
   customHeaders: Headers = {},
   isGateway: boolean,
   timeout: number,
-  retries = 3
+  retries = 3,
 ): Promise<any> {
   debug(`downloading content from ${hash}`);
   setAxiosRetries(retries);
@@ -221,13 +221,13 @@ export async function writeIpfs(
   customHeaders: Headers = {},
   isGateway: boolean,
   timeout: number,
-  retries = 3
+  retries = 3,
 ): Promise<string> {
   setAxiosRetries(retries);
 
   if (isGateway) {
     throw new Error(
-      'unable to upload to ipfs: the IPFS url you have configured is either read-only (ie a gateway), or invalid. please double check your configuration.'
+      'unable to upload to ipfs: the IPFS url you have configured is either read-only (ie a gateway), or invalid. please double check your configuration.',
     );
   }
 
@@ -244,7 +244,7 @@ export async function writeIpfs(
   } catch (err) {
     throw new Error(
       'Failed to upload to IPFS. Make sure you have a local IPFS daemon running and run `cannon setup` to confirm your configuration is set properly. ' +
-        err
+        err,
     );
   }
 
@@ -262,7 +262,7 @@ export async function deleteIpfs(
   hash: string,
   customHeaders: Headers = {},
   isGateway: boolean,
-  timeout: number
+  timeout: number,
 ): Promise<void> {
   if (isGateway) {
     // cannot write to IPFS on gateway

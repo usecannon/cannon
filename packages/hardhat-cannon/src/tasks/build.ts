@@ -22,23 +22,23 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
   .addOptionalParam('registryPriority', '(Optional) Which registry should be used first? Default: onchain')
   .addOptionalParam(
     'anvilOptions',
-    '(Optional) Custom anvil options string or json file or string to configure when running on the cannon network or a local forked node'
+    '(Optional) Custom anvil options string or json file or string to configure when running on the cannon network or a local forked node',
   )
   .addFlag('dryRun', 'Run a shadow deployment on a local forked node instead of actually deploying')
   .addFlag('wipe', 'Do not reuse any previously built artifacts')
   .addFlag('usePlugins', 'Load plugins globally installed using the cannon CLI')
   .addOptionalParam(
     'upgradeFrom',
-    '(Optional) Wipe the deployment files, and use the deployment files from another cannon package as base'
+    '(Optional) Wipe the deployment files, and use the deployment files from another cannon package as base',
   )
   .addOptionalParam('impersonate', '(Optional) When dry running, uses forked signers rather than actual signing keys')
   .addOptionalParam(
     'writeScript',
-    '(Experimental) Path to write all the operations taken as a script that can be later executed'
+    '(Experimental) Path to write all the operations taken as a script that can be later executed',
   )
   .addOptionalParam(
     'writeScriptFormat',
-    '(Experimental) Format in which to write the operations script (Options: json, ethers)'
+    '(Experimental) Format in which to write the operations script (Options: json, ethers)',
   )
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
   .setAction(
@@ -57,7 +57,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         writeScript,
         writeScriptFormat,
       },
-      hre
+      hre,
     ) => {
       if (!noCompile) {
         await hre.run(TASK_COMPILE);
@@ -79,7 +79,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         throw new CannonError(
           `Unknown template access found. Please ensure the following references are defined:\n${neededDeps
             .map(([input, node]) => `${bold(input)} in ${italic(node)}`)
-            .join('\n')}`
+            .join('\n')}`,
         );
       }
 
@@ -110,8 +110,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       if (dryRun) {
         console.log(
           yellowBright(
-            bold('⚠️ This is a simulation. No changes will be made to the chain. No package data will be saved.\n')
-          )
+            bold('⚠️ This is a simulation. No changes will be made to the chain. No package data will be saved.\n'),
+          ),
         );
       }
 
@@ -182,7 +182,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
             const signer = getSigner(addr);
             if (signer) return signer;
             throw new Error(
-              `The current operation requests usage of the signer with address ${addr}, but this signer is not found. Please either supply the private key, or change the cannon configuration to use a different signer.`
+              `The current operation requests usage of the signer with address ${addr}, but this signer is not found. Please either supply the private key, or change the cannon configuration to use a different signer.`,
             );
           }
         },
@@ -205,8 +205,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       if (hre.network.name === 'hardhat') {
         console.log(
           yellow(
-            'Keep in mind that regardless this package was succefully built, it was not saved because the "hardhat" network is being used. If this is not what you want, consider using --network cannon'
-          )
+            'Keep in mind that regardless this package was succefully built, it was not saved because the "hardhat" network is being used. If this is not what you want, consider using --network cannon',
+          ),
         );
       }
 
@@ -218,5 +218,5 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       hre.cannon.signers = signers;
 
       return { outputs, provider, signers };
-    }
+    },
   );

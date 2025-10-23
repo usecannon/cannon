@@ -17,7 +17,7 @@ async function generate7412CompatibleCall(
   client: PublicClient,
   from: Address,
   txn: Partial<TransactionRequestBase>,
-  pythUrl: string
+  pythUrl: string,
 ) {
   const converter = new EIP7412([new PythAdapter(pythUrl)], createMakeMulticall(from) as any); // TODO: fix type
   return await converter.enableERC7412(client as any, txn as any); // TODO: fix type
@@ -25,7 +25,7 @@ async function generate7412CompatibleCall(
 
 function createMakeMulticall(from: Address) {
   return (
-    txns: Partial<TransactionRequestBase>[]
+    txns: Partial<TransactionRequestBase>[],
   ): {
     operation: string;
     account: Address;
@@ -66,7 +66,7 @@ export async function contractCall(
   value: bigint,
   abi: Abi,
   publicClient: PublicClient,
-  pythUrl: string
+  pythUrl: string,
 ) {
   const data = encodeFunctionData({
     abi,
@@ -142,7 +142,7 @@ export async function contractTransaction(
   abi: Abi,
   publicClient: PublicClient,
   walletClient: WalletClient,
-  pythUrl: string
+  pythUrl: string,
 ) {
   const data = encodeFunctionData({
     abi,

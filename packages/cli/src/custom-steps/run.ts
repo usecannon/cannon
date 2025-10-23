@@ -155,7 +155,7 @@ const runAction = {
     runtime: ChainBuilderRuntimeInfo,
     ctx: ChainBuilderContext,
     config: Config,
-    packageState: PackageState
+    packageState: PackageState,
   ): Promise<ChainArtifacts> {
     debug('exec', config);
 
@@ -175,7 +175,7 @@ const runAction = {
 
     if (!_.isObject(outputs)) {
       throw new Error(
-        'deployed contracts/txns not returned from script. Please supply any deployed contract in contracts property of returned json. If no contracts were deployed or transactions were run, return an empty object.'
+        'deployed contracts/txns not returned from script. Please supply any deployed contract in contracts property of returned json. If no contracts were deployed or transactions were run, return an empty object.',
       );
     }
 

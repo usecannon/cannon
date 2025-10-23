@@ -30,7 +30,7 @@ export function getPrevDeployGitHash({
   //     ? prevDeployHashQuery.data[0].result.slice(2)
   //     : gitRepoHash ?? '';
 
-  return prevDeployHashQuery ? prevDeployHashQuery.slice(2) : gitRepoHash ?? '';
+  return prevDeployHashQuery ? prevDeployHashQuery.slice(2) : (gitRepoHash ?? '');
 }
 
 type Props = {

@@ -63,7 +63,7 @@ export async function decode({
     }
 
     throw new Error(
-      'Could not decode transaction data with the given Cannon package. Please confirm that the given data exists in the ABIs of the package.'
+      'Could not decode transaction data with the given Cannon package. Please confirm that the given data exists in the ABIs of the package.',
     );
   }
 
@@ -116,7 +116,7 @@ export async function decode({
                 name: `${components[i].name}`,
               },
               v[`${components[i].name}`] ? v[`${components[i].name}`] : v[i],
-              offset.repeat(2)
+              offset.repeat(2),
             );
           }
         }
@@ -134,7 +134,7 @@ export async function decode({
               type: input.type?.replace('[]', ''),
             },
             value[i],
-            offset.repeat(2)
+            offset.repeat(2),
           );
         }
         break;
@@ -213,7 +213,7 @@ function _parseData(abis: ContractData['abi'][], data: viem.Hash) {
                         abi,
                         topics: [data] as [viem.Hex],
                         data,
-                      })
+                      }),
                     )
                   : formatAbiItem(abiItem),
             };

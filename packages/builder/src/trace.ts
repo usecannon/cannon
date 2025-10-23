@@ -59,7 +59,7 @@ export function renderTraceEntry(ctx: ChainArtifacts, trace: TraceEntry): string
         ctx,
         callTraceAction.to,
         callTraceAction.input,
-        trace.result?.output ?? '0x'
+        trace.result?.output ?? '0x',
       );
 
       const actionStr = bold(`${callTraceAction.callType.toUpperCase()} `);
@@ -94,7 +94,7 @@ export function parseFunctionData(
   ctx: ChainArtifacts,
   contractAddress: Address,
   input: Hex,
-  output: Hex
+  output: Hex,
 ): {
   contractName: string;
   parsedInput: string;
@@ -115,8 +115,8 @@ export function parseFunctionData(
       renderResult(
         decodeAbiParameters(
           ConsoleLogs[parseInt(input.slice(0, 10)) as keyof typeof ConsoleLogs].map((v) => ({ type: v })),
-          ('0x' + input.slice(10)) as Hex
-        )
+          ('0x' + input.slice(10)) as Hex,
+        ),
       );
 
     // console logs have no output
@@ -167,7 +167,7 @@ export function parseFunctionData(
 
         // figure out if we can still find the selector (maybe just the following calldata is mangled)
         const foundFunction = info.contract.abi.find(
-          (item) => item.type === 'function' && viem.toFunctionSelector(item)
+          (item) => item.type === 'function' && viem.toFunctionSelector(item),
         ) as viem.AbiFunction | null;
         if (foundFunction) {
           parsedInput = foundFunction.name + `(<invalid function calldata ${input.slice(10)}>)`;
@@ -194,7 +194,7 @@ export function parseFunctionData(
 export function findContract(
   ctx: ChainArtifacts,
   condition: (v: { address: Address; abi: Abi }) => boolean,
-  prefix = ''
+  prefix = '',
 ): { name: string; contract: Contract } | null {
   for (const name in ctx.contracts) {
     if (condition(ctx.contracts[name])) {

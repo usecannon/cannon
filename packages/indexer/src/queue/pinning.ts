@@ -33,7 +33,7 @@ export const pinningJobs = createJobs(
             : await readRawIpfs({
                 ipfsUrl: config.IPFS_URL,
                 cid,
-              })
+              }),
         );
 
         if (existsOnS3) {
@@ -70,7 +70,7 @@ export const pinningJobs = createJobs(
                 ipfsUrl: config.IPFS_URL,
                 cid,
                 timeout: 1000 * 30,
-              })
+              }),
         );
 
         const packageData = JSON.parse(uncompress(rawPackageData));
@@ -91,5 +91,5 @@ export const pinningJobs = createJobs(
       },
     },
   ],
-  {}
+  {},
 );

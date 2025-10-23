@@ -4,5 +4,5 @@ import fs from 'fs';
 
 fs.writeFileSync(
   'schema.json',
-  JSON.stringify(zodToJsonSchema(chainDefinitionSchema))
+  JSON.stringify(zodToJsonSchema(chainDefinitionSchema)),
 );

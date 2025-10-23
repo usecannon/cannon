@@ -32,28 +32,28 @@ When(
   'User selects and clicks on the contract with name {string} of the element # {int}',
   (contractName: string, element: number) => {
     cy.xpath(
-      `(//div[@role='group']//label[contains(text(), 'Contract')])[${element}]/following-sibling::div//input[@role='combobox']`
+      `(//div[@role='group']//label[contains(text(), 'Contract')])[${element}]/following-sibling::div//input[@role='combobox']`,
     ).click();
 
     // Then, click on the contract option within the opened dropdown of the second container
     cy.xpath(
-      `(//div[@role='group']//label[contains(text(), 'Contract')])[${element}]/following-sibling::div//div[contains(text(), '${contractName}')]`
+      `(//div[@role='group']//label[contains(text(), 'Contract')])[${element}]/following-sibling::div//div[contains(text(), '${contractName}')]`,
     ).click();
-  }
+  },
 );
 
 When(
   'User selects and clicks on the function with name {string} of the element # {int}',
   (contractName: string, element: number) => {
     cy.xpath(
-      `(//div[@role='group']//label[contains(text(), 'Function')])[${element}]/following-sibling::div//input[@role='combobox']`
+      `(//div[@role='group']//label[contains(text(), 'Function')])[${element}]/following-sibling::div//input[@role='combobox']`,
     ).click();
 
     // Then, click on the Function option within the opened dropdown of the second container
     cy.xpath(
-      `(//div[@role='group']//label[contains(text(), 'Function')])[${element}]/following-sibling::div//div[contains(text(), '${contractName}')]`
+      `(//div[@role='group']//label[contains(text(), 'Function')])[${element}]/following-sibling::div//div[contains(text(), '${contractName}')]`,
     ).click();
-  }
+  },
 );
 
 When(
@@ -63,7 +63,7 @@ When(
     cy.xpath(`(//div[@role='group']//label[contains(., '${paramName}')]/following-sibling::div//input)[${element}]`)
       .clear()
       .type(paramValue);
-  }
+  },
 );
 
 Then('Drawer has exactly {int} queued transactions', (txs: number) => {

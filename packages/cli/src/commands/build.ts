@@ -95,7 +95,7 @@ export async function build({
 
   if (dryRun && rpcUrl) {
     logSpinner(
-      yellowBright(bold('⚠️ This is a simulation. No changes will be made to the chain. No package data will be saved.\n'))
+      yellowBright(bold('⚠️ This is a simulation. No changes will be made to the chain. No package data will be saved.\n')),
     );
   }
 
@@ -104,7 +104,7 @@ export async function build({
   const packageReference = PackageReference.from(
     packageDefinition.name,
     packageDefinition.version,
-    packageDefinition.preset
+    packageDefinition.preset,
   );
 
   const { fullPackageRef, packageRef } = packageReference;
@@ -155,7 +155,7 @@ export async function build({
     const isPackageAlreadyPublished = await onChainOnlyResolver.getUrl(fullPackageRef, chainId);
     if (isPackageAlreadyPublished.url) {
       throw new Error(
-        'The package ${fullPackageRef} is already published on the registry. Please bump the `version` field in your cannonfile.'
+        'The package ${fullPackageRef} is already published on the registry. Please bump the `version` field in your cannonfile.',
       );
     }
   }
@@ -174,7 +174,7 @@ export async function build({
         runtime.provider,
         packageReference,
         runtime.chainId,
-        def.getDeployers()
+        def.getDeployers(),
       );
       if (oldDeployHash) {
         logSpinner(green(bold(`Found deployment state via on-chain store: ${oldDeployHash}`)));
@@ -207,7 +207,7 @@ export async function build({
     pkgInfo,
     chainId,
     resolvedSettings,
-    getDefaultSigner ? (await getDefaultSigner()).address : viem.zeroAddress
+    getDefaultSigner ? (await getDefaultSigner()).address : viem.zeroAddress,
   );
 
   const pkgName = name || def.getName(initialCtx);
@@ -231,7 +231,7 @@ export async function build({
     logSpinner(`Private Source Code: ${cyanBright('false')} ${gray('(source code will be included in the package)')}`);
   } else {
     logSpinner(
-      `Private Source Code: ${cyanBright('true')} ${gray('(source code will not be included in the resulting package)')}`
+      `Private Source Code: ${cyanBright('true')} ${gray('(source code will not be included in the resulting package)')}`,
     );
   }
   if (upgradeFrom) {
@@ -268,7 +268,7 @@ export async function build({
 
   let partialDeploy = false;
   runtime.on(Events.PreStepExecute, (t, n, _c, d) =>
-    logSpinner(cyanBright(`${'  '.repeat(d)}Executing ${`[${t}.${n}]`}...`))
+    logSpinner(cyanBright(`${'  '.repeat(d)}Executing ${`[${t}.${n}]`}...`)),
   );
   runtime.on(Events.SkipDeploy, (n, err, d) => {
     partialDeploy = true;
@@ -276,8 +276,8 @@ export async function build({
       yellowBright(
         `${'  '.repeat(d)}  \u26A0\uFE0F  Skipping [${n}] (${
           typeof err === 'object' && err.toString === Object.prototype.toString ? JSON.stringify(err) : err.toString()
-        })`
-      )
+        })`,
+      ),
     );
   });
   runtime.on(Events.Notice, (n, msg) => {
@@ -290,7 +290,7 @@ export async function build({
         logSpinner(
           `${'  '.repeat(d)}  ${green('\u2714')} Successfully called ${c.func}(${c?.args
             ?.map((arg: any) => (typeof arg === 'object' && arg !== null ? JSON.stringify(arg) : arg))
-            .join(', ')})`
+            .join(', ')})`,
         );
       } else {
         logSpinner(`${'  '.repeat(d)}  ${green('\u2714')} Successfully performed operation`);
@@ -311,9 +311,9 @@ export async function build({
       logSpinner(
         gray(
           `${'  '.repeat(d)}  Transaction Cost: ${viem.formatEther(
-            cost
-          )} ${nativeCurrencySymbol} (${txn.gasUsed.toLocaleString()} gas)`
-        )
+            cost,
+          )} ${nativeCurrencySymbol} (${txn.gasUsed.toLocaleString()} gas)`,
+        ),
       );
     }
     for (const contractKey in o.contracts) {
@@ -322,7 +322,7 @@ export async function build({
         logSpinner(
           `${'  '.repeat(d)}  ${green('\u2714')} Successfully deployed ${contract.contractName}${
             c.create2 ? ' using CREATE2' : ''
-          }`
+          }`,
         );
         logSpinner(gray(`${'  '.repeat(d)}  Contract Address: ${contract.address}`));
         logSpinner(gray(`${'  '.repeat(d)}  Transaction Hash: ${contract.deployTxnHash}`));
@@ -332,9 +332,9 @@ export async function build({
         logSpinner(
           gray(
             `${'  '.repeat(d)}  Transaction Cost: ${viem.formatEther(
-              cost
-            )} ${nativeCurrencySymbol} (${contract.gasUsed.toLocaleString()} gas)`
-          )
+              cost,
+            )} ${nativeCurrencySymbol} (${contract.gasUsed.toLocaleString()} gas)`,
+          ),
         );
       }
     }
@@ -351,10 +351,10 @@ export async function build({
   });
 
   runtime.on(Events.ResolveDeploy, (packageName, preset, chainId, registry, d) =>
-    logSpinner(magenta(`${'  '.repeat(d)}  Resolving ${packageName} (Chain ID: ${chainId}) via ${registry}...`))
+    logSpinner(magenta(`${'  '.repeat(d)}  Resolving ${packageName} (Chain ID: ${chainId}) via ${registry}...`)),
   );
   runtime.on(Events.DownloadDeploy, (hash, gateway, d) =>
-    logSpinner(gray(`${'  '.repeat(d)}    Downloading ${hash} via ${gateway}`))
+    logSpinner(gray(`${'  '.repeat(d)}    Downloading ${hash} via ${gateway}`)),
   );
 
   // attach control-c handler
@@ -400,7 +400,7 @@ export async function build({
     });
 
     const cliError = new Error(
-      `An error occured during build. A file with comprehensive information pertaining to this error has been written to ${dumpFilePath}. Please include this file when reporting an issue.`
+      `An error occured during build. A file with comprehensive information pertaining to this error has been written to ${dumpFilePath}. Please include this file when reporting an issue.`,
     );
 
     throw mergeErrors(cliError, buildErr);
@@ -454,7 +454,7 @@ export async function build({
       for (let i = 0; i < 3; i++) {
         try {
           logSpinner(
-            gray(`Attesting that ${(await runtime.getDefaultSigner({})).address} deployed ${deployUrl} onchain...`)
+            gray(`Attesting that ${(await runtime.getDefaultSigner({})).address} deployed ${deployUrl} onchain...`),
           );
           await writeUpgradeFromInfo(runtime, packageReference, deployUrl);
           break;
@@ -465,9 +465,9 @@ export async function build({
             errorSpinner(
               red(
                 bold(
-                  `Failed to write state on-chain. The next time you upgrade your package, you should include the option --upgrade-from ${deployUrl}.`
-                )
-              )
+                  `Failed to write state on-chain. The next time you upgrade your package, you should include the option --upgrade-from ${deployUrl}.`,
+                ),
+              ),
             );
           }
         }
@@ -485,16 +485,16 @@ export async function build({
       logSpinner(
         yellowBright(
           bold(
-            '\n\u26A0\uFE0F  Your deployment was not fully completed. Please inspect the issues listed above and resolve as necessary.'
-          )
-        )
+            '\n\u26A0\uFE0F  Your deployment was not fully completed. Please inspect the issues listed above and resolve as necessary.',
+          ),
+        ),
       );
       logSpinner(
-        gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`)
+        gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`),
       );
       logSpinner('');
       logSpinner(
-        '- Rerunning the build command will attempt to execute skipped operations. It will not rerun executed operations. (To rerun executed operations, delete the partial build package generated by this run by adding the --wipe flag to the build command on the next run.)'
+        '- Rerunning the build command will attempt to execute skipped operations. It will not rerun executed operations. (To rerun executed operations, delete the partial build package generated by this run by adding the --wipe flag to the build command on the next run.)',
       );
       if (upgradeFrom) {
         logSpinner(bold('  Remove the --upgrade-from option to continue from the partial build.'));
@@ -503,16 +503,16 @@ export async function build({
       logSpinner(
         '- Run ' +
           bold(`cannon pin ${deployUrl}`) +
-          ' to pin the partial deployment package on IPFS. Then use https://usecannon.com/deploy to collect signatures from a Safe for the skipped operations in the partial deployment package.'
+          ' to pin the partial deployment package on IPFS. Then use https://usecannon.com/deploy to collect signatures from a Safe for the skipped operations in the partial deployment package.',
       );
     } else {
       if (dryRun) {
         logSpinner(
           gray(
             `Estimated Total Cost: ${viem.formatEther(
-              totalCost
-            )} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`
-          )
+              totalCost,
+            )} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`,
+          ),
         );
         logSpinner(bold(`💥 ${fullPackageRef} would have been successfully built on ${chainName} (Chain ID: ${chainId})`));
       } else {
@@ -522,7 +522,9 @@ export async function build({
         } else {
           logSpinner(bold(`💥 ${fullPackageRef} built on ${chainName} (Chain ID: ${chainId})`));
           logSpinner(
-            gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`)
+            gray(
+              `Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`,
+            ),
           );
         }
       }
@@ -533,7 +535,7 @@ export async function build({
           ['Deployment Data', deployUrl],
           ['Package Code', miscUrl],
           ['Metadata', metaUrl],
-        ])
+        ]),
       );
 
       if (dryRun) {
@@ -553,8 +555,8 @@ export async function build({
         } else {
           logSpinner(
             bold(
-              `Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`
-            )
+              `Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`,
+            ),
           );
           logSpinner(`> cannon publish ${fullPackageRef} --chain-id ${chainId}`);
         }
@@ -577,9 +579,9 @@ export async function build({
         yellow(
           `Chain state could not be saved via ${runtime.loaders[
             runtime.defaultLoaderScheme
-          ].getLabel()}. Try a writable endpoint by setting ipfsUrl through \`cannon setup\`.`
-        )
-      )
+          ].getLabel()}. Try a writable endpoint by setting ipfsUrl through \`cannon setup\`.`,
+        ),
+      ),
     );
   }
 
