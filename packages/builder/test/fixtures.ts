@@ -2,9 +2,9 @@ import fs from 'node:fs';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import { CannonSigner, ChainBuilderContext, InMemoryRegistry } from '../src';
-import { ChainBuilderRuntime } from '../src/runtime';
-import { ChainBuilderRuntimeInfo } from '../src/types';
+import { CannonSigner, ChainBuilderContext, InMemoryRegistry } from '../src/index.js';
+import { ChainBuilderRuntime } from '../src/runtime.js';
+import { ChainBuilderRuntimeInfo } from '../src/types.js';
 
 const Greeter = JSON.parse(fs.readFileSync(`${__dirname}/data/Greeter.json`).toString());
 

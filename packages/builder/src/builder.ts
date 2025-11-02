@@ -2,13 +2,13 @@ import Debug from 'debug';
 
 import _ from 'lodash';
 import * as viem from 'viem';
-import { ContractMap, DeploymentState, TransactionMap } from './';
-import { ActionKinds } from './actions';
-import { BUILD_VERSION } from './constants';
-import { ChainDefinition } from './definition';
-import { ChainBuilderRuntime, Events } from './runtime';
-import { BuildOptions, ChainArtifacts, ChainBuilderContext, PackageState, PreChainBuilderContext } from './types';
-import { printChainDefinitionProblems } from './util';
+import { ContractMap, DeploymentState, TransactionMap } from './index.js';
+import { ActionKinds } from './actions.js';
+import { BUILD_VERSION } from './constants.js';
+import { ChainDefinition } from './definition.js';
+import { ChainBuilderRuntime, Events } from './runtime.js';
+import { BuildOptions, ChainArtifacts, ChainBuilderContext, PackageState, PreChainBuilderContext } from './types.js';
+import { printChainDefinitionProblems } from './util.js';
 
 const debug = Debug('cannon:builder');
 const debugVerbose = Debug('cannon:verbose:builder');

@@ -3,12 +3,12 @@ import _ from 'lodash';
 import Debug from 'debug';
 import * as viem from 'viem';
 import prompts from 'prompts';
-import { logSpinner, logSpinnerEnd, logSpinnerStart } from '../util/console';
-import { blueBright, gray, green, bold } from 'chalk';
+import { logSpinner, logSpinnerEnd, logSpinnerStart } from '../util/console.js';
+import chalk from 'chalk';
 
-import { CliSettings } from '../settings';
-import { resolveProviderAndSigners, ProviderAction } from '../util/provider';
-import { waitForEvent } from '../util/wait-for-event';
+import { CliSettings } from '../settings.js';
+import { resolveProviderAndSigners, ProviderAction } from '../util/provider.js';
+import { waitForEvent } from '../util/wait-for-event.js';
 
 const debug = Debug('cannon:cli:publishers');
 
@@ -95,7 +95,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   const isMainnet = selectedNetwork === Network.MAINNET;
   const [readRegistry, writeRegistry] = cliSettings.registries;
 
-  logSpinner(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
+  logSpinner(chalk.bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
 
   const registryProviders = await Promise.all([
     resolveProviderAndSigners({
@@ -229,10 +229,10 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     (async () => {
       const hash = await mainnetRegistry.setAdditionalPublishers(packageName, mainnetPublishers, optimismPublishers);
 
-      logSpinner(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+      logSpinner(`${chalk.green('Success!')} (${chalk.blueBright('Transaction Hash')}: ${hash})`);
       logSpinner('');
       logSpinner(
-        gray(
+        chalk.gray(
           `Waiting for the transaction to propagate to ${optimismRegistryConfig.name}... It may take approximately 1-3 minutes.`,
         ),
       );
@@ -263,7 +263,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         }),
       ]);
 
-      logSpinner(green('Success - The publishers list has been updated!'));
+      logSpinner(chalk.green('Success - The publishers list has been updated!'));
       logSpinner('');
     })(),
   ]);

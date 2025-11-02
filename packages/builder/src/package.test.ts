@@ -1,11 +1,11 @@
-import { CannonStorage } from './';
-import { IPFSLoader } from './loader';
-import { publishPackage } from './package';
-import { PackageReference } from './package-reference';
-import { InMemoryRegistry } from './registry';
-import { DeploymentInfo } from './types';
+import { CannonStorage } from './.js';
+import { IPFSLoader } from './loader.js';
+import { publishPackage } from './package.js';
+import { PackageReference } from './package-reference.js';
+import { InMemoryRegistry } from './registry.js';
+import { DeploymentInfo } from './types.js';
 
-jest.mock('./loader');
+jest.mock('./loader.js');
 
 describe('package.ts', () => {
   describe('PackageReference', () => {

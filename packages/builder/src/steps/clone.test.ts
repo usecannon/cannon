@@ -1,13 +1,13 @@
-import { validateConfig } from '../actions';
-import { BUILD_VERSION } from '../constants';
-import { InMemoryRegistry } from '../registry';
-import action from './clone';
-import deployAction from './deploy';
-import { fakeCtx, fakeRuntime } from './utils.test.helper';
-import { PackageReference } from '../package-reference';
+import { validateConfig } from '../actions.js';
+import { BUILD_VERSION } from '../constants.js';
+import { InMemoryRegistry } from '../registry.js';
+import action from './clone.js';
+import deployAction from './deploy.js';
+import { fakeCtx, fakeRuntime } from './utils.test.helper.js';
+import { PackageReference } from '../package-reference.js';
 
-jest.mock('../loader');
-jest.mock('./deploy');
+jest.mock('../loader.js');
+jest.mock('./deploy.js');
 
 describe('steps/clone.ts', () => {
   const registry = new InMemoryRegistry();

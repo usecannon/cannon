@@ -1,4 +1,4 @@
-import { CannonHelperContext, ChainBuilderContext, combineCtx } from './types';
+import { CannonHelperContext, ChainBuilderContext, combineCtx } from './types.js';
 import * as viem from 'viem';
 
 const CUR_TIME = 1708947946123;

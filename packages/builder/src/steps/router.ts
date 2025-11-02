@@ -3,20 +3,20 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { generateRouter } from '@usecannon/router';
-import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
-import { CannonError } from '../error';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
-import { routerSchema } from '../schemas';
-import { ContractMap } from '../types';
+import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2.js';
+import { CannonError } from '../error/index.js';
+import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder.js';
+import { routerSchema } from '../schemas.js';
+import { ContractMap } from '../types.js';
 import {
   encodeDeployData,
   getContractDefinitionFromPath,
   removeConstructorFromAbi,
   getMergedAbiFromContractPaths,
-} from '../util';
-import { template } from '../utils/template';
-import { compileContract } from '../utils/compile';
-import { CannonAction } from '../actions';
+} from '../util.js';
+import { template } from '../utils/template.js';
+import { compileContract } from '../utils/compile.js';
+import { CannonAction } from '../actions.js';
 
 const debug = Debug('cannon:builder:router');
 

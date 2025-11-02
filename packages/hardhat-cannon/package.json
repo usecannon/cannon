@@ -5,6 +5,7 @@
   "author": "Synthetix",
   "license": "MIT",
   "main": "dist/index.js",
+  "type": "module",
   "types": "dist/index.d.ts",
   "keywords": [
     "ethereum",
@@ -37,11 +38,11 @@
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@types/debug": "^4.1.12",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^22.14.0",
-    "bn.js": "^5.2.1",
-    "hardhat": "^2.22.19",
+    "@types/node": "^24.9.1",
+    "bn.js": "^5.2.2",
+    "hardhat": "^3.0.9",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {
     "hardhat": ">=2.0.0"
@@ -50,10 +51,10 @@
     "@iarna/toml": "^3.0.0",
     "@usecannon/builder": "workspace:*",
     "@usecannon/cli": "workspace:*",
-    "chalk": "^4.1.2",
-    "debug": "^4.4.0",
-    "fs-extra": "^11.3.0",
-    "viem": "^2.25.1"
+    "chalk": "^5.6.2",
+    "debug": "^4.4.3",
+    "fs-extra": "^11.3.2",
+    "viem": "^2.38.4"
   },
   "gitHead": "81979336c4cfe5f1f8ee7677b2b968f886a20a87"
 }

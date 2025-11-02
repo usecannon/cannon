@@ -1,19 +1,19 @@
-import { yellow } from 'chalk';
+import chalk from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
-import pkg from '../../package.json';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
-import { build, createInitialContext, getOutputs } from '../builder';
-import { CANNON_CHAIN_ID } from '../constants';
-import { ChainDefinition } from '../definition';
-import { PackageReference } from '../package-reference';
-import { Events } from '../runtime';
-import { cloneSchema } from '../schemas';
-import { DeploymentState } from '../types';
-import { template } from '../utils/template';
-import { getContentUrl } from '../ipfs';
-import { CannonAction } from '../actions';
+import pkg from '../../package.json' with { type: 'json' };
+import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder.js';
+import { build, createInitialContext, getOutputs } from '../builder.js';
+import { CANNON_CHAIN_ID } from '../constants.js';
+import { ChainDefinition } from '../definition.js';
+import { PackageReference } from '../package-reference.js';
+import { Events } from '../runtime.js';
+import { cloneSchema } from '../schemas.js';
+import { DeploymentState } from '../types.js';
+import { template } from '../utils/template.js';
+import { getContentUrl } from '../ipfs.js';
+import { CannonAction } from '../actions.js';
 
 const debug = Debug('cannon:builder:clone');
 
@@ -175,7 +175,7 @@ const cloneSpec = {
       if (await runtime.readDeploy(source, runtime.chainId)) {
         debug(
           `[clone.${importLabel}]`,
-          yellow(
+          chalk.yellow(
             'There is a pre-existing deployment for this preset and chain id. This build will overwrite. Did you mean `import`?',
           ),
         );

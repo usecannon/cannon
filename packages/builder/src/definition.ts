@@ -2,13 +2,13 @@ import crypto from 'crypto';
 import Debug from 'debug';
 import _ from 'lodash';
 import type { Address } from 'viem';
-import { ActionKinds, RawChainDefinition, checkConfig } from './actions';
-import { ChainBuilderRuntime } from './runtime';
-import { chainDefinitionSchema } from './schemas';
-import { ChainBuilderContext } from './types';
-import { template } from './utils/template';
+import { ActionKinds, RawChainDefinition, checkConfig } from './actions.js';
+import { ChainBuilderRuntime } from './runtime.js';
+import { chainDefinitionSchema } from './schemas.js';
+import { ChainBuilderContext } from './types.js';
+import { template } from './utils/template.js';
 
-import { PackageReference } from './package-reference';
+import { PackageReference } from './package-reference.js';
 import { ZodIssue } from 'zod';
 
 const debug = Debug('cannon:builder:definition');

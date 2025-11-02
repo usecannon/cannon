@@ -1,14 +1,14 @@
-import { yellow } from 'chalk';
+import chalk from 'chalk';
 import Debug from 'debug';
 import { EventEmitter } from 'events';
 import _ from 'lodash';
 import * as viem from 'viem';
-import { CannonSigner, ChainArtifacts, PackageReference } from './';
-import { traceActions } from './error';
-import { CannonLoader, IPFSLoader } from './loader';
-import { CannonRegistry } from './registry';
-import { ChainBuilderRuntimeInfo, ChainBuilderContext, ContractArtifact, DeploymentInfo } from './types';
-import { getExecutionSigner } from './util';
+import { CannonSigner, ChainArtifacts, PackageReference } from './index.js';
+import { traceActions } from './error/index.js';
+import { CannonLoader, IPFSLoader } from './loader.js';
+import { CannonRegistry } from './registry.js';
+import { ChainBuilderRuntimeInfo, ChainBuilderContext, ContractArtifact, DeploymentInfo } from './types.js';
+import { getExecutionSigner } from './util.js';
 
 const debug = Debug('cannon:builder:runtime');
 
@@ -177,7 +177,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
 
     if (info.gasPrice) {
       if (info.gasFee) {
-        debug(yellow('WARNING: gasPrice is ignored when gasFee is set'));
+        debug(chalk.yellow('WARNING: gasPrice is ignored when gasFee is set'));
       } else {
         this._gasPrice = info.gasPrice;
       }

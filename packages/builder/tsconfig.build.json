@@ -4,6 +4,11 @@
     "noEmit": false,
     "outDir": "./dist"
   },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.json",
+    "package.json"
+  ],
   "exclude": [
     "dist",
     "node_modules",

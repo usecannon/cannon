@@ -2,12 +2,12 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import deepFreeze from 'deep-freeze';
 import rfdc from 'rfdc';
-import { viemContext } from './utils/viem-context';
-import { jsContext } from './utils/js-context';
-import { ethersContext } from './utils/ethers-context';
-import { PackageReference } from './package-reference';
+import { viemContext } from './utils/viem-context.js';
+import { jsContext } from './utils/js-context.js';
+import { ethersContext } from './utils/ethers-context.js';
+import { PackageReference } from './package-reference.js';
 
-import type { RawChainDefinition } from './actions';
+import type { RawChainDefinition } from './actions.js';
 
 const deepClone = rfdc();
 

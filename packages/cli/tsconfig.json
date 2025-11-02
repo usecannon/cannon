@@ -1,18 +1,20 @@
 {
+  "extends": "@tsconfig/node22/tsconfig.json",
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "commonjs",
+    "outDir": "${configDir}/dist",
     "declaration": true,
     "declarationMap": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmitOnError": true,
+    "noImplicitOverride": true,
+    "noUncheckedSideEffectImports": true,
+    "skipDefaultLibCheck": true,
     "sourceMap": true,
-    "outDir": "./dist",
-    "strict": true,
-    "rootDirs": ["./src", "./test"],
-    "esModuleInterop": true,
-    "moduleResolution": "node",
+    "composite": true,
+    "incremental": true,
+    "isolatedModules": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true
+    "typeRoots": ["${configDir}/node_modules/@types"]
   },
-  "exclude": ["dist", "node_modules"],
-  "include": ["./test", "./src", "./bin"]
+  "exclude": ["${configDir}/dist", "${configDir}/node_modules"]
 }

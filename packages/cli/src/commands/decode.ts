@@ -1,14 +1,14 @@
 import * as viem from 'viem';
 import { AbiFunction, AbiEvent, formatAbiItem } from 'abitype';
-import { bold, gray, green, italic } from 'chalk';
+import chalk from 'chalk';
 import { ContractData, DeploymentInfo, PackageReference, decodeTxError } from '@usecannon/builder';
 
-import { errorSpinner, logSpinner } from '../util/console';
-import { readDeployRecursive } from '../package';
-import { formatAbiFunction, getSighash, stripCredentialsFromURL } from '../helpers';
-import { resolveCliSettings } from '../../src/settings';
-import { isTxHash } from '../util/is-tx-hash';
-import { ProviderAction, resolveProvider } from '../util/provider';
+import { errorSpinner, logSpinner } from '../util/console.js';
+import { readDeployRecursive } from '../package.js';
+import { formatAbiFunction, getSighash, stripCredentialsFromURL } from '../helpers.js';
+import { resolveCliSettings } from '../../src/settings.js';
+import { isTxHash } from '../util/is-tx-hash.js';
+import { ProviderAction, resolveProvider } from '../util/provider.js';
 
 export async function decode({
   packageRef,
@@ -68,7 +68,7 @@ export async function decode({
   }
 
   if (typeof parsed.result === 'string') {
-    logSpinner(green(`${parsed.result}`), `${italic(gray(inputData.slice(0, 10)))}`);
+    logSpinner(chalk.green(`${parsed.result}`), `${chalk.italic(chalk.gray(inputData.slice(0, 10)))}`);
     return;
   }
 
@@ -88,7 +88,7 @@ export async function decode({
 
   const sighash = getSighash(fragment as AbiFunction | AbiEvent);
 
-  logSpinner(green(`${formatAbiFunction(fragment as any)}`), `${sighash ? italic(gray(sighash)) : ''}`);
+  logSpinner(chalk.green(`${formatAbiFunction(fragment as any)}`), `${sighash ? chalk.italic(chalk.gray(sighash)) : ''}`);
 
   if ((parsed.result as viem.DecodeErrorResultReturnType).errorName) {
     const errorMessage = decodeTxError(inputData, abis);
@@ -98,7 +98,7 @@ export async function decode({
     }
   }
 
-  const renderParam = (prefix: string, input: viem.AbiParameter) => `${prefix}${gray(input.type)} ${bold(input.name)}`;
+  const renderParam = (prefix: string, input: viem.AbiParameter) => `${prefix}${chalk.gray(input.type)} ${chalk.bold(input.name)}`;
 
   const renderArgs = (input: viem.AbiParameter, value: any, offset = '  ') => {
     switch (true) {

@@ -2,8 +2,8 @@ import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
-import { invokeSchema } from '../schemas';
+import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder.js';
+import { invokeSchema } from '../schemas.js';
 import {
   CannonSigner,
   ChainArtifacts,
@@ -12,17 +12,17 @@ import {
   Contract,
   PackageState,
   TransactionMap,
-} from '../types';
+} from '../types.js';
 import {
   encodeFunctionData,
   getAllContractPaths,
   getContractDefinitionFromPath,
   getContractFromPath,
   getMergedAbiFromContractPaths,
-} from '../util';
-import { template, getTemplateMatches, isTemplateString } from '../utils/template';
-import { isStepPath, isStepName } from '../utils/matchers';
-import { CannonAction } from '../actions';
+} from '../util.js';
+import { template, getTemplateMatches, isTemplateString } from '../utils/template.js';
+import { isStepPath, isStepName } from '../utils/matchers.js';
+import { CannonAction } from '../actions.js';
 
 const debug = Debug('cannon:builder:invoke');
 

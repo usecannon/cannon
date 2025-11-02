@@ -1,4 +1,4 @@
-import type { Option as ForgeCompilerOption } from '../../types';
+import type { Option as ForgeCompilerOption } from '../../types.js';
 
 export const forgeCompilerOptions: ForgeCompilerOption[] = [
   {

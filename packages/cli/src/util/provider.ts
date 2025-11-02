@@ -1,18 +1,19 @@
 import Debug from 'debug';
 import * as viem from 'viem';
 import prompts from 'prompts';
-import { bold, red, grey } from 'chalk';
-import provider from 'eth-provider';
+import chalk from 'chalk';
+import ethProvider from 'eth-provider';
+const provider = (ethProvider as any).default || ethProvider;
 import { privateKeyToAccount } from 'viem/accounts';
 import { CannonSigner, traceActions } from '@usecannon/builder';
 
-import { logSpinner, errorSpinner, logSpinnerStart, logSpinnerEnd } from './console';
-import { getChainById } from '../chains';
-import { CliSettings } from '../settings';
+import { logSpinner, errorSpinner, logSpinnerStart, logSpinnerEnd } from './console.js';
+import { getChainById } from '../chains.js';
+import { CliSettings } from '../settings.js';
 
 const debug = Debug('cannon:cli:provider');
 
-import { isPrivateKey, normalizePrivateKey } from '../helpers';
+import { isPrivateKey, normalizePrivateKey } from '../helpers.js';
 
 export enum ProviderAction {
   WriteDryRunProvider = 'WriteDryRunProvider',
@@ -93,7 +94,7 @@ export async function resolveProvider({
   const chainData = getChainById(chainId!);
 
   if (!quiet) {
-    logSpinner(bold(`Resolving connection to ${chainData.name} (Chain ID: ${chainId})...`));
+    logSpinner(chalk.bold(`Resolving connection to ${chainData.name} (Chain ID: ${chainId})...`));
   }
 
   // Check if the first provider URL is actually an URL.
@@ -104,8 +105,8 @@ export async function resolveProvider({
     if (cliSettings.privateKey) {
       if (chainData.rpcUrls.default.http.length === 0) {
         errorSpinner(
-          red(
-            `Failed to establish a connection with any RPC. Please specify a valid RPC url using the ${bold(
+          chalk.red(
+            `Failed to establish a connection with any RPC. Please specify a valid RPC url using the ${chalk.bold(
               '--rpc-url',
             )} flag.`,
           ),
@@ -179,7 +180,7 @@ export async function resolveProviderAndSigners({
     ProviderAction.WriteDryRunProvider === action ||
     ProviderAction.OptionalWriteProvider === action
   ) {
-    logSpinner(grey(`Attempting to find connection via ${bold(providerDisplayName(checkProviders[0]))}`));
+    logSpinner(chalk.grey(`Attempting to find connection via ${chalk.bold(providerDisplayName(checkProviders[0]))}`));
     if (checkProviders.length === 1) logSpinner('');
   }
 
@@ -218,8 +219,8 @@ export async function resolveProviderAndSigners({
     } catch (err) {
       if (checkProviders.length <= 1) {
         errorSpinner(
-          red(
-            `Failed to establish a connection with any RPC. Please specify a valid RPC url using the ${bold(
+          chalk.red(
+            `Failed to establish a connection with any RPC. Please specify a valid RPC url using the ${chalk.bold(
               '--rpc-url',
             )} flag.`,
           ),
@@ -335,8 +336,8 @@ export async function resolveProviderAndSigners({
     } catch (err: any) {
       if (checkProviders.length <= 1) {
         errorSpinner(
-          red(
-            `Failed to establish a connection with any RPC. Please specify a valid RPC url using the ${bold(
+          chalk.red(
+            `Failed to establish a connection with any RPC. Please specify a valid RPC url using the ${chalk.bold(
               '--rpc-url',
             )} flag.`,
           ),

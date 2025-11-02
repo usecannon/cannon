@@ -1,7 +1,7 @@
 import { DeploymentInfo, CannonStorage, PackageReference, BundledOutput, forPackageTree } from '@usecannon/builder';
 import Debug from 'debug';
 
-import { pinIpfs } from '@usecannon/builder/dist/src/package';
+import { pinIpfs } from '@usecannon/builder/dist/src/package.js';
 
 const debug = Debug('cannon:cli:pin');
 export interface PinnedPackages {

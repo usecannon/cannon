@@ -9,20 +9,20 @@ import {
 } from '@usecannon/builder';
 import Debug from 'debug';
 import * as viem from 'viem';
-import { PackageSpecification } from '../types';
-import { getFoundryArtifact } from '../foundry';
-import { ANVIL_FIRST_ADDRESS } from '../constants';
-import { createDryRunRegistry } from '../registry';
-import { CannonRpcNode, getProvider, runRpc } from '../rpc';
-import { CliSettings, resolveCliSettings } from '../settings';
-import { execPromise, filterSettings, loadCannonfile } from '../helpers';
-import { warn } from './console';
-import { parseSettings } from './params';
-import { pickAnvilOptions } from './foundry-options';
-import { setDebugLevel } from './debug-level';
-import { ProviderAction, resolveProvider, isURL, getChainIdFromRpcUrl } from './provider';
+import { PackageSpecification } from '../types.js';
+import { getFoundryArtifact } from '../foundry.js';
+import { ANVIL_FIRST_ADDRESS } from '../constants.js';
+import { createDryRunRegistry } from '../registry.js';
+import { CannonRpcNode, getProvider, runRpc } from '../rpc.js';
+import { CliSettings, resolveCliSettings } from '../settings.js';
+import { execPromise, filterSettings, loadCannonfile } from '../helpers.js';
+import { warn } from './console.js';
+import { parseSettings } from './params.js';
+import { pickAnvilOptions } from './foundry-options.js';
+import { setDebugLevel } from './debug-level.js';
+import { ProviderAction, resolveProvider, isURL, getChainIdFromRpcUrl } from './provider.js';
 
-import { yellow, bold, italic } from 'chalk';
+import chalk from 'chalk';
 
 const debug = Debug('cannon:cli:build');
 
@@ -77,16 +77,16 @@ export async function doBuild(
 
   if (defaultSigner && deployers.includes(defaultSigner.address)) {
     warn(
-      yellow(
-        bold(
+      chalk.yellow(
+        chalk.bold(
           'WARN: For proper record of version history, we reccomend including all signers for your package as part of the `deployers` configuration in your cannonfile.',
         ),
       ),
     );
-    warn(yellow('This can be safely done after the build is finished.'));
+    warn(chalk.yellow('This can be safely done after the build is finished.'));
   }
 
-  const { build } = await import('../commands/build');
+  const { build } = await import('../commands/build.js');
 
   const { outputs, runtime, deployInfo } = await build(buildConfig);
 
@@ -321,7 +321,7 @@ async function prepareBuildConfig(
     const neededDeps = Array.from(def.danglingDependencies).map((v) => v.split(':'));
     throw new CannonError(
       `Unknown template access found. Please ensure the following references are defined:\n${neededDeps
-        .map(([input, node]) => `${bold(input)} in ${italic(node)}`)
+        .map(([input, node]) => `${chalk.bold(input)} in ${chalk.italic(node)}`)
         .join('\n')}`,
     );
   }

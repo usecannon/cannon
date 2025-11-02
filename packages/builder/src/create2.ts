@@ -1,6 +1,6 @@
 import Debug from 'debug';
 import * as viem from 'viem';
-import { CannonSigner, ChainBuilderRuntimeInfo } from './';
+import { CannonSigner, ChainBuilderRuntimeInfo } from './index.js';
 
 const debug = Debug('cannon:builder:create2');
 

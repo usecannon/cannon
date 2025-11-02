@@ -5,8 +5,8 @@ import { ContractArtifact } from '@usecannon/builder';
 import _ from 'lodash';
 import Debug from 'debug';
 
-import { execPromise } from './helpers';
-import { warn } from './util/console';
+import { execPromise } from './helpers.js';
+import { warn } from './util/console.js';
 
 const debug = Debug('cannon:cli:foundry');
 

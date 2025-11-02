@@ -2,13 +2,18 @@ import Debug from 'debug';
 
 import * as viem from 'viem';
 import { estimateContractGas, estimateGas, prepareTransactionRequest, simulateContract } from 'viem/actions';
-import { parseContractErrorReason, renderTrace, TraceEntry } from '../trace';
-import { ChainArtifacts, ContractData } from '../types';
+import { parseContractErrorReason, renderTrace, TraceEntry } from '../trace.js';
+import { ChainArtifacts, ContractData } from '../types.js';
 
 const UNKNOWN_ERROR = 'UNKNOWN_ERROR';
 const debug = Debug('cannon:builder:error');
 
-export function traceActions(artifacts: ChainArtifacts) {
+export function traceActions(artifacts: ChainArtifacts): (client: viem.Client) => {
+  estimateGas: (args: viem.EstimateGasParameters) => Promise<bigint | undefined>;
+  estimateContractGas: (args: viem.EstimateContractGasParameters) => Promise<bigint | undefined>;
+  prepareTransactionRequest: (args: viem.PrepareTransactionRequestParameters) => Promise<viem.PrepareTransactionRequestReturnType | undefined>;
+  simulateContract: (args: viem.SimulateContractParameters) => Promise<viem.SimulateContractReturnType | undefined>;
+} {
   return (client: viem.Client) => {
     return {
       estimateGas: async (args: viem.EstimateGasParameters) => {

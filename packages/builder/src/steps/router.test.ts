@@ -1,12 +1,12 @@
-import { fixtureContractData, fixtureCtx, fixtureSigner, fixtureTransactionReceipt } from '../../test/fixtures';
-import { validateConfig } from '../actions';
-import action from './router';
-import { PackageReference } from '../package-reference';
-import { fakeRuntime } from './utils.test.helper';
-import * as create2Module from '../create2';
+import { fixtureContractData, fixtureCtx, fixtureSigner, fixtureTransactionReceipt } from '../../test/fixtures.js';
+import { validateConfig } from '../actions.js';
+import action from './router.js';
+import { PackageReference } from '../package-reference.js';
+import { fakeRuntime } from './utils.test.helper.js';
+import * as create2Module from '../create2.js';
 
-jest.mock('../create2', () => ({
-  ...jest.requireActual('../create2'),
+jest.mock('../create2.js', () => ({
+  ...jest.requireActual('../create2.js'),
   ensureArachnidCreate2Exists: jest.fn(),
 }));
 

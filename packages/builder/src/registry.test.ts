@@ -1,7 +1,7 @@
 import * as viem from 'viem';
-import { fixtureAddress, fixtureSigner, fixtureTransactionReceipt, makeFakeProvider } from '../test/fixtures';
-import { CannonSigner } from './';
-import { CannonRegistry, OnChainRegistry } from './registry';
+import { fixtureAddress, fixtureSigner, fixtureTransactionReceipt, makeFakeProvider } from '../test/fixtures.js';
+import { CannonSigner } from './.js';
+import { CannonRegistry, OnChainRegistry } from './registry.js';
 
 describe('registry.ts', () => {
   describe('CannonRegistry', () => {

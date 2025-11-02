@@ -1,20 +1,20 @@
 import _ from 'lodash';
-import { fixtureSigner, makeFakeProvider } from '../test/fixtures';
-import { RawChainDefinition } from './actions';
-import { build, createInitialContext, getOutputs, runStep } from './builder';
-import { BUILD_VERSION } from './constants';
-import { ChainDefinition } from './definition';
-import { IPFSLoader } from './loader';
-import { InMemoryRegistry } from './registry';
-import { ChainBuilderRuntime, Events } from './runtime';
-import deployStep from './steps/deploy';
-import varStep from './steps/var';
-import pullStep from './steps/pull';
-import invokeStep from './steps/invoke';
-import { ChainBuilderContext, ContractArtifact, DeploymentState } from './types';
+import { fixtureSigner, makeFakeProvider } from '../test/fixtures.js';
+import { RawChainDefinition } from './actions.js';
+import { build, createInitialContext, getOutputs, runStep } from './builder.js';
+import { BUILD_VERSION } from './constants.js';
+import { ChainDefinition } from './definition.js';
+import { IPFSLoader } from './loader.js';
+import { InMemoryRegistry } from './registry.js';
+import { ChainBuilderRuntime, Events } from './runtime.js';
+import deployStep from './steps/deploy.js';
+import varStep from './steps/var.js';
+import pullStep from './steps/pull.js';
+import invokeStep from './steps/invoke.js';
+import { ChainBuilderContext, ContractArtifact, DeploymentState } from './types.js';
 
-jest.mock('./steps/deploy');
-jest.mock('./steps/invoke');
+jest.mock('./steps/deploy.js');
+jest.mock('./steps/invoke.js');
 
 describe('builder.ts', () => {
   const loader = new IPFSLoader('', null as any);

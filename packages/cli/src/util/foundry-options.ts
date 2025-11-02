@@ -1,8 +1,8 @@
 import _ from 'lodash';
-import { Option } from '../commands/config/types';
-import { anvilOptions } from '../commands/config/anvil';
-import { forgeTestOptions } from '../commands/config/forge/test';
-import { forgeBuildOptions } from '../commands/config/forge/build';
+import { Option } from '../commands/config/types.js';
+import { anvilOptions } from '../commands/config/anvil.js';
+import { forgeTestOptions } from '../commands/config/forge/test.js';
+import { forgeBuildOptions } from '../commands/config/forge/build.js';
 
 enum FoundryFlagPrefix {
   FORGE = 'forge.',

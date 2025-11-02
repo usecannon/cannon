@@ -1,7 +1,7 @@
 import { Command } from 'commander';
-import { formatCommandHelp } from './format-command-help';
-import { parsePackagesArguments } from './params';
-import type { Command as CommandConfig } from '../commands/config/types';
+import { formatCommandHelp } from './format-command-help.js';
+import { parsePackagesArguments } from './params.js';
+import type { Command as CommandConfig } from '../commands/config/types.js';
 
 export const applyCommandsConfig = (command: Command, config: CommandConfig) => {
   if (config.description) {

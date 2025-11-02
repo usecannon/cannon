@@ -4,14 +4,14 @@ import * as viem from 'viem';
 import { ChainDefinition, getOutputs, ChainBuilderRuntime, DeploymentInfo } from '@usecannon/builder';
 import { forPackageTree, PackageReference } from '@usecannon/builder';
 
-import { CliSettings } from '../settings';
-import { getProvider, runRpc } from '../rpc';
-import { createDefaultReadRegistry } from '../registry';
+import { CliSettings } from '../settings.js';
+import { getProvider, runRpc } from '../rpc.js';
+import { createDefaultReadRegistry } from '../registry.js';
 
-import { getMainLoader } from '../loader';
+import { getMainLoader } from '../loader.js';
 
-import { logSpinner } from '../util/console';
-import { isVerified } from '../util/verify';
+import { logSpinner } from '../util/console.js';
+import { isVerified } from '../util/verify.js';
 
 const debug = Debug('cannon:cli:verify');
 

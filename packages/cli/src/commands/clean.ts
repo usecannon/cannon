@@ -4,8 +4,8 @@ import path from 'node:path';
 import Debug from 'debug';
 import prompts from 'prompts';
 
-import { log } from '../util/console';
-import { resolveCliSettings } from '../settings';
+import { log } from '../util/console.js';
+import { resolveCliSettings } from '../settings.js';
 
 const debug = Debug('cannon:cli:clean');
 

@@ -7,9 +7,9 @@ import untildify from 'untildify';
 import * as viem from 'viem';
 import { parseEnv } from 'znv';
 import { z } from 'zod';
-import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY } from './constants';
-import { checkAndNormalizePrivateKey, filterSettings } from './helpers';
-import { deprecatedWarn } from './util/deprecated-warn';
+import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY } from './constants.js';
+import { checkAndNormalizePrivateKey, filterSettings } from './helpers.js';
+import { deprecatedWarn } from './util/deprecated-warn.js';
 
 const debug = Debug('cannon:cli:settings');
 
@@ -178,7 +178,6 @@ function createCannonSettingsSchema(fileSettings: CliSettings) {
       .refine((v) => !v || viem.isAddress(v), 'must be address'),
     CANNON_REGISTRY_PRIORITY: z.enum(['onchain', 'local', 'offline']).default(fileSettings.registryPriority || 'onchain'),
     CANNON_ETHERSCAN_API_URL: z
-      .string()
       .url()
       .optional()
       .default(fileSettings.etherscanApiUrl as string),
@@ -186,7 +185,7 @@ function createCannonSettingsSchema(fileSettings: CliSettings) {
     CANNON_QUIET: z.boolean().default(fileSettings.quiet || false),
     CANNON_E2E: z.boolean().default(false),
     TRACE: z.boolean().default(false),
-  };
+  } as const;
 }
 
 function computeCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
@@ -199,6 +198,7 @@ function computeCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
     fileSettings = fs.existsSync(settingsPath) ? fs.readJsonSync(settingsPath) : {};
   }
 
+  // TODO: something wierd is going on with the types here and it is getting `zod.DeepObject` when it should be string
   const {
     CANNON_DIRECTORY,
     CANNON_PROVIDER_URL,
@@ -222,7 +222,7 @@ function computeCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
 
   const finalSettings = _.assign(
     {
-      cannonDirectory: untildify(CANNON_DIRECTORY),
+      cannonDirectory: untildify(CANNON_DIRECTORY as unknown as string),
       rpcUrl: CANNON_RPC_URL || CANNON_PROVIDER_URL,
       privateKey: CANNON_PRIVATE_KEY,
       ipfsTimeout: CANNON_IPFS_TIMEOUT,

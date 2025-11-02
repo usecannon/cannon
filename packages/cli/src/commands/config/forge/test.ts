@@ -1,10 +1,10 @@
-import type { Option as ForgeTestOption } from '../types';
+import type { Option as ForgeTestOption } from '../types.js';
 
-import { anvilOptions } from '../anvil';
-import { forgeEvmOptions } from './common/evm';
-import { forgeDisplayOptions } from './common/display';
-import { forgeCompilerOptions } from './common/compiler';
-import { forgeProjectOptions } from './common/project';
+import { anvilOptions } from '../anvil.js';
+import { forgeEvmOptions } from './common/evm.js';
+import { forgeDisplayOptions } from './common/display.js';
+import { forgeCompilerOptions } from './common/compiler.js';
+import { forgeProjectOptions } from './common/project.js';
 
 export const forgeTestOptions: ForgeTestOption[] = [
   {

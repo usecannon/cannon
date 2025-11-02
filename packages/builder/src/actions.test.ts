@@ -1,7 +1,7 @@
-import { ActionKinds, registerAction, validateConfig, CannonAction } from './actions';
-import { ChainArtifacts, ChainBuilderContext, ChainBuilderRuntimeInfo } from './types';
+import { ActionKinds, registerAction, validateConfig, CannonAction } from './actions.js';
+import { ChainArtifacts, ChainBuilderContext, ChainBuilderRuntimeInfo } from './types.js';
 import { z } from 'zod';
-import { PackageReference } from './package-reference';
+import { PackageReference } from './package-reference.js';
 
 const FakeAction: CannonAction = {
   label: 'fake',

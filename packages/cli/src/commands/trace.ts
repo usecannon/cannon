@@ -1,14 +1,14 @@
 import { ChainArtifacts, ChainDefinition, findContract, getArtifacts, renderTrace, TraceEntry } from '@usecannon/builder';
-import { bold, gray, green, red, yellow } from 'chalk';
+import chalk from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
-import { readDeployRecursive } from '../package';
-import { getProvider, runRpc } from '../rpc';
-import { CliSettings } from '../settings';
-import { logSpinner } from '../util/console';
-import { ProviderAction, resolveProvider } from '../util/provider';
-import { ANVIL_FIRST_ADDRESS } from '../constants';
+import { readDeployRecursive } from '../package.js';
+import { getProvider, runRpc } from '../rpc.js';
+import { CliSettings } from '../settings.js';
+import { logSpinner } from '../util/console.js';
+import { ProviderAction, resolveProvider } from '../util/provider.js';
+import { ANVIL_FIRST_ADDRESS } from '../constants.js';
 
 const debug = Debug('cannon:cli:trace');
 
@@ -62,7 +62,7 @@ export async function trace({
       const txReceipt = await provider.getTransactionReceipt({ hash: txHash });
 
       // this is a transaction hash
-      logSpinner(gray('Detected transaction hash'));
+      logSpinner(chalk.gray('Detected transaction hash'));
 
       data = txData.input;
       value = value || txData.value;
@@ -85,10 +85,10 @@ export async function trace({
     });
     if (r !== null) {
       to = r.contract.address;
-      logSpinner(gray(`Inferred contract for call: ${r.name}`));
+      logSpinner(chalk.gray(`Inferred contract for call: ${r.name}`));
     } else {
       logSpinner(
-        yellow(
+        chalk.yellow(
           'Could not find a contract for this call. Are you sure the call can be traced on a contract on this cannon package? Pass `--to` to set manually if necessary',
         ),
       );
@@ -137,7 +137,7 @@ export async function trace({
       await simulateProvider.setBalance({ address: fullTxn.from, value: viem.parseEther('10000') });
     }
 
-    logSpinner(gray('Simulating transaction (be patient! this could take a while...)'));
+    logSpinner(chalk.gray('Simulating transaction (be patient! this could take a while...)'));
     const pushedTxn = await simulateProvider.sendTransaction({ account: signer, chain: simulateProvider.chain, ...fullTxn });
 
     try {
@@ -163,8 +163,8 @@ export async function trace({
     logSpinner();
     if (receipt.status == 'success') {
       logSpinner(
-        green(
-          bold(
+        chalk.green(
+          chalk.bold(
             `Transaction completes successfully with return value: ${
               traces[0].result?.output ?? 'unknown'
             } (${totalGasUsed} gas)`,
@@ -173,7 +173,7 @@ export async function trace({
       );
     } else {
       logSpinner(
-        red(bold(`Transaction completes with error: ${traces[0].result?.output ?? 'unknown'} (${totalGasUsed} gas)`)),
+        chalk.red(chalk.bold(`Transaction completes with error: ${traces[0].result?.output ?? 'unknown'} (${totalGasUsed} gas)`)),
       );
     }
   } else {

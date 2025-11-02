@@ -1,10 +1,10 @@
 import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
-import { varSchema } from '../schemas';
-import { template } from '../utils/template';
-import { CannonAction } from '../actions';
+import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder.js';
+import { varSchema } from '../schemas.js';
+import { template } from '../utils/template.js';
+import { CannonAction } from '../actions.js';
 
 const debug = Debug('cannon:builder:var');
 

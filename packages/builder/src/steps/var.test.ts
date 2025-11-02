@@ -1,7 +1,7 @@
-import { fixtureCtx } from '../../test/fixtures';
-import { fakeRuntime } from './utils.test.helper';
-import { PackageReference } from '../package-reference';
-import action from './var';
+import { fixtureCtx } from '../../test/fixtures.js';
+import { fakeRuntime } from './utils.test.helper.js';
+import { PackageReference } from '../package-reference.js';
+import action from './var.js';
 
 describe('steps/var.ts', () => {
   describe('configInject()', () => {

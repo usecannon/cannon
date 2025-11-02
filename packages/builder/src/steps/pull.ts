@@ -1,14 +1,14 @@
 import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
-import { Events } from '../runtime';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
-import { getOutputs } from '../builder';
-import { ChainDefinition } from '../definition';
-import { PackageReference } from '../package-reference';
-import { pullSchema } from '../schemas';
-import { template } from '../utils/template';
-import { CannonAction } from '../actions';
+import { Events } from '../runtime.js';
+import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder.js';
+import { getOutputs } from '../builder.js';
+import { ChainDefinition } from '../definition.js';
+import { PackageReference } from '../package-reference.js';
+import { pullSchema } from '../schemas.js';
+import { template } from '../utils/template.js';
+import { CannonAction } from '../actions.js';
 
 const debug = Debug('cannon:builder:pull');
 

@@ -18,10 +18,17 @@ export default [
     ],
     output: [
       {
+        dir: 'dist/cannon.esm',
+        format: 'esm',
+        name: 'Cannon',
+        sourcemap: true,
+      },
+      {
         file: 'dist/cannon.umd.js',
         format: 'umd',
         name: 'Cannon',
         sourcemap: true,
+        inlineDynamicImports: true,
       },
     ],
   },

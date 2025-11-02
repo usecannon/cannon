@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { InvalidArgumentError } from 'commander';
-import { PackageSpecification, PackageSettings } from '../types';
+import { PackageSpecification, PackageSettings } from '../types.js';
 import { PackageReference } from '@usecannon/builder';
 
 const settingRegExp = /^(?<key>[a-z0-9-_]+)=(?<value>.*)$/i;

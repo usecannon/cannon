@@ -1,5 +1,5 @@
 import Debug from 'debug';
-import { deleteIpfs, Headers, isIpfsGateway, listPinsIpfs, readIpfs, writeIpfs } from './ipfs';
+import { deleteIpfs, Headers, isIpfsGateway, listPinsIpfs, readIpfs, writeIpfs } from './ipfs.js';
 
 const debug = Debug('cannon:builder:loader');
 

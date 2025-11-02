@@ -2,14 +2,14 @@ import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
-import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
-import { CannonError, handleTxnError } from '../error';
-import { deploySchema } from '../schemas';
-import { ChainArtifacts, ChainBuilderContext, ContractArtifact } from '../types';
-import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
-import { template } from '../utils/template';
-import { CannonAction } from '../actions';
+import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder.js';
+import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2.js';
+import { CannonError, handleTxnError } from '../error/index.js';
+import { deploySchema } from '../schemas.js';
+import { ChainArtifacts, ChainBuilderContext, ContractArtifact } from '../types.js';
+import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util.js';
+import { template } from '../utils/template.js';
+import { CannonAction } from '../actions.js';
 
 const debug = Debug('cannon:builder:deploy');
 

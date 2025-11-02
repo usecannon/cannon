@@ -1,6 +1,6 @@
 import _ from 'lodash';
-import { RawChainDefinition } from './actions';
-import { ChainDefinition, validatePackageName, validatePackageVersion } from './definition';
+import { RawChainDefinition } from './actions.js';
+import { ChainDefinition, validatePackageName, validatePackageVersion } from './definition.js';
 
 function makeFakeChainDefinition(nodes: { [n: string]: any }) {
   const rawDef: RawChainDefinition = {

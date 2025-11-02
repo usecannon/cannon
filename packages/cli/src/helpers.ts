@@ -14,7 +14,7 @@ import {
   RawChainDefinition,
 } from '@usecannon/builder';
 import { AbiEvent } from 'abitype';
-import { bold, magentaBright, red, yellowBright } from 'chalk';
+import chalk from 'chalk';
 import { exec, spawnSync } from 'child_process';
 import Debug from 'debug';
 import fs from 'fs-extra';
@@ -24,14 +24,14 @@ import path from 'path';
 import prompts from 'prompts';
 import semver from 'semver';
 import * as viem from 'viem';
-import { getMainLoader } from './loader';
+import { getMainLoader } from './loader.js';
 import { privateKeyToAccount } from 'viem/accounts';
-import { getChainById, chains } from './chains';
-import { resolveCliSettings } from './settings';
-import { logSpinner, warnSpinner } from './util/console';
-import { isConnectedToInternet } from './util/is-connected-to-internet';
-import { getChainIdFromRpcUrl, isURL, hideApiKey } from './util/provider';
-import { createDefaultReadRegistry } from './registry';
+import { getChainById, chains } from './chains.js';
+import { resolveCliSettings } from './settings.js';
+import { logSpinner, warnSpinner } from './util/console.js';
+import { isConnectedToInternet } from './util/is-connected-to-internet.js';
+import { getChainIdFromRpcUrl, isURL, hideApiKey } from './util/provider.js';
+import { createDefaultReadRegistry } from './registry.js';
 
 const debug = Debug('cannon:cli:helpers');
 
@@ -96,7 +96,7 @@ export async function ensureFoundryCompatibility(): Promise<void> {
       });
 
       if (anvilResponse.confirmation) {
-        logSpinner(magentaBright('Upgrading Foundry to the latest version...'));
+        logSpinner(chalk.magentaBright('Upgrading Foundry to the latest version...'));
         await execPromise('foundryup');
       } else {
         process.exit(1);
@@ -111,7 +111,7 @@ export async function ensureFoundryCompatibility(): Promise<void> {
     });
 
     if (response.confirmation) {
-      logSpinner(magentaBright('Installing Foundry...'));
+      logSpinner(chalk.magentaBright('Installing Foundry...'));
       await execPromise('curl -L https://foundry.paradigm.xyz | bash');
       await execPromise(os.homedir() + '/.foundry/bin/foundryup');
     } else {
@@ -198,7 +198,7 @@ export async function checkCannonVersion(currentVersion: string): Promise<void> 
   const latestVersion = await resolveCannonVersion();
 
   if (latestVersion && currentVersion && semver.lt(currentVersion, latestVersion)) {
-    warnSpinner(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
+    warnSpinner(chalk.yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
   }
 }
 
@@ -335,10 +335,10 @@ export async function ensureChainIdConsistency(rpcUrl?: string, chainId?: number
       // throw an expected error if the chainId is not consistent with the provider's chainId
       if (Number(chainId) !== Number(providerChainId)) {
         logSpinner(
-          red(
-            `Error: The chainId (${providerChainId}) obtained from the ${bold('--rpc-url')} does not match with ${bold(
+          chalk.red(
+            `Error: The chainId (${providerChainId}) obtained from the ${chalk.bold('--rpc-url')} does not match with ${chalk.bold(
               '--chain-id',
-            )} value (${chainId}). Please ensure that the ${bold(
+            )} value (${chainId}). Please ensure that the ${chalk.bold(
               '--chain-id',
             )} value matches the network your RPC is connected to.`,
           ),

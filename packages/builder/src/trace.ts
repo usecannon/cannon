@@ -1,8 +1,8 @@
-import { ChainArtifacts, Contract, ContractData } from './types';
-import { ConsoleLogs } from './consoleLog';
+import { ChainArtifacts, Contract, ContractData } from './types.js';
+import { ConsoleLogs } from './consoleLog.js';
 import * as viem from 'viem';
 import { Abi, Address, Hash, Hex, decodeAbiParameters } from 'viem';
-import { green, grey, bold, red } from 'chalk';
+import chalk from 'chalk';
 import Debug from 'debug';
 
 const debug = Debug('cannon:cli:trace');
@@ -62,19 +62,19 @@ export function renderTraceEntry(ctx: ChainArtifacts, trace: TraceEntry): string
         trace.result?.output ?? '0x',
       );
 
-      const actionStr = bold(`${callTraceAction.callType.toUpperCase()} `);
-      const gasStr = grey(` (${parseInt(callTraceAction.gas).toLocaleString()} gas)`);
+      const actionStr = chalk.bold(`${callTraceAction.callType.toUpperCase()} `);
+      const gasStr = chalk.grey(` (${parseInt(callTraceAction.gas).toLocaleString()} gas)`);
 
       const txStr =
         (contractName || callTraceAction.to) +
         '.' +
         (parsedInput || callTraceAction.input) +
         (BigInt(callTraceAction.value || '0') != BigInt(0)
-          ? red(`{value:${viem.formatEther(BigInt(callTraceAction.value))}}`)
+          ? chalk.red(`{value:${viem.formatEther(BigInt(callTraceAction.value))}}`)
           : '') +
         (parsedOutput ? ' => ' + parsedOutput : '');
 
-      str = actionStr + (contractName ? green(txStr) : txStr) + gasStr;
+      str = actionStr + (contractName ? chalk.green(txStr) : txStr) + gasStr;
       break;
     case 'create':
       //const createTraceAction = trace.action as CreateTraceAction;
@@ -156,7 +156,7 @@ export function parseFunctionData(
           debug('parse function result error', err);
           // if we found an address but the transaction cannot be parsed, it could be decodable error
           try {
-            parsedOutput = bold(red(parseContractErrorReason(info.contract, output)));
+            parsedOutput = chalk.bold(chalk.red(parseContractErrorReason(info.contract, output)));
             isReverted = true;
           } catch (err) {
             parsedOutput = output;

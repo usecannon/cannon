@@ -3,7 +3,7 @@ import { exec } from 'child_process';
 import _ from 'lodash';
 import { existsSync, mkdirp } from 'fs-extra';
 import { registerAction } from '@usecannon/builder';
-import { resolveCliSettings } from './settings';
+import { resolveCliSettings } from './settings.js';
 
 import Debug from 'debug';
 

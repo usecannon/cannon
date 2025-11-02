@@ -1,7 +1,7 @@
-import { getDefaultStorage, getCannonContract } from './helpers';
-import { IPFSLoader, InMemoryLoader } from './loader';
-import { InMemoryRegistry, FallbackRegistry } from './registry';
-import { CannonStorage } from './runtime';
+import { getDefaultStorage, getCannonContract } from './helpers.js';
+import { IPFSLoader, InMemoryLoader } from './loader.js';
+import { InMemoryRegistry, FallbackRegistry } from './registry.js';
+import { CannonStorage } from './runtime.js';
 
 describe('helpers.test.ts', () => {
   describe('getDefaultStorage()', () => {

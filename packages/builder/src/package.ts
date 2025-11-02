@@ -1,14 +1,14 @@
 import Debug from 'debug';
 import * as viem from 'viem';
 import _ from 'lodash';
-import { createInitialContext, getArtifacts } from './builder';
-import { ChainDefinition } from './definition';
-import { CannonStorage, ChainBuilderRuntime } from './runtime';
-import { CannonRegistry } from './registry';
-import { BundledOutput, ChainArtifacts, DeploymentInfo, StepState } from './types';
+import { createInitialContext, getArtifacts } from './builder.js';
+import { ChainDefinition } from './definition.js';
+import { CannonStorage, ChainBuilderRuntime } from './runtime.js';
+import { CannonRegistry } from './registry.js';
+import { BundledOutput, ChainArtifacts, DeploymentInfo, StepState } from './types.js';
 
-import { PackageReference } from './package-reference';
-import { storeRead, storeWrite } from './utils/onchain-store';
+import { PackageReference } from './package-reference.js';
+import { storeRead, storeWrite } from './utils/onchain-store.js';
 
 const debug = Debug('cannon:builder:package');
 

@@ -1,10 +1,10 @@
 import * as viem from 'viem';
-import { fixtureTransactionReceipt } from '../../test/fixtures';
-import { validateConfig } from '../actions';
-import { ContractArtifact } from '../types';
-import action from './deploy';
-import { fakeCtx, fakeRuntime, makeFakeSigner } from './utils.test.helper';
-import { PackageReference } from '../package-reference';
+import { fixtureTransactionReceipt } from '../../test/fixtures.js';
+import { validateConfig } from '../actions.js';
+import { ContractArtifact } from '../types.js';
+import action from './deploy.js';
+import { fakeCtx, fakeRuntime, makeFakeSigner } from './utils.test.helper.js';
+import { PackageReference } from '../package-reference.js';
 
 const DEFAULT_ARACHNID_ADDRESS = '0x4e59b44847b379578588920cA78FbF26c0B4956C';
 

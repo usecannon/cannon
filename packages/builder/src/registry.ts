@@ -1,15 +1,15 @@
 /* eslint-disable no-console */
 
-import { blueBright, bold, yellow } from 'chalk';
+import chalk from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
 import EventEmitter from 'promise-events';
 import * as viem from 'viem';
-import CannonRegistryAbi from './abis/CannonRegistry';
-import { prepareMulticall, TxData } from './multicall';
-import { PackageReference } from './package-reference';
-import { CannonSigner } from './types';
-import { getIpfsUrl } from './ipfs';
+import CannonRegistryAbi from './abis/CannonRegistry.js';
+import { prepareMulticall, TxData } from './multicall.js';
+import { PackageReference } from './package-reference.js';
+import { CannonSigner } from './types.js';
+import { getIpfsUrl } from './ipfs.js';
 
 const debug = Debug('cannon:builder:registry');
 
@@ -97,7 +97,7 @@ export class InMemoryRegistry extends CannonRegistry {
     return receipts;
   }
 
-  async getUrl(
+  override async getUrl(
     packageOrServiceRef: string,
     chainId: number,
   ): Promise<{ url: string | null; mutability: 'version' | 'tag' | '' }> {
@@ -112,7 +112,7 @@ export class InMemoryRegistry extends CannonRegistry {
       : { url: null, mutability: '' };
   }
 
-  async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
+  override async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
     const { preset, packageRef } = new PackageReference(packageOrServiceRef);
 
     const variant = `${chainId}-${preset}`;
@@ -120,7 +120,7 @@ export class InMemoryRegistry extends CannonRegistry {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async getAllUrls(filterPackage?: string, chainId?: number): Promise<Set<string>> {
+  override async getAllUrls(filterPackage?: string, chainId?: number): Promise<Set<string>> {
     return new Set();
   }
 }
@@ -472,12 +472,12 @@ export class OnChainRegistry extends CannonRegistry {
     metaUrl?: string,
     mutabilityOverride?: 'version' | 'tag',
   ): Promise<string[]> {
-    console.log(bold(blueBright('\nPublishing package to the registry on-chain...\n')));
+    console.log(chalk.bold(chalk.blueBright('\nPublishing package to the registry on-chain...\n')));
     const packageData = this._preparePackageData(packagesNames, chainId, url, metaUrl, mutabilityOverride);
     return [await this._publishPackages([packageData])];
   }
 
-  async publishMany(
+  override async publishMany(
     toPublish: {
       packagesNames: string[];
       chainId: number;
@@ -486,24 +486,24 @@ export class OnChainRegistry extends CannonRegistry {
       mutabilityOverride?: 'version' | 'tag';
     }[],
   ): Promise<string[]> {
-    console.log(bold(blueBright('\nPublishing packages to the registry on-chain...\n')));
+    console.log(chalk.bold(chalk.blueBright('\nPublishing packages to the registry on-chain...\n')));
     const packageDatas = toPublish.map((p) => this._preparePackageData(p.packagesNames, p.chainId, p.url, p.metaUrl));
     return [await this._publishPackages(packageDatas)];
   }
 
   async unpublish(packagesNames: string[], chainId: number): Promise<string[]> {
-    console.log(bold(blueBright('\nUnpublishing package to the registry on-chain...\n')));
+    console.log(chalk.bold(chalk.blueBright('\nUnpublishing package to the registry on-chain...\n')));
     const packageData = this._preparePackageData(packagesNames, chainId);
     return [await this._unpublishPackages([packageData])];
   }
 
   async unpublishMany(toUnpublish: { name: string[]; chainId: number }[]): Promise<string[]> {
-    console.log(bold(blueBright('\nUnpublishing packages to the registry on-chain...\n')));
+    console.log(chalk.bold(chalk.blueBright('\nUnpublishing packages to the registry on-chain...\n')));
     const packageDatas = toUnpublish.map((p) => this._preparePackageData(p.name, p.chainId));
     return [await this._unpublishPackages(packageDatas)];
   }
 
-  async getUrl(
+  override async getUrl(
     packageOrServiceRef: string,
     chainId: number,
   ): Promise<{ url: string | null; mutability: 'version' | 'tag' | '' }> {
@@ -532,7 +532,7 @@ export class OnChainRegistry extends CannonRegistry {
     return { url: onChainDeployInfo.deployUrl, mutability: onChainDeployInfo.mutability as 'version' | 'tag' | '' };
   }
 
-  async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
+  override async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
     if (!this.provider) {
       throw new Error('provider not given to getUrl');
     }
@@ -556,7 +556,7 @@ export class OnChainRegistry extends CannonRegistry {
     return url || null;
   }
 
-  async getAllUrls(filterPackageRef?: string, chainId?: number): Promise<Set<string>> {
+  override async getAllUrls(filterPackageRef?: string, chainId?: number): Promise<Set<string>> {
     if (!this.provider) {
       throw new Error('no provider');
     }
@@ -823,8 +823,8 @@ export class OnChainRegistry extends CannonRegistry {
 
     if (this.signer && userBalance < transactionFeeWei) {
       console.log(
-        bold(
-          yellow(
+        chalk.bold(
+          chalk.yellow(
             `The address "${this.signer.address}" does not have enough funds to pay for the transaction, the transaction will likely revert.\n`,
           ),
         ),

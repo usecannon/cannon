@@ -1,8 +1,8 @@
 import _ from 'lodash';
-import { validateConfig } from '../actions';
-import action from './invoke';
-import { fakeCtx, fakeRuntime } from './utils.test.helper';
-import { PackageReference } from '../package-reference';
+import { validateConfig } from '../actions.js';
+import action from './invoke.js';
+import { fakeCtx, fakeRuntime } from './utils.test.helper.js';
+import { PackageReference } from '../package-reference.js';
 
 describe('steps/invoke.ts', () => {
   const fakeContractInfo = {

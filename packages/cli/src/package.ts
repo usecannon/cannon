@@ -1,8 +1,8 @@
 import Debug from 'debug';
 import { CannonStorage, DeploymentInfo } from '@usecannon/builder';
-import { createDefaultReadRegistry } from './registry';
-import { resolveCliSettings } from './settings';
-import { getMainLoader } from './loader';
+import { createDefaultReadRegistry } from './registry.js';
+import { resolveCliSettings } from './settings.js';
+import { getMainLoader } from './loader.js';
 
 const debug = Debug('cannon:cli:package');
 

@@ -1,4 +1,4 @@
-import type { Option as DebugOption } from './types';
+import type { Option as DebugOption } from './types.js';
 
 export const debugVerbosity: DebugOption[] = [
   {

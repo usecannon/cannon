@@ -3,7 +3,7 @@ import type { getContract, getContractData, getAllContractDatas } from './utils'
 import type * as viem from 'viem';
 import { ChainArtifacts } from '@usecannon/builder';
 
-declare module 'hardhat/types/config' {
+declare module 'hardhat/types/network' {
   export interface HardhatUserConfig {
     cannon?: Record<string, never>;
   }

@@ -1,28 +1,20 @@
 {
+  "extends": "@tsconfig/node22/tsconfig.json",
   "compilerOptions": {
-    "noEmit": true,
-    "target": "ES2021",
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "outDir": "${configDir}/dist",
     "declaration": true,
     "declarationMap": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmitOnError": true,
+    "noImplicitOverride": true,
+    "noUncheckedSideEffectImports": true,
+    "skipDefaultLibCheck": true,
     "sourceMap": true,
-    "strict": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
+    "composite": true,
+    "incremental": true,
+    "isolatedModules": true,
     "resolveJsonModule": true,
-    "rootDirs": [
-      "./src"
-    ],
-    "skipLibCheck": true
+    "typeRoots": ["${configDir}/node_modules/@types"]
   },
-  "include": [
-    "./src",
-    "../cli/run.ts",
-    "../cli/import-from.ts"
-  ],
-  "exclude": [
-    "dist",
-    "node_modules"
-  ]
+  "exclude": ["${configDir}/dist", "${configDir}/node_modules"]
 }

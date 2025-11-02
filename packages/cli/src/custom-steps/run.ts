@@ -15,7 +15,7 @@ import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
 import { z } from 'zod';
-import { runSchema } from '../schemas';
+import { runSchema } from '../schemas.js';
 
 const debug = Debug('cannon:builder:run');
 

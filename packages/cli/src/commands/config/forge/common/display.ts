@@ -1,4 +1,4 @@
-import type { Option as ForgeDisplayOption } from '../../types';
+import type { Option as ForgeDisplayOption } from '../../types.js';
 
 export const forgeDisplayOptions: ForgeDisplayOption[] = [
   {

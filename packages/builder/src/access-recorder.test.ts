@@ -1,4 +1,4 @@
-import { computeTemplateAccesses } from './access-recorder';
+import { computeTemplateAccesses } from './access-recorder.js';
 
 describe('access-recorder.ts', () => {
   describe('computeTemplateAccesses()', () => {

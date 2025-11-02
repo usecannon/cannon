@@ -3,9 +3,9 @@ import * as viem from 'viem';
 import { Buffer } from 'buffer';
 import _ from 'lodash';
 
-import { ChainDefinition } from '.';
-import { ChainDefinitionProblems } from './definition';
-import { ChainArtifacts, CannonSigner, Contract } from './types';
+import { ChainDefinition } from './index.js';
+import { ChainDefinitionProblems } from './definition.js';
+import { ChainArtifacts, CannonSigner, Contract } from './types.js';
 
 /**
  * Used as the `getDefaultSigner` implementation if none is specified to the chain builder. Creates a new

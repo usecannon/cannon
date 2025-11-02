@@ -2,14 +2,14 @@ import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
-import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
-import { ChainBuilderRuntime } from '../runtime';
-import { diamondSchema } from '../schemas';
-import { ContractArtifact, ContractMap, PackageState } from '../types';
-import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
-import { template } from '../utils/template';
-import { CannonAction } from '../actions';
+import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2.js';
+import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder.js';
+import { ChainBuilderRuntime } from '../runtime.js';
+import { diamondSchema } from '../schemas.js';
+import { ContractArtifact, ContractMap, PackageState } from '../types.js';
+import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util.js';
+import { template } from '../utils/template.js';
+import { CannonAction } from '../actions.js';
 
 const debug = Debug('cannon:builder:diamond');
 
@@ -198,7 +198,7 @@ const diamondStep = {
         account: ownerSigner.wallet.account || ownerSigner.address,
         to: proxyAddress,
         data: viem.encodeFunctionData({
-          abi: (await import('../abis/diamond/DiamondWipeAndPaveFacet.json')).abi,
+          abi: (await import('../abis/diamond/DiamondWipeAndPaveFacet.json', { with: { type: 'json' } })).default.abi,
           functionName: 'diamondWipeAndPave',
           args: [updateFacets, config.diamondArgs.init, config.diamondArgs.initCalldata],
         }),
@@ -336,26 +336,26 @@ async function firstTimeDeploy(
   };
 
   const baseFacets = await Promise.all([
-    import('../abis/diamond/OwnershipFacet.json'),
-    import('../abis/diamond/DiamondLoupeFacet.json'),
+    import('../abis/diamond/OwnershipFacet.json', { with: { type: 'json' } }),
+    import('../abis/diamond/DiamondLoupeFacet.json', { with: { type: 'json' } }),
   ]);
 
   const mutabilityFacets = await Promise.all([
-    import('../abis/diamond/DiamondCutFacet.json'),
-    import('../abis/diamond/DiamondWipeAndPaveFacet.json'),
+    import('../abis/diamond/DiamondCutFacet.json', { with: { type: 'json' } }),
+    import('../abis/diamond/DiamondWipeAndPaveFacet.json', { with: { type: 'json' } }),
   ]);
 
   const addFacets = [];
   for (const facet of [...baseFacets, ...mutabilityFacets]) {
     // load the diamond proxy contracts which may need to be deployed:
-    const deployedAddr = await deployContract(facet as any, stepName + facet.contractName, []);
-    addFacets.push({ action: 0, facetAddress: deployedAddr, functionSelectors: getFacetSelectors(facet.abi as viem.Abi) });
+    const deployedAddr = await deployContract(facet.default as any, stepName + facet.default.contractName, []);
+    addFacets.push({ action: 0, facetAddress: deployedAddr, functionSelectors: getFacetSelectors(facet.default.abi as viem.Abi) });
   }
 
   // then, deploy the proxy
   debug('deploying', addFacets);
   await deployContract(
-    (await import('../abis/diamond/Diamond.json')) as any,
+    (await import('../abis/diamond/Diamond.json', { with: { type: 'json' } })).default as any,
     stepName,
     [addFacets, config.diamondArgs],
     config.salt || '',

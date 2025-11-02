@@ -5,8 +5,8 @@ import Fuse from 'fuse.js';
 import rfdc from 'rfdc';
 import * as acorn from 'acorn';
 import { Node, Identifier, Property, MemberExpression } from 'acorn';
-import { CannonHelperContext } from '../types';
-import { getGlobalVars } from './get-global-vars';
+import { CannonHelperContext } from '../types.js';
+import { getGlobalVars } from './get-global-vars.js';
 
 const deepClone = rfdc();
 const debug = Debug('cannon:builder:template');

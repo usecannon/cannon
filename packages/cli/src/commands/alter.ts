@@ -15,11 +15,11 @@ import {
 import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
-import { getMainLoader } from '../loader';
-import { createDefaultReadRegistry } from '../registry';
-import { CliSettings } from '../settings';
-import { warnSpinner } from '../util/console';
-import { ProviderAction, resolveProvider } from '../util/provider';
+import { getMainLoader } from '../loader.js';
+import { createDefaultReadRegistry } from '../registry.js';
+import { CliSettings } from '../settings.js';
+import { warnSpinner } from '../util/console.js';
+import { ProviderAction, resolveProvider } from '../util/provider.js';
 
 const debug = Debug('cannon:cli:alter');
 

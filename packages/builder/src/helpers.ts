@@ -1,13 +1,13 @@
 import * as viem from 'viem';
 import { mainnet, optimism } from 'viem/chains';
-import { getArtifacts } from './builder';
-import { CANNON_CHAIN_ID, DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_CONFIG, getCannonRepoRegistryUrl } from './constants';
-import { ChainDefinition } from './definition';
-import { IPFSLoader } from './loader';
-import { PackageReference } from './package-reference';
-import { OnChainRegistry, FallbackRegistry, InMemoryRegistry } from './registry';
-import { CannonStorage } from './runtime';
-import { getContractFromPath } from './util';
+import { getArtifacts } from './builder.js';
+import { CANNON_CHAIN_ID, DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_CONFIG, getCannonRepoRegistryUrl } from './constants.js';
+import { ChainDefinition } from './definition.js';
+import { IPFSLoader } from './loader.js';
+import { PackageReference } from './package-reference.js';
+import { OnChainRegistry, FallbackRegistry, InMemoryRegistry } from './registry.js';
+import { CannonStorage } from './runtime.js';
+import { getContractFromPath } from './util.js';
 
 export function getDefaultStorage() {
   const registryChainIds = DEFAULT_REGISTRY_CONFIG.map((registry) => registry.chainId);
@@ -63,7 +63,7 @@ export async function getCannonContract(args: {
 }
 
 export async function loadPrecompiles(provider: viem.TestClient) {
-  const precompiles = await import('./precompiles');
+  const precompiles = await import('./precompiles/index.js');
 
   for (const precompileCall of precompiles.default) await provider.setCode(precompileCall);
 }

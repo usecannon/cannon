@@ -1,8 +1,8 @@
 import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
-import { template } from './utils/template';
-import { CannonHelperContext } from './types';
+import { template } from './utils/template.js';
+import { CannonHelperContext } from './types.js';
 
 const debug = Debug('cannon:builder:access-recorder');
 

@@ -7,16 +7,16 @@ import {
   fetchIPFSAvailability,
   getArtifacts,
 } from '@usecannon/builder';
-import { bold, cyan, green, yellow } from 'chalk';
+import chalk from 'chalk';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
-import { getContractsAndDetails, getSourceFromRegistry } from '../helpers';
-import { getMainLoader } from '../loader';
-import { createDefaultReadRegistry } from '../registry';
-import { CliSettings } from '../settings';
-import { logSpinner } from '../util/console';
+import { getContractsAndDetails, getSourceFromRegistry } from '../helpers.js';
+import { getMainLoader } from '../loader.js';
+import { createDefaultReadRegistry } from '../registry.js';
+import { CliSettings } from '../settings.js';
+import { logSpinner } from '../util/console.js';
 
 const debug = Debug('cannon:cli:inspect');
 
@@ -83,11 +83,11 @@ export async function inspect(
     const miscData = await loader.ipfs.read(deployInfo.miscUrl);
     const contractSources = _listSourceCodeContracts(miscData);
 
-    logSpinner(green(bold(`\n=============== ${fullPackageRef} (chainId: ${chainId}) ===============`)));
+    logSpinner(chalk.green(chalk.bold(`\n=============== ${fullPackageRef} (chainId: ${chainId}) ===============`)));
     logSpinner();
     logSpinner(
       '   Deploy Status:',
-      deployInfo.status === 'partial' ? yellow(bold(deployInfo.status)) : green(deployInfo.status || 'complete'),
+      deployInfo.status === 'partial' ? chalk.yellow(chalk.bold(deployInfo.status)) : chalk.green(deployInfo.status || 'complete'),
     );
     logSpinner(
       '         Options:',
@@ -107,18 +107,18 @@ export async function inspect(
     logSpinner('       Timestamp:', new Date(deployInfo.timestamp * 1000).toLocaleString());
     logSpinner(
       'Contract Sources:',
-      bold((contractSources.length ? yellow : green)(contractSources.length + ' sources included')),
+      chalk.bold((contractSources.length ? chalk.yellow : chalk.green)(contractSources.length + ' sources included')),
     );
     logSpinner();
     logSpinner('IPFS Availability Score(# of nodes): ', ipfsAvailabilityScore || 'Run IPFS Locally to get this score');
     logSpinner();
-    logSpinner(yellow(bold('Smart Contracts')));
-    logSpinner(`Note: Any ${bold('contract name')} that is bolded is highlighted and marked as important.`);
+    logSpinner(chalk.yellow(chalk.bold('Smart Contracts')));
+    logSpinner(`Note: Any ${chalk.bold('contract name')} that is bolded is highlighted and marked as important.`);
     logSpinner('Contract Addresses:');
     logSpinner('-------------------');
     for (const contractName in contractsAndDetails) {
       const { address, highlight } = contractsAndDetails[contractName];
-      const displayName = highlight ? bold(contractName) : contractName;
+      const displayName = highlight ? chalk.bold(contractName) : contractName;
       logSpinner(`${displayName}: ${address}`);
     }
     logSpinner('-------------------');
@@ -129,15 +129,15 @@ export async function inspect(
       for (const contractName in contractsAndDetails) {
         const { sourceName, highlight } = contractsAndDetails[contractName];
         if (sourceName) {
-          const displayName = highlight ? bold(contractName) : contractName;
+          const displayName = highlight ? chalk.bold(contractName) : contractName;
           logSpinner(`${displayName}: ${sourceName}`);
         }
       }
       logSpinner('-------------------');
     }
     logSpinner();
-    logSpinner(cyan(bold('Cannonfile Topology')));
-    logSpinner(cyan(chainDefinition.printTopology().join('\n')));
+    logSpinner(chalk.cyan(chalk.bold('Cannonfile Topology')));
+    logSpinner(chalk.cyan(chainDefinition.printTopology().join('\n')));
   }
 
   return deployInfo;

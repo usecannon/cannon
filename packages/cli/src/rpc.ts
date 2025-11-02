@@ -2,15 +2,15 @@ import { ChildProcess, spawn } from 'node:child_process';
 import http from 'node:http';
 import { Readable } from 'node:stream';
 import { CANNON_CHAIN_ID, loadPrecompiles } from '@usecannon/builder';
-import { gray } from 'chalk';
+import chalk from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
-import { getChainById } from './chains';
-import { execPromise } from './helpers';
-import { error, log, logSpinner } from './util/console';
-import { anvilOptions as fullAnvilOptions } from './commands/config/anvil';
-import { fromFoundryOptionsToArgs } from './util/foundry-options';
+import { getChainById } from './chains.js';
+import { execPromise } from './helpers.js';
+import { error, log, logSpinner } from './util/console.js';
+import { anvilOptions as fullAnvilOptions } from './commands/config/anvil.js';
+import { fromFoundryOptionsToArgs } from './util/foundry-options.js';
 
 const debug = Debug('cannon:cli:rpc');
 
@@ -137,7 +137,7 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
           if (m) {
             const host = 'http://' + m[1];
             state = 'listening';
-            logSpinner(gray('Anvil instance running on:', host, '\n'));
+            logSpinner(chalk.gray('Anvil instance running on:', host, '\n'));
 
             // TODO: why is this type not working out? (something about mode being wrong?)
             anvilProvider = viem

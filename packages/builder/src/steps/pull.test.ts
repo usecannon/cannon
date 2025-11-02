@@ -1,11 +1,11 @@
-import { validateConfig } from '../actions';
-import { BUILD_VERSION } from '../constants';
-import { InMemoryRegistry } from '../registry';
-import action from './pull';
-import { fakeCtx, fakeRuntime } from './utils.test.helper';
-import { PackageReference } from '../package-reference';
+import { validateConfig } from '../actions.js';
+import { BUILD_VERSION } from '../constants.js';
+import { InMemoryRegistry } from '../registry.js';
+import action from './pull.js';
+import { fakeCtx, fakeRuntime } from './utils.test.helper.js';
+import { PackageReference } from '../package-reference.js';
 
-jest.mock('../loader');
+jest.mock('../loader.js');
 
 describe('steps/pull.ts', () => {
   const registry = new InMemoryRegistry();

@@ -1,12 +1,12 @@
 import { OnChainRegistry, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
-import { blueBright, green, bold } from 'chalk';
+import chalk from 'chalk';
 import _ from 'lodash';
 import prompts from 'prompts';
 import * as viem from 'viem';
-import { LocalRegistry } from '../registry';
-import { CliSettings } from '../settings';
-import { resolveProviderAndSigners, ProviderAction } from '../util/provider';
-import { logSpinner, logSpinnerStart, logSpinnerEnd } from '../util/console';
+import { LocalRegistry } from '../registry.js';
+import { CliSettings } from '../settings.js';
+import { resolveProviderAndSigners, ProviderAction } from '../util/provider.js';
+import { logSpinner, logSpinnerStart, logSpinnerEnd } from '../util/console.js';
 
 interface Options {
   maxFeePerGas?: string;
@@ -73,7 +73,7 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
     logSpinnerStart();
   }
 
-  logSpinner(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
+  logSpinner(chalk.bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
 
   const readRegistry = _.differenceWith(cliSettings.registries, [writeRegistry], _.isEqual)[0];
   const registryProviders = await Promise.all([
@@ -190,11 +190,11 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
   if (selectedDeploys.length > 1) {
     const [hash] = await onChainRegistry.unpublishMany(selectedDeploys);
 
-    logSpinner(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+    logSpinner(`${chalk.green('Success!')} (${chalk.blueBright('Transaction Hash')}: ${hash})`);
   } else {
     const [deploy] = selectedDeploys;
     const hash = await onChainRegistry.unpublish(deploy.name, deploy.chainId);
 
-    logSpinner(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+    logSpinner(`${chalk.green('Success!')} (${chalk.blueBright('Transaction Hash')}: ${hash})`);
   }
 }

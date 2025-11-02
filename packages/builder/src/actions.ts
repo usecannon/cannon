@@ -1,17 +1,16 @@
 import { z } from 'zod';
-import { AccessComputationResult } from './access-recorder';
-import { handleZodErrors } from './error/zod';
-import { ChainBuilderRuntime } from './runtime';
-import { chainDefinitionSchema } from './schemas';
-import cloneSpec from './steps/clone';
-import deploySpec from './steps/deploy';
-import invokeSpec from './steps/invoke';
-import keeperSpec from './steps/keeper';
-import pullSpec from './steps/pull';
-import routerSpec from './steps/router';
-import diamondSpec from './steps/diamond';
-import varSpec from './steps/var';
-import { ChainArtifacts, ChainBuilderContext, PackageState } from './types';
+import { AccessComputationResult } from './access-recorder.js';
+import { handleZodErrors } from './error/zod.js';
+import { ChainBuilderRuntime } from './runtime.js';
+import { chainDefinitionSchema } from './schemas.js';
+import cloneSpec from './steps/clone.js';
+import deploySpec from './steps/deploy.js';
+import invokeSpec from './steps/invoke.js';
+import pullSpec from './steps/pull.js';
+import routerSpec from './steps/router.js';
+import diamondSpec from './steps/diamond.js';
+import varSpec from './steps/var.js';
+import { ChainArtifacts, ChainBuilderContext, PackageState } from './types.js';
 
 export interface RawConfig {
   description?: string;
@@ -83,7 +82,7 @@ export function validateConfig(schema: z.ZodSchema, config: any) {
   const result = schema.safeParse(config);
 
   if (!result.success) {
-    const errors = result.error.errors;
+    const errors = result.error.issues;
     handleZodErrors(errors);
   }
 
@@ -94,7 +93,7 @@ export function checkConfig(schema: z.ZodSchema, config: any) {
   const result = schema.safeParse(config);
 
   if (!result.success) {
-    return result.error.errors;
+    return result.error.issues;
   }
 
   return null;
@@ -126,7 +125,6 @@ export function registerAction(action: CannonAction) {
 registerAction(deploySpec);
 registerAction(pullSpec);
 registerAction(invokeSpec);
-registerAction(keeperSpec);
 registerAction(cloneSpec);
 registerAction(routerSpec);
 registerAction(diamondSpec);

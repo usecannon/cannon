@@ -1,5 +1,4 @@
 import { CANNON_CHAIN_ID } from '@usecannon/builder';
-import { extendConfig, extendEnvironment } from 'hardhat/config';
 import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'hardhat/types';
 import './tasks/alter';
 import './tasks/build';
@@ -9,6 +8,28 @@ import './subtasks/get-artifact-data';
 import './subtasks/load-package-definition';
 import './subtasks/run-anvil-node';
 import './type-extensions';
+import { HardhatPlugin } from 'hardhat/types/plugins';
+
+const plugin: HardhatPlugin = {
+  id: 'hardhat-cannon',
+  hookHandlers: {
+
+  },
+  tasks: [
+
+  ],
+  globalOptions: [
+
+  ],
+  dependencies: [
+
+  ],
+  conditionalDependencies: [
+
+  ]
+}
+
+export default plugin;
 
 extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
   config.cannon = {};
