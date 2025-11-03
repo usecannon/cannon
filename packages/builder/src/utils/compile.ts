@@ -1,5 +1,4 @@
 import * as viem from 'viem';
-import solc from '@usecannon/web-solc';
 
 interface CompileResult {
   sourceName: string;
@@ -28,7 +27,8 @@ export async function compileContract(
   evmVersion = 'paris',
   compilerVersion = '0.8.27',
 ) {
-  const { compile, stopWorker } = await solc.fetchSolc(compilerVersion);
+  const solc = await import('@usecannon/web-solc');
+  const { compile, stopWorker } = await solc.default.fetchSolc(compilerVersion);
 
   const sourceName = `${contractName}.sol`;
 

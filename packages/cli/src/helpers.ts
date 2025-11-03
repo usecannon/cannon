@@ -211,6 +211,17 @@ function loadPackageJson(filepath: string): { name: string; version: string } {
   }
 }
 
+function stripSymbols(obj: any) {
+  if (typeof obj === 'object' && !Array.isArray(obj)) {
+    return Object.entries(obj).reduce((acc, [k, v]) => {
+      (acc as any)[k] = stripSymbols(v)
+      return acc;
+    }, {});
+  } else {
+    return obj;
+  }
+}
+
 export async function loadCannonfile(filepath: string) {
   let buf: Buffer;
   let rawDef: RawChainDefinition;
@@ -274,7 +285,8 @@ async function loadChainDefinitionToml(filepath: string, trace: string[]): Promi
 
   let rawDef: Partial<RawChainDefinition> & { include?: string[] };
   try {
-    rawDef = toml.parse(buf.toString('utf8'));
+    // have to strip symbols because zod makes it really hard if we leave them in
+    rawDef = stripSymbols(toml.parse(buf.toString('utf8')));
   } catch (err: any) {
     throw new Error(`error encountered while parsing toml file ${filepath}: ${err.toString()}`);
   }
@@ -461,13 +473,6 @@ export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | unde
   });
 
   return normalizedPrivateKeys.join(',') as viem.Hex;
-}
-
-interface PackageReferenceResult {
-  fullPackageRef: string;
-  chainId: number;
-  ipfsUrl: string;
-  deployInfo: DeploymentInfo;
 }
 
 export async function getPackageReference(
