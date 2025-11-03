@@ -2,7 +2,7 @@
 
 import chalk from 'chalk';
 import Debug from 'debug';
-import _ from 'lodash';
+import { uniq } from 'lodash-es';
 import EventEmitter from 'promise-events';
 import * as viem from 'viem';
 import CannonRegistryAbi from './abis/CannonRegistry.js';
@@ -329,12 +329,12 @@ export class OnChainRegistry extends CannonRegistry {
     const refs = packagesNames.map((name) => new PackageReference(name));
 
     // Sanity check, all package definitions should have the same name
-    if (_.uniq(refs.map((r) => r.name)).length !== 1) {
+    if (uniq(refs.map((r) => r.name)).length !== 1) {
       throw new Error(`packages should have the same name: ${packagesNames.join(', ')}`);
     }
 
     // Sanity check, all package definitions should have the same preset
-    if (_.uniq(refs.map((r) => r.preset)).length !== 1) {
+    if (uniq(refs.map((r) => r.preset)).length !== 1) {
       throw new Error(`packages should have the same preset: ${packagesNames.join(', ')}`);
     }
 

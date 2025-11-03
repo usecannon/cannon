@@ -1,5 +1,5 @@
 import { OnChainRegistry, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
-import _ from 'lodash';
+import { isEqual, last } from 'lodash-es';
 import Debug from 'debug';
 import * as viem from 'viem';
 import prompts from 'prompts';
@@ -68,7 +68,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     throw new Error('Cannot add and remove the same address in one operation');
   }
 
-  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
+  const isDefaultSettings = isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
   let selectedNetwork = options.optimism ? Network.OP : Network.MAINNET;
@@ -191,7 +191,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   }
 
   // throw an error if the publishers list is already up to date
-  if (_.isEqual(currentPublishers, publishers)) {
+  if (isEqual(currentPublishers, publishers)) {
     throw new Error('The publishers list is already up to date.');
   }
 
@@ -246,7 +246,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         waitForEvent({
           eventName: 'PackagePublishersChanged',
           abi: mainnetRegistry.contract.abi,
-          rpcUrl: _.last(mainnetRegistryConfig.rpcUrl)!,
+          rpcUrl: last(mainnetRegistryConfig.rpcUrl)!,
           expectedArgs: {
             name: packageNameHex,
             publisher: mainnetPublishers,
@@ -255,7 +255,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         waitForEvent({
           eventName: 'PackagePublishersChanged',
           abi: optimismRegistry.contract.abi,
-          rpcUrl: _.last(optimismRegistryConfig.rpcUrl)!,
+          rpcUrl: last(optimismRegistryConfig.rpcUrl)!,
           expectedArgs: {
             name: packageNameHex,
             publisher: optimismPublishers,

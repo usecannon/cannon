@@ -18,7 +18,7 @@ import chalk from 'chalk';
 import { exec, spawnSync } from 'child_process';
 import Debug from 'debug';
 import fs from 'fs-extra';
-import _ from 'lodash';
+import { mergeWith, omit } from 'lodash-es';
 import os from 'os';
 import path from 'path';
 import prompts from 'prompts';
@@ -293,10 +293,10 @@ async function loadChainDefinitionToml(filepath: string, trace: string[]): Promi
   for (const additionalFilepath of rawDef.include || []) {
     const abspath = path.join(path.dirname(filepath), additionalFilepath);
 
-    _.mergeWith(assembledDef, (await loadChainDefinitionToml(abspath, [filepath].concat(trace)))[0], customMerge);
+    mergeWith(assembledDef, (await loadChainDefinitionToml(abspath, [filepath].concat(trace)))[0], customMerge);
   }
 
-  _.mergeWith(assembledDef, _.omit(rawDef, 'include'), customMerge);
+  mergeWith(assembledDef, omit(rawDef, 'include'), customMerge);
 
   return [assembledDef, buf];
 }

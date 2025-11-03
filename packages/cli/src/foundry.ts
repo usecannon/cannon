@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import { glob } from 'glob';
 import { ContractArtifact } from '@usecannon/builder';
-import _ from 'lodash';
+import { last, mapValues, memoize } from 'lodash-es';
 import Debug from 'debug';
 
 import { execPromise } from './helpers.js';
@@ -20,7 +20,7 @@ interface FoundryOpts {
 
 export async function getFoundryOpts(): Promise<FoundryOpts> {
   return JSON.parse(
-    await _.memoize(
+    await memoize(
       () => execPromise('forge config --json'),
       () => '',
     )(),
@@ -35,7 +35,7 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
   const foundryOpts = await getFoundryOpts();
 
   const splitName = name.split(':');
-  const inputContractName = _.last(splitName)!;
+  const inputContractName = last(splitName)!;
   const inputSourceName = splitName.length > 1 ? splitName[0] : '';
 
   // Finds root of the foundry project based n owhere the foundry.toml file is within the relative path
@@ -109,7 +109,7 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
     debug('evm version', evmVersionInfo);
 
     const solcVersion = artifact.metadata.compiler.version;
-    const sources = _.mapValues(artifact.metadata.sources, (v, sourcePath) => {
+    const sources = mapValues(artifact.metadata.sources, (v, sourcePath) => {
       return {
         content: fs.readFileSync(path.join(baseDir, sourcePath)).toString(),
       };

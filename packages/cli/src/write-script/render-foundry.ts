@@ -1,7 +1,7 @@
 import { EOL } from 'node:os';
 import { Transform } from 'node:stream';
 
-import _ from 'lodash';
+import { last } from 'lodash-es';
 import { AbiItem, getAddress, isAddress } from 'viem';
 
 function formatSolidityConstructorArg(
@@ -16,7 +16,7 @@ function formatSolidityConstructorArg(
   ) {
     return [`${getAddress(arg as string)}`, []];
   } else if (inputType && inputType.internalType.endsWith('[]')) {
-    const typeName = _.last(inputType.internalType.split(' '));
+    const typeName = last(inputType.internalType.split(' '));
     const args = arg as string[];
     const priorLines = [`${typeName} memory tmparray${inputType.name} = new ${typeName}(${args.length});`];
     for (let i = 0; i < args.length; i++) {
@@ -26,7 +26,7 @@ function formatSolidityConstructorArg(
 
     return [`tmparray${inputType.name}`, priorLines];
   } else if (inputType && inputType.internalType) {
-    return [`${_.last(inputType.internalType.split(' '))}(  ${arg})`, []];
+    return [`${last(inputType.internalType.split(' '))}(  ${arg})`, []];
   }
   return [arg as string, []];
 }

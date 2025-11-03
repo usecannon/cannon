@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { isEqual, last } from 'lodash-es';
 import Debug from 'debug';
 import * as viem from 'viem';
 import prompts from 'prompts';
@@ -21,7 +21,7 @@ interface Params {
 }
 
 export async function register({ cliSettings, options, packageRefs, fromPublish }: Params) {
-  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
+  const isDefaultSettings = isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
   // mock provider urls when the execution comes from e2e tests
@@ -198,7 +198,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
               waitForEvent({
                 eventName: 'PackageOwnerChanged',
                 abi: mainnetRegistry.contract.abi,
-                rpcUrl: _.last(optimismRegistryConfig.rpcUrl)!,
+                rpcUrl: last(optimismRegistryConfig.rpcUrl)!,
                 expectedArgs: {
                   name: packageNameHex,
                   owner: userAddress,
@@ -207,7 +207,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
               waitForEvent({
                 eventName: 'PackagePublishersChanged',
                 abi: mainnetRegistry.contract.abi,
-                rpcUrl: _.last(optimismRegistryConfig.rpcUrl)!,
+                rpcUrl: last(optimismRegistryConfig.rpcUrl)!,
                 expectedArgs: {
                   name: packageNameHex,
                   publisher: [userAddress],

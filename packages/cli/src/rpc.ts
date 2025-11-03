@@ -4,7 +4,7 @@ import { Readable } from 'node:stream';
 import { CANNON_CHAIN_ID, loadPrecompiles } from '@usecannon/builder';
 import chalk from 'chalk';
 import Debug from 'debug';
-import _ from 'lodash';
+import { isNil, once } from 'lodash-es';
 import * as viem from 'viem';
 import { getChainById } from './chains.js';
 import { execPromise } from './helpers.js';
@@ -35,7 +35,7 @@ export type CannonRpcNode = ChildProcess &
 let anvilInstance: CannonRpcNode | null = null;
 let anvilProvider: (viem.PublicClient & viem.WalletClient & viem.TestClient) | null = null;
 
-export const versionCheck = _.once(async () => {
+export const versionCheck = once(async () => {
   const anvilVersionInfo = await execPromise('anvil --version');
 
   if (
@@ -51,12 +51,12 @@ export async function runRpc(anvilOptions: Record<string, any>, rpcOptions: RpcO
 
   await versionCheck();
 
-  if (_.isNil(anvilOptions.chainId)) {
+  if (isNil(anvilOptions.chainId)) {
     anvilOptions.chainId = CANNON_CHAIN_ID;
   }
 
   // reduce image size by not creating unnecessary accounts
-  if (_.isNil(anvilOptions.accounts)) {
+  if (isNil(anvilOptions.accounts)) {
     anvilOptions.accounts = 1;
   }
 

@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import Debug from 'debug';
 import { EventEmitter } from 'events';
-import _ from 'lodash';
+import { partial, cloneDeep, merge } from 'lodash-es';
 import * as viem from 'viem';
 import { CannonSigner, ChainArtifacts, PackageReference } from './index.js';
 import { traceActions } from './error/index.js';
@@ -143,13 +143,13 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     this.chainId = info.chainId;
     this.getSigner = info.getSigner;
     this.getDefaultSigner =
-      info.getDefaultSigner || _.partial(getExecutionSigner, this.provider as viem.TestClient & viem.PublicClient);
+      info.getDefaultSigner || partial(getExecutionSigner, this.provider as viem.TestClient & viem.PublicClient);
 
     this.getArtifact = async (n: string) => {
       debug(`resolve artifact ${n}`);
       if (info.getArtifact) {
         debug('need to find artifact externally');
-        this.reportContractArtifact(n, _.cloneDeep(await info.getArtifact(n)));
+        this.reportContractArtifact(n, cloneDeep(await info.getArtifact(n)));
       }
 
       return this.misc.artifacts[n] || null;
@@ -272,7 +272,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   }
 
   updateProviderArtifacts(artifacts: ChainArtifacts) {
-    this.traceArtifacts = _.merge(this.traceArtifacts, artifacts);
+    this.traceArtifacts = merge(this.traceArtifacts, artifacts);
     this.provider = this.provider.extend(traceActions(this.traceArtifacts) as any);
   }
 

@@ -1,5 +1,5 @@
 import Debug from 'debug';
-import _ from 'lodash';
+import { cloneDeep, map, merge, pick, assign } from 'lodash-es';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2.js';
@@ -69,9 +69,9 @@ const diamondStep = {
   },
 
   configInject(ctx, config) {
-    config = _.cloneDeep(config);
+    config = cloneDeep(config);
 
-    config.contracts = _.map(config.contracts, (n) => template(n, ctx));
+    config.contracts = map(config.contracts, (n) => template(n, ctx));
 
     config.diamondArgs.owner = template(config.diamondArgs.owner, ctx);
     if (config.diamondArgs.init) {
@@ -155,7 +155,7 @@ const diamondStep = {
           stepName + 'DiamondCutFacet',
           stepName + 'DiamondWipeAndPaveFacet',
         ];
-    outputContracts = _.pick(outputContracts, [stepName, ...deployedContracts]);
+    outputContracts = pick(outputContracts, [stepName, ...deployedContracts]);
     debug('output contracts', [stepName, ...deployedContracts]);
 
     // ensure that diamond errors can be decoded if we run into an error on the next step(s)
@@ -164,7 +164,7 @@ const diamondStep = {
     const proxyAddress = outputContracts[stepName].address;
 
     // put the abis together
-    outputContracts[stepName as any].abi = getMergedAbiFromContractPaths(_.merge({}, ctx, { contracts: outputContracts }), [
+    outputContracts[stepName as any].abi = getMergedAbiFromContractPaths(merge({}, ctx, { contracts: outputContracts }), [
       ...deployedContracts,
       ...config.contracts,
     ]);
@@ -299,7 +299,7 @@ async function firstTimeDeploy(
 
     if (!bytecode) {
       const hash = await signer.wallet.sendTransaction(
-        _.assign({ account: signer.wallet.account || signer.address }, create2Txn as any),
+        assign({ account: signer.wallet.account || signer.address }, create2Txn as any),
       );
       const receipt = await runtime.provider.waitForTransactionReceipt({ hash });
       const block = await runtime.provider.getBlock({ blockHash: receipt.blockHash });

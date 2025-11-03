@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { isEqual } from 'lodash-es';
 import * as viem from 'viem';
 import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/builder';
 
@@ -40,7 +40,7 @@ export const waitForEvent = ({ eventName, abi, rpcUrl, expectedArgs }: WaitForEv
 
         for (const topic of topics) {
           // check event arguments, early return if they don't match
-          if (!_.isEqual(topic.args, expectedArgs)) continue;
+          if (!isEqual(topic.args, expectedArgs)) continue;
 
           // unwatch the event
           unwatch();

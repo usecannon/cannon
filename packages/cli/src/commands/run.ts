@@ -12,7 +12,7 @@ import {
   TraceEntry,
 } from '@usecannon/builder';
 import chalk from 'chalk';
-import _ from 'lodash';
+import { entries, fromPairs, map } from 'lodash-es';
 import * as viem from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { ANVIL_FIRST_ADDRESS } from '../constants.js';
@@ -170,7 +170,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
     buildOutputs.length == 1
       ? buildOutputs[0].outputs
       : ({
-          imports: _.fromPairs(_.entries(_.map(buildOutputs, 'outputs'))),
+          imports: fromPairs(entries(map(buildOutputs, 'outputs'))),
         } as ChainArtifacts);
 
   let traceLevel = 0;

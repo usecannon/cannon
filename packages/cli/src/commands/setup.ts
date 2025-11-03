@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { isEmpty, omitBy } from 'lodash-es';
 import fs from 'fs-extra';
 import path from 'path';
 import untildify from 'untildify';
@@ -79,7 +79,7 @@ export async function setup() {
   }
 
   logSpinner(`\nSaving ${cliSettingsStore}`);
-  fileSettings = _.omitBy(fileSettings, _.isEmpty);
+  fileSettings = omitBy(fileSettings, isEmpty);
   await fs.mkdirp(path.dirname(cliSettingsStore));
   fs.writeFileSync(cliSettingsStore, JSON.stringify(fileSettings), 'utf8');
   logSpinner(chalk.green('Cannon settings updated successfully'));

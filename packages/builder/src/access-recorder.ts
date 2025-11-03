@@ -1,5 +1,5 @@
 import Debug from 'debug';
-import _ from 'lodash';
+import { noop, isFunction, isPlainObject, mapValues } from 'lodash-es';
 import * as viem from 'viem';
 import { template } from './utils/template.js';
 import { CannonHelperContext } from './types.js';
@@ -24,7 +24,7 @@ class ExtendableProxy {
         } else if ((CannonHelperContext as any)[prop]) {
           // return a dummy function which returns nothing.
           // this increases the probability that an expression will work out in the template
-          return _.noop;
+          return noop;
         }
 
         return this.accessed.get(prop);
@@ -100,16 +100,16 @@ function setupTemplateContext(possibleNames: string[] = []): TemplateContext {
 }
 
 export function _createDeepNoopObject<T>(obj: T): T {
-  if (_.isFunction(obj)) {
-    return _.noop as T;
+  if (isFunction(obj)) {
+    return noop as T;
   }
 
   if (Array.isArray(obj)) {
     return obj.map((item) => _createDeepNoopObject(item)) as T;
   }
 
-  if (_.isPlainObject(obj)) {
-    return _.mapValues(obj as Record<string, unknown>, (value) => _createDeepNoopObject(value)) as T;
+  if (isPlainObject(obj)) {
+    return mapValues(obj as Record<string, unknown>, (value) => _createDeepNoopObject(value)) as T;
   }
 
   return obj;

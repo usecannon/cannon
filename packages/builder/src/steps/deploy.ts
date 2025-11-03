@@ -1,5 +1,5 @@
 import Debug from 'debug';
-import _ from 'lodash';
+import { get, set, cloneDeep, map as lodashMap, mapValues, forEach, assign } from 'lodash-es';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder.js';
@@ -35,7 +35,7 @@ function resolveBytecode(
   for (const file in artifactData.linkReferences) {
     for (const lib in artifactData.linkReferences[file]) {
       // get the lib from the config
-      const libraryAddress = _.get(config, `libraries.${lib}`);
+      const libraryAddress = get(config, `libraries.${lib}`);
 
       if (!libraryAddress) {
         throw new Error(`library not defined: ${lib}`);
@@ -51,7 +51,7 @@ function resolveBytecode(
           libraryAddress.substring(2) +
           injectedBytecode.substring(2 + (ref.start + ref.length) * 2)) as viem.Hex;
 
-        _.set(linkedLibraries, [file, lib], libraryAddress);
+        set(linkedLibraries, [file, lib], libraryAddress);
       }
     }
   }
@@ -133,7 +133,7 @@ function generateOutputs(
 const deploySpec = {
   label: 'deploy',
 
-  validate: _.cloneDeep(deploySchema),
+  validate: cloneDeep(deploySchema),
 
   async getState(runtime, ctx, config, packageState) {
     const parsedConfig = this.configInject(ctx, config, packageState);
@@ -155,7 +155,7 @@ const deploySpec = {
   },
 
   configInject(ctx, config) {
-    config = _.cloneDeep(config);
+    config = cloneDeep(config);
 
     config.from = template(config.from || '', ctx);
 
@@ -168,18 +168,18 @@ const deploySpec = {
     config.abi = template(config.abi || '', ctx);
 
     if (config.abiOf) {
-      config.abiOf = _.map(config.abiOf, (v) => template(v, ctx));
+      config.abiOf = lodashMap(config.abiOf, (v) => template(v, ctx));
     }
 
     if (config.args) {
-      config.args = _.map(config.args, (a) => {
+      config.args = lodashMap(config.args, (a) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
         return JSON.parse(template(JSON.stringify(a), ctx));
       });
     }
 
     if (config.libraries) {
-      config.libraries = _.mapValues(config.libraries, (a) => {
+      config.libraries = mapValues(config.libraries, (a) => {
         return template(a, ctx);
       });
     }
@@ -204,21 +204,21 @@ const deploySpec = {
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt, possibleFields));
 
     if (config.abiOf) {
-      _.forEach(
+      forEach(
         config.abiOf,
         (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(v, possibleFields))),
       );
     }
 
     if (config.args) {
-      _.forEach(
+      forEach(
         config.args,
         (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(v), possibleFields))),
       );
     }
 
     if (config.libraries) {
-      _.forEach(
+      forEach(
         config.libraries,
         (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(v, possibleFields))),
       );
@@ -317,7 +317,7 @@ const deploySpec = {
             ? await runtime.getSigner(config.from as viem.Address)
             : await runtime.getDefaultSigner!(txn, config.salt);
 
-          const fullCreate2Txn = _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
+          const fullCreate2Txn = assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
           debug('final create2 txn', fullCreate2Txn);
 
           const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
@@ -363,7 +363,7 @@ const deploySpec = {
             // if the code goes here, it means that the Create2 deployment failed
             // and prepareTransactionRequest will throw an error with the underlying revert message
             await runtime.provider.prepareTransactionRequest(
-              _.assign(txn, overrides, { account: signer.wallet.account || signer.address }),
+              assign(txn, overrides, { account: signer.wallet.account || signer.address }),
             );
 
             throw new Error(
@@ -371,7 +371,7 @@ const deploySpec = {
             );
           } else {
             const preparedTxn = await runtime.provider.prepareTransactionRequest(
-              _.assign(txn, overrides, { account: signer.wallet.account || signer.address }),
+              assign(txn, overrides, { account: signer.wallet.account || signer.address }),
             );
 
             const hash = await signer.wallet.sendTransaction(preparedTxn as any);

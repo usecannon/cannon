@@ -19,7 +19,7 @@ import {
 } from '@usecannon/builder';
 import chalk from 'chalk';
 import fs from 'fs-extra';
-import _ from 'lodash';
+import { assign, isEmpty, pick, pickBy } from 'lodash-es';
 import path from 'path';
 import { table } from 'table';
 import * as viem from 'viem';
@@ -194,7 +194,7 @@ export async function build({
     logSpinner(chalk.gray('Starting fresh build...'));
   }
 
-  const resolvedSettings = _.pickBy(_.assign((!wipe && oldDeployData?.options) || {}, packageDefinition.settings));
+  const resolvedSettings = pickBy(assign((!wipe && oldDeployData?.options) || {}, packageDefinition.settings));
 
   def = def || (oldDeployData ? new ChainDefinition(oldDeployData!.def) : undefined);
 
@@ -249,7 +249,7 @@ export async function build({
     logSpinner(`Using ${defaultSigner.address}`);
   }
 
-  if (!_.isEmpty(resolvedSettings)) {
+  if (!isEmpty(resolvedSettings)) {
     logSpinner(chalk.gray('Overriding settings in the cannonfile with the following:'));
     for (const [key, value] of Object.entries(resolvedSettings)) {
       logSpinner(chalk.gray(`  - ${key} = ${value}`));
@@ -389,7 +389,7 @@ export async function build({
       initialCtx,
       oldState: oldDeployData?.state || null,
       activeCtx: runtime.ctx,
-      error: _.pick(buildErr, Object.getOwnPropertyNames(buildErr)),
+      error: pick(buildErr, Object.getOwnPropertyNames(buildErr)),
     };
 
     const dumpFilePath = path.join(cliSettings.cannonDirectory, 'dumps', new Date().toISOString() + '.json');
@@ -438,7 +438,7 @@ export async function build({
 
     const metadataCache: { [key: string]: string } = {};
 
-    if (!_.isEmpty(pkgInfo)) {
+    if (!isEmpty(pkgInfo)) {
       metadataCache.gitUrl = pkgInfo.gitUrl;
       metadataCache.commitHash = pkgInfo.commitHash;
       metadataCache.readme = pkgInfo.readme;

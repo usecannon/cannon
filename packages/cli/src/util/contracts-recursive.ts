@@ -1,5 +1,5 @@
 import { ChainArtifacts, ContractData } from '@usecannon/builder';
-import { mapKeys } from 'lodash';
+import { mapKeys } from 'lodash-es';
 
 export function getContractsRecursive(
   outputs: ChainArtifacts,

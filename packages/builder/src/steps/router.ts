@@ -1,5 +1,5 @@
 import Debug from 'debug';
-import _ from 'lodash';
+import { cloneDeep, map, isUndefined, assign, omit } from 'lodash-es';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { generateRouter } from '@usecannon/router';
@@ -73,20 +73,20 @@ const routerStep = {
       {
         contractAbis,
         contractAddresses,
-        config: _.omit(newConfig, 'includeDiamondCompatibility'),
+        config: omit(newConfig, 'includeDiamondCompatibility'),
       },
       {
         contractAbis,
         contractAddresses,
-        config: _.omit(newConfig, 'includeReceive', 'includeDiamondCompatibility'),
+        config: omit(newConfig, 'includeReceive', 'includeDiamondCompatibility'),
       },
     ];
   },
 
   configInject(ctx, config) {
-    config = _.cloneDeep(config);
+    config = cloneDeep(config);
 
-    config.contracts = _.map(config.contracts, (n) => template(n, ctx));
+    config.contracts = map(config.contracts, (n) => template(n, ctx));
 
     if (config.from) {
       config.from = template(config.from, ctx);
@@ -107,7 +107,7 @@ const routerStep = {
       config.overrides.gasLimit = template(config.overrides.gasLimit, ctx);
     }
 
-    if (_.isUndefined(config.includeDiamondCompatibility)) {
+    if (isUndefined(config.includeDiamondCompatibility)) {
       config.includeDiamondCompatibility = true;
     }
 
@@ -264,7 +264,7 @@ const routerStep = {
           ? await runtime.getSigner(config.from as viem.Address)
           : await runtime.getDefaultSigner!(txn, config.salt);
 
-        const fullCreate2Txn = _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
+        const fullCreate2Txn = assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
         debug('final create2 txn', fullCreate2Txn);
 
         const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
@@ -280,7 +280,7 @@ const routerStep = {
       debug('using deploy signer with address', signer.address);
 
       const preparedTxn = await signer.wallet.prepareTransactionRequest(
-        _.assign(txn, overrides, { account: signer.wallet.account || signer.address }),
+        assign(txn, overrides, { account: signer.wallet.account || signer.address }),
       );
 
       const hash = await signer.wallet.sendTransaction(preparedTxn as any);

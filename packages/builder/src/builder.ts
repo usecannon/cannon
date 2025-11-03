@@ -1,6 +1,6 @@
 import Debug from 'debug';
 
-import _ from 'lodash';
+import { clone, cloneDeep, merge, uniq } from 'lodash-es';
 import * as viem from 'viem';
 import { ContractMap, DeploymentState, TransactionMap } from './index.js';
 import { ActionKinds } from './actions.js';
@@ -40,7 +40,7 @@ export async function createInitialContext(
 
     imports: {},
 
-    settings: _.clone(opts),
+    settings: clone(opts),
   };
 }
 
@@ -69,7 +69,7 @@ ${printChainDefinitionProblems(problems)}`);
 
   initialCtx.chainId = runtime.chainId;
 
-  state = _.cloneDeep(state);
+  state = cloneDeep(state);
 
   const tainted = new Set<string>();
   const built = new Map<string, ChainArtifacts>();
@@ -84,7 +84,7 @@ ${printChainDefinitionProblems(problems)}`);
   try {
     if (runtime.snapshots) {
       debug('building by layer');
-      ctx = _.clone(initialCtx);
+      ctx = clone(initialCtx);
 
       for (const leaf of def.leaves) {
         await buildLayer(runtime, def, ctx, state, leaf, tainted, built);
@@ -98,7 +98,7 @@ ${printChainDefinitionProblems(problems)}`);
           break;
         }
 
-        ctx = _.cloneDeep(initialCtx);
+        ctx = cloneDeep(initialCtx);
 
         const artifacts: ChainArtifacts = {};
 
@@ -111,7 +111,7 @@ ${printChainDefinitionProblems(problems)}`);
             continue doActions;
           }
 
-          _.merge(artifacts, built.get(dep));
+          merge(artifacts, built.get(dep));
           depsTainted = depsTainted || tainted.has(dep);
         }
 
@@ -155,7 +155,7 @@ ${printChainDefinitionProblems(problems)}`);
             debug('skip isolated', n);
           }
 
-          built.set(n, _.merge(artifacts, state[n].artifacts));
+          built.set(n, merge(artifacts, state[n].artifacts));
 
           // if there is an error then this will ensure the stack trace is printed with the latest
           runtime.updateProviderArtifacts(state[n].artifacts);
@@ -225,12 +225,12 @@ export async function buildLayer(
 
   // do all state layers match? if so, load the layer from cache and continue
   for (const action of layer.actions) {
-    const ctx = _.cloneDeep(baseCtx);
+    const ctx = cloneDeep(baseCtx);
 
     const depArtifacts: ChainArtifacts = {};
 
     for (const dep of def.getDependencies(action)) {
-      _.merge(depArtifacts, built.get(dep));
+      merge(depArtifacts, built.get(dep));
     }
 
     addOutputsToContext(ctx, depArtifacts);
@@ -258,7 +258,7 @@ export async function buildLayer(
         }
 
         // in case we do not need to rebuild this layer we still need to set the built entry
-        built.set(action, _.merge(depArtifacts, state[action].artifacts));
+        built.set(action, merge(depArtifacts, state[action].artifacts));
       }
     } catch (err) {
       // make sure its possible to debug the original error
@@ -287,12 +287,12 @@ export async function buildLayer(
     }
 
     for (const action of layer.actions) {
-      const ctx = _.cloneDeep(baseCtx);
+      const ctx = cloneDeep(baseCtx);
 
       const depArtifacts: ChainArtifacts = {};
 
       for (const dep of def.getDependencies(action)) {
-        _.merge(depArtifacts, built.get(dep));
+        merge(depArtifacts, built.get(dep));
       }
 
       addOutputsToContext(ctx, depArtifacts);
@@ -312,7 +312,7 @@ export async function buildLayer(
           currentLabel: action,
         },
         def.getConfig(action, ctx),
-        _.clone(ctx),
+        clone(ctx),
       );
 
       if (!newArtifacts) {
@@ -330,7 +330,7 @@ export async function buildLayer(
       };
 
       tainted.add(action);
-      built.set(action, _.merge(depArtifacts, state[action].artifacts));
+      built.set(action, merge(depArtifacts, state[action].artifacts));
 
       // if there is an error then this will ensure the stack trace is printed with the latest
       runtime.updateProviderArtifacts(state[action].artifacts);
@@ -380,7 +380,7 @@ export function getArtifacts(def: ChainDefinition, state: DeploymentState) {
 
   for (const step of def.topologicalActions) {
     if (state[step] && state[step].artifacts) {
-      _.merge(artifacts, state[step].artifacts);
+      merge(artifacts, state[step].artifacts);
     }
   }
 
@@ -395,7 +395,7 @@ export async function getOutputs(
   const artifacts = getArtifacts(def, state);
   if (runtime.snapshots) {
     // need to load state as well. the states that we want to load are the "leaf" layers
-    const layers = _.uniq(Object.values(def.getStateLayers()));
+    const layers = uniq(Object.values(def.getStateLayers()));
 
     layerSearch: for (const layer of layers) {
       for (const action of layer.actions) {

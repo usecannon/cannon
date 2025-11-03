@@ -1,7 +1,8 @@
 import path from 'path';
 import { exec } from 'child_process';
-import _ from 'lodash';
-import { existsSync, mkdirp } from 'fs-extra';
+import { pickBy } from 'lodash-es';
+import { mkdirp } from 'fs-extra/esm';
+import { existsSync } from 'fs';
 import { registerAction } from '@usecannon/builder';
 import { resolveCliSettings } from './settings.js';
 
@@ -30,7 +31,7 @@ export async function listInstalledPlugins() {
   }
 
   const installedPlugins = Object.keys(
-    _.pickBy(JSON.parse(await _exec('npm ls --json')).dependencies, (d: any) => !d.extraneous),
+    pickBy(JSON.parse(await _exec('npm ls --json')).dependencies, (d: any) => !d.extraneous),
   ) as string[];
 
   for (const deprecated of DEPRECATED_PLUGINS) {

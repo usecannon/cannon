@@ -1,7 +1,7 @@
 import { ChainArtifacts, ChainDefinition, findContract, getArtifacts, renderTrace, TraceEntry } from '@usecannon/builder';
 import chalk from 'chalk';
 import Debug from 'debug';
-import _ from 'lodash';
+import { merge } from 'lodash-es';
 import * as viem from 'viem';
 import { readDeployRecursive } from '../package.js';
 import { getProvider, runRpc } from '../rpc.js';
@@ -51,7 +51,7 @@ export async function trace({
   const artifacts: ChainArtifacts = {};
 
   for (const di of deployInfos) {
-    _.merge(artifacts, getArtifacts(new ChainDefinition(di.def), di.state));
+    merge(artifacts, getArtifacts(new ChainDefinition(di.def), di.state));
   }
 
   if (viem.isHash(data)) {

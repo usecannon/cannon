@@ -16,7 +16,7 @@ import {
 } from '@usecannon/builder';
 import chalk from 'chalk';
 import { Command } from 'commander';
-import _ from 'lodash';
+import { assign, differenceWith, isEqual, pick } from 'lodash-es';
 import prompts from 'prompts';
 import * as viem from 'viem';
 import pkg from '../package.json' with { type: 'json' };
@@ -151,8 +151,8 @@ function configureRun(program: Command) {
       }
 
       // Override options with CLI settings
-      const pickedCliSettings = _.pick(cliSettings, Object.keys(options));
-      const mergedOptions = _.assign({}, options, pickedCliSettings);
+      const pickedCliSettings = pick(cliSettings, Object.keys(options));
+      const mergedOptions = assign({}, options, pickedCliSettings);
 
       await run(packages, {
         ...mergedOptions,
@@ -250,8 +250,8 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
       logSpinner(''); // Linebreak in CLI to signify end of compilation.
 
       // Override options with CLI settings
-      const pickedCliSettings = _.pick(cliSettings, Object.keys(options));
-      const mergedOptions = _.assign({}, options, pickedCliSettings);
+      const pickedCliSettings = pick(cliSettings, Object.keys(options));
+      const mergedOptions = assign({}, options, pickedCliSettings);
 
       const [node, pkgSpec, outputs, runtime, deployInfo] = await doBuild(cannonfile, settings, mergedOptions);
 
@@ -471,7 +471,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
     logSpinner(chalk.bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
 
-    const readRegistry = _.differenceWith(cliSettings.registries, [writeRegistry], _.isEqual)[0];
+    const readRegistry = differenceWith(cliSettings.registries, [writeRegistry], isEqual)[0];
     const registryProviders = await Promise.all([
       // write to picked provider
       resolveProviderAndSigners({

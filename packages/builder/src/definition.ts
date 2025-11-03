@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import Debug from 'debug';
-import _ from 'lodash';
+import { clone, last, first, omit, sortBy, identity, sortedIndexOf, memoize, difference, uniq, maxBy, get as lodashGet } from 'lodash-es';
 import type { Address } from 'viem';
 import { ActionKinds, RawChainDefinition, checkConfig } from './actions.js';
 import { ChainBuilderRuntime } from './runtime.js';
@@ -43,7 +43,7 @@ export function validatePackageName(n: string) {
     throw new Error('package name must be at most 31 characters long');
   }
 
-  if (_.last(n) == '-' || _.first(n) == '-') {
+  if (last(n) == '-' || first(n) == '-') {
     throw new Error('first and last character of package name must not be dash (-)');
   }
 
@@ -82,7 +82,7 @@ export class ChainDefinition {
 
     // best way to get a list of actions is just to iterate over the entire def, and filter out anything
     // that are not an actions (because those are known)
-    const actionsDef = _.omit(def, 'name', 'version', 'preset', 'description', 'keywords', 'deployers');
+    const actionsDef = omit(def, 'name', 'version', 'preset', 'description', 'keywords', 'deployers');
 
     // Used to validate that there are not 2 steps with the same name
     const actionNames: string[] = [];
@@ -106,7 +106,7 @@ export class ChainDefinition {
     }
 
     // do some preindexing
-    this.allActionNames = _.sortBy(actions, _.identity);
+    this.allActionNames = sortBy(actions, identity);
 
     debug('finished chain def init');
   }
@@ -144,7 +144,7 @@ export class ChainDefinition {
   }
 
   getConfig(n: string, ctx: ChainBuilderContext) {
-    if (_.sortedIndexOf(this.allActionNames, n) === -1) {
+    if (sortedIndexOf(this.allActionNames, n) === -1) {
       throw new Error(`getConfig operation name not found: ${n}`);
     }
 
@@ -157,7 +157,7 @@ export class ChainDefinition {
       );
     }
 
-    return action.configInject({ ...ctx }, _.get(this.raw, n), {
+    return action.configInject({ ...ctx }, lodashGet(this.raw, n), {
       ref: this.getPackageRef(ctx),
       currentLabel: n,
     });
@@ -215,7 +215,7 @@ export class ChainDefinition {
     // we have to apply templating here, only to the `source`
     // it would be best if the dep was downloaded when it was discovered to be needed, but there is not a lot we
     // can do about this right now
-    return _.uniq(
+    return uniq(
       Object.values(this.raw.import).map((d) => ({
         source: template(d.source, ctx),
         chainId: d.chainId || ctx.chainId,
@@ -230,9 +230,9 @@ export class ChainDefinition {
    * @returns direct dependencies for the specified node
    */
   computeDependencies(node: string) {
-    if (!_.get(this.raw, node)) {
+    if (!lodashGet(this.raw, node)) {
       const stepName = node.split('.')[0];
-      const possibleSteps = _.get(this.raw, stepName);
+      const possibleSteps = lodashGet(this.raw, stepName);
 
       if (!possibleSteps) {
         throw new Error(`invalid dependency: ${node}`);
@@ -245,7 +245,7 @@ export class ChainDefinition {
         `);
     }
 
-    const deps = _.clone(_.get(this.raw, node)!.depends || []) as string[];
+    const deps = clone(lodashGet(this.raw, node)!.depends || []) as string[];
 
     const n = node.split('.')[0];
 
@@ -267,16 +267,16 @@ export class ChainDefinition {
           possibleFields.push(baseName);
         }
       }
-      const accessComputationResults = ActionKinds[n].getInputs!(_.get(this.raw, node), possibleFields, {
+      const accessComputationResults = ActionKinds[n].getInputs!(lodashGet(this.raw, node), possibleFields, {
         ref: null,
         currentLabel: node,
       });
 
       // Only throw this error if the user hasn't explicitly defined dependencies
-      if (this.sensitiveDependencies && accessComputationResults.unableToCompute && !_.get(this.raw, node).depends) {
+      if (this.sensitiveDependencies && accessComputationResults.unableToCompute && !lodashGet(this.raw, node).depends) {
         throw new Error(
-          `Unable to compute dependencies for [${node}] because of advanced logic in template strings. Specify dependencies manually, like "depends = ['${_.uniq(
-            _.uniq(accessComputationResults.accesses).map((a) => `${this.dependencyFor.get(a)}`),
+          `Unable to compute dependencies for [${node}] because of advanced logic in template strings. Specify dependencies manually, like "depends = ['${uniq(
+            uniq(accessComputationResults.accesses).map((a) => `${this.dependencyFor.get(a)}`),
           ).join("', '")}']"`,
         );
       }
@@ -293,7 +293,7 @@ export class ChainDefinition {
     }
 
     debug(`resolved dependencies for ${node}: ${deps}`);
-    return _.uniq(deps);
+    return uniq(deps);
   }
 
   getDependencies(node: string) {
@@ -304,7 +304,7 @@ export class ChainDefinition {
    * @note deps returned in topological order
    * @returns all dependencies reachable from the specfied node, and the depth of the iteration required
    */
-  getDependencyTree: (node: string) => [string[], number] = _.memoize((node) => {
+  getDependencyTree: (node: string) => [string[], number] = memoize((node) => {
     const deps = this.getDependencies(node);
 
     const allDeps = [];
@@ -319,10 +319,10 @@ export class ChainDefinition {
 
     this.cachedActionDepths.set(node, maxDepth);
 
-    return [_.uniq(allDeps), maxDepth];
+    return [uniq(allDeps), maxDepth];
   });
 
-  initializeComputedDependencies = _.memoize(() => {
+  initializeComputedDependencies = memoize(() => {
     const computeDepsDebug = Debug('cannon:builder:dependencies');
     computeDepsDebug('start compute dependencies');
     // checking for output clashes will also fill out the dependency map
@@ -355,13 +355,13 @@ export class ChainDefinition {
     }
 
     this._leaves = new Set(
-      _.difference(
+      difference(
         this.allActionNames,
-        _.chain(this.allActionNames)
-          .map((n) => this.getDependencies(n))
-          .flatten()
-          .uniq()
-          .value(),
+        uniq(
+          this.allActionNames
+            .map((n) => this.getDependencies(n))
+            .flat()
+        ),
       ),
     );
 
@@ -386,7 +386,7 @@ export class ChainDefinition {
       this.cachedActionDepths.set(leaf, maxDepth);
     }
 
-    return _.sortBy(this.allActionNames, (n) => this.cachedActionDepths.get(n));
+    return sortBy(this.allActionNames, (n) => this.cachedActionDepths.get(n));
   }
 
   // actions which have no dependencies
@@ -436,7 +436,7 @@ export class ChainDefinition {
     for (const fullActionName of actions) {
       const [actionType] = fullActionName.split('.');
       if (ActionKinds[actionType] && ActionKinds[actionType].getOutputs) {
-        const actionOutputs = ActionKinds[actionType].getOutputs!(_.get(this.raw, fullActionName), {
+        const actionOutputs = ActionKinds[actionType].getOutputs!(lodashGet(this.raw, fullActionName), {
           ref: null,
           currentLabel: fullActionName,
         });
@@ -465,7 +465,7 @@ export class ChainDefinition {
     const missing: { action: string; dependency: string }[] = [];
     for (const n of actions) {
       for (const dep of this.getDependencies(n)) {
-        if (_.sortedIndexOf(this.allActionNames, dep) === -1) {
+        if (sortedIndexOf(this.allActionNames, dep) === -1) {
           missing.push({ action: n, dependency: dep });
         }
       }
@@ -595,7 +595,7 @@ export class ChainDefinition {
         continue;
       }
 
-      const action = _.get(this.raw, n);
+      const action = lodashGet(this.raw, n);
 
       if (!action) {
         throw new Error(`action not found: ${n}`);
@@ -628,7 +628,7 @@ export class ChainDefinition {
         }
       }
 
-      deps = _.sortBy(deps, (d) => -this.cachedActionDepths.get(d)!);
+      deps = sortBy(deps, (d) => -this.cachedActionDepths.get(d)!);
       debug('layer dependencies after', deps);
 
       for (const dep of deps) {
@@ -648,7 +648,7 @@ export class ChainDefinition {
           // "merge" this entire layer into the other one
           debug(`merge from ${attachingLayer} into layer`, dependingLayer);
           layers[dependingLayer!].actions.push(...layers[attachingLayer].actions);
-          layers[dependingLayer!].depends = _.uniq([...layers[dependingLayer!].depends, ...layers[attachingLayer].depends]);
+          layers[dependingLayer!].depends = uniq([...layers[dependingLayer!].depends, ...layers[attachingLayer].depends]);
 
           // ensure the other nodes are now pointing to this structure
           for (const a of layers[attachingLayer].actions) {
@@ -692,7 +692,7 @@ export class ChainDefinition {
     }
     return Math.max(
       layers[n].actions.length + 2,
-      _.sumBy(layers[n].depends, (d) => this.getPrintLinesUsed(d, layers)),
+      layers[n].depends.reduce((sum, d) => sum + this.getPrintLinesUsed(d, layers), 0),
     );
   }
 
@@ -702,7 +702,7 @@ export class ChainDefinition {
     let output = '';
 
     // print myself
-    const width = _.maxBy(layer.actions, 'length')!.length;
+    const width = maxBy(layer.actions, 'length')!.length;
     if (line === 0) {
       output = '┌─' + '─'.repeat(width) + '─┐';
     } else if (line <= layer.actions.length) {
@@ -759,7 +759,7 @@ export class ChainDefinition {
 
     if (!nodes.length) {
       // get leaf layers
-      const layerArray = _.uniq(Object.values(layers));
+      const layerArray = uniq(Object.values(layers));
 
       layerSearch: for (const layer of layerArray) {
         for (const action of layer.actions) {
@@ -794,6 +794,6 @@ export class ChainDefinition {
   }
 
   toJson(): RawChainDefinition {
-    return _.cloneDeep(this.raw);
+    return clone(this.raw);
   }
 }

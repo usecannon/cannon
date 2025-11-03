@@ -1,5 +1,5 @@
 import Debug from 'debug';
-import _ from 'lodash';
+import { cloneDeep, omit } from 'lodash-es';
 import { z } from 'zod';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder.js';
 import { varSchema } from '../schemas.js';
@@ -30,12 +30,12 @@ const varSpec = {
   async getState(runtime, ctx, config, packageState) {
     const cfg = this.configInject(ctx, config, packageState);
 
-    return [_.omit(cfg, 'depends')];
+    return [omit(cfg, 'depends')];
   },
 
   configInject(ctx, config) {
-    config = _.cloneDeep(config);
-    for (const c in _.omit(config, 'depends')) {
+    config = cloneDeep(config);
+    for (const c in omit(config, 'depends')) {
       config[c] = template(config[c], ctx);
     }
 
@@ -45,7 +45,7 @@ const varSpec = {
   getInputs(config, possibleFields) {
     let accesses = computeTemplateAccesses('', possibleFields);
 
-    for (const c in _.omit(config, 'depends')) {
+    for (const c in omit(config, 'depends')) {
       const fields = computeTemplateAccesses(config[c], possibleFields);
       accesses = mergeTemplateAccesses(accesses, fields);
     }
@@ -84,7 +84,7 @@ const varSpec = {
     } else {
       const settings: { [k: string]: string } = {};
 
-      for (const c in _.omit(config, 'depends')) {
+      for (const c in omit(config, 'depends')) {
         settings[c] = config[c];
       }
 

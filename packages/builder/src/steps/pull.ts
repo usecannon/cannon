@@ -1,5 +1,5 @@
 import Debug from 'debug';
-import _ from 'lodash';
+import { cloneDeep } from 'lodash-es';
 import { z } from 'zod';
 import { Events } from '../runtime.js';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder.js';
@@ -49,7 +49,7 @@ const pullSpec = {
   },
 
   configInject(ctx, config) {
-    config = _.cloneDeep(config);
+    config = cloneDeep(config);
 
     const packageRef = new PackageReference(template(config.source, ctx));
 

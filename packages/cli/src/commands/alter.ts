@@ -13,7 +13,7 @@ import {
   addOutputsToContext,
 } from '@usecannon/builder';
 import Debug from 'debug';
-import _ from 'lodash';
+import { assign, difference, last, mapKeys } from 'lodash-es';
 import * as viem from 'viem';
 import { getMainLoader } from '../loader.js';
 import { createDefaultReadRegistry } from '../registry.js';
@@ -84,11 +84,11 @@ export async function alter(
 
   for (const pathItem of subpkg) {
     debug('load subpkg', pathItem);
-    if (!_.last(startDeployInfo)?.state[pathItem]) {
+    if (!last(startDeployInfo)?.state[pathItem]) {
       throw new Error('subpkg path name not found: ' + pathItem);
     }
     startDeployInfo.push(
-      await runtime.readBlob(_.last(startDeployInfo)!.state[pathItem].artifacts.imports![pathItem.split('.')[1]].url),
+      await runtime.readBlob(last(startDeployInfo)!.state[pathItem].artifacts.imports![pathItem.split('.')[1]].url),
     );
   }
 
@@ -141,7 +141,7 @@ export async function alter(
             throw new Error(`could not find network deployment for dependency package: ${name}:${version}`);
           }
 
-          deployInfo.state[actionStep].artifacts.imports![imp] = _.assign(
+          deployInfo.state[actionStep].artifacts.imports![imp] = assign(
             { url: '' },
             await getOutputs(runtime, new ChainDefinition(newNetworkDeployment.def), newNetworkDeployment.state),
           );
@@ -284,7 +284,7 @@ export async function alter(
       break;
     case 'clean-unused': {
       const def = new ChainDefinition(deployInfo.def);
-      for (const notDefinedState of _.difference(Object.keys(deployInfo.state), def.topologicalActions)) {
+      for (const notDefinedState of difference(Object.keys(deployInfo.state), def.topologicalActions)) {
         debug('delete undefined state', notDefinedState, deployInfo.state[notDefinedState]);
         delete deployInfo.state[notDefinedState];
       }
@@ -297,7 +297,7 @@ export async function alter(
           const oldUrl = deployInfo.state[k].artifacts.imports![k.split('.')[1]].url;
 
           const newUrl = await alter(
-            `@${oldUrl.split(':')[0]}:${_.last(oldUrl.split('/'))}`,
+            `@${oldUrl.split(':')[0]}:${last(oldUrl.split('/'))}`,
             [],
             chainId,
             cliSettings,
@@ -315,7 +315,7 @@ export async function alter(
       // `import` steps renamed to `pull`
       // `provision` steps renamed to `clone`
       // we just need to update the key that the state for these releases is stored on
-      deployInfo.state = _.mapKeys(deployInfo.state, (_v, k) => {
+      deployInfo.state = mapKeys(deployInfo.state, (_v, k) => {
         return k
           .replace(/^contract\./, 'deploy.')
           .replace(/^import\./, 'pull.')

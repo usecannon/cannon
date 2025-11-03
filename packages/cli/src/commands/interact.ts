@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { assign, flatten, get, groupBy, isNil, mapKeys, mapValues, pick, sortBy, toPairs } from 'lodash-es';
 import * as viem from 'viem';
 import prompts, { Choice } from 'prompts';
 import chalk from 'chalk';
@@ -192,7 +192,7 @@ async function pickContract({
 }) {
   const isHighlighted = (n: string) => !!contractArtifacts?.[n]?.highlight;
 
-  const choices: Choice[] = _.sortBy(contractNames, [
+  const choices: Choice[] = sortBy(contractNames, [
     (contractName) => !isHighlighted(contractName),
     (contractName) => contractName,
   ]).map((contractName) => ({
@@ -226,7 +226,7 @@ function assembleFunctionSignatures(abi: viem.Abi): [viem.AbiFunction[], string[
 async function pickFunction({ contract }: { contract: Contract }) {
   const [abiFunctions, functionSignatures] = assembleFunctionSignatures(contract.abi);
 
-  const choices = _.sortBy(functionSignatures).map((s) => ({ title: s }));
+  const choices = sortBy(functionSignatures).map((s) => ({ title: s }));
   choices.unshift(PROMPT_BACK_OPTION);
   logSpinnerEnd();
   const { pickedFunction } = await prompts.prompt([
@@ -262,7 +262,7 @@ async function pickFunctionArgs({ func }: { func: viem.AbiFunction }) {
   for (const input of func.inputs) {
     const rawValue = await promptInputValue(input);
 
-    if (_.isNil(rawValue)) {
+    if (isNil(rawValue)) {
       return null;
     }
 
@@ -352,7 +352,7 @@ async function execTxn({
   try {
     const chain = getChainById(await provider.getChainId());
     txn = (await provider.prepareTransactionRequest(
-      _.assign(txn, {
+      assign(txn, {
         account: signer.wallet.account || signer.address,
         chain,
       }),
@@ -363,7 +363,7 @@ async function execTxn({
     logSpinner(
       chalk.gray(
         `  > gas: ${JSON.stringify(
-          _.mapValues(_.pick(txn, 'gasPrice', 'maxFeePerGas', 'maxPriorityFeePerGas'), viem.formatGwei),
+          mapValues(pick(txn, 'gasPrice', 'maxFeePerGas', 'maxPriorityFeePerGas'), viem.formatGwei),
         )}`,
       ),
     );
@@ -579,8 +579,8 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: viem.TransactionRece
 
   // Print emitted events
   if (receipt.logs && receipt.logs.length > 0) {
-    const contractsByAddress = _.mapKeys(
-      _.groupBy(_.flatten(ctx.contracts.map((contract) => _.toPairs(contract))), '1.address'),
+    const contractsByAddress = mapKeys(
+      groupBy(flatten(ctx.contracts.map((contract) => toPairs(contract))), '1.address'),
       (v, k) => k.toLowerCase(),
     );
 
@@ -625,9 +625,9 @@ function logTxFail(error: any) {
     if (typeof error === 'string') {
       return error;
     } else {
-      if (_.get(error, 'reason')) {
+      if (get(error, 'reason')) {
         return error.reason;
-      } else if (_.get(error, 'error')) {
+      } else if (get(error, 'error')) {
         return findReason(error.error);
       }
     }

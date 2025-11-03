@@ -1,5 +1,5 @@
 import Debug from 'debug';
-import _ from 'lodash';
+import { cloneDeep, zip, groupBy, isArray, entries, forEach, map as lodashMap } from 'lodash-es';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder.js';
@@ -51,7 +51,7 @@ function assembleFunctionSignatures(abi: viem.Abi): [viem.AbiFunction, string][]
   const prettyNames = abiFunctions.map(formatAbiFunction) as string[];
 
   // type detection is bad here
-  return _.zip(abiFunctions, prettyNames) as any;
+  return zip(abiFunctions, prettyNames) as any;
 }
 
 async function runTxn(
@@ -165,12 +165,12 @@ async function runTxn(
   debug('got receipt', receipt);
 
   // get events
-  const txnEvents: EncodedTxnEvents = _.groupBy(
+  const txnEvents: EncodedTxnEvents = groupBy(
     viem.parseEventLogs({ ...contract, logs: receipt.logs }).map((l) => {
       const eventAbi = viem.getAbiItem({ abi: contract!.abi, name: l.eventName }) as any;
       return {
         name: l.eventName,
-        args: _.isArray(l.args) ? l.args : eventAbi.inputs.map((i: any) => (l.args as any)[i.name]),
+        args: isArray(l.args) ? l.args : eventAbi.inputs.map((i: any) => (l.args as any)[i.name]),
       };
     }),
     'name',
@@ -188,7 +188,7 @@ function parseEventOutputs(config: Config['var'], txnEvents: EncodedTxnEvents[])
   if (config) {
     for (const n in txnEvents) {
       for (const [name, varData] of Object.entries(config)) {
-        const events = _.entries(txnEvents[n][varData.event]);
+        const events = entries(txnEvents[n][varData.event]);
 
         // Check for an event defined in the cannonfile
         if (
@@ -238,14 +238,14 @@ async function importTxnData(
   const contracts: ChainArtifacts['contracts'] = {};
 
   if (config.factory) {
-    for (const [k, contractAddress] of _.entries(parseEventOutputs(config.factory, _.map(txns, 'events')))) {
+    for (const [k, contractAddress] of entries(parseEventOutputs(config.factory, lodashMap(txns, 'events')))) {
       const topLabel = k.split('_')[0];
       const factoryInfo = config.factory[topLabel];
 
       if (!contractAddress || !viem.isAddress(contractAddress)) {
         throw new Error(
           `Address for factory could not be resolved from the event for ${k}. Ensure "arg" parameter is correct. Found args: ${JSON.stringify(
-            _.map(txns, 'events'),
+            lodashMap(txns, 'events'),
           )}`,
         );
       }
@@ -309,7 +309,7 @@ async function importTxnData(
     }
   }
 
-  const settings: ChainArtifacts['settings'] = parseEventOutputs(config.var || config.extra, _.map(txns, 'events'));
+  const settings: ChainArtifacts['settings'] = parseEventOutputs(config.var || config.extra, lodashMap(txns, 'events'));
 
   return {
     contracts,
@@ -368,7 +368,7 @@ const invokeSpec = {
   },
 
   configInject(ctx, config) {
-    config = _.cloneDeep(config);
+    config = cloneDeep(config);
 
     if (typeof config.target === 'string') {
       config.target = [config.target as string];
@@ -387,7 +387,7 @@ const invokeSpec = {
 
     if (config.args) {
       debug('rendering invoke args with settings: ', ctx.settings);
-      config.args = _.map(config.args, (arg) => {
+      config.args = lodashMap(config.args, (arg) => {
         return JSON.parse(template(JSON.stringify(arg), ctx));
       });
     }
@@ -398,7 +398,7 @@ const invokeSpec = {
 
     if (config.fromCall) {
       config.fromCall.func = template(config.fromCall.func, ctx);
-      config.fromCall.args = _.map(config.fromCall.args, (arg) => {
+      config.fromCall.args = lodashMap(config.fromCall.args, (arg) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
         return JSON.parse(template(JSON.stringify(arg), ctx));
       });
@@ -422,7 +422,7 @@ const invokeSpec = {
       }
 
       if (f.abiOf) {
-        f.abiOf = _.map(f.abiOf, (v) => template(v, ctx));
+        f.abiOf = lodashMap(f.abiOf, (v) => template(v, ctx));
       }
 
       if (f.abi) {
@@ -466,7 +466,7 @@ const invokeSpec = {
     }
 
     if (config.args) {
-      _.forEach(
+      forEach(
         config.args,
         (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(a), possibleFields))),
       );
@@ -475,7 +475,7 @@ const invokeSpec = {
     if (config.fromCall) {
       accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.fromCall.func, possibleFields));
 
-      _.forEach(
+      forEach(
         config.fromCall.args,
         (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(a), possibleFields))),
       );
@@ -492,7 +492,7 @@ const invokeSpec = {
       accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.artifact, possibleFields));
       accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.abi, possibleFields));
 
-      _.forEach(f.abiOf, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))));
+      forEach(f.abiOf, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))));
     }
 
     const varsConfig = config.var || config.extra;
@@ -643,7 +643,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
       }
 
       const receipt = await runtime.provider.getTransactionReceipt({ hash: key });
-      const txnEvents: EncodedTxnEvents = _.groupBy(
+      const txnEvents: EncodedTxnEvents = groupBy(
         viem.parseEventLogs({ ...contract, logs: receipt.logs }).map((l) => {
           const eventAbi = viem.getAbiItem({ abi: contract!.abi, name: l.eventName }) as any;
           return { name: l.eventName, args: eventAbi.inputs.map((i: any) => (l.args as any)[i.name]) };

@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { pick } from 'lodash-es';
 import { Option } from '../commands/config/types.js';
 import { anvilOptions } from '../commands/config/anvil.js';
 import { forgeTestOptions } from '../commands/config/forge/test.js';
@@ -31,7 +31,7 @@ const pickFoundryOptions = (
 
   const formattedOptions = Object.fromEntries(Object.entries(options).map(([key, value]) => [normalizeFlag(key), value]));
 
-  return _.pick(formattedOptions, validKeys);
+  return pick(formattedOptions, validKeys);
 };
 
 // helper functions to pick options for specific Foundry tools

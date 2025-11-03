@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { isEmpty } from 'lodash-es';
 import { InvalidArgumentError } from 'commander';
 import { PackageSpecification, PackageSettings } from '../types.js';
 import { PackageReference } from '@usecannon/builder';
@@ -41,14 +41,14 @@ export function parsePackageArguments(val: string, result?: PackageSpecification
     );
   }
 
-  if (result && !_.isEmpty(result) && packageMatch) {
+  if (result && !isEmpty(result) && packageMatch) {
     throw new InvalidArgumentError('You can only specify a single cannon package');
   }
 
   if (packageMatch) {
     const pkg = new PackageReference(val);
 
-    if (!_.isEmpty(result)) {
+    if (!isEmpty(result)) {
       throw new InvalidArgumentError('You can only specify a single cannon package');
     }
 

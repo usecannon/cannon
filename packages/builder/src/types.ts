@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { clone } from 'lodash-es';
 import * as viem from 'viem';
 import deepFreeze from 'deep-freeze';
 import rfdc from 'rfdc';
@@ -256,7 +256,7 @@ export type StepState = {
 export type DeploymentState = { [label: string]: StepState };
 
 export function combineCtx(ctxs: ChainBuilderContext[]): ChainBuilderContext {
-  const ctx = _.clone(ctxs[0]);
+  const ctx = clone(ctxs[0]);
 
   ctx.timestamp = Math.floor(Date.now() / 1000);
 

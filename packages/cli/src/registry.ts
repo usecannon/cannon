@@ -2,7 +2,7 @@ import { CannonRegistry, FallbackRegistry, InMemoryRegistry, OnChainRegistry, Pa
 import chalk from 'chalk';
 import Debug from 'debug';
 import fs from 'fs-extra';
-import _ from 'lodash';
+import { last } from 'lodash-es';
 import os from 'os';
 import path from 'path';
 import * as viem from 'viem';
@@ -198,7 +198,7 @@ export async function checkLocalRegistryOverride({
   registry: OnChainRegistry | LocalRegistry;
   fallbackRegistry: FallbackRegistry;
 }) {
-  const localResult = await _.last(fallbackRegistry.registries).getUrl(fullPackageRef, chainId);
+  const localResult = await last(fallbackRegistry.registries).getUrl(fullPackageRef, chainId);
   if (registry instanceof OnChainRegistry && localResult && localResult != result) {
     log(
       chalk.yellowBright(

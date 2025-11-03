@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import * as viem from 'viem';
 import { Buffer } from 'buffer';
-import _ from 'lodash';
+import { isEqual, sortBy, flatMap } from 'lodash-es';
 
 import { ChainDefinition } from './index.js';
 import { ChainDefinitionProblems } from './definition.js';
@@ -94,7 +94,7 @@ export function getMergedAbiFromContractPaths(ctx: ChainArtifacts, paths: string
     .filter((a, index, abi) => {
       if (index === 0) return true;
       const alreadyExists = abi.slice(0, index).some((b) => {
-        return _.isEqual(a, b);
+        return isEqual(a, b);
       });
 
       return !alreadyExists;
@@ -118,7 +118,7 @@ export function getContractFromPath(ctx: ChainArtifacts, path: string): Contract
 export function getAllContractPaths(ctx: ChainArtifacts): string[] {
   return [
     ...Object.keys(ctx.contracts || {}),
-    ..._.sortBy(_.flatMap(ctx.imports, (v, k) => getAllContractPaths(v).map((c) => `${k}.${c}`))),
+    ...sortBy(flatMap(ctx.imports, (v, k) => getAllContractPaths(v).map((c) => `${k}.${c}`))),
   ];
 }
 

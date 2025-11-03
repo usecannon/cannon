@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import Debug from 'debug';
-import _ from 'lodash';
+import { cloneDeep, mapValues, forEach, isEmpty, isEqual } from 'lodash-es';
 import { z } from 'zod';
 import pkg from '../../package.json' with { type: 'json' };
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder.js';
@@ -42,7 +42,7 @@ const cloneSpec = {
   },
 
   configInject(ctx, config, packageState) {
-    config = _.cloneDeep(config);
+    config = cloneDeep(config);
 
     if (config.target && config.targetPreset) {
       throw new Error(`only one of \`target\` and \`targetPreset\` can specified for ${packageState.currentLabel}`);
@@ -61,11 +61,11 @@ const cloneSpec = {
     config.target = template(config.target || '', ctx);
 
     if (config.var) {
-      config.var = _.mapValues(config.var, (v) => {
+      config.var = mapValues(config.var, (v) => {
         return template(v, ctx);
       });
     } else if (config.options) {
-      config.options = _.mapValues(config.options, (v) => {
+      config.options = mapValues(config.options, (v) => {
         return template(v, ctx);
       });
     }
@@ -84,18 +84,18 @@ const cloneSpec = {
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.targetPreset, possibleFields));
 
     if (config.var) {
-      _.forEach(config.var, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))));
+      forEach(config.var, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))));
     }
 
     if (config.options) {
-      _.forEach(
+      forEach(
         config.options,
         (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))),
       );
     }
 
     if (config.tags) {
-      _.forEach(
+      forEach(
         config.tags,
         (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))),
       );
@@ -224,7 +224,7 @@ const cloneSpec = {
 
     debug(`[clone.${importLabel}]`, 'finish build. is partial:', partialDeploy);
 
-    if (!_.isEmpty(prevState) && _.isEqual(builtState, prevState)) {
+    if (!isEmpty(prevState) && isEqual(builtState, prevState)) {
       debug(
         `[clone.${importLabel}]`,
         'built state is exactly equal to previous state. skip generation of new deploy url',

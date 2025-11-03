@@ -1,6 +1,6 @@
 import Debug from 'debug';
 import * as viem from 'viem';
-import _ from 'lodash';
+import { last, flatMap, values, uniq } from 'lodash-es';
 import { createInitialContext, getArtifacts } from './builder.js';
 import { ChainDefinition } from './definition.js';
 import { CannonStorage, ChainBuilderRuntime } from './runtime.js';
@@ -51,7 +51,7 @@ export async function forPackageTree<T extends { url?: string; artifacts?: Chain
     const nestedDeployInfo = await store.readBlob(importArtifact.url);
     const result = await forPackageTree(store, nestedDeployInfo, action, importArtifact, onlyResultProvisioned);
 
-    const newUrl = _.last(result)?.url;
+    const newUrl = last(result)?.url;
     if (newUrl && newUrl !== importArtifact.url) {
       importArtifact.url = newUrl!;
       const updatedNestedDeployInfo = await store.readBlob(newUrl);
@@ -75,7 +75,7 @@ export async function forPackageTree<T extends { url?: string; artifacts?: Chain
 
 export function getDeploymentImports(deployInfo: DeploymentInfo) {
   if (!deployInfo.state) return [];
-  return _.flatMap(_.values(deployInfo.state), (state: StepState) => Object.values(state.artifacts.imports || {}));
+  return flatMap(values(deployInfo.state), (state: StepState) => Object.values(state.artifacts.imports || {}));
 }
 
 // this internal function will copy one package's ipfs records and return a publish call, without recursing
@@ -155,7 +155,7 @@ export async function pinIpfs(
   }
 
   const returnVal = {
-    packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
+    packagesNames: uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
       (t: string) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : packageReference.preset}`,
     ),
     chainId: pkgChainId,
@@ -200,7 +200,7 @@ export async function preparePublishPackage({
     (v: any) => !!v,
   );
 
-  return includeProvisioned ? calls : [_.last(calls)!];
+  return includeProvisioned ? calls : [last(calls)!];
 }
 
 /**

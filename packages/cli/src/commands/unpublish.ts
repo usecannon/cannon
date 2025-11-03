@@ -1,6 +1,6 @@
 import { OnChainRegistry, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 import chalk from 'chalk';
-import _ from 'lodash';
+import { differenceWith, isEqual } from 'lodash-es';
 import prompts from 'prompts';
 import * as viem from 'viem';
 import { LocalRegistry } from '../registry.js';
@@ -38,7 +38,7 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
   }
 
   // if it's using the default config, prompt the user to choose a registry provider
-  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
+  const isDefaultSettings = isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Custom registry settings are not supported yet.');
 
   if (cliSettings.isE2E) {
@@ -75,7 +75,7 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
 
   logSpinner(chalk.bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
 
-  const readRegistry = _.differenceWith(cliSettings.registries, [writeRegistry], _.isEqual)[0];
+  const readRegistry = differenceWith(cliSettings.registries, [writeRegistry], isEqual)[0];
   const registryProviders = await Promise.all([
     // write to picked provider
     resolveProviderAndSigners({

@@ -10,7 +10,7 @@ import {
 import chalk from 'chalk';
 import Debug from 'debug';
 import fs from 'fs-extra';
-import _ from 'lodash';
+import { pickBy } from 'lodash-es';
 import path from 'path';
 import { getContractsAndDetails, getSourceFromRegistry } from '../helpers.js';
 import { getMainLoader } from '../loader.js';
@@ -170,7 +170,7 @@ function _getNestedStateFiles(artifacts: ChainArtifacts, pathname: string, resul
 
 // TODO: types
 function _listSourceCodeContracts(miscData: any) {
-  return Object.keys(_.pickBy(miscData.artifacts, (v) => v.source));
+  return Object.keys(pickBy(miscData.artifacts, (v) => v.source));
 }
 
 function _outputJson(obj: object) {
