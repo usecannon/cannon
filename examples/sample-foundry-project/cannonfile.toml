@@ -1,5 +1,6 @@
+#:schema https://raw.githubusercontent.com/usecannon/cannon/refs/heads/dev/packages/lsp/src/schema.json
 name = "greeter-foundry"
-version = "<%= package.version %>"
+version = "1.2.3"
 description = "Simple project to verify the functionality of cannon"
 keywords = ["sample", "greeter"]
 
@@ -12,6 +13,7 @@ msg = "my library was deployed in txn <%= contracts.library.deployTxnHash %>"
 [deploy.library]
 artifact = "Library"
 value = "2929372"
+
 
 [deploy.greeter]
 artifact = "Greeter"

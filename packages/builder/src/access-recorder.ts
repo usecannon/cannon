@@ -12,7 +12,7 @@ class ExtendableProxy {
   constructor(defaultValue?: any) {
     return new Proxy(this, {
       get: (obj: any, prop: string) => {
-        if (prop === 'accessed' || prop === 'getAccesses') {
+        if (prop === 'accessed' || prop === 'getAccesses' || prop === 'clearAccesses') {
           return obj[prop];
         }
         if (!this.accessed.has(prop)) {
@@ -52,13 +52,17 @@ export class AccessRecorder extends ExtendableProxy {
 
     return acc;
   }
+
+  clearAccesses() {
+    this.accessed.clear();
+  }
 }
 
 export type AccessComputationResult = { accesses: string[]; unableToCompute: boolean };
 
 type AccessRecorderMap = { [k: string]: AccessRecorder };
 
-type TemplateContext = {
+export type TemplateContext = {
   [k: string]: AccessRecorder | AccessRecorderMap | unknown;
 };
 
@@ -67,7 +71,7 @@ type TemplateContext = {
  * @param possibleNames - The possible names to setup the context for
  * @returns The template context
  */
-function setupTemplateContext(possibleNames: string[] = []): TemplateContext {
+export function setupTemplateContext(possibleNames: string[] = []): TemplateContext {
   // Create a fake helper context, so the render works but no real functions are called
   const fakeHelperContext = _createDeepNoopObject(CannonHelperContext);
 
@@ -85,7 +89,7 @@ function setupTemplateContext(possibleNames: string[] = []): TemplateContext {
     imports: new AccessRecorder(),
     extras: new AccessRecorder(),
     txns: new AccessRecorder(),
-    // For settings, we give it a zeroAddress as a best case scenarion that is going
+    // For settings, we give it a zeroAddress as a best case scenario that is going
     // to be working for most cases.
     // e.g., when calculating a setting value for 'settings.owners.split(',')' or 'settings.someNumber' will work.
     settings: new AccessRecorder(viem.zeroAddress),
@@ -137,30 +141,44 @@ function collectAccesses(recorders: TemplateContext, possibleNames: string[]): s
   return accesses;
 }
 
-/**
- * Compute the accesses from the template.
- * @param str - The template to compute accesses from
- * @param possibleNames - The possible names to compute accesses from
- * @returns The accesses
- */
-export function computeTemplateAccesses(str?: string, possibleNames: string[] = []): AccessComputationResult {
-  // here we have an early return if there are no templates in the string at all-this saves a huge amount of compute.
-  if (!str || !str.includes('<%=')) {
-    return { accesses: [], unableToCompute: false };
+export class AccessRecorderEngine {
+  readonly possibleNames: string[] = [];
+  readonly templateContext: TemplateContext;
+
+  constructor(possibleNames: string[]) {
+    this.possibleNames = possibleNames;
+    this.templateContext = setupTemplateContext(possibleNames);
   }
 
-  const recorders = setupTemplateContext(possibleNames);
+  /**
+   * Compute the accesses from the template.
+   * @param str - The template to compute accesses from
+   * @param possibleNames - The possible names to compute accesses from
+   * @returns The accesses
+   */
+  computeTemplateAccesses(str?: string): AccessComputationResult {
+    // here we have an early return if there are no templates in the string at all-this saves a huge amount of compute.
+    if (!str || !str.includes('<%=')) {
+      return { accesses: [], unableToCompute: false };
+    }
 
-  try {
-    // we give it "true" for safeContext to avoid cloning and freezing of the object
-    // this is because we want to keep the access recorder, and is not a security risk
-    // if the user can modify that object
-    template(str, recorders, true);
-    const accesses = collectAccesses(recorders, possibleNames);
-    return { accesses, unableToCompute: false };
-  } catch (err) {
-    debug('Template execution failed:', err);
-    return { accesses: [], unableToCompute: true };
+    for (const r in this.templateContext) {
+      if (this.templateContext[r] instanceof AccessRecorder) {
+        this.templateContext[r].clearAccesses();
+      }
+    }
+
+    try {
+      // we give it "true" for safeContext to avoid cloning and freezing of the object
+      // this is because we want to keep the access recorder, and is not a security risk
+      // if the user can modify that object
+      template(str, this.templateContext, true);
+      const accesses = collectAccesses(this.templateContext, this.possibleNames);
+      return { accesses, unableToCompute: false };
+    } catch (err) {
+      debug('Template execution failed:', err);
+      return { accesses: [], unableToCompute: true };
+    }
   }
 }
 

@@ -10,6 +10,7 @@ import { template } from './utils/template';
 
 import { PackageReference } from './package-reference';
 import { ZodIssue } from 'zod';
+import { AccessRecorderEngine } from '.';
 
 const debug = Debug('cannon:builder:definition');
 const debugVerbose = Debug('cannon:verbose:builder:definition');
@@ -73,7 +74,7 @@ export class ChainDefinition {
   readonly dependencyFor = new Map<string, string>();
   readonly resolvedDependencies = new Map<string, string[]>();
 
-  readonly templatePossibleNames: string[] = [];
+  accessRecorderEngine: AccessRecorderEngine|null = null;
 
   readonly danglingDependencies = new Set<`${string}:${string}`>();
 
@@ -256,7 +257,7 @@ export class ChainDefinition {
     }
 
     if (ActionKinds[n].getInputs) {
-      const accessComputationResults = ActionKinds[n].getInputs!(_.get(this.raw, node), this.templatePossibleNames, {
+      const accessComputationResults = ActionKinds[n].getInputs!(_.get(this.raw, node), this.accessRecorderEngine!, {
         ref: null,
         currentLabel: node,
       });
@@ -447,6 +448,7 @@ export class ChainDefinition {
   }
 
   computePossibleNames() {
+    const possibleNames = [];
     for (const k of this.dependencyFor.keys()) {
       const baseName = k.split('.')[0];
       if (
@@ -456,9 +458,11 @@ export class ChainDefinition {
         baseName !== 'extras' &&
         baseName !== 'txns'
       ) {
-        this.templatePossibleNames.push(baseName);
+        possibleNames.push(baseName);
       }
     }
+
+    this.accessRecorderEngine = new AccessRecorderEngine(possibleNames);
   }
 
   /**
