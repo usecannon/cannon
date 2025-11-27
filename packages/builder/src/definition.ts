@@ -73,6 +73,8 @@ export class ChainDefinition {
   readonly dependencyFor = new Map<string, string>();
   readonly resolvedDependencies = new Map<string, string[]>();
 
+  readonly templatePossibleNames: string[] = [];
+
   readonly danglingDependencies = new Set<`${string}:${string}`>();
 
   constructor(def: RawChainDefinition, sensitiveDependencies = false) {
@@ -254,20 +256,7 @@ export class ChainDefinition {
     }
 
     if (ActionKinds[n].getInputs) {
-      const possibleFields: string[] = [];
-      for (const k of this.dependencyFor.keys()) {
-        const baseName = k.split('.')[0];
-        if (
-          baseName !== 'contracts' &&
-          baseName !== 'imports' &&
-          baseName !== 'settings' &&
-          baseName !== 'extras' &&
-          baseName !== 'txns'
-        ) {
-          possibleFields.push(baseName);
-        }
-      }
-      const accessComputationResults = ActionKinds[n].getInputs!(_.get(this.raw, node), possibleFields, {
+      const accessComputationResults = ActionKinds[n].getInputs!(_.get(this.raw, node), this.templatePossibleNames, {
         ref: null,
         currentLabel: node,
       });
@@ -449,10 +438,27 @@ export class ChainDefinition {
             outputClashes.push({ output, actions: [this.dependencyFor.get(output)!, fullActionName] });
           }
         }
+
+        this.computePossibleNames();
       }
     }
 
     return outputClashes;
+  }
+
+  computePossibleNames() {
+    for (const k of this.dependencyFor.keys()) {
+      const baseName = k.split('.')[0];
+      if (
+        baseName !== 'contracts' &&
+        baseName !== 'imports' &&
+        baseName !== 'settings' &&
+        baseName !== 'extras' &&
+        baseName !== 'txns'
+      ) {
+        this.templatePossibleNames.push(baseName);
+      }
+    }
   }
 
   /**

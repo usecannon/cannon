@@ -144,7 +144,8 @@ function collectAccesses(recorders: TemplateContext, possibleNames: string[]): s
  * @returns The accesses
  */
 export function computeTemplateAccesses(str?: string, possibleNames: string[] = []): AccessComputationResult {
-  if (!str) {
+  // here we have an early return if there are no templates in the string at all-this saves a huge amount of compute.
+  if (!str || !str.includes('<%=')) {
     return { accesses: [], unableToCompute: false };
   }
 
