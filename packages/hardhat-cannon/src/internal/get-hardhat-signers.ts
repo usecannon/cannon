@@ -3,9 +3,10 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types/hre';
 
 import * as viem from 'viem';
 import { mnemonicToAccount, privateKeyToAccount } from 'viem/accounts';
+import { getCurrentNetwork } from './get-network.js';
 
 export async function getHardhatSigners(hre: HardhatRuntimeEnvironment /*, provider: viem.WalletClient*/): Promise<viem.Account[]> {
-  const accounts = hre.config.networks[hre.globalOptions.network].accounts;
+  const accounts = hre.config.networks[getCurrentNetwork(hre)].accounts;
   let signers: viem.Account[] = [];
 
   if (Array.isArray(accounts)) {

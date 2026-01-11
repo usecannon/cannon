@@ -4,12 +4,14 @@ import { runRpc } from '@usecannon/cli';
 
 import type { CannonRpcNode, RpcOptions } from '@usecannon/cli/src/rpc.js';
 import { HardhatRuntimeEnvironment } from 'hardhat/types/hre';
+import { getCurrentNetwork } from './get-network.js';
 
 export type SubtaskRunAnvilNodeResult = CannonRpcNode | undefined;
 
 export async function runAnvilNode({ dryRun, anvilOptions }: { dryRun: boolean, anvilOptions: any }, hre: HardhatRuntimeEnvironment): Promise<SubtaskRunAnvilNodeResult> {
-  if (hre.globalOptions.network === 'hardhat') return;
-  if (!dryRun && hre.globalOptions.network !== 'cannon') return;
+  const currentNetwork = getCurrentNetwork(hre);
+  if (hre.config.networks[currentNetwork].type === 'edr-simulated') return;
+  if (!dryRun && currentNetwork !== 'cannon') return;
 
   const nodeOptions: Record<string, any> = {
     accounts: 10, // in hardhat, default is 10
@@ -20,12 +22,12 @@ export async function runAnvilNode({ dryRun, anvilOptions }: { dryRun: boolean, 
 
   if (!nodeOptions.chainId) {
     nodeOptions.chainId =
-      hre.globalOptions.network === 'cannon'
+      currentNetwork === 'cannon'
         ? CANNON_CHAIN_ID
         : parseInt((await (await hre.network.connect()).provider.request({ method: 'eth_chainId', params: [] })) as string);
   }
 
-  if (hre.globalOptions.network !== 'cannon') {
+  if (currentNetwork !== 'cannon') {
     // dry run fork
     rpcOptions.forkProvider = viem.createPublicClient({ transport: viem.custom((await hre.network.connect()).provider) });
   }

@@ -8,6 +8,7 @@ import * as viem from 'viem';
 import { getHardhatSigners } from '../internal/get-hardhat-signers.js';
 import { loadPackageJson } from '../internal/load-pkg-json.js';
 import { parseAnvilOptions } from '../internal/parse-anvil-options.js';
+import { getCurrentNetwork } from '../internal/get-network.js';
 import { runAnvilNode } from '../internal/run-anvil-node.js';
 import { CannonError } from '@usecannon/builder';
 import { HardhatRuntimeEnvironment } from 'hardhat/types/hre';
@@ -71,7 +72,7 @@ export default async function (
     );
   }
 
-  if (hre.globalOptions.network === 'hardhat' && dryRun) {
+  if (getCurrentNetwork(hre) === 'hardhat' && dryRun) {
     throw new Error('You cannot use --dry-run param when using the "hardhat" network');
   }
 
@@ -120,7 +121,7 @@ export default async function (
   };
 
   let defaultSigner: CannonSigner | null = null;
-  if (hre.globalOptions.network !== 'cannon') {
+  if (getCurrentNetwork(hre) !== 'cannon') {
     if (impersonate) {
       const impersonatedAddress = viem.getAddress(impersonate);
       await provider.impersonateAccount({ address: impersonatedAddress });
@@ -152,7 +153,7 @@ export default async function (
     },
     getArtifact: async (contractName: string) => await getArtifactData({ name: contractName }, hre),
     async getSigner(addr: viem.Address) {
-      if (impersonate || hre.globalOptions.network === 'cannon' || hre.globalOptions.network === 'hardhat') {
+      if (impersonate || getCurrentNetwork(hre) === 'cannon' || getCurrentNetwork(hre) === 'hardhat') {
         // on test network any user can be conjured
         await provider.impersonateAccount({ address: addr });
         await provider.setBalance({ address: addr, value: viem.parseEther('10000') });
@@ -172,7 +173,7 @@ export default async function (
     upgradeFrom,
     wipe,
     registryPriority: registryPriority as any,
-    dryRun: dryRun || hre.globalOptions.network === 'hardhat',
+    dryRun: dryRun || getCurrentNetwork(hre) === 'hardhat',
     overrideResolver: dryRun ? await createDryRunRegistry(resolveCliSettings()) : undefined,
     plugins: !!usePlugins,
     privateSourceCode: false,
@@ -182,13 +183,15 @@ export default async function (
 
   const { outputs } = await build(params);
 
-  if (hre.globalOptions.network === 'hardhat') {
+  if (getCurrentNetwork(hre) === 'hardhat') {
     console.log(
       chalk.yellow(
         'Keep in mind that regardless this package was succefully built, it was not saved because the "hardhat" network is being used. If this is not what you want, consider using --network cannon',
       ),
     );
   }
+
+  node?.kill();
 
   return { outputs };
 }

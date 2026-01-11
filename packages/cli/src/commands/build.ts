@@ -31,7 +31,7 @@ import { listInstalledPlugins, loadPlugins } from '../plugins.js';
 import { createDefaultReadRegistry, createLocalOnlyRegistry, createOnChainOnlyRegistry } from '../registry.js';
 import { resolveCliSettings } from '../settings.js';
 import { PackageSpecification } from '../types.js';
-import { logSpinner, warnSpinner, errorSpinner } from '../util/console.js';
+import { logSpinner, warnSpinner, errorSpinner, logSpinnerEnd } from '../util/console.js';
 import { hideApiKey } from '../util/provider.js';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write.js';
 import { mergeErrors } from '../util/merge-errors.js';
@@ -274,8 +274,7 @@ export async function build({
     partialDeploy = true;
     logSpinner(
       chalk.yellowBright(
-        `${'  '.repeat(d)}  \u26A0\uFE0F  Skipping [${n}] (${
-          typeof err === 'object' && err.toString === Object.prototype.toString ? JSON.stringify(err) : err.toString()
+        `${'  '.repeat(d)}  \u26A0\uFE0F  Skipping [${n}] (${typeof err === 'object' && err.toString === Object.prototype.toString ? JSON.stringify(err) : err.toString()
         })`,
       ),
     );
@@ -320,8 +319,7 @@ export async function build({
       const contract = o.contracts[contractKey];
       if (contract.deployTxnHash) {
         logSpinner(
-          `${'  '.repeat(d)}  ${chalk.green('\u2714')} Successfully deployed ${contract.contractName}${
-            c.create2 ? ' using CREATE2' : ''
+          `${'  '.repeat(d)}  ${chalk.green('\u2714')} Successfully deployed ${contract.contractName}${c.create2 ? ' using CREATE2' : ''
           }`,
         );
         logSpinner(chalk.gray(`${'  '.repeat(d)}  Contract Address: ${contract.address}`));
@@ -502,8 +500,8 @@ export async function build({
       logSpinner(`- Your partial deployment has been stored to ${deployUrl}`);
       logSpinner(
         '- Run ' +
-          chalk.bold(`cannon pin ${deployUrl}`) +
-          ' to pin the partial deployment package on IPFS. Then use https://usecannon.com/deploy to collect signatures from a Safe for the skipped operations in the partial deployment package.',
+        chalk.bold(`cannon pin ${deployUrl}`) +
+        ' to pin the partial deployment package on IPFS. Then use https://usecannon.com/deploy to collect signatures from a Safe for the skipped operations in the partial deployment package.',
       );
     } else {
       if (dryRun) {
@@ -589,7 +587,7 @@ export async function build({
     logSpinner(chalk.bold('\nNo operations were executed during the build.'));
   }
 
-  logSpinner('');
+  logSpinnerEnd();
 
   provider = provider.extend(traceActions(outputs) as any);
 
