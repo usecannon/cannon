@@ -2,11 +2,11 @@
   "name": "hardhat-cannon",
   "version": "2.25.0",
   "description": "Agnostic chain construction. Select the protocols and configuration you need to quickly and easily verify your project",
-  "author": "Synthetix",
+  "author": "Daniel Beal <git@dbeal.dev>",
   "license": "MIT",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "type": "module",
-  "types": "dist/index.d.ts",
+  "types": "dist/src/index.d.ts",
   "keywords": [
     "ethereum",
     "smart-contracts",
@@ -35,7 +35,6 @@
     "directory": "packages/hardhat-cannon"
   },
   "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@types/debug": "^4.1.12",
     "@types/mocha": "^10.0.10",
     "@types/node": "^24.9.1",

@@ -10,8 +10,10 @@ packages.get('/packages/:packageName', async (req: Request, res: Response) => {
     throw new BadRequestError(`Invalid package name "${req.params.packageName}"`);
   }
 
+  let pkgName = req.params.packageName as string;
+
   const result = await findPackagesByName({
-    packageName: req.params.packageName,
+    packageName: pkgName,
   });
 
   res.json({
@@ -32,8 +34,8 @@ packages.get('/packages/:fullPackageRef/:chainId', async (req: Request, res: Res
   }
 
   const data = await findPackageByFullRef({
-    fullPackageRef,
-    chainId,
+    fullPackageRef: fullPackageRef as string,
+    chainId: chainId as string,
   });
 
   if (!data) {

@@ -2,7 +2,6 @@ import { chainDefinitionSchema } from '@usecannon/builder/dist/src/schemas';
 import { runSchema } from '@usecannon/cli/dist/src/schemas';
 import { compile } from 'json-schema-to-typescript';
 import { useQuery } from '@tanstack/react-query';
-import { zodToJsonSchema } from 'zod-to-json-schema';
 
 interface CannonfileSpec {
   description: string;
@@ -43,13 +42,9 @@ const getJsonSchemaPropType = async (prop: any) => {
 };
 
 async function fetchCannonfileSpecs() {
-  const chainDefinitionJsonSchema = zodToJsonSchema(chainDefinitionSchema, {
-    $refStrategy: 'none',
-  });
+  const chainDefinitionJsonSchema = chainDefinitionSchema.toJSONSchema();
 
-  const runJsonSchema = zodToJsonSchema(runSchema, {
-    $refStrategy: 'none',
-  });
+  const runJsonSchema = runSchema.toJSONSchema();
 
   const result = new Map<string, CannonfileSpec>();
 
