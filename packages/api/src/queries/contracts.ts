@@ -1,5 +1,4 @@
 import { PackageReference } from '@usecannon/builder';
-import { AggregateGroupByReducers, AggregateSteps } from 'redis';
 import * as viem from 'viem';
 import * as keys from '../db/keys';
 import { isChainId, isContractName } from '../helpers';
@@ -26,10 +25,10 @@ async function _aggregateContracts(query: string): Promise<ContractQueryResult[]
     LOAD: { identifier: '@package' },
     STEPS: [
       {
-        type: AggregateSteps.GROUPBY,
+        type: 'GROUPBY',
         properties: ['@contractName', '@package', '@chainId', '@address'],
         REDUCE: {
-          type: AggregateGroupByReducers.FIRST_VALUE,
+          type: 'FIRST_VALUE',
           property: '@contractName',
         },
       },

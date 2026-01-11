@@ -1,5 +1,5 @@
 import { ChainArtifacts, traceActions } from '@usecannon/builder';
-import { CannonProvider } from '../types';
+import { CannonProvider } from '../types.js';
 
 export function augmentProvider(originalProvider: CannonProvider, outputs: ChainArtifacts) {
   const provider = originalProvider.extend(traceActions(outputs) as any) as unknown as CannonProvider;

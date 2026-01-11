@@ -39,22 +39,25 @@
     "@types/debug": "^4.1.12",
     "@types/mocha": "^10.0.10",
     "@types/node": "^24.9.1",
+    "@usecannon/builder": "workspace:*",
+    "@usecannon/cli": "workspace:*",
     "bn.js": "^5.2.2",
     "hardhat": "^3.0.9",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "viem": "^2.38.4"
   },
   "peerDependencies": {
-    "hardhat": ">=2.0.0"
+    "hardhat": ">=3.0.0",
+    "@usecannon/builder": ">=2.0.0",
+    "@usecannon/cli": ">=2.0.0",
+    "viem": ">=2.0.0"
   },
   "dependencies": {
     "@iarna/toml": "^3.0.0",
-    "@usecannon/builder": "workspace:*",
-    "@usecannon/cli": "workspace:*",
     "chalk": "^5.6.2",
     "debug": "^4.4.3",
-    "fs-extra": "^11.3.2",
-    "viem": "^2.38.4"
+    "fs-extra": "^11.3.2"
   },
   "gitHead": "81979336c4cfe5f1f8ee7677b2b968f886a20a87"
 }
