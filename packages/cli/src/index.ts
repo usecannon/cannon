@@ -286,6 +286,9 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
   });
 
 applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(async function (packageRef, options) {
+  if (options.service !== 'etherscan' && options.service !== 'sourcify' && options.service !== 'all') {
+    throw new Error('--service must be one of "etherscan", "sourcify", or "all"');
+  }
   try {
     spinner?.update({ text: 'Verifying...' });
     const { verify } = await import('./commands/verify');
@@ -296,7 +299,7 @@ applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(asy
     const cliSettings = resolveCliSettings(options);
     const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
-    await verify(fullPackageRef, cliSettings, chainId);
+    await verify(fullPackageRef, cliSettings, chainId, options.service);
     logSpinnerEnd();
   } catch (err) {
     logSpinnerEnd();

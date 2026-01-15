@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import axios from 'axios';
 import Debug from 'debug';
 import * as viem from 'viem';
@@ -10,12 +11,26 @@ import { createDefaultReadRegistry } from '../registry';
 
 import { getMainLoader } from '../loader';
 
-import { logSpinner } from '../util/console';
-import { isVerified } from '../util/verify';
+import { logSpinner, spinner } from '../util/console';
+import {
+  ETHERSCAN_DEFAULT_SERVER_URL,
+  getSourcifyVerificationEndpoint,
+  getSourcifyVerificationStatusEndpoint,
+  isEtherscanVerified,
+  isSourcifyVerified,
+  SourcifyVerifyRequest,
+  SourcifyVerifyResponse,
+  SourcifyVerifyStatusResponse,
+} from '../util/verify';
 
 const debug = Debug('cannon:cli:verify');
 
-export async function verify(packageRef: string, cliSettings: CliSettings, chainId: number) {
+export async function verify(
+  packageRef: string,
+  cliSettings: CliSettings,
+  chainId: number,
+  service: 'etherscan' | 'sourcify' | 'all',
+) {
   const { fullPackageRef } = new PackageReference(packageRef);
 
   // create temporary provider
@@ -40,24 +55,16 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
       allowPartialDeploy: false,
     },
     resolver,
-    getMainLoader(cliSettings)
+    getMainLoader(cliSettings),
   );
 
-  const etherscanApi = cliSettings.etherscanApiUrl || 'https://api.etherscan.io/v2/api';
+  const etherscanApi = cliSettings.etherscanApiUrl || ETHERSCAN_DEFAULT_SERVER_URL;
 
-  if (!etherscanApi) {
-    throw new Error(
-      `couldn't find etherscan api url for network with ${chainId}. Please set your etherscan URL with CANNON_ETHERSCAN_API_URL`
-    );
+  if (service === 'etherscan' || service === 'all' && !cliSettings.etherscanApiKey) {
+    console.log('Using generic API key for Etherscan. If this is incorrect, specify CANNON_ETHERSCAN_API_KEY');
   }
 
-  if (!cliSettings.etherscanApiKey) {
-    throw new Error(
-      'Etherscan Api Key not supplied. Please set it with --api-key or CANNON_ETHERSCAN_API_KEY environment variable'
-    );
-  }
-
-  const guids: { [c: string]: string } = {};
+  const guids: { [c: string]: { [v: string]: string } } = {};
 
   const verifiedAddresses = new Set<string>();
 
@@ -91,65 +98,105 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
         miscData.artifacts[`${contractInfo.sourceName}:${contractInfo.contractName}`];
 
       if (!contractArtifact) {
-        logSpinner(`${c}: cannot verify: no contract artifact found`);
+        logSpinner(`${c} (${contractInfo.address}): cannot verify: no contract artifact found`);
         continue;
       }
 
       if (!contractArtifact.source) {
-        logSpinner(`${c}: cannot verify: no source code recorded in deploy data`);
+        logSpinner(`${c} (${contractInfo.address}): cannot verify: no source code recorded in deploy data`);
         continue;
       }
 
-      if (await isVerified(contractInfo.address, chainId, etherscanApi, cliSettings.etherscanApiKey)) {
-        logSpinner(`✅ ${c}: Contract source code already verified`);
-        await sleep(500);
-        continue;
-      }
+      // supply any linked libraries within the inputs since those are calculated at runtime
+      const inputData = JSON.parse(contractArtifact.source.input);
+      _.set(inputData, 'settings.libraries', contractInfo.linkedLibraries);
 
-      try {
-        // supply any linked libraries within the inputs since those are calculated at runtime
-        const inputData = JSON.parse(contractArtifact.source.input);
-        inputData.settings.libraries = contractInfo.linkedLibraries;
-
-        const reqData: { [k: string]: string } = {
-          apikey: cliSettings.etherscanApiKey,
-          chainid: chainId.toString(),
-          module: 'contract',
-          action: 'verifysourcecode',
-          contractaddress: contractInfo.address,
-          // need to parse to get the inner structure, then stringify again
-          sourceCode: JSON.stringify(inputData),
-          codeformat: 'solidity-standard-json-input',
-          contractname: `${contractArtifact.sourceName}:${contractArtifact.contractName}`,
-          compilerversion: 'v' + contractArtifact.source.solcVersion,
-
-          // NOTE: below: yes, the etherscan api is misspelling
-          constructorArguements: viem
-            .encodeAbiParameters(
-              contractArtifact.abi.find((i: viem.AbiItem) => i.type === 'constructor')?.inputs ?? [],
-              contractInfo.constructorArgs || []
-            )
-            .slice(2),
-        };
-
-        debug('verification request', reqData);
-
-        const res = await axios.post(etherscanApi, reqData, {
-          headers: { 'content-type': 'application/x-www-form-urlencoded' },
-        });
-
-        if (res.data.status === '0') {
-          debug('etherscan failed', res.data);
-          logSpinner(`${c}:\tcannot verify:`, res.data.result);
+      if (service === 'etherscan' || service === 'all') {
+        if (await isEtherscanVerified(contractInfo.address, chainId, etherscanApi, cliSettings.etherscanApiKey)) {
+          logSpinner(`Etherscan: ✅ ${c} (${contractInfo.address}): Contract source code already verified`);
         } else {
-          logSpinner(`${c}:\tsubmitted verification (${contractInfo.address})`);
-          guids[c] = res.data.result;
+          try {
+            const reqData: { [k: string]: string } = {
+              apikey: cliSettings.etherscanApiKey,
+              chainid: chainId.toString(),
+              module: 'contract',
+              action: 'verifysourcecode',
+              contractaddress: contractInfo.address,
+              // need to parse to get the inner structure, then stringify again
+              sourceCode: JSON.stringify(inputData),
+              codeformat: 'solidity-standard-json-input',
+              contractname: `${contractArtifact.sourceName}:${contractArtifact.contractName}`,
+              compilerversion: 'v' + contractArtifact.source.solcVersion,
+
+              // NOTE: below: yes, the etherscan api is misspelling
+              constructorArguements: viem
+                .encodeAbiParameters(
+                  contractArtifact.abi.find((i: viem.AbiItem) => i.type === 'constructor')?.inputs ?? [],
+                  contractInfo.constructorArgs || [],
+                )
+                .slice(2),
+            };
+
+            debug('verification request', reqData);
+
+            const res = await axios.post(etherscanApi, reqData, {
+              headers: {
+                'content-type': 'application/x-www-form-urlencoded',
+                'User-Agent': `Cannon CLI`,
+              },
+            });
+
+            if (res.data.status === '0') {
+              debug('etherscan failed', res.data);
+              logSpinner(`Etherscan: ${c} (${contractInfo.address}):\tCannot verify:`, res.data.result);
+            } else {
+              logSpinner(`Etherscan: ${c} (${contractInfo.address}):\tSubmitted verification (${res.data.result})`);
+              guids[c]['etherscan'] = res.data.result;
+            }
+          } catch (err) {
+            logSpinner(`Etherscan: ${c} (${contractInfo.address}): Verification request failed:`, err);
+          }
         }
-      } catch (err) {
-        logSpinner(`verification for ${c} (${contractInfo.address}) failed:`, err);
       }
 
-      await sleep(500);
+      if (service === 'sourcify' || service === 'all') {
+        if (await isSourcifyVerified(contractInfo.address, chainId, cliSettings.sourcifyApiUrl || null)) {
+          logSpinner(`Sourcify: ✅ ${c} (${contractInfo.address}): Contract source code already verified`);
+          await sleep(500);
+          continue;
+        }
+
+        try {
+          const reqData: SourcifyVerifyRequest = {
+            stdJsonInput: inputData,
+            compilerVersion: 'v' + contractArtifact.source.solcVersion,
+            contractIdentifier: `${contractArtifact.sourceName}:${contractArtifact.contractName}`,
+          };
+
+          if (contractInfo.deployTxnHash) {
+            reqData.creationTransactionHash = contractInfo.deployTxnHash;
+          }
+
+          debug('sourcify verification request', reqData);
+
+          const res = await axios.post<SourcifyVerifyResponse>(getSourcifyVerificationEndpoint(chainId, contractInfo.address, cliSettings.sourcifyApiUrl || null), reqData, {
+            headers: {
+              'content-type': 'application/json',
+              'User-Agent': `Cannon CLI`,
+            },
+          });
+
+          if (res.status >= 300) {
+            debug('sourcify failed', res.data);
+            logSpinner(`Sourcify: ${c} (${contractInfo.address}):\tCannot verify:`, res.data);
+          } else {
+            logSpinner(`Sourcify: ${c} (${contractInfo.address}):\tSubmitted verification (${res.data.verificationId})`);
+            _.set(guids, [c, 'sourcify'], res.data.verificationId);
+          }
+        } catch (err) {
+          logSpinner(`Sourcify: ${c} (${contractInfo.address}): Verification request failed:`, err);
+        }
+      }
     }
 
     return {};
@@ -159,7 +206,7 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
 
   if (!deployData) {
     throw new Error(
-      `deployment not found: ${fullPackageRef}. please make sure it exists for the given preset and current network.`
+      `deployment not found: ${fullPackageRef}. please make sure it exists for the given preset and current network.`,
     );
   }
 
@@ -167,31 +214,65 @@ export async function verify(packageRef: string, cliSettings: CliSettings, chain
   await forPackageTree(runtime, deployData, verifyPackage);
 
   // at this point, all contracts should have been submitted for verification. so we are just printing status.
+  spinner?.update({ text: 'Checking verification status...' });
   for (const c in guids) {
-    for (;;) {
-      const res = await axios.post(
-        etherscanApi,
-        {
-          apiKey: cliSettings.etherscanApiKey,
-          module: 'contract',
-          action: 'checkverifystatus',
-          guid: guids[c],
-        },
-        { headers: { 'content-type': 'application/x-www-form-urlencoded' } }
-      );
+    for (const v in guids[c]) {
+      for (;;) {
+        if (v === 'etherscan') {
+          const res = await axios.post(
+            etherscanApi,
+            {
+              apiKey: cliSettings.etherscanApiKey,
+              module: 'contract',
+              action: 'checkverifystatus',
+              guid: guids[c],
+            },
+            {
+              headers: {
+                'content-type': 'application/x-www-form-urlencoded',
+                'User-Agent': 'Cannon CLI',
+              },
+            },
+          );
 
-      if (res.data.status === '0') {
-        if (res.data.result === 'Pending in queue') {
-          await sleep(1000);
-        } else {
-          logSpinner(`❌ ${c}`, res.data.result);
-          logSpinner(res.data);
-          break;
+          if (res.data.status === '0') {
+            if (res.data.result === 'Pending in queue') {
+              await sleep(1000);
+            } else {
+              logSpinner(`Etherscan: ❌ ${c}`, res.data.result);
+              logSpinner(res.data);
+              break;
+            }
+          } else {
+            logSpinner(`Etherscan: ✅ ${c}`);
+            await sleep(500);
+            break;
+          }
+        } else if (v === 'sourcify') {
+          const res = await axios.get<SourcifyVerifyStatusResponse>(getSourcifyVerificationStatusEndpoint(guids[c][v], cliSettings.sourcifyApiUrl || null), {
+            headers: {
+              'User-Agent': 'Cannon CLI',
+            },
+          });
+
+          if (res.status === 200) {
+            if (!res.data.isJobCompleted) {
+              await sleep(1000);
+            } else {
+              if (res.data.error) {
+                logSpinner(`Sourcify: ❌ ${c}`, res.data.error.message);
+                logSpinner(res.data.error);
+              } else {
+                logSpinner(`Sourcify: ✅ ${c} ${res.data.contract.match}`);
+              }
+              break;
+            }
+          } else {
+            logSpinner(`Sourcify: ❌ ${c}: unknown error (${res.status}): ${res.data}`);
+            await sleep(500);
+            break;
+          }
         }
-      } else {
-        logSpinner(`✅ ${c}`);
-        await sleep(500);
-        break;
       }
     }
   }
