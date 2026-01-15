@@ -3,7 +3,6 @@ import { mainnet, optimism } from 'viem/chains';
 import promiseRetry from 'promise-retry';
 import { getArtifacts } from './builder';
 import { CANNON_CHAIN_ID, DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_CONFIG, getCannonRepoRegistryUrl } from './constants';
-import { ChainDefinition } from './definition';
 import { IPFSLoader } from './loader';
 import { PackageReference } from './package-reference';
 import { OnChainRegistry, FallbackRegistry, InMemoryRegistry } from './registry';
@@ -50,6 +49,7 @@ export async function getCannonContract(args: {
     throw new Error(`cannon package not found: ${args.package} (${args.chainId})`);
   }
 
+  const { ChainDefinition } = await import('./definition');
   const artifacts = getArtifacts(new ChainDefinition(deployInfo.def), deployInfo.state);
 
   const contract = getContractFromPath(artifacts, args.contractName);
