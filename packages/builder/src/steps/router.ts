@@ -8,6 +8,7 @@ import { CannonError } from '../error';
 import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { routerSchema } from '../schemas';
 import { ContractMap } from '../types';
+import { getBlockRetried } from '../helpers';
 import {
   encodeDeployData,
   getContractDefinitionFromPath,
@@ -299,7 +300,7 @@ const routerStep = {
       deployAddress = receipt.contractAddress!;
     }
 
-    const block = receipt ? await runtime.provider.getBlock({ blockHash: receipt.blockHash }) : null;
+    const block = receipt ? await getBlockRetried(runtime.provider, receipt.blockHash) : null;
 
     return {
       contracts: {

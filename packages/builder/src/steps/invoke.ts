@@ -21,6 +21,7 @@ import {
   getMergedAbiFromContractPaths,
 } from '../util';
 import { template, getTemplateMatches, isTemplateString } from '../utils/template';
+import { getBlockRetried } from '../helpers';
 import { isStepPath, isStepName } from '../utils/matchers';
 import { CannonAction } from '../actions';
 
@@ -583,7 +584,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
 
       const [receipt, txnEvents] = await runTxn(runtime, config, contract, mainSigner, packageState);
 
-      const block = await runtime.provider.getBlock({ blockHash: receipt.blockHash });
+      const block = await getBlockRetried(runtime.provider, receipt.blockHash);
 
       const splitLabel = packageState.currentLabel.split('.')[1];
 
