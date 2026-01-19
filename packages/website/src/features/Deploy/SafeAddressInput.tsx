@@ -252,7 +252,7 @@ export function SafeAddressInput() {
           onOpenChange={setIsDialogOpen}
           modal={false}
         >
-          <DialogContent>
+          <DialogContent className="max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Select Safe</DialogTitle>
             </DialogHeader>
