@@ -106,6 +106,12 @@ export type CliSettings = {
   etherscanApiKey: string;
 
   /**
+   * URL of sourcify API for verification
+   */
+  sourcifyApiUrl?: string;
+
+
+  /**
    * Whether to run in E2E mode
    */
   isE2E: boolean;
@@ -183,6 +189,11 @@ function createCannonSettingsSchema(fileSettings: CliSettings) {
       .optional()
       .default(fileSettings.etherscanApiUrl as string),
     CANNON_ETHERSCAN_API_KEY: z.string().length(34).optional().default(fileSettings.etherscanApiKey),
+    CANNON_SOURCIFY_API_URL: z
+      .string()
+      .url()
+      .optional()
+      .default(fileSettings.sourcifyApiUrl as string),
     CANNON_QUIET: z.boolean().default(fileSettings.quiet || false),
     CANNON_E2E: z.boolean().default(false),
     TRACE: z.boolean().default(false),
@@ -215,6 +226,7 @@ function computeCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
     CANNON_REGISTRY_PRIORITY,
     CANNON_ETHERSCAN_API_URL,
     CANNON_ETHERSCAN_API_KEY,
+    CANNON_SOURCIFY_API_URL,
     CANNON_QUIET,
     CANNON_E2E,
     TRACE,
@@ -244,6 +256,7 @@ function computeCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
       registryPriority: CANNON_REGISTRY_PRIORITY,
       etherscanApiUrl: CANNON_ETHERSCAN_API_URL,
       etherscanApiKey: CANNON_ETHERSCAN_API_KEY,
+      sourcifyApiUrl: CANNON_SOURCIFY_API_URL,
       quiet: CANNON_QUIET,
       isE2E: CANNON_E2E,
       trace: TRACE,
