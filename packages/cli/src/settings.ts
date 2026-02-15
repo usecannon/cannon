@@ -110,7 +110,6 @@ export type CliSettings = {
    */
   sourcifyApiUrl?: string;
 
-
   /**
    * Whether to run in E2E mode
    */

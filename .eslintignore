@@ -1,4 +1,5 @@
 .next
+artifacts
 coverage
 dist
 next.lock

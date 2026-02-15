@@ -33,39 +33,39 @@ export type SourcifyVerifyRequest = {
   compilerVersion: string;
   contractIdentifier: string;
   creationTransactionHash?: string;
-}
+};
 
 export type SourcifyVerifyResponse = {
   verificationId: string;
-}
+};
 
 export type SourcifyVerifyStatusResponse = {
-  isJobCompleted: boolean,
-  verificationId: string,
+  isJobCompleted: boolean;
+  verificationId: string;
   error: {
-    customCode: string,
-    message: string,
-    errorId: string,
-    recompiledCreationCode: string,
-    recompiledRuntimeCode: string,
-    onchainCreationCode: string,
-    onchainRuntimeCode: string,
-    creationTransactionHash: string,
-    errorData: object
-  }
-  jobStartTime: string,
-  jobFinishTime: string,
-  compilationTime: string,
+    customCode: string;
+    message: string;
+    errorId: string;
+    recompiledCreationCode: string;
+    recompiledRuntimeCode: string;
+    onchainCreationCode: string;
+    onchainRuntimeCode: string;
+    creationTransactionHash: string;
+    errorData: object;
+  };
+  jobStartTime: string;
+  jobFinishTime: string;
+  compilationTime: string;
   contract: {
-    match: 'exact_match'|'match'|null,
-    creationMatch: 'exact_match'|'match'|null,
-    runtimeMatch: 'exact_match'|'match'|null,
-    chainId: string,
-    address: string,
-    verifiedAt: string,
-    matchId: string 
-  }
-}
+    match: 'exact_match' | 'match' | null;
+    creationMatch: 'exact_match' | 'match' | null;
+    runtimeMatch: 'exact_match' | 'match' | null;
+    chainId: string;
+    address: string;
+    verifiedAt: string;
+    matchId: string;
+  };
+};
 
 export const ETHERSCAN_DEFAULT_SERVER_URL = 'https://api.etherscan.io/v2/api';
 export const SOURCIFY_DEFAULT_SERVER_URL = 'https://sourcify.dev/server';
@@ -78,7 +78,12 @@ export const SOURCIFY_DEFAULT_SERVER_URL = 'https://sourcify.dev/server';
  * @param apiKey - Etherscan API Key.
  * @returns True if the contract is verified, false otherwise.
  */
-export async function isEtherscanVerified(address: string, chainId: number, apiUrl: string, apiKey: string): Promise<boolean> {
+export async function isEtherscanVerified(
+  address: string,
+  chainId: number,
+  apiUrl: string,
+  apiKey: string
+): Promise<boolean> {
   const parameters = new URLSearchParams({
     apikey: apiKey,
     chainid: chainId.toString(),
@@ -119,7 +124,7 @@ export async function isEtherscanVerified(address: string, chainId: number, apiU
  * @param serverUrl - Sourcify API URL.
  * @returns True if the contract is verified, false otherwise.
  */
-export async function isSourcifyVerified(address: string, chainId: number, serverUrl: string|null): Promise<boolean> {
+export async function isSourcifyVerified(address: string, chainId: number, serverUrl: string | null): Promise<boolean> {
   try {
     const response = await fetch(`${serverUrl || SOURCIFY_DEFAULT_SERVER_URL}/v2/contract/${chainId}/${address}`);
 
@@ -129,7 +134,9 @@ export async function isSourcifyVerified(address: string, chainId: number, serve
     } else if (response.status === 200) {
       return true;
     } else {
-      throw new Error(`Sourcify returned error while checking verification status (${response.status}):` + await response.text());
+      throw new Error(
+        `Sourcify returned error while checking verification status (${response.status}):` + (await response.text())
+      );
     }
   } catch (e) {
     throw new Error('Could not check verification status on Sourcify: ' + e);
@@ -143,8 +150,8 @@ export async function isSourcifyVerified(address: string, chainId: number, serve
  * @param serverUrl - Sourcify API URL.
  * @returns The URL to POST to
  */
-export function getSourcifyVerificationEndpoint(chainId: number, address: string, serverOverride: string|null) {
-  return `${serverOverride || SOURCIFY_DEFAULT_SERVER_URL}/v2/verify/${chainId}/${address}`
+export function getSourcifyVerificationEndpoint(chainId: number, address: string, serverOverride: string | null) {
+  return `${serverOverride || SOURCIFY_DEFAULT_SERVER_URL}/v2/verify/${chainId}/${address}`;
 }
 
 /**
@@ -153,6 +160,6 @@ export function getSourcifyVerificationEndpoint(chainId: number, address: string
  * @param serverUrl - Sourcify API URL.
  * @returns The URL to GET
  */
-export function getSourcifyVerificationStatusEndpoint(verificationId: string, serverOverride: string|null) {
+export function getSourcifyVerificationStatusEndpoint(verificationId: string, serverOverride: string | null) {
   return `${serverOverride || SOURCIFY_DEFAULT_SERVER_URL}/v2/verify/${verificationId}`;
 }

@@ -11,7 +11,7 @@ import { createDefaultReadRegistry } from '../registry';
 
 import { getMainLoader } from '../loader';
 
-import { logSpinner, spinner } from '../util/console';
+import { log, logSpinner, spinner } from '../util/console';
 import {
   ETHERSCAN_DEFAULT_SERVER_URL,
   getSourcifyVerificationEndpoint,
@@ -29,7 +29,7 @@ export async function verify(
   packageRef: string,
   cliSettings: CliSettings,
   chainId: number,
-  service: 'etherscan' | 'sourcify' | 'all',
+  service: 'etherscan' | 'sourcify' | 'all'
 ) {
   const { fullPackageRef } = new PackageReference(packageRef);
 
@@ -55,13 +55,13 @@ export async function verify(
       allowPartialDeploy: false,
     },
     resolver,
-    getMainLoader(cliSettings),
+    getMainLoader(cliSettings)
   );
 
   const etherscanApi = cliSettings.etherscanApiUrl || ETHERSCAN_DEFAULT_SERVER_URL;
 
-  if (service === 'etherscan' || service === 'all' && !cliSettings.etherscanApiKey) {
-    console.log('Using generic API key for Etherscan. If this is incorrect, specify CANNON_ETHERSCAN_API_KEY');
+  if (service === 'etherscan' || (service === 'all' && !cliSettings.etherscanApiKey)) {
+    log('Using generic API key for Etherscan. If this is incorrect, specify CANNON_ETHERSCAN_API_KEY');
   }
 
   const guids: { [c: string]: { [v: string]: string } } = {};
@@ -132,7 +132,7 @@ export async function verify(
               constructorArguements: viem
                 .encodeAbiParameters(
                   contractArtifact.abi.find((i: viem.AbiItem) => i.type === 'constructor')?.inputs ?? [],
-                  contractInfo.constructorArgs || [],
+                  contractInfo.constructorArgs || []
                 )
                 .slice(2),
             };
@@ -142,7 +142,7 @@ export async function verify(
             const res = await axios.post(etherscanApi, reqData, {
               headers: {
                 'content-type': 'application/x-www-form-urlencoded',
-                'User-Agent': `Cannon CLI`,
+                'User-Agent': 'Cannon CLI',
               },
             });
 
@@ -179,12 +179,16 @@ export async function verify(
 
           debug('sourcify verification request', reqData);
 
-          const res = await axios.post<SourcifyVerifyResponse>(getSourcifyVerificationEndpoint(chainId, contractInfo.address, cliSettings.sourcifyApiUrl || null), reqData, {
-            headers: {
-              'content-type': 'application/json',
-              'User-Agent': `Cannon CLI`,
-            },
-          });
+          const res = await axios.post<SourcifyVerifyResponse>(
+            getSourcifyVerificationEndpoint(chainId, contractInfo.address, cliSettings.sourcifyApiUrl || null),
+            reqData,
+            {
+              headers: {
+                'content-type': 'application/json',
+                'User-Agent': 'Cannon CLI',
+              },
+            }
+          );
 
           if (res.status >= 300) {
             debug('sourcify failed', res.data);
@@ -206,7 +210,7 @@ export async function verify(
 
   if (!deployData) {
     throw new Error(
-      `deployment not found: ${fullPackageRef}. please make sure it exists for the given preset and current network.`,
+      `deployment not found: ${fullPackageRef}. please make sure it exists for the given preset and current network.`
     );
   }
 
@@ -232,7 +236,7 @@ export async function verify(
                 'content-type': 'application/x-www-form-urlencoded',
                 'User-Agent': 'Cannon CLI',
               },
-            },
+            }
           );
 
           if (res.data.status === '0') {
@@ -249,11 +253,14 @@ export async function verify(
             break;
           }
         } else if (v === 'sourcify') {
-          const res = await axios.get<SourcifyVerifyStatusResponse>(getSourcifyVerificationStatusEndpoint(guids[c][v], cliSettings.sourcifyApiUrl || null), {
-            headers: {
-              'User-Agent': 'Cannon CLI',
-            },
-          });
+          const res = await axios.get<SourcifyVerifyStatusResponse>(
+            getSourcifyVerificationStatusEndpoint(guids[c][v], cliSettings.sourcifyApiUrl || null),
+            {
+              headers: {
+                'User-Agent': 'Cannon CLI',
+              },
+            }
+          );
 
           if (res.status === 200) {
             if (!res.data.isJobCompleted) {
