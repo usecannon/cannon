@@ -432,12 +432,13 @@ const deploySpec = {
     const receipt = await runtime.provider.getTransactionReceipt({ hash: existingKeys[0] as viem.Hash });
 
     // We need to compute from the import data
-    console.log('the input txn data', txn, receipt);
     let contractAddress;
+    // In the case that the contract address is given in the transaction receipt: It was a create (1) transaction
     if (receipt.contractAddress) {
       contractAddress = receipt.contractAddress;
+      // in the case that the contract address is *NOT* given, its CREATE2 through arachnid (or, not a contract creation transaction at all).
     } else if (txn.to && txn.input && txn.input.length > 66) {
-      // Note: the `from` address is actually the `to` address because the contract we call is what is actually imported
+      // Note: the `from` address is actually the `to` address here because this function wants the address of the contract executing the deployment of the contract
       contractAddress = viem.getContractAddress({
         opcode: 'CREATE2',
         from: txn.to,
