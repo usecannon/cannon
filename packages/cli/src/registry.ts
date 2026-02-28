@@ -248,13 +248,28 @@ export async function createDefaultReadRegistry(
     debug('using local registry');
     const fallbackRegistry = new FallbackRegistry([...additionalRegistries, localRegistry, ...onChainRegistries]);
 
-    // for some reason the promises checker really doesn't like the next line
+    // Cache package references pulled from the on-chain registry to the local tags folder
+    // This allows offline access and faster lookups for previously fetched packages
     // eslint-disable-next-line
     fallbackRegistry.on('getPackageUrl', async (event) => {
-      // if we had to load this package from the on-chain registry and it was immutable, record
-      if (event.result.mutability === 'version' && event.registry instanceof OnChainRegistry) {
-        debug('caching immutable package from on-chain registry', event.fullPackageRef);
-        await localRegistry.publish(event.fullPackageRef, event.chainId, event.result.url, '', 'version');
+      if (event.registry instanceof OnChainRegistry && event.result.url) {
+        debug('caching package reference from on-chain registry', event.fullPackageRef);
+        
+        // Get the metadata URL if available
+        let metaUrl = '';
+        try {
+          metaUrl = (await event.registry.getMetaUrl?.(event.fullPackageRef, event.chainId)) || '';
+        } catch (err) {
+          debug('could not fetch meta URL for caching:', err);
+        }
+        
+        await localRegistry.publish(
+          [event.fullPackageRef],
+          event.chainId,
+          event.result.url,
+          metaUrl,
+          event.result.mutability || undefined
+        );
       }
     });
 
