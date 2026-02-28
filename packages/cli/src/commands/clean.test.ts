@@ -1,4 +1,4 @@
-import { clean } from './clean';
+import { clean, cleanSuperfluousIpfs, CleanIpfsStats } from './clean';
 import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import prompts from 'prompts';
@@ -59,5 +59,147 @@ describe('clean function', () => {
     expect(result).toBe(false);
     expect(fs.readdir).toHaveBeenCalled();
     expect(fs.rm).not.toHaveBeenCalled();
+  });
+});
+
+describe('cleanSuperfluousIpfs function', () => {
+  let consoleLogSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    consoleLogSpy = jest.spyOn(console, 'log');
+  });
+
+  afterEach(() => {
+    consoleLogSpy.mockRestore();
+    jest.resetAllMocks();
+  });
+
+  it('should return success with no deletions when no superfluous files exist', async () => {
+    // Mock tags directory with one tag
+    (existsSync as jest.Mock).mockImplementation((path: string) => {
+      if (path.includes('tags')) return true;
+      if (path.includes('ipfs_cache')) return true;
+      return false;
+    });
+
+    // @ts-ignore
+    jest.spyOn(fs, 'readdir').mockImplementation((dir: string) => {
+      if (dir.includes('tags')) {
+        return Promise.resolve(['package_1.0.0_1-main.txt', 'package_1.0.0_1-main.txt.meta']);
+      }
+      if (dir.includes('ipfs_cache')) {
+        // Return files that match the tag's IPFS URLs
+        // ipfs://QmXyz -> 58cd78e4d20301f9456940b3f1a735b5-qmxyz.json
+        // ipfs://QmMeta -> 1cdfa4521e3d781a0da1a3d3ff4eeece-qmmeta.json
+        return Promise.resolve([
+          '58cd78e4d20301f9456940b3f1a735b5-qmxyz.json',
+          '1cdfa4521e3d781a0da1a3d3ff4eeece-qmmeta.json',
+        ]);
+      }
+      return Promise.resolve([]);
+    });
+
+    // Mock tag file contents
+    jest.spyOn(fs, 'readFile').mockImplementation((path: any) => {
+      const pathStr = path.toString();
+      if (pathStr.includes('.txt') && !pathStr.includes('.meta')) {
+        return Promise.resolve('ipfs://QmXyz') as any;
+      }
+      if (pathStr.includes('.meta')) {
+        return Promise.resolve('ipfs://QmMeta') as any;
+      }
+      return Promise.resolve('') as any;
+    });
+
+    // Mock cache file stat
+    jest.spyOn(fs, 'stat').mockImplementation(() => 
+      Promise.resolve({ size: 1000 } as any)
+    );
+
+    const result = await cleanSuperfluousIpfs(false);
+    
+    expect(result.success).toBe(true);
+    expect(result.stats.superfluousFiles).toBe(0);
+  });
+
+  it('should identify and delete superfluous IPFS files', async () => {
+    (existsSync as jest.Mock).mockReturnValue(true);
+
+    // @ts-ignore
+    jest.spyOn(fs, 'readdir').mockImplementation((dir: string) => {
+      if (dir.includes('tags')) {
+        return Promise.resolve(['package_1.0.0_1-main.txt']);
+      }
+      if (dir.includes('ipfs_cache')) {
+        // ipfs://QmXyz -> 58cd78e4d20301f9456940b3f1a735b5-qmxyz.json (referenced)
+        // ipfs://QmAbc -> d7195b608c408f59397fc013eba8fef4-qmabc.json (superfluous)
+        return Promise.resolve([
+          '58cd78e4d20301f9456940b3f1a735b5-qmxyz.json',
+          'd7195b608c408f59397fc013eba8fef4-qmabc.json',
+        ]);
+      }
+      return Promise.resolve([]);
+    });
+
+    // Mock tag file contents
+    jest.spyOn(fs, 'readFile').mockImplementation((path: any) => {
+      const pathStr = path.toString();
+      if (pathStr.includes('.txt')) {
+        return Promise.resolve('ipfs://QmXyz') as any;
+      }
+      return Promise.resolve('') as any;
+    });
+
+    // Mock cache file stat
+    jest.spyOn(fs, 'stat').mockImplementation(() => 
+      Promise.resolve({ size: 1000 } as any)
+    );
+
+    // Mock unlink
+    jest.spyOn(fs, 'unlink').mockImplementation(() => Promise.resolve());
+
+    const result = await cleanSuperfluousIpfs(false);
+    
+    expect(result.success).toBe(true);
+    expect(result.stats.totalFiles).toBe(2);
+    expect(result.stats.superfluousFiles).toBe(1);
+    expect(result.stats.deletedFiles).toBe(1);
+    expect(result.stats.freedBytes).toBe(1000);
+  });
+
+  it('should not delete files when user cancels confirmation', async () => {
+    (existsSync as jest.Mock).mockReturnValue(true);
+    (prompts as unknown as jest.Mock).mockResolvedValue({ value: false });
+
+    // @ts-ignore
+    jest.spyOn(fs, 'readdir').mockImplementation((dir: string) => {
+      if (dir.includes('tags')) {
+        return Promise.resolve(['package_1.0.0_1-main.txt']);
+      }
+      if (dir.includes('ipfs_cache')) {
+        // Only superfluous file: ipfs://QmAbc
+        return Promise.resolve(['d7195b608c408f59397fc013eba8fef4-qmabc.json']);
+      }
+      return Promise.resolve([]);
+    });
+
+    jest.spyOn(fs, 'readFile').mockImplementation((path: any) => {
+      const pathStr = path.toString();
+      if (pathStr.includes('.txt')) {
+        return Promise.resolve('ipfs://QmXyz') as any;
+      }
+      return Promise.resolve('') as any;
+    });
+
+    jest.spyOn(fs, 'stat').mockImplementation(() => 
+      Promise.resolve({ size: 1000 } as any)
+    );
+
+    const unlinkSpy = jest.spyOn(fs, 'unlink').mockImplementation(() => Promise.resolve());
+
+    const result = await cleanSuperfluousIpfs(true);
+    
+    expect(result.success).toBe(false);
+    expect(unlinkSpy).not.toHaveBeenCalled();
   });
 });
