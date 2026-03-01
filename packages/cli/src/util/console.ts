@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { createSpinner } from 'nanospinner';
+import type { Logger } from '@usecannon/builder';
 
 // Detect if we're in a test environment or non-TTY environment
 const isTestEnv = process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID !== undefined;
@@ -110,4 +111,13 @@ export const logSpinnerEnd = () => {
   } catch (err) {
     // Ignore spinner errors on cleanup
   }
+};
+
+/**
+ * Logger for builder package that coordinates with the CLI spinner
+ */
+export const builderLogger: Logger = {
+  log: logSpinner,
+  error: errorSpinner,
+  warn: warnSpinner,
 };

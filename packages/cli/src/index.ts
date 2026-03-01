@@ -13,6 +13,7 @@ import {
   OnChainRegistry,
   PackageReference,
   traceActions,
+  setBuilderLogger,
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow, yellowBright } from 'chalk';
 import { Command } from 'commander';
@@ -38,7 +39,7 @@ import { PackageSpecification } from './types';
 
 import { doBuild } from './util/build';
 import { setDebugLevel } from './util/debug-level';
-import { log, error, logSpinner, warnSpinner, errorSpinner, logSpinnerEnd, spinner } from './util/console';
+import { log, error, logSpinner, warnSpinner, errorSpinner, logSpinnerEnd, spinner, builderLogger } from './util/console';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { applyCommandsConfig } from './util/commands-config';
 import {
@@ -53,6 +54,9 @@ import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
 import { ANVIL_PORT_DEFAULT_VALUE } from './constants';
 import { deprecatedWarn } from './util/deprecated-warn';
+
+// Wire up the builder logger to coordinate with CLI spinner
+setBuilderLogger(builderLogger);
 
 export * from './types';
 export * from './constants';
@@ -685,10 +689,12 @@ applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async
     );
 
     if (pruneUrls.length) {
-      logSpinner(bold(`Found ${pruneUrls.length} storage artifacts to prune.`));
-      logSpinner(`Matched with Registry: ${pruneStats.matchedFromRegistry}`);
-      logSpinner(`Not Expired: ${pruneStats.notExpired}`);
-      logSpinner(`Not Cannon Package: ${pruneStats.notCannonPackage}`);
+      logSpinnerEnd();
+      log(bold(`Found ${pruneUrls.length} storage artifacts to prune.`));
+      log(`Matched with Registry: ${pruneStats.matchedFromRegistry}`);
+      log(`Not Expired: ${pruneStats.notExpired}`);
+      log(`Not Cannon Package: ${pruneStats.notCannonPackage}`);
+      log();
 
       if (options.dryRun) {
         process.exit(0);
@@ -703,21 +709,21 @@ applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async
         });
 
         if (!verification.confirmation) {
-          logSpinner('Cancelled');
+          log('Cancelled');
           process.exit(1);
         }
       }
 
       for (const url of pruneUrls) {
-        logSpinner(`delete ${url}`);
+        log(`delete ${url}`);
         try {
           await storage.deleteBlob(url);
         } catch (err: any) {
-          errorSpinner(`Failed to delete ${url}: ${err.message}`);
+          error(`Failed to delete ${url}: ${err.message}`);
         }
       }
 
-      logSpinner('Done!');
+      log('Done!');
     } else {
       logSpinner(bold('Nothing to prune.'));
     }
