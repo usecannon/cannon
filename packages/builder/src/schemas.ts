@@ -916,6 +916,11 @@ export const chainDefinitionSchema = z
       )
       .optional(),
     /**
+     * List of additional TOML files to include and merge into this cannonfile.
+     * Files are merged in order, with later files overriding earlier ones.
+     */
+    include: z.array(z.string()).describe('List of additional TOML files to include and merge into this cannonfile. Files are merged in order, with later files overriding earlier ones.').optional(),
+    /**
      * Whether or not source code from local package should be bundled in the package.
      * NOTE: If this is set to true, it will not be possible to verify your contracts on etherscan with cannon
      * If not specified, the value is treated as `false` (ie contract source codes included)
@@ -1044,3 +1049,104 @@ export const chainDefinitionSchema = z
       })
       .deepPartial()
   );
+
+/**
+ * Schema for cannonfile fragments - TOML files that are meant to be included
+ * from a main cannonfile and don't require top-level package metadata.
+ * 
+ * Fragments can contain all the same actions as a full cannonfile but omit:
+ * - name (required for publishing)
+ * - version (required for publishing)
+ * - preset (optional in both)
+ * - privateSourceCode (only main cannonfile should define)
+ * - description (only main cannonfile should define)
+ * - keywords (only main cannonfile should define)
+ * - deployers (only main cannonfile should define)
+ */
+export const cannonfileFragmentSchema = z
+  .object({
+    /**
+     * List of additional TOML files to include and merge into this fragment.
+     * Files are merged in order, with later files overriding earlier ones.
+     */
+    include: z.array(z.string()).describe('List of additional TOML files to include and merge into this fragment. Files are merged in order, with later files overriding earlier ones.').optional(),
+    /**
+     * Object that allows the definition of values for use in next operations
+     */
+    setting: z
+      .record(
+        z
+          .object({
+            description: z.string().describe('Description of the operation'),
+            type: z.enum(['number', 'string', 'boolean']).describe('Data type of the value being stored'),
+            defaultValue: z.string().describe('Stored value of the setting'),
+          })
+          .partial()
+      )
+      .describe(
+        '⚠ Deprecated in favor of var. A setting is a variable that can be set (or overriden using the CLI) when building a Cannonfile. It is accessible elsewhere in the file a property of the settings object. For example, [setting.sampleSetting] can be referenced with <%= settings.sampleSetting %>'
+      ),
+    /**
+     * @internal
+     */
+    pull: z
+      .record(pullSchema)
+      .describe(
+        'Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other operations in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.'
+      ),
+    /**
+     * @internal
+     */
+    import: z
+      .record(pullSchema)
+      .describe(
+        '⚠ Deprecated in favor of pull. Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other operations in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.'
+      ),
+    /**
+     * @internal
+     */
+    clone: z
+      .record(cloneSchema)
+      .describe(
+        'Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).'
+      ),
+    /**
+     * @internal
+     */
+    provision: z
+      .record(cloneSchema)
+      .describe(
+        '⚠ Deprecated in favor of clone. Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).'
+      ),
+    /**
+     * @internal
+     */
+    deploy: z.record(deploySchema).describe('Deploy a contract.'),
+    /**
+     * @internal
+     */
+    contract: z.record(deploySchema).describe('⚠ Deprecated in favor of deploy. Deploy a contract.'),
+    /**
+     * @internal
+     */
+    invoke: z.record(invokeSchema).describe('Call a function.'),
+    /**
+     * @internal
+     */
+    router: z
+      .record(routerSchema)
+      .describe('Generate a contract that proxies calls to multiple contracts using the synthetix router codegen.'),
+    /**
+     * @internal
+     */
+    diamond: z
+      .record(diamondSchema)
+      .describe(
+        'Generate a upgradable contract that proxies calls to multiple contracts using a ERC2535 Diamond standard.'
+      ),
+    /**
+     * @internal
+     */
+    var: z.record(varSchema).describe('Apply a setting or intermediate value.'),
+  })
+  .deepPartial();
