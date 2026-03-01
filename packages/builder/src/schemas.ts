@@ -916,6 +916,11 @@ export const chainDefinitionSchema = z
       )
       .optional(),
     /**
+     * List of additional TOML files to include and merge into this cannonfile.
+     * Files are merged in order, with later files overriding earlier ones.
+     */
+    include: z.array(z.string()).describe('List of additional TOML files to include and merge into this cannonfile. Files are merged in order, with later files overriding earlier ones.').optional(),
+    /**
      * Whether or not source code from local package should be bundled in the package.
      * NOTE: If this is set to true, it will not be possible to verify your contracts on etherscan with cannon
      * If not specified, the value is treated as `false` (ie contract source codes included)
