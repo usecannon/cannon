@@ -103,6 +103,55 @@ async function getReferencedIpfsUrls(tagsDir: string): Promise<Set<string>> {
   return referencedUrls;
 }
 
+
+/**
+ * Extract all IPFS URLs from a string (e.g., JSON content of a cached IPFS file).
+ * Looks for ipfs://Qm... and ipfs://bafy... patterns.
+ */
+function extractIpfsUrls(content: string): Set<string> {
+  const urls = new Set<string>();
+  const regex = /ipfs:\/\/[A-Za-z0-9]+/g;
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    urls.add(match[0]);
+  }
+  return urls;
+}
+
+/**
+ * Recursively resolve all IPFS dependencies starting from a set of root URLs.
+ * Reads the content of each referenced IPFS cache file and looks for additional
+ * IPFS URLs, building a complete dependency graph.
+ */
+async function resolveIpfsDependencies(rootUrls: Set<string>, ipfsCacheDir: string): Promise<Set<string>> {
+  const allReferencedUrls = new Set<string>(rootUrls);
+  const queue = [...rootUrls];
+
+  while (queue.length > 0) {
+    const url = queue.pop()!;
+    const cacheHash = getCacheHash(url);
+    const cacheFile = path.join(ipfsCacheDir, `${cacheHash}.json`);
+
+    try {
+      const content = await fs.readFile(cacheFile, 'utf-8');
+      const nestedUrls = extractIpfsUrls(content);
+
+      for (const nestedUrl of nestedUrls) {
+        if (!allReferencedUrls.has(nestedUrl)) {
+          allReferencedUrls.add(nestedUrl);
+          queue.push(nestedUrl);
+          debug(`Found nested IPFS dependency: ${nestedUrl} (from ${url})`);
+        }
+      }
+    } catch {
+      // Cache file may not exist locally, that's fine
+      debug(`Could not read cache file for ${url}, skipping dependency scan`);
+    }
+  }
+
+  return allReferencedUrls;
+}
+
 /**
  * Get all IPFS cache files
  */
@@ -142,9 +191,13 @@ export async function cleanSuperfluousIpfs(confirm = true): Promise<{ success: b
     freedBytes: 0,
   };
 
-  // Get all referenced IPFS URLs from tags
-  const referencedUrls = await getReferencedIpfsUrls(tagsDir);
-  debug(`Found ${referencedUrls.size} referenced IPFS URLs in tags`);
+  // Get all directly referenced IPFS URLs from tags
+  const directUrls = await getReferencedIpfsUrls(tagsDir);
+  debug(`Found ${directUrls.size} directly referenced IPFS URLs in tags`);
+
+  // Recursively resolve all IPFS dependencies (second-order and deeper)
+  const referencedUrls = await resolveIpfsDependencies(directUrls, ipfsCacheDir);
+  debug(`Found ${referencedUrls.size} total referenced IPFS URLs (including nested dependencies)`);
 
   // Get all IPFS cache files
   const cacheFiles = await getIpfsCacheFiles(ipfsCacheDir);
