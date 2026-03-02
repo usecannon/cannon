@@ -13,7 +13,6 @@ import {
   OnChainRegistry,
   PackageReference,
   traceActions,
-  setBuilderLogger,
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow, yellowBright } from 'chalk';
 import { Command } from 'commander';
@@ -39,7 +38,7 @@ import { PackageSpecification } from './types';
 
 import { doBuild } from './util/build';
 import { setDebugLevel } from './util/debug-level';
-import { log, error, logSpinner, warnSpinner, errorSpinner, logSpinnerEnd, spinner, builderLogger } from './util/console';
+import { log, error, logSpinner, warnSpinner, errorSpinner, logSpinnerEnd, spinner } from './util/console';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { applyCommandsConfig } from './util/commands-config';
 import {
@@ -55,8 +54,6 @@ import './custom-steps/run';
 import { ANVIL_PORT_DEFAULT_VALUE } from './constants';
 import { deprecatedWarn } from './util/deprecated-warn';
 
-// Wire up the builder logger to coordinate with CLI spinner
-setBuilderLogger(builderLogger);
 
 export * from './types';
 export * from './constants';

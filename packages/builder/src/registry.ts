@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 
 import { blueBright, bold, yellow } from 'chalk';
 import Debug from 'debug';
