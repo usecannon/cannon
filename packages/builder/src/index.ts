@@ -17,8 +17,8 @@ export { decodeTxError, renderTrace, findContract } from './trace';
 export type { TraceEntry } from './trace';
 export { traceActions, CannonError } from './error';
 export { prepareMulticall } from './multicall';
-export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry, setBuilderLogger } from './registry';
-export type { Logger } from './logger';
+export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from './registry';
+export { setBuilderLogger, type Logger } from './logger';
 export * from './package';
 export {
   CANNON_CHAIN_ID,
