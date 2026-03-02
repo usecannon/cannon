@@ -1,4 +1,7 @@
-import { chainDefinitionSchema, cannonfileFragmentSchema } from '@usecannon/builder/dist/src/schemas.js';
+import {
+  chainDefinitionSchema,
+  cannonfileFragmentSchema,
+} from '@usecannon/builder/dist/src/schemas.js';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import fs from 'fs';
 import path from 'path';

@@ -969,9 +969,7 @@ const cannonfileActionsSchema = z.object({
    */
   diamond: z
     .record(diamondSchema)
-    .describe(
-      'Generate a upgradable contract that proxies calls to multiple contracts using a ERC2535 Diamond standard.'
-    ),
+    .describe('Generate a upgradable contract that proxies calls to multiple contracts using a ERC2535 Diamond standard.'),
   /**
    * @internal
    */
@@ -1018,7 +1016,12 @@ export const chainDefinitionSchema = z
      * List of additional TOML files to include and merge into this cannonfile.
      * Files are merged in order, with later files overriding earlier ones.
      */
-    include: z.array(z.string()).describe('List of additional TOML files to include and merge into this cannonfile. Files are merged in order, with later files overriding earlier ones.').optional(),
+    include: z
+      .array(z.string())
+      .describe(
+        'List of additional TOML files to include and merge into this cannonfile. Files are merged in order, with later files overriding earlier ones.'
+      )
+      .optional(),
     /**
      * Whether or not source code from local package should be bundled in the package.
      * NOTE: If this is set to true, it will not be possible to verify your contracts on etherscan with cannon
@@ -1071,6 +1074,11 @@ export const cannonfileFragmentSchema = z
      * List of additional TOML files to include and merge into this fragment.
      * Files are merged in order, with later files overriding earlier ones.
      */
-    include: z.array(z.string()).describe('List of additional TOML files to include and merge into this fragment. Files are merged in order, with later files overriding earlier ones.').optional(),
+    include: z
+      .array(z.string())
+      .describe(
+        'List of additional TOML files to include and merge into this fragment. Files are merged in order, with later files overriding earlier ones.'
+      )
+      .optional(),
   })
   .merge(cannonfileActionsSchema.deepPartial());
