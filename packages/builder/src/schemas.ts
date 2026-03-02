@@ -881,6 +881,105 @@ export const varSchema = z
   .catchall(z.string());
 
 /**
+ * Shared schema for cannonfile actions (operations).
+ * Used by both the full cannonfile schema and the fragment schema.
+ */
+const cannonfileActionsSchema = z.object({
+  /**
+   * Object that allows the definition of values for use in next operations
+   * ```toml
+   *  [settings.owner]
+   *  defaultValue: "some-eth-address"
+   * ```
+   */
+  setting: z
+    .record(
+      z
+        .object({
+          /**
+           * Description of the operation
+           */
+          description: z.string().describe('Description of the operation'),
+          /**
+           * Data type of the value being stored
+           */
+          type: z.enum(['number', 'string', 'boolean']).describe('Data type of the value being stored'),
+          /**
+           * Stored value of the setting
+           */
+          defaultValue: z.string().describe('Stored value of the setting'),
+        })
+        .partial()
+    )
+    .describe(
+      '⚠ Deprecated in favor of var. A setting is a variable that can be set (or overriden using the CLI) when building a Cannonfile. It is accessible elsewhere in the file a property of the settings object. For example, [setting.sampleSetting] can be referenced with <%= settings.sampleSetting %>'
+    ),
+  /**
+   * @internal
+   */
+  pull: z
+    .record(pullSchema)
+    .describe(
+      'Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other operations in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.'
+    ),
+  /**
+   * @internal
+   */
+  import: z
+    .record(pullSchema)
+    .describe(
+      '⚠ Deprecated in favor of pull. Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other operations in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.'
+    ),
+  /**
+   * @internal
+   */
+  clone: z
+    .record(cloneSchema)
+    .describe(
+      'Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).'
+    ),
+  /**
+   * @internal
+   */
+  provision: z
+    .record(cloneSchema)
+    .describe(
+      '⚠ Deprecated in favor of clone. Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).'
+    ),
+  /**
+   * @internal
+   */
+  deploy: z.record(deploySchema).describe('Deploy a contract.'),
+  /**
+   * @internal
+   */
+  contract: z.record(deploySchema).describe('⚠ Deprecated in favor of deploy. Deploy a contract.'),
+  /**
+   * @internal
+   */
+  invoke: z.record(invokeSchema).describe('Call a function.'),
+  /**
+   * @internal
+   */
+  router: z
+    .record(routerSchema)
+    .describe('Generate a contract that proxies calls to multiple contracts using the synthetix router codegen.'),
+  /**
+   * @internal
+   */
+  diamond: z
+    .record(diamondSchema)
+    .describe(
+      'Generate a upgradable contract that proxies calls to multiple contracts using a ERC2535 Diamond standard.'
+    ),
+  /**
+   * @internal
+   */
+  var: z.record(varSchema).describe('Apply a setting or intermediate value.'),
+  // ... there may be others that come from plugins
+});
+
+/**
  * @internal NOTE: if you edit this schema, please also edit the constructor of ChainDefinition in 'definition.ts' to account for non-operation components
  */
 export const chainDefinitionSchema = z
@@ -951,109 +1050,12 @@ export const chainDefinitionSchema = z
       .describe('Any deployers that could publish this package. Will be used for automatic version management.')
       .optional(),
   })
-  .merge(
-    z
-      .object({
-        /**
-         * Object that allows the definition of values for use in next operations
-         * ```toml
-         *  [settings.owner]
-         *  defaultValue: "some-eth-address"
-         * ```
-         */
-        setting: z
-          .record(
-            z
-              .object({
-                /**
-                 * Description of the operation
-                 */
-                description: z.string().describe('Description of the operation'),
-                /**
-                 * Data type of the value being stored
-                 */
-                type: z.enum(['number', 'string', 'boolean']).describe('Data type of the value being stored'),
-                /**
-                 * Stored value of the setting
-                 */
-                defaultValue: z.string().describe('Stored value of the setting'),
-              })
-              .partial()
-          )
-          .describe(
-            '⚠ Deprecated in favor of var. A setting is a variable that can be set (or overriden using the CLI) when building a Cannonfile. It is accessible elsewhere in the file a property of the settings object. For example, [setting.sampleSetting] can be referenced with <%= settings.sampleSetting %>'
-          ),
-        /**
-         * @internal
-         */
-        pull: z
-          .record(pullSchema)
-          .describe(
-            'Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other operations in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.'
-          ),
-        /**
-         * @internal
-         */
-        import: z
-          .record(pullSchema)
-          .describe(
-            '⚠ Deprecated in favor of pull. Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other operations in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.'
-          ),
-        /**
-         * @internal
-         */
-        clone: z
-          .record(cloneSchema)
-          .describe(
-            'Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).'
-          ),
-        /**
-         * @internal
-         */
-        provision: z
-          .record(cloneSchema)
-          .describe(
-            '⚠ Deprecated in favor of clone. Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).'
-          ),
-        /**
-         * @internal
-         */
-        deploy: z.record(deploySchema).describe('Deploy a contract.'),
-        /**
-         * @internal
-         */
-        contract: z.record(deploySchema).describe('⚠ Deprecated in favor of deploy. Deploy a contract.'),
-        /**
-         * @internal
-         */
-        invoke: z.record(invokeSchema).describe('Call a function.'),
-        /**
-         * @internal
-         */
-        router: z
-          .record(routerSchema)
-          .describe('Generate a contract that proxies calls to multiple contracts using the synthetix router codegen.'),
-        /**
-         * @internal
-         */
-        diamond: z
-          .record(diamondSchema)
-          .describe(
-            'Generate a upgradable contract that proxies calls to multiple contracts using a ERC2535 Diamond standard.'
-          ),
-        /**
-         * @internal
-         */
-        var: z.record(varSchema).describe('Apply a setting or intermediate value.'),
-        // ... there may be others that come from plugins
-      })
-      .deepPartial()
-  );
+  .merge(cannonfileActionsSchema.deepPartial());
 
 /**
  * Schema for cannonfile fragments - TOML files that are meant to be included
  * from a main cannonfile and don't require top-level package metadata.
- * 
+ *
  * Fragments can contain all the same actions as a full cannonfile but omit:
  * - name (required for publishing)
  * - version (required for publishing)
@@ -1070,83 +1072,5 @@ export const cannonfileFragmentSchema = z
      * Files are merged in order, with later files overriding earlier ones.
      */
     include: z.array(z.string()).describe('List of additional TOML files to include and merge into this fragment. Files are merged in order, with later files overriding earlier ones.').optional(),
-    /**
-     * Object that allows the definition of values for use in next operations
-     */
-    setting: z
-      .record(
-        z
-          .object({
-            description: z.string().describe('Description of the operation'),
-            type: z.enum(['number', 'string', 'boolean']).describe('Data type of the value being stored'),
-            defaultValue: z.string().describe('Stored value of the setting'),
-          })
-          .partial()
-      )
-      .describe(
-        '⚠ Deprecated in favor of var. A setting is a variable that can be set (or overriden using the CLI) when building a Cannonfile. It is accessible elsewhere in the file a property of the settings object. For example, [setting.sampleSetting] can be referenced with <%= settings.sampleSetting %>'
-      ),
-    /**
-     * @internal
-     */
-    pull: z
-      .record(pullSchema)
-      .describe(
-        'Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other operations in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.'
-      ),
-    /**
-     * @internal
-     */
-    import: z
-      .record(pullSchema)
-      .describe(
-        '⚠ Deprecated in favor of pull. Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other operations in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.'
-      ),
-    /**
-     * @internal
-     */
-    clone: z
-      .record(cloneSchema)
-      .describe(
-        'Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).'
-      ),
-    /**
-     * @internal
-     */
-    provision: z
-      .record(cloneSchema)
-      .describe(
-        '⚠ Deprecated in favor of clone. Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).'
-      ),
-    /**
-     * @internal
-     */
-    deploy: z.record(deploySchema).describe('Deploy a contract.'),
-    /**
-     * @internal
-     */
-    contract: z.record(deploySchema).describe('⚠ Deprecated in favor of deploy. Deploy a contract.'),
-    /**
-     * @internal
-     */
-    invoke: z.record(invokeSchema).describe('Call a function.'),
-    /**
-     * @internal
-     */
-    router: z
-      .record(routerSchema)
-      .describe('Generate a contract that proxies calls to multiple contracts using the synthetix router codegen.'),
-    /**
-     * @internal
-     */
-    diamond: z
-      .record(diamondSchema)
-      .describe(
-        'Generate a upgradable contract that proxies calls to multiple contracts using a ERC2535 Diamond standard.'
-      ),
-    /**
-     * @internal
-     */
-    var: z.record(varSchema).describe('Apply a setting or intermediate value.'),
   })
-  .deepPartial();
+  .merge(cannonfileActionsSchema.deepPartial());
