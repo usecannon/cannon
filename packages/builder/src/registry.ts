@@ -1,4 +1,3 @@
-
 import { blueBright, bold, yellow } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
@@ -12,8 +11,6 @@ import { CannonSigner } from './types';
 import { getBuilderLogger } from './logger';
 
 const debug = Debug('cannon:builder:registry');
-
-
 
 export abstract class CannonRegistry {
   abstract publish(packagesNames: string[], chainId: number, url: string, metaUrl: string): Promise<string[]>;

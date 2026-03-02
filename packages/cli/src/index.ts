@@ -38,7 +38,7 @@ import { PackageSpecification } from './types';
 
 import { doBuild } from './util/build';
 import { setDebugLevel } from './util/debug-level';
-import { log, error, logSpinner, warnSpinner, errorSpinner, logSpinnerEnd, spinner } from './util/console';
+import { log, error, logSpinner, warnSpinner, logSpinnerEnd, spinner } from './util/console';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { applyCommandsConfig } from './util/commands-config';
 import {
@@ -53,7 +53,6 @@ import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
 import { ANVIL_PORT_DEFAULT_VALUE } from './constants';
 import { deprecatedWarn } from './util/deprecated-warn';
-
 
 export * from './types';
 export * from './constants';
