@@ -1,4 +1,4 @@
-import { clean, cleanOrphanedIpfs, CleanIpfsStats } from './clean';
+import { clean, cleanOrphanedIpfs } from './clean';
 import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import prompts from 'prompts';
@@ -116,7 +116,7 @@ describe('cleanOrphanedIpfs function', () => {
     });
 
     const result = await cleanOrphanedIpfs(false);
-    
+
     expect(result.success).toBe(true);
     expect(result.stats.orphanedFiles).toBe(0);
   });
@@ -157,7 +157,7 @@ describe('cleanOrphanedIpfs function', () => {
     jest.spyOn(fs, 'unlink').mockImplementation(() => Promise.resolve());
 
     const result = await cleanOrphanedIpfs(false);
-    
+
     expect(result.success).toBe(true);
     expect(result.stats.totalFiles).toBe(2);
     expect(result.stats.orphanedFiles).toBe(1);
@@ -195,7 +195,7 @@ describe('cleanOrphanedIpfs function', () => {
     const unlinkSpy = jest.spyOn(fs, 'unlink').mockImplementation(() => Promise.resolve());
 
     const result = await cleanOrphanedIpfs(true);
-    
+
     expect(result.success).toBe(false);
     expect(unlinkSpy).not.toHaveBeenCalled();
   });
@@ -210,6 +210,7 @@ describe('cleanOrphanedIpfs function', () => {
     // - ipfs://QmOrphan is not referenced by anything
     // All of QmRoot, QmNested, QmDeep should be kept; QmOrphan should be deleted
 
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const crypto = require('crypto');
     const hashOf = (cid: string) => {
       const md5 = crypto.createHash('md5').update(cid.toLowerCase()).digest('hex');
@@ -227,12 +228,7 @@ describe('cleanOrphanedIpfs function', () => {
         return Promise.resolve(['package_1.0.0_1-main.txt']);
       }
       if (dir.includes('ipfs_cache')) {
-        return Promise.resolve([
-          `${rootHash}.json`,
-          `${nestedHash}.json`,
-          `${deepHash}.json`,
-          `${orphanHash}.json`,
-        ]);
+        return Promise.resolve([`${rootHash}.json`, `${nestedHash}.json`, `${deepHash}.json`, `${orphanHash}.json`]);
       }
       return Promise.resolve([]);
     });
@@ -245,14 +241,18 @@ describe('cleanOrphanedIpfs function', () => {
       }
       // Cache files with nested IPFS references
       if (pathStr.includes(rootHash)) {
-        return Promise.resolve(JSON.stringify({
-          state: { "deploy.Contract": { url: "ipfs://QmNested" } }
-        })) as any;
+        return Promise.resolve(
+          JSON.stringify({
+            state: { 'deploy.Contract': { url: 'ipfs://QmNested' } },
+          })
+        ) as any;
       }
       if (pathStr.includes(nestedHash)) {
-        return Promise.resolve(JSON.stringify({
-          state: { "deploy.Sub": { metaUrl: "ipfs://QmDeep" } }
-        })) as any;
+        return Promise.resolve(
+          JSON.stringify({
+            state: { 'deploy.Sub': { metaUrl: 'ipfs://QmDeep' } },
+          })
+        ) as any;
       }
       if (pathStr.includes(deepHash)) {
         return Promise.resolve(JSON.stringify({ state: {} })) as any;
@@ -266,7 +266,7 @@ describe('cleanOrphanedIpfs function', () => {
     jest.spyOn(fs, 'unlink').mockImplementation(() => Promise.resolve());
 
     const result = await cleanOrphanedIpfs(false);
-    
+
     expect(result.success).toBe(true);
     expect(result.stats.totalFiles).toBe(4);
     // QmRoot (direct), QmNested (second-order), QmDeep (third-order) = 3 referenced

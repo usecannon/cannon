@@ -915,15 +915,18 @@ applyCommandsConfig(program.command('setup'), commandsConfig.setup).action(async
   }
 });
 
-applyCommandsConfig(program.command('clean'), commandsConfig.clean).action(async function (options: { confirm?: boolean; ipfs?: boolean }) {
+applyCommandsConfig(program.command('clean'), commandsConfig.clean).action(async function (options: {
+  confirm?: boolean;
+  ipfs?: boolean;
+}) {
   try {
     logSpinnerEnd();
     const { clean, cleanOrphanedIpfs } = await import('./commands/clean');
-    
+
     // With --no-confirm flag, Commander sets confirm to false
     // Without the flag, confirm is undefined (default to true for confirmation)
     const shouldConfirm = options.confirm !== false;
-    
+
     if (options.ipfs) {
       const { success } = await cleanOrphanedIpfs(shouldConfirm);
       if (success) log('Complete!');

@@ -6,7 +6,7 @@ import prompts from 'prompts';
 
 import { log } from '../util/console';
 import { resolveCliSettings } from '../settings';
-import { IPFSLoader } from '@usecannon/builder';
+
 import { CliLoader } from '../loader';
 
 const debug = Debug('cannon:cli:clean');
@@ -92,7 +92,6 @@ async function getReferencedIpfsUrls(tagsDir: string): Promise<Set<string>> {
 
   return referencedUrls;
 }
-
 
 /**
  * Extract all IPFS URLs from a string (e.g., JSON content of a cached IPFS file).
