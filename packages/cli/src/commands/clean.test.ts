@@ -1,4 +1,4 @@
-import { clean, cleanSuperfluousIpfs, CleanIpfsStats } from './clean';
+import { clean, cleanOrphanedIpfs, CleanIpfsStats } from './clean';
 import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import prompts from 'prompts';
@@ -62,7 +62,7 @@ describe('clean function', () => {
   });
 });
 
-describe('cleanSuperfluousIpfs function', () => {
+describe('cleanOrphanedIpfs function', () => {
   let consoleLogSpy: jest.SpyInstance;
 
   beforeEach(() => {
@@ -74,7 +74,7 @@ describe('cleanSuperfluousIpfs function', () => {
     jest.resetAllMocks();
   });
 
-  it('should return success with no deletions when no superfluous files exist', async () => {
+  it('should return success with no deletions when no orphaned files exist', async () => {
     // Mock tags directory with one tag
     (existsSync as jest.Mock).mockImplementation((path: string) => {
       if (path.includes('tags')) return true;
@@ -115,18 +115,13 @@ describe('cleanSuperfluousIpfs function', () => {
       return Promise.resolve('') as any;
     });
 
-    // Mock cache file stat
-    jest.spyOn(fs, 'stat').mockImplementation(() => 
-      Promise.resolve({ size: 1000 } as any)
-    );
-
-    const result = await cleanSuperfluousIpfs(false);
+    const result = await cleanOrphanedIpfs(false);
     
     expect(result.success).toBe(true);
-    expect(result.stats.superfluousFiles).toBe(0);
+    expect(result.stats.orphanedFiles).toBe(0);
   });
 
-  it('should identify and delete superfluous IPFS files', async () => {
+  it('should identify and delete orphaned IPFS files', async () => {
     (existsSync as jest.Mock).mockReturnValue(true);
 
     // @ts-ignore
@@ -136,7 +131,7 @@ describe('cleanSuperfluousIpfs function', () => {
       }
       if (dir.includes('ipfs_cache')) {
         // ipfs://QmXyz -> 58cd78e4d20301f9456940b3f1a735b5-qmxyz.json (referenced)
-        // ipfs://QmAbc -> d7195b608c408f59397fc013eba8fef4-qmabc.json (superfluous)
+        // ipfs://QmAbc -> d7195b608c408f59397fc013eba8fef4-qmabc.json (orphaned)
         return Promise.resolve([
           '58cd78e4d20301f9456940b3f1a735b5-qmxyz.json',
           'd7195b608c408f59397fc013eba8fef4-qmabc.json',
@@ -158,21 +153,15 @@ describe('cleanSuperfluousIpfs function', () => {
       return Promise.resolve('') as any;
     });
 
-    // Mock cache file stat
-    jest.spyOn(fs, 'stat').mockImplementation(() => 
-      Promise.resolve({ size: 1000 } as any)
-    );
-
     // Mock unlink
     jest.spyOn(fs, 'unlink').mockImplementation(() => Promise.resolve());
 
-    const result = await cleanSuperfluousIpfs(false);
+    const result = await cleanOrphanedIpfs(false);
     
     expect(result.success).toBe(true);
     expect(result.stats.totalFiles).toBe(2);
-    expect(result.stats.superfluousFiles).toBe(1);
+    expect(result.stats.orphanedFiles).toBe(1);
     expect(result.stats.deletedFiles).toBe(1);
-    expect(result.stats.freedBytes).toBe(1000);
   });
 
   it('should not delete files when user cancels confirmation', async () => {
@@ -185,7 +174,7 @@ describe('cleanSuperfluousIpfs function', () => {
         return Promise.resolve(['package_1.0.0_1-main.txt']);
       }
       if (dir.includes('ipfs_cache')) {
-        // Only superfluous file: ipfs://QmAbc
+        // Only orphaned file: ipfs://QmAbc
         return Promise.resolve(['d7195b608c408f59397fc013eba8fef4-qmabc.json']);
       }
       return Promise.resolve([]);
@@ -203,18 +192,13 @@ describe('cleanSuperfluousIpfs function', () => {
       return Promise.resolve('') as any;
     });
 
-    jest.spyOn(fs, 'stat').mockImplementation(() => 
-      Promise.resolve({ size: 1000 } as any)
-    );
-
     const unlinkSpy = jest.spyOn(fs, 'unlink').mockImplementation(() => Promise.resolve());
 
-    const result = await cleanSuperfluousIpfs(true);
+    const result = await cleanOrphanedIpfs(true);
     
     expect(result.success).toBe(false);
     expect(unlinkSpy).not.toHaveBeenCalled();
   });
-});
 
   it('should preserve second-order IPFS dependencies', async () => {
     (existsSync as jest.Mock).mockReturnValue(true);
@@ -279,20 +263,16 @@ describe('cleanSuperfluousIpfs function', () => {
       return Promise.resolve('') as any;
     });
 
-    jest.spyOn(fs, 'stat').mockImplementation(() => 
-      Promise.resolve({ size: 500 } as any)
-    );
-
     jest.spyOn(fs, 'unlink').mockImplementation(() => Promise.resolve());
 
-    const result = await cleanSuperfluousIpfs(false);
+    const result = await cleanOrphanedIpfs(false);
     
     expect(result.success).toBe(true);
     expect(result.stats.totalFiles).toBe(4);
     // QmRoot (direct), QmNested (second-order), QmDeep (third-order) = 3 referenced
     expect(result.stats.referencedFiles).toBe(3);
-    // Only QmOrphan should be superfluous
-    expect(result.stats.superfluousFiles).toBe(1);
+    // Only QmOrphan should be orphaned
+    expect(result.stats.orphanedFiles).toBe(1);
     expect(result.stats.deletedFiles).toBe(1);
   });
 });

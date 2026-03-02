@@ -796,8 +796,8 @@ export const commandsConfig: CommandsConfig = {
         description: 'Do not ask for confirmation before deleting',
       },
       {
-        flags: '--ipfs-superfluous',
-        description: 'Only delete IPFS packages not referenced by any tag in the tags folder',
+        flags: '--ipfs',
+        description: 'Only delete orphaned IPFS packages not referenced by any tag',
       },
     ],
   },

@@ -1,13 +1,13 @@
 import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
-import crypto from 'crypto';
 import Debug from 'debug';
 import prompts from 'prompts';
 
 import { log } from '../util/console';
 import { resolveCliSettings } from '../settings';
 import { IPFSLoader } from '@usecannon/builder';
+import { CliLoader } from '../loader';
 
 const debug = Debug('cannon:cli:clean');
 
@@ -65,16 +65,6 @@ export async function clean(confirm = true) {
 }
 
 /**
- * Get the cache file path for an IPFS URL
- * Matches the logic in CliLoader.getCacheHash
- */
-function getCacheHash(url: string): string {
-  const qmhash = url.replace(IPFSLoader.PREFIX, '');
-  const md5 = crypto.createHash('md5').update(qmhash).digest('hex');
-  return `${md5}-${qmhash.toLowerCase()}`;
-}
-
-/**
  * Read all tag files and extract referenced IPFS URLs
  */
 async function getReferencedIpfsUrls(tagsDir: string): Promise<Set<string>> {
@@ -129,7 +119,7 @@ async function resolveIpfsDependencies(rootUrls: Set<string>, ipfsCacheDir: stri
 
   while (queue.length > 0) {
     const url = queue.pop()!;
-    const cacheHash = getCacheHash(url);
+    const cacheHash = CliLoader.getCacheHash(url);
     const cacheFile = path.join(ipfsCacheDir, `${cacheHash}.json`);
 
     try {
@@ -167,16 +157,15 @@ async function getIpfsCacheFiles(ipfsCacheDir: string): Promise<string[]> {
 export interface CleanIpfsStats {
   totalFiles: number;
   referencedFiles: number;
-  superfluousFiles: number;
+  orphanedFiles: number;
   deletedFiles: number;
   failedFiles: number;
-  freedBytes: number;
 }
 
 /**
- * Clean superfluous IPFS packages (packages not referenced by any tag)
+ * Clean orphaned IPFS packages (packages not referenced by any tag)
  */
-export async function cleanSuperfluousIpfs(confirm = true): Promise<{ success: boolean; stats: CleanIpfsStats }> {
+export async function cleanOrphanedIpfs(confirm = true): Promise<{ success: boolean; stats: CleanIpfsStats }> {
   const settings = resolveCliSettings();
 
   const tagsDir = path.join(settings.cannonDirectory, 'tags');
@@ -185,10 +174,9 @@ export async function cleanSuperfluousIpfs(confirm = true): Promise<{ success: b
   const stats: CleanIpfsStats = {
     totalFiles: 0,
     referencedFiles: 0,
-    superfluousFiles: 0,
+    orphanedFiles: 0,
     deletedFiles: 0,
     failedFiles: 0,
-    freedBytes: 0,
   };
 
   // Get all directly referenced IPFS URLs from tags
@@ -207,11 +195,11 @@ export async function cleanSuperfluousIpfs(confirm = true): Promise<{ success: b
   // Build a set of referenced cache hashes for quick lookup
   const referencedHashes = new Set<string>();
   for (const url of referencedUrls) {
-    referencedHashes.add(getCacheHash(url));
+    referencedHashes.add(CliLoader.getCacheHash(url));
   }
 
-  // Find superfluous files (not referenced by any tag)
-  const superfluousFiles: { file: string; size: number }[] = [];
+  // Find orphaned files (not referenced by any tag)
+  const orphanedFiles: string[] = [];
 
   for (const file of cacheFiles) {
     // Extract the hash part from the filename (format: {md5}-{cid}.json)
@@ -221,35 +209,29 @@ export async function cleanSuperfluousIpfs(confirm = true): Promise<{ success: b
       stats.referencedFiles++;
       debug(`File ${file} is referenced, keeping`);
     } else {
-      const filePath = path.join(ipfsCacheDir, file);
-      const fileStat = await fs.stat(filePath);
-      superfluousFiles.push({ file, size: fileStat.size });
-      stats.superfluousFiles++;
-      debug(`File ${file} is superfluous, marking for deletion`);
+      orphanedFiles.push(file);
+      stats.orphanedFiles++;
+      debug(`File ${file} is orphaned, marking for deletion`);
     }
   }
 
-  if (stats.superfluousFiles === 0) {
-    log('No superfluous IPFS packages found.');
+  if (stats.orphanedFiles === 0) {
+    log('No orphaned IPFS packages found.');
     return { success: true, stats };
   }
 
   // Show what will be deleted
-  log(`Found ${stats.superfluousFiles} superfluous IPFS package(s) (out of ${stats.totalFiles} total):`);
-  for (const { file, size } of superfluousFiles) {
-    log(`  - ${file} (${formatBytes(size)})`);
+  log(`Found ${stats.orphanedFiles} orphaned IPFS package(s) (out of ${stats.totalFiles} total):`);
+  for (const file of orphanedFiles) {
+    log(`  - ${file}`);
   }
-  log();
-
-  const totalSize = superfluousFiles.reduce((sum, f) => sum + f.size, 0);
-  log(`Total space to free: ${formatBytes(totalSize)}`);
   log();
 
   if (confirm) {
     const confirmation = await prompts({
       type: 'confirm',
       name: 'value',
-      message: 'Delete these superfluous IPFS packages?',
+      message: 'Delete these orphaned IPFS packages?',
       initial: false,
     });
 
@@ -259,13 +241,12 @@ export async function cleanSuperfluousIpfs(confirm = true): Promise<{ success: b
     }
   }
 
-  // Delete superfluous files
-  for (const { file, size } of superfluousFiles) {
+  // Delete orphaned files
+  for (const file of orphanedFiles) {
     const filePath = path.join(ipfsCacheDir, file);
     try {
       await fs.unlink(filePath);
       stats.deletedFiles++;
-      stats.freedBytes += size;
       debug(`Deleted ${file}`);
     } catch (error: unknown) {
       stats.failedFiles++;
@@ -276,21 +257,10 @@ export async function cleanSuperfluousIpfs(confirm = true): Promise<{ success: b
   }
 
   log();
-  log(`Deleted ${stats.deletedFiles} superfluous IPFS package(s), freed ${formatBytes(stats.freedBytes)}.`);
+  log(`Deleted ${stats.deletedFiles} orphaned IPFS package(s).`);
   if (stats.failedFiles > 0) {
     log(`Failed to delete ${stats.failedFiles} file(s).`);
   }
 
   return { success: true, stats };
-}
-
-/**
- * Format bytes to human-readable string
- */
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 }
