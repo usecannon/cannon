@@ -6,10 +6,10 @@ import _ from 'lodash';
 import EventEmitter from 'promise-events';
 import * as viem from 'viem';
 import CannonRegistryAbi from './abis/CannonRegistry';
+import { getIpfsUrl } from './ipfs';
 import { prepareMulticall, TxData } from './multicall';
 import { PackageReference } from './package-reference';
 import { CannonSigner } from './types';
-import { getIpfsUrl } from './ipfs';
 
 const debug = Debug('cannon:builder:registry');
 
@@ -529,7 +529,10 @@ export class OnChainRegistry extends CannonRegistry {
       // TODO: I dont understand why viem does not recognize the return type of this function (so I have to use any)
     })) as any;
 
-    return { url: onChainDeployInfo.deployUrl, mutability: onChainDeployInfo.mutability as 'version' | 'tag' | '' };
+    return {
+      url: onChainDeployInfo.deployUrl,
+      mutability: viem.hexToString(onChainDeployInfo.mutability, { size: 16 }) as 'version' | 'tag' | '',
+    };
   }
 
   async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
