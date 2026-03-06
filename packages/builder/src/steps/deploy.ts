@@ -121,7 +121,7 @@ function generateOutputs(
         deployedOn: currentLabel!,
         highlight: config.highlight,
         gasUsed: Number(deployTxn?.gasUsed) || 0,
-        gasCost: deployTxn?.effectiveGasPrice.toString() || '0',
+        gasCost: deployTxn?.effectiveGasPrice?.toString() || '0',
       },
     },
   };
@@ -428,19 +428,30 @@ const deploySpec = {
 
     const artifactData = await runtime.getArtifact!(config.artifact);
 
-    const txn = await runtime.provider.getTransactionReceipt({ hash: existingKeys[0] as viem.Hash });
+    const txn = await runtime.provider.getTransaction({ hash: existingKeys[0] as viem.Hash });
+    const receipt = await runtime.provider.getTransactionReceipt({ hash: existingKeys[0] as viem.Hash });
 
-    // When a CREATE2 contract is deployed, it doesnt output the contractAddress property.
-    // However the txn will emit events from the deployed contract address which can be found in the txn logs
-    const contractAddress = config.create2 ? txn.logs[0].address : txn.contractAddress;
-
-    if (!viem.isAddress(contractAddress as string)) {
-      throw new Error('imported txn does not appear to deploy a contract');
+    // We need to compute from the import data
+    let contractAddress;
+    // In the case that the contract address is given in the transaction receipt: It was a create (1) transaction
+    if (receipt.contractAddress) {
+      contractAddress = receipt.contractAddress;
+      // in the case that the contract address is *NOT* given, its CREATE2 through arachnid (or, not a contract creation transaction at all).
+    } else if (txn.to && txn.input && txn.input.length > 66) {
+      // Note: the `from` address is actually the `to` address here because this function wants the address of the contract executing the deployment of the contract
+      contractAddress = viem.getContractAddress({
+        opcode: 'CREATE2',
+        from: txn.to,
+        salt: viem.sliceHex(txn.input, 0, 32),
+        bytecode: viem.sliceHex(txn.input, 32),
+      });
+    } else {
+      throw new Error('The transaction hash you provided does not appear to deploy a contract');
     }
 
     const block = await runtime.provider.getBlock({ blockNumber: txn?.blockNumber });
 
-    return generateOutputs(config, ctx, artifactData, txn, block, contractAddress!, packageState.currentLabel);
+    return generateOutputs(config, ctx, artifactData, receipt, block, contractAddress!, packageState.currentLabel);
   },
 } satisfies CannonAction<Config>;
 

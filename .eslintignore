@@ -10,3 +10,4 @@ packages/hardhat-cannon/dist
 packages/website/out
 typechain-types
 typechain
+artifacts
