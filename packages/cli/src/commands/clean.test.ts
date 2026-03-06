@@ -213,7 +213,7 @@ describe('cleanOrphanedIpfs function', () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const crypto = require('crypto');
     const hashOf = (cid: string) => {
-      const md5 = crypto.createHash('md5').update(cid.toLowerCase()).digest('hex');
+      const md5 = crypto.createHash('md5').update(cid).digest('hex');
       return `${md5}-${cid.toLowerCase()}`;
     };
 
