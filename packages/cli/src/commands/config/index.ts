@@ -795,6 +795,10 @@ export const commandsConfig: CommandsConfig = {
         flags: '--no-confirm',
         description: 'Do not ask for confirmation before deleting',
       },
+      {
+        flags: '--ipfs',
+        description: 'Only delete orphaned IPFS packages not referenced by any tag',
+      },
     ],
   },
   plugin: {
