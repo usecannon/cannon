@@ -10,7 +10,7 @@ import { template } from './utils/template';
 
 import { PackageReference } from './package-reference';
 import { ZodIssue } from 'zod';
-import { AccessRecorderEngine } from '.';
+import { AccessRecorderEngine } from './access-recorder';
 
 const debug = Debug('cannon:builder:definition');
 const debugVerbose = Debug('cannon:verbose:builder:definition');
