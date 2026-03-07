@@ -48,6 +48,7 @@ describe('steps/deploy.ts', () => {
 
     jest.mocked((fakeRuntime.provider as any).sendTransaction).mockResolvedValue('0x1234');
     jest.mocked(fakeRuntime.provider.waitForTransactionReceipt).mockResolvedValue(fakeRx);
+    jest.mocked(fakeRuntime.provider.getBlock).mockResolvedValue({ timestamp: BigInt(123444) } as any);
   });
 
   describe('validate', () => {
@@ -284,7 +285,7 @@ describe('steps/deploy.ts', () => {
               contractName: undefined,
               deployTxnHash: fakeRx.transactionHash,
               deployTxnBlockNumber: '0',
-              deployTimestamp: '',
+              deployTimestamp: '123444',
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
               sourceName: undefined,
@@ -327,7 +328,7 @@ describe('steps/deploy.ts', () => {
               contractName: undefined,
               deployTxnHash: fakeRx.transactionHash,
               deployTxnBlockNumber: '0',
-              deployTimestamp: '',
+              deployTimestamp: '123444',
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
               sourceName: undefined,
@@ -375,7 +376,7 @@ describe('steps/deploy.ts', () => {
               deployTxnHash: fakeRx.transactionHash,
               deployedOn: 'contract.Woot',
               deployTxnBlockNumber: '0',
-              deployTimestamp: '',
+              deployTimestamp: '123444',
               linkedLibraries: {},
               sourceName: undefined,
               highlight: undefined,
@@ -413,7 +414,7 @@ describe('steps/deploy.ts', () => {
               deployTxnHash: fakeRx.transactionHash,
               deployedOn: 'contract.Woot',
               deployTxnBlockNumber: '0',
-              deployTimestamp: '',
+              deployTimestamp: '123444',
               linkedLibraries: {},
               sourceName: undefined,
               highlight: undefined,

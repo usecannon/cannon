@@ -1,8 +1,8 @@
 import * as viem from 'viem';
 import { mainnet, optimism } from 'viem/chains';
+import promiseRetry from 'promise-retry';
 import { getArtifacts } from './builder';
 import { CANNON_CHAIN_ID, DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_CONFIG, getCannonRepoRegistryUrl } from './constants';
-import { ChainDefinition } from './definition';
 import { IPFSLoader } from './loader';
 import { PackageReference } from './package-reference';
 import { OnChainRegistry, FallbackRegistry, InMemoryRegistry } from './registry';
@@ -49,6 +49,7 @@ export async function getCannonContract(args: {
     throw new Error(`cannon package not found: ${args.package} (${args.chainId})`);
   }
 
+  const { ChainDefinition } = await import('./definition');
   const artifacts = getArtifacts(new ChainDefinition(deployInfo.def), deployInfo.state);
 
   const contract = getContractFromPath(artifacts, args.contractName);
@@ -66,4 +67,13 @@ export async function loadPrecompiles(provider: viem.TestClient) {
   const precompiles = await import('./precompiles');
 
   for (const precompileCall of precompiles.default) await provider.setCode(precompileCall);
+}
+// due to flaky RPC issues (ex. load balancer where the state propagates unevenly), it is sometimes the case that the block
+// due to flaky RPC issues (ex. load balancer where hte state propogates unevenly), it is sometimes the case that the block
+// information comes in *after* the receipt is available. This function is intended to provide an auto-retry capability
+// for any errors that could be encountered on this specific problematic call
+export async function getBlockRetried(provider: viem.PublicClient, blockHash: viem.Hash) {
+  return await promiseRetry({ retries: 5, minTimeout: 50 }, (retry) => {
+    return provider.getBlock({ blockHash }).catch(retry);
+  });
 }

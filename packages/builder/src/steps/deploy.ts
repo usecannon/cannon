@@ -10,6 +10,7 @@ import { ChainArtifacts, ChainBuilderContext, ContractArtifact } from '../types'
 import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 import { template } from '../utils/template';
 import { CannonAction } from '../actions';
+import { getBlockRetried } from '../helpers';
 
 const debug = Debug('cannon:builder:deploy');
 
@@ -408,8 +409,7 @@ const deploySpec = {
       }
     }
 
-    const block = await runtime.provider.getBlock({ blockNumber: receipt?.blockNumber });
-
+    const block = receipt ? await getBlockRetried(runtime.provider, receipt.blockHash) : null;
     return generateOutputs(config, ctx, artifactData, receipt, block, deployAddress, packageState.currentLabel);
   },
 

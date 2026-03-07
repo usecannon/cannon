@@ -1,4 +1,5 @@
-import { getDefaultStorage, getCannonContract } from './helpers';
+import * as viem from 'viem';
+import { getDefaultStorage, getCannonContract, getBlockRetried } from './helpers';
 import { IPFSLoader, InMemoryLoader } from './loader';
 import { InMemoryRegistry, FallbackRegistry } from './registry';
 import { CannonStorage } from './runtime';
@@ -10,6 +11,32 @@ describe('helpers.test.ts', () => {
 
       expect(storage.loaders.ipfs).toBeInstanceOf(IPFSLoader);
       expect(storage.registry).toBeInstanceOf(FallbackRegistry);
+    });
+
+    describe('getBlockRetried', () => {
+      it('should retry twice and succeed on the third attempt', async () => {
+        // 1. Setup the mock
+        const mockBlock = { number: 100n, hash: '0x123' };
+        const mockHash = '0x123';
+
+        const mockGetBlock = jest
+          .fn()
+          .mockRejectedValueOnce(new Error('RPC Error 1')) // Attempt 1: Fail
+          .mockRejectedValueOnce(new Error('RPC Error 2')) // Attempt 2: Fail
+          .mockResolvedValueOnce(mockBlock); // Attempt 3: Success
+
+        const mockProvider = {
+          getBlock: mockGetBlock,
+        } as unknown as viem.PublicClient;
+
+        // 2. Execute
+        const result = await getBlockRetried(mockProvider, mockHash as any);
+
+        // 3. Assert
+        expect(result).toEqual(mockBlock);
+        expect(mockGetBlock).toHaveBeenCalledTimes(3);
+        expect(mockGetBlock).toHaveBeenCalledWith({ blockHash: mockHash });
+      });
     });
   });
 
