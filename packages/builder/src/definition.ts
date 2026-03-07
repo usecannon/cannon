@@ -443,10 +443,10 @@ export class ChainDefinition {
             outputClashes.push({ output, actions: [this.dependencyFor.get(output)!, fullActionName] });
           }
         }
-
-        this.computePossibleNames();
       }
     }
+
+    this.computePossibleNames();
 
     return outputClashes;
   }
