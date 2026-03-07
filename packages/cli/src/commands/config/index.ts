@@ -194,6 +194,11 @@ export const commandsConfig: CommandsConfig = {
     ],
     options: [
       {
+        flags: '-s --service <etherscan|sourcify|all>',
+        description: 'Which service to verify on? Either etherscan or sourcify is supported. Specify `all` to verify both.',
+        defaultValue: 'etherscan',
+      },
+      {
         flags: '-a --api-key <apiKey>',
         description: 'Etherscan API key',
       },
@@ -789,6 +794,10 @@ export const commandsConfig: CommandsConfig = {
       {
         flags: '--no-confirm',
         description: 'Do not ask for confirmation before deleting',
+      },
+      {
+        flags: '--ipfs',
+        description: 'Only delete orphaned IPFS packages not referenced by any tag',
       },
     ],
   },

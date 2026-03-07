@@ -5,6 +5,7 @@ import { ContractArtifact } from '../types';
 import action from './deploy';
 import { fakeCtx, fakeRuntime, makeFakeSigner } from './utils.test.helper';
 import { PackageReference } from '../package-reference';
+import { AccessRecorderEngine } from '..';
 
 const DEFAULT_ARACHNID_ADDRESS = '0x4e59b44847b379578588920cA78FbF26c0B4956C';
 
@@ -160,7 +161,7 @@ describe('steps/deploy.ts', () => {
               args: ['<%= contracts.h %>', '<%= contracts.i %>'],
               salt: '<%= contracts.j %>',
             },
-            []
+            new AccessRecorderEngine([])
           )
           .accesses.sort()
       ).toEqual([
@@ -423,6 +424,101 @@ describe('steps/deploy.ts', () => {
           },
         });
       });
+    });
+  });
+
+  describe('importExisting', () => {
+    it('throws if more than one existing key supplied', async () => {
+      await expect(() =>
+        action.importExisting(fakeRuntime, fakeCtx, {} as any, { currentLabel: 'foo' } as any, ['one', 'two'])
+      ).rejects.toThrow('can only be deployed on one transaction');
+    });
+
+    it('works for normal contract creation', async () => {
+      const rx = fixtureTransactionReceipt();
+      const tx = {
+        hash: rx.transactionHash,
+        blockNumber: 1234,
+      };
+
+      jest.mocked(fakeRuntime.provider.getTransaction).mockResolvedValue(tx as any);
+      jest.mocked(fakeRuntime.provider.getTransactionReceipt).mockResolvedValue(rx);
+      jest.mocked(fakeRuntime.provider.getBlock).mockResolvedValue({ timestamp: 1234123412 } as any);
+
+      const result = await action.importExisting(
+        fakeRuntime,
+        fakeCtx,
+        { artifact: 'hello' } as any,
+        { currentLabel: 'contract.Woot' } as any,
+        [rx.transactionHash]
+      );
+
+      expect(result).toMatchObject({
+        contracts: {
+          Woot: {
+            address: rx.contractAddress,
+            deployTxnHash: rx.transactionHash,
+          },
+        },
+      });
+    });
+
+    it('works for create2 contract creation', async () => {
+      const rx = fixtureTransactionReceipt({ contractAddress: null });
+      const tx = {
+        hash: rx.transactionHash,
+        blockNumber: 1234,
+        to: '0x1234567890123456789012345678901234567890',
+        input: viem.concat([viem.zeroHash, '0x1234']),
+      };
+
+      jest.mocked(fakeRuntime.provider.getTransaction).mockResolvedValue(tx as any);
+      jest.mocked(fakeRuntime.provider.getTransactionReceipt).mockResolvedValue(rx);
+      jest.mocked(fakeRuntime.provider.getBlock).mockResolvedValue({ timestamp: 1234123412 } as any);
+
+      // calculate expected address
+      const expectedAddress = viem.getContractAddress({
+        opcode: 'CREATE2',
+        from: tx.to as any,
+        salt: viem.zeroHash,
+        bytecode: '0x1234',
+      });
+
+      const result = await action.importExisting(
+        fakeRuntime,
+        fakeCtx,
+        { artifact: 'hello' } as any,
+        { currentLabel: 'contract.Woot' } as any,
+        [rx.transactionHash]
+      );
+
+      expect(result).toMatchObject({
+        contracts: {
+          Woot: {
+            address: expectedAddress,
+            deployTxnHash: rx.transactionHash,
+          },
+        },
+      });
+    });
+
+    it('throws if transaction not a contract creation', async () => {
+      const rx = fixtureTransactionReceipt({ contractAddress: null });
+      const tx = {
+        hash: rx.transactionHash,
+        blockNumber: 1234,
+        to: '0x1234567890123456789012345678901234567890',
+        input: '0x',
+      };
+
+      jest.mocked(fakeRuntime.provider.getTransaction).mockResolvedValue(tx as any);
+      jest.mocked(fakeRuntime.provider.getTransactionReceipt).mockResolvedValue(rx);
+
+      await expect(() =>
+        action.importExisting(fakeRuntime, fakeCtx, { artifact: 'hello' } as any, { currentLabel: 'contract.Woot' } as any, [
+          rx.transactionHash,
+        ])
+      ).rejects.toThrow('does not appear to deploy a contract');
     });
   });
 });

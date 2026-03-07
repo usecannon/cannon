@@ -3,7 +3,7 @@ import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
 import pkg from '../../package.json';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
+import { mergeTemplateAccesses } from '../access-recorder';
 import { build, createInitialContext, getOutputs } from '../builder';
 import { CANNON_CHAIN_ID } from '../constants';
 import { ChainDefinition } from '../definition';
@@ -77,28 +77,22 @@ const cloneSpec = {
     return config;
   },
 
-  getInputs(config, possibleFields) {
-    let accesses = computeTemplateAccesses(config.source);
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.target, possibleFields));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.sourcePreset, possibleFields));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.targetPreset, possibleFields));
+  getInputs(config, engine) {
+    let accesses = engine.computeTemplateAccesses(config.source);
+    accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.target));
+    accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.sourcePreset));
+    accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.targetPreset));
 
     if (config.var) {
-      _.forEach(config.var, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))));
+      _.forEach(config.var, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
     }
 
     if (config.options) {
-      _.forEach(
-        config.options,
-        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields)))
-      );
+      _.forEach(config.options, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
     }
 
     if (config.tags) {
-      _.forEach(
-        config.tags,
-        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields)))
-      );
+      _.forEach(config.tags, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
     }
 
     return accesses;

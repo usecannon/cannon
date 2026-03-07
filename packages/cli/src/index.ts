@@ -286,6 +286,9 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
   });
 
 applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(async function (packageRef, options) {
+  if (options.service !== 'etherscan' && options.service !== 'sourcify' && options.service !== 'all') {
+    throw new Error('--service must be one of "etherscan", "sourcify", or "all"');
+  }
   try {
     spinner?.update({ text: 'Verifying...' });
     const { verify } = await import('./commands/verify');
@@ -296,7 +299,7 @@ applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(asy
     const cliSettings = resolveCliSettings(options);
     const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
-    await verify(fullPackageRef, cliSettings, chainId);
+    await verify(fullPackageRef, cliSettings, chainId, options.service);
     logSpinnerEnd();
   } catch (err) {
     logSpinnerEnd();
@@ -912,12 +915,25 @@ applyCommandsConfig(program.command('setup'), commandsConfig.setup).action(async
   }
 });
 
-applyCommandsConfig(program.command('clean'), commandsConfig.clean).action(async function ({ noConfirm }) {
+applyCommandsConfig(program.command('clean'), commandsConfig.clean).action(async function (options: {
+  confirm?: boolean;
+  ipfs?: boolean;
+}) {
   try {
     logSpinnerEnd();
-    const { clean } = await import('./commands/clean');
-    const executed = await clean(!noConfirm);
-    if (executed) log('Complete!');
+    const { clean, cleanOrphanedIpfs } = await import('./commands/clean');
+
+    // With --no-confirm flag, Commander sets confirm to false
+    // Without the flag, confirm is undefined (default to true for confirmation)
+    const shouldConfirm = options.confirm !== false;
+
+    if (options.ipfs) {
+      const { success } = await cleanOrphanedIpfs(shouldConfirm);
+      if (success) log('Complete!');
+    } else {
+      const executed = await clean(shouldConfirm);
+      if (executed) log('Complete!');
+    }
 
     logSpinnerEnd();
   } catch (err) {

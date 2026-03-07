@@ -1,10 +1,10 @@
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import {
+  AccessRecorderEngine,
   ChainArtifacts,
   ChainBuilderContext,
   ChainBuilderRuntimeInfo,
-  computeTemplateAccesses,
   mergeTemplateAccesses,
   PackageState,
   registerAction,
@@ -137,12 +137,12 @@ const runAction = {
     return config;
   },
 
-  getInputs(config: Config) {
-    let accesses = computeTemplateAccesses(config.exec);
+  getInputs(config: Config, engine: AccessRecorderEngine) {
+    let accesses = engine.computeTemplateAccesses(config.exec);
 
-    _.forEach(config.modified, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
-    _.forEach(config.args, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
-    _.forEach(config.env, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
+    _.forEach(config.modified, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
+    _.forEach(config.args, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
+    _.forEach(config.env, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
 
     return accesses;
   },
