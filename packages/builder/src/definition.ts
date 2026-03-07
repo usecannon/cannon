@@ -452,7 +452,7 @@ export class ChainDefinition {
   }
 
   computePossibleNames() {
-    if (this.dependencyFor.size == 0) {
+    if (this.allActionNames.length > 0 && this.dependencyFor.size == 0) {
       this.checkOutputClash();
     }
 
