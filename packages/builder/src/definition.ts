@@ -10,6 +10,7 @@ import { template } from './utils/template';
 
 import { PackageReference } from './package-reference';
 import { ZodIssue } from 'zod';
+import { AccessRecorderEngine } from './access-recorder';
 
 const debug = Debug('cannon:builder:definition');
 const debugVerbose = Debug('cannon:verbose:builder:definition');
@@ -72,6 +73,8 @@ export class ChainDefinition {
 
   readonly dependencyFor = new Map<string, string>();
   readonly resolvedDependencies = new Map<string, string[]>();
+
+  accessRecorderEngine: AccessRecorderEngine | null = null;
 
   readonly danglingDependencies = new Set<`${string}:${string}`>();
 
@@ -230,6 +233,10 @@ export class ChainDefinition {
    * @returns direct dependencies for the specified node
    */
   computeDependencies(node: string) {
+    if (!this.accessRecorderEngine) {
+      this.computePossibleNames();
+    }
+
     if (!_.get(this.raw, node)) {
       const stepName = node.split('.')[0];
       const possibleSteps = _.get(this.raw, stepName);
@@ -254,20 +261,7 @@ export class ChainDefinition {
     }
 
     if (ActionKinds[n].getInputs) {
-      const possibleFields: string[] = [];
-      for (const k of this.dependencyFor.keys()) {
-        const baseName = k.split('.')[0];
-        if (
-          baseName !== 'contracts' &&
-          baseName !== 'imports' &&
-          baseName !== 'settings' &&
-          baseName !== 'extras' &&
-          baseName !== 'txns'
-        ) {
-          possibleFields.push(baseName);
-        }
-      }
-      const accessComputationResults = ActionKinds[n].getInputs!(_.get(this.raw, node), possibleFields, {
+      const accessComputationResults = ActionKinds[n].getInputs!(_.get(this.raw, node), this.accessRecorderEngine!, {
         ref: null,
         currentLabel: node,
       });
@@ -452,7 +446,31 @@ export class ChainDefinition {
       }
     }
 
+    this.computePossibleNames();
+
     return outputClashes;
+  }
+
+  computePossibleNames() {
+    if (this.allActionNames.length > 0 && this.dependencyFor.size == 0) {
+      this.checkOutputClash();
+    }
+
+    const possibleNames = [];
+    for (const k of this.dependencyFor.keys()) {
+      const baseName = k.split('.')[0];
+      if (
+        baseName !== 'contracts' &&
+        baseName !== 'imports' &&
+        baseName !== 'settings' &&
+        baseName !== 'extras' &&
+        baseName !== 'txns'
+      ) {
+        possibleNames.push(baseName);
+      }
+    }
+
+    this.accessRecorderEngine = new AccessRecorderEngine(possibleNames);
   }
 
   /**

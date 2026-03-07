@@ -5,6 +5,7 @@ import action from './clone';
 import deployAction from './deploy';
 import { fakeCtx, fakeRuntime } from './utils.test.helper';
 import { PackageReference } from '../package-reference';
+import { AccessRecorderEngine } from '..';
 
 jest.mock('../loader');
 jest.mock('./deploy');
@@ -60,7 +61,7 @@ describe('steps/clone.ts', () => {
             var: { woot: '<%= settings.b %>', wah: '<%= settings.c %>' },
             options: { woot: '<%= settings.d %>', wah: '<%= settings.e %>', tags: '<%= settings.f %>' },
           },
-          []
+          new AccessRecorderEngine([])
         )
       ).toEqual({
         accesses: ['settings.a', 'settings.b', 'settings.c', 'settings.d', 'settings.e', 'settings.f'],

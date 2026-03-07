@@ -2,7 +2,7 @@ import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
 import { Events } from '../runtime';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
+import { mergeTemplateAccesses } from '../access-recorder';
 import { getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { PackageReference } from '../package-reference';
@@ -59,9 +59,9 @@ const pullSpec = {
     return config;
   },
 
-  getInputs(config, possibleFields) {
-    let accesses = computeTemplateAccesses(config.source, possibleFields);
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.preset, possibleFields));
+  getInputs(config, engine) {
+    let accesses = engine.computeTemplateAccesses(config.source);
+    accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.preset));
 
     return accesses;
   },
