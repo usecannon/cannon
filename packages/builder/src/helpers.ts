@@ -68,7 +68,7 @@ export async function loadPrecompiles(provider: viem.TestClient) {
 
   for (const precompileCall of precompiles.default) await provider.setCode(precompileCall);
 }
-
+// due to flaky RPC issues (ex. load balancer where the state propagates unevenly), it is sometimes the case that the block
 // due to flaky RPC issues (ex. load balancer where hte state propogates unevenly), it is sometimes the case that the block
 // information comes in *after* the receipt is available. This function is intended to provide an auto-retry capability
 // for any errors that could be encountered on this specific problematic call
