@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import {
-    AccessRecorderEngine,
+  AccessRecorderEngine,
   ChainArtifacts,
   ChainBuilderContext,
   ChainBuilderRuntimeInfo,

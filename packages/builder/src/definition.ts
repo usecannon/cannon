@@ -74,7 +74,7 @@ export class ChainDefinition {
   readonly dependencyFor = new Map<string, string>();
   readonly resolvedDependencies = new Map<string, string[]>();
 
-  accessRecorderEngine: AccessRecorderEngine|null = null;
+  accessRecorderEngine: AccessRecorderEngine | null = null;
 
   readonly danglingDependencies = new Set<`${string}:${string}`>();
 
@@ -233,6 +233,10 @@ export class ChainDefinition {
    * @returns direct dependencies for the specified node
    */
   computeDependencies(node: string) {
+    if (!this.accessRecorderEngine) {
+      this.computePossibleNames();
+    }
+
     if (!_.get(this.raw, node)) {
       const stepName = node.split('.')[0];
       const possibleSteps = _.get(this.raw, stepName);
@@ -448,6 +452,10 @@ export class ChainDefinition {
   }
 
   computePossibleNames() {
+    if (this.dependencyFor.size == 0) {
+      this.checkOutputClash();
+    }
+
     const possibleNames = [];
     for (const k of this.dependencyFor.keys()) {
       const baseName = k.split('.')[0];

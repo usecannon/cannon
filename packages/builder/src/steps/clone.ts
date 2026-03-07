@@ -88,17 +88,11 @@ const cloneSpec = {
     }
 
     if (config.options) {
-      _.forEach(
-        config.options,
-        (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a)))
-      );
+      _.forEach(config.options, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
     }
 
     if (config.tags) {
-      _.forEach(
-        config.tags,
-        (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a)))
-      );
+      _.forEach(config.tags, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
     }
 
     return accesses;

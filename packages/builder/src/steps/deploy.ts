@@ -204,10 +204,7 @@ const deploySpec = {
     accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.salt));
 
     if (config.abiOf) {
-      _.forEach(
-        config.abiOf,
-        (v) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(v)))
-      );
+      _.forEach(config.abiOf, (v) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(v))));
     }
 
     if (config.args) {
@@ -218,10 +215,7 @@ const deploySpec = {
     }
 
     if (config.libraries) {
-      _.forEach(
-        config.libraries,
-        (v) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(v)))
-      );
+      _.forEach(config.libraries, (v) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(v))));
     }
 
     if (config?.overrides?.gasLimit) {
