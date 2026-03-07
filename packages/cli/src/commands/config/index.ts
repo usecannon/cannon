@@ -581,6 +581,11 @@ export const commandsConfig: CommandsConfig = {
         flags: '-s --sources',
         description: 'Show contract sources',
       },
+      {
+        flags: '--match-contract <name>',
+        description: 'Regex to filter contracts by name. Only matching contracts are shown/exported.',
+        defaultValue: '',
+      },
       ...debugVerbosity,
     ],
   },
