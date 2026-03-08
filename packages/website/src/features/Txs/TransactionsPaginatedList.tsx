@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ArrowDownWideNarrow, CircleHelp } from 'lucide-react';
+import { CircleHelp } from 'lucide-react';
 import {
   createColumnHelper,
   useReactTable,
@@ -27,26 +27,37 @@ import TxFeeColumn from '@/features/Address/column/TxFeeColumn';
 import BlockColumn from '@/features/Address/column/BlockColumn';
 import AddressDataTable from '@/features/Address/AddressDataTable';
 import DownloadListButton from '@/features/Address/DownloadListButton';
+import TransactionsPagination from '@/features/Txs/TransactionsPagination';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { MAX_PAGE_SIZE } from '@/constants/pagination';
 
-type AddressListsProps = {
+type TransactionsPaginatedListProps = {
   address: string;
   chain: Chain;
   txs: OtterscanTransaction[];
   receipts: OtterscanReceipt[];
   isLastPage: boolean;
+  isFirstPage: boolean;
+  currentPageIndex: number; // 1-indexed
+  totalPages: number | null; // null if unknown
+  totalTxs: number;
 };
 
-const AddressLists: React.FC<AddressListsProps> = ({
+const TransactionsPaginatedList: React.FC<TransactionsPaginatedListProps> = ({
   address,
   chain,
   txs,
   receipts,
   isLastPage,
+  isFirstPage,
+  currentPageIndex,
+  totalPages,
+  totalTxs,
 }) => {
   const [isDate, setIsDate] = useState<boolean>(false);
   const [isGasPrice, setIsGasPrice] = useState<boolean>(false);
   const [hoverId, setHoverId] = useState<string>('');
-
+  const chainId = chain?.id ?? 0;
   const data = React.useMemo(() => {
     return mapToTransactionList(txs, receipts);
   }, [txs, receipts]);
@@ -54,7 +65,6 @@ const AddressLists: React.FC<AddressListsProps> = ({
   const columnHelper = createColumnHelper<TransactionRow>();
   const [openToolTipIndex, setOpenTooltipIndex] = useState<number | null>();
 
-  const url = isLastPage ? '' : `/txs?a=${address}&c=${chain?.id}`;
   const columns = [
     columnHelper.accessor('detail', {
       cell: (info: any) => (
@@ -70,7 +80,7 @@ const AddressLists: React.FC<AddressListsProps> = ({
       header: () => <CircleHelp className="h-4 w-4" />,
     }),
     columnHelper.accessor('hash', {
-      cell: (info: any) => <HashColumn info={info} chainId={chain?.id!} />,
+      cell: (info: any) => <HashColumn info={info} chainId={chainId!} />,
       header: 'Transaction Hash',
     }),
     columnHelper.accessor('method', {
@@ -92,7 +102,7 @@ const AddressLists: React.FC<AddressListsProps> = ({
           hoverId={hoverId}
           setHoverId={setHoverId}
           address={address}
-          chainId={chain?.id!}
+          chainId={chainId!}
         />
       ),
       header: 'From',
@@ -104,7 +114,7 @@ const AddressLists: React.FC<AddressListsProps> = ({
           hoverId={hoverId}
           setHoverId={setHoverId}
           address={address}
-          chainId={chain?.id!}
+          chainId={chainId!}
         />
       ),
       header: 'To',
@@ -139,6 +149,8 @@ const AddressLists: React.FC<AddressListsProps> = ({
     getCoreRowModel: getCoreRowModel(),
   });
 
+  const isMaxPage = currentPageIndex >= MAX_PAGE_SIZE;
+
   return (
     <>
       <Card className="rounded-sm w-full">
@@ -148,26 +160,42 @@ const AddressLists: React.FC<AddressListsProps> = ({
               <CardTitle>
                 <div className="flex sm:flex-row flex-col justify-between w-full sm:space-y-0 space-y-2">
                   <div className="flex flex-wrap items-center space-x-1">
-                    <ArrowDownWideNarrow className="h-4 w-4" />
                     <span className="text-sm">
-                      Latest {table.getRowModel().rows.length} from a total
-                      transactions
+                      A total of {totalTxs.toLocaleString()} transactions found
                     </span>
                   </div>
-                  <DownloadListButton
-                    txs={txs}
-                    receipts={receipts}
-                    chain={chain}
-                    fileName={`export-${address}.csv`}
-                  />
+                  <div className="flex items-center gap-2">
+                    <DownloadListButton
+                      txs={txs}
+                      receipts={receipts}
+                      chain={chain}
+                      fileName={`export-${address}.csv`}
+                    />
+                    <TransactionsPagination
+                      address={address}
+                      chainId={chainId}
+                      currentPageIndex={currentPageIndex}
+                      isLastPage={isLastPage}
+                      isFirstPage={isFirstPage}
+                      totalPages={totalPages}
+                    />
+                  </div>
                 </div>
+                {!isLastPage && isMaxPage && (
+                  <Alert variant="info" className="mt-2">
+                    <AlertDescription>
+                      This is the maximum number of pages currently supported
+                      by this website.
+                    </AlertDescription>
+                  </Alert>
+                )}
               </CardTitle>
             </>
           )}
         </CardHeader>
         <CardContent>
           <div className="w-full rounded-md border border-border overflow-x-auto">
-            <AddressDataTable table={table} url={url} />
+            <AddressDataTable table={table} />
           </div>
         </CardContent>
       </Card>
@@ -175,4 +203,4 @@ const AddressLists: React.FC<AddressListsProps> = ({
   );
 };
 
-export default AddressLists;
+export default TransactionsPaginatedList;

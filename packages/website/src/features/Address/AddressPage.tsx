@@ -23,13 +23,16 @@ const AddressPage = () => {
   const { getChainById } = useCannonChains();
   const chain = getChainById(Number(chainId));
   const displayAddress = Array.isArray(address) ? address[0] : address;
+
   const {
     data: transactionData,
     isLoading,
     isError,
   } = useAddressTransactions(
     parseInt(chainId as string) || 0,
-    displayAddress ?? ''
+    displayAddress ?? '',
+    '0',
+    true
   );
 
   if (isLoading) {
@@ -54,7 +57,7 @@ const AddressPage = () => {
     );
   }
 
-  const { txs, receipts, oldReceipts } = transactionData;
+  const { txs, receipts, oldReceipts, isLastPage } = transactionData;
 
   const renderContent = () => {
     if (displayAddress) {
@@ -70,6 +73,7 @@ const AddressPage = () => {
               chain={chain}
               txs={txs}
               receipts={receipts}
+              isLastPage={isLastPage}
             />
           );
       }
