@@ -71,8 +71,7 @@ export function useBlockPages(apiUrl: string, address: string) {
           totalPages: isLastPage ? newPages.length + 1 : null,
           totalTxs,
         });
-      } catch (err) {
-        console.error('Failed to fetch page boundaries:', err);
+      } catch {
         setIsError(true);
       } finally {
         setIsLoading(false);
