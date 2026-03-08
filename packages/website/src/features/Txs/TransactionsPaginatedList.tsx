@@ -38,8 +38,8 @@ type TransactionsPaginatedListProps = {
   receipts: OtterscanReceipt[];
   isLastPage: boolean;
   isFirstPage: boolean;
-  blockNumber: string;
-  pages: string[];
+  currentPageIndex: number; // 1-indexed
+  totalPages: number | null; // null if unknown
   totalTxs: number;
 };
 
@@ -50,8 +50,8 @@ const TransactionsPaginatedList: React.FC<TransactionsPaginatedListProps> = ({
   receipts,
   isLastPage,
   isFirstPage,
-  blockNumber,
-  pages,
+  currentPageIndex,
+  totalPages,
   totalTxs,
 }) => {
   const [isDate, setIsDate] = useState<boolean>(false);
@@ -149,6 +149,8 @@ const TransactionsPaginatedList: React.FC<TransactionsPaginatedListProps> = ({
     getCoreRowModel: getCoreRowModel(),
   });
 
+  const isMaxPage = currentPageIndex >= MAX_PAGE_SIZE;
+
   return (
     <>
       <Card className="rounded-sm w-full">
@@ -169,27 +171,24 @@ const TransactionsPaginatedList: React.FC<TransactionsPaginatedListProps> = ({
                       chain={chain}
                       fileName={`export-${address}.csv`}
                     />
-                    {pages.length > 0 && (
-                      <TransactionsPagination
-                        address={address}
-                        chainId={chainId}
-                        isLastPage={isLastPage}
-                        isFirstPage={isFirstPage}
-                        blockNumber={blockNumber}
-                        pages={pages}
-                      />
-                    )}
+                    <TransactionsPagination
+                      address={address}
+                      chainId={chainId}
+                      currentPageIndex={currentPageIndex}
+                      isLastPage={isLastPage}
+                      isFirstPage={isFirstPage}
+                      totalPages={totalPages}
+                    />
                   </div>
                 </div>
-                {!isLastPage &&
-                  pages.indexOf(blockNumber) + 1 === MAX_PAGE_SIZE && (
-                    <Alert variant="info" className="mt-2">
-                      <AlertDescription>
-                        This is the maximum number of pages currently supported
-                        by this website.
-                      </AlertDescription>
-                    </Alert>
-                  )}
+                {!isLastPage && isMaxPage && (
+                  <Alert variant="info" className="mt-2">
+                    <AlertDescription>
+                      This is the maximum number of pages currently supported
+                      by this website.
+                    </AlertDescription>
+                  </Alert>
+                )}
               </CardTitle>
             </>
           )}

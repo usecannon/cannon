@@ -7,28 +7,23 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-type TransactionPagenationProp = {
+type TransactionPaginationProp = {
   address: string;
   chainId: number;
+  currentPageIndex: number; // 1-indexed page number
   isFirstPage: boolean;
   isLastPage: boolean;
-  blockNumber: string;
-  pages: string[];
+  totalPages: number | null; // null means we don't know yet
 };
 
-const TransactionsPagination: React.FC<TransactionPagenationProp> = ({
+const TransactionsPagination: React.FC<TransactionPaginationProp> = ({
   address,
   chainId,
+  currentPageIndex,
   isFirstPage,
   isLastPage,
-  blockNumber,
-  pages,
+  totalPages,
 }) => {
-  const currentPageIndex =
-    pages.indexOf(blockNumber) < 0 ? 0 : pages.indexOf(blockNumber);
-  const totalPages =
-    MAX_PAGE_SIZE === pages.length ? MAX_PAGE_SIZE : pages.length + 1;
-
   const pageClass = (disabled: boolean) =>
     `items-center px-3 py-1 text-xs border border-gray-500 text-gray-200 rounded ${
       disabled ? 'pointer-events-none opacity-50' : ''
@@ -38,6 +33,9 @@ const TransactionsPagination: React.FC<TransactionPagenationProp> = ({
     page === 1
       ? `/txs?a=${address}&c=${chainId}`
       : `/txs?a=${address}&c=${chainId}&p=${page}`;
+
+  const displayTotal = totalPages ?? '?';
+  const isMaxPage = currentPageIndex >= MAX_PAGE_SIZE;
 
   return (
     <div className="flex gap-1 items-center">
@@ -51,9 +49,7 @@ const TransactionsPagination: React.FC<TransactionPagenationProp> = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <Link
-              href={getPageHref(
-                isFirstPage ? 1 : isLastPage ? totalPages - 1 : currentPageIndex
-              )}
+              href={getPageHref(currentPageIndex - 1)}
               className={pageClass(false)}
             >
               <ChevronLeft className="h-4 w-4" />
@@ -62,32 +58,26 @@ const TransactionsPagination: React.FC<TransactionPagenationProp> = ({
           <TooltipContent>Go to Previous</TooltipContent>
         </Tooltip>
       ) : (
-        <Link
-          href={getPageHref(isFirstPage ? 1 : currentPageIndex)}
-          className={pageClass(true)}
-        >
+        <Link href="#" className={pageClass(true)} onClick={(e) => e.preventDefault()}>
           <ChevronLeft className="h-4 w-4" />
         </Link>
       )}
 
       {/* Page Info */}
       <span className={pageClass(true)}>
-        Page {isLastPage ? pages.length + 1 : currentPageIndex + 1}/{totalPages}
+        Page {currentPageIndex}/{displayTotal}
       </span>
 
       {/* Next */}
-      {isLastPage || currentPageIndex + 1 === MAX_PAGE_SIZE ? (
-        <Link
-          href={getPageHref(currentPageIndex + 2)}
-          className={pageClass(true)}
-        >
+      {isLastPage || isMaxPage ? (
+        <Link href="#" className={pageClass(true)} onClick={(e) => e.preventDefault()}>
           <ChevronRight className="h-4 w-4" />
         </Link>
       ) : (
         <Tooltip>
           <TooltipTrigger asChild>
             <Link
-              href={getPageHref(currentPageIndex + 2)}
+              href={getPageHref(currentPageIndex + 1)}
               className={pageClass(false)}
             >
               <ChevronRight className="h-4 w-4" />
@@ -97,15 +87,19 @@ const TransactionsPagination: React.FC<TransactionPagenationProp> = ({
         </Tooltip>
       )}
 
-      {/* Last */}
-      <Link
-        href={getPageHref(totalPages)}
-        className={pageClass(
-          isLastPage || currentPageIndex + 1 === MAX_PAGE_SIZE
-        )}
-      >
-        Last
-      </Link>
+      {/* Last - only show if we know the total */}
+      {totalPages !== null ? (
+        <Link
+          href={getPageHref(totalPages)}
+          className={pageClass(isLastPage || isMaxPage)}
+        >
+          Last
+        </Link>
+      ) : (
+        <Link href="#" className={pageClass(true)} onClick={(e) => e.preventDefault()}>
+          Last
+        </Link>
+      )}
     </div>
   );
 };

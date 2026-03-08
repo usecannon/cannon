@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Chain } from '@/types/Chain';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import { useAddressTransactions } from '@/hooks/useAddressTransactions';
@@ -22,33 +22,29 @@ const TransactionsSection: React.FC<TransactionsSectionProps> = ({
   chain,
   pageIndex,
 }) => {
-  const [blockBefore, setBlockBefore] = useState<number | null>(null);
   const cannonChains = useCannonChains();
   const apiUrl = cannonChains.otterscanApis[chain?.id ?? 0]?.rpcUrl;
 
   const numericPageIndex = Math.max(Number(pageIndex) || 1, 1);
 
   const {
-    data: blockData,
+    totalPages,
+    totalTxs,
     isLoading: isBlockLoading,
     isError: isBlockError,
+    ensurePage,
+    getBlockForPage,
   } = useBlockPages(apiUrl, address);
 
-  const pages = blockData?.pages || [];
-  const totalTxs = blockData?.totalTxs || 0;
-
+  // Ensure we have page boundaries for the current page
   useEffect(() => {
-    if (!pages || pages.length === 0) {
-      setBlockBefore(0);
-      return;
+    if (apiUrl && address && numericPageIndex > 1) {
+      ensurePage(numericPageIndex - 1);
     }
+  }, [apiUrl, address, numericPageIndex, ensurePage]);
 
-    const block =
-      numericPageIndex <= 1 ? '0' : pages[numericPageIndex - 2] ?? '0';
-    setBlockBefore(Number(block));
-  }, [pages, numericPageIndex]);
-
-  const pagesReady = totalTxs > 0;
+  const blockBefore = getBlockForPage(numericPageIndex);
+  const canFetchTransactions = numericPageIndex === 1 || totalPages !== null || blockBefore !== '0';
 
   const {
     data: transactionData,
@@ -57,11 +53,13 @@ const TransactionsSection: React.FC<TransactionsSectionProps> = ({
   } = useAddressTransactions(
     chain?.id || 0,
     address,
-    String(blockBefore),
-    pagesReady ?? false
+    blockBefore,
+    canFetchTransactions
   );
 
-  if (isTransactionLoading || isBlockLoading) {
+  const isLoading = isTransactionLoading || isBlockLoading;
+
+  if (isLoading) {
     return (
       <div className="flex sm:flex-row flex-col justify-between w-full sm:space-y-0 space-y-2">
         <div className="h-screen w-screen flex flex-col items-center justify-center">
@@ -90,11 +88,8 @@ const TransactionsSection: React.FC<TransactionsSectionProps> = ({
     );
   }
 
-  const pagesMaxSize = pages?.length ?? 0;
-  if (
-    Number(pageIndex) > MAX_PAGE_SIZE ||
-    pagesMaxSize + 1 < Number(pageIndex)
-  ) {
+  // Check if we've exceeded the max page limit
+  if (numericPageIndex > MAX_PAGE_SIZE) {
     return (
       <Card className="rounded-sm w-full">
         <CardContent>
@@ -114,8 +109,25 @@ const TransactionsSection: React.FC<TransactionsSectionProps> = ({
   }
 
   const { txs, receipts, isLastPage, isFirstPage } = transactionData;
-  const receipt = receipts[receipts.length - 1];
-  const blockNumber = String(parseInt(receipt.blockNumber.slice(2), 16));
+  
+  // Handle case where page has no transactions (page doesn't exist)
+  if (!txs || txs.length === 0) {
+    return (
+      <Card className="rounded-sm w-full">
+        <CardContent>
+          <div className="flex flex-col items-center justify-center h-40 space-y-3 pt-7">
+            <span className="rounded-full border border-gray-400 p-2 bg-gray-700">
+              <Inbox className="h-8 w-8 text-white" />
+            </span>
+            <h1 className="text-lg">No Transactions Found</h1>
+            <span className="text-sm text-gray-400">
+              This page does not contain any transactions.
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <TransactionsPaginatedList
@@ -125,8 +137,8 @@ const TransactionsSection: React.FC<TransactionsSectionProps> = ({
       receipts={receipts}
       isLastPage={isLastPage}
       isFirstPage={isFirstPage}
-      blockNumber={blockNumber}
-      pages={pages}
+      currentPageIndex={numericPageIndex}
+      totalPages={totalPages}
       totalTxs={totalTxs}
     />
   );
