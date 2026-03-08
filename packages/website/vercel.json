@@ -63,6 +63,10 @@
     {
       "source": "/tx/:chainId/:txHash",
       "destination": "/tx/[chainId]/[txHash]"
+    },
+    {
+      "source": "/txs",
+      "destination": "/txs"
     }
   ],
   "framework": null,

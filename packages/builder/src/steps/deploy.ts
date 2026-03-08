@@ -2,7 +2,7 @@ import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
+import { mergeTemplateAccesses } from '../access-recorder';
 import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
 import { CannonError, handleTxnError } from '../error';
 import { deploySchema } from '../schemas';
@@ -10,6 +10,7 @@ import { ChainArtifacts, ChainBuilderContext, ContractArtifact } from '../types'
 import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 import { template } from '../utils/template';
 import { CannonAction } from '../actions';
+import { getBlockRetried } from '../helpers';
 
 const debug = Debug('cannon:builder:deploy');
 
@@ -121,7 +122,7 @@ function generateOutputs(
         deployedOn: currentLabel!,
         highlight: config.highlight,
         gasUsed: Number(deployTxn?.gasUsed) || 0,
-        gasCost: deployTxn?.effectiveGasPrice.toString() || '0',
+        gasCost: deployTxn?.effectiveGasPrice?.toString() || '0',
       },
     },
   };
@@ -195,37 +196,31 @@ const deploySpec = {
     return config;
   },
 
-  getInputs(config, possibleFields) {
-    let accesses = computeTemplateAccesses(config.from);
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.nonce, possibleFields));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.artifact, possibleFields));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.value, possibleFields));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.abi, possibleFields));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt, possibleFields));
+  getInputs(config, engine) {
+    let accesses = engine.computeTemplateAccesses(config.from);
+    accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.nonce));
+    accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.artifact));
+    accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.value));
+    accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.abi));
+    accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.salt));
 
     if (config.abiOf) {
-      _.forEach(
-        config.abiOf,
-        (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(v, possibleFields)))
-      );
+      _.forEach(config.abiOf, (v) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(v))));
     }
 
     if (config.args) {
       _.forEach(
         config.args,
-        (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(v), possibleFields)))
+        (v) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(JSON.stringify(v))))
       );
     }
 
     if (config.libraries) {
-      _.forEach(
-        config.libraries,
-        (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(v, possibleFields)))
-      );
+      _.forEach(config.libraries, (v) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(v))));
     }
 
     if (config?.overrides?.gasLimit) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.overrides.gasLimit));
     }
 
     return accesses;
@@ -414,8 +409,7 @@ const deploySpec = {
       }
     }
 
-    const block = await runtime.provider.getBlock({ blockNumber: receipt?.blockNumber });
-
+    const block = receipt ? await getBlockRetried(runtime.provider, receipt.blockHash) : null;
     return generateOutputs(config, ctx, artifactData, receipt, block, deployAddress, packageState.currentLabel);
   },
 
@@ -428,19 +422,30 @@ const deploySpec = {
 
     const artifactData = await runtime.getArtifact!(config.artifact);
 
-    const txn = await runtime.provider.getTransactionReceipt({ hash: existingKeys[0] as viem.Hash });
+    const txn = await runtime.provider.getTransaction({ hash: existingKeys[0] as viem.Hash });
+    const receipt = await runtime.provider.getTransactionReceipt({ hash: existingKeys[0] as viem.Hash });
 
-    // When a CREATE2 contract is deployed, it doesnt output the contractAddress property.
-    // However the txn will emit events from the deployed contract address which can be found in the txn logs
-    const contractAddress = config.create2 ? txn.logs[0].address : txn.contractAddress;
-
-    if (!viem.isAddress(contractAddress as string)) {
-      throw new Error('imported txn does not appear to deploy a contract');
+    // We need to compute from the import data
+    let contractAddress;
+    // In the case that the contract address is given in the transaction receipt: It was a create (1) transaction
+    if (receipt.contractAddress) {
+      contractAddress = receipt.contractAddress;
+      // in the case that the contract address is *NOT* given, its CREATE2 through arachnid (or, not a contract creation transaction at all).
+    } else if (txn.to && txn.input && txn.input.length > 66) {
+      // Note: the `from` address is actually the `to` address here because this function wants the address of the contract executing the deployment of the contract
+      contractAddress = viem.getContractAddress({
+        opcode: 'CREATE2',
+        from: txn.to,
+        salt: viem.sliceHex(txn.input, 0, 32),
+        bytecode: viem.sliceHex(txn.input, 32),
+      });
+    } else {
+      throw new Error('The transaction hash you provided does not appear to deploy a contract');
     }
 
     const block = await runtime.provider.getBlock({ blockNumber: txn?.blockNumber });
 
-    return generateOutputs(config, ctx, artifactData, txn, block, contractAddress!, packageState.currentLabel);
+    return generateOutputs(config, ctx, artifactData, receipt, block, contractAddress!, packageState.currentLabel);
   },
 } satisfies CannonAction<Config>;
 
