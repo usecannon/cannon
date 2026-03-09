@@ -6,8 +6,20 @@ The Cannon registry is an on-chain smart contract that stores package metadata a
 - Version management for packages
 - Package discovery and sharing
 - Integration with other projects
+- **On-chain verification** of deployed packages (anyone can verify what was deployed)
 
 Registry address: `0x8E2c2E6A0c57dD0f58acE0ba4EBdD7807e0F8708`
+
+## Browsing Packages
+
+Deployed registry packages are visible on the Cannon website at:
+```
+https://usecannon.com/packages/<package-name>/<version>/<chainId>-<preset>
+```
+
+Example: https://usecannon.com/packages/safe/1.4.1/13370-main
+
+**Recommended:** Share this URL with users after successfully publishing a package!
 
 ## Registry Networks
 
@@ -41,6 +53,8 @@ cannon publish --chain-id 10 --rpc-url $RPC_URL
 
 If `--private-key` is not specified, it will be requested via stdin.
 
+**Note:** You may want to use `--exclude-cloned` to prevent publishing subpackages if your setup clones other packages that should remain separate.
+
 ### Package Ownership
 
 - First publisher of a package name becomes the owner
@@ -69,6 +83,8 @@ When you publish, Cannon uploads to IPFS:
 - Transaction data
 
 Cannon provides an IPFS service alongside package publishes (included in the publishing fee) which is used by default.
+
+**On-chain Verification:** The registry stores package metadata on-chain, allowing anyone to cryptographically verify what was deployed. This enables trustless verification of deployment integrity.
 
 ## Cache Locations
 

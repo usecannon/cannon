@@ -64,18 +64,13 @@ Call a function on a deployed contract.
 
 ```toml
 [invoke.initialize]
-target = ["<%= contracts.Token.address %>"]
+target = ["Token"]
 func = "initialize"
 args = ["<%= settings.owner %>"]
 from = "<%= settings.owner %>"
-
-# Use factory to get address of a contract created by another contract
-[invoke.createPair]
-target = ["<%= contracts.Factory.address %>"]
-func = "createPair"
-args = ["<%= settings.tokenA %>", "<%= settings.tokenB %>"]
-factory = "<%= contracts.Factory.address %>"
 ```
+
+Note: `target` uses the contract label directly (e.g., `["Token"]`), not the full address path.
 
 ## Clone Action
 
@@ -87,7 +82,7 @@ Deploy another Cannon package as a "blueprint". Use when you want to deploy a fr
 
 ```toml
 [clone.safe]
-source = "safe:1.4.1"
+source = "mycompany-safe:1.4.1@team"
 target = "safe"
 ```
 

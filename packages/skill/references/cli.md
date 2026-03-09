@@ -1,5 +1,19 @@
 # CLI Reference
 
+## Debugging
+
+If something is misbehaving, increase debugging verbosity:
+
+```bash
+# Using DEBUG environment variable (NodeJS debug module)
+DEBUG=cannon:* cannon build
+
+# Or using verbose flags (increasing verbosity)
+cannon build -v    # basic verbosity
+cannon build -vv   # more verbose
+cannon build -vvv  # most verbose
+```
+
 ## Build Command
 
 ```bash
@@ -99,7 +113,7 @@ Options:
 - `--chain-id <id>` — Target chain ID
 - `--rpc-url <url>` — RPC endpoint
 - `--etherscan-api-key <key>` — Etherscan API key
-- `--service <name>` — Verification service (etherscan, sourcify)
+- `--service <name>` — Verification service: `etherscan`, `sourcify`, or `all` (verifies to both)
 
 ## Fetch Command
 

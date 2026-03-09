@@ -389,8 +389,8 @@ For detailed information on:
 3. **Build locally** with `cannon build` (chain 13370)
 4. **Test** with `cannon test`
 5. **Simulate** with `--dry-run` for target chain ⚠️ ALWAYS DO THIS FIRST
-6. **Deploy** with `cannon build --chain-id <id>` ⚠️ CANNOT BE UNDONE
-7. **Verify** contracts on Etherscan with `cannon verify` ⚠️ CONFIRM CORRECTNESS
+6. **Deploy** with `cannon build --chain-id <id>` ⚠️ IRREVERSIBLE on non-local networks (safe on chain 13370)
+7. **Verify** contracts on Etherscan with `cannon verify`
 8. **Publish** with `cannon publish` ⚠️ PERMANENT ON-CHAIN
 
 ## Key Files
