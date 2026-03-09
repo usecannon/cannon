@@ -1,0 +1,27 @@
+{
+  "name": "@usecannon/skill",
+  "version": "1.0.0",
+  "description": "AI agent skill for Cannon - enables AI assistants to help with Ethereum deployments using Cannon",
+  "main": "SKILL.md",
+  "files": [
+    "SKILL.md",
+    "references"
+  ],
+  "keywords": [
+    "cannon",
+    "ethereum",
+    "deployment",
+    "ai",
+    "agent",
+    "skill",
+    "llm"
+  ],
+  "author": "Saturn",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/usecannon/cannon.git",
+    "directory": "packages/skill"
+  },
+  "homepage": "https://usecannon.com"
+}
