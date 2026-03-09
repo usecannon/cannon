@@ -2,46 +2,46 @@
 
 ## Structure
 
-A cannonfile.toml defines a Cannon package with settings, imports, and actions.
+A cannonfile.toml defines a Cannon package with metadata, variables, and actions.
 
 ```toml
-# Package metadata (optional but recommended)
+#:schema https://raw.githubusercontent.com/usecannon/cannon/refs/heads/dev/packages/lsp/src/schema.json
+
 name = "my-package"
 version = "1.0.0"
 description = "My package description"
 tags = ["defi", "token"]
+preset = "main"
 
-# Settings (modern syntax - use [var.*])
-[var.chainId]
-defaultValue = 1
-
-[var.owner]
-defaultValue = "0x..."
+# Variables
+[var.settings]
+owner = "0x0000000000000000000000000000000000000000"
+initialSupply = "1000000000000000000000000"
 
 # Actions execute in order based on dependencies
 [deploy.MyContract]
 artifact = "MyContract"
+args = ["<%= settings.owner %>"]
 ```
 
 ## Variables (`var`)
 
-Define configurable settings with defaults and validation.
+Define configurable settings. Cannon automatically provides `chainId` as a built-in variable.
 
 ```toml
-[var.chainId]
-defaultValue = 1
-description = "Target chain ID"
-
-[var.owner]
-defaultValue = "0x0000000000000000000000000000000000000000"
-description = "Contract owner address"
-
-[var.initialSupply]
-defaultValue = "1000000000000000000000000"
-description = "Initial token supply"
+[var.settings]
+# The label "settings" is just for organization - you can use any label
+owner = "0x0000000000000000000000000000000000000000"
+initialSupply = "1000000000000000000000000"
+salt = "my-package"
 ```
 
-Access with: `<%= settings.varName %>`
+Access with: `<%= settings.owner %>` or `<%= settings.initialSupply %>`
+
+Override at build time:
+```bash
+cannon build cannonfile.toml owner=0x1234... salt=custom-salt
+```
 
 ## Deploy Action
 
@@ -50,17 +50,12 @@ Deploy a contract from compiled artifacts.
 ```toml
 [deploy.Token]
 artifact = "Token"
-args = [
-    "<%= settings.name %>",
-    "<%= settings.symbol %>",
-    "<%= settings.initialSupply %>",
-    "<%= settings.owner %>"
-]
-create2 = true                          # Use CREATE2 for deterministic address
-salt = "<%= settings.chainId %>"        # CREATE2 salt
-libraries = { Library = "<%= contracts.Library.address %>" }
-from = "<%= settings.deployer %>"       # Override sender
-value = "1000000000000000000"           # Send ETH with deployment
+args = ["My Token", "TKN", "<%= settings.initialSupply %>", "<%= settings.owner %>"]
+create2 = true
+salt = "<%= settings.salt %>"
+libraries = { Utils = "<%= contracts.Utils.address %>" }
+from = "<%= settings.deployer %>"
+value = "<%= parseEther('1.0') %>"
 ```
 
 ## Invoke Action
@@ -68,74 +63,67 @@ value = "1000000000000000000"           # Send ETH with deployment
 Call a function on a deployed contract.
 
 ```toml
-[invoke.setOwner]
+[invoke.initialize]
 target = ["<%= contracts.Token.address %>"]
-func = "transferOwnership"
-args = ["<%= settings.newOwner %>"]
+func = "initialize"
+args = ["<%= settings.owner %>"]
 from = "<%= settings.owner %>"
 
-[invoke.mint]
-target = ["<%= contracts.Token.address %>"]
-func = "mint"
-args = [
-    "<%= settings.recipient %>",
-    "<%= settings.amount %>"
-]
-value = "0"                             # Send ETH
+# Use factory to get address of a contract created by another contract
+[invoke.createPair]
+target = ["<%= contracts.Factory.address %>"]
+func = "createPair"
+args = ["<%= settings.tokenA %>", "<%= settings.tokenB %>"]
+factory = "<%= contracts.Factory.address %>"
 ```
 
 ## Clone Action
 
-Import another Cannon package as a dependency.
+Deploy another Cannon package as a "blueprint". Use when you want to deploy a fresh instance of an existing package.
+
+**Important:** Always set `target` appropriately:
+- Same as `source` if you own the package
+- New name if you don't own it
 
 ```toml
-[clone.synthetix]
-source = "synthetix-omnibus:3.1.4@main"
-target = "synthetix"
-chainId = "<%= settings.chainId %>"     # Override chain ID
-preset = "main"                         # Override preset
+[clone.safe]
+source = "safe:1.4.1"
+target = "safe"
 ```
 
-Access cloned contracts: `<%= imports.synthetix.contracts.CoreProxy.address %>`
+Access: `<%= safe.Safe.address %>` (shorthand) or `<%= imports.safe.contracts.Safe.address %>` (full)
 
-## Pull Action
+## Import Action
 
-Import data/artifacts from another package.
+Pull data from an already-deployed package without re-deploying. Use when you need to reference existing deployments.
 
 ```toml
-[pull.usdc]
+[import.usdc]
 source = "usdc:1.0.0@main"
-alias = "usdc"
 ```
 
-Access: `<%= imports.usdc.contracts.USDC.address %>`
+Access: `<%= usdc.USDC.address %>` (shorthand) or `<%= imports.usdc.contracts.USDC.address %>` (full)
 
 ## Router Action
 
-Create a Synthetix Router to bypass contract size limits.
+Create a router contract that efficiently passes calls to downstream contracts. Powerful when combined with a UUPS proxy for upgradable contracts that exceed the contract size limit.
 
 ```toml
-[deploy.Router]
-artifact = "Router"
-args = ["<%= settings.owner %>"]
-
 [deploy.CoreImplementation]
 artifact = "Core"
-libraries = { Utils = "<%= contracts.Utils.address %>" }
+
+[deploy.AnotherImplementation]
+artifact = "Another"
 
 [router.CoreRouter]
-dependencies = ["CoreImplementation"]
+dependencies = ["CoreImplementation", "AnotherImplementation"]
 ```
 
-## Diamond Action
+## Diamond Action (EIP-2535)
 
-Create an EIP-2535 Diamond with multiple facets.
+Create a Diamond proxy with multiple facets.
 
 ```toml
-[deploy.Diamond]
-artifact = "Diamond"
-args = ["<%= settings.owner %>"]
-
 [deploy.FacetA]
 artifact = "FacetA"
 
@@ -150,35 +138,42 @@ initArgs = ["<%= settings.owner %>"]
 
 ## Template Syntax
 
+Templates can be used anywhere a string is defined. They're JavaScript expressions.
+
+Cannon automatically topologically orders deployment steps based on dependencies in template syntax, so `depends =` is rarely needed.
+
 ### Accessing Settings
 ```toml
 <%= settings.varName %>
+```
+
+### Accessing Chain ID (Built-in)
+```toml
+<%= chainId %>  # Cannon provides this automatically
 ```
 
 ### Accessing Contract Data
 ```toml
 <%= contracts.ContractName.address %>
 <%= contracts.ContractName.abi %>
-<%= contracts.ContractName.deployTx %>
 ```
 
-### Accessing Imports
+### Accessing Imports (Shorthand)
 ```toml
-<%= imports.pkgName.contracts.Contract.address %>
-<%= imports.pkgName.txns.txName.hash %>
-```
-
-### Accessing Transactions
-```toml
-<%= txns.txName.hash %>
-<%= txns.txName.address %>  # If transaction created a contract
+<%= pkgName.ContractName.address %>  # Preferred shorthand
+<%= imports.pkgName.contracts.Contract.address %>  # Full syntax
 ```
 
 ### Helpers
+Available helpers include all functions from `ethers.utils` (ethers v5), plus:
+- `encodeFunctionData` from viem
+- Constants like `AddressZero` from `ethers.constants`
+
 ```toml
 <%= parseEther("1.0") %>           # Convert to wei
 <%= formatBytes32String("hello") %> # Convert to bytes32
-<%= zeroAddress %>                  # 0x000...000
+<%= AddressZero %>                  # 0x000...000
+<%= encodeFunctionData(abi, fn, args) %>
 ```
 
 ## Conditional Actions
@@ -188,69 +183,40 @@ Use `only` to conditionally execute actions.
 ```toml
 [deploy.OnlyOnMainnet]
 artifact = "MainnetOnly"
-only = "<%= settings.chainId == 1 %>"
+only = "<%= chainId == 1 %>"
 
 [deploy.OnlyOnL2]
 artifact = "L2Only"
-only = "<%= settings.chainId != 1 %>"
-```
-
-## Multiple Actions of Same Type
-
-Suffix with `.` to create multiple actions.
-
-```toml
-[deploy.TokenA]
-artifact = "Token"
-args = ["Token A", "TKA"]
-
-[deploy.TokenB]
-artifact = "Token"
-args = ["Token B", "TKB"]
+only = "<%= chainId != 1 %>"
 ```
 
 ## Action Dependencies
 
-Actions execute based on dependency order, not file order.
+Actions execute based on dependency order (resolved from template syntax), not file order.
 
 ```toml
-# These can be in any order - Cannon resolves dependencies
+# These can be in any order - Cannon resolves dependencies from templates
 [invoke.init]
 target = ["<%= contracts.Token.address %>"]  # Depends on deploy.Token
 
-[deploy.Token]  # Will execute first
+[deploy.Token]
 artifact = "Token"
 ```
 
-## Presets
+## Overriding Settings at Build Time
 
-Define multiple deployment presets.
+Pass settings directly to the build command:
 
-```toml
-# Default preset (main)
-[var.chainId]
-defaultValue = 1
-
-# Custom preset
-[preset.mainnet]
-var.chainId.defaultValue = 1
-var.owner.defaultValue = "0x..."
-
-[preset.testnet]
-var.chainId.defaultValue = 11155111
-var.owner.defaultValue = "0x..."
-```
-
-Build with preset:
 ```bash
-cannon build --preset mainnet
+cannon build cannonfile.toml owner=0x1234123412341234123412341234123412341234 salt=foobar
 ```
+
+Any `var` with matching keys will be overridden.
 
 ## Best Practices
 
 1. **Use semantic versioning** for package versions
-2. **Document settings** with descriptions
-3. **Use create2** for deterministic addresses when needed
-4. **Import packages** instead of duplicating deployments
-5. **Test locally** (chain 13370) before mainnet
-6. **Use presets** for different network configurations
+2. **Test locally** (chain 13370) before mainnet
+3. **Use clone** to deploy fresh instances of existing packages
+4. **Use import** to reference already-deployed packages
+5. **Set target** appropriately when cloning (same as source if you own it)

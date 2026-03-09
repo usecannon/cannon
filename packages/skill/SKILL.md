@@ -7,14 +7,21 @@ description: Cannon package manager for Ethereum deployments. Use when building,
 
 ## ⚠️ CRITICAL: Read This First
 
-**Blockchain deployments are IRREVERSIBLE.** Mistakes cannot be undone.
+**Some Cannon commands are IRREVERSIBLE and handle real value.** Be careful with:
 
-1. **Make every operation clear to the user** — Always explain what will happen before running any command
-2. **Use dry-run mode first** — `cannon build --dry-run` to simulate without executing
-3. **Confirm before deploying** — Never deploy with a real private key without explicit user approval
-4. **Test locally first** — Build and test on chain 13370 (Cannon Network) before target chains
-5. **Protect private keys** — Never hardcode keys; use environment variables or secure key management
-6. **Verify settings** — Check chain IDs, RPC URLs, and contract addresses before execution
+- `cannon build` (without `--dry-run`) — deploys contracts on real networks
+- `cannon publish` — publishes to on-chain registry (permanent)
+- `cannon register` — registers package names on-chain
+- `cannon publishers` — manages package publisher permissions
+
+Safe commands: `cannon build --dry-run`, `cannon inspect`, `cannon run`, `cannon test`, `cannon decode`, `cannon trace`, `cannon clean`
+
+Rules:
+1. **Always use `--dry-run` first** — Simulate before executing on real networks
+2. **Make every operation clear to the user** — Explain what will happen before running
+3. **Confirm before deploying** — Never use a real private key without explicit approval
+4. **Test locally first** — Use chain 13370 (Cannon Network) before target chains
+5. **Protect private keys** — Use `CANNON_PRIVATE_KEY` env var or `--impersonate` (recommended)
 
 ## Model Recommendation
 
@@ -60,21 +67,17 @@ cannon --version
 
 ## Quick Reference
 
-### Install and Build
-```bash
-pnpm i                    # Install dependencies
-pnpm build                # Build all packages
-```
+For complete CLI options, see [references/cli.md](references/cli.md).
 
 ### CLI Commands
 ```bash
 cannon build              # Build package locally (starts anvil, deploys contracts)
-cannon run <pkg:ver>      # Run a deployed package
+cannon run <pkg:ver>      # Run a deployed package (shorthand: cannon <pkg:ver>)
 cannon test               # Run forge tests with deployment context
-cannon inspect <pkg:ver>  # View package details and topology
+cannon inspect <pkg:ver>  # View package details
 cannon publish            # Publish to on-chain registry + IPFS ⚠️ IRREVERSIBLE
 cannon clean              # Delete cache directories
-cannon verify             # Verify deployed contracts on Etherscan ⚠️ VERIFY AFTER DEPLOY
+cannon verify             # Verify contracts on Etherscan/Sourcify
 ```
 
 ### Package Reference Format
@@ -83,8 +86,8 @@ cannon verify             # Verify deployed contracts on Etherscan ⚠️ VERIFY
 ```
 Examples:
 - `greeter-foundry:2.24.0`
+- `safe:1.4.1`
 - `synthetix-omnibus:3.1.4@main`
-- `router:1.0.0@mainnet`
 
 ## Cannonfile Syntax
 
@@ -94,12 +97,13 @@ name = "my-package"
 version = "1.0.0"
 description = "My package description"
 tags = ["defi", "token"]
+preset = "main"
 
 # Include additional files containing actions (for larger packages)
 include = ["./deposits.toml", "./withdrawals.toml"]
 ```
 
-Use `include` to split large cannonfiles into multiple files. Included files can contain any actions (deploy, invoke, clone, etc.) and are merged into the main package.
+Use `include` to split large cannonfiles into multiple files. Included files use the fragment schema and can contain any actions (deploy, invoke, clone, etc.).
 
 Modern syntax uses `[var.label]` for settings (deprecated: `[setting.name]`).
 
@@ -129,17 +133,22 @@ args = ["<%= settings.owner %>"]
 
 ### Import/Clone Package
 ```toml
-[clone.synthetix]
-source = "synthetix-omnibus:3.1.4@main"
-target = "synthetix"
+[clone.safe]
+source = "safe:1.4.1"
+target = "safe"
 ```
+
+**When to use clone vs import:**
+- **`clone`** — Use another package as a "blueprint" to deploy it anew. Always set `target` appropriately (same as source if you own it, or a new name if not).
+- **`import`** — Pull in data from an already-deployed package without re-deploying.
 
 ### Pull Data from Package
 ```toml
-[pull.erc20]
+[pull.usdc]
 source = "usdc:1.0.0@main"
-alias = "usdc"
 ```
+
+Access: `<%= imports.usdc.contracts.USDC.address %>`
 
 ## Template Strings
 
@@ -155,10 +164,11 @@ Use ERB-style templates to reference values:
 |--------|-------------|
 | `deploy` | Deploy a contract |
 | `invoke` | Call a contract function |
-| `clone` | Import another Cannon package |
-| `pull` | Import data from a package |
+| `clone` | Deploy another package as a blueprint |
+| `import` | Pull data from an already-deployed package |
+| `pull` | (deprecated) Alias for import |
 | `var` | Define computed variables |
-| `router` | Create a Synthetix Router (bypass contract size limits) |
+| `router` | Create a router contract to bypass size limits (pairs well with UUPS proxy) |
 | `diamond` | Create an EIP-2535 Diamond with facets |
 
 ## Local Development
@@ -230,15 +240,17 @@ contract MyTest is Cannon {
 ## Common Patterns
 
 ### Router Pattern (Bypass Contract Size Limits)
+Create a router contract that efficiently passes calls to downstream contracts. Powerful when combined with a UUPS proxy.
+
 ```toml
-[deploy.Router]
-artifact = "Router"
+[deploy.CoreImplementation]
+artifact = "Core"
 
-[deploy.Implementation]
-artifact = "Implementation"
+[deploy.AnotherImplementation]
+artifact = "Another"
 
-[router.Router]
-dependencies = ["Implementation"]
+[router.CoreRouter]
+dependencies = ["CoreImplementation", "AnotherImplementation"]
 ```
 
 ### Diamond Pattern (EIP-2535)
@@ -327,7 +339,7 @@ Deploy packages directly from GitHub repositories or IPFS hashes via the Cannon 
 - Execute through Safe multisig wallets
 - Publish to registry after deployment
 
-See: https://usecannon.com
+See: https://usecannon.com/deploy
 
 ### Deployments Repository
 Create a dedicated Git repository for deployment configurations (separate from source code):
