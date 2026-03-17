@@ -238,6 +238,7 @@ export async function loadCannonfile(filepath: string) {
     package: pkg,
     chainId: CANNON_CHAIN_ID,
     settings: {},
+    vars: {},
     timestamp: 0,
     defaultSigner: viem.zeroAddress,
 

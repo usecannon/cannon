@@ -14,6 +14,7 @@ const ctx: ChainBuilderContext = {
   package: {},
   timestamp: 0 as any, // TODO: fix this
   settings: {},
+  vars: {},
   contracts: {},
   txns: {},
   imports: {},
