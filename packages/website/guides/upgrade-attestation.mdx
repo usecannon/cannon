@@ -1,0 +1,152 @@
+---
+title: On-Chain Upgrade Attestation
+description: Understand how Cannon tracks deployment history on-chain for seamless upgrades.
+---
+
+## On-Chain Upgrade Attestation
+
+When building packages for live networks, Cannon automatically records deployment information on-chain. This mechanism enables seamless upgrades by allowing Cannon to automatically discover previous deployments made by the same deployer.
+
+### How It Works
+
+At the end of every `cannon build` on a live network (not the local Cannon chain), Cannon writes an **attestation** to a simple on-chain key-value storage contract. This attestation links:
+
+- **Your address** (the deployer)
+- **The package name and preset**
+- **The IPFS URL** of the deployment data
+- **A timestamp**
+
+The storage contract is deployed at a deterministic address using CREATE2, ensuring it's available on any EVM-compatible chain:
+
+```
+0x14570ce88f490a80342cc156a6a0ebc173609f5e
+```
+
+### The Storage Contract
+
+The on-chain storage is a minimal contract with a simple interface:
+
+```solidity
+contract Storage {
+    mapping(address => mapping(bytes32 => bytes)) store;
+
+    function set(bytes32 k, bytes memory v) external {
+        store[msg.sender][k] = v;
+    }
+
+    function getWithAddress(address s, bytes32 k) external view returns (bytes memory) {
+        return store[s][k];
+    }
+}
+```
+
+**Key points:**
+- Each deployer has their own namespace (keyed by their address)
+- The key is `keccak256(packageName@preset)`
+- The value is `timestamp_ipfsUrl`
+
+This design ensures:
+1. **Privacy by default**: Only you can see your own deployment records
+2. **No permission required**: Anyone can write to their own namespace
+3. **Tamper-proof**: Records are immutable once written
+
+### Automatic Upgrade Detection
+
+When you run `cannon build` without specifying `--upgrade-from`, Cannon will:
+
+1. Query the on-chain storage contract for any previous attestations from the configured **deployers**
+2. If found, load the previous deployment state from the IPFS URL
+3. Continue the build from that state, only executing new or modified operations
+
+This means you can upgrade your protocol simply by:
+
+```bash
+# First deployment
+cannon build --rpc-url https://eth-mainnet.example.com
+
+# Later upgrade (Cannon automatically finds the previous deployment)
+cannon build --rpc-url https://eth-mainnet.example.com
+```
+
+### Configuring Deployers
+
+By default, Cannon uses the default signer's address to look up previous deployments. You can specify additional deployer addresses in your cannonfile using the `deployers` field:
+
+```toml
+name = "my-protocol"
+version = "1.0.0"
+deployers = [
+    "0x1234...abcd",  # Previous deployer 1
+    "0x5678...efgh",  # Previous deployer 2
+]
+
+[contract.MyContract]
+artifact = "MyContract"
+```
+
+This is useful when:
+- **Ownership has transferred**: New deployers can pick up where previous ones left off
+- **Multi-sig deployments**: You want Cannon to recognize deployments from any authorized signer
+- **Team deployments**: Multiple team members can upgrade the same package
+
+### When to Disable It
+
+There are scenarios where you might want to skip writing the upgrade attestation:
+
+1. **Read-only RPC**: Building against a node that doesn't accept transactions
+2. **Gas optimization**: You're doing a one-off build and don't need upgrade tracking
+3. **Custom upgrade flow**: You're managing upgrades through a different mechanism
+
+To disable the on-chain attestation:
+
+```bash
+cannon build --skip-upgrade-record
+```
+
+<Alert variant="warning">
+  <AlertDescription>
+    If you use <code>--skip-upgrade-record</code>, future builds won't automatically detect this deployment. You'll need to manually specify <code>--upgrade-from</code> when upgrading.
+  </AlertDescription>
+</Alert>
+
+### Manual Upgrade Specification
+
+If you've disabled upgrade recording or need to upgrade from a specific deployment, use the `--upgrade-from` flag:
+
+```bash
+# Upgrade from a specific IPFS hash
+cannon build --upgrade-from ipfs://Qm...
+
+# Upgrade from a specific package reference
+cannon build --upgrade-from my-protocol:1.0.0@main
+```
+
+### Troubleshooting
+
+#### "Failed to write upgrade record to on-chain state"
+
+This error occurs when Cannon cannot write the attestation to the on-chain storage. Common causes:
+
+1. **Insufficient gas**: Ensure your signer has enough ETH for the transaction
+2. **RPC issues**: The RPC endpoint may not be accepting transactions
+
+If this fails repeatedly, Cannon will suggest using `--upgrade-from` with the current deployment URL for future upgrades.
+
+#### Previous deployment not found
+
+If Cannon isn't finding your previous deployment:
+
+1. **Check deployers**: Ensure the previous deployer's address is in your `deployers` list
+2. **Verify package name**: The package name and preset must match exactly
+3. **Check network**: Ensure you're building on the same chain as the previous deployment
+
+### Technical Details
+
+| Property | Value |
+|----------|-------|
+| Storage Contract | `0x14570ce88f490a80342cc156a6a0ebc173609f5e` |
+| CREATE2 Deployer | `0x4e59b44847b379578588920ca78fbf26c0b4956c` |
+| Key Format | `keccak256(packageName@preset)` |
+| Value Format | `timestamp_ipfsUrl` |
+
+The storage contract is deployed deterministically using CREATE2, meaning it will exist at the same address on any EVM chain. If the contract doesn't exist yet, Cannon will deploy it automatically during your first build.
