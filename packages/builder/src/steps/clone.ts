@@ -4,16 +4,16 @@ import _ from 'lodash';
 import { z } from 'zod';
 import pkg from '../../package.json';
 import { mergeTemplateAccesses } from '../access-recorder';
+import { CannonAction } from '../actions';
 import { build, createInitialContext, getOutputs } from '../builder';
 import { CANNON_CHAIN_ID } from '../constants';
 import { ChainDefinition } from '../definition';
+import { getContentUrl } from '../ipfs';
 import { PackageReference } from '../package-reference';
 import { Events } from '../runtime';
 import { cloneSchema } from '../schemas';
 import { DeploymentState } from '../types';
 import { template } from '../utils/template';
-import { getContentUrl } from '../ipfs';
-import { CannonAction } from '../actions';
 
 const debug = Debug('cannon:builder:clone');
 
@@ -224,6 +224,15 @@ const cloneSpec = {
         'built state is exactly equal to previous state. skip generation of new deploy url',
         importLabel
       );
+
+      // edge case: republish in case the reference to the deployed package isnt recorded
+      await runtime.registry.publish(
+        [target, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
+        runtime.chainId,
+        ctx.imports[importLabel]?.url,
+        (await runtime.registry.getMetaUrl(source, chainId)) || ''
+      );
+
       return {
         imports: {
           [importLabel]: ctx.imports[importLabel],
