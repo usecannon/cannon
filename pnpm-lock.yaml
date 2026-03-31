@@ -829,6 +829,8 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
+  packages/skill: {}
+
   packages/website:
     dependencies:
       '@ethersproject/bignumber':

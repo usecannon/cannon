@@ -880,6 +880,55 @@ export const varSchema = z
   })
   .catchall(z.string());
 
+export const safeSetSignersSchema = z
+  .object({
+    /**
+     *  Address of the Safe contract (supports templates like ${contracts.mySafe.address})
+     */
+    target: z
+      .string()
+      .refine((val) => isAddress(val) || !!val.match(interpolatedRegex), {
+        message: 'target must be a valid ethereum address or template string',
+      })
+      .describe('Address of the Safe contract (supports templates like ${contracts.mySafe.address})'),
+    /**
+     *  Desired list of signer addresses (supports templates)
+     */
+    signers: z.array(z.string()).describe('Desired list of signer addresses (supports templates)'),
+  })
+  .merge(
+    z
+      .object({
+        /**
+         *  Desired threshold. Defaults to current threshold if not specified.
+         */
+        threshold: z.number().describe('Desired threshold. Defaults to current threshold if not specified.'),
+        /**
+         *  Address to use for executing the transaction
+         */
+        from: z
+          .string()
+          .refine((val) => isAddress(val) || !!val.match(interpolatedRegex), {
+            message: 'from must be a valid ethereum address or template string',
+          })
+          .describe('Address to use for executing the transaction'),
+        /**
+         * Description of the operation
+         */
+        description: z.string().describe('Description of the operation'),
+        /**
+         *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
+         */
+        depends: z
+          .array(z.string())
+          .describe(
+            'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+          ),
+      })
+      .deepPartial()
+  )
+  .strict();
+
 /**
  * Shared schema for cannonfile actions (operations).
  * Used by both the full cannonfile schema and the fragment schema.
@@ -974,6 +1023,10 @@ const cannonfileActionsSchema = z.object({
    * @internal
    */
   var: z.record(varSchema).describe('Apply a setting or intermediate value.'),
+  /**
+   * @internal
+   */
+  safe_set_signers: z.record(safeSetSignersSchema).describe('Configure the list of signers on a Gnosis Safe multisig.'),
   // ... there may be others that come from plugins
 });
 

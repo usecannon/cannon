@@ -11,6 +11,7 @@ import pullSpec from './steps/pull';
 import routerSpec from './steps/router';
 import diamondSpec from './steps/diamond';
 import varSpec from './steps/var';
+import safeSetSignersSpec from './steps/safe-set-signers';
 import { ChainArtifacts, ChainBuilderContext, PackageState } from './types';
 
 export interface RawConfig {
@@ -131,6 +132,7 @@ registerAction(cloneSpec);
 registerAction(routerSpec);
 registerAction(diamondSpec);
 registerAction(varSpec);
+registerAction(safeSetSignersSpec);
 
 // backwards compatibility
 registerAction(Object.assign({}, deploySpec, { label: 'contract' }));
