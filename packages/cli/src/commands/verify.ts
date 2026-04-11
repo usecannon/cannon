@@ -109,6 +109,7 @@ export async function verify(
 
       // supply any linked libraries within the inputs since those are calculated at runtime
       const inputData = JSON.parse(contractArtifact.source.input);
+      delete inputData.settings.compilationTarget;
       _.set(inputData, 'settings.libraries', contractInfo.linkedLibraries);
 
       if (service === 'etherscan' || service === 'all') {
@@ -118,7 +119,6 @@ export async function verify(
           try {
             const reqData: { [k: string]: string } = {
               apikey: cliSettings.etherscanApiKey,
-              chainid: chainId.toString(),
               module: 'contract',
               action: 'verifysourcecode',
               contractaddress: contractInfo.address,
@@ -139,7 +139,11 @@ export async function verify(
 
             debug('verification request', reqData);
 
-            const res = await axios.post(etherscanApi, reqData, {
+            // Etherscan v2 requires chainid as a query string parameter
+            const etherscanVerifyUrl = new URL(etherscanApi);
+            etherscanVerifyUrl.searchParams.set('chainid', chainId.toString());
+
+            const res = await axios.post(etherscanVerifyUrl.toString(), reqData, {
               headers: {
                 'content-type': 'application/x-www-form-urlencoded',
                 'User-Agent': 'Cannon CLI',
@@ -151,7 +155,7 @@ export async function verify(
               logSpinner(`Etherscan: ${c} (${contractInfo.address}):\tCannot verify:`, res.data.result);
             } else {
               logSpinner(`Etherscan: ${c} (${contractInfo.address}):\tSubmitted verification (${res.data.result})`);
-              guids[c]['etherscan'] = res.data.result;
+              _.set(guids, [c, 'etherscan'], res.data.result);
             }
           } catch (err) {
             logSpinner(`Etherscan: ${c} (${contractInfo.address}): Verification request failed:`, err);
@@ -223,13 +227,17 @@ export async function verify(
     for (const v in guids[c]) {
       for (;;) {
         if (v === 'etherscan') {
+          // Etherscan v2 requires chainid as a query string parameter
+          const etherscanStatusUrl = new URL(etherscanApi);
+          etherscanStatusUrl.searchParams.set('chainid', chainId.toString());
+
           const res = await axios.post(
-            etherscanApi,
+            etherscanStatusUrl.toString(),
             {
               apiKey: cliSettings.etherscanApiKey,
               module: 'contract',
               action: 'checkverifystatus',
-              guid: guids[c],
+              guid: guids[c]['etherscan'],
             },
             {
               headers: {
