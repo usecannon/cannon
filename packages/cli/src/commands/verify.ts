@@ -60,6 +60,10 @@ export async function verify(
 
   const etherscanApi = cliSettings.etherscanApiUrl || ETHERSCAN_DEFAULT_SERVER_URL;
 
+  // Etherscan v2 requires chainid as a query string parameter
+  const etherscanUrl = new URL(etherscanApi);
+  etherscanUrl.searchParams.set('chainid', chainId.toString());
+
   if (service === 'etherscan' || (service === 'all' && !cliSettings.etherscanApiKey)) {
     log('Using generic API key for Etherscan. If this is incorrect, specify CANNON_ETHERSCAN_API_KEY');
   }
@@ -121,6 +125,7 @@ export async function verify(
               apikey: cliSettings.etherscanApiKey,
               module: 'contract',
               action: 'verifysourcecode',
+              chainid: chainId.toString(),
               contractaddress: contractInfo.address,
               // need to parse to get the inner structure, then stringify again
               sourceCode: JSON.stringify(inputData),
@@ -139,11 +144,7 @@ export async function verify(
 
             debug('verification request', reqData);
 
-            // Etherscan v2 requires chainid as a query string parameter
-            const etherscanVerifyUrl = new URL(etherscanApi);
-            etherscanVerifyUrl.searchParams.set('chainid', chainId.toString());
-
-            const res = await axios.post(etherscanVerifyUrl.toString(), reqData, {
+            const res = await axios.post(etherscanUrl.toString(), reqData, {
               headers: {
                 'content-type': 'application/x-www-form-urlencoded',
                 'User-Agent': 'Cannon CLI',
@@ -227,12 +228,8 @@ export async function verify(
     for (const v in guids[c]) {
       for (;;) {
         if (v === 'etherscan') {
-          // Etherscan v2 requires chainid as a query string parameter
-          const etherscanStatusUrl = new URL(etherscanApi);
-          etherscanStatusUrl.searchParams.set('chainid', chainId.toString());
-
           const res = await axios.post(
-            etherscanStatusUrl.toString(),
+            etherscanUrl.toString(),
             {
               apiKey: cliSettings.etherscanApiKey,
               module: 'contract',
