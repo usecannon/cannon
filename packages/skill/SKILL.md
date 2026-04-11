@@ -1,23 +1,6 @@
 ---
 name: cannon
 description: Cannon package manager for Ethereum deployments. Use when building, testing, deploying, or inspecting Cannon packages. Covers cannonfile syntax, CLI commands (build, run, test, publish, inspect), actions (deploy, invoke, clone, pull, router, diamond), and package workflows. NOT for general Solidity development questions.
-env:
-  CANNON_PRIVATE_KEY:
-    description: Private key for signing on-chain transactions (deploy, publish, register). Required for non-dry-run operations on real networks.
-    required: false
-    sensitive: true
-  RPC_URL:
-    description: Ethereum RPC endpoint URL for target chain. Required for non-local deployments and publish operations.
-    required: false
-    sensitive: false
-  ETHERSCAN_API_KEY:
-    description: Etherscan API key for contract verification (cannon verify). Required for verifying deployed contracts on Etherscan-supported chains.
-    required: false
-    sensitive: true
-  CANNON_DIRECTORY:
-    description: Custom directory for Cannon package storage and build artifacts. Defaults to ~/.local/share/cannon/ if not set.
-    required: false
-    sensitive: false
 ---
 
 # Cannon
@@ -81,6 +64,17 @@ node --version && pnpm --version
 forge --version && anvil --version
 cannon --version
 ```
+
+## Environment Variables
+
+Cannon CLI recognizes the following environment variables. All Cannon-specific environment variables use the `CANNON_` prefix.
+
+| Variable | Description |
+|----------|------------|
+| `CANNON_PRIVATE_KEY` | Private key for signing on-chain transactions (deploy, publish, register). Required for non-dry-run operations on real networks. |
+| `CANNON_RPC_URL` | Ethereum RPC endpoint URL for target chain. Required for non-local deployments and publish operations. |
+| `CANNON_ETHERSCAN_API_KEY` | Etherscan API key for contract verification (`cannon verify`). Required for verifying deployed contracts on Etherscan-supported chains. |
+| `CANNON_DIRECTORY` | Custom directory for Cannon package storage and build artifacts. Defaults to `~/.local/share/cannon/` if not set. |
 
 ## Quick Reference
 
