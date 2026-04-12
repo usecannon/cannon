@@ -40,7 +40,7 @@ export async function alter(
     | 'clean-unused',
   targets: string[],
   runtimeOverrides: Partial<ChainBuilderRuntime>,
-  populateMissing: boolean = false
+  populateMissing = false
 ) {
   const { fullPackageRef } = new PackageReference(packageRef);
 
@@ -88,16 +88,20 @@ export async function alter(
     const parentDeployInfo = _.last(startDeployInfo);
     if (!parentDeployInfo?.state[pathItem]) {
       if (!populateMissing) {
-        throw new Error('subpkg path name not found: ' + pathItem + '. Use --populate-missing to auto-populate missing subpackages.');
+        throw new Error(
+          'subpkg path name not found: ' +
+            pathItem +
+            '. Use --populate-missing to auto-populate missing subpackages.'
+        );
       }
       debug('auto-populating missing subpkg', pathItem);
       const subpkgName = pathItem.split('.')[1];
-      parentDeployInfo.state[pathItem] = {
+      parentDeployInfo!.state[pathItem] = {
         artifacts: { contracts: {}, txns: {}, extras: {}, imports: { [subpkgName]: { url: '' } } },
-        hash: 'SKIP',
+        hash: 'SKIP' as const,
         version: BUILD_VERSION,
       };
-      startDeployInfo.push({ def: {}, state: {}, options: {} });
+      startDeployInfo.push({ def: { name: '', version: '' }, state: {}, options: {} });
     } else {
       startDeployInfo.push(
         await runtime.readBlob(parentDeployInfo.state[pathItem].artifacts.imports![pathItem.split('.')[1]].url)
@@ -203,16 +207,18 @@ export async function alter(
         // synthesize a minimal config from the transaction receipts so that
         // importExisting can still record the txns (events won't be decoded).
         if (!configResolved && !config.target && populateMissing) {
-          const receipts = await Promise.all(existingKeys.map((key) => runtime.provider.getTransactionReceipt({ hash: key })));
+          const receipts = await Promise.all(
+            existingKeys.map((key) => runtime.provider.getTransactionReceipt({ hash: key as `0x${string}` }))
+          );
           config.target = receipts.map((r) => r.to);
           config.abi = '[]';
         }
 
-        let pkgRef;
+        let pkgRef: PackageReference | null;
         try {
           pkgRef = def.getPackageRef(ctx);
         } catch {
-          pkgRef = fullPackageRef;
+          pkgRef = new PackageReference(fullPackageRef);
         }
 
         // some steps may require access to misc artifacts
