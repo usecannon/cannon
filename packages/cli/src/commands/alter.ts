@@ -99,7 +99,15 @@ export async function alter(
         hash: 'SKIP' as const,
         version: BUILD_VERSION,
       };
-      startDeployInfo.push({ def: { name: '', version: '' }, state: {}, options: {} } as DeploymentInfo);
+      startDeployInfo.push({
+        generator: 'cannon-placeholder' as `cannon ${string}`,
+        timestamp: Math.floor(Date.now() / 1000),
+        def: { name: 'placeholder', version: '0.0.0' },
+        state: {},
+        options: {},
+        meta: null,
+        miscUrl: '',
+      });
     } else {
       startDeployInfo.push(
         await runtime.readBlob(parentDeployInfo.state[pathItem].artifacts.imports![pathItem.split('.')[1]].url)
