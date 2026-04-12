@@ -22,6 +22,12 @@ The storage contract is deployed at a deterministic address using CREATE2, ensur
 0x14570ce88f490a80342cc156a6a0ebc173609f5e
 ```
 
+<Alert variant="info">
+  <AlertDescription>
+    This contract is automatically deployed by the Cannon CLI if it doesn't already exist on the target chain.
+  </AlertDescription>
+</Alert>
+
 ### The Storage Contract
 
 The on-chain storage is a minimal contract with a simple interface:
@@ -43,12 +49,9 @@ contract Storage {
 **Key points:**
 - Each deployer has their own namespace (keyed by their address)
 - The key is `keccak256(packageName@preset)`
-- The value is `timestamp_ipfsUrl`
+- The value is in the format `timestamp_ipfsUrl`
 
-This design ensures:
-1. **Privacy by default**: Only you can see your own deployment records
-2. **No permission required**: Anyone can write to their own namespace
-3. **Tamper-proof**: Records are immutable once written
+The on-chain records contract provides a way to indicate on-chain what deployment was completed by the deployer. Each deployer's records are namespaced by their address, allowing Cannon to look up previous deployments for any given package and preset.
 
 ### Automatic Upgrade Detection
 
@@ -64,7 +67,7 @@ This means you can upgrade your protocol simply by:
 # First deployment
 cannon build --rpc-url https://eth-mainnet.example.com
 
-# Later upgrade (Cannon automatically finds the previous deployment)
+# Later upgrade: Repeat the same command
 cannon build --rpc-url https://eth-mainnet.example.com
 ```
 
@@ -80,22 +83,18 @@ deployers = [
     "0x5678...efgh",  # Previous deployer 2
 ]
 
-[contract.MyContract]
+[deploy.MyContract]
 artifact = "MyContract"
 ```
+
+For reproducibility, it is recommended to explicitly specify the list of deployers that may be used for a release.
 
 This is useful when:
 - **Ownership has transferred**: New deployers can pick up where previous ones left off
 - **Multi-sig deployments**: You want Cannon to recognize deployments from any authorized signer
 - **Team deployments**: Multiple team members can upgrade the same package
 
-### When to Disable It
-
-There are scenarios where you might want to skip writing the upgrade attestation:
-
-1. **Read-only RPC**: Building against a node that doesn't accept transactions
-2. **Gas optimization**: You're doing a one-off build and don't need upgrade tracking
-3. **Custom upgrade flow**: You're managing upgrades through a different mechanism
+### How to Disable Upgrade Attestation
 
 To disable the on-chain attestation:
 
