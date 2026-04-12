@@ -60,6 +60,10 @@ export async function verify(
 
   const etherscanApi = cliSettings.etherscanApiUrl || ETHERSCAN_DEFAULT_SERVER_URL;
 
+  // Etherscan v2 requires chainid as a query string parameter
+  const etherscanUrl = new URL(etherscanApi);
+  etherscanUrl.searchParams.set('chainid', chainId.toString());
+
   if (service === 'etherscan' || (service === 'all' && !cliSettings.etherscanApiKey)) {
     log('Using generic API key for Etherscan. If this is incorrect, specify CANNON_ETHERSCAN_API_KEY');
   }
@@ -109,6 +113,7 @@ export async function verify(
 
       // supply any linked libraries within the inputs since those are calculated at runtime
       const inputData = JSON.parse(contractArtifact.source.input);
+      delete inputData.settings.compilationTarget;
       _.set(inputData, 'settings.libraries', contractInfo.linkedLibraries);
 
       if (service === 'etherscan' || service === 'all') {
@@ -118,9 +123,9 @@ export async function verify(
           try {
             const reqData: { [k: string]: string } = {
               apikey: cliSettings.etherscanApiKey,
-              chainid: chainId.toString(),
               module: 'contract',
               action: 'verifysourcecode',
+              chainid: chainId.toString(),
               contractaddress: contractInfo.address,
               // need to parse to get the inner structure, then stringify again
               sourceCode: JSON.stringify(inputData),
@@ -139,7 +144,7 @@ export async function verify(
 
             debug('verification request', reqData);
 
-            const res = await axios.post(etherscanApi, reqData, {
+            const res = await axios.post(etherscanUrl.toString(), reqData, {
               headers: {
                 'content-type': 'application/x-www-form-urlencoded',
                 'User-Agent': 'Cannon CLI',
@@ -151,7 +156,7 @@ export async function verify(
               logSpinner(`Etherscan: ${c} (${contractInfo.address}):\tCannot verify:`, res.data.result);
             } else {
               logSpinner(`Etherscan: ${c} (${contractInfo.address}):\tSubmitted verification (${res.data.result})`);
-              guids[c]['etherscan'] = res.data.result;
+              _.set(guids, [c, 'etherscan'], res.data.result);
             }
           } catch (err) {
             logSpinner(`Etherscan: ${c} (${contractInfo.address}): Verification request failed:`, err);
@@ -224,12 +229,12 @@ export async function verify(
       for (;;) {
         if (v === 'etherscan') {
           const res = await axios.post(
-            etherscanApi,
+            etherscanUrl.toString(),
             {
               apiKey: cliSettings.etherscanApiKey,
               module: 'contract',
               action: 'checkverifystatus',
-              guid: guids[c],
+              guid: guids[c]['etherscan'],
             },
             {
               headers: {
