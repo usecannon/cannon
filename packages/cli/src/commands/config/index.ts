@@ -275,6 +275,11 @@ export const commandsConfig: CommandsConfig = {
         flags: '--provider-url [url]',
         description: '(DEPRECATED) RPC endpoint to fork off of. Use --rpc-url',
       },
+      {
+        flags: '--populate-missing',
+        description:
+          'Allow populating missing subpackages and step definitions. Use when altering a package that has not been fully generated.',
+      },
       ...debugVerbosity,
     ],
   },

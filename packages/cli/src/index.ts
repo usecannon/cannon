@@ -361,7 +361,8 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
       {},
       command,
       options,
-      {}
+      {},
+      flags.populateMissing || false
     );
 
     logSpinner(newUrl);
