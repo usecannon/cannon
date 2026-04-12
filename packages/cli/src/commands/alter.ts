@@ -89,9 +89,7 @@ export async function alter(
     if (!parentDeployInfo?.state[pathItem]) {
       if (!populateMissing) {
         throw new Error(
-          'subpkg path name not found: ' +
-            pathItem +
-            '. Use --populate-missing to auto-populate missing subpackages.'
+          'subpkg path name not found: ' + pathItem + '. Use --populate-missing to auto-populate missing subpackages.'
         );
       }
       debug('auto-populating missing subpkg', pathItem);
@@ -101,7 +99,7 @@ export async function alter(
         hash: 'SKIP' as const,
         version: BUILD_VERSION,
       };
-      startDeployInfo.push({ def: { name: '', version: '' }, state: {}, options: {} });
+      startDeployInfo.push({ def: { name: '', version: '' }, state: {}, options: {} } as DeploymentInfo);
     } else {
       startDeployInfo.push(
         await runtime.readBlob(parentDeployInfo.state[pathItem].artifacts.imports![pathItem.split('.')[1]].url)
