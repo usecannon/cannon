@@ -21,7 +21,7 @@ import {
   getMergedAbiFromContractPaths,
 } from '../util';
 import { template, getTemplateMatches, isTemplateString } from '../utils/template';
-import { getBlockRetried } from '../helpers';
+import { getBlockRetried, sendTransactionWithNonceRetry } from '../helpers';
 import { isStepPath, isStepName } from '../utils/matchers';
 import { CannonAction } from '../actions';
 
@@ -142,23 +142,27 @@ async function runTxn(
 
     const callSigner = await runtime.getSigner(address);
 
-    const preparedTxn = await runtime.provider.prepareTransactionRequest({
-      account: callSigner.wallet.account || callSigner.address,
-      to: contract.address,
-      data: encodeFunctionData({ abi: [neededFuncAbi], functionName: neededFuncAbi.name, args: config.args }),
-      value: config.value,
-      ...overrides,
+    txn = await sendTransactionWithNonceRetry(callSigner, runtime.chainId, async () => {
+      const preparedTxn = await runtime.provider.prepareTransactionRequest({
+        account: callSigner.wallet.account || callSigner.address,
+        to: contract.address,
+        data: encodeFunctionData({ abi: [neededFuncAbi], functionName: neededFuncAbi.name, args: config.args }),
+        value: config.value,
+        ...overrides,
+      });
+      return callSigner.wallet.sendTransaction(preparedTxn as any);
     });
-    txn = await callSigner.wallet.sendTransaction(preparedTxn as any);
   } else {
-    const preparedTxn = await runtime.provider.prepareTransactionRequest({
-      account: signer.wallet.account || signer.address,
-      to: contract.address,
-      data: encodeFunctionData({ abi: [neededFuncAbi], functionName: neededFuncAbi.name, args: config.args }),
-      value: config.value,
-      ...overrides,
+    txn = await sendTransactionWithNonceRetry(signer, runtime.chainId, async () => {
+      const preparedTxn = await runtime.provider.prepareTransactionRequest({
+        account: signer.wallet.account || signer.address,
+        to: contract.address,
+        data: encodeFunctionData({ abi: [neededFuncAbi], functionName: neededFuncAbi.name, args: config.args }),
+        value: config.value,
+        ...overrides,
+      });
+      return signer.wallet.sendTransaction(preparedTxn as any);
     });
-    txn = await signer.wallet.sendTransaction(preparedTxn as any);
   }
 
   const receipt = await runtime.provider.waitForTransactionReceipt({ hash: txn });

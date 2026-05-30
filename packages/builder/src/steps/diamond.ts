@@ -4,6 +4,7 @@ import * as viem from 'viem';
 import { z } from 'zod';
 import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
 import { mergeTemplateAccesses } from '../access-recorder';
+import { sendTransactionWithNonceRetry } from '../helpers';
 import { ChainBuilderRuntime } from '../runtime';
 import { diamondSchema } from '../schemas';
 import { ContractArtifact, ContractMap, PackageState } from '../types';
@@ -170,7 +171,7 @@ const diamondStep = {
     ]);
 
     // finally, do the cut operation
-    const updateFacets = [];
+    const updateFacets: any[] = [];
 
     for (const facetName of deployedContracts) {
       updateFacets.push({
@@ -194,18 +195,19 @@ const diamondStep = {
 
     // todo: what to do about the owner of the proxy changing unexpectedly?
     try {
-      const preparedTxn = await runtime.provider.prepareTransactionRequest({
-        account: ownerSigner.wallet.account || ownerSigner.address,
-        to: proxyAddress,
-        data: viem.encodeFunctionData({
-          abi: (await import('../abis/diamond/DiamondWipeAndPaveFacet.json')).abi,
-          functionName: 'diamondWipeAndPave',
-          args: [updateFacets, config.diamondArgs.init, config.diamondArgs.initCalldata],
-        }),
-        ...config.overrides,
-      } as any);
-
-      const txn = await ownerSigner.wallet.sendTransaction(preparedTxn as any);
+      const txn = await sendTransactionWithNonceRetry(ownerSigner, runtime.chainId, async () => {
+        const preparedTxn = await runtime.provider.prepareTransactionRequest({
+          account: ownerSigner.wallet.account || ownerSigner.address,
+          to: proxyAddress,
+          data: viem.encodeFunctionData({
+            abi: (await import('../abis/diamond/DiamondWipeAndPaveFacet.json')).abi,
+            functionName: 'diamondWipeAndPave',
+            args: [updateFacets, config.diamondArgs.init, config.diamondArgs.initCalldata],
+          }),
+          ...config.overrides,
+        } as any);
+        return ownerSigner.wallet.sendTransaction(preparedTxn as any);
+      });
 
       const receipt = await runtime.provider.waitForTransactionReceipt({ hash: txn });
       debug('got receipt', receipt);
@@ -298,8 +300,10 @@ async function firstTimeDeploy(
     const bytecode = await runtime.provider.getCode({ address: addr });
 
     if (!bytecode) {
-      const hash = await signer.wallet.sendTransaction(
-        _.assign({ account: signer.wallet.account || signer.address }, create2Txn as any)
+      const hash = await sendTransactionWithNonceRetry(signer, runtime.chainId, async () =>
+        signer.wallet.sendTransaction(
+          _.assign({ account: signer.wallet.account || signer.address }, create2Txn as any)
+        )
       );
       const receipt = await runtime.provider.waitForTransactionReceipt({ hash });
       const block = await runtime.provider.getBlock({ blockHash: receipt.blockHash });

@@ -10,7 +10,7 @@ import { ChainArtifacts, ChainBuilderContext, ContractArtifact } from '../types'
 import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 import { template } from '../utils/template';
 import { CannonAction } from '../actions';
-import { getBlockRetried } from '../helpers';
+import { getBlockRetried, sendTransactionWithNonceRetry } from '../helpers';
 
 const debug = Debug('cannon:builder:deploy');
 
@@ -315,8 +315,10 @@ const deploySpec = {
           const fullCreate2Txn = _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
           debug('final create2 txn', fullCreate2Txn);
 
-          const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
-          const hash = await signer.wallet.sendTransaction(preparedTxn as any);
+          const hash = await sendTransactionWithNonceRetry(signer, runtime.chainId, async () => {
+            const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
+            return signer.wallet.sendTransaction(preparedTxn as any);
+          });
           receipt = await runtime.provider.waitForTransactionReceipt({ hash });
           debug('arachnid create2 complete', receipt);
         }
@@ -365,11 +367,12 @@ const deploySpec = {
               'The CREATE2 contract seems to be failing in the constructor. However, we were not able to get a stack trace.'
             );
           } else {
-            const preparedTxn = await runtime.provider.prepareTransactionRequest(
-              _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
-            );
-
-            const hash = await signer.wallet.sendTransaction(preparedTxn as any);
+            const hash = await sendTransactionWithNonceRetry(signer, runtime.chainId, async () => {
+              const preparedTxn = await runtime.provider.prepareTransactionRequest(
+                _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
+              );
+              return signer.wallet.sendTransaction(preparedTxn as any);
+            });
             receipt = await runtime.provider.waitForTransactionReceipt({ hash });
             deployAddress = receipt.contractAddress!;
           }
