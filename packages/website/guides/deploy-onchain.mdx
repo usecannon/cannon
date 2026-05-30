@@ -68,6 +68,18 @@ cannon build --rpc-url https://rpc2.sepolia.org --private-key 0xd8...ad
 
 This will deploy your Cannon project on the Sepolia network. The output will look almost the same as the local network build from the previous guide.
 
+### Deploying against strict-ordering RPCs
+
+Some RPC providers enforce strict nonce ordering or serve `eth_getTransactionCount` from eventually-consistent / load-balanced replicas. On such endpoints a freshly-read pending nonce can briefly lag an already-submitted transaction. Cannon assigns nonces to live signers through a [viem nonce manager](https://viem.sh/docs/accounts/local/createNonceManager) and retries nonce-class broadcast errors automatically.
+
+If a deploy still aborts partway through, it is safe to re-run it — Cannon resumes where it stopped:
+
+```bash
+cannon build ... --upgrade-from <name:version>
+```
+
+Re-run until the build reports **0 skipped steps**.
+
   </TabsContent>
   <TabsContent value="hardhat">
   *Coming soon.*
