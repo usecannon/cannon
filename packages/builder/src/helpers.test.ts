@@ -1,5 +1,11 @@
 import * as viem from 'viem';
-import { getDefaultStorage, getCannonContract, getBlockRetried } from './helpers';
+import {
+  getDefaultStorage,
+  getCannonContract,
+  getBlockRetried,
+  isNonceError,
+  sendTransactionWithNonceRetry,
+} from './helpers';
 import { IPFSLoader, InMemoryLoader } from './loader';
 import { InMemoryRegistry, FallbackRegistry } from './registry';
 import { CannonStorage } from './runtime';
@@ -112,5 +118,48 @@ describe('helpers.test.ts', () => {
 
       expect(contract.address).toEqual('0x1234123412341234123412341234123412341234');
     });
+  });
+});
+
+describe('isNonceError', () => {
+  it('matches viem nonce error messages, including nested causes', () => {
+    expect(isNonceError(new Error('nonce too low: next nonce 5, tx nonce 4'))).toBe(true);
+    expect(isNonceError(new Error('Nonce provided for the transaction is higher'))).toBe(true);
+    expect(isNonceError({ cause: { details: 'nonce too low' } } as any)).toBe(true);
+    expect(isNonceError(new Error('execution reverted'))).toBe(false);
+    expect(isNonceError(undefined)).toBe(false);
+  });
+});
+
+describe('sendTransactionWithNonceRetry', () => {
+  function fakeSigner() {
+    const reset = jest.fn();
+    const signer = {
+      address: '0x000000000000000000000000000000000000abcd',
+      wallet: { account: { address: '0x000000000000000000000000000000000000abcd', nonceManager: { reset } } },
+    } as any;
+    return { signer, reset };
+  }
+
+  it('retries a nonce-too-low failure then resolves, resetting the nonce manager', async () => {
+    const { signer, reset } = fakeSigner();
+    const send = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('nonce too low: next nonce 5, tx nonce 4'))
+      .mockResolvedValueOnce('0xhash');
+
+    const hash = await sendTransactionWithNonceRetry(signer, 6343, send);
+
+    expect(hash).toBe('0xhash');
+    expect(send).toHaveBeenCalledTimes(2);
+    expect(reset).toHaveBeenCalledWith({ address: signer.address, chainId: 6343 });
+  });
+
+  it('rethrows a non-nonce error without retrying', async () => {
+    const { signer } = fakeSigner();
+    const send = jest.fn().mockRejectedValue(new Error('execution reverted: boom'));
+
+    await expect(sendTransactionWithNonceRetry(signer, 6343, send)).rejects.toThrow('execution reverted');
+    expect(send).toHaveBeenCalledTimes(1);
   });
 });

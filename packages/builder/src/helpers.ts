@@ -8,6 +8,7 @@ import { PackageReference } from './package-reference';
 import { OnChainRegistry, FallbackRegistry, InMemoryRegistry } from './registry';
 import { CannonStorage } from './runtime';
 import { getContractFromPath } from './util';
+import type { CannonSigner } from './types';
 
 export function getDefaultStorage() {
   const registryChainIds = DEFAULT_REGISTRY_CONFIG.map((registry) => registry.chainId);
@@ -76,4 +77,43 @@ export async function getBlockRetried(provider: viem.PublicClient, blockHash: vi
   return await promiseRetry({ retries: 5, minTimeout: 50 }, (retry) => {
     return provider.getBlock({ blockHash }).catch(retry);
   });
+}
+
+const NONCE_ERROR_RE =
+  /nonce too low|nonce too high|nonce provided.*is (?:too )?(?:low|high|higher|lower)|invalid (?:transaction )?nonce|replacement transaction underpriced|already known/i;
+
+// Detects whether an error (or any error in its `cause` chain) is a nonce-related RPC error.
+// viem wraps RPC errors, so the underlying message can live a few levels down in `.cause`.
+export function isNonceError(err: unknown): boolean {
+  let e: any = err;
+  for (let i = 0; e && i < 5; i++) {
+    const msg = e.details ?? e.shortMessage ?? e.message ?? '';
+    if (NONCE_ERROR_RE.test(String(msg))) return true;
+    e = e.cause;
+  }
+  return false;
+}
+
+// Defense-in-depth around a broadcast: runs the prepare+send closure and, on a nonce-class
+// error, resets the signer's viem nonce manager (so the next prepare re-reads the chain) and
+// retries with exponential backoff. The closure is responsible for (re-)preparing the
+// transaction each attempt so a fresh nonce is assigned. Non-nonce errors propagate immediately,
+// so the happy path is unchanged.
+export async function sendTransactionWithNonceRetry(
+  signer: CannonSigner,
+  chainId: number,
+  prepareAndSend: () => Promise<viem.Hash>
+): Promise<viem.Hash> {
+  return (await promiseRetry({ retries: 3, minTimeout: 250, factor: 2 }, (retry) =>
+    prepareAndSend().catch((err: unknown) => {
+      if (!isNonceError(err)) throw err;
+      const account: any = (signer.wallet as any).account;
+      try {
+        account?.nonceManager?.reset?.({ address: account.address, chainId });
+      } catch {
+        // best-effort: the nonce manager re-reads the chain on the next prepare regardless
+      }
+      return retry(err);
+    })
+  )) as viem.Hash;
 }
