@@ -87,11 +87,7 @@ export const getChainIdFromRpcUrl = async (rpcUrl: string) => {
 // assignment is serialized per (address, chainId) and never regresses below an already-used
 // nonce. This prevents "nonce too low" on strict-ordering / eventually-consistent RPCs where a
 // fresh eth_getTransactionCount('pending') read can lag an already-submitted transaction.
-export function createPrivateKeySigner(
-  privateKey: viem.Hex,
-  chainId: number,
-  transport: viem.Transport
-): CannonSigner {
+export function createPrivateKeySigner(privateKey: viem.Hex, chainId: number, transport: viem.Transport): CannonSigner {
   const account = privateKeyToAccount(privateKey, { nonceManager });
   return {
     address: account.address,
@@ -258,9 +254,9 @@ export async function resolveProviderAndSigners({
 
     if (privateKey && action !== ProviderAction.WriteDryRunProvider) {
       signers.push(
-        ...privateKey.split(',').map((k: string) =>
-          createPrivateKeySigner(k as viem.Hex, chainId!, viem.custom(publicClient.transport))
-        )
+        ...privateKey
+          .split(',')
+          .map((k: string) => createPrivateKeySigner(k as viem.Hex, chainId!, viem.custom(publicClient.transport)))
       );
     } else {
       debug('no signer supplied for provider');

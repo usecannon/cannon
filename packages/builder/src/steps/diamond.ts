@@ -301,9 +301,7 @@ async function firstTimeDeploy(
 
     if (!bytecode) {
       const hash = await sendTransactionWithNonceRetry(signer, runtime.chainId, async () =>
-        signer.wallet.sendTransaction(
-          _.assign({ account: signer.wallet.account || signer.address }, create2Txn as any)
-        )
+        signer.wallet.sendTransaction(_.assign({ account: signer.wallet.account || signer.address }, create2Txn as any))
       );
       const receipt = await runtime.provider.waitForTransactionReceipt({ hash });
       const block = await runtime.provider.getBlock({ blockHash: receipt.blockHash });
