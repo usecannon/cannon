@@ -80,7 +80,7 @@ export async function getBlockRetried(provider: viem.PublicClient, blockHash: vi
 }
 
 const NONCE_ERROR_RE =
-  /nonce too low|nonce too high|nonce provided.*is (?:too )?(?:low|high|higher|lower)|invalid (?:transaction )?nonce|replacement transaction underpriced|already known/i;
+  /nonce too low|nonce too high|nonce provided.*is (?:too )?(?:low|high|higher|lower)|invalid (?:transaction )?nonce|replacement transaction underpriced|(?:transaction|tx).*already known|already known.*(?:transaction|tx)/i;
 
 // Detects whether an error (or any error in its `cause` chain) is a nonce-related RPC error.
 // viem wraps RPC errors, so the underlying message can live a few levels down in `.cause`.

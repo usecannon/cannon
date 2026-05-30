@@ -129,6 +129,13 @@ describe('isNonceError', () => {
     expect(isNonceError(new Error('execution reverted'))).toBe(false);
     expect(isNonceError(undefined)).toBe(false);
   });
+
+  it('matches "already known" only in a transaction context', () => {
+    expect(isNonceError(new Error('transaction already known'))).toBe(true);
+    expect(isNonceError(new Error('already known transaction (hash 0x123)'))).toBe(true);
+    // must not retry unrelated "already known" failures
+    expect(isNonceError(new Error('contract already known in registry'))).toBe(false);
+  });
 });
 
 describe('sendTransactionWithNonceRetry', () => {
@@ -161,5 +168,18 @@ describe('sendTransactionWithNonceRetry', () => {
 
     await expect(sendTransactionWithNonceRetry(signer, 6343, send)).rejects.toThrow('execution reverted');
     expect(send).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects with the last error after all retries are exhausted', async () => {
+    const { signer } = fakeSigner();
+    const send = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('nonce too low: next nonce 5, tx nonce 4'))
+      .mockRejectedValueOnce(new Error('nonce too low: next nonce 6, tx nonce 5'))
+      .mockRejectedValueOnce(new Error('nonce too low: next nonce 7, tx nonce 6'))
+      .mockRejectedValueOnce(new Error('nonce too low: next nonce 8, tx nonce 7'));
+
+    await expect(sendTransactionWithNonceRetry(signer, 6343, send)).rejects.toThrow('nonce too low');
+    expect(send).toHaveBeenCalledTimes(4); // 1 initial + 3 retries
   });
 });
