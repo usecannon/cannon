@@ -1,4 +1,6 @@
-import { hideApiKey } from './provider';
+import * as viem from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { createPrivateKeySigner, hideApiKey } from './provider';
 
 describe('hideApiKey', () => {
   test('should mask llamanodes api token', () => {
@@ -29,5 +31,20 @@ describe('hideApiKey', () => {
     const url = 'not a valid url';
     const result = hideApiKey(url);
     expect(result).toBe('not a valid url');
+  });
+});
+
+describe('createPrivateKeySigner', () => {
+  // anvil dev key #1 (well-known, test-only)
+  const pk = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' as viem.Hex;
+
+  it('attaches a viem nonceManager to the live signer account', () => {
+    const signer = createPrivateKeySigner(pk, 1, viem.http('http://localhost:8545'));
+    expect((signer.wallet.account as any)?.nonceManager).toBeDefined();
+  });
+
+  it('derives the address from the private key', () => {
+    const signer = createPrivateKeySigner(pk, 1, viem.http('http://localhost:8545'));
+    expect(signer.address).toBe(privateKeyToAccount(pk).address);
   });
 });
