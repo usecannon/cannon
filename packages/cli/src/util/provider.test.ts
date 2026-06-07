@@ -38,9 +38,10 @@ describe('createPrivateKeySigner', () => {
   // anvil dev key #1 (well-known, test-only)
   const pk = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' as viem.Hex;
 
-  it('attaches a viem nonceManager to the live signer account', () => {
+  it('attaches a viem nonce manager to the live signer account', () => {
     const signer = createPrivateKeySigner(pk, 1, viem.http('http://localhost:8545'));
-    expect((signer.wallet.account as any)?.nonceManager).toBeDefined();
+    const account = signer.wallet.account;
+    expect(account?.type === 'local' ? account.nonceManager : undefined).toBeDefined();
   });
 
   it('derives the address from the private key', () => {

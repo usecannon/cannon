@@ -3,7 +3,8 @@ import * as viem from 'viem';
 import prompts from 'prompts';
 import { bold, red, grey } from 'chalk';
 import provider from 'eth-provider';
-import { privateKeyToAccount, nonceManager } from 'viem/accounts';
+import { privateKeyToAccount } from 'viem/accounts';
+import { createNonceManager, jsonRpc } from 'viem/nonce';
 import { CannonSigner, traceActions } from '@usecannon/builder';
 
 import { logSpinner, errorSpinner, logSpinnerStart, logSpinnerEnd } from './console';
@@ -83,12 +84,14 @@ export const getChainIdFromRpcUrl = async (rpcUrl: string) => {
   return provider.getChainId();
 };
 
-// Builds a live signer from a private key with a viem nonceManager attached, so that nonce
+// Builds a live signer from a private key with a viem nonce manager attached, so that nonce
 // assignment is serialized per (address, chainId) and never regresses below an already-used
 // nonce. This prevents "nonce too low" on strict-ordering / eventually-consistent RPCs where a
 // fresh eth_getTransactionCount('pending') read can lag an already-submitted transaction.
+// The manager's jsonRpc source has no RPC of its own: it issues eth_getTransactionCount through
+// the wallet client created below, i.e. over the same `transport` the transactions are sent on.
 export function createPrivateKeySigner(privateKey: viem.Hex, chainId: number, transport: viem.Transport): CannonSigner {
-  const account = privateKeyToAccount(privateKey, { nonceManager });
+  const account = privateKeyToAccount(privateKey, { nonceManager: createNonceManager({ source: jsonRpc() }) });
   return {
     address: account.address,
     wallet: viem.createWalletClient({
@@ -256,7 +259,7 @@ export async function resolveProviderAndSigners({
       signers.push(
         ...privateKey
           .split(',')
-          .map((k: string) => createPrivateKeySigner(k as viem.Hex, chainId!, viem.custom(publicClient.transport)))
+          .map((k: string) => createPrivateKeySigner(k as viem.Hex, chainId, viem.custom(publicClient.transport)))
       );
     } else {
       debug('no signer supplied for provider');
@@ -282,7 +285,7 @@ export async function resolveProviderAndSigners({
             signers.push(
               createPrivateKeySigner(
                 normalizePrivateKey(keyPrompt.value as viem.Hex),
-                chainId!,
+                chainId,
                 viem.custom(publicClient.transport)
               )
             );
