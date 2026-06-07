@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { createPublicClient, http } from 'viem';
+import { createPublicClient, http, Address } from 'viem';
 import { convertToFormatEther } from '@/lib/transaction';
 import { Chain } from '@/types/Chain';
 
 type AddressOverviewProps = {
   chain: Chain;
-  address: string | undefined;
+  address: Address | undefined;
 };
 
 const AddressOverview: React.FC<AddressOverviewProps> = ({

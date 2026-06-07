@@ -7,7 +7,6 @@ import NextTopLoader from 'nextjs-toploader';
 import { Inter, Miriam_Libre, Roboto_Mono, Outfit } from 'next/font/google';
 import { ReactElement, useEffect } from 'react';
 import Providers from './_providers';
-import { DefaultSeo } from 'next-seo';
 import '@/styles/globals.css';
 import defaultSEO from '@/constants/defaultSeo';
 import dynamic from 'next/dynamic';
@@ -76,7 +75,6 @@ export default function RootLayout({
 
   return (
     <div>
-      <DefaultSeo {...defaultSEO} />
       <style jsx global>
         {`
           :root {

@@ -48,7 +48,7 @@ export function useSafeBuildTx({
   prevDeployHashQuery,
   queuedWithGitOps,
 }: Props) {
-  const chainDefinitionRef = useRef<ChainDefinition>();
+  const chainDefinitionRef = useRef<ChainDefinition | null>(null);
   const buildInfo = useCannonBuild(safeDefinition);
 
   // git stuff

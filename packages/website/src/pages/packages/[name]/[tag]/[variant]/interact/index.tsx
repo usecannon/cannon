@@ -1,7 +1,5 @@
 import { ReactElement } from 'react';
 import NameTagVariantLayout from '../NameTagVariantLayout';
-import { NextSeo } from 'next-seo';
-import defaultSEO from '@/constants/defaultSeo';
 import { usePackageNameTagVersionUrlParams } from '@/hooks/routing/usePackageVersionUrlParams';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import InteractComponent from '@/features/Packages/interact/Interact';
@@ -53,16 +51,6 @@ export default function Interact() {
 
   return (
     <>
-      <NextSeo
-        {...defaultSEO}
-        title={metadata.title}
-        description={metadata.description}
-        openGraph={{
-          ...defaultSEO.openGraph,
-          title: metadata.title,
-          description: metadata.description,
-        }}
-      />
       <InteractComponent />
     </>
   );

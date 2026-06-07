@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { tabs, TabId } from '@/lib/address';
 import Link from 'next/link';
 import { CustomSpinner } from '@/components/CustomSpinner';
+import { getAddress } from 'viem';
 
 const AddressPage = () => {
   const router = useRouter();
@@ -22,7 +23,7 @@ const AddressPage = () => {
   const [activeTab, setActiveTab] = useState<TabId>('transactions');
   const { getChainById } = useCannonChains();
   const chain = getChainById(Number(chainId));
-  const displayAddress = Array.isArray(address) ? address[0] : address;
+  const displayAddress = getAddress(Array.isArray(address) ? address[0] : address || '');
 
   const {
     data: transactionData,

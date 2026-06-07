@@ -13,10 +13,10 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
@@ -42,8 +42,9 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".contentlayer/generated",
-    "../../../../../Desktop/new.ts"
-, "vitest.config.mjs"  ],
+    "../../../../../Desktop/new.ts",
+    "vitest.config.mjs"
+  ],
   "exclude": [
     "node_modules"
   ]
