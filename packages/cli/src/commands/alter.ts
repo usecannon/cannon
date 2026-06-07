@@ -40,6 +40,7 @@ export async function alter(
     | 'clean-unused',
   targets: string[],
   runtimeOverrides: Partial<ChainBuilderRuntime>,
+  populateMissing = false,
 ) {
   const { fullPackageRef } = new PackageReference(packageRef);
 
@@ -84,12 +85,34 @@ export async function alter(
 
   for (const pathItem of subpkg) {
     debug('load subpkg', pathItem);
-    if (!last(startDeployInfo)?.state[pathItem]) {
-      throw new Error('subpkg path name not found: ' + pathItem);
+    const parentDeployInfo = last(startDeployInfo);
+    if (!parentDeployInfo?.state[pathItem]) {
+      if (!populateMissing) {
+        throw new Error(
+          'subpkg path name not found: ' + pathItem + '. Use --populate-missing to auto-populate missing subpackages.'
+        );
+      }
+      debug('auto-populating missing subpkg', pathItem);
+      const subpkgName = pathItem.split('.')[1];
+      parentDeployInfo!.state[pathItem] = {
+        artifacts: { contracts: {}, txns: {}, extras: {}, imports: { [subpkgName]: { url: '' } } },
+        hash: 'SKIP' as const,
+        version: BUILD_VERSION,
+      };
+      startDeployInfo.push({
+        generator: 'cannon-placeholder' as `cannon ${string}`,
+        timestamp: Math.floor(Date.now() / 1000),
+        def: { name: 'placeholder', version: '0.0.0' },
+        state: {},
+        options: {},
+        meta: null,
+        miscUrl: '',
+      });
+    } else {
+      startDeployInfo.push(
+        await runtime.readBlob(parentDeployInfo.state[pathItem].artifacts.imports![pathItem.split('.')[1]].url)
+      );
     }
-    startDeployInfo.push(
-      await runtime.readBlob(last(startDeployInfo)!.state[pathItem].artifacts.imports![pathItem.split('.')[1]].url),
-    );
   }
 
   let deployInfo = startDeployInfo.pop();
@@ -177,21 +200,58 @@ export async function alter(
         }
 
         const def = new ChainDefinition(deployInfo.def);
-        const config = def.getConfig(stepName, ctx);
+        let config;
+        let configResolved = true;
+        try {
+          config = def.getConfig(stepName, ctx);
+        } catch {
+          config = {};
+          configResolved = false;
+        }
+
+        // When config couldn't be resolved from the def (missing step definition),
+        // synthesize a minimal config from the transaction receipts so that
+        // importExisting can still record the txns (events won't be decoded).
+        if (!configResolved && !config.target && populateMissing) {
+          const receipts = await Promise.all(
+            existingKeys.map((key) => runtime.provider.getTransactionReceipt({ hash: key as `0x${string}` }))
+          );
+          config.target = receipts.map((r) => r.to);
+          config.abi = '[]';
+        }
+
+        let pkgRef: PackageReference | null;
+        try {
+          pkgRef = def.getPackageRef(ctx);
+        } catch {
+          pkgRef = new PackageReference(fullPackageRef);
+        }
 
         // some steps may require access to misc artifacts
-        await runtime.restoreMisc(deployInfo.miscUrl);
+        if (deployInfo.miscUrl) {
+          await runtime.restoreMisc(deployInfo.miscUrl);
+        }
 
         const importExisting = await stepAction.importExisting(
           runtime,
           ctx,
           config,
-          { currentLabel: stepName, ref: def.getPackageRef(ctx) },
+          { currentLabel: stepName, ref: pkgRef },
           existingKeys,
         );
 
         if (deployInfo.state[stepName]) {
           deployInfo.state[stepName].artifacts = importExisting;
+        } else if (!configResolved && populateMissing) {
+          // Step not in def or state — outer importExisting already ran with synthesized
+          // config, just record the result with a SKIP hash since we can't compute a
+          // real one without the step definition.
+          debug(`Operation ${stepName} not found, recording with synthesized config...`);
+          deployInfo.state[stepName] = {
+            artifacts: importExisting,
+            hash: 'SKIP',
+            version: BUILD_VERSION,
+          };
         } else {
           debug(`Operation ${stepName} not found, populating...`);
           try {
@@ -205,7 +265,7 @@ export async function alter(
               runtime,
               ctx,
               config,
-              { currentLabel: stepName, ref: def.getPackageRef(ctx) },
+              { currentLabel: stepName, ref: pkgRef },
               existingKeys,
             );
 
@@ -255,7 +315,9 @@ export async function alter(
     }
     case 'mark-complete':
       // some steps may require access to misc artifacts
-      await runtime.restoreMisc(deployInfo.miscUrl);
+      if (deployInfo.miscUrl) {
+        await runtime.restoreMisc(deployInfo.miscUrl);
+      }
       // compute the state hash for the step
       for (const target of targets) {
         if (!deployInfo.state[target]) {

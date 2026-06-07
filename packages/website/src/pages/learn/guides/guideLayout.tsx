@@ -51,6 +51,7 @@ const getStartedGuides = [
 ];
 
 const advancedGuides = [
+  { text: 'On-Chain Upgrade Attestation', href: links.UPGRADE_ATTESTATION },
   { text: 'Manipulate the Package State', href: links.ALTER },
   { text: 'Deploy a Router', href: links.ROUTER },
   { text: 'Debugging Tips', href: links.DEBUG },

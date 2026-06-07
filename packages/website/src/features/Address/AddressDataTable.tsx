@@ -3,18 +3,24 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
 import { flexRender } from '@tanstack/react-table';
-import { Inbox } from 'lucide-react';
+import { Inbox, MoveRight } from 'lucide-react';
+import Link from 'next/link';
 
 type AddressDataTableProps = {
   table: any;
+  url?: string;
 };
 
-const AddressDataTable: React.FC<AddressDataTableProps> = ({ table }) => {
+const AddressDataTable: React.FC<AddressDataTableProps> = ({
+  table,
+  url = '',
+}) => {
   return (
     <>
       <Table>
@@ -87,6 +93,23 @@ const AddressDataTable: React.FC<AddressDataTableProps> = ({ table }) => {
             </TableRow>
           )}
         </TableBody>
+        {url && (
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={table.getAllColumns().length}>
+                <div className="flex items-center justify-center py-3">
+                  <Link
+                    href={url}
+                    className="flex text-sm font-mono border-b border-dotted border-muted-foreground hover:border-solid"
+                  >
+                    <span>VIEW ALL TRANSACTIONS</span>
+                    <MoveRight className="h-4 w-4 ml-3" />
+                  </Link>
+                </div>
+              </TableCell>
+            </TableRow>
+          </TableFooter>
+        )}
       </Table>
     </>
   );

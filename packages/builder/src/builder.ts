@@ -3,7 +3,6 @@ import Debug from 'debug';
 import { clone, cloneDeep, merge, uniq } from 'lodash-es';
 import * as viem from 'viem';
 import { ContractMap, DeploymentState, TransactionMap } from './index.js';
-import { ActionKinds } from './actions.js';
 import { BUILD_VERSION } from './constants.js';
 import { ChainDefinition } from './definition.js';
 import { ChainBuilderRuntime, Events } from './runtime.js';
@@ -63,6 +62,9 @@ ${printChainDefinitionProblems(problems)}`);
   }
 
   debug('build', initialCtx.settings);
+
+  // Use awaited imports to prevent import cycle within the builder module
+  const { ActionKinds } = await import('./actions.js');
 
   // sanity check the network
   await runtime.checkNetwork();
@@ -197,6 +199,9 @@ export async function buildLayer(
   tainted: Set<string> = new Set(),
   built: Map<string, ChainArtifacts> = new Map(),
 ) {
+  // Use awaited imports to prevent import cycle within the builder module
+  const { ActionKinds } = await import('./actions.js');
+
   const layers = def.getStateLayers();
 
   const layer = layers[cur];
@@ -349,6 +354,9 @@ export async function buildLayer(
 }
 
 export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageState, cfg: any, ctx: ChainBuilderContext) {
+  // Use awaited imports to prevent import cycle within the builder module
+  const { ActionKinds } = await import('./actions.js');
+
   const [type, label] = pkgState.currentLabel.split('.') as [keyof typeof ActionKinds, string];
 
   if (cfg && cfg.chains && !cfg.chains.includes(runtime.chainId)) {

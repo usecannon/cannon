@@ -38,7 +38,7 @@ import { PackageSpecification } from './types.js';
 
 import { doBuild } from './util/build.js';
 import { setDebugLevel } from './util/debug-level.js';
-import { log, error, logSpinner, warnSpinner, errorSpinner, logSpinnerEnd, spinner } from './util/console.js';
+import { log, error, logSpinner, warnSpinner, logSpinnerEnd, spinner } from './util/console.js';
 import { getContractsRecursive } from './util/contracts-recursive.js';
 import { applyCommandsConfig } from './util/commands-config.js';
 import {
@@ -286,6 +286,9 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
   });
 
 applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(async function (packageRef, options) {
+  if (options.service !== 'etherscan' && options.service !== 'sourcify' && options.service !== 'all') {
+    throw new Error('--service must be one of "etherscan", "sourcify", or "all"');
+  }
   try {
     spinner?.update({ text: 'Verifying...' });
     const { verify } = await import('./commands/verify.js');
@@ -296,7 +299,7 @@ applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(asy
     const cliSettings = resolveCliSettings(options);
     const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
-    await verify(fullPackageRef, cliSettings, chainId);
+    await verify(fullPackageRef, cliSettings, chainId, options.service);
     logSpinnerEnd();
   } catch (err) {
     logSpinnerEnd();
@@ -322,15 +325,76 @@ applyCommandsConfig(program.command('diff'), commandsConfig.diff).action(
         options.matchSource,
       );
 
-      logSpinnerEnd();
-      // exit code is the number of differences found--useful for CI checks
-      process.exit(foundDiffs);
-    } catch (err) {
-      logSpinnerEnd();
-      throw err;
+    logSpinnerEnd();
+    // exit code is the number of differences found--useful for CI checks
+    process.exit(foundDiffs);
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
+});
+
+applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async function (
+  packageName,
+  command,
+  options,
+  flags
+) {
+  try {
+    spinner?.update({ text: 'Altering...' });
+    const { alter } = await import('./commands/alter.js');
+
+    const cliSettings = resolveCliSettings(flags);
+
+    // throw an error if the chainId is not consistent with the provider's chainId
+    await ensureChainIdConsistency(cliSettings.rpcUrl, flags.chainId);
+
+    // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
+    const newUrl = await alter(
+      packageName,
+      flags.subpkg ? flags.subpkg.split(',') : [],
+      parseInt(flags.chainId),
+      cliSettings,
+      {},
+      command,
+      options,
+      {},
+      flags.populateMissing || false
+    );
+
+    logSpinner(newUrl);
+    logSpinnerEnd();
+  } catch (err) {
+    logSpinnerEnd();
+    throw err;
+  }
+});
+
+applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async function (
+  givenIpfsUrl,
+  packageRef,
+  options
+) {
+  try {
+    const { fetch } = await import('./commands/fetch.js');
+
+    let fullPackageRef = null;
+    let chainId = null;
+    if (packageRef) {
+      const refInfo = await getPackageReference(packageRef, options.chainId);
+      fullPackageRef = refInfo.fullPackageRef;
+      chainId = refInfo.chainId;
     }
-  },
-);
+
+    if (!givenIpfsUrl) {
+      throw new Error('IPFS URL is required.');
+    }
+
+    await fetch(fullPackageRef, chainId, getIpfsUrl(givenIpfsUrl)!, getIpfsUrl(options.metaHash) || undefined);
+  } catch (err) {
+    throw err;
+  }
+});
 
 applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(
   async function (packageName, command, options, flags) {
@@ -675,10 +739,12 @@ applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async
     );
 
     if (pruneUrls.length) {
-      logSpinner(chalk.bold(`Found ${pruneUrls.length} storage artifacts to prune.`));
-      logSpinner(`Matched with Registry: ${pruneStats.matchedFromRegistry}`);
-      logSpinner(`Not Expired: ${pruneStats.notExpired}`);
-      logSpinner(`Not Cannon Package: ${pruneStats.notCannonPackage}`);
+      logSpinnerEnd();
+      log(chalk.bold(`Found ${pruneUrls.length} storage artifacts to prune.`));
+      log(`Matched with Registry: ${pruneStats.matchedFromRegistry}`);
+      log(`Not Expired: ${pruneStats.notExpired}`);
+      log(`Not Cannon Package: ${pruneStats.notCannonPackage}`);
+      log();
 
       if (options.dryRun) {
         process.exit(0);
@@ -693,21 +759,21 @@ applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async
         });
 
         if (!verification.confirmation) {
-          logSpinner('Cancelled');
+          log('Cancelled');
           process.exit(1);
         }
       }
 
       for (const url of pruneUrls) {
-        logSpinner(`delete ${url}`);
+        log(`delete ${url}`);
         try {
           await storage.deleteBlob(url);
         } catch (err: any) {
-          errorSpinner(`Failed to delete ${url}: ${err.message}`);
+          error(`Failed to delete ${url}: ${err.message}`);
         }
       }
 
-      logSpinner('Done!');
+      log('Done!');
     } else {
       logSpinner(chalk.bold('Nothing to prune.'));
     }
@@ -905,12 +971,25 @@ applyCommandsConfig(program.command('setup'), commandsConfig.setup).action(async
   }
 });
 
-applyCommandsConfig(program.command('clean'), commandsConfig.clean).action(async function ({ noConfirm }) {
+applyCommandsConfig(program.command('clean'), commandsConfig.clean).action(async function (options: {
+  confirm?: boolean;
+  ipfs?: boolean;
+}) {
   try {
     logSpinnerEnd();
-    const { clean } = await import('./commands/clean.js');
-    const executed = await clean(!noConfirm);
-    if (executed) log('Complete!');
+    const { clean, cleanOrphanedIpfs } = await import('./commands/clean.js');
+
+    // With --no-confirm flag, Commander sets confirm to false
+    // Without the flag, confirm is undefined (default to true for confirmation)
+    const shouldConfirm = options.confirm !== false;
+
+    if (options.ipfs) {
+      const { success } = await cleanOrphanedIpfs(shouldConfirm);
+      if (success) log('Complete!');
+    } else {
+      const executed = await clean(shouldConfirm);
+      if (executed) log('Complete!');
+    }
 
     logSpinnerEnd();
   } catch (err) {

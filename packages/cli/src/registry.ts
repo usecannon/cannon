@@ -9,7 +9,7 @@ import * as viem from 'viem';
 import { CliSettings } from './settings.js';
 import { log } from './util/console.js';
 import { isConnectedToInternet } from './util/is-connected-to-internet.js';
-import { resolveRegistryProviders, ProviderAction } from './util/provider.js';
+import { ProviderAction, resolveRegistryProviders } from './util/provider.js';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -254,7 +254,7 @@ export async function createDefaultReadRegistry(
       // if we had to load this package from the on-chain registry and it was immutable, record
       if (event.result.mutability === 'version' && event.registry instanceof OnChainRegistry) {
         debug('caching immutable package from on-chain registry', event.fullPackageRef);
-        await localRegistry.publish(event.fullPackageRef, event.chainId, event.result.url, '', 'version');
+        await localRegistry.publish([event.fullPackageRef], event.chainId, event.result.url, '', 'version');
       }
     });
 

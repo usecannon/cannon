@@ -1,9 +1,9 @@
-import path from 'path';
+import { ContractArtifact } from '@usecannon/builder';
+import Debug from 'debug';
 import fs from 'fs-extra';
 import { glob } from 'glob';
-import { ContractArtifact } from '@usecannon/builder';
 import { last, mapValues, memoize } from 'lodash-es';
-import Debug from 'debug';
+import path from 'path';
 
 import { execPromise } from './helpers.js';
 import { warn } from './util/console.js';
@@ -121,6 +121,7 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
         language: 'Solidity',
         sources,
         settings: {
+          ...artifact.metadata.settings,
           optimizer: artifact.metadata.settings.optimizer,
           evmVersion: evmVersionInfo,
           remappings: artifact.metadata.settings.remappings,

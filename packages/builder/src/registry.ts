@@ -10,6 +10,7 @@ import { prepareMulticall, TxData } from './multicall.js';
 import { PackageReference } from './package-reference.js';
 import { CannonSigner } from './types.js';
 import { getIpfsUrl } from './ipfs.js';
+import { getBuilderLogger } from './logger.js';
 
 const debug = Debug('cannon:builder:registry');
 
@@ -342,26 +343,26 @@ export class OnChainRegistry extends CannonRegistry {
     const variant = `${chainId}-${preset}`;
     const tags = refs.map((ref) => ref.version);
 
-    console.log(`Package: ${name}`);
+    getBuilderLogger().log(`Package: ${name}`);
     if (preset !== PackageReference.DEFAULT_PRESET) {
-      console.log(`Preset: ${preset}`);
+      getBuilderLogger().log(`Preset: ${preset}`);
     }
 
-    console.log(`Tags: ${tags.join(', ')}`);
+    getBuilderLogger().log(`Tags: ${tags.join(', ')}`);
 
     if (url) {
-      console.log(`Package URL: ${url}`);
+      getBuilderLogger().log(`Package URL: ${url}`);
     }
 
     if (metaUrl) {
-      console.log(`Metadata URL: ${metaUrl}`);
+      getBuilderLogger().log(`Metadata URL: ${metaUrl}`);
     }
 
     if (mutabilityOverride) {
-      console.log(`Mutability Override: ${mutabilityOverride}`);
+      getBuilderLogger().log(`Mutability Override: ${mutabilityOverride}`);
     }
 
-    console.log('\n');
+    getBuilderLogger().log('\n');
 
     return { name, variant, tags, url, metaUrl };
   }
@@ -472,7 +473,7 @@ export class OnChainRegistry extends CannonRegistry {
     metaUrl?: string,
     mutabilityOverride?: 'version' | 'tag',
   ): Promise<string[]> {
-    console.log(chalk.bold(chalk.blueBright('\nPublishing package to the registry on-chain...\n')));
+    getBuilderLogger().log(chalk.bold(chalk.blueBright('\nPublishing package to the registry on-chain...\n')));
     const packageData = this._preparePackageData(packagesNames, chainId, url, metaUrl, mutabilityOverride);
     return [await this._publishPackages([packageData])];
   }
@@ -486,19 +487,19 @@ export class OnChainRegistry extends CannonRegistry {
       mutabilityOverride?: 'version' | 'tag';
     }[],
   ): Promise<string[]> {
-    console.log(chalk.bold(chalk.blueBright('\nPublishing packages to the registry on-chain...\n')));
+    getBuilderLogger().log(chalk.bold(chalk.blueBright('\nPublishing packages to the registry on-chain...\n')));
     const packageDatas = toPublish.map((p) => this._preparePackageData(p.packagesNames, p.chainId, p.url, p.metaUrl));
     return [await this._publishPackages(packageDatas)];
   }
 
   async unpublish(packagesNames: string[], chainId: number): Promise<string[]> {
-    console.log(chalk.bold(chalk.blueBright('\nUnpublishing package to the registry on-chain...\n')));
+    getBuilderLogger().log(chalk.bold(chalk.blueBright('\nUnpublishing package to the registry on-chain...\n')));
     const packageData = this._preparePackageData(packagesNames, chainId);
     return [await this._unpublishPackages([packageData])];
   }
 
   async unpublishMany(toUnpublish: { name: string[]; chainId: number }[]): Promise<string[]> {
-    console.log(chalk.bold(chalk.blueBright('\nUnpublishing packages to the registry on-chain...\n')));
+    getBuilderLogger().log(chalk.bold(chalk.blueBright('\nUnpublishing packages to the registry on-chain...\n')));
     const packageDatas = toUnpublish.map((p) => this._preparePackageData(p.name, p.chainId));
     return [await this._unpublishPackages(packageDatas)];
   }
@@ -529,7 +530,10 @@ export class OnChainRegistry extends CannonRegistry {
       // TODO: I dont understand why viem does not recognize the return type of this function (so I have to use any)
     })) as any;
 
-    return { url: onChainDeployInfo.deployUrl, mutability: onChainDeployInfo.mutability as 'version' | 'tag' | '' };
+    return {
+      url: onChainDeployInfo.deployUrl,
+      mutability: viem.hexToString(onChainDeployInfo.mutability, { size: 16 }) as 'version' | 'tag' | '',
+    };
   }
 
   override async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
@@ -814,20 +818,20 @@ export class OnChainRegistry extends CannonRegistry {
       );
     }
 
-    console.log(`\nEstimated gas: ${simulatedGas} wei`);
+    getBuilderLogger().log(`\nEstimated gas: ${simulatedGas} wei`);
 
     const gasPrice = BigInt(this.overrides.maxFeePerGas || this.overrides.gasPrice || (await this.provider.getGasPrice()));
-    console.log(`\nGas price: ${viem.formatEther(gasPrice)} ETH`);
+    getBuilderLogger().log(`\nGas price: ${viem.formatEther(gasPrice)} ETH`);
     const transactionFeeWei = simulatedGas * gasPrice;
-    console.log(`\nEstimated transaction Fee: ${viem.formatEther(transactionFeeWei)} ETH\n\n`);
+    getBuilderLogger().log(`\nEstimated transaction Fee: ${viem.formatEther(transactionFeeWei)} ETH\n\n`);
 
     if (this.signer && userBalance < transactionFeeWei) {
-      console.log(
+      getBuilderLogger().warn(
         chalk.bold(
           chalk.yellow(
-            `The address "${this.signer.address}" does not have enough funds to pay for the transaction, the transaction will likely revert.\n`,
-          ),
-        ),
+            `The address "${this.signer.address}" does not have enough funds to pay for the transaction, the transaction will likely revert.\n`
+          )
+        )
       );
     }
   }

@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { generateRouter } from '@usecannon/router';
 import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2.js';
 import { CannonError } from '../error/index.js';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder.js';
+import { mergeTemplateAccesses } from '../access-recorder.js';
 import { routerSchema } from '../schemas.js';
 import { ContractMap } from '../types.js';
 import {
@@ -17,6 +17,7 @@ import {
 import { template } from '../utils/template.js';
 import { compileContract } from '../utils/compile.js';
 import { CannonAction } from '../actions.js';
+import { getBlockRetried } from '../helpers.js';
 
 const debug = Debug('cannon:builder:router');
 
@@ -63,6 +64,17 @@ const routerStep = {
           newConfig.includeDiamondCompatibility,
           newConfig.highlight,
           newConfig.create2,
+        ],
+      ],
+      [
+        contractAbis,
+        contractAddresses,
+        [
+          newConfig.salt,
+          newConfig.overrides,
+          newConfig.includeReceive,
+          newConfig.includeDiamondCompatibility,
+          newConfig.highlight,
         ],
       ],
       {
@@ -114,19 +126,19 @@ const routerStep = {
     return config;
   },
 
-  getInputs(config, possibleFields) {
-    let accesses = computeTemplateAccesses(config.from);
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt, possibleFields));
+  getInputs(config, engine) {
+    let accesses = engine.computeTemplateAccesses(config.from);
+    accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.salt));
     accesses = mergeTemplateAccesses(
       accesses,
-      computeTemplateAccesses(typeof config.create2 === 'string' ? config.create2 : '', possibleFields),
+      engine.computeTemplateAccesses(typeof config.create2 === 'string' ? config.create2 : '')
     );
     accesses.accesses.push(
       ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`)),
     );
 
     if (config?.overrides) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.overrides.gasLimit));
     }
 
     return accesses;
@@ -288,7 +300,7 @@ const routerStep = {
       deployAddress = receipt.contractAddress!;
     }
 
-    const block = receipt ? await runtime.provider.getBlock({ blockHash: receipt.blockHash }) : null;
+    const block = receipt ? await getBlockRetried(runtime.provider, receipt.blockHash) : null;
 
     return {
       contracts: {

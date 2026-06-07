@@ -184,7 +184,7 @@ describe('registry.ts', () => {
         jest.mocked(provider.readContract).mockResolvedValue({
           deployUrl: 'ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i',
           metaUrl: 'ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6j',
-          mutability: 'foobar',
+          mutability: viem.stringToHex('foobar', { size: 16 }),
           owner: signer.address,
         });
 
@@ -201,6 +201,32 @@ describe('registry.ts', () => {
             viem.stringToHex('13370-main', { size: 32 }),
           ],
         });
+      });
+
+      it('decodes bytes16 mutability field from on-chain hex to string', async () => {
+        const provider = makeFakeProvider();
+        const registry = createRegistry({ provider });
+
+        // The on-chain registry stores mutability as bytes16 (right-padded hex).
+        // Before the fix, the raw hex string was returned instead of the decoded value,
+        // causing mutability checks like `=== 'version'` to always fail.
+        // Note: empty mutability is not tested here because stringToHex('', {size:16}) produces
+        // 16 null bytes, which hexToString decodes to '\u0000' rather than ''. In practice,
+        // the on-chain contract only uses 'version' and 'tag' as meaningful mutability values.
+        for (const mutability of ['version', 'tag'] as const) {
+          jest.mocked(provider.readContract).mockResolvedValue({
+            deployUrl: 'ipfs://QmV1kMdjDegcKrvSddsTmRGyCwnYERqN9o1K56g4Mw7F6i',
+            metaUrl: '',
+            mutability: viem.stringToHex(mutability, { size: 16 }),
+            owner: signer.address,
+          });
+
+          const url = await registry.getUrl('dummy-package:0.0.1@main', 13370);
+
+          expect(url.mutability).toBe(mutability);
+          // Make sure we never leak the raw hex value
+          expect(url.mutability).not.toMatch(/^0x/);
+        }
       });
     });
   });

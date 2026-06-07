@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/builder",
-  "version": "2.25.0",
+  "version": "2.26.1",
   "description": "Assembles cannonfile.toml manifests into cannon packages.",
   "main": "dist/src/index.js",
   "type": "module",
@@ -40,6 +40,7 @@
     "@types/lodash": "^4.17.20",
     "@types/lodash-es": "^4.17.12",
     "@types/pako": "^2.0.4",
+    "@types/promise-retry": "1.1.6",
     "jest": "^30.2.0",
     "rollup": "^4.52.5",
     "ts-jest": "^29.4.5",
@@ -64,6 +65,7 @@
     "lodash-es": "^4.17.21",
     "pako": "^2.1.0",
     "promise-events": "^0.2.4",
+    "promise-retry": "^2.0.1",
     "rfdc": "^1.4.1",
     "ses": "^1.14.0",
     "typestub-ipfs-only-hash": "^4.0.0",

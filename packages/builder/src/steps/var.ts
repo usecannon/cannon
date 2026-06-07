@@ -1,7 +1,7 @@
 import Debug from 'debug';
 import { cloneDeep, omit } from 'lodash-es';
 import { z } from 'zod';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder.js';
+import { mergeTemplateAccesses } from '../access-recorder.js';
 import { varSchema } from '../schemas.js';
 import { template } from '../utils/template.js';
 import { CannonAction } from '../actions.js';
@@ -42,11 +42,11 @@ const varSpec = {
     return config;
   },
 
-  getInputs(config, possibleFields) {
-    let accesses = computeTemplateAccesses('', possibleFields);
+  getInputs(config, engine) {
+    let accesses = engine.computeTemplateAccesses('');
 
     for (const c in omit(config, 'depends')) {
-      const fields = computeTemplateAccesses(config[c], possibleFields);
+      const fields = engine.computeTemplateAccesses(config[c]);
       accesses = mergeTemplateAccesses(accesses, fields);
     }
 

@@ -3,6 +3,7 @@ import { validateConfig } from '../actions.js';
 import action from './invoke.js';
 import { fakeCtx, fakeRuntime } from './utils.test.helper.js';
 import { PackageReference } from '../package-reference.js';
+import { AccessRecorderEngine } from '../index.js';
 
 describe('steps/invoke.ts', () => {
   const fakeContractInfo = {
@@ -174,7 +175,7 @@ describe('steps/invoke.ts', () => {
               args: ['<%= contracts.h %>', '<%= contracts.i %>'],
               overrides: { gasLimit: '<%= contracts.j %>' },
             },
-            [],
+            new AccessRecorderEngine([])
           )
           .accesses.sort(),
       ).toEqual([

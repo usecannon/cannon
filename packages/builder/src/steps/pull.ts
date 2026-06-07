@@ -2,7 +2,7 @@ import Debug from 'debug';
 import { cloneDeep } from 'lodash-es';
 import { z } from 'zod';
 import { Events } from '../runtime.js';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder.js';
+import { mergeTemplateAccesses } from '../access-recorder.js';
 import { getOutputs } from '../builder.js';
 import { ChainDefinition } from '../definition.js';
 import { PackageReference } from '../package-reference.js';
@@ -59,9 +59,9 @@ const pullSpec = {
     return config;
   },
 
-  getInputs(config, possibleFields) {
-    let accesses = computeTemplateAccesses(config.source, possibleFields);
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.preset, possibleFields));
+  getInputs(config, engine) {
+    let accesses = engine.computeTemplateAccesses(config.source);
+    accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.preset));
 
     return accesses;
   },

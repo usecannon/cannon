@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AccessComputationResult } from './access-recorder.js';
+import { AccessComputationResult, AccessRecorderEngine } from './access-recorder.js';
 import { handleZodErrors } from './error/zod.js';
 import { ChainBuilderRuntime } from './runtime.js';
 import { chainDefinitionSchema } from './schemas.js';
@@ -32,7 +32,7 @@ export interface CannonAction<Config extends RawConfig = any> {
   /**
    * Returns a list of state keys that this operation consumes (used for dependency inference)
    */
-  getInputs?: (config: Config, possibleFields: string[], packageState: PackageState) => AccessComputationResult;
+  getInputs?: (config: Config, engine: AccessRecorderEngine, packageState: PackageState) => AccessComputationResult;
 
   /**
    * Returns a list of state keys this operation produces (used for dependency inference)
@@ -116,8 +116,6 @@ export function registerAction(action: CannonAction) {
     chainDefinitionSchema.pick({
       description: true,
       keywords: true,
-      setting: true,
-      import: true,
     }) as any
   )[label] = { values: action.validate };
 }

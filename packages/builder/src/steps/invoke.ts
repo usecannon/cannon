@@ -2,7 +2,7 @@ import Debug from 'debug';
 import { cloneDeep, zip, groupBy, isArray, entries, forEach, map as lodashMap } from 'lodash-es';
 import * as viem from 'viem';
 import { z } from 'zod';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder.js';
+import { mergeTemplateAccesses } from '../access-recorder.js';
 import { invokeSchema } from '../schemas.js';
 import {
   CannonSigner,
@@ -21,6 +21,7 @@ import {
   getMergedAbiFromContractPaths,
 } from '../util.js';
 import { template, getTemplateMatches, isTemplateString } from '../utils/template.js';
+import { getBlockRetried } from '../helpers.js';
 import { isStepPath, isStepName } from '../utils/matchers.js';
 import { CannonAction } from '../actions.js';
 
@@ -440,11 +441,11 @@ const invokeSpec = {
     return config;
   },
 
-  getInputs(config, possibleFields) {
-    let accesses = computeTemplateAccesses(config.abi, possibleFields);
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.func, possibleFields));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.from, possibleFields));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.value, possibleFields));
+  getInputs(config, engine) {
+    let accesses = engine.computeTemplateAccesses(config.abi);
+    accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.func));
+    accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.from));
+    accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.value));
 
     if (typeof config.target === 'string') {
       config.target = [config.target as string];
@@ -460,7 +461,7 @@ const invokeSpec = {
         accesses.accesses.push(`imports.${(target as string).split('.')[0]}`);
       } else if (isTemplateString(target)) {
         for (const match of getTemplateMatches(target)) {
-          accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(match, possibleFields));
+          accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(match));
         }
       }
     }
@@ -468,37 +469,37 @@ const invokeSpec = {
     if (config.args) {
       forEach(
         config.args,
-        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(a), possibleFields))),
+        (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(JSON.stringify(a))))
       );
     }
 
     if (config.fromCall) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.fromCall.func, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.fromCall.func));
 
       forEach(
         config.fromCall.args,
-        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(a), possibleFields))),
+        (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(JSON.stringify(a))))
       );
     }
 
     if (config?.overrides) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.overrides.gasLimit));
     }
 
     for (const name in config.factory) {
       const f = config.factory[name];
 
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.event, possibleFields));
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.artifact, possibleFields));
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.abi, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(f.event));
+      accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(f.artifact));
+      accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(f.abi));
 
-      forEach(f.abiOf, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))));
+      forEach(f.abiOf, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
     }
 
     const varsConfig = config.var || config.extra;
     for (const name in varsConfig) {
       const f = varsConfig[name];
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.event, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(f.event));
     }
 
     return accesses;
@@ -583,7 +584,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
 
       const [receipt, txnEvents] = await runTxn(runtime, config, contract, mainSigner, packageState);
 
-      const block = await runtime.provider.getBlock({ blockHash: receipt.blockHash });
+      const block = await getBlockRetried(runtime.provider, receipt.blockHash);
 
       const splitLabel = packageState.currentLabel.split('.')[1];
 

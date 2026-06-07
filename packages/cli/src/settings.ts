@@ -104,6 +104,11 @@ export type CliSettings = {
   etherscanApiKey: string;
 
   /**
+   * URL of sourcify API for verification
+   */
+  sourcifyApiUrl?: string;
+
+  /**
    * Whether to run in E2E mode
    */
   isE2E: boolean;
@@ -161,6 +166,28 @@ function computeCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
     fileSettings = fs.existsSync(settingsPath) ? fs.readJsonSync(settingsPath) : {};
   }
 
+  /*const {
+    CANNON_DIRECTORY,
+    CANNON_PROVIDER_URL,
+    CANNON_RPC_URL,
+    CANNON_PRIVATE_KEY,
+    CANNON_IPFS_TIMEOUT,
+    CANNON_IPFS_RETRIES,
+    CANNON_IPFS_URL,
+    CANNON_WRITE_IPFS_URL,
+    CANNON_PUBLISH_IPFS_URL,
+    CANNON_REGISTRY_RPC_URL,
+    CANNON_REGISTRY_CHAIN_ID,
+    CANNON_REGISTRY_ADDRESS,
+    CANNON_REGISTRY_PRIORITY,
+    CANNON_ETHERSCAN_API_URL,
+    CANNON_ETHERSCAN_API_KEY,
+    CANNON_SOURCIFY_API_URL,
+    CANNON_QUIET,
+    CANNON_E2E,
+    TRACE,
+  } = parseEnv(process.env, createCannonSettingsSchema(fileSettings));*/
+
   const finalSettings = assign(
     {
       cannonDirectory: process.env.CANNON_DIRECTORY || fileSettings.cannonDirectory || DEFAULT_CANNON_DIRECTORY,
@@ -187,12 +214,12 @@ function computeCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
               },
             ]
           : fileSettings.registries || DEFAULT_REGISTRY_CONFIG,
-      registryPriority:
-        (process.env.CANNON_REGISTRY_PRIORITY as 'onchain' | 'local' | 'offline') ||
+      registryPriority: oneOf(process.env.CANNON_REGISTRY_PRIORITY, ['onchain', 'local', 'offline']) ||
         fileSettings.registryPriority ||
         'onchain',
       etherscanApiUrl: process.env.CANNON_ETHERSCAN_API_URL || fileSettings.etherscanApiUrl,
-      etherscanApiKey: process.env.CANNON_ETHERSCAN_API_KEY || fileSettings.etherscanApiKey || '',
+      etherscanApiKey: process.env.CANNON_ETHERSCAN_API_KEY || fileSettings.etherscanApiKey,
+      sourcifyApiUrl: process.env.CANNON_SOURCIFY_API_URL || fileSettings.sourcifyApiUrl,
       quiet: parseBooleanEnv(process.env.CANNON_QUIET, fileSettings.quiet || false),
       isE2E: parseBooleanEnv(process.env.CANNON_E2E, false),
       trace: parseBooleanEnv(process.env.TRACE, false),
@@ -239,3 +266,10 @@ export const getCliSettings = (overrides: Partial<CliSettings> = {}): CliSetting
 
 export const resolveCliSettings = getCliSettings;
 export const resolveCliSettingsNoCache = computeCliSettings;
+function oneOf(value: string | undefined, options: string[]): any {
+  if (value && options.includes(value)) {
+    return value as keyof typeof options;
+  }
+  throw new Error(`Value must be one of: ${options.join(', ')}`);
+}
+

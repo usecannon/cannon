@@ -3,7 +3,7 @@ import { cloneDeep, map, merge, pick, assign } from 'lodash-es';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2.js';
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder.js';
+import { mergeTemplateAccesses } from '../access-recorder.js';
 import { ChainBuilderRuntime } from '../runtime.js';
 import { diamondSchema } from '../schemas.js';
 import { ContractArtifact, ContractMap, PackageState } from '../types.js';
@@ -94,23 +94,23 @@ const diamondStep = {
     return config;
   },
 
-  getInputs(config, possibleFields) {
-    let accesses = computeTemplateAccesses(config.diamondArgs.owner, possibleFields);
+  getInputs(config, engine) {
+    let accesses = engine.computeTemplateAccesses(config.diamondArgs.owner);
     if (config.diamondArgs.init) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.diamondArgs.init, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.diamondArgs.init));
     }
 
     if (config.diamondArgs.initCalldata) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.diamondArgs.initCalldata, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.diamondArgs.initCalldata));
     }
 
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt, possibleFields));
+    accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.salt));
     accesses.accesses.push(
       ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`)),
     );
 
     if (config?.overrides) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit, possibleFields));
+      accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.overrides.gasLimit));
     }
 
     return accesses;

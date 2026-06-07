@@ -6,7 +6,7 @@ if (!Object.prototype.hasOwnProperty.call(BigInt.prototype, 'toJSON')) {
 }
 
 export { createInitialContext, build, getArtifacts, addOutputsToContext, getOutputs } from './builder.js';
-export { computeTemplateAccesses, mergeTemplateAccesses } from './access-recorder.js';
+export { mergeTemplateAccesses } from './access-recorder.js';
 export { registerAction, ActionKinds } from './actions.js';
 export type { CannonAction, RawChainDefinition } from './actions.js';
 export { ChainDefinition } from './definition.js';
@@ -18,6 +18,7 @@ export type { TraceEntry } from './trace.js';
 export { traceActions, CannonError } from './error/index.js';
 export { prepareMulticall } from './multicall.js';
 export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from './registry.js';
+export { setBuilderLogger, type Logger } from './logger.js';
 export * from './package.js';
 export {
   CANNON_CHAIN_ID,

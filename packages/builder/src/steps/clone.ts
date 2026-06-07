@@ -3,7 +3,7 @@ import Debug from 'debug';
 import { cloneDeep, mapValues, forEach, isEmpty, isEqual } from 'lodash-es';
 import { z } from 'zod';
 import pkg from '../../package.json' with { type: 'json' };
-import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder.js';
+import { mergeTemplateAccesses } from '../access-recorder.js';
 import { build, createInitialContext, getOutputs } from '../builder.js';
 import { CANNON_CHAIN_ID } from '../constants.js';
 import { ChainDefinition } from '../definition.js';
@@ -77,28 +77,22 @@ const cloneSpec = {
     return config;
   },
 
-  getInputs(config, possibleFields) {
-    let accesses = computeTemplateAccesses(config.source);
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.target, possibleFields));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.sourcePreset, possibleFields));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.targetPreset, possibleFields));
+  getInputs(config, engine) {
+    let accesses = engine.computeTemplateAccesses(config.source);
+    accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.target));
+    accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.sourcePreset));
+    accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.targetPreset));
 
     if (config.var) {
-      forEach(config.var, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))));
+      forEach(config.var, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
     }
 
     if (config.options) {
-      forEach(
-        config.options,
-        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))),
-      );
+      forEach(config.options, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
     }
 
     if (config.tags) {
-      forEach(
-        config.tags,
-        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields))),
-      );
+      forEach(config.tags, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
     }
 
     return accesses;
@@ -230,6 +224,15 @@ const cloneSpec = {
         'built state is exactly equal to previous state. skip generation of new deploy url',
         importLabel,
       );
+
+      // edge case: republish in case the reference to the deployed package isnt recorded
+      await runtime.registry.publish(
+        [target, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
+        runtime.chainId,
+        ctx.imports[importLabel]?.url,
+        (await runtime.registry.getMetaUrl(source, chainId)) || ''
+      );
+
       return {
         imports: {
           [importLabel]: ctx.imports[importLabel],
