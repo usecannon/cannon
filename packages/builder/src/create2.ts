@@ -1,7 +1,7 @@
 import Debug from 'debug';
 import * as viem from 'viem';
 import { CannonSigner, ChainBuilderRuntimeInfo } from './';
-import { sendTransactionWithNonceRetry } from './helpers';
+import { sendTransactionWithRetry } from './helpers';
 
 const debug = Debug('cannon:builder:create2');
 
@@ -41,7 +41,7 @@ export async function ensureArachnidCreate2Exists(
     }
 
     // now run the presigned deployment txn
-    const hash = await sendTransactionWithNonceRetry(signer, runtime.chainId, async () =>
+    const hash = await sendTransactionWithRetry(signer, async () =>
       signer.wallet.sendTransaction({
         account: signer.address,
         chain: runtime.provider.chain,

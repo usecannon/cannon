@@ -1,11 +1,5 @@
 import * as viem from 'viem';
-import {
-  getDefaultStorage,
-  getCannonContract,
-  getBlockRetried,
-  isNonceError,
-  sendTransactionWithNonceRetry,
-} from './helpers';
+import { getDefaultStorage, getCannonContract, getBlockRetried, sendTransactionWithRetry } from './helpers';
 import { IPFSLoader, InMemoryLoader } from './loader';
 import { InMemoryRegistry, FallbackRegistry } from './registry';
 import { CannonStorage } from './runtime';
@@ -121,57 +115,72 @@ describe('helpers.test.ts', () => {
   });
 });
 
-describe('isNonceError', () => {
-  it('matches viem nonce error messages, including nested causes', () => {
-    expect(isNonceError(new Error('nonce too low: next nonce 5, tx nonce 4'))).toBe(true);
-    expect(isNonceError(new Error('Nonce provided for the transaction is higher'))).toBe(true);
-    expect(isNonceError({ cause: { details: 'nonce too low' } } as any)).toBe(true);
-    expect(isNonceError(new Error('execution reverted'))).toBe(false);
-    expect(isNonceError(undefined)).toBe(false);
-  });
-
-  it('matches "already known" only in a transaction context', () => {
-    expect(isNonceError(new Error('transaction already known'))).toBe(true);
-    expect(isNonceError(new Error('already known transaction (hash 0x123)'))).toBe(true);
-    // must not retry unrelated "already known" failures
-    expect(isNonceError(new Error('contract already known in registry'))).toBe(false);
-  });
-});
-
-describe('sendTransactionWithNonceRetry', () => {
-  function fakeSigner() {
+describe('sendTransactionWithRetry', () => {
+  // signer whose wallet account is a viem local account carrying a nonce manager
+  function fakeLocalSigner() {
     const reset = jest.fn();
     const signer = {
       address: '0x000000000000000000000000000000000000abcd',
-      wallet: { account: { address: '0x000000000000000000000000000000000000abcd', nonceManager: { reset } } },
+      wallet: {
+        chain: { id: 6343 },
+        account: { type: 'local', address: '0x000000000000000000000000000000000000abcd', nonceManager: { reset } },
+      },
     } as any;
     return { signer, reset };
   }
 
-  it('retries a nonce-too-low failure then resolves, resetting the nonce manager', async () => {
-    const { signer, reset } = fakeSigner();
-    const send = jest
-      .fn()
-      .mockRejectedValueOnce(new Error('nonce too low: next nonce 5, tx nonce 4'))
-      .mockResolvedValueOnce('0xhash');
+  // signer backed by a remote (json-rpc) account, e.g. Frame — no nonce manager to reset
+  function fakeJsonRpcSigner() {
+    return {
+      address: '0x000000000000000000000000000000000000abcd',
+      wallet: { chain: { id: 6343 }, account: undefined },
+    } as any;
+  }
 
-    const hash = await sendTransactionWithNonceRetry(signer, 6343, send);
+  it('retries any failed broadcast, resetting the nonce manager of a local account', async () => {
+    const { signer, reset } = fakeLocalSigner();
+    const send = jest.fn().mockRejectedValueOnce(new Error('intermittent rpc failure')).mockResolvedValueOnce('0xhash');
+
+    const hash = await sendTransactionWithRetry(signer, send);
 
     expect(hash).toBe('0xhash');
     expect(send).toHaveBeenCalledTimes(2);
     expect(reset).toHaveBeenCalledWith({ address: signer.address, chainId: 6343 });
   });
 
-  it('rethrows a non-nonce error without retrying', async () => {
-    const { signer } = fakeSigner();
-    const send = jest.fn().mockRejectedValue(new Error('execution reverted: boom'));
+  it('retries even when the signer has no nonce manager to reset', async () => {
+    const signer = fakeJsonRpcSigner();
+    const send = jest.fn().mockRejectedValueOnce(new Error('nonce too low')).mockResolvedValueOnce('0xhash');
 
-    await expect(sendTransactionWithNonceRetry(signer, 6343, send)).rejects.toThrow('execution reverted');
+    await expect(sendTransactionWithRetry(signer, send)).resolves.toBe('0xhash');
+    expect(send).toHaveBeenCalledTimes(2);
+  });
+
+  it('falls back to eth_chainId when the wallet has no configured chain', async () => {
+    const { signer, reset } = fakeLocalSigner();
+    signer.wallet.chain = undefined;
+    signer.wallet.getChainId = jest.fn().mockResolvedValue(6343);
+    const send = jest.fn().mockRejectedValueOnce(new Error('nonce too low')).mockResolvedValueOnce('0xhash');
+
+    await expect(sendTransactionWithRetry(signer, send)).resolves.toBe('0xhash');
+    expect(reset).toHaveBeenCalledWith({ address: signer.address, chainId: 6343 });
+  });
+
+  it('does not retry when the user explicitly rejected the transaction', async () => {
+    const { signer, reset } = fakeLocalSigner();
+    // viem wraps the EIP-1193 rejection a few levels down in the `cause` chain
+    const rejection = new viem.BaseError('could not send transaction', {
+      cause: new viem.UserRejectedRequestError(new Error('User denied transaction signature')),
+    });
+    const send = jest.fn().mockRejectedValue(rejection);
+
+    await expect(sendTransactionWithRetry(signer, send)).rejects.toThrow('could not send transaction');
     expect(send).toHaveBeenCalledTimes(1);
+    expect(reset).not.toHaveBeenCalled();
   });
 
   it('rejects with the last error after all retries are exhausted', async () => {
-    const { signer } = fakeSigner();
+    const { signer } = fakeLocalSigner();
     const send = jest
       .fn()
       .mockRejectedValueOnce(new Error('nonce too low: next nonce 5, tx nonce 4'))
@@ -179,7 +188,7 @@ describe('sendTransactionWithNonceRetry', () => {
       .mockRejectedValueOnce(new Error('nonce too low: next nonce 7, tx nonce 6'))
       .mockRejectedValueOnce(new Error('nonce too low: next nonce 8, tx nonce 7'));
 
-    await expect(sendTransactionWithNonceRetry(signer, 6343, send)).rejects.toThrow('nonce too low');
+    await expect(sendTransactionWithRetry(signer, send)).rejects.toThrow('nonce too low: next nonce 8');
     expect(send).toHaveBeenCalledTimes(4); // 1 initial + 3 retries
   });
 });

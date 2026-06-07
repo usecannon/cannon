@@ -10,7 +10,7 @@ import { ChainArtifacts, ChainBuilderContext, ContractArtifact } from '../types'
 import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 import { template } from '../utils/template';
 import { CannonAction } from '../actions';
-import { getBlockRetried, sendTransactionWithNonceRetry } from '../helpers';
+import { getBlockRetried, sendTransactionWithRetry } from '../helpers';
 
 const debug = Debug('cannon:builder:deploy');
 
@@ -315,7 +315,7 @@ const deploySpec = {
           const fullCreate2Txn = _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
           debug('final create2 txn', fullCreate2Txn);
 
-          const hash = await sendTransactionWithNonceRetry(signer, runtime.chainId, async () => {
+          const hash = await sendTransactionWithRetry(signer, async () => {
             const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
             return signer.wallet.sendTransaction(preparedTxn as any);
           });
@@ -367,7 +367,7 @@ const deploySpec = {
               'The CREATE2 contract seems to be failing in the constructor. However, we were not able to get a stack trace.'
             );
           } else {
-            const hash = await sendTransactionWithNonceRetry(signer, runtime.chainId, async () => {
+            const hash = await sendTransactionWithRetry(signer, async () => {
               const preparedTxn = await runtime.provider.prepareTransactionRequest(
                 _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
               );

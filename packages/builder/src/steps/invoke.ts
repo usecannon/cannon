@@ -21,7 +21,7 @@ import {
   getMergedAbiFromContractPaths,
 } from '../util';
 import { template, getTemplateMatches, isTemplateString } from '../utils/template';
-import { getBlockRetried, sendTransactionWithNonceRetry } from '../helpers';
+import { getBlockRetried, sendTransactionWithRetry } from '../helpers';
 import { isStepPath, isStepName } from '../utils/matchers';
 import { CannonAction } from '../actions';
 
@@ -142,7 +142,7 @@ async function runTxn(
 
     const callSigner = await runtime.getSigner(address);
 
-    txn = await sendTransactionWithNonceRetry(callSigner, runtime.chainId, async () => {
+    txn = await sendTransactionWithRetry(callSigner, async () => {
       const preparedTxn = await runtime.provider.prepareTransactionRequest({
         account: callSigner.wallet.account || callSigner.address,
         to: contract.address,
@@ -153,7 +153,7 @@ async function runTxn(
       return callSigner.wallet.sendTransaction(preparedTxn as any);
     });
   } else {
-    txn = await sendTransactionWithNonceRetry(signer, runtime.chainId, async () => {
+    txn = await sendTransactionWithRetry(signer, async () => {
       const preparedTxn = await runtime.provider.prepareTransactionRequest({
         account: signer.wallet.account || signer.address,
         to: contract.address,

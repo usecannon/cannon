@@ -8,7 +8,7 @@ import { CannonError } from '../error';
 import { mergeTemplateAccesses } from '../access-recorder';
 import { routerSchema } from '../schemas';
 import { ContractMap } from '../types';
-import { getBlockRetried, sendTransactionWithNonceRetry } from '../helpers';
+import { getBlockRetried, sendTransactionWithRetry } from '../helpers';
 import {
   encodeDeployData,
   getContractDefinitionFromPath,
@@ -279,7 +279,7 @@ const routerStep = {
         const fullCreate2Txn = _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
         debug('final create2 txn', fullCreate2Txn);
 
-        const hash = await sendTransactionWithNonceRetry(signer, runtime.chainId, async () => {
+        const hash = await sendTransactionWithRetry(signer, async () => {
           const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
           return signer.wallet.sendTransaction(preparedTxn as any);
         });
@@ -292,7 +292,7 @@ const routerStep = {
         : await runtime.getDefaultSigner!(txn, config.salt);
       debug('using deploy signer with address', signer.address);
 
-      const hash = await sendTransactionWithNonceRetry(signer, runtime.chainId, async () => {
+      const hash = await sendTransactionWithRetry(signer, async () => {
         const preparedTxn = await signer.wallet.prepareTransactionRequest(
           _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
         );

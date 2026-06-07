@@ -1,3 +1,4 @@
+import Debug from 'debug';
 import * as viem from 'viem';
 import { mainnet, optimism } from 'viem/chains';
 import promiseRetry from 'promise-retry';
@@ -9,6 +10,8 @@ import { OnChainRegistry, FallbackRegistry, InMemoryRegistry } from './registry'
 import { CannonStorage } from './runtime';
 import { getContractFromPath } from './util';
 import type { CannonSigner } from './types';
+
+const debug = Debug('cannon:builder:helpers');
 
 export function getDefaultStorage() {
   const registryChainIds = DEFAULT_REGISTRY_CONFIG.map((registry) => registry.chainId);
@@ -79,41 +82,51 @@ export async function getBlockRetried(provider: viem.PublicClient, blockHash: vi
   });
 }
 
-const NONCE_ERROR_RE =
-  /nonce too low|nonce too high|nonce provided.*is (?:too )?(?:low|high|higher|lower)|invalid (?:transaction )?nonce|replacement transaction underpriced|(?:transaction|tx).*already known|already known.*(?:transaction|tx)/i;
+// Resets the signer's viem nonce manager (when it has one) so the next transaction prepare
+// re-reads the pending nonce from the chain. Live private-key signers created by the CLI carry a
+// nonce manager; JSON-RPC backed signers (e.g. Frame) do not — the remote node assigns their
+// nonces on every send, so there is no client-side nonce state to reset for them. Returns
+// whether a reset actually happened so the caller can log it.
+async function resetSignerNonce(signer: CannonSigner): Promise<boolean> {
+  const account = signer.wallet.account;
+  if (account?.type !== 'local' || !account.nonceManager) return false;
 
-// Detects whether an error (or any error in its `cause` chain) is a nonce-related RPC error.
-// viem wraps RPC errors, so the underlying message can live a few levels down in `.cause`.
-export function isNonceError(err: unknown): boolean {
-  let e: any = err;
-  for (let i = 0; e && i < 5; i++) {
-    const msg = e.details ?? e.shortMessage ?? e.message ?? '';
-    if (NONCE_ERROR_RE.test(String(msg))) return true;
-    e = e.cause;
-  }
-  return false;
+  // the nonce manager is keyed by (address, chainId); resolve the chain id the same way viem
+  // does when it consumes a nonce (the wallet's configured chain, falling back to eth_chainId)
+  const chainId = signer.wallet.chain?.id ?? (await signer.wallet.getChainId());
+  account.nonceManager.reset({ address: account.address, chainId });
+  return true;
 }
 
-// Defense-in-depth around a broadcast: runs the prepare+send closure and, on a nonce-class
-// error, resets the signer's viem nonce manager (so the next prepare re-reads the chain) and
-// retries with exponential backoff. The closure is responsible for (re-)preparing the
-// transaction each attempt so a fresh nonce is assigned. Non-nonce errors propagate immediately,
-// so the happy path is unchanged.
-export async function sendTransactionWithNonceRetry(
+// Wraps a live broadcast: runs the prepare+send closure and retries any failure with exponential
+// backoff. There is no reliable error shape for nonce problems across RPC providers, so rather
+// than trying to detect them we always assume the nonce may be broken: before every retry the
+// signer's nonce manager (when present) is reset, and the closure re-reads a fresh pending nonce
+// while re-preparing the transaction. Deterministic failures (e.g. reverts) fail the same way on
+// every attempt and surface the original error, so the only cost there is the backoff delay. The
+// one exception is an explicit user rejection (EIP-1193 code 4001), which is never retried — a
+// wallet user who declined to sign should not be re-prompted.
+export async function sendTransactionWithRetry(
   signer: CannonSigner,
-  chainId: number,
   prepareAndSend: () => Promise<viem.Hash>
 ): Promise<viem.Hash> {
-  return (await promiseRetry({ retries: 3, minTimeout: 250, factor: 2 }, (retry) =>
-    prepareAndSend().catch((err: unknown) => {
-      if (!isNonceError(err)) throw err;
-      const account: any = (signer.wallet as any).account;
-      try {
-        account?.nonceManager?.reset?.({ address: account.address, chainId });
-      } catch {
-        // best-effort: the nonce manager re-reads the chain on the next prepare regardless
+  return promiseRetry({ retries: 3, minTimeout: 250, factor: 2 }, async (retry, attempt) => {
+    try {
+      return await prepareAndSend();
+    } catch (err) {
+      if (err instanceof viem.BaseError && err.walk((e) => e instanceof viem.UserRejectedRequestError)) {
+        throw err;
       }
+
+      try {
+        const didReset = await resetSignerNonce(signer);
+        debug(`broadcast attempt ${attempt} failed${didReset ? ' (reset nonce manager before retry)' : ''}:`, err);
+      } catch (resetErr) {
+        // a failed reset must not mask the broadcast error; the retried send will report it
+        debug('could not reset nonce manager before retry:', resetErr);
+      }
+
       return retry(err);
-    })
-  )) as viem.Hash;
+    }
+  });
 }
