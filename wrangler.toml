@@ -1,0 +1,7 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "usecannon"
+compatibility_date = "2026-06-09"
+
+[pages_build_config]
+build_command = "pnpm run build && cd packages/website && pnpm run build"
+build_output_dir = "./packages/website/out"
