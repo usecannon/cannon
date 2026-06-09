@@ -165,7 +165,7 @@ export function useCannonPackage({
   // Check if the cannonfile requires a previous package
   const requiresPrevPackage = Boolean(
     !hasDeployers &&
-      cannonDefInfo.def?.allActionNames.some((item) => item.startsWith('deploy.') || item.startsWith('contract.')),
+    cannonDefInfo.def?.allActionNames.some((item) => item.startsWith('deploy.') || item.startsWith('contract.')),
   );
 
   const isLoading =

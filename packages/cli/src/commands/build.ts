@@ -95,7 +95,9 @@ export async function build({
 
   if (dryRun && rpcUrl) {
     logSpinner(
-      chalk.yellowBright(chalk.bold('⚠️ This is a simulation. No changes will be made to the chain. No package data will be saved.\n')),
+      chalk.yellowBright(
+        chalk.bold('⚠️ This is a simulation. No changes will be made to the chain. No package data will be saved.\n'),
+      ),
     );
   }
 
@@ -228,7 +230,9 @@ export async function build({
   logSpinner('Preset: ' + chalk.cyanBright(`${preset}`) + (preset == 'main' ? chalk.gray(' (default)') : ''));
   logSpinner('Chain ID: ' + chalk.cyanBright(`${chainId}`));
   if (!privateSourceCode) {
-    logSpinner(`Private Source Code: ${chalk.cyanBright('false')} ${chalk.gray('(source code will be included in the package)')}`);
+    logSpinner(
+      `Private Source Code: ${chalk.cyanBright('false')} ${chalk.gray('(source code will be included in the package)')}`,
+    );
   } else {
     logSpinner(
       `Private Source Code: ${chalk.cyanBright('true')} ${chalk.gray('(source code will not be included in the resulting package)')}`,
@@ -274,7 +278,8 @@ export async function build({
     partialDeploy = true;
     logSpinner(
       chalk.yellowBright(
-        `${'  '.repeat(d)}  \u26A0\uFE0F  Skipping [${n}] (${typeof err === 'object' && err.toString === Object.prototype.toString ? JSON.stringify(err) : err.toString()
+        `${'  '.repeat(d)}  \u26A0\uFE0F  Skipping [${n}] (${
+          typeof err === 'object' && err.toString === Object.prototype.toString ? JSON.stringify(err) : err.toString()
         })`,
       ),
     );
@@ -319,7 +324,8 @@ export async function build({
       const contract = o.contracts[contractKey];
       if (contract.deployTxnHash) {
         logSpinner(
-          `${'  '.repeat(d)}  ${chalk.green('\u2714')} Successfully deployed ${contract.contractName}${c.create2 ? ' using CREATE2' : ''
+          `${'  '.repeat(d)}  ${chalk.green('\u2714')} Successfully deployed ${contract.contractName}${
+            c.create2 ? ' using CREATE2' : ''
           }`,
         );
         logSpinner(chalk.gray(`${'  '.repeat(d)}  Contract Address: ${contract.address}`));
@@ -488,7 +494,9 @@ export async function build({
         ),
       );
       logSpinner(
-        chalk.gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`),
+        chalk.gray(
+          `Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`,
+        ),
       );
       logSpinner('');
       logSpinner(
@@ -500,8 +508,8 @@ export async function build({
       logSpinner(`- Your partial deployment has been stored to ${deployUrl}`);
       logSpinner(
         '- Run ' +
-        chalk.bold(`cannon pin ${deployUrl}`) +
-        ' to pin the partial deployment package on IPFS. Then use https://usecannon.com/deploy to collect signatures from a Safe for the skipped operations in the partial deployment package.',
+          chalk.bold(`cannon pin ${deployUrl}`) +
+          ' to pin the partial deployment package on IPFS. Then use https://usecannon.com/deploy to collect signatures from a Safe for the skipped operations in the partial deployment package.',
       );
     } else {
       if (dryRun) {
@@ -512,7 +520,9 @@ export async function build({
             )} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`,
           ),
         );
-        logSpinner(chalk.bold(`💥 ${fullPackageRef} would have been successfully built on ${chainName} (Chain ID: ${chainId})`));
+        logSpinner(
+          chalk.bold(`💥 ${fullPackageRef} would have been successfully built on ${chainName} (Chain ID: ${chainId})`),
+        );
       } else {
         if (chainId == 13370) {
           logSpinner(chalk.bold(`💥 ${fullPackageRef} built for Cannon (Chain ID: ${chainId})`));

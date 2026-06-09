@@ -98,7 +98,8 @@ export async function decode({
     }
   }
 
-  const renderParam = (prefix: string, input: viem.AbiParameter) => `${prefix}${chalk.gray(input.type)} ${chalk.bold(input.name)}`;
+  const renderParam = (prefix: string, input: viem.AbiParameter) =>
+    `${prefix}${chalk.gray(input.type)} ${chalk.bold(input.name)}`;
 
   const renderArgs = (input: viem.AbiParameter, value: any, offset = '  ') => {
     switch (true) {

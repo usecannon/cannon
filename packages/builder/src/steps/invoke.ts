@@ -469,7 +469,7 @@ const invokeSpec = {
     if (config.args) {
       forEach(
         config.args,
-        (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(JSON.stringify(a))))
+        (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(JSON.stringify(a)))),
       );
     }
 
@@ -478,7 +478,7 @@ const invokeSpec = {
 
       forEach(
         config.fromCall.args,
-        (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(JSON.stringify(a))))
+        (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(JSON.stringify(a)))),
       );
     }
 

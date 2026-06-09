@@ -211,7 +211,7 @@ const deploySpec = {
     if (config.args) {
       forEach(
         config.args,
-        (v) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(JSON.stringify(v))))
+        (v) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(JSON.stringify(v)))),
       );
     }
 

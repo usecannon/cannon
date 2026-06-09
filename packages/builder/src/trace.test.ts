@@ -1,4 +1,10 @@
-import { CONSOLE_LOG_ADDRESS, renderTraceEntry, renderResult, parseContractErrorReason, parseFunctionData } from './trace.js';
+import {
+  CONSOLE_LOG_ADDRESS,
+  renderTraceEntry,
+  renderResult,
+  parseContractErrorReason,
+  parseFunctionData,
+} from './trace.js';
 import * as viem from 'viem';
 
 import chalk from 'chalk';

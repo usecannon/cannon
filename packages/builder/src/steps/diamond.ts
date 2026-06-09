@@ -349,7 +349,11 @@ async function firstTimeDeploy(
   for (const facet of [...baseFacets, ...mutabilityFacets]) {
     // load the diamond proxy contracts which may need to be deployed:
     const deployedAddr = await deployContract(facet.default as any, stepName + facet.default.contractName, []);
-    addFacets.push({ action: 0, facetAddress: deployedAddr, functionSelectors: getFacetSelectors(facet.default.abi as viem.Abi) });
+    addFacets.push({
+      action: 0,
+      facetAddress: deployedAddr,
+      functionSelectors: getFacetSelectors(facet.default.abi as viem.Abi),
+    });
   }
 
   // then, deploy the proxy

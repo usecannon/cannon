@@ -230,7 +230,7 @@ const cloneSpec = {
         [target, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
         runtime.chainId,
         ctx.imports[importLabel]?.url,
-        (await runtime.registry.getMetaUrl(source, chainId)) || ''
+        (await runtime.registry.getMetaUrl(source, chainId)) || '',
       );
 
       return {

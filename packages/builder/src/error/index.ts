@@ -11,7 +11,9 @@ const debug = Debug('cannon:builder:error');
 export function traceActions(artifacts: ChainArtifacts): (client: viem.Client) => {
   estimateGas: (args: viem.EstimateGasParameters) => Promise<bigint | undefined>;
   estimateContractGas: (args: viem.EstimateContractGasParameters) => Promise<bigint | undefined>;
-  prepareTransactionRequest: (args: viem.PrepareTransactionRequestParameters) => Promise<viem.PrepareTransactionRequestReturnType | undefined>;
+  prepareTransactionRequest: (
+    args: viem.PrepareTransactionRequestParameters,
+  ) => Promise<viem.PrepareTransactionRequestReturnType | undefined>;
   simulateContract: (args: viem.SimulateContractParameters) => Promise<viem.SimulateContractReturnType | undefined>;
 } {
   return (client: viem.Client) => {

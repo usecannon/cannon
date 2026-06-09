@@ -61,8 +61,8 @@ describe('steps/clone.ts', () => {
             var: { woot: '<%= settings.b %>', wah: '<%= settings.c %>' },
             options: { woot: '<%= settings.d %>', wah: '<%= settings.e %>', tags: '<%= settings.f %>' },
           },
-          new AccessRecorderEngine([])
-        )
+          new AccessRecorderEngine([]),
+        ),
       ).toEqual({
         accesses: ['settings.a', 'settings.b', 'settings.c', 'settings.d', 'settings.e', 'settings.f'],
         unableToCompute: false,

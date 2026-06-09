@@ -49,7 +49,10 @@ export class LocalRegistry extends CannonRegistry {
     return path.join(this.packagesDir, 'tags', `${name}_${version}_${variant}.txt.meta`);
   }
 
-  override async getUrl(packageRef: string, chainId: number): Promise<{ url: string | null; mutability: 'version' | 'tag' | '' }> {
+  override async getUrl(
+    packageRef: string,
+    chainId: number,
+  ): Promise<{ url: string | null; mutability: 'version' | 'tag' | '' }> {
     const { fullPackageRef } = new PackageReference(packageRef);
 
     const baseResolved = await super.getUrl(fullPackageRef, chainId);

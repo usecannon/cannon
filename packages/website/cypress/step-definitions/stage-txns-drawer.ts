@@ -59,12 +59,7 @@ When(
 When(
   'User sets the value of parameter {string} to {string} in the element # {int}',
   (paramName: string, paramValue: string, element: number) => {
-    cy.contains('div[role="group"] label', paramName)
-      .eq(element)
-      .siblings('div')
-      .find('input')
-      .clear()
-      .type(paramValue);
+    cy.contains('div[role="group"] label', paramName).eq(element).siblings('div').find('input').clear().type(paramValue);
   },
 );
 

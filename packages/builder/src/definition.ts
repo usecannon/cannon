@@ -1,6 +1,19 @@
 import crypto from 'crypto';
 import Debug from 'debug';
-import { clone, last, first, omit, sortBy, identity, sortedIndexOf, memoize, difference, uniq, maxBy, get as lodashGet } from 'lodash-es';
+import {
+  clone,
+  last,
+  first,
+  omit,
+  sortBy,
+  identity,
+  sortedIndexOf,
+  memoize,
+  difference,
+  uniq,
+  maxBy,
+  get as lodashGet,
+} from 'lodash-es';
 import type { Address } from 'viem';
 import { ActionKinds, RawChainDefinition, checkConfig } from './actions.js';
 import { ChainBuilderRuntime } from './runtime.js';
@@ -349,14 +362,7 @@ export class ChainDefinition {
     }
 
     this._leaves = new Set(
-      difference(
-        this.allActionNames,
-        uniq(
-          this.allActionNames
-            .map((n) => this.getDependencies(n))
-            .flat()
-        ),
-      ),
+      difference(this.allActionNames, uniq(this.allActionNames.map((n) => this.getDependencies(n)).flat())),
     );
 
     if (computeDepsDebug.enabled) {

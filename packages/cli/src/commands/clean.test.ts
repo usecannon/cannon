@@ -244,14 +244,14 @@ describe('cleanOrphanedIpfs function', () => {
         return Promise.resolve(
           JSON.stringify({
             state: { 'deploy.Contract': { url: 'ipfs://QmNested' } },
-          })
+          }),
         ) as any;
       }
       if (pathStr.includes(nestedHash)) {
         return Promise.resolve(
           JSON.stringify({
             state: { 'deploy.Sub': { metaUrl: 'ipfs://QmDeep' } },
-          })
+          }),
         ) as any;
       }
       if (pathStr.includes(deepHash)) {

@@ -829,9 +829,9 @@ export class OnChainRegistry extends CannonRegistry {
       getBuilderLogger().warn(
         chalk.bold(
           chalk.yellow(
-            `The address "${this.signer.address}" does not have enough funds to pay for the transaction, the transaction will likely revert.\n`
-          )
-        )
+            `The address "${this.signer.address}" does not have enough funds to pay for the transaction, the transaction will likely revert.\n`,
+          ),
+        ),
       );
     }
   }

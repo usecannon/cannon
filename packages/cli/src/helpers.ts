@@ -214,7 +214,7 @@ function loadPackageJson(filepath: string): { name: string; version: string } {
 function stripSymbols(obj: any) {
   if (typeof obj === 'object' && !Array.isArray(obj)) {
     return Object.entries(obj).reduce((acc, [k, v]) => {
-      (acc as any)[k] = stripSymbols(v)
+      (acc as any)[k] = stripSymbols(v);
       return acc;
     }, {});
   } else {

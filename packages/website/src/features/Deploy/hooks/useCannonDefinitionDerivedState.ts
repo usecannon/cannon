@@ -21,8 +21,8 @@ export function useCannonDefinitionDerivedState({
     () =>
       Boolean(
         cannonDefInfo?.def &&
-          !hasDeployers &&
-          cannonDefInfo.def.allActionNames.some((item) => item.startsWith('deploy.') || item.startsWith('contract.')),
+        !hasDeployers &&
+        cannonDefInfo.def.allActionNames.some((item) => item.startsWith('deploy.') || item.startsWith('contract.')),
       ),
     [cannonDefInfo?.def, hasDeployers],
   );

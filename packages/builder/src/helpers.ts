@@ -2,7 +2,12 @@ import * as viem from 'viem';
 import { mainnet, optimism } from 'viem/chains';
 import promiseRetry from 'promise-retry';
 import { getArtifacts } from './builder.js';
-import { CANNON_CHAIN_ID, DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_CONFIG, getCannonRepoRegistryUrl } from './constants.js';
+import {
+  CANNON_CHAIN_ID,
+  DEFAULT_REGISTRY_ADDRESS,
+  DEFAULT_REGISTRY_CONFIG,
+  getCannonRepoRegistryUrl,
+} from './constants.js';
 import { IPFSLoader } from './loader.js';
 import { PackageReference } from './package-reference.js';
 import { OnChainRegistry, FallbackRegistry, InMemoryRegistry } from './registry.js';

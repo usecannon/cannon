@@ -13,9 +13,7 @@ When('User clicks on the element with version {string} and chain {string}', (ver
 });
 
 When('User types {string} for {string} function param', (inputValue: string, functionName: string) => {
-  const element = cy.contains('p', functionName)
-    .closest('div[role="group"]')
-    .find('input');
+  const element = cy.contains('p', functionName).closest('div[role="group"]').find('input');
   element.clear();
   element.type(inputValue);
 });

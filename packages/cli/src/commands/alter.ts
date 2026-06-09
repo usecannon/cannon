@@ -89,7 +89,7 @@ export async function alter(
     if (!parentDeployInfo?.state[pathItem]) {
       if (!populateMissing) {
         throw new Error(
-          'subpkg path name not found: ' + pathItem + '. Use --populate-missing to auto-populate missing subpackages.'
+          'subpkg path name not found: ' + pathItem + '. Use --populate-missing to auto-populate missing subpackages.',
         );
       }
       debug('auto-populating missing subpkg', pathItem);
@@ -110,7 +110,7 @@ export async function alter(
       });
     } else {
       startDeployInfo.push(
-        await runtime.readBlob(parentDeployInfo.state[pathItem].artifacts.imports![pathItem.split('.')[1]].url)
+        await runtime.readBlob(parentDeployInfo.state[pathItem].artifacts.imports![pathItem.split('.')[1]].url),
       );
     }
   }
@@ -214,7 +214,7 @@ export async function alter(
         // importExisting can still record the txns (events won't be decoded).
         if (!configResolved && !config.target && populateMissing) {
           const receipts = await Promise.all(
-            existingKeys.map((key) => runtime.provider.getTransactionReceipt({ hash: key as `0x${string}` }))
+            existingKeys.map((key) => runtime.provider.getTransactionReceipt({ hash: key as `0x${string}` })),
           );
           config.target = receipts.map((r) => r.to);
           config.abi = '[]';

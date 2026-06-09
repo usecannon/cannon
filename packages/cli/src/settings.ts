@@ -214,7 +214,8 @@ function computeCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
               },
             ]
           : fileSettings.registries || DEFAULT_REGISTRY_CONFIG,
-      registryPriority: oneOf(process.env.CANNON_REGISTRY_PRIORITY, ['onchain', 'local', 'offline']) ||
+      registryPriority:
+        oneOf(process.env.CANNON_REGISTRY_PRIORITY, ['onchain', 'local', 'offline']) ||
         fileSettings.registryPriority ||
         'onchain',
       etherscanApiUrl: process.env.CANNON_ETHERSCAN_API_URL || fileSettings.etherscanApiUrl,
@@ -241,7 +242,9 @@ function computeCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
         name: 'Custom Network',
         rpcUrl: overrides.registryRpcUrl ? [overrides.registryRpcUrl] : undefined,
         chainId: overrides.registryChainId ? Number(overrides.registryChainId) : undefined,
-        address: overrides.registryAddress ? overrides.registryAddress : (process.env.CANNON_REGISTRY_ADDRESS as viem.Address),
+        address: overrides.registryAddress
+          ? overrides.registryAddress
+          : (process.env.CANNON_REGISTRY_ADDRESS as viem.Address),
       },
     ];
   }
@@ -272,4 +275,3 @@ function oneOf(value: string | undefined, options: string[]): any {
   }
   throw new Error(`Value must be one of: ${options.join(', ')}`);
 }
-

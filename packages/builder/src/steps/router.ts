@@ -131,7 +131,7 @@ const routerStep = {
     accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.salt));
     accesses = mergeTemplateAccesses(
       accesses,
-      engine.computeTemplateAccesses(typeof config.create2 === 'string' ? config.create2 : '')
+      engine.computeTemplateAccesses(typeof config.create2 === 'string' ? config.create2 : ''),
     );
     accesses.accesses.push(
       ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`)),

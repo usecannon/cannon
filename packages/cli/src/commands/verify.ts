@@ -29,7 +29,7 @@ export async function verify(
   packageRef: string,
   cliSettings: CliSettings,
   chainId: number,
-  service: 'etherscan' | 'sourcify' | 'all'
+  service: 'etherscan' | 'sourcify' | 'all',
 ) {
   const { fullPackageRef } = new PackageReference(packageRef);
 
@@ -137,7 +137,7 @@ export async function verify(
               constructorArguements: viem
                 .encodeAbiParameters(
                   contractArtifact.abi.find((i: viem.AbiItem) => i.type === 'constructor')?.inputs ?? [],
-                  contractInfo.constructorArgs || []
+                  contractInfo.constructorArgs || [],
                 )
                 .slice(2),
             };
@@ -192,7 +192,7 @@ export async function verify(
                 'content-type': 'application/json',
                 'User-Agent': 'Cannon CLI',
               },
-            }
+            },
           );
 
           if (res.status >= 300) {
@@ -241,7 +241,7 @@ export async function verify(
                 'content-type': 'application/x-www-form-urlencoded',
                 'User-Agent': 'Cannon CLI',
               },
-            }
+            },
           );
 
           if (res.data.status === '0') {
@@ -264,7 +264,7 @@ export async function verify(
               headers: {
                 'User-Agent': 'Cannon CLI',
               },
-            }
+            },
           );
 
           if (res.status === 200) {

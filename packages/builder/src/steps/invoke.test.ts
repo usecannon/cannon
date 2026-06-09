@@ -175,7 +175,7 @@ describe('steps/invoke.ts', () => {
               args: ['<%= contracts.h %>', '<%= contracts.i %>'],
               overrides: { gasLimit: '<%= contracts.j %>' },
             },
-            new AccessRecorderEngine([])
+            new AccessRecorderEngine([]),
           )
           .accesses.sort(),
       ).toEqual([

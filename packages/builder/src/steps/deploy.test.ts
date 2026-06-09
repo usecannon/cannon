@@ -161,7 +161,7 @@ describe('steps/deploy.ts', () => {
               args: ['<%= contracts.h %>', '<%= contracts.i %>'],
               salt: '<%= contracts.j %>',
             },
-            new AccessRecorderEngine([])
+            new AccessRecorderEngine([]),
           )
           .accesses.sort(),
       ).toEqual([
@@ -430,7 +430,7 @@ describe('steps/deploy.ts', () => {
   describe('importExisting', () => {
     it('throws if more than one existing key supplied', async () => {
       await expect(() =>
-        action.importExisting(fakeRuntime, fakeCtx, {} as any, { currentLabel: 'foo' } as any, ['one', 'two'])
+        action.importExisting(fakeRuntime, fakeCtx, {} as any, { currentLabel: 'foo' } as any, ['one', 'two']),
       ).rejects.toThrow('can only be deployed on one transaction');
     });
 
@@ -450,7 +450,7 @@ describe('steps/deploy.ts', () => {
         fakeCtx,
         { artifact: 'hello' } as any,
         { currentLabel: 'contract.Woot' } as any,
-        [rx.transactionHash]
+        [rx.transactionHash],
       );
 
       expect(result).toMatchObject({
@@ -489,7 +489,7 @@ describe('steps/deploy.ts', () => {
         fakeCtx,
         { artifact: 'hello' } as any,
         { currentLabel: 'contract.Woot' } as any,
-        [rx.transactionHash]
+        [rx.transactionHash],
       );
 
       expect(result).toMatchObject({
@@ -517,7 +517,7 @@ describe('steps/deploy.ts', () => {
       await expect(() =>
         action.importExisting(fakeRuntime, fakeCtx, { artifact: 'hello' } as any, { currentLabel: 'contract.Woot' } as any, [
           rx.transactionHash,
-        ])
+        ]),
       ).rejects.toThrow('does not appear to deploy a contract');
     });
   });

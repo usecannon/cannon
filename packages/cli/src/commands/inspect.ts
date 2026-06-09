@@ -87,7 +87,9 @@ export async function inspect(
     logSpinner();
     logSpinner(
       '   Deploy Status:',
-      deployInfo.status === 'partial' ? chalk.yellow(chalk.bold(deployInfo.status)) : chalk.green(deployInfo.status || 'complete'),
+      deployInfo.status === 'partial'
+        ? chalk.yellow(chalk.bold(deployInfo.status))
+        : chalk.green(deployInfo.status || 'complete'),
     );
     logSpinner(
       '         Options:',

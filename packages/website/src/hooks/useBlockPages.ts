@@ -77,7 +77,7 @@ export function useBlockPages(apiUrl: string, address: string) {
         setIsLoading(false);
       }
     },
-    [apiUrl, address, cache]
+    [apiUrl, address, cache],
   );
 
   // Get the block number to use for fetching a specific page (1-indexed)
@@ -87,7 +87,7 @@ export function useBlockPages(apiUrl: string, address: string) {
       // Page 2 uses pages[0], page 3 uses pages[1], etc.
       return cache.pages[pageIndex - 2] ?? '0';
     },
-    [cache.pages]
+    [cache.pages],
   );
 
   // Check if a page exists (for disabling next button)
@@ -100,7 +100,7 @@ export function useBlockPages(apiUrl: string, address: string) {
       // If we haven't reached the end, assume the page might exist
       return true;
     },
-    [cache.totalPages]
+    [cache.totalPages],
   );
 
   return {

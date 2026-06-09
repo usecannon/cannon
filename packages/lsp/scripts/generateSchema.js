@@ -11,7 +11,7 @@ fs.writeFileSync(
 // Generate fragment schema (for included TOML files without header)
 fs.writeFileSync(
   path.join('src', 'schema-fragment.json'),
-  JSON.stringify(zodToJsonSchema(cannonfileFragmentSchema))
+  JSON.stringify(zodToJsonSchema(cannonfileFragmentSchema)),
 );
 
 console.log('Generated schema.json and schema-fragment.json');

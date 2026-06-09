@@ -173,7 +173,9 @@ export async function trace({
       );
     } else {
       logSpinner(
-        chalk.red(chalk.bold(`Transaction completes with error: ${traces[0].result?.output ?? 'unknown'} (${totalGasUsed} gas)`)),
+        chalk.red(
+          chalk.bold(`Transaction completes with error: ${traces[0].result?.output ?? 'unknown'} (${totalGasUsed} gas)`),
+        ),
       );
     }
   } else {
