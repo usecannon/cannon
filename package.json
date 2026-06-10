@@ -54,27 +54,5 @@
     "pnpm": ">=9"
   },
   "packageManager": "pnpm@10.34.2+sha512.9ae7e3fe477c52bbce1ddc8aa196ff243ed4b48f1ceaa7455820adfa7a48b5f57e817ed2d20e5f3c2c3646dfedba360567693e534572dccd252fb2eb8b7c044c",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@badeball/cypress-cucumber-preprocessor",
-      "@foundry-rs/anvil",
-      "@parcel/watcher",
-      "@sentry/cli",
-      "bufferutil",
-      "contentlayer2",
-      "cypress",
-      "es5-ext",
-      "esbuild",
-      "keccak",
-      "msgpackr-extract",
-      "nx",
-      "protobufjs",
-      "redis-memory-server",
-      "secp256k1",
-      "sharp",
-      "unrs-resolver",
-      "utf-8-validate"
-    ]
-  },
   "version": "0.0.1"
 }
