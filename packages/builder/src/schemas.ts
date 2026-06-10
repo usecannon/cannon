@@ -139,11 +139,9 @@ export const deploySchema = z
      */
     abiOf: z
       .array(
-        z
-          .string()
-          .refine((val) => !!val.match(artifactNameRegex) || !!val.match(stepRegex), {
-            message: `Artifact name is invalid`,
-          }),
+        z.string().refine((val) => !!val.match(artifactNameRegex) || !!val.match(stepRegex), {
+          message: `Artifact name is invalid`,
+        }),
       )
       .describe(
         'An array of contract artifacts that have already been deployed with Cannon. This is useful when deploying proxy contracts.',

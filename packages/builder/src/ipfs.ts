@@ -104,7 +104,6 @@ export function setAxiosRetries(totalRetries = 3) {
   });
 }
 
-// eslint-disable-next-line
 export async function isIpfsGateway(ipfsUrl: string, _customHeaders?: any) {
   debug(`is-gateway ${ipfsUrl} false`);
   return false;

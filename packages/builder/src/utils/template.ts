@@ -1,5 +1,5 @@
 import 'ses';
-import { isPlainObject, template as lodashTemplate, isArray, mapValues, isFunction, entries, last } from 'lodash-es';
+import { isPlainObject, template as lodashTemplate } from 'lodash-es';
 import Debug from 'debug';
 import Fuse from 'fuse.js';
 import rfdc from 'rfdc';

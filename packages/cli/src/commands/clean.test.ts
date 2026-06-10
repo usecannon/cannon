@@ -210,8 +210,7 @@ describe('cleanOrphanedIpfs function', () => {
     // - ipfs://QmOrphan is not referenced by anything
     // All of QmRoot, QmNested, QmDeep should be kept; QmOrphan should be deleted
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const crypto = require('crypto');
+    const crypto = await import('node:crypto');
     const hashOf = (cid: string) => {
       const md5 = crypto.createHash('md5').update(cid).digest('hex');
       return `${md5}-${cid.toLowerCase()}`;

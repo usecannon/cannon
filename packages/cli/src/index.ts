@@ -380,62 +380,6 @@ applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(
         fullPackageRef = refInfo.fullPackageRef;
         chainId = refInfo.chainId;
       }
-
-      if (!givenIpfsUrl) {
-        throw new Error('IPFS URL is required.');
-      }
-
-      await fetch(fullPackageRef, chainId, getIpfsUrl(givenIpfsUrl)!, getIpfsUrl(options.metaHash) || undefined);
-    } catch (err) {
-      throw err;
-    }
-  },
-);
-
-applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(
-  async function (packageName, command, options, flags) {
-    try {
-      spinner?.update({ text: 'Altering...' });
-      const { alter } = await import('./commands/alter.js');
-
-      const cliSettings = resolveCliSettings(flags);
-
-      // throw an error if the chainId is not consistent with the provider's chainId
-      await ensureChainIdConsistency(cliSettings.rpcUrl, flags.chainId);
-
-      // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
-      const newUrl = await alter(
-        packageName,
-        flags.subpkg ? flags.subpkg.split(',') : [],
-        parseInt(flags.chainId),
-        cliSettings,
-        {},
-        command,
-        options,
-        {},
-      );
-
-      logSpinner(newUrl);
-      logSpinnerEnd();
-    } catch (err) {
-      logSpinnerEnd();
-      throw err;
-    }
-  },
-);
-
-applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(
-  async function (givenIpfsUrl, packageRef, options) {
-    try {
-      const { fetch } = await import('./commands/fetch.js');
-
-      let fullPackageRef = null;
-      let chainId = null;
-      if (packageRef) {
-        const refInfo = await getPackageReference(packageRef, options.chainId);
-        fullPackageRef = refInfo.fullPackageRef;
-        chainId = refInfo.chainId;
-      }
       const ipfsUrl = getIpfsUrl(givenIpfsUrl);
       const metaIpfsUrl = getIpfsUrl(options.metaHash) || undefined;
 

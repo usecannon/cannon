@@ -11,7 +11,7 @@ import {
   zeroAddress,
 } from 'viem';
 
-function createMakeMulticall(from: Address) {
+function _createMakeMulticall(from: Address) {
   return (
     txns: Partial<TransactionRequestBase>[],
   ): {
@@ -54,7 +54,7 @@ export async function contractCall(
   value: bigint,
   abi: Abi,
   publicClient: PublicClient,
-  pythUrl: string,
+  _pythUrl: string,
 ) {
   const data = encodeFunctionData({
     abi,
@@ -68,7 +68,7 @@ export async function contractCall(
     data,
   };
 
-  let call;
+  let _call;
   let res;
   try {
     res = await publicClient.call({ ...txn, account: from });
@@ -129,7 +129,7 @@ export async function contractTransaction(
   abi: Abi,
   publicClient: PublicClient,
   walletClient: WalletClient,
-  pythUrl: string,
+  _pythUrl: string,
 ) {
   const data = encodeFunctionData({
     abi,
@@ -143,9 +143,9 @@ export async function contractTransaction(
     value,
   };
 
-  let call;
+  let _call;
   try {
-    call = txn;
+    _call = txn;
   } catch (e) {
     // do nothing
   }
@@ -157,9 +157,9 @@ export async function contractTransaction(
   const hash = await walletClient.sendTransaction({
     chain: publicClient.chain!,
     account: from,
-    to: call?.to || to,
-    data: call?.data || data,
-    value: call?.value || value,
+    to: _call?.to || to,
+    data: _call?.data || data,
+    value: _call?.value || value,
   });
 
   return hash;

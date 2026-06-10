@@ -1,5 +1,5 @@
 import * as viem from 'viem';
-import { getDefaultStorage, getCannonContract } from './helpers.js';
+import { getDefaultStorage, getCannonContract, getBlockRetried } from './helpers.js';
 import { IPFSLoader, InMemoryLoader } from './loader.js';
 import { InMemoryRegistry, FallbackRegistry } from './registry.js';
 import { CannonStorage } from './runtime.js';

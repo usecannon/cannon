@@ -10,7 +10,7 @@ packages.get('/packages/:packageName', async (req: Request, res: Response) => {
     throw new BadRequestError(`Invalid package name "${req.params.packageName}"`);
   }
 
-  let pkgName = req.params.packageName as string;
+  const pkgName = req.params.packageName as string;
 
   const result = await findPackagesByName({
     packageName: pkgName,

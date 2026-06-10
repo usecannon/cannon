@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 import chalk from 'chalk';
 import Debug from 'debug';
 import { uniq } from 'lodash-es';

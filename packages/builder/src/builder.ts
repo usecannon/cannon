@@ -8,6 +8,7 @@ import { ChainDefinition } from './definition.js';
 import { ChainBuilderRuntime, Events } from './runtime.js';
 import { BuildOptions, ChainArtifacts, ChainBuilderContext, PackageState, PreChainBuilderContext } from './types.js';
 import { printChainDefinitionProblems } from './util.js';
+import type { CannonAction } from './actions.js';
 
 const debug = Debug('cannon:builder');
 const debugVerbose = Debug('cannon:verbose:builder');
@@ -63,8 +64,8 @@ ${printChainDefinitionProblems(problems)}`);
 
   debug('build', initialCtx.settings);
 
-  // Use awaited imports to prevent import cycle within the builder module
-  const { ActionKinds } = await import('./actions.js');
+  // ActionKinds type used for type narrowing below
+  // (runtime import at line ~358 where it's actually needed)
 
   // sanity check the network
   await runtime.checkNetwork();
@@ -168,7 +169,7 @@ ${printChainDefinitionProblems(problems)}`);
             continue; // will skip saving the build artifacts, which should block any future jobs from finishing
           } else {
             // fake emit the pre step execute so its easier to see what is going on
-            const [type, label] = n.split('.') as [keyof typeof ActionKinds, string];
+            const [type, label] = n.split('.') as [keyof { [label: string]: CannonAction }, string];
             runtime.emit(Events.PreStepExecute, type, label, {}, 0);
             // make sure its possible to debug the original error
             debug('error', err);
@@ -200,9 +201,11 @@ export async function buildLayer(
   built: Map<string, ChainArtifacts> = new Map(),
 ) {
   // Use awaited imports to prevent import cycle within the builder module
-  const { ActionKinds } = await import('./actions.js');
-
   const layers = def.getStateLayers();
+
+  // ActionKinds only needed as typeof for type narrowing; runtime usage is in getActionExecInfo
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { ActionKinds } = await import('./actions.js');
 
   const layer = layers[cur];
 

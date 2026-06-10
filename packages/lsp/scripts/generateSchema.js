@@ -1,4 +1,8 @@
-import { chainDefinitionSchema } from '@usecannon/builder/dist/src/schemas.js';
+import {
+  chainDefinitionSchema,
+  cannonfileFragmentSchema,
+} from '@usecannon/builder/dist/src/schemas.js';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 import fs from 'fs';
 import path from 'path';
 
@@ -14,4 +18,4 @@ fs.writeFileSync(
   JSON.stringify(zodToJsonSchema(cannonfileFragmentSchema)),
 );
 
-console.log('Generated schema.json and schema-fragment.json');
+process.stdout.write('Generated schema.json and schema-fragment.json\n');

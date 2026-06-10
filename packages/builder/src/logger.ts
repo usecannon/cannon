@@ -13,11 +13,10 @@ export interface Logger {
  */
 /* eslint-disable no-console */
 export const defaultLogger: Logger = {
-  // eslint-disable-next-line no-console
   log: console.log.bind(console),
-  // eslint-disable-next-line no-console
+
   error: console.error.bind(console),
-  // eslint-disable-next-line no-console
+
   warn: console.warn.bind(console),
 };
 /* eslint-enable no-console */
